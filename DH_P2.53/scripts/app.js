@@ -1893,6 +1893,17 @@ const SEASON_META_HEADERS = {
                 return parseRankValue(String(value)) ?? null;
             };
             if (statKey === 'fpts' || statKey === 'ppg') {
+                // Stats page uses pre-calculated ranks from sheets
+                if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
+                    const liveRank = statKey === 'fpts' 
+                        ? state.statsPagePlayerData.posRank 
+                        : state.statsPagePlayerData.ppgPosRank;
+                    const normalizedLiveRank = normalizeRank(liveRank);
+                    if (normalizedLiveRank !== null) {
+                        return normalizedLiveRank;
+                    }
+                }
+                // Rosters page calculates ranks from league matchup data
                 if (typeof calculatePlayerStatsAndRanks === 'function') {
                     const ranks = calculatePlayerStatsAndRanks(playerId);
                     if (ranks) {
@@ -2857,9 +2868,10 @@ const SEASON_META_HEADERS = {
                 ppg: playerRanks?.ppg
             };
             
+            // Stats page doesn't require league context (uses sheet data), other pages do
             const league = state.leagues.find(l => l.league_id === state.currentLeagueId);
-            if (!league) return;
-            const scoringSettings = league.scoring_settings;
+            if (!league && !state.isGameLogFromStatsPage) return;
+            const scoringSettings = league?.scoring_settings || {};
             const fullPlayer = state.players[player.id];
             const playerName = fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : player.name;
             const modalHeader = document.getElementById('modal-header');
