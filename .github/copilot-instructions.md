@@ -14,8 +14,7 @@ Always follow prompt instructions. This includes adhering to any specific guidel
 
 
 ## Project Structure Overview
-
-/oscarbrandsllc/dh-p3/DH-P3-P3.52-75
+DH-P3/DH_P2.53
   ├── .github
   │   └── copilot-instructions.md
   ├── .vscode
