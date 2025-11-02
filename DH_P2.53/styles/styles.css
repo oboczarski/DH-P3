@@ -5123,9 +5123,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 #player-comparison-modal .comparison-bar-right {
   background: linear-gradient(to left, #00e7c0d0, rgba(0, 231, 192, 0.6));
 }
-#player-comparison-modal .comparison-bar-left.worse-stat-bar,
+#player-comparison-modal .comparison-bar-left.worse-stat-bar {
+  opacity: 0.5;
+background: linear-gradient(to right, #52c2FFe0, rgba(82, 194, 255, 0.6));
+}
 #player-comparison-modal .comparison-bar-right.worse-stat-bar {
-  opacity: 0.35;
+  opacity: 0.5;
+  background: linear-gradient(to left, #00e7c0d0, rgba(0, 231, 192, 0.6));
+
 }
 #player-comparison-modal .best-stat {
     color: var(--color-accent-trade-win) !important;
