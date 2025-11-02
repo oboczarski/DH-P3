@@ -15,6 +15,7 @@
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <link href="../styles/stats.css?v=20250827" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c"/>
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c"/>
 <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c"/>
@@ -171,7 +172,7 @@
     </div>
     <div id="modal-body" class="modal-body"></div>
     <div id="stats-key-container" class="hidden stats-key-panel">
-      <h4>Player Game Log &amp; Stats Key</h4>
+      <h4>Stats Key</h4>
       <ul>
         <li><strong>FPTS:</strong> Fantasy Points</li>
         <li><strong>paATT:</strong> Passing Attempts</li>
@@ -213,8 +214,32 @@
         <li><strong>FUM:</strong> Fumbles Lost</li>
       </ul>
     </div>
+    <div id="radar-chart-container" class="hidden stats-key-panel">
+      <h4>Efficiency &amp; Production • Position Rankings</h4>
+      <div class="radar-chart-content">
+        <!-- Radar chart canvas will be dynamically created here -->
+      </div>
+    </div>
+    <div id="news-container" class="hidden stats-key-panel">
+      <h4>Player News &amp; Updates</h4>
+      <div class="news-content">
+        <p class="no-data-message">News updates coming soon.</p>
+      </div>
+    </div>
     <div class="modal-footer">
-      <div class="key-chip modal-info-btn">
+      <div class="key-chip modal-info-btn active" data-panel="game-logs">
+        <i class="fa-solid fa-rectangle-list"></i>
+        <span>GM-Logs</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="radar-chart">
+        <i class="fa-solid fa-chart-area"></i>
+        <span>Performance</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="news">
+        <i class="fa-solid fa-newspaper"></i>
+        <span>News</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="stats-key">
         <i class="fa-solid fa-key"></i>
         <span>Key</span>
       </div>

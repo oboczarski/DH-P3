@@ -179,7 +179,9 @@
     closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
     overlay: document.querySelector('#game-logs-modal .modal-overlay'),
     infoBtn: document.querySelector('#game-logs-modal .modal-info-btn'),
-    keyPanel: document.getElementById('stats-key-container')
+    keyPanel: document.getElementById('stats-key-container'),
+    radarPanel: document.getElementById('radar-chart-container'),
+    newsPanel: document.getElementById('news-container')
   };
   if (dom.leagueChip) {
     dom.leagueChip.textContent = 'DH DATA HUB';
@@ -868,25 +870,103 @@
       closeModal();
     } else if (gameLogDom.modal) {
       gameLogDom.modal.classList.add('hidden');
+      
+      // Hide all overlay panels
       gameLogDom.keyPanel?.classList.add('hidden');
+      gameLogDom.radarPanel?.classList.add('hidden');
+      gameLogDom.newsPanel?.classList.add('hidden');
+      
+      // Reset to game-logs active state
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-panel') === 'game-logs') {
+          btn.classList.add('active');
+        }
+      });
     }
+    
     if (typeof state === 'object') {
       state.isGameLogModalOpenFromComparison = false;
       state.isGameLogFromStatsPage = false;
-      state.statsPagePlayerData = null; // Clear the data
+      state.statsPagePlayerData = null;
+      state.currentGameLogsPlayer = null;
     }
   }
   function wireGameLogControls() {
     if (!gameLogDom.modal) return;
+    
     if (!gameLogDom.modal.dataset.statsWired) {
       gameLogDom.closeBtn?.addEventListener('click', performModalClose);
       gameLogDom.overlay?.addEventListener('click', performModalClose);
-      gameLogDom.infoBtn?.addEventListener('click', () => {
-        if (!gameLogDom.keyPanel) return;
-        gameLogDom.keyPanel.classList.toggle('hidden');
+      
+      // Panel toggle buttons with tab-like behavior
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetPanel = btn.getAttribute('data-panel');
+          const overlayContainers = {
+            'stats-key': gameLogDom.keyPanel,
+            'radar-chart': gameLogDom.radarPanel,
+            'news': gameLogDom.newsPanel
+          };
+          
+          // Special handling for game-logs - can't be toggled off
+          if (targetPanel === 'game-logs') {
+            // Hide all overlay panels to show game logs underneath
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
+            
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            return;
+          }
+          
+          // Check if the clicked overlay panel is currently visible
+          const isCurrentlyVisible = overlayContainers[targetPanel] && 
+                                     !overlayContainers[targetPanel].classList.contains('hidden');
+          
+          // For overlay panels (stats-key, radar-chart, news)
+          if (isCurrentlyVisible) {
+            // Toggling off - return to game-logs view
+            overlayContainers[targetPanel].classList.add('hidden');
+            
+            // Update button active states - activate game-logs
+            modalInfoBtns.forEach(b => {
+              b.classList.remove('active');
+              if (b.getAttribute('data-panel') === 'game-logs') {
+                b.classList.add('active');
+              }
+            });
+          } else {
+            // Opening a new overlay panel - hide other overlays first
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
+            
+            // Show the target overlay panel
+            overlayContainers[targetPanel].classList.remove('hidden');
+            
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // If opening radar chart panel, render chart
+            if (targetPanel === 'radar-chart' && typeof renderPlayerRadarChart === 'function') {
+              const player = state.currentGameLogsPlayer;
+              if (player && player.pos) {
+                renderPlayerRadarChart(player.id, player.pos);
+              }
+            }
+          }
+        });
       });
+      
       gameLogDom.modal.dataset.statsWired = '1';
     }
+    
     if (!escapeKeyBound) {
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && gameLogDom.modal && !gameLogDom.modal.classList.contains('hidden')) {
