@@ -179,7 +179,9 @@
     closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
     overlay: document.querySelector('#game-logs-modal .modal-overlay'),
     infoBtn: document.querySelector('#game-logs-modal .modal-info-btn'),
-    keyPanel: document.getElementById('stats-key-container')
+    keyPanel: document.getElementById('stats-key-container'),
+    radarPanel: document.getElementById('radar-chart-container'),
+    newsPanel: document.getElementById('news-container')
   };
   if (dom.leagueChip) {
     dom.leagueChip.textContent = 'DH DATA HUB';
@@ -868,100 +870,101 @@
       closeModal();
     } else if (gameLogDom.modal) {
       gameLogDom.modal.classList.add('hidden');
+      
+      // Hide all overlay panels
       gameLogDom.keyPanel?.classList.add('hidden');
+      gameLogDom.radarPanel?.classList.add('hidden');
+      gameLogDom.newsPanel?.classList.add('hidden');
+      
+      // Reset to game-logs active state
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-panel') === 'game-logs') {
+          btn.classList.add('active');
+        }
+      });
     }
+    
     if (typeof state === 'object') {
       state.isGameLogModalOpenFromComparison = false;
       state.isGameLogFromStatsPage = false;
-      state.statsPagePlayerData = null; // Clear the data
+      state.statsPagePlayerData = null;
+      state.currentGameLogsPlayer = null;
     }
   }
   function wireGameLogControls() {
-    console.log('[STATS.JS] wireGameLogControls called');
-    console.log('[STATS.JS] gameLogDom.modal:', gameLogDom.modal);
-    
-    if (!gameLogDom.modal) {
-      console.error('[STATS.JS] No modal found! Cannot wire controls.');
-      return;
-    }
-    
-    // Get all panel containers
-    const radarContainer = document.getElementById('radar-chart-container');
-    const newsContainer = document.getElementById('news-container');
-    const modalBody = document.getElementById('modal-body');
-    const keyPanel = document.getElementById('stats-key-container');
-    
-    console.log('[STATS.JS] Panel containers:', { radarContainer, newsContainer, modalBody, keyPanel });
+    if (!gameLogDom.modal) return;
     
     if (!gameLogDom.modal.dataset.statsWired) {
-      console.log('[STATS.JS] Wiring modal controls...');
-      
       gameLogDom.closeBtn?.addEventListener('click', performModalClose);
       gameLogDom.overlay?.addEventListener('click', performModalClose);
       
-      // Panel switching for all modal-info-btn buttons
+      // Panel toggle buttons with tab-like behavior
       const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
-      console.log('[STATS.JS] Found', modalInfoBtns.length, 'modal info buttons');
-      
       modalInfoBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-          const panel = btn.dataset.panel;
-          console.log('[STATS.JS] Button clicked, panel:', panel);
+          const targetPanel = btn.getAttribute('data-panel');
+          const overlayContainers = {
+            'stats-key': gameLogDom.keyPanel,
+            'radar-chart': gameLogDom.radarPanel,
+            'news': gameLogDom.newsPanel
+          };
           
-          // Remove active from all buttons
-          modalInfoBtns.forEach(b => b.classList.remove('active'));
-          
-          // Add active to clicked button
-          btn.classList.add('active');
-          
-          // Hide ALL panels first
-          if (modalBody) modalBody.classList.add('hidden');
-          if (keyPanel) keyPanel.classList.add('hidden');
-          if (radarContainer) radarContainer.classList.add('hidden');
-          if (newsContainer) newsContainer.classList.add('hidden');
-          
-          console.log('[STATS.JS] All panels hidden');
-          
-          // Show selected panel
-          if (panel === 'game-logs') {
-            if (modalBody) modalBody.classList.remove('hidden');
-            console.log('[STATS.JS] Showing game logs');
-          } else if (panel === 'stats-key') {
-            if (keyPanel) keyPanel.classList.remove('hidden');
-            console.log('[STATS.JS] Showing stats key');
-          } else if (panel === 'radar-chart') {
-            if (radarContainer) radarContainer.classList.remove('hidden');
-            console.log('[STATS.JS] Showing radar chart container');
+          // Special handling for game-logs - can't be toggled off
+          if (targetPanel === 'game-logs') {
+            // Hide all overlay panels to show game logs underneath
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
             
-            // Trigger radar chart rendering (app.js function)
-            console.log('[STATS.JS] Checking for renderPlayerRadarChart...', typeof renderPlayerRadarChart);
-            console.log('[STATS.JS] state:', typeof state, state);
-            console.log('[STATS.JS] state.currentGameLogsPlayer:', state?.currentGameLogsPlayer);
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            return;
+          }
+          
+          // Check if the clicked overlay panel is currently visible
+          const isCurrentlyVisible = overlayContainers[targetPanel] && 
+                                     !overlayContainers[targetPanel].classList.contains('hidden');
+          
+          // For overlay panels (stats-key, radar-chart, news)
+          if (isCurrentlyVisible) {
+            // Toggling off - return to game-logs view
+            overlayContainers[targetPanel].classList.add('hidden');
             
-            if (typeof renderPlayerRadarChart === 'function' && typeof state !== 'undefined' && state.currentGameLogsPlayer) {
-              const player = state.currentGameLogsPlayer;
-              console.log('[STATS.JS] Player data:', player);
-              
-              if (player && player.id && player.pos) {
-                console.log('[STATS.JS] Calling renderPlayerRadarChart with:', player.id, player.pos);
-                renderPlayerRadarChart(player.id, player.pos);
-              } else {
-                console.error('[STATS.JS] Player missing id or pos:', player);
+            // Update button active states - activate game-logs
+            modalInfoBtns.forEach(b => {
+              b.classList.remove('active');
+              if (b.getAttribute('data-panel') === 'game-logs') {
+                b.classList.add('active');
               }
-            } else {
-              console.error('[STATS.JS] Cannot render radar chart. renderPlayerRadarChart:', typeof renderPlayerRadarChart, 'state:', typeof state, 'player:', state?.currentGameLogsPlayer);
+            });
+          } else {
+            // Opening a new overlay panel - hide other overlays first
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
+            
+            // Show the target overlay panel
+            overlayContainers[targetPanel].classList.remove('hidden');
+            
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // If opening radar chart panel, render chart
+            if (targetPanel === 'radar-chart' && typeof renderPlayerRadarChart === 'function') {
+              const player = state.currentGameLogsPlayer;
+              if (player && player.pos) {
+                renderPlayerRadarChart(player.id, player.pos);
+              }
             }
-          } else if (panel === 'news') {
-            if (newsContainer) newsContainer.classList.remove('hidden');
-            console.log('[STATS.JS] Showing news');
           }
         });
       });
       
       gameLogDom.modal.dataset.statsWired = '1';
-      console.log('[STATS.JS] Modal controls wired successfully');
-    } else {
-      console.log('[STATS.JS] Modal already wired');
     }
     
     if (!escapeKeyBound) {
