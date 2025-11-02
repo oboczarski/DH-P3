@@ -213,8 +213,32 @@
         <li><strong>FUM:</strong> Fumbles Lost</li>
       </ul>
     </div>
+    <div id="radar-chart-container" class="hidden stats-key-panel">
+        <h4> Efficiency & Production • Position Rankings </h4>
+        <div class="radar-chart-content">
+          <!-- Radar chart will be dynamically rendered here -->
+        </div>
+    </div>
+    <div id="news-container" class="hidden stats-key-panel">
+        <h4>Player News & Updates</h4>
+        <div class="news-content">
+          <!-- News content will be rendered here -->
+        </div>
+    </div>
     <div class="modal-footer">
-      <div class="key-chip modal-info-btn">
+      <div class="key-chip modal-info-btn active" data-panel="game-logs">
+        <i class="fa-solid fa-rectangle-list"></i>
+        <span>GM-Logs</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="radar-chart">
+        <i class="fa-solid fa-chart-area"></i>
+        <span>Performance</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="news">
+        <i class="fa-solid fa-newspaper"></i>
+        <span>News</span>
+      </div>
+      <div class="key-chip modal-info-btn" data-panel="stats-key">
         <i class="fa-solid fa-key"></i>
         <span>Key</span>
       </div>

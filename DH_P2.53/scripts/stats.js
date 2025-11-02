@@ -878,15 +878,54 @@
   }
   function wireGameLogControls() {
     if (!gameLogDom.modal) return;
+    
+    // Get all panel containers
+    const radarContainer = document.getElementById('radar-chart-container');
+    const newsContainer = document.getElementById('news-container');
+    const modalBody = document.getElementById('modal-body');
+    
     if (!gameLogDom.modal.dataset.statsWired) {
       gameLogDom.closeBtn?.addEventListener('click', performModalClose);
       gameLogDom.overlay?.addEventListener('click', performModalClose);
-      gameLogDom.infoBtn?.addEventListener('click', () => {
-        if (!gameLogDom.keyPanel) return;
-        gameLogDom.keyPanel.classList.toggle('hidden');
+      
+      // Panel switching for all modal-info-btn buttons
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const panel = btn.dataset.panel;
+          
+          // Remove active from all buttons
+          modalInfoBtns.forEach(b => b.classList.remove('active'));
+          
+          // Add active to clicked button
+          btn.classList.add('active');
+          
+          // Hide all panels
+          modalBody?.classList.add('hidden');
+          gameLogDom.keyPanel?.classList.add('hidden');
+          radarContainer?.classList.add('hidden');
+          newsContainer?.classList.add('hidden');
+          
+          // Show selected panel
+          if (panel === 'game-logs') {
+            modalBody?.classList.remove('hidden');
+          } else if (panel === 'stats-key') {
+            gameLogDom.keyPanel?.classList.remove('hidden');
+          } else if (panel === 'radar-chart') {
+            radarContainer?.classList.remove('hidden');
+            // Trigger radar chart rendering (app.js function)
+            if (typeof renderPlayerRadarChart === 'function') {
+              renderPlayerRadarChart();
+            }
+          } else if (panel === 'news') {
+            newsContainer?.classList.remove('hidden');
+          }
+        });
       });
+      
       gameLogDom.modal.dataset.statsWired = '1';
     }
+    
     if (!escapeKeyBound) {
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && gameLogDom.modal && !gameLogDom.modal.classList.contains('hidden')) {
