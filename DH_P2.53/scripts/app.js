@@ -2734,14 +2734,16 @@ const SEASON_META_HEADERS = {
             loadingPanel.className = 'game-logs-loading-container';
             loadingPanel.innerHTML = `
                 <div class="game-logs-loading-content">
-                    <div class="game-logs-loading-spinner"></div>
+                    <div class="game-logs-loading-spinner">
+                </div>
                     <p class="game-logs-loading-message">
-                        <strong>Syncing Game Logs for All Players</strong>
-                        Fetching Game Logs Across All Your Leagues — This May Take a Few Seconds...
+                        <strong>Syncing Game Logs ⇄</strong>
+                        Fetching Game Log Data for All Players Across Your Leagues <br>
+                       <br> — This May Take a Few Seconds...
                     </p>
                 </div>
                 <p class="game-logs-loading-footer">
-                    <em>One-Time Sync & Synced Across the Board → After the initial load, access every game log instantly—no extra loading (per-session)</em>
+                    <em>One-Time Sync <b>&</b> Synced Across the Board...   ➜ After this initial load, access every game log instantly—no extra loading  (per-session)</em>
                 </p>
             `;
             modalContent.appendChild(loadingPanel);
