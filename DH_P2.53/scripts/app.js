@@ -2732,13 +2732,17 @@ const SEASON_META_HEADERS = {
             
             const loadingPanel = document.createElement('div');
             loadingPanel.className = 'game-logs-loading-container';
+            // Different message for stats page vs rosters page
+            const loadingMessage = state.isGameLogFromStatsPage
+                ? 'Fetching Game Log Data for All Players'
+                : 'Fetching Game Log Data for All Players Across Your Leagues';
             loadingPanel.innerHTML = `
                 <div class="game-logs-loading-content">
                     <div class="game-logs-loading-spinner">
                 </div>
                     <p class="game-logs-loading-message">
                         <strong>Syncing Game Logs ⇄</strong>
-                        Fetching Game Log Data for All Players Across Your Leagues <br>
+                        ${loadingMessage} <br>
                        <br> — This May Take a Few Seconds...
                     </p>
                 </div>
@@ -5312,10 +5316,15 @@ const wrTeStatOrder = [
             const numericValue = Number(value);
             if (Number.isNaN(numericValue)) return 'N/A';
 
-            // Percentage stats
+            // Percentage stats (1 decimal)
             if (statKey === 'cmp_pct' || statKey === 'snp_pct' || statKey === 'ts_per_rr' || 
-                statKey === 'first_down_rec_rate' || statKey === 'prs_pct' || statKey === 'pass_imp_per_att') {
+                statKey === 'prs_pct' || statKey === 'pass_imp_per_att') {
                 return numericValue.toFixed(1) + '%';
+            }
+            
+            // 1DRR (first_down_rec_rate) - 2 decimals, not a percentage display in radar
+            if (statKey === 'first_down_rec_rate') {
+                return numericValue.toFixed(2);
             }
             
             // FPTS and PPG - always 1 decimal place
@@ -5328,6 +5337,11 @@ const wrTeStatOrder = [
                 return Math.round(numericValue).toString();
             }
             if (statKey === 'yds_total') {
+                return Math.round(numericValue).toString();
+            }
+            
+            // recYPG - whole number (matches table formatting)
+            if (statKey === 'rec_ypg') {
                 return Math.round(numericValue).toString();
             }
             
