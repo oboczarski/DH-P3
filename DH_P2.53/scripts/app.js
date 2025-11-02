@@ -5340,9 +5340,9 @@ const wrTeStatOrder = [
                 return Math.round(numericValue).toString();
             }
             
-            // recYPG - whole number (matches table formatting)
+            // recYPG - 1 decimal place (matches table formatting)
             if (statKey === 'rec_ypg') {
-                return Math.round(numericValue).toString();
+                return numericValue.toFixed(1);
             }
             
             // Rating stats (1 decimal)
