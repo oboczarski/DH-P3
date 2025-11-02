@@ -976,3 +976,44 @@ body[data-page="stats"] .glass-panel {
   border-radius: 10px;
   box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
 }
+
+/* Game Logs Modal - Correct container positioning (override incorrect global selectors) */
+body[data-page="stats"] #game-logs-modal #radar-chart-container,
+body[data-page="stats"] #game-logs-modal #news-container {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0.8rem;
+  max-height: none;
+  overflow-y: auto;
+  border-radius: 9px;
+  z-index: 5;
+}
+
+body[data-page="stats"] #game-logs-modal #radar-chart-container {
+  background: radial-gradient(circle at center, #151723 15%, #262940 100%);
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(119, 119, 153, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+body[data-page="stats"] #game-logs-modal #news-container {
+  background: rgba(13, 14, 27, 0.95);
+  border: 1px solid #444;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+}
+
+body[data-page="stats"] #game-logs-modal .radar-chart-content {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+body[data-page="stats"] #game-logs-modal .radar-chart-content canvas {
+  width: 100% !important;
+  height: 100% !important;
+}

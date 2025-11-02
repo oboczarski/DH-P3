@@ -914,8 +914,11 @@
           } else if (panel === 'radar-chart') {
             radarContainer?.classList.remove('hidden');
             // Trigger radar chart rendering (app.js function)
-            if (typeof renderPlayerRadarChart === 'function') {
-              renderPlayerRadarChart();
+            if (typeof renderPlayerRadarChart === 'function' && typeof state !== 'undefined' && state.currentGameLogsPlayer) {
+              const player = state.currentGameLogsPlayer;
+              if (player && player.id && player.pos) {
+                renderPlayerRadarChart(player.id, player.pos);
+              }
             }
           } else if (panel === 'news') {
             newsContainer?.classList.remove('hidden');
