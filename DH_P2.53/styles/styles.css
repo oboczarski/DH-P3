@@ -3981,15 +3981,11 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
     #modal-body tfoot th {
         color: var(--color-accent-primary);
         white-space:nowrap;
-        padding: 0.25rem 0rem 0.35rem 0.02rem;
+        padding: 0.1rem 0rem 0.035rem 0.02rem;
     }
     #game-logs-modal .game-logs-table-footer tfoot tr:first-child th {
         padding-top: 0.35rem;
         padding-bottom: 0.35rem;
-    }
-    
-    /* Ensure footer header row has consistent vertical alignment */
-    #game-logs-modal .game-logs-table-footer tfoot tr:first-child th {
         vertical-align: middle;
     }
     #modal-body .no-logs {
@@ -4383,26 +4379,21 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
   }
 /* · · Table Footer · · */
     .modal-table-footer-label {
-        padding-top: 0.2rem;
+        line-height: 1.1;
+        padding-top: 0.3rem;
         padding-bottom: 0rem;
-        vertical-align: bottom;
-        text-align: center;
+        vertical-align: middle;
     }
-    .modal-table-footer-label .season-label {
-        font-size: 0.72rem;
+    .modal-table-footer-label .season-label{
+        margin-top: 4px;
+        font-size: 1.1em;   /* tweak */
         color: var(--color-text-secondary);
-        display: block;
-        line-height: 1.08;
-        margin-bottom: 0.2rem;
-        font-weight: 500;
-    }
+        }
     .modal-table-footer-label .gp-label {
-        font-size: 0.6rem;
+        font-size: 0.95em;
         color: var(--color-text-tertiary);
         display: block;
-        line-height: 1;
-        margin-top: 0.02rem;
-        white-space: nowrap;
+        margin-top: 2px;
     }
 /* · · Unplayed and Bye Week Row Styles · · */
 #modal-body tbody tr.unplayed-week-row {
@@ -4466,7 +4457,7 @@ padding: 0.15rem 0rem 0rem 0rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     margin-top: 0.35rem;
     margin-bottom: 0.15rem;
     font-size: 0.75rem;
@@ -4478,7 +4469,7 @@ padding: 0.15rem 0rem 0rem 0rem;
     margin-bottom: 0.05rem;
 }
 .modal-info-btn {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     line-height: 0.8rem;
     cursor: pointer;
     transition: color 0.2s ease, filter 0.2s ease, transform 0.1s ease;
