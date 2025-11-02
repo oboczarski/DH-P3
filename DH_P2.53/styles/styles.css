@@ -3986,6 +3986,10 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
     #game-logs-modal .game-logs-table-footer tfoot tr:first-child th {
         padding-top: 0.35rem;
         padding-bottom: 0.35rem;
+    }
+    
+    /* Ensure footer header row has consistent vertical alignment */
+    #game-logs-modal .game-logs-table-footer tfoot tr:first-child th {
         vertical-align: middle;
     }
     #modal-body .no-logs {
@@ -4379,21 +4383,26 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
   }
 /* · · Table Footer · · */
     .modal-table-footer-label {
-        line-height: 1.1;
-        padding-top: 0.3rem;
+        padding-top: 0.2rem;
         padding-bottom: 0rem;
-        vertical-align: middle;
+        vertical-align: bottom;
+        text-align: center;
     }
-    .modal-table-footer-label .season-label{
-        margin-top: 4px;
-        font-size: 1.1em;   /* tweak */
+    .modal-table-footer-label .season-label {
+        font-size: 0.72rem;
         color: var(--color-text-secondary);
-        }
+        display: block;
+        line-height: 1.08;
+        margin-bottom: 0.2rem;
+        font-weight: 500;
+    }
     .modal-table-footer-label .gp-label {
-        font-size: 0.95em;
+        font-size: 0.6rem;
         color: var(--color-text-tertiary);
         display: block;
-        margin-top: 2px;
+        line-height: 1;
+        margin-top: 0.02rem;
+        white-space: nowrap;
     }
 /* · · Unplayed and Bye Week Row Styles · · */
 #modal-body tbody tr.unplayed-week-row {
