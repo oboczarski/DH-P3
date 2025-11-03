@@ -8223,21 +8223,13 @@ body[data-page="research"] #secondary-header-row {
       min-width: 4rem;
     }
 
+
     body[data-page="rosters"] .view-switcher {
       flex: 0 1 auto;
     }
   }
-
-  /* Game logs and player comparison modals - extend to page header */
-  body[data-page="rosters"] #game-logs-modal,
-  body[data-page="rosters"] #player-comparison-modal {
-    top: 5.5rem;
-  }
-
-  body[data-page="rosters"] #game-logs-modal .modal-content,
-  body[data-page="rosters"] #player-comparison-modal .modal-content {
-    max-height: calc(100vh - 5.5rem);
-  }
 }
+
+
 
 
