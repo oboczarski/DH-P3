@@ -758,9 +758,9 @@ n {
             gap: 0.5rem;
         }
         #contextual-controls .header-row:has(#positional-filters) {
-            gap: 0.0125rem;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
+            gap: 0.15rem;
+            padding-left: 0.15rem;
+            padding-right: 0.2rem;
         }
         #primary-header-row .menu-container,
         #secondary-header-row .analyzer-button-container,
@@ -8128,9 +8128,9 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.18rem 0.42rem !important;
+    padding: 0.3rem 0.32rem !important;
     gap: 0.08rem;
-    min-width: 3rem;
+    min-width: 2.7rem;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
@@ -8146,12 +8146,12 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] .view-switcher {
     order: 2;
     flex: 0 0 auto;
-    padding: 0.08rem;
+    padding: 0.08rem 0.08rem;
     gap: 0;
   }
 
   body[data-page="rosters"] .view-switcher button {
-    padding: 0.2rem 0.32rem !important;
+    padding: 0.3rem 0.4rem !important;
     min-height: 1.5rem;
     font-size: 0.6rem !important;
     gap: 0.04rem;
@@ -8174,7 +8174,7 @@ body[data-page="research"] #secondary-header-row {
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0.32rem;
     overflow: visible;
   }
 
@@ -8188,7 +8188,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .filter-btn {
-    padding: 0.1rem 0.35rem !important;
+    padding: 0.25rem 0.35rem !important;
     font-size: 0.72rem !important;
     font-weight: 400;
     flex: 1 1 0;
