@@ -7803,8 +7803,8 @@ body[data-page="research"] #secondary-header-row {
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
   background: rgba(45, 40, 57, 0.35);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
 }
@@ -7945,7 +7945,7 @@ body[data-page="research"] #secondary-header-row {
   border-radius: 1rem;
   background: rgba(45, 40, 57, 0.35);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   display: flex;
