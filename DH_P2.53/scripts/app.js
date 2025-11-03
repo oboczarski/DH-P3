@@ -859,6 +859,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     clearTrade();
                     setTimeout(() => window.scrollTo(0, 0), 0); // scroll to top
                     updateHeaderPreviewState(); // call before render
+                    if (typeof window.updateMobileLeagueNav === 'function') {
+                        window.updateMobileLeagueNav();
+                    }
                     renderAllTeamData(state.currentTeams);
                 } else {
                     // If a new team is selected

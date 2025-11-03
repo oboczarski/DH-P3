@@ -7779,6 +7779,8 @@ body[data-page="research"] #secondary-header-row {
   right: 0;
   z-index: 100;
   padding: 1rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   pointer-events: none;
 }
 
@@ -7794,6 +7796,8 @@ body[data-page="research"] #secondary-header-row {
   justify-content: space-between;
   height: 3.5rem;
   width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
   overflow: hidden;
   border-radius: 1.95rem;
   pointer-events: auto;
