@@ -9,9 +9,7 @@
   "githubPullRequests.codingAgent.promptForConfirmation": false,
   "chat.agent.maxRequests": 50,
   "chat.agent.thinkingStyle": "collapsedPerItem",
-  "chat.agent.todoList": {
-    "position": "default"
-  },
+  "chat.agent.todoList": { "position": "default" },
   "chat.editing.confirmEditRequestRetry": false,
   "chat.fontSize": 11,
   "chat.editor.fontSize": 10,
@@ -73,6 +71,14 @@
             "support.variable.property"
           ],
           "settings": { "foreground": "#46f8bd" }
+        },
+        {
+          "name": "Markdown comments → salmon",
+          "scope": [
+            "text.html.markdown comment",
+            "text.html.markdown punctuation.definition.comment"
+          ],
+          "settings": { "foreground": "#FA8072" }
         }
       ]
     }
@@ -88,5 +94,109 @@
       }
     }
   },
-  "liveServer.settings.port": 5501
+
+  /* ---------- TODO Highlight (JS only, literals) ---------- */
+  "todohighlight.isEnable": true,
+  "todohighlight.include": ["**/*.js"],
+  "todohighlight.isCaseSensitive": true,
+  "todohighlight.defaultStyle": {
+    "backgroundColor": "#00000000",
+    "overviewRulerColor": "#00000000",
+    "border": "none"
+  },
+
+  "todohighlight.keywords": [
+    /* ===== Containers / Structure → #9300ff ===== */
+    /* Opening tags WITHOUT attributes (includes '>') */
+    { "text": "<div>", "color": "#9300ff" },
+    { "text": "<span>", "color": "#9300ff" },
+    { "text": "<p>", "color": "#9300ff" },
+    { "text": "<section>", "color": "#9300ff" },
+    { "text": "<article>", "color": "#9300ff" },
+    { "text": "<header>", "color": "#9300ff" },
+    { "text": "<footer>", "color": "#9300ff" },
+    { "text": "<main>", "color": "#9300ff" },
+    { "text": "<nav>", "color": "#9300ff" },
+    { "text": "<aside>", "color": "#9300ff" },
+    { "text": "<figure>", "color": "#9300ff" },
+    { "text": "<figcaption>", "color": "#9300ff" },
+    { "text": "<address>", "color": "#9300ff" },
+    { "text": "<ul>", "color": "#9300ff" },
+    { "text": "<ol>", "color": "#9300ff" },
+    { "text": "<li>", "color": "#9300ff" },
+    { "text": "<dl>", "color": "#9300ff" },
+    { "text": "<dt>", "color": "#9300ff" },
+    { "text": "<dd>", "color": "#9300ff" },
+    { "text": "<h1>", "color": "#9300ff" },
+    { "text": "<h2>", "color": "#9300ff" },
+    { "text": "<h3>", "color": "#9300ff" },
+    { "text": "<h4>", "color": "#9300ff" },
+    { "text": "<h5>", "color": "#9300ff" },
+    { "text": "<h6>", "color": "#9300ff" },
+    /* Self/void tags */
+    { "text": "<br>", "color": "#9300ff" },
+    { "text": "<hr>", "color": "#9300ff" },
+
+    /* Closing tags (always no attributes; includes '>') */
+    { "text": "</div>", "color": "#9300ff" },
+    { "text": "</span>", "color": "#9300ff" },
+    { "text": "</p>", "color": "#9300ff" },
+    { "text": "</section>", "color": "#9300ff" },
+    { "text": "</article>", "color": "#9300ff" },
+    { "text": "</header>", "color": "#9300ff" },
+    { "text": "</footer>", "color": "#9300ff" },
+    { "text": "</main>", "color": "#9300ff" },
+    { "text": "</nav>", "color": "#9300ff" },
+    { "text": "</aside>", "color": "#9300ff" },
+    { "text": "</figure>", "color": "#9300ff" },
+    { "text": "</figcaption>", "color": "#9300ff" },
+    { "text": "</address>", "color": "#9300ff" },
+    { "text": "</ul>", "color": "#9300ff" },
+    { "text": "</ol>", "color": "#9300ff" },
+    { "text": "</li>", "color": "#9300ff" },
+    { "text": "</dl>", "color": "#9300ff" },
+    { "text": "</dt>", "color": "#9300ff" },
+    { "text": "</dd>", "color": "#9300ff" },
+    { "text": "</h1>", "color": "#9300ff" },
+    { "text": "</h2>", "color": "#9300ff" },
+    { "text": "</h3>", "color": "#9300ff" },
+    { "text": "</h4>", "color": "#9300ff" },
+    { "text": "</h5>", "color": "#9300ff" },
+    { "text": "</h6>", "color": "#9300ff" },
+
+    /* ===== Styling / Emphasis → #00aabb ===== */
+    /* Opening tags WITHOUT attributes (includes '>') */
+    { "text": "<b>", "color": "#00aabb" },
+    { "text": "<strong>", "color": "#00aabb" },
+    { "text": "<u>", "color": "#00aabb" },
+    { "text": "<i>", "color": "#00aabb" },
+    { "text": "<em>", "color": "#00aabb" },
+    { "text": "<small>", "color": "#00aabb" },
+    { "text": "<mark>", "color": "#00aabb" },
+    { "text": "<s>", "color": "#00aabb" },
+    { "text": "<del>", "color": "#00aabb" },
+    { "text": "<ins>", "color": "#00aabb" },
+    { "text": "<sub>", "color": "#00aabb" },
+    { "text": "<sup>", "color": "#00aabb" },
+
+    /* Closing tags (includes '>') */
+    { "text": "</b>", "color": "#00aabb" },
+    { "text": "</strong>", "color": "#00aabb" },
+    { "text": "</u>", "color": "#00aabb" },
+    { "text": "</i>", "color": "#00aabb" },
+    { "text": "</em>", "color": "#00aabb" },
+    { "text": "</small>", "color": "#00aabb" },
+    { "text": "</mark>", "color": "#00aabb" },
+    { "text": "</s>", "color": "#00aabb" },
+    { "text": "</del>", "color": "#00aabb" },
+    { "text": "</ins>", "color": "#00aabb" },
+    { "text": "</sub>", "color": "#00aabb" },
+    { "text": "</sup>", "color": "#00aabb" }
+  ],
+
+  /* ----------------------------------- */
+
+  "liveServer.settings.port": 5501,
+  "editor.colorDecorators": true,
+  "editor.colorDecoratorsLimit": 2200
 }
