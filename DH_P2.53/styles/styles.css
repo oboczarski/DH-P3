@@ -8099,13 +8099,6 @@ body[data-page="research"] #secondary-header-row {
     gap: 0.25rem;
   }
 
-  body[data-page="rosters"] .nav-button {
-    flex: 1;
-    min-width: 0;
-    padding: 0.4rem 0.2rem;
-    font-size: 0.75rem;
-  }
-
   /* Second row: View switcher + Start/Sit + Filters + Compare */
   body[data-page="rosters"] #contextual-controls {
     display: flex;
@@ -8216,6 +8209,32 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] .compare-search-toggle {
     padding: 0.32rem 0.4rem;
     font-size: 0.75rem;
+  }
+
+  /* Make start/sit and view-switcher expand on wider mobile screens */
+  @media (min-width: 500px) and (max-width: 819px) {
+    body[data-page="rosters"] .start-sit-button-slot {
+      flex: 0 1 auto;
+    }
+
+    body[data-page="rosters"] .start-sit-button {
+      min-width: 4rem;
+    }
+
+    body[data-page="rosters"] .view-switcher {
+      flex: 0 1 auto;
+    }
+  }
+
+  /* Game logs and player comparison modals - extend to page header */
+  body[data-page="rosters"] #game-logs-modal,
+  body[data-page="rosters"] #player-comparison-modal {
+    top: 5.5rem;
+  }
+
+  body[data-page="rosters"] #game-logs-modal .modal-content,
+  body[data-page="rosters"] #player-comparison-modal .modal-content {
+    max-height: calc(100vh - 5.5rem);
   }
 }
 
