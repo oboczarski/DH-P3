@@ -7792,14 +7792,14 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  height: 4rem;
+  height: 3.5rem;
   width: 100%;
   overflow: hidden;
-  border-radius: 0.75rem;
+  border-radius: 1.95rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
   background: rgba(45, 40, 57, 0.35);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
@@ -7843,7 +7843,7 @@ body[data-page="research"] #secondary-header-row {
 .league-nav-divider {
   width: 1px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.17);
 }
 
 .league-nav-selector {
@@ -7933,10 +7933,10 @@ body[data-page="research"] #secondary-header-row {
   position: relative;
   width: 100%;
   max-width: 400px;
-  max-height: 60vh;
+  max-height: 57vh;
   border-radius: 1rem;
-  background: rgba(45, 40, 57, 0.75);
-  backdrop-filter: blur(24px);
+  background: rgba(45, 40, 57, 0.35);
+  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -8006,7 +8006,7 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
+  padding: 0.78rem 1.25rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
