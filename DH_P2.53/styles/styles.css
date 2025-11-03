@@ -7778,7 +7778,7 @@ body[data-page="research"] #secondary-header-row {
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 1rem;
+  padding: 0.35rem 1rem;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   pointer-events: none;
@@ -7803,8 +7803,8 @@ body[data-page="research"] #secondary-header-row {
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
   background: rgba(45, 40, 57, 0.35);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
 }
