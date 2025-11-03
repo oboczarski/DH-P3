@@ -593,6 +593,12 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     return;
                 }
                 
+                // Hide mobile nav when in trade/compare/start-sit mode
+                if (state.isCompareMode || state.isStartSitMode) {
+                    mobileLeagueNav.classList.add('hidden');
+                    return;
+                }
+                
                 mobileLeagueNav.classList.remove('hidden');
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
@@ -869,6 +875,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         rosterGrid.classList.add('is-preview-mode');
                         setTimeout(() => window.scrollTo(0, 0), 0); // scroll to top
                         updateHeaderPreviewState(); // call before render
+                        if (typeof window.updateMobileLeagueNav === 'function') {
+                            window.updateMobileLeagueNav();
+                        }
                         renderAllTeamData(state.currentTeams);
                         renderTradeBlock();
                     }
@@ -891,6 +900,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             rosterGrid.classList.toggle('is-preview-mode', state.isCompareMode);
             updateCompareButtonState();
             updateHeaderPreviewState(); // call before render
+            if (typeof window.updateMobileLeagueNav === 'function') {
+                window.updateMobileLeagueNav();
+            }
             if (!state.isCompareMode) {
                 clearTrade();
                 setTimeout(() => window.scrollTo(0, 0), 0); // scroll to top
@@ -929,6 +941,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             rosterGrid.classList.add('start-sit-mode');
             try { closeCompareSearch(); } catch (e) {}
             updateHeaderPreviewState();
+            if (typeof window.updateMobileLeagueNav === 'function') {
+                window.updateMobileLeagueNav();
+            }
             setTimeout(() => window.scrollTo(0, 0), 0);
             if (state.currentTeams) {
                 renderAllTeamData(state.currentTeams);
@@ -945,6 +960,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             rosterGrid.classList.remove('start-sit-mode');
             startSitButton?.classList.remove('active');
             updateHeaderPreviewState();
+            if (typeof window.updateMobileLeagueNav === 'function') {
+                window.updateMobileLeagueNav();
+            }
             try { closeComparisonModal(); } catch (e) {}
             try {
                 if (gameLogsModal && !gameLogsModal.classList.contains('hidden')) {
@@ -1152,6 +1170,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             clearTrade();
             window.scrollTo(0, 0); // scroll to top
             updateHeaderPreviewState(); // call before render
+            if (typeof window.updateMobileLeagueNav === 'function') {
+                window.updateMobileLeagueNav();
+            }
             if (state.currentTeams) {
                 renderAllTeamData(state.currentTeams);
             }

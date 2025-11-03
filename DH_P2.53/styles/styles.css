@@ -7798,7 +7798,7 @@ body[data-page="research"] #secondary-header-row {
   border-radius: 0.75rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  background: rgba(45, 40, 57, 0.5);
+  background: rgba(45, 40, 57, 0.35);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -7810,8 +7810,14 @@ body[data-page="research"] #secondary-header-row {
   opacity: 0.5;
 }
 
+/* Hidden state for start/sit and trade preview modes */
+#mobile-league-nav.hidden {
+  display: none;
+}
+
 .league-nav-arrow {
-  flex: 0 0 4rem;
+  flex: 0 0 3.5rem;
+  width: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7907,14 +7913,20 @@ body[data-page="research"] #secondary-header-row {
   justify-content: center;
   padding: 1rem;
   padding-bottom: 6rem; /* Space above the nav panel */
+  pointer-events: auto;
+}
+
+#league-selection-popup.hidden {
+  display: none;
 }
 
 .league-popup-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 .league-popup-content {
@@ -7923,7 +7935,7 @@ body[data-page="research"] #secondary-header-row {
   max-width: 400px;
   max-height: 60vh;
   border-radius: 1rem;
-  background: rgba(45, 40, 57, 0.95);
+  background: rgba(45, 40, 57, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -7931,6 +7943,8 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   flex-direction: column;
   animation: slideUpFadeIn 0.3s ease-out;
+  pointer-events: auto;
+  z-index: 1001;
 }
 
 @keyframes slideUpFadeIn {
@@ -7983,6 +7997,7 @@ body[data-page="research"] #secondary-header-row {
 
 .league-popup-list {
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   flex: 1;
   padding: 0.5rem;
 }
@@ -7999,6 +8014,8 @@ body[data-page="research"] #secondary-header-row {
   transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.05);
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .league-popup-item:hover,
