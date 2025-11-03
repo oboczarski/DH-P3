@@ -8213,21 +8213,13 @@ body[data-page="research"] #secondary-header-row {
     font-size: 0.75rem;
   }
 
-  /* Search popover - span from compare button to left edge, leaving start/sit visible */
-  body[data-page="rosters"] .compare-controls {
-    position: static;
-  }
-
-  body[data-page="rosters"] .filters-row {
-    position: relative;
-  }
-
+  /* Search popover mobile positioning - span full width leaving only start/sit visible */
   body[data-page="rosters"] .compare-search-popover {
     position: absolute;
     top: 0;
     bottom: 0;
     right: 0;
-    left: calc(0rem); /* start from after start/sit button + gap */
+    left: calc(0rem);
     width: auto;
     max-width: none;
     z-index: 100;
@@ -8235,6 +8227,14 @@ body[data-page="research"] #secondary-header-row {
 
   body[data-page="rosters"] .compare-search-popover:not(.hidden) {
     transform: translateY(0);
+  }
+
+  body[data-page="rosters"] .compare-controls {
+    position: static;
+  }
+
+  body[data-page="rosters"] .filters-row {
+    position: relative;
   }
 
   /* Make start/sit and view-switcher expand on wider mobile screens */
@@ -8253,6 +8253,30 @@ body[data-page="research"] #secondary-header-row {
     }
   }
 }
+
+/* Desktop rosters - extend search popover */
+@media (min-width: 820px) {
+  body[data-page="rosters"] .compare-search-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  body[data-page="rosters"] .compare-controls {
+    position: static;
+  }
+
+  body[data-page="rosters"] .filters-row {
+    position: relative;
+  }
+}
+
+
+
+
 
 
 
