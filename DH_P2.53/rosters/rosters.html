@@ -207,6 +207,43 @@
 <div id="tradeSimulator">
 </div>
 </div>
+
+<!-- Mobile League Navigation Panel (only visible on mobile) -->
+<div id="mobile-league-nav" class="hidden">
+  <div class="mobile-league-nav-panel glass-panel">
+    <button class="league-nav-arrow league-nav-prev" aria-label="Previous League">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="league-nav-divider"></div>
+    <button class="league-nav-selector">
+      <div class="league-nav-content">
+        <div class="league-nav-name-wrapper">
+          <p class="league-nav-name">League Name</p>
+          <i class="fa-solid fa-caret-down league-nav-dropdown-icon"></i>
+        </div>
+        <p class="league-nav-subtitle">Change League</p>
+      </div>
+    </button>
+    <div class="league-nav-divider"></div>
+    <button class="league-nav-arrow league-nav-next" aria-label="Next League">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  </div>
+  <!-- League Selection Popup -->
+  <div id="league-selection-popup" class="hidden">
+    <div class="league-popup-overlay"></div>
+    <div class="league-popup-content glass-panel">
+      <div class="league-popup-header">
+        <h3>Select League</h3>
+        <button class="league-popup-close">&times;</button>
+      </div>
+      <div class="league-popup-list">
+        <!-- League options will be rendered here -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="comparison-modal-background-overlay" class="hidden"></div>
 <div id="game-logs-modal" class="hidden">
   <div class="modal-overlay"></div>

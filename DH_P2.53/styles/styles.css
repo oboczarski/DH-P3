@@ -7768,6 +7768,268 @@ body[data-page="research"] #secondary-header-row {
         max-width: 50%; /* Each takes up half the space */
     }
 }
+
+/* ⬇︎ MOBILE LEAGUE NAVIGATION PANEL ⬇︎ */
+/* Only show on mobile for rosters page */
+#mobile-league-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+@media (max-width: 819px) {
+  body[data-page="rosters"] #mobile-league-nav {
+    display: block;
+  }
+}
+
+.mobile-league-nav-panel {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 4rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  pointer-events: auto;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: rgba(45, 40, 57, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Dimmed state when scrolling */
+#mobile-league-nav.scrolling .mobile-league-nav-panel {
+  opacity: 0.5;
+}
+
+.league-nav-arrow {
+  flex: 0 0 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.league-nav-arrow:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.league-nav-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.league-nav-divider {
+  width: 1px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.league-nav-selector {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.league-nav-selector:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.league-nav-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  width: 100%;
+}
+
+.league-nav-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.league-nav-name {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  letter-spacing: 0.01em;
+}
+
+.league-nav-dropdown-icon {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.league-nav-subtitle {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.02em;
+}
+
+/* League Selection Popup */
+#league-selection-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: 6rem; /* Space above the nav panel */
+}
+
+.league-popup-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.league-popup-content {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: 60vh;
+  border-radius: 1rem;
+  background: rgba(45, 40, 57, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  animation: slideUpFadeIn 0.3s ease-out;
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.league-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.league-popup-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+}
+
+.league-popup-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.league-popup-close:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.league-popup-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.5rem;
+}
+
+.league-popup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.league-popup-item:hover,
+.league-popup-item:active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.league-popup-item.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.league-popup-item-name {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.league-popup-item-check {
+  color: var(--color-accent-primary);
+  font-size: 1.125rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.league-popup-item.active .league-popup-item-check {
+  opacity: 1;
+}
+
   @media (max-width: 768px) {
         .start-sit-total-label,
         .start-sit-total-value {

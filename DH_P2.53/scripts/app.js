@@ -552,6 +552,167 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 }
             }
         });
+        
+        // --- Mobile League Navigation (Rosters Page Only) ---
+        if (pageType === 'rosters') {
+            const mobileLeagueNav = document.getElementById('mobile-league-nav');
+            const leagueNavPrev = mobileLeagueNav?.querySelector('.league-nav-prev');
+            const leagueNavNext = mobileLeagueNav?.querySelector('.league-nav-next');
+            const leagueNavSelector = mobileLeagueNav?.querySelector('.league-nav-selector');
+            const leagueNavName = mobileLeagueNav?.querySelector('.league-nav-name');
+            const leagueSelectionPopup = document.getElementById('league-selection-popup');
+            const leaguePopupClose = leagueSelectionPopup?.querySelector('.league-popup-close');
+            const leaguePopupOverlay = leagueSelectionPopup?.querySelector('.league-popup-overlay');
+            const leaguePopupList = leagueSelectionPopup?.querySelector('.league-popup-list');
+            
+            let scrollTimeout;
+            let isScrolling = false;
+            
+            // Dim nav panel when scrolling
+            function handleScroll() {
+                if (!mobileLeagueNav) return;
+                
+                if (!isScrolling) {
+                    mobileLeagueNav.classList.add('scrolling');
+                    isScrolling = true;
+                }
+                
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    mobileLeagueNav.classList.remove('scrolling');
+                    isScrolling = false;
+                }, 150);
+            }
+            
+            window.addEventListener('scroll', handleScroll, { passive: true });
+            
+            // Update mobile nav panel with current league
+            function updateMobileLeagueNav() {
+                if (!mobileLeagueNav || !state.leagues || state.leagues.length === 0) {
+                    if (mobileLeagueNav) mobileLeagueNav.classList.add('hidden');
+                    return;
+                }
+                
+                mobileLeagueNav.classList.remove('hidden');
+                
+                const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
+                const currentLeague = state.leagues[currentIndex];
+                
+                if (currentLeague && leagueNavName) {
+                    leagueNavName.textContent = currentLeague.name;
+                }
+                
+                // Update arrow button states
+                if (leagueNavPrev) {
+                    leagueNavPrev.disabled = currentIndex <= 0;
+                }
+                if (leagueNavNext) {
+                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                }
+            }
+            
+            // Navigate to previous league
+            async function navigateToPreviousLeague() {
+                if (!state.leagues || state.leagues.length === 0) return;
+                
+                const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
+                if (currentIndex <= 0) return;
+                
+                const prevLeague = state.leagues[currentIndex - 1];
+                state.currentLeagueId = prevLeague.league_id;
+                
+                // Update league select dropdown
+                if (leagueSelect) {
+                    leagueSelect.value = prevLeague.league_id;
+                }
+                
+                updateMobileLeagueNav();
+                await handleLeagueSelect();
+            }
+            
+            // Navigate to next league
+            async function navigateToNextLeague() {
+                if (!state.leagues || state.leagues.length === 0) return;
+                
+                const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
+                if (currentIndex >= state.leagues.length - 1) return;
+                
+                const nextLeague = state.leagues[currentIndex + 1];
+                state.currentLeagueId = nextLeague.league_id;
+                
+                // Update league select dropdown
+                if (leagueSelect) {
+                    leagueSelect.value = nextLeague.league_id;
+                }
+                
+                updateMobileLeagueNav();
+                await handleLeagueSelect();
+            }
+            
+            // Open league selection popup
+            function openLeaguePopup() {
+                if (!leagueSelectionPopup || !leaguePopupList) return;
+                
+                // Clear existing list
+                leaguePopupList.innerHTML = '';
+                
+                // Render league options
+                state.leagues.forEach(league => {
+                    const item = document.createElement('div');
+                    item.className = 'league-popup-item';
+                    if (league.league_id === state.currentLeagueId) {
+                        item.classList.add('active');
+                    }
+                    
+                    item.innerHTML = `
+                        <span class="league-popup-item-name">${league.name}</span>
+                        <i class="fa-solid fa-check league-popup-item-check"></i>
+                    `;
+                    
+                    item.addEventListener('click', async () => {
+                        state.currentLeagueId = league.league_id;
+                        
+                        // Update league select dropdown
+                        if (leagueSelect) {
+                            leagueSelect.value = league.league_id;
+                        }
+                        
+                        closeLeaguePopup();
+                        updateMobileLeagueNav();
+                        await handleLeagueSelect();
+                    });
+                    
+                    leaguePopupList.appendChild(item);
+                });
+                
+                leagueSelectionPopup.classList.remove('hidden');
+            }
+            
+            // Close league selection popup
+            function closeLeaguePopup() {
+                if (leagueSelectionPopup) {
+                    leagueSelectionPopup.classList.add('hidden');
+                }
+            }
+            
+            // Event listeners
+            leagueNavPrev?.addEventListener('click', navigateToPreviousLeague);
+            leagueNavNext?.addEventListener('click', navigateToNextLeague);
+            leagueNavSelector?.addEventListener('click', openLeaguePopup);
+            leaguePopupClose?.addEventListener('click', closeLeaguePopup);
+            leaguePopupOverlay?.addEventListener('click', closeLeaguePopup);
+            
+            // Close popup on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && leagueSelectionPopup && !leagueSelectionPopup.classList.contains('hidden')) {
+                    closeLeaguePopup();
+                }
+            });
+            
+            // Expose update function for use after loading leagues
+            window.updateMobileLeagueNav = updateMobileLeagueNav;
+        }
+        
         // --- View Toggling and Main Handlers ---
         function setRosterView(view) {
     closeComparisonModal();
@@ -589,6 +750,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     } else {
                         leagueSelect.selectedIndex = 1;
                         await handleLeagueSelect();
+                    }
+                    // Update mobile league navigation after league is loaded
+                    if (typeof window.updateMobileLeagueNav === 'function') {
+                        window.updateMobileLeagueNav();
                     }
                 }
             } catch (error) {
