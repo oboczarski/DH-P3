@@ -7852,12 +7852,13 @@ body[data-page="research"] #secondary-header-row {
 
 .league-nav-selector {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
   cursor: pointer;
   transition: background 0.2s ease;
   -webkit-tap-highlight-color: transparent;
@@ -7874,12 +7875,15 @@ body[data-page="research"] #secondary-header-row {
   justify-content: center;
   gap: 0.125rem;
   width: 100%;
+  min-width: 0;
 }
 
 .league-nav-name-wrapper {
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .league-nav-name {
@@ -7890,7 +7894,7 @@ body[data-page="research"] #secondary-header-row {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 150px;
   letter-spacing: 0.01em;
 }
 
