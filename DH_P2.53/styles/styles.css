@@ -8213,6 +8213,30 @@ body[data-page="research"] #secondary-header-row {
     font-size: 0.75rem;
   }
 
+  /* Search popover - span from compare button to left edge, leaving start/sit visible */
+  body[data-page="rosters"] .compare-controls {
+    position: static;
+  }
+
+  body[data-page="rosters"] .filters-row {
+    position: relative;
+  }
+
+  body[data-page="rosters"] .compare-search-popover {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(0rem); /* start from after start/sit button + gap */
+    width: auto;
+    max-width: none;
+    z-index: 100;
+  }
+
+  body[data-page="rosters"] .compare-search-popover:not(.hidden) {
+    transform: translateY(0);
+  }
+
   /* Make start/sit and view-switcher expand on wider mobile screens */
   @media (min-width: 500px) and (max-width: 819px) {
     body[data-page="rosters"] .start-sit-button-slot {
