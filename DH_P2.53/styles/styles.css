@@ -8118,8 +8118,7 @@ body[data-page="research"] #secondary-header-row {
     gap: 0.25rem;
     width: 100%;
     padding: 0;
-    padding-top: 0.3rem;
-    border-top: 1px solid var(--color-panel-border);
+    border-top: none;
     flex-wrap: nowrap;
   }
 
@@ -8263,11 +8262,5 @@ body[data-page="research"] #secondary-header-row {
     width: 400px;
   }
 }
-
-
-
-
-
-
 
 
