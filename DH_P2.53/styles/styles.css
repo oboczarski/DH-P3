@@ -7779,7 +7779,7 @@ body[data-page="research"] #secondary-header-row {
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0.35rem 1rem;
+  padding: 0.6rem 1rem;
   padding-left: 2rem;
   padding-right: 2rem;
   pointer-events: none;
@@ -8118,7 +8118,8 @@ body[data-page="research"] #secondary-header-row {
     gap: 0.25rem;
     width: 100%;
     padding: 0;
-    border-top: none;
+    padding-top: 0.3rem;
+    border-top: 1px solid var(--color-panel-border);
     flex-wrap: nowrap;
   }
 
