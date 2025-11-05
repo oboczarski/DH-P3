@@ -8432,6 +8432,8 @@ body[data-page="research"] #secondary-header-row {
   
   body[data-page="rosters"] .view-switcher {
     display: flex !important;
+    min-width:85px;
+    margin-left: 19px;
   }
 }
 
