@@ -8129,8 +8129,8 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.3rem 0.38rem !important;
-    gap: 0.08rem;
+    padding: 0.29rem 0.38rem !important;
+    gap: 0.1rem;
     min-width: 3rem;
   }
 
@@ -8139,7 +8139,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.4rem;
+    font-size: 0.45rem;
     margin-top: 0.04rem;
   }
 
@@ -8181,8 +8181,8 @@ body[data-page="research"] #secondary-header-row {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.09rem;
-    padding: 0.4rem 0.3rem !important;
+    gap: 0.1rem;
+    padding: 0.35rem 0.3rem !important;
     min-height: 1.5rem;
     min-width: 3.1rem;
     background: rgba(13, 14, 35, 0.05);
@@ -8220,8 +8220,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.4rem;
-    line-height: 1;
+    font-size: 0.45rem;
     letter-spacing: 0.01rem;
   }
 
@@ -8274,7 +8273,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-option.active {
-    color: var(--color-text-primary);
+    color: #afb3d4;
     background: rgba(128, 138, 189, 0.08);
     border-color: rgba(128, 138, 189, 0.2);
     box-shadow: 0 0 3px rgba(128, 138, 189, 0.15);
