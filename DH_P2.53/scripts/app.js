@@ -650,23 +650,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +679,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown

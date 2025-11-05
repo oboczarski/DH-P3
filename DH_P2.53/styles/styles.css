@@ -8182,7 +8182,7 @@ body[data-page="research"] #secondary-header-row {
     align-items: center;
     justify-content: center;
     gap: 0.09rem;
-    padding: 0.4rem 0.6rem !important;
+    padding: 0.4rem 0.3rem !important;
     min-height: 1.5rem;
     min-width: 3.1rem;
     background: rgba(13, 14, 35, 0.05);
@@ -8194,6 +8194,24 @@ body[data-page="research"] #secondary-header-row {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
                 inset 0 1px 2px rgba(255, 255, 255, 0.06);
     position: relative;
+  }
+
+  /* Light glow when View: POS is active (default) */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-users) {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(66, 194, 255, 0.25), 
+     inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
+    border-color: rgba(66, 194, 255, 0.3);
+  }
+
+  /* Different colored glow when View: Lineup is active */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-list-ol) {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(169, 178, 227, 0.25), 
+     inset 0 0 18px 9px rgba(169, 178, 227, 0.065);
+    border-color: rgba(169, 178, 227, 0.3);
   }
 
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
@@ -8219,7 +8237,7 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
     color: var(--color-accent-secondary);
     background: rgba(66, 194, 255, 0.1);
-    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
+    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.15);
   }
 
   body[data-page="rosters"] .view-dropdown-menu {
@@ -8248,12 +8266,13 @@ body[data-page="research"] #secondary-header-row {
     padding: 0.4rem 0.5rem;
     width: 100%;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.65rem;
     white-space: nowrap;
+    border-radius: 4px;
   }
 
   body[data-page="rosters"] .view-dropdown-option i {
@@ -8263,8 +8282,8 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] .view-dropdown-option.active {
     color: var(--color-accent-secondary);
     background: rgba(66, 194, 255, 0.08);
-    border: 1px solid rgba(66, 194, 255, 0.3);
-    box-shadow: 0 0 4px rgba(66, 194, 255, 0.25);
+    border-color: rgba(66, 194, 255, 0.25);
+    box-shadow: 0 0 6px rgba(66, 194, 255, 0.2);
   }
 
   /* Hide old switcher on mobile */
