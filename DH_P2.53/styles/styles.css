@@ -1058,7 +1058,6 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
@@ -1071,7 +1070,6 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
@@ -8316,10 +8314,10 @@ body[data-page="research"] #secondary-header-row {
     white-space: nowrap;
   }
 
-  body[data-page="rosters"] .filter-btn:hover {
-    /* Remove hover effect on mobile to prevent tap persistence */
-    color: inherit;
-    background: inherit;
+  body[data-page="rosters"] .filter-btn:not(.active):hover {
+    /* Disable hover effect on inactive buttons only to prevent tap persistence */
+    color: var(--color-text-secondary) !important;
+    background: transparent !important;
   }
 
   body[data-page="rosters"] .filter-btn i {
