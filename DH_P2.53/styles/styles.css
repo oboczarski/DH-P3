@@ -7779,7 +7779,7 @@ body[data-page="research"] #secondary-header-row {
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0.6rem 1rem;
+  padding: 0.9rem 1rem;
   padding-left: 2rem;
   padding-right: 2rem;
   pointer-events: none;
@@ -7803,11 +7803,11 @@ body[data-page="research"] #secondary-header-row {
   border-radius: 0.7rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  background: rgba(45, 40, 57, 0.35);
+  background: rgb(119 109 144 / 35%);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 6px #6000ff43;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
 /* Dimmed state when scrolling */
