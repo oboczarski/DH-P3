@@ -8182,7 +8182,7 @@ body[data-page="research"] #secondary-header-row {
     align-items: center;
     justify-content: center;
     gap: 0.1rem;
-    padding: 0.35rem 0.3rem !important;
+    padding: 0.325rem 0.3rem !important;
     min-height: 1.5rem;
     min-width: 3.1rem;
     background: rgba(13, 14, 35, 0.05);
@@ -8191,14 +8191,14 @@ body[data-page="research"] #secondary-header-row {
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
                 inset 0 1px 2px rgba(255, 255, 255, 0.06);
     position: relative;
   }
 
   /* Light glow when View: POS is active (default) */
   body[data-page="rosters"] .view-dropdown-toggle:has(.fa-users) {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
      inset 0 1px 2px rgba(255, 255, 255, 0.06),    
      0 0 8px rgba(66, 194, 255, 0.25), 
      inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
@@ -8207,7 +8207,7 @@ body[data-page="research"] #secondary-header-row {
 
   /* Different colored glow when View: Lineup is active */
   body[data-page="rosters"] .view-dropdown-toggle:has(.fa-list-ol) {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
      inset 0 1px 2px rgba(255, 255, 255, 0.06),    
      0 0 8px rgba(118, 109, 255, 0.25), 
      inset 0 0 18px 9px rgba(118, 109, 255, 0.065);
@@ -8215,12 +8215,15 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     line-height: 1;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
     font-size: 0.45rem;
+    font-weight: 500;
+    line-height: 1;
+    margin-top: 0rem;
     letter-spacing: 0.01rem;
   }
 
