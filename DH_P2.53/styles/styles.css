@@ -8216,12 +8216,6 @@ body[data-page="research"] #secondary-header-row {
     text-shadow: 0 0 3px #5300ffaa, 0 0 5px #5300ff;
   }
 
-  body[data-page="rosters"] .view-dropdown-toggle:hover {
-    color: var(--color-text-primary);
-    background: rgba(13, 14, 35, 0.35);
-    border-color: rgba(128, 138, 189, 0.35);
-  }
-
   body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
     color: var(--color-accent-secondary);
     background: rgba(66, 194, 255, 0.1);
@@ -8266,14 +8260,11 @@ body[data-page="research"] #secondary-header-row {
     font-size: 0.8rem;
   }
 
-  body[data-page="rosters"] .view-dropdown-option:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-primary);
-  }
-
   body[data-page="rosters"] .view-dropdown-option.active {
     color: var(--color-accent-secondary);
     background: rgba(66, 194, 255, 0.08);
+    border: 1px solid rgba(66, 194, 255, 0.3);
+    box-shadow: 0 0 4px rgba(66, 194, 255, 0.25);
   }
 
   /* Hide old switcher on mobile */
@@ -8308,6 +8299,12 @@ body[data-page="research"] #secondary-header-row {
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
+  }
+
+  body[data-page="rosters"] .filter-btn:hover {
+    /* Remove hover effect on mobile to prevent tap persistence */
+    color: inherit;
+    background: inherit;
   }
 
   body[data-page="rosters"] .filter-btn i {
