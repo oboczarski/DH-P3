@@ -699,88 +699,133 @@
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const table = wrapper.querySelector('.stats-table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
-    table.style.setProperty('--stats-table-width', widthExpression);
-    const existingColgroup = table.querySelector('colgroup');
-    if (existingColgroup) existingColgroup.remove();
-    const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
-      const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
-      }
-      colgroup.appendChild(col);
-    });
-    table.insertBefore(colgroup, thead);
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    const headerRow = document.createElement('tr');
-    columnSet.forEach((column, index) => {
-      const th = document.createElement('th');
-      const displayLabel = headerLabels.get(column) || column;
-      th.textContent = displayLabel;
-      const category = getColumnCategory(column);
-      th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
-      th.dataset.columnKey = column;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    clearSortIndicators(headerRow);
-    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-      if (activeHeader) applySortIndicator(activeHeader);
-    }
-    // Use DocumentFragment for batch DOM insertion (massive performance boost)
-    const fragment = document.createDocumentFragment();
-    rows.forEach((entry) => {
+
+    // GET DOM REFERENCES FOR 2 TABLES (header + body)
+    const container = wrapper.querySelector('.stats-table-container');
+    const hScroll = container.querySelector('.stats-hscroll');
+    const headerWrapper = container.querySelector('.stats-table-header');
+    const bodyWrapper = container.querySelector('.stats-table-body');
+    const headerTable = headerWrapper.querySelector('.stats-table');
+    const bodyTable = bodyWrapper.querySelector('.stats-table');
+
+    // CLEAR EXISTING CONTENT
+    headerTable.innerHTML = '';
+    bodyTable.innerHTML = '';
+
+    // CREATE COLGROUP FOR WIDTH SYNC
+    const createColgroup = () => {
+      const colgroup = document.createElement('colgroup');
+      columnSet.forEach((column, index) => {
+        const col = document.createElement('col');
+        if (index === 0) {
+          col.style.width = 'var(--stats-col-rk-width)';
+          col.style.minWidth = 'var(--stats-col-rk-width)';
+          col.style.maxWidth = 'var(--stats-col-rk-width)';
+        } else if (index === 1) {
+          col.style.width = 'var(--stats-col-player-width)';
+          col.style.minWidth = 'var(--stats-col-player-width)';
+          col.style.maxWidth = 'var(--stats-col-player-width)';
+        } else if (index === 2) {
+          col.style.width = 'var(--stats-col-pos-width)';
+          col.style.minWidth = 'var(--stats-col-pos-width)';
+          col.style.maxWidth = 'var(--stats-col-pos-width)';
+        } else {
+          col.style.width = 'var(--stats-col-standard-width)';
+          col.style.minWidth = 'var(--stats-col-standard-width)';
+          col.style.maxWidth = 'var(--stats-col-standard-width)';
+        }
+        colgroup.appendChild(col);
+      });
+      return colgroup;
+    };
+
+    headerTable.appendChild(createColgroup());
+    bodyTable.appendChild(createColgroup());
+
+    // CALCULATE AND SET TABLE WIDTHS
+    const rootStyles = getComputedStyle(document.documentElement);
+    const rkWidth = parseFloat(rootStyles.getPropertyValue('--stats-col-rk-width')) * 16; // Convert rem to px
+    const playerWidth = parseFloat(rootStyles.getPropertyValue('--stats-col-player-width')) * 16;
+    const posWidth = parseFloat(rootStyles.getPropertyValue('--stats-col-pos-width')) * 16;
+    const standardWidth = parseFloat(rootStyles.getPropertyValue('--stats-col-standard-width')) * 16;
+    const totalWidth = rkWidth + playerWidth + posWidth + ((columnSet.length - 3) * standardWidth);
+    const totalWidthPx = `${totalWidth}px`;
+
+    headerTable.style.width = totalWidthPx;
+    headerTable.style.minWidth = totalWidthPx;
+    bodyTable.style.width = totalWidthPx;
+    bodyTable.style.minWidth = totalWidthPx;
+
+    // BUILD HEADER ROW
+    const buildHeaderRow = () => {
       const tr = document.createElement('tr');
       columnSet.forEach((column, index) => {
+        const th = document.createElement('th');
+        const displayLabel = headerLabels.get(column) || column;
+        th.textContent = displayLabel;
+        const category = getColumnCategory(column);
+        th.classList.add(`stats-header-${category}`);
+        if (column === 'RK') th.classList.add('stats-rank-cell');
+        if (column === 'PLAYER') th.classList.add('stats-player-cell');
+        th.dataset.columnKey = column;
+        
+        // Add sticky classes to first 3 columns (RK, PLAYER, POS)
+        if (index === 0) th.classList.add('sticky-col-1');
+        else if (index === 1) th.classList.add('sticky-col-2');
+        else if (index === 2) th.classList.add('sticky-col-3');
+        
+        tr.appendChild(th);
+      });
+      return tr;
+    };
+
+    const thead = document.createElement('thead');
+    const headerRow = buildHeaderRow();
+    thead.appendChild(headerRow);
+    headerTable.appendChild(thead);
+
+    // Clear and apply sort indicators
+    clearSortIndicators(headerRow);
+    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
+      const target = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
+      if (target) applySortIndicator(target);
+    }
+
+    // BUILD BODY ROWS
+    const bodyFragment = document.createDocumentFragment();
+
+    rows.forEach((entry, rowIndex) => {
+      const tr = document.createElement('tr');
+
+      columnSet.forEach((column, colIndex) => {
         const td = document.createElement('td');
         const rawValue = formatCellValue(column, entry);
         const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
+
+        // Add sticky classes to first 3 columns (RK, PLAYER, POS)
+        if (colIndex === 0) td.classList.add('sticky-col-1');
+        else if (colIndex === 1) td.classList.add('sticky-col-2');
+        else if (colIndex === 2) td.classList.add('sticky-col-3');
+
+        if (column === 'RK') {
+          td.classList.add('stats-rank-cell');
           const rankForColor = entry.meta.currentRank;
           if (Number.isFinite(rankForColor)) {
             td.style.color = getRankColorValue(rankForColor);
           }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
+          td.textContent = textValue;
+        } else if (column === 'PLAYER') {
+          td.classList.add('stats-player-cell');
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'stats-player-btn';
           btn.textContent = textValue;
           btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
           btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
+          btn.dataset.entryIndex = rowIndex;
           td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
-        }
-        if (index === 1) {
-          // handled above
+        } else if (column === 'POS') {
+          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
         } else if (column === 'VALUE') {
           const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
           td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
@@ -796,30 +841,48 @@
               ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
               : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
           }
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
         } else {
           td.textContent = textValue;
         }
+
+        // Apply color styling for specific columns
         if (column === 'AGE') {
           td.style.color = entry.meta.ageColor;
           td.classList.add('stats-age-cell');
         } else if (column === 'FPTS') {
           td.style.color = entry.meta.fptsColor;
           td.classList.add('stats-fpts-cell');
-        }
-        if (column === 'PPG') {
+        } else if (column === 'PPG') {
           td.style.color = entry.meta.ppgColor;
           td.classList.add('stats-ppg-cell');
         }
+
         tr.appendChild(td);
       });
-      fragment.appendChild(tr);
+
+      bodyFragment.appendChild(tr);
     });
-    // Single DOM insertion instead of hundreds
-    tbody.appendChild(fragment);
+
+    const tbody = document.createElement('tbody');
+    tbody.appendChild(bodyFragment);
+    bodyTable.appendChild(tbody);
+
     // Store rows reference for event delegation
     tbody._statsRows = rows;
+
+    // Route horizontal wheel/trackpad gestures on tbody to the shared scroller
+    bodyWrapper.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Reset scroll positions
+    hScroll.scrollLeft = 0;
+    bodyWrapper.scrollTop = 0;
+
+    // Show/hide empty state
     if (!rows.length) {
       dom.emptyState.classList.remove('hidden');
     } else {
@@ -1203,19 +1266,23 @@
   dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
   dom.rookieButton.addEventListener('click', toggleRookieFilter);
   dom.tableWrappers.forEach((wrapper) => {
-    const thead = wrapper.querySelector('thead');
-    thead.addEventListener('click', handleSortClick);
-    // Event delegation for player buttons (much more efficient)
-    const tbody = wrapper.querySelector('tbody');
-    tbody.addEventListener('click', (event) => {
-      const btn = event.target.closest('.stats-player-btn');
-      if (!btn) return;
-      const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-      const rows = tbody._statsRows;
-      if (rows && rows[entryIndex]) {
-        openGameLogs(rows[entryIndex]);
-      }
-    });
+    // Header sort click delegation
+    const headerTable = wrapper.querySelector('.stats-table-header thead');
+    if (headerTable) headerTable.addEventListener('click', handleSortClick);
+    
+    // Player button click delegation
+    const bodyTable = wrapper.querySelector('.stats-table-body tbody');
+    if (bodyTable) {
+      bodyTable.addEventListener('click', (event) => {
+        const btn = event.target.closest('.stats-player-btn');
+        if (!btn) return;
+        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+        const rows = bodyTable._statsRows;
+        if (rows && rows[entryIndex]) {
+          openGameLogs(rows[entryIndex]);
+        }
+      });
+    }
   });
   initialise();
 })();
