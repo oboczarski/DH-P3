@@ -19,11 +19,11 @@
     ['IMP/OPP', 'IMP/OPP']
   ]);
   const COLUMN_SETS = {
-    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP'],
-    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE'],
-    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE'],
-    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM'],
-    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM']
+    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
+    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
+    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL']
   };
   const COLUMN_CATEGORY = {
     'FPTS': 'all',
@@ -56,6 +56,7 @@
     'paRTG': 'passing',
     'paYDS': 'passing',
     'paTD': 'passing',
+    'CMP%': 'passing',
     'paATT': 'passing',
     'CMP': 'passing',
     'pa1D': 'passing',
@@ -78,7 +79,9 @@
     'MTF': 'rushing',
     'YCO': 'rushing',
     'FPOE': 'all',
-    'FUM': 'all'
+    'FUM': 'all',
+    'CSTY%': 'all',
+    'CL': 'all'
   };
   const INTEGER_COLUMNS = new Set([
     'RK', 'G', 'VALUE', 'YDS(t)', 'OPP', 'IMP', 'paYDS', 'paTD', 'paATT', 'CMP', 'pa1D', 'ruYDS', 'ruTD',
@@ -103,12 +106,15 @@
     ['TTT', 2],
     ['FPOE', 1],
     ['paRTG', 1],
-    ['1DRR', 2]
+    ['1DRR', 2],
+    ['CL', 1]
   ]);
   const PERCENT_PRECISION = new Map([
     ['SNP%', 1],
     ['PRS%', 1],
-    ['TS%', 1]
+    ['CMP%', 1],
+    ['TS%', 1],
+    ['CSTY%', 1]
   ]);
   const VALUE_COLOR_SCALE = [
     { value: 9000, color: '#00EEB6' },
@@ -177,7 +183,9 @@
     closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
     overlay: document.querySelector('#game-logs-modal .modal-overlay'),
     infoBtn: document.querySelector('#game-logs-modal .modal-info-btn'),
-    keyPanel: document.getElementById('stats-key-container')
+    keyPanel: document.getElementById('stats-key-container'),
+    radarPanel: document.getElementById('radar-chart-container'),
+    newsPanel: document.getElementById('news-container')
   };
   if (dom.leagueChip) {
     dom.leagueChip.textContent = 'DH DATA HUB';
@@ -550,7 +558,8 @@
     const aRaw = a.row[column];
     const bRaw = b.row[column];
     const numericColumns = new Set([
-      'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP', 'paRTG', 'paYDS', 'paTD', 'paATT', 'CMP', 'paYPG', 'ruYDS', 'ruTD', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR'   ]);
+      'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'paYPG', 'ruYDS', 'ruTD', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR', 'CSTY%', 'CL'
+    ]);
     if (column === 'FPTS') {
       return (a.meta.fpts ?? -Infinity) - (b.meta.fpts ?? -Infinity);
     }
@@ -866,25 +875,103 @@
       closeModal();
     } else if (gameLogDom.modal) {
       gameLogDom.modal.classList.add('hidden');
+      
+      // Hide all overlay panels
       gameLogDom.keyPanel?.classList.add('hidden');
+      gameLogDom.radarPanel?.classList.add('hidden');
+      gameLogDom.newsPanel?.classList.add('hidden');
+      
+      // Reset to game-logs active state
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-panel') === 'game-logs') {
+          btn.classList.add('active');
+        }
+      });
     }
+    
     if (typeof state === 'object') {
       state.isGameLogModalOpenFromComparison = false;
       state.isGameLogFromStatsPage = false;
-      state.statsPagePlayerData = null; // Clear the data
+      state.statsPagePlayerData = null;
+      state.currentGameLogsPlayer = null;
     }
   }
   function wireGameLogControls() {
     if (!gameLogDom.modal) return;
+    
     if (!gameLogDom.modal.dataset.statsWired) {
       gameLogDom.closeBtn?.addEventListener('click', performModalClose);
       gameLogDom.overlay?.addEventListener('click', performModalClose);
-      gameLogDom.infoBtn?.addEventListener('click', () => {
-        if (!gameLogDom.keyPanel) return;
-        gameLogDom.keyPanel.classList.toggle('hidden');
+      
+      // Panel toggle buttons with tab-like behavior
+      const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+      modalInfoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetPanel = btn.getAttribute('data-panel');
+          const overlayContainers = {
+            'stats-key': gameLogDom.keyPanel,
+            'radar-chart': gameLogDom.radarPanel,
+            'news': gameLogDom.newsPanel
+          };
+          
+          // Special handling for game-logs - can't be toggled off
+          if (targetPanel === 'game-logs') {
+            // Hide all overlay panels to show game logs underneath
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
+            
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            return;
+          }
+          
+          // Check if the clicked overlay panel is currently visible
+          const isCurrentlyVisible = overlayContainers[targetPanel] && 
+                                     !overlayContainers[targetPanel].classList.contains('hidden');
+          
+          // For overlay panels (stats-key, radar-chart, news)
+          if (isCurrentlyVisible) {
+            // Toggling off - return to game-logs view
+            overlayContainers[targetPanel].classList.add('hidden');
+            
+            // Update button active states - activate game-logs
+            modalInfoBtns.forEach(b => {
+              b.classList.remove('active');
+              if (b.getAttribute('data-panel') === 'game-logs') {
+                b.classList.add('active');
+              }
+            });
+          } else {
+            // Opening a new overlay panel - hide other overlays first
+            Object.values(overlayContainers).forEach(container => {
+              if (container) container.classList.add('hidden');
+            });
+            
+            // Show the target overlay panel
+            overlayContainers[targetPanel].classList.remove('hidden');
+            
+            // Update button active states
+            modalInfoBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // If opening radar chart panel, render chart
+            if (targetPanel === 'radar-chart' && typeof renderPlayerRadarChart === 'function') {
+              const player = state.currentGameLogsPlayer;
+              if (player && player.pos) {
+                renderPlayerRadarChart(player.id, player.pos);
+              }
+            }
+          }
+        });
       });
+      
       gameLogDom.modal.dataset.statsWired = '1';
     }
+    
     if (!escapeKeyBound) {
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && gameLogDom.modal && !gameLogDom.modal.classList.contains('hidden')) {
