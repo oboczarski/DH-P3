@@ -521,7 +521,6 @@
     background: rgba(13, 14, 35, 0.35);
     border-color: rgba(128, 138, 189, 0.35);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
 }
 .start-sit-button:focus-visible {
     outline: 2px solid rgba(118, 109, 255, 0.6);
@@ -7994,7 +7993,6 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -8111,7 +8109,7 @@ body[data-page="research"] #secondary-header-row {
 
   body[data-page="rosters"] #filters-row {
     display: flex;
-    align-items: center;
+    align-items: stretch; /* Changed from center to stretch for uniform height */
     justify-content: flex-start;
     gap: 0.25rem;
     width: 100%;
@@ -8123,22 +8121,48 @@ body[data-page="research"] #secondary-header-row {
   /* Start/Sit button - MOVED TO FIRST POSITION */
   body[data-page="rosters"] .start-sit-button-slot {
     order: 1;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.28rem 0.38rem !important;
-    gap: 0.1rem;
-    min-width: 3rem;
+    padding: 0.32rem 0.38rem !important;
+    gap: 0.1rem !important;
+    min-width: 3rem !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
-    font-size: 0.85rem;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.45rem;
-    margin-top: 0.04rem;
+    font-size: 0.45rem !important;
+    margin-top: 0.04rem !important;
+    line-height: 1 !important;
+  }
+
+  /* Prevent alignment shifts on Start/Sit button - NO transform or outline */
+  body[data-page="rosters"] .start-sit-button:hover,
+  body[data-page="rosters"] .start-sit-button:active,
+  body[data-page="rosters"] .start-sit-button:focus,
+  body[data-page="rosters"] .start-sit-button:focus-visible {
+    transform: none !important;
+    outline: none !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button.active:hover,
+  body[data-page="rosters"] .start-sit-button.active:active,
+  body[data-page="rosters"] .start-sit-button.active:focus {
+    transform: none !important;
   }
 
   /* View switcher - MOVED TO SECOND POSITION */
@@ -8170,18 +8194,21 @@ body[data-page="research"] #secondary-header-row {
   /* View dropdown - MOBILE ONLY - replaces switcher */
   body[data-page="rosters"] .view-switcher-dropdown {
     order: 2;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     position: relative;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.1rem;
-    padding: 0.33rem 0.35rem !important;
-    min-height: 1.5rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.1rem !important;
+    padding: 0.32rem 0.35rem !important;
+    min-height: auto !important;
+    height: auto !important;
     min-width: 3.45rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
@@ -8213,16 +8240,25 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
-    font-size: 0.78rem;
-    line-height: 1;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.45rem;
+    font-size: 0.45rem !important;
     font-weight: 500;
-    line-height: 1;
-    margin-top: 0rem;
+    line-height: 1 !important;
+    margin-top: 0.04rem !important;
     letter-spacing: 0.01rem;
+  }
+
+  /* Prevent alignment shifts on View dropdown - NO transform or outline */
+  body[data-page="rosters"] .view-dropdown-toggle:hover,
+  body[data-page="rosters"] .view-dropdown-toggle:active,
+  body[data-page="rosters"] .view-dropdown-toggle:focus,
+  body[data-page="rosters"] .view-dropdown-toggle:focus-visible {
+    transform: none !important;
+    outline: none !important;
   }
 
   body[data-page="rosters"] .view-dropdown-arrow {
@@ -8291,7 +8327,7 @@ body[data-page="research"] #secondary-header-row {
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.32rem;
     overflow: visible;
   }
@@ -8303,15 +8339,21 @@ body[data-page="research"] #secondary-header-row {
     min-width: 0;
     justify-content: flex-start;
     flex-wrap: nowrap;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .filter-btn {
-    padding: 0.295rem 0.35rem !important;
+    padding: 0.32rem 0.35rem !important;
     font-size: 0.72rem !important;
     font-weight: 400;
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .filter-btn:not(.active):hover {
