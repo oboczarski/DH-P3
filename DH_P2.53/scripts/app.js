@@ -21,6 +21,10 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const compareSearchClose   = document.getElementById('compareSearchClose');
         const positionalViewBtn = document.getElementById('positionalViewBtn');
         const lineupViewBtn = document.getElementById('lineupViewBtn');
+        const viewDropdownToggle = document.getElementById('viewDropdownToggle');
+        const viewDropdownMenu = document.getElementById('viewDropdownMenu');
+        const viewDropdownIcon = document.getElementById('viewDropdownIcon');
+        const viewDropdownLabel = document.getElementById('viewDropdownLabel');
         const positionalFiltersContainer = document.getElementById('positional-filters');
         const clearFiltersButton = document.getElementById('clearFiltersButton');
         const tradeSimulator = document.getElementById('tradeSimulator');
@@ -407,6 +411,44 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             compareButton?.addEventListener('click', handleCompareClick);
             positionalViewBtn?.addEventListener('click', () => setRosterView('positional'));
             lineupViewBtn?.addEventListener('click', () => setRosterView('lineup'));
+            
+            // View dropdown handlers (mobile)
+            viewDropdownToggle?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = viewDropdownToggle.getAttribute('aria-expanded') === 'true';
+                if (isOpen) {
+                    closeViewDropdown();
+                } else {
+                    openViewDropdown();
+                }
+            });
+
+            viewDropdownMenu?.addEventListener('click', (e) => {
+                const option = e.target.closest('.view-dropdown-option');
+                if (!option) return;
+                const view = option.dataset.view;
+                if (view) {
+                    setRosterView(view);
+                    closeViewDropdown();
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!viewDropdownMenu || !viewDropdownToggle) return;
+                if (viewDropdownMenu.classList.contains('hidden')) return;
+                if (!viewDropdownMenu.contains(e.target) && !viewDropdownToggle.contains(e.target)) {
+                    closeViewDropdown();
+                }
+            });
+
+            // Close dropdown on ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && viewDropdownMenu && !viewDropdownMenu.classList.contains('hidden')) {
+                    closeViewDropdown();
+                }
+            });
+            
             positionalFiltersContainer?.addEventListener('click', handlePositionFilter);
             clearFiltersButton?.addEventListener('click', handleClearFilters);
             startSitButton?.addEventListener('click', handleStartSitButtonClick);
@@ -725,10 +767,34 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
     hideLegend();
             state.currentRosterView = view;
             const isPositional = view === 'positional';
-            positionalViewBtn.classList.toggle('active', isPositional);
-            lineupViewBtn.classList.toggle('active', !isPositional);
-            positionalViewBtn.classList.toggle('counterpart-active', !isPositional);
-            lineupViewBtn.classList.toggle('counterpart-active', isPositional);
+            
+            // Update dropdown toggle display (mobile)
+            if (viewDropdownIcon && viewDropdownLabel) {
+                if (isPositional) {
+                    viewDropdownIcon.className = 'fa-solid fa-users';
+                    viewDropdownLabel.textContent = 'Positional';
+                } else {
+                    viewDropdownIcon.className = 'fa-solid fa-list-ol';
+                    viewDropdownLabel.textContent = 'Lineup';
+                }
+            }
+            
+            // Update dropdown menu options active state (mobile)
+            if (viewDropdownMenu) {
+                const options = viewDropdownMenu.querySelectorAll('.view-dropdown-option');
+                options.forEach(opt => {
+                    opt.classList.toggle('active', opt.dataset.view === view);
+                });
+            }
+            
+            // Legacy support for old button-based switcher (desktop)
+            if (positionalViewBtn && lineupViewBtn) {
+                positionalViewBtn.classList.toggle('active', isPositional);
+                lineupViewBtn.classList.toggle('active', !isPositional);
+                positionalViewBtn.classList.toggle('counterpart-active', !isPositional);
+                lineupViewBtn.classList.toggle('counterpart-active', isPositional);
+            }
+            
             if (state.currentTeams) {
                 renderAllTeamData(state.currentTeams);
             }
@@ -1239,6 +1305,16 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (document.activeElement === compareSearchInput) {
                 compareSearchToggle.focus();
             }
+        }
+        function openViewDropdown() {
+            if (!viewDropdownMenu || !viewDropdownToggle) return;
+            viewDropdownMenu.classList.remove('hidden');
+            viewDropdownToggle.setAttribute('aria-expanded', 'true');
+        }
+        function closeViewDropdown() {
+            if (!viewDropdownMenu || !viewDropdownToggle) return;
+            viewDropdownMenu.classList.add('hidden');
+            viewDropdownToggle.setAttribute('aria-expanded', 'false');
         }
         function filterTeamsByQuery(q) {
             if (!rosterGrid) {

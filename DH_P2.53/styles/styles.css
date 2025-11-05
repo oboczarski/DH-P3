@@ -495,7 +495,7 @@
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
 }
 .start-sit-button.active {
     color: var(--color-accent-primary);
@@ -1141,7 +1141,7 @@ n {
         background: rgba(0, 0, 0, 0.02);
         backdrop-filter: blur(1px) saturate(180%);
         border: 1px solid rgba(250, 250, 250, 0.09);
-        border-radius: 5px;
+        border-radius: 7px;
         box-shadow: 0 1px 5px rgba(31, 38, 105, 0.01), inset 0 3px 10px rgba(255, 255, 255, 0.013);
     }
     /* AFTER */
@@ -8129,9 +8129,9 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.3rem 0.32rem !important;
+    padding: 0.3rem 0.38rem !important;
     gap: 0.08rem;
-    min-width: 2.7rem;
+    min-width: 3rem;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
@@ -8139,7 +8139,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.38rem;
+    font-size: 0.4rem;
     margin-top: 0.04rem;
   }
 
@@ -8167,6 +8167,118 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] .view-switcher .switcher-label {
     font-size: 0.36rem;
     line-height: 1;
+  }
+
+  /* View dropdown - MOBILE ONLY - replaces switcher */
+  body[data-page="rosters"] .view-switcher-dropdown {
+    order: 2;
+    flex: 0 0 auto;
+    position: relative;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.09rem;
+    padding: 0.4rem 0.6rem !important;
+    min-height: 1.5rem;
+    min-width: 2.4rem;
+    background: rgba(13, 14, 35, 0.05);
+    border: 1px solid rgba(128, 138, 189, 0.2);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
+                inset 0 1px 2px rgba(255, 255, 255, 0.06);
+    position: relative;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle i:first-child {
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
+    font-size: 0.4rem;
+    line-height: 1;
+    letter-spacing: 0.01rem;
+  }
+
+  body[data-page="rosters"] .view-dropdown-arrow {
+    position: absolute;
+    top: 10px;
+    right: 3px;
+    font-size: 0.6rem !important;
+    opacity: 0.7;
+    text-shadow: 0 0 3px #5300ffaa, 0 0 5px #5300ff;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle:hover {
+    color: var(--color-text-primary);
+    background: rgba(13, 14, 35, 0.35);
+    border-color: rgba(128, 138, 189, 0.35);
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
+    color: var(--color-accent-secondary);
+    background: rgba(66, 194, 255, 0.1);
+    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    min-width: 100%;
+    background: rgba(18, 22, 40, 0.95);
+    border: 1px solid rgba(169, 178, 227, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(20px);
+    z-index: 200;
+    overflow: hidden;
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu.hidden {
+    display: none;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.5rem;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option i {
+    font-size: 0.8rem;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+  }
+
+  body[data-page="rosters"] .view-dropdown-option.active {
+    color: var(--color-accent-secondary);
+    background: rgba(66, 194, 255, 0.08);
+  }
+
+  /* Hide old switcher on mobile */
+  body[data-page="rosters"] .view-switcher {
+    display: none;
   }
 
   /* Filters - positioned after view switcher */
@@ -8244,7 +8356,7 @@ body[data-page="research"] #secondary-header-row {
     }
 
     body[data-page="rosters"] .start-sit-button {
-      min-width: 4rem;
+      min-width: 4.5rem;
     }
 
 
@@ -8261,6 +8373,17 @@ body[data-page="research"] #secondary-header-row {
     left: auto;
     width: 400px;
   }
+  
+  /* Desktop: Hide dropdown, show old switcher */
+  body[data-page="rosters"] .view-switcher-dropdown {
+    display: none;
+  }
+  
+  body[data-page="rosters"] .view-switcher {
+    display: flex !important;
+  }
 }
+
+
 
 
