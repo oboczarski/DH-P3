@@ -336,7 +336,7 @@
   display: inline-block;
   vertical-align: middle;
   margin-top: 0;
-  margin-bottom: -1.5px;
+  margin-bottom: -1px;
 }
 #homeButton {
   padding-top: 0.15rem;
@@ -539,7 +539,7 @@
         font-size: 0.95rem;
     }
     .nav-label {
-        font-size: 0.4rem;
+        font-size: 0.45rem;
     }
     .app-logo {
         width: 1.8rem;
