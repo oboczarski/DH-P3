@@ -697,6 +697,7 @@ n {
   }
   .compact-switcher button {
     padding: 0.3rem 0.4rem 0.2rem !important;
+    min-width: 38px;
   }
   .compact-switcher button i {
     font-size: 0.75rem;
@@ -706,10 +707,10 @@ n {
   }
   .start-sit-button {
     padding: 0.3rem 0.535rem 0.2rem !important;
-    width: 58px;
-    margin-left: 3px;
-    flex: 0 0 58px !important;
-    min-width: 58px !important;
+    width: 75px;
+    margin-left: 2px;
+    flex: 0 0 60px !important;
+    min-width: 62px !important;
   }
   .start-sit-button .analyzer-icon {
     font-size: 0.951rem;
@@ -1159,9 +1160,7 @@ n {
         filter: blur(1px) brightness(100%);
         pointer-events: none;
     }
-    .filter-btn {
-        margin-left: 3px;
-    }
+
 /* · · Preview Button • Ctrl Button · · */
         .control-button {
             padding: 0.29rem 0.6rem;
@@ -1250,7 +1249,7 @@ n {
 }
 @media (min-width: 869px) {
   body[data-page="rosters"] #header-container .app-header.preview-active {
-    --roster-desktop-gap: 0.75rem;
+    --roster-desktop-gap: 0.6rem;
     --roster-desktop-field-width: 113px;
     --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
     --roster-preview-gap: clamp(0.4rem, 1.2vw, 0.7rem);
