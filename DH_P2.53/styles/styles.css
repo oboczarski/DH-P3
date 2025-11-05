@@ -8129,9 +8129,9 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.3rem 0.32rem !important;
+    padding: 0.3rem 0.4rem !important;
     gap: 0.08rem;
-    min-width: 2.7rem;
+    min-width: 3.2rem;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
@@ -8143,7 +8143,63 @@ body[data-page="research"] #secondary-header-row {
     margin-top: 0.04rem;
   }
 
-  /* View switcher - MOVED TO SECOND POSITION */
+  /* View switcher buttons - HIDDEN ON MOBILE, shown on desktop */
+  body[data-page="rosters"] .view-switcher.secondary-switcher.compact-switcher {
+    display: none;
+  }
+
+  /* View switcher dropdown - MOBILE ONLY */
+  body[data-page="rosters"] .view-switcher-dropdown {
+    order: 2;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+  }
+
+  body[data-page="rosters"] .view-switcher-select {
+    padding: 0.32rem 1.1rem 0.32rem 0.45rem;
+    font-size: 0.6rem;
+    font-weight: 500;
+    min-height: 1.5rem;
+    width: 3.8rem;
+    background: rgba(13, 14, 35, 0.25);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(128, 138, 189, 0.2);
+    border-radius: 6px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23808AB9' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.35rem center;
+    background-size: 0.65rem;
+  }
+
+  body[data-page="rosters"] .view-switcher-select:hover,
+  body[data-page="rosters"] .view-switcher-select:focus {
+    color: var(--color-text-primary);
+    background-color: rgba(13, 14, 35, 0.35);
+    border-color: rgba(128, 138, 189, 0.35);
+    outline: none;
+  }
+
+  body[data-page="rosters"] .view-switcher-select:focus-visible {
+    outline: 2px solid rgba(66, 194, 255, 0.4);
+    outline-offset: 2px;
+  }
+
+  /* Active option styling - cyan border matching switcher button active state */
+  body[data-page="rosters"] .view-switcher-select:has(option[value="positional"]:checked),
+  body[data-page="rosters"] .view-switcher-select:has(option[value="lineup"]:checked) {
+    border-color: rgba(66, 194, 255, 0.5);
+    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* View switcher - MOVED TO SECOND POSITION (legacy for desktop) */
   body[data-page="rosters"] .view-switcher {
     order: 2;
     flex: 0 0 auto;
@@ -8244,12 +8300,15 @@ body[data-page="research"] #secondary-header-row {
     }
 
     body[data-page="rosters"] .start-sit-button {
-      min-width: 4rem;
+      min-width: 4.5rem;
     }
 
-
-    body[data-page="rosters"] .view-switcher {
-      flex: 0 1 auto;
+    body[data-page="rosters"] .view-switcher-dropdown {
+      flex: 0 0 auto;
+    }
+    
+    body[data-page="rosters"] .view-switcher-select {
+      width: 4.2rem;
     }
   }
 }
@@ -8260,6 +8319,15 @@ body[data-page="research"] #secondary-header-row {
     right: 0;
     left: auto;
     width: 400px;
+  }
+  
+  /* Show original 2-button switcher on desktop, hide dropdown */
+  body[data-page="rosters"] .view-switcher.secondary-switcher.compact-switcher {
+    display: flex;
+  }
+  
+  body[data-page="rosters"] .view-switcher-dropdown {
+    display: none;
   }
 }
 

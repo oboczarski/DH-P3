@@ -21,6 +21,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const compareSearchClose   = document.getElementById('compareSearchClose');
         const positionalViewBtn = document.getElementById('positionalViewBtn');
         const lineupViewBtn = document.getElementById('lineupViewBtn');
+        const viewSwitcherSelect = document.getElementById('viewSwitcherSelect');
         const positionalFiltersContainer = document.getElementById('positional-filters');
         const clearFiltersButton = document.getElementById('clearFiltersButton');
         const tradeSimulator = document.getElementById('tradeSimulator');
@@ -407,6 +408,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             compareButton?.addEventListener('click', handleCompareClick);
             positionalViewBtn?.addEventListener('click', () => setRosterView('positional'));
             lineupViewBtn?.addEventListener('click', () => setRosterView('lineup'));
+            viewSwitcherSelect?.addEventListener('change', (e) => setRosterView(e.target.value));
             positionalFiltersContainer?.addEventListener('click', handlePositionFilter);
             clearFiltersButton?.addEventListener('click', handleClearFilters);
             startSitButton?.addEventListener('click', handleStartSitButtonClick);
@@ -725,10 +727,18 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
     hideLegend();
             state.currentRosterView = view;
             const isPositional = view === 'positional';
-            positionalViewBtn.classList.toggle('active', isPositional);
-            lineupViewBtn.classList.toggle('active', !isPositional);
-            positionalViewBtn.classList.toggle('counterpart-active', !isPositional);
-            lineupViewBtn.classList.toggle('counterpart-active', isPositional);
+            
+            // Update dropdown selection
+            if (viewSwitcherSelect) {
+                viewSwitcherSelect.value = view;
+            }
+            
+            // Update desktop button states (for backward compatibility)
+            positionalViewBtn?.classList.toggle('active', isPositional);
+            lineupViewBtn?.classList.toggle('active', !isPositional);
+            positionalViewBtn?.classList.toggle('counterpart-active', !isPositional);
+            lineupViewBtn?.classList.toggle('counterpart-active', isPositional);
+            
             if (state.currentTeams) {
                 renderAllTeamData(state.currentTeams);
             }
@@ -6280,7 +6290,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 // Hide legend when switching away from Welcome via UI controls
-['rostersButton','ownershipButton','analyzerButton', 'researchButton', 'leagueSelect','positionalViewBtn','lineupViewBtn'].forEach(id=>{
+['rostersButton','ownershipButton','analyzerButton', 'researchButton', 'leagueSelect','positionalViewBtn','lineupViewBtn','viewSwitcherSelect'].forEach(id=>{
   const el = document.getElementById(id);
   if (el) el.addEventListener('click', hideLegend, {capture:true});
 });
