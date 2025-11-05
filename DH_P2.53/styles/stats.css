@@ -615,7 +615,7 @@
   font-size: 0.6rem;
   letter-spacing: 0.05em;
   line-height: 1.25;
-  background: #2a2d41;
+  background: #232638;
   position: sticky;
   top: 0;
   z-index: 3;
@@ -772,7 +772,7 @@
 .stats-table tbody td.sticky-col-3::before {
   content: '';
   position: absolute;
-  top: -1px;
+  top: 0px;
   left: -1px;
   right: -1px;
   bottom: 0px;
@@ -782,7 +782,7 @@
 .stats-table thead th.sticky-col-1::before,
 .stats-table thead th.sticky-col-2::before,
 .stats-table thead th.sticky-col-3::before {
-  background: #2a2d41;
+  background: #232638;
 }
 .stats-table tbody tr:nth-child(even) td.sticky-col-1::before,
 .stats-table tbody tr:nth-child(even) td.sticky-col-2::before,
