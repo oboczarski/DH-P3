@@ -89,7 +89,7 @@
 }
 .stats-page-title-label {
   font-weight: 200;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
 }
 .stats-page-subtitle {
   margin: 0;
@@ -103,15 +103,15 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  font-size: 0.64rem;
+  font-size: 0.69rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
-  padding: 0.2rem 0.55rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 999px;
   border: 1px solid rgba(128, 138, 189, 0.26);
   background: linear-gradient(135deg, rgba(118, 109, 255, 0.12), rgba(66, 194, 255, 0.1));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 12px #5300FF52;
   width: fit-content;
 }
 .stats-tabs {
