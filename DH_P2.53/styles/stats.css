@@ -787,7 +787,7 @@
 .stats-table tbody tr:nth-child(even) td.sticky-col-1::before,
 .stats-table tbody tr:nth-child(even) td.sticky-col-2::before,
 .stats-table tbody tr:nth-child(even) td.sticky-col-3::before {
-  background: #1b1e31fc;
+  background: #181c2c;
 }
 .stats-table tbody td.sticky-col-1::before,
 .stats-table tbody td.sticky-col-2::before,
