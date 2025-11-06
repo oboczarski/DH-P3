@@ -76,8 +76,11 @@
     <section class="stats-page-intro glass-panel">
       <div class="stats-intro-stack">
         <div class="stats-league-chip" id="statsLeagueContext" aria-live="polite">DH DATA HUB</div>
-        <h1 class="stats-page-title">
-          <span class="stats-page-title-label">2025 STATS & TRADE VALUES</span>
+        <h1 class="stats-tab-heading stats-page-title" data-tab-heading="oneQb">
+          <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
+        </h1>
+        <h1 class="stats-tab-heading stats-page-title hidden" data-tab-heading="sflx">
+          <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
         </h1>
       </div>
       <div class="stats-tabs" role="presentation">
@@ -94,18 +97,6 @@
 
     <section class="stats-controls-panel glass-panel">
       <div class="stats-controls">
-        <div class="stats-controls-heading stats-tab-headers">
-          <h2 class="stats-tab-heading" data-tab-heading="oneQb">
-            <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
-          </h2>
-          <h2 class="stats-tab-heading hidden" data-tab-heading="sflx">
-            <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
-          </h2>
-          <button class="stats-key-button" id="statsKeyButton" type="button" aria-label="Show stats key">
-            <i class="fa-solid fa-key" aria-hidden="true"></i>
-            <span>Key</span>
-          </button>
-        </div>
         <div class="stats-controls-body">
           <div class="stats-filter-block" id="statsFilterGroup">
             <button class="stats-filter-btn" data-position="ALL" type="button">Totals</button>
@@ -129,6 +120,10 @@
               </span>
             </div>
           </div>
+          <button class="stats-key-button" id="statsKeyButton" type="button" aria-label="Show stats key">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <span>Key</span>
+          </button>
         </div>
       </div>
     </section>
