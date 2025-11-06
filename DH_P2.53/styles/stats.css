@@ -47,7 +47,7 @@
 .stats-page-intro {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.5rem;
   padding: 0.8rem;
   border-radius: 12px;
   background: rgba(13, 14, 35, 0.22);
@@ -62,7 +62,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
+  gap: 1rem;
   width: 100%;
 }
 .stats-page-title {
@@ -78,6 +78,7 @@
   text-transform: uppercase;
   line-height: 1.1;
   text-align: center;
+  white-space: nowrap;
 }
 .stats-page-title span {
   display: inline-block;
@@ -181,14 +182,14 @@
 }
 .stats-tab-heading {
   margin: 0;
-  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
-  font-weight: 400;
+  font-size: 1.5rem;
+  font-weight: 200;
   color: var(--color-text-primary);
   letter-spacing: 0.05em;
 }
 .stats-tab-heading b,
 .stats-tab-heading span {
-  font-weight: 600;
+  font-weight: 300;
 }
 .stats-heading-accent {
   -webkit-background-clip: text;
@@ -222,8 +223,8 @@
 }
 .stats-key-button {
   position: absolute;
-  bottom: 3px;
-  right: -2px;
+  bottom: 2px;
+  right: 0px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -350,7 +351,7 @@
 }
 .stats-filter-btn-secondary {
   position: relative;
-  padding: 0.2rem 0.7rem;
+  padding: 0.2rem 0.5rem;
   font-size: 0.6rem;
   font-weight: 500;
   border-radius: 8px;
@@ -998,7 +999,7 @@
     flex-wrap: nowrap;
   }
   .stats-key-button {
-    padding: 0.4rem 0.65rem;
+    padding: 0.45rem 0.75rem;
     font-size: 0.62rem;
   }
   .stats-key-button span {
@@ -1051,7 +1052,7 @@
     max-width: 100%;
   }
   .stats-search-block {
-    max-width: min(90vw, 300px);
+    max-width: min(90vw, 279px);
   }
   .stats-table {
     font-size: 0.56rem;
