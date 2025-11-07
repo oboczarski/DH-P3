@@ -158,7 +158,7 @@
   // Column width configuration (explicit pixel values for perfect alignment)
   const STATS_COLUMN_WIDTHS = {
     'RK': 64,
-    'PLAYER': 180,
+    'PLAYER': 192,  // Match reference table width
     'POS': 80,
     'TM': 80,
     'AGE': 80,
@@ -725,89 +725,54 @@
     return { frozenColumns, scrollableColumns };
   }
   
-  function setupColumnWidths(wrapper, frozenCols, scrollableCols) {
-    // Frozen corner and frozen columns colgroups
-    const frozenCornerColgroup = wrapper.querySelector('.stats-quadrant-frozen-corner colgroup');
-    const frozenColumnsColgroup = wrapper.querySelector('.stats-quadrant-frozen-columns colgroup');
-    
-    if (frozenCornerColgroup) frozenCornerColgroup.innerHTML = '';
-    if (frozenColumnsColgroup) frozenColumnsColgroup.innerHTML = '';
-    
-    frozenCols.forEach(col => {
-      const width = getColumnWidth(col);
-      [frozenCornerColgroup, frozenColumnsColgroup].forEach(colgroup => {
-        if (!colgroup) return;
-        const colElement = document.createElement('col');
-        colElement.style.width = `${width}px`;
-        colElement.style.minWidth = `${width}px`;
-        colElement.style.maxWidth = `${width}px`;
-        colElement.dataset.column = col;
-        colElement.className = `stats-col-${col.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-        colgroup.appendChild(colElement);
-      });
-    });
-    
-    // Scrollable header and scrollable data colgroups
-    const scrollableHeaderColgroup = wrapper.querySelector('.stats-quadrant-scrollable-header colgroup');
-    const scrollableDataColgroup = wrapper.querySelector('.stats-quadrant-scrollable-data colgroup');
-    
-    if (scrollableHeaderColgroup) scrollableHeaderColgroup.innerHTML = '';
-    if (scrollableDataColgroup) scrollableDataColgroup.innerHTML = '';
-    
-    scrollableCols.forEach(col => {
-      const width = getColumnWidth(col);
-      [scrollableHeaderColgroup, scrollableDataColgroup].forEach(colgroup => {
-        if (!colgroup) return;
-        const colElement = document.createElement('col');
-        colElement.style.width = `${width}px`;
-        colElement.style.minWidth = `${width}px`;
-        colElement.style.maxWidth = `${width}px`;
-        colElement.dataset.column = col;
-        colgroup.appendChild(colElement);
-      });
-    });
-    
-    // Set table widths
-    const frozenTableWidth = frozenCols.reduce((sum, col) => sum + getColumnWidth(col), 0);
-    const scrollableTableWidth = scrollableCols.reduce((sum, col) => sum + getColumnWidth(col), 0);
-    
-    wrapper.querySelectorAll('.stats-table-frozen').forEach(table => {
-      table.style.width = `${frozenTableWidth}px`;
-      table.style.minWidth = `${frozenTableWidth}px`;
-    });
-    
-    wrapper.querySelectorAll('.stats-table-scrollable').forEach(table => {
-      table.style.width = `${scrollableTableWidth}px`;
-      table.style.minWidth = `${scrollableTableWidth}px`;
-    });
-  }
-  
-  function updateBackdropDimensions(wrapper) {
-    // No longer needed - backdrop layers removed for simpler design
-    return;
+  /**
+   * Apply column width directly to cell element (th or td)
+   * Reference implementation approach - guarantees pixel-perfect alignment
+   */
+  function applyColumnWidth(element, columnKey) {
+    const width = getColumnWidth(columnKey);
+    element.style.width = `${width}px`;
+    element.style.minWidth = `${width}px`;
+    element.style.maxWidth = `${width}px`;  // Lock width completely
   }
   
   function initializeScrollSync(wrapper) {
-    const master = wrapper.querySelector('[data-scroll-master="true"]');
-    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
-    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
+    // GAME LOGS PATTERN: Vertical scroll master syncs frozen body
+    const verticalMaster = wrapper.querySelector('[data-scroll-master="vertical"]');
+    const frozenBodyTarget = wrapper.querySelector('[data-sync-target="frozen-body"]');
     
-    if (!master || !headerTarget || !columnsTarget) return;
-    
-    // Remove existing listener if any
-    if (master._scrollSyncHandler) {
-      master.removeEventListener('scroll', master._scrollSyncHandler);
+    if (!verticalMaster || !frozenBodyTarget) {
+      console.warn('Missing scroll elements:', { verticalMaster, frozenBodyTarget });
+      return;
     }
     
-    // EXACT reference table implementation - direct sync
+    // Remove existing listeners if any
+    if (verticalMaster._scrollSyncHandler) {
+      verticalMaster.removeEventListener('scroll', verticalMaster._scrollSyncHandler);
+    }
+    if (frozenBodyTarget._wheelHandler) {
+      frozenBodyTarget.removeEventListener('wheel', frozenBodyTarget._wheelHandler);
+    }
+    
+    // Sync vertical scroll from scrollable to frozen
     const scrollHandler = (e) => {
-      const { scrollLeft, scrollTop } = e.target;
-      headerTarget.scrollLeft = scrollLeft;
-      columnsTarget.scrollTop = scrollTop;
+      frozenBodyTarget.scrollTop = e.target.scrollTop;
     };
     
-    master._scrollSyncHandler = scrollHandler;
-    master.addEventListener('scroll', scrollHandler, { passive: true });
+    verticalMaster._scrollSyncHandler = scrollHandler;
+    verticalMaster.addEventListener('scroll', scrollHandler, { passive: true });
+    
+    // Route wheel events on frozen body to scrollable body (for vertical scroll)
+    const wheelHandler = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        // Vertical wheel - route to scrollable body
+        verticalMaster.scrollTop += e.deltaY;
+        e.preventDefault();
+      }
+    };
+    
+    frozenBodyTarget._wheelHandler = wheelHandler;
+    frozenBodyTarget.addEventListener('wheel', wheelHandler, { passive: false });
   }
   
   function renderTable() {
@@ -874,32 +839,31 @@
     // Split columns into frozen and scrollable
     const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
     
-    // Set up column widths in all colgroups
-    setupColumnWidths(quadrantWrapper, frozenColumns, scrollableColumns);
+    // Get the new structure elements
+    const frozenHeader = quadrantWrapper.querySelector('.stats-frozen-header thead');
+    const frozenBody = quadrantWrapper.querySelector('.stats-frozen-body tbody');
+    const scrollableHeader = quadrantWrapper.querySelector('.stats-scrollable-header thead');
+    const scrollableBody = quadrantWrapper.querySelector('.stats-scrollable-body tbody');
     
-    // Get all 4 quadrants
-    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
-    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
-    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
-    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
+    console.log('📊 Table elements:', { frozenHeader, frozenBody, scrollableHeader, scrollableBody });
     
-    // Get all table parts
-    const frozenCornerThead = frozenCorner?.querySelector('thead');
-    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
-    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
-    const scrollableDataTbody = scrollableData?.querySelector('tbody');
+    if (!frozenHeader || !frozenBody || !scrollableHeader || !scrollableBody) {
+      console.error('❌ Missing table elements!', { frozenHeader, frozenBody, scrollableHeader, scrollableBody });
+      return;
+    }
     
     // Clear existing content
-    if (frozenCornerThead) frozenCornerThead.innerHTML = '';
-    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
-    if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
-    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
+    if (frozenHeader) frozenHeader.innerHTML = '';
+    if (frozenBody) frozenBody.innerHTML = '';
+    if (scrollableHeader) scrollableHeader.innerHTML = '';
+    if (scrollableBody) scrollableBody.innerHTML = '';
     
-    // === RENDER FROZEN CORNER HEADERS ===
-    if (frozenCornerThead) {
+    // === RENDER FROZEN HEADERS ===
+    if (frozenHeader) {
       const headerRow = document.createElement('tr');
       frozenColumns.forEach((column) => {
         const th = document.createElement('th');
+        applyColumnWidth(th, column);  // Apply width directly to cell
         const displayLabel = headerLabels.get(column) || column;
         th.textContent = displayLabel;
         const category = getColumnCategory(column);
@@ -909,7 +873,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      frozenCornerThead.appendChild(headerRow);
+      frozenHeader.appendChild(headerRow);
       
       // Apply sort indicator if needed
       clearSortIndicators(headerRow);
@@ -920,10 +884,11 @@
     }
     
     // === RENDER SCROLLABLE HEADERS ===
-    if (scrollableHeaderThead) {
+    if (scrollableHeader) {
       const headerRow = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const th = document.createElement('th');
+        applyColumnWidth(th, column);  // Apply width directly to cell
         const displayLabel = headerLabels.get(column) || column;
         th.textContent = displayLabel;
         const category = getColumnCategory(column);
@@ -931,7 +896,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      scrollableHeaderThead.appendChild(headerRow);
+      scrollableHeader.appendChild(headerRow);
       
       // Apply sort indicator if needed
       clearSortIndicators(headerRow);
@@ -950,6 +915,7 @@
       const frozenTr = document.createElement('tr');
       frozenColumns.forEach((column) => {
         const td = document.createElement('td');
+        applyColumnWidth(td, column);  // Apply width directly to cell
         const rawValue = formatCellValue(column, entry);
         const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
         
@@ -984,6 +950,7 @@
       const scrollableTr = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const td = document.createElement('td');
+        applyColumnWidth(td, column);  // Apply width directly to cell
         const rawValue = formatCellValue(column, entry);
         const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
         
@@ -1023,18 +990,15 @@
       scrollableFragment.appendChild(scrollableTr);
     });
     
-    // Insert fragments
-    if (frozenColumnsTbody) {
-      frozenColumnsTbody.appendChild(frozenFragment);
-      frozenColumnsTbody._statsRows = rows;
+    // Insert fragments into new structure
+    if (frozenBody) {
+      frozenBody.appendChild(frozenFragment);
+      frozenBody._statsRows = rows;
     }
-    if (scrollableDataTbody) {
-      scrollableDataTbody.appendChild(scrollableFragment);
-      scrollableDataTbody._statsRows = rows;
+    if (scrollableBody) {
+      scrollableBody.appendChild(scrollableFragment);
+      scrollableBody._statsRows = rows;
     }
-    
-    // Update backdrop dimensions
-    updateBackdropDimensions(quadrantWrapper);
     
     // Initialize scroll synchronization
     initializeScrollSync(quadrantWrapper);

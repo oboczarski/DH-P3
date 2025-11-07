@@ -675,177 +675,190 @@
     transform: rotate(360deg);
   }
 }
-/* === QUADRANT SYSTEM === */
+
+/* ============================================ */
+/* FROZEN PANE TABLE - GAME LOGS PATTERN */
+/* ============================================ */
+
 .stats-table-wrapper {
   width: 100%;
 }
 
-/* Main Container - Match game logs table styling */
+/* Outer wrapper - border and shadow */
 .stats-table-quadrant-wrapper {
-  position: relative;
-  width: 100%;
-  height: 70vh;
-  max-height: 700px;
-  overflow: hidden;
-  background: rgba(5, 0, 30, 0.081);
-  backdrop-filter: blur(1px) saturate(140%);
-  border: 1px solid rgba(250, 250, 250, 0.1);
-  border-radius: 9px;
-  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.15), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.stats-table-quadrant-wrapper::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 9px;
-  backdrop-filter: blur(1px);
-  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .05),
-              inset 0px 8px 0px -6px rgba(255, 255, 255, .051);
-  opacity: 0.1;
-  z-index: -1;
-  filter: blur(1px) drop-shadow(10px 4px 10px black) brightness(100%);
-  pointer-events: none;
-}
-
-/* CSS Grid Container - 2×2 Layout */
+/* Main Grid: LEFT frozen, RIGHT scrollable */
 .stats-table-grid {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: auto 1fr;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  z-index: 1;
-}
-
-/* === INDIVIDUAL QUADRANTS === */
-
-/* TOP-LEFT: Frozen Corner */
-.stats-quadrant-frozen-corner {
-  grid-column: 1;
-  grid-row: 1;
-  position: relative;
-  z-index: 30;
+  height: 70vh;
+  max-height: 700px;
+  border-radius: 12px;
   overflow: hidden;
-  background: transparent;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.15);
-  border-right: 1px solid rgba(128, 138, 189, 0.15);
 }
 
-/* TOP-RIGHT: Scrollable Headers */
-.stats-quadrant-scrollable-header {
-  grid-column: 2;
-  grid-row: 1;
-  position: relative;
+/* === LEFT: FROZEN COLUMN === */
+.stats-frozen-column {
+  display: flex;
+  flex-direction: column;
+  background: rgba(19, 23, 44, 0.8);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 20;
+}
+
+.stats-frozen-header {
+  overflow: visible;
+  background: rgba(19, 23, 44, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-frozen-body {
+  flex: 1;
+  overflow-y: auto; /* Allow scrolling - will be synced */
   overflow-x: hidden;
-  overflow-y: scroll;
-  background: transparent;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.15);
-  scrollbar-width: none;
+  background: rgba(13, 17, 32, 0.6);
+  min-height: 0;
+  scrollbar-width: none; /* Hide scrollbar */
 }
-.stats-quadrant-scrollable-header::-webkit-scrollbar {
-  display: none;
-}
-
-/* BOTTOM-LEFT: Frozen Columns */
-.stats-quadrant-frozen-columns {
-  grid-column: 1;
-  grid-row: 2;
-  position: relative;
-  z-index: 20;
-  overflow-y: hidden;
-  overflow-x: scroll;
-  background: transparent;
-  border-right: 1px solid rgba(128, 138, 189, 0.15);
-  scrollbar-width: none;
-}
-.stats-quadrant-frozen-columns::-webkit-scrollbar {
-  display: none;
+.stats-frozen-body::-webkit-scrollbar {
+  display: none; /* Hide scrollbar */
 }
 
-/* BOTTOM-RIGHT: Scrollable Data - BOTH SCROLLS */
-.stats-quadrant-scrollable-data {
-  grid-column: 2;
-  grid-row: 2;
-  position: relative;
-  z-index: 10;
+/* === RIGHT: SCROLLABLE COLUMN === */
+.stats-scrollable-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Horizontal scroll wrapper - contains header AND body together */
+.stats-hscroll {
+  width: 100%;
   overflow-x: auto;
-  overflow-y: scroll;
-  background: transparent;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.06) transparent;
+  overflow-y: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-/* Scrollbar styling for master quadrant - match game logs */
-.stats-quadrant-scrollable-data::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  background: transparent;
+.stats-hscroll-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 100%;
+  flex: 1;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-  background-color: rgba(255,255,255,0.06);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+
+.stats-scrollable-header {
+  overflow: visible;
+  background: rgba(19, 23, 44, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255,255,255,0.12);
+
+.stats-scrollable-body {
+  flex: 1;
+  overflow-y: auto; /* Only vertical scroll */
+  overflow-x: visible; /* Show content horizontally */
+  background: rgba(13, 17, 32, 0.6);
+  backdrop-filter: blur(12px);
+  min-height: 0;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Scrollbar styling for horizontal scroll */
+.stats-hscroll::-webkit-scrollbar {
+  height: 12px;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-corner {
-  background: transparent;
+.stats-hscroll::-webkit-scrollbar-track {
+  background: #13172c;
+  border-radius: 10px;
+}
+.stats-hscroll::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+  border: 3px solid #13172c;
+}
+.stats-hscroll::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Scrollbar styling for vertical scroll */
+.stats-scrollable-body::-webkit-scrollbar {
+  width: 12px;
+}
+.stats-scrollable-body::-webkit-scrollbar-track {
+  background: #13172c;
+  border-radius: 10px;
+}
+.stats-scrollable-body::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+  border: 3px solid #13172c;
+}
+.stats-scrollable-body::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 /* === TABLE STYLING === */
 .stats-table-frozen,
 .stats-table-scrollable {
-  width: 100%;
-  border-collapse: collapse;
   table-layout: fixed;
-  font-size: 0.75rem;
-  will-change: transform;
-  transform: translateZ(0);
+  border-collapse: collapse;
 }
 
-/* Consistent height for ALL cells across all quadrants */
+/* Cell base styles - LOCKED dimensions for perfect alignment */
 .stats-table-frozen th,
 .stats-table-frozen td,
 .stats-table-scrollable th,
 .stats-table-scrollable td {
-  height: 38px;
-  min-height: 38px;
-  max-height: 38px;
-  padding: 0.2rem 0.25rem;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  padding: 0.75rem;
   text-align: center;
-  font-size: 0.75rem;
-  color: #8086b0;
+  font-size: 0.875rem;
+  color: #cbd5e1;
   white-space: nowrap;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.08);
-  box-sizing: border-box;
-  vertical-align: middle;
-  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
-  background: transparent;
+  box-sizing: border-box;
+  vertical-align: middle;
+  line-height: 1.5;
 }
 
 .stats-table-frozen thead th,
 .stats-table-scrollable thead th {
   font-weight: 600;
-  font-size: 0.65rem;
-  color: #bbc0e8;
+  font-size: 0.875rem;
+  color: #94a3b8;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.2);
-  background: transparent;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-table-frozen thead th:last-child,
+.stats-table-scrollable thead th:last-child {
+  border-right: none;
+}
+
+.stats-table-frozen tbody td,
+.stats-table-scrollable tbody td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-table-frozen tbody td:last-child,
+.stats-table-scrollable tbody td:last-child {
+  border-right: none;
 }
 
 .stats-table-frozen tbody tr:nth-child(even) td,
@@ -853,7 +866,7 @@
   background: rgba(40, 44, 69, 0.15);
 }
 
-/* Column width classes */
+/* Column width classes - DEPRECATED (will be removed, widths applied inline) */
 .stats-col-rk {
   width: 64px;
   min-width: 64px;

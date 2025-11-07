@@ -139,78 +139,90 @@
       </div>
       <div class="stats-table-wrapper" data-tab-panel="oneQb">
         <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 CSS Grid -->
+          <!-- Main Grid: Frozen columns LEFT, Scrollable columns RIGHT -->
           <div class="stats-table-grid">
-            <!-- TOP-LEFT: Frozen Corner (Headers 1-3) -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-1qb">
-                <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
-                <colgroup></colgroup>
-                <thead></thead>
-              </table>
+            
+            <!-- LEFT COLUMN: Frozen columns (header + body together) -->
+            <div class="stats-frozen-column">
+              <!-- Frozen Header -->
+              <div class="stats-frozen-header">
+                <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-1qb">
+                  <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
+                  <thead></thead>
+                </table>
+              </div>
+              <!-- Frozen Body -->
+              <div class="stats-frozen-body" data-sync-target="frozen-body">
+                <table class="stats-table stats-table-frozen">
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
             
-            <!-- TOP-RIGHT: Scrollable Headers (Headers 4+) -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header" data-sync-target="header">
-              <table class="stats-table stats-table-scrollable">
-                <colgroup></colgroup>
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns (Data cols 1-3) -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns" data-sync-target="columns">
-              <table class="stats-table stats-table-frozen">
-                <colgroup></colgroup>
-                <tbody></tbody>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Scrollable Data (Data cols 4+) -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data" data-scroll-master="true">
-              <table class="stats-table stats-table-scrollable">
-                <colgroup></colgroup>
-                <tbody></tbody>
-              </table>
+            <!-- RIGHT COLUMN: Scrollable columns (ONE horizontal scroll container) -->
+            <div class="stats-scrollable-column">
+              <!-- Horizontal Scroll Wrapper contains BOTH header and body -->
+              <div class="stats-hscroll" data-scroll-master="horizontal">
+                <div class="stats-hscroll-content">
+                  <!-- Scrollable Header -->
+                  <div class="stats-scrollable-header">
+                    <table class="stats-table stats-table-scrollable">
+                      <thead></thead>
+                    </table>
+                  </div>
+                  <!-- Scrollable Body (vertical scroll only) -->
+                  <div class="stats-scrollable-body" data-scroll-master="vertical">
+                    <table class="stats-table stats-table-scrollable">
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
         <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 CSS Grid -->
+          <!-- Main Grid: Frozen columns LEFT, Scrollable columns RIGHT -->
           <div class="stats-table-grid">
-            <!-- TOP-LEFT: Frozen Corner (Headers 1-3) -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-sflx">
-                <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
-                <colgroup></colgroup>
-                <thead></thead>
-              </table>
+            
+            <!-- LEFT COLUMN: Frozen columns (header + body together) -->
+            <div class="stats-frozen-column">
+              <!-- Frozen Header -->
+              <div class="stats-frozen-header">
+                <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-sflx">
+                  <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
+                  <thead></thead>
+                </table>
+              </div>
+              <!-- Frozen Body -->
+              <div class="stats-frozen-body" data-sync-target="frozen-body">
+                <table class="stats-table stats-table-frozen">
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
             
-            <!-- TOP-RIGHT: Scrollable Headers (Headers 4+) -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header" data-sync-target="header">
-              <table class="stats-table stats-table-scrollable">
-                <colgroup></colgroup>
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns (Data cols 1-3) -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns" data-sync-target="columns">
-              <table class="stats-table stats-table-frozen">
-                <colgroup></colgroup>
-                <tbody></tbody>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Scrollable Data (Data cols 4+) -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data" data-scroll-master="true">
-              <table class="stats-table stats-table-scrollable">
-                <colgroup></colgroup>
-                <tbody></tbody>
-              </table>
+            <!-- RIGHT COLUMN: Scrollable columns (ONE horizontal scroll container) -->
+            <div class="stats-scrollable-column">
+              <!-- Horizontal Scroll Wrapper contains BOTH header and body -->
+              <div class="stats-hscroll" data-scroll-master="horizontal">
+                <div class="stats-hscroll-content">
+                  <!-- Scrollable Header -->
+                  <div class="stats-scrollable-header">
+                    <table class="stats-table stats-table-scrollable">
+                      <thead></thead>
+                    </table>
+                  </div>
+                  <!-- Scrollable Body (vertical scroll only) -->
+                  <div class="stats-scrollable-body" data-scroll-master="vertical">
+                    <table class="stats-table stats-table-scrollable">
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
