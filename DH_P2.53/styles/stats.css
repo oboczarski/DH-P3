@@ -675,122 +675,229 @@
     transform: rotate(360deg);
   }
 }
+/* === QUADRANT SYSTEM === */
 .stats-table-wrapper {
   width: 100%;
 }
-.stats-table-scroll {
+
+/* Main Container - Match game logs table styling */
+.stats-table-quadrant-wrapper {
   position: relative;
+  width: 100%;
+  height: 70vh;
+  max-height: 700px;
+  overflow: hidden;
+  background: rgba(5, 0, 30, 0.081);
+  backdrop-filter: blur(1px) saturate(140%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 9px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.15), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+.stats-table-quadrant-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9px;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .05),
+              inset 0px 8px 0px -6px rgba(255, 255, 255, .051);
+  opacity: 0.1;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 10px black) brightness(100%);
+  pointer-events: none;
+}
+
+/* CSS Grid Container - 2×2 Layout */
+.stats-table-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* === INDIVIDUAL QUADRANTS === */
+
+/* TOP-LEFT: Frozen Corner */
+.stats-quadrant-frozen-corner {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 30;
+  overflow: hidden;
+  background: rgba(13, 14, 27, 0.95);
+  border-bottom: 1px solid rgba(128, 138, 189, 0.15);
+  border-right: 1px solid rgba(128, 138, 189, 0.15);
+}
+
+/* TOP-RIGHT: Scrollable Headers */
+.stats-quadrant-scrollable-header {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  z-index: 20;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  background: rgba(13, 14, 27, 0.9);
+  border-bottom: 1px solid rgba(128, 138, 189, 0.15);
+  scrollbar-width: none;
+}
+.stats-quadrant-scrollable-header::-webkit-scrollbar {
+  display: none;
+}
+
+/* BOTTOM-LEFT: Frozen Columns */
+.stats-quadrant-frozen-columns {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  z-index: 20;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  background: rgba(13, 14, 27, 0.85);
+  border-right: 1px solid rgba(128, 138, 189, 0.15);
+  scrollbar-width: none;
+}
+.stats-quadrant-frozen-columns::-webkit-scrollbar {
+  display: none;
+}
+
+/* BOTTOM-RIGHT: Scrollable Data (MASTER CONTROLLER) */
+.stats-quadrant-scrollable-data {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  z-index: 10;
   overflow-x: auto;
   overflow-y: auto;
-  max-height: clamp(340px, 65vh, 640px);
-  border-radius: 10px;
-  background: rgba(10, 12, 28, 0.55);
-  border: 1px solid rgba(128, 138, 189, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  contain: paint;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.06) transparent;
 }
-/* Remove white square where scrollbars meet */
-.stats-table-scroll::-webkit-scrollbar-corner {
-  background: transparent;
-}
-/* Narrow, subtle scrollbars for stats page */
-/* WebKit */
-.stats-table-scroll::-webkit-scrollbar {
+
+/* Scrollbar styling for master quadrant - match game logs */
+.stats-quadrant-scrollable-data::-webkit-scrollbar {
   width: 8px;
   height: 8px;
-}
-.stats-table-scroll::-webkit-scrollbar-thumb {
-  background: rgba(144, 150, 208, 0.14);
-  border-radius: 8px;
-}
-.stats-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(144, 150, 208, 0.24);
-}
-.stats-table-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
-/* Firefox */
-.stats-table-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(144,150,208,0.14) transparent;
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
-.stats-table-scroll::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width));
-  pointer-events: none;
-  background: #080b1d;
-  box-shadow: inset -1px 0 0 #0f1737;
-  z-index: 1;
-  border-top-left-radius: inherit;
-  border-bottom-left-radius: inherit;
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255,255,255,0.12);
 }
-.stats-table-scroll::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--stats-header-mask-height);
-  pointer-events: none;
-  background: linear-gradient(180deg, #080a18 0%, rgba(8, 10, 24, 0.86) 65%, rgba(8, 10, 24, 0));
-  z-index: 2;
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
+.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
+  background: transparent;
 }
-.stats-table {
-  width: var(--stats-table-width, 100%);
-  min-width: var(--stats-table-width, 100%);
-  border-collapse: separate;
-  border-spacing: 0;
-  color: var(--color-text-primary);
-  font-size: 0.66rem;
+.stats-quadrant-scrollable-data::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* === TABLE STYLING === */
+.stats-table-frozen,
+.stats-table-scrollable {
+  width: 100%;
+  border-collapse: collapse;
   table-layout: fixed;
+  font-size: 0.75rem;
 }
-.stats-table thead th {
-  font-weight: 600;
-  padding: 0.36rem 0.32rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.05em;
-  line-height: 1.25;
-  background: #1e2237;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  cursor: pointer;
-}
-.stats-table tbody td {
-  padding: 0.2rem 0.26rem;
-  background: #26293a00;
-}
-.stats-table tbody tr:nth-child(even) td {
-  background: #282c4538;
-}
-.stats-table tbody tr:hover td {
-}
-.stats-table td,
-.stats-table th {
-  white-space: nowrap;
+
+/* Consistent height for ALL cells across all quadrants */
+.stats-table-frozen th,
+.stats-table-frozen td,
+.stats-table-scrollable th,
+.stats-table-scrollable td {
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  padding: 0.2rem 0.25rem;
   text-align: center;
+  font-size: 0.75rem;
+  color: #8086b0;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.08);
+  box-sizing: border-box;
+  vertical-align: middle;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.stats-table-frozen thead th,
+.stats-table-scrollable thead th {
+  font-weight: 600;
+  font-size: 0.65rem;
+  color: #bbc0e8;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.2);
+  background: transparent;
+}
+
+.stats-table-frozen thead th:hover,
+.stats-table-scrollable thead th:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.stats-table-frozen tbody tr:nth-child(even) td,
+.stats-table-scrollable tbody tr:nth-child(even) td {
+  background: rgba(40, 44, 69, 0.15);
+}
+
+.stats-table-frozen tbody tr:hover td,
+.stats-table-scrollable tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Column width classes */
+.stats-col-rk {
+  width: 64px;
+  min-width: 64px;
+  max-width: 64px;
+}
+
+.stats-col-player {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.stats-col-pos {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+/* Sort indicators */
+.stats-table thead th.stats-sort-asc::after {
+  content: ' ▲';
+  font-size: 0.5rem;
+  opacity: 0.6;
+}
+
+.stats-table thead th.stats-sort-desc::after {
+  content: ' ▼';
+  font-size: 0.5rem;
+  opacity: 0.6;
+}
+
 .stats-table td.stats-player-cell {
   text-align: left;
 }
 .stats-table th.stats-player-cell {
   text-align: center;
 }
-.stats-table thead th:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3),
-.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3) {
-  width: var(--stats-col-standard-width);
-  min-width: var(--stats-col-standard-width);
-  max-width: var(--stats-col-standard-width);
-}
-.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3) {
-  overflow: hidden;
-}
+
 .stats-table .stats-player-btn {
   color: inherit;
   font-weight: 400;
@@ -858,118 +965,7 @@
 .stats-table thead th.stats-header-receiving {
   color: #A0C2F7;
 }
-.stats-table .sticky-col-1,
-.stats-table .sticky-col-2,
-.stats-table .sticky-col-3 {
-  position: sticky;
-  background: transparent;
-  border-right: none;
-  background-clip: padding-box;
-  overflow: visible;
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-.stats-table thead .sticky-col-1,
-.stats-table thead .sticky-col-2,
-.stats-table thead .sticky-col-3 {
-  background: transparent;
-}
-.stats-table .sticky-col-1 {
-  left: 0;
-  width: var(--stats-col-rk-width);
-  min-width: var(--stats-col-rk-width);
-  max-width: var(--stats-col-rk-width);
-  z-index: 7;
-}
-.stats-table .sticky-col-2 {
-  left: var(--stats-col-rk-width);
-  width: var(--stats-col-player-width);
-  min-width: var(--stats-col-player-width);
-  max-width: var(--stats-col-player-width);
-  z-index: 6;
-}
-.stats-table .sticky-col-3 {
-  left: calc(var(--stats-col-rk-width) + var(--stats-col-player-width));
-  width: var(--stats-col-pos-width);
-  min-width: var(--stats-col-pos-width);
-  max-width: var(--stats-col-pos-width);
-  z-index: 5;
-}
-.stats-table thead .sticky-col-1 { z-index: 8; }
-.stats-table thead .sticky-col-2 { z-index: 7; }
-.stats-table thead .sticky-col-3 { z-index: 6; }
-.stats-table tbody td.sticky-col-1,
-.stats-table tbody td.sticky-col-2,
-.stats-table tbody td.sticky-col-3 {
-  background: transparent;
-}
-.stats-table thead th.sticky-col-1::before,
-.stats-table thead th.sticky-col-2::before,
-.stats-table thead th.sticky-col-3::before,
-.stats-table tbody td.sticky-col-1::before,
-.stats-table tbody td.sticky-col-2::before,
-.stats-table tbody td.sticky-col-3::before {
-  content: '';
-  position: absolute;
-  top: 0px;
-  left: -1px;
-  right: -1px;
-  bottom: 0px;
-  background: #131827;
-  z-index: -1;
-}
-.stats-table thead th.sticky-col-1::before,
-.stats-table thead th.sticky-col-2::before,
-.stats-table thead th.sticky-col-3::before {
-  background: #1e2237;
-}
-.stats-table tbody tr:nth-child(even) td.sticky-col-1::before,
-.stats-table tbody tr:nth-child(even) td.sticky-col-2::before,
-.stats-table tbody tr:nth-child(even) td.sticky-col-3::before {
-  background: #181b2d;
-}
-.stats-table tbody td.sticky-col-1::before,
-.stats-table tbody td.sticky-col-2::before,
-.stats-table tbody td.sticky-col-3::before {
-}
-.stats-table tbody td.sticky-col-1,
-.stats-table tbody td.sticky-col-2,
-.stats-table tbody td.sticky-col-3 {
-}
-.stats-table tbody td.sticky-col-1::after,
-.stats-table tbody td.sticky-col-2::after,
-.stats-table tbody td.sticky-col-3::after {
-  content: '';
-  position: absolute;
-  left: -1px;
-  right: -1px;
-  bottom: -1px;
-  height: 1px;
-  background: var(--stats-row-border-color);
-  pointer-events: none;
-  z-index: 1;
-}
-.stats-table tbody tr:hover td.sticky-col-1,
-.stats-table tbody tr:hover td.sticky-col-2,
-.stats-table tbody tr:hover td.sticky-col-3,
-.stats-table tbody tr:hover td.sticky-col-1::before,
-.stats-table tbody tr:hover td.sticky-col-2::before,
-.stats-table tbody tr:hover td.sticky-col-3::before {
-}
-.stats-table thead th.sticky-col-1::before,
-.stats-table tbody td.sticky-col-1::before {
-  left: -1px;
-}
-.stats-table thead th.sticky-col-1,
-.stats-table tbody td.sticky-col-1 {
-}
-.stats-table thead th.sticky-col-2,
-.stats-table tbody td.sticky-col-2 {
-}
-.stats-table thead th.sticky-col-3,
-.stats-table tbody td.sticky-col-3 {
-}
+
 .stats-table .player-tag.modal-pos-tag {
   display: inline-flex;
   align-items: center;
@@ -980,20 +976,6 @@
   font-size: 0.55rem;
   border-radius: 4px;
   letter-spacing: 0.05em;
-}
-.stats-table thead th.stats-sort-asc::after,
-.stats-table thead th.stats-sort-desc::after {
-  content: '';
-  display: inline-block;
-  margin-left: 0.28rem;
-  font-size: 0.55rem;
-  color: var(--color-text-secondary);
-}
-.stats-table thead th.stats-sort-asc::after {
-  content: '▲';
-}
-.stats-table thead th.stats-sort-desc::after {
-  content: '▼';
 }
 .stats-empty-state {
   padding: 2rem 0.8rem;

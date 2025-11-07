@@ -154,6 +154,74 @@
     { value: 280, color: '#c70097' },
     { value: 500, color: '#FF0080' }
   ];
+  
+  // Column width configuration (explicit pixel values for perfect alignment)
+  const STATS_COLUMN_WIDTHS = {
+    'RK': 64,
+    'PLAYER': 180,
+    'POS': 80,
+    'TM': 80,
+    'AGE': 80,
+    'G': 80,
+    'FPTS': 96,
+    'PPG': 96,
+    'VALUE': 96,
+    'SNP%': 96,
+    'CAR': 80,
+    'ruYDS': 96,
+    'YPC': 80,
+    'ruTD': 80,
+    'REC': 80,
+    'recYDS': 96,
+    'TGT': 80,
+    'YDS(t)': 96,
+    'YPG(t)': 96,
+    'ruYPG': 96,
+    'ELU': 80,
+    'MTF/A': 96,
+    'YCO/A': 96,
+    'MTF': 80,
+    'YCO': 96,
+    'ru1D': 80,
+    'recTD': 80,
+    'rec1D': 80,
+    'YAC': 96,
+    'IMP/G': 96,
+    'FUM': 80,
+    'FPOE': 96,
+    'CSTY%': 112,
+    'CL': 80,
+    'paRTG': 96,
+    'paYDS': 96,
+    'paTD': 80,
+    'CMP%': 96,
+    'paATT': 80,
+    'CMP': 80,
+    'pa1D': 80,
+    'paYPG': 96,
+    'pIMP': 96,
+    'pIMP/A': 96,
+    'TTT': 80,
+    'PRS%': 96,
+    'SAC': 80,
+    'INT': 80,
+    'TS%': 80,
+    'YPRR': 96,
+    '1DRR': 80,
+    'recYPG': 96,
+    'YPR': 80,
+    'RR': 80,
+    'OPP': 80,
+    'IMP': 80,
+    'IMP/OPP': 96
+  };
+  
+  const DEFAULT_COLUMN_WIDTH = 96;
+  
+  function getColumnWidth(columnKey) {
+    return STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
+  }
+  
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -648,6 +716,113 @@
       target.classList.add('stats-sort-desc');
     }
   }
+  
+  // === QUADRANT HELPER FUNCTIONS ===
+  
+  function splitColumnsForQuadrants(columnSet) {
+    const frozenColumns = columnSet.slice(0, 3); // Always RK, PLAYER, POS
+    const scrollableColumns = columnSet.slice(3);  // Everything else
+    return { frozenColumns, scrollableColumns };
+  }
+  
+  function setupColumnWidths(wrapper, frozenCols, scrollableCols) {
+    // Frozen corner and frozen columns colgroups
+    const frozenCornerColgroup = wrapper.querySelector('.stats-quadrant-frozen-corner colgroup');
+    const frozenColumnsColgroup = wrapper.querySelector('.stats-quadrant-frozen-columns colgroup');
+    
+    if (frozenCornerColgroup) frozenCornerColgroup.innerHTML = '';
+    if (frozenColumnsColgroup) frozenColumnsColgroup.innerHTML = '';
+    
+    frozenCols.forEach(col => {
+      const width = getColumnWidth(col);
+      [frozenCornerColgroup, frozenColumnsColgroup].forEach(colgroup => {
+        if (!colgroup) return;
+        const colElement = document.createElement('col');
+        colElement.style.width = `${width}px`;
+        colElement.style.minWidth = `${width}px`;
+        colElement.style.maxWidth = `${width}px`;
+        colElement.dataset.column = col;
+        colElement.className = `stats-col-${col.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+        colgroup.appendChild(colElement);
+      });
+    });
+    
+    // Scrollable header and scrollable data colgroups
+    const scrollableHeaderColgroup = wrapper.querySelector('.stats-quadrant-scrollable-header colgroup');
+    const scrollableDataColgroup = wrapper.querySelector('.stats-quadrant-scrollable-data colgroup');
+    
+    if (scrollableHeaderColgroup) scrollableHeaderColgroup.innerHTML = '';
+    if (scrollableDataColgroup) scrollableDataColgroup.innerHTML = '';
+    
+    scrollableCols.forEach(col => {
+      const width = getColumnWidth(col);
+      [scrollableHeaderColgroup, scrollableDataColgroup].forEach(colgroup => {
+        if (!colgroup) return;
+        const colElement = document.createElement('col');
+        colElement.style.width = `${width}px`;
+        colElement.style.minWidth = `${width}px`;
+        colElement.style.maxWidth = `${width}px`;
+        colElement.dataset.column = col;
+        colgroup.appendChild(colElement);
+      });
+    });
+    
+    // Set table widths
+    const frozenTableWidth = frozenCols.reduce((sum, col) => sum + getColumnWidth(col), 0);
+    const scrollableTableWidth = scrollableCols.reduce((sum, col) => sum + getColumnWidth(col), 0);
+    
+    wrapper.querySelectorAll('.stats-table-frozen').forEach(table => {
+      table.style.width = `${frozenTableWidth}px`;
+      table.style.minWidth = `${frozenTableWidth}px`;
+    });
+    
+    wrapper.querySelectorAll('.stats-table-scrollable').forEach(table => {
+      table.style.width = `${scrollableTableWidth}px`;
+      table.style.minWidth = `${scrollableTableWidth}px`;
+    });
+  }
+  
+  function updateBackdropDimensions(wrapper) {
+    // No longer needed - backdrop layers removed for simpler design
+    return;
+  }
+  
+  function initializeScrollSync(wrapper) {
+    const master = wrapper.querySelector('[data-scroll-master="true"]');
+    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
+    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
+    
+    if (!master || !headerTarget || !columnsTarget) return;
+    
+    // Remove existing listener if any
+    if (master._scrollSyncHandler) {
+      master.removeEventListener('scroll', master._scrollSyncHandler);
+    }
+    
+    // Prevent scroll loops
+    let isScrolling = false;
+    
+    const scrollHandler = (e) => {
+      if (isScrolling) return;
+      
+      const { scrollLeft, scrollTop } = e.target;
+      
+      isScrolling = true;
+      requestAnimationFrame(() => {
+        // Sync horizontal scroll to header
+        if (headerTarget) headerTarget.scrollLeft = scrollLeft;
+        
+        // Sync vertical scroll to frozen columns
+        if (columnsTarget) columnsTarget.scrollTop = scrollTop;
+        
+        isScrolling = false;
+      });
+    };
+    
+    master._scrollSyncHandler = scrollHandler;
+    master.addEventListener('scroll', scrollHandler, { passive: true });
+  }
+  
   function renderTable() {
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
@@ -695,93 +870,137 @@
         entry.meta.currentRank = null; // Or some other placeholder for picks
       }
     });
+    
+    // === NEW 4-QUADRANT RENDERING ===
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const table = wrapper.querySelector('.stats-table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
-    table.style.setProperty('--stats-table-width', widthExpression);
-    const existingColgroup = table.querySelector('colgroup');
-    if (existingColgroup) existingColgroup.remove();
-    const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
-      const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
-      }
-      colgroup.appendChild(col);
-    });
-    table.insertBefore(colgroup, thead);
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    const headerRow = document.createElement('tr');
-    columnSet.forEach((column, index) => {
-      const th = document.createElement('th');
-      const displayLabel = headerLabels.get(column) || column;
-      th.textContent = displayLabel;
-      const category = getColumnCategory(column);
-      th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
-      th.dataset.columnKey = column;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    clearSortIndicators(headerRow);
-    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-      if (activeHeader) applySortIndicator(activeHeader);
+    
+    // Get quadrant wrapper
+    const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
+    if (!quadrantWrapper) {
+      console.error('Quadrant wrapper not found in', wrapper);
+      return;
     }
-    // Use DocumentFragment for batch DOM insertion (massive performance boost)
-    const fragment = document.createDocumentFragment();
+    
+    // Split columns into frozen and scrollable
+    const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
+    
+    // Set up column widths in all colgroups
+    setupColumnWidths(quadrantWrapper, frozenColumns, scrollableColumns);
+    
+    // Get all 4 quadrants
+    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
+    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
+    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
+    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
+    
+    // Get all table parts
+    const frozenCornerThead = frozenCorner?.querySelector('thead');
+    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
+    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
+    const scrollableDataTbody = scrollableData?.querySelector('tbody');
+    
+    // Clear existing content
+    if (frozenCornerThead) frozenCornerThead.innerHTML = '';
+    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
+    if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
+    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
+    
+    // === RENDER FROZEN CORNER HEADERS ===
+    if (frozenCornerThead) {
+      const headerRow = document.createElement('tr');
+      frozenColumns.forEach((column) => {
+        const th = document.createElement('th');
+        const displayLabel = headerLabels.get(column) || column;
+        th.textContent = displayLabel;
+        const category = getColumnCategory(column);
+        th.classList.add(`stats-header-${category}`);
+        if (column === 'RK') th.classList.add('stats-rank-cell');
+        if (column === 'PLAYER') th.classList.add('stats-player-cell');
+        th.dataset.columnKey = column;
+        headerRow.appendChild(th);
+      });
+      frozenCornerThead.appendChild(headerRow);
+      
+      // Apply sort indicator if needed
+      clearSortIndicators(headerRow);
+      if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
+        const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
+        if (activeHeader) applySortIndicator(activeHeader);
+      }
+    }
+    
+    // === RENDER SCROLLABLE HEADERS ===
+    if (scrollableHeaderThead) {
+      const headerRow = document.createElement('tr');
+      scrollableColumns.forEach((column) => {
+        const th = document.createElement('th');
+        const displayLabel = headerLabels.get(column) || column;
+        th.textContent = displayLabel;
+        const category = getColumnCategory(column);
+        th.classList.add(`stats-header-${category}`);
+        th.dataset.columnKey = column;
+        headerRow.appendChild(th);
+      });
+      scrollableHeaderThead.appendChild(headerRow);
+      
+      // Apply sort indicator if needed
+      clearSortIndicators(headerRow);
+      if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
+        const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
+        if (activeHeader) applySortIndicator(activeHeader);
+      }
+    }
+    
+    // === RENDER DATA ROWS ===
+    const frozenFragment = document.createDocumentFragment();
+    const scrollableFragment = document.createDocumentFragment();
+    
     rows.forEach((entry) => {
-      const tr = document.createElement('tr');
-      columnSet.forEach((column, index) => {
+      // Frozen columns row
+      const frozenTr = document.createElement('tr');
+      frozenColumns.forEach((column) => {
         const td = document.createElement('td');
         const rawValue = formatCellValue(column, entry);
         const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
+        
+        if (column === 'RK') {
+          td.classList.add('stats-rank-cell');
           const rankForColor = entry.meta.currentRank;
           if (Number.isFinite(rankForColor)) {
             td.style.color = getRankColorValue(rankForColor);
           }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
+          td.textContent = textValue;
+        } else if (column === 'PLAYER') {
+          td.classList.add('stats-player-cell');
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'stats-player-btn';
           btn.textContent = textValue;
           btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
           btn.dataset.playerId = entry.meta.playerId;
           btn.dataset.entryIndex = rows.indexOf(entry);
           td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
+        } else if (column === 'POS') {
+          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
+        } else {
+          td.textContent = textValue;
         }
-        if (index === 1) {
-          // handled above
-        } else if (column === 'VALUE') {
+        
+        frozenTr.appendChild(td);
+      });
+      frozenFragment.appendChild(frozenTr);
+      
+      // Scrollable columns row
+      const scrollableTr = document.createElement('tr');
+      scrollableColumns.forEach((column) => {
+        const td = document.createElement('td');
+        const rawValue = formatCellValue(column, entry);
+        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
+        
+        if (column === 'VALUE') {
           const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
           td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
         } else if (column === 'TM') {
@@ -796,30 +1015,44 @@
               ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
               : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
           }
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
         } else {
           td.textContent = textValue;
         }
+        
+        // Apply color coding
         if (column === 'AGE') {
           td.style.color = entry.meta.ageColor;
           td.classList.add('stats-age-cell');
         } else if (column === 'FPTS') {
           td.style.color = entry.meta.fptsColor;
           td.classList.add('stats-fpts-cell');
-        }
-        if (column === 'PPG') {
+        } else if (column === 'PPG') {
           td.style.color = entry.meta.ppgColor;
           td.classList.add('stats-ppg-cell');
         }
-        tr.appendChild(td);
+        
+        scrollableTr.appendChild(td);
       });
-      fragment.appendChild(tr);
+      scrollableFragment.appendChild(scrollableTr);
     });
-    // Single DOM insertion instead of hundreds
-    tbody.appendChild(fragment);
-    // Store rows reference for event delegation
-    tbody._statsRows = rows;
+    
+    // Insert fragments
+    if (frozenColumnsTbody) {
+      frozenColumnsTbody.appendChild(frozenFragment);
+      frozenColumnsTbody._statsRows = rows;
+    }
+    if (scrollableDataTbody) {
+      scrollableDataTbody.appendChild(scrollableFragment);
+      scrollableDataTbody._statsRows = rows;
+    }
+    
+    // Update backdrop dimensions
+    updateBackdropDimensions(quadrantWrapper);
+    
+    // Initialize scroll synchronization
+    initializeScrollSync(quadrantWrapper);
+    
+    // Empty state handling
     if (!rows.length) {
       dom.emptyState.classList.remove('hidden');
     } else {
@@ -1233,19 +1466,45 @@
   }
   
   dom.tableWrappers.forEach((wrapper) => {
-    const thead = wrapper.querySelector('thead');
-    thead.addEventListener('click', handleSortClick);
-    // Event delegation for player buttons (much more efficient)
-    const tbody = wrapper.querySelector('tbody');
-    tbody.addEventListener('click', (event) => {
-      const btn = event.target.closest('.stats-player-btn');
-      if (!btn) return;
-      const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-      const rows = tbody._statsRows;
-      if (rows && rows[entryIndex]) {
-        openGameLogs(rows[entryIndex]);
+    // Event delegation for sort clicks - needs both frozen corner and scrollable header
+    const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
+    if (quadrantWrapper) {
+      const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner thead');
+      const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
+      
+      if (frozenCorner) frozenCorner.addEventListener('click', handleSortClick);
+      if (scrollableHeader) scrollableHeader.addEventListener('click', handleSortClick);
+      
+      // Event delegation for player buttons in frozen columns
+      const frozenColumnsTbody = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns tbody');
+      if (frozenColumnsTbody) {
+        frozenColumnsTbody.addEventListener('click', (event) => {
+          const btn = event.target.closest('.stats-player-btn');
+          if (!btn) return;
+          const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+          const rows = frozenColumnsTbody._statsRows;
+          if (rows && rows[entryIndex]) {
+            openGameLogs(rows[entryIndex]);
+          }
+        });
       }
-    });
+    } else {
+      // Fallback for old structure if it exists
+      const thead = wrapper.querySelector('thead');
+      const tbody = wrapper.querySelector('tbody');
+      if (thead) thead.addEventListener('click', handleSortClick);
+      if (tbody) {
+        tbody.addEventListener('click', (event) => {
+          const btn = event.target.closest('.stats-player-btn');
+          if (!btn) return;
+          const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+          const rows = tbody._statsRows;
+          if (rows && rows[entryIndex]) {
+            openGameLogs(rows[entryIndex]);
+          }
+        });
+      }
+    }
   });
   initialise();
 })();
