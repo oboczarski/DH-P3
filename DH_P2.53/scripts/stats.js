@@ -83,6 +83,66 @@
     'CSTY%': 'all',
     'CL': 'all'
   };
+  const COLUMN_WIDTHS = {
+    'RK': 64,
+    'PLAYER': 192,
+    'POS': 90,
+    'TM': 80,
+    'AGE': 80,
+    'G': 72,
+    'FPTS': 104,
+    'PPG': 104,
+    'VALUE': 120,
+    'YDS(t)': 120,
+    'YPG(t)': 120,
+    'OPP': 96,
+    'IMP': 110,
+    'IMP/G': 110,
+    'IMP/OPP': 128,
+    'CSTY%': 120,
+    'CL': 96,
+    'paRTG': 120,
+    'paYDS': 128,
+    'paTD': 104,
+    'CMP%': 112,
+    'paATT': 104,
+    'CMP': 104,
+    'pa1D': 104,
+    'paYPG': 120,
+    'ruYDS': 120,
+    'ruTD': 104,
+    'ruYPG': 120,
+    'CAR': 96,
+    'YPC': 104,
+    'TTT': 118,
+    'PRS%': 112,
+    'SAC': 96,
+    'INT': 96,
+    'FUM': 96,
+    'FPOE': 112,
+    'SNP%': 118,
+    'REC': 96,
+    'recYDS': 120,
+    'TGT': 96,
+    'ELU': 110,
+    'MTF/A': 128,
+    'YCO/A': 128,
+    'MTF': 104,
+    'YCO': 120,
+    'ru1D': 104,
+    'recTD': 104,
+    'rec1D': 104,
+    'YAC': 118,
+    'TS%': 110,
+    'YPRR': 128,
+    '1DRR': 128,
+    'recYPG': 120,
+    'RR': 110,
+    'YPR': 104,
+    'TGT': 96,
+    'pIMP': 118,
+    'pIMP/A': 130
+  };
   const INTEGER_COLUMNS = new Set([
     'RK', 'G', 'VALUE', 'YDS(t)', 'OPP', 'IMP', 'paYDS', 'paTD', 'paATT', 'CMP', 'pa1D', 'ruYDS', 'ruTD',
     'CAR', 'SAC', 'INT', 'FUM', 'REC', 'TGT', 'ru1D', 'recTD', 'rec1D', 'YAC', 'RR', 'MTF', 'YCO'
@@ -204,6 +264,10 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+  function getColumnWidth(column) {
+    const width = COLUMN_WIDTHS[column] || 96;
+    return `${width}px`;
+  }
   function formatInteger(value) {
     if (!Number.isFinite(value)) return '';
     return Math.round(value).toString();
@@ -506,6 +570,106 @@
   function getColumnCategory(column) {
     return COLUMN_CATEGORY[column] || 'all';
   }
+  function getLiquidElements(wrapper) {
+    if (!wrapper) return null;
+    return {
+      cornerHead: wrapper.querySelector('[data-corner-head]'),
+      scrollHead: wrapper.querySelector('[data-scroll-head]'),
+      frozenBody: wrapper.querySelector('[data-frozen-body]'),
+      mainBody: wrapper.querySelector('[data-main-body]')
+    };
+  }
+  function ensureLiquidScrollHandlers(wrapper) {
+    if (!wrapper) return {};
+    const headerScroll = wrapper.querySelector('[data-liquid-scroll="header"]');
+    const frozenScroll = wrapper.querySelector('[data-liquid-scroll="frozen"]');
+    const bodyScroll = wrapper.querySelector('[data-liquid-scroll="body"]');
+    if (!wrapper._liquidScrollBound && bodyScroll) {
+      bodyScroll.addEventListener('scroll', () => {
+        if (headerScroll) headerScroll.scrollLeft = bodyScroll.scrollLeft;
+        if (frozenScroll) frozenScroll.scrollTop = bodyScroll.scrollTop;
+      });
+      wrapper._liquidScrollBound = true;
+    }
+    if (bodyScroll && headerScroll) {
+      headerScroll.scrollLeft = bodyScroll.scrollLeft;
+    }
+    if (bodyScroll && frozenScroll) {
+      frozenScroll.scrollTop = bodyScroll.scrollTop;
+    }
+    return { headerScroll, frozenScroll, bodyScroll };
+  }
+  function createHeaderCell(column, headerLabels) {
+    const th = document.createElement('th');
+    const displayLabel = headerLabels.get(column) || column;
+    th.textContent = displayLabel;
+    th.dataset.columnKey = column;
+    const width = getColumnWidth(column);
+    th.style.width = width;
+    th.style.minWidth = width;
+    const category = getColumnCategory(column);
+    th.classList.add(`stats-header-${category}`);
+    if (column === 'RK') th.classList.add('stats-rank-cell');
+    if (column === 'PLAYER') th.classList.add('stats-player-cell');
+    return th;
+  }
+  function createDataCell(column, entry, rowIndex) {
+    const td = document.createElement('td');
+    const width = getColumnWidth(column);
+    td.style.width = width;
+    td.style.minWidth = width;
+    td.dataset.columnKey = column;
+    const rawValue = formatCellValue(column, entry);
+    const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
+    if (column === 'RK') {
+      td.classList.add('stats-rank-cell');
+      const rankForColor = entry.meta.currentRank;
+      if (Number.isFinite(rankForColor)) {
+        td.style.color = getRankColorValue(rankForColor);
+      }
+      td.textContent = textValue;
+    } else if (column === 'PLAYER') {
+      td.classList.add('stats-player-cell');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stats-player-btn';
+      btn.textContent = textValue;
+      btn.title = entry.meta.fullName || entry.meta.name || textValue;
+      btn.dataset.playerId = entry.meta.playerId;
+      btn.dataset.entryIndex = rowIndex;
+      td.appendChild(btn);
+    } else if (column === 'VALUE') {
+      const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
+      td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
+    } else if (column === 'TM') {
+      if (entry.meta.pos === 'RDP') {
+        td.innerHTML = '<span style="color: var(--color-text-secondary);">RDP</span>';
+      } else {
+        const teamKey = (textValue || 'FA').toUpperCase();
+        const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+        const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+        td.innerHTML = (teamKey && teamKey !== 'FA')
+          ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+          : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+      }
+    } else if (column === 'POS') {
+      td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
+    } else {
+      td.textContent = textValue;
+    }
+    if (column === 'AGE') {
+      td.style.color = entry.meta.ageColor;
+      td.classList.add('stats-age-cell');
+    } else if (column === 'FPTS') {
+      td.style.color = entry.meta.fptsColor;
+      td.classList.add('stats-fpts-cell');
+    } else if (column === 'PPG') {
+      td.style.color = entry.meta.ppgColor;
+      td.classList.add('stats-ppg-cell');
+    }
+    return td;
+  }
   function getActiveDataset() {
     return statsState.datasets.get(statsState.currentTab) || [];
   }
@@ -637,6 +801,7 @@
     return raw;
   }
   function clearSortIndicators(headerRow) {
+    if (!headerRow) return;
     headerRow.querySelectorAll('th').forEach((th) => {
       th.classList.remove('stats-sort-asc', 'stats-sort-desc');
     });
@@ -696,130 +861,60 @@
       }
     });
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
+    if (!wrapper) return;
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const table = wrapper.querySelector('.stats-table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
-    table.style.setProperty('--stats-table-width', widthExpression);
-    const existingColgroup = table.querySelector('colgroup');
-    if (existingColgroup) existingColgroup.remove();
-    const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
-      const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
-      }
-      colgroup.appendChild(col);
+    const liquidElements = getLiquidElements(wrapper);
+    if (!liquidElements) return;
+    const frozenColumns = columnSet.slice(0, 3);
+    const scrollColumns = columnSet.slice(3);
+    const cornerHead = liquidElements?.cornerHead;
+    const scrollHead = liquidElements?.scrollHead;
+    const frozenBody = liquidElements?.frozenBody;
+    const mainBody = liquidElements?.mainBody;
+    if (cornerHead) cornerHead.innerHTML = '';
+    if (scrollHead) scrollHead.innerHTML = '';
+    if (frozenBody) frozenBody.innerHTML = '';
+    if (mainBody) mainBody.innerHTML = '';
+    const cornerRow = document.createElement('tr');
+    frozenColumns.forEach((column) => {
+      cornerRow.appendChild(createHeaderCell(column, headerLabels));
     });
-    table.insertBefore(colgroup, thead);
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    const headerRow = document.createElement('tr');
-    columnSet.forEach((column, index) => {
-      const th = document.createElement('th');
-      const displayLabel = headerLabels.get(column) || column;
-      th.textContent = displayLabel;
-      const category = getColumnCategory(column);
-      th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
-      th.dataset.columnKey = column;
-      headerRow.appendChild(th);
+    if (cornerHead) cornerHead.appendChild(cornerRow);
+    const scrollRow = document.createElement('tr');
+    scrollColumns.forEach((column) => {
+      scrollRow.appendChild(createHeaderCell(column, headerLabels));
     });
-    thead.appendChild(headerRow);
-    clearSortIndicators(headerRow);
+    if (scrollHead) scrollHead.appendChild(scrollRow);
+    clearSortIndicators(cornerRow);
+    clearSortIndicators(scrollRow);
     if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-      if (activeHeader) applySortIndicator(activeHeader);
+      wrapper.querySelectorAll(`th[data-column-key="${statsState.sort.column}"]`).forEach((th) => applySortIndicator(th));
     }
-    // Use DocumentFragment for batch DOM insertion (massive performance boost)
-    const fragment = document.createDocumentFragment();
-    rows.forEach((entry) => {
-      const tr = document.createElement('tr');
-      columnSet.forEach((column, index) => {
-        const td = document.createElement('td');
-        const rawValue = formatCellValue(column, entry);
-        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
-          const rankForColor = entry.meta.currentRank;
-          if (Number.isFinite(rankForColor)) {
-            td.style.color = getRankColorValue(rankForColor);
-          }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'stats-player-btn';
-          btn.textContent = textValue;
-          btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
-          btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
-          td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
-        }
-        if (index === 1) {
-          // handled above
-        } else if (column === 'VALUE') {
-          const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
-          td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
-        } else if (column === 'TM') {
-          if (entry.meta.pos === 'RDP') {
-            td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
-          } else {
-            const teamKey = (textValue || 'FA').toUpperCase();
-            const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-            const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-            const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-            td.innerHTML = (teamKey && teamKey !== 'FA')
-              ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-              : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-          }
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
-        } else {
-          td.textContent = textValue;
-        }
-        if (column === 'AGE') {
-          td.style.color = entry.meta.ageColor;
-          td.classList.add('stats-age-cell');
-        } else if (column === 'FPTS') {
-          td.style.color = entry.meta.fptsColor;
-          td.classList.add('stats-fpts-cell');
-        }
-        if (column === 'PPG') {
-          td.style.color = entry.meta.ppgColor;
-          td.classList.add('stats-ppg-cell');
-        }
-        tr.appendChild(td);
+    const frozenFragment = document.createDocumentFragment();
+    const mainFragment = document.createDocumentFragment();
+    rows.forEach((entry, rowIndex) => {
+      const frozenRow = document.createElement('tr');
+      const mainRow = document.createElement('tr');
+      frozenColumns.forEach((column) => {
+        frozenRow.appendChild(createDataCell(column, entry, rowIndex));
       });
-      fragment.appendChild(tr);
+      scrollColumns.forEach((column) => {
+        mainRow.appendChild(createDataCell(column, entry, rowIndex));
+      });
+      frozenFragment.appendChild(frozenRow);
+      mainFragment.appendChild(mainRow);
     });
-    // Single DOM insertion instead of hundreds
-    tbody.appendChild(fragment);
-    // Store rows reference for event delegation
-    tbody._statsRows = rows;
+    if (frozenBody) {
+      frozenBody.appendChild(frozenFragment);
+      frozenBody._statsRows = rows;
+    }
+    if (mainBody) {
+      mainBody.appendChild(mainFragment);
+      mainBody._statsRows = rows;
+    }
+    ensureLiquidScrollHandlers(wrapper);
     if (!rows.length) {
       dom.emptyState.classList.remove('hidden');
     } else {
@@ -1233,18 +1328,21 @@
   }
   
   dom.tableWrappers.forEach((wrapper) => {
-    const thead = wrapper.querySelector('thead');
-    thead.addEventListener('click', handleSortClick);
-    // Event delegation for player buttons (much more efficient)
-    const tbody = wrapper.querySelector('tbody');
-    tbody.addEventListener('click', (event) => {
-      const btn = event.target.closest('.stats-player-btn');
-      if (!btn) return;
-      const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-      const rows = tbody._statsRows;
-      if (rows && rows[entryIndex]) {
-        openGameLogs(rows[entryIndex]);
-      }
+    const headerSections = wrapper.querySelectorAll('[data-corner-head], [data-scroll-head]');
+    headerSections.forEach((section) => {
+      section.addEventListener('click', handleSortClick);
+    });
+    const bodySections = wrapper.querySelectorAll('[data-frozen-body], [data-main-body]');
+    bodySections.forEach((tbody) => {
+      tbody.addEventListener('click', (event) => {
+        const btn = event.target.closest('.stats-player-btn');
+        if (!btn) return;
+        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+        const rows = tbody._statsRows;
+        if (rows && rows[entryIndex]) {
+          openGameLogs(rows[entryIndex]);
+        }
+      });
     });
   });
   initialise();

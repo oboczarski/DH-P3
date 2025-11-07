@@ -678,72 +678,82 @@
 .stats-table-wrapper {
   width: 100%;
 }
-.stats-table-scroll {
+.stats-liquid-shell {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, rgba(19, 23, 44, 0.85), rgba(8, 8, 20, 0.6));
+  box-shadow: 0 25px 60px rgba(5, 8, 20, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.stats-liquid-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: clamp(360px, 70vh, 720px);
+  max-height: 720px;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.stats-liquid-quad {
   position: relative;
+}
+.stats-liquid-corner,
+.stats-liquid-header {
+  background: rgba(19, 23, 44, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.stats-liquid-corner {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 30;
+}
+.stats-liquid-header {
+  z-index: 20;
+}
+.stats-liquid-frozen {
+  background: rgba(8, 9, 21, 0.7);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 20;
+}
+.stats-liquid-body {
+  background: rgba(8, 9, 21, 0.65);
+  z-index: 10;
+}
+.stats-liquid-scroll {
+  width: 100%;
+  height: 100%;
+}
+.stats-liquid-scroll-header {
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+.stats-liquid-scroll-frozen {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+.stats-liquid-scroll-body {
   overflow-x: auto;
-  overflow-y: auto;
-  max-height: clamp(340px, 65vh, 640px);
-  border-radius: 10px;
-  background: rgba(10, 12, 28, 0.55);
-  border: 1px solid rgba(128, 138, 189, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-  contain: paint;
+  overflow-y: scroll;
 }
-/* Remove white square where scrollbars meet */
-.stats-table-scroll::-webkit-scrollbar-corner {
-  background: transparent;
+.stats-liquid-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
-/* Narrow, subtle scrollbars for stats page */
-/* WebKit */
-.stats-table-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.stats-liquid-scroll::-webkit-scrollbar-thumb {
+  background: rgba(104, 113, 166, 0.35);
+  border-radius: 999px;
+  border: 2px solid rgba(19, 23, 44, 0.7);
 }
-.stats-table-scroll::-webkit-scrollbar-thumb {
-  background: rgba(144, 150, 208, 0.14);
-  border-radius: 8px;
+.stats-liquid-scroll::-webkit-scrollbar-track {
+  background: rgba(9, 12, 27, 0.4);
+  border-radius: 999px;
 }
-.stats-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(144, 150, 208, 0.24);
-}
-.stats-table-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-/* Firefox */
-.stats-table-scroll {
+.stats-liquid-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(144,150,208,0.14) transparent;
-}
-.stats-table-scroll::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width));
-  pointer-events: none;
-  background: #080b1d;
-  box-shadow: inset -1px 0 0 #0f1737;
-  z-index: 1;
-  border-top-left-radius: inherit;
-  border-bottom-left-radius: inherit;
-}
-.stats-table-scroll::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--stats-header-mask-height);
-  pointer-events: none;
-  background: linear-gradient(180deg, #080a18 0%, rgba(8, 10, 24, 0.86) 65%, rgba(8, 10, 24, 0));
-  z-index: 2;
-  border-top-left-radius: inherit;
-  border-top-right-radius: inherit;
+  scrollbar-color: rgba(104, 113, 166, 0.45) rgba(9, 12, 27, 0.35);
 }
 .stats-table {
-  width: var(--stats-table-width, 100%);
-  min-width: var(--stats-table-width, 100%);
+  width: auto;
+  min-width: auto;
   border-collapse: separate;
   border-spacing: 0;
   color: var(--color-text-primary);
