@@ -338,7 +338,8 @@
   gap: 0.6rem;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  width: 100%;
   max-width: clamp(260px, 58vw, 420px);
   margin: 0 auto;
 }
@@ -347,10 +348,15 @@
   align-self: stretch;
   background: rgba(128, 138, 189, 0.3);
   margin: 0.15rem 0;
+  flex-shrink: 0;
 }
 .stats-filter-block .stats-rookie-btn {
   padding: 0.24rem 0.3rem;
   font-size: 0.75rem;
+}
+.stats-filter-btn {
+  flex: 1 1 0;
+  min-width: 0;
 }
 .stats-secondary-filter-block {
   display: flex;
@@ -408,8 +414,8 @@
 }
 .stats-filter-btn {
   position: relative;
-  padding: 0.24rem 0.3rem;
-  font-size: 0.75rem;
+  padding: 0.24rem 0.1rem;
+  font-size: 0.69rem;
   font-weight: 400;
   border-radius: 7px;
   border: 1px solid rgba(128, 138, 189, 0.18);
