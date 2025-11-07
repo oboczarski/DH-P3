@@ -81,11 +81,14 @@
     'FPOE': 'all',
     'FUM': 'all',
     'CSTY%': 'all',
-    'CL': 'all'
+    'CL': 'all',
+    'YEAR': 'all',
+    'RANGE': 'all',
+    'ROUND': 'all'
   };
   const INTEGER_COLUMNS = new Set([
     'RK', 'G', 'VALUE', 'YDS(t)', 'OPP', 'IMP', 'paYDS', 'paTD', 'paATT', 'CMP', 'pa1D', 'ruYDS', 'ruTD',
-    'CAR', 'SAC', 'INT', 'FUM', 'REC', 'TGT', 'ru1D', 'recTD', 'rec1D', 'YAC', 'RR', 'MTF', 'YCO'
+    'CAR', 'SAC', 'INT', 'FUM', 'REC', 'TGT', 'ru1D', 'recTD', 'rec1D', 'YAC', 'RR', 'MTF', 'YCO', 'YEAR'
   ]);
   const DECIMAL_PRECISION = new Map([
     ['AGE', 1],
@@ -380,6 +383,72 @@
     }
     return pos ? `${pos}·NA` : 'NA';
   }
+  function titleCaseWords(value) {
+    if (!value) return '';
+    return value
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  function toOrdinal(value) {
+    const num = parseInt(value, 10);
+    if (!Number.isFinite(num)) return value;
+    const abs = Math.abs(num);
+    const mod100 = abs % 100;
+    if (mod100 >= 11 && mod100 <= 13) return `${num}th`;
+    switch (abs % 10) {
+      case 1: return `${num}st`;
+      case 2: return `${num}nd`;
+      case 3: return `${num}rd`;
+      default: return `${num}th`;
+    }
+  }
+  function parsePickDetails(row) {
+    const pos = (row.POS || '').toUpperCase();
+    if (pos !== 'RDP') {
+      return { year: '', range: '', round: '' };
+    }
+    const rawLabel = (row.PLAYER || row['PLAYER NAME'] || '')
+      .replace(/\(.*?\)/g, ' ')
+      .replace(/-/g, ' ')
+      .trim();
+    const tokens = rawLabel.split(/\s+/).filter(Boolean);
+    let year = '';
+    if (tokens.length && /^\d{4}$/.test(tokens[0])) {
+      year = tokens.shift();
+    }
+    let round = '';
+    if (tokens.length) {
+      const lastToken = tokens[tokens.length - 1];
+      if (/^\d+(?:st|nd|rd|th)$/i.test(lastToken)) {
+        round = lastToken;
+        tokens.pop();
+      } else if (/^\d+$/.test(lastToken)) {
+        round = toOrdinal(lastToken);
+        tokens.pop();
+      } else if (/^round$/i.test(lastToken) && tokens.length >= 2) {
+        tokens.pop();
+        const numberToken = tokens.pop();
+        if (numberToken) {
+          round = /^\d+(?:st|nd|rd|th)$/i.test(numberToken) ? numberToken : toOrdinal(numberToken);
+        }
+      }
+    }
+    const fallbackRound = (row.TM || '').trim();
+    if (!round && tokens.length && fallbackRound) {
+      const lastToken = tokens[tokens.length - 1];
+      if (lastToken.toLowerCase() === fallbackRound.toLowerCase()) {
+        tokens.pop();
+      }
+    }
+    const range = titleCaseWords(tokens.join(' ').trim());
+    return {
+      year,
+      range,
+      round: round || fallbackRound || ''
+    };
+  }
   function buildRow(row) {
     const playerId = row.SLPR_ID || row.slpr_id || '';
     const name = row.PLAYER || row['PLAYER NAME'] || '';
@@ -396,6 +465,7 @@
     const posRankText = derivePosRankText(row, pos);
     const fullName = getFullName(playerId, name);
     const displayName = formatDisplayName(playerId, name);
+    const pickDetails = parsePickDetails(row);
     
     // Stats page ONLY uses Google Sheets data for FPTS/PPG - no league-specific calculations
     const fpts = toNumber(row.FPTS);
@@ -440,7 +510,10 @@
         ageColor: row._cachedStyles.ageColor,
         fptsColor: row._cachedStyles.fptsColor,
         ppgColor: row._cachedStyles.ppgColor,
-        teamStyle: row._cachedStyles.teamStyle
+        teamStyle: row._cachedStyles.teamStyle,
+        pickYear: pickDetails.year,
+        pickRange: pickDetails.range,
+        pickRound: pickDetails.round
       }
     };
   }
@@ -496,6 +569,19 @@
     return cache;
   }
   function getColumnSet() {
+    if (statsState.activePosition === 'RDP') {
+      const pickColumns = COLUMN_SETS.default.filter((column) => column !== 'FPTS' && column !== 'PPG' && column !== 'PLAYER');
+      const insertionIndex = Math.max(pickColumns.indexOf('RK') + 1, 1);
+      pickColumns.splice(insertionIndex, 0, 'YEAR', 'RANGE', 'ROUND');
+      const valueIndex = pickColumns.indexOf('VALUE');
+      if (valueIndex > -1) {
+        pickColumns.splice(valueIndex, 1);
+        const posIndex = pickColumns.indexOf('POS');
+        const targetIndex = posIndex >= 0 ? posIndex + 1 : insertionIndex + 3;
+        pickColumns.splice(targetIndex, 0, 'VALUE');
+      }
+      return pickColumns;
+    }
     if (!statsState.activePosition || statsState.activePosition === 'ALL') return COLUMN_SETS.default;
     if (statsState.activePosition === 'QB') return COLUMN_SETS.QB;
     if (statsState.activePosition === 'RB') return COLUMN_SETS.RB;
@@ -505,6 +591,25 @@
   }
   function getColumnCategory(column) {
     return COLUMN_CATEGORY[column] || 'all';
+  }
+  function getColumnWidthToken(column) {
+    if (column === 'RK') return 'var(--stats-col-rk-width)';
+    if (column === 'PLAYER') return 'var(--stats-col-player-width)';
+    if (column === 'POS') return 'var(--stats-col-pos-width)';
+    if (column === 'ROUND') return 'var(--stats-col-round-width)';
+    return 'var(--stats-col-standard-width)';
+  }
+  function applyColumnWidthStyles(col, column) {
+    const widthValue = getColumnWidthToken(column);
+    col.style.width = widthValue;
+    col.style.minWidth = widthValue;
+    col.style.maxWidth = widthValue;
+  }
+  function buildCalcSum(tokens) {
+    const filtered = tokens.filter(Boolean);
+    if (!filtered.length) return '0px';
+    if (filtered.length === 1) return filtered[0];
+    return `calc(${filtered.join(' + ')})`;
   }
   function getActiveDataset() {
     return statsState.datasets.get(statsState.currentTab) || [];
@@ -625,6 +730,15 @@
       if (!Number.isFinite(meta.age) || meta.age <= 0) return '';
       return formatDecimal(meta.age, 1);
     }
+    if (column === 'YEAR') {
+      return meta.pickYear || '';
+    }
+    if (column === 'RANGE') {
+      return meta.pickRange || '';
+    }
+    if (column === 'ROUND') {
+      return meta.pickRound || '';
+    }
     if (column === 'RK') {
       const rank = entry.meta.currentRank;
       if (rank === null || rank === undefined) return '';
@@ -650,19 +764,20 @@
   }
   function renderTable() {
     const dataset = getActiveDataset();
+    const filtered = dataset.filter(passesFilters);
     const baseColumnSet = getColumnSet();
+    const isPickView = statsState.activePosition === 'RDP';
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
-    const columnSet = baseColumnSet.filter((column, index) => {
+    const columnSet = (isPickView || !availableColumns) ? baseColumnSet : baseColumnSet.filter((column, index) => {
       if (index < 3) return true;
-      if (!availableColumns) return true;
       return availableColumns.has(column);
     });
     const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
-    const filtered = dataset.filter(passesFilters);
     const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
       ? statsState.sort.column
       : 'RK';
     const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
+    const stickyColumnLimit = isPickView ? 4 : 3;
     const sortCollection = (collection) => {
       if (!collection.length) return [];
       if (statsState.sort.direction === 0 || !statsState.sort.column) {
@@ -688,11 +803,17 @@
       rows = [...sortedPlayers, ...pickRows];
     }
     // After sorting and filtering, re-assign ranks
+    let pickRankCounter = 0;
     rows.forEach((entry, index) => {
-      if (entry.meta.pos !== 'RDP') {
-        entry.meta.currentRank = index + 1;
+      if (entry.meta.pos === 'RDP') {
+        if (isPickView) {
+          pickRankCounter += 1;
+          entry.meta.currentRank = pickRankCounter;
+        } else {
+          entry.meta.currentRank = null;
+        }
       } else {
-        entry.meta.currentRank = null; // Or some other placeholder for picks
+        entry.meta.currentRank = index + 1;
       }
     });
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
@@ -700,36 +821,54 @@
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
     const table = wrapper.querySelector('.stats-table');
+    const scrollContainer = wrapper.querySelector('.stats-table-scroll');
+    const stickyTargets = [table];
+    if (scrollContainer) stickyTargets.push(scrollContainer);
+    if (isPickView) {
+      table.setAttribute('data-pick-view', 'true');
+      if (scrollContainer) scrollContainer.setAttribute('data-pick-view', 'true');
+    } else {
+      table.removeAttribute('data-pick-view');
+      if (scrollContainer) scrollContainer.removeAttribute('data-pick-view');
+    }
     const thead = table.querySelector('thead');
     const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
+    const widthTokens = columnSet.map(getColumnWidthToken);
+    const widthExpression = widthTokens.length
+      ? `calc(${widthTokens.join(' + ')})`
+      : 'auto';
     table.style.setProperty('--stats-table-width', widthExpression);
     const existingColgroup = table.querySelector('colgroup');
     if (existingColgroup) existingColgroup.remove();
     const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
+    columnSet.forEach((column) => {
       const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
-      }
+      applyColumnWidthStyles(col, column);
       colgroup.appendChild(col);
     });
     table.insertBefore(colgroup, thead);
+    if (isPickView) {
+      const stickyWidthTokens = columnSet.slice(0, stickyColumnLimit).map(getColumnWidthToken);
+      stickyWidthTokens.forEach((token, index) => {
+        stickyTargets.forEach((el) => {
+          el.style.setProperty(`--stats-sticky-${index + 1}-width`, token);
+          el.style.setProperty(`--stats-sticky-${index + 1}-left`, buildCalcSum(stickyWidthTokens.slice(0, index)));
+        });
+      });
+      for (let i = stickyColumnLimit; i < 4; i += 1) {
+        stickyTargets.forEach((el) => {
+          el.style.setProperty(`--stats-sticky-${i + 1}-width`, '0px');
+          el.style.setProperty(`--stats-sticky-${i + 1}-left`, buildCalcSum(stickyWidthTokens));
+        });
+      }
+    } else {
+      for (let i = 1; i <= 4; i += 1) {
+        stickyTargets.forEach((el) => {
+          el.style.removeProperty(`--stats-sticky-${i}-width`);
+          el.style.removeProperty(`--stats-sticky-${i}-left`);
+        });
+      }
+    }
     thead.innerHTML = '';
     tbody.innerHTML = '';
     const headerRow = document.createElement('tr');
@@ -739,9 +878,11 @@
       th.textContent = displayLabel;
       const category = getColumnCategory(column);
       th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
+      if (index < stickyColumnLimit) {
+        th.classList.add(`sticky-col-${index + 1}`);
+        if (index === 0) th.classList.add('stats-rank-cell');
+      }
+      if (column === 'PLAYER') th.classList.add('stats-player-cell');
       th.dataset.columnKey = column;
       headerRow.appendChild(th);
     });
@@ -753,34 +894,33 @@
     }
     // Use DocumentFragment for batch DOM insertion (massive performance boost)
     const fragment = document.createDocumentFragment();
-    rows.forEach((entry) => {
+    rows.forEach((entry, rowIndex) => {
       const tr = document.createElement('tr');
       columnSet.forEach((column, index) => {
         const td = document.createElement('td');
+        td.dataset.column = column;
         const rawValue = formatCellValue(column, entry);
         const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
-          const rankForColor = entry.meta.currentRank;
-          if (Number.isFinite(rankForColor)) {
-            td.style.color = getRankColorValue(rankForColor);
+        if (index < stickyColumnLimit) {
+          td.classList.add(`sticky-col-${index + 1}`);
+          if (index === 0) {
+            td.classList.add('stats-rank-cell');
+            const rankForColor = entry.meta.currentRank;
+            if (Number.isFinite(rankForColor)) {
+              td.style.color = getRankColorValue(rankForColor);
+            }
           }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
+        }
+        if (column === 'PLAYER') {
+          td.classList.add('stats-player-cell');
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'stats-player-btn';
           btn.textContent = textValue;
           btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
           btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
+          btn.dataset.entryIndex = rowIndex;
           td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
-        }
-        if (index === 1) {
-          // handled above
         } else if (column === 'VALUE') {
           const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
           td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
@@ -1202,6 +1342,36 @@
   dom.filterGroup.addEventListener('click', handleFilterClick);
   dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
   dom.rookieButton.addEventListener('click', toggleRookieFilter);
+  
+  // Stats Key Popup handlers
+  const statsKeyButton = document.getElementById('statsKeyButton');
+  const statsKeyPopup = document.getElementById('statsKeyPopup');
+  const statsKeyPopupClose = document.getElementById('statsKeyPopupClose');
+  
+  if (statsKeyButton && statsKeyPopup && statsKeyPopupClose) {
+    statsKeyButton.addEventListener('click', () => {
+      statsKeyPopup.classList.add('visible');
+    });
+    
+    statsKeyPopupClose.addEventListener('click', () => {
+      statsKeyPopup.classList.remove('visible');
+    });
+    
+    // Close on overlay click
+    statsKeyPopup.addEventListener('click', (e) => {
+      if (e.target === statsKeyPopup) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && statsKeyPopup.classList.contains('visible')) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+  }
+  
   dom.tableWrappers.forEach((wrapper) => {
     const thead = wrapper.querySelector('thead');
     thead.addEventListener('click', handleSortClick);

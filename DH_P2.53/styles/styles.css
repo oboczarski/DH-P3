@@ -336,7 +336,7 @@
   display: inline-block;
   vertical-align: middle;
   margin-top: 0;
-  margin-bottom: -1.5px;
+  margin-bottom: -1px;
 }
 #homeButton {
   padding-top: 0.15rem;
@@ -457,8 +457,10 @@
     background: rgba(255, 255, 255, 0.05);
 }
 .compact-switcher button.active {
+    min-width: 39px;
     color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.1);
+    background: rgba(66, 194, 255, 0.08);
+    border: 1px solid;
     box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
 }
 /* === ROW 3: Start/Sit Button === */
@@ -495,7 +497,7 @@
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15),inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
 }
 .start-sit-button.active {
     color: var(--color-accent-primary);
@@ -521,7 +523,6 @@
     background: rgba(13, 14, 35, 0.35);
     border-color: rgba(128, 138, 189, 0.35);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
 }
 .start-sit-button:focus-visible {
     outline: 2px solid rgba(118, 109, 255, 0.6);
@@ -539,7 +540,7 @@
         font-size: 0.95rem;
     }
     .nav-label {
-        font-size: 0.4rem;
+        font-size: 0.55rem;
     }
     .app-logo {
         width: 1.8rem;
@@ -698,6 +699,7 @@ n {
   }
   .compact-switcher button {
     padding: 0.3rem 0.4rem 0.2rem !important;
+    min-width: 38px;
   }
   .compact-switcher button i {
     font-size: 0.75rem;
@@ -707,10 +709,10 @@ n {
   }
   .start-sit-button {
     padding: 0.3rem 0.535rem 0.2rem !important;
-    width: 58px;
-    margin-left: 3px;
-    flex: 0 0 58px !important;
-    min-width: 58px !important;
+    width: 75px;
+    margin-left: 2px;
+    flex: 0 0 60px !important;
+    min-width: 62px !important;
   }
   .start-sit-button .analyzer-icon {
     font-size: 0.951rem;
@@ -1058,12 +1060,13 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
         }
         .filter-btn {
+            min-width: 43px;
+            min-height: 30px;
             padding: 0.15rem 0.5rem;
             font-size: 0.85rem;
             font-weight: 400;
@@ -1071,7 +1074,6 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
@@ -1162,9 +1164,7 @@ n {
         filter: blur(1px) brightness(100%);
         pointer-events: none;
     }
-    .filter-btn {
-        margin-left: 2px;
-    }
+
 /* · · Preview Button • Ctrl Button · · */
         .control-button {
             padding: 0.29rem 0.6rem;
@@ -1253,7 +1253,7 @@ n {
 }
 @media (min-width: 869px) {
   body[data-page="rosters"] #header-container .app-header.preview-active {
-    --roster-desktop-gap: 0.75rem;
+    --roster-desktop-gap: 0.6rem;
     --roster-desktop-field-width: 113px;
     --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
     --roster-preview-gap: clamp(0.4rem, 1.2vw, 0.7rem);
@@ -3343,7 +3343,7 @@ font-weight: 500 !important;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-left: 4px;
+    margin-left: 2px;
 }
 .research-button-container {
     display: flex;
@@ -4499,9 +4499,9 @@ padding: 0.15rem 0rem 0rem 0rem;
       position: relative;
         background: rgba(255, 255, 255, 0.005);
         backdrop-filter: blur(3px) saturate(170%);
-        border: 0.0625rem solid rgba(250, 250, 250, 0.06);
-        border-radius: 5px;
-        padding: 3px 8px;
+        border: 1px solid rgba(250, 250, 250, 0.06);
+        border-radius: 4px;
+        padding: 5px 7px;
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
         }
         .key-chip::after {
@@ -4512,7 +4512,7 @@ padding: 0.15rem 0rem 0rem 0rem;
         width: 100%;
         height: 100%;
         background: rgba(255, 255, 255, 0.01);
-        border-radius: 5px;
+        border-radius: 4px;
         backdrop-filter: blur(3px);
         box-shadow: inset 7.5px 10px 0px -11px rgba(255, 255, 255, .25),
         inset 0px 10px 0px -8px rgba(255, 255, 255, .01);
@@ -5668,7 +5668,7 @@ img.team-logo.glow[alt="WAS"] {
 
 @media (max-width: 640px) {
     #game-logs-modal:not(.hidden) .modal-content, #player-comparison-modal:not(.hidden) .modal-content {
-        height: 539px;
+        height: 545px;
     }
     
     .modal-body {
@@ -7996,7 +7996,6 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -8113,7 +8112,7 @@ body[data-page="research"] #secondary-header-row {
 
   body[data-page="rosters"] #filters-row {
     display: flex;
-    align-items: center;
+    align-items: stretch; /* Changed from center to stretch for uniform height */
     justify-content: flex-start;
     gap: 0.25rem;
     width: 100%;
@@ -8125,22 +8124,48 @@ body[data-page="research"] #secondary-header-row {
   /* Start/Sit button - MOVED TO FIRST POSITION */
   body[data-page="rosters"] .start-sit-button-slot {
     order: 1;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.3rem 0.38rem !important;
-    gap: 0.08rem;
-    min-width: 3rem;
+    padding: 0.32rem 0.38rem !important;
+    gap: 0.1rem !important;
+    min-width: 3rem !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
-    font-size: 0.85rem;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.4rem;
-    margin-top: 0.04rem;
+    font-size: 0.45rem !important;
+    margin-top: 0.04rem !important;
+    line-height: 1 !important;
+  }
+
+  /* Prevent alignment shifts on Start/Sit button - NO transform or outline */
+  body[data-page="rosters"] .start-sit-button:hover,
+  body[data-page="rosters"] .start-sit-button:active,
+  body[data-page="rosters"] .start-sit-button:focus,
+  body[data-page="rosters"] .start-sit-button:focus-visible {
+    transform: none !important;
+    outline: none !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button.active:hover,
+  body[data-page="rosters"] .start-sit-button.active:active,
+  body[data-page="rosters"] .start-sit-button.active:focus {
+    transform: none !important;
   }
 
   /* View switcher - MOVED TO SECOND POSITION */
@@ -8172,39 +8197,71 @@ body[data-page="research"] #secondary-header-row {
   /* View dropdown - MOBILE ONLY - replaces switcher */
   body[data-page="rosters"] .view-switcher-dropdown {
     order: 2;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     position: relative;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.09rem;
-    padding: 0.4rem 0.6rem !important;
-    min-height: 1.5rem;
-    min-width: 2.4rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.1rem !important;
+    padding: 0.32rem 0.35rem !important;
+    min-height: auto !important;
+    height: auto !important;
+    min-width: 3.45rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
     border-radius: 8px;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
                 inset 0 1px 2px rgba(255, 255, 255, 0.06);
     position: relative;
   }
 
+  /* Light glow when View: POS is active (default) */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-users) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(66, 194, 255, 0.25), 
+     inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
+    border-color: rgba(66, 194, 255, 0.3);
+  }
+
+  /* Different colored glow when View: Lineup is active */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-list-ol) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(118, 109, 255, 0.25), 
+     inset 0 0 18px 9px rgba(118, 109, 255, 0.065);
+    border-color: rgba(118, 109, 255, 0.3);
+  }
+
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
-    font-size: 0.72rem;
-    line-height: 1;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.4rem;
-    line-height: 1;
+    font-size: 0.45rem !important;
+    font-weight: 500;
+    line-height: 1 !important;
+    margin-top: 0.04rem !important;
     letter-spacing: 0.01rem;
+  }
+
+  /* Prevent alignment shifts on View dropdown - NO transform or outline */
+  body[data-page="rosters"] .view-dropdown-toggle:hover,
+  body[data-page="rosters"] .view-dropdown-toggle:active,
+  body[data-page="rosters"] .view-dropdown-toggle:focus,
+  body[data-page="rosters"] .view-dropdown-toggle:focus-visible {
+    transform: none !important;
+    outline: none !important;
   }
 
   body[data-page="rosters"] .view-dropdown-arrow {
@@ -8214,18 +8271,6 @@ body[data-page="research"] #secondary-header-row {
     font-size: 0.6rem !important;
     opacity: 0.7;
     text-shadow: 0 0 3px #5300ffaa, 0 0 5px #5300ff;
-  }
-
-  body[data-page="rosters"] .view-dropdown-toggle:hover {
-    color: var(--color-text-primary);
-    background: rgba(13, 14, 35, 0.35);
-    border-color: rgba(128, 138, 189, 0.35);
-  }
-
-  body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
-    color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.1);
-    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
   }
 
   body[data-page="rosters"] .view-dropdown-menu {
@@ -8254,26 +8299,24 @@ body[data-page="research"] #secondary-header-row {
     padding: 0.4rem 0.5rem;
     width: 100%;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.65rem;
     white-space: nowrap;
+    border-radius: 4px;
   }
 
   body[data-page="rosters"] .view-dropdown-option i {
     font-size: 0.8rem;
   }
 
-  body[data-page="rosters"] .view-dropdown-option:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-primary);
-  }
-
   body[data-page="rosters"] .view-dropdown-option.active {
-    color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.08);
+    color: #afb3d4;
+    background: rgba(128, 138, 189, 0.08);
+    border-color: rgba(128, 138, 189, 0.2);
+    box-shadow: 0 0 3px rgba(128, 138, 189, 0.15);
   }
 
   /* Hide old switcher on mobile */
@@ -8287,7 +8330,7 @@ body[data-page="research"] #secondary-header-row {
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.32rem;
     overflow: visible;
   }
@@ -8299,15 +8342,27 @@ body[data-page="research"] #secondary-header-row {
     min-width: 0;
     justify-content: flex-start;
     flex-wrap: nowrap;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .filter-btn {
-    padding: 0.285rem 0.35rem !important;
+    padding: 0.32rem 0.35rem !important;
     font-size: 0.72rem !important;
     font-weight: 400;
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="rosters"] .filter-btn:not(.active):hover {
+    /* Disable hover effect on inactive buttons only to prevent tap persistence */
+    color: var(--color-text-secondary) !important;
+    background: transparent !important;
   }
 
   body[data-page="rosters"] .filter-btn i {
@@ -8381,6 +8436,8 @@ body[data-page="research"] #secondary-header-row {
   
   body[data-page="rosters"] .view-switcher {
     display: flex !important;
+    min-width:85px;
+    margin-left: 19px;
   }
 }
 
