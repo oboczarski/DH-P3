@@ -77,7 +77,12 @@
       <div class="stats-intro-stack">
         <div class="stats-league-chip" id="statsLeagueContext" aria-live="polite">DH DATA HUB</div>
         <h1 class="stats-page-title">
-          <span class="stats-page-title-label">2025 STATS & TRADE VALUES</span>
+          <span class="stats-tab-heading" data-tab-heading="oneQb">
+            <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
+          </span>
+          <span class="stats-tab-heading hidden" data-tab-heading="sflx">
+            <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
+          </span>
         </h1>
       </div>
       <div class="stats-tabs" role="presentation">
@@ -94,24 +99,14 @@
 
     <section class="stats-controls-panel glass-panel">
       <div class="stats-controls">
-        <div class="stats-controls-heading stats-tab-headers">
-          <h2 class="stats-tab-heading" data-tab-heading="oneQb">
-            <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
-          </h2>
-          <h2 class="stats-tab-heading hidden" data-tab-heading="sflx">
-            <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
-          </h2>
-        </div>
         <div class="stats-controls-body">
           <div class="stats-filter-block" id="statsFilterGroup">
             <button class="stats-filter-btn" data-position="ALL" type="button">Totals</button>
             <button class="stats-filter-btn" data-position="QB" type="button">Passing</button>
             <button class="stats-filter-btn" data-position="RB" type="button">Rushing</button>
             <button class="stats-filter-btn" data-position="Receiving" type="button">Receiving</button>
-          </div>
-          <div class="stats-secondary-filter-block" id="statsSecondaryFilterGroup">
-            <button class="stats-filter-btn-secondary" data-position="RDP" type="button">RDP Values</button>
-            <button class="stats-filter-btn-secondary stats-rookie-btn" data-position="Rookies" type="button">Rookies</button>
+            <span class="stats-filter-separator"></span>
+            <button class="stats-filter-btn-secondary stats-rookie-btn" data-position="Rookies" type="button">Rook</button>
           </div>
           <div class="stats-search-block">
             <label class="sr-only" for="statsSearchInput">Search player</label>
@@ -125,6 +120,14 @@
               </span>
             </div>
           </div>
+          <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
+            <span>Pick</span>
+            <span>Values</span>
+          </button>
+          <button class="stats-key-button" id="statsKeyButton" type="button" aria-label="Show stats key">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <span>Key</span>
+          </button>
         </div>
       </div>
     </section>
@@ -157,6 +160,226 @@
       </div>
     </section>
   </main>
+</div>
+
+<!-- Stats Key Popup -->
+<div class="stats-key-popup" id="statsKeyPopup">
+  <div class="stats-key-popup-content">
+    <div class="stats-key-popup-header">
+      <h3 class="stats-key-popup-title">Stats Key</h3>
+      <button class="stats-key-popup-close" id="statsKeyPopupClose" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="stats-key-popup-body">
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">RK</span>
+        <span class="stats-key-desc">Overall Rank</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">POS</span>
+        <span class="stats-key-desc">Position</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">TM</span>
+        <span class="stats-key-desc">Team</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">AGE</span>
+        <span class="stats-key-desc">Player Age</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">G</span>
+        <span class="stats-key-desc">Games Played</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">FPTS</span>
+        <span class="stats-key-desc">Fantasy Points (PPR)</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">PPG</span>
+        <span class="stats-key-desc">Points Per Game</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">VALUE</span>
+        <span class="stats-key-desc">Trade Value</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">paRTG</span>
+        <span class="stats-key-desc">Passer Rating</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">paYDS</span>
+        <span class="stats-key-desc">Passing Yards</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">paTD</span>
+        <span class="stats-key-desc">Passing Touchdowns</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">CMP%</span>
+        <span class="stats-key-desc">Completion Percentage</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">paATT</span>
+        <span class="stats-key-desc">Passing Attempts</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">CMP</span>
+        <span class="stats-key-desc">Completions</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">pa1D</span>
+        <span class="stats-key-desc">Passing First Downs</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">IMP/G</span>
+        <span class="stats-key-desc">Impact Plays per Game</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">pIMP</span>
+        <span class="stats-key-desc">Passing Impact Plays</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">pIMP/A</span>
+        <span class="stats-key-desc">Passing Impact per Attempt</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">TTT</span>
+        <span class="stats-key-desc">Time to Throw</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">PRS%</span>
+        <span class="stats-key-desc">Pressure Rate</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">SAC</span>
+        <span class="stats-key-desc">Sacks Taken</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">INT</span>
+        <span class="stats-key-desc">Interceptions</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">CAR</span>
+        <span class="stats-key-desc">Carries</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">ruYDS</span>
+        <span class="stats-key-desc">Rushing Yards</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YPC</span>
+        <span class="stats-key-desc">Yards per Carry</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">ruTD</span>
+        <span class="stats-key-desc">Rushing Touchdowns</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">ru1D</span>
+        <span class="stats-key-desc">Rushing First Downs</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">ELU</span>
+        <span class="stats-key-desc">Elusiveness Rating</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">MTF</span>
+        <span class="stats-key-desc">Missed Tackles Forced</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">MTF/A</span>
+        <span class="stats-key-desc">Missed Tackles per Attempt</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YCO</span>
+        <span class="stats-key-desc">Yards After Contact</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YCO/A</span>
+        <span class="stats-key-desc">Yards After Contact per Attempt</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">SNP%</span>
+        <span class="stats-key-desc">Snap Share</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">TGT</span>
+        <span class="stats-key-desc">Targets</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">REC</span>
+        <span class="stats-key-desc">Receptions</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">TS%</span>
+        <span class="stats-key-desc">Target Share</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">recYDS</span>
+        <span class="stats-key-desc">Receiving Yards</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">recTD</span>
+        <span class="stats-key-desc">Receiving Touchdowns</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YPRR</span>
+        <span class="stats-key-desc">Yards per Route Run</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">rec1D</span>
+        <span class="stats-key-desc">Receiving First Downs</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">1DRR</span>
+        <span class="stats-key-desc">First Downs per Route Run</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YAC</span>
+        <span class="stats-key-desc">Yards After Catch</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YPR</span>
+        <span class="stats-key-desc">Yards per Reception</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">RR</span>
+        <span class="stats-key-desc">Routes Run</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YDS(t)</span>
+        <span class="stats-key-desc">Total Yards</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">YPG(t)</span>
+        <span class="stats-key-desc">Yards per Game (Total)</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">IMP</span>
+        <span class="stats-key-desc">Impact Plays (1D + TD)</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">IMP/OPP</span>
+        <span class="stats-key-desc">Impact per Opportunity</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">FUM</span>
+        <span class="stats-key-desc">Fumbles Lost</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">FPOE</span>
+        <span class="stats-key-desc">Fantasy Points Over Expected</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">CSTY%</span>
+        <span class="stats-key-desc">Consistency Percentage</span>
+      </div>
+      <div class="stats-key-item">
+        <span class="stats-key-abbr">CL</span>
+        <span class="stats-key-desc">Ceiling</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="game-logs-modal" class="hidden">
