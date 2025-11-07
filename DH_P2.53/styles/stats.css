@@ -732,7 +732,7 @@
   position: relative;
   z-index: 30;
   overflow: hidden;
-  background: rgba(13, 14, 27, 0.95);
+  background: transparent;
   border-bottom: 1px solid rgba(128, 138, 189, 0.15);
   border-right: 1px solid rgba(128, 138, 189, 0.15);
 }
@@ -744,8 +744,8 @@
   position: relative;
   z-index: 20;
   overflow-x: hidden;
-  overflow-y: hidden;
-  background: rgba(13, 14, 27, 0.9);
+  overflow-y: scroll;
+  background: transparent;
   border-bottom: 1px solid rgba(128, 138, 189, 0.15);
   scrollbar-width: none;
 }
@@ -760,8 +760,8 @@
   position: relative;
   z-index: 20;
   overflow-y: hidden;
-  overflow-x: hidden;
-  background: rgba(13, 14, 27, 0.85);
+  overflow-x: scroll;
+  background: transparent;
   border-right: 1px solid rgba(128, 138, 189, 0.15);
   scrollbar-width: none;
 }
@@ -769,14 +769,15 @@
   display: none;
 }
 
-/* BOTTOM-RIGHT: Scrollable Data (MASTER CONTROLLER) */
+/* BOTTOM-RIGHT: Scrollable Data - BOTH SCROLLS */
 .stats-quadrant-scrollable-data {
   grid-column: 2;
   grid-row: 2;
   position: relative;
   z-index: 10;
   overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: scroll;
+  background: transparent;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.06) transparent;
 }
@@ -810,6 +811,8 @@
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 0.75rem;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* Consistent height for ALL cells across all quadrants */
@@ -831,6 +834,7 @@
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: transparent;
 }
 
 .stats-table-frozen thead th,
@@ -844,19 +848,9 @@
   background: transparent;
 }
 
-.stats-table-frozen thead th:hover,
-.stats-table-scrollable thead th:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-
 .stats-table-frozen tbody tr:nth-child(even) td,
 .stats-table-scrollable tbody tr:nth-child(even) td {
   background: rgba(40, 44, 69, 0.15);
-}
-
-.stats-table-frozen tbody tr:hover td,
-.stats-table-scrollable tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
 }
 
 /* Column width classes */

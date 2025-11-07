@@ -799,24 +799,11 @@
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     
-    // Prevent scroll loops
-    let isScrolling = false;
-    
+    // EXACT reference table implementation - direct sync
     const scrollHandler = (e) => {
-      if (isScrolling) return;
-      
       const { scrollLeft, scrollTop } = e.target;
-      
-      isScrolling = true;
-      requestAnimationFrame(() => {
-        // Sync horizontal scroll to header
-        if (headerTarget) headerTarget.scrollLeft = scrollLeft;
-        
-        // Sync vertical scroll to frozen columns
-        if (columnsTarget) columnsTarget.scrollTop = scrollTop;
-        
-        isScrolling = false;
-      });
+      headerTarget.scrollLeft = scrollLeft;
+      columnsTarget.scrollTop = scrollTop;
     };
     
     master._scrollSyncHandler = scrollHandler;
