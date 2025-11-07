@@ -351,8 +351,8 @@
   flex-shrink: 0;
 }
 .stats-filter-block .stats-rookie-btn {
-  padding: 0.24rem 0.3rem;
-  font-size: 0.75rem;
+  padding: 0.24rem 0.25rem;
+  font-size: 0.65rem;
 }
 .stats-filter-btn {
   flex: 1 1 0;
