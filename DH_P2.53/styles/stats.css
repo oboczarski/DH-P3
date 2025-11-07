@@ -3,7 +3,16 @@
   --stats-col-player-width: 5.6rem;
   --stats-col-pos-width: 2.75rem;
   --stats-col-standard-width: clamp(3.9rem, 4.6vw, 4.9rem);
+  --stats-col-round-width: 4rem;
   --stats-table-width: calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + (20 * var(--stats-col-standard-width)));
+  --stats-sticky-1-left: 0px;
+  --stats-sticky-2-left: var(--stats-col-rk-width);
+  --stats-sticky-3-left: calc(var(--stats-col-rk-width) + var(--stats-col-player-width));
+  --stats-sticky-4-left: calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width));
+  --stats-sticky-1-width: var(--stats-col-rk-width);
+  --stats-sticky-2-width: var(--stats-col-player-width);
+  --stats-sticky-3-width: var(--stats-col-pos-width);
+  --stats-sticky-4-width: var(--stats-col-standard-width);
   --stats-row-border-color: #0f1737;
   --stats-header-border-color: rgba(128, 138, 189, 0.22);
   --stats-header-mask-height: 2.25rem;
@@ -728,6 +737,14 @@
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
 }
+.stats-table-scroll[data-pick-view="true"]::before {
+  width: calc(
+    var(--stats-sticky-1-width, var(--stats-col-rk-width)) +
+    var(--stats-sticky-2-width, var(--stats-col-player-width)) +
+    var(--stats-sticky-3-width, var(--stats-col-pos-width)) +
+    var(--stats-sticky-4-width, var(--stats-col-standard-width))
+  );
+}
 .stats-table-scroll::after {
   content: '';
   position: absolute;
@@ -782,13 +799,33 @@
 .stats-table th.stats-player-cell {
   text-align: center;
 }
-.stats-table thead th:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3),
-.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3) {
+.stats-table[data-pick-view="true"] td[data-column="ROUND"] {
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+.stats-table[data-pick-view="true"] th[data-column-key="YEAR"],
+.stats-table[data-pick-view="true"] th[data-column-key="RANGE"],
+.stats-table[data-pick-view="true"] th[data-column-key="ROUND"],
+.stats-table[data-pick-view="true"] td[data-column="YEAR"],
+.stats-table[data-pick-view="true"] td[data-column="RANGE"],
+.stats-table[data-pick-view="true"] td[data-column="ROUND"] {
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+}
+.stats-table[data-pick-view="true"] th[data-column-key="ROUND"],
+.stats-table[data-pick-view="true"] td[data-column="ROUND"] {
+  min-width: var(--stats-col-round-width);
+  width: var(--stats-col-round-width);
+  max-width: var(--stats-col-round-width);
+}
+.stats-table thead th:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3):not(.sticky-col-4),
+.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3):not(.sticky-col-4) {
   width: var(--stats-col-standard-width);
   min-width: var(--stats-col-standard-width);
   max-width: var(--stats-col-standard-width);
 }
-.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3) {
+.stats-table tbody td:not(.sticky-col-1):not(.sticky-col-2):not(.sticky-col-3):not(.sticky-col-4) {
   overflow: hidden;
 }
 .stats-table .stats-player-btn {
@@ -860,7 +897,8 @@
 }
 .stats-table .sticky-col-1,
 .stats-table .sticky-col-2,
-.stats-table .sticky-col-3 {
+.stats-table .sticky-col-3,
+.stats-table .sticky-col-4 {
   position: sticky;
   background: transparent;
   border-right: none;
@@ -872,44 +910,56 @@
 }
 .stats-table thead .sticky-col-1,
 .stats-table thead .sticky-col-2,
-.stats-table thead .sticky-col-3 {
-  background: transparent;
+.stats-table thead .sticky-col-3,
+.stats-table thead .sticky-col-4 {
+  background: #1e2237;
 }
 .stats-table .sticky-col-1 {
-  left: 0;
-  width: var(--stats-col-rk-width);
-  min-width: var(--stats-col-rk-width);
-  max-width: var(--stats-col-rk-width);
+  left: var(--stats-sticky-1-left);
+  width: var(--stats-sticky-1-width);
+  min-width: var(--stats-sticky-1-width);
+  max-width: var(--stats-sticky-1-width);
   z-index: 7;
 }
 .stats-table .sticky-col-2 {
-  left: var(--stats-col-rk-width);
-  width: var(--stats-col-player-width);
-  min-width: var(--stats-col-player-width);
-  max-width: var(--stats-col-player-width);
+  left: var(--stats-sticky-2-left);
+  width: var(--stats-sticky-2-width);
+  min-width: var(--stats-sticky-2-width);
+  max-width: var(--stats-sticky-2-width);
   z-index: 6;
 }
 .stats-table .sticky-col-3 {
-  left: calc(var(--stats-col-rk-width) + var(--stats-col-player-width));
-  width: var(--stats-col-pos-width);
-  min-width: var(--stats-col-pos-width);
-  max-width: var(--stats-col-pos-width);
+  left: var(--stats-sticky-3-left);
+  width: var(--stats-sticky-3-width);
+  min-width: var(--stats-sticky-3-width);
+  max-width: var(--stats-sticky-3-width);
   z-index: 5;
+}
+.stats-table .sticky-col-4 {
+  left: var(--stats-sticky-4-left);
+  width: var(--stats-sticky-4-width);
+  min-width: var(--stats-sticky-4-width);
+  max-width: var(--stats-sticky-4-width);
+  z-index: 4;
 }
 .stats-table thead .sticky-col-1 { z-index: 8; }
 .stats-table thead .sticky-col-2 { z-index: 7; }
 .stats-table thead .sticky-col-3 { z-index: 6; }
+.stats-table thead .sticky-col-4 { z-index: 5; }
 .stats-table tbody td.sticky-col-1,
 .stats-table tbody td.sticky-col-2,
-.stats-table tbody td.sticky-col-3 {
+.stats-table tbody td.sticky-col-3,
+.stats-table tbody td.sticky-col-4 {
   background: transparent;
 }
 .stats-table thead th.sticky-col-1::before,
 .stats-table thead th.sticky-col-2::before,
 .stats-table thead th.sticky-col-3::before,
+.stats-table thead th.sticky-col-4::before,
 .stats-table tbody td.sticky-col-1::before,
 .stats-table tbody td.sticky-col-2::before,
-.stats-table tbody td.sticky-col-3::before {
+.stats-table tbody td.sticky-col-3::before,
+.stats-table tbody td.sticky-col-4::before {
   content: '';
   position: absolute;
   top: 0px;
@@ -921,25 +971,30 @@
 }
 .stats-table thead th.sticky-col-1::before,
 .stats-table thead th.sticky-col-2::before,
-.stats-table thead th.sticky-col-3::before {
+.stats-table thead th.sticky-col-3::before,
+.stats-table thead th.sticky-col-4::before {
   background: #1e2237;
 }
 .stats-table tbody tr:nth-child(even) td.sticky-col-1::before,
 .stats-table tbody tr:nth-child(even) td.sticky-col-2::before,
-.stats-table tbody tr:nth-child(even) td.sticky-col-3::before {
+.stats-table tbody tr:nth-child(even) td.sticky-col-3::before,
+.stats-table tbody tr:nth-child(even) td.sticky-col-4::before {
   background: #181b2d;
 }
 .stats-table tbody td.sticky-col-1::before,
 .stats-table tbody td.sticky-col-2::before,
-.stats-table tbody td.sticky-col-3::before {
+.stats-table tbody td.sticky-col-3::before,
+.stats-table tbody td.sticky-col-4::before {
 }
 .stats-table tbody td.sticky-col-1,
 .stats-table tbody td.sticky-col-2,
-.stats-table tbody td.sticky-col-3 {
+.stats-table tbody td.sticky-col-3,
+.stats-table tbody td.sticky-col-4 {
 }
 .stats-table tbody td.sticky-col-1::after,
 .stats-table tbody td.sticky-col-2::after,
-.stats-table tbody td.sticky-col-3::after {
+.stats-table tbody td.sticky-col-3::after,
+.stats-table tbody td.sticky-col-4::after {
   content: '';
   position: absolute;
   left: -1px;
@@ -953,9 +1008,11 @@
 .stats-table tbody tr:hover td.sticky-col-1,
 .stats-table tbody tr:hover td.sticky-col-2,
 .stats-table tbody tr:hover td.sticky-col-3,
+.stats-table tbody tr:hover td.sticky-col-4,
 .stats-table tbody tr:hover td.sticky-col-1::before,
 .stats-table tbody tr:hover td.sticky-col-2::before,
-.stats-table tbody tr:hover td.sticky-col-3::before {
+.stats-table tbody tr:hover td.sticky-col-3::before,
+.stats-table tbody tr:hover td.sticky-col-4::before {
 }
 .stats-table thead th.sticky-col-1::before,
 .stats-table tbody td.sticky-col-1::before {
