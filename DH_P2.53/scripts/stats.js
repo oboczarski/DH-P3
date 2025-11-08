@@ -225,6 +225,81 @@
     return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
   }
   
+  // TanStack Table Core lazy loader (mirrors game logs implementation)
+  let statsTableCoreLoaderPromise = null;
+  function ensureStatsTableCoreLoaded() {
+    if (window.TableCore) return Promise.resolve(window.TableCore);
+    if (statsTableCoreLoaderPromise) return statsTableCoreLoaderPromise;
+    const existingScript = document.querySelector('script[data-tanstack-table-core="true"]');
+    if (existingScript) {
+      statsTableCoreLoaderPromise = new Promise((resolve, reject) => {
+        existingScript.addEventListener('load', () => {
+          if (window.TableCore) resolve(window.TableCore);
+          else {
+            statsTableCoreLoaderPromise = null;
+            reject(new Error('TanStack Table library loaded but TableCore global is unavailable.'));
+          }
+        }, { once: true });
+        existingScript.addEventListener('error', () => {
+          statsTableCoreLoaderPromise = null;
+          reject(new Error('TanStack Table library failed to load.'));
+        }, { once: true });
+      });
+      return statsTableCoreLoaderPromise;
+    }
+    statsTableCoreLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@tanstack/table-core@8.11.0/build/umd/index.production.min.js';
+      script.async = true;
+      script.dataset.tanstackTableCore = 'true';
+      script.onload = () => {
+        if (window.TableCore) resolve(window.TableCore);
+        else {
+          statsTableCoreLoaderPromise = null;
+          reject(new Error('TanStack Table library loaded but TableCore global is unavailable.'));
+        }
+      };
+      script.onerror = () => {
+        script.remove();
+        statsTableCoreLoaderPromise = null;
+        reject(new Error('TanStack Table library failed to load.'));
+      };
+      document.head.appendChild(script);
+    });
+    return statsTableCoreLoaderPromise;
+  }
+  // Start loading TanStack in the background early; rendering proceeds without waiting
+  try { ensureStatsTableCoreLoaded().catch(() => {}); } catch (e) {}
+  
+  // Current column size map populated via TanStack (if available) or fallback widths
+  let currentColumnSizeMap = null;
+  function buildColumnSizeMap(allColumns) {
+    const sizes = new Map();
+    try {
+      if (window.TableCore && Array.isArray(allColumns)) {
+        const columns = allColumns.map(key => ({ id: key, accessorKey: key, header: () => key, size: getColumnWidth(key) }));
+        const table = window.TableCore.createTable({
+          data: [],
+          columns,
+          defaultColumn: { size: DEFAULT_COLUMN_WIDTH, minSize: 48 },
+          getCoreRowModel: window.TableCore.getCoreRowModel(),
+          renderFallbackValue: ''
+        });
+        const leaf = table.getVisibleLeafColumns();
+        leaf.forEach(col => {
+          const s = typeof col.getSize === 'function' ? col.getSize() : getColumnWidth(col.id);
+          sizes.set(col.id, Number.isFinite(s) ? s : getColumnWidth(col.id));
+        });
+      }
+    } catch (e) {
+      // Fallback below
+    }
+    if (sizes.size === 0 && Array.isArray(allColumns)) {
+      allColumns.forEach(key => sizes.set(key, getColumnWidth(key)));
+    }
+    return sizes;
+  }
+  
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -733,34 +808,73 @@
    * Reference implementation approach - guarantees pixel-perfect alignment
    */
   function applyColumnWidth(element, columnKey) {
-    const width = getColumnWidth(columnKey);
+    const width = (currentColumnSizeMap && currentColumnSizeMap.get(columnKey)) || getColumnWidth(columnKey);
     element.style.width = `${width}px`;
     element.style.minWidth = `${width}px`;
     element.style.maxWidth = `${width}px`;  // Lock width completely
   }
   
   function initializeScrollSync(wrapper) {
-    // New unified design: right quadrant is the single scroll master.
-    // We only need to mirror vertical scrollTop to the frozen columns quadrant.
-    const master = wrapper.querySelector('.stats-quadrant-right[data-scroll-master="true"]');
-    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
-    if (!master || !columnsTarget) return;
+    // Bottom-right data quadrant is the scroll master.
+    // Mirror horizontal scrollLeft to the top-right header quadrant;
+    // mirror vertical scrollTop to the bottom-left frozen columns quadrant.
+    const master = wrapper.querySelector('.stats-quadrant-scrollable-data[data-scroll-master="true"]');
+    const headerTarget = wrapper.querySelector('.stats-quadrant-scrollable-header[data-sync-target="header"]');
+    const columnsTarget = wrapper.querySelector('.stats-quadrant-frozen-columns[data-sync-target="columns"]');
+    if (!master || !headerTarget || !columnsTarget) return;
+    // Dynamically set header right padding to match master vertical scrollbar width (if present)
+    try {
+      const scrollbarWidth = master.offsetWidth - master.clientWidth;
+      headerTarget.style.paddingRight = `${scrollbarWidth}px`;
+    } catch (e) {}
     if (master._scrollSyncHandler) {
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     let ticking = false;
     const scrollHandler = (e) => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const { scrollTop } = e.target;
-          columnsTarget.scrollTop = scrollTop;
-          ticking = false;
-        });
-        ticking = true;
-      }
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const { scrollLeft, scrollTop } = e.target;
+        // Direct assignment = zero layout thrash; header is overflow-x:auto but hidden scrollbar
+        if (headerTarget.scrollLeft !== scrollLeft) headerTarget.scrollLeft = scrollLeft;
+        columnsTarget.scrollTop = scrollTop;
+        ticking = false;
+      });
     };
     master._scrollSyncHandler = scrollHandler;
     master.addEventListener('scroll', scrollHandler, { passive: true });
+
+    // Forward wheel horizontal gestures from header & frozen columns to master for unified feel
+    const forwardWheel = (src) => {
+      src.addEventListener('wheel', (evt) => {
+        if (Math.abs(evt.deltaX) > Math.abs(evt.deltaY)) {
+          master.scrollLeft += evt.deltaX;
+          evt.preventDefault();
+        }
+      }, { passive: false });
+    };
+    forwardWheel(headerTarget);
+    forwardWheel(columnsTarget);
+    // Touch horizontal drag on header to drive master (iOS subtle drags)
+    let touchStartX = 0;
+    let touching = false;
+    headerTarget.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touching = true;
+      }
+    }, { passive: true });
+    headerTarget.addEventListener('touchmove', (e) => {
+      if (!touching || e.touches.length !== 1) return;
+      const dx = touchStartX - e.touches[0].clientX;
+      if (Math.abs(dx) > 0) {
+        master.scrollLeft += dx;
+        touchStartX = e.touches[0].clientX;
+        e.preventDefault();
+      }
+    }, { passive: false });
+    headerTarget.addEventListener('touchend', () => { touching = false; }, { passive: true });
   }
   
   function renderTable() {
@@ -811,7 +925,7 @@
       }
     });
     
-    // === NEW 4-QUADRANT RENDERING ===
+  // === 4-QUADRANT RENDERING (original design) ===
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
@@ -828,21 +942,56 @@
     const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
     
     // Get all 4 quadrants
-  const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
-  const rightQuadrant = quadrantWrapper.querySelector('.stats-quadrant-right');
-  const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
+    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
+    const scrollableHeaderQuad = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
+    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
+    const scrollableDataQuad = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
     
     // Get all table parts
-  const frozenCornerThead = frozenCorner?.querySelector('thead');
-  const rightThead = rightQuadrant?.querySelector('thead');
-  const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
-  const rightTbody = rightQuadrant?.querySelector('tbody');
+    const frozenCornerThead = frozenCorner?.querySelector('thead');
+    const scrollableHeaderThead = scrollableHeaderQuad?.querySelector('thead');
+    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
+    const scrollableDataTbody = scrollableDataQuad?.querySelector('tbody');
     
     // Clear existing content
     if (frozenCornerThead) frozenCornerThead.innerHTML = '';
-  if (rightThead) rightThead.innerHTML = '';
+    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
     if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
-  if (rightTbody) rightTbody.innerHTML = '';
+    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
+
+    // Build a unified column size map (TanStack if available)
+    const allColumns = [...frozenColumns, ...scrollableColumns];
+    currentColumnSizeMap = buildColumnSizeMap(allColumns);
+    const getSize = (key) => (currentColumnSizeMap && currentColumnSizeMap.get(key)) || getColumnWidth(key);
+    const frozenTotalWidth = frozenColumns.reduce((sum, key) => sum + getSize(key), 0);
+    const scrollableTotalWidth = scrollableColumns.reduce((sum, key) => sum + getSize(key), 0);
+    
+    // Apply total table widths to each quadrant table for consistency
+    const frozenCornerTable = frozenCorner?.querySelector('table');
+    const frozenColumnsTable = frozenColumnsQuad?.querySelector('table');
+    const scrollableHeaderTable = scrollableHeaderQuad?.querySelector('table');
+    const scrollableDataTable = scrollableDataQuad?.querySelector('table');
+    if (frozenCornerTable && Number.isFinite(frozenTotalWidth)) {
+      frozenCornerTable.style.minWidth = `${frozenTotalWidth}px`;
+      frozenCornerTable.style.width = `${frozenTotalWidth}px`;
+    }
+    if (frozenColumnsTable && Number.isFinite(frozenTotalWidth)) {
+      frozenColumnsTable.style.minWidth = `${frozenTotalWidth}px`;
+      frozenColumnsTable.style.width = `${frozenTotalWidth}px`;
+    }
+    if (scrollableHeaderTable && Number.isFinite(scrollableTotalWidth)) {
+      scrollableHeaderTable.style.minWidth = `${scrollableTotalWidth}px`;
+      scrollableHeaderTable.style.width = `${scrollableTotalWidth}px`;
+    }
+    if (scrollableDataTable && Number.isFinite(scrollableTotalWidth)) {
+      scrollableDataTable.style.minWidth = `${scrollableTotalWidth}px`;
+      scrollableDataTable.style.width = `${scrollableTotalWidth}px`;
+    }
+    // Match bottom-left reserved horizontal scrollbar height with master’s
+    try {
+      const hScrollbar = scrollableDataQuad.offsetHeight - scrollableDataQuad.clientHeight;
+      frozenColumnsQuad.style.paddingBottom = `${hScrollbar}px`;
+    } catch (e) {}
     
     // === RENDER FROZEN CORNER HEADERS ===
     if (frozenCornerThead) {
@@ -869,8 +1018,8 @@
       }
     }
     
-    // === RENDER RIGHT (HEADER) ===
-    if (rightThead) {
+    // === RENDER SCROLLABLE HEADER (TOP-RIGHT) ===
+    if (scrollableHeaderThead) {
       const headerRow = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const th = document.createElement('th');
@@ -882,7 +1031,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      rightThead.appendChild(headerRow);
+      scrollableHeaderThead.appendChild(headerRow);
       clearSortIndicators(headerRow);
       if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
         const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
@@ -892,7 +1041,7 @@
     
     // === RENDER DATA ROWS ===
     const frozenFragment = document.createDocumentFragment();
-  const scrollableFragment = document.createDocumentFragment();
+    const scrollableFragment = document.createDocumentFragment();
     
     rows.forEach((entry) => {
       // Frozen columns row
@@ -979,9 +1128,9 @@
       frozenColumnsTbody.appendChild(frozenFragment);
       frozenColumnsTbody._statsRows = rows;
     }
-    if (rightTbody) {
-      rightTbody.appendChild(scrollableFragment);
-      rightTbody._statsRows = rows;
+    if (scrollableDataTbody) {
+      scrollableDataTbody.appendChild(scrollableFragment);
+      scrollableDataTbody._statsRows = rows;
     }
     
     // Initialize scroll synchronization
@@ -1405,10 +1554,10 @@
     const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
     if (quadrantWrapper) {
       const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner thead');
-      const rightThead = quadrantWrapper.querySelector('.stats-quadrant-right thead');
+      const scrollableThead = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
       
       if (frozenCorner) frozenCorner.addEventListener('click', handleSortClick);
-      if (rightThead) rightThead.addEventListener('click', handleSortClick);
+      if (scrollableThead) scrollableThead.addEventListener('click', handleSortClick);
       
       // Event delegation for player buttons in frozen columns
       const frozenColumnsTbody = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns tbody');
