@@ -680,17 +680,87 @@
 /* TANSTACK TABLE STYLES */
 /* ============================================ */
 .stats-table-wrapper {
-    overflow: auto;
-    height: 70vh;
-    max-height: 700px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    height: 70vh;
+    max-height: 700px;
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+.stats-hscroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stats-hscroll-content {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.stats-table-header {
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+}
+
+.stats-table-body {
+    max-height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden; /* horizontal handled by parent hscroll */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.06) transparent;
+}
+
+.stats-table-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+.stats-table-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.stats-table-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.12);
+}
+
+.stats-table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.stats-table-body::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 .stats-table {
     border-collapse: collapse;
     width: 100%;
+    table-layout: fixed;
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+.stats-table thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .stats-table th,
@@ -703,23 +773,13 @@
 }
 
 .stats-table thead th {
-    position: sticky;
-    top: 0;
     background: rgba(19, 23, 44, 0.8);
     backdrop-filter: blur(12px);
-    z-index: 10;
+    border-bottom: 1px solid var(--color-panel-border);
 }
 
 .stats-table tbody tr:nth-child(even) {
     background: rgba(40, 44, 69, 0.15);
-}
-
-.stats-table .frozen {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    background: rgba(13, 17, 32, 0.6);
-    backdrop-filter: blur(12px);
 }
 
 /* Column width classes - DEPRECATED (will be removed, widths applied inline) */
@@ -954,56 +1014,18 @@
     line-height: 1;
   }
   
-  /* ========================================== */
-  /* MOBILE TABLE SCALING ONLY - 75% reduction */
-  /* ========================================== */
-  
-  /* Table cells - reduce height and padding */
-  .stats-table-frozen th,
-  .stats-table-frozen td,
-  .stats-table-scrollable th,
-  .stats-table-scrollable td {
-    height: 32px;
-    min-height: 32px;
-    max-height: 32px;
-    padding: 0.5625rem; /* 0.75rem * 0.75 = 9px */
-    font-size: 0.65625rem; /* 0.875rem * 0.75 */
-    line-height: 1.125; /* 1.5 * 0.75 */
+  /* Mobile scrollbar styling */
+  .stats-hscroll::-webkit-scrollbar {
+    height: 6px;
   }
   
-  /* Table header text */
-  .stats-table-frozen thead th,
-  .stats-table-scrollable thead th {
-    font-size: 0.65625rem; /* 0.875rem * 0.75 */
+  .stats-hscroll::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.06);
+    border-radius: 3px;
   }
   
-  /* Table grid container */
-  .stats-table-grid {
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-table-quadrant-wrapper {
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  /* Scrollbar styling - reduce size */
-  .stats-quadrant-scrollable-data::-webkit-scrollbar {
-    width: 9px; /* 12px * 0.75 */
-    height: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-    border-radius: 7.5px; /* 10px * 0.75 */
-  }
-  
-  .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-    border-radius: 7.5px; /* 10px * 0.75 */
-    border: 2.25px solid #13172c; /* 3px * 0.75 */
-  }
-  
-  /* Adjust scrollbar spacer for mobile */
-  .stats-quadrant-scrollable-header {
-    padding-right: 9px; /* 12px * 0.75 */
+  .stats-table-body {
+    max-height: 60vh;
   }
   
   /* ========================================== */

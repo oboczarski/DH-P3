@@ -838,32 +838,99 @@
       size: getColumnWidth(column),
     }));
 
-    const tableInstance = createTable({
-      data: tableRows,
-      columns: columns,
-      state: {
-        columnOrder: columnSet,
-        columnPinning: { left: ['RK', 'PLAYER'] },
-      },
-      onStateChange: () => {},
-      getCoreRowModel: getCoreRowModel(),
-      columnResizeMode: 'onChange',
-      defaultColumn: {
-        size: DEFAULT_COLUMN_WIDTH,
-        minSize: 32,
-      },
-      renderFallbackValue: '',
-    });
+    // Calculate column sizes
+    let columnSizes = columns.map(col => Number.isFinite(col.size) ? col.size : DEFAULT_COLUMN_WIDTH);
+    
+    // Create TanStack table instance (without column pinning)
+    let tableInstance = null;
+    try {
+      tableInstance = createTable({
+        data: tableRows,
+        columns: columns,
+        state: {
+          columnOrder: columnSet,
+        },
+        onStateChange: () => {},
+        getCoreRowModel: getCoreRowModel(),
+        columnResizeMode: 'onChange',
+        defaultColumn: {
+          size: DEFAULT_COLUMN_WIDTH,
+          minSize: 32,
+        },
+        renderFallbackValue: '',
+      });
+      
+      // Get actual column sizes from TanStack if available
+      if (typeof tableInstance.getVisibleLeafColumns === 'function') {
+        const leaf = tableInstance.getVisibleLeafColumns();
+        if (Array.isArray(leaf) && leaf.length === columns.length) {
+          columnSizes = leaf.map((col, i) => {
+            const s = typeof col.getSize === 'function' ? col.getSize() : undefined;
+            return Number.isFinite(s) ? s : (Number.isFinite(columns[i].size) ? columns[i].size : DEFAULT_COLUMN_WIDTH);
+          });
+        }
+      }
+    } catch (e) {
+      console.error('TanStack createTable failed; using manual renderer', e);
+      tableInstance = null;
+    }
 
-    // --- Manual Table Rendering ---
+    // --- Game Logs Pattern: Separate Header/Body Tables ---
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
 
-    const tableElement = wrapper.querySelector('.stats-table');
-    tableElement.innerHTML = ''; // Clear existing content
+    // Preserve caption if it exists, then clear existing content
+    const existingCaption = wrapper.querySelector('caption');
+    wrapper.innerHTML = '';
 
+    // Helper to create a table with colgroup
+    const createSectionTable = () => {
+      const table = document.createElement('table');
+      table.className = 'stats-table';
+      const colgroup = document.createElement('colgroup');
+      columnSizes.forEach(size => {
+        const col = document.createElement('col');
+        col.style.width = `${size}px`;
+        colgroup.appendChild(col);
+      });
+      table.appendChild(colgroup);
+      return table;
+    };
+
+    // Create container structure (matching game logs pattern)
+    const container = document.createElement('div');
+    container.className = 'stats-table-container';
+    
+    const hScroll = document.createElement('div');
+    hScroll.className = 'stats-hscroll';
+    
+    const hContent = document.createElement('div');
+    hContent.className = 'stats-hscroll-content';
+    
+    // Create header wrapper and table
+    const headerWrapper = document.createElement('div');
+    headerWrapper.className = 'stats-table-header';
+    const headerTable = createSectionTable();
+    // Add caption to header table if it existed
+    if (existingCaption) {
+      const caption = existingCaption.cloneNode(true);
+      headerTable.appendChild(caption);
+    }
+    const tableHeaderThead = document.createElement('thead');
+    headerTable.appendChild(tableHeaderThead);
+    headerWrapper.appendChild(headerTable);
+    
+    // Create body wrapper and table
+    const bodyWrapper = document.createElement('div');
+    bodyWrapper.className = 'stats-table-body';
+    const bodyTable = createSectionTable();
+    const tableBodyTbody = document.createElement('tbody');
+    bodyTable.appendChild(tableBodyTbody);
+    bodyWrapper.appendChild(bodyTable);
+
+    // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
       td.textContent = '';
       td.innerHTML = '';
@@ -875,45 +942,138 @@
       }
     };
 
-    const thead = document.createElement('thead');
-    tableInstance.getHeaderGroups().forEach(headerGroup => {
+    // Render header
+    if (tableInstance && typeof tableInstance.getHeaderGroups === 'function') {
+      tableInstance.getHeaderGroups().forEach(group => {
+        const tr = document.createElement('tr');
+        group.headers.forEach((header, idx) => {
+          const th = document.createElement('th');
+          const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
+          th.textContent = headerValue;
+          th.dataset.columnKey = header.id;
+          const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
+          th.style.width = `${w}px`;
+          th.style.minWidth = `${w}px`;
+          th.style.maxWidth = `${w}px`;
+          
+          // Apply header color classes based on column category
+          const columnCategory = getColumnCategory(header.id);
+          if (columnCategory === 'all') {
+            th.classList.add('stats-header-all');
+          } else if (columnCategory === 'passing') {
+            th.classList.add('stats-header-passing');
+          } else if (columnCategory === 'rushing') {
+            th.classList.add('stats-header-rushing');
+          } else if (columnCategory === 'receiving') {
+            th.classList.add('stats-header-receiving');
+          }
+          
+          // Apply sort indicator
+          if (statsState.sort.column === header.id) {
+            applySortIndicator(th);
+          }
+          
+          tr.appendChild(th);
+        });
+        tableHeaderThead.appendChild(tr);
+      });
+    } else {
+      // Fallback: manual header rendering
       const tr = document.createElement('tr');
-      headerGroup.headers.forEach(header => {
+      columns.forEach((col, idx) => {
         const th = document.createElement('th');
-        if (header.column.getIsPinned()) {
-          th.classList.add('frozen');
-          th.style.left = `${header.column.getStart()}px`;
+        const label = typeof col.header === 'function' ? col.header({}) : col.header;
+        th.textContent = label || '';
+        th.dataset.columnKey = col.id;
+        const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
+        th.style.width = `${w}px`;
+        th.style.minWidth = `${w}px`;
+        th.style.maxWidth = `${w}px`;
+        
+        // Apply header color classes
+        const columnCategory = getColumnCategory(col.id);
+        if (columnCategory === 'all') {
+          th.classList.add('stats-header-all');
+        } else if (columnCategory === 'passing') {
+          th.classList.add('stats-header-passing');
+        } else if (columnCategory === 'rushing') {
+          th.classList.add('stats-header-rushing');
+        } else if (columnCategory === 'receiving') {
+          th.classList.add('stats-header-receiving');
         }
-        th.style.width = `${header.getSize()}px`;
-        th.style.minWidth = `${header.getSize()}px`;
-        th.style.maxWidth = `${header.getSize()}px`;
-        const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
-        th.textContent = headerValue;
-        th.dataset.columnKey = header.id;
-        if (statsState.sort.column === header.id) {
+        
+        // Apply sort indicator
+        if (statsState.sort.column === col.id) {
           applySortIndicator(th);
         }
+        
         tr.appendChild(th);
       });
-      thead.appendChild(tr);
-    });
-    tableElement.appendChild(thead);
+      tableHeaderThead.appendChild(tr);
+    }
 
-    const tbody = document.createElement('tbody');
-    tableInstance.getRowModel().rows.forEach(row => {
-      const tr = document.createElement('tr');
-      row.getVisibleCells().forEach(cell => {
-        const td = document.createElement('td');
-        if (cell.column.getIsPinned()) {
-            td.classList.add('frozen');
-            td.style.left = `${cell.column.getStart()}px`;
-        }
-        applyCellDescriptor(td, cell.getValue());
-        tr.appendChild(td);
+    // Render body rows
+    if (tableInstance && typeof tableInstance.getRowModel === 'function') {
+      const rowModel = tableInstance.getRowModel();
+      rowModel.rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        row.getVisibleCells().forEach((cell, cIdx) => {
+          const td = document.createElement('td');
+          applyCellDescriptor(td, cell.getValue());
+          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
+        });
+        tableBodyTbody.appendChild(tr);
       });
-      tbody.appendChild(tr);
-    });
-    tableElement.appendChild(tbody);
+    } else {
+      // Fallback: manual row rendering
+      tableRows.forEach((rowData) => {
+        const tr = document.createElement('tr');
+        columns.forEach((col, cIdx) => {
+          const td = document.createElement('td');
+          const descriptor = rowData[col.id];
+          applyCellDescriptor(td, descriptor);
+          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
+        });
+        tableBodyTbody.appendChild(tr);
+      });
+    }
+
+    // Calculate total table width and apply to both tables
+    const totalTableWidth = columnSizes.reduce((sum, size) => sum + size, 0);
+    if (Number.isFinite(totalTableWidth) && totalTableWidth > 0) {
+      const widthPx = `${totalTableWidth}px`;
+      headerTable.style.minWidth = widthPx;
+      headerTable.style.width = widthPx;
+      bodyTable.style.minWidth = widthPx;
+      bodyTable.style.width = widthPx;
+    }
+
+    // Assemble the structure
+    hContent.appendChild(headerWrapper);
+    hContent.appendChild(bodyWrapper);
+    hScroll.appendChild(hContent);
+    container.appendChild(hScroll);
+    wrapper.appendChild(container);
+
+    // Initialize scroll positions
+    hScroll.scrollLeft = 0;
+    bodyWrapper.scrollTop = 0;
+
+    // Route horizontal wheel/trackpad gestures on tbody to the shared scroller
+    bodyWrapper.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     // Empty state handling
     dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
@@ -1324,26 +1484,24 @@
     });
   }
   
+  // Use event delegation on wrapper to handle clicks from both header and body tables
   dom.tableWrappers.forEach((wrapper) => {
-    const tableElement = wrapper.querySelector('.stats-table');
-    if (tableElement) {
-        tableElement.addEventListener('click', (event) => {
-            const th = event.target.closest('th[data-column-key]');
-            if (th) {
-                handleSortClick(event);
-                return;
-            }
+    wrapper.addEventListener('click', (event) => {
+      const th = event.target.closest('th[data-column-key]');
+      if (th) {
+        handleSortClick(event);
+        return;
+      }
 
-            const btn = event.target.closest('.stats-player-btn');
-            if (btn) {
-              const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-              const entry = statsState.lastRenderedRows[entryIndex];
-              if (entry) {
-                openGameLogs(entry);
-              }
-            }
-        });
-    }
+      const btn = event.target.closest('.stats-player-btn');
+      if (btn) {
+        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+        const entry = statsState.lastRenderedRows[entryIndex];
+        if (entry) {
+          openGameLogs(entry);
+        }
+      }
+    });
   });
   initialise();
 })();
