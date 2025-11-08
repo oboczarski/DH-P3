@@ -740,34 +740,25 @@
   }
   
   function initializeScrollSync(wrapper) {
-    // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
-    const master = wrapper.querySelector('[data-scroll-master="true"]');
-    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
+    // New unified design: right quadrant is the single scroll master.
+    // We only need to mirror vertical scrollTop to the frozen columns quadrant.
+    const master = wrapper.querySelector('.stats-quadrant-right[data-scroll-master="true"]');
     const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
-    
-    if (!master || !headerTarget || !columnsTarget) return;
-    
-    // Remove existing listener if any
+    if (!master || !columnsTarget) return;
     if (master._scrollSyncHandler) {
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
-    
     let ticking = false;
-    
-    // Optimized sync using requestAnimationFrame for buttery smooth scrolling
     const scrollHandler = (e) => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const { scrollLeft, scrollTop } = e.target;
-          // Direct assignment - browser optimizes these automatically
-          headerTarget.scrollLeft = scrollLeft;
+          const { scrollTop } = e.target;
           columnsTarget.scrollTop = scrollTop;
           ticking = false;
         });
         ticking = true;
       }
     };
-    
     master._scrollSyncHandler = scrollHandler;
     master.addEventListener('scroll', scrollHandler, { passive: true });
   }
@@ -837,22 +828,21 @@
     const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
     
     // Get all 4 quadrants
-    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
-    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
-    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
-    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
+  const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
+  const rightQuadrant = quadrantWrapper.querySelector('.stats-quadrant-right');
+  const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
     
     // Get all table parts
-    const frozenCornerThead = frozenCorner?.querySelector('thead');
-    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
-    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
-    const scrollableDataTbody = scrollableData?.querySelector('tbody');
+  const frozenCornerThead = frozenCorner?.querySelector('thead');
+  const rightThead = rightQuadrant?.querySelector('thead');
+  const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
+  const rightTbody = rightQuadrant?.querySelector('tbody');
     
     // Clear existing content
     if (frozenCornerThead) frozenCornerThead.innerHTML = '';
-    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
+  if (rightThead) rightThead.innerHTML = '';
     if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
-    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
+  if (rightTbody) rightTbody.innerHTML = '';
     
     // === RENDER FROZEN CORNER HEADERS ===
     if (frozenCornerThead) {
@@ -879,12 +869,12 @@
       }
     }
     
-    // === RENDER SCROLLABLE HEADERS ===
-    if (scrollableHeaderThead) {
+    // === RENDER RIGHT (HEADER) ===
+    if (rightThead) {
       const headerRow = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const th = document.createElement('th');
-        applyColumnWidth(th, column);  // Apply width directly to cell
+        applyColumnWidth(th, column);
         const displayLabel = headerLabels.get(column) || column;
         th.textContent = displayLabel;
         const category = getColumnCategory(column);
@@ -892,9 +882,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      scrollableHeaderThead.appendChild(headerRow);
-      
-      // Apply sort indicator if needed
+      rightThead.appendChild(headerRow);
       clearSortIndicators(headerRow);
       if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
         const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
@@ -904,7 +892,7 @@
     
     // === RENDER DATA ROWS ===
     const frozenFragment = document.createDocumentFragment();
-    const scrollableFragment = document.createDocumentFragment();
+  const scrollableFragment = document.createDocumentFragment();
     
     rows.forEach((entry) => {
       // Frozen columns row
@@ -991,9 +979,9 @@
       frozenColumnsTbody.appendChild(frozenFragment);
       frozenColumnsTbody._statsRows = rows;
     }
-    if (scrollableDataTbody) {
-      scrollableDataTbody.appendChild(scrollableFragment);
-      scrollableDataTbody._statsRows = rows;
+    if (rightTbody) {
+      rightTbody.appendChild(scrollableFragment);
+      rightTbody._statsRows = rows;
     }
     
     // Initialize scroll synchronization
@@ -1417,10 +1405,10 @@
     const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
     if (quadrantWrapper) {
       const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner thead');
-      const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
+      const rightThead = quadrantWrapper.querySelector('.stats-quadrant-right thead');
       
       if (frozenCorner) frozenCorner.addEventListener('click', handleSortClick);
-      if (scrollableHeader) scrollableHeader.addEventListener('click', handleSortClick);
+      if (rightThead) rightThead.addEventListener('click', handleSortClick);
       
       // Event delegation for player buttons in frozen columns
       const frozenColumnsTbody = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns tbody');
