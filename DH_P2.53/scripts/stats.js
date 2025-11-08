@@ -739,105 +739,6 @@
     element.style.maxWidth = `${width}px`;  // Lock width completely
   }
   
-  function proxyScrollIntent(source, master, axis) {
-    if (!source || !master) return () => {};
-    const isHorizontal = axis === 'x';
-    
-    const wheelHandler = (event) => {
-      const primary = isHorizontal ? event.deltaX : event.deltaY;
-      const fallback = isHorizontal ? event.deltaY : event.deltaX;
-      const delta = Math.abs(primary) >= Math.abs(fallback) ? primary : fallback;
-      if (!delta) return;
-      master.scrollBy({
-        left: isHorizontal ? delta : 0,
-        top: isHorizontal ? 0 : delta,
-        behavior: 'auto'
-      });
-      event.preventDefault();
-    };
-    
-    let touchPoint = null;
-    const touchStartHandler = (event) => {
-      if (event.touches.length !== 1) return;
-      const { clientX, clientY } = event.touches[0];
-      touchPoint = { x: clientX, y: clientY };
-    };
-    
-    const touchMoveHandler = (event) => {
-      if (!touchPoint || event.touches.length !== 1) return;
-      const { clientX, clientY } = event.touches[0];
-      const deltaX = touchPoint.x - clientX;
-      const deltaY = touchPoint.y - clientY;
-      master.scrollBy({
-        left: isHorizontal ? deltaX : 0,
-        top: isHorizontal ? 0 : deltaY,
-        behavior: 'auto'
-      });
-      touchPoint = { x: clientX, y: clientY };
-      event.preventDefault();
-    };
-    
-    const touchEndHandler = () => {
-      touchPoint = null;
-    };
-    
-    source.addEventListener('wheel', wheelHandler, { passive: false });
-    source.addEventListener('touchstart', touchStartHandler, { passive: true });
-    source.addEventListener('touchmove', touchMoveHandler, { passive: false });
-    source.addEventListener('touchend', touchEndHandler);
-    source.addEventListener('touchcancel', touchEndHandler);
-    
-    return () => {
-      source.removeEventListener('wheel', wheelHandler);
-      source.removeEventListener('touchstart', touchStartHandler);
-      source.removeEventListener('touchmove', touchMoveHandler);
-      source.removeEventListener('touchend', touchEndHandler);
-      source.removeEventListener('touchcancel', touchEndHandler);
-    };
-  }
-  
-  function enforceSurfaceDimensions(quadrantWrapper) {
-    const masterSurface = quadrantWrapper.querySelector('[data-scroll-master="true"]');
-    if (!masterSurface) return;
-    const headerSurface = quadrantWrapper.querySelector('[data-sync-target="header"]');
-    const columnsSurface = quadrantWrapper.querySelector('[data-sync-target="columns"]');
-    const masterTable = masterSurface.querySelector('table');
-    
-    const headerTable = headerSurface?.querySelector('table');
-    const columnsTable = columnsSurface?.querySelector('table');
-    
-    if (headerTable) {
-      headerTable.style.width = '';
-      headerTable.style.minWidth = '';
-    }
-    if (headerSurface) {
-      headerSurface.style.minWidth = '';
-    }
-    if (columnsTable) {
-      columnsTable.style.minHeight = '';
-    }
-    if (columnsSurface) {
-      columnsSurface.style.minHeight = '';
-    }
-    
-    if (!masterTable) return;
-    
-    const totalWidth = masterTable.scrollWidth;
-    if (headerSurface && headerTable && Number.isFinite(totalWidth) && totalWidth > 0) {
-      const widthPx = `${totalWidth}px`;
-      headerTable.style.minWidth = widthPx;
-      headerTable.style.width = widthPx;
-      headerSurface.style.minWidth = widthPx;
-    }
-    
-    const totalHeight = masterTable.scrollHeight;
-    if (columnsSurface && columnsTable && Number.isFinite(totalHeight) && totalHeight > 0) {
-      const heightPx = `${totalHeight}px`;
-      columnsTable.style.minHeight = heightPx;
-      columnsSurface.style.minHeight = heightPx;
-    }
-  }
-  
   function initializeScrollSync(wrapper) {
     // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
     const master = wrapper.querySelector('[data-scroll-master="true"]');
@@ -846,35 +747,29 @@
     
     if (!master || !headerTarget || !columnsTarget) return;
     
-    if (typeof master._scrollSyncCleanup === 'function') {
-      master._scrollSyncCleanup();
+    // Remove existing listener if any
+    if (master._scrollSyncHandler) {
+      master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     
-    const syncDependentSurfaces = () => {
-      if (headerTarget.scrollLeft !== master.scrollLeft) {
-        headerTarget.scrollLeft = master.scrollLeft;
+    let ticking = false;
+    
+    // Optimized sync using requestAnimationFrame for buttery smooth scrolling
+    const scrollHandler = (e) => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const { scrollLeft, scrollTop } = e.target;
+          // Direct assignment - browser optimizes these automatically
+          headerTarget.scrollLeft = scrollLeft;
+          columnsTarget.scrollTop = scrollTop;
+          ticking = false;
+        });
+        ticking = true;
       }
-      if (columnsTarget.scrollTop !== master.scrollTop) {
-        columnsTarget.scrollTop = master.scrollTop;
-      }
     };
     
-    const onMasterScroll = () => {
-      syncDependentSurfaces();
-    };
-    
-    master.addEventListener('scroll', onMasterScroll, { passive: true });
-    const cleanupHeaderProxy = proxyScrollIntent(headerTarget, master, 'x');
-    const cleanupColumnProxy = proxyScrollIntent(columnsTarget, master, 'y');
-    
-    syncDependentSurfaces();
-    
-    master._scrollSyncCleanup = () => {
-      master.removeEventListener('scroll', onMasterScroll);
-      cleanupHeaderProxy();
-      cleanupColumnProxy();
-      master._scrollSyncCleanup = null;
-    };
+    master._scrollSyncHandler = scrollHandler;
+    master.addEventListener('scroll', scrollHandler, { passive: true });
   }
   
   function renderTable() {
@@ -1101,7 +996,6 @@
       scrollableDataTbody._statsRows = rows;
     }
     
-    enforceSurfaceDimensions(quadrantWrapper);
     // Initialize scroll synchronization
     initializeScrollSync(quadrantWrapper);
     
