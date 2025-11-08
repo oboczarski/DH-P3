@@ -737,42 +737,36 @@
   }
   
   function initializeScrollSync(wrapper) {
-    // GAME LOGS PATTERN: Vertical scroll master syncs frozen body
-    const verticalMaster = wrapper.querySelector('[data-scroll-master="vertical"]');
-    const frozenBodyTarget = wrapper.querySelector('[data-sync-target="frozen-body"]');
+    // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
+    const master = wrapper.querySelector('[data-scroll-master="true"]');
+    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
+    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
     
-    if (!verticalMaster || !frozenBodyTarget) {
-      console.warn('Missing scroll elements:', { verticalMaster, frozenBodyTarget });
-      return;
+    if (!master || !headerTarget || !columnsTarget) return;
+    
+    // Remove existing listener if any
+    if (master._scrollSyncHandler) {
+      master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     
-    // Remove existing listeners if any
-    if (verticalMaster._scrollSyncHandler) {
-      verticalMaster.removeEventListener('scroll', verticalMaster._scrollSyncHandler);
-    }
-    if (frozenBodyTarget._wheelHandler) {
-      frozenBodyTarget.removeEventListener('wheel', frozenBodyTarget._wheelHandler);
-    }
+    let ticking = false;
     
-    // Sync vertical scroll from scrollable to frozen
+    // Optimized sync using requestAnimationFrame for buttery smooth scrolling
     const scrollHandler = (e) => {
-      frozenBodyTarget.scrollTop = e.target.scrollTop;
-    };
-    
-    verticalMaster._scrollSyncHandler = scrollHandler;
-    verticalMaster.addEventListener('scroll', scrollHandler, { passive: true });
-    
-    // Route wheel events on frozen body to scrollable body (for vertical scroll)
-    const wheelHandler = (e) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        // Vertical wheel - route to scrollable body
-        verticalMaster.scrollTop += e.deltaY;
-        e.preventDefault();
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const { scrollLeft, scrollTop } = e.target;
+          // Direct assignment - browser optimizes these automatically
+          headerTarget.scrollLeft = scrollLeft;
+          columnsTarget.scrollTop = scrollTop;
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     
-    frozenBodyTarget._wheelHandler = wheelHandler;
-    frozenBodyTarget.addEventListener('wheel', wheelHandler, { passive: false });
+    master._scrollSyncHandler = scrollHandler;
+    master.addEventListener('scroll', scrollHandler, { passive: true });
   }
   
   function renderTable() {
@@ -839,27 +833,26 @@
     // Split columns into frozen and scrollable
     const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
     
-    // Get the new structure elements
-    const frozenHeader = quadrantWrapper.querySelector('.stats-frozen-header thead');
-    const frozenBody = quadrantWrapper.querySelector('.stats-frozen-body tbody');
-    const scrollableHeader = quadrantWrapper.querySelector('.stats-scrollable-header thead');
-    const scrollableBody = quadrantWrapper.querySelector('.stats-scrollable-body tbody');
+    // Get all 4 quadrants
+    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
+    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
+    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
+    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
     
-    console.log('📊 Table elements:', { frozenHeader, frozenBody, scrollableHeader, scrollableBody });
-    
-    if (!frozenHeader || !frozenBody || !scrollableHeader || !scrollableBody) {
-      console.error('❌ Missing table elements!', { frozenHeader, frozenBody, scrollableHeader, scrollableBody });
-      return;
-    }
+    // Get all table parts
+    const frozenCornerThead = frozenCorner?.querySelector('thead');
+    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
+    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
+    const scrollableDataTbody = scrollableData?.querySelector('tbody');
     
     // Clear existing content
-    if (frozenHeader) frozenHeader.innerHTML = '';
-    if (frozenBody) frozenBody.innerHTML = '';
-    if (scrollableHeader) scrollableHeader.innerHTML = '';
-    if (scrollableBody) scrollableBody.innerHTML = '';
+    if (frozenCornerThead) frozenCornerThead.innerHTML = '';
+    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
+    if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
+    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
     
-    // === RENDER FROZEN HEADERS ===
-    if (frozenHeader) {
+    // === RENDER FROZEN CORNER HEADERS ===
+    if (frozenCornerThead) {
       const headerRow = document.createElement('tr');
       frozenColumns.forEach((column) => {
         const th = document.createElement('th');
@@ -873,7 +866,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      frozenHeader.appendChild(headerRow);
+      frozenCornerThead.appendChild(headerRow);
       
       // Apply sort indicator if needed
       clearSortIndicators(headerRow);
@@ -884,7 +877,7 @@
     }
     
     // === RENDER SCROLLABLE HEADERS ===
-    if (scrollableHeader) {
+    if (scrollableHeaderThead) {
       const headerRow = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const th = document.createElement('th');
@@ -896,7 +889,7 @@
         th.dataset.columnKey = column;
         headerRow.appendChild(th);
       });
-      scrollableHeader.appendChild(headerRow);
+      scrollableHeaderThead.appendChild(headerRow);
       
       // Apply sort indicator if needed
       clearSortIndicators(headerRow);
@@ -990,14 +983,14 @@
       scrollableFragment.appendChild(scrollableTr);
     });
     
-    // Insert fragments into new structure
-    if (frozenBody) {
-      frozenBody.appendChild(frozenFragment);
-      frozenBody._statsRows = rows;
+    // Insert fragments
+    if (frozenColumnsTbody) {
+      frozenColumnsTbody.appendChild(frozenFragment);
+      frozenColumnsTbody._statsRows = rows;
     }
-    if (scrollableBody) {
-      scrollableBody.appendChild(scrollableFragment);
-      scrollableBody._statsRows = rows;
+    if (scrollableDataTbody) {
+      scrollableDataTbody.appendChild(scrollableFragment);
+      scrollableDataTbody._statsRows = rows;
     }
     
     // Initialize scroll synchronization

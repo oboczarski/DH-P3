@@ -677,7 +677,7 @@
 }
 
 /* ============================================ */
-/* FROZEN PANE TABLE - GAME LOGS PATTERN */
+/* FROZEN PANE TABLE - OPTIMIZED FOR NO LAG */
 /* ============================================ */
 
 .stats-table-wrapper {
@@ -691,117 +691,95 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* Main Grid: LEFT frozen, RIGHT scrollable */
+/* 2x2 Grid - EXACTLY like reference */
 .stats-table-grid {
   display: grid;
   grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
   height: 70vh;
   max-height: 700px;
   border-radius: 12px;
   overflow: hidden;
 }
 
-/* === LEFT: FROZEN COLUMN === */
-.stats-frozen-column {
-  display: flex;
-  flex-direction: column;
+/* === TOP-LEFT: Frozen Corner === */
+.stats-quadrant-frozen-corner {
+  z-index: 30;
   background: rgba(19, 23, 44, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* === TOP-RIGHT: Scrollable Header === */
+/* CRITICAL: overflow-x-hidden with overflow-y-scroll reserves vertical scrollbar space */
+/* Header scrollLeft is SET by JavaScript, not scrolled independently */
+.stats-quadrant-scrollable-header {
+  z-index: 20;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background: rgba(19, 23, 44, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  scrollbar-width: none;
+  /* GPU acceleration for smooth repositioning */
+  will-change: scroll-position;
+  transform: translateZ(0);
+  /* Scrollbar spacer - matches the 12px vertical scrollbar in bottom-right */
+  padding-right: 12px;
+  box-sizing: content-box;
+}
+.stats-quadrant-scrollable-header::-webkit-scrollbar {
+  display: none;
+}
+
+/* === BOTTOM-LEFT: Frozen Columns === */
+/* CRITICAL: overflow-x-scroll reserves horizontal scrollbar space */
+/* Column scrollTop is SET by JavaScript, not scrolled independently */
+.stats-quadrant-frozen-columns {
+  z-index: 20;
+  overflow-y: hidden;
+  overflow-x: scroll;
+  background: rgba(13, 17, 32, 0.6);
   backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
-  z-index: 20;
+  scrollbar-width: none;
+  /* GPU acceleration for smooth repositioning */
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+.stats-quadrant-frozen-columns::-webkit-scrollbar {
+  display: none;
 }
 
-.stats-frozen-header {
-  overflow: visible;
-  background: rgba(19, 23, 44, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stats-frozen-body {
-  flex: 1;
-  overflow-y: auto; /* Allow scrolling - will be synced */
-  overflow-x: hidden;
-  background: rgba(13, 17, 32, 0.6);
-  min-height: 0;
-  scrollbar-width: none; /* Hide scrollbar */
-}
-.stats-frozen-body::-webkit-scrollbar {
-  display: none; /* Hide scrollbar */
-}
-
-/* === RIGHT: SCROLLABLE COLUMN === */
-.stats-scrollable-column {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-/* Horizontal scroll wrapper - contains header AND body together */
-.stats-hscroll {
-  width: 100%;
+/* === BOTTOM-RIGHT: Main Scrollable Data === */
+/* This is the ONLY element user actually scrolls */
+.stats-quadrant-scrollable-data {
+  z-index: 10;
   overflow-x: auto;
-  overflow-y: hidden;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.stats-hscroll-content {
-  display: flex;
-  flex-direction: column;
-  min-width: 100%;
-  flex: 1;
-}
-
-.stats-scrollable-header {
-  overflow: visible;
-  background: rgba(19, 23, 44, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  flex-shrink: 0;
-}
-
-.stats-scrollable-body {
-  flex: 1;
-  overflow-y: auto; /* Only vertical scroll */
-  overflow-x: visible; /* Show content horizontally */
+  overflow-y: scroll;
   background: rgba(13, 17, 32, 0.6);
   backdrop-filter: blur(12px);
-  min-height: 0;
+  /* GPU acceleration */
+  will-change: scroll-position;
+  transform: translateZ(0);
 }
 
-/* Scrollbar styling for horizontal scroll */
-.stats-hscroll::-webkit-scrollbar {
+/* Scrollbar styling */
+.stats-quadrant-scrollable-data::-webkit-scrollbar {
+  width: 12px;
   height: 12px;
 }
-.stats-hscroll::-webkit-scrollbar-track {
+.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
   background: #13172c;
   border-radius: 10px;
 }
-.stats-hscroll::-webkit-scrollbar-thumb {
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
   background: #334155;
   border-radius: 10px;
   border: 3px solid #13172c;
 }
-.stats-hscroll::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* Scrollbar styling for vertical scroll */
-.stats-scrollable-body::-webkit-scrollbar {
-  width: 12px;
-}
-.stats-scrollable-body::-webkit-scrollbar-track {
-  background: #13172c;
-  border-radius: 10px;
-}
-.stats-scrollable-body::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 10px;
-  border: 3px solid #13172c;
-}
-.stats-scrollable-body::-webkit-scrollbar-thumb:hover {
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
 
@@ -817,12 +795,12 @@
 .stats-table-frozen td,
 .stats-table-scrollable th,
 .stats-table-scrollable td {
-  height: 48px;
-  min-height: 48px;
-  max-height: 48px;
-  padding: 0.75rem;
+  height: 35px;
+  min-height: 35px;
+  max-height: 35px;
+  padding: 0.2rem;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #cbd5e1;
   white-space: nowrap;
   overflow: hidden;
@@ -835,11 +813,10 @@
 .stats-table-frozen thead th,
 .stats-table-scrollable thead th {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #94a3b8;
   cursor: pointer;
   user-select: none;
-  text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -852,8 +829,8 @@
 
 .stats-table-frozen tbody td,
 .stats-table-scrollable tbody td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 0px solid rgba(255, 255, 255, 0.05);
+  border-right: 0px solid rgba(255, 255, 255, 0.05);
 }
 
 .stats-table-frozen tbody td:last-child,
@@ -930,10 +907,13 @@
   align-items: center;
   justify-content: center;
   padding: 0.05rem 0.242rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  min-width: 1.5rem;
+  width: 2.4rem;
+  height: 1.2rem;
+  font-size: 0.71rem;
+  min-height: 1.2rem;
 }
 .stats-table .stats-team-chip {
   display: inline-flex;
@@ -977,11 +957,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.5rem;
-  height: 0.91rem;
+  width: 1.9rem;
+  height: 1.32rem;
+  min-height: 1.32rem;
+  max-height: 1.32rem;
   padding: 0;
-  font-size: 0.55rem;
-  border-radius: 4px;
+  font-size: 0.65rem;
+  border-radius: 6px;
   letter-spacing: 0.05em;
 }
 .stats-empty-state {
