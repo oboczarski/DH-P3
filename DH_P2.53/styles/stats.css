@@ -754,7 +754,9 @@
   overflow-x: auto;
   overflow-y: scroll;
   background: rgb(13 18 39 / 1%);
-  
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 146, 196, 0.24) rgba(13, 18, 39, 0.15);
   /* GPU acceleration */
   will-change: scroll-position;
   transform: translateZ(0);
@@ -766,16 +768,17 @@
   height: 12px;
 }
 .stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-  background: #13172c;
-  border-radius: 10px;
+  background: rgba(13, 18, 39, 0.05);
+  border-radius: 999px;
 }
 .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 10px;
-  border: 3px solid #13172c;
+  background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
+  border-radius: 999px;
+  border: 2px solid rgba(13, 18, 39, 0.35);
+  box-shadow: inset 0 0 6px rgba(12, 16, 34, 0.55);
 }
 .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: linear-gradient(180deg, rgba(126, 155, 214, 0.38), rgba(75, 100, 160, 0.32));
 }
 
 /* === TABLE STYLING === */
@@ -1107,12 +1110,15 @@
   }
   
   .stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-    border-radius: 7.5px; /* 10px * 0.75 */
+    background: rgba(13, 18, 39, 0.03);
+    border-radius: 999px;
   }
   
   .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-    border-radius: 7.5px; /* 10px * 0.75 */
-    border: 2.25px solid #13172c; /* 3px * 0.75 */
+    background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.22));
+    border-radius: 999px;
+    border: 2px solid rgba(13, 18, 39, 0.32);
+    box-shadow: inset 0 0 4px rgba(12, 16, 34, 0.45);
   }
   
   /* Adjust scrollbar spacer for mobile */
