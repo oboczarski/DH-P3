@@ -219,7 +219,10 @@
   const DEFAULT_COLUMN_WIDTH = 76;
   
   function getColumnWidth(columnKey) {
-    return STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
+    const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
+    // Scale down by 25% on mobile (600px and below)
+    const isMobile = window.innerWidth <= 600;
+    return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
   }
   
   const statsState = {
