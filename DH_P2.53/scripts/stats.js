@@ -752,14 +752,11 @@
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     
-    // Optimized sync using requestAnimationFrame for buttery smooth scrolling
+    // Direct, synchronous scroll synchronization mirroring the reference implementation.
     const scrollHandler = (e) => {
-      window.requestAnimationFrame(() => {
-        const { scrollLeft, scrollTop } = e.target;
-        // Direct assignment - browser optimizes these automatically
-        headerTarget.scrollLeft = scrollLeft;
-        columnsTarget.scrollTop = scrollTop;
-      });
+      const { scrollLeft, scrollTop } = e.target;
+      headerTarget.scrollLeft = scrollLeft;
+      columnsTarget.scrollTop = scrollTop;
     };
     
     master._scrollSyncHandler = scrollHandler;
