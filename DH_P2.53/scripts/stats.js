@@ -234,7 +234,8 @@
     datasets: new Map(),
     headerLabels: new Map(),
     availableColumns: new Map(),
-    rankCache: null
+    rankCache: null,
+    lastRenderedRows: []
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
@@ -707,11 +708,6 @@
     if (raw === undefined || raw === null) return '';
     return raw;
   }
-  function clearSortIndicators(headerRow) {
-    headerRow.querySelectorAll('th').forEach((th) => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc');
-    });
-  }
   function applySortIndicator(target) {
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
@@ -725,13 +721,13 @@
       console.error('TanStack Table library not loaded.');
       return;
     }
-    
     const { createTable, getCoreRowModel } = window.TableCore;
+
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
     const columnSet = baseColumnSet.filter((column, index) => {
-      if (index < 3) return true;
+      if (index < 3) return true; // Always show first 3 columns
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
@@ -751,9 +747,9 @@
       return getSortedRows(collection, sortColumn);
     };
 
-    let rows;
+    let sortedRows;
     if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
-      rows = [...filtered];
+      sortedRows = [...filtered];
     } else {
       const playerRows = [];
       const pickRows = [];
@@ -765,10 +761,10 @@
         }
       });
       const sortedPlayers = sortCollection(playerRows);
-      rows = [...sortedPlayers, ...pickRows];
+      sortedRows = [...sortedPlayers, ...pickRows];
     }
 
-    rows.forEach((entry, index) => {
+    sortedRows.forEach((entry, index) => {
       if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
@@ -776,88 +772,151 @@
       }
     });
     
-    const table = createTable({
-      data: rows,
-      columns: columnSet.map(column => ({
-        accessorKey: column,
-        header: () => headerLabels.get(column) || column,
-        cell: info => {
-          const entry = info.row.original;
-          const textValue = formatCellValue(column, entry);
-          if (column === 'PLAYER') {
-            return `<button type="button" class="stats-player-btn" data-player-id="${entry.meta.playerId}" data-entry-index="${rows.indexOf(entry)}">${textValue}</button>`;
-          }
-          if (column === 'VALUE') {
-            return `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${textValue}</span>`;
-          }
-          if (column === 'TM') {
-              if (entry.meta.pos === 'RDP') {
-                  return `<span style="color: var(--color-text-secondary);">RDP</span>`;
-              }
-              const teamKey = (textValue || 'FA').toUpperCase();
-              const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-              const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-              const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-              return (teamKey && teamKey !== 'FA')
-                ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-                : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-          }
-          return textValue;
-        },
-        size: getColumnWidth(column),
-      })),
-      state: {
-        columnPinning: {
-          left: ['RK', 'PLAYER', 'POS'],
-        },
-      },
-      getCoreRowModel: getCoreRowModel(),
+    statsState.lastRenderedRows = sortedRows;
+
+    // --- Data Transformation for TanStack Table ---
+    const createTextDescriptor = (text, style) => ({
+      render: (td) => {
+        td.textContent = text;
+        if (style) Object.assign(td.style, style);
+      }
     });
 
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue = formatCellValue(column, entry);
+        if (column === 'PLAYER') {
+          rowData[column] = {
+            render: (td) => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'stats-player-btn';
+              button.dataset.playerId = entry.meta.playerId;
+              button.dataset.entryIndex = entryIndex;
+              button.textContent = textValue;
+              td.appendChild(button);
+            }
+          };
+        } else if (column === 'VALUE') {
+          rowData[column] = {
+            render: (td) => {
+              const span = document.createElement('span');
+              span.className = 'stats-value-chip';
+              span.style.cssText = entry.meta.valueStyle;
+              span.textContent = textValue;
+              td.appendChild(span);
+            }
+          };
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+              } else {
+                const teamKey = (textValue || 'FA').toUpperCase();
+                const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+                const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+                const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+                td.innerHTML = (teamKey && teamKey !== 'FA')
+                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+              }
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(textValue);
+        }
+      }
+      return rowData;
+    });
+
+    const columns = columnSet.map(column => ({
+      id: column,
+      accessorKey: column,
+      header: () => headerLabels.get(column) || column,
+      size: getColumnWidth(column),
+    }));
+
+    const tableInstance = createTable({
+      data: tableRows,
+      columns: columns,
+      state: {
+        columnOrder: columnSet,
+        columnPinning: { left: ['RK', 'PLAYER'] },
+      },
+      onStateChange: () => {},
+      getCoreRowModel: getCoreRowModel(),
+      columnResizeMode: 'onChange',
+      defaultColumn: {
+        size: DEFAULT_COLUMN_WIDTH,
+        minSize: 32,
+      },
+      renderFallbackValue: '',
+    });
+
+    // --- Manual Table Rendering ---
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    
+
     const tableElement = wrapper.querySelector('.stats-table');
     tableElement.innerHTML = ''; // Clear existing content
-    
+
+    const applyCellDescriptor = (td, descriptor) => {
+      td.textContent = '';
+      td.innerHTML = '';
+      if (!descriptor) return;
+      if (typeof descriptor.render === 'function') {
+        descriptor.render(td);
+      } else {
+        td.textContent = String(descriptor); // Fallback for plain values
+      }
+    };
+
     const thead = document.createElement('thead');
-    table.getHeaderGroups().forEach(headerGroup => {
+    tableInstance.getHeaderGroups().forEach(headerGroup => {
       const tr = document.createElement('tr');
       headerGroup.headers.forEach(header => {
         const th = document.createElement('th');
+        if (header.column.getIsPinned()) {
+          th.classList.add('frozen');
+          th.style.left = `${header.column.getStart()}px`;
+        }
         th.style.width = `${header.getSize()}px`;
-        th.textContent = header.isPlaceholder ? null : header.renderHeader();
+        th.style.minWidth = `${header.getSize()}px`;
+        th.style.maxWidth = `${header.getSize()}px`;
+        const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
+        th.textContent = headerValue;
         th.dataset.columnKey = header.id;
+        if (statsState.sort.column === header.id) {
+          applySortIndicator(th);
+        }
         tr.appendChild(th);
       });
       thead.appendChild(tr);
     });
     tableElement.appendChild(thead);
-    
+
     const tbody = document.createElement('tbody');
-    table.getRowModel().rows.forEach(row => {
+    tableInstance.getRowModel().rows.forEach(row => {
       const tr = document.createElement('tr');
       row.getVisibleCells().forEach(cell => {
         const td = document.createElement('td');
         if (cell.column.getIsPinned()) {
-          td.classList.add('frozen');
-          td.style.left = `${cell.column.getStart()}px`;
+            td.classList.add('frozen');
+            td.style.left = `${cell.column.getStart()}px`;
         }
-        td.innerHTML = cell.renderCell();
+        applyCellDescriptor(td, cell.getValue());
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
     });
     tableElement.appendChild(tbody);
-    
+
     // Empty state handling
-    if (!rows.length) {
-      dom.emptyState.classList.remove('hidden');
-    } else {
-      dom.emptyState.classList.add('hidden');
-    }
+    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
   }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
@@ -1277,12 +1336,11 @@
 
             const btn = event.target.closest('.stats-player-btn');
             if (btn) {
-                const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-                const dataset = getActiveDataset();
-                const filtered = dataset.filter(passesFilters);
-                if (filtered && filtered[entryIndex]) {
-                    openGameLogs(filtered[entryIndex]);
-                }
+              const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+              const entry = statsState.lastRenderedRows[entryIndex];
+              if (entry) {
+                openGameLogs(entry);
+              }
             }
         });
     }
