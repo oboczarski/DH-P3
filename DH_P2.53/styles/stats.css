@@ -749,24 +749,26 @@
   overflow: hidden;
 }
 
+/* TRANSFORM-BASED SYNC: Header moves via transform instead of scroll */
 .stats-scroll-surface-header {
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-gutter: stable both-edges;
-  scrollbar-width: none;
+  overflow: hidden; /* Changed from auto to hidden - transform handles movement */
+  position: relative;
 }
-.stats-scroll-surface-header::-webkit-scrollbar {
-  display: none;
+.stats-scroll-surface-header table {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
+/* TRANSFORM-BASED SYNC: Columns move via transform instead of scroll */
 .stats-scroll-surface-columns {
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
-  scrollbar-gutter: stable both-edges;
+  overflow: hidden; /* Changed from auto to hidden - transform handles movement */
+  position: relative;
 }
-.stats-scroll-surface-columns::-webkit-scrollbar {
-  display: none;
+.stats-scroll-surface-columns table {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .stats-scroll-surface-master {
@@ -838,10 +840,6 @@
 .stats-table-frozen thead th:last-child,
 .stats-table-scrollable thead th:last-child {
   border-right: none;
-}
-
-.stats-table-frozen tbody td,
-.stats-table-scrollable tbody td {
 }
 
 .stats-table-frozen tbody td:last-child,

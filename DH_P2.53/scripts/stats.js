@@ -797,6 +797,8 @@
   }
   
   function enforceSurfaceDimensions(quadrantWrapper) {
+    // TRANSFORM APPROACH: Tables must be sized to full content dimensions
+    // so they can be transformed across the entire scroll range
     const masterSurface = quadrantWrapper.querySelector('[data-scroll-master="true"]');
     if (!masterSurface) return;
     const headerSurface = quadrantWrapper.querySelector('[data-sync-target="header"]');
@@ -808,20 +810,25 @@
     const columnsTable = columnsSurface?.querySelector('table');
     
     if (headerSurface && headerTable) {
+      // Header table must be full width of scrollable content
       const widthPx = `${masterTable.scrollWidth}px`;
       headerTable.style.width = widthPx;
       headerTable.style.minWidth = widthPx;
+      // Container must accommodate the table before transform
       headerSurface.style.minWidth = widthPx;
     }
     if (columnsSurface && columnsTable) {
+      // Columns table must be full height of scrollable content
       const heightPx = `${masterTable.scrollHeight}px`;
+      columnsTable.style.height = heightPx;
       columnsTable.style.minHeight = heightPx;
+      // Container must accommodate the table before transform
       columnsSurface.style.minHeight = heightPx;
     }
   }
   
   function initializeScrollSync(wrapper) {
-    // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
+    // TRANSFORM-BASED SYNC: Use GPU-accelerated transforms for zero-lag synchronization
     const master = wrapper.querySelector('[data-scroll-master="true"]');
     const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
     const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
@@ -832,28 +839,61 @@
       master._scrollSyncCleanup();
     }
     
+    // Get the actual table elements that will be transformed
+    const headerTable = headerTarget.querySelector('table');
+    const columnsTable = columnsTarget.querySelector('table');
+    
+    if (!headerTable || !columnsTable) return;
+    
+    // Track RAF state to prevent multiple queued frames
+    let rafPending = false;
+    let lastScrollLeft = 0;
+    let lastScrollTop = 0;
+    
     const syncDependents = () => {
-      if (headerTarget.scrollLeft !== master.scrollLeft) {
-        headerTarget.scrollLeft = master.scrollLeft;
+      const scrollLeft = master.scrollLeft;
+      const scrollTop = master.scrollTop;
+      
+      // Only update if position actually changed (performance optimization)
+      if (scrollLeft !== lastScrollLeft) {
+        // Move header horizontally via transform (GPU-accelerated)
+        headerTable.style.transform = `translate3d(${-scrollLeft}px, 0, 0)`;
+        lastScrollLeft = scrollLeft;
       }
-      if (columnsTarget.scrollTop !== master.scrollTop) {
-        columnsTarget.scrollTop = master.scrollTop;
+      
+      if (scrollTop !== lastScrollTop) {
+        // Move columns vertically via transform (GPU-accelerated)
+        columnsTable.style.transform = `translate3d(0, ${-scrollTop}px, 0)`;
+        lastScrollTop = scrollTop;
       }
+      
+      rafPending = false;
     };
     
     const onMasterScroll = () => {
-      syncDependents();
+      // Use RAF to sync with browser's paint cycle for buttery-smooth updates
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(syncDependents);
+      }
     };
     
     master.addEventListener('scroll', onMasterScroll, { passive: true });
+    
+    // Keep proxy handlers for wheel/touch events on frozen areas
     const cleanupHeaderProxy = proxyScrollIntent(headerTarget, master, 'x');
     const cleanupColumnProxy = proxyScrollIntent(columnsTarget, master, 'y');
+    
+    // Initial sync
     syncDependents();
     
     master._scrollSyncCleanup = () => {
       master.removeEventListener('scroll', onMasterScroll);
       cleanupHeaderProxy();
       cleanupColumnProxy();
+      // Reset transforms
+      headerTable.style.transform = '';
+      columnsTable.style.transform = '';
       master._scrollSyncCleanup = null;
     };
   }
