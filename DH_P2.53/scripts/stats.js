@@ -738,6 +738,87 @@
     element.style.minWidth = `${width}px`;
     element.style.maxWidth = `${width}px`;  // Lock width completely
   }
+
+  function proxyScrollIntent(source, master, axis) {
+    if (!source || !master) return () => {};
+    const horizontal = axis === 'x';
+    
+    const wheelHandler = (event) => {
+      const primary = horizontal ? event.deltaX : event.deltaY;
+      const secondary = horizontal ? event.deltaY : event.deltaX;
+      const delta = Math.abs(primary) >= Math.abs(secondary) ? primary : secondary;
+      if (!delta) return;
+      master.scrollBy({
+        left: horizontal ? delta : 0,
+        top: horizontal ? 0 : delta,
+        behavior: 'auto'
+      });
+      event.preventDefault();
+    };
+    
+    let touchPoint = null;
+    const touchStartHandler = (event) => {
+      if (event.touches.length !== 1) return;
+      const { clientX, clientY } = event.touches[0];
+      touchPoint = { x: clientX, y: clientY };
+    };
+    
+    const touchMoveHandler = (event) => {
+      if (!touchPoint || event.touches.length !== 1) return;
+      const { clientX, clientY } = event.touches[0];
+      const deltaX = touchPoint.x - clientX;
+      const deltaY = touchPoint.y - clientY;
+      master.scrollBy({
+        left: horizontal ? deltaX : 0,
+        top: horizontal ? 0 : deltaY,
+        behavior: 'auto'
+      });
+      touchPoint = { x: clientX, y: clientY };
+      event.preventDefault();
+    };
+    
+    const clearTouchPoint = () => {
+      touchPoint = null;
+    };
+    
+    source.addEventListener('wheel', wheelHandler, { passive: false });
+    source.addEventListener('touchstart', touchStartHandler, { passive: true });
+    source.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    source.addEventListener('touchend', clearTouchPoint);
+    source.addEventListener('touchcancel', clearTouchPoint);
+    
+    return () => {
+      source.removeEventListener('wheel', wheelHandler);
+      source.removeEventListener('touchstart', touchStartHandler);
+      source.removeEventListener('touchmove', touchMoveHandler);
+      source.removeEventListener('touchend', clearTouchPoint);
+      source.removeEventListener('touchcancel', clearTouchPoint);
+    };
+  }
+  
+  function enforceSurfaceDimensions(quadrantWrapper) {
+    const masterSurface = quadrantWrapper.querySelector('[data-scroll-master="true"]');
+    if (!masterSurface) return;
+    const headerSurface = quadrantWrapper.querySelector('[data-sync-target="header"]');
+    const columnsSurface = quadrantWrapper.querySelector('[data-sync-target="columns"]');
+    const masterTable = masterSurface.querySelector('table');
+    if (!masterTable) return;
+    
+    const headerTable = headerSurface?.querySelector('table');
+    const columnsTable = columnsSurface?.querySelector('table');
+    
+    if (headerSurface && headerTable) {
+      const widthPx = `${masterTable.scrollWidth}px`;
+      headerTable.style.width = widthPx;
+      headerTable.style.minWidth = widthPx;
+      headerSurface.style.minWidth = widthPx;
+    }
+    if (columnsSurface && columnsTable) {
+      const heightPx = `${masterTable.scrollHeight}px`;
+      columnsTable.style.minHeight = heightPx;
+      columnsSurface.style.minHeight = heightPx;
+    }
+  }
   
   function initializeScrollSync(wrapper) {
     // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
@@ -747,29 +828,34 @@
     
     if (!master || !headerTarget || !columnsTarget) return;
     
-    // Remove existing listener if any
-    if (master._scrollSyncHandler) {
-      master.removeEventListener('scroll', master._scrollSyncHandler);
+    if (typeof master._scrollSyncCleanup === 'function') {
+      master._scrollSyncCleanup();
     }
     
-    let ticking = false;
-    
-    // Optimized sync using requestAnimationFrame for buttery smooth scrolling
-    const scrollHandler = (e) => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const { scrollLeft, scrollTop } = e.target;
-          // Direct assignment - browser optimizes these automatically
-          headerTarget.scrollLeft = scrollLeft;
-          columnsTarget.scrollTop = scrollTop;
-          ticking = false;
-        });
-        ticking = true;
+    const syncDependents = () => {
+      if (headerTarget.scrollLeft !== master.scrollLeft) {
+        headerTarget.scrollLeft = master.scrollLeft;
+      }
+      if (columnsTarget.scrollTop !== master.scrollTop) {
+        columnsTarget.scrollTop = master.scrollTop;
       }
     };
     
-    master._scrollSyncHandler = scrollHandler;
-    master.addEventListener('scroll', scrollHandler, { passive: true });
+    const onMasterScroll = () => {
+      syncDependents();
+    };
+    
+    master.addEventListener('scroll', onMasterScroll, { passive: true });
+    const cleanupHeaderProxy = proxyScrollIntent(headerTarget, master, 'x');
+    const cleanupColumnProxy = proxyScrollIntent(columnsTarget, master, 'y');
+    syncDependents();
+    
+    master._scrollSyncCleanup = () => {
+      master.removeEventListener('scroll', onMasterScroll);
+      cleanupHeaderProxy();
+      cleanupColumnProxy();
+      master._scrollSyncCleanup = null;
+    };
   }
   
   function renderTable() {
@@ -996,6 +1082,7 @@
       scrollableDataTbody._statsRows = rows;
     }
     
+    enforceSurfaceDimensions(quadrantWrapper);
     // Initialize scroll synchronization
     initializeScrollSync(quadrantWrapper);
     
