@@ -497,307 +497,60 @@
 .stats-table-region {
   position: relative;
   border-radius: 12px;
-  padding: 0.45rem;
+  padding: 0; /* Remove padding to allow table container to fill space */
   background: rgba(13, 14, 35, 0.22);
   border: 1px solid rgba(128, 138, 189, 0.18);
   min-height: 360px;
   overflow: hidden;
+  display: flex; /* Use flexbox to manage layout */
+  flex-direction: column;
 }
-/* Stats Key Popup */
-.stats-key-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.stats-key-popup.visible {
-  display: flex;
-}
-.stats-key-popup-content {
-  position: relative;
-  width: min(90vw, 600px);
-  max-height: 80vh;
-  background: rgb(40 44 66 / 80%);
-  border: 1px solid rgba(128, 138, 189, 0.3);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 60px rgba(0, 0, 0, 0.5);
-  overflow-y: auto;
-}
-.stats-key-popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-.stats-key-popup-title {
-  margin: 0px;
-  font-size: 1.3rem;
-  font-weight: 200;
-  color: var(--color-text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-.stats-key-popup-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1rem;
-  height: 1rem;
-  padding: 0.65rem 0.75rem 0.75rem;
-  border-radius: 7px;
-  border: 1px solid #e5e8f14f;
-  background: rgb(227 224 244 / 3%);
-  color: var(--color-text-secondary);
-  font-size: 1.4rem;
-  cursor: pointer;
-}
-.stats-key-popup-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-primary);
-}
-.stats-key-popup-body {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 0.5rem 1.2rem;
-}
-.stats-key-item {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-.stats-key-abbr {
-  font-weight: 600;
-  color: #EAEBF0;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  min-width: 4.5rem;
-}
-.stats-key-desc {
-  color: #9ea2bf;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  font-weight: 300;
-}
-@media (min-width: 869px) {
-  body[data-page="stats"] {
-    --stats-desktop-panel-width: min(calc(100vw - 3.5rem), 900px);
-    --stats-desktop-shell-width: min(calc(100vw - 3rem), 1100px);
-    --stats-desktop-nav-button-width: clamp(4.2rem, 4.5vw, 4.85rem);
-    --stats-desktop-table-width: var(--stats-desktop-panel-width, 900px);
-  }
-  body[data-page="stats"] #header-container {
-    display: flex;
-    justify-content: center;
-    padding: 0rem 0 0.25rem;
-  }
-  body[data-page="stats"] #header-container .app-header {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    width: fit-content;
-    padding: 0.65rem 1.35rem;
-  }
-  body[data-page="stats"] #header-container .app-header .header-row {
-    width: auto;
-    display: flex;
-    justify-content: center;
-    gap: clamp(0.55rem, 1.4vw, 0.85rem);
-    padding: 0;
-  }
-  body[data-page="stats"] #header-container .app-header > .header-row:first-of-type {
-    grid-template-columns: none;
-  }
-  body[data-page="stats"] #header-container .nav-buttons-container {
-    flex: none;
-    width: max-content;
-    justify-content: center;
-    gap: clamp(0.55rem, 1.4vw, 0.85rem);
-  }
-  body[data-page="stats"] #header-container .nav-button {
-    flex: 1 1 0;
-    width: 6.5rem;
-    max-width: none;
-    min-height: 2.7rem;
-    max-height: 2.7rem;
-    height: 2.7rem;
-  }
-  body[data-page="stats"] .stats-page-content {
-    align-items: center;
-  }
-  body[data-page="stats"] .stats-page-intro,
-  body[data-page="stats"] .stats-controls-panel,
-  body[data-page="stats"] .stats-table-region {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  body[data-page="stats"] .stats-page-intro,
-  body[data-page="stats"] .stats-controls-panel {
-    width: min(100%, var(--stats-desktop-panel-width, 900px));
-  }
-  /* Keep the table container width configurable via its own token for easy future adjustments */
-  body[data-page="stats"] .stats-table-region {
-    width: min(100%, var(--stats-desktop-table-width, 900px));
-  }
-}
-.stats-loading {
+
+/* New styles for the single-container layout, inspired by game-logs */
+.stats-table-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  padding: 2.4rem 1rem;
-}
-.stats-loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid rgba(118, 109, 255, 0.25);
-  border-top-color: rgba(118, 109, 255, 0.9);
-  border-radius: 50%;
-  animation: stats-spin 0.75s linear infinite;
-}
-.stats-loading-text {
-  font-size: 0.82rem;
-  color: var(--color-text-secondary);
-  letter-spacing: 0.05em;
-}
-@keyframes stats-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ============================================ */
-/* FROZEN PANE TABLE - OPTIMIZED FOR NO LAG */
-/* ============================================ */
-
-.stats-table-wrapper {
-  width: 100%;
-}
-
-/* Outer wrapper - border and shadow */
-.stats-table-quadrant-wrapper {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* 2x2 Grid - EXACTLY like reference */
-.stats-table-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto 1fr;
   height: 70vh;
   max-height: 700px;
-  border-radius: 12px;
   overflow: hidden;
+  border-radius: 12px;
+  flex-grow: 1; /* Allow container to grow */
 }
 
-/* === TOP-LEFT: Frozen Corner === */
-.stats-quadrant-frozen-corner {
-  z-index: 30;
-  background: rgba(19, 23, 44, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+.stats-hscroll {
+  width: 100%;
+  overflow: auto; /* Let the browser handle both scrollbars */
+  -webkit-overflow-scrolling: touch;
+  flex-grow: 1;
 }
 
-/* === TOP-RIGHT: Scrollable Header === */
-/* CRITICAL: overflow-x-hidden with overflow-y-scroll reserves vertical scrollbar space */
-/* Header scrollLeft is SET by JavaScript, not scrolled independently */
-.stats-quadrant-scrollable-header {
-  z-index: 20;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  background: rgba(19, 23, 44, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-  /* Scrollbar spacer - matches the 12px vertical scrollbar in bottom-right */
-  padding-right: 12px;
-  box-sizing: content-box;
-}
-.stats-quadrant-scrollable-header::-webkit-scrollbar {
-  display: none;
-}
-
-/* === BOTTOM-LEFT: Frozen Columns === */
-/* CRITICAL: overflow-x-scroll reserves horizontal scrollbar space */
-/* Column scrollTop is SET by JavaScript, not scrolled independently */
-.stats-quadrant-frozen-columns {
-  z-index: 20;
-  overflow-y: hidden;
-  overflow-x: scroll;
-  background: rgba(13, 17, 32, 0.6);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-}
-.stats-quadrant-frozen-columns::-webkit-scrollbar {
-  display: none;
-}
-
-/* === BOTTOM-RIGHT: Main Scrollable Data === */
-/* This is the ONLY element user actually scrolls */
-.stats-quadrant-scrollable-data {
-  z-index: 10;
-  overflow-x: auto;
-  overflow-y: scroll;
-  background: rgba(13, 17, 32, 0.6);
-  backdrop-filter: blur(12px);
-  /* GPU acceleration */
-  will-change: scroll-position;
-  transform: translateZ(0);
-}
-
-/* Scrollbar styling */
-.stats-quadrant-scrollable-data::-webkit-scrollbar {
+.stats-hscroll::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
+.stats-hscroll::-webkit-scrollbar-track {
   background: #13172c;
   border-radius: 10px;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
+.stats-hscroll::-webkit-scrollbar-thumb {
   background: #334155;
   border-radius: 10px;
   border: 3px solid #13172c;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
+.stats-hscroll::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
 
-/* === TABLE STYLING === */
-.stats-table-frozen,
-.stats-table-scrollable {
+.stats-table {
+  width: 100%;
+  border-collapse: separate; /* Required for position: sticky */
+  border-spacing: 0;
   table-layout: fixed;
-  border-collapse: collapse;
 }
 
-/* Cell base styles - LOCKED dimensions for perfect alignment */
-.stats-table-frozen th,
-.stats-table-frozen td,
-.stats-table-scrollable th,
-.stats-table-scrollable td {
+.stats-table th,
+.stats-table td {
   height: 35px;
-  min-height: 35px;
-  max-height: 35px;
   padding: 0.2rem;
   text-align: center;
   font-size: 0.8rem;
@@ -805,83 +558,83 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-sizing: border-box;
   vertical-align: middle;
   line-height: 1.5;
+  border-bottom: 1px solid var(--stats-row-border-color, #0f1737);
+  border-right: 1px solid var(--stats-row-border-color, #0f1737);
 }
 
-.stats-table-frozen thead th,
-.stats-table-scrollable thead th {
+/* Sticky Header */
+.stats-table thead th {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(19, 23, 44, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--stats-header-border-color);
   font-weight: 600;
-  font-size: 0.8rem;
   color: #94a3b8;
   cursor: pointer;
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.stats-table-frozen thead th:last-child,
-.stats-table-scrollable thead th:last-child {
-  border-right: none;
+/* Sticky Columns: Target the first 3 columns */
+.stats-table th:nth-child(-n+3),
+.stats-table td:nth-child(-n+3) {
+  position: -webkit-sticky;
+  position: sticky;
+  z-index: 10;
+  background: rgba(13, 17, 32, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.stats-table-frozen tbody td,
-.stats-table-scrollable tbody td {
-  border-bottom: 0px solid rgba(255, 255, 255, 0.05);
-  border-right: 0px solid rgba(255, 255, 255, 0.05);
+.stats-table th:nth-child(1), .stats-table td:nth-child(1) { left: 0; }
+.stats-table th:nth-child(2), .stats-table td:nth-child(2) { left: var(--stats-col-rk-width); }
+.stats-table th:nth-child(3), .stats-table td:nth-child(3) { left: calc(var(--stats-col-rk-width) + var(--stats-col-player-width)); }
+
+/* Sticky Corner (Top-Left): Make sure they are above other sticky elements */
+.stats-table thead th:nth-child(-n+3) {
+  z-index: 30;
+  background: rgba(19, 23, 44, 0.9);
 }
 
-.stats-table-frozen tbody td:last-child,
-.stats-table-scrollable tbody td:last-child {
-  border-right: none;
-}
-
-.stats-table-frozen tbody tr:nth-child(even) td,
-.stats-table-scrollable tbody tr:nth-child(even) td {
+.stats-table tbody tr:nth-child(even) td {
   background: rgba(40, 44, 69, 0.15);
 }
 
-/* Column width classes - DEPRECATED (will be removed, widths applied inline) */
-.stats-col-rk {
-  width: 64px;
-  min-width: 64px;
-  max-width: 64px;
+/* Adjust background for sticky columns on even rows */
+.stats-table tbody tr:nth-child(even) td:nth-child(-n+3) {
+  background: rgba(40, 44, 69, 0.6);
 }
 
-.stats-col-player {
-  width: 180px;
-  min-width: 180px;
-  max-width: 180px;
+.stats-table th:last-child,
+.stats-table td:last-child {
+  border-right: none;
 }
-
-.stats-col-pos {
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
+.stats-table tr:last-child td {
+  border-bottom: none;
 }
-
-/* Sort indicators */
 .stats-table thead th.stats-sort-asc::after {
   content: ' ▲';
   font-size: 0.5rem;
   opacity: 0.6;
 }
-
 .stats-table thead th.stats-sort-desc::after {
   content: ' ▼';
   font-size: 0.5rem;
   opacity: 0.6;
 }
-
 .stats-table td.stats-player-cell {
   text-align: left;
 }
 .stats-table th.stats-player-cell {
   text-align: center;
 }
-
 .stats-table .stats-player-btn {
   color: inherit;
   font-weight: 400;
@@ -952,7 +705,6 @@
 .stats-table thead th.stats-header-receiving {
   color: #A0C2F7;
 }
-
 .stats-table .player-tag.modal-pos-tag {
   display: inline-flex;
   align-items: center;
@@ -973,204 +725,6 @@
   color: var(--color-text-secondary);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-@media (max-width: 1024px) {
-  :root {
-    --stats-col-player-width: 5.2rem;
-    --stats-col-pos-width: 2.5rem;
-    --stats-col-standard-width: clamp(3.6rem, 6vw, 4.4rem);
-  }
-  .stats-controls-panel {
-    width: 100%;
-  }
-  .stats-controls {
-    align-items: stretch;
-    gap: 0.55rem;
-  }
-  .stats-controls-body {
-    flex-direction: column;
-  }
-  .stats-search-block {
-    flex: 0 1 auto;
-    max-width: 420px;
-    width: 100%;
-    margin: 0 auto;
-  }
-  .stats-filter-block {
-    max-width: 100%;
-    justify-content: center;
-    flex-wrap: nowrap;
-  }
-  .stats-key-button {
-    padding: 0.45rem 0.75rem;
-    font-size: 0.62rem;
-  }
-  .stats-key-button span {
-    display: none;
-  }
-  .stats-key-button i {
-    font-size: 0.85rem;
-  }
-}
-@media (max-width: 600px) {
-  :root {
-    --stats-col-player-width: 4.7rem;
-    --stats-col-pos-width: 2.5rem;
-    --stats-col-rk-width: 1.4rem;
-    --stats-col-standard-width: clamp(2.5rem, 3vw, 4rem);
-  }
-  .stats-controls-panel {
-    width: 100%;
-    padding: clamp(0.42rem, 4vw, 0.6rem) clamp(0.42rem, 4vw, 0.6rem);
-  }
-  .stats-page-title {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.18rem;
-  }
-  .stats-tabs-buttons {
-    flex-wrap: nowrap;
-    max-width: min(100%, 320px);
-    margin: 0 auto;
-    padding: 0.08rem 0.6rem;
-    gap: 1.5rem;
-  }
-  .stats-tab-button {
-    padding: 0.22rem 0.6rem;
-    font-size: 1rem;
-    flex: 0 0 auto;
-    min-width: 7rem;
-  }
-  .stats-filter-block {
-    justify-content: center;
-    max-width: 100%;
-    flex-wrap: nowrap;
-  }
-  .stats-controls-body {
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .stats-tabs {
-    width: 100%;
-    max-width: 100%;
-  }
-  .stats-search-block {
-    max-width: min(90vw, 279px);
-  }
-  .stats-table {
-    font-size: 0.56rem;
-  }
-  .stats-table thead th,
-  .stats-table tbody td {
-    padding: 0.2rem 0.35rem;
-  }
-  /* Prevent iOS zoom by ensuring input font-size >= 16px */
-  /* Prevent iOS zoom by ensuring input font-size >= 16px, but visually scale down so it appears smaller while keeping the browser happy. We compensate the width so the scaled input still fills the available space. */
-  .stats-search-input {
-    font-size: 16px !important; /* keep >=16 to avoid iOS zoom */
-    /* Keep the original control height/padding so the box size doesn't change */
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0.38rem 2rem 0.38rem 0.8rem; /* restore original padding */
-    line-height: 1;
-  }
-  
-  /* ========================================== */
-  /* MOBILE TABLE SCALING ONLY - 75% reduction */
-  /* ========================================== */
-  
-  /* Table cells - reduce height and padding */
-  .stats-table-frozen th,
-  .stats-table-frozen td,
-  .stats-table-scrollable th,
-  .stats-table-scrollable td {
-    height: 32px;
-    min-height: 32px;
-    max-height: 32px;
-    padding: 0.5625rem; /* 0.75rem * 0.75 = 9px */
-    font-size: 0.65625rem; /* 0.875rem * 0.75 */
-    line-height: 1.125; /* 1.5 * 0.75 */
-  }
-  
-  /* Table header text */
-  .stats-table-frozen thead th,
-  .stats-table-scrollable thead th {
-    font-size: 0.65625rem; /* 0.875rem * 0.75 */
-  }
-  
-  /* Table grid container */
-  .stats-table-grid {
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-table-quadrant-wrapper {
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  /* Scrollbar styling - reduce size */
-  .stats-quadrant-scrollable-data::-webkit-scrollbar {
-    width: 9px; /* 12px * 0.75 */
-    height: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-    border-radius: 7.5px; /* 10px * 0.75 */
-  }
-  
-  .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-    border-radius: 7.5px; /* 10px * 0.75 */
-    border: 2.25px solid #13172c; /* 3px * 0.75 */
-  }
-  
-  /* Adjust scrollbar spacer for mobile */
-  .stats-quadrant-scrollable-header {
-    padding-right: 9px; /* 12px * 0.75 */
-  }
-  
-  /* ========================================== */
-  /* CHIPS AND TAGS - 75% scaling */
-  /* ========================================== */
-  
-  /* Value chip (KTC values) */
-  .stats-table .stats-value-chip {
-    padding: 0.0375rem 0.1815rem; /* 0.05rem * 0.75, 0.242rem * 0.75 */
-    border-radius: 4.5px; /* 6px * 0.75 */
-    width: 1.8rem; /* 2.4rem * 0.75 */
-    height: 0.9rem; /* 1.2rem * 0.75 */
-    font-size: 0.5325rem; /* 0.71rem * 0.75 */
-    min-height: 0.9rem; /* 1.2rem * 0.75 */
-    letter-spacing: 0.03em; /* 0.04em * 0.75 */
-  }
-  
-  /* Team chip */
-  .stats-table .stats-team-chip {
-    width: 20.25px; /* 27px * 0.75 */
-    height: 9.75px; /* 13px * 0.75 */
-    border-radius: 4.5px; /* 6px * 0.75 */
-    font-size: 0.4125rem; /* 0.55rem * 0.75 */
-    letter-spacing: 0.0375em; /* 0.05em * 0.75 */
-  }
-  
-  /* Position tag */
-  .stats-table .player-tag.modal-pos-tag {
-    width: 1.425rem; /* 1.9rem * 0.75 */
-    height: 0.99rem; /* 1.32rem * 0.75 */
-    min-height: 0.99rem; /* 1.32rem * 0.75 */
-    max-height: 0.99rem; /* 1.32rem * 0.75 */
-    font-size: 0.4875rem; /* 0.65rem * 0.75 */
-    border-radius: 4.5px; /* 6px * 0.75 */
-    letter-spacing: 0.0375em; /* 0.05em * 0.75 */
-  }
-  
-  /* Rank cell letter spacing */
-  .stats-table .stats-rank-cell {
-    letter-spacing: 0.06em; /* 0.08em * 0.75 */
-  }
-  
-  /* Header category padding */
-  .stats-table thead th.stats-header-all {
-    padding: 0.3rem 0.195rem; /* 0.4rem * 0.75, 0.26rem * 0.75 */
-  }
 }
 
 /* Stats-specific glass panel override (copied from styles.css, scoped to stats page) */
