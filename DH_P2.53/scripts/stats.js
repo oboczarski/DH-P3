@@ -264,6 +264,7 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+  const rowSyncWrappers = new Set();
   function getColumnWidth(column) {
     const width = COLUMN_WIDTHS[column] || 96;
     return `${width}px`;
@@ -584,19 +585,16 @@
     const headerScroll = wrapper.querySelector('[data-liquid-scroll="header"]');
     const frozenScroll = wrapper.querySelector('[data-liquid-scroll="frozen"]');
     const bodyScroll = wrapper.querySelector('[data-liquid-scroll="body"]');
+    const syncScroll = () => {
+      if (!bodyScroll) return;
+      if (headerScroll) headerScroll.scrollLeft = bodyScroll.scrollLeft;
+      if (frozenScroll) frozenScroll.scrollTop = bodyScroll.scrollTop;
+    };
     if (!wrapper._liquidScrollBound && bodyScroll) {
-      bodyScroll.addEventListener('scroll', () => {
-        if (headerScroll) headerScroll.scrollLeft = bodyScroll.scrollLeft;
-        if (frozenScroll) frozenScroll.scrollTop = bodyScroll.scrollTop;
-      });
+      bodyScroll.addEventListener('scroll', syncScroll, { passive: true });
       wrapper._liquidScrollBound = true;
     }
-    if (bodyScroll && headerScroll) {
-      headerScroll.scrollLeft = bodyScroll.scrollLeft;
-    }
-    if (bodyScroll && frozenScroll) {
-      frozenScroll.scrollTop = bodyScroll.scrollTop;
-    }
+    if (bodyScroll) syncScroll();
     return { headerScroll, frozenScroll, bodyScroll };
   }
   function createHeaderCell(column, headerLabels) {
@@ -670,6 +668,42 @@
     }
     return td;
   }
+  function applyRowHeights(frozenRows, mainRows) {
+    const len = Math.min(frozenRows.length, mainRows.length);
+    for (let i = 0; i < len; i += 1) {
+      const frozenRow = frozenRows[i];
+      const mainRow = mainRows[i];
+      if (!frozenRow || !mainRow) continue;
+      frozenRow.style.height = '';
+      mainRow.style.height = '';
+      const frozenHeight = frozenRow.getBoundingClientRect().height;
+      const mainHeight = mainRow.getBoundingClientRect().height;
+      const height = Math.max(frozenHeight, mainHeight);
+      if (Number.isFinite(height) && height > 0) {
+        const px = `${height}px`;
+        frozenRow.style.height = px;
+        mainRow.style.height = px;
+      }
+    }
+  }
+  function syncRowHeights(frozenRows, mainRows, wrapper) {
+    if (!frozenRows.length || !mainRows.length) return;
+    const frame = requestAnimationFrame(() => applyRowHeights(frozenRows, mainRows));
+    if (wrapper) {
+      if (wrapper._rowSyncFrame) cancelAnimationFrame(wrapper._rowSyncFrame);
+      wrapper._rowSyncFrame = frame;
+      wrapper._syncedRows = { frozenRows, mainRows };
+      rowSyncWrappers.add(wrapper);
+    }
+  }
+  function remeasureWrapperRows(wrapper) {
+    const data = wrapper?._syncedRows;
+    if (!data) return;
+    applyRowHeights(data.frozenRows, data.mainRows);
+  }
+  window.addEventListener('resize', () => {
+    rowSyncWrappers.forEach((wrapper) => remeasureWrapperRows(wrapper));
+  });
   function getActiveDataset() {
     return statsState.datasets.get(statsState.currentTab) || [];
   }
@@ -894,6 +928,8 @@
     }
     const frozenFragment = document.createDocumentFragment();
     const mainFragment = document.createDocumentFragment();
+    const frozenRows = [];
+    const mainRows = [];
     rows.forEach((entry, rowIndex) => {
       const frozenRow = document.createElement('tr');
       const mainRow = document.createElement('tr');
@@ -903,6 +939,8 @@
       scrollColumns.forEach((column) => {
         mainRow.appendChild(createDataCell(column, entry, rowIndex));
       });
+      frozenRows.push(frozenRow);
+      mainRows.push(mainRow);
       frozenFragment.appendChild(frozenRow);
       mainFragment.appendChild(mainRow);
     });
@@ -915,6 +953,7 @@
       mainBody._statsRows = rows;
     }
     ensureLiquidScrollHandlers(wrapper);
+    syncRowHeights(frozenRows, mainRows, wrapper);
     if (!rows.length) {
       dom.emptyState.classList.remove('hidden');
     } else {
