@@ -678,6 +678,10 @@
 .stats-table-wrapper {
   width: 100%;
 }
+app-stats-table {
+  display: block;
+  width: 100%;
+}
 .stats-liquid-shell {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -781,6 +785,11 @@
   top: 0;
   z-index: 3;
   cursor: pointer;
+}
+.stats-sort-indicator {
+  margin-left: 0.25rem;
+  font-size: 0.55rem;
+  color: var(--color-text-secondary);
 }
 .stats-table tbody td {
   padding: 0.2rem 0.26rem;

@@ -228,7 +228,6 @@
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
     tabHeadings: Array.from(document.querySelectorAll('.stats-tab-heading')),
-    tableWrappers: Array.from(document.querySelectorAll('.stats-table-wrapper')),
     loading: document.getElementById('statsLoading'),
     emptyState: document.getElementById('statsEmptyState'),
     searchInput: document.getElementById('statsSearchInput'),
@@ -264,6 +263,7 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+  let currentRenderedRows = [];
   const rowSyncWrappers = new Set();
   function getColumnWidth(column) {
     const width = COLUMN_WIDTHS[column] || 96;
@@ -571,103 +571,6 @@
   function getColumnCategory(column) {
     return COLUMN_CATEGORY[column] || 'all';
   }
-  function getLiquidElements(wrapper) {
-    if (!wrapper) return null;
-    return {
-      cornerHead: wrapper.querySelector('[data-corner-head]'),
-      scrollHead: wrapper.querySelector('[data-scroll-head]'),
-      frozenBody: wrapper.querySelector('[data-frozen-body]'),
-      mainBody: wrapper.querySelector('[data-main-body]')
-    };
-  }
-  function ensureLiquidScrollHandlers(wrapper) {
-    if (!wrapper) return {};
-    const headerScroll = wrapper.querySelector('[data-liquid-scroll="header"]');
-    const frozenScroll = wrapper.querySelector('[data-liquid-scroll="frozen"]');
-    const bodyScroll = wrapper.querySelector('[data-liquid-scroll="body"]');
-    const syncScroll = () => {
-      if (!bodyScroll) return;
-      if (headerScroll) headerScroll.scrollLeft = bodyScroll.scrollLeft;
-      if (frozenScroll) frozenScroll.scrollTop = bodyScroll.scrollTop;
-    };
-    if (!wrapper._liquidScrollBound && bodyScroll) {
-      bodyScroll.addEventListener('scroll', syncScroll, { passive: true });
-      wrapper._liquidScrollBound = true;
-    }
-    if (bodyScroll) syncScroll();
-    return { headerScroll, frozenScroll, bodyScroll };
-  }
-  function createHeaderCell(column, headerLabels) {
-    const th = document.createElement('th');
-    const displayLabel = headerLabels.get(column) || column;
-    th.textContent = displayLabel;
-    th.dataset.columnKey = column;
-    const width = getColumnWidth(column);
-    th.style.width = width;
-    th.style.minWidth = width;
-    const category = getColumnCategory(column);
-    th.classList.add(`stats-header-${category}`);
-    if (column === 'RK') th.classList.add('stats-rank-cell');
-    if (column === 'PLAYER') th.classList.add('stats-player-cell');
-    return th;
-  }
-  function createDataCell(column, entry, rowIndex) {
-    const td = document.createElement('td');
-    const width = getColumnWidth(column);
-    td.style.width = width;
-    td.style.minWidth = width;
-    td.dataset.columnKey = column;
-    const rawValue = formatCellValue(column, entry);
-    const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-    if (column === 'RK') {
-      td.classList.add('stats-rank-cell');
-      const rankForColor = entry.meta.currentRank;
-      if (Number.isFinite(rankForColor)) {
-        td.style.color = getRankColorValue(rankForColor);
-      }
-      td.textContent = textValue;
-    } else if (column === 'PLAYER') {
-      td.classList.add('stats-player-cell');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'stats-player-btn';
-      btn.textContent = textValue;
-      btn.title = entry.meta.fullName || entry.meta.name || textValue;
-      btn.dataset.playerId = entry.meta.playerId;
-      btn.dataset.entryIndex = rowIndex;
-      td.appendChild(btn);
-    } else if (column === 'VALUE') {
-      const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
-      td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
-    } else if (column === 'TM') {
-      if (entry.meta.pos === 'RDP') {
-        td.innerHTML = '<span style="color: var(--color-text-secondary);">RDP</span>';
-      } else {
-        const teamKey = (textValue || 'FA').toUpperCase();
-        const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-        const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-        td.innerHTML = (teamKey && teamKey !== 'FA')
-          ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-          : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-      }
-    } else if (column === 'POS') {
-      td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
-    } else {
-      td.textContent = textValue;
-    }
-    if (column === 'AGE') {
-      td.style.color = entry.meta.ageColor;
-      td.classList.add('stats-age-cell');
-    } else if (column === 'FPTS') {
-      td.style.color = entry.meta.fptsColor;
-      td.classList.add('stats-fpts-cell');
-    } else if (column === 'PPG') {
-      td.style.color = entry.meta.ppgColor;
-      td.classList.add('stats-ppg-cell');
-    }
-    return td;
-  }
   function applyRowHeights(frozenRows, mainRows) {
     const len = Math.min(frozenRows.length, mainRows.length);
     for (let i = 0; i < len; i += 1) {
@@ -834,19 +737,6 @@
     if (raw === undefined || raw === null) return '';
     return raw;
   }
-  function clearSortIndicators(headerRow) {
-    if (!headerRow) return;
-    headerRow.querySelectorAll('th').forEach((th) => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc');
-    });
-  }
-  function applySortIndicator(target) {
-    if (statsState.sort.direction === 1) {
-      target.classList.add('stats-sort-asc');
-    } else if (statsState.sort.direction === 2) {
-      target.classList.add('stats-sort-desc');
-    }
-  }
   function renderTable() {
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
@@ -894,70 +784,40 @@
         entry.meta.currentRank = null; // Or some other placeholder for picks
       }
     });
-    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
-    if (!wrapper) return;
-    const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
-    wrapper.classList.remove('hidden');
-    otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const liquidElements = getLiquidElements(wrapper);
-    if (!liquidElements) return;
-    const frozenColumns = columnSet.slice(0, 3);
-    const scrollColumns = columnSet.slice(3);
-    const cornerHead = liquidElements?.cornerHead;
-    const scrollHead = liquidElements?.scrollHead;
-    const frozenBody = liquidElements?.frozenBody;
-    const mainBody = liquidElements?.mainBody;
-    if (cornerHead) cornerHead.innerHTML = '';
-    if (scrollHead) scrollHead.innerHTML = '';
-    if (frozenBody) frozenBody.innerHTML = '';
-    if (mainBody) mainBody.innerHTML = '';
-    const cornerRow = document.createElement('tr');
-    frozenColumns.forEach((column) => {
-      cornerRow.appendChild(createHeaderCell(column, headerLabels));
-    });
-    if (cornerHead) cornerHead.appendChild(cornerRow);
-    const scrollRow = document.createElement('tr');
-    scrollColumns.forEach((column) => {
-      scrollRow.appendChild(createHeaderCell(column, headerLabels));
-    });
-    if (scrollHead) scrollHead.appendChild(scrollRow);
-    clearSortIndicators(cornerRow);
-    clearSortIndicators(scrollRow);
-    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      wrapper.querySelectorAll(`th[data-column-key="${statsState.sort.column}"]`).forEach((th) => applySortIndicator(th));
-    }
-    const frozenFragment = document.createDocumentFragment();
-    const mainFragment = document.createDocumentFragment();
-    const frozenRows = [];
-    const mainRows = [];
-    rows.forEach((entry, rowIndex) => {
-      const frozenRow = document.createElement('tr');
-      const mainRow = document.createElement('tr');
-      frozenColumns.forEach((column) => {
-        frozenRow.appendChild(createDataCell(column, entry, rowIndex));
-      });
-      scrollColumns.forEach((column) => {
-        mainRow.appendChild(createDataCell(column, entry, rowIndex));
-      });
-      frozenRows.push(frozenRow);
-      mainRows.push(mainRow);
-      frozenFragment.appendChild(frozenRow);
-      mainFragment.appendChild(mainRow);
-    });
-    if (frozenBody) {
-      frozenBody.appendChild(frozenFragment);
-      frozenBody._statsRows = rows;
-    }
-    if (mainBody) {
-      mainBody.appendChild(mainFragment);
-      mainBody._statsRows = rows;
-    }
-    ensureLiquidScrollHandlers(wrapper);
-    syncRowHeights(frozenRows, mainRows, wrapper);
+    statsState.currentRenderedRows = rows;
+    currentRenderedRows = rows;
     if (!rows.length) {
       dom.emptyState.classList.remove('hidden');
     } else {
       dom.emptyState.classList.add('hidden');
+    }
+    const payloadRows = rows.map((entry, index) => {
+      const formatted = {};
+      columnSet.forEach((column) => {
+        formatted[column] = formatCellValue(column, entry);
+      });
+      entry.meta.formatted = formatted;
+      return {
+        entryIndex: index,
+        row: entry.row,
+        meta: entry.meta,
+        formatted
+      };
+    });
+    const datasetPayload = {
+      columns: columnSet,
+      headers: columnSet.map((column) => ({
+        key: column,
+        label: headerLabels.get(column) || column
+      })),
+      rows: payloadRows,
+      sortState: { ...statsState.sort }
+    };
+    if (window.__dhStatsTableBridge?.setDataset) {
+      window.__dhStatsTableBridge.setDataset(datasetPayload);
+      window.__dhStatsPendingDataset = null;
+    } else {
+      window.__dhStatsPendingDataset = datasetPayload;
     }
   }
   function openGameLogs(entry) {
@@ -1148,32 +1008,33 @@
       renderTable();
     }
   }
-  function handleSortClick(event) {
+  function setSortColumn(column) {
     if (statsState.activePosition === 'RDP') return;
     const dataset = getActiveDataset();
     const visibleRows = dataset.filter(passesFilters);
     if (visibleRows.length && visibleRows.every((entry) => entry.meta.pos === 'RDP')) return;
-    const th = event.target.closest('th[data-column-key]');
-    if (!th) return;
-    const column = th.dataset.columnKey;
-    if (!column) return;
     const columnSet = getColumnSet();
     if (!columnSet.includes(column)) return;
     if (statsState.sort.column !== column) {
-      statsState.sort = { column, direction: 2 }; // Start with descending
+      statsState.sort = { column, direction: 2 };
     } else {
-      // Cycle: 2 (desc) -> 1 (asc) -> 0 (none)
       if (statsState.sort.direction === 2) {
         statsState.sort.direction = 1;
       } else if (statsState.sort.direction === 1) {
         statsState.sort.direction = 0;
         statsState.sort.column = null;
       } else {
-        // This case should ideally not be hit if starting from a sorted state, but as a fallback:
         statsState.sort.direction = 2;
       }
     }
     renderTable();
+  }
+  function handleSortClick(event) {
+    const th = event.target.closest('th[data-column-key]');
+    if (!th) return;
+    const column = th.dataset.columnKey;
+    if (!column) return;
+    setSortColumn(column);
   }
   function handleSearchInput(event) {
     const term = event.target.value || '';
@@ -1366,23 +1227,13 @@
     });
   }
   
-  dom.tableWrappers.forEach((wrapper) => {
-    const headerSections = wrapper.querySelectorAll('[data-corner-head], [data-scroll-head]');
-    headerSections.forEach((section) => {
-      section.addEventListener('click', handleSortClick);
-    });
-    const bodySections = wrapper.querySelectorAll('[data-frozen-body], [data-main-body]');
-    bodySections.forEach((tbody) => {
-      tbody.addEventListener('click', (event) => {
-        const btn = event.target.closest('.stats-player-btn');
-        if (!btn) return;
-        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-        const rows = tbody._statsRows;
-        if (rows && rows[entryIndex]) {
-          openGameLogs(rows[entryIndex]);
-        }
-      });
-    });
-  });
+  window.__dhStatsHandleSort = setSortColumn;
+  window.__dhStatsHandlePlayerClick = (entryIndex) => {
+    if (!Array.isArray(currentRenderedRows)) return;
+    const target = currentRenderedRows[entryIndex];
+    if (target) {
+      openGameLogs(target);
+    }
+  };
   initialise();
 })();

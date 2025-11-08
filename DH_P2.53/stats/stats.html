@@ -137,72 +137,7 @@
         <div class="stats-loading-spinner" aria-hidden="true"></div>
         <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
       </div>
-      <div class="stats-table-wrapper" data-tab-panel="oneQb">
-        <div class="stats-liquid-shell">
-          <div class="stats-liquid-grid" data-liquid-grid>
-            <div class="stats-liquid-quad stats-liquid-corner" data-liquid-corner>
-              <table class="stats-table stats-table-corner" aria-describedby="statsTableCaption-1qb">
-                <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
-                <thead data-corner-head></thead>
-              </table>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-header" data-liquid-header>
-              <div class="stats-liquid-scroll stats-liquid-scroll-header" data-liquid-scroll="header">
-                <table class="stats-table stats-table-header">
-                  <thead data-scroll-head></thead>
-                </table>
-              </div>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-frozen" data-liquid-frozen>
-              <div class="stats-liquid-scroll stats-liquid-scroll-frozen" data-liquid-scroll="frozen">
-                <table class="stats-table stats-table-frozen">
-                  <tbody data-frozen-body></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-body" data-liquid-body>
-              <div class="stats-liquid-scroll stats-liquid-scroll-body" data-liquid-scroll="body">
-                <table class="stats-table stats-table-main">
-                  <tbody data-main-body></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
-        <div class="stats-liquid-shell">
-          <div class="stats-liquid-grid" data-liquid-grid>
-            <div class="stats-liquid-quad stats-liquid-corner" data-liquid-corner>
-              <table class="stats-table stats-table-corner" aria-describedby="statsTableCaption-sflx">
-                <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
-                <thead data-corner-head></thead>
-              </table>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-header" data-liquid-header>
-              <div class="stats-liquid-scroll stats-liquid-scroll-header" data-liquid-scroll="header">
-                <table class="stats-table stats-table-header">
-                  <thead data-scroll-head></thead>
-                </table>
-              </div>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-frozen" data-liquid-frozen>
-              <div class="stats-liquid-scroll stats-liquid-scroll-frozen" data-liquid-scroll="frozen">
-                <table class="stats-table stats-table-frozen">
-                  <tbody data-frozen-body></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="stats-liquid-quad stats-liquid-body" data-liquid-body>
-              <div class="stats-liquid-scroll stats-liquid-scroll-body" data-liquid-scroll="body">
-                <table class="stats-table stats-table-main">
-                  <tbody data-main-body></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-stats-table></app-stats-table>
       <div class="stats-empty-state hidden" id="statsEmptyState">
         <p>No players match the current filters.</p>
       </div>
@@ -518,6 +453,19 @@
   </div>
 </div>
 
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://aistudiocdn.com/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://aistudiocdn.com/rxjs@^7.8.2/operators?conditions=es2015",
+    "@angular/core": "https://next.esm.sh/@angular/core@^20.3.10?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^20.3.10?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.3.10?external=rxjs",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^20.3.10?external=rxjs"
+  }
+}
+</script>
+<script type="module" src="../scripts/angular-table/bootstrap.js?v=1"></script>
 <script defer src="../scripts/app.js?v=20250826235225"></script>
 <script defer src="../scripts/stats.js?v=20250827"></script>
 </body>
