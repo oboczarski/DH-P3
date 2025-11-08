@@ -225,81 +225,6 @@
     return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
   }
   
-  // TanStack Table Core lazy loader (mirrors game logs implementation)
-  let statsTableCoreLoaderPromise = null;
-  function ensureStatsTableCoreLoaded() {
-    if (window.TableCore) return Promise.resolve(window.TableCore);
-    if (statsTableCoreLoaderPromise) return statsTableCoreLoaderPromise;
-    const existingScript = document.querySelector('script[data-tanstack-table-core="true"]');
-    if (existingScript) {
-      statsTableCoreLoaderPromise = new Promise((resolve, reject) => {
-        existingScript.addEventListener('load', () => {
-          if (window.TableCore) resolve(window.TableCore);
-          else {
-            statsTableCoreLoaderPromise = null;
-            reject(new Error('TanStack Table library loaded but TableCore global is unavailable.'));
-          }
-        }, { once: true });
-        existingScript.addEventListener('error', () => {
-          statsTableCoreLoaderPromise = null;
-          reject(new Error('TanStack Table library failed to load.'));
-        }, { once: true });
-      });
-      return statsTableCoreLoaderPromise;
-    }
-    statsTableCoreLoaderPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@tanstack/table-core@8.11.0/build/umd/index.production.min.js';
-      script.async = true;
-      script.dataset.tanstackTableCore = 'true';
-      script.onload = () => {
-        if (window.TableCore) resolve(window.TableCore);
-        else {
-          statsTableCoreLoaderPromise = null;
-          reject(new Error('TanStack Table library loaded but TableCore global is unavailable.'));
-        }
-      };
-      script.onerror = () => {
-        script.remove();
-        statsTableCoreLoaderPromise = null;
-        reject(new Error('TanStack Table library failed to load.'));
-      };
-      document.head.appendChild(script);
-    });
-    return statsTableCoreLoaderPromise;
-  }
-  // Start loading TanStack in the background early; rendering proceeds without waiting
-  try { ensureStatsTableCoreLoaded().catch(() => {}); } catch (e) {}
-  
-  // Current column size map populated via TanStack (if available) or fallback widths
-  let currentColumnSizeMap = null;
-  function buildColumnSizeMap(allColumns) {
-    const sizes = new Map();
-    try {
-      if (window.TableCore && Array.isArray(allColumns)) {
-        const columns = allColumns.map(key => ({ id: key, accessorKey: key, header: () => key, size: getColumnWidth(key) }));
-        const table = window.TableCore.createTable({
-          data: [],
-          columns,
-          defaultColumn: { size: DEFAULT_COLUMN_WIDTH, minSize: 48 },
-          getCoreRowModel: window.TableCore.getCoreRowModel(),
-          renderFallbackValue: ''
-        });
-        const leaf = table.getVisibleLeafColumns();
-        leaf.forEach(col => {
-          const s = typeof col.getSize === 'function' ? col.getSize() : getColumnWidth(col.id);
-          sizes.set(col.id, Number.isFinite(s) ? s : getColumnWidth(col.id));
-        });
-      }
-    } catch (e) {
-      // Fallback below
-    }
-    if (sizes.size === 0 && Array.isArray(allColumns)) {
-      allColumns.forEach(key => sizes.set(key, getColumnWidth(key)));
-    }
-    return sizes;
-  }
-  
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -808,91 +733,148 @@
    * Reference implementation approach - guarantees pixel-perfect alignment
    */
   function applyColumnWidth(element, columnKey) {
-    const width = (currentColumnSizeMap && currentColumnSizeMap.get(columnKey)) || getColumnWidth(columnKey);
+    const width = getColumnWidth(columnKey);
     element.style.width = `${width}px`;
     element.style.minWidth = `${width}px`;
     element.style.maxWidth = `${width}px`;  // Lock width completely
   }
   
+  function proxyScrollIntent(source, master, axis) {
+    if (!source || !master) return () => {};
+    const isHorizontal = axis === 'x';
+    
+    const wheelHandler = (event) => {
+      const primary = isHorizontal ? event.deltaX : event.deltaY;
+      const fallback = isHorizontal ? event.deltaY : event.deltaX;
+      const delta = Math.abs(primary) >= Math.abs(fallback) ? primary : fallback;
+      if (!delta) return;
+      master.scrollBy({
+        left: isHorizontal ? delta : 0,
+        top: isHorizontal ? 0 : delta,
+        behavior: 'auto'
+      });
+      event.preventDefault();
+    };
+    
+    let touchPoint = null;
+    const touchStartHandler = (event) => {
+      if (event.touches.length !== 1) return;
+      const { clientX, clientY } = event.touches[0];
+      touchPoint = { x: clientX, y: clientY };
+    };
+    
+    const touchMoveHandler = (event) => {
+      if (!touchPoint || event.touches.length !== 1) return;
+      const { clientX, clientY } = event.touches[0];
+      const deltaX = touchPoint.x - clientX;
+      const deltaY = touchPoint.y - clientY;
+      master.scrollBy({
+        left: isHorizontal ? deltaX : 0,
+        top: isHorizontal ? 0 : deltaY,
+        behavior: 'auto'
+      });
+      touchPoint = { x: clientX, y: clientY };
+      event.preventDefault();
+    };
+    
+    const touchEndHandler = () => {
+      touchPoint = null;
+    };
+    
+    source.addEventListener('wheel', wheelHandler, { passive: false });
+    source.addEventListener('touchstart', touchStartHandler, { passive: true });
+    source.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    source.addEventListener('touchend', touchEndHandler);
+    source.addEventListener('touchcancel', touchEndHandler);
+    
+    return () => {
+      source.removeEventListener('wheel', wheelHandler);
+      source.removeEventListener('touchstart', touchStartHandler);
+      source.removeEventListener('touchmove', touchMoveHandler);
+      source.removeEventListener('touchend', touchEndHandler);
+      source.removeEventListener('touchcancel', touchEndHandler);
+    };
+  }
+  
+  function enforceSurfaceDimensions(quadrantWrapper) {
+    const masterSurface = quadrantWrapper.querySelector('[data-scroll-master="true"]');
+    if (!masterSurface) return;
+    const headerSurface = quadrantWrapper.querySelector('[data-sync-target="header"]');
+    const columnsSurface = quadrantWrapper.querySelector('[data-sync-target="columns"]');
+    const masterTable = masterSurface.querySelector('table');
+    
+    const headerTable = headerSurface?.querySelector('table');
+    const columnsTable = columnsSurface?.querySelector('table');
+    
+    if (headerTable) {
+      headerTable.style.width = '';
+      headerTable.style.minWidth = '';
+    }
+    if (headerSurface) {
+      headerSurface.style.minWidth = '';
+    }
+    if (columnsTable) {
+      columnsTable.style.minHeight = '';
+    }
+    if (columnsSurface) {
+      columnsSurface.style.minHeight = '';
+    }
+    
+    if (!masterTable) return;
+    
+    const totalWidth = masterTable.scrollWidth;
+    if (headerSurface && headerTable && Number.isFinite(totalWidth) && totalWidth > 0) {
+      const widthPx = `${totalWidth}px`;
+      headerTable.style.minWidth = widthPx;
+      headerTable.style.width = widthPx;
+      headerSurface.style.minWidth = widthPx;
+    }
+    
+    const totalHeight = masterTable.scrollHeight;
+    if (columnsSurface && columnsTable && Number.isFinite(totalHeight) && totalHeight > 0) {
+      const heightPx = `${totalHeight}px`;
+      columnsTable.style.minHeight = heightPx;
+      columnsSurface.style.minHeight = heightPx;
+    }
+  }
+  
   function initializeScrollSync(wrapper) {
-    // Bottom-right data quadrant is the scroll master.
-    // Mirror horizontal scrollLeft to the top-right header quadrant;
-    // mirror vertical scrollTop to the bottom-left frozen columns quadrant.
-    const master = wrapper.querySelector('.stats-quadrant-scrollable-data[data-scroll-master="true"]');
-    const headerTarget = wrapper.querySelector('.stats-quadrant-scrollable-header[data-sync-target="header"]');
-    const columnsTarget = wrapper.querySelector('.stats-quadrant-frozen-columns[data-sync-target="columns"]');
+    // EXACT REFERENCE: Bottom-right is master, syncs to top-right (header) and bottom-left (columns)
+    const master = wrapper.querySelector('[data-scroll-master="true"]');
+    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
+    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
+    
     if (!master || !headerTarget || !columnsTarget) return;
-    // Dynamically set header right padding to match master vertical scrollbar width (if present)
-    try {
-      const scrollbarWidth = master.offsetWidth - master.clientWidth;
-      headerTarget.style.paddingRight = `${scrollbarWidth}px`;
-    } catch (e) {}
-    if (master._scrollSyncHandler) {
-      master.removeEventListener('scroll', master._scrollSyncHandler);
+    
+    if (typeof master._scrollSyncCleanup === 'function') {
+      master._scrollSyncCleanup();
     }
-    // Synchronous mirroring for zero-frame latency
-    const scrollHandler = (e) => {
-      const { scrollLeft, scrollTop } = e.target;
-      if (headerTarget.scrollLeft !== scrollLeft) headerTarget.scrollLeft = scrollLeft;
-      if (columnsTarget.scrollTop !== scrollTop) columnsTarget.scrollTop = scrollTop;
-    };
-    master._scrollSyncHandler = scrollHandler;
-    master.addEventListener('scroll', scrollHandler, { passive: true });
-
-    // Forward wheel horizontal gestures from header & frozen columns to master for unified feel
-    const forwardWheel = (src) => {
-      src.addEventListener('wheel', (evt) => {
-        if (Math.abs(evt.deltaX) > Math.abs(evt.deltaY)) {
-          master.scrollLeft += evt.deltaX;
-          evt.preventDefault();
-        }
-      }, { passive: false });
-    };
-  forwardWheel(headerTarget);
-  forwardWheel(columnsTarget);
-    // Touch horizontal drag on header to drive master (iOS subtle drags)
-    let touchStartX = 0;
-    let touching = false;
-    headerTarget.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        touchStartX = e.touches[0].clientX;
-        touching = true;
+    
+    const syncDependentSurfaces = () => {
+      if (headerTarget.scrollLeft !== master.scrollLeft) {
+        headerTarget.scrollLeft = master.scrollLeft;
       }
-    }, { passive: true });
-    headerTarget.addEventListener('touchmove', (e) => {
-      if (!touching || e.touches.length !== 1) return;
-      const dx = touchStartX - e.touches[0].clientX;
-      if (Math.abs(dx) > 0) {
-        master.scrollLeft += dx;
-        touchStartX = e.touches[0].clientX;
-        e.preventDefault();
+      if (columnsTarget.scrollTop !== master.scrollTop) {
+        columnsTarget.scrollTop = master.scrollTop;
       }
-    }, { passive: false });
-    headerTarget.addEventListener('touchend', () => { touching = false; }, { passive: true });
-
-    // Keep gutters in sync when layout changes
-    const updateGutters = () => {
-      try {
-        const vbar = master.offsetWidth - master.clientWidth;
-        headerTarget.style.paddingRight = `${vbar}px`;
-      } catch (e) {}
-      try {
-        const hbar = master.offsetHeight - master.clientHeight;
-        columnsTarget.style.paddingBottom = `${hbar}px`;
-      } catch (e) {}
     };
-    updateGutters();
-    if (wrapper._resizeObserver) {
-      try { wrapper._resizeObserver.disconnect(); } catch (e) {}
-    }
-    try {
-      const ro = new ResizeObserver(() => updateGutters());
-      ro.observe(master);
-      wrapper._resizeObserver = ro;
-    } catch (e) {
-      // Fallback: window resize
-      window.addEventListener('resize', updateGutters, { passive: true });
-    }
+    
+    const onMasterScroll = () => {
+      syncDependentSurfaces();
+    };
+    
+    master.addEventListener('scroll', onMasterScroll, { passive: true });
+    const cleanupHeaderProxy = proxyScrollIntent(headerTarget, master, 'x');
+    const cleanupColumnProxy = proxyScrollIntent(columnsTarget, master, 'y');
+    
+    syncDependentSurfaces();
+    
+    master._scrollSyncCleanup = () => {
+      master.removeEventListener('scroll', onMasterScroll);
+      cleanupHeaderProxy();
+      cleanupColumnProxy();
+      master._scrollSyncCleanup = null;
+    };
   }
   
   function renderTable() {
@@ -943,7 +925,7 @@
       }
     });
     
-  // === 4-QUADRANT RENDERING (original design) ===
+    // === NEW 4-QUADRANT RENDERING ===
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
@@ -961,55 +943,21 @@
     
     // Get all 4 quadrants
     const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
-    const scrollableHeaderQuad = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
+    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
     const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
-    const scrollableDataQuad = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
+    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
     
     // Get all table parts
     const frozenCornerThead = frozenCorner?.querySelector('thead');
-    const scrollableHeaderThead = scrollableHeaderQuad?.querySelector('thead');
+    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
     const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
-    const scrollableDataTbody = scrollableDataQuad?.querySelector('tbody');
+    const scrollableDataTbody = scrollableData?.querySelector('tbody');
     
     // Clear existing content
     if (frozenCornerThead) frozenCornerThead.innerHTML = '';
     if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
     if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
     if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
-
-    // Build a unified column size map (TanStack if available)
-    const allColumns = [...frozenColumns, ...scrollableColumns];
-    currentColumnSizeMap = buildColumnSizeMap(allColumns);
-    const getSize = (key) => (currentColumnSizeMap && currentColumnSizeMap.get(key)) || getColumnWidth(key);
-    const frozenTotalWidth = frozenColumns.reduce((sum, key) => sum + getSize(key), 0);
-    const scrollableTotalWidth = scrollableColumns.reduce((sum, key) => sum + getSize(key), 0);
-    
-    // Apply total table widths to each quadrant table for consistency
-    const frozenCornerTable = frozenCorner?.querySelector('table');
-    const frozenColumnsTable = frozenColumnsQuad?.querySelector('table');
-    const scrollableHeaderTable = scrollableHeaderQuad?.querySelector('table');
-    const scrollableDataTable = scrollableDataQuad?.querySelector('table');
-    if (frozenCornerTable && Number.isFinite(frozenTotalWidth)) {
-      frozenCornerTable.style.minWidth = `${frozenTotalWidth}px`;
-      frozenCornerTable.style.width = `${frozenTotalWidth}px`;
-    }
-    if (frozenColumnsTable && Number.isFinite(frozenTotalWidth)) {
-      frozenColumnsTable.style.minWidth = `${frozenTotalWidth}px`;
-      frozenColumnsTable.style.width = `${frozenTotalWidth}px`;
-    }
-    if (scrollableHeaderTable && Number.isFinite(scrollableTotalWidth)) {
-      scrollableHeaderTable.style.minWidth = `${scrollableTotalWidth}px`;
-      scrollableHeaderTable.style.width = `${scrollableTotalWidth}px`;
-    }
-    if (scrollableDataTable && Number.isFinite(scrollableTotalWidth)) {
-      scrollableDataTable.style.minWidth = `${scrollableTotalWidth}px`;
-      scrollableDataTable.style.width = `${scrollableTotalWidth}px`;
-    }
-    // Match bottom-left reserved horizontal scrollbar height with master’s
-    try {
-      const hScrollbar = scrollableDataQuad.offsetHeight - scrollableDataQuad.clientHeight;
-      frozenColumnsQuad.style.paddingBottom = `${hScrollbar}px`;
-    } catch (e) {}
     
     // === RENDER FROZEN CORNER HEADERS ===
     if (frozenCornerThead) {
@@ -1036,12 +984,12 @@
       }
     }
     
-    // === RENDER SCROLLABLE HEADER (TOP-RIGHT) ===
+    // === RENDER SCROLLABLE HEADERS ===
     if (scrollableHeaderThead) {
       const headerRow = document.createElement('tr');
       scrollableColumns.forEach((column) => {
         const th = document.createElement('th');
-        applyColumnWidth(th, column);
+        applyColumnWidth(th, column);  // Apply width directly to cell
         const displayLabel = headerLabels.get(column) || column;
         th.textContent = displayLabel;
         const category = getColumnCategory(column);
@@ -1050,6 +998,8 @@
         headerRow.appendChild(th);
       });
       scrollableHeaderThead.appendChild(headerRow);
+      
+      // Apply sort indicator if needed
       clearSortIndicators(headerRow);
       if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
         const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
@@ -1151,6 +1101,7 @@
       scrollableDataTbody._statsRows = rows;
     }
     
+    enforceSurfaceDimensions(quadrantWrapper);
     // Initialize scroll synchronization
     initializeScrollSync(quadrantWrapper);
     
@@ -1572,10 +1523,10 @@
     const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
     if (quadrantWrapper) {
       const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner thead');
-      const scrollableThead = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
+      const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
       
       if (frozenCorner) frozenCorner.addEventListener('click', handleSortClick);
-      if (scrollableThead) scrollableThead.addEventListener('click', handleSortClick);
+      if (scrollableHeader) scrollableHeader.addEventListener('click', handleSortClick);
       
       // Event delegation for player buttons in frozen columns
       const frozenColumnsTbody = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns tbody');
