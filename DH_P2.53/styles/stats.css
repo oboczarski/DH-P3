@@ -1084,9 +1084,9 @@
   .stats-table-frozen td,
   .stats-table-scrollable th,
   .stats-table-scrollable td {
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
     padding: 0.5625rem; /* 0.75rem * 0.75 = 9px */
     font-size: 0.65625rem; /* 0.875rem * 0.75 */
     line-height: 1.125; /* 1.5 * 0.75 */
