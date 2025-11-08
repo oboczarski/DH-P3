@@ -752,20 +752,14 @@
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
     
-    let ticking = false;
-    
     // Optimized sync using requestAnimationFrame for buttery smooth scrolling
     const scrollHandler = (e) => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const { scrollLeft, scrollTop } = e.target;
-          // Direct assignment - browser optimizes these automatically
-          headerTarget.scrollLeft = scrollLeft;
-          columnsTarget.scrollTop = scrollTop;
-          ticking = false;
-        });
-        ticking = true;
-      }
+      window.requestAnimationFrame(() => {
+        const { scrollLeft, scrollTop } = e.target;
+        // Direct assignment - browser optimizes these automatically
+        headerTarget.scrollLeft = scrollLeft;
+        columnsTarget.scrollTop = scrollTop;
+      });
     };
     
     master._scrollSyncHandler = scrollHandler;
