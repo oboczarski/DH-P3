@@ -1076,7 +1076,7 @@
   }
   
   /* ========================================== */
-  /* COMPREHENSIVE MOBILE SCALING - 75% of desktop */
+  /* MOBILE TABLE SCALING ONLY - 75% reduction */
   /* ========================================== */
   
   /* Table cells - reduce height and padding */
@@ -1096,97 +1096,6 @@
   .stats-table-frozen thead th,
   .stats-table-scrollable thead th {
     font-size: 0.65625rem; /* 0.875rem * 0.75 */
-  }
-  
-  /* Filter buttons */
-  .stats-filter-btn {
-    padding: 0.18rem 0.075rem; /* 0.24rem * 0.75, 0.1rem * 0.75 */
-    font-size: 0.5175rem; /* 0.69rem * 0.75 */
-    border-radius: 5.25px; /* 7px * 0.75 */
-  }
-  
-  .stats-filter-block .stats-rookie-btn {
-    padding: 0.18rem 0.1875rem; /* 0.24rem * 0.75, 0.25rem * 0.75 */
-    font-size: 0.4875rem; /* 0.65rem * 0.75 */
-  }
-  
-  .stats-filter-btn-secondary {
-    padding: 0.15rem 0.375rem; /* 0.2rem * 0.75, 0.5rem * 0.75 */
-    font-size: 0.45rem; /* 0.6rem * 0.75 */
-    border-radius: 6px; /* 8px * 0.75 */
-  }
-  
-  .stats-filter-btn-secondary.stats-picks-btn {
-    padding: 0.15rem 0.225rem; /* 0.2rem * 0.75, 0.3rem * 0.75 */
-    gap: 0.1125rem; /* 0.15rem * 0.75 */
-  }
-  
-  /* Context pill */
-  .stats-context-pill {
-    padding: 0.21rem 0.6rem; /* 0.28rem * 0.75, 0.8rem * 0.75 */
-    font-size: 0.51rem; /* 0.68rem * 0.75 */
-    letter-spacing: 0.12em; /* 0.16em * 0.75 */
-  }
-  
-  /* Page intro and controls */
-  .stats-page-intro {
-    padding: 0.3rem 0.6rem 0.525rem; /* 0.4 * 0.75, 0.8 * 0.75, 0.7 * 0.75 */
-    gap: 0.1875rem; /* 0.25rem * 0.75 */
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-intro-stack {
-    gap: 0.6rem; /* 0.8rem * 0.75 */
-  }
-  
-  .stats-page-subtitle {
-    font-size: 0.54rem; /* 0.72rem * 0.75 */
-    letter-spacing: 0.045em; /* 0.06em * 0.75 */
-  }
-  
-  .stats-controls-panel {
-    border-radius: 9px; /* 12px * 0.75 */
-  }
-  
-  .stats-controls {
-    gap: 0.315rem; /* 0.42rem * 0.75 */
-  }
-  
-  /* Key button */
-  .stats-key-button {
-    gap: 0.2625rem; /* 0.35rem * 0.75 */
-    padding: 0.24rem 0.4875rem; /* 0.32rem * 0.75, 0.65rem * 0.75 */
-    border-radius: 6px; /* 8px * 0.75 */
-    font-size: 0.51rem; /* 0.68rem * 0.75 */
-    letter-spacing: 0.06em; /* 0.08em * 0.75 */
-  }
-  
-  .stats-key-button i {
-    font-size: 0.5625rem; /* 0.75rem * 0.75 */
-  }
-  
-  /* Search block */
-  .stats-search-input-wrap {
-    max-width: 11.25rem; /* 15rem * 0.75 */
-  }
-  
-  .stats-search-clear {
-    width: 1.125rem; /* 1.5rem * 0.75 */
-    height: 1.125rem; /* 1.5rem * 0.75 */
-  }
-  
-  /* Filter block */
-  .stats-filter-block {
-    gap: 0.45rem; /* 0.6rem * 0.75 */
-  }
-  
-  .stats-secondary-filter-block {
-    gap: 0.3rem; /* 0.4rem * 0.75 */
-    margin-top: 0.1125rem; /* 0.15rem * 0.75 */
-  }
-  
-  .stats-filter-separator {
-    margin: 0.1125rem 0; /* 0.15rem * 0.75 */
   }
   
   /* Table grid container */
@@ -1221,14 +1130,6 @@
   /* ========================================== */
   /* CHIPS AND TAGS - 75% scaling */
   /* ========================================== */
-  
-  /* League chip */
-  .stats-league-chip {
-    gap: 0.2625rem; /* 0.35rem * 0.75 */
-    font-size: 0.5175rem; /* 0.69rem * 0.75 */
-    letter-spacing: 0.09em; /* 0.12em * 0.75 */
-    padding: 0.1875rem 0.4125rem; /* 0.25rem * 0.75, 0.55rem * 0.75 */
-  }
   
   /* Value chip (KTC values) */
   .stats-table .stats-value-chip {
