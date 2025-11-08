@@ -677,170 +677,49 @@
 }
 
 /* ============================================ */
-/* FROZEN PANE TABLE - OPTIMIZED FOR NO LAG */
+/* TANSTACK TABLE STYLES */
 /* ============================================ */
-
 .stats-table-wrapper {
-  width: 100%;
+    overflow: auto;
+    height: 70vh;
+    max-height: 700px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* Outer wrapper - border and shadow */
-.stats-table-quadrant-wrapper {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+.stats-table {
+    border-collapse: collapse;
+    width: 100%;
 }
 
-/* 2x2 Grid - EXACTLY like reference */
-.stats-table-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto 1fr;
-  height: 70vh;
-  max-height: 700px;
-  border-radius: 12px;
-  overflow: hidden;
+.stats-table th,
+.stats-table td {
+    padding: 0.5rem;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* === TOP-LEFT: Frozen Corner === */
-.stats-quadrant-frozen-corner {
-  z-index: 30;
-  background: rgba(19, 23, 44, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+.stats-table thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(19, 23, 44, 0.8);
+    backdrop-filter: blur(12px);
+    z-index: 10;
 }
 
-/* === TOP-RIGHT: Scrollable Header === */
-/* CRITICAL: overflow-x-hidden with overflow-y-scroll reserves vertical scrollbar space */
-/* Header scrollLeft is SET by JavaScript, not scrolled independently */
-.stats-quadrant-scrollable-header {
-  z-index: 20;
-  overflow-x: hidden;
-  overflow-y: scroll;
-  background: rgba(19, 23, 44, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-  /* Scrollbar spacer - matches the 12px vertical scrollbar in bottom-right */
-  padding-right: 12px;
-  box-sizing: content-box;
-}
-.stats-quadrant-scrollable-header::-webkit-scrollbar {
-  display: none;
+.stats-table tbody tr:nth-child(even) {
+    background: rgba(40, 44, 69, 0.15);
 }
 
-/* === BOTTOM-LEFT: Frozen Columns === */
-/* CRITICAL: overflow-x-scroll reserves horizontal scrollbar space */
-/* Column scrollTop is SET by JavaScript, not scrolled independently */
-.stats-quadrant-frozen-columns {
-  z-index: 20;
-  overflow-y: hidden;
-  overflow-x: scroll;
-  background: rgba(13, 17, 32, 0.6);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-}
-.stats-quadrant-frozen-columns::-webkit-scrollbar {
-  display: none;
-}
-
-/* === BOTTOM-RIGHT: Main Scrollable Data === */
-/* This is the ONLY element user actually scrolls */
-.stats-quadrant-scrollable-data {
-  z-index: 10;
-  overflow-x: auto;
-  overflow-y: scroll;
-  background: rgba(13, 17, 32, 0.6);
-  backdrop-filter: blur(12px);
-  /* GPU acceleration */
-  will-change: scroll-position;
-  transform: translateZ(0);
-}
-
-/* Scrollbar styling */
-.stats-quadrant-scrollable-data::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-  background: #13172c;
-  border-radius: 10px;
-}
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 10px;
-  border: 3px solid #13172c;
-}
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
-/* === TABLE STYLING === */
-.stats-table-frozen,
-.stats-table-scrollable {
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-/* Cell base styles - LOCKED dimensions for perfect alignment */
-.stats-table-frozen th,
-.stats-table-frozen td,
-.stats-table-scrollable th,
-.stats-table-scrollable td {
-  height: 35px;
-  min-height: 35px;
-  max-height: 35px;
-  padding: 0.2rem;
-  text-align: center;
-  font-size: 0.8rem;
-  color: #cbd5e1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-sizing: border-box;
-  vertical-align: middle;
-  line-height: 1.5;
-}
-
-.stats-table-frozen thead th,
-.stats-table-scrollable thead th {
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: #94a3b8;
-  cursor: pointer;
-  user-select: none;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stats-table-frozen thead th:last-child,
-.stats-table-scrollable thead th:last-child {
-  border-right: none;
-}
-
-.stats-table-frozen tbody td,
-.stats-table-scrollable tbody td {
-  border-bottom: 0px solid rgba(255, 255, 255, 0.05);
-  border-right: 0px solid rgba(255, 255, 255, 0.05);
-}
-
-.stats-table-frozen tbody td:last-child,
-.stats-table-scrollable tbody td:last-child {
-  border-right: none;
-}
-
-.stats-table-frozen tbody tr:nth-child(even) td,
-.stats-table-scrollable tbody tr:nth-child(even) td {
-  background: rgba(40, 44, 69, 0.15);
+.stats-table .frozen {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: rgba(13, 17, 32, 0.6);
+    backdrop-filter: blur(12px);
 }
 
 /* Column width classes - DEPRECATED (will be removed, widths applied inline) */
