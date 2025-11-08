@@ -159,7 +159,7 @@
   const STATS_COLUMN_WIDTHS = {
     'RK': 44,
     'PLAYER': 96,  // Reduced by half from 192
-    'POS': 52,
+    'POS': 55,
     'TM': 52,
     'AGE': 52,
     'G': 52,
