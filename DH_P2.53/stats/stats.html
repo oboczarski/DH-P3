@@ -138,76 +138,14 @@
         <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
       </div>
       <div class="stats-table-wrapper" data-tab-panel="oneQb">
-        <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 Grid - EXACT reference structure -->
-          <div class="stats-table-grid">
-            
-            <!-- TOP-LEFT: Frozen Corner -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-1qb">
-                <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- TOP-RIGHT: Scrollable Header -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header" data-sync-target="header">
-              <table class="stats-table stats-table-scrollable">
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns" data-sync-target="columns">
-              <table class="stats-table stats-table-frozen">
-                <tbody></tbody>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Main Scrollable Data -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data" data-scroll-master="true">
-              <table class="stats-table stats-table-scrollable">
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <table class="stats-table">
+          <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
+        </table>
       </div>
       <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
-        <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 Grid - EXACT reference structure -->
-          <div class="stats-table-grid">
-            
-            <!-- TOP-LEFT: Frozen Corner -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-sflx">
-                <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- TOP-RIGHT: Scrollable Header -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header" data-sync-target="header">
-              <table class="stats-table stats-table-scrollable">
-                <thead></thead>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns" data-sync-target="columns">
-              <table class="stats-table stats-table-frozen">
-                <tbody></tbody>
-              </table>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Main Scrollable Data -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data" data-scroll-master="true">
-              <table class="stats-table stats-table-scrollable">
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <table class="stats-table">
+          <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
+        </table>
       </div>
       <div class="stats-empty-state hidden" id="statsEmptyState">
         <p>No players match the current filters.</p>
@@ -524,6 +462,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@tanstack/table-core@8.11.0/build/umd/index.production.min.js"></script>
 <script defer src="../scripts/app.js?v=20250826235225"></script>
 <script defer src="../scripts/stats.js?v=20250827"></script>
 </body>
