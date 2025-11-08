@@ -702,6 +702,11 @@
 }
 
 /* === TOP-LEFT: Frozen Corner === */
+.stats-quadrant {
+  position: relative;
+  overflow: hidden;
+}
+
 .stats-quadrant-frozen-corner {
   z-index: 30;
   background: #535d9214;
@@ -714,20 +719,8 @@
 /* Header scrollLeft is SET by JavaScript, not scrolled independently */
 .stats-quadrant-scrollable-header {
   z-index: 20;
-  overflow-x: hidden;
-  overflow-y: scroll;
   background: #535d9214;
   border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-  /* Scrollbar spacer - matches the 12px vertical scrollbar in bottom-right */
-  padding-right: 12px;
-  box-sizing: content-box;
-}
-.stats-quadrant-scrollable-header::-webkit-scrollbar {
-  display: none;
 }
 
 /* === BOTTOM-LEFT: Frozen Columns === */
@@ -735,49 +728,71 @@
 /* Column scrollTop is SET by JavaScript, not scrolled independently */
 .stats-quadrant-frozen-columns {
   z-index: 20;
-  overflow-y: hidden;
-  overflow-x: scroll;
   background: rgb(13 18 39 / 1%);
-  scrollbar-width: none;
-  /* GPU acceleration for smooth repositioning */
-  will-change: scroll-position;
-  transform: translateZ(0);
-}
-.stats-quadrant-frozen-columns::-webkit-scrollbar {
-  display: none;
 }
 
 /* === BOTTOM-RIGHT: Main Scrollable Data === */
 /* This is the ONLY element user actually scrolls */
 .stats-quadrant-scrollable-data {
   z-index: 10;
-  overflow-x: auto;
-  overflow-y: scroll;
   background: rgb(13 18 39 / 1%);
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(120, 146, 196, 0.24) rgba(13, 18, 39, 0.15);
-  /* GPU acceleration */
+}
+
+.stats-scroll-surface {
+  width: 100%;
+  height: 100%;
   will-change: scroll-position;
   transform: translateZ(0);
 }
 
+.stats-scroll-surface-corner {
+  overflow: hidden;
+}
+
+.stats-scroll-surface-header {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: none;
+}
+.stats-scroll-surface-header::-webkit-scrollbar {
+  display: none;
+}
+
+.stats-scroll-surface-columns {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  scrollbar-gutter: stable both-edges;
+}
+.stats-scroll-surface-columns::-webkit-scrollbar {
+  display: none;
+}
+
+.stats-scroll-surface-master {
+  overflow-x: auto;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 146, 196, 0.24) rgba(13, 18, 39, 0.15);
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Scrollbar styling */
-.stats-quadrant-scrollable-data::-webkit-scrollbar {
+.stats-scroll-surface-master::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
+.stats-scroll-surface-master::-webkit-scrollbar-track {
   background: rgba(13, 18, 39, 0.05);
   border-radius: 999px;
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
+.stats-scroll-surface-master::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
   border-radius: 999px;
   border: 2px solid rgba(13, 18, 39, 0.35);
   box-shadow: inset 0 0 6px rgba(12, 16, 34, 0.55);
 }
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
+.stats-scroll-surface-master::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(126, 155, 214, 0.38), rgba(75, 100, 160, 0.32));
 }
 
