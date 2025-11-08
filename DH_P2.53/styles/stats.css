@@ -782,6 +782,31 @@
     background: rgba(40, 44, 69, 0.15);
 }
 
+.stats-table .frozen {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: rgba(19, 23, 44, 0.95);
+    backdrop-filter: blur(12px);
+}
+
+.stats-table thead .frozen {
+    z-index: 10;
+    background: rgba(19, 23, 44, 0.95);
+    backdrop-filter: blur(12px);
+}
+
+/* Add border separator after frozen columns */
+.stats-table .frozen:not(:last-of-type) {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure last frozen column has a more prominent border */
+.stats-table tr .frozen:nth-child(3) {
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+}
+
 /* Column width classes - DEPRECATED (will be removed, widths applied inline) */
 .stats-col-rk {
   width: 64px;

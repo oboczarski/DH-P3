@@ -942,6 +942,15 @@
       }
     };
 
+    // Calculate cumulative left offsets for frozen columns (first 3)
+    const FROZEN_COLUMN_COUNT = 3;
+    const frozenLeftOffsets = [];
+    let cumulativeLeft = 0;
+    for (let i = 0; i < Math.min(FROZEN_COLUMN_COUNT, columnSizes.length); i++) {
+      frozenLeftOffsets.push(cumulativeLeft);
+      cumulativeLeft += columnSizes[i] || DEFAULT_COLUMN_WIDTH;
+    }
+
     // Render header
     if (tableInstance && typeof tableInstance.getHeaderGroups === 'function') {
       tableInstance.getHeaderGroups().forEach(group => {
@@ -955,6 +964,12 @@
           th.style.width = `${w}px`;
           th.style.minWidth = `${w}px`;
           th.style.maxWidth = `${w}px`;
+          
+          // Apply frozen column styling for first 3 columns
+          if (idx < FROZEN_COLUMN_COUNT) {
+            th.classList.add('frozen');
+            th.style.left = `${frozenLeftOffsets[idx]}px`;
+          }
           
           // Apply header color classes based on column category
           const columnCategory = getColumnCategory(header.id);
@@ -990,6 +1005,12 @@
         th.style.minWidth = `${w}px`;
         th.style.maxWidth = `${w}px`;
         
+        // Apply frozen column styling for first 3 columns
+        if (idx < FROZEN_COLUMN_COUNT) {
+          th.classList.add('frozen');
+          th.style.left = `${frozenLeftOffsets[idx]}px`;
+        }
+        
         // Apply header color classes
         const columnCategory = getColumnCategory(col.id);
         if (columnCategory === 'all') {
@@ -1024,6 +1045,13 @@
           td.style.width = `${w}px`;
           td.style.minWidth = `${w}px`;
           td.style.maxWidth = `${w}px`;
+          
+          // Apply frozen column styling for first 3 columns
+          if (cIdx < FROZEN_COLUMN_COUNT) {
+            td.classList.add('frozen');
+            td.style.left = `${frozenLeftOffsets[cIdx]}px`;
+          }
+          
           tr.appendChild(td);
         });
         tableBodyTbody.appendChild(tr);
@@ -1040,6 +1068,13 @@
           td.style.width = `${w}px`;
           td.style.minWidth = `${w}px`;
           td.style.maxWidth = `${w}px`;
+          
+          // Apply frozen column styling for first 3 columns
+          if (cIdx < FROZEN_COLUMN_COUNT) {
+            td.classList.add('frozen');
+            td.style.left = `${frozenLeftOffsets[cIdx]}px`;
+          }
+          
           tr.appendChild(td);
         });
         tableBodyTbody.appendChild(tr);
