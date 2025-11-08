@@ -705,8 +705,7 @@
 /* === TOP-LEFT: Frozen Corner === */
 .stats-quadrant-frozen-corner {
   z-index: 30;
-  background: #535d9214;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  background: #8795c724;
   border-right: 1px solid rgba(255, 255, 255, 0.015);
 }
 
@@ -719,8 +718,7 @@
   overflow-x: auto;
   /* Force a vertical scroll gutter to keep content width equal to data quadrant */
   overflow-y: scroll;
-  background: #535d9214;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  background: #8795c724;
   scrollbar-width: none; /* Firefox: hide scrollbars */
   -webkit-overflow-scrolling: touch;
   /* GPU acceleration for smooth repositioning */
@@ -743,7 +741,7 @@
   z-index: 20;
   overflow-y: hidden;
   overflow-x: scroll; /* keep a horizontal track available */
-  background: rgb(13 18 39 / 1%);
+  background: #434a6545;
   scrollbar-width: none;
   /* GPU acceleration for smooth repositioning */
   will-change: scroll-position;
@@ -759,7 +757,7 @@
   z-index: 10;
   overflow-x: auto;
   overflow-y: scroll;
-  background: rgb(13 18 39 / 1%);
+  background: #434a6545;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 146, 196, 0.24) rgba(13, 18, 39, 0.15);
@@ -1134,6 +1132,7 @@
   /* Adjust scrollbar spacer for mobile */
   .stats-quadrant-scrollable-header {
     padding-right: 9px; /* 12px * 0.75 */
+    border-bottom: 1px solid #90909010;
   }
   
   /* ========================================== */

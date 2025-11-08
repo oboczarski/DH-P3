@@ -830,17 +830,11 @@
     if (master._scrollSyncHandler) {
       master.removeEventListener('scroll', master._scrollSyncHandler);
     }
-    let ticking = false;
+    // Synchronous mirroring for zero-frame latency
     const scrollHandler = (e) => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        const { scrollLeft, scrollTop } = e.target;
-        // Direct assignment = zero layout thrash; header is overflow-x:auto but hidden scrollbar
-        if (headerTarget.scrollLeft !== scrollLeft) headerTarget.scrollLeft = scrollLeft;
-        columnsTarget.scrollTop = scrollTop;
-        ticking = false;
-      });
+      const { scrollLeft, scrollTop } = e.target;
+      if (headerTarget.scrollLeft !== scrollLeft) headerTarget.scrollLeft = scrollLeft;
+      if (columnsTarget.scrollTop !== scrollTop) columnsTarget.scrollTop = scrollTop;
     };
     master._scrollSyncHandler = scrollHandler;
     master.addEventListener('scroll', scrollHandler, { passive: true });
@@ -854,8 +848,8 @@
         }
       }, { passive: false });
     };
-    forwardWheel(headerTarget);
-    forwardWheel(columnsTarget);
+  forwardWheel(headerTarget);
+  forwardWheel(columnsTarget);
     // Touch horizontal drag on header to drive master (iOS subtle drags)
     let touchStartX = 0;
     let touching = false;
@@ -875,6 +869,30 @@
       }
     }, { passive: false });
     headerTarget.addEventListener('touchend', () => { touching = false; }, { passive: true });
+
+    // Keep gutters in sync when layout changes
+    const updateGutters = () => {
+      try {
+        const vbar = master.offsetWidth - master.clientWidth;
+        headerTarget.style.paddingRight = `${vbar}px`;
+      } catch (e) {}
+      try {
+        const hbar = master.offsetHeight - master.clientHeight;
+        columnsTarget.style.paddingBottom = `${hbar}px`;
+      } catch (e) {}
+    };
+    updateGutters();
+    if (wrapper._resizeObserver) {
+      try { wrapper._resizeObserver.disconnect(); } catch (e) {}
+    }
+    try {
+      const ro = new ResizeObserver(() => updateGutters());
+      ro.observe(master);
+      wrapper._resizeObserver = ro;
+    } catch (e) {
+      // Fallback: window resize
+      window.addEventListener('resize', updateGutters, { passive: true });
+    }
   }
   
   function renderTable() {
