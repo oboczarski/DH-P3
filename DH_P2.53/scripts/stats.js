@@ -885,12 +885,23 @@
     const existingCaption = wrapper.querySelector('caption');
     wrapper.innerHTML = '';
 
+    // Split columns into frozen (first 3) and scrollable (rest)
+    const FROZEN_COLUMN_COUNT = 3;
+    const frozenColumns = columns.slice(0, FROZEN_COLUMN_COUNT);
+    const scrollableColumns = columns.slice(FROZEN_COLUMN_COUNT);
+    const frozenColumnSizes = columnSizes.slice(0, FROZEN_COLUMN_COUNT);
+    const scrollableColumnSizes = columnSizes.slice(FROZEN_COLUMN_COUNT);
+    
+    // Calculate frozen width for grid
+    const frozenWidth = frozenColumnSizes.reduce((sum, size) => sum + size, 0);
+    const scrollableWidth = scrollableColumnSizes.reduce((sum, size) => sum + size, 0);
+
     // Helper to create a table with colgroup
-    const createSectionTable = () => {
+    const createSectionTable = (sizes) => {
       const table = document.createElement('table');
       table.className = 'stats-table';
       const colgroup = document.createElement('colgroup');
-      columnSizes.forEach(size => {
+      sizes.forEach(size => {
         const col = document.createElement('col');
         col.style.width = `${size}px`;
         colgroup.appendChild(col);
@@ -899,36 +910,48 @@
       return table;
     };
 
-    // Create container structure (matching game logs pattern)
+    // Create 4-quadrant grid structure
     const container = document.createElement('div');
     container.className = 'stats-table-container';
     
-    const hScroll = document.createElement('div');
-    hScroll.className = 'stats-hscroll';
+    const grid = document.createElement('div');
+    grid.className = 'stats-table-grid';
     
-    const hContent = document.createElement('div');
-    hContent.className = 'stats-hscroll-content';
-    
-    // Create header wrapper and table
-    const headerWrapper = document.createElement('div');
-    headerWrapper.className = 'stats-table-header';
-    const headerTable = createSectionTable();
-    // Add caption to header table if it existed
+    // 1. Frozen Corner (top-left): First 3 headers
+    const frozenCorner = document.createElement('div');
+    frozenCorner.className = 'stats-quadrant-frozen-corner';
+    const frozenCornerTable = createSectionTable(frozenColumnSizes);
     if (existingCaption) {
       const caption = existingCaption.cloneNode(true);
-      headerTable.appendChild(caption);
+      frozenCornerTable.appendChild(caption);
     }
-    const tableHeaderThead = document.createElement('thead');
-    headerTable.appendChild(tableHeaderThead);
-    headerWrapper.appendChild(headerTable);
+    const frozenCornerThead = document.createElement('thead');
+    frozenCornerTable.appendChild(frozenCornerThead);
+    frozenCorner.appendChild(frozenCornerTable);
     
-    // Create body wrapper and table
-    const bodyWrapper = document.createElement('div');
-    bodyWrapper.className = 'stats-table-body';
-    const bodyTable = createSectionTable();
-    const tableBodyTbody = document.createElement('tbody');
-    bodyTable.appendChild(tableBodyTbody);
-    bodyWrapper.appendChild(bodyTable);
+    // 2. Scrollable Header (top-right): Remaining headers
+    const scrollableHeader = document.createElement('div');
+    scrollableHeader.className = 'stats-quadrant-scrollable-header';
+    const scrollableHeaderTable = createSectionTable(scrollableColumnSizes);
+    const scrollableHeaderThead = document.createElement('thead');
+    scrollableHeaderTable.appendChild(scrollableHeaderThead);
+    scrollableHeader.appendChild(scrollableHeaderTable);
+    
+    // 3. Frozen Columns Body (bottom-left): First 3 columns body (vertical scroll only)
+    const frozenColumnsBody = document.createElement('div');
+    frozenColumnsBody.className = 'stats-quadrant-frozen-columns';
+    const frozenColumnsTable = createSectionTable(frozenColumnSizes);
+    const frozenColumnsTbody = document.createElement('tbody');
+    frozenColumnsTable.appendChild(frozenColumnsTbody);
+    frozenColumnsBody.appendChild(frozenColumnsTable);
+    
+    // 4. Scrollable Data (bottom-right): Remaining columns body (master scroll)
+    const scrollableData = document.createElement('div');
+    scrollableData.className = 'stats-quadrant-scrollable-data';
+    const scrollableDataTable = createSectionTable(scrollableColumnSizes);
+    const scrollableDataTbody = document.createElement('tbody');
+    scrollableDataTable.appendChild(scrollableDataTbody);
+    scrollableData.appendChild(scrollableDataTable);
 
     // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
@@ -942,170 +965,178 @@
       }
     };
 
-    // Calculate cumulative left offsets for frozen columns (first 3)
-    const FROZEN_COLUMN_COUNT = 3;
-    const frozenLeftOffsets = [];
-    let cumulativeLeft = 0;
-    for (let i = 0; i < Math.min(FROZEN_COLUMN_COUNT, columnSizes.length); i++) {
-      frozenLeftOffsets.push(cumulativeLeft);
-      cumulativeLeft += columnSizes[i] || DEFAULT_COLUMN_WIDTH;
-    }
+    // Helper to render header cell
+    const renderHeaderCell = (col, idx, sizes) => {
+      const th = document.createElement('th');
+      const label = typeof col.header === 'function' ? col.header({}) : col.header;
+      th.textContent = label || '';
+      th.dataset.columnKey = col.id;
+      const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
+      th.style.width = `${w}px`;
+      th.style.minWidth = `${w}px`;
+      th.style.maxWidth = `${w}px`;
+      
+      // Apply header color classes
+      const columnCategory = getColumnCategory(col.id);
+      if (columnCategory === 'all') {
+        th.classList.add('stats-header-all');
+      } else if (columnCategory === 'passing') {
+        th.classList.add('stats-header-passing');
+      } else if (columnCategory === 'rushing') {
+        th.classList.add('stats-header-rushing');
+      } else if (columnCategory === 'receiving') {
+        th.classList.add('stats-header-receiving');
+      }
+      
+      // Apply sort indicator
+      if (statsState.sort.column === col.id) {
+        applySortIndicator(th);
+      }
+      
+      return th;
+    };
 
-    // Render header
-    if (tableInstance && typeof tableInstance.getHeaderGroups === 'function') {
-      tableInstance.getHeaderGroups().forEach(group => {
-        const tr = document.createElement('tr');
-        group.headers.forEach((header, idx) => {
-          const th = document.createElement('th');
-          const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
-          th.textContent = headerValue;
-          th.dataset.columnKey = header.id;
-          const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
-          th.style.width = `${w}px`;
-          th.style.minWidth = `${w}px`;
-          th.style.maxWidth = `${w}px`;
-          
-          // Apply frozen column styling for first 3 columns
-          if (idx < FROZEN_COLUMN_COUNT) {
-            th.classList.add('frozen');
-            th.style.left = `${frozenLeftOffsets[idx]}px`;
-          }
-          
-          // Apply header color classes based on column category
-          const columnCategory = getColumnCategory(header.id);
-          if (columnCategory === 'all') {
-            th.classList.add('stats-header-all');
-          } else if (columnCategory === 'passing') {
-            th.classList.add('stats-header-passing');
-          } else if (columnCategory === 'rushing') {
-            th.classList.add('stats-header-rushing');
-          } else if (columnCategory === 'receiving') {
-            th.classList.add('stats-header-receiving');
-          }
-          
-          // Apply sort indicator
-          if (statsState.sort.column === header.id) {
-            applySortIndicator(th);
-          }
-          
-          tr.appendChild(th);
-        });
-        tableHeaderThead.appendChild(tr);
-      });
-    } else {
-      // Fallback: manual header rendering
-      const tr = document.createElement('tr');
-      columns.forEach((col, idx) => {
-        const th = document.createElement('th');
-        const label = typeof col.header === 'function' ? col.header({}) : col.header;
-        th.textContent = label || '';
-        th.dataset.columnKey = col.id;
-        const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
-        th.style.width = `${w}px`;
-        th.style.minWidth = `${w}px`;
-        th.style.maxWidth = `${w}px`;
-        
-        // Apply frozen column styling for first 3 columns
-        if (idx < FROZEN_COLUMN_COUNT) {
-          th.classList.add('frozen');
-          th.style.left = `${frozenLeftOffsets[idx]}px`;
-        }
-        
-        // Apply header color classes
-        const columnCategory = getColumnCategory(col.id);
-        if (columnCategory === 'all') {
-          th.classList.add('stats-header-all');
-        } else if (columnCategory === 'passing') {
-          th.classList.add('stats-header-passing');
-        } else if (columnCategory === 'rushing') {
-          th.classList.add('stats-header-rushing');
-        } else if (columnCategory === 'receiving') {
-          th.classList.add('stats-header-receiving');
-        }
-        
-        // Apply sort indicator
-        if (statsState.sort.column === col.id) {
-          applySortIndicator(th);
-        }
-        
-        tr.appendChild(th);
-      });
-      tableHeaderThead.appendChild(tr);
-    }
+    // Render frozen corner headers (first 3 columns)
+    const frozenCornerTr = document.createElement('tr');
+    frozenColumns.forEach((col, idx) => {
+      const th = renderHeaderCell(col, idx, frozenColumnSizes);
+      frozenCornerTr.appendChild(th);
+    });
+    frozenCornerThead.appendChild(frozenCornerTr);
+    
+    // Render scrollable header (remaining columns)
+    const scrollableHeaderTr = document.createElement('tr');
+    scrollableColumns.forEach((col, idx) => {
+      const th = renderHeaderCell(col, idx, scrollableColumnSizes);
+      scrollableHeaderTr.appendChild(th);
+    });
+    scrollableHeaderThead.appendChild(scrollableHeaderTr);
 
-    // Render body rows
+    // Helper to render body cell
+    const renderBodyCell = (descriptor, col, idx, sizes) => {
+      const td = document.createElement('td');
+      applyCellDescriptor(td, descriptor);
+      const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
+      td.style.width = `${w}px`;
+      td.style.minWidth = `${w}px`;
+      td.style.maxWidth = `${w}px`;
+      return td;
+    };
+
+    // Render body rows - split into frozen and scrollable
     if (tableInstance && typeof tableInstance.getRowModel === 'function') {
       const rowModel = tableInstance.getRowModel();
       rowModel.rows.forEach((row) => {
-        const tr = document.createElement('tr');
-        row.getVisibleCells().forEach((cell, cIdx) => {
-          const td = document.createElement('td');
-          applyCellDescriptor(td, cell.getValue());
-          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
-          td.style.width = `${w}px`;
-          td.style.minWidth = `${w}px`;
-          td.style.maxWidth = `${w}px`;
-          
-          // Apply frozen column styling for first 3 columns
-          if (cIdx < FROZEN_COLUMN_COUNT) {
-            td.classList.add('frozen');
-            td.style.left = `${frozenLeftOffsets[cIdx]}px`;
-          }
-          
-          tr.appendChild(td);
+        // Frozen columns row
+        const frozenTr = document.createElement('tr');
+        row.getVisibleCells().slice(0, FROZEN_COLUMN_COUNT).forEach((cell, cIdx) => {
+          const td = renderBodyCell(cell.getValue(), frozenColumns[cIdx], cIdx, frozenColumnSizes);
+          frozenTr.appendChild(td);
         });
-        tableBodyTbody.appendChild(tr);
+        frozenColumnsTbody.appendChild(frozenTr);
+        
+        // Scrollable columns row
+        const scrollableTr = document.createElement('tr');
+        row.getVisibleCells().slice(FROZEN_COLUMN_COUNT).forEach((cell, cIdx) => {
+          const td = renderBodyCell(cell.getValue(), scrollableColumns[cIdx], cIdx, scrollableColumnSizes);
+          scrollableTr.appendChild(td);
+        });
+        scrollableDataTbody.appendChild(scrollableTr);
       });
     } else {
       // Fallback: manual row rendering
       tableRows.forEach((rowData) => {
-        const tr = document.createElement('tr');
-        columns.forEach((col, cIdx) => {
-          const td = document.createElement('td');
+        // Frozen columns row
+        const frozenTr = document.createElement('tr');
+        frozenColumns.forEach((col, cIdx) => {
           const descriptor = rowData[col.id];
-          applyCellDescriptor(td, descriptor);
-          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
-          td.style.width = `${w}px`;
-          td.style.minWidth = `${w}px`;
-          td.style.maxWidth = `${w}px`;
-          
-          // Apply frozen column styling for first 3 columns
-          if (cIdx < FROZEN_COLUMN_COUNT) {
-            td.classList.add('frozen');
-            td.style.left = `${frozenLeftOffsets[cIdx]}px`;
-          }
-          
-          tr.appendChild(td);
+          const td = renderBodyCell(descriptor, col, cIdx, frozenColumnSizes);
+          frozenTr.appendChild(td);
         });
-        tableBodyTbody.appendChild(tr);
+        frozenColumnsTbody.appendChild(frozenTr);
+        
+        // Scrollable columns row
+        const scrollableTr = document.createElement('tr');
+        scrollableColumns.forEach((col, cIdx) => {
+          const descriptor = rowData[col.id];
+          const td = renderBodyCell(descriptor, col, cIdx, scrollableColumnSizes);
+          scrollableTr.appendChild(td);
+        });
+        scrollableDataTbody.appendChild(scrollableTr);
       });
     }
 
-    // Calculate total table width and apply to both tables
-    const totalTableWidth = columnSizes.reduce((sum, size) => sum + size, 0);
-    if (Number.isFinite(totalTableWidth) && totalTableWidth > 0) {
-      const widthPx = `${totalTableWidth}px`;
-      headerTable.style.minWidth = widthPx;
-      headerTable.style.width = widthPx;
-      bodyTable.style.minWidth = widthPx;
-      bodyTable.style.width = widthPx;
+    // Apply widths to tables
+    if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
+      frozenCornerTable.style.width = `${frozenWidth}px`;
+      frozenCornerTable.style.minWidth = `${frozenWidth}px`;
+      frozenColumnsTable.style.width = `${frozenWidth}px`;
+      frozenColumnsTable.style.minWidth = `${frozenWidth}px`;
+    }
+    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
+      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
+      scrollableDataTable.style.width = `${scrollableWidth}px`;
+      scrollableDataTable.style.minWidth = `${scrollableWidth}px`;
     }
 
-    // Assemble the structure
-    hContent.appendChild(headerWrapper);
-    hContent.appendChild(bodyWrapper);
-    hScroll.appendChild(hContent);
-    container.appendChild(hScroll);
+    // Assemble the grid structure
+    grid.appendChild(frozenCorner);
+    grid.appendChild(scrollableHeader);
+    grid.appendChild(frozenColumnsBody);
+    grid.appendChild(scrollableData);
+    container.appendChild(grid);
     wrapper.appendChild(container);
 
     // Initialize scroll positions
-    hScroll.scrollLeft = 0;
-    bodyWrapper.scrollTop = 0;
+    scrollableData.scrollLeft = 0;
+    scrollableData.scrollTop = 0;
+    scrollableHeader.scrollLeft = 0;
+    frozenColumnsBody.scrollTop = 0;
 
-    // Route horizontal wheel/trackpad gestures on tbody to the shared scroller
-    bodyWrapper.addEventListener('wheel', (e) => {
+    // Scroll synchronization: scrollable-data is the master
+    let isScrolling = false;
+    let isHeaderScrolling = false;
+    
+    // Master scroll handler: scrollable-data controls everything
+    scrollableData.addEventListener('scroll', () => {
+      if (isScrolling || isHeaderScrolling) return;
+      isScrolling = true;
+      requestAnimationFrame(() => {
+        // Sync horizontal scroll to scrollable header
+        scrollableHeader.scrollLeft = scrollableData.scrollLeft;
+        // Sync vertical scroll to frozen columns body
+        frozenColumnsBody.scrollTop = scrollableData.scrollTop;
+        isScrolling = false;
+      });
+    }, { passive: true });
+    
+    // If user scrolls scrollable header directly, sync back to scrollable data
+    scrollableHeader.addEventListener('scroll', () => {
+      if (isScrolling || isHeaderScrolling) return;
+      isHeaderScrolling = true;
+      requestAnimationFrame(() => {
+        scrollableData.scrollLeft = scrollableHeader.scrollLeft;
+        isHeaderScrolling = false;
+      });
+    }, { passive: true });
+    
+    // Route wheel/trackpad gestures on frozen columns to scrollable data
+    frozenColumnsBody.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        scrollableData.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      } else {
+        // Vertical scroll - sync to scrollable data
+        scrollableData.scrollTop += e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Route wheel/trackpad gestures on scrollable header to scrollable data
+    scrollableHeader.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableData.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
@@ -1519,15 +1550,17 @@
     });
   }
   
-  // Use event delegation on wrapper to handle clicks from both header and body tables
+  // Use event delegation on wrapper to handle clicks from all quadrants
   dom.tableWrappers.forEach((wrapper) => {
     wrapper.addEventListener('click', (event) => {
+      // Handle sort clicks from both frozen corner and scrollable header
       const th = event.target.closest('th[data-column-key]');
       if (th) {
         handleSortClick(event);
         return;
       }
 
+      // Handle player button clicks from both frozen columns and scrollable data
       const btn = event.target.closest('.stats-player-btn');
       if (btn) {
         const entryIndex = parseInt(btn.dataset.entryIndex, 10);

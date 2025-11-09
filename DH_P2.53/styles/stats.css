@@ -698,54 +698,104 @@
     min-height: 0;
 }
 
-.stats-hscroll {
-    width: 100%;
+.stats-table-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 1. Frozen Corner (top-left): First 3 headers */
+.stats-quadrant-frozen-corner {
+    z-index: 30;
+    background: rgba(19, 23, 44, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-panel-border);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+/* 2. Scrollable Header (top-right): Remaining headers */
+.stats-quadrant-scrollable-header {
+    z-index: 20;
+    background: rgba(19, 23, 44, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-panel-border);
     overflow-x: auto;
     overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
 
-.stats-hscroll-content {
-    display: inline-block;
-    vertical-align: top;
+.stats-quadrant-scrollable-header::-webkit-scrollbar {
+    display: none;
 }
 
-.stats-table-header {
-    overflow: visible;
-    margin: 0;
-    padding: 0;
-}
-
-.stats-table-body {
-    max-height: 700px;
+/* 3. Frozen Columns Body (bottom-left): First 3 columns body (vertical scroll only) */
+.stats-quadrant-frozen-columns {
+    z-index: 20;
+    background: rgba(13, 17, 32, 0.95);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+    overflow-x: hidden;
     overflow-y: auto;
-    overflow-x: hidden; /* horizontal handled by parent hscroll */
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.06) transparent;
 }
 
-.stats-table-body::-webkit-scrollbar {
+.stats-quadrant-frozen-columns::-webkit-scrollbar {
     width: 8px;
-    height: 8px;
     background: transparent;
 }
 
-.stats-table-body::-webkit-scrollbar-thumb {
+.stats-quadrant-frozen-columns::-webkit-scrollbar-thumb {
     background-color: rgba(255,255,255,0.06);
     border-radius: 8px;
     border: 2px solid transparent;
     background-clip: padding-box;
 }
 
-.stats-table-body::-webkit-scrollbar-thumb:hover {
+.stats-quadrant-frozen-columns::-webkit-scrollbar-thumb:hover {
     background-color: rgba(255,255,255,0.12);
 }
 
-.stats-table-body::-webkit-scrollbar-track {
+.stats-quadrant-frozen-columns::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.stats-table-body::-webkit-scrollbar-corner {
+/* 4. Scrollable Data (bottom-right): Remaining columns body (master scroll) */
+.stats-quadrant-scrollable-data {
+    z-index: 10;
+    overflow-x: auto;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.06) transparent;
+}
+
+.stats-quadrant-scrollable-data::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.12);
+}
+
+.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.stats-quadrant-scrollable-data::-webkit-scrollbar-corner {
     background: transparent;
 }
 
@@ -782,30 +832,28 @@
     background: rgba(40, 44, 69, 0.15);
 }
 
-.stats-table .frozen {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    background: rgba(19, 23, 44, 0.95);
-    backdrop-filter: blur(12px);
+/* Ensure rows align properly across quadrants */
+.stats-quadrant-frozen-columns .stats-table tbody tr,
+.stats-quadrant-scrollable-data .stats-table tbody tr {
+    height: auto;
+    min-height: 2.5rem;
 }
 
-.stats-table thead .frozen {
-    z-index: 10;
-    background: rgba(19, 23, 44, 0.95);
-    backdrop-filter: blur(12px);
+/* Ensure header rows align */
+.stats-quadrant-frozen-corner .stats-table thead tr,
+.stats-quadrant-scrollable-header .stats-table thead tr {
+    height: auto;
+    min-height: 2.5rem;
 }
 
-/* Add border separator after frozen columns */
-.stats-table .frozen:not(:last-of-type) {
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+/* Ensure tables fill their containers */
+.stats-quadrant-frozen-corner .stats-table,
+.stats-quadrant-scrollable-header .stats-table,
+.stats-quadrant-frozen-columns .stats-table,
+.stats-quadrant-scrollable-data .stats-table {
+    height: 100%;
 }
 
-/* Ensure last frozen column has a more prominent border */
-.stats-table tr .frozen:nth-child(3) {
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
-}
 
 /* Column width classes - DEPRECATED (will be removed, widths applied inline) */
 .stats-col-rk {
@@ -1040,16 +1088,20 @@
   }
   
   /* Mobile scrollbar styling */
-  .stats-hscroll::-webkit-scrollbar {
+  .stats-quadrant-scrollable-data::-webkit-scrollbar {
     height: 6px;
   }
   
-  .stats-hscroll::-webkit-scrollbar-thumb {
+  .stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
     background-color: rgba(255,255,255,0.06);
     border-radius: 3px;
   }
   
-  .stats-table-body {
+  .stats-quadrant-scrollable-data {
+    max-height: 60vh;
+  }
+  
+  .stats-quadrant-frozen-columns {
     max-height: 60vh;
   }
   
