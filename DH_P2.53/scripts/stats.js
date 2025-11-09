@@ -1181,10 +1181,14 @@
       const calculatedWidth = scrollableColumnSizes.reduce((sum, size) => sum + (size || DEFAULT_COLUMN_WIDTH), 0);
       const actualWidth = Math.max(scrollableWidth, calculatedWidth);
       
+      // Store table width for use in updateContentHeight
+      tableFullWidth = actualWidth;
+      
       console.log('Setting table widths:', {
         scrollableWidth,
         calculatedWidth,
         actualWidth,
+        tableFullWidth,
         scrollableColumns: scrollableColumns.length,
         scrollableColumnSizes: scrollableColumnSizes,
         sumCheck: scrollableColumnSizes.reduce((sum, size) => sum + (size || DEFAULT_COLUMN_WIDTH), 0)
@@ -1203,6 +1207,19 @@
       scrollableBody.style.setProperty('width', `${actualWidth}px`, 'important');
       scrollableBody.style.setProperty('min-width', `${actualWidth}px`, 'important');
       
+      // CRITICAL: vScrollContent MUST be exactly table width for all columns to render with table-layout: fixed
+      vScrollContent.style.width = `${actualWidth}px`;
+      vScrollContent.style.minWidth = `${actualWidth}px`;
+      
+      // vScrollContainer should also allow its content to be this wide
+      vScrollContainer.style.minWidth = `${actualWidth}px`;
+      
+      console.log('vScrollContent width set:', {
+        actualWidth,
+        vScrollContentWidth: vScrollContent.style.width,
+        vScrollContentActualWidth: vScrollContent.offsetWidth
+      });
+      
       // Verify after a layout cycle
       requestAnimationFrame(() => {
         const headerCols = scrollableHeaderTable.querySelectorAll('colgroup col');
@@ -1210,6 +1227,19 @@
         const headerCells = scrollableHeaderThead.querySelectorAll('th');
         const headerColWidths = Array.from(headerCols).map(col => parseInt(col.style.width) || col.offsetWidth || 0);
         const sumColWidths = headerColWidths.reduce((sum, w) => sum + w, 0);
+        
+        // Double-check vScrollContent width is correct - CRITICAL for table-layout: fixed
+        const vScrollContentCurrentWidth = parseInt(vScrollContent.style.width) || vScrollContent.offsetWidth;
+        if (Math.abs(vScrollContentCurrentWidth - actualWidth) > 1) {
+          console.error('vScrollContent width is WRONG - fixing:', {
+            current: vScrollContentCurrentWidth,
+            expected: actualWidth,
+            diff: Math.abs(vScrollContentCurrentWidth - actualWidth)
+          });
+          vScrollContent.style.setProperty('width', `${actualWidth}px`, 'important');
+          vScrollContent.style.setProperty('min-width', `${actualWidth}px`, 'important');
+          vScrollContent.style.setProperty('max-width', `${actualWidth}px`, 'important');
+        }
         
         console.log('Table widths verification after layout:', {
           scrollableWidth,
@@ -1229,14 +1259,18 @@
           bodyTableScrollWidth: scrollableBodyTable.scrollWidth,
           headerContainerWidth: scrollableHeader.offsetWidth,
           bodyContainerWidth: scrollableBody.offsetWidth,
+          vScrollContentWidth: parseInt(vScrollContent.style.width) || vScrollContent.offsetWidth,
+          vScrollContentScrollWidth: vScrollContent.scrollWidth,
           hScrollContainerWidth: hScrollContainer.offsetWidth,
           hScrollContainerScrollWidth: hScrollContainer.scrollWidth,
           canScroll: hScrollContainer.scrollWidth > hScrollContainer.offsetWidth,
           allColumnsRendered: bodyRowCells === scrollableColumns.length && headerCells.length === scrollableColumns.length,
           widthMatches: Math.abs(actualWidth - scrollableBodyTable.offsetWidth) < 2,
+          vScrollContentWidthCorrect: Math.abs((parseInt(vScrollContent.style.width) || vScrollContent.offsetWidth) - actualWidth) < 2,
           issue: bodyRowCells !== scrollableColumns.length ? `Mismatch: ${bodyRowCells} cells but ${scrollableColumns.length} columns` :
-                 (Math.abs(actualWidth - scrollableBodyTable.offsetWidth) > 2 ? `Width mismatch: table is ${scrollableBodyTable.offsetWidth}px but should be ${actualWidth}px` :
-                 (hScrollContainer.scrollWidth <= hScrollContainer.offsetWidth ? `Cannot scroll: scrollWidth ${hScrollContainer.scrollWidth} <= clientWidth ${hScrollContainer.offsetWidth}` : 'OK'))
+                 (Math.abs(actualWidth - scrollableBodyTable.offsetWidth) > 2 ? `Table width mismatch: table is ${scrollableBodyTable.offsetWidth}px but should be ${actualWidth}px` :
+                 (Math.abs((parseInt(vScrollContent.style.width) || vScrollContent.offsetWidth) - actualWidth) > 2 ? `CRITICAL: vScrollContent width ${parseInt(vScrollContent.style.width) || vScrollContent.offsetWidth}px != table width ${actualWidth}px - THIS PREVENTS COLUMNS FROM RENDERING` :
+                 (hScrollContainer.scrollWidth <= hScrollContainer.offsetWidth ? `Cannot scroll: scrollWidth ${hScrollContainer.scrollWidth} <= clientWidth ${hScrollContainer.offsetWidth}` : 'OK')))
         });
         
         // Log first and last few cells to verify data is in all columns
@@ -1276,46 +1310,143 @@
     // Scroll synchronization
     let isSyncingHorizontal = false;
     
+    // Store the table width so it's accessible everywhere - CRITICAL for vScrollContent width
+    let tableFullWidth = 0;
+    
     // Calculate content height and position frozen body below header
     const updateContentHeight = () => {
       const headerHeight = getHeaderHeight();
-      const scrollableBodyHeight = scrollableBodyTable.offsetHeight;
-      const frozenBodyHeight = frozenBodyTable.offsetHeight;
-      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
+      
+      // Force a layout recalculation by accessing offsetHeight
+      scrollableBodyTable.offsetHeight;
+      frozenBodyTable.offsetHeight;
+      
+      // Get the actual scrollHeight (full content height) not just offsetHeight (visible height)
+      // scrollHeight includes all content even if not visible
+      const scrollableBodyHeight = scrollableBodyTable.scrollHeight || scrollableBodyTable.offsetHeight;
+      const frozenBodyHeight = frozenBodyTable.scrollHeight || frozenBodyTable.offsetHeight;
+      
+      // Also calculate based on row count as a fallback
+      const rowCount = scrollableBodyTbody.rows.length;
+      const rowHeight = scrollableBodyTbody.rows[0]?.offsetHeight || 40; // 2.5rem = 40px
+      const calculatedHeight = rowCount * rowHeight;
+      
+      // Use the maximum of all height calculations to ensure we have enough space
+      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight, calculatedHeight);
+      
+      console.log('Height calculation:', {
+        headerHeight,
+        rowCount,
+        rowHeight,
+        calculatedHeight,
+        scrollableBodyHeight,
+        frozenBodyHeight,
+        maxHeight,
+        scrollableBodyTableOffsetHeight: scrollableBodyTable.offsetHeight,
+        scrollableBodyTableScrollHeight: scrollableBodyTable.scrollHeight,
+        frozenBodyTableOffsetHeight: frozenBodyTable.offsetHeight,
+        frozenBodyTableScrollHeight: frozenBodyTable.scrollHeight,
+        vScrollContainerHeight: vScrollContainer.clientHeight,
+        vScrollContainerScrollHeight: vScrollContainer.scrollHeight,
+        vScrollContentHeight: vScrollContent.offsetHeight,
+        vScrollContentScrollHeight: vScrollContent.scrollHeight
+      });
       
       // Set explicit heights and position frozen body below header
       if (maxHeight > 0 && headerHeight > 0) {
         // Position frozen body below frozen corner header
         frozenBody.style.top = `${headerHeight}px`;
-        frozenBody.style.height = `calc(100% - ${headerHeight}px)`;
-        frozenBody.style.maxHeight = `calc(100% - ${headerHeight}px)`;
+        
+        // Get viewport height for clipping the frozen body container
+        const viewportHeight = vScrollContainer.clientHeight || (window.innerHeight - headerHeight - 100);
+        frozenBody.style.height = `${viewportHeight}px`;
+        frozenBody.style.maxHeight = `${viewportHeight}px`;
+        
+        // CRITICAL: Set vScrollContent to FULL height AND width of all data
+        // Height: allows vertical scrolling through all rows
+        // Width: MUST be exactly table width (671px) so ALL columns render with table-layout: fixed
+        // Even though only viewport width (258px) is visible, full width (671px) is needed for all columns
+        vScrollContent.style.height = `${maxHeight}px`;
         vScrollContent.style.minHeight = `${maxHeight}px`;
+        vScrollContent.style.maxHeight = `${maxHeight}px`;
+        
+        // Ensure vScrollContent width matches table width (should already be set above)
+        if (tableFullWidth > 0) {
+          vScrollContent.style.width = `${tableFullWidth}px`;
+          vScrollContent.style.minWidth = `${tableFullWidth}px`;
+        }
+        
+        // Ensure tables can be full height - remove any height constraints
+        scrollableBodyTable.style.height = 'auto';
+        scrollableBodyTable.style.minHeight = `${maxHeight}px`;
+        scrollableBody.style.height = 'auto';
+        scrollableBody.style.minHeight = `${maxHeight}px`;
+        
+        // Frozen body table should be full height (will be transformed for scrolling)
+        frozenBodyTable.style.height = 'auto';
+        frozenBodyTable.style.minHeight = `${maxHeight}px`;
+        
+        // Force layout recalculation
+        vScrollContent.offsetHeight;
+        vScrollContainer.scrollHeight;
+        
+        console.log('After height update:', {
+          vScrollContentHeight: vScrollContent.offsetHeight,
+          vScrollContentScrollHeight: vScrollContent.scrollHeight,
+          vScrollContainerScrollHeight: vScrollContainer.scrollHeight,
+          canScroll: vScrollContainer.scrollHeight > vScrollContainer.clientHeight
+        });
       }
     };
     
     // Sync vertical scrolling between frozen body and scrollable body
+    // Use requestAnimationFrame and CSS transform for better performance with many rows
     let isSyncingVertical = false;
-    vScrollContainer.addEventListener('scroll', () => {
-      if (!isSyncingVertical) {
-        isSyncingVertical = true;
-        frozenBody.scrollTop = vScrollContainer.scrollTop;
-        isSyncingVertical = false;
-      }
-    });
+    let scrollSyncFrame = null;
+    let lastScrollTop = 0;
     
-    frozenBody.addEventListener('scroll', () => {
-      if (!isSyncingVertical) {
-        isSyncingVertical = true;
-        vScrollContainer.scrollTop = frozenBody.scrollTop;
-        isSyncingVertical = false;
+    const syncFrozenBodyScroll = () => {
+      if (!isSyncingVertical && scrollSyncFrame === null) {
+        scrollSyncFrame = requestAnimationFrame(() => {
+          const currentScrollTop = vScrollContainer.scrollTop;
+          if (currentScrollTop !== lastScrollTop) {
+            isSyncingVertical = true;
+            // Transform the table inside frozenBody, not the container itself
+            // The container stays in place (viewport height), table moves
+            frozenBodyTable.style.transform = `translateY(-${currentScrollTop}px)`;
+            lastScrollTop = currentScrollTop;
+            isSyncingVertical = false;
+          }
+          scrollSyncFrame = null;
+        });
       }
-    });
+    };
     
-    // Update height after rendering
+    // Throttle scroll events for better performance
+    vScrollContainer.addEventListener('scroll', syncFrozenBodyScroll, { passive: true });
+    
+    // Initial sync
+    syncFrozenBodyScroll();
+    
+    // Update height after rendering - wait for DOM to be fully rendered
+    // Multiple timeouts ensure we catch the height after all rendering is complete
     setTimeout(updateContentHeight, 0);
+    setTimeout(updateContentHeight, 50);
+    setTimeout(updateContentHeight, 200);
     
-    // Also update on window resize
+    // Also update on window resize and when content changes
     window.addEventListener('resize', updateContentHeight);
+    
+    // Use MutationObserver to detect when table content changes and update height
+    const heightObserver = new MutationObserver(() => {
+      setTimeout(updateContentHeight, 0);
+    });
+    if (scrollableBodyTbody) {
+      heightObserver.observe(scrollableBodyTbody, { childList: true, subtree: true });
+    }
+    if (frozenBodyTbody) {
+      heightObserver.observe(frozenBodyTbody, { childList: true, subtree: true });
+    }
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container
     vScrollContainer.addEventListener('wheel', (e) => {

@@ -726,6 +726,8 @@
     flex: 1;
     min-height: 0;
     position: relative;
+    /* Ensure content can extend beyond viewport */
+    will-change: scroll-position;
 }
 
 .stats-hscroll-container::-webkit-scrollbar {
@@ -756,10 +758,13 @@
 
 /* Vertical scroll container (inside horizontal scroll - only body scrolls vertically) */
 .stats-vscroll-container {
+    /* Allow container to be as wide as content - don't constrain width */
+    width: auto;
+    min-width: 0;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: visible; /* Allow content to extend - parent hScrollContainer handles horizontal scrolling */
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.06) transparent;
     position: relative;
@@ -768,9 +773,13 @@
 /* Content wrapper for vertical scroll container */
 .stats-vscroll-content {
     position: relative;
+    /* Height will be set by JS to match full data height */
     min-height: 100%;
-    /* Width is determined by scrollableBody - don't constrain it */
-    width: 100%;
+    /* Width will be set by JS to EXACT table width - CRITICAL for table-layout: fixed */
+    /* Don't set width in CSS - JS sets it to match table width exactly */
+    width: auto;
+    min-width: 0;
+    overflow: visible;
 }
 
 .stats-vscroll-container::-webkit-scrollbar {
@@ -802,18 +811,21 @@
     width: var(--frozen-width);
     z-index: 5;
     background: rgba(13, 14, 35, 0.98);
-    backdrop-filter: blur(10px);
+    /* Remove backdrop-filter for performance - causes massive lag with many rows */
     border-right: 1px solid #fafbff02;
     pointer-events: auto;
+    /* Container clips to viewport height - table inside will be transformed for scrolling */
     overflow: hidden;
-    overflow-y: auto; /* Allow vertical scrolling */
-    scrollbar-width: none; /* Hide scrollbar - will sync with scrollable body */
-    -ms-overflow-style: none;
+    /* Height will be set by JS to viewport height for clipping */
 }
 
 .stats-frozen-body table {
     border-collapse: collapse;
     background: transparent;
+    /* Table will be transformed for scrolling - enable hardware acceleration */
+    will-change: transform;
+    /* Table should be full height of all rows */
+    height: auto;
 }
 
 .stats-frozen-body tbody tr {
@@ -856,6 +868,16 @@
     table-layout: fixed;
     /* Width is set inline via JS - don't override it */
     display: table;
+    /* Prevent content clipping */
+    overflow: visible;
+}
+
+/* Ensure table cells don't get clipped - allow content to extend */
+.stats-scrollable-body table td,
+.stats-scrollable-body table th {
+    overflow: visible;
+    white-space: nowrap;
+    position: relative;
 }
 
 /* Legacy classes for backward compatibility - remove if not needed */
