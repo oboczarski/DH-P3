@@ -845,21 +845,21 @@
     let tableInstance = null;
     try {
       tableInstance = createTable({
-        data: tableRows,
-        columns: columns,
-        state: {
-          columnOrder: columnSet,
-        },
-        onStateChange: () => {},
-        getCoreRowModel: getCoreRowModel(),
-        columnResizeMode: 'onChange',
-        defaultColumn: {
-          size: DEFAULT_COLUMN_WIDTH,
-          minSize: 32,
-        },
-        renderFallbackValue: '',
-      });
-      
+      data: tableRows,
+      columns: columns,
+      state: {
+        columnOrder: columnSet,
+      },
+      onStateChange: () => {},
+      getCoreRowModel: getCoreRowModel(),
+      columnResizeMode: 'onChange',
+      defaultColumn: {
+        size: DEFAULT_COLUMN_WIDTH,
+        minSize: 32,
+      },
+      renderFallbackValue: '',
+    });
+
       // Get actual column sizes from TanStack if available
       if (typeof tableInstance.getVisibleLeafColumns === 'function') {
         const leaf = tableInstance.getVisibleLeafColumns();
@@ -891,6 +891,11 @@
     const scrollableColumns = columns.slice(FROZEN_COLUMN_COUNT);
     const frozenColumnSizes = columnSizes.slice(0, FROZEN_COLUMN_COUNT);
     const scrollableColumnSizes = columnSizes.slice(FROZEN_COLUMN_COUNT);
+    
+    // Debug: Check if columns are being split correctly
+    if (frozenColumns.length === 0) {
+      console.error('No frozen columns found! columns:', columns.length, 'columnSizes:', columnSizes.length);
+    }
     
     // Calculate frozen width for grid
     const frozenWidth = frozenColumnSizes.reduce((sum, size) => sum + size, 0);
@@ -983,7 +988,7 @@
 
     // Helper to render header cell
     const renderHeaderCell = (col, idx, sizes) => {
-      const th = document.createElement('th');
+        const th = document.createElement('th');
       const label = typeof col.header === 'function' ? col.header({}) : col.header;
       th.textContent = label || '';
       th.dataset.columnKey = col.id;
@@ -1006,8 +1011,8 @@
       
       // Apply sort indicator
       if (statsState.sort.column === col.id) {
-        applySortIndicator(th);
-      }
+          applySortIndicator(th);
+        }
       
       return th;
     };
@@ -1030,7 +1035,7 @@
 
     // Helper to render body cell
     const renderBodyCell = (descriptor, col, idx, sizes) => {
-      const td = document.createElement('td');
+        const td = document.createElement('td');
       applyCellDescriptor(td, descriptor);
       const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
       td.style.width = `${w}px`;
@@ -1099,13 +1104,26 @@
 
     // Assemble the grid structure
     // Grid layout: 2x2
-    // Top row: frozenCorner | scrollableContainer (spans header area)
-    // Bottom row: frozenColumnsBody | scrollableContainer (spans body area)
-    // But scrollableContainer needs to span both rows since hscroll contains both header and body
+    // Top row: frozenCorner (col 1, row 1) | scrollableContainer (col 2, spans rows 1-2)
+    // Bottom row: frozenColumnsBody (col 1, row 2) | (scrollableContainer spans this too)
+    
+    // Clear grid first
+    grid.innerHTML = '';
+    
+    // Add in order: frozenCorner, scrollableContainer, frozenColumnsBody
+    // CSS will position them correctly via grid-column/grid-row
     grid.appendChild(frozenCorner);
-    grid.appendChild(scrollableContainer);
+    grid.appendChild(scrollableContainer); // Spans both rows via CSS grid-row: 1 / -1
     grid.appendChild(frozenColumnsBody);
-    // scrollableContainer already added above - it will span both rows via CSS
+    
+    // Verify frozen columns have content
+    if (frozenCornerThead.children.length === 0) {
+      console.error('Frozen corner header is empty!');
+    }
+    if (frozenColumnsTbody.children.length === 0 && tableRows.length > 0) {
+      console.error('Frozen columns body is empty but we have rows!');
+    }
+    
     container.appendChild(grid);
     wrapper.appendChild(container);
 
@@ -1569,22 +1587,22 @@
   dom.tableWrappers.forEach((wrapper) => {
     wrapper.addEventListener('click', (event) => {
       // Handle sort clicks from both frozen corner and scrollable header
-      const th = event.target.closest('th[data-column-key]');
-      if (th) {
-        handleSortClick(event);
-        return;
-      }
+            const th = event.target.closest('th[data-column-key]');
+            if (th) {
+                handleSortClick(event);
+                return;
+            }
 
       // Handle player button clicks from both frozen columns and scrollable data
-      const btn = event.target.closest('.stats-player-btn');
-      if (btn) {
-        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-        const entry = statsState.lastRenderedRows[entryIndex];
-        if (entry) {
-          openGameLogs(entry);
-        }
-      }
-    });
+            const btn = event.target.closest('.stats-player-btn');
+            if (btn) {
+              const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+              const entry = statsState.lastRenderedRows[entryIndex];
+              if (entry) {
+                openGameLogs(entry);
+              }
+            }
+        });
   });
   initialise();
 })();

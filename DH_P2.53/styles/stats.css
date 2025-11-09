@@ -696,6 +696,7 @@
     height: 100%;
     flex: 1;
     min-height: 0;
+    position: relative;
 }
 
 .stats-table-grid {
@@ -704,10 +705,13 @@
     grid-template-rows: auto 1fr;
     height: 100%;
     overflow: hidden;
+    position: relative;
 }
 
 /* 1. Frozen Corner (top-left): First 3 headers */
 .stats-quadrant-frozen-corner {
+    grid-column: 1;
+    grid-row: 1;
     z-index: 30;
     background: rgba(19, 23, 44, 0.95);
     backdrop-filter: blur(12px);
@@ -715,15 +719,19 @@
     border-right: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    position: relative;
 }
 
 /* 2. Scrollable Container (right side): Contains game logs pattern hscroll wrapper */
 .stats-scrollable-container {
+    grid-column: 2;
     grid-row: 1 / -1; /* Span both header and body rows */
     display: flex;
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    z-index: 10;
+    position: relative;
 }
 
 .stats-hscroll {
@@ -781,6 +789,8 @@
 
 /* 3. Frozen Columns Body (bottom-left): First 3 columns body (vertical scroll only) */
 .stats-quadrant-frozen-columns {
+    grid-column: 1;
+    grid-row: 2;
     z-index: 20;
     background: rgba(13, 17, 32, 0.95);
     backdrop-filter: blur(12px);
@@ -790,6 +800,7 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.06) transparent;
+    position: relative;
 }
 
 .stats-quadrant-frozen-columns::-webkit-scrollbar {
