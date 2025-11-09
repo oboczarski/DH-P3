@@ -922,14 +922,6 @@
     scrollableHeaderTable.appendChild(scrollableHeaderThead);
     scrollableHeader.appendChild(scrollableHeaderTable);
     
-    // Scrollable body wrapper (columns 4+) - used only for scroll event handling
-    const scrollableBodyWrapper = document.createElement('div');
-    scrollableBodyWrapper.className = 'stats-scrollable-body-wrapper';
-    const scrollableBodyTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    const scrollableBodyTbody = document.createElement('tbody');
-    scrollableBodyTable.appendChild(scrollableBodyTbody);
-    scrollableBodyWrapper.appendChild(scrollableBodyTable);
-    
     hScrollContainer.appendChild(scrollableHeader);
     // Don't add scrollableBodyWrapper to hScrollContainer - it's only for reference
     
@@ -949,23 +941,28 @@
     const vScrollContent = document.createElement('div');
     vScrollContent.className = 'stats-vscroll-content';
     
-    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
-    // This is natively scrollable for mobile touch support
-    const scrollableBodyOverlay = document.createElement('div');
-    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
-    // Create the table with explicit width to enable horizontal scrolling
-    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    // Set table width to total column width so it can scroll horizontally
-    scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
-    scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
-    const scrollableBodyOverlayTbody = document.createElement('tbody');
-    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
-    scrollableBodyOverlay.appendChild(scrollableBodyOverlayTable);
+    // Scrollable body (columns 4+) - inside vertical scroll, with margin for frozen columns
+    const scrollableBody = document.createElement('div');
+    scrollableBody.className = 'stats-scrollable-body';
+    const scrollableBodyTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+    scrollableBodyTable.style.width = `${scrollableWidth}px`;
+    scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
+    const scrollableBodyTbody = document.createElement('tbody');
+    scrollableBodyTable.appendChild(scrollableBodyTbody);
+    scrollableBody.appendChild(scrollableBodyTable);
     
-    // Append frozen body directly to container, scrollable content to wrapper
-    vScrollContainer.appendChild(frozenBody);
-    vScrollContent.appendChild(scrollableBodyOverlay);
+    // Assemble: hScrollContainer contains header + vScrollContainer
+    // vScrollContainer contains frozenBody (absolute) + scrollableBody (with margin)
+    vScrollContent.appendChild(frozenBody);
+    vScrollContent.appendChild(scrollableBody);
     vScrollContainer.appendChild(vScrollContent);
+    
+    hScrollContainer.appendChild(scrollableHeader);
+    hScrollContainer.appendChild(vScrollContainer);
+    
+    container.appendChild(frozenCorner);
+    container.appendChild(hScrollContainer);
+    wrapper.appendChild(container);
 
     // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
@@ -1046,19 +1043,8 @@
     // Render frozen body rows (first 3 columns)
     renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
 
-    // Render scrollable body rows (columns 4+) - render for both wrapper (hidden, for scroll sync) and overlay (visible)
+    // Render scrollable body rows (columns 4+)
     renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
-    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
-    
-    // Add scrollable body wrapper to a hidden container for scroll event handling
-    const hiddenScrollContainer = document.createElement('div');
-    hiddenScrollContainer.style.position = 'absolute';
-    hiddenScrollContainer.style.visibility = 'hidden';
-    hiddenScrollContainer.style.pointerEvents = 'none';
-    hiddenScrollContainer.style.height = '1px';
-    hiddenScrollContainer.style.overflow = 'auto';
-    hiddenScrollContainer.appendChild(scrollableBodyWrapper);
-    container.appendChild(hiddenScrollContainer);
 
     // Calculate table widths
     if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
@@ -1073,32 +1059,19 @@
       scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
       scrollableBodyTable.style.width = `${scrollableWidth}px`;
       scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
-      scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
-      scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
     }
     
-    // Get header height for positioning vertical scroll container
+    // Get header height for positioning
     const getHeaderHeight = () => {
       return scrollableHeader.offsetHeight || frozenCorner.offsetHeight || 50;
     };
 
-    // Assemble the structure
-    container.appendChild(frozenCorner);
-    container.appendChild(hScrollContainer);
-    container.appendChild(vScrollContainer);
-    wrapper.appendChild(container);
-
-    // Set header heights to match and position vertical scroll container
+    // Set header heights to match
     setTimeout(() => {
       const headerHeight = getHeaderHeight();
       if (headerHeight > 0) {
         frozenCorner.style.height = `${headerHeight}px`;
         scrollableHeader.style.height = `${headerHeight}px`;
-        // Adjust vertical scroll container to start below header
-        vScrollContainer.style.top = `${headerHeight}px`;
-        vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
-        // Frozen body should also start below header (it's inside vScrollContainer which is already offset)
-        frozenBody.style.top = '0';
       }
     }, 0);
 
@@ -1108,14 +1081,14 @@
     // Calculate content height for vertical scroll container
     // Both frozen body and overlay should have the same height, and content wrapper should match
     const updateContentHeight = () => {
-      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
+      const scrollableBodyHeight = scrollableBodyTable.offsetHeight;
       const frozenBodyHeight = frozenBodyTable.offsetHeight;
       const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
       
       // Set explicit heights to ensure proper scrolling
       if (maxHeight > 0) {
         frozenBody.style.height = `${maxHeight}px`;
-        scrollableBodyOverlay.style.height = `${maxHeight}px`;
+        scrollableBody.style.height = `${maxHeight}px`;
         vScrollContent.style.minHeight = `${maxHeight}px`;
         // The vertical scroll container will scroll based on this content
       }
@@ -1127,50 +1100,27 @@
     // Also update on window resize
     window.addEventListener('resize', updateContentHeight);
     
-    // Sync horizontal scroll between header and overlay
-    // Both now use native scrolling for mobile compatibility
-    // Sync from header to overlay (desktop wheel scrolling on header)
-    scrollableHeader.addEventListener('scroll', () => {
-      if (!isSyncingHorizontal) {
-        isSyncingHorizontal = true;
-        scrollableBodyOverlay.scrollLeft = scrollableHeader.scrollLeft;
-        requestAnimationFrame(() => {
-          isSyncingHorizontal = false;
-        });
-      }
-    });
+    // NO SCROLL SYNC NEEDED! Header and body are in the same horizontal scroll container (hScrollContainer),
+    // so they naturally scroll together. Mobile will handle touch scrolling natively on hScrollContainer.
     
-    // Sync from overlay to header (mobile touch scrolling on body)
-    scrollableBodyOverlay.addEventListener('scroll', () => {
-      if (!isSyncingHorizontal) {
-        isSyncingHorizontal = true;
-        scrollableHeader.scrollLeft = scrollableBodyOverlay.scrollLeft;
-        requestAnimationFrame(() => {
-          isSyncingHorizontal = false;
-        });
-      }
-    });
-    
-    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-    // This allows scrolling from anywhere in the vertical scroll area
+    // Route horizontal wheel/trackpad gestures to horizontal scroll container
     vScrollContainer.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        hScrollContainer.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
     
-    // Also handle horizontal scroll on frozen body - route to header
+    // Also handle horizontal scroll on frozen body
     frozenBody.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        hScrollContainer.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
     
     // Initialize scroll positions
-    scrollableHeader.scrollLeft = 0;
-    scrollableBodyOverlay.scrollLeft = 0;
+    hScrollContainer.scrollLeft = 0;
     vScrollContainer.scrollTop = 0;
 
     // Empty state handling

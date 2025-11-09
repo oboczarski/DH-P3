@@ -715,7 +715,7 @@
     border-collapse: collapse;
 }
 
-/* Horizontal scroll container (scrollable header + body) */
+/* Horizontal scroll container (contains header + body - they scroll together horizontally) */
 .stats-hscroll-container {
     margin-left: var(--frozen-width);
     display: flex;
@@ -727,53 +727,32 @@
     min-height: 0;
 }
 
-/* Scrollable header (columns 4+) */
+.stats-hscroll-container::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+    background: transparent;
+}
+
+/* Scrollable header (columns 4+) - inside horizontal scroll container */
 .stats-scrollable-header {
-    overflow-x: auto;
-    overflow-y: hidden;
     flex-shrink: 0;
     background: rgb(30 34 51 / 17%);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #fafbff02;
     position: relative;
     z-index: 2;
+    overflow: visible;
 }
 
-.stats-scrollable-header::-webkit-scrollbar {
-    height: 0;
-    width: 0;
-    background: transparent;
-}
-
-/* Scrollable body wrapper (columns 4+) - used for horizontal scroll, behind overlay */
-.stats-scrollable-body-wrapper {
-    overflow-x: auto;
-    overflow-y: hidden;
+/* Vertical scroll container (inside horizontal scroll - only body scrolls vertically) */
+.stats-vscroll-container {
     flex: 1;
     min-height: 0;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
-    z-index: 0;
-}
-
-.stats-scrollable-body-wrapper::-webkit-scrollbar {
-    height: 0;
-    width: 0;
-    background: transparent;
-}
-
-/* Vertical scroll container (frozen body + scrollable body overlay) */
-.stats-vscroll-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.06) transparent;
-    z-index: 1;
+    position: relative;
 }
 
 /* Content wrapper for vertical scroll container */
@@ -803,7 +782,7 @@
     background: transparent;
 }
 
-/* Frozen body (first 3 body columns) - positioned relative to container */
+/* Frozen body (first 3 body columns) - absolute positioned within vertical scroll */
 .stats-frozen-body {
     position: absolute;
     top: 0;
@@ -812,7 +791,6 @@
     background: transparent;
     border-right: 1px solid #fafbff02;
     pointer-events: auto;
-    will-change: transform;
     overflow: hidden;
 }
 
@@ -846,32 +824,15 @@
     text-align: left;
 }
 
-/* Scrollable body overlay (columns 4+, positioned to start after frozen columns) */
-.stats-scrollable-body-overlay {
-    position: absolute;
-    top: 0;
-    left: var(--frozen-width);
-    right: 0;
-    z-index: 3;
-    pointer-events: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    background: transparent;
-}
-
-.stats-scrollable-body-overlay::-webkit-scrollbar {
-    height: 0;
-    width: 0;
-    background: transparent;
-}
-
-/* Inner wrapper - no transform needed, using native scrolling */
-.stats-scrollable-body-overlay-inner {
+/* Scrollable body (columns 4+) - inside vertical scroll, with margin for frozen columns */
+.stats-scrollable-body {
+    margin-left: var(--frozen-width);
     position: relative;
+    z-index: 3;
+    background: transparent;
 }
 
-.stats-scrollable-body-overlay table {
+.stats-scrollable-body table {
     border-collapse: collapse;
 }
 
