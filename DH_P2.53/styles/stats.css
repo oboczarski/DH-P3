@@ -710,6 +710,7 @@
     backdrop-filter: blur(12px);
     border-right: 1px solid var(--color-panel-border);
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .stats-frozen-corner table {
@@ -767,7 +768,7 @@
 .stats-vscroll-container {
     position: absolute;
     top: 0;
-    left: var(--frozen-width);
+    left: 0;
     right: 0;
     bottom: 0;
     overflow-y: auto;
@@ -804,33 +805,50 @@
     background: transparent;
 }
 
-/* Frozen body (first 3 body columns) */
+/* Frozen body (first 3 body columns) - positioned relative to container */
 .stats-frozen-body {
     position: absolute;
     top: 0;
     left: 0;
     z-index: 5;
-    background: transparent;
+    background: rgba(13, 14, 35, 0.98);
+    backdrop-filter: blur(10px);
     border-right: 1px solid var(--color-panel-border);
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
     pointer-events: auto;
     will-change: transform;
+    overflow: hidden;
 }
 
 .stats-frozen-body table {
     border-collapse: collapse;
+    background: transparent;
 }
 
-/* Scrollable body overlay (columns 4+, positioned to align with horizontal scroll) */
+.stats-frozen-body tbody tr {
+    background: transparent;
+}
+
+.stats-frozen-body tbody tr:nth-child(even) {
+    background: rgba(40, 44, 69, 0.15);
+}
+
+/* Scrollable body overlay (columns 4+, positioned to start after frozen columns) */
 .stats-scrollable-body-overlay {
     position: absolute;
     top: 0;
-    left: 0;
+    left: var(--frozen-width);
+    right: 0;
     z-index: 3;
     pointer-events: auto;
-    will-change: transform;
-    overflow: visible;
+    overflow: hidden;
     background: transparent;
+}
+
+/* Inner wrapper that gets transformed for horizontal scrolling */
+.stats-scrollable-body-overlay-inner {
+    will-change: transform;
+    position: relative;
 }
 
 .stats-scrollable-body-overlay table {

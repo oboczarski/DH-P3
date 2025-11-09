@@ -717,11 +717,8 @@
   }
   
   function renderTable() {
-    if (!window.TableCore) {
-      console.error('TanStack Table library not loaded.');
-      return;
-    }
-    const { createTable, getCoreRowModel } = window.TableCore;
+    // Note: We use manual rendering for frozen columns, so TanStack Table is optional
+    // Keeping the check for potential future use, but not required for current implementation
 
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
@@ -850,59 +847,8 @@
     const frozenWidth = frozenColumnSizes.reduce((sum, size) => sum + size, 0);
     const scrollableWidth = scrollableColumnSizes.reduce((sum, size) => sum + size, 0);
     
-    // Create TanStack table instances for frozen and scrollable sections
-    const frozenColumnsDef = frozenColumns.map(column => ({
-      id: column,
-      accessorKey: column,
-      header: () => headerLabels.get(column) || column,
-      size: getColumnWidth(column),
-    }));
-    
-    const scrollableColumnsDef = scrollableColumns.map(column => ({
-      id: column,
-      accessorKey: column,
-      header: () => headerLabels.get(column) || column,
-      size: getColumnWidth(column),
-    }));
-    
-    let frozenTableInstance = null;
-    let scrollableTableInstance = null;
-    
-    try {
-      frozenTableInstance = createTable({
-        data: tableRows,
-        columns: frozenColumnsDef,
-        state: {
-          columnOrder: frozenColumns,
-        },
-        onStateChange: () => {},
-        getCoreRowModel: getCoreRowModel(),
-        columnResizeMode: 'onChange',
-        defaultColumn: {
-          size: DEFAULT_COLUMN_WIDTH,
-          minSize: 32,
-        },
-        renderFallbackValue: '',
-      });
-      
-      scrollableTableInstance = createTable({
-        data: tableRows,
-        columns: scrollableColumnsDef,
-        state: {
-          columnOrder: scrollableColumns,
-        },
-        onStateChange: () => {},
-        getCoreRowModel: getCoreRowModel(),
-        columnResizeMode: 'onChange',
-        defaultColumn: {
-          size: DEFAULT_COLUMN_WIDTH,
-          minSize: 32,
-        },
-        renderFallbackValue: '',
-      });
-    } catch (e) {
-      console.error('TanStack createTable failed; using manual renderer', e);
-    }
+    // Note: We use manual rendering for frozen/scrollable split columns
+    // TanStack Table doesn't handle split column sets well, so we render manually
 
     // --- Frozen Columns Pattern: Separate Frozen and Scrollable Sections ---
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
@@ -972,11 +918,7 @@
     const vScrollContainer = document.createElement('div');
     vScrollContainer.className = 'stats-vscroll-container';
     
-    // Content wrapper to establish positioning context
-    const vScrollContent = document.createElement('div');
-    vScrollContent.className = 'stats-vscroll-content';
-    
-    // Frozen body (first 3 body columns)
+    // Frozen body (first 3 body columns) - direct child of container for proper positioning
     const frozenBody = document.createElement('div');
     frozenBody.className = 'stats-frozen-body';
     const frozenBodyTable = createSectionTable(frozenColumns, frozenColumnSizes);
@@ -984,18 +926,30 @@
     frozenBodyTable.appendChild(frozenBodyTbody);
     frozenBody.appendChild(frozenBodyTable);
     
+    // Content wrapper for scrollable content only
+    const vScrollContent = document.createElement('div');
+    vScrollContent.className = 'stats-vscroll-content';
+    
     // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
     const scrollableBodyOverlay = document.createElement('div');
     scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
+    // Inner wrapper that will be transformed for horizontal scrolling
+    const scrollableBodyOverlayInner = document.createElement('div');
+    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
     // We'll clone the scrollable body table content here
     const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
     const scrollableBodyOverlayTbody = document.createElement('tbody');
     scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
-    scrollableBodyOverlay.appendChild(scrollableBodyOverlayTable);
+    scrollableBodyOverlayInner.appendChild(scrollableBodyOverlayTable);
+    scrollableBodyOverlay.appendChild(scrollableBodyOverlayInner);
     
-    vScrollContent.appendChild(frozenBody);
+    // Append frozen body directly to container, scrollable content to wrapper
+    vScrollContainer.appendChild(frozenBody);
     vScrollContent.appendChild(scrollableBodyOverlay);
     vScrollContainer.appendChild(vScrollContent);
+    
+    // Store reference to inner wrapper for scroll synchronization
+    scrollableBodyOverlay._innerWrapper = scrollableBodyOverlayInner;
 
     // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
@@ -1011,128 +965,72 @@
 
     // Helper to render header cells
     const renderHeaderCells = (thead, cols, sizes, tableInst) => {
-      if (tableInst && typeof tableInst.getHeaderGroups === 'function') {
-        tableInst.getHeaderGroups().forEach(group => {
-          const tr = document.createElement('tr');
-          group.headers.forEach((header, idx) => {
-            const th = document.createElement('th');
-            const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
-            th.textContent = headerValue;
-            th.dataset.columnKey = header.id;
-            const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
-            th.style.width = `${w}px`;
-            th.style.minWidth = `${w}px`;
-            th.style.maxWidth = `${w}px`;
-            
-            // Apply header color classes based on column category
-            const columnCategory = getColumnCategory(header.id);
-            if (columnCategory === 'all') {
-              th.classList.add('stats-header-all');
-            } else if (columnCategory === 'passing') {
-              th.classList.add('stats-header-passing');
-            } else if (columnCategory === 'rushing') {
-              th.classList.add('stats-header-rushing');
-            } else if (columnCategory === 'receiving') {
-              th.classList.add('stats-header-receiving');
-            }
-            
-            // Apply sort indicator
-            if (statsState.sort.column === header.id) {
-              applySortIndicator(th);
-            }
-            
-            tr.appendChild(th);
-          });
-          thead.appendChild(tr);
-        });
-      } else {
-        // Fallback: manual header rendering
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
         const tr = document.createElement('tr');
-        cols.forEach((col, idx) => {
+      cols.forEach((col, idx) => {
           const th = document.createElement('th');
-          const label = headerLabels.get(col) || col;
-          th.textContent = label || '';
-          th.dataset.columnKey = col;
-          const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
-          th.style.width = `${w}px`;
-          th.style.minWidth = `${w}px`;
-          th.style.maxWidth = `${w}px`;
-          
-          // Apply header color classes
-          const columnCategory = getColumnCategory(col);
-          if (columnCategory === 'all') {
-            th.classList.add('stats-header-all');
-          } else if (columnCategory === 'passing') {
-            th.classList.add('stats-header-passing');
-          } else if (columnCategory === 'rushing') {
-            th.classList.add('stats-header-rushing');
-          } else if (columnCategory === 'receiving') {
-            th.classList.add('stats-header-receiving');
-          }
-          
-          // Apply sort indicator
-          if (statsState.sort.column === col) {
-            applySortIndicator(th);
-          }
-          
-          tr.appendChild(th);
-        });
-        thead.appendChild(tr);
-      }
+        const label = headerLabels.get(col) || col;
+        th.textContent = label || '';
+        th.dataset.columnKey = col;
+        const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
+        th.style.width = `${w}px`;
+        th.style.minWidth = `${w}px`;
+        th.style.maxWidth = `${w}px`;
+        
+        // Apply header color classes
+        const columnCategory = getColumnCategory(col);
+        if (columnCategory === 'all') {
+          th.classList.add('stats-header-all');
+        } else if (columnCategory === 'passing') {
+          th.classList.add('stats-header-passing');
+        } else if (columnCategory === 'rushing') {
+          th.classList.add('stats-header-rushing');
+        } else if (columnCategory === 'receiving') {
+          th.classList.add('stats-header-receiving');
+        }
+        
+        // Apply sort indicator
+        if (statsState.sort.column === col) {
+          applySortIndicator(th);
+        }
+        
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
     };
 
     // Helper to render body rows
     const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
-      if (tableInst && typeof tableInst.getRowModel === 'function') {
-        const rowModel = tableInst.getRowModel();
-        rowModel.rows.forEach((row, rowIdx) => {
-          const tr = document.createElement('tr');
-          row.getVisibleCells().forEach((cell, cIdx) => {
-            const td = document.createElement('td');
-            applyCellDescriptor(td, cell.getValue());
-            const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
-            td.style.width = `${w}px`;
-            td.style.minWidth = `${w}px`;
-            td.style.maxWidth = `${w}px`;
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
+      rowsData.forEach((rowData, idx) => {
+        const tr = document.createElement('tr');
+        cols.forEach((col, cIdx) => {
+          const td = document.createElement('td');
+          // Get the descriptor for this column from the full row data
+          const descriptor = rowData[col];
+          applyCellDescriptor(td, descriptor);
+          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
         });
-      } else {
-        // Fallback: manual row rendering - filter to only the columns we need
-        const entryIndexMap = new Map();
-        rowsData.forEach((rowData, idx) => {
-          const tr = document.createElement('tr');
-          cols.forEach((col, cIdx) => {
-            const td = document.createElement('td');
-            // Get the descriptor for this column from the full row data
-            const descriptor = rowData[col];
-            applyCellDescriptor(td, descriptor);
-            const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
-            td.style.width = `${w}px`;
-            td.style.minWidth = `${w}px`;
-            td.style.maxWidth = `${w}px`;
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-          entryIndexMap.set(tr, idx);
-        });
-      }
+        tbody.appendChild(tr);
+      });
     };
 
     // Render frozen corner header (first 3 columns)
-    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, frozenTableInstance);
+    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, null);
     
     // Render scrollable header (columns 4+)
-    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, scrollableTableInstance);
+    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, null);
 
     // Render frozen body rows (first 3 columns)
-    // We need to render using the original tableRows data but only for frozen columns
-    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, frozenTableInstance, tableRows);
+    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
 
     // Render scrollable body rows (columns 4+) - render for both wrapper (hidden, for scroll sync) and overlay (visible)
-    renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, scrollableTableInstance, tableRows);
-    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, scrollableTableInstance, tableRows);
+    renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
+    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
     
     // Add scrollable body wrapper to a hidden container for scroll event handling
     const hiddenScrollContainer = document.createElement('div');
@@ -1171,8 +1069,8 @@
     container.appendChild(hScrollContainer);
     container.appendChild(vScrollContainer);
     wrapper.appendChild(container);
-    
-    // Set header heights to match
+
+    // Set header heights to match and position vertical scroll container
     setTimeout(() => {
       const headerHeight = getHeaderHeight();
       if (headerHeight > 0) {
@@ -1181,6 +1079,8 @@
         // Adjust vertical scroll container to start below header
         vScrollContainer.style.top = `${headerHeight}px`;
         vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+        // Frozen body should also start below header (it's inside vScrollContainer which is already offset)
+        frozenBody.style.top = '0';
       }
     }, 0);
 
@@ -1209,13 +1109,16 @@
     // Also update on window resize
     window.addEventListener('resize', updateContentHeight);
     
-    // Sync horizontal scroll: transform overlay based on header scroll
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
+    const overlayInner = scrollableBodyOverlay._innerWrapper;
     scrollableHeader.addEventListener('scroll', () => {
-      if (!isSyncingHorizontal) {
+      if (!isSyncingHorizontal && overlayInner) {
         isSyncingHorizontal = true;
         const scrollLeft = scrollableHeader.scrollLeft;
-        // Transform the overlay to match header scroll position
-        scrollableBodyOverlay.style.transform = `translateX(-${scrollLeft}px)`;
+        // Transform the inner content (not the overlay itself) to scroll horizontally
+        // Negative translateX moves content left, showing columns further to the right
+        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
         requestAnimationFrame(() => {
           isSyncingHorizontal = false;
         });
@@ -1248,7 +1151,9 @@
     // Initialize scroll positions
     scrollableHeader.scrollLeft = 0;
     vScrollContainer.scrollTop = 0;
-    scrollableBodyOverlay.style.transform = 'translateX(0px)';
+    if (scrollableBodyOverlay._innerWrapper) {
+      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
+    }
 
     // Empty state handling
     dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
