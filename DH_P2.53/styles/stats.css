@@ -1203,10 +1203,44 @@ body[data-page="stats"] .glass-panel {
 /* AG GRID INTEGRATION - GLASS DESIGN */
 /* ============================================ */
 
-.stats-ag-grid {
+/* Unified Scroll Container - wraps entire grid for synchronized scrolling */
+.stats-unified-scroll-container {
   width: 100%;
   height: 70vh;
   max-height: 700px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  /* Custom scrollbar for unified container */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(82, 96, 146, 0.32) rgba(13, 18, 39, 0.05);
+}
+
+.stats-unified-scroll-container::-webkit-scrollbar {
+  height: 12px;
+}
+
+.stats-unified-scroll-container::-webkit-scrollbar-track {
+  background: rgba(13, 18, 39, 0.05);
+  border-radius: 999px;
+}
+
+.stats-unified-scroll-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.stats-unified-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(82, 96, 146, 0.42), rgba(52, 69, 110, 0.34));
+}
+
+.stats-ag-grid {
+  width: max-content;
+  min-width: 100%;
+  height: 100%;
+  /* Disable AG Grid's internal horizontal scroll - unified container handles it */
+  overflow-x: visible !important;
 }
 
 /* Override AG Grid's dark theme with glass design */
@@ -1220,10 +1254,10 @@ body[data-page="stats"] .glass-panel {
   --ag-header-foreground-color: #94a3b8;
   --ag-row-hover-color: rgba(88, 98, 152, 0.15);
   --ag-selected-row-background-color: rgba(88, 98, 152, 0.25);
-  --ag-font-size: 0.8rem;
+  --ag-font-size: 0.7rem;
   --ag-font-family: 'Quicksand', sans-serif;
-  --ag-header-height: 35px;
-  --ag-row-height: 35px;
+  --ag-header-height: 30px;
+  --ag-row-height: 28px;
 }
 
 /* Glass effect on pinned (frozen) columns */
@@ -1234,10 +1268,21 @@ body[data-page="stats"] .glass-panel {
   border-right: 1px solid rgba(255, 255, 255, 0.015);
 }
 
+/* Performance optimizations for smooth scrolling */
+.stats-ag-grid .ag-body-viewport,
+.stats-ag-grid .ag-body-horizontal-scroll-viewport,
+.stats-ag-grid .ag-body-vertical-scroll-viewport,
+.stats-ag-grid .ag-center-cols-viewport,
+.stats-ag-grid .ag-header-viewport {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 /* Header styling */
 .stats-ag-grid .ag-header-cell {
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1252,7 +1297,7 @@ body[data-page="stats"] .glass-panel {
 .stats-ag-grid .ag-cell {
   padding: 0.2rem;
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #cbd5e1;
   white-space: nowrap;
   overflow: hidden;
@@ -1263,20 +1308,35 @@ body[data-page="stats"] .glass-panel {
   line-height: 1.5;
 }
 
-/* Scrollbar styling to match existing design */
-.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
-.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+/* Position chips inside AG Grid - make them smaller to fit */
+.stats-ag-grid .ag-cell .player-tag.modal-pos-tag {
+  width: 1.4rem;
+  height: 1rem;
+  min-height: 1rem;
+  max-height: 1rem;
+  font-size: 0.55rem;
+  padding: 0;
+  border-radius: 4px;
 }
 
-.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+/* Hide AG Grid's internal horizontal scroll - unified container handles it */
+.stats-ag-grid .ag-body-horizontal-scroll,
+.stats-ag-grid .ag-body-horizontal-scroll-viewport,
+.stats-ag-grid .ag-horizontal-left-spacer,
+.stats-ag-grid .ag-horizontal-right-spacer {
+  display: none !important;
+}
+
+/* Keep AG Grid's vertical scrollbar styled */
+.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar {
+  width: 12px;
+}
+
 .stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-track {
   background: rgba(13, 18, 39, 0.05);
   border-radius: 999px;
 }
 
-.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
 .stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
   border-radius: 999px;
@@ -1284,9 +1344,16 @@ body[data-page="stats"] .glass-panel {
   box-shadow: inset 0 0 6px rgba(12, 16, 34, 0.55);
 }
 
-.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
 .stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(126, 155, 214, 0.38), rgba(75, 100, 160, 0.32));
+}
+
+/* Ensure grid content doesn't try to scroll horizontally internally */
+.stats-ag-grid .ag-root-wrapper,
+.stats-ag-grid .ag-body-viewport,
+.stats-ag-grid .ag-center-cols-viewport,
+.stats-ag-grid .ag-center-cols-container {
+  overflow-x: visible !important;
 }
 
 /* Remove AG Grid's default borders that conflict with glass design */

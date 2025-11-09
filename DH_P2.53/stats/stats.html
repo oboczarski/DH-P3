@@ -140,12 +140,16 @@
         <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
       </div>
       <div class="stats-table-wrapper" data-tab-panel="oneQb">
-        <!-- AG Grid Container -->
-        <div id="statsGrid1qb" class="ag-theme-alpine-dark stats-ag-grid"></div>
+        <!-- Unified Scroll Container - wraps entire grid so header and body scroll together -->
+        <div class="stats-unified-scroll-container">
+          <div id="statsGrid1qb" class="ag-theme-alpine-dark stats-ag-grid"></div>
+        </div>
       </div>
       <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
-        <!-- AG Grid Container -->
-        <div id="statsGridSflx" class="ag-theme-alpine-dark stats-ag-grid"></div>
+        <!-- Unified Scroll Container - wraps entire grid so header and body scroll together -->
+        <div class="stats-unified-scroll-container">
+          <div id="statsGridSflx" class="ag-theme-alpine-dark stats-ag-grid"></div>
+        </div>
       </div>
       <div class="stats-empty-state hidden" id="statsEmptyState">
         <p>No players match the current filters.</p>

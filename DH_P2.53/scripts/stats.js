@@ -878,7 +878,7 @@
         colDef.cellRenderer = (params) => {
           if (!params.data) return '';
           const entry = params.data;
-          const playerName = entry.meta?.name || params.value || '';
+          const playerName = entry.meta?.displayName || entry.meta?.name || '';
           return `<button type="button" class="stats-player-btn" 
                     data-player-id="${entry.meta?.playerId || ''}" 
                     title="${entry.meta?.fullName || playerName}">${playerName}</button>`;
@@ -887,7 +887,7 @@
       } else if (column === 'POS') {
         colDef.cellRenderer = (params) => {
           if (!params.data) return '';
-          const pos = params.data.meta?.pos || params.value || '';
+          const pos = params.data.meta?.pos || '';
           return `<span class="player-tag modal-pos-tag ${pos}">${pos}</span>`;
         };
       } else if (column === 'VALUE') {
@@ -899,6 +899,11 @@
           return `<span class="stats-value-chip" style="${style}">${display}</span>`;
         };
       } else if (column === 'TM') {
+        // TM needs valueGetter to access data.row.TM
+        colDef.valueGetter = (params) => {
+          if (!params.data || !params.data.row) return '';
+          return params.data.row[column] || '';
+        };
         colDef.cellRenderer = (params) => {
           if (!params.data) return '';
           const entry = params.data;
@@ -917,23 +922,56 @@
           return `<span class="stats-team-chip" style="${teamStyle}">${teamValue}</span>`;
         };
       } else if (column === 'AGE') {
+        // AGE needs valueGetter + special formatting
+        colDef.valueGetter = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          const rawValue = entry.row?.[column];
+          const formatted = formatSheetCellValue(column, rawValue);
+          if (formatted !== '') return formatted;
+          if (!Number.isFinite(entry.meta?.age) || entry.meta.age <= 0) return '';
+          return formatDecimal(entry.meta.age, 1);
+        };
         colDef.cellStyle = (params) => {
           if (!params.data) return null;
           return { color: params.data.meta?.ageColor };
         };
         colDef.cellClass = 'stats-age-cell';
       } else if (column === 'FPTS') {
+        // FPTS needs valueGetter + special formatting
+        colDef.valueGetter = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          if (Number.isFinite(entry.meta?.fpts)) return formatInteger(entry.meta.fpts);
+          const rawValue = entry.row?.[column];
+          return formatSheetCellValue(column, rawValue);
+        };
         colDef.cellStyle = (params) => {
           if (!params.data) return null;
           return { color: params.data.meta?.fptsColor };
         };
         colDef.cellClass = 'stats-fpts-cell';
       } else if (column === 'PPG') {
+        // PPG needs valueGetter + special formatting
+        colDef.valueGetter = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          if (Number.isFinite(entry.meta?.ppg)) return formatDecimal(entry.meta.ppg, 1);
+          const rawValue = entry.row?.[column];
+          return formatSheetCellValue(column, rawValue);
+        };
         colDef.cellStyle = (params) => {
           if (!params.data) return null;
           return { color: params.data.meta?.ppgColor };
         };
         colDef.cellClass = 'stats-ppg-cell';
+      } else {
+        // ALL OTHER COLUMNS: Add valueGetter to access data.row[column]
+        colDef.valueGetter = (params) => {
+          if (!params.data || !params.data.row) return '';
+          const rawValue = params.data.row[column];
+          return formatSheetCellValue(column, rawValue);
+        };
       }
       
       return colDef;
@@ -976,6 +1014,11 @@
       suppressCellFocus: true,
       suppressRowHoverHighlight: false,
       enableCellTextSelection: true,
+      suppressColumnVirtualisation: true,  // Disable column virtualization for smoother horizontal scroll
+      suppressHorizontalScroll: true,      // Disable AG Grid's horizontal scroll - unified container handles it
+      enableBrowserTooltips: true,         // Use native tooltips for better performance
+      suppressAnimationFrame: false,       // Use RAF for smooth rendering
+      domLayout: 'normal',                 // Normal layout to work with unified scroll container
       onCellClicked: (event) => {
         // Handle player button clicks
         if (event.event.target.classList.contains('stats-player-btn')) {
