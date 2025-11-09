@@ -16,6 +16,8 @@
 <link href="../styles/stats.css?v=20250827" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- AG Grid Community Edition -->
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c"/>
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c"/>
 <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c"/>
@@ -138,92 +140,12 @@
         <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
       </div>
       <div class="stats-table-wrapper" data-tab-panel="oneQb">
-        <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 Grid - EXACT reference structure -->
-          <div class="stats-table-grid">
-            
-            <!-- TOP-LEFT: Frozen Corner -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <div class="stats-scroll-surface stats-scroll-surface-corner">
-                <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-1qb">
-                  <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
-                  <thead></thead>
-                </table>
-              </div>
-            </div>
-            
-            <!-- TOP-RIGHT: Scrollable Header -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header">
-              <div class="stats-scroll-surface stats-scroll-surface-header" data-sync-target="header">
-                <table class="stats-table stats-table-scrollable">
-                  <thead></thead>
-                </table>
-              </div>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns">
-              <div class="stats-scroll-surface stats-scroll-surface-columns" data-sync-target="columns">
-                <table class="stats-table stats-table-frozen">
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Main Scrollable Data -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data">
-              <div class="stats-scroll-surface stats-scroll-surface-master" data-scroll-master="true" tabindex="0">
-                <table class="stats-table stats-table-scrollable">
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- AG Grid Container -->
+        <div id="statsGrid1qb" class="ag-theme-alpine-dark stats-ag-grid"></div>
       </div>
       <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
-        <div class="stats-table-quadrant-wrapper">
-          <!-- 2×2 Grid - EXACT reference structure -->
-          <div class="stats-table-grid">
-            
-            <!-- TOP-LEFT: Frozen Corner -->
-            <div class="stats-quadrant stats-quadrant-frozen-corner">
-              <div class="stats-scroll-surface stats-scroll-surface-corner">
-                <table class="stats-table stats-table-frozen" aria-describedby="statsTableCaption-sflx">
-                  <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
-                  <thead></thead>
-                </table>
-              </div>
-            </div>
-            
-            <!-- TOP-RIGHT: Scrollable Header -->
-            <div class="stats-quadrant stats-quadrant-scrollable-header">
-              <div class="stats-scroll-surface stats-scroll-surface-header" data-sync-target="header">
-                <table class="stats-table stats-table-scrollable">
-                  <thead></thead>
-                </table>
-              </div>
-            </div>
-            
-            <!-- BOTTOM-LEFT: Frozen Columns -->
-            <div class="stats-quadrant stats-quadrant-frozen-columns">
-              <div class="stats-scroll-surface stats-scroll-surface-columns" data-sync-target="columns">
-                <table class="stats-table stats-table-frozen">
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            
-            <!-- BOTTOM-RIGHT: Main Scrollable Data -->
-            <div class="stats-quadrant stats-quadrant-scrollable-data">
-              <div class="stats-scroll-surface stats-scroll-surface-master" data-scroll-master="true" tabindex="0">
-                <table class="stats-table stats-table-scrollable">
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- AG Grid Container -->
+        <div id="statsGridSflx" class="ag-theme-alpine-dark stats-ag-grid"></div>
       </div>
       <div class="stats-empty-state hidden" id="statsEmptyState">
         <p>No players match the current filters.</p>

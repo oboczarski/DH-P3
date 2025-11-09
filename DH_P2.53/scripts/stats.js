@@ -225,6 +225,16 @@
     return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
   }
   
+  // ============================================
+  // AG GRID STATE AND INSTANCES
+  // ============================================
+  const agGridState = {
+    grid1qb: null,      // AG Grid API for 1QB tab
+    gridSflx: null,     // AG Grid API for SFLX tab  
+    gridOptions1qb: null,
+    gridOptionsSflx: null
+  };
+  
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -827,92 +837,182 @@
     }
   }
   
-  function initializeScrollSync(wrapper) {
-    // TRANSFORM-BASED SYNC: Use GPU-accelerated transforms for zero-lag synchronization
-    const master = wrapper.querySelector('[data-scroll-master="true"]');
-    const headerTarget = wrapper.querySelector('[data-sync-target="header"]');
-    const columnsTarget = wrapper.querySelector('[data-sync-target="columns"]');
-    
-    if (!master || !headerTarget || !columnsTarget) return;
-    
-    if (typeof master._scrollSyncCleanup === 'function') {
-      master._scrollSyncCleanup();
-    }
-    
-    // Get the actual table elements that will be transformed
-    const headerTable = headerTarget.querySelector('table');
-    const columnsTable = columnsTarget.querySelector('table');
-    
-    if (!headerTable || !columnsTable) return;
-    
-    // Track RAF state to prevent multiple queued frames
-    let rafPending = false;
-    let lastScrollLeft = 0;
-    let lastScrollTop = 0;
-    
-    const syncDependents = () => {
-      const scrollLeft = master.scrollLeft;
-      const scrollTop = master.scrollTop;
+  // ============================================
+  // AG GRID HELPER FUNCTIONS
+  // ============================================
+  
+  /**
+   * Create AG Grid column definitions from column set
+   */
+  function createAgGridColumnDefs(columnSet, headerLabels) {
+    return columnSet.map((column, index) => {
+      const isPinned = index < 3; // First 3 columns are frozen (RK, PLAYER, POS)
+      const displayLabel = headerLabels.get(column) || column;
+      const category = getColumnCategory(column);
       
-      // Only update if position actually changed (performance optimization)
-      if (scrollLeft !== lastScrollLeft) {
-        // Move header horizontally via transform (GPU-accelerated)
-        headerTable.style.transform = `translate3d(${-scrollLeft}px, 0, 0)`;
-        lastScrollLeft = scrollLeft;
+      const colDef = {
+        field: column,
+        headerName: displayLabel,
+        width: getColumnWidth(column),
+        sortable: true,
+        resizable: false,
+        pinned: isPinned ? 'left' : null,
+        headerClass: `stats-header-${category}`,
+        suppressMovable: true,
+        lockPosition: isPinned ? 'left' : false
+      };
+      
+      // Custom cell renderers for special columns
+      if (column === 'RK') {
+        colDef.cellRenderer = (params) => {
+          if (!params.data) return '';
+          const rank = params.data.meta?.currentRank;
+          if (Number.isFinite(rank)) {
+            const color = getRankColorValue(rank);
+            return `<span style="color: ${color}">${rank}</span>`;
+          }
+          return params.value || '';
+        };
+        colDef.cellClass = 'stats-rank-cell';
+      } else if (column === 'PLAYER') {
+        colDef.cellRenderer = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          const playerName = entry.meta?.name || params.value || '';
+          return `<button type="button" class="stats-player-btn" 
+                    data-player-id="${entry.meta?.playerId || ''}" 
+                    title="${entry.meta?.fullName || playerName}">${playerName}</button>`;
+        };
+        colDef.cellClass = 'stats-player-cell';
+      } else if (column === 'POS') {
+        colDef.cellRenderer = (params) => {
+          if (!params.data) return '';
+          const pos = params.data.meta?.pos || params.value || '';
+          return `<span class="player-tag modal-pos-tag ${pos}">${pos}</span>`;
+        };
+      } else if (column === 'VALUE') {
+        colDef.cellRenderer = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          const display = Number.isFinite(entry.meta?.value) ? Math.round(entry.meta.value) : '';
+          const style = entry.meta?.valueStyle || '';
+          return `<span class="stats-value-chip" style="${style}">${display}</span>`;
+        };
+      } else if (column === 'TM') {
+        colDef.cellRenderer = (params) => {
+          if (!params.data) return '';
+          const entry = params.data;
+          const teamValue = params.value || '';
+          if (entry.meta?.pos === 'RDP') {
+            return `<span style="color: var(--color-text-secondary);">RDP</span>`;
+          }
+          const teamKey = (teamValue || 'FA').toUpperCase();
+          const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+          const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+          const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+          if (teamKey && teamKey !== 'FA') {
+            return `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`;
+          }
+          const teamStyle = entry.meta?.teamStyle || '';
+          return `<span class="stats-team-chip" style="${teamStyle}">${teamValue}</span>`;
+        };
+      } else if (column === 'AGE') {
+        colDef.cellStyle = (params) => {
+          if (!params.data) return null;
+          return { color: params.data.meta?.ageColor };
+        };
+        colDef.cellClass = 'stats-age-cell';
+      } else if (column === 'FPTS') {
+        colDef.cellStyle = (params) => {
+          if (!params.data) return null;
+          return { color: params.data.meta?.fptsColor };
+        };
+        colDef.cellClass = 'stats-fpts-cell';
+      } else if (column === 'PPG') {
+        colDef.cellStyle = (params) => {
+          if (!params.data) return null;
+          return { color: params.data.meta?.ppgColor };
+        };
+        colDef.cellClass = 'stats-ppg-cell';
       }
       
-      if (scrollTop !== lastScrollTop) {
-        // Move columns vertically via transform (GPU-accelerated)
-        columnsTable.style.transform = `translate3d(0, ${-scrollTop}px, 0)`;
-        lastScrollTop = scrollTop;
-      }
-      
-      rafPending = false;
-    };
-    
-    const onMasterScroll = () => {
-      // Use RAF to sync with browser's paint cycle for buttery-smooth updates
-      if (!rafPending) {
-        rafPending = true;
-        requestAnimationFrame(syncDependents);
-      }
-    };
-    
-    master.addEventListener('scroll', onMasterScroll, { passive: true });
-    
-    // Keep proxy handlers for wheel/touch events on frozen areas
-    const cleanupHeaderProxy = proxyScrollIntent(headerTarget, master, 'x');
-    const cleanupColumnProxy = proxyScrollIntent(columnsTarget, master, 'y');
-    
-    // Initial sync
-    syncDependents();
-    
-    master._scrollSyncCleanup = () => {
-      master.removeEventListener('scroll', onMasterScroll);
-      cleanupHeaderProxy();
-      cleanupColumnProxy();
-      // Reset transforms
-      headerTable.style.transform = '';
-      columnsTable.style.transform = '';
-      master._scrollSyncCleanup = null;
-    };
+      return colDef;
+    });
   }
   
-  function renderTable() {
-    const dataset = getActiveDataset();
-    const baseColumnSet = getColumnSet();
-    const availableColumns = statsState.availableColumns.get(statsState.currentTab);
+  /**
+   * Initialize AG Grid for a specific tab
+   */
+  function initializeAgGrid(tabKey) {
+    const gridId = tabKey === 'oneQb' ? 'statsGrid1qb' : 'statsGridSflx';
+    const gridDiv = document.getElementById(gridId);
+    
+    if (!gridDiv) {
+      console.error(`Grid container not found: ${gridId}`);
+      return null;
+    }
+    
+    const dataset = statsState.datasets.get(tabKey) || [];
+    const baseColumnSet = COLUMN_SETS[statsState.activePosition] || COLUMN_SETS.default;
+    const availableColumns = statsState.availableColumns.get(tabKey);
     const columnSet = baseColumnSet.filter((column, index) => {
       if (index < 3) return true;
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
-    const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
+    const headerLabels = statsState.headerLabels.get(tabKey) || new Map();
+    
+    const columnDefs = createAgGridColumnDefs(columnSet, headerLabels);
+    
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: [],
+      defaultColDef: {
+        sortable: true,
+        filter: false,
+        resizable: false
+      },
+      animateRows: false,
+      suppressCellFocus: true,
+      suppressRowHoverHighlight: false,
+      enableCellTextSelection: true,
+      onCellClicked: (event) => {
+        // Handle player button clicks
+        if (event.event.target.classList.contains('stats-player-btn')) {
+          const rowData = event.data;
+          if (rowData) {
+            openGameLogs(rowData);
+          }
+        }
+      }
+    };
+    
+    // Create AG Grid instance
+    const grid = agGrid.createGrid(gridDiv, gridOptions);
+    
+    // Store references
+    if (tabKey === 'oneQb') {
+      agGridState.grid1qb = grid;
+      agGridState.gridOptions1qb = gridOptions;
+    } else {
+      agGridState.gridSflx = grid;
+      agGridState.gridOptionsSflx = gridOptions;
+    }
+    
+    return grid;
+  }
+  
+  /**
+   * AG GRID-BASED RENDER TABLE
+   * Replaces manual DOM manipulation with AG Grid
+   */
+  function renderTable() {
+    const dataset = getActiveDataset();
     const filtered = dataset.filter(passesFilters);
-    const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
-      ? statsState.sort.column
-      : 'RK';
+    const sortColumn = statsState.sort.column || 'RK';
     const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
+    
+    // Sorting logic (same as before)
     const sortCollection = (collection) => {
       if (!collection.length) return [];
       if (statsState.sort.direction === 0 || !statsState.sort.column) {
@@ -920,11 +1020,11 @@
       }
       return getSortedRows(collection, sortColumn);
     };
+    
     let rows;
     if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
       rows = [...filtered];
     } else {
-      // Optimize: single pass to separate players and picks
       const playerRows = [];
       const pickRows = [];
       filtered.forEach((entry) => {
@@ -937,194 +1037,48 @@
       const sortedPlayers = sortCollection(playerRows);
       rows = [...sortedPlayers, ...pickRows];
     }
-    // After sorting and filtering, re-assign ranks
+    
+    // Re-assign current ranks
     rows.forEach((entry, index) => {
       if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
-        entry.meta.currentRank = null; // Or some other placeholder for picks
+        entry.meta.currentRank = null;
       }
     });
     
-    // === NEW 4-QUADRANT RENDERING ===
+    // Show correct wrapper
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
     
-    // Get quadrant wrapper
-    const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
-    if (!quadrantWrapper) {
-      console.error('Quadrant wrapper not found in', wrapper);
+    // Get or create AG Grid for current tab
+    let grid = statsState.currentTab === 'oneQb' ? agGridState.grid1qb : agGridState.gridSflx;
+    
+    if (!grid) {
+      // Initialize AG Grid on first render
+      grid = initializeAgGrid(statsState.currentTab);
+      if (!grid) {
+        console.error('Failed to initialize AG Grid');
       return;
-    }
-    
-    // Split columns into frozen and scrollable
-    const { frozenColumns, scrollableColumns } = splitColumnsForQuadrants(columnSet);
-    
-    // Get all 4 quadrants
-    const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner');
-    const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header');
-    const frozenColumnsQuad = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns');
-    const scrollableData = quadrantWrapper.querySelector('.stats-quadrant-scrollable-data');
-    
-    // Get all table parts
-    const frozenCornerThead = frozenCorner?.querySelector('thead');
-    const scrollableHeaderThead = scrollableHeader?.querySelector('thead');
-    const frozenColumnsTbody = frozenColumnsQuad?.querySelector('tbody');
-    const scrollableDataTbody = scrollableData?.querySelector('tbody');
-    
-    // Clear existing content
-    if (frozenCornerThead) frozenCornerThead.innerHTML = '';
-    if (scrollableHeaderThead) scrollableHeaderThead.innerHTML = '';
-    if (frozenColumnsTbody) frozenColumnsTbody.innerHTML = '';
-    if (scrollableDataTbody) scrollableDataTbody.innerHTML = '';
-    
-    // === RENDER FROZEN CORNER HEADERS ===
-    if (frozenCornerThead) {
-      const headerRow = document.createElement('tr');
-      frozenColumns.forEach((column) => {
-        const th = document.createElement('th');
-        applyColumnWidth(th, column);  // Apply width directly to cell
-        const displayLabel = headerLabels.get(column) || column;
-        th.textContent = displayLabel;
-        const category = getColumnCategory(column);
-        th.classList.add(`stats-header-${category}`);
-        if (column === 'RK') th.classList.add('stats-rank-cell');
-        if (column === 'PLAYER') th.classList.add('stats-player-cell');
-        th.dataset.columnKey = column;
-        headerRow.appendChild(th);
-      });
-      frozenCornerThead.appendChild(headerRow);
-      
-      // Apply sort indicator if needed
-      clearSortIndicators(headerRow);
-      if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-        const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-        if (activeHeader) applySortIndicator(activeHeader);
       }
     }
     
-    // === RENDER SCROLLABLE HEADERS ===
-    if (scrollableHeaderThead) {
-      const headerRow = document.createElement('tr');
-      scrollableColumns.forEach((column) => {
-        const th = document.createElement('th');
-        applyColumnWidth(th, column);  // Apply width directly to cell
-        const displayLabel = headerLabels.get(column) || column;
-        th.textContent = displayLabel;
-        const category = getColumnCategory(column);
-        th.classList.add(`stats-header-${category}`);
-        th.dataset.columnKey = column;
-        headerRow.appendChild(th);
-      });
-      scrollableHeaderThead.appendChild(headerRow);
-      
-      // Apply sort indicator if needed
-      clearSortIndicators(headerRow);
-      if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-        const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-        if (activeHeader) applySortIndicator(activeHeader);
-      }
-    }
-    
-    // === RENDER DATA ROWS ===
-    const frozenFragment = document.createDocumentFragment();
-    const scrollableFragment = document.createDocumentFragment();
-    
-    rows.forEach((entry) => {
-      // Frozen columns row
-      const frozenTr = document.createElement('tr');
-      frozenColumns.forEach((column) => {
-        const td = document.createElement('td');
-        applyColumnWidth(td, column);  // Apply width directly to cell
-        const rawValue = formatCellValue(column, entry);
-        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        
-        if (column === 'RK') {
-          td.classList.add('stats-rank-cell');
-          const rankForColor = entry.meta.currentRank;
-          if (Number.isFinite(rankForColor)) {
-            td.style.color = getRankColorValue(rankForColor);
-          }
-          td.textContent = textValue;
-        } else if (column === 'PLAYER') {
-          td.classList.add('stats-player-cell');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'stats-player-btn';
-          btn.textContent = textValue;
-          btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
-          td.appendChild(btn);
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
-        } else {
-          td.textContent = textValue;
-        }
-        
-        frozenTr.appendChild(td);
-      });
-      frozenFragment.appendChild(frozenTr);
-      
-      // Scrollable columns row
-      const scrollableTr = document.createElement('tr');
-      scrollableColumns.forEach((column) => {
-        const td = document.createElement('td');
-        applyColumnWidth(td, column);  // Apply width directly to cell
-        const rawValue = formatCellValue(column, entry);
-        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        
-        if (column === 'VALUE') {
-          const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
-          td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
-        } else if (column === 'TM') {
-          if (entry.meta.pos === 'RDP') {
-            td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
-          } else {
-            const teamKey = (textValue || 'FA').toUpperCase();
-            const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-            const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-            const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-            td.innerHTML = (teamKey && teamKey !== 'FA')
-              ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-              : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-          }
-        } else {
-          td.textContent = textValue;
-        }
-        
-        // Apply color coding
-        if (column === 'AGE') {
-          td.style.color = entry.meta.ageColor;
-          td.classList.add('stats-age-cell');
-        } else if (column === 'FPTS') {
-          td.style.color = entry.meta.fptsColor;
-          td.classList.add('stats-fpts-cell');
-        } else if (column === 'PPG') {
-          td.style.color = entry.meta.ppgColor;
-          td.classList.add('stats-ppg-cell');
-        }
-        
-        scrollableTr.appendChild(td);
-      });
-      scrollableFragment.appendChild(scrollableTr);
+    // Update column definitions based on current filters
+    const baseColumnSet = getColumnSet();
+    const availableColumns = statsState.availableColumns.get(statsState.currentTab);
+    const columnSet = baseColumnSet.filter((column, index) => {
+      if (index < 3) return true;
+      if (!availableColumns) return true;
+      return availableColumns.has(column);
     });
+    const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
+    const columnDefs = createAgGridColumnDefs(columnSet, headerLabels);
     
-    // Insert fragments
-    if (frozenColumnsTbody) {
-      frozenColumnsTbody.appendChild(frozenFragment);
-      frozenColumnsTbody._statsRows = rows;
-    }
-    if (scrollableDataTbody) {
-      scrollableDataTbody.appendChild(scrollableFragment);
-      scrollableDataTbody._statsRows = rows;
-    }
-    
-    enforceSurfaceDimensions(quadrantWrapper);
-    // Initialize scroll synchronization
-    initializeScrollSync(quadrantWrapper);
+    // Update AG Grid
+    grid.setGridOption('columnDefs', columnDefs);
+    grid.setGridOption('rowData', rows);
     
     // Empty state handling
     if (!rows.length) {
@@ -1539,46 +1493,8 @@
     });
   }
   
-  dom.tableWrappers.forEach((wrapper) => {
-    // Event delegation for sort clicks - needs both frozen corner and scrollable header
-    const quadrantWrapper = wrapper.querySelector('.stats-table-quadrant-wrapper');
-    if (quadrantWrapper) {
-      const frozenCorner = quadrantWrapper.querySelector('.stats-quadrant-frozen-corner thead');
-      const scrollableHeader = quadrantWrapper.querySelector('.stats-quadrant-scrollable-header thead');
-      
-      if (frozenCorner) frozenCorner.addEventListener('click', handleSortClick);
-      if (scrollableHeader) scrollableHeader.addEventListener('click', handleSortClick);
-      
-      // Event delegation for player buttons in frozen columns
-      const frozenColumnsTbody = quadrantWrapper.querySelector('.stats-quadrant-frozen-columns tbody');
-      if (frozenColumnsTbody) {
-        frozenColumnsTbody.addEventListener('click', (event) => {
-          const btn = event.target.closest('.stats-player-btn');
-          if (!btn) return;
-          const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-          const rows = frozenColumnsTbody._statsRows;
-          if (rows && rows[entryIndex]) {
-            openGameLogs(rows[entryIndex]);
-          }
-        });
-      }
-    } else {
-      // Fallback for old structure if it exists
-      const thead = wrapper.querySelector('thead');
-      const tbody = wrapper.querySelector('tbody');
-      if (thead) thead.addEventListener('click', handleSortClick);
-      if (tbody) {
-        tbody.addEventListener('click', (event) => {
-          const btn = event.target.closest('.stats-player-btn');
-          if (!btn) return;
-          const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-          const rows = tbody._statsRows;
-          if (rows && rows[entryIndex]) {
-            openGameLogs(rows[entryIndex]);
-          }
-        });
-      }
-    }
-  });
+  // AG Grid handles click events internally via onCellClicked callback
+  // No need for manual event delegation
+  
   initialise();
 })();

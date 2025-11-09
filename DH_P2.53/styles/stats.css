@@ -1198,3 +1198,113 @@ body[data-page="stats"] .glass-panel {
   border-radius: 10px;
   box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
 }
+
+/* ============================================ */
+/* AG GRID INTEGRATION - GLASS DESIGN */
+/* ============================================ */
+
+.stats-ag-grid {
+  width: 100%;
+  height: 70vh;
+  max-height: 700px;
+}
+
+/* Override AG Grid's dark theme with glass design */
+.stats-ag-grid.ag-theme-alpine-dark {
+  --ag-background-color: transparent;
+  --ag-odd-row-background-color: rgba(88, 98, 152, 0.02);
+  --ag-header-background-color: rgba(83, 93, 146, 0.08);
+  --ag-border-color: rgba(255, 255, 255, 0.02);
+  --ag-row-border-color: rgba(255, 255, 255, 0.015);
+  --ag-foreground-color: #cbd5e1;
+  --ag-header-foreground-color: #94a3b8;
+  --ag-row-hover-color: rgba(88, 98, 152, 0.15);
+  --ag-selected-row-background-color: rgba(88, 98, 152, 0.25);
+  --ag-font-size: 0.8rem;
+  --ag-font-family: 'Quicksand', sans-serif;
+  --ag-header-height: 35px;
+  --ag-row-height: 35px;
+}
+
+/* Glass effect on pinned (frozen) columns */
+.stats-ag-grid .ag-pinned-left-header,
+.stats-ag-grid .ag-pinned-left-cols-container {
+  background: rgba(83, 93, 146, 0.08);
+  backdrop-filter: blur(8px) saturate(120%);
+  border-right: 1px solid rgba(255, 255, 255, 0.015);
+}
+
+/* Header styling */
+.stats-ag-grid .ag-header-cell {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem;
+}
+
+.stats-ag-grid .ag-header-cell-label {
+  justify-content: center;
+}
+
+/* Cell styling */
+.stats-ag-grid .ag-cell {
+  padding: 0.2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.5;
+}
+
+/* Scrollbar styling to match existing design */
+.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
+.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-track {
+  background: rgba(13, 18, 39, 0.05);
+  border-radius: 999px;
+}
+
+.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
+  border-radius: 999px;
+  border: 2px solid rgba(13, 18, 39, 0.35);
+  box-shadow: inset 0 0 6px rgba(12, 16, 34, 0.55);
+}
+
+.stats-ag-grid .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(126, 155, 214, 0.38), rgba(75, 100, 160, 0.32));
+}
+
+/* Remove AG Grid's default borders that conflict with glass design */
+.stats-ag-grid .ag-root-wrapper {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Sort indicator styling */
+.stats-ag-grid .ag-header-cell-sorted-asc .ag-header-cell-label::after {
+  content: ' ▲';
+  font-size: 0.5rem;
+  color: rgba(118, 109, 255, 0.9);
+}
+
+.stats-ag-grid .ag-header-cell-sorted-desc .ag-header-cell-label::after {
+  content: ' ▼';
+  font-size: 0.5rem;
+  color: rgba(118, 109, 255, 0.9);
+}
