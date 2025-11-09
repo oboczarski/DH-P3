@@ -910,7 +910,7 @@
       return table;
     };
 
-    // Create 4-quadrant grid structure
+    // Create grid structure: frozen columns on left, scrollable (game logs pattern) on right
     const container = document.createElement('div');
     container.className = 'stats-table-container';
     
@@ -929,13 +929,37 @@
     frozenCornerTable.appendChild(frozenCornerThead);
     frozenCorner.appendChild(frozenCornerTable);
     
-    // 2. Scrollable Header (top-right): Remaining headers
-    const scrollableHeader = document.createElement('div');
-    scrollableHeader.className = 'stats-quadrant-scrollable-header';
+    // 2. Scrollable section (right side): Use GAME LOGS PATTERN - spans both header and body rows
+    const scrollableContainer = document.createElement('div');
+    scrollableContainer.className = 'stats-scrollable-container';
+    
+    const hScroll = document.createElement('div');
+    hScroll.className = 'stats-hscroll';
+    
+    const hContent = document.createElement('div');
+    hContent.className = 'stats-hscroll-content';
+    
+    // Scrollable Header: Remaining headers
+    const scrollableHeaderWrapper = document.createElement('div');
+    scrollableHeaderWrapper.className = 'stats-table-header';
     const scrollableHeaderTable = createSectionTable(scrollableColumnSizes);
     const scrollableHeaderThead = document.createElement('thead');
     scrollableHeaderTable.appendChild(scrollableHeaderThead);
-    scrollableHeader.appendChild(scrollableHeaderTable);
+    scrollableHeaderWrapper.appendChild(scrollableHeaderTable);
+    
+    // Scrollable Body: Remaining columns body
+    const scrollableBodyWrapper = document.createElement('div');
+    scrollableBodyWrapper.className = 'stats-table-body';
+    const scrollableBodyTable = createSectionTable(scrollableColumnSizes);
+    const scrollableDataTbody = document.createElement('tbody');
+    scrollableBodyTable.appendChild(scrollableDataTbody);
+    scrollableBodyWrapper.appendChild(scrollableBodyTable);
+    
+    // Assemble scrollable section (game logs pattern - header and body in same hscroll)
+    hContent.appendChild(scrollableHeaderWrapper);
+    hContent.appendChild(scrollableBodyWrapper);
+    hScroll.appendChild(hContent);
+    scrollableContainer.appendChild(hScroll);
     
     // 3. Frozen Columns Body (bottom-left): First 3 columns body (vertical scroll only)
     const frozenColumnsBody = document.createElement('div');
@@ -944,14 +968,6 @@
     const frozenColumnsTbody = document.createElement('tbody');
     frozenColumnsTable.appendChild(frozenColumnsTbody);
     frozenColumnsBody.appendChild(frozenColumnsTable);
-    
-    // 4. Scrollable Data (bottom-right): Remaining columns body (master scroll)
-    const scrollableData = document.createElement('div');
-    scrollableData.className = 'stats-quadrant-scrollable-data';
-    const scrollableDataTable = createSectionTable(scrollableColumnSizes);
-    const scrollableDataTbody = document.createElement('tbody');
-    scrollableDataTable.appendChild(scrollableDataTbody);
-    scrollableData.appendChild(scrollableDataTable);
 
     // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
@@ -1004,7 +1020,7 @@
     });
     frozenCornerThead.appendChild(frozenCornerTr);
     
-    // Render scrollable header (remaining columns)
+    // Render scrollable header (remaining columns) - using game logs pattern
     const scrollableHeaderTr = document.createElement('tr');
     scrollableColumns.forEach((col, idx) => {
       const th = renderHeaderCell(col, idx, scrollableColumnSizes);
@@ -1035,7 +1051,7 @@
         });
         frozenColumnsTbody.appendChild(frozenTr);
         
-        // Scrollable columns row
+        // Scrollable columns row (goes in scrollable body, not scrollableData)
         const scrollableTr = document.createElement('tr');
         row.getVisibleCells().slice(FROZEN_COLUMN_COUNT).forEach((cell, cIdx) => {
           const td = renderBodyCell(cell.getValue(), scrollableColumns[cIdx], cIdx, scrollableColumnSizes);
@@ -1055,7 +1071,7 @@
         });
         frozenColumnsTbody.appendChild(frozenTr);
         
-        // Scrollable columns row
+        // Scrollable columns row (goes in scrollable body)
         const scrollableTr = document.createElement('tr');
         scrollableColumns.forEach((col, cIdx) => {
           const descriptor = rowData[col.id];
@@ -1074,69 +1090,68 @@
       frozenColumnsTable.style.minWidth = `${frozenWidth}px`;
     }
     if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
-      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
-      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
-      scrollableDataTable.style.width = `${scrollableWidth}px`;
-      scrollableDataTable.style.minWidth = `${scrollableWidth}px`;
+      const widthPx = `${scrollableWidth}px`;
+      scrollableHeaderTable.style.minWidth = widthPx;
+      scrollableHeaderTable.style.width = widthPx;
+      scrollableBodyTable.style.minWidth = widthPx;
+      scrollableBodyTable.style.width = widthPx;
     }
 
     // Assemble the grid structure
+    // Grid layout: 2x2
+    // Top row: frozenCorner | scrollableContainer (spans header area)
+    // Bottom row: frozenColumnsBody | scrollableContainer (spans body area)
+    // But scrollableContainer needs to span both rows since hscroll contains both header and body
     grid.appendChild(frozenCorner);
-    grid.appendChild(scrollableHeader);
+    grid.appendChild(scrollableContainer);
     grid.appendChild(frozenColumnsBody);
-    grid.appendChild(scrollableData);
+    // scrollableContainer already added above - it will span both rows via CSS
     container.appendChild(grid);
     wrapper.appendChild(container);
 
     // Initialize scroll positions
-    scrollableData.scrollLeft = 0;
-    scrollableData.scrollTop = 0;
-    scrollableHeader.scrollLeft = 0;
+    hScroll.scrollLeft = 0;
+    scrollableBodyWrapper.scrollTop = 0;
     frozenColumnsBody.scrollTop = 0;
 
-    // Scroll synchronization: scrollable-data is the master
-    let isScrolling = false;
-    let isHeaderScrolling = false;
-    
-    // Master scroll handler: scrollable-data controls everything
-    scrollableData.addEventListener('scroll', () => {
-      if (isScrolling || isHeaderScrolling) return;
-      isScrolling = true;
+    // Scroll synchronization
+    // Vertical: sync frozen columns body with scrollable body
+    let isVScrolling = false;
+    scrollableBodyWrapper.addEventListener('scroll', () => {
+      if (isVScrolling) return;
+      isVScrolling = true;
       requestAnimationFrame(() => {
-        // Sync horizontal scroll to scrollable header
-        scrollableHeader.scrollLeft = scrollableData.scrollLeft;
-        // Sync vertical scroll to frozen columns body
-        frozenColumnsBody.scrollTop = scrollableData.scrollTop;
-        isScrolling = false;
+        frozenColumnsBody.scrollTop = scrollableBodyWrapper.scrollTop;
+        isVScrolling = false;
       });
     }, { passive: true });
     
-    // If user scrolls scrollable header directly, sync back to scrollable data
-    scrollableHeader.addEventListener('scroll', () => {
-      if (isScrolling || isHeaderScrolling) return;
-      isHeaderScrolling = true;
+    frozenColumnsBody.addEventListener('scroll', () => {
+      if (isVScrolling) return;
+      isVScrolling = true;
       requestAnimationFrame(() => {
-        scrollableData.scrollLeft = scrollableHeader.scrollLeft;
-        isHeaderScrolling = false;
+        scrollableBodyWrapper.scrollTop = frozenColumnsBody.scrollTop;
+        isVScrolling = false;
       });
     }, { passive: true });
     
-    // Route wheel/trackpad gestures on frozen columns to scrollable data
-    frozenColumnsBody.addEventListener('wheel', (e) => {
+    // Route horizontal wheel/trackpad gestures on body to the shared hscroll
+    scrollableBodyWrapper.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableData.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-        e.preventDefault();
-      } else {
-        // Vertical scroll - sync to scrollable data
-        scrollableData.scrollTop += e.deltaY;
+        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
     
-    // Route wheel/trackpad gestures on scrollable header to scrollable data
-    scrollableHeader.addEventListener('wheel', (e) => {
+    // Route wheel/trackpad gestures on frozen columns
+    frozenColumnsBody.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableData.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        // Horizontal scroll - route to hscroll
+        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      } else {
+        // Vertical scroll - sync to scrollable body
+        scrollableBodyWrapper.scrollTop += e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });

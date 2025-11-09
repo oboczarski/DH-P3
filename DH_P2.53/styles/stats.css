@@ -717,19 +717,66 @@
     overflow: hidden;
 }
 
-/* 2. Scrollable Header (top-right): Remaining headers */
-.stats-quadrant-scrollable-header {
-    z-index: 20;
-    background: rgba(19, 23, 44, 0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-panel-border);
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
+/* 2. Scrollable Container (right side): Contains game logs pattern hscroll wrapper */
+.stats-scrollable-container {
+    grid-row: 1 / -1; /* Span both header and body rows */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
 }
 
-.stats-quadrant-scrollable-header::-webkit-scrollbar {
-    display: none;
+.stats-hscroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+}
+
+.stats-hscroll-content {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.stats-table-header {
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+}
+
+.stats-table-body {
+    max-height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden; /* horizontal handled by parent hscroll */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.06) transparent;
+}
+
+.stats-table-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+.stats-table-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.stats-table-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.12);
+}
+
+.stats-table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.stats-table-body::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 /* 3. Frozen Columns Body (bottom-left): First 3 columns body (vertical scroll only) */
@@ -762,40 +809,6 @@
 }
 
 .stats-quadrant-frozen-columns::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-/* 4. Scrollable Data (bottom-right): Remaining columns body (master scroll) */
-.stats-quadrant-scrollable-data {
-    z-index: 10;
-    overflow-x: auto;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.06) transparent;
-}
-
-.stats-quadrant-scrollable-data::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    background: transparent;
-}
-
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb {
-    background-color: rgba(255,255,255,0.06);
-    border-radius: 8px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-}
-
-.stats-quadrant-scrollable-data::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255,255,255,0.12);
-}
-
-.stats-quadrant-scrollable-data::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.stats-quadrant-scrollable-data::-webkit-scrollbar-corner {
     background: transparent;
 }
 
