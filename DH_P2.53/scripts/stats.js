@@ -881,12 +881,35 @@
       const table = document.createElement('table');
       table.className = 'stats-table';
       const colgroup = document.createElement('colgroup');
-      sizes.forEach(size => {
+      
+      // Verify columns and sizes match
+      if (cols.length !== sizes.length) {
+        console.error('Column/size mismatch in createSectionTable:', {
+          cols: cols.length,
+          sizes: sizes.length,
+          colsList: cols,
+          sizesList: sizes
+        });
+      }
+      
+      sizes.forEach((size, idx) => {
         const col = document.createElement('col');
-        col.style.width = `${size}px`;
+        const colWidth = size || DEFAULT_COLUMN_WIDTH;
+        col.style.width = `${colWidth}px`;
+        col.style.minWidth = `${colWidth}px`;
         colgroup.appendChild(col);
       });
+      
       table.appendChild(colgroup);
+      
+      // Verify colgroup has correct number of columns
+      if (colgroup.children.length !== cols.length) {
+        console.error('Colgroup column count mismatch:', {
+          expected: cols.length,
+          actual: colgroup.children.length
+        });
+      }
+      
       return table;
     };
 
@@ -915,9 +938,13 @@
     const scrollableHeader = document.createElement('div');
     scrollableHeader.className = 'stats-scrollable-header';
     const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    // Ensure header table has same width as body table for proper alignment
-    scrollableHeaderTable.style.width = `${scrollableWidth}px`;
-    scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
+    // Set width BEFORE appending to DOM for table-layout: fixed to work correctly
+    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
+      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
+      scrollableHeader.style.width = `${scrollableWidth}px`;
+      scrollableHeader.style.minWidth = `${scrollableWidth}px`;
+    }
     const scrollableHeaderThead = document.createElement('thead');
     scrollableHeaderTable.appendChild(scrollableHeaderThead);
     scrollableHeader.appendChild(scrollableHeaderTable);
@@ -945,8 +972,13 @@
     const scrollableBody = document.createElement('div');
     scrollableBody.className = 'stats-scrollable-body';
     const scrollableBodyTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    scrollableBodyTable.style.width = `${scrollableWidth}px`;
-    scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
+    // Set width BEFORE appending to DOM for table-layout: fixed to work correctly
+    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+      scrollableBodyTable.style.width = `${scrollableWidth}px`;
+      scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
+      scrollableBody.style.width = `${scrollableWidth}px`;
+      scrollableBody.style.minWidth = `${scrollableWidth}px`;
+    }
     const scrollableBodyTbody = document.createElement('tbody');
     scrollableBodyTable.appendChild(scrollableBodyTbody);
     scrollableBody.appendChild(scrollableBodyTable);
@@ -1017,12 +1049,27 @@
     // Helper to render body rows
     const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
       // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
+      if (cols.length !== sizes.length) {
+        console.error('Column/size mismatch in renderBodyRows:', {
+          cols: cols.length,
+          sizes: sizes.length,
+          colsList: cols,
+          sizesList: sizes
+        });
+      }
+      
       rowsData.forEach((rowData, idx) => {
         const tr = document.createElement('tr');
         cols.forEach((col, cIdx) => {
           const td = document.createElement('td');
           // Get the descriptor for this column from the full row data
           const descriptor = rowData[col];
+          
+          // Verify descriptor exists
+          if (!descriptor) {
+            console.warn(`Missing descriptor for column "${col}" in row ${idx}`);
+          }
+          
           // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
           applyCellDescriptor(td, descriptor);
           
@@ -1030,10 +1077,27 @@
           td.style.width = `${w}px`;
           td.style.minWidth = `${w}px`;
           td.style.maxWidth = `${w}px`;
+          // Ensure cell doesn't collapse
+          td.style.boxSizing = 'border-box';
           tr.appendChild(td);
         });
+        
+        // Verify row has correct number of cells
+        if (tr.cells.length !== cols.length) {
+          console.error(`Row ${idx} has ${tr.cells.length} cells but expected ${cols.length}`);
+        }
+        
         tbody.appendChild(tr);
       });
+      
+      // Verify all rows have correct number of cells
+      if (tbody.rows.length > 0 && tbody.rows[0].cells.length !== cols.length) {
+        console.error('Row cell count mismatch:', {
+          expected: cols.length,
+          actual: tbody.rows[0].cells.length,
+          totalRows: tbody.rows.length
+        });
+      }
     };
 
     // Debug: Log column splits
@@ -1113,22 +1177,85 @@
     // Set explicit widths for scrollable tables - MUST equal sum of all column widths for table-layout: fixed
     // This ensures ALL columns render, even if table is wider than viewport (enables horizontal scrolling)
     if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
-      // With table-layout: fixed, table width MUST equal sum of column widths for all columns to render
-      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
-      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
-      scrollableBodyTable.style.width = `${scrollableWidth}px`;
-      scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
-      // Ensure containers allow full width (don't constrain tables)
-      scrollableHeader.style.minWidth = `${scrollableWidth}px`;
-      scrollableBody.style.minWidth = `${scrollableWidth}px`;
+      // Verify scrollableWidth matches sum of column sizes - this is CRITICAL for table-layout: fixed
+      const calculatedWidth = scrollableColumnSizes.reduce((sum, size) => sum + (size || DEFAULT_COLUMN_WIDTH), 0);
+      const actualWidth = Math.max(scrollableWidth, calculatedWidth);
       
-      console.log('Table widths set:', {
+      console.log('Setting table widths:', {
         scrollableWidth,
+        calculatedWidth,
+        actualWidth,
         scrollableColumns: scrollableColumns.length,
         scrollableColumnSizes: scrollableColumnSizes,
-        calculatedWidth: scrollableColumnSizes.reduce((sum, size) => sum + (size || 0), 0),
-        headerTableStyleWidth: scrollableHeaderTable.style.width,
-        bodyTableStyleWidth: scrollableBodyTable.style.width
+        sumCheck: scrollableColumnSizes.reduce((sum, size) => sum + (size || DEFAULT_COLUMN_WIDTH), 0)
+      });
+      
+      // With table-layout: fixed, table width MUST equal sum of column widths for all columns to render
+      // Use setProperty to ensure it's applied and can override any CSS
+      scrollableHeaderTable.style.setProperty('width', `${actualWidth}px`, 'important');
+      scrollableHeaderTable.style.setProperty('min-width', `${actualWidth}px`, 'important');
+      scrollableBodyTable.style.setProperty('width', `${actualWidth}px`, 'important');
+      scrollableBodyTable.style.setProperty('min-width', `${actualWidth}px`, 'important');
+      
+      // Ensure containers allow full width (don't constrain tables)
+      scrollableHeader.style.setProperty('width', `${actualWidth}px`, 'important');
+      scrollableHeader.style.setProperty('min-width', `${actualWidth}px`, 'important');
+      scrollableBody.style.setProperty('width', `${actualWidth}px`, 'important');
+      scrollableBody.style.setProperty('min-width', `${actualWidth}px`, 'important');
+      
+      // Verify after a layout cycle
+      requestAnimationFrame(() => {
+        const headerCols = scrollableHeaderTable.querySelectorAll('colgroup col');
+        const bodyRowCells = scrollableBodyTbody.rows[0]?.cells.length || 0;
+        const headerCells = scrollableHeaderThead.querySelectorAll('th');
+        const headerColWidths = Array.from(headerCols).map(col => parseInt(col.style.width) || col.offsetWidth || 0);
+        const sumColWidths = headerColWidths.reduce((sum, w) => sum + w, 0);
+        
+        console.log('Table widths verification after layout:', {
+          scrollableWidth,
+          calculatedWidth,
+          actualWidth,
+          scrollableColumns: scrollableColumns.length,
+          headerColgroupCols: headerCols.length,
+          headerCells: headerCells.length,
+          bodyRowCells: bodyRowCells,
+          headerColWidths: headerColWidths,
+          sumColWidths: sumColWidths,
+          headerTableStyleWidth: scrollableHeaderTable.style.width,
+          bodyTableStyleWidth: scrollableBodyTable.style.width,
+          headerTableActualWidth: scrollableHeaderTable.offsetWidth,
+          bodyTableActualWidth: scrollableBodyTable.offsetWidth,
+          headerTableScrollWidth: scrollableHeaderTable.scrollWidth,
+          bodyTableScrollWidth: scrollableBodyTable.scrollWidth,
+          headerContainerWidth: scrollableHeader.offsetWidth,
+          bodyContainerWidth: scrollableBody.offsetWidth,
+          hScrollContainerWidth: hScrollContainer.offsetWidth,
+          hScrollContainerScrollWidth: hScrollContainer.scrollWidth,
+          canScroll: hScrollContainer.scrollWidth > hScrollContainer.offsetWidth,
+          allColumnsRendered: bodyRowCells === scrollableColumns.length && headerCells.length === scrollableColumns.length,
+          widthMatches: Math.abs(actualWidth - scrollableBodyTable.offsetWidth) < 2,
+          issue: bodyRowCells !== scrollableColumns.length ? `Mismatch: ${bodyRowCells} cells but ${scrollableColumns.length} columns` :
+                 (Math.abs(actualWidth - scrollableBodyTable.offsetWidth) > 2 ? `Width mismatch: table is ${scrollableBodyTable.offsetWidth}px but should be ${actualWidth}px` :
+                 (hScrollContainer.scrollWidth <= hScrollContainer.offsetWidth ? `Cannot scroll: scrollWidth ${hScrollContainer.scrollWidth} <= clientWidth ${hScrollContainer.offsetWidth}` : 'OK'))
+        });
+        
+        // Log first and last few cells to verify data is in all columns
+        if (scrollableBodyTbody.rows.length > 0) {
+          const firstRow = scrollableBodyTbody.rows[0];
+          const cellData = Array.from(firstRow.cells).map((cell, i) => ({
+            index: i,
+            col: scrollableColumns[i],
+            hasContent: cell.textContent.trim().length > 0 || cell.children.length > 0,
+            width: cell.offsetWidth,
+            content: cell.textContent.trim().substring(0, 30)
+          }));
+          console.log('First row cell data (all columns):', cellData);
+          if (cellData.length > 6) {
+            console.log('First 3 cells:', cellData.slice(0, 3));
+            console.log('Middle cells (4-6):', cellData.slice(3, 6));
+            console.log('Last 3 cells:', cellData.slice(-3));
+          }
+        }
       });
     }
     

@@ -743,6 +743,15 @@
     z-index: 2;
     overflow: visible;
     flex-shrink: 0;
+    /* Width will be set by JS to match table width - don't constrain */
+    display: block;
+}
+
+.stats-scrollable-header table {
+    /* Width is set inline via JS - don't override it */
+    border-collapse: collapse;
+    table-layout: fixed;
+    display: table;
 }
 
 /* Vertical scroll container (inside horizontal scroll - only body scrolls vertically) */
@@ -760,7 +769,8 @@
 .stats-vscroll-content {
     position: relative;
     min-height: 100%;
-    /* No padding - scrollable body starts at left: 0, frozen body is absolutely positioned outside */
+    /* Width is determined by scrollableBody - don't constrain it */
+    width: 100%;
 }
 
 .stats-vscroll-container::-webkit-scrollbar {
@@ -836,13 +846,16 @@
     position: relative;
     z-index: 3;
     background: transparent;
-    width: 100%;
+    /* Width will be set by JS to match table width - don't constrain */
+    display: block;
 }
 
 .stats-scrollable-body table {
     border-collapse: collapse;
-    /* Use fixed layout - width will be set by JS to sum of all column widths */
+    /* Use fixed layout - width MUST be set by JS to sum of all column widths */
     table-layout: fixed;
+    /* Width is set inline via JS - don't override it */
+    display: table;
 }
 
 /* Legacy classes for backward compatibility - remove if not needed */
