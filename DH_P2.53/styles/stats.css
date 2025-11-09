@@ -708,6 +708,7 @@
 .stats-hscroll-content {
     display: inline-block;
     vertical-align: top;
+    padding: 0px;
 }
 
 .stats-table-header {
@@ -766,14 +767,14 @@
 .stats-table th,
 .stats-table td {
     padding: 0.5rem;
-    text-align: left;
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .stats-table thead th {
-    background: rgba(19, 23, 44, 0.8);
+    background: rgb(30 34 51 / 17%);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-panel-border);
 }
@@ -881,6 +882,7 @@
 .stats-table thead th.stats-header-all {
   color: #ADA2FF;
   padding: 0.4rem 0.26rem;
+  text-align: center;
 }
 .stats-table thead th.stats-header-passing {
   color: #FFB2D8;
@@ -1071,6 +1073,7 @@
   /* Header category padding */
   .stats-table thead th.stats-header-all {
     padding: 0.3rem 0.195rem; /* 0.4rem * 0.75, 0.26rem * 0.75 */
+    text-align: center;
   }
 }
 
