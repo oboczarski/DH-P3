@@ -154,6 +154,77 @@
     { value: 280, color: '#c70097' },
     { value: 500, color: '#FF0080' }
   ];
+  
+  // Column width configuration (explicit pixel values for perfect alignment)
+  const STATS_COLUMN_WIDTHS = {
+    'RK': 44,
+    'PLAYER': 96,  // Reduced by half from 192
+    'POS': 52,
+    'TM': 52,
+    'AGE': 52,
+    'G': 52,
+    'FPTS': 76,
+    'PPG': 76,
+    'VALUE': 76,
+    'SNP%': 76,
+    'CAR': 64,
+    'ruYDS': 76,
+    'YPC': 64,
+    'ruTD': 64,
+    'REC': 64,
+    'recYDS': 76,
+    'TGT': 64,
+    'YDS(t)': 76,
+    'YPG(t)': 76,
+    'ruYPG': 76,
+    'ELU': 64,
+    'MTF/A': 76,
+    'YCO/A': 76,
+    'MTF': 64,
+    'YCO': 76,
+    'ru1D': 64,
+    'recTD': 64,
+    'rec1D': 64,
+    'YAC': 76,
+    'IMP/G': 76,
+    'FUM': 64,
+    'FPOE': 76,
+    'CSTY%': 90,
+    'CL': 64,
+    'paRTG': 76,
+    'paYDS': 76,
+    'paTD': 64,
+    'CMP%': 76,
+    'paATT': 64,
+    'CMP': 64,
+    'pa1D': 64,
+    'paYPG': 76,
+    'pIMP': 76,
+    'pIMP/A': 76,
+    'TTT': 64,
+    'PRS%': 76,
+    'SAC': 64,
+    'INT': 64,
+    'TS%': 64,
+    'YPRR': 76,
+    '1DRR': 64,
+    'recYPG': 76,
+    'YPR': 64,
+    'RR': 64,
+    'OPP': 64,
+    'IMP': 64,
+    'IMP/OPP': 76
+  };
+  
+  const DEFAULT_COLUMN_WIDTH = 76;
+  
+  function getColumnWidth(columnKey) {
+    const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
+    // Scale down by 25% on mobile (600px and below)
+    const isMobile = window.innerWidth <= 600;
+    return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
+  }
+  
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -163,7 +234,8 @@
     datasets: new Map(),
     headerLabels: new Map(),
     availableColumns: new Map(),
-    rankCache: null
+    rankCache: null,
+    lastRenderedRows: []
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
@@ -636,11 +708,6 @@
     if (raw === undefined || raw === null) return '';
     return raw;
   }
-  function clearSortIndicators(headerRow) {
-    headerRow.querySelectorAll('th').forEach((th) => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc');
-    });
-  }
   function applySortIndicator(target) {
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
@@ -648,20 +715,29 @@
       target.classList.add('stats-sort-desc');
     }
   }
+  
   function renderTable() {
+    if (!window.TableCore) {
+      console.error('TanStack Table library not loaded.');
+      return;
+    }
+    const { createTable, getCoreRowModel } = window.TableCore;
+
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
     const columnSet = baseColumnSet.filter((column, index) => {
-      if (index < 3) return true;
+      if (index < 3) return true; // Always show first 3 columns
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
+
     const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
     const filtered = dataset.filter(passesFilters);
     const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
       ? statsState.sort.column
       : 'RK';
+
     const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
     const sortCollection = (collection) => {
       if (!collection.length) return [];
@@ -670,11 +746,11 @@
       }
       return getSortedRows(collection, sortColumn);
     };
-    let rows;
+
+    let sortedRows;
     if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
-      rows = [...filtered];
+      sortedRows = [...filtered];
     } else {
-      // Optimize: single pass to separate players and picks
       const playerRows = [];
       const pickRows = [];
       filtered.forEach((entry) => {
@@ -685,146 +761,322 @@
         }
       });
       const sortedPlayers = sortCollection(playerRows);
-      rows = [...sortedPlayers, ...pickRows];
+      sortedRows = [...sortedPlayers, ...pickRows];
     }
-    // After sorting and filtering, re-assign ranks
-    rows.forEach((entry, index) => {
+
+    sortedRows.forEach((entry, index) => {
       if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
-        entry.meta.currentRank = null; // Or some other placeholder for picks
+        entry.meta.currentRank = null;
       }
     });
+    
+    statsState.lastRenderedRows = sortedRows;
+
+    // --- Data Transformation for TanStack Table ---
+    const createTextDescriptor = (text, style) => ({
+      render: (td) => {
+        td.textContent = text;
+        if (style) Object.assign(td.style, style);
+      }
+    });
+
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue = formatCellValue(column, entry);
+        if (column === 'PLAYER') {
+          rowData[column] = {
+            render: (td) => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'stats-player-btn';
+              button.dataset.playerId = entry.meta.playerId;
+              button.dataset.entryIndex = entryIndex;
+              button.textContent = textValue;
+              td.appendChild(button);
+            }
+          };
+        } else if (column === 'VALUE') {
+          rowData[column] = {
+            render: (td) => {
+              const span = document.createElement('span');
+              span.className = 'stats-value-chip';
+              span.style.cssText = entry.meta.valueStyle;
+              span.textContent = textValue;
+              td.appendChild(span);
+            }
+          };
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+              } else {
+                const teamKey = (textValue || 'FA').toUpperCase();
+                const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+                const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+                const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+                td.innerHTML = (teamKey && teamKey !== 'FA')
+                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+              }
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(textValue);
+        }
+      }
+      return rowData;
+    });
+
+    const columns = columnSet.map(column => ({
+      id: column,
+      accessorKey: column,
+      header: () => headerLabels.get(column) || column,
+      size: getColumnWidth(column),
+    }));
+
+    // Calculate column sizes
+    let columnSizes = columns.map(col => Number.isFinite(col.size) ? col.size : DEFAULT_COLUMN_WIDTH);
+    
+    // Create TanStack table instance (without column pinning)
+    let tableInstance = null;
+    try {
+      tableInstance = createTable({
+        data: tableRows,
+        columns: columns,
+        state: {
+          columnOrder: columnSet,
+        },
+        onStateChange: () => {},
+        getCoreRowModel: getCoreRowModel(),
+        columnResizeMode: 'onChange',
+        defaultColumn: {
+          size: DEFAULT_COLUMN_WIDTH,
+          minSize: 32,
+        },
+        renderFallbackValue: '',
+      });
+      
+      // Get actual column sizes from TanStack if available
+      if (typeof tableInstance.getVisibleLeafColumns === 'function') {
+        const leaf = tableInstance.getVisibleLeafColumns();
+        if (Array.isArray(leaf) && leaf.length === columns.length) {
+          columnSizes = leaf.map((col, i) => {
+            const s = typeof col.getSize === 'function' ? col.getSize() : undefined;
+            return Number.isFinite(s) ? s : (Number.isFinite(columns[i].size) ? columns[i].size : DEFAULT_COLUMN_WIDTH);
+          });
+        }
+      }
+    } catch (e) {
+      console.error('TanStack createTable failed; using manual renderer', e);
+      tableInstance = null;
+    }
+
+    // --- Game Logs Pattern: Separate Header/Body Tables ---
     const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const table = wrapper.querySelector('.stats-table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
-    table.style.setProperty('--stats-table-width', widthExpression);
-    const existingColgroup = table.querySelector('colgroup');
-    if (existingColgroup) existingColgroup.remove();
-    const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
-      const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
-      }
-      colgroup.appendChild(col);
-    });
-    table.insertBefore(colgroup, thead);
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    const headerRow = document.createElement('tr');
-    columnSet.forEach((column, index) => {
-      const th = document.createElement('th');
-      const displayLabel = headerLabels.get(column) || column;
-      th.textContent = displayLabel;
-      const category = getColumnCategory(column);
-      th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
-      th.dataset.columnKey = column;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    clearSortIndicators(headerRow);
-    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-      if (activeHeader) applySortIndicator(activeHeader);
-    }
-    // Use DocumentFragment for batch DOM insertion (massive performance boost)
-    const fragment = document.createDocumentFragment();
-    rows.forEach((entry) => {
-      const tr = document.createElement('tr');
-      columnSet.forEach((column, index) => {
-        const td = document.createElement('td');
-        const rawValue = formatCellValue(column, entry);
-        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
-          const rankForColor = entry.meta.currentRank;
-          if (Number.isFinite(rankForColor)) {
-            td.style.color = getRankColorValue(rankForColor);
-          }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'stats-player-btn';
-          btn.textContent = textValue;
-          btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
-          btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
-          td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
-        }
-        if (index === 1) {
-          // handled above
-        } else if (column === 'VALUE') {
-          const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
-          td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
-        } else if (column === 'TM') {
-          if (entry.meta.pos === 'RDP') {
-            td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
-          } else {
-            const teamKey = (textValue || 'FA').toUpperCase();
-            const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-            const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-            const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-            td.innerHTML = (teamKey && teamKey !== 'FA')
-              ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-              : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-          }
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
-        } else {
-          td.textContent = textValue;
-        }
-        if (column === 'AGE') {
-          td.style.color = entry.meta.ageColor;
-          td.classList.add('stats-age-cell');
-        } else if (column === 'FPTS') {
-          td.style.color = entry.meta.fptsColor;
-          td.classList.add('stats-fpts-cell');
-        }
-        if (column === 'PPG') {
-          td.style.color = entry.meta.ppgColor;
-          td.classList.add('stats-ppg-cell');
-        }
-        tr.appendChild(td);
+
+    // Preserve caption if it exists, then clear existing content
+    const existingCaption = wrapper.querySelector('caption');
+    wrapper.innerHTML = '';
+
+    // Helper to create a table with colgroup
+    const createSectionTable = () => {
+      const table = document.createElement('table');
+      table.className = 'stats-table';
+      const colgroup = document.createElement('colgroup');
+      columnSizes.forEach(size => {
+        const col = document.createElement('col');
+        col.style.width = `${size}px`;
+        colgroup.appendChild(col);
       });
-      fragment.appendChild(tr);
-    });
-    // Single DOM insertion instead of hundreds
-    tbody.appendChild(fragment);
-    // Store rows reference for event delegation
-    tbody._statsRows = rows;
-    if (!rows.length) {
-      dom.emptyState.classList.remove('hidden');
-    } else {
-      dom.emptyState.classList.add('hidden');
+      table.appendChild(colgroup);
+      return table;
+    };
+
+    // Create container structure (matching game logs pattern)
+    const container = document.createElement('div');
+    container.className = 'stats-table-container';
+    
+    const hScroll = document.createElement('div');
+    hScroll.className = 'stats-hscroll';
+    
+    const hContent = document.createElement('div');
+    hContent.className = 'stats-hscroll-content';
+    
+    // Create header wrapper and table
+    const headerWrapper = document.createElement('div');
+    headerWrapper.className = 'stats-table-header';
+    const headerTable = createSectionTable();
+    // Add caption to header table if it existed
+    if (existingCaption) {
+      const caption = existingCaption.cloneNode(true);
+      headerTable.appendChild(caption);
     }
+    const tableHeaderThead = document.createElement('thead');
+    headerTable.appendChild(tableHeaderThead);
+    headerWrapper.appendChild(headerTable);
+    
+    // Create body wrapper and table
+    const bodyWrapper = document.createElement('div');
+    bodyWrapper.className = 'stats-table-body';
+    const bodyTable = createSectionTable();
+    const tableBodyTbody = document.createElement('tbody');
+    bodyTable.appendChild(tableBodyTbody);
+    bodyWrapper.appendChild(bodyTable);
+
+    // Apply cell descriptor helper
+    const applyCellDescriptor = (td, descriptor) => {
+      td.textContent = '';
+      td.innerHTML = '';
+      if (!descriptor) return;
+      if (typeof descriptor.render === 'function') {
+        descriptor.render(td);
+      } else {
+        td.textContent = String(descriptor); // Fallback for plain values
+      }
+    };
+
+    // Render header
+    if (tableInstance && typeof tableInstance.getHeaderGroups === 'function') {
+      tableInstance.getHeaderGroups().forEach(group => {
+        const tr = document.createElement('tr');
+        group.headers.forEach((header, idx) => {
+          const th = document.createElement('th');
+          const headerValue = header.isPlaceholder ? '' : header.column.columnDef.header(header.getContext());
+          th.textContent = headerValue;
+          th.dataset.columnKey = header.id;
+          const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
+          th.style.width = `${w}px`;
+          th.style.minWidth = `${w}px`;
+          th.style.maxWidth = `${w}px`;
+          
+          // Apply header color classes based on column category
+          const columnCategory = getColumnCategory(header.id);
+          if (columnCategory === 'all') {
+            th.classList.add('stats-header-all');
+          } else if (columnCategory === 'passing') {
+            th.classList.add('stats-header-passing');
+          } else if (columnCategory === 'rushing') {
+            th.classList.add('stats-header-rushing');
+          } else if (columnCategory === 'receiving') {
+            th.classList.add('stats-header-receiving');
+          }
+          
+          // Apply sort indicator
+          if (statsState.sort.column === header.id) {
+            applySortIndicator(th);
+          }
+          
+          tr.appendChild(th);
+        });
+        tableHeaderThead.appendChild(tr);
+      });
+    } else {
+      // Fallback: manual header rendering
+      const tr = document.createElement('tr');
+      columns.forEach((col, idx) => {
+        const th = document.createElement('th');
+        const label = typeof col.header === 'function' ? col.header({}) : col.header;
+        th.textContent = label || '';
+        th.dataset.columnKey = col.id;
+        const w = columnSizes[idx] || DEFAULT_COLUMN_WIDTH;
+        th.style.width = `${w}px`;
+        th.style.minWidth = `${w}px`;
+        th.style.maxWidth = `${w}px`;
+        
+        // Apply header color classes
+        const columnCategory = getColumnCategory(col.id);
+        if (columnCategory === 'all') {
+          th.classList.add('stats-header-all');
+        } else if (columnCategory === 'passing') {
+          th.classList.add('stats-header-passing');
+        } else if (columnCategory === 'rushing') {
+          th.classList.add('stats-header-rushing');
+        } else if (columnCategory === 'receiving') {
+          th.classList.add('stats-header-receiving');
+        }
+        
+        // Apply sort indicator
+        if (statsState.sort.column === col.id) {
+          applySortIndicator(th);
+        }
+        
+        tr.appendChild(th);
+      });
+      tableHeaderThead.appendChild(tr);
+    }
+
+    // Render body rows
+    if (tableInstance && typeof tableInstance.getRowModel === 'function') {
+      const rowModel = tableInstance.getRowModel();
+      rowModel.rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        row.getVisibleCells().forEach((cell, cIdx) => {
+          const td = document.createElement('td');
+          applyCellDescriptor(td, cell.getValue());
+          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
+        });
+        tableBodyTbody.appendChild(tr);
+      });
+    } else {
+      // Fallback: manual row rendering
+      tableRows.forEach((rowData) => {
+        const tr = document.createElement('tr');
+        columns.forEach((col, cIdx) => {
+          const td = document.createElement('td');
+          const descriptor = rowData[col.id];
+          applyCellDescriptor(td, descriptor);
+          const w = columnSizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
+        });
+        tableBodyTbody.appendChild(tr);
+      });
+    }
+
+    // Calculate total table width and apply to both tables
+    const totalTableWidth = columnSizes.reduce((sum, size) => sum + size, 0);
+    if (Number.isFinite(totalTableWidth) && totalTableWidth > 0) {
+      const widthPx = `${totalTableWidth}px`;
+      headerTable.style.minWidth = widthPx;
+      headerTable.style.width = widthPx;
+      bodyTable.style.minWidth = widthPx;
+      bodyTable.style.width = widthPx;
+    }
+
+    // Assemble the structure
+    hContent.appendChild(headerWrapper);
+    hContent.appendChild(bodyWrapper);
+    hScroll.appendChild(hContent);
+    container.appendChild(hScroll);
+    wrapper.appendChild(container);
+
+    // Initialize scroll positions
+    hScroll.scrollLeft = 0;
+    bodyWrapper.scrollTop = 0;
+
+    // Route horizontal wheel/trackpad gestures on tbody to the shared scroller
+    bodyWrapper.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        hScroll.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Empty state handling
+    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
   }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
@@ -1202,18 +1454,52 @@
   dom.filterGroup.addEventListener('click', handleFilterClick);
   dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
   dom.rookieButton.addEventListener('click', toggleRookieFilter);
+  
+  // Stats Key Popup handlers
+  const statsKeyButton = document.getElementById('statsKeyButton');
+  const statsKeyPopup = document.getElementById('statsKeyPopup');
+  const statsKeyPopupClose = document.getElementById('statsKeyPopupClose');
+  
+  if (statsKeyButton && statsKeyPopup && statsKeyPopupClose) {
+    statsKeyButton.addEventListener('click', () => {
+      statsKeyPopup.classList.add('visible');
+    });
+    
+    statsKeyPopupClose.addEventListener('click', () => {
+      statsKeyPopup.classList.remove('visible');
+    });
+    
+    // Close on overlay click
+    statsKeyPopup.addEventListener('click', (e) => {
+      if (e.target === statsKeyPopup) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && statsKeyPopup.classList.contains('visible')) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+  }
+  
+  // Use event delegation on wrapper to handle clicks from both header and body tables
   dom.tableWrappers.forEach((wrapper) => {
-    const thead = wrapper.querySelector('thead');
-    thead.addEventListener('click', handleSortClick);
-    // Event delegation for player buttons (much more efficient)
-    const tbody = wrapper.querySelector('tbody');
-    tbody.addEventListener('click', (event) => {
+    wrapper.addEventListener('click', (event) => {
+      const th = event.target.closest('th[data-column-key]');
+      if (th) {
+        handleSortClick(event);
+        return;
+      }
+
       const btn = event.target.closest('.stats-player-btn');
-      if (!btn) return;
-      const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-      const rows = tbody._statsRows;
-      if (rows && rows[entryIndex]) {
-        openGameLogs(rows[entryIndex]);
+      if (btn) {
+        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+        const entry = statsState.lastRenderedRows[entryIndex];
+        if (entry) {
+          openGameLogs(entry);
+        }
       }
     });
   });
