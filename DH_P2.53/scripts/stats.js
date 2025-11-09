@@ -786,6 +786,7 @@
         if (column === 'PLAYER') {
           rowData[column] = {
             render: (td) => {
+              td.classList.add('stats-player-cell');
               const button = document.createElement('button');
               button.type = 'button';
               button.className = 'stats-player-btn';
@@ -793,6 +794,21 @@
               button.dataset.entryIndex = entryIndex;
               button.textContent = textValue;
               td.appendChild(button);
+            }
+          };
+        } else if (column === 'POS') {
+          // POS column - render as styled tag
+          const pos = (textValue || entry.meta.pos || '').trim().toUpperCase();
+          rowData[column] = {
+            render: (td) => {
+              if (pos) {
+                const posTag = document.createElement('span');
+                posTag.className = `player-tag modal-pos-tag ${pos}`;
+                posTag.textContent = pos;
+                td.appendChild(posTag);
+              } else {
+                td.textContent = '';
+              }
             }
           };
         } else if (column === 'VALUE') {
@@ -1008,7 +1024,9 @@
           const td = document.createElement('td');
           // Get the descriptor for this column from the full row data
           const descriptor = rowData[col];
+          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
           applyCellDescriptor(td, descriptor);
+          
           const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
           td.style.width = `${w}px`;
           td.style.minWidth = `${w}px`;
