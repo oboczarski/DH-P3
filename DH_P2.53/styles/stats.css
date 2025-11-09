@@ -725,6 +725,7 @@
     -webkit-overflow-scrolling: touch;
     flex: 1;
     min-height: 0;
+    position: relative;
 }
 
 .stats-hscroll-container::-webkit-scrollbar {
@@ -735,13 +736,13 @@
 
 /* Scrollable header (columns 4+) - inside horizontal scroll container */
 .stats-scrollable-header {
-    flex-shrink: 0;
     background: rgb(30 34 51 / 17%);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid #fafbff02;
     position: relative;
     z-index: 2;
     overflow: visible;
+    flex-shrink: 0;
 }
 
 /* Vertical scroll container (inside horizontal scroll - only body scrolls vertically) */
@@ -759,6 +760,7 @@
 .stats-vscroll-content {
     position: relative;
     min-height: 100%;
+    /* No padding - scrollable body starts at left: 0, frozen body is absolutely positioned outside */
 }
 
 .stats-vscroll-container::-webkit-scrollbar {
@@ -782,16 +784,21 @@
     background: transparent;
 }
 
-/* Frozen body (first 3 body columns) - absolute positioned within vertical scroll */
+/* Frozen body (first 3 body columns) - absolute positioned relative to container to align with frozen corner */
 .stats-frozen-body {
     position: absolute;
-    top: 0;
+    top: 0; /* Will be set by JS to be below frozen corner header */
     left: 0;
+    width: var(--frozen-width);
     z-index: 5;
-    background: transparent;
+    background: rgba(13, 14, 35, 0.98);
+    backdrop-filter: blur(10px);
     border-right: 1px solid #fafbff02;
     pointer-events: auto;
     overflow: hidden;
+    overflow-y: auto; /* Allow vertical scrolling */
+    scrollbar-width: none; /* Hide scrollbar - will sync with scrollable body */
+    -ms-overflow-style: none;
 }
 
 .stats-frozen-body table {
@@ -824,16 +831,18 @@
     text-align: left;
 }
 
-/* Scrollable body (columns 4+) - inside vertical scroll, with margin for frozen columns */
+/* Scrollable body (columns 4+) - inside vertical scroll, starts at left: 0 */
 .stats-scrollable-body {
-    margin-left: var(--frozen-width);
     position: relative;
     z-index: 3;
     background: transparent;
+    width: 100%;
 }
 
 .stats-scrollable-body table {
     border-collapse: collapse;
+    /* Use fixed layout - width will be set by JS to sum of all column widths */
+    table-layout: fixed;
 }
 
 /* Legacy classes for backward compatibility - remove if not needed */

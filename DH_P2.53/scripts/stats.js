@@ -951,16 +951,18 @@
     scrollableBodyTable.appendChild(scrollableBodyTbody);
     scrollableBody.appendChild(scrollableBodyTable);
     
-    // Assemble: hScrollContainer contains header + vScrollContainer
-    // vScrollContainer contains frozenBody (absolute) + scrollableBody (with margin)
-    vScrollContent.appendChild(frozenBody);
+    // Assemble structure:
+    // - frozenBody should be positioned relative to container (not inside scroll containers)
+    // - vScrollContent contains scrollableBody
     vScrollContent.appendChild(scrollableBody);
     vScrollContainer.appendChild(vScrollContent);
     
     hScrollContainer.appendChild(scrollableHeader);
     hScrollContainer.appendChild(vScrollContainer);
     
+    // Add frozen body to container (not inside scroll containers) so it can align with frozen corner
     container.appendChild(frozenCorner);
+    container.appendChild(frozenBody); // Add frozen body to container so it's positioned relative to container
     container.appendChild(hScrollContainer);
     wrapper.appendChild(container);
 
@@ -1034,6 +1036,33 @@
       });
     };
 
+    // Debug: Log column splits
+    console.log('Column split:', {
+      totalColumns: columnSet.length,
+      columnSet: columnSet,
+      frozenColumns: frozenColumns,
+      scrollableColumns: scrollableColumns,
+      frozenColumnSizes: frozenColumnSizes,
+      scrollableColumnSizes: scrollableColumnSizes,
+      frozenWidth,
+      scrollableWidth,
+      sizesMatch: frozenColumnSizes.length === frozenColumns.length && scrollableColumnSizes.length === scrollableColumns.length
+    });
+    
+    // Validate column splits
+    if (frozenColumnSizes.length !== frozenColumns.length) {
+      console.error('Mismatch: frozenColumnSizes.length !== frozenColumns.length', {
+        frozenColumnSizes: frozenColumnSizes.length,
+        frozenColumns: frozenColumns.length
+      });
+    }
+    if (scrollableColumnSizes.length !== scrollableColumns.length) {
+      console.error('Mismatch: scrollableColumnSizes.length !== scrollableColumns.length', {
+        scrollableColumnSizes: scrollableColumnSizes.length,
+        scrollableColumns: scrollableColumns.length
+      });
+    }
+    
     // Render frozen corner header (first 3 columns)
     renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, null);
     
@@ -1045,6 +1074,33 @@
 
     // Render scrollable body rows (columns 4+)
     renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
+    
+    // Debug: Verify rendered columns
+    console.log('Frozen body rows:', frozenBodyTbody.rows.length, 'Scrollable body rows:', scrollableBodyTbody.rows.length);
+    if (frozenBodyTbody.rows.length > 0) {
+      const frozenRow = frozenBodyTbody.rows[0];
+      console.log('Frozen body first row:', {
+        cells: frozenRow.cells.length,
+        expected: frozenColumns.length,
+        columnNames: frozenColumns,
+        cellContents: Array.from(frozenRow.cells).map((c, i) => ({ index: i, col: frozenColumns[i], content: c.textContent.trim().substring(0, 20) }))
+      });
+    }
+    if (scrollableBodyTbody.rows.length > 0) {
+      const scrollableRow = scrollableBodyTbody.rows[0];
+      console.log('Scrollable body first row:', {
+        cells: scrollableRow.cells.length,
+        expected: scrollableColumns.length,
+        columnNames: scrollableColumns,
+        cellContents: Array.from(scrollableRow.cells).map((c, i) => ({ index: i, col: scrollableColumns[i], content: c.textContent.trim().substring(0, 20) }))
+      });
+      // Also check if rowData has the expected columns
+      if (tableRows.length > 0) {
+        const firstRowData = tableRows[0];
+        console.log('First rowData keys:', Object.keys(firstRowData));
+        console.log('Expected scrollable columns in rowData:', scrollableColumns.map(col => ({ col, exists: col in firstRowData, value: firstRowData[col] ? 'exists' : 'missing' })));
+      }
+    }
 
     // Calculate table widths
     if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
@@ -1054,11 +1110,26 @@
       frozenBodyTable.style.minWidth = `${frozenWidth}px`;
     }
     
+    // Set explicit widths for scrollable tables - MUST equal sum of all column widths for table-layout: fixed
+    // This ensures ALL columns render, even if table is wider than viewport (enables horizontal scrolling)
     if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+      // With table-layout: fixed, table width MUST equal sum of column widths for all columns to render
       scrollableHeaderTable.style.width = `${scrollableWidth}px`;
       scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
       scrollableBodyTable.style.width = `${scrollableWidth}px`;
       scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
+      // Ensure containers allow full width (don't constrain tables)
+      scrollableHeader.style.minWidth = `${scrollableWidth}px`;
+      scrollableBody.style.minWidth = `${scrollableWidth}px`;
+      
+      console.log('Table widths set:', {
+        scrollableWidth,
+        scrollableColumns: scrollableColumns.length,
+        scrollableColumnSizes: scrollableColumnSizes,
+        calculatedWidth: scrollableColumnSizes.reduce((sum, size) => sum + (size || 0), 0),
+        headerTableStyleWidth: scrollableHeaderTable.style.width,
+        bodyTableStyleWidth: scrollableBodyTable.style.width
+      });
     }
     
     // Get header height for positioning
@@ -1078,30 +1149,46 @@
     // Scroll synchronization
     let isSyncingHorizontal = false;
     
-    // Calculate content height for vertical scroll container
-    // Both frozen body and overlay should have the same height, and content wrapper should match
+    // Calculate content height and position frozen body below header
     const updateContentHeight = () => {
+      const headerHeight = getHeaderHeight();
       const scrollableBodyHeight = scrollableBodyTable.offsetHeight;
       const frozenBodyHeight = frozenBodyTable.offsetHeight;
       const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
       
-      // Set explicit heights to ensure proper scrolling
-      if (maxHeight > 0) {
-        frozenBody.style.height = `${maxHeight}px`;
-        scrollableBody.style.height = `${maxHeight}px`;
+      // Set explicit heights and position frozen body below header
+      if (maxHeight > 0 && headerHeight > 0) {
+        // Position frozen body below frozen corner header
+        frozenBody.style.top = `${headerHeight}px`;
+        frozenBody.style.height = `calc(100% - ${headerHeight}px)`;
+        frozenBody.style.maxHeight = `calc(100% - ${headerHeight}px)`;
         vScrollContent.style.minHeight = `${maxHeight}px`;
-        // The vertical scroll container will scroll based on this content
       }
     };
+    
+    // Sync vertical scrolling between frozen body and scrollable body
+    let isSyncingVertical = false;
+    vScrollContainer.addEventListener('scroll', () => {
+      if (!isSyncingVertical) {
+        isSyncingVertical = true;
+        frozenBody.scrollTop = vScrollContainer.scrollTop;
+        isSyncingVertical = false;
+      }
+    });
+    
+    frozenBody.addEventListener('scroll', () => {
+      if (!isSyncingVertical) {
+        isSyncingVertical = true;
+        vScrollContainer.scrollTop = frozenBody.scrollTop;
+        isSyncingVertical = false;
+      }
+    });
     
     // Update height after rendering
     setTimeout(updateContentHeight, 0);
     
     // Also update on window resize
     window.addEventListener('resize', updateContentHeight);
-    
-    // NO SCROLL SYNC NEEDED! Header and body are in the same horizontal scroll container (hScrollContainer),
-    // so they naturally scroll together. Mobile will handle touch scrolling natively on hScrollContainer.
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container
     vScrollContainer.addEventListener('wheel', (e) => {
