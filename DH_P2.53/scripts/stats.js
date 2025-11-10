@@ -1176,7 +1176,8 @@
       let touchStartY = 0;
       let lastTouchX = 0;
       let lastTimestamp = 0;
-      let lastVelocity = 0;
+      const VELOCITY_HISTORY_LIMIT = 4;
+      const velocitySamples = [];
       let momentumFrame = null;
       const H_THRESHOLD = 8;
 
@@ -1190,7 +1191,7 @@
       const startMomentum = (initialVelocity) => {
         cancelMomentum();
         if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < 0.02) return;
-        const decay = 0.0032; // controls how quickly momentum eases out
+        const decay = 0.0025;
         let velocity = initialVelocity;
         let prev = performance.now();
 
@@ -1201,9 +1202,9 @@
           if (delta !== 0 && typeof onHorizontalScroll === 'function') {
             onHorizontalScroll(delta);
           }
-          const attenuation = Math.exp(-decay * elapsed);
+          const attenuation = 1 / (1 + decay * elapsed);
           velocity *= attenuation;
-          if (Math.abs(velocity) > 0.02) {
+          if (Math.abs(velocity) > 0.01) {
             momentumFrame = requestAnimationFrame(step);
           } else {
             momentumFrame = null;
@@ -1223,7 +1224,7 @@
         touchStartY = touch.clientY;
         lastTouchX = touch.clientX;
         lastTimestamp = event.timeStamp;
-        lastVelocity = 0;
+        velocitySamples.length = 0;
       }, { passive: true });
 
       surface.addEventListener('touchmove', (event) => {
@@ -1245,7 +1246,11 @@
           const deltaX = touch.clientX - lastTouchX;
           const elapsed = event.timeStamp - lastTimestamp;
           if (elapsed > 0) {
-            lastVelocity = (deltaX / elapsed);
+            const instantaneousVelocity = deltaX / elapsed;
+            velocitySamples.push(instantaneousVelocity);
+            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
+              velocitySamples.shift();
+            }
           }
           if (deltaX !== 0) {
             if (typeof onHorizontalScroll === 'function') {
@@ -1262,11 +1267,11 @@
       const resetTouchState = () => {
         touchActive = false;
         isHorizontal = null;
-        if (lastVelocity && typeof onHorizontalScroll === 'function') {
-          // Convert velocity from px/ms to px/frame by multiplying with ~16ms later in step
-          startMomentum(lastVelocity);
+        if (velocitySamples.length && typeof onHorizontalScroll === 'function') {
+          const averagedVelocity = velocitySamples.reduce((sum, v) => sum + v, 0) / velocitySamples.length;
+          startMomentum(averagedVelocity);
         }
-        lastVelocity = 0;
+        velocitySamples.length = 0;
       };
 
       surface.addEventListener('touchend', resetTouchState, { passive: true });
