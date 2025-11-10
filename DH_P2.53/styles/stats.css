@@ -219,12 +219,8 @@
   gap: 0.42rem;
   width: 100%;
   max-width: 640px;
-  position: relative;
 }
 .stats-key-button {
-  position: absolute;
-  bottom: 2px;
-  right: 0px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,7 +251,7 @@
   flex-direction: column;
   gap: 0.25rem;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
 }
 .stats-search-block {
@@ -263,12 +259,35 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin: 0.2rem auto 0;
+  margin: 0;
+  flex: 2 1 260px;
+}
+.stats-secondary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  width: 100%;
+  align-items: stretch;
+}
+.stats-secondary-actions {
+  display: flex;
+  flex: 1 1 220px;
+  gap: 0.5rem;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.stats-secondary-actions .stats-filter-btn-secondary,
+.stats-secondary-actions .stats-key-button {
+  flex: 1 1 0px;
+  min-width: 7.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .stats-search-input-wrap {
   position: relative;
   width: 100%;
-  max-width: 15rem;
+  max-width: none;
   display: flex;
   align-items: center;
 }
@@ -1262,6 +1281,13 @@
   .stats-controls-body {
     flex-direction: column;
     gap: 0.4rem;
+  }
+  .stats-secondary-row {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .stats-secondary-actions {
+    width: 100%;
   }
   .stats-tabs {
     width: 100%;
