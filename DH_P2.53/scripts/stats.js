@@ -1142,7 +1142,7 @@
         });
       }
     });
-    
+
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
     vScrollContainer.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
@@ -1150,7 +1150,7 @@
         e.preventDefault();
       }
     }, { passive: false });
-    
+
     // Also handle horizontal scroll on frozen body and overlay
     frozenBody.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
@@ -1158,14 +1158,75 @@
         e.preventDefault();
       }
     }, { passive: false });
-    
+
     scrollableBodyOverlay.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
-    
+
+    // --- Mobile: horizontal swipe on body should scroll header (and thus overlay) ---
+    // We only hook touch events; scroll logic remains exactly the same.
+    (function attachMobileBodySwipe() {
+      if (!('ontouchstart' in window)) return; // desktop unaffected
+
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isHorizontalSwipe = false;
+
+      const THRESHOLD = 6; // px before we decide direction
+
+      const onTouchStart = (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        isHorizontalSwipe = false;
+      };
+
+      const onTouchMove = (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const t = e.touches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+
+        // Decide if the gesture is horizontal vs vertical
+        if (!isHorizontalSwipe && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
+          if (Math.abs(dx) > Math.abs(dy)) {
+            isHorizontalSwipe = true;
+            // Once we commit to horizontal, prevent the page from hijacking it
+            e.preventDefault();
+          } else {
+            // Vertical gesture: let vScrollContainer handle it; don't interfere
+            isHorizontalSwipe = false;
+            return;
+          }
+        }
+
+        if (isHorizontalSwipe) {
+          // Drive the same scroll source used on desktop (header)
+          scrollableHeader.scrollLeft -= dx;
+          // Update origin so movement is incremental
+          touchStartX = t.clientX;
+          touchStartY = t.clientY;
+          e.preventDefault();
+        }
+      };
+
+      const onTouchEnd = () => {
+        isHorizontalSwipe = false;
+      };
+
+      // Attach to both frozen body and scrollable overlay so swiping anywhere in rows works
+      [frozenBody, scrollableBodyOverlay].forEach((el) => {
+        el.addEventListener('touchstart', onTouchStart, { passive: false });
+        el.addEventListener('touchmove', onTouchMove, { passive: false });
+        el.addEventListener('touchend', onTouchEnd, { passive: true });
+        el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+      });
+    })();
+
     // Initialize scroll positions
     scrollableHeader.scrollLeft = 0;
     vScrollContainer.scrollTop = 0;
