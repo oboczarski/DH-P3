@@ -264,25 +264,20 @@
 }
 .stats-secondary-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.6rem;
   width: 100%;
   align-items: stretch;
+  justify-content: flex-start;
 }
-.stats-secondary-actions {
-  display: flex;
-  flex: 1 1 220px;
-  gap: 0.5rem;
-  align-items: stretch;
-  justify-content: stretch;
-}
-.stats-secondary-actions .stats-filter-btn-secondary,
-.stats-secondary-actions .stats-key-button {
-  flex: 1 1 0px;
+.stats-secondary-row > .stats-filter-btn-secondary,
+.stats-secondary-row > .stats-key-button {
+  flex: 1 1 7.5rem;
   min-width: 7.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: stretch;
 }
 .stats-search-input-wrap {
   position: relative;
@@ -1286,7 +1281,8 @@
     flex-direction: column;
     gap: 0.4rem;
   }
-  .stats-secondary-actions {
+  .stats-secondary-row > .stats-filter-btn-secondary,
+  .stats-secondary-row > .stats-key-button {
     width: 100%;
   }
   .stats-tabs {
