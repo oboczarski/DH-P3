@@ -949,7 +949,7 @@
     // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
     const scrollableBodyOverlay = document.createElement('div');
     scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
-    // Inner wrapper that will be transformed for horizontal scrolling
+    // Inner wrapper preserves the full table width for native scrolling
     const scrollableBodyOverlayInner = document.createElement('div');
     scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
     // We'll clone the scrollable body table content here
@@ -964,9 +964,6 @@
     vScrollContent.appendChild(scrollableBodyOverlay);
     vScrollContainer.appendChild(vScrollContent);
     
-    // Store reference to inner wrapper for scroll synchronization
-    scrollableBodyOverlay._innerWrapper = scrollableBodyOverlayInner;
-
     // Apply cell descriptor helper
     const applyCellDescriptor = (td, descriptor) => {
       td.textContent = '';
@@ -1127,21 +1124,21 @@
     // Also update on window resize
     window.addEventListener('resize', updateContentHeight);
     
-    // Sync horizontal scroll: transform inner content of overlay based on header scroll
-    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
-    const overlayInner = scrollableBodyOverlay._innerWrapper;
-    scrollableHeader.addEventListener('scroll', () => {
-      if (!isSyncingHorizontal && overlayInner) {
-        isSyncingHorizontal = true;
-        const scrollLeft = scrollableHeader.scrollLeft;
-        // Transform the inner content (not the overlay itself) to scroll horizontally
-        // Negative translateX moves content left, showing columns further to the right
-        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
-        requestAnimationFrame(() => {
-          isSyncingHorizontal = false;
-        });
-      }
-    });
+    // Sync horizontal scroll positions between header and body (native scrolling for both)
+    const syncHorizontalScroll = (source, target) => {
+      if (isSyncingHorizontal || !source || !target) return;
+      isSyncingHorizontal = true;
+      target.scrollLeft = source.scrollLeft;
+      requestAnimationFrame(() => {
+        isSyncingHorizontal = false;
+      });
+    };
+
+    const handleHeaderScroll = () => syncHorizontalScroll(scrollableHeader, scrollableBodyOverlay);
+    const handleBodyScroll = () => syncHorizontalScroll(scrollableBodyOverlay, scrollableHeader);
+
+    scrollableHeader.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    scrollableBodyOverlay.addEventListener('scroll', handleBodyScroll, { passive: true });
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
     vScrollContainer.addEventListener('wheel', (e) => {
@@ -1159,19 +1156,10 @@
       }
     }, { passive: false });
     
-    scrollableBodyOverlay.addEventListener('wheel', (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
     // Initialize scroll positions
     scrollableHeader.scrollLeft = 0;
     vScrollContainer.scrollTop = 0;
-    if (scrollableBodyOverlay._innerWrapper) {
-      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
-    }
+    scrollableBodyOverlay.scrollLeft = 0;
 
     // Empty state handling
     dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
