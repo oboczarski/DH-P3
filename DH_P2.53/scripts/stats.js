@@ -1104,6 +1104,7 @@
 
     // Scroll synchronization
     let isSyncingHorizontal = false;
+    let isProgrammaticHeaderScroll = false;
     
     // Calculate content height for vertical scroll container
     // Both frozen body and overlay should have the same height, and content wrapper should match
@@ -1131,12 +1132,21 @@
     // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
     const overlayInner = scrollableBodyOverlay._innerWrapper;
     scrollableHeader.addEventListener('scroll', () => {
-      if (!isSyncingHorizontal && overlayInner) {
+      if (!overlayInner) return;
+
+      // If this scroll was triggered by our own code, don't re-enter.
+      if (isProgrammaticHeaderScroll) {
+        return;
+      }
+
+      if (!isSyncingHorizontal) {
         isSyncingHorizontal = true;
         const scrollLeft = scrollableHeader.scrollLeft;
-        // Transform the inner content (not the overlay itself) to scroll horizontally
-        // Negative translateX moves content left, showing columns further to the right
+
+        // Single source of truth:
+        // - Header scrollLeft drives overlay transform.
         overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
+
         requestAnimationFrame(() => {
           isSyncingHorizontal = false;
         });
@@ -1146,7 +1156,12 @@
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
     vScrollContainer.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        if (delta !== 0) {
+          isProgrammaticHeaderScroll = true;
+          scrollableHeader.scrollLeft += delta;
+          isProgrammaticHeaderScroll = false;
+        }
         e.preventDefault();
       }
     }, { passive: false });
@@ -1154,14 +1169,24 @@
     // Also handle horizontal scroll on frozen body and overlay
     frozenBody.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        if (delta !== 0) {
+          isProgrammaticHeaderScroll = true;
+          scrollableHeader.scrollLeft += delta;
+          isProgrammaticHeaderScroll = false;
+        }
         e.preventDefault();
       }
     }, { passive: false });
 
     scrollableBodyOverlay.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        if (delta !== 0) {
+          isProgrammaticHeaderScroll = true;
+          scrollableHeader.scrollLeft += delta;
+          isProgrammaticHeaderScroll = false;
+        }
         e.preventDefault();
       }
     }, { passive: false });
@@ -1216,7 +1241,11 @@
           const clamped = Math.max(0, Math.min(maxScroll, target));
 
           if (scrollableHeader.scrollLeft !== clamped) {
+            // Flag so the header scroll handler knows this is intentional and doesn't
+            // try to re-enter / cause jitter.
+            isProgrammaticHeaderScroll = true;
             scrollableHeader.scrollLeft = clamped;
+            isProgrammaticHeaderScroll = false;
           }
 
           // Prevent page / outer container from hijacking this horizontal swipe
