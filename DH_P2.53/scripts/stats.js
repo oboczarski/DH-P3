@@ -1134,23 +1134,10 @@
     scrollableHeader.addEventListener('scroll', () => {
       if (!overlayInner) return;
 
-      // If this scroll was triggered by our own code, don't re-enter.
-      if (isProgrammaticHeaderScroll) {
-        return;
-      }
-
-      if (!isSyncingHorizontal) {
-        isSyncingHorizontal = true;
-        const scrollLeft = scrollableHeader.scrollLeft;
-
-        // Single source of truth:
-        // - Header scrollLeft drives overlay transform.
-        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
-
-        requestAnimationFrame(() => {
-          isSyncingHorizontal = false;
-        });
-      }
+      // Always keep overlay in lockstep with header scroll.
+      // Avoid extra branching or re-entrancy that can cause visual jitter.
+      const scrollLeft = scrollableHeader.scrollLeft;
+      overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
     });
 
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
@@ -1158,9 +1145,7 @@
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         if (delta !== 0) {
-          isProgrammaticHeaderScroll = true;
           scrollableHeader.scrollLeft += delta;
-          isProgrammaticHeaderScroll = false;
         }
         e.preventDefault();
       }
@@ -1171,9 +1156,7 @@
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         if (delta !== 0) {
-          isProgrammaticHeaderScroll = true;
           scrollableHeader.scrollLeft += delta;
-          isProgrammaticHeaderScroll = false;
         }
         e.preventDefault();
       }
@@ -1183,9 +1166,7 @@
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
         if (delta !== 0) {
-          isProgrammaticHeaderScroll = true;
           scrollableHeader.scrollLeft += delta;
-          isProgrammaticHeaderScroll = false;
         }
         e.preventDefault();
       }
@@ -1241,11 +1222,8 @@
           const clamped = Math.max(0, Math.min(maxScroll, target));
 
           if (scrollableHeader.scrollLeft !== clamped) {
-            // Flag so the header scroll handler knows this is intentional and doesn't
-            // try to re-enter / cause jitter.
-            isProgrammaticHeaderScroll = true;
+            // Directly drive header scroll; its scroll listener updates the overlay transform.
             scrollableHeader.scrollLeft = clamped;
-            isProgrammaticHeaderScroll = false;
           }
 
           // Prevent page / outer container from hijacking this horizontal swipe
