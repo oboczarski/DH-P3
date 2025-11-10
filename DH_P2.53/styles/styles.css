@@ -927,25 +927,53 @@ n {
                     height: var(--header-control-height);
                     display: flex;
                     align-items: stretch;
+                    position: relative;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    isolation: isolate;
+                    box-sizing: border-box;
+                }
+                .username-area::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    border-radius: inherit;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.01), rgba(0,0,0,0.1));
+                    border: 1px solid var(--color-panel-border);
+                    -webkit-backdrop-filter: blur(4px) saturate(110%);
+                    backdrop-filter: blur(4px) saturate(110%);
+                    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+                    pointer-events: none;
+                    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                }
+                .username-area:focus-within::before {
+                    border-color: var(--color-accent-primary);
+                    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 0 var(--glow-strength) var(--color-accent-primary-glow);
                 }
                 /* · · #usernameInput block · · */
         #usernameInput {
-          background: linear-gradient(to bottom, rgba(0,0,0,0.01), rgba(0,0,0,0.1));
-          border: 1px solid var(--color-panel-border);
-          border-radius: 8px;
-          -webkit-backdrop-filter: blur(4px) saturate(110%);
-          backdrop-filter: blur(4px) saturate(110%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+          background: transparent;
+          border: none;
+          border-radius: 0;
           color: #c4c8eaba;
           padding: 0.23rem 0.5rem;
           font-size: 0.7rem;
           font-weight: 300;
           width: 100%;
           height: 100%;
-          transition: all 0.2s ease;
+          line-height: 1.25;
+          caret-color: #c4c8ea;
+          transition: color 0.2s ease, background-color 0.2s ease;
+          position: relative;
+          z-index: 1;
+          -webkit-appearance: none;
+                  appearance: none;
+          box-sizing: border-box;
         }
         #usernameInput::placeholder {
                     color: #5F6795aa !important;
+                    font-size: inherit;
+                    line-height: inherit;
         }
           /* · · Prevent browser autofill from turning the username bar white (Safari/Chrome) · · */
         #usernameInput:-webkit-autofill,
@@ -956,14 +984,11 @@ n {
           -webkit-box-shadow: 0 0 0px 1000px rgba(13,14,35,0) inset !important;
           box-shadow: 0 0 0px 1000px rgba(13,14,35,0) inset !important;
           background-color: transparent !important;
-          border: 1px solid var(--color-panel-border) !important;
           background-clip: padding-box !important;
           transition: background-color 99999s ease-in-out 0s !important;
         }
         #usernameInput:focus {
             outline: none;
-            border-color: var(--color-accent-primary);
-            box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
         }
         /* · · Row 2 · · */
         .custom-select-wrapper {
@@ -1356,14 +1381,12 @@ body[data-page="welcome"] .home-menu-slot {
 }
 /* Ensure the input fills the shared height and has balanced paddings */
 body[data-page="welcome"] #usernameInput {
-  height: var(--welcome-header-control-height) !important;
   padding-top: 0.18rem !important;
   padding-bottom: 0.18rem !important;
   padding-left: 0.6rem !important;
   padding-right: 0.6rem !important;
-  border-radius: 8px;
-  box-sizing: border-box;
   font-size: 17px !important;
+  line-height: calc(var(--welcome-header-control-height) - 0.36rem);
 }
 /* Keep the enter button vertically centered and same height */
 body[data-page="welcome"] .enter-button {
@@ -2262,7 +2285,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             z-index: 5;
             flex-shrink: 0;
         }
-#usernameInput:focus, #leagueSelect:focus {
+#leagueSelect:focus {
             outline: none;
             border-color: var(--color-accent-primary);
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 8px var(--color-accent-primary-glow);
@@ -2511,15 +2534,14 @@ body[data-page="welcome"] .app-header {
 /* make sure only for home: hide any leftover contextual controls */
 body[data-page="welcome"] #contextual-controls { display: none !important; }
 /* Username field sizing for home */
-body[data-page="welcome"] .username-area { min-width: 0; }
-body[data-page="welcome"] #usernameInput {
+body[data-page="welcome"] .username-area {
+  min-width: 0;
   max-width: 520px;
   width: 100%;
+}
+body[data-page="welcome"] #usernameInput {
   font-size: 0.96rem;
   padding: 0.36rem 0.65rem;
-  border-radius: 10px;
-  height: 40px; /* slightly reduced height for tighter header */
-  box-sizing: border-box;
 }
 /* Enter button styling — styled to match the other nav buttons with a circular icon inside */
 body[data-page="welcome"] .home-enter-slot { display: flex; align-items: center; justify-content: center; }
@@ -2634,7 +2656,7 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
     height: 24px;
     font-size: 0.92rem;
   }
-  body[data-page="welcome"] #usernameInput { font-size: 0.94rem; padding: 0.34rem 0.5rem; height: 38px; }
+  body[data-page="welcome"] #usernameInput { font-size: 0.94rem; padding: 0.34rem 0.5rem; }
 }
 @media (max-width: 540px) {
   /* ⬇︎ 📱 OWNERSHIP PAGE: MOBILE CORRECTIONS (v4 — rows vs header separated) 📱 ⬇︎ */
@@ -7495,11 +7517,14 @@ body[data-page="analyzer"] .app-header {
     max-width: none;
     height: var(--header-control-height);
   }
+  body[data-page="ownership"] .username-area,
+  body[data-page="analyzer"] .username-area {
+    border-radius: 18px;
+  }
   body[data-page="ownership"] #usernameInput,
   body[data-page="analyzer"] #usernameInput {
     font-size: 1.05rem;
     padding: 0.6rem 1rem;
-    border-radius: 18px;
     font-weight: 400;
   }
   body[data-page="ownership"] #leagueSelect,
@@ -8440,7 +8465,3 @@ body[data-page="research"] #secondary-header-row {
     margin-left: 19px;
   }
 }
-
-
-
-
