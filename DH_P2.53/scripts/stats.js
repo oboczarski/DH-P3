@@ -1173,48 +1173,64 @@
 
       let touchStartX = 0;
       let touchStartY = 0;
+      let startScrollLeft = 0;
       let isHorizontalSwipe = false;
+      let gestureActive = false;
 
-      const THRESHOLD = 6; // px before we decide direction
+      const THRESHOLD = 8; // px before we decide direction
 
       const onTouchStart = (e) => {
         if (!e.touches || e.touches.length !== 1) return;
         const t = e.touches[0];
         touchStartX = t.clientX;
         touchStartY = t.clientY;
+        startScrollLeft = scrollableHeader.scrollLeft;
         isHorizontalSwipe = false;
+        gestureActive = true;
       };
 
       const onTouchMove = (e) => {
-        if (!e.touches || e.touches.length !== 1) return;
+        if (!gestureActive || !e.touches || e.touches.length !== 1) return;
+
         const t = e.touches[0];
         const dx = t.clientX - touchStartX;
         const dy = t.clientY - touchStartY;
 
-        // Decide if the gesture is horizontal vs vertical
+        // Decide if the gesture is horizontal vs vertical (once per gesture)
         if (!isHorizontalSwipe && (Math.abs(dx) > THRESHOLD || Math.abs(dy) > THRESHOLD)) {
           if (Math.abs(dx) > Math.abs(dy)) {
+            // Lock into horizontal mode
             isHorizontalSwipe = true;
-            // Once we commit to horizontal, prevent the page from hijacking it
-            e.preventDefault();
           } else {
-            // Vertical gesture: let vScrollContainer handle it; don't interfere
-            isHorizontalSwipe = false;
+            // Vertical gesture: let vScrollContainer handle it; no custom handling
+            gestureActive = false;
             return;
           }
         }
 
         if (isHorizontalSwipe) {
-          // Drive the same scroll source used on desktop (header)
-          scrollableHeader.scrollLeft -= dx;
-          // Update origin so movement is incremental
-          touchStartX = t.clientX;
-          touchStartY = t.clientY;
+          // Compute target relative to the original scrollLeft at gesture start.
+          // This avoids feedback loops that cause jitter.
+          const target = startScrollLeft - dx;
+          const maxScroll = scrollableHeader.scrollWidth - scrollableHeader.clientWidth;
+          const clamped = Math.max(0, Math.min(maxScroll, target));
+
+          if (scrollableHeader.scrollLeft !== clamped) {
+            scrollableHeader.scrollLeft = clamped;
+          }
+
+          // Prevent page / outer container from hijacking this horizontal swipe
           e.preventDefault();
         }
       };
 
       const onTouchEnd = () => {
+        gestureActive = false;
+        isHorizontalSwipe = false;
+      };
+
+      const onTouchCancel = () => {
+        gestureActive = false;
         isHorizontalSwipe = false;
       };
 
@@ -1223,7 +1239,7 @@
         el.addEventListener('touchstart', onTouchStart, { passive: false });
         el.addEventListener('touchmove', onTouchMove, { passive: false });
         el.addEventListener('touchend', onTouchEnd, { passive: true });
-        el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+        el.addEventListener('touchcancel', onTouchCancel, { passive: true });
       });
     })();
 
