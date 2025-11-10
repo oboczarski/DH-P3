@@ -1215,14 +1215,19 @@
         }
 
         if (isHorizontalSwipe) {
-          // Compute target relative to the original scrollLeft at gesture start.
-          // This avoids feedback loops that cause jitter.
-          const target = startScrollLeft - dx;
+          // Compute a slightly damped target relative to the original scrollLeft at gesture start.
+          // Damping (e.g. 0.9) softens the feel so horizontal scrolling is less "stiff".
           const maxScroll = scrollableHeader.scrollWidth - scrollableHeader.clientWidth;
+          if (maxScroll <= 0) {
+            e.preventDefault();
+            return;
+          }
+
+          const DAMPING = 0.9;
+          const target = startScrollLeft - dx * DAMPING;
           const clamped = Math.max(0, Math.min(maxScroll, target));
 
           if (scrollableHeader.scrollLeft !== clamped) {
-            // Directly drive header scroll; its scroll listener updates the overlay transform.
             scrollableHeader.scrollLeft = clamped;
           }
 
