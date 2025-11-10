@@ -1236,11 +1236,9 @@ body[data-page="stats"] .glass-panel {
 }
 
 .stats-ag-grid {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
   height: 100%;
-  /* Disable AG Grid's internal horizontal scroll - unified container handles it */
-  overflow-x: visible !important;
+  overflow: visible;
 }
 
 /* Override AG Grid's dark theme with glass design */
@@ -1268,15 +1266,59 @@ body[data-page="stats"] .glass-panel {
   border-right: 1px solid rgba(255, 255, 255, 0.015);
 }
 
-/* Performance optimizations for smooth scrolling */
-.stats-ag-grid .ag-body-viewport,
-.stats-ag-grid .ag-body-horizontal-scroll-viewport,
-.stats-ag-grid .ag-body-vertical-scroll-viewport,
-.stats-ag-grid .ag-center-cols-viewport,
+/* RADICAL RESTRUCTURE: Make AG Grid root the scroll container */
+
+/* AG Grid root wrapper becomes the scroll container */
+.stats-ag-grid .ag-root-wrapper {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove ALL internal scrolling - root handles it all */
+.stats-ag-grid .ag-header {
+  overflow: visible !important;
+}
+
 .stats-ag-grid .ag-header-viewport {
-  will-change: transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  overflow: visible !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: rgba(83, 93, 146, 0.08);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+.stats-ag-grid .ag-body {
+  overflow: visible !important;
+}
+
+.stats-ag-grid .ag-body-viewport {
+  overflow: visible !important;
+}
+
+.stats-ag-grid .ag-center-cols-viewport {
+  overflow: visible !important;
+}
+
+.stats-ag-grid .ag-center-cols-container {
+  min-width: max-content !important;
+}
+
+/* Pinned sections use position sticky within root scroll context */
+.stats-ag-grid .ag-pinned-left-header,
+.stats-ag-grid .ag-pinned-left-cols-container {
+  position: sticky !important;
+  left: 0 !important;
+  z-index: 5 !important;
+  background: rgba(83, 93, 146, 0.08);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+/* Pinned header needs higher z-index */
+.stats-ag-grid .ag-pinned-left-header {
+  z-index: 11 !important;
 }
 
 /* Header styling */
@@ -1319,41 +1361,40 @@ body[data-page="stats"] .glass-panel {
   border-radius: 4px;
 }
 
-/* Hide AG Grid's internal horizontal scroll - unified container handles it */
+/* Hide AG Grid's internal scroll elements - root wrapper handles all scrolling */
 .stats-ag-grid .ag-body-horizontal-scroll,
-.stats-ag-grid .ag-body-horizontal-scroll-viewport,
+.stats-ag-grid .ag-body-vertical-scroll,
 .stats-ag-grid .ag-horizontal-left-spacer,
 .stats-ag-grid .ag-horizontal-right-spacer {
   display: none !important;
 }
 
-/* Keep AG Grid's vertical scrollbar styled */
-.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar {
+/* Style the root wrapper scrollbars */
+.stats-ag-grid .ag-root-wrapper::-webkit-scrollbar {
   width: 12px;
+  height: 12px;
 }
 
-.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-track {
+.stats-ag-grid .ag-root-wrapper::-webkit-scrollbar-track {
   background: rgba(13, 18, 39, 0.05);
   border-radius: 999px;
 }
 
-.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb {
+.stats-ag-grid .ag-root-wrapper::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(82, 96, 146, 0.32), rgba(52, 69, 110, 0.24));
   border-radius: 999px;
   border: 2px solid rgba(13, 18, 39, 0.35);
   box-shadow: inset 0 0 6px rgba(12, 16, 34, 0.55);
 }
 
-.stats-ag-grid .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb:hover {
+.stats-ag-grid .ag-root-wrapper::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(126, 155, 214, 0.38), rgba(75, 100, 160, 0.32));
 }
 
-/* Ensure grid content doesn't try to scroll horizontally internally */
-.stats-ag-grid .ag-root-wrapper,
-.stats-ag-grid .ag-body-viewport,
-.stats-ag-grid .ag-center-cols-viewport,
-.stats-ag-grid .ag-center-cols-container {
-  overflow-x: visible !important;
+/* Firefox scrollbar styling */
+.stats-ag-grid .ag-root-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(82, 96, 146, 0.32) rgba(13, 18, 39, 0.05);
 }
 
 /* Remove AG Grid's default borders that conflict with glass design */

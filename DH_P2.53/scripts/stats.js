@@ -1014,11 +1014,10 @@
       suppressCellFocus: true,
       suppressRowHoverHighlight: false,
       enableCellTextSelection: true,
-      suppressColumnVirtualisation: true,  // Disable column virtualization for smoother horizontal scroll
-      suppressHorizontalScroll: true,      // Disable AG Grid's horizontal scroll - unified container handles it
+      suppressColumnVirtualisation: true,  // Disable column virtualization for smoother scroll
+      suppressHorizontalScroll: false,     // Allow horizontal scroll in body viewport
       enableBrowserTooltips: true,         // Use native tooltips for better performance
-      suppressAnimationFrame: false,       // Use RAF for smooth rendering
-      domLayout: 'normal',                 // Normal layout to work with unified scroll container
+      domLayout: 'normal',                 // Normal layout
       onCellClicked: (event) => {
         // Handle player button clicks
         if (event.event.target.classList.contains('stats-player-btn')) {
