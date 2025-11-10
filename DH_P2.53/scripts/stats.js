@@ -1309,9 +1309,57 @@
 
     // Scroll synchronization
     let isSyncingHorizontal = false;
+    let lastHScrollLeft = 0;
     
     // Store the table width so it's accessible everywhere - CRITICAL for vScrollContent width
     let tableFullWidth = 0;
+    
+    // Horizontal scroll synchronization
+    // Header and body must scroll together perfectly
+    // Solution: hScrollContainer is the scroll container, header and body sync to its scrollLeft
+    
+    // Sync header and body to hScrollContainer's scroll position
+    const syncHorizontalScroll = () => {
+      if (!isSyncingHorizontal) {
+        isSyncingHorizontal = true;
+        const scrollLeft = hScrollContainer.scrollLeft;
+        
+        // Use transform to keep header and body in perfect sync
+        // This ensures they move together regardless of DOM structure
+        scrollableHeader.style.transform = `translateX(-${scrollLeft}px)`;
+        scrollableBody.style.transform = `translateX(-${scrollLeft}px)`;
+        
+        lastHScrollLeft = scrollLeft;
+        
+        requestAnimationFrame(() => {
+          isSyncingHorizontal = false;
+        });
+      }
+    };
+    
+    // Listen to hScrollContainer scroll - this is the source of truth
+    hScrollContainer.addEventListener('scroll', syncHorizontalScroll, { passive: true });
+    
+    // Route ALL horizontal wheel events to hScrollContainer
+    // This ensures scrolling anywhere moves hScrollContainer, which then syncs header and body
+    const routeHorizontalWheel = (e) => {
+      // Only intercept horizontal scrolling
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        // Scroll hScrollContainer - this will trigger syncHorizontalScroll via scroll event
+        hScrollContainer.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    
+    // Route horizontal wheel events from all scrollable areas to hScrollContainer
+    scrollableHeader.addEventListener('wheel', routeHorizontalWheel, { passive: false });
+    scrollableBody.addEventListener('wheel', routeHorizontalWheel, { passive: false });
+    vScrollContainer.addEventListener('wheel', routeHorizontalWheel, { passive: false });
+    vScrollContent.addEventListener('wheel', routeHorizontalWheel, { passive: false });
+    
+    // Initial sync
+    syncHorizontalScroll();
     
     // Calculate content height and position frozen body below header
     const updateContentHeight = () => {

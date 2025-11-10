@@ -747,6 +747,8 @@
     flex-shrink: 0;
     /* Width will be set by JS to match table width - don't constrain */
     display: block;
+    /* Will be transformed by JS to sync with horizontal scroll */
+    will-change: transform;
 }
 
 .stats-scrollable-header table {
@@ -860,6 +862,8 @@
     background: transparent;
     /* Width will be set by JS to match table width - don't constrain */
     display: block;
+    /* Will be transformed by JS to sync with horizontal scroll */
+    will-change: transform;
 }
 
 .stats-scrollable-body table {
