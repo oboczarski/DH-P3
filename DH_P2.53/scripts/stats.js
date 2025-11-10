@@ -1167,7 +1167,7 @@
     }, { passive: false });
 
     // Touch gesture support so mobile users can drag anywhere on the body/frozen section
-    const attachTouchScroller = (surface) => {
+    const attachTouchScroller = (surface, onHorizontalScroll) => {
       if (!surface) return;
 
       let touchActive = false;
@@ -1205,7 +1205,11 @@
           event.preventDefault();
           const deltaX = touch.clientX - lastTouchX;
           if (deltaX !== 0) {
-            scrollableHeader.scrollLeft -= deltaX;
+            if (typeof onHorizontalScroll === 'function') {
+              onHorizontalScroll(deltaX);
+            } else {
+              scrollableHeader.scrollLeft -= deltaX;
+            }
           }
           lastTouchX = touch.clientX;
         }
@@ -1220,8 +1224,15 @@
       surface.addEventListener('touchcancel', resetTouchState, { passive: true });
     };
 
-    attachTouchScroller(scrollableBodyOverlay);
-    attachTouchScroller(frozenBody);
+    const applyImmediateSync = (deltaX) => {
+      scrollableHeader.scrollLeft -= deltaX;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+      }
+    };
+
+    attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
+    attachTouchScroller(frozenBody, applyImmediateSync);
     
     // Initialize scroll positions
     scrollableHeader.scrollLeft = 0;
