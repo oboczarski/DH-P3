@@ -1357,15 +1357,13 @@ body[data-page="welcome"] .home-menu-slot {
 /* Ensure the input fills the shared height and has balanced paddings */
 body[data-page="welcome"] #usernameInput {
   height: var(--welcome-header-control-height) !important;
-  padding-top: 0.5rem !important; /* Increased for better cursor vertical centering */
-  padding-bottom: 0.5rem !important; /* Increased for better cursor vertical centering */
-  padding-left: 0.65rem !important; /* Slightly increased for better horizontal positioning */
-  padding-right: 0.65rem !important;
+  padding-top: 0.18rem !important;
+  padding-bottom: 0.18rem !important;
+  padding-left: 0.6rem !important;
+  padding-right: 0.6rem !important;
   border-radius: 8px;
   box-sizing: border-box;
   font-size: 17px !important;
-  line-height: 1.5 !important; /* Ensure proper vertical alignment of text and cursor */
-  vertical-align: middle !important;
 }
 /* Keep the enter button vertically centered and same height */
 body[data-page="welcome"] .enter-button {
@@ -2518,12 +2516,10 @@ body[data-page="welcome"] #usernameInput {
   max-width: 520px;
   width: 100%;
   font-size: 0.96rem;
-  padding: 0.5rem 0.65rem; /* Increased top/bottom padding for better cursor centering */
+  padding: 0.36rem 0.65rem;
   border-radius: 10px;
   height: 40px; /* slightly reduced height for tighter header */
   box-sizing: border-box;
-  line-height: 1.5; /* Ensure proper vertical alignment of text and cursor */
-  vertical-align: middle;
 }
 /* Enter button styling — styled to match the other nav buttons with a circular icon inside */
 body[data-page="welcome"] .home-enter-slot { display: flex; align-items: center; justify-content: center; }
@@ -2638,14 +2634,7 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
     height: 24px;
     font-size: 0.92rem;
   }
-  body[data-page="welcome"] #usernameInput { 
-    font-size: 16px !important; /* Prevent iOS zoom and ensure proper sizing */
-    padding: 0.5rem 0.65rem !important; /* Increased padding for better cursor centering */
-    height: 38px !important;
-    line-height: 1.5 !important; /* Ensure proper vertical alignment of text and cursor */
-    box-sizing: border-box !important;
-    vertical-align: middle !important;
-  }
+  body[data-page="welcome"] #usernameInput { font-size: 0.94rem; padding: 0.34rem 0.5rem; height: 38px; }
 }
 @media (max-width: 540px) {
   /* ⬇︎ 📱 OWNERSHIP PAGE: MOBILE CORRECTIONS (v4 — rows vs header separated) 📱 ⬇︎ */
