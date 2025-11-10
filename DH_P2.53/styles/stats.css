@@ -747,8 +747,8 @@
     flex-shrink: 0;
     /* Width will be set by JS to match table width - don't constrain */
     display: block;
-    /* Will be transformed by JS to sync with horizontal scroll */
-    will-change: transform;
+    /* NO horizontal scrolling - parent hScrollContainer handles it */
+    overflow-x: hidden;
 }
 
 .stats-scrollable-header table {
@@ -766,7 +766,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    overflow-x: visible; /* Allow content to extend - parent hScrollContainer handles horizontal scrolling */
+    overflow-x: hidden; /* CRITICAL: NO horizontal scrolling - parent hScrollContainer handles it */
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.06) transparent;
     position: relative;
@@ -862,8 +862,9 @@
     background: transparent;
     /* Width will be set by JS to match table width - don't constrain */
     display: block;
-    /* Will be transformed by JS to sync with horizontal scroll */
-    will-change: transform;
+    /* CRITICAL: NO horizontal scrolling - only vertical scrolling allowed */
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 .stats-scrollable-body table {
