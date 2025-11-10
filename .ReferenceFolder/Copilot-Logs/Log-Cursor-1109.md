@@ -1,4 +1,444 @@
+The TanStack Table instance creation is failing for the frozen/scrollable sections. Fixing table initialization and adding fallbacks:
+TanStack Table fails with split columns. Adding error handling and falling back to manual rendering:
+stats.js
++32
+-68
+    };
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)      const tr = document.createElement('tr');      cols.forEach((col, idx) => {        const th = document.createElement('th');        const label = headerLabels.get(col) || col;
+stats.js
++19
+-38
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)      const tr = document.createElement('tr');      cols.forEach((col, idx) => {        const th = document.createElement('th');
+      const tr = document.createElement('tr');        const th = document.createElement('th');      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)        const tr = document.createElement('tr');      cols.forEach((col, idx) => {          const th = document.createElement('th');
+Removing TanStack Table instance creation for frozen/scrollable sections since we're using manual rendering:
+stats.js
++2
+-53
+      console.error('TanStack createTable failed; using manual renderer', e);    }
+    // Create TanStack table instances for frozen and scrollable sections    const frozenColumnsDef = frozenColumns.map(column => ({      id: column,      accessorKey: column,      header: () => headerLabels.get(column) || column,      size: getColumnWidth(column),    }));        const scrollableColumnsDef = scrollableColumns.map(column => ({      id: column,      accessorKey: column,      header: () => headerLabels.get(column) || column,      size: getColumnWidth(column),    }));        let frozenTableInstance = null;    let scrollableTableInstance = null;        try {      frozenTableInstance = createTable({        data: tableRows,        columns: frozenColumnsDef,        state: {          columnOrder: frozenColumns,        },        onStateChange: () => {},        getCoreRowModel: getCoreRowModel(),        columnResizeMode: 'onChange',        defaultColumn: {          size: DEFAULT_COLUMN_WIDTH,          minSize: 32,        },        renderFallbackValue: '',      });            scrollableTableInstance = createTable({        data: tableRows,        columns: scrollableColumnsDef,        state: {          columnOrder: scrollableColumns,        },        onStateChange: () => {},        getCoreRowModel: getCoreRowModel(),        columnResizeMode: 'onChange',        defaultColumn: {          size: DEFAULT_COLUMN_WIDTH,          minSize: 32,        },        renderFallbackValue: '',      });    } catch (e) {      console.error('TanStack createTable failed; using manual renderer', e);    }    // Note: We use manual rendering for frozen/scrollable split columns    // TanStack Table doesn't handle split column sets well, so we render manually
+stats.js
++5
+-6
+    // Render frozen corner header (first 3 columns)    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, frozenTableInstance);        // Render scrollable header (columns 4+)    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, scrollableTableInstance);
+    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, frozenTableInstance);    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, scrollableTableInstance);    // Render frozen corner header (first 3 columns)    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, null);        // Render scrollable header (columns 4+)
+Checking for other TanStack Table references that might cause issues:
+Making the TanStack Table check optional since we use manual rendering:
+stats.js
++2
+-5
+    }    const { createTable, getCoreRowModel } = window.TableCore;
+    if (!window.TableCore) {      console.error('TanStack Table library not loaded.');      return;    }    const { createTable, getCoreRowModel } = window.TableCore;    // Note: We use manual rendering for frozen columns, so TanStack Table is optional    // Keeping the check for potential future use, but not required for current implementation
+Verifying the fix and checking for other issues:
+Fix applied
+Problem: TanStack Table’s getHeaderGroups() failed when creating separate instances for frozen and scrollable columns, causing "Cannot read properties of undefined (reading 'left')".
+Solution:
+Removed TanStack Table instance creation for split columns; TanStack doesn’t handle split column sets well.
+Switched to manual rendering for headers and body rows using the existing cell descriptor system.
+Made TanStack Table optional by removing the requirement check; it’s not needed for the frozen columns implementation.
+Changes:
+Removed frozenTableInstance and scrollableTableInstance creation
+Updated renderHeaderCells() to always use manual rendering
+Updated renderBodyRows() to always use manual rendering
+Made TanStack Table check optional (non-blocking)
+Manual rendering uses the same cell descriptors (tableRows) with render functions for PLAYER buttons, VALUE chips, and TM logos, so functionality is unchanged.
+The page should load without errors. Frozen columns use manual rendering, which is more reliable for this split-column setup.
+The scrolling is actually finally good, if you can somehow keep that, it would be wondrful.
+
+Unfortunately theough the frozen column data is showing on top of the first 3 non-frozen columns(4, 5, & 6) as shown in image 
+
+Fixing CSS positioning so frozen columns don't overlap the scrollable columns. Ensuring proper spacing and z-index:
+Frozen body and scrollable body overlay share left: 0, causing overlap. Adjusting the scrollable overlay to start after the frozen columns. Fixing CSS:
+stats.css
++2
+-1
+    top: 0;    left: var(--frozen-width);    right: 0;    min-height: 100%;
+    left: var(--frozen-width);    top: 0;    left: 0;    right: 0;    min-height: 100%;
+stats.css
++3
+-1
+    z-index: 5;    background: transparent;    border-right: 1px solid var(--color-panel-border);    border-collapse: collapse;
+    background: transparent;    z-index: 5;    background: rgb(13, 14, 35);    border-right: 1px solid var(--color-panel-border);    border-collapse: collapse;
+Adjusting positioning: frozen body should be relative to the container, not the content wrapper. Restructuring:
+stats.css
++3
+-6
+    min-height: 100%;    margin-left: var(--frozen-width);}
+    margin-left: var(--frozen-width);    min-height: 100%;    padding-left: var(--frozen-width);}
+stats.js
++8
+-7
+        // Frozen body (first 3 body columns)    const frozenBody = document.createElement('div');    
+    // Content wrapper to establish positioning context    const vScrollContent = document.createElement('div');    vScrollContent.className = 'stats-vscroll-content';        // Frozen body (first 3 body columns)    // Frozen body (first 3 body columns) - direct child of container for proper positioning    const frozenBody = document.createElement('div');    
+Updating the CSS so the frozen body has a solid background and aligns correctly:
+stats.css
++10
+-1
+    background: rgb(13, 14, 35);    border-right: 1px solid var(--color-panel-border);
+    background: rgb(13, 14, 35);    background: rgba(13, 14, 35, 0.95);    backdrop-filter: blur(8px);    border-right: 1px solid var(--color-panel-border);
+stats.css
++1
+-1
+    min-height: 100%;    padding-left: var(--frozen-width);}
+    padding-left: var(--frozen-width);    min-height: 100%;    margin-left: var(--frozen-width);}
+Updating JavaScript so the vertical scroll container starts below the header:
+stats.js
++3
+-1
+    // Set header heights to match    setTimeout(() => {        vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+    // Set header heights to match    // Set header heights to match and position vertical scroll container    setTimeout(() => {        vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+Checking that the scrollable body overlay doesn't move under the frozen columns when transformed. Ensuring correct background styling:
+stats.css
++1
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);}
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);    overflow: hidden;}
+stats.css
++4
+-3
+    backdrop-filter: blur(8px);    border-right: 1px solid var(--color-panel-border);    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    background: rgba(13, 14, 35, 0.95);    backdrop-filter: blur(8px);    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);    background: rgba(13, 14, 35, 0.98);    backdrop-filter: blur(10px);    border-right: 1px solid var(--color-panel-border);
+stats.css
++2
+    background: transparent;}
+    background: transparent;    /* Ensure it doesn't overlap frozen columns - margin-left from parent handles this */    min-width: 100%;}
+Checking the horizontal scroll transform logic. When scrolling horizontally, the overlay should not move under the frozen columns. Updating the transform to respect the frozen column boundary:
+stats.js
++3
+-1
+    // Sync horizontal scroll: transform overlay based on header scroll    scrollableHeader.addEventListener('scroll', () => {        const scrollLeft = scrollableHeader.scrollLeft;
+    // Sync horizontal scroll: transform overlay based on header scroll    // The overlay is already offset by margin-left, so we just need to transform the content    scrollableHeader.addEventListener('scroll', () => {        const scrollLeft = scrollableHeader.scrollLeft;
+Adjusting positioning: making the scrollable overlay absolutely positioned and offset by the frozen width so it never overlaps the frozen columns.
+stats.css
++6
+-6
+    min-height: 100%;    margin-left: var(--frozen-width);}/* Frozen body (first 3 body columns) - positioned relative to container, not content */
+    margin-left: var(--frozen-width);/* Frozen body (first 3 body columns) - positioned relative to container, not content */    min-height: 100%;}
+stats.js
++6
+-4
+    // Sync horizontal scroll: transform overlay based on header scroll    // The overlay is already offset by margin-left, so we just need to transform the content    scrollableHeader.addEventListener('scroll', () => {        const scrollLeft = scrollableHeader.scrollLeft;
+    // The overlay is already offset by margin-left, so we just need to transform the content    // Sync horizontal scroll: transform overlay based on header scroll    // The overlay starts at left: var(--frozen-width), and we transform it to scroll horizontally    scrollableHeader.addEventListener('scroll', () => {        const scrollLeft = scrollableHeader.scrollLeft;
+Fixing the transform: the overlay stays fixed at left: var(--frozen-width), and we transform the inner content, not the overlay itself.
+stats.js
++6
+-2
+        // Scrollable body overlay (same content as scrollableBodyWrapper, positioned relatively)    const scrollableBodyOverlay = document.createElement('div');    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
+    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned relatively)        // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)    const scrollableBodyOverlay = document.createElement('div');    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';    // Inner wrapper that will be transformed for horizontal scrolling
+stats.js
++7
+-8
+    // The overlay starts at left: var(--frozen-width), and we transform it to scroll horizontally    scrollableHeader.addEventListener('scroll', () => {      if (!isSyncingHorizontal) {
+    // Sync horizontal scroll: transform overlay based on header scroll    // The overlay starts at left: var(--frozen-width), and we transform it to scroll horizontally      if (!isSyncingHorizontal) {    // Sync horizontal scroll: transform inner content of overlay based on header scroll    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    const scrollableBodyOverlayInner = scrollableBodyOverlay.querySelector('.stats-scrollable-body-overlay-inner');    scrollableHeader.addEventListener('scroll', () => {
+stats.css
++7
+-2
+    will-change: transform;    overflow: visible;    background: transparent;
+    will-change: transform;    overflow: visible;    overflow: hidden;    background: transparent;}
+stats.js
++3
+-1
+    scrollableBodyOverlay.style.transform = 'translateX(0px)';
+    scrollableBodyOverlay.style.transform = 'translateX(0px)';    if (scrollableBodyOverlayInner) {      scrollableBodyOverlayInner.style.transform = 'translateX(0px)';    }
+Fixing the variable redeclaration: using the existing variable instead of querying again.
+stats.js
++4
+-1
+    // Apply cell descriptor helper
+        // Store reference to inner wrapper for scroll synchronization    scrollableBodyOverlay._innerWrapper = scrollableBodyOverlayInner;    // Apply cell descriptor helper
+stats.js
++3
+-3
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    const scrollableBodyOverlayInner = scrollableBodyOverlay.querySelector('.stats-scrollable-body-overlay-inner');    scrollableHeader.addEventListener('scroll', () => {      if (!isSyncingHorizontal && scrollableBodyOverlayInner) {
+    const scrollableBodyOverlayInner = scrollableBodyOverlay.querySelector('.stats-scrollable-body-overlay-inner');      if (!isSyncingHorizontal && scrollableBodyOverlayInner) {    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    const overlayInner = scrollableBodyOverlay._innerWrapper;    scrollableHeader.addEventListener('scroll', () => {      if (!isSyncingHorizontal && overlayInner) {
+stats.js
++2
+-2
+    if (scrollableBodyOverlayInner) {      scrollableBodyOverlayInner.style.transform = 'translateX(0px)';    }
+    if (scrollableBodyOverlayInner) {      scrollableBodyOverlayInner.style.transform = 'translateX(0px)';    if (scrollableBodyOverlay._innerWrapper) {      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';    }
+Fix applied
+Problem: Frozen columns (first 3) overlapped scrollable columns (4+) because positioning and transforms were incorrect.
+Solution:
+Updated positioning:
+Frozen body: position: absolute; left: 0; z-index: 5; (first 3 columns)
+Scrollable overlay: position: absolute; left: var(--frozen-width); z-index: 3; (starts after frozen columns)
+Overlay uses overflow: hidden to clip content
+Transform approach:
+The overlay stays at left: var(--frozen-width)
+An inner wrapper inside the overlay is transformed for horizontal scrolling
+Only the inner content moves; the overlay does not
+Background styling:
+Frozen body uses a solid background (rgba(13, 14, 35, 0.98)) with backdrop-filter
+Prevents content from showing through
+Result:
+Frozen columns remain at the left edge and do not overlap
+Scrollable columns start after the frozen columns
+Horizontal scrolling transforms only the inner content
+Scrolling behavior preserved
+The overlay’s left edge is at var(--frozen-width), so it cannot overlap the frozen columns.
+
+<!-- —————————————————————— ⤵️ NEW PROMPT ⤵️ ——————————————————————— -->
+FINALLY!!!!!!!!!!!
+
+
+
+OH MAN, IT FINALLY FUNCTIONS CORRECTLY.
+
+
+
+however there is still some more minor changes we need made. starting with the biggest one:
+
+
+
+1. the frozen column body row are not matching their counterpart in the not frozen column body, because it seems the heights are not matching. Fix this. if you need to, just set fixed heights to the rows.
+
+
+
+2. have the frozen column body background colors / blur and all that, match its counterparts perfectly
+
+
+
+3. ONLY for "PLAYER" column, i want text aligned left, everything else should be centered like it is.
+
+
+
+4. The POS tags are not showing up with their styling, its just showing up at white text.
+
 <!-- —————————————————————— ⤵️ CURSOR RESPONSE ⤵️ ——————————————————————— -->
+Fixing these issues. Checking current styling:
+Fixing all four issues:
+stats.css
++21
+}
+    height: 2.5rem;    min-height: 2.5rem;    max-height: 2.5rem;    vertical-align: middle;    line-height: 1.5rem;
+stats.css
++19
+-2
+    background: rgba(13, 14, 35, 0.98);    backdrop-filter: blur(10px);    border-right: 1px solid var(--color-panel-border);    background: transparent;
+    background: rgba(13, 14, 35, 0.98);    backdrop-filter: blur(10px);    background: transparent;    border-right: 1px solid var(--color-panel-border);    background: transparent;
+stats.css
++45
+}
+  position: relative;  line-height: 0.9rem;  background: rgba(255, 255, 255, 0.005);  backdrop-filter: blur(1px) saturate(180%);  border: 1px solid rgba(250, 250, 250, 0.12);
+Updating JavaScript to render POS as a styled tag:
+stats.js
++26
+-1
+          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+                    // Special handling for POS column - render as styled tag          if (col === 'POS') {            const posValue = descriptor && typeof descriptor === 'object' && descriptor.render               ? (() => {
+Adding POS handling to tableRows. Checking the exact section:
+stats.js
++15
+        } else if (column === 'VALUE') {
+        } else if (column === 'POS') {          // POS column - render as styled tag          const pos = (textValue || entry.meta.pos || '').trim().toUpperCase();          rowData[column] = {            render: (td) => {
+Simplifying: removing duplicate POS handling from renderBodyRows since it's handled in tableRows:
+stats.js
++2
+-25
+            applyCellDescriptor(td, descriptor);          }          
+                    // Special handling for POS column - render as styled tag          if (col === 'POS') {            const posValue = descriptor && typeof descriptor === 'object' && descriptor.render               ? (() => {                  // If it's a descriptor, extract the text value                  const tempDiv = document.createElement('div');                  descriptor.render(tempDiv);                  return tempDiv.textContent || '';                })()              : (typeof descriptor === 'string' ? descriptor : '');            const pos = (posValue || '').trim().toUpperCase();                        if (pos) {              const posTag = document.createElement('span');              posTag.className = `player-tag modal-pos-tag ${pos}`;              posTag.textContent = pos;              td.appendChild(posTag);              td.style.textAlign = 'center';            } else {              applyCellDescriptor(td, descriptor);            }          } else {            applyCellDescriptor(td, descriptor);          }          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)          applyCellDescriptor(td, descriptor);          
+Adding a class to PLAYER cells for reliable left alignment:
+stats.js
++1
+            render: (td) => {              const button = document.createElement('button');
+            render: (td) => {              td.classList.add('stats-player-cell');              const button = document.createElement('button');
+stats.css
++1
+-2
+/* PLAYER column left-aligned */.stats-table tbody td:has(.stats-player-btn),.stats-table tbody td[data-column="PLAYER"] {    text-align: left;
+.stats-table tbody td:has(.stats-player-btn),.stats-table tbody td[data-column="PLAYER"] {/* PLAYER column left-aligned */.stats-table tbody td.stats-player-cell {    text-align: left;
+stats.css
++1
+-2
+/* PLAYER column left-aligned in frozen body */.stats-frozen-body tbody td:has(.stats-player-btn),.stats-frozen-body tbody td[data-column="PLAYER"] {    text-align: left;
+.stats-frozen-body tbody td:has(.stats-player-btn),.stats-frozen-body tbody td[data-column="PLAYER"] {/* PLAYER column left-aligned in frozen body */.stats-frozen-body tbody td.stats-player-cell {    text-align: left;
+Updating mobile styles for row heights and POS tags:
+stats.css
++21
+  }
+    height: 2rem;    min-height: 2rem;    max-height: 2rem;    line-height: 1.2rem;  }
+Verifying all fixes are complete. Summary of changes:
+All fixes applied
+1. Row heights matching
+Set fixed row heights: 2.5rem for desktop, 2rem for mobile
+Applied to frozen and scrollable body rows
+Set min-height and max-height to keep heights consistent
+2. Background colors matching
+Removed custom background from .stats-frozen-body (changed from rgba(13, 14, 35, 0.98) to transparent)
+Frozen body uses the same row backgrounds as scrollable (rgba(40, 44, 69, 0.15) for even rows)
+Removed backdrop-filter from frozen body to match scrollable
+3. PLAYER column left-aligned
+Added stats-player-cell class to PLAYER column cells in JavaScript
+CSS rules left-align PLAYER cells in frozen and scrollable bodies
+Header remains centered
+4. POS tags styled
+POS column renders as styled tags with player-tag modal-pos-tag class
+Position-specific classes (QB, RB, WR, TE) with colors:
+QB: #FF3A75c0
+RB: #00EBC7c0
+WR: #58A7FFca
+TE: #B469FFca
+Added glass effects (backdrop-filter, box-shadow, ::after pseudo-element)
+Position-specific box-shadow glows
+Frozen and scrollable columns should now align in height, styling, and alignment. POS tags display with position-specific styling.
+
+<!-- —————————————————————— ⤵️ NEW PROMPT ⤵️ ——————————————————————— -->
+ohh man!!  i didnt realize this because i was initially testing in chrome dev tools but on mobile, it doesnt let u scroll horizontally unless you scroll directly on the header...
+
+vertical scrolling is fine. but please fix this without messing anything up
+<!-- —————————————————————— ⤵️ CURSOR RESPONSE ⤵️ ——————————————————————— -->
+Fixing mobile touch scrolling: the body isn't capturing horizontal swipe gestures. Updating touch event handling so horizontal scrolling works from anywhere in the body.
+stats.css
++9
+-1
+    overflow: hidden;    background: transparent;
+    overflow: hidden;    overflow-x: auto;    overflow-y: hidden;    -webkit-overflow-scrolling: touch;    background: transparent;
+stats.js
++89
+-13
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    const overlayInner = scrollableBodyOverlay._innerWrapper;
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    // Sync horizontal scroll between header and overlay    // On mobile, the overlay needs to be scrollable itself for touch scrolling    const overlayInner = scrollableBodyOverlay._innerWrapper;    
+Switching to native scrolling. Removing the transform and making the overlay natively scrollable:
+stats.js
++2
+-9
+    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';    // We'll clone the scrollable body table content here    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
+    // Inner wrapper that will be transformed for horizontal scrolling    const scrollableBodyOverlayInner = document.createElement('div');    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';    // We'll clone the scrollable body table content here    // We'll clone the scrollable body table content here - no inner wrapper needed for native scrolling    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
+stats.js
++5
+-81
+    // On mobile, the overlay needs to be scrollable itself for touch scrolling    const overlayInner = scrollableBodyOverlay._innerWrapper;        // Sync scroll from header to overlay (for desktop wheel scrolling)
+    // On mobile, the overlay needs to be scrollable itself for touch scrolling    const overlayInner = scrollableBodyOverlay._innerWrapper;    // Sync scroll from header to overlay (for desktop wheel scrolling)    // Both use native scrolling for mobile compatibility        // Sync scroll from header to overlay
+stats.css
+-6
+    will-change: transform;    position: relative;}.stats-scrollable-body-overlay::-webkit-scrollbar {
+/* Inner wrapper that gets transformed for horizontal scrolling */.stats-scrollable-body-overlay-inner {    will-change: transform;    position: relative;}.stats-scrollable-body-overlay::-webkit-scrollbar {
+Adding touch handling so horizontal swipes on the frozen body also scroll:
+stats.js
++50
+    // Initialize scroll positions
+    // Touch event handling for mobile - allow horizontal scrolling on frozen body too    let touchStartX = null;    let touchStartY = null;    let touchScrollTarget = null;    
+Relying on native scrolling; simplifying touch handling and ensuring the overlay is scrollable:
+stats.js
++34
+-44
+    
+    // For mobile: Allow horizontal touch scrolling on frozen body by routing to overlay    // The overlay uses native scrolling which works perfectly on mobile    let isScrollingHorizontally = false;    let lastTouchX = 0;    let lastTouchY = 0;
+Ensuring the overlay table has the correct width so it can scroll. Checking the table setup:
+stats.js
++5
+    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';    // We'll clone the scrollable body table content here - no inner wrapper needed for native scrolling    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';    // Set minimum width to enable horizontal scrolling    scrollableBodyOverlay.style.minWidth = `${scrollableWidth}px`;    // We'll clone the scrollable body table content here - no inner wrapper needed for native scrolling    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+Fixing overlay width constraint so scrolling works:
+stats.js
++2
+-4
+    // Set minimum width to enable horizontal scrolling    scrollableBodyOverlay.style.minWidth = `${scrollableWidth}px`;    // We'll clone the scrollable body table content here - no inner wrapper needed for native scrolling    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    // Ensure table has explicit width for scrolling
+    // Set minimum width to enable horizontal scrolling    scrollableBodyOverlay.style.minWidth = `${scrollableWidth}px`;    // Ensure table has explicit width for scrolling    // We'll clone the scrollable body table content here - no inner wrapper needed for native scrolling    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+Ensuring the scrollable header table has the same width for proper scrolling:
+stats.js
++3
+    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    const scrollableHeaderThead = document.createElement('thead');
+    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    // Ensure header table has same width as body for proper alignment    scrollableHeaderTable.style.width = `${scrollableWidth}px`;    scrollableHeaderTable.style.tableLayout = 'fixed';    const scrollableHeaderThead = document.createElement('thead');
+Mobile horizontal scrolling fix
+Native scrolling on overlay:
+Removed the transform-based approach
+Set overflow-x: auto and -webkit-overflow-scrolling: touch on the overlay
+Removed the inner wrapper that was blocking native scrolling
+Bidirectional scroll sync:
+Header ↔ overlay sync so scrolling either one updates both
+Works for touch, wheel, and trackpad
+Touch handling on frozen body:
+Horizontal swipes on frozen columns scroll the overlay (which syncs with the header)
+Detects horizontal vs vertical gesture to avoid conflicts
+Table width setup:
+Set explicit widths on header and overlay tables matching total scrollable width
+Enables proper scrolling when content is wider than the viewport
+Scrollbar visibility:
+Scrollbars hidden via CSS (height: 0, width: 0) while scrolling remains functional
+You can scroll horizontally by:
+Swiping on the scrollable body overlay (native touch scrolling)
+Swiping on the header
+Swiping on the frozen body columns (routes to overlay)
+Vertical scrolling continues to work as before
+This should work across the table on mobile devices.
+
+<!-- —————————————————————— ⤵️ NEW PROMPT ⤵️ ——————————————————————— -->
+OH MAN, WHAT A FUCKING NIGHTMARE.
+
+Did not work at all, infact you made it worse, its not even usable, the scrolling results in a bunch of glitching. 
+
+what a pain.
+
+I WAS SO RELIEVED when i thought we finally set up the structure and scrolling exactly as i had hoped.
+
+just to find out... it doesnt work how i need it to, in the most important spot, mobile.
+
+
+
+i reverted everything back, you have to try to figure this out without messing it all up. how can it work so perfect on desktop, but not mobile???
+
+and out of curiosity,  howcome the header and body for non frozen colums arent in the same scroll container? 
+
+
+
+
+<!-- —————————————————————— ⤵️ CURSOR RESPONSE ⤵️ ——————————————————————— -->
+Analyzing the current structure to understand why desktop works but mobile doesn't, and why the header and body are separate.
+Problem:
+Why they’re separate: The header is in .stats-hscroll-container (scrollable) while the body overlay is absolutely positioned with overflow: hidden and uses transform. This separates them.
+Mobile issue: Transform-based scrolling isn’t detected by mobile; mobile requires a native scrollable element.
+Fix: Make the overlay natively scrollable (as the header is) and sync both directions. Ensuring it can scroll natively without breaking the existing structure.
+stats.css
++10
+-3
+    overflow: hidden;    background: transparent;
+    overflow: hidden;    overflow-x: auto;    overflow-y: hidden;    -webkit-overflow-scrolling: touch;    background: transparent;
+stats.js
++19
+-19
+    const overlayInner = scrollableBodyOverlay._innerWrapper;    scrollableHeader.addEventListener('scroll', () => {      if (!isSyncingHorizontal && overlayInner) {
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves    const overlayInner = scrollableBodyOverlay._innerWrapper;      if (!isSyncingHorizontal && overlayInner) {    // Sync horizontal scroll between header and overlay    // Both now use native scrolling for mobile compatibility    // Sync from header to overlay (desktop wheel scrolling on header)    scrollableHeader.addEventListener('scroll', () => {
+Making the overlay natively scrollable like the header and ensuring the table width allows scrolling:
+stats.js
++6
+-9
+    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)    const scrollableBodyOverlay = document.createElement('div');    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';    // Inner wrapper that will be transformed for horizontal scrolling
+    // Inner wrapper that will be transformed for horizontal scrolling    const scrollableBodyOverlayInner = document.createElement('div');    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';    // We'll clone the scrollable body table content here    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)    // This is natively scrollable for mobile touch support    const scrollableBodyOverlay = document.createElement('div');    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
+Checking the header table setup and ensuring alignment:
+stats.js
++3
+    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    const scrollableHeaderThead = document.createElement('thead');
+    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);    // Ensure header table has same width as body table for proper alignment    scrollableHeaderTable.style.width = `${scrollableWidth}px`;    scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;    const scrollableHeaderThead = document.createElement('thead');
+CSS is correct. Verifying the sync and addressing why header and body are separate.
+Answer: Why header and body aren't in the same scroll container
+They need to be separate because:
+Header: must stay fixed at the top (no vertical scroll).
+Body: must scroll vertically.
+They share horizontal scrolling, which requires syncing.
+Solution: Native scrolling
+Header and overlay use native scrolling (overflow-x: auto).
+Both tables have explicit widths for horizontal scrolling.
+Scroll positions sync bidirectionally.
+On mobile:
+Swiping the header scrolls horizontally.
+Swiping the overlay scrolls horizontally.
+They stay in sync.
+Checking one more detail: ensuring the overlay receives touch events when touching the frozen body area:
+Summary of changes
+Overlay uses native scrolling (overflow-x: auto) — enables mobile touch scrolling.
+Tables have explicit widths — header and body tables use scrollableWidth so content is wider than the container and can scroll.
+Bidirectional sync — scrolling the header updates the overlay, and scrolling the overlay updates the header.
+Desktop wheel events — continue to route to the header.
+Why this should work on mobile:
+The overlay is a real scrollable element, so mobile browsers handle touch gestures.
+Swiping left/right on the overlay scrolls natively.
+The header and overlay stay in sync.
+To test on mobile:
+Swipe horizontally on the scrollable body area (overlay).
+Swipe horizontally on the header.
+Both should scroll horizontally and stay aligned.
+Note: Horizontal scrolling on the frozen body columns isn’t handled. If needed, we can add touch handlers that detect horizontal swipes and route them to the overlay.
+Does horizontal scrolling work when swiping on the overlay area? If not, we can debug further.
+
 Summary of changes
 Overlay uses native scrolling (overflow-x: auto) — enables mobile touch scrolling.
 Tables have explicit widths — header and body tables use scrollableWidth so content is wider than the container and can scroll.
