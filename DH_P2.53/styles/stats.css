@@ -705,9 +705,8 @@
     top: 0;
     left: 0;
     z-index: 10;
-    background: rgba(13, 14, 35, 0.96);
-    backdrop-filter: blur(10px);
-    box-shadow: 4px 0 12px rgba(5, 7, 18, 0.55);
+    background: rgb(30 34 51 / 17%);
+    backdrop-filter: blur(12px);
     overflow: hidden;
     border-right: 1px solid #fafbff02;
 }
@@ -810,8 +809,7 @@
     top: 0;
     left: 0;
     z-index: 5;
-    background: rgba(13, 14, 35, 0.96);
-    backdrop-filter: blur(8px);
+    background: transparent;
     border-right: 1px solid #fafbff02;
     pointer-events: auto;
     will-change: transform;
@@ -856,27 +854,18 @@
     right: 0;
     z-index: 3;
     pointer-events: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     background: transparent;
 }
 
-/* Inner wrapper ensures content width extends for native horizontal scrolling */
+/* Inner wrapper that gets transformed for horizontal scrolling */
 .stats-scrollable-body-overlay-inner {
-    will-change: scroll-position;
+    will-change: transform;
     position: relative;
-    display: inline-block;
-    min-width: max-content;
 }
 
 .stats-scrollable-body-overlay table {
     border-collapse: collapse;
-}
-
-.stats-scrollable-body-overlay::-webkit-scrollbar {
-    height: 0;
-    width: 0;
 }
 
 /* Legacy classes for backward compatibility - remove if not needed */
