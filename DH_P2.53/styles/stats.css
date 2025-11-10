@@ -1082,11 +1082,49 @@
   color: #9cf7d4;
 }
 .stats-table thead th.stats-header-receiving {
-  color: #A0C2F7;
+    color: #A0C2F7;
+}
+
+@media (min-width: 601px) {
+    .stats-table thead th {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.35rem;
+        height: 2.2rem;
+        min-height: 2.2rem;
+        max-height: 2.2rem;
+    }
+
+    .stats-table tbody td {
+        font-size: 0.74rem;
+        padding: 0.32rem 0.35rem;
+        height: 2.2rem;
+        min-height: 2.2rem;
+        max-height: 2.2rem;
+    }
+
+    .stats-table tbody tr {
+        height: 2.2rem;
+        min-height: 2.2rem;
+        max-height: 2.2rem;
+    }
+
+    .stats-frozen-body tbody tr {
+        height: 2.2rem;
+        min-height: 2.2rem;
+        max-height: 2.2rem;
+    }
+
+    .stats-frozen-body th,
+    .stats-frozen-body td {
+        height: 2.2rem;
+        min-height: 2.2rem;
+        max-height: 2.2rem;
+        line-height: 1.35rem;
+    }
 }
 
 .stats-table .player-tag.modal-pos-tag {
-  display: inline-flex;
+    display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.9rem;
