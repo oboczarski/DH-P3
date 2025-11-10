@@ -122,6 +122,16 @@
   width: 100%;
   max-width: 620px;
 }
+.stats-intro-picks {
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+.stats-intro-picks .stats-picks-btn {
+  width: min(100%, 360px);
+}
 .stats-tabs-buttons {
   display: flex;
   justify-content: center;
@@ -216,9 +226,32 @@
 .stats-controls {
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
+  gap: 0.4rem;
   width: 100%;
   max-width: 640px;
+}
+.stats-controls-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 2.5rem 0.2rem 0.25rem;
+  min-height: 1.8rem;
+}
+.stats-controls-header {
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-align: center;
+  width: 100%;
+}
+.stats-controls-heading .stats-key-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 .stats-key-button {
   display: flex;
@@ -246,6 +279,14 @@
 .stats-key-button i {
   font-size: 0.75rem;
 }
+.stats-controls-footer {
+  margin: 0;
+  margin-top: 0.1rem;
+  font-size: 0.62rem;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.045em;
+  text-align: left;
+}
 .stats-controls-body {
   display: flex;
   flex-direction: column;
@@ -257,40 +298,35 @@
 .stats-search-block {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   margin: 0;
-  flex: 2 1 260px;
+  min-width: 0;
+  flex: 1 1 240px;
 }
 .stats-secondary-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 0.5rem;
-  width: 100%;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  width: 100%;
+  flex-wrap: wrap;
 }
-.stats-secondary-row > .stats-filter-btn-secondary,
-.stats-secondary-row > .stats-key-button {
+.stats-secondary-row .stats-rookie-btn {
   min-width: 4.5rem;
-  min-height: 1.9rem;
-  padding: 0.15rem 0.55rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  flex: 0 0 auto;
 }
-.stats-search-block {
-  min-width: 0;
-  width: 100%;
+.stats-secondary-separator {
+  width: 1px;
+  height: 1.6rem;
+  background: rgba(128, 138, 189, 0.3);
+  flex-shrink: 0;
+  align-self: stretch;
 }
 
 @media (min-width: 601px) {
-  .stats-secondary-row {
-    grid-template-columns: auto minmax(200px, 280px) auto;
-  }
   .stats-search-block {
-    max-width: 280px;
-    justify-self: center;
+    max-width: 320px;
   }
 }
 .stats-search-input-wrap {
@@ -378,7 +414,7 @@
   margin: 0.15rem 0;
   flex-shrink: 0;
 }
-.stats-filter-block .stats-rookie-btn {
+.stats-rookie-btn {
   padding: 0.24rem 0.25rem;
   font-size: 0.65rem;
 }
@@ -411,17 +447,17 @@
 }
 .stats-filter-btn-secondary.stats-picks-btn {
   position: static;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem 0.3rem;
-  line-height: 1.1;
-  gap: 0.1rem;
-  min-height: 1.9rem;
-}
-.stats-filter-btn-secondary.stats-picks-btn span {
-  display: block;
+  flex-direction: row;
+  padding: 0.25rem 1.6rem;
+  line-height: 1.2;
+  gap: 0.35rem;
+  letter-spacing: 0.1em;
+  min-height: 1.5rem;
+  text-transform: uppercase;
+  font-size: 0.68rem;
 }
 .stats-filter-btn-secondary:hover {
   background: rgba(28, 32, 54, 0.4);
@@ -1231,8 +1267,8 @@
     flex-direction: column;
   }
   .stats-search-block {
-    flex: 0 1 auto;
-    max-width: 420px;
+    flex: 1 1 100%;
+    max-width: 100%;
     width: 100%;
     margin: 0 auto;
   }
@@ -1244,9 +1280,6 @@
   .stats-key-button {
     padding: 0.45rem 0.75rem;
     font-size: 0.62rem;
-  }
-  .stats-key-button span {
-    display: none;
   }
   .stats-key-button i {
     font-size: 0.85rem;
@@ -1291,18 +1324,28 @@
     gap: 0.4rem;
   }
   .stats-secondary-row {
-    grid-template-columns: auto minmax(220px, 360px) auto;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 0.35rem;
   }
-  .stats-secondary-row > .stats-filter-btn-secondary,
-  .stats-secondary-row > .stats-key-button {
+  .stats-secondary-row .stats-rookie-btn {
     width: auto;
     min-width: 4rem;
     min-height: 1.75rem;
   }
   .stats-filter-btn-secondary.stats-picks-btn {
     min-height: 1.75rem;
+  }
+  .stats-controls-heading {
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.2rem 0.25rem;
+  }
+  .stats-controls-heading .stats-key-button {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 200px;
   }
   .stats-tabs {
     width: 100%;

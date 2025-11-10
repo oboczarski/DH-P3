@@ -95,24 +95,30 @@
           </button>
         </div>
       </div>
+      <div class="stats-intro-picks" role="presentation">
+        <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
+          Pick Values
+        </button>
+      </div>
     </section>
 
     <section class="stats-controls-panel glass-panel">
       <div class="stats-controls">
+        <div class="stats-controls-heading" aria-live="off">
+          <div class="stats-controls-header">Stat Categories:</div>
+          <button class="stats-key-button" id="statsKeyButton" type="button" aria-label="Show stats key">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <span>Key</span>
+          </button>
+        </div>
         <div class="stats-controls-body">
           <div class="stats-filter-block" id="statsFilterGroup">
             <button class="stats-filter-btn" data-position="ALL" type="button">Totals</button>
             <button class="stats-filter-btn" data-position="QB" type="button">Passing</button>
             <button class="stats-filter-btn" data-position="RB" type="button">Rushing</button>
             <button class="stats-filter-btn" data-position="Receiving" type="button">Receiving</button>
-            <span class="stats-filter-separator"></span>
-            <button class="stats-filter-btn-secondary stats-rookie-btn" data-position="Rookies" type="button">Rook</button>
           </div>
           <div class="stats-secondary-row">
-            <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
-              <span>Pick</span>
-              <span>Values</span>
-            </button>
             <div class="stats-search-block">
               <label class="sr-only" for="statsSearchInput">Search player</label>
               <div class="stats-search-input-wrap">
@@ -125,12 +131,13 @@
                 </span>
               </div>
             </div>
-            <button class="stats-key-button" id="statsKeyButton" type="button" aria-label="Show stats key">
-              <i class="fa-solid fa-key" aria-hidden="true"></i>
-              <span>Key</span>
-            </button>
+            <span class="stats-filter-separator stats-secondary-separator" aria-hidden="true"></span>
+            <button class="stats-filter-btn-secondary stats-rookie-btn" data-position="Rookies" type="button">Rook</button>
           </div>
         </div>
+        <p class="stats-controls-footer">
+          <em>sorting automatically sorts out players that do not meet indicated thresholds</em>
+        </p>
       </div>
     </section>
 
