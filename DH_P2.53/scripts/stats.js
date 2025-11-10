@@ -1165,6 +1165,63 @@
         e.preventDefault();
       }
     }, { passive: false });
+
+    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
+    const attachTouchScroller = (surface) => {
+      if (!surface) return;
+
+      let touchActive = false;
+      let isHorizontal = null;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let lastTouchX = 0;
+      const H_THRESHOLD = 8;
+
+      surface.addEventListener('touchstart', (event) => {
+        if (event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        touchActive = true;
+        isHorizontal = null;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        lastTouchX = touch.clientX;
+      }, { passive: true });
+
+      surface.addEventListener('touchmove', (event) => {
+        if (!touchActive || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        const deltaXFromStart = touch.clientX - touchStartX;
+        const deltaYFromStart = touch.clientY - touchStartY;
+
+        if (isHorizontal === null) {
+          if (Math.abs(deltaXFromStart) > H_THRESHOLD && Math.abs(deltaXFromStart) > Math.abs(deltaYFromStart)) {
+            isHorizontal = true;
+          } else if (Math.abs(deltaYFromStart) > H_THRESHOLD) {
+            isHorizontal = false;
+          }
+        }
+
+        if (isHorizontal) {
+          event.preventDefault();
+          const deltaX = touch.clientX - lastTouchX;
+          if (deltaX !== 0) {
+            scrollableHeader.scrollLeft -= deltaX;
+          }
+          lastTouchX = touch.clientX;
+        }
+      }, { passive: false });
+
+      const resetTouchState = () => {
+        touchActive = false;
+        isHorizontal = null;
+      };
+
+      surface.addEventListener('touchend', resetTouchState, { passive: true });
+      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
+    };
+
+    attachTouchScroller(scrollableBodyOverlay);
+    attachTouchScroller(frozenBody);
     
     // Initialize scroll positions
     scrollableHeader.scrollLeft = 0;
