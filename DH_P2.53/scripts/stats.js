@@ -1175,16 +1175,55 @@
       let touchStartX = 0;
       let touchStartY = 0;
       let lastTouchX = 0;
+      let lastTimestamp = 0;
+      let lastVelocity = 0;
+      let momentumFrame = null;
       const H_THRESHOLD = 8;
+
+      const cancelMomentum = () => {
+        if (momentumFrame) {
+          cancelAnimationFrame(momentumFrame);
+          momentumFrame = null;
+        }
+      };
+
+      const startMomentum = (initialVelocity) => {
+        cancelMomentum();
+        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < 0.02) return;
+        const decay = 0.0032; // controls how quickly momentum eases out
+        let velocity = initialVelocity;
+        let prev = performance.now();
+
+        const step = (now) => {
+          const elapsed = now - prev;
+          prev = now;
+          const delta = velocity * elapsed;
+          if (delta !== 0 && typeof onHorizontalScroll === 'function') {
+            onHorizontalScroll(delta);
+          }
+          const attenuation = Math.exp(-decay * elapsed);
+          velocity *= attenuation;
+          if (Math.abs(velocity) > 0.02) {
+            momentumFrame = requestAnimationFrame(step);
+          } else {
+            momentumFrame = null;
+          }
+        };
+
+        momentumFrame = requestAnimationFrame(step);
+      };
 
       surface.addEventListener('touchstart', (event) => {
         if (event.touches.length !== 1) return;
         const touch = event.touches[0];
+        cancelMomentum();
         touchActive = true;
         isHorizontal = null;
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
         lastTouchX = touch.clientX;
+        lastTimestamp = event.timeStamp;
+        lastVelocity = 0;
       }, { passive: true });
 
       surface.addEventListener('touchmove', (event) => {
@@ -1204,6 +1243,10 @@
         if (isHorizontal) {
           event.preventDefault();
           const deltaX = touch.clientX - lastTouchX;
+          const elapsed = event.timeStamp - lastTimestamp;
+          if (elapsed > 0) {
+            lastVelocity = (deltaX / elapsed);
+          }
           if (deltaX !== 0) {
             if (typeof onHorizontalScroll === 'function') {
               onHorizontalScroll(deltaX);
@@ -1212,12 +1255,18 @@
             }
           }
           lastTouchX = touch.clientX;
+          lastTimestamp = event.timeStamp;
         }
       }, { passive: false });
 
       const resetTouchState = () => {
         touchActive = false;
         isHorizontal = null;
+        if (lastVelocity && typeof onHorizontalScroll === 'function') {
+          // Convert velocity from px/ms to px/frame by multiplying with ~16ms later in step
+          startMomentum(lastVelocity);
+        }
+        lastVelocity = 0;
       };
 
       surface.addEventListener('touchend', resetTouchState, { passive: true });
