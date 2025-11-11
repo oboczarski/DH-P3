@@ -228,6 +228,7 @@
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
   let activeTableContainer = null;
   const tabScrollMemory = new Map();
+  const tabScrollPersistTimers = new Map();
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -297,7 +298,7 @@
       try {
         const state = container._getScrollState();
         if (state) {
-          tabScrollMemory.set(tabKey, state);
+          tabScrollMemory.set(tabKey, { ...state });
           return state;
         }
       } catch (err) {
@@ -310,8 +311,28 @@
       vertical: verticalEl ? verticalEl.scrollTop : fallback.vertical,
       horizontal: horizontalEl ? horizontalEl.scrollLeft : fallback.horizontal
     };
-    tabScrollMemory.set(tabKey, derived);
+    tabScrollMemory.set(tabKey, { ...derived });
     return derived;
+  }
+
+  function persistScrollState(tabKey, state, { immediate = false } = {}) {
+    if (!tabKey || !state) return;
+    const commit = () => {
+      tabScrollMemory.set(tabKey, { ...state });
+      if (tabScrollPersistTimers.has(tabKey)) {
+        clearTimeout(tabScrollPersistTimers.get(tabKey));
+        tabScrollPersistTimers.delete(tabKey);
+      }
+    };
+    if (immediate) {
+      commit();
+      return;
+    }
+    if (tabScrollPersistTimers.has(tabKey)) {
+      clearTimeout(tabScrollPersistTimers.get(tabKey));
+    }
+    const timer = setTimeout(commit, 150);
+    tabScrollPersistTimers.set(tabKey, timer);
   }
 
   function teardownContainer(container) {
@@ -995,7 +1016,7 @@
 
     // Create main container structure
     const container = document.createElement('div');
-    container.className = 'stats-table-container';
+    container.className = 'stats-table-container calibrating';
     container.style.setProperty('--frozen-width', `${frozenWidth}px`);
     const containerListeners = [];
     const addListener = (target, type, handler, options) => {
@@ -1243,6 +1264,13 @@
       }
     };
 
+    const persistCurrentScroll = () => {
+      persistScrollState(tabKey, {
+        vertical: vScrollContainer.scrollTop,
+        horizontal: scrollableHeader.scrollLeft
+      });
+    };
+
     const handleResize = () => {
       requestAnimationFrame(() => {
         applyHeaderMetrics();
@@ -1252,14 +1280,11 @@
 
     const finalizeMount = () => {
       container.classList.remove('calibrating');
-      container.style.removeProperty('position');
-      container.style.removeProperty('inset');
       container._getScrollState = () => ({
         vertical: vScrollContainer.scrollTop,
         horizontal: scrollableHeader.scrollLeft
       });
-      const currentState = container._getScrollState();
-      tabScrollMemory.set(tabKey, currentState);
+      persistScrollState(tabKey, container._getScrollState(), { immediate: true });
       activeTableContainer = container;
       teardownContainer(previousContainer);
     };
@@ -1305,6 +1330,11 @@
           isSyncingHorizontal = false;
         });
       }
+      persistCurrentScroll();
+    });
+
+    addListener(vScrollContainer, 'scroll', () => {
+      persistCurrentScroll();
     });
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
@@ -1453,11 +1483,7 @@
     attachTouchScroller(frozenBody, applyImmediateSync);
     
     // Initialize scroll positions
-    scrollableHeader.scrollLeft = 0;
-    vScrollContainer.scrollTop = 0;
-    if (scrollableBodyOverlay._innerWrapper) {
-      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
-    }
+    restoreScrollState();
 
     // Empty state handling
     dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
