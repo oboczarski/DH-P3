@@ -1139,50 +1139,68 @@
     container.appendChild(frozenCorner);
     container.appendChild(hScrollContainer);
     container.appendChild(vScrollContainer);
-    if (previousContainer) {
-      wrapper.replaceChild(container, previousContainer);
-    } else {
-      wrapper.appendChild(container);
-    }
 
-    // Set header heights to match and position vertical scroll container
-    setTimeout(() => {
+    const applyHeaderMetrics = () => {
       const headerHeight = getHeaderHeight();
-      if (headerHeight > 0) {
-        frozenCorner.style.height = `${headerHeight}px`;
-        scrollableHeader.style.height = `${headerHeight}px`;
-        // Adjust vertical scroll container to start below header
-        vScrollContainer.style.top = `${headerHeight}px`;
-        vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
-        // Frozen body should also start below header (it's inside vScrollContainer which is already offset)
-        frozenBody.style.top = '0';
-      }
-    }, 0);
+      if (!headerHeight) return false;
+      frozenCorner.style.height = `${headerHeight}px`;
+      scrollableHeader.style.height = `${headerHeight}px`;
+      vScrollContainer.style.top = `${headerHeight}px`;
+      vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+      frozenBody.style.top = '0';
+      return true;
+    };
 
-    // Scroll synchronization
-    let isSyncingHorizontal = false;
-    
-    // Calculate content height for vertical scroll container
-    // Both frozen body and overlay should have the same height, and content wrapper should match
     const updateContentHeight = () => {
       const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
       const frozenBodyHeight = frozenBodyTable.offsetHeight;
       const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
-      
-      // Set explicit heights to ensure proper scrolling
       if (maxHeight > 0) {
         frozenBody.style.height = `${maxHeight}px`;
         scrollableBodyOverlay.style.height = `${maxHeight}px`;
         vScrollContent.style.minHeight = `${maxHeight}px`;
-        // The vertical scroll container will scroll based on this content
       }
     };
-    
-    // Update height after rendering
-    setTimeout(updateContentHeight, 0);
-    
-    // Also update on window resize
-    window.addEventListener('resize', updateContentHeight);
+
+    const handleResize = () => {
+      requestAnimationFrame(() => {
+        applyHeaderMetrics();
+        updateContentHeight();
+      });
+    };
+
+    const mountContainer = () => {
+      if (!applyHeaderMetrics()) {
+        requestAnimationFrame(applyHeaderMetrics);
+      }
+      if (scrollableBodyOverlayTable.offsetHeight === 0) {
+        requestAnimationFrame(updateContentHeight);
+      } else {
+        updateContentHeight();
+      }
+      window.addEventListener('resize', handleResize);
+      container._teardown = () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    };
+
+    if (previousContainer) {
+      container.classList.add('incoming');
+      previousContainer.classList.add('outgoing');
+      wrapper.appendChild(container);
+      mountContainer();
+      requestAnimationFrame(() => {
+        previousContainer._teardown?.();
+        previousContainer.remove();
+        container.classList.remove('incoming');
+      });
+    } else {
+      wrapper.appendChild(container);
+      mountContainer();
+    }
+
+    // Scroll synchronization
+    let isSyncingHorizontal = false;
     
     // Sync horizontal scroll: transform inner content of overlay based on header scroll
     // The overlay stays fixed at left: var(--frozen-width), only the inner content moves

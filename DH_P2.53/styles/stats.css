@@ -840,6 +840,20 @@
     flex: 1;
     min-height: 0;
     --frozen-width: 192px; /* Default, overridden by JS */
+    will-change: opacity, transform;
+}
+
+.stats-table-container.incoming {
+    opacity: 0;
+}
+
+.stats-table-container.incoming,
+.stats-table-container.outgoing {
+    transition: opacity 80ms ease;
+}
+
+.stats-table-container.outgoing {
+    opacity: 0;
 }
 
 /* Frozen corner (first 3 header columns) */
