@@ -255,8 +255,9 @@
     secondaryFilterGroup: document.getElementById('statsSecondaryFilterGroup'),
     leagueChip: document.getElementById('statsLeagueContext'),
     receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
-    receivingSubfilters: document.querySelector('.stats-receiving-subfilters')
+    receivingButton: document.querySelector('.stats-filter-btn-receiving')
   };
+  dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
   dom.receivingSubfilterButtons = dom.receivingSubfilters
     ? Array.from(dom.receivingSubfilters.querySelectorAll('.stats-receiving-subfilter'))
     : [];
@@ -307,6 +308,9 @@
     dom.receivingFilterWrapper.classList.toggle('subfilters-visible', visible);
     if (dom.receivingSubfilters) {
       dom.receivingSubfilters.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+    if (dom.receivingButton) {
+      dom.receivingButton.setAttribute('aria-pressed', visible ? 'true' : 'false');
     }
   }
   function syncReceivingSubfilterUi({ ensureReset = false } = {}) {
