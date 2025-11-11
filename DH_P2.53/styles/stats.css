@@ -829,6 +829,8 @@
     max-height: 700px;
     display: flex;
     flex-direction: column;
+    position: relative; /* Allow absolute positioning of outgoing containers */
+    overflow: hidden; /* Prevent overflow during transitions */
 }
 
 .stats-table-container {
@@ -849,11 +851,16 @@
 
 .stats-table-container.incoming,
 .stats-table-container.outgoing {
-    transition: opacity 80ms ease;
+    transition: opacity 150ms ease;
 }
 
 .stats-table-container.outgoing {
     opacity: 0;
+    pointer-events: none; /* Prevent interaction with outgoing container */
+    position: absolute; /* Remove from layout flow */
+    top: 0;
+    left: 0;
+    right: 0;
 }
 
 /* Frozen corner (first 3 header columns) */
