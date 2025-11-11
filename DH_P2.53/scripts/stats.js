@@ -995,11 +995,7 @@
 
     // Create main container structure
     const container = document.createElement('div');
-    container.className = 'stats-table-container calibrating';
-    if (previousContainer) {
-      container.style.position = 'absolute';
-      container.style.inset = '0';
-    }
+    container.className = 'stats-table-container';
     container.style.setProperty('--frozen-width', `${frozenWidth}px`);
     const containerListeners = [];
     const addListener = (target, type, handler, options) => {
@@ -1291,6 +1287,7 @@
     };
 
     mountContainer();
+    activeTableContainer = container;
 
     // Scroll synchronization
     let isSyncingHorizontal = false;
