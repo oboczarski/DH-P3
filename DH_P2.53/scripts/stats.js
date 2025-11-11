@@ -240,10 +240,7 @@
     receivingSubfilters: {
       WR: true,
       TE: true
-    },
-    isRendering: false,
-    pendingRender: false,
-    scrollPosition: { vertical: 0, horizontal: 0 }
+    }
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
@@ -769,48 +766,7 @@
     }
   }
   
-  // Debounced render function to prevent multiple rapid re-renders
-  let renderTimeout = null;
-  function scheduleRender(immediate = false) {
-    // If already rendering, mark as pending
-    if (statsState.isRendering) {
-      statsState.pendingRender = true;
-      return;
-    }
-    
-    // Clear any existing timeout
-    if (renderTimeout) {
-      cancelAnimationFrame(renderTimeout);
-      renderTimeout = null;
-    }
-    
-    if (immediate) {
-      renderTimeout = requestAnimationFrame(() => {
-        renderTimeout = null;
-        renderTableInternal();
-      });
-    } else {
-      // Debounce for search/filter changes
-      renderTimeout = requestAnimationFrame(() => {
-        renderTimeout = null;
-        renderTableInternal();
-      });
-    }
-  }
-  
   function renderTable() {
-    scheduleRender(false);
-  }
-  
-  function renderTableInternal() {
-    // Prevent concurrent renders
-    if (statsState.isRendering) {
-      statsState.pendingRender = true;
-      return;
-    }
-    
-    statsState.isRendering = true;
-    statsState.pendingRender = false;
 
     // Note: We use manual rendering for frozen columns, so TanStack Table is optional
     // Keeping the check for potential future use, but not required for current implementation
@@ -1232,32 +1188,15 @@
     };
 
     if (previousContainer) {
-      // Save scroll position from the previous container before replacing it
-      const prevVScrollContainer = previousContainer.querySelector('.stats-vscroll-container');
-      const prevScrollableHeader = previousContainer.querySelector('.stats-scrollable-header');
-      if (prevVScrollContainer && prevScrollableHeader) {
-        statsState.scrollPosition = {
-          vertical: prevVScrollContainer.scrollTop,
-          horizontal: prevScrollableHeader.scrollLeft
-        };
-      }
-      
       container.classList.add('incoming');
       previousContainer.classList.add('outgoing');
       wrapper.appendChild(container);
       mountContainer();
-      
-      // Wait for transition to complete before removing
-      const transitionDuration = 150; // Match CSS transition duration
-      setTimeout(() => {
-        if (previousContainer._teardown) {
-          previousContainer._teardown();
-        }
-        if (previousContainer.parentNode) {
-          previousContainer.remove();
-        }
+      requestAnimationFrame(() => {
+        previousContainer._teardown?.();
+        previousContainer.remove();
         container.classList.remove('incoming');
-      }, transitionDuration);
+      });
     } else {
       wrapper.appendChild(container);
       mountContainer();
@@ -1427,75 +1366,15 @@
     attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
     attachTouchScroller(frozenBody, applyImmediateSync);
     
-    // Save current scroll position before re-render (only on re-renders, not initial)
-    const shouldPreserveScroll = previousContainer !== null;
-    
-    // Initialize or restore scroll positions
-    if (shouldPreserveScroll && statsState.scrollPosition) {
-      // Restore saved scroll position after a brief delay to ensure DOM is ready
-      requestAnimationFrame(() => {
-        if (statsState.scrollPosition.horizontal !== undefined) {
-          scrollableHeader.scrollLeft = statsState.scrollPosition.horizontal;
-          if (overlayInner) {
-            overlayInner.style.transform = `translateX(-${statsState.scrollPosition.horizontal}px)`;
-          }
-        }
-        if (statsState.scrollPosition.vertical !== undefined) {
-          vScrollContainer.scrollTop = statsState.scrollPosition.vertical;
-        }
-      });
-    } else {
-      // Fresh render - reset to top
-      scrollableHeader.scrollLeft = 0;
-      vScrollContainer.scrollTop = 0;
-      if (scrollableBodyOverlay._innerWrapper) {
-        scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
-      }
+    // Initialize scroll positions
+    scrollableHeader.scrollLeft = 0;
+    vScrollContainer.scrollTop = 0;
+    if (scrollableBodyOverlay._innerWrapper) {
+      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
     }
-    
-    // Save scroll positions on scroll events for future re-renders
-    let scrollSaveTimeout = null;
-    const saveScrollPosition = () => {
-      if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
-      scrollSaveTimeout = setTimeout(() => {
-        statsState.scrollPosition = {
-          vertical: vScrollContainer.scrollTop,
-          horizontal: scrollableHeader.scrollLeft
-        };
-      }, 50);
-    };
-    
-    vScrollContainer.addEventListener('scroll', saveScrollPosition, { passive: true });
-    scrollableHeader.addEventListener('scroll', saveScrollPosition, { passive: true });
-    
-    // Store cleanup function for scroll listeners
-    const cleanupScrollListeners = () => {
-      vScrollContainer.removeEventListener('scroll', saveScrollPosition);
-      scrollableHeader.removeEventListener('scroll', saveScrollPosition);
-      if (scrollSaveTimeout) {
-        clearTimeout(scrollSaveTimeout);
-        scrollSaveTimeout = null;
-      }
-    };
-    
-    // Enhance teardown to include scroll listener cleanup
-    const originalTeardown = container._teardown;
-    container._teardown = () => {
-      if (originalTeardown) originalTeardown();
-      cleanupScrollListeners();
-    };
 
     // Empty state handling
     dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
-    
-    // Mark rendering as complete
-    statsState.isRendering = false;
-    
-    // If a render was requested while we were rendering, process it now
-    if (statsState.pendingRender) {
-      statsState.pendingRender = false;
-      requestAnimationFrame(() => renderTableInternal());
-    }
   }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
@@ -1656,10 +1535,6 @@
     if (statsState.currentTab === tabKey) return;
     statsState.currentTab = tabKey;
     statsState.sort = { column: null, direction: 0 };
-    
-    // Reset scroll position when changing tabs
-    statsState.scrollPosition = { vertical: 0, horizontal: 0 };
-    
     dom.tabButtons.forEach((btn) => {
       const isActive = btn.dataset.tab === tabKey;
       btn.classList.toggle('active', isActive);
@@ -1714,36 +1589,16 @@
         statsState.sort.direction = 2;
       }
     }
-    
-    // Use immediate render for sorting (user expects instant feedback)
-    scheduleRender(true);
+    renderTable();
   }
   
-  // Debounce search input to prevent excessive re-renders while typing
-  let searchTimeout = null;
   function handleSearchInput(event) {
     const term = event.target.value || '';
+    statsState.searchTerm = term.trim().toLowerCase();
     dom.searchClear.classList.toggle('visible', term.length > 0);
-    
-    // Clear existing timeout
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-    
-    // Debounce the actual search and re-render
-    searchTimeout = setTimeout(() => {
-      statsState.searchTerm = term.trim().toLowerCase();
-      renderTable();
-    }, 150); // 150ms debounce - fast enough to feel responsive, slow enough to prevent spam
+    renderTable();
   }
-  
   function clearSearch() {
-    // Clear any pending search
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-      searchTimeout = null;
-    }
-    
     dom.searchInput.value = '';
     statsState.searchTerm = '';
     dom.searchClear.classList.remove('visible');
@@ -1774,7 +1629,7 @@
       rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
     }
     syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
-    scheduleRender(true); // Immediate render for filter changes
+    renderTable();
   }
   function handleReceivingSubfilterClick(event) {
     const btn = event.target.closest('.stats-receiving-subfilter');
@@ -1794,13 +1649,13 @@
     }
     statsState.receivingSubfilters[key] = !isActive;
     updateReceivingSubfilterButtons();
-    scheduleRender(true); // Immediate render for subfilter changes
+    renderTable();
   }
   function toggleRookieFilter() {
     statsState.rookieOnly = !statsState.rookieOnly;
     dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
     statsState.sort = { column: null, direction: 0 };
-    scheduleRender(true); // Immediate render for rookie filter
+    renderTable();
   }
   function toggleInlineLoading(show) {
     if (!dom.loading) return;
