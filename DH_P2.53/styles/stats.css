@@ -446,11 +446,11 @@
 }
 .stats-receiving-expanded {
   display: none;
-  width: 98%;
+  width: 100%;
   align-items: center;
   justify-content: center;
   gap: 0.14rem;
-  padding: 0.08rem 0rem 0.08rem 0rem;
+  padding: 0.08rem 0.1rem 0.08rem 0.1rem;
   border-radius: 7px;
   border: 1px solid rgba(128, 138, 189, 0.18);
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.11));
@@ -466,8 +466,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.35rem;
-  min-height: 1.31rem;
+  min-height: 1.36rem;
+  flex: 1 1 0;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(19, 21, 44, 0.45);

@@ -920,9 +920,14 @@
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
 
-    // Preserve caption if it exists, then clear existing content
+    // Preserve caption if it exists
     const existingCaption = wrapper.querySelector('caption');
-    wrapper.innerHTML = '';
+    const previousContainer = wrapper.querySelector('.stats-table-container');
+    const placeholderTable = !previousContainer ? wrapper.querySelector('table.stats-table') : null;
+
+    if (placeholderTable) {
+      placeholderTable.remove();
+    }
 
     // Helper to create a table with colgroup for specific columns
     const createSectionTable = (cols, sizes) => {
@@ -1134,7 +1139,11 @@
     container.appendChild(frozenCorner);
     container.appendChild(hScrollContainer);
     container.appendChild(vScrollContainer);
-    wrapper.appendChild(container);
+    if (previousContainer) {
+      wrapper.replaceChild(container, previousContainer);
+    } else {
+      wrapper.appendChild(container);
+    }
 
     // Set header heights to match and position vertical scroll container
     setTimeout(() => {
