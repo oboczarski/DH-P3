@@ -116,7 +116,13 @@
             <button class="stats-filter-btn" data-position="ALL" type="button">Totals</button>
             <button class="stats-filter-btn" data-position="QB" type="button">Passing</button>
             <button class="stats-filter-btn" data-position="RB" type="button">Rushing</button>
-            <button class="stats-filter-btn" data-position="Receiving" type="button">Receiving</button>
+            <div class="stats-filter-with-subfilters" data-filter="receiving">
+              <button class="stats-filter-btn stats-filter-btn-receiving" data-position="Receiving" type="button">Receiving</button>
+              <div class="stats-receiving-subfilters" aria-hidden="true">
+                <button class="stats-receiving-subfilter" data-subfilter="WR" type="button" aria-pressed="true">WR</button>
+                <button class="stats-receiving-subfilter" data-subfilter="TE" type="button" aria-pressed="true">TE</button>
+              </div>
+            </div>
           </div>
           <div class="stats-secondary-row">
             <div class="stats-search-block">

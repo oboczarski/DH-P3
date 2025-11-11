@@ -225,6 +225,7 @@
     return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
   }
   
+  const RECEIVING_SUBFILTERS = ['WR', 'TE'];
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -235,7 +236,11 @@
     headerLabels: new Map(),
     availableColumns: new Map(),
     rankCache: null,
-    lastRenderedRows: []
+    lastRenderedRows: [],
+    receivingSubfilters: {
+      WR: true,
+      TE: true
+    }
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
@@ -248,8 +253,13 @@
     filterGroup: document.getElementById('statsFilterGroup'),
     rookieButton: document.querySelector('.stats-rookie-btn'),
     secondaryFilterGroup: document.getElementById('statsSecondaryFilterGroup'),
-    leagueChip: document.getElementById('statsLeagueContext')
+    leagueChip: document.getElementById('statsLeagueContext'),
+    receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
+    receivingSubfilters: document.querySelector('.stats-receiving-subfilters')
   };
+  dom.receivingSubfilterButtons = dom.receivingSubfilters
+    ? Array.from(dom.receivingSubfilters.querySelectorAll('.stats-receiving-subfilter'))
+    : [];
   const gameLogDom = {
     modal: document.getElementById('game-logs-modal'),
     closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
@@ -276,6 +286,38 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+
+  function updateReceivingSubfilterButtons() {
+    if (!dom.receivingSubfilterButtons) return;
+    dom.receivingSubfilterButtons.forEach((btn) => {
+      const key = btn.dataset.subfilter;
+      const isActive = !!statsState.receivingSubfilters[key];
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+  function resetReceivingSubfilters() {
+    RECEIVING_SUBFILTERS.forEach((key) => {
+      statsState.receivingSubfilters[key] = true;
+    });
+    updateReceivingSubfilterButtons();
+  }
+  function setReceivingSubfiltersVisible(visible) {
+    if (!dom.receivingFilterWrapper) return;
+    dom.receivingFilterWrapper.classList.toggle('subfilters-visible', visible);
+    if (dom.receivingSubfilters) {
+      dom.receivingSubfilters.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+  }
+  function syncReceivingSubfilterUi({ ensureReset = false } = {}) {
+    const isReceivingActive = statsState.activePosition === 'Receiving';
+    if (isReceivingActive && ensureReset) {
+      resetReceivingSubfilters();
+    } else {
+      updateReceivingSubfilterButtons();
+    }
+    setReceivingSubfiltersVisible(isReceivingActive);
+  }
   function formatInteger(value) {
     if (!Number.isFinite(value)) return '';
     return Math.round(value).toString();
@@ -586,7 +628,9 @@
     // Positional Filtering
     if (statsState.activePosition && statsState.activePosition !== 'ALL') {
       if (statsState.activePosition === 'Receiving') {
-        if (meta.pos !== 'WR' && meta.pos !== 'TE') return false;
+        const allowedPositions = RECEIVING_SUBFILTERS.filter((key) => statsState.receivingSubfilters[key]);
+        if (!allowedPositions.length) return false;
+        if (!allowedPositions.includes(meta.pos)) return false;
       } else if (meta.pos !== statsState.activePosition) {
         return false;
       }
@@ -1530,6 +1574,7 @@
     const button = event.target.closest('.stats-filter-btn[data-position]') || event.target.closest('.stats-filter-btn-secondary[data-position]');
     if (!button || button.classList.contains('stats-rookie-btn')) return;
     const position = button.dataset.position;
+    const prevPosition = statsState.activePosition;
     // Prevent de-selecting the active filter if it's a main filter
     if (button.classList.contains('stats-filter-btn') && statsState.activePosition === position) return;
     if (position === 'RDP') {
@@ -1548,6 +1593,27 @@
     if (rdpButton) {
       rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
     }
+    syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
+    renderTable();
+  }
+  function handleReceivingSubfilterClick(event) {
+    const btn = event.target.closest('.stats-receiving-subfilter');
+    if (!btn) return;
+    event.stopPropagation();
+    if (statsState.activePosition !== 'Receiving') return;
+    const key = btn.dataset.subfilter;
+    if (!key || !RECEIVING_SUBFILTERS.includes(key)) return;
+    const isActive = !!statsState.receivingSubfilters[key];
+    if (isActive) {
+      const activeCount = RECEIVING_SUBFILTERS.reduce((count, subKey) => (
+        statsState.receivingSubfilters[subKey] ? count + 1 : count
+      ), 0);
+      if (activeCount <= 1) {
+        return; // always keep at least one subfilter active
+      }
+    }
+    statsState.receivingSubfilters[key] = !isActive;
+    updateReceivingSubfilterButtons();
     renderTable();
   }
   function toggleRookieFilter() {
@@ -1642,6 +1708,7 @@
         rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
       }
       dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
+      syncReceivingSubfilterUi();
       renderTable();
       wireGameLogControls();
       
@@ -1674,6 +1741,7 @@
   dom.filterGroup.addEventListener('click', handleFilterClick);
   dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
   dom.rookieButton.addEventListener('click', toggleRookieFilter);
+  dom.receivingSubfilters?.addEventListener('click', handleReceivingSubfilterClick);
   
   // Stats Key Popup handlers
   const statsKeyButton = document.getElementById('statsKeyButton');
@@ -1723,5 +1791,6 @@
       }
     });
   });
+  syncReceivingSubfilterUi();
   initialise();
 })();
