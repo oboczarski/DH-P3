@@ -850,6 +850,7 @@
 .stats-table-container.calibrating {
     visibility: hidden;
     opacity: 0;
+    pointer-events: none;
 }
 
 .stats-table-container.incoming {

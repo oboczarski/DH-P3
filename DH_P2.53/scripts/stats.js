@@ -227,6 +227,7 @@
   
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
   let activeTableContainer = null;
+  const tabScrollMemory = new Map();
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -289,21 +290,28 @@
   })();
   const params = new URLSearchParams(window.location.search);
 
-  function captureScrollState(container) {
-    if (!container) return { vertical: 0, horizontal: 0 };
+  function captureScrollState(container, tabKey) {
+    const fallback = tabScrollMemory.get(tabKey) || { vertical: 0, horizontal: 0 };
+    if (!container) return fallback;
     if (typeof container._getScrollState === 'function') {
       try {
-        return container._getScrollState() || { vertical: 0, horizontal: 0 };
+        const state = container._getScrollState();
+        if (state) {
+          tabScrollMemory.set(tabKey, state);
+          return state;
+        }
       } catch (err) {
         // ignore
       }
     }
     const verticalEl = container.querySelector('.stats-vscroll-container');
     const horizontalEl = container.querySelector('.stats-scrollable-header');
-    return {
-      vertical: verticalEl ? verticalEl.scrollTop : 0,
-      horizontal: horizontalEl ? horizontalEl.scrollLeft : 0
+    const derived = {
+      vertical: verticalEl ? verticalEl.scrollTop : fallback.vertical,
+      horizontal: horizontalEl ? horizontalEl.scrollLeft : fallback.horizontal
     };
+    tabScrollMemory.set(tabKey, derived);
+    return derived;
   }
 
   function teardownContainer(container) {
@@ -311,8 +319,9 @@
     if (typeof container._teardown === 'function') {
       try { container._teardown(); } catch (err) { /* ignore */ }
     }
-    if (container.isConnected) {
-      container.remove();
+    if (container.isConnected) container.remove();
+    if (activeTableContainer === container) {
+      activeTableContainer = null;
     }
   }
 
@@ -943,7 +952,8 @@
     // TanStack Table doesn't handle split column sets well, so we render manually
 
     // --- Frozen Columns Pattern: Separate Frozen and Scrollable Sections ---
-    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
+    const tabKey = statsState.currentTab;
+    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === tabKey);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
@@ -962,7 +972,7 @@
       ? activeTableContainer
       : wrapper.querySelector('.stats-table-container');
     const previousContainer = previousContainerCandidate || null;
-    const previousScrollState = captureScrollState(previousContainer);
+    const previousScrollState = captureScrollState(previousContainer, tabKey);
     const placeholderTable = !previousContainer ? wrapper.querySelector('table.stats-table') : null;
 
     if (placeholderTable) {
@@ -991,6 +1001,24 @@
       container.style.inset = '0';
     }
     container.style.setProperty('--frozen-width', `${frozenWidth}px`);
+    const containerListeners = [];
+    const addListener = (target, type, handler, options) => {
+      if (!target || typeof target.addEventListener !== 'function') return;
+      target.addEventListener(type, handler, options);
+      containerListeners.push(() => {
+        try {
+          target.removeEventListener(type, handler, options);
+        } catch (err) {
+          // ignore
+        }
+      });
+    };
+    container._teardown = () => {
+      while (containerListeners.length) {
+        const off = containerListeners.pop();
+        off?.();
+      }
+    };
     
     // Create frozen corner (first 3 header columns)
     const frozenCorner = document.createElement('div');
@@ -1211,16 +1239,11 @@
     };
 
     const restoreScrollState = () => {
-      if (previousScrollState) {
-        vScrollContainer.scrollTop = previousScrollState.vertical;
-        scrollableHeader.scrollLeft = previousScrollState.horizontal;
-        if (overlayInner) {
-          overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
-        }
-      } else {
-        vScrollContainer.scrollTop = 0;
-        scrollableHeader.scrollLeft = 0;
-        if (overlayInner) overlayInner.style.transform = 'translateX(0px)';
+      const state = previousScrollState || { vertical: 0, horizontal: 0 };
+      vScrollContainer.scrollTop = state.vertical;
+      scrollableHeader.scrollLeft = state.horizontal;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
       }
     };
 
@@ -1239,6 +1262,9 @@
         vertical: vScrollContainer.scrollTop,
         horizontal: scrollableHeader.scrollLeft
       });
+      const currentState = container._getScrollState();
+      tabScrollMemory.set(tabKey, currentState);
+      activeTableContainer = container;
       teardownContainer(previousContainer);
     };
 
@@ -1259,10 +1285,7 @@
     };
 
     const mountContainer = () => {
-      window.addEventListener('resize', handleResize);
-      container._teardown = () => {
-        window.removeEventListener('resize', handleResize);
-      };
+      addListener(window, 'resize', handleResize);
       wrapper.appendChild(container);
       calibrateLayout();
     };
@@ -1274,7 +1297,7 @@
     
     // Sync horizontal scroll: transform inner content of overlay based on header scroll
     // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
-    scrollableHeader.addEventListener('scroll', () => {
+    addListener(scrollableHeader, 'scroll', () => {
       if (!isSyncingHorizontal && overlayInner) {
         isSyncingHorizontal = true;
         const scrollLeft = scrollableHeader.scrollLeft;
@@ -1288,7 +1311,7 @@
     });
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-    vScrollContainer.addEventListener('wheel', (e) => {
+    addListener(vScrollContainer, 'wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
@@ -1296,14 +1319,14 @@
     }, { passive: false });
     
     // Also handle horizontal scroll on frozen body and overlay
-    frozenBody.addEventListener('wheel', (e) => {
+    addListener(frozenBody, 'wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
       }
     }, { passive: false });
     
-    scrollableBodyOverlay.addEventListener('wheel', (e) => {
+    addListener(scrollableBodyOverlay, 'wheel', (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
         scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
         e.preventDefault();
@@ -1358,7 +1381,7 @@
         momentumFrame = requestAnimationFrame(step);
       };
 
-      surface.addEventListener('touchstart', (event) => {
+      addListener(surface, 'touchstart', (event) => {
         if (event.touches.length !== 1) return;
         const touch = event.touches[0];
         cancelMomentum();
@@ -1371,7 +1394,7 @@
         velocitySamples.length = 0;
       }, { passive: true });
 
-      surface.addEventListener('touchmove', (event) => {
+      addListener(surface, 'touchmove', (event) => {
         if (!touchActive || event.touches.length !== 1) return;
         const touch = event.touches[0];
         const deltaXFromStart = touch.clientX - touchStartX;
@@ -1418,8 +1441,8 @@
         velocitySamples.length = 0;
       };
 
-      surface.addEventListener('touchend', resetTouchState, { passive: true });
-      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
+      addListener(surface, 'touchend', resetTouchState, { passive: true });
+      addListener(surface, 'touchcancel', resetTouchState, { passive: true });
     };
 
     const applyImmediateSync = (deltaX) => {
