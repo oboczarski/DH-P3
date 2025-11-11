@@ -154,6 +154,81 @@
     { value: 280, color: '#c70097' },
     { value: 500, color: '#FF0080' }
   ];
+  
+  // Column width configuration (explicit pixel values for perfect alignment)
+  const STATS_COLUMN_WIDTHS = {
+    'RK': 44,
+    'PLAYER': 96,  // Reduced by half from 192
+    'POS': 52,
+    'TM': 52,
+    'AGE': 52,
+    'G': 52,
+    'FPTS': 76,
+    'PPG': 76,
+    'VALUE': 76,
+    'SNP%': 76,
+    'CAR': 64,
+    'ruYDS': 76,
+    'YPC': 64,
+    'ruTD': 64,
+    'REC': 64,
+    'recYDS': 76,
+    'TGT': 64,
+    'YDS(t)': 76,
+    'YPG(t)': 76,
+    'ruYPG': 76,
+    'ELU': 64,
+    'MTF/A': 76,
+    'YCO/A': 76,
+    'MTF': 64,
+    'YCO': 76,
+    'ru1D': 64,
+    'recTD': 64,
+    'rec1D': 64,
+    'YAC': 76,
+    'IMP/G': 76,
+    'FUM': 64,
+    'FPOE': 76,
+    'CSTY%': 90,
+    'CL': 64,
+    'paRTG': 76,
+    'paYDS': 76,
+    'paTD': 64,
+    'CMP%': 76,
+    'paATT': 64,
+    'CMP': 64,
+    'pa1D': 64,
+    'paYPG': 76,
+    'pIMP': 76,
+    'pIMP/A': 76,
+    'TTT': 64,
+    'PRS%': 76,
+    'SAC': 64,
+    'INT': 64,
+    'TS%': 64,
+    'YPRR': 76,
+    '1DRR': 64,
+    'recYPG': 76,
+    'YPR': 64,
+    'RR': 64,
+    'OPP': 64,
+    'IMP': 64,
+    'IMP/OPP': 76
+  };
+  
+  const DEFAULT_COLUMN_WIDTH = 76;
+  
+  function getColumnWidth(columnKey) {
+    const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
+    // Scale down by 25% on mobile (600px and below)
+    const isMobile = window.innerWidth <= 600;
+    return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
+  }
+  
+  const RECEIVING_SUBFILTERS = ['WR', 'TE'];
+  let activeTableContainer = null;
+  const tabScrollMemory = new Map();
+  const tabScrollPersistTimers = new Map();
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -163,7 +238,12 @@
     datasets: new Map(),
     headerLabels: new Map(),
     availableColumns: new Map(),
-    rankCache: null
+    rankCache: null,
+    lastRenderedRows: [],
+    receivingSubfilters: {
+      WR: true,
+      TE: true
+    }
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
@@ -176,8 +256,14 @@
     filterGroup: document.getElementById('statsFilterGroup'),
     rookieButton: document.querySelector('.stats-rookie-btn'),
     secondaryFilterGroup: document.getElementById('statsSecondaryFilterGroup'),
-    leagueChip: document.getElementById('statsLeagueContext')
+    leagueChip: document.getElementById('statsLeagueContext'),
+    receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
+    receivingButton: document.querySelector('.stats-filter-btn-receiving')
   };
+  dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
+  dom.receivingSubfilterButtons = dom.receivingSubfilters
+    ? Array.from(dom.receivingSubfilters.querySelectorAll('.stats-receiving-subfilter'))
+    : [];
   const gameLogDom = {
     modal: document.getElementById('game-logs-modal'),
     closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
@@ -204,6 +290,96 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+
+  function captureScrollState(container, tabKey) {
+    const fallback = tabScrollMemory.get(tabKey) || { vertical: 0, horizontal: 0 };
+    if (!container) return fallback;
+    if (typeof container._getScrollState === 'function') {
+      try {
+        const state = container._getScrollState();
+        if (state) {
+          tabScrollMemory.set(tabKey, { ...state });
+          return state;
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    const verticalEl = container.querySelector('.stats-vscroll-container');
+    const horizontalEl = container.querySelector('.stats-scrollable-header');
+    const derived = {
+      vertical: verticalEl ? verticalEl.scrollTop : fallback.vertical,
+      horizontal: horizontalEl ? horizontalEl.scrollLeft : fallback.horizontal
+    };
+    tabScrollMemory.set(tabKey, { ...derived });
+    return derived;
+  }
+
+  function persistScrollState(tabKey, state, { immediate = false } = {}) {
+    if (!tabKey || !state) return;
+    const commit = () => {
+      tabScrollMemory.set(tabKey, { ...state });
+      if (tabScrollPersistTimers.has(tabKey)) {
+        clearTimeout(tabScrollPersistTimers.get(tabKey));
+        tabScrollPersistTimers.delete(tabKey);
+      }
+    };
+    if (immediate) {
+      commit();
+      return;
+    }
+    if (tabScrollPersistTimers.has(tabKey)) {
+      clearTimeout(tabScrollPersistTimers.get(tabKey));
+    }
+    const timer = setTimeout(commit, 150);
+    tabScrollPersistTimers.set(tabKey, timer);
+  }
+
+  function teardownContainer(container) {
+    if (!container) return;
+    if (typeof container._teardown === 'function') {
+      try { container._teardown(); } catch (err) { /* ignore */ }
+    }
+    if (container.isConnected) container.remove();
+    if (activeTableContainer === container) {
+      activeTableContainer = null;
+    }
+  }
+
+  function updateReceivingSubfilterButtons() {
+    if (!dom.receivingSubfilterButtons) return;
+    dom.receivingSubfilterButtons.forEach((btn) => {
+      const key = btn.dataset.subfilter;
+      const isActive = !!statsState.receivingSubfilters[key];
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+  function resetReceivingSubfilters() {
+    RECEIVING_SUBFILTERS.forEach((key) => {
+      statsState.receivingSubfilters[key] = true;
+    });
+    updateReceivingSubfilterButtons();
+  }
+  function setReceivingSubfiltersVisible(visible) {
+    if (!dom.receivingFilterWrapper) return;
+    dom.receivingFilterWrapper.classList.toggle('subfilters-visible', visible);
+    if (dom.receivingSubfilters) {
+      dom.receivingSubfilters.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+    if (dom.receivingButton) {
+      dom.receivingButton.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    }
+  }
+  function syncReceivingSubfilterUi({ ensureReset = false } = {}) {
+    const isReceivingActive = statsState.activePosition === 'Receiving';
+    if (isReceivingActive && ensureReset) {
+      resetReceivingSubfilters();
+    } else {
+      updateReceivingSubfilterButtons();
+    }
+    setReceivingSubfiltersVisible(isReceivingActive);
+  }
   function formatInteger(value) {
     if (!Number.isFinite(value)) return '';
     return Math.round(value).toString();
@@ -514,7 +690,9 @@
     // Positional Filtering
     if (statsState.activePosition && statsState.activePosition !== 'ALL') {
       if (statsState.activePosition === 'Receiving') {
-        if (meta.pos !== 'WR' && meta.pos !== 'TE') return false;
+        const allowedPositions = RECEIVING_SUBFILTERS.filter((key) => statsState.receivingSubfilters[key]);
+        if (!allowedPositions.length) return false;
+        if (!allowedPositions.includes(meta.pos)) return false;
       } else if (meta.pos !== statsState.activePosition) {
         return false;
       }
@@ -636,11 +814,6 @@
     if (raw === undefined || raw === null) return '';
     return raw;
   }
-  function clearSortIndicators(headerRow) {
-    headerRow.querySelectorAll('th').forEach((th) => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc');
-    });
-  }
   function applySortIndicator(target) {
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
@@ -648,20 +821,26 @@
       target.classList.add('stats-sort-desc');
     }
   }
+  
   function renderTable() {
+    // Note: We use manual rendering for frozen columns, so TanStack Table is optional
+    // Keeping the check for potential future use, but not required for current implementation
+
     const dataset = getActiveDataset();
     const baseColumnSet = getColumnSet();
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
     const columnSet = baseColumnSet.filter((column, index) => {
-      if (index < 3) return true;
+      if (index < 3) return true; // Always show first 3 columns
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
+
     const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
     const filtered = dataset.filter(passesFilters);
     const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
       ? statsState.sort.column
       : 'RK';
+
     const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
     const sortCollection = (collection) => {
       if (!collection.length) return [];
@@ -670,11 +849,11 @@
       }
       return getSortedRows(collection, sortColumn);
     };
-    let rows;
+
+    let sortedRows;
     if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
-      rows = [...filtered];
+      sortedRows = [...filtered];
     } else {
-      // Optimize: single pass to separate players and picks
       const playerRows = [];
       const pickRows = [];
       filtered.forEach((entry) => {
@@ -685,146 +864,629 @@
         }
       });
       const sortedPlayers = sortCollection(playerRows);
-      rows = [...sortedPlayers, ...pickRows];
+      sortedRows = [...sortedPlayers, ...pickRows];
     }
-    // After sorting and filtering, re-assign ranks
-    rows.forEach((entry, index) => {
+
+    sortedRows.forEach((entry, index) => {
       if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
-        entry.meta.currentRank = null; // Or some other placeholder for picks
+        entry.meta.currentRank = null;
       }
     });
-    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
+    
+    statsState.lastRenderedRows = sortedRows;
+
+    // --- Data Transformation for TanStack Table ---
+    const createTextDescriptor = (text, style) => ({
+      render: (td) => {
+        td.textContent = text;
+        if (style) Object.assign(td.style, style);
+      }
+    });
+
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue = formatCellValue(column, entry);
+        if (column === 'PLAYER') {
+          rowData[column] = {
+            render: (td) => {
+              td.classList.add('stats-player-cell');
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'stats-player-btn';
+              button.dataset.playerId = entry.meta.playerId;
+              button.dataset.entryIndex = entryIndex;
+              button.textContent = textValue;
+              td.appendChild(button);
+            }
+          };
+        } else if (column === 'POS') {
+          // POS column - render as styled tag
+          const pos = (textValue || entry.meta.pos || '').trim().toUpperCase();
+          rowData[column] = {
+            render: (td) => {
+              if (pos) {
+                const posTag = document.createElement('span');
+                posTag.className = `player-tag modal-pos-tag ${pos}`;
+                posTag.textContent = pos;
+                td.appendChild(posTag);
+              } else {
+                td.textContent = '';
+              }
+            }
+          };
+        } else if (column === 'VALUE') {
+          rowData[column] = {
+            render: (td) => {
+              const span = document.createElement('span');
+              span.className = 'stats-value-chip';
+              span.style.cssText = entry.meta.valueStyle;
+              span.textContent = textValue;
+              td.appendChild(span);
+            }
+          };
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+              } else {
+                const teamKey = (textValue || 'FA').toUpperCase();
+                const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+                const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+                const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+                td.innerHTML = (teamKey && teamKey !== 'FA')
+                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+              }
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(textValue);
+        }
+      }
+      return rowData;
+    });
+
+    const columns = columnSet.map(column => ({
+      id: column,
+      accessorKey: column,
+      header: () => headerLabels.get(column) || column,
+      size: getColumnWidth(column),
+    }));
+
+    // Calculate column sizes
+    let columnSizes = columns.map(col => Number.isFinite(col.size) ? col.size : DEFAULT_COLUMN_WIDTH);
+    
+    // Split columns into frozen (first 3) and scrollable (rest)
+    const FROZEN_COLUMN_COUNT = 3;
+    const frozenColumns = columnSet.slice(0, FROZEN_COLUMN_COUNT);
+    const scrollableColumns = columnSet.slice(FROZEN_COLUMN_COUNT);
+    const frozenColumnSizes = columnSizes.slice(0, FROZEN_COLUMN_COUNT);
+    const scrollableColumnSizes = columnSizes.slice(FROZEN_COLUMN_COUNT);
+    const frozenWidth = frozenColumnSizes.reduce((sum, size) => sum + size, 0);
+    const scrollableWidth = scrollableColumnSizes.reduce((sum, size) => sum + size, 0);
+    
+    // Note: We use manual rendering for frozen/scrollable split columns
+    // TanStack Table doesn't handle split column sets well, so we render manually
+
+    // --- Frozen Columns Pattern: Separate Frozen and Scrollable Sections ---
+    const tabKey = statsState.currentTab;
+    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === tabKey);
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
-    const table = wrapper.querySelector('.stats-table');
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-    const dataColumnCount = Math.max(columnSet.length - 3, 0);
-    const widthExpression = `calc(var(--stats-col-rk-width) + var(--stats-col-player-width) + var(--stats-col-pos-width) + ${dataColumnCount} * var(--stats-col-standard-width))`;
-    table.style.setProperty('--stats-table-width', widthExpression);
-    const existingColgroup = table.querySelector('colgroup');
-    if (existingColgroup) existingColgroup.remove();
-    const colgroup = document.createElement('colgroup');
-    columnSet.forEach((column, index) => {
-      const col = document.createElement('col');
-      if (index === 0) {
-        col.style.width = 'var(--stats-col-rk-width)';
-        col.style.minWidth = 'var(--stats-col-rk-width)';
-        col.style.maxWidth = 'var(--stats-col-rk-width)';
-      } else if (index === 1) {
-        col.style.width = 'var(--stats-col-player-width)';
-        col.style.minWidth = 'var(--stats-col-player-width)';
-        col.style.maxWidth = 'var(--stats-col-player-width)';
-      } else if (index === 2) {
-        col.style.width = 'var(--stats-col-pos-width)';
-        col.style.minWidth = 'var(--stats-col-pos-width)';
-        col.style.maxWidth = 'var(--stats-col-pos-width)';
-      } else {
-        col.style.width = 'var(--stats-col-standard-width)';
-        col.style.minWidth = 'var(--stats-col-standard-width)';
-        col.style.maxWidth = 'var(--stats-col-standard-width)';
+
+    // Remove any stale in-progress containers to avoid stacking
+    const staleContainers = wrapper.querySelectorAll('.stats-table-container.calibrating');
+    staleContainers.forEach((el) => {
+      if (el !== activeTableContainer) {
+        teardownContainer(el);
       }
-      colgroup.appendChild(col);
     });
-    table.insertBefore(colgroup, thead);
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-    const headerRow = document.createElement('tr');
-    columnSet.forEach((column, index) => {
-      const th = document.createElement('th');
-      const displayLabel = headerLabels.get(column) || column;
-      th.textContent = displayLabel;
-      const category = getColumnCategory(column);
-      th.classList.add(`stats-header-${category}`);
-      if (index === 0) th.classList.add('sticky-col-1', 'stats-rank-cell');
-      if (index === 1) th.classList.add('sticky-col-2', 'stats-player-cell');
-      if (index === 2) th.classList.add('sticky-col-3');
-      th.dataset.columnKey = column;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    clearSortIndicators(headerRow);
-    if (!hasOnlyPicks && statsState.activePosition !== 'RDP' && statsState.sort.column && statsState.sort.direction !== 0) {
-      const activeHeader = headerRow.querySelector(`th[data-column-key="${statsState.sort.column}"]`);
-      if (activeHeader) applySortIndicator(activeHeader);
+
+    // Preserve caption if it exists
+    const existingCaption = wrapper.querySelector('caption');
+    const previousContainerCandidate = (activeTableContainer && activeTableContainer.isConnected && activeTableContainer.closest('.stats-table-wrapper') === wrapper)
+      ? activeTableContainer
+      : wrapper.querySelector('.stats-table-container');
+    const previousContainer = previousContainerCandidate || null;
+    const previousScrollState = captureScrollState(previousContainer, tabKey);
+    const placeholderTable = !previousContainer ? wrapper.querySelector('table.stats-table') : null;
+
+    if (placeholderTable) {
+      placeholderTable.remove();
     }
-    // Use DocumentFragment for batch DOM insertion (massive performance boost)
-    const fragment = document.createDocumentFragment();
-    rows.forEach((entry) => {
-      const tr = document.createElement('tr');
-      columnSet.forEach((column, index) => {
-        const td = document.createElement('td');
-        const rawValue = formatCellValue(column, entry);
-        const textValue = rawValue === null || rawValue === undefined ? '' : rawValue;
-        if (index === 0) {
-          td.classList.add('sticky-col-1', 'stats-rank-cell');
-          const rankForColor = entry.meta.currentRank;
-          if (Number.isFinite(rankForColor)) {
-            td.style.color = getRankColorValue(rankForColor);
-          }
-        } else if (index === 1) {
-          td.classList.add('sticky-col-2', 'stats-player-cell');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'stats-player-btn';
-          btn.textContent = textValue;
-          btn.title = entry.meta.fullName || entry.meta.name || textValue;
-          // Use event delegation instead of individual listeners
-          btn.dataset.playerId = entry.meta.playerId;
-          btn.dataset.entryIndex = rows.indexOf(entry);
-          td.appendChild(btn);
-        } else if (index === 2) {
-          td.classList.add('sticky-col-3');
-        }
-        if (index === 1) {
-          // handled above
-        } else if (column === 'VALUE') {
-          const display = textValue !== '' ? textValue : (Number.isFinite(entry.meta.value) ? Math.round(entry.meta.value) : '');
-          td.innerHTML = `<span class="stats-value-chip" style="${entry.meta.valueStyle}">${display}</span>`;
-        } else if (column === 'TM') {
-          if (entry.meta.pos === 'RDP') {
-            td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
-          } else {
-            const teamKey = (textValue || 'FA').toUpperCase();
-            const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-            const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-            const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-            td.innerHTML = (teamKey && teamKey !== 'FA')
-              ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-              : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
-          }
-        } else if (column === 'POS') {
-          td.innerHTML = `<span class="player-tag modal-pos-tag ${entry.meta.pos || ''}">${entry.meta.pos || textValue}</span>`;
-        } else {
-          td.textContent = textValue;
-        }
-        if (column === 'AGE') {
-          td.style.color = entry.meta.ageColor;
-          td.classList.add('stats-age-cell');
-        } else if (column === 'FPTS') {
-          td.style.color = entry.meta.fptsColor;
-          td.classList.add('stats-fpts-cell');
-        }
-        if (column === 'PPG') {
-          td.style.color = entry.meta.ppgColor;
-          td.classList.add('stats-ppg-cell');
-        }
-        tr.appendChild(td);
+
+    // Helper to create a table with colgroup for specific columns
+    const createSectionTable = (cols, sizes) => {
+      const table = document.createElement('table');
+      table.className = 'stats-table';
+      const colgroup = document.createElement('colgroup');
+      sizes.forEach(size => {
+        const col = document.createElement('col');
+        col.style.width = `${size}px`;
+        colgroup.appendChild(col);
       });
-      fragment.appendChild(tr);
-    });
-    // Single DOM insertion instead of hundreds
-    tbody.appendChild(fragment);
-    // Store rows reference for event delegation
-    tbody._statsRows = rows;
-    if (!rows.length) {
-      dom.emptyState.classList.remove('hidden');
-    } else {
-      dom.emptyState.classList.add('hidden');
+      table.appendChild(colgroup);
+      return table;
+    };
+
+    // Create main container structure
+    const container = document.createElement('div');
+    container.className = 'stats-table-container calibrating';
+    container.style.setProperty('--frozen-width', `${frozenWidth}px`);
+    const containerListeners = [];
+    const addListener = (target, type, handler, options) => {
+      if (!target || typeof target.addEventListener !== 'function') return;
+      target.addEventListener(type, handler, options);
+      containerListeners.push(() => {
+        try {
+          target.removeEventListener(type, handler, options);
+        } catch (err) {
+          // ignore
+        }
+      });
+    };
+    container._teardown = () => {
+      while (containerListeners.length) {
+        const off = containerListeners.pop();
+        off?.();
+      }
+    };
+    
+    // Create frozen corner (first 3 header columns)
+    const frozenCorner = document.createElement('div');
+    frozenCorner.className = 'stats-frozen-corner';
+    const frozenCornerTable = createSectionTable(frozenColumns, frozenColumnSizes);
+    if (existingCaption) {
+      const caption = existingCaption.cloneNode(true);
+      frozenCornerTable.appendChild(caption);
     }
+    const frozenCornerThead = document.createElement('thead');
+    frozenCornerTable.appendChild(frozenCornerThead);
+    frozenCorner.appendChild(frozenCornerTable);
+    
+    // Create horizontal scroll container (scrollable header + body)
+    const hScrollContainer = document.createElement('div');
+    hScrollContainer.className = 'stats-hscroll-container';
+    
+    // Scrollable header (columns 4+)
+    const scrollableHeader = document.createElement('div');
+    scrollableHeader.className = 'stats-scrollable-header';
+    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+    const scrollableHeaderThead = document.createElement('thead');
+    scrollableHeaderTable.appendChild(scrollableHeaderThead);
+    scrollableHeader.appendChild(scrollableHeaderTable);
+    
+    // Scrollable body wrapper (columns 4+) - used only for scroll event handling
+    const scrollableBodyWrapper = document.createElement('div');
+    scrollableBodyWrapper.className = 'stats-scrollable-body-wrapper';
+    const scrollableBodyTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+    const scrollableBodyTbody = document.createElement('tbody');
+    scrollableBodyTable.appendChild(scrollableBodyTbody);
+    scrollableBodyWrapper.appendChild(scrollableBodyTable);
+    
+    hScrollContainer.appendChild(scrollableHeader);
+    // Don't add scrollableBodyWrapper to hScrollContainer - it's only for reference
+    
+    // Create vertical scroll container (frozen body + scrollable body overlay)
+    const vScrollContainer = document.createElement('div');
+    vScrollContainer.className = 'stats-vscroll-container';
+    
+    // Frozen body (first 3 body columns) - direct child of container for proper positioning
+    const frozenBody = document.createElement('div');
+    frozenBody.className = 'stats-frozen-body';
+    const frozenBodyTable = createSectionTable(frozenColumns, frozenColumnSizes);
+    const frozenBodyTbody = document.createElement('tbody');
+    frozenBodyTable.appendChild(frozenBodyTbody);
+    frozenBody.appendChild(frozenBodyTable);
+    
+    // Content wrapper for scrollable content only
+    const vScrollContent = document.createElement('div');
+    vScrollContent.className = 'stats-vscroll-content';
+    
+    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
+    const scrollableBodyOverlay = document.createElement('div');
+    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
+    // Inner wrapper that will be transformed for horizontal scrolling
+    const scrollableBodyOverlayInner = document.createElement('div');
+    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
+    // We'll clone the scrollable body table content here
+    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+    const scrollableBodyOverlayTbody = document.createElement('tbody');
+    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
+    scrollableBodyOverlayInner.appendChild(scrollableBodyOverlayTable);
+    scrollableBodyOverlay.appendChild(scrollableBodyOverlayInner);
+    
+    // Append frozen body directly to container, scrollable content to wrapper
+    vScrollContainer.appendChild(frozenBody);
+    vScrollContent.appendChild(scrollableBodyOverlay);
+    vScrollContainer.appendChild(vScrollContent);
+    
+    // Store reference to inner wrapper for scroll synchronization
+    scrollableBodyOverlay._innerWrapper = scrollableBodyOverlayInner;
+
+    // Apply cell descriptor helper
+    const applyCellDescriptor = (td, descriptor) => {
+      td.textContent = '';
+      td.innerHTML = '';
+      if (!descriptor) return;
+      if (typeof descriptor.render === 'function') {
+        descriptor.render(td);
+      } else {
+        td.textContent = String(descriptor); // Fallback for plain values
+      }
+    };
+
+    // Helper to render header cells
+    const renderHeaderCells = (thead, cols, sizes, tableInst) => {
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
+        const tr = document.createElement('tr');
+      cols.forEach((col, idx) => {
+          const th = document.createElement('th');
+        const label = headerLabels.get(col) || col;
+        th.textContent = label || '';
+        th.dataset.columnKey = col;
+        const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
+        th.style.width = `${w}px`;
+        th.style.minWidth = `${w}px`;
+        th.style.maxWidth = `${w}px`;
+        
+        // Apply header color classes
+        const columnCategory = getColumnCategory(col);
+        if (columnCategory === 'all') {
+          th.classList.add('stats-header-all');
+        } else if (columnCategory === 'passing') {
+          th.classList.add('stats-header-passing');
+        } else if (columnCategory === 'rushing') {
+          th.classList.add('stats-header-rushing');
+        } else if (columnCategory === 'receiving') {
+          th.classList.add('stats-header-receiving');
+        }
+        
+        // Apply sort indicator
+        if (statsState.sort.column === col) {
+          applySortIndicator(th);
+        }
+        
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+    };
+
+    // Helper to render body rows
+    const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
+      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
+      rowsData.forEach((rowData, idx) => {
+        const tr = document.createElement('tr');
+        cols.forEach((col, cIdx) => {
+          const td = document.createElement('td');
+          // Get the descriptor for this column from the full row data
+          const descriptor = rowData[col];
+          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
+          applyCellDescriptor(td, descriptor);
+          
+          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+          td.style.width = `${w}px`;
+          td.style.minWidth = `${w}px`;
+          td.style.maxWidth = `${w}px`;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    };
+
+    // Render frozen corner header (first 3 columns)
+    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, null);
+    
+    // Render scrollable header (columns 4+)
+    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, null);
+
+    // Render frozen body rows (first 3 columns)
+    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
+
+    // Render scrollable body rows (columns 4+) - render for both wrapper (hidden, for scroll sync) and overlay (visible)
+    renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
+    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
+    
+    // Add scrollable body wrapper to a hidden container for scroll event handling
+    const hiddenScrollContainer = document.createElement('div');
+    hiddenScrollContainer.style.position = 'absolute';
+    hiddenScrollContainer.style.visibility = 'hidden';
+    hiddenScrollContainer.style.pointerEvents = 'none';
+    hiddenScrollContainer.style.height = '1px';
+    hiddenScrollContainer.style.overflow = 'auto';
+    hiddenScrollContainer.appendChild(scrollableBodyWrapper);
+    container.appendChild(hiddenScrollContainer);
+
+    // Calculate table widths
+    if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
+      frozenCornerTable.style.width = `${frozenWidth}px`;
+      frozenCornerTable.style.minWidth = `${frozenWidth}px`;
+      frozenBodyTable.style.width = `${frozenWidth}px`;
+      frozenBodyTable.style.minWidth = `${frozenWidth}px`;
+    }
+    
+    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
+      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
+      scrollableBodyTable.style.width = `${scrollableWidth}px`;
+      scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
+      scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
+      scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
+    }
+    
+    // Get header height for positioning vertical scroll container
+    const getHeaderHeight = () => {
+      return scrollableHeader.offsetHeight || frozenCorner.offsetHeight || 50;
+    };
+
+    // Assemble the structure
+    container.appendChild(frozenCorner);
+    container.appendChild(hScrollContainer);
+    container.appendChild(vScrollContainer);
+
+    const overlayInner = scrollableBodyOverlay._innerWrapper;
+
+    const applyHeaderMetrics = () => {
+      const headerHeight = getHeaderHeight();
+      if (!headerHeight) return false;
+      frozenCorner.style.height = `${headerHeight}px`;
+      scrollableHeader.style.height = `${headerHeight}px`;
+      vScrollContainer.style.top = `${headerHeight}px`;
+      vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+      frozenBody.style.top = '0';
+      return true;
+    };
+
+    const updateContentHeight = () => {
+      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
+      const frozenBodyHeight = frozenBodyTable.offsetHeight;
+      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
+      if (maxHeight > 0) {
+        frozenBody.style.height = `${maxHeight}px`;
+        scrollableBodyOverlay.style.height = `${maxHeight}px`;
+        vScrollContent.style.minHeight = `${maxHeight}px`;
+        return true;
+      }
+      return false;
+    };
+
+    const restoreScrollState = () => {
+      const state = previousScrollState || { vertical: 0, horizontal: 0 };
+      vScrollContainer.scrollTop = state.vertical;
+      scrollableHeader.scrollLeft = state.horizontal;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+      }
+    };
+
+    const persistCurrentScroll = () => {
+      persistScrollState(tabKey, {
+        vertical: vScrollContainer.scrollTop,
+        horizontal: scrollableHeader.scrollLeft
+      });
+    };
+
+    const handleResize = () => {
+      requestAnimationFrame(() => {
+        applyHeaderMetrics();
+        updateContentHeight();
+      });
+    };
+
+    const finalizeMount = () => {
+      container.classList.remove('calibrating');
+      container._getScrollState = () => ({
+        vertical: vScrollContainer.scrollTop,
+        horizontal: scrollableHeader.scrollLeft
+      });
+      persistScrollState(tabKey, container._getScrollState(), { immediate: true });
+      activeTableContainer = container;
+      teardownContainer(previousContainer);
+    };
+
+    const calibrateLayout = (attempt = 0) => {
+      const headerReady = applyHeaderMetrics();
+      const heightReady = updateContentHeight();
+      const maxAttempts = 5;
+      if (!headerReady || !heightReady) {
+        if (attempt < maxAttempts) {
+          requestAnimationFrame(() => calibrateLayout(attempt + 1));
+        } else {
+          finalizeMount();
+        }
+        return;
+      }
+      restoreScrollState();
+      finalizeMount();
+    };
+
+    const mountContainer = () => {
+      addListener(window, 'resize', handleResize);
+      wrapper.appendChild(container);
+      calibrateLayout();
+    };
+
+    mountContainer();
+    activeTableContainer = container;
+
+    // Scroll synchronization
+    let isSyncingHorizontal = false;
+    
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
+    addListener(scrollableHeader, 'scroll', () => {
+      if (!isSyncingHorizontal && overlayInner) {
+        isSyncingHorizontal = true;
+        const scrollLeft = scrollableHeader.scrollLeft;
+        // Transform the inner content (not the overlay itself) to scroll horizontally
+        // Negative translateX moves content left, showing columns further to the right
+        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
+        requestAnimationFrame(() => {
+          isSyncingHorizontal = false;
+        });
+      }
+      persistCurrentScroll();
+    });
+
+    addListener(vScrollContainer, 'scroll', () => {
+      persistCurrentScroll();
+    });
+    
+    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
+    addListener(vScrollContainer, 'wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Also handle horizontal scroll on frozen body and overlay
+    addListener(frozenBody, 'wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    addListener(scrollableBodyOverlay, 'wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
+    const attachTouchScroller = (surface, onHorizontalScroll) => {
+      if (!surface) return;
+
+      let touchActive = false;
+      let isHorizontal = null;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let lastTouchX = 0;
+      let lastTimestamp = 0;
+      const VELOCITY_HISTORY_LIMIT = 4;
+      const velocitySamples = [];
+      let momentumFrame = null;
+      const H_THRESHOLD = 8;
+
+      const cancelMomentum = () => {
+        if (momentumFrame) {
+          cancelAnimationFrame(momentumFrame);
+          momentumFrame = null;
+        }
+      };
+
+      const startMomentum = (initialVelocity) => {
+        cancelMomentum();
+        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < 0.02) return;
+        const decay = 0.0025;
+        let velocity = initialVelocity;
+        let prev = performance.now();
+
+        const step = (now) => {
+          const elapsed = now - prev;
+          prev = now;
+          const delta = velocity * elapsed;
+          if (delta !== 0 && typeof onHorizontalScroll === 'function') {
+            onHorizontalScroll(delta);
+          }
+          const attenuation = 1 / (1 + decay * elapsed);
+          velocity *= attenuation;
+          if (Math.abs(velocity) > 0.01) {
+            momentumFrame = requestAnimationFrame(step);
+          } else {
+            momentumFrame = null;
+          }
+        };
+
+        momentumFrame = requestAnimationFrame(step);
+      };
+
+      addListener(surface, 'touchstart', (event) => {
+        if (event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        cancelMomentum();
+        touchActive = true;
+        isHorizontal = null;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        lastTouchX = touch.clientX;
+        lastTimestamp = event.timeStamp;
+        velocitySamples.length = 0;
+      }, { passive: true });
+
+      addListener(surface, 'touchmove', (event) => {
+        if (!touchActive || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        const deltaXFromStart = touch.clientX - touchStartX;
+        const deltaYFromStart = touch.clientY - touchStartY;
+
+        if (isHorizontal === null) {
+          if (Math.abs(deltaXFromStart) > H_THRESHOLD && Math.abs(deltaXFromStart) > Math.abs(deltaYFromStart)) {
+            isHorizontal = true;
+          } else if (Math.abs(deltaYFromStart) > H_THRESHOLD) {
+            isHorizontal = false;
+          }
+        }
+
+        if (isHorizontal) {
+          event.preventDefault();
+          const deltaX = touch.clientX - lastTouchX;
+          const elapsed = event.timeStamp - lastTimestamp;
+          if (elapsed > 0) {
+            const instantaneousVelocity = deltaX / elapsed;
+            velocitySamples.push(instantaneousVelocity);
+            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
+              velocitySamples.shift();
+            }
+          }
+          if (deltaX !== 0) {
+            if (typeof onHorizontalScroll === 'function') {
+              onHorizontalScroll(deltaX);
+            } else {
+              scrollableHeader.scrollLeft -= deltaX;
+            }
+          }
+          lastTouchX = touch.clientX;
+          lastTimestamp = event.timeStamp;
+        }
+      }, { passive: false });
+
+      const resetTouchState = () => {
+        touchActive = false;
+        isHorizontal = null;
+        if (velocitySamples.length && typeof onHorizontalScroll === 'function') {
+          const averagedVelocity = velocitySamples.reduce((sum, v) => sum + v, 0) / velocitySamples.length;
+          startMomentum(averagedVelocity);
+        }
+        velocitySamples.length = 0;
+      };
+
+      addListener(surface, 'touchend', resetTouchState, { passive: true });
+      addListener(surface, 'touchcancel', resetTouchState, { passive: true });
+    };
+
+    const applyImmediateSync = (deltaX) => {
+      scrollableHeader.scrollLeft -= deltaX;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+      }
+    };
+
+    attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
+    attachTouchScroller(frozenBody, applyImmediateSync);
+    
+    // Initialize scroll positions
+    restoreScrollState();
+
+    // Empty state handling
+    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
   }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
@@ -1058,6 +1720,7 @@
     const button = event.target.closest('.stats-filter-btn[data-position]') || event.target.closest('.stats-filter-btn-secondary[data-position]');
     if (!button || button.classList.contains('stats-rookie-btn')) return;
     const position = button.dataset.position;
+    const prevPosition = statsState.activePosition;
     // Prevent de-selecting the active filter if it's a main filter
     if (button.classList.contains('stats-filter-btn') && statsState.activePosition === position) return;
     if (position === 'RDP') {
@@ -1076,6 +1739,27 @@
     if (rdpButton) {
       rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
     }
+    syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
+    renderTable();
+  }
+  function handleReceivingSubfilterClick(event) {
+    const btn = event.target.closest('.stats-receiving-subfilter');
+    if (!btn) return;
+    event.stopPropagation();
+    if (statsState.activePosition !== 'Receiving') return;
+    const key = btn.dataset.subfilter;
+    if (!key || !RECEIVING_SUBFILTERS.includes(key)) return;
+    const isActive = !!statsState.receivingSubfilters[key];
+    if (isActive) {
+      const activeCount = RECEIVING_SUBFILTERS.reduce((count, subKey) => (
+        statsState.receivingSubfilters[subKey] ? count + 1 : count
+      ), 0);
+      if (activeCount <= 1) {
+        return; // always keep at least one subfilter active
+      }
+    }
+    statsState.receivingSubfilters[key] = !isActive;
+    updateReceivingSubfilterButtons();
     renderTable();
   }
   function toggleRookieFilter() {
@@ -1170,6 +1854,7 @@
         rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
       }
       dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
+      syncReceivingSubfilterUi();
       renderTable();
       wireGameLogControls();
       
@@ -1202,20 +1887,56 @@
   dom.filterGroup.addEventListener('click', handleFilterClick);
   dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
   dom.rookieButton.addEventListener('click', toggleRookieFilter);
+  dom.receivingSubfilters?.addEventListener('click', handleReceivingSubfilterClick);
+  
+  // Stats Key Popup handlers
+  const statsKeyButton = document.getElementById('statsKeyButton');
+  const statsKeyPopup = document.getElementById('statsKeyPopup');
+  const statsKeyPopupClose = document.getElementById('statsKeyPopupClose');
+  
+  if (statsKeyButton && statsKeyPopup && statsKeyPopupClose) {
+    statsKeyButton.addEventListener('click', () => {
+      statsKeyPopup.classList.add('visible');
+    });
+    
+    statsKeyPopupClose.addEventListener('click', () => {
+      statsKeyPopup.classList.remove('visible');
+    });
+    
+    // Close on overlay click
+    statsKeyPopup.addEventListener('click', (e) => {
+      if (e.target === statsKeyPopup) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && statsKeyPopup.classList.contains('visible')) {
+        statsKeyPopup.classList.remove('visible');
+      }
+    });
+  }
+  
+  // Use event delegation on wrapper to handle clicks from both header and body tables
   dom.tableWrappers.forEach((wrapper) => {
-    const thead = wrapper.querySelector('thead');
-    thead.addEventListener('click', handleSortClick);
-    // Event delegation for player buttons (much more efficient)
-    const tbody = wrapper.querySelector('tbody');
-    tbody.addEventListener('click', (event) => {
+    wrapper.addEventListener('click', (event) => {
+      const th = event.target.closest('th[data-column-key]');
+      if (th) {
+        handleSortClick(event);
+        return;
+      }
+
       const btn = event.target.closest('.stats-player-btn');
-      if (!btn) return;
-      const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-      const rows = tbody._statsRows;
-      if (rows && rows[entryIndex]) {
-        openGameLogs(rows[entryIndex]);
+      if (btn) {
+        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
+        const entry = statsState.lastRenderedRows[entryIndex];
+        if (entry) {
+          openGameLogs(entry);
+        }
       }
     });
   });
+  syncReceivingSubfilterUi();
   initialise();
 })();
