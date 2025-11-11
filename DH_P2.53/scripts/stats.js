@@ -226,6 +226,7 @@
   }
   
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
+  let activeTableContainer = null;
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -287,6 +288,33 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+
+  function captureScrollState(container) {
+    if (!container) return { vertical: 0, horizontal: 0 };
+    if (typeof container._getScrollState === 'function') {
+      try {
+        return container._getScrollState() || { vertical: 0, horizontal: 0 };
+      } catch (err) {
+        // ignore
+      }
+    }
+    const verticalEl = container.querySelector('.stats-vscroll-container');
+    const horizontalEl = container.querySelector('.stats-scrollable-header');
+    return {
+      vertical: verticalEl ? verticalEl.scrollTop : 0,
+      horizontal: horizontalEl ? horizontalEl.scrollLeft : 0
+    };
+  }
+
+  function teardownContainer(container) {
+    if (!container) return;
+    if (typeof container._teardown === 'function') {
+      try { container._teardown(); } catch (err) { /* ignore */ }
+    }
+    if (container.isConnected) {
+      container.remove();
+    }
+  }
 
   function updateReceivingSubfilterButtons() {
     if (!dom.receivingSubfilterButtons) return;
@@ -920,9 +948,21 @@
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
 
+    // Remove any stale in-progress containers to avoid stacking
+    const staleContainers = wrapper.querySelectorAll('.stats-table-container.calibrating');
+    staleContainers.forEach((el) => {
+      if (el !== activeTableContainer) {
+        teardownContainer(el);
+      }
+    });
+
     // Preserve caption if it exists
     const existingCaption = wrapper.querySelector('caption');
-    const previousContainer = wrapper.querySelector('.stats-table-container');
+    const previousContainerCandidate = (activeTableContainer && activeTableContainer.isConnected && activeTableContainer.closest('.stats-table-wrapper') === wrapper)
+      ? activeTableContainer
+      : wrapper.querySelector('.stats-table-container');
+    const previousContainer = previousContainerCandidate || null;
+    const previousScrollState = captureScrollState(previousContainer);
     const placeholderTable = !previousContainer ? wrapper.querySelector('table.stats-table') : null;
 
     if (placeholderTable) {
@@ -945,7 +985,11 @@
 
     // Create main container structure
     const container = document.createElement('div');
-    container.className = 'stats-table-container';
+    container.className = 'stats-table-container calibrating';
+    if (previousContainer) {
+      container.style.position = 'absolute';
+      container.style.inset = '0';
+    }
     container.style.setProperty('--frozen-width', `${frozenWidth}px`);
     
     // Create frozen corner (first 3 header columns)
@@ -1140,6 +1184,8 @@
     container.appendChild(hScrollContainer);
     container.appendChild(vScrollContainer);
 
+    const overlayInner = scrollableBodyOverlay._innerWrapper;
+
     const applyHeaderMetrics = () => {
       const headerHeight = getHeaderHeight();
       if (!headerHeight) return false;
@@ -1159,6 +1205,22 @@
         frozenBody.style.height = `${maxHeight}px`;
         scrollableBodyOverlay.style.height = `${maxHeight}px`;
         vScrollContent.style.minHeight = `${maxHeight}px`;
+        return true;
+      }
+      return false;
+    };
+
+    const restoreScrollState = () => {
+      if (previousScrollState) {
+        vScrollContainer.scrollTop = previousScrollState.vertical;
+        scrollableHeader.scrollLeft = previousScrollState.horizontal;
+        if (overlayInner) {
+          overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+        }
+      } else {
+        vScrollContainer.scrollTop = 0;
+        scrollableHeader.scrollLeft = 0;
+        if (overlayInner) overlayInner.style.transform = 'translateX(0px)';
       }
     };
 
@@ -1169,42 +1231,49 @@
       });
     };
 
+    const finalizeMount = () => {
+      container.classList.remove('calibrating');
+      container.style.removeProperty('position');
+      container.style.removeProperty('inset');
+      container._getScrollState = () => ({
+        vertical: vScrollContainer.scrollTop,
+        horizontal: scrollableHeader.scrollLeft
+      });
+      teardownContainer(previousContainer);
+    };
+
+    const calibrateLayout = (attempt = 0) => {
+      const headerReady = applyHeaderMetrics();
+      const heightReady = updateContentHeight();
+      const maxAttempts = 5;
+      if (!headerReady || !heightReady) {
+        if (attempt < maxAttempts) {
+          requestAnimationFrame(() => calibrateLayout(attempt + 1));
+        } else {
+          finalizeMount();
+        }
+        return;
+      }
+      restoreScrollState();
+      finalizeMount();
+    };
+
     const mountContainer = () => {
-      if (!applyHeaderMetrics()) {
-        requestAnimationFrame(applyHeaderMetrics);
-      }
-      if (scrollableBodyOverlayTable.offsetHeight === 0) {
-        requestAnimationFrame(updateContentHeight);
-      } else {
-        updateContentHeight();
-      }
       window.addEventListener('resize', handleResize);
       container._teardown = () => {
         window.removeEventListener('resize', handleResize);
       };
+      wrapper.appendChild(container);
+      calibrateLayout();
     };
 
-    if (previousContainer) {
-      container.classList.add('incoming');
-      previousContainer.classList.add('outgoing');
-      wrapper.appendChild(container);
-      mountContainer();
-      requestAnimationFrame(() => {
-        previousContainer._teardown?.();
-        previousContainer.remove();
-        container.classList.remove('incoming');
-      });
-    } else {
-      wrapper.appendChild(container);
-      mountContainer();
-    }
+    mountContainer();
 
     // Scroll synchronization
     let isSyncingHorizontal = false;
     
     // Sync horizontal scroll: transform inner content of overlay based on header scroll
     // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
-    const overlayInner = scrollableBodyOverlay._innerWrapper;
     scrollableHeader.addEventListener('scroll', () => {
       if (!isSyncingHorizontal && overlayInner) {
         isSyncingHorizontal = true;

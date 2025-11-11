@@ -222,7 +222,7 @@
   justify-content: center;
   width: min(100%, 820px);
   margin: 0 auto;
-  padding: clamp(1.1rem, 3vw, 1.6rem) clamp(0.48rem, 1.8vw, 0.8rem) clamp(0.6rem, 2vw, 0.9rem);
+  padding: 0.05rem 0.51rem 0.31rem 0.51rem;
   border-radius: 12px;
   background: rgba(13, 14, 35, 0.22);
   border: 1px solid rgba(128, 138, 189, 0.18);
@@ -447,6 +447,9 @@
 .stats-receiving-expanded {
   display: none;
   width: 100%;
+  flex: 1 1 100%;
+  align-self: stretch;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   gap: 0.14rem;
@@ -468,6 +471,7 @@
   justify-content: center;
   min-height: 1.36rem;
   flex: 1 1 0;
+  min-width: 0;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(19, 21, 44, 0.45);
@@ -841,6 +845,11 @@
     min-height: 0;
     --frozen-width: 192px; /* Default, overridden by JS */
     will-change: opacity, transform;
+}
+
+.stats-table-container.calibrating {
+    visibility: hidden;
+    opacity: 0;
 }
 
 .stats-table-container.incoming {
