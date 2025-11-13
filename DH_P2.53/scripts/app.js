@@ -6312,25 +6312,29 @@ const wrTeStatOrder = [
         
         // Update HUD center metrics
         function updateHUDMetrics(config) {
-            const consistencyMetricValue = document.querySelector('#consistency-container .consistency-metric-value');
-            if (consistencyMetricValue && consistencyMetricValue.parentElement.previousElementSibling.textContent === 'CONSISTENCY') {
-                consistencyMetricValue.textContent = `${config.consistencyPercent}%`;
-            }
-            
-            const ceilingMetricValue = document.querySelectorAll('#consistency-container .consistency-metric-value')[1];
-            if (ceilingMetricValue) {
-                ceilingMetricValue.textContent = '28.8';
-            }
-            
-            // Update position ranks
-            const consistencyRank = document.querySelector('#consistency-container .consistency-metric-sub');
-            if (consistencyRank) {
-                consistencyRank.textContent = 'Pos Rank: 11';
-            }
-            
-            const ceilingRank = document.querySelectorAll('#consistency-container .consistency-metric-sub')[1];
-            if (ceilingRank) {
-                ceilingRank.textContent = `Pos Rank: ${config.ceilingRank}`;
+            // Update consistency metric value (first metric block)
+            const consistencyMetricBlocks = document.querySelectorAll('#consistency-container .consistency-metric-block');
+            if (consistencyMetricBlocks.length >= 2) {
+                const consistencyValue = consistencyMetricBlocks[0].querySelector('.consistency-metric-value');
+                const consistencyRank = consistencyMetricBlocks[0].querySelector('.consistency-metric-sub');
+                
+                if (consistencyValue) {
+                    consistencyValue.textContent = `${config.consistencyPercent}%`;
+                }
+                if (consistencyRank) {
+                    consistencyRank.textContent = 'Pos Rank: 11';
+                }
+                
+                // Update ceiling metric value (second metric block)
+                const ceilingValue = consistencyMetricBlocks[1].querySelector('.consistency-metric-value');
+                const ceilingRank = consistencyMetricBlocks[1].querySelector('.consistency-metric-sub');
+                
+                if (ceilingValue) {
+                    ceilingValue.textContent = '28.8';
+                }
+                if (ceilingRank) {
+                    ceilingRank.textContent = `Pos Rank: ${config.ceilingRank}`;
+                }
             }
         }
         
