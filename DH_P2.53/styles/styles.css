@@ -4583,19 +4583,431 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     border: 1px solid #7779;
 }
 
-/* News Container - Same overlay behavior */
-#game-logs-modal #modal-body #news-container {
+#game-logs-modal .consistency-panel-overlay {
+    width: 100%;
+}
+
+#game-logs-modal #modal-body #consistency-container {
     position: absolute;
     inset: 0;
     margin: 0;
-    padding: 1rem;
-    max-height: none;
+    padding: clamp(0.75rem, 1.6vw, 1.35rem);
     overflow-y: auto;
-    border-radius: 9px;
-    background: rgba(13, 14, 27, 0.95);
-    border: 1px solid #444;
-    box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    background: radial-gradient(circle at 12% -10%, rgba(124, 245, 255, 0.16), transparent 55%),
+                radial-gradient(circle at 85% 120%, rgba(159, 139, 255, 0.12), transparent 62%),
+                rgba(8, 12, 28, 0.96);
+    border: 1px solid rgba(126, 176, 255, 0.28);
+    box-shadow: 0 20px 55px rgba(0, 4, 19, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: stretch;
     z-index: 5;
+}
+
+#game-logs-modal .consistency-panel {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 1.5vw, 1.35rem);
+    width: 100%;
+    max-width: min(920px, 100%);
+    margin: 0 auto;
+    color: #f6f7ff;
+    font-family: "Quicksand", "Space Grotesk", "Product Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+#game-logs-modal .consistency-hud {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(0.65rem, 1.4vw, 1.2rem);
+    padding: clamp(0.75rem, 1.4vw, 1.25rem);
+    border-radius: 18px;
+    background: radial-gradient(circle at 0% 100%, rgba(255, 137, 207, 0.06), transparent 72%), rgba(12, 16, 34, 0.72);
+    border: 1px solid rgba(126, 176, 255, 0.32);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65);
+    overflow: hidden;
+}
+
+#game-logs-modal .consistency-hud__segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+}
+
+#game-logs-modal .consistency-hud__segment--center {
+    align-items: stretch;
+    text-align: center;
+    gap: clamp(0.5rem, 1vw, 0.8rem);
+}
+
+#game-logs-modal .consistency-hud__meta {
+    display: grid;
+    gap: 0.35rem;
+}
+
+#game-logs-modal .consistency-hud__eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(144, 150, 192, 0.85);
+}
+
+#game-logs-modal .consistency-hud__player {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 600;
+    color: #f6f7ff;
+}
+
+#game-logs-modal .consistency-hud__metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.45rem, 1vw, 0.85rem);
+}
+
+#game-logs-modal .consistency-metric {
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(24, 30, 62, 0.75), rgba(13, 18, 38, 0.85));
+    border: 1px solid rgba(146, 175, 255, 0.18);
+    box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.04);
+}
+
+#game-logs-modal .consistency-metric__label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(144, 150, 192, 0.95);
+}
+
+#game-logs-modal .consistency-metric__value {
+    margin-top: 0.25rem;
+    font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+    font-weight: 600;
+    color: #7cf5ff;
+    text-shadow: 0 0 16px rgba(124, 245, 255, 0.4);
+}
+
+#game-logs-modal .consistency-metric__sub {
+    margin-top: 0.1rem;
+    font-size: 0.75rem;
+    color: rgba(198, 205, 244, 0.76);
+}
+
+#game-logs-modal .consistency-hud__zones {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+#game-logs-modal .consistency-zone-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(10, 12, 24, 0.92);
+    background: rgba(198, 205, 244, 0.82);
+}
+
+#game-logs-modal .consistency-zone-chip--bad {
+    background: linear-gradient(135deg, rgba(255, 111, 182, 0.9), rgba(255, 169, 209, 0.8));
+}
+
+#game-logs-modal .consistency-zone-chip--good {
+    background: linear-gradient(135deg, rgba(185, 172, 255, 0.9), rgba(146, 205, 255, 0.85));
+}
+
+#game-logs-modal .consistency-zone-chip--great {
+    background: linear-gradient(135deg, rgba(124, 245, 255, 0.95), rgba(159, 139, 255, 0.85));
+}
+
+#game-logs-modal .consistency-progress-circle {
+    position: relative;
+    width: clamp(108px, 24vw, 138px);
+    height: clamp(108px, 24vw, 138px);
+    border-radius: 50%;
+    padding: clamp(0.45rem, 1vw, 0.65rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(rgba(55, 65, 155, 0.18), rgba(35, 41, 86, 0.35));
+    border: 1px solid rgba(151, 194, 255, 0.38);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.65), inset 0 0 12px rgba(255, 255, 255, 0.03);
+}
+
+#game-logs-modal .consistency-progress-ring {
+    position: absolute;
+    inset: -12px;
+    width: auto;
+    height: auto;
+    transform: rotate(-90deg);
+}
+
+#game-logs-modal .consistency-progress-ring__track {
+    fill: none;
+    stroke: rgba(90, 112, 164, 0.35);
+    stroke-width: 7;
+}
+
+#game-logs-modal .consistency-progress-ring__fill {
+    fill: none;
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-dasharray: 289;
+    stroke-dashoffset: calc(289 * (1 - var(--progress, 0)));
+}
+
+#game-logs-modal .consistency-progress-ring__fill--ceiling {
+    transform-origin: 60px 60px;
+}
+
+#game-logs-modal .consistency-progress-circle__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    text-align: center;
+}
+
+#game-logs-modal .consistency-progress-circle__value {
+    font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+    font-weight: 600;
+    color: #7cf5ff;
+    text-shadow: 0 0 16px rgba(124, 245, 255, 0.48);
+}
+
+#game-logs-modal .consistency-progress-circle__label {
+    font-size: 0.74rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(152, 162, 204, 0.86);
+}
+
+#game-logs-modal .consistency-progress-circle__caption {
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+    color: rgba(119, 128, 164, 0.82);
+}
+
+#game-logs-modal .consistency-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+#game-logs-modal .consistency-chart__shell {
+    position: relative;
+    min-height: clamp(220px, 45vh, 320px);
+    border-radius: 18px;
+    border: 1px solid rgba(120, 140, 212, 0.25);
+    background: linear-gradient(135deg, rgba(20, 25, 52, 0.8), rgba(12, 15, 36, 0.9));
+    overflow: hidden;
+}
+
+#game-logs-modal .consistency-chart__zones {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    z-index: 0;
+}
+
+#game-logs-modal .consistency-chart__zone {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: rgba(236, 241, 255, 0.68);
+}
+
+#game-logs-modal .consistency-chart__zone--bad {
+    background: linear-gradient(180deg, rgba(18, 32, 70, 0.85), rgba(13, 21, 46, 0.35));
+}
+
+#game-logs-modal .consistency-chart__zone--good {
+    background: linear-gradient(180deg, rgba(53, 50, 96, 0.82), rgba(40, 39, 73, 0.32));
+}
+
+#game-logs-modal .consistency-chart__zone--great {
+    background: linear-gradient(180deg, rgba(33, 71, 86, 0.86), rgba(42, 41, 66, 0.28));
+}
+
+#game-logs-modal .consistency-chart__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(to right, rgba(163, 179, 230, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(163, 179, 230, 0.08) 1px, transparent 1px);
+    background-size: calc(100% / 8) calc(100% / 8);
+    opacity: 0.7;
+    z-index: 1;
+}
+
+#game-logs-modal .consistency-chart__points-layer {
+    position: absolute;
+    inset: clamp(1.1rem, 2vw, 1.6rem) clamp(1.2rem, 2vw, 1.8rem) clamp(1.9rem, 2.2vw, 2.4rem) clamp(2.5rem, 3vw, 2.9rem);
+    z-index: 2;
+}
+
+#game-logs-modal .consistency-chart__curve {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(90deg, rgba(124, 245, 255, 0.08), rgba(255, 137, 207, 0.06));
+    mask: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 68%);
+}
+
+#game-logs-modal .consistency-point {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #7cf5ff;
+    box-shadow: 0 0 10px rgba(124, 245, 255, 0.75);
+}
+
+#game-logs-modal .consistency-point--under {
+    background: #ff6fb6;
+    box-shadow: 0 0 10px rgba(255, 111, 182, 0.7);
+}
+
+#game-logs-modal .consistency-point--solid {
+    background: #00caff;
+    box-shadow: 0 0 10px rgba(0, 202, 255, 0.72);
+}
+
+#game-logs-modal .consistency-point--elite {
+    background: #78ffed;
+    box-shadow: 0 0 12px rgba(120, 255, 237, 0.8);
+}
+
+#game-logs-modal .consistency-point__label {
+    position: absolute;
+    top: -1.8rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.25rem 0.45rem;
+    border-radius: 6px;
+    background: rgba(6, 9, 20, 0.92);
+    border: 1px solid rgba(139, 189, 255, 0.5);
+    font-size: 0.62rem;
+    white-space: nowrap;
+    color: rgba(230, 236, 255, 0.85);
+    text-shadow: none;
+}
+
+#game-logs-modal .consistency-chart__axis {
+    position: absolute;
+    display: flex;
+    gap: clamp(0.4rem, 1vw, 0.8rem);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: rgba(170, 182, 222, 0.75);
+    text-transform: uppercase;
+}
+
+#game-logs-modal .consistency-chart__axis--y {
+    top: clamp(1rem, 1.8vw, 1.4rem);
+    bottom: clamp(1.8rem, 2.2vw, 2.1rem);
+    left: clamp(0.65rem, 1.2vw, 1.1rem);
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#game-logs-modal .consistency-chart__axis--x {
+    left: clamp(2rem, 3vw, 2.6rem);
+    right: clamp(1.2rem, 2vw, 2rem);
+    bottom: clamp(0.65rem, 1.4vw, 1rem);
+    justify-content: space-between;
+}
+
+#game-logs-modal .consistency-chart__caption {
+    margin: 0;
+    font-size: 0.72rem;
+    text-align: center;
+    color: rgba(175, 186, 228, 0.72);
+}
+
+@media (max-width: 1024px) {
+    #game-logs-modal .consistency-hud {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 840px) {
+    #game-logs-modal .consistency-panel {
+        gap: 0.9rem;
+    }
+
+    #game-logs-modal .consistency-hud {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 0.85rem;
+    }
+
+    #game-logs-modal .consistency-hud__segment--right {
+        grid-column: span 2;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    #game-logs-modal .consistency-hud__metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    #game-logs-modal .consistency-hud {
+        grid-template-columns: 1fr;
+    }
+
+    #game-logs-modal .consistency-hud__segment--right {
+        grid-column: auto;
+    }
+
+    #game-logs-modal .consistency-hud__metrics {
+        grid-template-columns: 1fr;
+    }
+
+    #game-logs-modal .consistency-progress-circle {
+        width: clamp(94px, 32vw, 116px);
+        height: clamp(94px, 32vw, 116px);
+    }
+
+    #game-logs-modal .consistency-chart__points-layer {
+        inset: 1.2rem 1rem 2.1rem 2rem;
+    }
+
+    #game-logs-modal .consistency-point__label {
+        display: none;
+    }
+}
+
+@media (max-width: 460px) {
+    #game-logs-modal #modal-body #consistency-container {
+        padding: 0.65rem;
+    }
+
+    #game-logs-modal .consistency-chart__axis--x {
+        font-size: 0.62rem;
+    }
+
+    #game-logs-modal .consistency-chart__axis--y {
+        font-size: 0.62rem;
+    }
 }
 
 .stats-key-panel h4 {
