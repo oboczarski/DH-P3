@@ -4550,15 +4550,14 @@ padding: 0.15rem 0rem 0rem 0rem;
     border-radius: var(--card-border-radius);
     padding: 0.2rem 0.5rem;
     margin-top: 1rem;
-    max-height: 20vh;
     overflow-y: auto;
 }
 #game-logs-modal .stats-key-panel {
     position: absolute;
-    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
-    left: 0.85rem;  /* Match modal-content padding */
-    right: 0.85rem;  /* Match modal-content padding */
-    bottom: 50px;  /* Space for modal-footer */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     margin: 0;
     padding: 1rem;
     overflow-y: auto;
@@ -4573,10 +4572,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 /* Radar Chart Container - Same overlay behavior */
 #game-logs-modal #radar-chart-container {
     position: absolute;
-    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
-    left: 0.85rem;  /* Match modal-content padding */
-    right: 0.85rem;  /* Match modal-content padding */
-    bottom: 50px;  /* Space for modal-footer */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     margin: 0;
     padding: 0.41rem;
     overflow-y: auto;
@@ -4606,14 +4605,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
 /* Consistency Container - Same overlay behavior */
 #game-logs-modal #consistency-container {
-    position: absolute;
-    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
-    left: 0.85rem;  /* Match modal-content padding */
-    right: 0.85rem;  /* Match modal-content padding */
-    bottom: 50px;  /* Space for modal-footer */
+    left: 0;
+    right: 0;
     margin: 0;
     padding: 1.2rem;
-    overflow-y: auto;
     border-radius: 9px;
     background: rgba(4, 6, 14, 0.95);
     backdrop-filter: blur(12px);
