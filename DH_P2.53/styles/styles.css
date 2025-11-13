@@ -4610,11 +4610,17 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     margin: 0;
     padding: 0.2rem;
     border-radius: 9px;
-    background: rgb(36 41 60 / 98%);
-    backdrop-filter: blur(12px);
+    background: rgba(4, 6, 14, 0);
     border: 1px solid rgba(115, 158, 255, 0.2);
     box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
     z-index: 5;
+}
+
+/* Hide game logs table when consistency panel is visible */
+#game-logs-modal #consistency-container:not(.hidden) ~ .game-logs-table-container,
+#game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-table-container {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .stats-key-panel h4 {
@@ -4677,7 +4683,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 0rem;
+        gap: 0.01rem;
+    }
+
+    /* Eyebrow Header */
+    .consistency-eyebrow-header {
+        text-align: center;
+        margin-bottom: 0.3rem;
     }
 
     /* HUD Section */
@@ -4686,11 +4698,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         grid-template-columns: minmax(0, 1.2fr) minmax(0, 2.4fr) minmax(0, 1.2fr);
         gap: 1.2rem;
         align-items: stretch;
-        padding: 0.8rem 0.9rem 1rem;
+        padding: 0.6rem 0.9rem 1rem;
         border-radius: 18px;
-        background: radial-gradient(circle at 0% 99%, rgba(252, 137, 207, 0.05), transparent 75%), rgba(4, 7, 16, 0.08);
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(13px) saturate(90%) opacity(0.4);
     }
 
     .hud-segment {
@@ -4720,7 +4729,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         justify-content: center;
         background: radial-gradient(rgba(55, 65, 155, 0.22), #3335);
         border: 1px solid rgba(151, 194, 255, 0.42);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.96), inset 0 0 12px rgba(255, 255, 255, 0.02);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.02);
     }
 
     .progress-ring {
@@ -4781,7 +4790,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     /* Center HUD Stats */
     .hud-player {
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.05rem;
     }
 
     .hud-eyebrow {
@@ -4789,6 +4798,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: #6b7096;
+        text-shadow: 0 0 12px #60F9;
     }
 
     .hud-player-name {
@@ -4881,7 +4891,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         padding: 0px;
         border-radius: 11px;
         border: 0px solid rgba(115, 158, 255, 0.35);
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 1px 60px rgba(255, 255, 255, 0.018);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.04), inset 0 1px 60px rgba(255, 255, 255, 0.018);
         overflow: hidden;
         background: #1128;
     }
@@ -5062,75 +5072,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     /* Mobile Responsive Styles for Consistency Panel */
     @media (max-width: 980px) {
-        .consistency-hud {
-            gap: 0.9rem;
-            padding: 0.7rem 0.75rem 0.85rem;
-        }
-
-        .progress-circle {
-            width: 100px;
-            height: 100px;
-            padding: 7px;
-        }
-
-        .progress-value {
-            font-size: 1.2rem;
-        }
-
-        .progress-label {
-            font-size: 0.6rem;
-        }
-
-        .progress-caption {
-            font-size: 0.42rem;
-        }
-
-        .progress-ring-track,
-        .progress-ring-fill {
-            stroke-width: 5.5;
-        }
-
-        .hud-eyebrow {
-            font-size: 0.7rem;
-        }
-
-        .hud-context {
-            font-size: 0.74rem;
-            margin-top: 0.28rem;
-        }
-
-        .hud-metrics {
-            gap: 1rem;
-        }
-
-        .metric-label {
-            font-size: 0.58rem;
-        }
-
-        .metric-value {
-            font-size: 1.15rem;
-        }
-
-        .metric-sub {
-            font-size: 0.68rem;
-        }
-
-        .hud-zones-legend {
-            margin-top: 0.36rem;
-            gap: 0.25rem;
-        }
-
-        .zone-chip {
-            font-size: 0.44rem;
-            padding: 0.12rem 0.38rem;
-        }
-
-        .weekly-chart-box {
-            height: 320px;
-        }
-    }
-
-    @media (max-width: 869px) {
         #consistency-container {
             padding: 0.9rem;
         }
@@ -5175,8 +5116,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .hud-eyebrow {
-            font-size: 0.6rem;
+            font-size: 0.8rem;
             letter-spacing: 0.09em;
+            
         }
 
         .hud-context {
@@ -5219,7 +5161,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-box {
-            height: 284px;
+            height: 279px;
         }
 
         .weekly-chart-y-axis {
@@ -5319,7 +5261,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .hud-eyebrow {
-            font-size: 0.44rem;
+            font-size: 0.6rem;
             letter-spacing: 0.07em;
         }
 
@@ -5363,7 +5305,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-box {
-            height: 241px;
+            height: 233px;
         }
 
         .weekly-chart-y-axis {
