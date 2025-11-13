@@ -6545,7 +6545,10 @@ function drawCurve(points) {
 function renderPoints() {
   const pointsLayer = document.getElementById('weekly-chart-points');
   if (!pointsLayer) return;
-  pointsLayer.innerHTML = "";
+  
+  // Remove only point elements, preserve SVG curve
+  const pointElements = pointsLayer.querySelectorAll('.weekly-point');
+  pointElements.forEach(el => el.remove());
 
   const n = WEEKLY_DATA.length;
   const curvePoints = [];
