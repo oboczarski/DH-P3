@@ -4519,13 +4519,13 @@ padding: 0.15rem 0rem 0rem 0rem;
 /* · · Key-Button · · */
 .key-chip {
       position: relative;
-        background: rgba(255, 255, 255, 0.005);
-        backdrop-filter: blur(3px) saturate(170%);
-        border: 1px solid rgba(250, 250, 250, 0.06);
-        border-radius: 4px;
-        padding: 5px 7px;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
-        }
+      background: rgba(255, 255, 255, 0.005);
+      backdrop-filter: blur(3px) saturate(170%);
+      border: 1px solid rgba(250, 250, 250, 0.06);
+      border-radius: 4px;
+      padding: 5px 4px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+      }
         .key-chip::after {
         content: '';
         position: absolute;
@@ -5530,7 +5530,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label {
-            top: -27px;
+            top: -18px;
             min-width: 34px;
             padding: 0.05rem 0.02rem;
             border-radius: 0.4rem;
