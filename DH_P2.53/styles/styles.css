@@ -4553,7 +4553,7 @@ padding: 0.15rem 0rem 0rem 0rem;
     max-height: 20vh;
     overflow-y: auto;
 }
-#game-logs-modal #modal-body .stats-key-panel {
+#game-logs-modal .modal-content .stats-key-panel {
     position: absolute;
     inset: 0;
     margin: 0;
@@ -4569,7 +4569,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* Radar Chart Container - Same overlay behavior */
-#game-logs-modal #modal-body #radar-chart-container {
+#game-logs-modal .modal-content #radar-chart-container {
     position: absolute;
     inset: 0;
     margin: 0;
@@ -4584,7 +4584,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* News Container - Same overlay behavior */
-#game-logs-modal #modal-body #news-container {
+#game-logs-modal .modal-content #news-container {
     position: absolute;
     inset: 0;
     margin: 0;
@@ -4599,7 +4599,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* Consistency Container - Same overlay behavior */
-#game-logs-modal #modal-body #consistency-container {
+#game-logs-modal .modal-content #consistency-container {
     position: absolute;
     inset: 0;
     margin: 0;
