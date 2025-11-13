@@ -5009,7 +5009,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         z-index: 5;
     }
 
-    .weekly-point-label {
+   .weekly-point-label {
         position: absolute;
         top: -36px;
         left: 50%;
@@ -5017,34 +5017,36 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         background: rgb(221 234 255 / 3%);
         border: 1px solid rgba(212, 212, 216, 0.1);
         border-radius: 0.5rem;
-        padding: 0.08rem 0.02rem;
+        padding: 0.25rem 0.35rem;
         text-align: center;
         min-width: 52px;
         backdrop-filter: blur(12px);
         pointer-events: none;
-    }
-
-    .weekly-point-label span {
-        display: block;
-        line-height: 1;
+        line-height: 1.2;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
     }
 
     .weekly-point-label__week {
         font-size: 0.44rem;
         color: rgba(239, 246, 255, 0.45);
         letter-spacing: 0.11em;
+        display: block;
     }
 
     .weekly-point-label__value {
         font-size: 0.55rem;
         font-weight: 600;
         color: #f8faff;
+        display: inline;
+        white-space: nowrap;
     }
 
     .weekly-point-label__suffix {
-        font-size: 0.48rem;
+        font-size: 0.46rem;
+        font-weight: 600;
         color: #f8faff;
-        margin-left: 0;
     }
 
     .weekly-point-label__bucket {
@@ -5271,6 +5273,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             font-size: 0.45rem;
         }
 
+        .weekly-point-label__suffix {
+            font-size: 0.38rem;
+        }
+
         .weekly-point-label__bucket {
             font-size: 0.36rem;
             letter-spacing: 0.07em;
@@ -5411,6 +5417,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             font-size: 0.46rem;
         }
 
+        .weekly-point-label__suffix {
+            font-size: 0.39rem;
+        }
+
         .weekly-point-label__bucket {
             font-size: 0.3rem;
             letter-spacing: 0.06em;
@@ -5424,7 +5434,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .consistency-hud {
             gap: 0.4rem;
-            padding: 0.45rem 0.5rem 0.58rem;
+            padding: 0.45rem 0.5rem 0.48rem;
             border-radius: 13px;
         }
 
@@ -5492,7 +5502,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .consistency-chart-shell {
-            margin-top: 0.4rem;
+            margin-top: 0.23rem;
             border-radius: 8px;
         }
 
@@ -5543,12 +5553,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label__week {
-            font-size: 0.28rem;
+            font-size: 0.32rem;
             letter-spacing: 0.08em;
         }
 
         .weekly-point-label__value {
             font-size: 0.42rem;
+        }
+
+        .weekly-point-label__suffix {
+            font-size: 0.36rem;
         }
 
         .weekly-point-label__bucket {
