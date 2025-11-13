@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const consistencyContainer = document.getElementById('consistency-container');
+        const newsContainer = document.getElementById('news-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'consistency': consistencyContainer
+                            'news': newsContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -483,7 +483,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const isCurrentlyVisible = overlayContainers[targetPanel] && 
                                                    !overlayContainers[targetPanel].classList.contains('hidden');
                         
-                        // For overlay panels (stats-key, radar-chart, consistency)
+                        // For overlay panels (stats-key, radar-chart, news)
                         if (isCurrentlyVisible) {
                             // Toggling off - return to game-logs view
                             overlayContainers[targetPanel].classList.add('hidden');
@@ -3230,9 +3230,9 @@ const SEASON_META_HEADERS = {
                     radarChartContainer.classList.add('hidden');
                     modalBody.appendChild(radarChartContainer);
                 }
-                if (consistencyContainer) {
-                    consistencyContainer.classList.add('hidden');
-                    modalBody.appendChild(consistencyContainer);
+                if (newsContainer) {
+                    newsContainer.classList.add('hidden');
+                    modalBody.appendChild(newsContainer);
                 }
                 return;
             }
@@ -4095,9 +4095,9 @@ const wrTeStatOrder = [
                 radarChartContainer.classList.add('hidden');
                 modalBody.appendChild(radarChartContainer);
             }
-            if (consistencyContainer) {
-                consistencyContainer.classList.add('hidden');
-                modalBody.appendChild(consistencyContainer);
+            if (newsContainer) {
+                newsContainer.classList.add('hidden');
+                modalBody.appendChild(newsContainer);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -6159,7 +6159,7 @@ const wrTeStatOrder = [
             modalBody.classList.remove('hidden'); // Ensure game logs table is visible
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (consistencyContainer) consistencyContainer.classList.add('hidden');
+            if (newsContainer) newsContainer.classList.add('hidden');
             
             // Reset all buttons to inactive, then activate game-logs button
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6174,7 +6174,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (consistencyContainer) consistencyContainer.classList.add('hidden');
+            if (newsContainer) newsContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');

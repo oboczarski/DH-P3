@@ -334,107 +334,10 @@
           <!-- Radar chart will be dynamically rendered here -->
         </div>
     </div>
-    <div id="consistency-container" class="hidden consistency-panel">
-        <div class="consistency-panel-inner">
-          <header class="consistency-hud" aria-label="Consistency overview shell">
-            <div class="consistency-hud-segment consistency-hud-segment--left">
-              <div class="consistency-progress-circle consistency-progress-circle--primary" aria-label="Consistency rate">
-                <svg viewBox="0 0 120 120" class="consistency-progress-ring" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="consistencyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#7cf5ff"></stop>
-                      <stop offset="55%" stop-color="#9f8bff"></stop>
-                      <stop offset="100%" stop-color="#c7a4ff"></stop>
-                    </linearGradient>
-                  </defs>
-                  <circle class="consistency-progress-ring-track" cx="60" cy="60" r="46"></circle>
-                  <circle class="consistency-progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)"></circle>
-                </svg>
-                <div class="consistency-progress-circle-inner">
-                  <div class="consistency-progress-value">--</div>
-                  <div class="consistency-progress-label">Consistency Rate</div>
-                  <div class="consistency-progress-caption">Season CSTY</div>
-                </div>
-              </div>
-            </div>
-            <div class="consistency-hud-segment consistency-hud-segment--center">
-              <div class="consistency-hud-eyebrow">Consistency &amp; Ceiling • Weekly Overview</div>
-              <div class="consistency-hud-context">
-                <span class="consistency-hud-player">Player Name</span>
-                <span class="consistency-hud-divider" aria-hidden="true">•</span>
-                <span class="consistency-hud-range">Weeks 1–9</span>
-              </div>
-              <div class="consistency-hud-metrics" role="list">
-                <div class="consistency-metric" role="listitem">
-                  <div class="consistency-metric-label">Consistency</div>
-                  <div class="consistency-metric-values">
-                    <span class="consistency-metric-primary">--</span>
-                    <span class="consistency-metric-sub">Pos Rank --</span>
-                  </div>
-                </div>
-                <div class="consistency-metric" role="listitem">
-                  <div class="consistency-metric-label">Ceiling</div>
-                  <div class="consistency-metric-values">
-                    <span class="consistency-metric-primary">--</span>
-                    <span class="consistency-metric-sub">Pos Rank --</span>
-                  </div>
-                </div>
-              </div>
-              <div class="consistency-hud-zones" role="list" aria-label="Scoring zone legend">
-                <span class="consistency-zone-chip consistency-zone-chip--bad" role="listitem">Bad 0–16</span>
-                <span class="consistency-zone-chip consistency-zone-chip--good" role="listitem">Good 16–22</span>
-                <span class="consistency-zone-chip consistency-zone-chip--great" role="listitem">Great 22–40</span>
-              </div>
-            </div>
-            <div class="consistency-hud-segment consistency-hud-segment--right">
-              <div class="consistency-progress-circle consistency-progress-circle--secondary" aria-label="Ceiling positional rank">
-                <svg viewBox="0 0 120 120" class="consistency-progress-ring" aria-hidden="true">
-                  <defs>
-                    <linearGradient id="ceilingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#ffb47e"></stop>
-                      <stop offset="40%" stop-color="#7cf5ff"></stop>
-                      <stop offset="100%" stop-color="#ff89cf"></stop>
-                    </linearGradient>
-                  </defs>
-                  <circle class="consistency-progress-ring-track" cx="60" cy="60" r="46"></circle>
-                  <circle class="consistency-progress-ring-fill consistency-progress-ring-fill--secondary" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)"></circle>
-                </svg>
-                <div class="consistency-progress-circle-inner">
-                  <div class="consistency-progress-value">--</div>
-                  <div class="consistency-progress-label">Ceiling Rank</div>
-                  <div class="consistency-progress-caption">Season POS</div>
-                </div>
-              </div>
-            </div>
-          </header>
-          <section class="consistency-chart" aria-label="Consistency chart shell">
-            <div class="consistency-chart-shell">
-              <div class="consistency-chart-zones" aria-hidden="true">
-                <div class="consistency-chart-zone consistency-chart-zone--bad"><span>Under &lt;16</span></div>
-                <div class="consistency-chart-zone consistency-chart-zone--good"><span>Solid ≥16</span></div>
-                <div class="consistency-chart-zone consistency-chart-zone--great"><span>Elite &gt;22</span></div>
-              </div>
-              <div class="consistency-chart-grid" aria-hidden="true"></div>
-              <div class="consistency-chart-points" aria-hidden="true"></div>
-              <div class="consistency-chart-axis consistency-chart-axis--y">
-                <span>40 fpts</span>
-                <span>22 fpts</span>
-                <span>16 fpts</span>
-                <span>0 fpts</span>
-              </div>
-              <div class="consistency-chart-axis consistency-chart-axis--x">
-                <span>WK 1</span>
-                <span>WK 2</span>
-                <span>WK 3</span>
-                <span>WK 4</span>
-                <span>WK 5</span>
-                <span>WK 6</span>
-                <span>WK 7</span>
-                <span>WK 8</span>
-                <span>WK 9</span>
-              </div>
-            </div>
-          </section>
+    <div id="news-container" class="hidden stats-key-panel">
+        <h4>Player News & Updates</h4>
+        <div class="news-content">
+          <!-- News content will be rendered here -->
         </div>
     </div>
    <div class="modal-footer">
@@ -446,9 +349,9 @@
     <i class="fa-solid fa-chart-area"></i>
     <span>Performance</span>
   </div>
-  <div class="key-chip modal-info-btn" data-panel="consistency">
-    <i class="fa-solid fa-wave-square"></i>
-    <span>Consistency</span>
+  <div class="key-chip modal-info-btn" data-panel="news">
+    <i class="fa-solid fa-newspaper"></i>
+    <span>News</span>
   </div>
   <div class="key-chip modal-info-btn" data-panel="stats-key">
     <i class="fa-solid fa-key"></i>
