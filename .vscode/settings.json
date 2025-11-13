@@ -169,5 +169,18 @@
 
   "liveServer.settings.port": 5501,
   "editor.colorDecorators": true,
-  "editor.colorDecoratorsLimit": 2200
+  "editor.colorDecoratorsLimit": 2200,
+  "github.copilot.chat.anthropic.thinking.enabled": true,
+  "github.copilot.chat.anthropic.tools.websearch.enabled": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.includeDocumentation": true,
+  "github.copilot.chat.newWorkspace.useContext7": true,
+  "github.copilot.chat.notebook.enhancedNextEditSuggestions.enabled": true,
+  "github.copilot.chat.scopeSelection": true,
+  "github.copilot.chat.tools.memory.enabled": true,
+  "chat.extensionUnification.enabled": true
 }
