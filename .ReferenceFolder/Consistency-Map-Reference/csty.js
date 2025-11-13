@@ -1,285 +1,320 @@
-const canvas = document.getElementById("infographicCanvas");
-const ctx = canvas.getContext("2d");
+/**
+ * Weekly fantasy points chart + HUD progress circles
+ * - HUD circle logic preserved from the original build
+ * - Chart markup + rendering mirrors the reference single-chart app
+ */
 
-const weeks = [
-  { week: "WK1", value: 27.9 },
-  { week: "WK2", value: 18.8 },
-  { week: "WK3", value: 15.6 },
-  { week: "WK4", value: 14.5 },
-  { week: "WK5", value: 15.6 },
-  { week: "WK6", value: 18.8 },
-  { week: "WK7", value: 29.9 },
-  { week: "WK8", value: 26.3 },
-  { week: "WK9", value: 28.7 }
+// DATA: Weekly fantasy points for each week (9 weeks total)
+// This array controls the data points shown on the chart
+const WEEKLY_DATA = [
+  { week: 1, pts: 27.9 },
+  { week: 2, pts: 18.8 },
+  { week: 3, pts: 15.6 },
+  { week: 4, pts: 14.5 },
+  { week: 5, pts: 15.6 },
+  { week: 6, pts: 18.8 },
+  { week: 7, pts: 29.9 },
+  { week: 8, pts: 26.3 },
+  { week: 9, pts: 28.7 }
 ];
 
-const minVal = 0;
-const maxVal = 40;
+// CHART CONFIGURATION: Maximum points value for the Y-axis scale
+const MAX_POINTS = 40;
 
-function resizeCanvas() {
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width = canvas.clientWidth * ratio;
-  canvas.height = canvas.clientHeight * ratio;
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  draw();
+// DOM ELEMENTS: Get references to chart container and all chart layers
+const chartBox = document.getElementById("weekly-chart-box"); // Main chart container
+const pointsLayer = document.getElementById("weekly-chart-points"); // Layer where points and curve are drawn
+const xAxisEl = document.getElementById("weekly-chart-x-axis"); // Bottom axis showing week labels
+const yAxisEl = document.getElementById("weekly-chart-y-axis"); // Left axis showing point values
+let curveSvg = null; // SVG element for the connecting curve between points
+
+// ZONE CREATION: Creates the three colored background zones (Under/Solid/Elite)
+// These are the gradient bands that show performance categories
+function createZones() {
+  if (!chartBox) return;
+  
+  // ZONE THRESHOLDS: Define the three performance zones with their point ranges
+  // Under: 0-15.9 pts, Solid: 16-21.9 pts, Elite: 22-40 pts
+  const stops = [
+    { className: "weekly-zone--bad", label: "Under < 16", to: 15.9 },
+    { className: "weekly-zone--good", label: "Solid ≥ 16", to: 21.9 },
+    { className: "weekly-zone--great", label: "Elite > 22", to: MAX_POINTS }
+  ];
+
+  let prev = 0;
+  
+  // Loop through each zone and create a div with gradient background and label
+  stops.forEach((zone) => {
+    // Calculate zone height as percentage of chart height
+    const pct = (zone.to / MAX_POINTS) * 100;
+    
+    // Create zone div and position it
+    const zoneEl = document.createElement("div");
+    zoneEl.className = `weekly-zone ${zone.className}`;
+    zoneEl.style.top = `calc(${100 - pct}% - 1px)`; // Position from top (inverted)
+    zoneEl.style.height = `calc(${pct - prev}%)`; // Height based on point range
+
+    // Add zone label (Under/Solid/Elite) in top-right corner
+    const label = document.createElement("span");
+    label.className = "weekly-zone-label";
+    label.textContent = zone.label;
+    zoneEl.appendChild(label);
+
+    chartBox.appendChild(zoneEl);
+    prev = pct; // Track previous height for next zone
+  });
 }
 
-function valueToY(v, top, height) {
-  const pct = (v - minVal) / (maxVal - minVal);
-  return top + height - pct * height;
+// Y-AXIS CONVERSION: Converts fantasy points to Y-position percentage
+// Higher points = lower Y position (0% at top = 40pts, 100% at bottom = 0pts)
+function yFromPoints(pts) {
+  // Clamp points between 0 and MAX_POINTS to keep them within chart bounds
+  const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
+  // Invert: 40pts = 0% (top), 0pts = 100% (bottom)
+  return (1 - clamped / MAX_POINTS) * 100;
 }
 
-function drawRoundedPanel(x, y, w, h, r = 22) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+// POINT CATEGORIZATION: Determines color and glow effect for each data point
+// Returns the performance bucket (Elite/Solid/Under) with styling properties
+function bucketFor(pts) {
+  // Elite performance: 22+ points → Purple
+  if (pts >= 22) {
+    return { name: "Elite", color: "#78ffedff", glow: "0 0 8px 4px #78ffedff" };
+  }
+  // Solid performance: 16-21.9 points → Cyan
+  if (pts >= 16) {
+    return { name: "Solid", color: "#00caffaa", glow: "0 0 8px 4px rgba(0, 191, 255, .81)" };
+  }
+  // Under performance: 0-15.9 points → Red/Pink
+  return { name: "Under", color: "#f6ad", glow: "0 0 6px 4px #f6ac" };
 }
 
-function draw() {
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  ctx.clearRect(0, 0, w, h);
-  ctx.save();
+// X-AXIS RENDERING: Creates the bottom axis with week labels (WK 1, WK 2, etc.)
+function renderXAxis() {
+  if (!xAxisEl) return;
+  xAxisEl.innerHTML = ""; // Clear existing labels
+  
+  // Create a span for each week in the data
+  WEEKLY_DATA.forEach((entry) => {
+    const span = document.createElement("span");
+    span.textContent = `WK ${entry.week}`;
+    xAxisEl.appendChild(span);
+  });
+}
 
-  // tuned padding
-  const padLeft = 90;
-  const padRight = 50;
-  const padTop = 52;
-  const padBottom = 100;
+// Y-AXIS RENDERING: Creates the left axis with point value labels
+// Shows the key thresholds: 40 (max), 22 (elite cutoff), 16 (solid cutoff), 0 (min)
+function renderYAxis() {
+  if (!yAxisEl) return;
+  yAxisEl.innerHTML = ""; // Clear existing ticks
+  
+  // Create tick marks for the four key point values
+  [40, 22, 16, 0].forEach((tick) => {
+    const tickEl = document.createElement("div");
+    tickEl.className = "weekly-chart-y-tick";
+    tickEl.textContent = `${tick} fpts`;
+    yAxisEl.appendChild(tickEl);
+  });
+}
 
-  const chartX = padLeft;
-  const chartY = padTop;
-  const chartW = w - padLeft - padRight;
-  const chartH = h - padTop - padBottom;
+// POINT RENDERING: Creates and positions all data points on the chart
+// Also generates the hover labels and connects points with a curve
+function renderPoints() {
+  if (!pointsLayer) return;
+  pointsLayer.innerHTML = ""; // Clear existing points
 
-  // glass panel with tuned bottom space
-  const panelX = chartX - 10;
-  const panelY = chartY - 32;
-  const panelW = chartW + 20;
-  const panelH = chartH + 90; // ← this is the space under x-axis title
-  const panelGrad = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
-  panelGrad.addColorStop(0, "rgba(118, 109, 255, 0.085)");
-  panelGrad.addColorStop(0.3, "rgba(66, 194, 255, 0.025)");
-  panelGrad.addColorStop(1, "rgba(13, 14, 27, 0)");
-  ctx.fillStyle = panelGrad;
-  ctx.strokeStyle = "rgba(128, 138, 189, 0.18)";
-  ctx.lineWidth = 1.2;
-  drawRoundedPanel(panelX, panelY, panelW, panelH, 22);
-  ctx.fill();
-  ctx.stroke();
+  const n = WEEKLY_DATA.length;
+  const curvePoints = []; // Store coordinates for drawing the connecting curve
 
-  // zone lines/areas
-  const zoneLowMax = 16;
-  const zoneMidMax = 22;
-  const yLow = valueToY(zoneLowMax, chartY, chartH);
-  const yMid = valueToY(zoneMidMax, chartY, chartH);
+  // Create a point element for each week's data
+  WEEKLY_DATA.forEach((entry, index) => {
+    // Calculate X position: center point in its week column
+    const pctX = ((index + 0.5) / n) * 100;
+    // Calculate Y position based on fantasy points
+    const pctY = yFromPoints(entry.pts);
+    curvePoints.push({ x: pctX, y: pctY }); // Save for curve drawing
 
-  // Elite (22–40)
-  ctx.fillStyle = "rgba(66, 194, 255, 0.038)";
-  ctx.fillRect(chartX, chartY, chartW, yMid - chartY);
+    // Get color and glow based on performance tier
+    const bucket = bucketFor(entry.pts);
+    
+    // Create the circular point element
+    const pointEl = document.createElement("div");
+    pointEl.className = "weekly-point";
+    pointEl.style.left = `calc(${pctX}% - 6px)`; // Center horizontally (-6px = half of 12px width)
+    pointEl.style.top = `calc(${pctY}% - 6px)`; // Center vertically (-6px = half of 12px height)
+    pointEl.style.background = bucket.color; // Set point color based on performance
+    pointEl.style.boxShadow = bucket.glow; // Add glowing effect
 
-  // Solid (16–22)
-  ctx.fillStyle = "rgba(118, 109, 255, 0.045)";
-  ctx.fillRect(chartX, yMid, chartW, yLow - yMid);
-
-  // Low (0–16)
-  ctx.fillStyle = "rgba(255, 71, 166, 0.028)";
-  ctx.fillRect(chartX, yLow, chartW, chartY + chartH - yLow);
-
-  // zone separator lines
-  ctx.strokeStyle = "rgba(234, 235, 240, 0.035)";
-  ctx.lineWidth = 1;
-  [zoneLowMax, zoneMidMax, maxVal].forEach((val) => {
-    const y = valueToY(val, chartY, chartH);
-    ctx.beginPath();
-    ctx.moveTo(chartX, y);
-    ctx.lineTo(chartX + chartW, y);
-    ctx.stroke();
+    // Create hover label showing week, points, and performance category
+    const label = document.createElement("div");
+    label.className = "weekly-point-label";
+    label.innerHTML = `
+      <span class="weekly-point-label__week">WK ${entry.week}</span>
+      <span class="weekly-point-label__value">${entry.pts.toFixed(1)} fpts</span>
+      <span class="weekly-point-label__bucket">${bucket.name}</span>
+    `;
+    pointEl.appendChild(label);
+    pointsLayer.appendChild(pointEl);
   });
 
-  // y-axis labels
-  ctx.font = "12.5px system-ui, -apple-system, Segoe UI, sans-serif";
-  for (let v = 0; v <= maxVal; v += 10) {
-    const y = valueToY(v, chartY, chartH);
-    const t = v + " pts";
-    ctx.strokeStyle = "rgba(6, 7, 11, 0.85)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(t, chartX - 52, y + 3);
-    ctx.fillStyle = "rgba(234, 235, 240, 0.82)";
-    ctx.fillText(t, chartX - 52, y + 3);
+  // Draw the smooth curve connecting all points
+  drawCurve(curvePoints);
+}
 
-    // faint horizontal line
-    ctx.beginPath();
-    ctx.strokeStyle = "rgba(234, 235, 240, 0.018)";
-    ctx.moveTo(chartX, y);
-    ctx.lineTo(chartX + chartW, y);
-    ctx.stroke();
+// CURVE DRAWING: Creates smooth Bezier curve connecting all data points
+// Uses SVG path with cubic Bezier curves for smooth transitions
+function drawCurve(points) {
+  if (!pointsLayer || !points.length) return;
+
+  // Get actual pixel dimensions of the chart area
+  const box = pointsLayer.getBoundingClientRect();
+  const width = box.width;
+  const height = box.height;
+
+  // Create SVG element if it doesn't exist yet
+  if (!curveSvg) {
+    curveSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    curveSvg.setAttribute("class", "weekly-curve-layer");
+    curveSvg.style.position = "absolute";
+    curveSvg.style.inset = "0"; // Cover entire points layer
+    pointsLayer.prepend(curveSvg); // Add behind points
   }
 
-  // x positions
-  const xLabelPad = 16;
-  const spacing = (chartW - xLabelPad * 2) / (weeks.length - 1);
-  const points = weeks.map((wk, idx) => {
-    const x = chartX + xLabelPad + idx * spacing;
-    const y = valueToY(wk.value, chartY, chartH);
-    return { ...wk, x, y };
+  // Set SVG dimensions to match chart area
+  curveSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  curveSvg.setAttribute("width", width);
+  curveSvg.setAttribute("height", height);
+
+  // Convert percentage coordinates to absolute pixel coordinates
+  const toXY = (point) => ({
+    x: (point.x / 100) * width,
+    y: (point.y / 100) * height
   });
 
-  // performance line
-  const lineGrad = ctx.createLinearGradient(chartX, chartY, chartX + chartW, chartY + chartH);
-  lineGrad.addColorStop(0, "#5600FF");
-  lineGrad.addColorStop(0.5, "#6211FF");
-  lineGrad.addColorStop(1, "#43A5F0");
-  ctx.strokeStyle = lineGrad;
-  ctx.lineWidth = 2.3;
-  ctx.beginPath();
-  points.forEach((p, i) => {
-    if (i === 0) ctx.moveTo(p.x, p.y);
-    else ctx.lineTo(p.x, p.y);
-  });
-  ctx.stroke();
+  const absPoints = points.map(toXY);
+  
+  // Start path at first point
+  let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
 
-  // fill under line, straight sides
-  const fillGrad = ctx.createLinearGradient(chartX, chartY, chartX, chartY + chartH);
-  fillGrad.addColorStop(0, "rgba(118, 109, 255, 0.44)");
-  fillGrad.addColorStop(1, "rgba(13, 14, 27, 0)");
-  ctx.fillStyle = fillGrad;
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  points.forEach((p) => ctx.lineTo(p.x, p.y));
-  ctx.lineTo(chartX + chartW, points[points.length - 1].y);
-  ctx.lineTo(chartX + chartW, chartY + chartH);
-  ctx.lineTo(chartX, chartY + chartH);
-  ctx.lineTo(chartX, points[0].y);
-  ctx.closePath();
-  ctx.fill();
+  // Create smooth curve between each pair of points using cubic Bezier curves
+  for (let i = 0; i < absPoints.length - 1; i += 1) {
+    const p0 = absPoints[i];
+    const p1 = absPoints[i + 1];
+    
+    // Calculate control points for smooth curve (35% of distance between points)
+    const dx = (p1.x - p0.x) * 0.35;
+    const c1x = p0.x + dx; // First control point
+    const c1y = p0.y;
+    const c2x = p1.x - dx; // Second control point
+    const c2y = p1.y;
+    
+    // Add cubic Bezier curve segment
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+  }
 
-  // points + chips + x labels
-  points.forEach((p, idx) => {
-    // zone color for this point
-    let zoneColor = "rgba(66, 194, 255, 1)"; // elite
-    let zoneGlow = "rgba(66, 194, 255, 0.5)";
-    if (p.value <= 16) {
-      zoneColor = "rgba(255, 71, 166, 1)";
-      zoneGlow = "rgba(255, 71, 166, 0.5)";
-    } else if (p.value <= 22) {
-      zoneColor = "rgba(118, 109, 255, 1)";
-      zoneGlow = "rgba(118, 109, 255, 0.55)";
-    }
+  // Create the main curve path (narrow, purple, visible)
+  const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  pathCore.setAttribute("d", d);
+  pathCore.setAttribute("fill", "none");
+  pathCore.setAttribute("stroke", "rgba(70, 70, 255, 0.7)"); // Purple stroke
+  pathCore.setAttribute("stroke-width", "2.6");
+  pathCore.setAttribute("stroke-linecap", "round");
+  pathCore.setAttribute("stroke-linejoin", "round");
 
-    // point glow - single, tight, lighter for blue/purple
-    const glowRadius = 16;
-    let glowColor = "rgba(255, 71, 166, 0.9)"; // low
-    if (p.value > 22) {
-      // elite - lighter blue so halo is visible
-      glowColor = "rgba(170, 255, 255, 0.95)";
-    } else if (p.value > 16) {
-      // solid - lighter lavender
-      glowColor = "rgba(186, 192, 255, 0.95)";
-    }
-    const radial = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
-    radial.addColorStop(0, glowColor);
-    radial.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = radial;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
-    ctx.fill();
+  // Create glow effect (wider, transparent purple behind main curve)
+  const pathGlow = pathCore.cloneNode(true);
+  pathGlow.setAttribute("stroke", "rgba(207, 120, 255, 0.15)"); // Transparent purple
+  pathGlow.setAttribute("stroke-width", "8"); // Thicker for glow effect
 
-    // optional soft ring to tie to chip
-    const outerRadial = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 22);
-    outerRadial.addColorStop(0, zoneGlow);
-    outerRadial.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = outerRadial;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
-    ctx.fill();
-
-    // point core
-    ctx.fillStyle = "#99B6";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 5.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#CCF";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // data label chip
-    const labelY = p.y - 34;
-    const labelText = p.value.toFixed(1);
-    ctx.font = "12.4px system-ui, -apple-system, Segoe UI, sans-serif";
-    const textWidth = ctx.measureText(labelText).width;
-    const labelWidth = textWidth + 20;
-    const labelX = Math.min(Math.max(p.x - labelWidth / 2, chartX), chartX + chartW - labelWidth);
-    const bh = 24;
-    const br = 8;
-
-    // chip base
-    const chipGrad = ctx.createLinearGradient(labelX, labelY - 8, labelX + labelWidth, labelY + 23);
-    chipGrad.addColorStop(0, "rgba(13, 14, 27, 0.95)");
-    chipGrad.addColorStop(1, "rgba(30, 31, 48, 0.35)");
-    ctx.fillStyle = chipGrad;
-    ctx.strokeStyle = zoneGlow;
-    ctx.lineWidth = 1;
-    drawRoundedPanel(labelX, labelY, labelWidth, bh, br);
-    ctx.fill();
-    ctx.stroke();
-
-    // full-chip inset glow
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    const chipGlow = ctx.createLinearGradient(labelX, labelY, labelX, labelY + bh);
-    chipGlow.addColorStop(0, zoneGlow);
-    chipGlow.addColorStop(1, "rgba(13, 14, 27, 0)");
-    ctx.fillStyle = chipGlow;
-    drawRoundedPanel(labelX, labelY, labelWidth, bh, br);
-    ctx.fill();
-    ctx.restore();
-
-    // chip text
-    const textOffsetX = labelX + 10;
-    const textOffsetY = labelY + 17;
-    ctx.strokeStyle = "rgba(6, 7, 11, 0.95)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(labelText, textOffsetX, textOffsetY);
-    ctx.fillStyle = zoneColor;
-    ctx.fillText(labelText, textOffsetX, textOffsetY);
-
-    // x-axis label (WK • n)
-    const weekLabel = weeks[idx].week.replace("WK", "WK • ");
-    ctx.font = "12.2px system-ui, -apple-system, Segoe UI, sans-serif";
-    ctx.strokeStyle = "rgba(6, 7, 11, 0.85)";
-    ctx.lineWidth = 3;
-    ctx.strokeText(weekLabel, p.x - 23, chartY + chartH + 20);
-    ctx.fillStyle = "rgba(234, 235, 240, 0.9)";
-    ctx.fillText(weekLabel, p.x - 23, chartY + chartH + 20);
-  });
-
-  // y-axis title
-  ctx.save();
-  ctx.translate(chartX - 68, chartY + chartH / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.font = "16px system-ui, -apple-system, Segoe UI, sans-serif";
-  ctx.fillStyle = "rgba(234, 235, 240, 0.9)";
-  ctx.textAlign = "center";
-  ctx.fillText("Fantasy Points", 0, 0);
-  ctx.restore();
-
-  // x-axis title
-  ctx.font = "16px system-ui, -apple-system, Segoe UI, sans-serif";
-  ctx.fillStyle = "rgba(234, 235, 240, 0.9)";
-  ctx.textAlign = "center";
-  ctx.fillText("Week #", chartX + chartW / 2, chartY + chartH + 46);
-
-  ctx.restore();
+  // Add both paths to SVG (glow first, then core on top)
+  curveSvg.innerHTML = "";
+  curveSvg.appendChild(pathGlow);
+  curveSvg.appendChild(pathCore);
 }
 
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+// CHART ORCHESTRATION: Main function that renders the entire weekly chart
+// Coordinates all rendering functions in the correct order
+function renderWeeklyChart() {
+  if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+
+  // Clean up any existing zones from previous render
+  chartBox.querySelectorAll(".weekly-zone").forEach((zone) => zone.remove());
+  curveSvg = null; // Reset curve SVG
+
+  // Render all chart components in order
+  createZones();    // 1. Background performance zones
+  renderYAxis();    // 2. Left axis with point values
+  renderXAxis();    // 3. Bottom axis with week labels
+  renderPoints();   // 4. Data points, labels, and connecting curve
+}
+
+/* ========================================
+   HUD PROGRESS CIRCLES
+   Controls the two circular progress indicators at top of page:
+   - Left circle: Consistency percentage
+   - Right circle: Ceiling positional rank
+   ======================================== */
+
+// PROGRESS DATA: Stats for the two HUD circles
+const PROGRESS_CONFIG = {
+  ceilingRankMax: 20,           // Total number of positions (rank 1-20)
+  consistencyPercent: 66.7,     // Left circle: Consistency rate percentage
+  ceilingRank: 4                // Right circle: Current ceiling rank (lower is better)
+};
+
+// UTILITY: Clamps a value between min and max bounds
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+// PROGRESS CIRCLE HYDRATION: Updates the SVG circles with actual data values
+// Sets CSS custom property --progress to control how much of the circle is filled
+function hydrateProgressCircles() {
+  // LEFT CIRCLE: Consistency percentage (straightforward percentage)
+  const consistencyCircle = document.querySelector(
+    ".progress-circle--consistency .progress-ring-fill"
+  );
+  if (consistencyCircle) {
+    // Convert 66.7% to 0.667 for CSS variable
+    consistencyCircle.style.setProperty(
+      "--progress",
+      (PROGRESS_CONFIG.consistencyPercent / 100).toFixed(3)
+    );
+  }
+
+  // RIGHT CIRCLE: Ceiling rank (inverted: lower rank = more filled)
+  const ceilingCircle = document.querySelector(
+    ".progress-circle--ceiling .progress-ring-fill--ceiling"
+  );
+  if (ceilingCircle) {
+    const rank = PROGRESS_CONFIG.ceilingRank;
+    
+    // Normalize rank to 0-1 scale (rank 1 = 100% filled, rank 20 = 0% filled)
+    // Formula: (maxRank - currentRank) / (maxRank - 1)
+    // Example: (20 - 4) / (20 - 1) = 16/19 = 0.842 (84.2% filled)
+    const normalized = clamp(
+      (PROGRESS_CONFIG.ceilingRankMax - rank) /
+        (PROGRESS_CONFIG.ceilingRankMax - 1),
+      0,
+      1
+    );
+    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+  }
+}
+
+// INITIALIZATION: Sets up the entire page when it loads
+// Runs all setup functions and attaches event listeners
+function init() {
+  hydrateProgressCircles(); // Update HUD circles with data
+  renderWeeklyChart();       // Draw the weekly points chart
+  
+  // Re-render chart when window is resized to maintain proper dimensions
+  window.addEventListener("resize", renderWeeklyChart);
+}
+
+// Run initialization when page is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init(); // Page already loaded, run immediately
+}
