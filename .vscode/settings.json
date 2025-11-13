@@ -182,5 +182,7 @@
   "github.copilot.chat.notebook.enhancedNextEditSuggestions.enabled": true,
   "github.copilot.chat.scopeSelection": true,
   "github.copilot.chat.tools.memory.enabled": true,
-  "chat.extensionUnification.enabled": true
+  "chat.extensionUnification.enabled": true,
+  "chat.agent.thinking.collapsedTools": "all",
+  "chat.customAgentInSubagent.enabled": true
 }
