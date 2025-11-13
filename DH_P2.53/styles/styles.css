@@ -4999,10 +4999,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-point {
         position: absolute;
-        width: 11px;
-        height: 11px;
+        width: 8px;
+        height: 8px;
         border-radius: 999px;
-        border: 1px solid rgb(220 222 230 / 0%);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         display: grid;
         place-items: center;
         cursor: pointer;
@@ -5050,7 +5050,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-curve-layer {
         pointer-events: none;
-        filter: drop-shadow(0 0 12px rgba(207, 120, 255, 0.45));
     }
 
     /* Mobile Responsive Styles for Consistency Panel */
@@ -5532,7 +5531,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .weekly-point-label {
             top: -27px;
-            min-width: 38px;
+            min-width: 34px;
             padding: 0.05rem 0.02rem;
             border-radius: 0.4rem;
         }

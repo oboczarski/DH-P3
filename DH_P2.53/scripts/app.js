@@ -6523,17 +6523,12 @@ function drawCurve(points) {
   const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
   pathCore.setAttribute("d", d);
   pathCore.setAttribute("fill", "none");
-  pathCore.setAttribute("stroke", "rgba(70, 70, 255, 0.7)");
-  pathCore.setAttribute("stroke-width", "2.6");
+  pathCore.setAttribute("stroke", "rgba(120, 120, 255, 0.6)");
+  pathCore.setAttribute("stroke-width", "2");
   pathCore.setAttribute("stroke-linecap", "round");
   pathCore.setAttribute("stroke-linejoin", "round");
 
-  const pathGlow = pathCore.cloneNode(true);
-  pathGlow.setAttribute("stroke", "rgba(207, 120, 255, 0.15)");
-  pathGlow.setAttribute("stroke-width", "8");
-
   curveSvg.innerHTML = "";
-  curveSvg.appendChild(pathGlow);
   curveSvg.appendChild(pathCore);
 }
 
@@ -6553,17 +6548,16 @@ function renderPoints() {
     const bucket = bucketFor(entry.pts);
     const pointEl = document.createElement("div");
     pointEl.className = "weekly-point";
-    pointEl.style.left = `calc(${pctX}% - 6px)`;
-    pointEl.style.top = `calc(${pctY}% - 6px)`;
+    pointEl.style.left = `calc(${pctX}% - 4px)`;
+    pointEl.style.top = `calc(${pctY}% - 4px)`;
     pointEl.style.background = bucket.color;
-    pointEl.style.boxShadow = bucket.glow;
+    pointEl.style.boxShadow = `0 0 4px ${bucket.color}`;
 
     const label = document.createElement("div");
     label.className = "weekly-point-label";
     label.innerHTML = `
       <span class="weekly-point-label__week">WK ${entry.week}</span>
       <span class="weekly-point-label__value">${entry.pts.toFixed(1)} fpts</span>
-      <span class="weekly-point-label__bucket">${bucket.name}</span>
     `;
     pointEl.appendChild(label);
     pointsLayer.appendChild(pointEl);
