@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -323,7 +323,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
         const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9' } };
+        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -483,7 +483,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const isCurrentlyVisible = overlayContainers[targetPanel] && 
                                                    !overlayContainers[targetPanel].classList.contains('hidden');
                         
-                        // For overlay panels (stats-key, radar-chart, news)
+                        // For overlay panels (stats-key, radar-chart, consistency)
                         if (isCurrentlyVisible) {
                             // Toggling off - return to game-logs view
                             overlayContainers[targetPanel].classList.add('hidden');
@@ -514,6 +514,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            
+                            // If opening consistency panel, render chart with sample data
+                            if (targetPanel === 'consistency') {
+                                renderConsistencyChart();
                             }
                         }
                     });
@@ -650,23 +655,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +684,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown
@@ -772,10 +779,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
-                    viewDropdownLabel.textContent = 'Positional';
+                    viewDropdownLabel.textContent = 'View: POS';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
-                    viewDropdownLabel.textContent = 'Lineup';
+                    viewDropdownLabel.textContent = 'View: Lineup';
                 }
             }
             
@@ -3228,9 +3235,9 @@ const SEASON_META_HEADERS = {
                     radarChartContainer.classList.add('hidden');
                     modalBody.appendChild(radarChartContainer);
                 }
-                if (newsContainer) {
-                    newsContainer.classList.add('hidden');
-                    modalBody.appendChild(newsContainer);
+                if (consistencyContainer) {
+                    consistencyContainer.classList.add('hidden');
+                    modalBody.appendChild(consistencyContainer);
                 }
                 return;
             }
@@ -4093,9 +4100,9 @@ const wrTeStatOrder = [
                 radarChartContainer.classList.add('hidden');
                 modalBody.appendChild(radarChartContainer);
             }
-            if (newsContainer) {
-                newsContainer.classList.add('hidden');
-                modalBody.appendChild(newsContainer);
+            if (consistencyContainer) {
+                consistencyContainer.classList.add('hidden');
+                modalBody.appendChild(consistencyContainer);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -6157,7 +6164,7 @@ const wrTeStatOrder = [
             modalBody.classList.remove('hidden'); // Ensure game logs table is visible
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all buttons to inactive, then activate game-logs button
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6172,7 +6179,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6244,6 +6251,258 @@ const wrTeStatOrder = [
                 }
             }
         }
+
+        // === CONSISTENCY CHART RENDERING ===
+        // Renders the weekly consistency chart with sample data from reference implementation
+        function renderConsistencyChart() {
+            // Sample data from reference (Justin Herbert, 9 weeks)
+            const WEEKLY_DATA = [
+                { week: 1, pts: 27.9 },
+                { week: 2, pts: 18.8 },
+                { week: 3, pts: 15.6 },
+                { week: 4, pts: 14.5 },
+                { week: 5, pts: 15.6 },
+                { week: 6, pts: 18.8 },
+                { week: 7, pts: 29.9 },
+                { week: 8, pts: 26.3 },
+                { week: 9, pts: 28.7 }
+            ];
+            
+            const MAX_POINTS = 40;
+            const PROGRESS_CONFIG = {
+                ceilingRankMax: 20,
+                consistencyPercent: 66.7,
+                ceilingRank: 4
+            };
+            
+            // Update progress circles
+            hydrateProgressCircles(PROGRESS_CONFIG);
+            
+            // Update HUD metrics
+            updateHUDMetrics(PROGRESS_CONFIG);
+            
+            // Render the weekly chart
+            renderWeeklyChart(WEEKLY_DATA, MAX_POINTS);
+        }
+        
+        // Hydrate progress circles with data
+        function hydrateProgressCircles(config) {
+            const consistencyCircle = document.querySelector('#consistency-container .progress-circle--consistency .progress-ring-fill');
+            if (consistencyCircle) {
+                consistencyCircle.style.setProperty('--progress', (config.consistencyPercent / 100).toFixed(3));
+            }
+            
+            const consistencyValue = document.querySelector('#consistency-container .progress-circle--consistency .progress-value');
+            if (consistencyValue) {
+                consistencyValue.textContent = `${config.consistencyPercent}%`;
+            }
+            
+            const ceilingCircle = document.querySelector('#consistency-container .progress-circle--ceiling .progress-ring-fill');
+            if (ceilingCircle) {
+                const rank = config.ceilingRank;
+                const normalized = Math.max(0, Math.min(1, (config.ceilingRankMax - rank) / (config.ceilingRankMax - 1)));
+                ceilingCircle.style.setProperty('--progress', normalized.toFixed(3));
+            }
+            
+            const ceilingValue = document.querySelector('#consistency-container .progress-circle--ceiling .progress-value');
+            if (ceilingValue) {
+                ceilingValue.textContent = config.ceilingRank;
+            }
+        }
+        
+        // Update HUD center metrics
+        function updateHUDMetrics(config) {
+            const consistencyMetricValue = document.querySelector('#consistency-container .consistency-metric-value');
+            if (consistencyMetricValue && consistencyMetricValue.parentElement.previousElementSibling.textContent === 'CONSISTENCY') {
+                consistencyMetricValue.textContent = `${config.consistencyPercent}%`;
+            }
+            
+            const ceilingMetricValue = document.querySelectorAll('#consistency-container .consistency-metric-value')[1];
+            if (ceilingMetricValue) {
+                ceilingMetricValue.textContent = '28.8';
+            }
+            
+            // Update position ranks
+            const consistencyRank = document.querySelector('#consistency-container .consistency-metric-sub');
+            if (consistencyRank) {
+                consistencyRank.textContent = 'Pos Rank: 11';
+            }
+            
+            const ceilingRank = document.querySelectorAll('#consistency-container .consistency-metric-sub')[1];
+            if (ceilingRank) {
+                ceilingRank.textContent = `Pos Rank: ${config.ceilingRank}`;
+            }
+        }
+        
+        // Render weekly performance chart
+        function renderWeeklyChart(weeklyData, maxPoints) {
+            const chartBox = document.getElementById('consistency-weekly-chart-box');
+            const pointsLayer = document.getElementById('consistency-weekly-chart-points');
+            const xAxisEl = document.getElementById('consistency-weekly-chart-x-axis');
+            const yAxisEl = document.getElementById('consistency-weekly-chart-y-axis');
+            
+            if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+            
+            // Clear existing content
+            chartBox.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+            pointsLayer.innerHTML = '';
+            xAxisEl.innerHTML = '';
+            yAxisEl.innerHTML = '';
+            
+            // Create zones
+            createZones(chartBox, maxPoints);
+            
+            // Render Y-axis
+            [40, 22, 16, 0].forEach(tick => {
+                const tickEl = document.createElement('div');
+                tickEl.className = 'weekly-chart-y-tick';
+                tickEl.textContent = `${tick} fpts`;
+                yAxisEl.appendChild(tickEl);
+            });
+            
+            // Render X-axis
+            weeklyData.forEach(entry => {
+                const span = document.createElement('span');
+                span.textContent = `WK ${entry.week}`;
+                xAxisEl.appendChild(span);
+            });
+            
+            // Render points and curve
+            renderPoints(pointsLayer, weeklyData, maxPoints);
+        }
+        
+        // Create performance zones
+        function createZones(chartBox, maxPoints) {
+            const stops = [
+                { className: 'weekly-zone--bad', label: 'Under < 16', to: 15.9 },
+                { className: 'weekly-zone--good', label: 'Solid ≥ 16', to: 21.9 },
+                { className: 'weekly-zone--great', label: 'Elite > 22', to: maxPoints }
+            ];
+            
+            let prev = 0;
+            stops.forEach(zone => {
+                const pct = (zone.to / maxPoints) * 100;
+                const zoneEl = document.createElement('div');
+                zoneEl.className = `weekly-zone ${zone.className}`;
+                zoneEl.style.top = `calc(${100 - pct}% - 1px)`;
+                zoneEl.style.height = `calc(${pct - prev}%)`;
+                
+                const label = document.createElement('span');
+                label.className = 'weekly-zone-label';
+                label.textContent = zone.label;
+                zoneEl.appendChild(label);
+                
+                chartBox.appendChild(zoneEl);
+                prev = pct;
+            });
+        }
+        
+        // Render data points and curve
+        function renderPoints(pointsLayer, weeklyData, maxPoints) {
+            const n = weeklyData.length;
+            const curvePoints = [];
+            
+            weeklyData.forEach((entry, index) => {
+                const pctX = ((index + 0.5) / n) * 100;
+                const pctY = yFromPoints(entry.pts, maxPoints);
+                curvePoints.push({ x: pctX, y: pctY });
+                
+                const bucket = bucketFor(entry.pts);
+                
+                const pointEl = document.createElement('div');
+                pointEl.className = 'weekly-point';
+                pointEl.style.left = `calc(${pctX}% - 5px)`;
+                pointEl.style.top = `calc(${pctY}% - 5px)`;
+                pointEl.style.background = bucket.color;
+                pointEl.style.boxShadow = bucket.glow;
+                
+                const label = document.createElement('div');
+                label.className = 'weekly-point-label';
+                label.innerHTML = `
+                    <span class="weekly-point-label__week">WK ${entry.week}</span>
+                    <span class="weekly-point-label__value">${entry.pts.toFixed(1)} fpts</span>
+                    <span class="weekly-point-label__bucket">${bucket.name}</span>
+                `;
+                pointEl.appendChild(label);
+                pointsLayer.appendChild(pointEl);
+            });
+            
+            drawCurve(pointsLayer, curvePoints);
+        }
+        
+        // Convert points to Y-position percentage
+        function yFromPoints(pts, maxPoints) {
+            const clamped = Math.max(0, Math.min(pts, maxPoints));
+            return (1 - clamped / maxPoints) * 100;
+        }
+        
+        // Determine point color and glow based on performance
+        function bucketFor(pts) {
+            if (pts >= 22) {
+                return { name: 'Elite', color: '#78ffedff', glow: '0 0 8px 4px #78ffedff' };
+            }
+            if (pts >= 16) {
+                return { name: 'Solid', color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' };
+            }
+            return { name: 'Under', color: '#f6ad', glow: '0 0 6px 4px #f6ac' };
+        }
+        
+        // Draw smooth curve connecting points
+        function drawCurve(pointsLayer, points) {
+            if (!points.length) return;
+            
+            const box = pointsLayer.getBoundingClientRect();
+            const width = box.width;
+            const height = box.height;
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'weekly-curve-layer');
+            svg.style.position = 'absolute';
+            svg.style.inset = '0';
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            
+            const toXY = (point) => ({
+                x: (point.x / 100) * width,
+                y: (point.y / 100) * height
+            });
+            
+            const absPoints = points.map(toXY);
+            let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+            
+            for (let i = 0; i < absPoints.length - 1; i++) {
+                const p0 = absPoints[i];
+                const p1 = absPoints[i + 1];
+                const dx = (p1.x - p0.x) * 0.35;
+                const c1x = p0.x + dx;
+                const c1y = p0.y;
+                const c2x = p1.x - dx;
+                const c2y = p1.y;
+                d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+            }
+            
+            const pathGlow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathGlow.setAttribute('d', d);
+            pathGlow.setAttribute('fill', 'none');
+            pathGlow.setAttribute('stroke', 'rgba(207, 120, 255, 0.15)');
+            pathGlow.setAttribute('stroke-width', '8');
+            pathGlow.setAttribute('stroke-linecap', 'round');
+            pathGlow.setAttribute('stroke-linejoin', 'round');
+            
+            const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathCore.setAttribute('d', d);
+            pathCore.setAttribute('fill', 'none');
+            pathCore.setAttribute('stroke', 'rgba(70, 70, 255, 0.7)');
+            pathCore.setAttribute('stroke-width', '2.6');
+            pathCore.setAttribute('stroke-linecap', 'round');
+            pathCore.setAttribute('stroke-linejoin', 'round');
+            
+            svg.appendChild(pathGlow);
+            svg.appendChild(pathCore);
+            pointsLayer.prepend(svg);
+        }
+
 function setLoading(isLoading, message = 'Loading...') {
     welcomeScreen?.classList.add('hidden');
     if (document.body?.dataset?.page === 'rosters') {
