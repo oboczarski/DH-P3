@@ -4553,12 +4553,14 @@ padding: 0.15rem 0rem 0rem 0rem;
     max-height: 20vh;
     overflow-y: auto;
 }
-#game-logs-modal .modal-content .stats-key-panel {
+#game-logs-modal .stats-key-panel {
     position: absolute;
-    inset: 0;
+    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
+    left: 0.85rem;  /* Match modal-content padding */
+    right: 0.85rem;  /* Match modal-content padding */
+    bottom: 50px;  /* Space for modal-footer */
     margin: 0;
     padding: 1rem;
-    max-height: none;
     overflow-y: auto;
     border-radius: 9px;
     background: rgb(21 22 37 / 95%);
@@ -4569,12 +4571,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* Radar Chart Container - Same overlay behavior */
-#game-logs-modal .modal-content #radar-chart-container {
+#game-logs-modal #radar-chart-container {
     position: absolute;
-    inset: 0;
+    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
+    left: 0.85rem;  /* Match modal-content padding */
+    right: 0.85rem;  /* Match modal-content padding */
+    bottom: 50px;  /* Space for modal-footer */
     margin: 0;
     padding: 0.41rem;
-    max-height: none;
     overflow-y: auto;
     border-radius: 9px;
     background: radial-gradient(circle at center, #151723 15%, #262940 100%);
@@ -4584,12 +4588,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* News Container - Same overlay behavior */
-#game-logs-modal .modal-content #news-container {
+#game-logs-modal #news-container {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     margin: 0;
     padding: 1rem;
-    max-height: none;
     overflow-y: auto;
     border-radius: 9px;
     background: rgba(13, 14, 27, 0.95);
@@ -4599,12 +4605,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 /* Consistency Container - Same overlay behavior */
-#game-logs-modal .modal-content #consistency-container {
+#game-logs-modal #consistency-container {
     position: absolute;
-    inset: 0;
+    top: 110px;  /* Aligns with modal-body start (after header + vitals) */
+    left: 0.85rem;  /* Match modal-content padding */
+    right: 0.85rem;  /* Match modal-content padding */
+    bottom: 50px;  /* Space for modal-footer */
     margin: 0;
     padding: 1.2rem;
-    max-height: none;
     overflow-y: auto;
     border-radius: 9px;
     background: rgba(4, 6, 14, 0.95);
