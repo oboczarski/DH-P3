@@ -4591,7 +4591,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     position: absolute;
     inset: 0;
     margin: 0;
-    padding: clamp(0.75rem, 1.6vw, 1.35rem);
+    padding: clamp(0.6rem, 2.2vw, 1.15rem);
     overflow-y: auto;
     border-radius: 12px;
     background: radial-gradient(circle at 12% -10%, rgba(124, 245, 255, 0.16), transparent 55%),
@@ -4601,15 +4601,17 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     box-shadow: 0 20px 55px rgba(0, 4, 19, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: stretch;
+    justify-content: center;
+    min-height: 0;
     z-index: 5;
 }
 
 #game-logs-modal .consistency-panel {
     display: flex;
     flex-direction: column;
-    gap: clamp(0.75rem, 1.5vw, 1.35rem);
+    gap: clamp(0.65rem, 1.5vw, 1.25rem);
     width: 100%;
-    max-width: min(920px, 100%);
+    max-width: min(860px, 100%);
     margin: 0 auto;
     color: #f6f7ff;
     font-family: "Quicksand", "Space Grotesk", "Product Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -4618,9 +4620,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 #game-logs-modal .consistency-hud {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: clamp(0.65rem, 1.4vw, 1.2rem);
-    padding: clamp(0.75rem, 1.4vw, 1.25rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: clamp(0.55rem, 1.4vw, 1.1rem);
+    padding: clamp(0.7rem, 1.6vw, 1.15rem);
     border-radius: 18px;
     background: radial-gradient(circle at 0% 100%, rgba(255, 137, 207, 0.06), transparent 72%), rgba(12, 16, 34, 0.72);
     border: 1px solid rgba(126, 176, 255, 0.32);
@@ -4633,29 +4635,30 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.65rem;
+    gap: clamp(0.45rem, 1.6vw, 0.65rem);
+    width: 100%;
 }
 
 #game-logs-modal .consistency-hud__segment--center {
     align-items: stretch;
     text-align: center;
-    gap: clamp(0.5rem, 1vw, 0.8rem);
+    gap: clamp(0.45rem, 1.2vw, 0.8rem);
 }
 
 #game-logs-modal .consistency-hud__meta {
     display: grid;
-    gap: 0.35rem;
+    gap: clamp(0.25rem, 1.2vw, 0.35rem);
 }
 
 #game-logs-modal .consistency-hud__eyebrow {
-    font-size: 0.7rem;
+    font-size: clamp(0.62rem, 1.8vw, 0.7rem);
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgba(144, 150, 192, 0.85);
 }
 
 #game-logs-modal .consistency-hud__player {
-    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-size: clamp(0.95rem, 2.4vw, 1.15rem);
     font-weight: 600;
     color: #f6f7ff;
 }
@@ -4663,11 +4666,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 #game-logs-modal .consistency-hud__metrics {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(0.45rem, 1vw, 0.85rem);
+    gap: clamp(0.4rem, 1.2vw, 0.8rem);
 }
 
 #game-logs-modal .consistency-metric {
-    padding: 0.6rem 0.75rem;
+    padding: clamp(0.45rem, 2vw, 0.65rem) clamp(0.55rem, 2vw, 0.75rem);
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(24, 30, 62, 0.75), rgba(13, 18, 38, 0.85));
     border: 1px solid rgba(146, 175, 255, 0.18);
@@ -4675,7 +4678,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 #game-logs-modal .consistency-metric__label {
-    font-size: 0.75rem;
+    font-size: clamp(0.64rem, 2vw, 0.75rem);
     text-transform: uppercase;
     letter-spacing: 0.14em;
     color: rgba(144, 150, 192, 0.95);
@@ -4691,7 +4694,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
 #game-logs-modal .consistency-metric__sub {
     margin-top: 0.1rem;
-    font-size: 0.75rem;
+    font-size: clamp(0.62rem, 2vw, 0.72rem);
     color: rgba(198, 205, 244, 0.76);
 }
 
@@ -4699,16 +4702,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: clamp(0.35rem, 1.6vw, 0.55rem);
 }
 
 #game-logs-modal .consistency-zone-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
+    gap: clamp(0.25rem, 1vw, 0.4rem);
+    padding: clamp(0.18rem, 1.4vw, 0.4rem) clamp(0.45rem, 1.8vw, 0.65rem);
     border-radius: 999px;
-    font-size: 0.68rem;
+    font-size: clamp(0.58rem, 1.8vw, 0.68rem);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(10, 12, 24, 0.92);
@@ -4729,10 +4732,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
 #game-logs-modal .consistency-progress-circle {
     position: relative;
-    width: clamp(108px, 24vw, 138px);
-    height: clamp(108px, 24vw, 138px);
+    width: clamp(88px, 28vw, 126px);
+    height: clamp(88px, 28vw, 126px);
     border-radius: 50%;
-    padding: clamp(0.45rem, 1vw, 0.65rem);
+    padding: clamp(0.35rem, 1.4vw, 0.6rem);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4772,26 +4775,26 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    gap: clamp(0.05rem, 0.5vw, 0.12rem);
     text-align: center;
 }
 
 #game-logs-modal .consistency-progress-circle__value {
-    font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+    font-size: clamp(1.15rem, 4.4vw, 1.55rem);
     font-weight: 600;
     color: #7cf5ff;
     text-shadow: 0 0 16px rgba(124, 245, 255, 0.48);
 }
 
 #game-logs-modal .consistency-progress-circle__label {
-    font-size: 0.74rem;
+    font-size: clamp(0.62rem, 2.4vw, 0.75rem);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(152, 162, 204, 0.86);
 }
 
 #game-logs-modal .consistency-progress-circle__caption {
-    font-size: 0.56rem;
+    font-size: clamp(0.48rem, 2vw, 0.58rem);
     letter-spacing: 0.18em;
     color: rgba(119, 128, 164, 0.82);
 }
@@ -4799,12 +4802,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 #game-logs-modal .consistency-chart {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: clamp(0.6rem, 1.6vw, 0.85rem);
 }
 
 #game-logs-modal .consistency-chart__shell {
     position: relative;
-    min-height: clamp(220px, 45vh, 320px);
+    min-height: clamp(190px, 48vw, 280px);
     border-radius: 18px;
     border: 1px solid rgba(120, 140, 212, 0.25);
     background: linear-gradient(135deg, rgba(20, 25, 52, 0.8), rgba(12, 15, 36, 0.9));
@@ -4824,8 +4827,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     display: flex;
     justify-content: flex-end;
     align-items: flex-start;
-    padding: 0.35rem 0.6rem;
-    font-size: 0.7rem;
+    padding: clamp(0.25rem, 1.6vw, 0.5rem) clamp(0.4rem, 2vw, 0.75rem);
+    font-size: clamp(0.58rem, 2vw, 0.72rem);
     letter-spacing: 0.06em;
     color: rgba(236, 241, 255, 0.68);
 }
@@ -4855,7 +4858,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
 #game-logs-modal .consistency-chart__points-layer {
     position: absolute;
-    inset: clamp(1.1rem, 2vw, 1.6rem) clamp(1.2rem, 2vw, 1.8rem) clamp(1.9rem, 2.2vw, 2.4rem) clamp(2.5rem, 3vw, 2.9rem);
+    inset: clamp(0.85rem, 1.8vw, 1.4rem) clamp(0.85rem, 2vw, 1.6rem) clamp(1.6rem, 2.4vw, 2.2rem) clamp(1.8rem, 3.2vw, 2.6rem);
     z-index: 2;
 }
 
@@ -4872,8 +4875,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     left: var(--x);
     top: var(--y);
     transform: translate(-50%, -50%);
-    width: 12px;
-    height: 12px;
+    width: clamp(8px, 2vw, 12px);
+    height: clamp(8px, 2vw, 12px);
     border-radius: 50%;
     background: #7cf5ff;
     box-shadow: 0 0 10px rgba(124, 245, 255, 0.75);
@@ -4899,11 +4902,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     top: -1.8rem;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.25rem 0.45rem;
+    padding: clamp(0.18rem, 1.6vw, 0.32rem) clamp(0.35rem, 2vw, 0.5rem);
     border-radius: 6px;
     background: rgba(6, 9, 20, 0.92);
     border: 1px solid rgba(139, 189, 255, 0.5);
-    font-size: 0.62rem;
+    font-size: clamp(0.52rem, 2vw, 0.62rem);
     white-space: nowrap;
     color: rgba(230, 236, 255, 0.85);
     text-shadow: none;
@@ -4912,56 +4915,58 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 #game-logs-modal .consistency-chart__axis {
     position: absolute;
     display: flex;
-    gap: clamp(0.4rem, 1vw, 0.8rem);
-    font-size: 0.68rem;
+    gap: clamp(0.35rem, 1.6vw, 0.75rem);
+    font-size: clamp(0.58rem, 2.2vw, 0.68rem);
     letter-spacing: 0.08em;
     color: rgba(170, 182, 222, 0.75);
     text-transform: uppercase;
 }
 
 #game-logs-modal .consistency-chart__axis--y {
-    top: clamp(1rem, 1.8vw, 1.4rem);
-    bottom: clamp(1.8rem, 2.2vw, 2.1rem);
-    left: clamp(0.65rem, 1.2vw, 1.1rem);
+    top: clamp(0.8rem, 1.8vw, 1.2rem);
+    bottom: clamp(1.5rem, 2.5vw, 2.1rem);
+    left: clamp(0.5rem, 1.5vw, 1rem);
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
 }
 
 #game-logs-modal .consistency-chart__axis--x {
-    left: clamp(2rem, 3vw, 2.6rem);
-    right: clamp(1.2rem, 2vw, 2rem);
-    bottom: clamp(0.65rem, 1.4vw, 1rem);
+    left: clamp(1.6rem, 3vw, 2.4rem);
+    right: clamp(0.85rem, 2.4vw, 1.8rem);
+    bottom: clamp(0.55rem, 1.6vw, 0.9rem);
     justify-content: space-between;
 }
 
 #game-logs-modal .consistency-chart__caption {
     margin: 0;
-    font-size: 0.72rem;
+    font-size: clamp(0.6rem, 2vw, 0.72rem);
     text-align: center;
     color: rgba(175, 186, 228, 0.72);
 }
 
 @media (max-width: 1024px) {
     #game-logs-modal .consistency-hud {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
+        padding: clamp(0.65rem, 1.8vw, 1rem);
     }
 }
 
 @media (max-width: 840px) {
     #game-logs-modal .consistency-panel {
-        gap: 0.9rem;
+        gap: clamp(0.7rem, 2vw, 0.9rem);
     }
 
     #game-logs-modal .consistency-hud {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        row-gap: 0.85rem;
+        row-gap: clamp(0.6rem, 2vw, 0.85rem);
     }
 
     #game-logs-modal .consistency-hud__segment--right {
         grid-column: span 2;
         flex-direction: row;
         justify-content: center;
+        gap: clamp(0.4rem, 2vw, 0.75rem);
     }
 
     #game-logs-modal .consistency-hud__metrics {
@@ -4970,12 +4975,23 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 @media (max-width: 640px) {
+    #game-logs-modal #modal-body #consistency-container {
+        padding: clamp(0.55rem, 2.8vw, 0.75rem);
+    }
+
+    #game-logs-modal .consistency-panel {
+        gap: clamp(0.6rem, 2.4vw, 0.85rem);
+    }
+
     #game-logs-modal .consistency-hud {
         grid-template-columns: 1fr;
+        gap: clamp(0.6rem, 2.4vw, 0.85rem);
     }
 
     #game-logs-modal .consistency-hud__segment--right {
         grid-column: auto;
+        flex-direction: column;
+        gap: clamp(0.45rem, 2vw, 0.65rem);
     }
 
     #game-logs-modal .consistency-hud__metrics {
@@ -4983,12 +4999,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     #game-logs-modal .consistency-progress-circle {
-        width: clamp(94px, 32vw, 116px);
-        height: clamp(94px, 32vw, 116px);
+        width: clamp(82px, 46vw, 110px);
+        height: clamp(82px, 46vw, 110px);
+    }
+
+    #game-logs-modal .consistency-chart__shell {
+        min-height: clamp(170px, 62vw, 240px);
     }
 
     #game-logs-modal .consistency-chart__points-layer {
-        inset: 1.2rem 1rem 2.1rem 2rem;
+        inset: clamp(0.75rem, 2.5vw, 1.2rem) clamp(0.75rem, 3vw, 1.4rem) clamp(1.4rem, 3vw, 1.9rem) clamp(1.35rem, 4vw, 2.1rem);
     }
 
     #game-logs-modal .consistency-point__label {
@@ -4997,16 +5017,17 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 
 @media (max-width: 460px) {
-    #game-logs-modal #modal-body #consistency-container {
-        padding: 0.65rem;
+    #game-logs-modal .consistency-hud__player {
+        font-size: clamp(0.9rem, 4vw, 1.05rem);
     }
 
-    #game-logs-modal .consistency-chart__axis--x {
-        font-size: 0.62rem;
+    #game-logs-modal .consistency-zone-chip {
+        font-size: clamp(0.52rem, 2.4vw, 0.62rem);
     }
 
+    #game-logs-modal .consistency-chart__axis--x,
     #game-logs-modal .consistency-chart__axis--y {
-        font-size: 0.62rem;
+        font-size: clamp(0.52rem, 2.6vw, 0.6rem);
     }
 }
 
