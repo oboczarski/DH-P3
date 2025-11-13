@@ -4598,6 +4598,22 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     z-index: 5;
 }
 
+/* Consistency Container - Same overlay behavior */
+#game-logs-modal #modal-body #consistency-container {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 1.2rem;
+    max-height: none;
+    overflow-y: auto;
+    border-radius: 9px;
+    background: rgba(4, 6, 14, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(115, 158, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+    z-index: 5;
+}
+
 .stats-key-panel h4 {
     font-size: 0.95rem;
     font-weight: 200;
@@ -4654,12 +4670,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     /* ⬇︎ CONSISTENCY PANEL STYLES ⬇︎ */
-    #consistency-container {
-        padding: 1.2rem;
-        overflow-y: auto;
-        max-height: calc(100vh - 200px);
-    }
-
     .consistency-shell {
         width: 100%;
         display: flex;
