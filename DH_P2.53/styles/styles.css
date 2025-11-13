@@ -336,7 +336,7 @@
   display: inline-block;
   vertical-align: middle;
   margin-top: 0;
-  margin-bottom: -1.5px;
+  margin-bottom: -1px;
 }
 #homeButton {
   padding-top: 0.15rem;
@@ -457,8 +457,10 @@
     background: rgba(255, 255, 255, 0.05);
 }
 .compact-switcher button.active {
+    min-width: 39px;
     color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.1);
+    background: rgba(66, 194, 255, 0.08);
+    border: 1px solid;
     box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
 }
 /* === ROW 3: Start/Sit Button === */
@@ -495,7 +497,7 @@
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15),inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
 }
 .start-sit-button.active {
     color: var(--color-accent-primary);
@@ -521,7 +523,6 @@
     background: rgba(13, 14, 35, 0.35);
     border-color: rgba(128, 138, 189, 0.35);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
 }
 .start-sit-button:focus-visible {
     outline: 2px solid rgba(118, 109, 255, 0.6);
@@ -539,7 +540,7 @@
         font-size: 0.95rem;
     }
     .nav-label {
-        font-size: 0.4rem;
+        font-size: 0.55rem;
     }
     .app-logo {
         width: 1.8rem;
@@ -698,6 +699,7 @@ n {
   }
   .compact-switcher button {
     padding: 0.3rem 0.4rem 0.2rem !important;
+    min-width: 38px;
   }
   .compact-switcher button i {
     font-size: 0.75rem;
@@ -707,10 +709,10 @@ n {
   }
   .start-sit-button {
     padding: 0.3rem 0.535rem 0.2rem !important;
-    width: 58px;
-    margin-left: 3px;
-    flex: 0 0 58px !important;
-    min-width: 58px !important;
+    width: 75px;
+    margin-left: 2px;
+    flex: 0 0 60px !important;
+    min-width: 62px !important;
   }
   .start-sit-button .analyzer-icon {
     font-size: 0.951rem;
@@ -925,25 +927,53 @@ n {
                     height: var(--header-control-height);
                     display: flex;
                     align-items: stretch;
+                    position: relative;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    isolation: isolate;
+                    box-sizing: border-box;
+                }
+                .username-area::before {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    border-radius: inherit;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.01), rgba(0,0,0,0.1));
+                    border: 1px solid var(--color-panel-border);
+                    -webkit-backdrop-filter: blur(4px) saturate(110%);
+                    backdrop-filter: blur(4px) saturate(110%);
+                    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+                    pointer-events: none;
+                    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                }
+                .username-area:focus-within::before {
+                    border-color: var(--color-accent-primary);
+                    box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 0 var(--glow-strength) var(--color-accent-primary-glow);
                 }
                 /* · · #usernameInput block · · */
         #usernameInput {
-          background: linear-gradient(to bottom, rgba(0,0,0,0.01), rgba(0,0,0,0.1));
-          border: 1px solid var(--color-panel-border);
-          border-radius: 8px;
-          -webkit-backdrop-filter: blur(4px) saturate(110%);
-          backdrop-filter: blur(4px) saturate(110%);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
+          background: transparent;
+          border: none;
+          border-radius: 0;
           color: #c4c8eaba;
           padding: 0.23rem 0.5rem;
           font-size: 0.7rem;
           font-weight: 300;
           width: 100%;
           height: 100%;
-          transition: all 0.2s ease;
+          line-height: 1.25;
+          caret-color: #c4c8ea;
+          transition: color 0.2s ease, background-color 0.2s ease;
+          position: relative;
+          z-index: 1;
+          -webkit-appearance: none;
+                  appearance: none;
+          box-sizing: border-box;
         }
         #usernameInput::placeholder {
                     color: #5F6795aa !important;
+                    font-size: inherit;
+                    line-height: inherit;
         }
           /* · · Prevent browser autofill from turning the username bar white (Safari/Chrome) · · */
         #usernameInput:-webkit-autofill,
@@ -954,14 +984,11 @@ n {
           -webkit-box-shadow: 0 0 0px 1000px rgba(13,14,35,0) inset !important;
           box-shadow: 0 0 0px 1000px rgba(13,14,35,0) inset !important;
           background-color: transparent !important;
-          border: 1px solid var(--color-panel-border) !important;
           background-clip: padding-box !important;
           transition: background-color 99999s ease-in-out 0s !important;
         }
         #usernameInput:focus {
             outline: none;
-            border-color: var(--color-accent-primary);
-            box-shadow: 0 0 var(--glow-strength) var(--color-accent-primary-glow);
         }
         /* · · Row 2 · · */
         .custom-select-wrapper {
@@ -1058,12 +1085,13 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
         }
         .filter-btn {
+            min-width: 43px;
+            min-height: 30px;
             padding: 0.15rem 0.5rem;
             font-size: 0.85rem;
             font-weight: 400;
@@ -1071,7 +1099,6 @@ n {
             background: transparent;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
             white-space: nowrap;
             color: var(--color-text-secondary);
             text-shadow: 0 0 2px rgba(0,0,0,0.2);
@@ -1162,9 +1189,7 @@ n {
         filter: blur(1px) brightness(100%);
         pointer-events: none;
     }
-    .filter-btn {
-        margin-left: 2px;
-    }
+
 /* · · Preview Button • Ctrl Button · · */
         .control-button {
             padding: 0.29rem 0.6rem;
@@ -1253,7 +1278,7 @@ n {
 }
 @media (min-width: 869px) {
   body[data-page="rosters"] #header-container .app-header.preview-active {
-    --roster-desktop-gap: 0.75rem;
+    --roster-desktop-gap: 0.6rem;
     --roster-desktop-field-width: 113px;
     --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
     --roster-preview-gap: clamp(0.4rem, 1.2vw, 0.7rem);
@@ -1356,14 +1381,12 @@ body[data-page="welcome"] .home-menu-slot {
 }
 /* Ensure the input fills the shared height and has balanced paddings */
 body[data-page="welcome"] #usernameInput {
-  height: var(--welcome-header-control-height) !important;
   padding-top: 0.18rem !important;
   padding-bottom: 0.18rem !important;
   padding-left: 0.6rem !important;
   padding-right: 0.6rem !important;
-  border-radius: 8px;
-  box-sizing: border-box;
   font-size: 17px !important;
+  line-height: calc(var(--welcome-header-control-height) - 0.36rem);
 }
 /* Keep the enter button vertically centered and same height */
 body[data-page="welcome"] .enter-button {
@@ -2262,7 +2285,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             z-index: 5;
             flex-shrink: 0;
         }
-#usernameInput:focus, #leagueSelect:focus {
+#leagueSelect:focus {
             outline: none;
             border-color: var(--color-accent-primary);
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 0 8px var(--color-accent-primary-glow);
@@ -2511,15 +2534,14 @@ body[data-page="welcome"] .app-header {
 /* make sure only for home: hide any leftover contextual controls */
 body[data-page="welcome"] #contextual-controls { display: none !important; }
 /* Username field sizing for home */
-body[data-page="welcome"] .username-area { min-width: 0; }
-body[data-page="welcome"] #usernameInput {
+body[data-page="welcome"] .username-area {
+  min-width: 0;
   max-width: 520px;
   width: 100%;
+}
+body[data-page="welcome"] #usernameInput {
   font-size: 0.96rem;
   padding: 0.36rem 0.65rem;
-  border-radius: 10px;
-  height: 40px; /* slightly reduced height for tighter header */
-  box-sizing: border-box;
 }
 /* Enter button styling — styled to match the other nav buttons with a circular icon inside */
 body[data-page="welcome"] .home-enter-slot { display: flex; align-items: center; justify-content: center; }
@@ -2634,7 +2656,7 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
     height: 24px;
     font-size: 0.92rem;
   }
-  body[data-page="welcome"] #usernameInput { font-size: 0.94rem; padding: 0.34rem 0.5rem; height: 38px; }
+  body[data-page="welcome"] #usernameInput { font-size: 0.94rem; padding: 0.34rem 0.5rem; }
 }
 @media (max-width: 540px) {
   /* ⬇︎ 📱 OWNERSHIP PAGE: MOBILE CORRECTIONS (v4 — rows vs header separated) 📱 ⬇︎ */
@@ -3343,7 +3365,7 @@ font-weight: 500 !important;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-left: 4px;
+    margin-left: 2px;
 }
 .research-button-container {
     display: flex;
@@ -4499,9 +4521,9 @@ padding: 0.15rem 0rem 0rem 0rem;
       position: relative;
         background: rgba(255, 255, 255, 0.005);
         backdrop-filter: blur(3px) saturate(170%);
-        border: 0.0625rem solid rgba(250, 250, 250, 0.06);
-        border-radius: 5px;
-        padding: 3px 8px;
+        border: 1px solid rgba(250, 250, 250, 0.06);
+        border-radius: 4px;
+        padding: 5px 7px;
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
         }
         .key-chip::after {
@@ -4512,7 +4534,7 @@ padding: 0.15rem 0rem 0rem 0rem;
         width: 100%;
         height: 100%;
         background: rgba(255, 255, 255, 0.01);
-        border-radius: 5px;
+        border-radius: 4px;
         backdrop-filter: blur(3px);
         box-shadow: inset 7.5px 10px 0px -11px rgba(255, 255, 255, .25),
         inset 0px 10px 0px -8px rgba(255, 255, 255, .01);
@@ -4561,19 +4583,218 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     border: 1px solid #7779;
 }
 
-/* News Container - Same overlay behavior */
-#game-logs-modal #modal-body #news-container {
+/* Consistency Container - Same overlay behavior */
+#game-logs-modal #modal-body #consistency-container {
     position: absolute;
     inset: 0;
     margin: 0;
-    padding: 1rem;
+    padding: 0;
     max-height: none;
-    overflow-y: auto;
-    border-radius: 9px;
-    background: rgba(13, 14, 27, 0.95);
-    border: 1px solid #444;
-    box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+    overflow: hidden;
     z-index: 5;
+}
+
+/* Consistency Panel */
+.consistency-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(13, 14, 27, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 1rem;
+    border: 1px solid rgba(124, 130, 170, 0.12);
+    box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+}
+
+/* Background glow effect */
+.consistency-panel::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: -10%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(86, 0, 255, 0.15) 0%, rgba(86, 0, 255, 0.05) 35%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Consistency Header */
+.consistency-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.1rem 1.2rem 0.9rem 1.2rem;
+    gap: 1rem;
+}
+
+.consistency-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.consistency-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(234, 235, 240, 0.62);
+}
+
+.consistency-player-name {
+    font-size: 1.12rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: rgba(234, 235, 240, 0.95);
+}
+
+/* Consistency Legend */
+.consistency-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.55rem;
+    background: linear-gradient(135deg, rgba(86, 0, 255, 0.08) 0%, rgba(118, 109, 255, 0.08) 100%);
+    border: 1px solid rgba(124, 130, 170, 0.15);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(234, 235, 240, 0.78);
+}
+
+.legend-dot {
+    width: 0.58rem;
+    height: 0.58rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.legend-dot.low {
+    background: rgba(255, 71, 166, 1);
+    box-shadow: 0 0 8px rgba(255, 71, 166, 0.5);
+}
+
+.legend-dot.solid {
+    background: rgba(118, 109, 255, 1);
+    box-shadow: 0 0 8px rgba(118, 109, 255, 0.5);
+}
+
+.legend-dot.elite {
+    background: rgba(66, 194, 255, 1);
+    box-shadow: 0 0 8px rgba(66, 194, 255, 0.5);
+}
+
+.legend-dot.trace {
+    background: linear-gradient(90deg, #5600FF 0%, #6211FF 50%, #43A5F0 100%);
+    box-shadow: 0 0 8px rgba(86, 0, 255, 0.5);
+}
+
+/* Canvas Container */
+#consistencyCanvas {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 380px;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 820px) {
+    #consistencyCanvas {
+        height: 320px;
+    }
+    
+    .consistency-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    .consistency-legend {
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+    
+    .legend-item {
+        font-size: 0.65rem;
+        padding: 0.22rem 0.5rem;
+        gap: 0.35rem;
+    }
+    
+    .legend-dot {
+        width: 0.52rem;
+        height: 0.52rem;
+    }
+    
+    .consistency-title {
+        font-size: 0.8rem;
+    }
+    
+    .consistency-player-name {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .consistency-header {
+        padding: 0.9rem 0.8rem;
+    }
+    
+    .consistency-legend {
+        gap: 0.4rem;
+    }
+    
+    .legend-item {
+        font-size: 0.62rem;
+        padding: 0.2rem 0.45rem;
+    }
+}
+
+@media (max-width: 420px) {
+    #consistencyCanvas {
+        height: 280px;
+    }
+    
+    .consistency-header {
+        padding: 0.8rem;
+        gap: 0.7rem;
+    }
+    
+    .consistency-title {
+        font-size: 0.75rem;
+    }
+    
+    .consistency-player-name {
+        font-size: 0.95rem;
+    }
+    
+    .legend-item {
+        font-size: 0.6rem;
+        padding: 0.18rem 0.4rem;
+    }
+    
+    .legend-dot {
+        width: 0.48rem;
+        height: 0.48rem;
+    }
 }
 
 .stats-key-panel h4 {
@@ -5668,7 +5889,7 @@ img.team-logo.glow[alt="WAS"] {
 
 @media (max-width: 640px) {
     #game-logs-modal:not(.hidden) .modal-content, #player-comparison-modal:not(.hidden) .modal-content {
-        height: 539px;
+        height: 545px;
     }
     
     .modal-body {
@@ -7495,11 +7716,14 @@ body[data-page="analyzer"] .app-header {
     max-width: none;
     height: var(--header-control-height);
   }
+  body[data-page="ownership"] .username-area,
+  body[data-page="analyzer"] .username-area {
+    border-radius: 18px;
+  }
   body[data-page="ownership"] #usernameInput,
   body[data-page="analyzer"] #usernameInput {
     font-size: 1.05rem;
     padding: 0.6rem 1rem;
-    border-radius: 18px;
     font-weight: 400;
   }
   body[data-page="ownership"] #leagueSelect,
@@ -7996,7 +8220,6 @@ body[data-page="research"] #secondary-header-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -8113,7 +8336,7 @@ body[data-page="research"] #secondary-header-row {
 
   body[data-page="rosters"] #filters-row {
     display: flex;
-    align-items: center;
+    align-items: stretch; /* Changed from center to stretch for uniform height */
     justify-content: flex-start;
     gap: 0.25rem;
     width: 100%;
@@ -8125,22 +8348,48 @@ body[data-page="research"] #secondary-header-row {
   /* Start/Sit button - MOVED TO FIRST POSITION */
   body[data-page="rosters"] .start-sit-button-slot {
     order: 1;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.3rem 0.38rem !important;
-    gap: 0.08rem;
-    min-width: 3rem;
+    padding: 0.32rem 0.38rem !important;
+    gap: 0.1rem !important;
+    min-width: 3rem !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
-    font-size: 0.85rem;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.4rem;
-    margin-top: 0.04rem;
+    font-size: 0.45rem !important;
+    margin-top: 0.04rem !important;
+    line-height: 1 !important;
+  }
+
+  /* Prevent alignment shifts on Start/Sit button - NO transform or outline */
+  body[data-page="rosters"] .start-sit-button:hover,
+  body[data-page="rosters"] .start-sit-button:active,
+  body[data-page="rosters"] .start-sit-button:focus,
+  body[data-page="rosters"] .start-sit-button:focus-visible {
+    transform: none !important;
+    outline: none !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button.active:hover,
+  body[data-page="rosters"] .start-sit-button.active:active,
+  body[data-page="rosters"] .start-sit-button.active:focus {
+    transform: none !important;
   }
 
   /* View switcher - MOVED TO SECOND POSITION */
@@ -8172,39 +8421,71 @@ body[data-page="research"] #secondary-header-row {
   /* View dropdown - MOBILE ONLY - replaces switcher */
   body[data-page="rosters"] .view-switcher-dropdown {
     order: 2;
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     position: relative;
+    display: flex;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.09rem;
-    padding: 0.4rem 0.6rem !important;
-    min-height: 1.5rem;
-    min-width: 2.4rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.1rem !important;
+    padding: 0.32rem 0.35rem !important;
+    min-height: auto !important;
+    height: auto !important;
+    min-width: 3.45rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
     border-radius: 8px;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
                 inset 0 1px 2px rgba(255, 255, 255, 0.06);
     position: relative;
   }
 
+  /* Light glow when View: POS is active (default) */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-users) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(66, 194, 255, 0.25), 
+     inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
+    border-color: rgba(66, 194, 255, 0.3);
+  }
+
+  /* Different colored glow when View: Lineup is active */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-list-ol) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 
+     inset 0 1px 2px rgba(255, 255, 255, 0.06),    
+     0 0 8px rgba(118, 109, 255, 0.25), 
+     inset 0 0 18px 9px rgba(118, 109, 255, 0.065);
+    border-color: rgba(118, 109, 255, 0.3);
+  }
+
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
-    font-size: 0.72rem;
-    line-height: 1;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.4rem;
-    line-height: 1;
+    font-size: 0.45rem !important;
+    font-weight: 500;
+    line-height: 1 !important;
+    margin-top: 0.04rem !important;
     letter-spacing: 0.01rem;
+  }
+
+  /* Prevent alignment shifts on View dropdown - NO transform or outline */
+  body[data-page="rosters"] .view-dropdown-toggle:hover,
+  body[data-page="rosters"] .view-dropdown-toggle:active,
+  body[data-page="rosters"] .view-dropdown-toggle:focus,
+  body[data-page="rosters"] .view-dropdown-toggle:focus-visible {
+    transform: none !important;
+    outline: none !important;
   }
 
   body[data-page="rosters"] .view-dropdown-arrow {
@@ -8214,18 +8495,6 @@ body[data-page="research"] #secondary-header-row {
     font-size: 0.6rem !important;
     opacity: 0.7;
     text-shadow: 0 0 3px #5300ffaa, 0 0 5px #5300ff;
-  }
-
-  body[data-page="rosters"] .view-dropdown-toggle:hover {
-    color: var(--color-text-primary);
-    background: rgba(13, 14, 35, 0.35);
-    border-color: rgba(128, 138, 189, 0.35);
-  }
-
-  body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
-    color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.1);
-    box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
   }
 
   body[data-page="rosters"] .view-dropdown-menu {
@@ -8254,26 +8523,24 @@ body[data-page="research"] #secondary-header-row {
     padding: 0.4rem 0.5rem;
     width: 100%;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.65rem;
     white-space: nowrap;
+    border-radius: 4px;
   }
 
   body[data-page="rosters"] .view-dropdown-option i {
     font-size: 0.8rem;
   }
 
-  body[data-page="rosters"] .view-dropdown-option:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-primary);
-  }
-
   body[data-page="rosters"] .view-dropdown-option.active {
-    color: var(--color-accent-secondary);
-    background: rgba(66, 194, 255, 0.08);
+    color: #afb3d4;
+    background: rgba(128, 138, 189, 0.08);
+    border-color: rgba(128, 138, 189, 0.2);
+    box-shadow: 0 0 3px rgba(128, 138, 189, 0.15);
   }
 
   /* Hide old switcher on mobile */
@@ -8287,7 +8554,7 @@ body[data-page="research"] #secondary-header-row {
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.32rem;
     overflow: visible;
   }
@@ -8299,15 +8566,27 @@ body[data-page="research"] #secondary-header-row {
     min-width: 0;
     justify-content: flex-start;
     flex-wrap: nowrap;
+    align-items: stretch;
   }
 
   body[data-page="rosters"] .filter-btn {
-    padding: 0.285rem 0.35rem !important;
+    padding: 0.32rem 0.35rem !important;
     font-size: 0.72rem !important;
     font-weight: 400;
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="rosters"] .filter-btn:not(.active):hover {
+    /* Disable hover effect on inactive buttons only to prevent tap persistence */
+    color: var(--color-text-secondary) !important;
+    background: transparent !important;
   }
 
   body[data-page="rosters"] .filter-btn i {
@@ -8381,9 +8660,7 @@ body[data-page="research"] #secondary-header-row {
   
   body[data-page="rosters"] .view-switcher {
     display: flex !important;
+    min-width:85px;
+    margin-left: 19px;
   }
 }
-
-
-
-

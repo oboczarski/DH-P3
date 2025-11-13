@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -323,7 +323,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
         const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9' } };
+        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -514,6 +514,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            
+                            // If opening consistency panel, render chart
+                            if (targetPanel === 'consistency' && state.currentGameLogsPlayer) {
+                                renderConsistencyChart();
                             }
                         }
                     });
@@ -650,23 +655,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +684,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown
@@ -772,10 +779,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
-                    viewDropdownLabel.textContent = 'Positional';
+                    viewDropdownLabel.textContent = 'View: POS';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
-                    viewDropdownLabel.textContent = 'Lineup';
+                    viewDropdownLabel.textContent = 'View: Lineup';
                 }
             }
             
@@ -2763,6 +2770,373 @@ const SEASON_META_HEADERS = {
 
             // Store chart instance for cleanup
             container._chartInstance = Chart.getChart('player-radar-canvas');
+        }
+
+        // ========== CONSISTENCY CHART FUNCTIONS ==========
+        
+        function renderConsistencyChart() {
+            const canvas = document.getElementById('consistencyCanvas');
+            const playerNameEl = document.querySelector('.consistency-player-name');
+            
+            if (!canvas || !state.currentGameLogsPlayer) return;
+            
+            const player = state.currentGameLogsPlayer;
+            
+            // Update player name in header
+            if (playerNameEl) {
+                playerNameEl.textContent = `${player.name} — Weekly Fantasy Output`;
+            }
+            
+            // For now, generate sample data - will be replaced with actual data later
+            const weeks = generateSampleConsistencyData();
+            
+            // Draw the chart
+            drawConsistencyChart(canvas, weeks);
+            
+            // Add resize listener
+            window.addEventListener('resize', () => resizeConsistencyCanvas(canvas, weeks));
+        }
+        
+        function generateSampleConsistencyData() {
+            // Sample data structure - this will be replaced with actual data from state.leagueMatchupStats
+            // For now, generate 17 weeks of sample data
+            const sampleData = [];
+            const weeks = 17;
+            
+            for (let i = 1; i <= weeks; i++) {
+                // Generate random values between 8 and 35 for demonstration
+                const value = Math.random() * 27 + 8;
+                sampleData.push({
+                    week: `WK${i}`,
+                    value: Math.round(value * 10) / 10
+                });
+            }
+            
+            return sampleData;
+        }
+        
+        function resizeConsistencyCanvas(canvas, weeks) {
+            if (!canvas || !weeks) return;
+            drawConsistencyChart(canvas, weeks);
+        }
+        
+        function drawConsistencyChart(canvas, weeks) {
+            if (!canvas || !weeks || weeks.length === 0) return;
+            
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Determine if mobile
+            const isMobile = window.innerWidth <= 820;
+            
+            // Set canvas dimensions - fit within modal body
+            const displayHeight = isMobile ? 320 : 380;
+            const displayWidth = canvas.parentElement.clientWidth;
+            
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            
+            ctx.scale(dpr, dpr);
+            
+            // Padding values (adjusted for modal size)
+            const padLeft = isMobile ? 70 : 90;
+            const padRight = isMobile ? 35 : 50;
+            const padTop = isMobile ? 40 : 52;
+            const padBottom = isMobile ? 70 : 90;
+            
+            const chartWidth = displayWidth - padLeft - padRight;
+            const chartHeight = displayHeight - padTop - padBottom;
+            
+            // Data range
+            const minValue = 0;
+            const maxValue = 40;
+            
+            // Zone thresholds
+            const lowThreshold = 16;
+            const solidThreshold = 22;
+            const eliteThreshold = 40;
+            
+            // Helper function to convert value to Y coordinate
+            function valueToY(value) {
+                const percentage = (value - minValue) / (maxValue - minValue);
+                return padTop + chartHeight - (percentage * chartHeight);
+            }
+            
+            // Helper function to draw rounded panel
+            function drawRoundedPanel(x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
+            
+            // Draw glass panel background
+            ctx.save();
+            drawRoundedPanel(padLeft - 10, padTop - 10, chartWidth + 20, chartHeight + 20, 22);
+            ctx.fillStyle = 'rgba(21, 23, 38, 0.42)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(124, 130, 170, 0.13)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.restore();
+            
+            // Draw zone areas with fills
+            ctx.save();
+            
+            // Elite zone (22-40) - Blue
+            const eliteTop = valueToY(eliteThreshold);
+            const eliteBottom = valueToY(solidThreshold);
+            ctx.fillStyle = 'rgba(66, 164, 245, 0.08)';
+            ctx.fillRect(padLeft, eliteTop, chartWidth, eliteBottom - eliteTop);
+            
+            // Solid zone (16-22) - Purple
+            const solidTop = valueToY(solidThreshold);
+            const solidBottom = valueToY(lowThreshold);
+            ctx.fillStyle = 'rgba(118, 109, 255, 0.08)';
+            ctx.fillRect(padLeft, solidTop, chartWidth, solidBottom - solidTop);
+            
+            // Low zone (0-16) - Pink
+            const lowTop = valueToY(lowThreshold);
+            const lowBottom = valueToY(minValue);
+            ctx.fillStyle = 'rgba(255, 71, 166, 0.08)';
+            ctx.fillRect(padLeft, lowTop, chartWidth, lowBottom - lowTop);
+            
+            ctx.restore();
+            
+            // Draw zone separator lines
+            ctx.save();
+            ctx.strokeStyle = 'rgba(124, 130, 170, 0.18)';
+            ctx.lineWidth = 1;
+            
+            // Line at 16
+            ctx.beginPath();
+            ctx.moveTo(padLeft, valueToY(lowThreshold));
+            ctx.lineTo(padLeft + chartWidth, valueToY(lowThreshold));
+            ctx.stroke();
+            
+            // Line at 22
+            ctx.beginPath();
+            ctx.moveTo(padLeft, valueToY(solidThreshold));
+            ctx.lineTo(padLeft + chartWidth, valueToY(solidThreshold));
+            ctx.stroke();
+            
+            ctx.restore();
+            
+            // Draw Y-axis labels with halo
+            ctx.save();
+            ctx.font = isMobile ? '10px "Product Sans", sans-serif' : '11px "Product Sans", sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            const yAxisValues = [0, 10, 20, 30, 40];
+            yAxisValues.forEach(val => {
+                const y = valueToY(val);
+                
+                // Draw halo
+                ctx.strokeStyle = 'rgba(13, 14, 27, 0.75)';
+                ctx.lineWidth = 3;
+                ctx.strokeText(val.toString(), padLeft - 12, y);
+                
+                // Draw label
+                ctx.fillStyle = 'rgba(234, 235, 240, 0.72)';
+                ctx.fillText(val.toString(), padLeft - 12, y);
+            });
+            
+            ctx.restore();
+            
+            // Draw faint horizontal grid lines
+            ctx.save();
+            ctx.strokeStyle = 'rgba(124, 130, 170, 0.05)';
+            ctx.lineWidth = 1;
+            
+            yAxisValues.forEach(val => {
+                const y = valueToY(val);
+                ctx.beginPath();
+                ctx.moveTo(padLeft, y);
+                ctx.lineTo(padLeft + chartWidth, y);
+                ctx.stroke();
+            });
+            
+            ctx.restore();
+            
+            // Calculate X positions for each week
+            const xPositions = weeks.map((_, index) => {
+                return padLeft + (index / (weeks.length - 1)) * chartWidth;
+            });
+            
+            // Draw gradient fill area under line
+            if (weeks.length > 0) {
+                ctx.save();
+                
+                const gradient = ctx.createLinearGradient(0, padTop, 0, padTop + chartHeight);
+                gradient.addColorStop(0, 'rgba(86, 0, 255, 0.28)');
+                gradient.addColorStop(0.5, 'rgba(98, 17, 255, 0.15)');
+                gradient.addColorStop(1, 'rgba(67, 165, 240, 0.02)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(xPositions[0], valueToY(weeks[0].value));
+                
+                weeks.forEach((week, index) => {
+                    ctx.lineTo(xPositions[index], valueToY(week.value));
+                });
+                
+                ctx.lineTo(xPositions[weeks.length - 1], valueToY(minValue));
+                ctx.lineTo(xPositions[0], valueToY(minValue));
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            // Draw performance trace line
+            ctx.save();
+            
+            const lineGradient = ctx.createLinearGradient(padLeft, 0, padLeft + chartWidth, 0);
+            lineGradient.addColorStop(0, '#5600FF');
+            lineGradient.addColorStop(0.5, '#6211FF');
+            lineGradient.addColorStop(1, '#43A5F0');
+            
+            ctx.strokeStyle = lineGradient;
+            ctx.lineWidth = 2.3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            
+            ctx.beginPath();
+            weeks.forEach((week, index) => {
+                const x = xPositions[index];
+                const y = valueToY(week.value);
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            ctx.restore();
+            
+            // Draw data points with glows and value chips
+            weeks.forEach((week, index) => {
+                const x = xPositions[index];
+                const y = valueToY(week.value);
+                const value = week.value;
+                
+                // Determine zone color
+                let zoneColor;
+                if (value > solidThreshold) {
+                    zoneColor = 'rgba(66, 194, 255, 1)'; // Elite - Blue
+                } else if (value > lowThreshold) {
+                    zoneColor = 'rgba(118, 109, 255, 1)'; // Solid - Purple
+                } else {
+                    zoneColor = 'rgba(255, 71, 166, 1)'; // Low - Pink
+                }
+                
+                // Draw outer glow
+                ctx.save();
+                const outerGradient = ctx.createRadialGradient(x, y, 0, x, y, 16);
+                outerGradient.addColorStop(0, zoneColor.replace('1)', '0.35)'));
+                outerGradient.addColorStop(1, zoneColor.replace('1)', '0)'));
+                ctx.fillStyle = outerGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // Draw point core
+                ctx.save();
+                ctx.fillStyle = zoneColor;
+                ctx.beginPath();
+                ctx.arc(x, y, 5.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // Draw value chip above point
+                const chipText = value.toFixed(1);
+                ctx.font = isMobile ? '9px "Product Sans", sans-serif' : '10px "Product Sans", sans-serif';
+                const textWidth = ctx.measureText(chipText).width;
+                const chipWidth = textWidth + 12;
+                const chipHeight = isMobile ? 18 : 20;
+                const chipX = x - chipWidth / 2;
+                const chipY = y - chipHeight - 12;
+                
+                ctx.save();
+                
+                // Chip background with border
+                drawRoundedPanel(chipX, chipY, chipWidth, chipHeight, 6);
+                ctx.fillStyle = 'rgba(13, 14, 27, 0.82)';
+                ctx.fill();
+                ctx.strokeStyle = zoneColor.replace('1)', '0.45)');
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+                
+                // Inset glow effect
+                ctx.save();
+                ctx.clip();
+                const insetGradient = ctx.createRadialGradient(x, chipY, 0, x, chipY, chipWidth);
+                insetGradient.addColorStop(0, zoneColor.replace('1)', '0.15)'));
+                insetGradient.addColorStop(1, zoneColor.replace('1)', '0)'));
+                ctx.fillStyle = insetGradient;
+                ctx.fillRect(chipX, chipY, chipWidth, chipHeight);
+                ctx.restore();
+                
+                // Chip text
+                ctx.fillStyle = 'rgba(234, 235, 240, 0.92)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(chipText, x, chipY + chipHeight / 2);
+                
+                ctx.restore();
+            });
+            
+            // Draw X-axis week labels
+            ctx.save();
+            ctx.font = isMobile ? '9px "Product Sans", sans-serif' : '10px "Product Sans", sans-serif';
+            ctx.fillStyle = 'rgba(234, 235, 240, 0.68)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            weeks.forEach((week, index) => {
+                const x = xPositions[index];
+                const weekNum = week.week.replace('WK', '');
+                const label = `WK • ${weekNum}`;
+                ctx.fillText(label, x, padTop + chartHeight + 10);
+            });
+            
+            ctx.restore();
+            
+            // Draw Y-axis title (rotated)
+            ctx.save();
+            ctx.translate(18, padTop + chartHeight / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = isMobile ? '10px "Product Sans", sans-serif' : '11px "Product Sans", sans-serif';
+            ctx.fillStyle = 'rgba(234, 235, 240, 0.62)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Fantasy Points', 0, 0);
+            ctx.restore();
+            
+            // Draw X-axis title
+            ctx.save();
+            ctx.font = isMobile ? '10px "Product Sans", sans-serif' : '11px "Product Sans", sans-serif';
+            ctx.fillStyle = 'rgba(234, 235, 240, 0.62)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Week #', padLeft + chartWidth / 2, displayHeight - 25);
+            ctx.restore();
         }
 
         function parseWeeklyStatsCsv(csvText) {
@@ -6172,7 +6546,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6184,6 +6558,15 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance.destroy();
                 radarContainer.innerHTML = '';
                 radarContainer._chartInstance = null;
+            }
+            
+            // Clean up consistency canvas if exists
+            const consistencyCanvas = document.getElementById('consistencyCanvas');
+            if (consistencyCanvas) {
+                const ctx = consistencyCanvas.getContext('2d');
+                if (ctx) {
+                    ctx.clearRect(0, 0, consistencyCanvas.width, consistencyCanvas.height);
+                }
             }
             
             // Clear current player reference
