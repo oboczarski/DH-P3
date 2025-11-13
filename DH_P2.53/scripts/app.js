@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -514,6 +514,9 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            if (targetPanel === 'consistency') {
+                                renderConsistencyPanel();
                             }
                         }
                     });
@@ -2988,65 +2991,73 @@ const SEASON_META_HEADERS = {
         async function handlePlayerNameClick(player) {
             const fullPlayer = state.players[player.id];
             const playerName = fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : player.name;
-            modalPlayerName.textContent = `${playerName}`;
-            if (modalPlayerVitals) {
-                modalPlayerVitals.innerHTML = '';
-            }
-            document.getElementById('modal-summary-chips').innerHTML = ''; // Clear previous chips
-            const existingHeaderContainer = document.querySelector('.modal-header-left-container');
-            if(existingHeaderContainer) existingHeaderContainer.remove();
-            
-            // Enhanced loading state with animation - add loading classes
-            modalBody.classList.add('loading');
-            gameLogsModal.classList.add('loading');
-            
-            // Clear modal body
-            modalBody.innerHTML = '';
-            
-            // Insert loading panel as sibling to modal-body (inside modal-content)
             const modalContent = gameLogsModal.querySelector('.modal-content');
-            const existingLoadingPanel = modalContent.querySelector('.game-logs-loading-container');
-            if (existingLoadingPanel) existingLoadingPanel.remove();
-            
-            const loadingPanel = document.createElement('div');
-            loadingPanel.className = 'game-logs-loading-container';
-            // Different message for stats page vs rosters page
-            const loadingMessage = state.isGameLogFromStatsPage
-                ? 'Fetching Game Log Data for All Players'
-                : 'Fetching Game Log Data for All Players Across Your Leagues';
-            loadingPanel.innerHTML = `
-                <div class="game-logs-loading-content">
-                    <div class="game-logs-loading-spinner">
-                </div>
-                    <p class="game-logs-loading-message">
-                        <strong>Syncing Game Logs ⇄</strong>
-                        ${loadingMessage} <br>
-                       <br> — This May Take a Few Seconds...
+            let loadingPanel;
+
+            try {
+                modalPlayerName.textContent = `${playerName}`;
+                if (modalPlayerVitals) {
+                    modalPlayerVitals.innerHTML = '';
+                }
+                document.getElementById('modal-summary-chips').innerHTML = ''; // Clear previous chips
+                const existingHeaderContainer = document.querySelector('.modal-header-left-container');
+                if(existingHeaderContainer) existingHeaderContainer.remove();
+
+                // Enhanced loading state
+                modalBody.classList.add('loading');
+                gameLogsModal.classList.add('loading');
+                modalBody.innerHTML = '';
+
+                // Add loading panel
+                const existingLoadingPanel = modalContent.querySelector('.game-logs-loading-container');
+                if (existingLoadingPanel) existingLoadingPanel.remove();
+
+                loadingPanel = document.createElement('div');
+                loadingPanel.className = 'game-logs-loading-container';
+                const loadingMessage = state.isGameLogFromStatsPage
+                    ? 'Fetching Game Log Data for All Players'
+                    : 'Fetching Game Log Data for All Players Across Your Leagues';
+                loadingPanel.innerHTML = `
+                    <div class="game-logs-loading-content">
+                        <div class="game-logs-loading-spinner"></div>
+                        <p class="game-logs-loading-message">
+                            <strong>Syncing Game Logs ⇄</strong>
+                            ${loadingMessage} <br>
+                           <br> — This May Take a Few Seconds...
+                        </p>
+                    </div>
+                    <p class="game-logs-loading-footer">
+                        <em>One-Time Sync <b>&</b> Synced Across the Board...   ➜ After this initial load, access every game log instantly—no extra loading  (per-session)</em>
                     </p>
-                </div>
-                <p class="game-logs-loading-footer">
-                    <em>One-Time Sync <b>&</b> Synced Across the Board...   ➜ After this initial load, access every game log instantly—no extra loading  (per-session)</em>
-                </p>
-            `;
-            modalContent.appendChild(loadingPanel);
+                `;
+                modalContent.appendChild(loadingPanel);
+
+                if (state.isGameLogModalOpenFromComparison) {
+                    gameLogsModal.style.zIndex = '1050';
+                }
+                openModal();
+
+                // Fetch data
+                const gameLogs = await fetchGameLogs(player.id);
+                const playerRanks = state.isGameLogFromStatsPage
+                    ? getStatsPagePlayerRanks(player.id)
+                    : calculatePlayerStatsAndRanks(player.id);
+
+                // Render content
+                await renderGameLogs(gameLogs, player, playerRanks);
+
+            } catch (error) {
+                console.error("Error fetching or rendering game logs:", error);
+                modalBody.innerHTML = `<div class="error-message">Failed to load game logs. Please try again.</div>`;
             
-            if (state.isGameLogModalOpenFromComparison) {
-                gameLogsModal.style.zIndex = '1050';
+            } finally {
+                // ALWAYS remove loading state
+                modalBody.classList.remove('loading');
+                gameLogsModal.classList.remove('loading');
+                if (loadingPanel) loadingPanel.remove();
+                const existingPanel = modalContent.querySelector('.game-logs-loading-container');
+                if (existingPanel) existingPanel.remove();
             }
-            openModal();
-            const gameLogs = await fetchGameLogs(player.id);
-            
-            // Remove loading classes and panel before rendering content
-            modalBody.classList.remove('loading');
-            gameLogsModal.classList.remove('loading');
-            const existingPanel = gameLogsModal.querySelector('.game-logs-loading-container');
-            if (existingPanel) existingPanel.remove();
-            
-            // Stats page uses sheet data, other pages calculate from weekly data
-            const playerRanks = state.isGameLogFromStatsPage 
-                ? getStatsPagePlayerRanks(player.id)
-                : calculatePlayerStatsAndRanks(player.id);
-            await renderGameLogs(gameLogs, player, playerRanks);
         }
         function getOpponentRankColor(rank) {
             const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
@@ -6371,6 +6382,245 @@ document.addEventListener('DOMContentLoaded', function(){
     legend.classList.add('hidden');
   }
 });
+
+// --- Consistency Panel Rendering ---
+const WEEKLY_DATA = [
+  { week: 1, pts: 27.9 },
+  { week: 2, pts: 18.8 },
+  { week: 3, pts: 15.6 },
+  { week: 4, pts: 14.5 },
+  { week: 5, pts: 15.6 },
+  { week: 6, pts: 18.8 },
+  { week: 7, pts: 29.9 },
+  { week: 8, pts: 26.3 },
+  { week: 9, pts: 28.7 }
+];
+const MAX_POINTS = 40;
+let curveSvg = null;
+
+function renderConsistencyPanel() {
+    renderWeeklyChart();
+    hydrateProgressCircles();
+}
+
+function createZones() {
+  const chartBox = document.getElementById("weekly-chart-box");
+  if (!chartBox) return;
+
+  const stops = [
+    { className: "weekly-zone--bad", label: "Under < 16", to: 15.9 },
+    { className: "weekly-zone--good", label: "Solid ≥ 16", to: 21.9 },
+    { className: "weekly-zone--great", label: "Elite > 22", to: MAX_POINTS }
+  ];
+
+  let prev = 0;
+
+  stops.forEach((zone) => {
+    const pct = (zone.to / MAX_POINTS) * 100;
+
+    const zoneEl = document.createElement("div");
+    zoneEl.className = `weekly-zone ${zone.className}`;
+    zoneEl.style.top = `calc(${100 - pct}% - 1px)`;
+    zoneEl.style.height = `calc(${pct - prev}%)`;
+
+    const label = document.createElement("span");
+    label.className = "weekly-zone-label";
+    label.textContent = zone.label;
+    zoneEl.appendChild(label);
+
+    chartBox.appendChild(zoneEl);
+    prev = pct;
+  });
+}
+
+function yFromPoints(pts) {
+  const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
+  return (1 - clamped / MAX_POINTS) * 100;
+}
+
+function bucketFor(pts) {
+  if (pts >= 22) {
+    return { name: "Elite", color: "#78ffedff", glow: "0 0 8px 4px #78ffedff" };
+  }
+  if (pts >= 16) {
+    return { name: "Solid", color: "#00caffaa", glow: "0 0 8px 4px rgba(0, 191, 255, .81)" };
+  }
+  return { name: "Under", color: "#f6ad", glow: "0 0 6px 4px #f6ac" };
+}
+
+function renderXAxis() {
+  const xAxisEl = document.getElementById("weekly-chart-x-axis");
+  if (!xAxisEl) return;
+  xAxisEl.innerHTML = "";
+
+  WEEKLY_DATA.forEach((entry) => {
+    const span = document.createElement("span");
+    span.textContent = `WK ${entry.week}`;
+    xAxisEl.appendChild(span);
+  });
+}
+
+function renderYAxis() {
+  const yAxisEl = document.getElementById("weekly-chart-y-axis");
+  if (!yAxisEl) return;
+  yAxisEl.innerHTML = "";
+
+  [40, 22, 16, 0].forEach((tick) => {
+    const tickEl = document.createElement("div");
+    tickEl.className = "weekly-chart-y-tick";
+    tickEl.textContent = `${tick} fpts`;
+    yAxisEl.appendChild(tickEl);
+  });
+}
+
+function renderPoints() {
+  const pointsLayer = document.getElementById("weekly-chart-points");
+  if (!pointsLayer) return;
+  pointsLayer.innerHTML = "";
+
+  const n = WEEKLY_DATA.length;
+  const curvePoints = [];
+
+  WEEKLY_DATA.forEach((entry, index) => {
+    const pctX = ((index + 0.5) / n) * 100;
+    const pctY = yFromPoints(entry.pts);
+    curvePoints.push({ x: pctX, y: pctY });
+
+    const bucket = bucketFor(entry.pts);
+
+    const pointEl = document.createElement("div");
+    pointEl.className = "weekly-point";
+    pointEl.style.left = `calc(${pctX}% - 6px)`;
+    pointEl.style.top = `calc(${pctY}% - 6px)`;
+    pointEl.style.background = bucket.color;
+    pointEl.style.boxShadow = bucket.glow;
+
+    const label = document.createElement("div");
+    label.className = "weekly-point-label";
+    label.innerHTML = `
+      <span class="weekly-point-label__week">WK ${entry.week}</span>
+      <span class="weekly-point-label__value">${entry.pts.toFixed(1)} fpts</span>
+      <span class="weekly-point-label__bucket">${bucket.name}</span>
+    `;
+    pointEl.appendChild(label);
+    pointsLayer.appendChild(pointEl);
+  });
+
+  drawCurve(curvePoints);
+}
+
+function drawCurve(points) {
+    const pointsLayer = document.getElementById("weekly-chart-points");
+  if (!pointsLayer || !points.length) return;
+
+  const box = pointsLayer.getBoundingClientRect();
+  const width = box.width;
+  const height = box.height;
+
+  if (!curveSvg) {
+    curveSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    curveSvg.setAttribute("class", "weekly-curve-layer");
+    curveSvg.style.position = "absolute";
+    curveSvg.style.inset = "0";
+    pointsLayer.prepend(curveSvg);
+  }
+
+  curveSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  curveSvg.setAttribute("width", width);
+  curveSvg.setAttribute("height", height);
+
+  const toXY = (point) => ({
+    x: (point.x / 100) * width,
+    y: (point.y / 100) * height
+  });
+
+  const absPoints = points.map(toXY);
+
+  let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+
+  for (let i = 0; i < absPoints.length - 1; i += 1) {
+    const p0 = absPoints[i];
+    const p1 = absPoints[i + 1];
+
+    const dx = (p1.x - p0.x) * 0.35;
+    const c1x = p0.x + dx;
+    const c1y = p0.y;
+    const c2x = p1.x - dx;
+    const c2y = p1.y;
+
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+  }
+
+  const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  pathCore.setAttribute("d", d);
+  pathCore.setAttribute("fill", "none");
+  pathCore.setAttribute("stroke", "rgba(70, 70, 255, 0.7)");
+  pathCore.setAttribute("stroke-width", "2.6");
+  pathCore.setAttribute("stroke-linecap", "round");
+  pathCore.setAttribute("stroke-linejoin", "round");
+
+  const pathGlow = pathCore.cloneNode(true);
+  pathGlow.setAttribute("stroke", "rgba(207, 120, 255, 0.15)");
+  pathGlow.setAttribute("stroke-width", "8");
+
+  curveSvg.innerHTML = "";
+  curveSvg.appendChild(pathGlow);
+  curveSvg.appendChild(pathCore);
+}
+
+function renderWeeklyChart() {
+    const chartBox = document.getElementById("weekly-chart-box");
+    const pointsLayer = document.getElementById("weekly-chart-points");
+    const xAxisEl = document.getElementById("weekly-chart-x-axis");
+    const yAxisEl = document.getElementById("weekly-chart-y-axis");
+
+  if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+
+  chartBox.querySelectorAll(".weekly-zone").forEach((zone) => zone.remove());
+  curveSvg = null;
+
+  createZones();
+  renderYAxis();
+  renderXAxis();
+  renderPoints();
+}
+
+const PROGRESS_CONFIG = {
+  ceilingRankMax: 20,
+  consistencyPercent: 66.7,
+  ceilingRank: 4
+};
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function hydrateProgressCircles() {
+  const consistencyCircle = document.querySelector(
+    "#consistency-container .progress-circle--consistency .progress-ring-fill"
+  );
+  if (consistencyCircle) {
+    consistencyCircle.style.setProperty(
+      "--progress",
+      (PROGRESS_CONFIG.consistencyPercent / 100).toFixed(3)
+    );
+  }
+
+  const ceilingCircle = document.querySelector(
+    "#consistency-container .progress-circle--ceiling .progress-ring-fill--ceiling"
+  );
+  if (ceilingCircle) {
+    const rank = PROGRESS_CONFIG.ceilingRank;
+    const normalized = clamp(
+      (PROGRESS_CONFIG.ceilingRankMax - rank) /
+        (PROGRESS_CONFIG.ceilingRankMax - 1),
+      0,
+      1
+    );
+    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+  }
+}
+
 
 // === Loading Ring Animation (merged from loader-ring.js) ===
 (function(){
