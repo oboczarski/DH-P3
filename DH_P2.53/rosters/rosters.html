@@ -87,17 +87,17 @@
             <div class="view-switcher-dropdown">
                 <button id="viewDropdownToggle" class="view-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
                     <i class="fa-solid fa-users" id="viewDropdownIcon" aria-hidden="true"></i>
-                    <span class="switcher-label" id="viewDropdownLabel">Positional</span>
+                    <span class="switcher-label" id="viewDropdownLabel">View: POS</span>
                     <i class="fa-solid fa-caret-down view-dropdown-arrow" aria-hidden="true"></i>
                 </button>
                 <div id="viewDropdownMenu" class="view-dropdown-menu hidden">
                     <button class="view-dropdown-option active" data-view="positional">
                         <i class="fa-solid fa-users" aria-hidden="true"></i>
-                        <span>Positional</span>
+                        <span>View: POS</span>
                     </button>
                     <button class="view-dropdown-option" data-view="lineup">
                         <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                        <span>Lineup</span>
+                        <span>View: Lineup</span>
                     </button>
                 </div>
             </div>
@@ -334,10 +334,127 @@
           <!-- Radar chart will be dynamically rendered here -->
         </div>
     </div>
-    <div id="news-container" class="hidden stats-key-panel">
-        <h4>Player News & Updates</h4>
-        <div class="news-content">
-          <!-- News content will be rendered here -->
+    <div id="consistency-container" class="hidden consistency-panel-overlay" aria-live="polite">
+        <div class="consistency-panel">
+          <header class="consistency-hud">
+            <div class="consistency-hud__segment consistency-hud__segment--left">
+              <div class="consistency-progress-circle consistency-progress-circle--consistency" aria-label="Season Consistency Rate 66.7%">
+                <svg viewBox="0 0 120 120" class="consistency-progress-ring" role="img" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="consistencyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#7cf5ff"></stop>
+                      <stop offset="55%" stop-color="#9f8bff"></stop>
+                      <stop offset="100%" stop-color="#c7a4ff"></stop>
+                    </linearGradient>
+                  </defs>
+                  <circle class="consistency-progress-ring__track" cx="60" cy="60" r="46"></circle>
+                  <circle class="consistency-progress-ring__fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)" style="--progress:0.667"></circle>
+                </svg>
+                <div class="consistency-progress-circle__inner">
+                  <div class="consistency-progress-circle__value">66.7%</div>
+                  <div class="consistency-progress-circle__label">Consistency Rate</div>
+                  <div class="consistency-progress-circle__caption">2025 CSTY RATE</div>
+                </div>
+              </div>
+            </div>
+            <div class="consistency-hud__segment consistency-hud__segment--center">
+              <div class="consistency-hud__meta">
+                <div class="consistency-hud__eyebrow">Consistency &amp; Ceiling | Weekly Overview</div>
+                <div class="consistency-hud__player">Justin Herbert • Weeks 1–9</div>
+              </div>
+              <div class="consistency-hud__metrics">
+                <div class="consistency-metric">
+                  <div class="consistency-metric__label">Consistency</div>
+                  <div class="consistency-metric__value">66.7%</div>
+                  <div class="consistency-metric__sub">Pos Rank: 11</div>
+                </div>
+                <div class="consistency-metric">
+                  <div class="consistency-metric__label">Ceiling</div>
+                  <div class="consistency-metric__value">28.8</div>
+                  <div class="consistency-metric__sub">Pos Rank: 4</div>
+                </div>
+              </div>
+              <div class="consistency-hud__zones">
+                <span class="consistency-zone-chip consistency-zone-chip--bad">Bad 0–16</span>
+                <span class="consistency-zone-chip consistency-zone-chip--good">Good 16–22</span>
+                <span class="consistency-zone-chip consistency-zone-chip--great">Great 22–40</span>
+              </div>
+            </div>
+            <div class="consistency-hud__segment consistency-hud__segment--right">
+              <div class="consistency-progress-circle consistency-progress-circle--ceiling" aria-label="Ceiling Positional Rank 4">
+                <svg viewBox="0 0 120 120" class="consistency-progress-ring" role="img" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="ceilingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffb47e"></stop>
+                      <stop offset="40%" stop-color="#7cf5ff"></stop>
+                      <stop offset="100%" stop-color="#ff89cf"></stop>
+                    </linearGradient>
+                  </defs>
+                  <circle class="consistency-progress-ring__track" cx="60" cy="60" r="46"></circle>
+                  <circle class="consistency-progress-ring__fill consistency-progress-ring__fill--ceiling" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)" style="--progress:0.842"></circle>
+                </svg>
+                <div class="consistency-progress-circle__inner">
+                  <div class="consistency-progress-circle__value">4</div>
+                  <div class="consistency-progress-circle__label">Ceiling<br>Rank</div>
+                  <div class="consistency-progress-circle__caption">2025 CL POS RANK</div>
+                </div>
+              </div>
+            </div>
+          </header>
+          <section class="consistency-chart" aria-label="Weekly consistency chart placeholder">
+            <div class="consistency-chart__shell">
+              <div class="consistency-chart__zones">
+                <div class="consistency-chart__zone consistency-chart__zone--bad"><span>Under &lt; 16</span></div>
+                <div class="consistency-chart__zone consistency-chart__zone--good"><span>Solid ≥ 16</span></div>
+                <div class="consistency-chart__zone consistency-chart__zone--great"><span>Elite &gt; 22</span></div>
+              </div>
+              <div class="consistency-chart__grid" aria-hidden="true"></div>
+              <div class="consistency-chart__points-layer">
+                <div class="consistency-chart__curve"></div>
+                <div class="consistency-point consistency-point--elite" style="--x:8%; --y:18%;">
+                  <span class="consistency-point__label">WK 1 • 27.9</span>
+                </div>
+                <div class="consistency-point consistency-point--solid" style="--x:20%; --y:45%;">
+                  <span class="consistency-point__label">WK 2 • 18.8</span>
+                </div>
+                <div class="consistency-point consistency-point--under" style="--x:32%; --y:62%;">
+                  <span class="consistency-point__label">WK 3 • 15.6</span>
+                </div>
+                <div class="consistency-point consistency-point--solid" style="--x:44%; --y:48%;">
+                  <span class="consistency-point__label">WK 4 • 18.0</span>
+                </div>
+                <div class="consistency-point consistency-point--elite" style="--x:56%; --y:24%;">
+                  <span class="consistency-point__label">WK 5 • 26.3</span>
+                </div>
+                <div class="consistency-point consistency-point--elite" style="--x:68%; --y:20%;">
+                  <span class="consistency-point__label">WK 6 • 28.7</span>
+                </div>
+                <div class="consistency-point consistency-point--solid" style="--x:80%; --y:38%;">
+                  <span class="consistency-point__label">WK 7 • 21.0</span>
+                </div>
+                <div class="consistency-point consistency-point--elite" style="--x:92%; --y:16%;">
+                  <span class="consistency-point__label">WK 8 • 29.9</span>
+                </div>
+              </div>
+              <div class="consistency-chart__axis consistency-chart__axis--y">
+                <span>40</span>
+                <span>22</span>
+                <span>16</span>
+                <span>0</span>
+              </div>
+              <div class="consistency-chart__axis consistency-chart__axis--x">
+                <span>WK 1</span>
+                <span>WK 2</span>
+                <span>WK 3</span>
+                <span>WK 4</span>
+                <span>WK 5</span>
+                <span>WK 6</span>
+                <span>WK 7</span>
+                <span>WK 8</span>
+              </div>
+            </div>
+            <p class="consistency-chart__caption">Interactive consistency visuals coming soon.</p>
+          </section>
         </div>
     </div>
    <div class="modal-footer">
@@ -349,9 +466,9 @@
     <i class="fa-solid fa-chart-area"></i>
     <span>Performance</span>
   </div>
-  <div class="key-chip modal-info-btn" data-panel="news">
-    <i class="fa-solid fa-newspaper"></i>
-    <span>News</span>
+  <div class="key-chip modal-info-btn" data-panel="consistency">
+    <i class="fa-solid fa-wave-square"></i>
+    <span>Consistency</span>
   </div>
   <div class="key-chip modal-info-btn" data-panel="stats-key">
     <i class="fa-solid fa-key"></i>
