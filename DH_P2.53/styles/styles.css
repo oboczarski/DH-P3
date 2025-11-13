@@ -5130,19 +5130,18 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .consistency-hud {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1.0fr) minmax(0, 1.8fr) minmax(0, 1.0fr);
             gap: 0.7rem;
-            padding: 0.6rem 0.65rem 0.75rem;
+            padding: .25rem;
             border-radius: 16px;
         }
 
-        .hud-segment--left,
         .hud-segment--right {
-            order: 1;
+            order: 3;
         }
 
         .hud-segment--center {
-            order: 0;
+            order: 2;
         }
 
         .progress-circle {
