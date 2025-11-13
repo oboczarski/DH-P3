@@ -5041,6 +5041,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         color: #f8faff;
     }
 
+    .weekly-point-label__suffix {
+        font-size: 0.48rem;
+        color: #f8faff;
+        margin-left: 0;
+    }
+
     .weekly-point-label__bucket {
         font-size: 0.44rem;
         text-transform: uppercase;

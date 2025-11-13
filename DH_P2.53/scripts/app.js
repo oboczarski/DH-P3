@@ -6425,6 +6425,16 @@ function bucketFor(pts) {
   return { name: "Under", color: "#f6ad", glow: "0 0 6px 4px #f6ac" };
 }
 
+function getValueColor(pts) {
+  if (pts >= 22) {
+    return "#51CBA5CF";
+  }
+  if (pts >= 16) {
+    return "#9f8bff";
+  }
+  return "#d44f76";
+}
+
 function createZones() {
   const chartBox = document.getElementById('weekly-chart-box');
   if (!chartBox) return;
@@ -6553,11 +6563,12 @@ function renderPoints() {
     pointEl.style.background = bucket.color;
     pointEl.style.boxShadow = `0 0 4px ${bucket.color}`;
 
+    const valueColor = getValueColor(entry.pts);
     const label = document.createElement("div");
     label.className = "weekly-point-label";
     label.innerHTML = `
       <span class="weekly-point-label__week">WK ${entry.week}</span>
-      <span class="weekly-point-label__value">${entry.pts.toFixed(1)} fpts</span>
+      <span class="weekly-point-label__value"><span style="color: ${valueColor};">${entry.pts.toFixed(1)}</span><span class="weekly-point-label__suffix">fpts</span></span>
     `;
     pointEl.appendChild(label);
     pointsLayer.appendChild(pointEl);
