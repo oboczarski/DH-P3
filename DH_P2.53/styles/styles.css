@@ -5157,31 +5157,31 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-box {
-            height: 233px;
+            height: 236px;
         }
 
         .weekly-chart-y-axis {
-            width: 1.9rem;
-            padding: 0.52rem 2px 1.38rem;
+            width: 1.68rem;
+            padding: 0.2rem 0 1.38rem;
         }
 
         .weekly-chart-y-tick {
             font-size: 0.36rem;
-            padding-bottom: 0.22rem;
+            padding-bottom: 0;
         }
 
         .weekly-chart-line-layer {
-            inset: 0.62rem 0.12rem 1.38rem 2.1rem;
+            inset: 0.21rem 0.12rem 1.38rem 1.56rem;
         }
 
         .weekly-chart-x-axis {
-            left: 2rem;
-            font-size: 0.38rem;
-            padding: 0.23rem 0 0.27rem;
+            left: 1.7rem;
+            font-size: 0.45rem;
+            padding: 0.2rem 0 0.21rem;
         }
 
         .weekly-zone {
-            left: 2rem;
+            left: 1.7rem;
         }
 
         .weekly-zone-label {
@@ -5191,24 +5191,24 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point {
-            width: 8px;
-            height: 8px;
+            width: 4px;
+            height: 4px;
         }
 
         .weekly-point-label {
-            top: -18px;
-            min-width: 26px;
+            top: -12.5px;
+            min-width: 13px;
             padding: 0.03rem 0.02rem;
             border-radius: 0.3rem;
         }
 
         .weekly-point-label__week {
-            font-size: 0.3rem;
+            font-size: 0.32rem;
             font-weight: 800;
         }
 
         .weekly-point-label__value {
-            font-size: 0.4rem;
+            font-size: 0.54rem;
         }
 
         .weekly-point-label__suffix {
