@@ -6536,8 +6536,8 @@ function drawCurve(points) {
   const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
   pathCore.setAttribute("d", d);
   pathCore.setAttribute("fill", "none");
-  pathCore.setAttribute("stroke", "rgba(34, 0, 255, 0.21)");
-  pathCore.setAttribute("stroke-width", "1");
+  pathCore.setAttribute("stroke", "#4c02de");
+  pathCore.setAttribute("stroke-width", "2");
   pathCore.setAttribute("stroke-linecap", "round");
   pathCore.setAttribute("stroke-linejoin", "round");
 
