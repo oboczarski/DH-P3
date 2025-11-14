@@ -5680,7 +5680,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
   grid-template-columns: 60px 1fr 60px;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem;
+  padding: 0rem 0.4rem 0.3rem;
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border: 1px solid rgba(128,138,189,0.1);
