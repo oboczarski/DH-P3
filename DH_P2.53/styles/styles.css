@@ -1949,7 +1949,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             right: 0.85rem;
             z-index: 20;
             display: none;
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
         }
         .trade-container {
@@ -5680,16 +5680,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
   grid-template-columns: 60px 1fr 60px;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem;
+  padding: 0rem 0.4rem 0.3rem;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(15,35,55,0.02), rgba(255,255,255,0.01));
   border: 1px solid rgba(128,138,189,0.1);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 12px rgba(0,0,0,0.2);
 }
 #player-comparison-modal .comparison-left,
 #player-comparison-modal .comparison-right {
   font-weight: 400;
-  font-size: 1.05rem; /* larger stat value */
+  font-size: 0.8rem; /* larger stat value */
   text-align: center;
   color: var(--color-text-secondary);
 }
@@ -6063,7 +6063,7 @@ img.team-logo.glow[alt="WAS"] {
   left: 0.85rem;
   right: 0.85rem;
   margin: 0 auto;
-  max-width: 800px;
+  max-width: 600px;
   width: auto;
   max-height: none;       /* height is managed by JS */
   overflow: auto;         /* scroll inside if needed */
