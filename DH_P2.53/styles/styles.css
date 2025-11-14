@@ -4695,11 +4695,19 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     /* HUD Section */
     .consistency-hud {
         display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 2.4fr) minmax(0, 1.2fr);
-        gap: 1.2rem;
+        grid-template-columns: minmax(0, 1.0fr) minmax(0, 1.8fr) minmax(0, 1.0fr);
+        gap: 0.7rem;
         align-items: stretch;
-        padding: 0.6rem 0.9rem 1rem;
-        border-radius: 18px;
+        padding: .25rem;
+        border-radius: 16px;
+    }
+    
+    .hud-segment--right {
+        order: 3;
+    }
+
+    .hud-segment--center {
+        order: 2;
     }
 
     .hud-segment {
@@ -4720,10 +4728,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     /* Progress Circles */
     .progress-circle {
         position: relative;
-        width: 118px;
-        height: 118px;
+        width: 92px;
+        height: 92px;
         border-radius: 50%;
-        padding: 8px;
+        padding: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -4744,12 +4752,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .progress-ring-track {
         fill: none;
         stroke: rgba(90, 112, 164, 0.35);
-        stroke-width: 6;
+        stroke-width: 5;
     }
 
     .progress-ring-fill {
         fill: none;
-        stroke-width: 6;
+        stroke-width: 5;
         stroke-linecap: round;
         stroke-dasharray: 289;
         stroke-dashoffset: calc(289 * (1 - var(--progress, 0)));
@@ -4769,14 +4777,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .progress-value {
-        font-size: 1.4rem;
+        font-size: 1.1rem;
         font-weight: 600;
         color: #7cf5ff;
         text-shadow: 0 0 16px rgba(124, 245, 255, 0.52);
     }
 
     .progress-label {
-        font-size: 0.68rem;
+        font-size: 0.54rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #9096c0;
@@ -4794,8 +4802,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .hud-eyebrow {
-        font-size: 0.76rem;
-        letter-spacing: 0.1em;
+        font-size: 0.8rem;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
         color: #6b7096;
         text-shadow: 0 0 12px #60F9;
@@ -4806,16 +4814,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .hud-context {
-        margin-top: 0.32rem;
-        font-size: 0.78rem;
+        margin-top: 0.24rem;
+        font-size: 0.62rem;
         color: #9096c0;
         text-align: center;
     }
 
     .hud-metrics {
         display: flex;
-        gap: 1.2rem;
-        margin: 0.05rem 0 0.25rem;
+        gap: 0.75rem;
+        margin: 0.03rem 0 0.2rem;
         justify-content: center;
     }
 
@@ -4826,9 +4834,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .metric-label {
-        font-size: 0.62rem;
+        font-size: 0.44rem;
         text-transform: uppercase;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.13em;
         color: #6b7096;
     }
 
@@ -4840,34 +4848,35 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .metric-value {
-        font-size: 1.25rem;
+        font-size: 0.9rem;
         font-weight: 500;
         color: #9f8bff;
     }
 
     .metric-sub {
-        font-size: 0.72rem;
+        font-size: 0.48rem;
         color: #7cf5ff;
         opacity: 0.9;
     }
 
     .hud-zones-legend {
-        margin-top: 0.4rem;
+        margin-top: 0.32rem;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.28rem;
+        gap: 0.22rem;
         font-size: 0.48rem;
         justify-content: center;
     }
 
     .zone-chip {
-        padding: 0.14rem 0.42rem;
+        padding: 0.1rem 0.32rem;
         border-radius: 999px;
         border: 1px solid rgba(132, 177, 255, 0.26);
         background: rgba(6, 9, 20, 0.98);
         text-transform: uppercase;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.11em;
         color: #9096c0;
+        font-size: 0.36rem;
     }
 
     .zone-chip--bad {
@@ -4887,9 +4896,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     /* Chart Shell */
     .consistency-chart-shell {
-        margin-top: 0.6rem;
+        margin-top: 0.45rem;
         padding: 0px;
-        border-radius: 11px;
+        border-radius: 10px;
         border: 0px solid rgba(115, 158, 255, 0.35);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.04), inset 0 1px 60px rgba(255, 255, 255, 0.018);
         overflow: hidden;
@@ -4899,7 +4908,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .weekly-chart-box {
         position: relative;
         width: 100%;
-        height: 360px;
+        height: 279px;
         overflow: hidden;
         border-radius: 8px;
     }
@@ -4909,11 +4918,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         top: 0;
         bottom: -9px;
         left: 0.35rem;
-        width: 3rem;
+        width: 2.5rem;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 0.75rem 3px 2rem;
+        padding: 0.65rem 2px 1.75rem;
         gap: 0.25rem;
         z-index: 3;
     }
@@ -4922,10 +4931,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         display: flex;
         align-items: center;
         gap: 0.3rem;
-        font-size: 0.56rem;
+        font-size: 0.44rem;
         color: rgba(239, 246, 255, 0.72);
         border-bottom: 1px solid rgba(239, 246, 255, 0.06);
-        padding-bottom: 0.3rem;
+        padding-bottom: 0.26rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
     }
@@ -4942,25 +4951,25 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-chart-line-layer {
         position: absolute;
-        inset: 0.9rem 0.25rem 2rem 3.3rem;
+        inset: 0.75rem 0.2rem 1.75rem 2.7rem;
         z-index: 4;
     }
 
     .weekly-chart-x-axis {
         position: absolute;
         bottom: 1px;
-        left: 3.2rem;
+        left: 2.6rem;
         right: 1px;
         display: flex;
         justify-content: space-between;
         gap: 0;
-        font-size: 0.58rem;
+        font-size: 0.46rem;
         color: rgba(239, 246, 255, 0.82);
         background: rgb(81 88 119 / 18%);
         border-top: 1px solid rgba(239, 246, 255, 0.06);
         border-radius: 0 0 9px 16px;
         backdrop-filter: blur(10px);
-        padding: 0.32rem 0 0.36rem;
+        padding: 0.28rem 0 0.32rem;
         letter-spacing: 0.04em;
         z-index: 5;
     }
@@ -4972,7 +4981,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-zone {
         position: absolute;
-        left: 3.2rem;
+        left: 2.6rem;
         right: 0;
         z-index: 0;
         border-radius: 2px;
@@ -4982,10 +4991,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         position: absolute;
         top: 4px;
         right: 0.4rem;
-        font-size: 0.46rem;
+        font-size: 0.36rem;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        padding: 0.1rem 0.36rem 0.14rem;
+        letter-spacing: 0.09em;
+        padding: 0.08rem 0.28rem 0.11rem;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(1, 4, 11, 0.78);
@@ -5009,8 +5018,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-point {
         position: absolute;
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         display: grid;
@@ -5021,32 +5030,31 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
    .weekly-point-label {
         position: absolute;
-        top: -36px;
+        top: -32px;
         left: 50%;
         transform: translateX(-50%);
         background: rgb(221 234 255 / 3%);
         border: 1px solid rgba(212, 212, 216, 0.1);
-        border-radius: 0.5rem;
-        padding: 0.25rem 0.35rem;
+        border-radius: 0.48rem;
+        padding: 0.22rem 0.3rem;
         text-align: center;
-        min-width: 52px;
+        min-width: 37px;
         backdrop-filter: blur(12px);
         pointer-events: none;
-        line-height: 1.1;
+        line-height: 1;
         display: flex;
         flex-direction: column;
         gap: 0.05rem;
     }
 
     .weekly-point-label__week {
-        font-size: 0.44rem;
-        color: rgba(239, 246, 255, 0.45);
-        letter-spacing: 0.11em;
+        font-size: 0.4rem;
+        color: rgba(239, 246, 255, 0.65);
         display: block;
     }
 
     .weekly-point-label__value {
-        font-size: 0.55rem;
+        font-size: 0.45rem;
         font-weight: 600;
         color: #f8faff;
         display: inline;
@@ -5054,15 +5062,15 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .weekly-point-label__suffix {
-        font-size: 0.46rem;
+        font-size: 0.38rem;
         font-weight: 600;
         color: #f8faff;
     }
 
     .weekly-point-label__bucket {
-        font-size: 0.44rem;
+        font-size: 0.36rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.07em;
         margin-top: 0.08rem;
     }
 
@@ -5070,160 +5078,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         pointer-events: none;
     }
 
-    /* Mobile Responsive Styles for Consistency Panel */
-    @media (max-width: 980px) {
-        #consistency-container {
-            padding: 0.9rem;
-        }
 
-        .consistency-hud {
-            grid-template-columns: minmax(0, 1.0fr) minmax(0, 1.8fr) minmax(0, 1.0fr);
-            gap: 0.7rem;
-            padding: .25rem;
-            border-radius: 16px;
-        }
-
-        .hud-segment--right {
-            order: 3;
-        }
-
-        .hud-segment--center {
-            order: 2;
-        }
-
-        .progress-circle {
-            width: 92px;
-            height: 92px;
-            padding: 6px;
-        }
-
-        .progress-ring-track,
-        .progress-ring-fill {
-            stroke-width: 5;
-        }
-
-        .progress-value {
-            font-size: 1.1rem;
-        }
-
-        .progress-label {
-            font-size: 0.54rem;
-            letter-spacing: 0.1em;
-        }
-
-        .progress-caption {
-            font-size: 0.38rem;
-        }
-
-        .hud-eyebrow {
-            font-size: 0.8rem;
-            letter-spacing: 0.09em;
-            
-        }
-
-        .hud-context {
-            margin-top: 0.24rem;
-            font-size: 0.62rem;
-        }
-
-        .hud-metrics {
-            gap: 0.75rem;
-            margin: 0.03rem 0 0.2rem;
-        }
-
-        .metric-label {
-            font-size: 0.44rem;
-            letter-spacing: 0.13em;
-        }
-
-        .metric-value {
-            font-size: 0.9rem;
-        }
-
-        .metric-sub {
-            font-size: 0.48rem;
-        }
-
-        .hud-zones-legend {
-            margin-top: 0.32rem;
-            gap: 0.22rem;
-        }
-
-        .zone-chip {
-            font-size: 0.36rem;
-            padding: 0.1rem 0.32rem;
-            letter-spacing: 0.11em;
-        }
-
-        .consistency-chart-shell {
-            margin-top: 0.45rem;
-            border-radius: 10px;
-        }
-
-        .weekly-chart-box {
-            height: 279px;
-        }
-
-        .weekly-chart-y-axis {
-            width: 2.5rem;
-            padding: 0.65rem 2px 1.75rem;
-        }
-
-        .weekly-chart-y-tick {
-            font-size: 0.44rem;
-            padding-bottom: 0.26rem;
-        }
-
-        .weekly-chart-line-layer {
-            inset: 0.75rem 0.2rem 1.75rem 2.7rem;
-        }
-
-        .weekly-chart-x-axis {
-            left: 2.6rem;
-            font-size: 0.46rem;
-            padding: 0.28rem 0 0.32rem;
-        }
-
-        .weekly-zone {
-            left: 2.6rem;
-        }
-
-        .weekly-zone-label {
-            font-size: 0.36rem;
-            padding: 0.08rem 0.28rem 0.11rem;
-            letter-spacing: 0.09em;
-        }
-
-        .weekly-point {
-            width: 10px;
-            height: 10px;
-        }
-
-        .weekly-point-label {
-            top: -32px;
-            min-width: 37px;
-            padding: 0.07rem 0.02rem;
-            border-radius: 0.48rem;
-        }
-
-        .weekly-point-label__week {
-            font-size: 0.4rem;
-            letter-spacing: 0.1em;
-        }
-
-        .weekly-point-label__value {
-            font-size: 0.45rem;
-        }
-
-        .weekly-point-label__suffix {
-            font-size: 0.38rem;
-        }
-
-        .weekly-point-label__bucket {
-            font-size: 0.36rem;
-            letter-spacing: 0.07em;
-        }
-    }
 
     @media (max-width: 640px) {
         #consistency-container {
@@ -5345,22 +5200,23 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .weekly-point-label {
             top: -18px;
-            min-width: 34px;
-            padding: 0.05rem 0.02rem;
-            border-radius: 0.4rem;
+            min-width: 26px;
+            padding: 0.03rem 0.02rem;
+            border-radius: 0.3rem;
         }
 
         .weekly-point-label__week {
-            font-size: 0.32rem;
-            letter-spacing: 0.08em;
+            font-size: 0.3rem;
+            font-weight: 800;
         }
 
         .weekly-point-label__value {
-            font-size: 0.42rem;
+            font-size: 0.4rem;
         }
 
         .weekly-point-label__suffix {
-            font-size: 0.36rem;
+            font-size: 0.3rem;
+            font-weight: 400;
         }
 
         .weekly-point-label__bucket {
