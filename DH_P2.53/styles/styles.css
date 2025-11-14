@@ -4916,7 +4916,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .weekly-chart-y-axis {
         position: absolute;
         top: 0;
-        bottom: -9px;
+        bottom: -4px;
         left: 0.35rem;
         width: 2.5rem;
         display: flex;
