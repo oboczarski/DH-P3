@@ -6583,27 +6583,70 @@ function renderPoints() {
   drawCurve(curvePoints);
 }
 
-function hydrateProgressCircles() {
-  const consistencyCircle = document.querySelector(
-    ".progress-circle--consistency .progress-ring-fill"
-  );
-  if (consistencyCircle) {
-    consistencyCircle.style.setProperty(
-      "--progress",
-      (PROGRESS_CONFIG.consistencyPercent / 100).toFixed(3)
-    );
-  }
+const PROGRESS_RING = {
+  cx: 60,
+  cy: 60,
+  radius: 46,
+  startAngle: -90,
+};
 
-  const ceilingCircle = document.querySelector(
-    ".progress-circle--ceiling .progress-ring-fill--ceiling"
+function polarToRingPoint(angleDeg) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return {
+    x: PROGRESS_RING.cx + PROGRESS_RING.radius * Math.cos(rad),
+    y: PROGRESS_RING.cy + PROGRESS_RING.radius * Math.sin(rad),
+  };
+}
+
+function updateGradientVector(gradientId, progress) {
+  const gradient = document.getElementById(gradientId);
+  if (!gradient) return;
+  const clamped = Math.max(0, Math.min(1, progress || 0));
+  const sweepAngle = PROGRESS_RING.startAngle + Math.max(clamped, 0.001) * 360;
+  const startPoint = polarToRingPoint(PROGRESS_RING.startAngle);
+  const endPoint = polarToRingPoint(sweepAngle);
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  gradient.setAttribute("x1", startPoint.x.toFixed(3));
+  gradient.setAttribute("y1", startPoint.y.toFixed(3));
+  gradient.setAttribute("x2", endPoint.x.toFixed(3));
+  gradient.setAttribute("y2", endPoint.y.toFixed(3));
+}
+
+function hydrateProgressCircles() {
+  const applyProgress = (wrapperSelector, fillSelector, value) => {
+    const wrapper = document.querySelector(wrapperSelector);
+    if (!wrapper) return;
+    wrapper.style.setProperty("--progress", value);
+    const fill = wrapper.querySelector(fillSelector);
+    if (fill) {
+      fill.style.setProperty("--progress", value);
+    }
+  };
+
+  const consistencyPct = PROGRESS_CONFIG.consistencyPercent / 100;
+  const consistencyValue = Math.max(0, Math.min(1, consistencyPct));
+  applyProgress(
+    ".progress-circle--consistency",
+    ".progress-ring-fill",
+    consistencyValue.toFixed(3)
   );
-  if (ceilingCircle) {
-    const rank = PROGRESS_CONFIG.ceilingRank;
-    const normalized = Math.max(0, Math.min(1,
-      (PROGRESS_CONFIG.ceilingRankMax - rank) / (PROGRESS_CONFIG.ceilingRankMax - 1)
-    ));
-    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
-  }
+  updateGradientVector("consistencyGradient", consistencyValue);
+
+  const rank = PROGRESS_CONFIG.ceilingRank;
+  const normalizedValue = Math.max(
+    0,
+    Math.min(
+      1,
+      (PROGRESS_CONFIG.ceilingRankMax - rank) /
+        (PROGRESS_CONFIG.ceilingRankMax - 1)
+    )
+  );
+  applyProgress(
+    ".progress-circle--ceiling",
+    ".progress-ring-fill--ceiling",
+    normalizedValue.toFixed(3)
+  );
+  updateGradientVector("ceilingGradient", normalizedValue);
 }
 
 function renderConsistencyChart() {
