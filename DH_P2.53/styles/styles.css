@@ -4981,8 +4981,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-zone {
         position: absolute;
-        left: 2.6rem;
-        right: 0.2rem;
+        left: 0;
+        right: 0;
         z-index: 0;
         border-radius: 2px;
     }

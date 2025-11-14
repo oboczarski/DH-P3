@@ -6436,11 +6436,11 @@ function getValueColor(pts) {
 }
 
 function createZones() {
-  const chartBox = document.getElementById('weekly-chart-box');
-  if (!chartBox) return;
+  const lineLayer = document.getElementById('weekly-chart-points');
+  if (!lineLayer) return;
   
   // Remove existing zones
-  chartBox.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+  lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
   
   const stops = [
     { className: "weekly-zone--bad", label: "Bad < 16", from: 0, to: 16 },
@@ -6450,24 +6450,22 @@ function createZones() {
 
   stops.forEach((zone) => {
     // Convert point values to percentage from TOP (CSS coordinate system)
-    // Top of chart (0% from top) = 40 points
-    // Bottom of chart (100% from top) = 0 points
+    // Within the line layer: 0% = 40 points (top), 100% = 0 points (bottom)
     const topPct = ((MAX_POINTS - zone.to) / MAX_POINTS) * 100;
     const bottomPct = ((MAX_POINTS - zone.from) / MAX_POINTS) * 100;
     const heightPct = bottomPct - topPct;
     
     const zoneEl = document.createElement("div");
     zoneEl.className = `weekly-zone ${zone.className}`;
-    // Add the same inset as weekly-chart-line-layer: top 0.75rem, bottom 1.75rem
-    zoneEl.style.top = `calc(0.75rem + ${topPct}%)`;
-    zoneEl.style.bottom = `calc(1.75rem + ${100 - bottomPct}%)`;
+    zoneEl.style.top = `${topPct}%`;
+    zoneEl.style.height = `${heightPct}%`;
 
     const label = document.createElement("span");
     label.className = "weekly-zone-label";
     label.textContent = zone.label;
     zoneEl.appendChild(label);
 
-    chartBox.appendChild(zoneEl);
+    lineLayer.appendChild(zoneEl);
   });
 }
 
