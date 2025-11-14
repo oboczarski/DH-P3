@@ -6443,18 +6443,20 @@ function createZones() {
   chartBox.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
   
   const stops = [
-    { className: "weekly-zone--bad", label: "Under < 16", to: 15.9 },
-    { className: "weekly-zone--good", label: "Solid ≥ 16", to: 21.9 },
-    { className: "weekly-zone--great", label: "Elite > 22", to: MAX_POINTS }
+    { className: "weekly-zone--bad", label: "Bad < 16", from: 0, to: 16 },
+    { className: "weekly-zone--good", label: "Solid 16-22", from: 16, to: 22 },
+    { className: "weekly-zone--great", label: "Elite ≥ 22", from: 22, to: MAX_POINTS }
   ];
 
-  let prev = 0;
   stops.forEach((zone) => {
-    const pct = (zone.to / MAX_POINTS) * 100;
+    const fromPct = (zone.from / MAX_POINTS) * 100;
+    const toPct = (zone.to / MAX_POINTS) * 100;
+    const heightPct = toPct - fromPct;
+    
     const zoneEl = document.createElement("div");
     zoneEl.className = `weekly-zone ${zone.className}`;
-    zoneEl.style.top = `calc(${100 - pct}% - 1px)`;
-    zoneEl.style.height = `calc(${pct - prev}%)`;
+    zoneEl.style.bottom = `${fromPct}%`;
+    zoneEl.style.height = `${heightPct}%`;
 
     const label = document.createElement("span");
     label.className = "weekly-zone-label";
@@ -6462,7 +6464,6 @@ function createZones() {
     zoneEl.appendChild(label);
 
     chartBox.appendChild(zoneEl);
-    prev = pct;
   });
 }
 
@@ -6483,7 +6484,7 @@ function renderYAxis() {
   if (!yAxisEl) return;
   yAxisEl.innerHTML = "";
   
-  [40, 22, 16, 0].forEach((tick) => {
+  [40, 30, 20, 0].forEach((tick) => {
     const tickEl = document.createElement("div");
     tickEl.className = "weekly-chart-y-tick";
     tickEl.textContent = `${tick} fpts`;
