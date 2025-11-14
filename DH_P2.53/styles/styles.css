@@ -4960,13 +4960,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         display: flex;
         justify-content: space-between;
         gap: 0;
-        font-size: 0.46rem;
+        font-size: .55rem;
         color: rgba(239, 246, 255, 0.82);
-        background: rgb(81 88 119 / 18%);
+        background: rgb(181 198 259 / 4%);
         border-top: 1px solid rgba(239, 246, 255, 0.06);
         border-radius: 0 0 9px 16px;
         backdrop-filter: blur(10px);
-        padding: 0.28rem 0 0.32rem;
+        padding: 0.25rem 0 0.25rem;
         letter-spacing: 0.04em;
         z-index: 5;
     }
@@ -5000,24 +5000,24 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .weekly-zone--bad {
-        background: linear-gradient(180deg, rgb(133 66 255 / 8%), rgba(5, 7, 15, 0));
-        border-radius: 4px 4px 4px 34px;
+        background: linear-gradient(180deg, rgb(233 96 255 / 3%), rgba(5, 7, 15, 0));
+        border-radius: 4px 4px 4px 4px;
     }
 
     .weekly-zone--good {
-        background: linear-gradient(180deg, rgb(0 137 255 / 6%), rgb(0 0 0 / 0%));
+        background: linear-gradient(180deg, rgb(0 157 255 / 4%), rgba(55, 75, 105, .01));
         border-radius: 4px;
     }
 
     .weekly-zone--great {
-        background: linear-gradient(180deg, rgb(0 234 248 / 10%), rgba(5, 7, 15, 0));
+        background: linear-gradient(180deg, rgb(0 244 248 / 4%), rgba(155, 175, 185, .01));
         border-radius: 7px;
     }
 
     .weekly-point {
         position: absolute;
-        width: 10px;
-        height: 10px;
+        width: 5px;
+        height: 5px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.2);
         display: grid;
@@ -5028,16 +5028,15 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
    .weekly-point-label {
         position: absolute;
-        top: -32px;
+        top: -22px;
         left: 50%;
         transform: translateX(-50%);
-        background: rgb(221 234 255 / 3%);
-        border: 1px solid rgba(212, 212, 216, 0.1);
         border-radius: 0.48rem;
-        padding: 0.22rem 0.3rem;
+        padding: 0.2rem 0.23rem;
         text-align: center;
-        min-width: 37px;
-        backdrop-filter: blur(12px);
+        min-width: 18px;
+        border: 1px solid #fff1;
+        backdrop-filter: blur(23px);
         pointer-events: none;
         line-height: 1;
         display: flex;
@@ -5046,13 +5045,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .weekly-point-label__week {
-        font-size: 0.4rem;
+        font-size: 0.42rem;
         color: rgba(239, 246, 255, 0.65);
         display: block;
     }
 
     .weekly-point-label__value {
-        font-size: 0.45rem;
+        font-size: 0.6rem;
         font-weight: 600;
         color: #f8faff;
         display: inline;
