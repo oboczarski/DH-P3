@@ -5157,31 +5157,31 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-box {
-            height: 236px;
+            height: 238px;
         }
 
-        .weekly-chart-y-axis {
-            width: 1.68rem;
-            padding: 0.2rem 0 1.38rem;
+      .weekly-chart-y-axis {
+            width: 1.2rem;
+            padding: 0.2rem 0 1.1rem;
         }
-
         .weekly-chart-y-tick {
             font-size: 0.36rem;
-            padding-bottom: 0;
+            padding-bottom: 0px;
         }
-
         .weekly-chart-line-layer {
-            inset: 0.21rem 0.12rem 1.38rem 1.56rem;
+            inset: 0.21rem 0.12rem 1.38rem 1.1rem;
         }
 
         .weekly-chart-x-axis {
-            left: 1.7rem;
+            background: #3462;
+            border-radius: 0 0 4px 4px;
+            left: -0.3rem;
             font-size: 0.45rem;
-            padding: 0.2rem 0 0.21rem;
+            padding: 0.01rem 0.31rem 0.01rem 0.9rem;
         }
 
         .weekly-zone {
-            left: 1.7rem;
+            left: 0;
         }
 
         .weekly-zone-label {
@@ -5196,10 +5196,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label {
-            top: -12.5px;
+            top: -19.5px;
             min-width: 13px;
-            padding: 0.03rem 0.02rem;
+            padding: 0;
             border-radius: 0.3rem;
+            border: 1px solid #ffffff00;
+            backdrop-filter: blur(0px);
         }
 
         .weekly-point-label__week {
@@ -5208,7 +5210,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label__value {
-            font-size: 0.54rem;
+            font-size: 0.45rem;
+            border-radius: 4px;
+            padding: 1px 2px;
+            border: 1px solid #fff1;
         }
 
         .weekly-point-label__suffix {
