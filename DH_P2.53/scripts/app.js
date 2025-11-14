@@ -6449,14 +6449,18 @@ function createZones() {
   ];
 
   stops.forEach((zone) => {
-    const fromPct = (zone.from / MAX_POINTS) * 100;
-    const toPct = (zone.to / MAX_POINTS) * 100;
-    const heightPct = toPct - fromPct;
+    // Convert point values to percentage from TOP (CSS coordinate system)
+    // Top of chart (0% from top) = 40 points
+    // Bottom of chart (100% from top) = 0 points
+    const topPct = ((MAX_POINTS - zone.to) / MAX_POINTS) * 100;
+    const bottomPct = ((MAX_POINTS - zone.from) / MAX_POINTS) * 100;
+    const heightPct = bottomPct - topPct;
     
     const zoneEl = document.createElement("div");
     zoneEl.className = `weekly-zone ${zone.className}`;
-    zoneEl.style.bottom = `${fromPct}%`;
-    zoneEl.style.height = `${heightPct}%`;
+    // Add the same inset as weekly-chart-line-layer: top 0.75rem, bottom 1.75rem
+    zoneEl.style.top = `calc(0.75rem + ${topPct}%)`;
+    zoneEl.style.bottom = `calc(1.75rem + ${100 - bottomPct}%)`;
 
     const label = document.createElement("span");
     label.className = "weekly-zone-label";
@@ -6484,7 +6488,7 @@ function renderYAxis() {
   if (!yAxisEl) return;
   yAxisEl.innerHTML = "";
   
-  [40, 30, 20, 0].forEach((tick) => {
+  [40, 30, 20, 10, 0].forEach((tick) => {
     const tickEl = document.createElement("div");
     tickEl.className = "weekly-chart-y-tick";
     tickEl.textContent = `${tick} fpts`;
