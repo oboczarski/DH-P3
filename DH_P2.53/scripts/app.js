@@ -6436,6 +6436,20 @@ function getConsistencyThresholds(position) {
     return CONSISTENCY_THRESHOLDS[pos] || CONSISTENCY_THRESHOLDS.QB;
 }
 
+function getSheetFantasyPoints(weekStats) {
+    if (!weekStats) return null;
+    const candidate = weekStats.fpt_ppr ?? weekStats.fpts_ppr;
+    if (typeof candidate === number) {
+        return Number.isFinite(candidate) ? candidate : null;
+    }
+    if (typeof candidate === string && candidate.trim().length > 0) {
+        const parsed = Number(candidate);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+}
+
+
 function yFromPoints(pts) {
     const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
     return (1 - clamped / MAX_POINTS) * 100;
@@ -6473,7 +6487,7 @@ function createZones(position) {
     const stops = [
         { className: "weekly-zone--bad", label: `Low 0–${thresholds.solid}`, from: 0, to: thresholds.solid },
         { className: "weekly-zone--good", label: `Solid ${thresholds.solid}–${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
-        { className: "weekly-zone--great", label: `Great ${thresholds.high}–${MAX_POINTS}`, from: thresholds.high, to: MAX_POINTS }
+        { className: "weekly-zone--great", label: `High ${thresholds.high}–${MAX_POINTS}`, from: thresholds.high, to: MAX_POINTS }
     ];
 
     stops.forEach((zone) => {
