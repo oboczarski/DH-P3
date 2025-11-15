@@ -6453,6 +6453,24 @@ function extractSheetFantasyPoints(stats) {
   return null;
 }
 
+function hasNumericProjectionValue(stats) {
+  if (!stats || typeof stats !== 'object') return false;
+  const rawProj = stats.proj;
+  if (rawProj === null || rawProj === undefined) return false;
+  if (typeof rawProj === 'number') {
+    return Number.isFinite(rawProj);
+  }
+  if (typeof rawProj === 'string') {
+    const trimmed = rawProj.trim();
+    if (!trimmed) return false;
+    const numericPortion = trimmed.replace(/[^0-9.\-]/g, '');
+    if (!numericPortion) return false;
+    const parsed = Number.parseFloat(numericPortion);
+    return Number.isFinite(parsed);
+  }
+  return false;
+}
+
 function buildConsistencyWeeklyData(playerId) {
   const weeklyData = [];
   const weeksMap = PLAYER_STATS_SHEETS?.weeks || {};
@@ -6464,6 +6482,7 @@ function buildConsistencyWeeklyData(playerId) {
   sortedWeeks.forEach(weekNumber => {
     const stats = state.playerWeeklyStats?.[weekNumber]?.[playerId];
     if (!stats) return;
+    if (!hasNumericProjectionValue(stats)) return;
     const sheetFpts = extractSheetFantasyPoints(stats);
     if (!Number.isFinite(sheetFpts)) return;
     weeklyData.push({
@@ -6487,6 +6506,16 @@ function getConsistencyMetrics(playerId) {
     cstyRank: getSeasonRankValue(playerId, 'csty_pct'),
     ceilingRank: getSeasonRankValue(playerId, 'ceiling')
   };
+}
+
+function getRankTierColor(rank) {
+  const numericRank = Number(rank);
+  if (Number.isFinite(numericRank)) {
+    if (numericRank <= 12) return '#78ffed';
+    if (numericRank <= 24) return '#4faafe';
+    return '#ca67d8';
+  }
+  return '#4faafe';
 }
 
 function getCeilingRankMax(position) {
@@ -6721,14 +6750,21 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
   const consistencyMetricBlock = container.querySelector('.metric-block[data-metric="consistency"]');
 
   const cstyPct = metrics.cstyPct;
-  const cstyRankDisplay = getRankDisplayText(metrics.cstyRank);
+  const cstyRank = metrics.cstyRank;
+  const cstyRankDisplay = getRankDisplayText(cstyRank);
+  const consistencyColor = getRankTierColor(cstyRank);
 
   const normalizedConsistency = Number.isFinite(cstyPct) ? Math.max(0, Math.min(1, cstyPct / 100)) : 0;
   if (consistencyCircle) {
     consistencyCircle.style.setProperty('--progress', normalizedConsistency.toFixed(3));
+    consistencyCircle.setAttribute('stroke', consistencyColor);
   }
   const cstyDisplay = Number.isFinite(cstyPct) ? `${cstyPct.toFixed(1)}%` : 'N/A';
-  if (consistencyValueEl) consistencyValueEl.textContent = cstyDisplay;
+  if (consistencyValueEl) {
+    consistencyValueEl.textContent = cstyDisplay;
+    consistencyValueEl.style.color = consistencyColor;
+    consistencyValueEl.style.textShadow = `0 0 16px ${consistencyColor}66`;
+  }
   if (consistencyCaption) consistencyCaption.textContent = 'Season CSTY Rate';
   if (consistencyMetricBlock) {
     const valueEl = consistencyMetricBlock.querySelector('.metric-value');
@@ -6744,9 +6780,14 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
 
   const ceilingRank = metrics.ceilingRank;
   const ceilingRankDisplay = getRankDisplayText(ceilingRank);
+  const ceilingColor = getRankTierColor(ceilingRank);
   const ceilingValue = Number.isFinite(metrics.ceiling) ? (Number.isInteger(metrics.ceiling) ? metrics.ceiling.toFixed(0) : metrics.ceiling.toFixed(1)) : 'N/A';
 
-  if (ceilingValueEl) ceilingValueEl.textContent = Number.isFinite(metrics.ceiling) ? ceilingValue : 'N/A';
+  if (ceilingValueEl) {
+    ceilingValueEl.textContent = Number.isFinite(metrics.ceiling) ? ceilingValue : 'N/A';
+    ceilingValueEl.style.color = ceilingColor;
+    ceilingValueEl.style.textShadow = `0 0 16px ${ceilingColor}66`;
+  }
   if (ceilingCaption) ceilingCaption.textContent = 'Season CL Pos Rank';
   if (ceilingMetricBlock) {
     const valueEl = ceilingMetricBlock.querySelector('.metric-value');
@@ -6763,6 +6804,7 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
   }
   if (ceilingCircle) {
     ceilingCircle.style.setProperty('--progress', normalizedCeiling.toFixed(3));
+    ceilingCircle.setAttribute('stroke', ceilingColor);
   }
 }
 
