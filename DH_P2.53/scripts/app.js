@@ -6442,13 +6442,14 @@ function getPlayerWeeklyFpts(playerId) {
     const weekStats = state.playerWeeklyStats[week]?.[playerId];
     if (!weekStats) continue;
     
-    // Check for FPTS value
-    const fpts = weekStats.fpts;
-    if (typeof fpts !== 'number' || !Number.isFinite(fpts) || fpts < 0) continue;
+    let rawFpts = weekStats.fpt_ppr ?? weekStats.fpts_ppr;
+    if (typeof rawFpts !== number) {
+      rawFpts = Number(rawFpts);
+    }
+    if (!Number.isFinite(rawFpts) || rawFpts < 0) continue;
     
-    // Cap at 40 for chart rendering, but store original for tooltips
-    const originalFpts = fpts;
-    const cappedFpts = Math.min(fpts, MAX_POINTS);
+    const originalFpts = rawFpts;
+    const cappedFpts = Math.min(rawFpts, MAX_POINTS);
     
     weeklyData.push({
       week,
@@ -6460,7 +6461,6 @@ function getPlayerWeeklyFpts(playerId) {
   return weeklyData;
 }
 
-// Get CSTY% and CL data for a player from season stats
 function getPlayerConsistencyMetrics(playerId, position) {
   if (!playerId || !state.playerSeasonStats) {
     return { cstyPct: null, cstyPctRank: null, ceiling: null, ceilingRank: null };
@@ -6468,18 +6468,25 @@ function getPlayerConsistencyMetrics(playerId, position) {
   
   const seasonStats = state.playerSeasonStats[playerId];
   const seasonRanks = state.playerSeasonRanks?.[playerId];
+  const playerRanks = state.currentGameLogsPlayerRanks || {};
   
   if (!seasonStats) {
     return { cstyPct: null, cstyPctRank: null, ceiling: null, ceilingRank: null };
   }
   
-  // Get CSTY% value from stats and rank from ranks sheet
-  const cstyPct = typeof seasonStats.csty_pct === 'number' ? seasonStats.csty_pct : null;
-  const cstyPctRank = seasonRanks && typeof seasonRanks.csty_pct === 'number' ? seasonRanks.csty_pct : null;
+  const parseNumber = (value) => {
+    if (typeof value === number && Number.isFinite(value)) return value;
+    if (typeof value === string) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
   
-  // Get CL (Ceiling) value from stats and rank from ranks sheet
-  const ceiling = typeof seasonStats.ceiling === 'number' ? seasonStats.ceiling : null;
-  const ceilingRank = seasonRanks && typeof seasonRanks.ceiling === 'number' ? seasonRanks.ceiling : null;
+  const cstyPct = parseNumber(seasonStats.csty_pct) ?? parseNumber(playerRanks.csty_pct);
+  const cstyPctRank = parseNumber(seasonRanks?.csty_pct);
+  const ceiling = parseNumber(seasonStats.ceiling) ?? parseNumber(playerRanks.ceiling);
+  const ceilingRank = parseNumber(seasonRanks?.ceiling);
   
   return { cstyPct, cstyPctRank, ceiling, ceilingRank };
 }
