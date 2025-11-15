@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -323,7 +323,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
         const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9' } };
+        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -514,6 +514,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            
+                            // If opening consistency panel, render consistency chart
+                            if (targetPanel === 'consistency' && state.currentGameLogsPlayer) {
+                                renderConsistencyChart();
                             }
                         }
                     });
@@ -650,23 +655,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +684,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown
@@ -772,10 +779,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
-                    viewDropdownLabel.textContent = 'Positional';
+                    viewDropdownLabel.textContent = 'View: POS';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
-                    viewDropdownLabel.textContent = 'Lineup';
+                    viewDropdownLabel.textContent = 'View: Lineup';
                 }
             }
             
@@ -2005,6 +2012,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'YPR': 'ypr',
             'RR': 'rr',
             'TS%': 'ts_per_rr',
+            'CSTY%': 'csty_pct',
             'YPRR': 'yprr',
             '1DRR': 'first_down_rec_rate',
             'IMP': 'imp',
@@ -2012,6 +2020,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'SNP%': 'snp_pct',
             'YDS(t)': 'yds_total',
             'FPOE': 'fpoe',
+            'CL': 'ceiling',
             'YPG(t)': 'ypg',
             'paYPG': 'pa_ypg',
             'ruYPG': 'ru_ypg',
@@ -3228,9 +3237,9 @@ const SEASON_META_HEADERS = {
                     radarChartContainer.classList.add('hidden');
                     modalBody.appendChild(radarChartContainer);
                 }
-                if (newsContainer) {
-                    newsContainer.classList.add('hidden');
-                    modalBody.appendChild(newsContainer);
+                if (consistencyContainer) {
+                    consistencyContainer.classList.add('hidden');
+                    modalBody.appendChild(consistencyContainer);
                 }
                 return;
             }
@@ -4093,9 +4102,9 @@ const wrTeStatOrder = [
                 radarChartContainer.classList.add('hidden');
                 modalBody.appendChild(radarChartContainer);
             }
-            if (newsContainer) {
-                newsContainer.classList.add('hidden');
-                modalBody.appendChild(newsContainer);
+            if (consistencyContainer) {
+                consistencyContainer.classList.add('hidden');
+                modalBody.appendChild(consistencyContainer);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -4368,8 +4377,6 @@ const wrTeStatOrder = [
             const otherPlayer = players[1];
             const getStatOrderForPosition = (pos) => {
 const qbStatOrder = [
-   'fpts',
-  'proj',
   'pass_rtg',
   'pass_yd',
   'pass_td',
@@ -4391,11 +4398,11 @@ const qbStatOrder = [
   'pass_sack',
   'pass_int',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const rbStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rush_att',
   'rush_yd',
@@ -4417,11 +4424,11 @@ const rbStatOrder = [
   'rec_yar',
   'imp_per_g',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const wrTeStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rec_tgt',
   'rec',
@@ -4442,12 +4449,14 @@ const wrTeStatOrder = [
   'rush_yd',
   'rush_td',
   'ypc',
-  'fum'
+  'fum',
+  'csty_pct',
+  'ceiling'
 ];
                 if (pos === 'QB') return qbStatOrder;
                 if (pos === 'RB') return rbStatOrder;
                 if (pos === 'WR' || pos === 'TE') return wrTeStatOrder;
-                return ['fpts','pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe'];
+                return ['pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
             };
             const userPlayerStatOrder = getStatOrderForPosition(userPlayer.pos);
             const otherPlayerStatOrder = getStatOrderForPosition(otherPlayer.pos);
@@ -4539,6 +4548,36 @@ const wrTeStatOrder = [
                                     const total = aggregatedTotals['cmp_pct'] || 0;
                                     const count = statValueCounts['cmp_pct'] || 0;
                                     cv = count > 0 ? total / count : 0; dv = formatPercentage(cv); break;
+                                }
+                                case 'csty_pct': {
+                                    const seasonValue = typeof seasonTotals?.csty_pct === 'number' ? seasonTotals.csty_pct : null;
+                                    const total = aggregatedTotals['csty_pct'] || 0;
+                                    const count = statValueCounts['csty_pct'] || 0;
+                                    const fallback = count > 0 ? total / count : null;
+                                    const pct = seasonValue ?? fallback;
+                                    if (pct === null || Number.isNaN(pct)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = pct;
+                                        dv = formatPercentage(pct);
+                                    }
+                                    break;
+                                }
+                                case 'ceiling': {
+                                    const seasonValue = typeof seasonTotals?.ceiling === 'number' ? seasonTotals.ceiling : null;
+                                    const aggregatedValue = Object.prototype.hasOwnProperty.call(aggregatedTotals, 'ceiling')
+                                        ? aggregatedTotals['ceiling']
+                                        : null;
+                                    const value = seasonValue ?? aggregatedValue;
+                                    if (value === null || value === undefined || Number.isNaN(value)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = value;
+                                        dv = Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+                                    }
+                                    break;
                                 }
                                 case 'pass_rtg': {
                                     const takeNumeric = (value) => {
@@ -4680,6 +4719,7 @@ const wrTeStatOrder = [
                 `;
                 const statDescriptions = {
                     'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
+                    'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score'
                 };
                 let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
                 for (const key in statLabels) {
@@ -6157,7 +6197,7 @@ const wrTeStatOrder = [
             modalBody.classList.remove('hidden'); // Ensure game logs table is visible
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all buttons to inactive, then activate game-logs button
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6172,7 +6212,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6184,6 +6224,15 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance.destroy();
                 radarContainer.innerHTML = '';
                 radarContainer._chartInstance = null;
+            }
+            
+            // Clean up consistency chart SVG
+            if (curveSvg) {
+                curveSvg = null;
+            }
+            const pointsLayer = document.getElementById('weekly-chart-points');
+            if (pointsLayer) {
+                pointsLayer.innerHTML = '';
             }
             
             // Clear current player reference
@@ -6369,6 +6418,423 @@ document.addEventListener('DOMContentLoaded', function(){
     legend.classList.add('hidden');
   }
 });
+
+// === Consistency Chart Functions (wired to real data) ===
+const MAX_POINTS = 40;
+let curveSvg = null;
+
+const CONSISTENCY_THRESHOLDS = {
+  QB: { solid: 16, high: 22 },
+  RB: { solid: 12, high: 18 },
+  WR: { solid: 12, high: 18 },
+  TE: { solid: 11, high: 17 }
+};
+
+function getConsistencyThresholds(position) {
+  const pos = (position || 'QB').toUpperCase();
+  return CONSISTENCY_THRESHOLDS[pos] || CONSISTENCY_THRESHOLDS.QB;
+}
+
+function getPlayerWeeklyFpts(playerId) {
+  if (!playerId || !state.playerWeeklyStats) return [];
+
+  const weeklyData = [];
+  const sheetWeeks = Object.keys(PLAYER_STATS_SHEETS.weeks)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  for (const week of sheetWeeks) {
+    const weekStats = state.playerWeeklyStats[week]?.[playerId];
+    // Skip weeks with no stats data (bye weeks, not yet played)
+    if (!weekStats) continue;
+
+    // Try field names in priority order: fpt_ppr -> fpts_ppr -> fpts
+    let rawFpts = weekStats.fpt_ppr ?? weekStats.fpts_ppr ?? weekStats.fpts;
+    
+    // Convert string to number if needed
+    if (typeof rawFpts === 'string') {
+      rawFpts = parseFloat(rawFpts);
+    }
+    
+    // Skip invalid values (NaN, null, undefined) and negative values
+    // Note: 0 is valid (player played but scored 0 points)
+    if (!Number.isFinite(rawFpts) || rawFpts < 0) continue;
+
+    // Add data point with original value and capped value for chart display
+    weeklyData.push({
+      week,
+      pts: Math.min(rawFpts, MAX_POINTS),  // Cap at 40 for chart
+      originalPts: rawFpts  // Keep original for tooltip display
+    });
+  }
+
+  return weeklyData;
+}
+
+function getPlayerConsistencyMetrics(playerId) {
+  // Data source hierarchy:
+  // 1. state.playerSeasonStats (from SZN sheet) - most reliable
+  // 2. state.playerSeasonRanks (from SZN_RKs sheet) - for rank data
+  // 3. state.currentGameLogsPlayerRanks (fallback from modal context)
+  const seasonStats = state.playerSeasonStats?.[playerId] || null;
+  const seasonRanks = state.playerSeasonRanks?.[playerId] || null;
+  const modalRanks = state.currentGameLogsPlayerRanks || null;
+
+  // Helper to safely parse any value to number or null
+  const toNumber = (value) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim().length) {
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
+  // Pull metrics with fallback chain: seasonStats -> modalRanks
+  const cstyPct = toNumber(seasonStats?.csty_pct) ?? toNumber(modalRanks?.csty_pct);
+  const ceiling = toNumber(seasonStats?.ceiling) ?? toNumber(modalRanks?.ceiling);
+  
+  // Pull ranks with fallback chain: seasonRanks -> modalRanks (trying multiple field name variants)
+  const cstyPctRank = toNumber(seasonRanks?.csty_pct) ?? toNumber(modalRanks?.csty_pct_rank ?? modalRanks?.cstyPctRank);
+  const ceilingRank = toNumber(seasonRanks?.ceiling) ?? toNumber(modalRanks?.ceiling_rank ?? modalRanks?.ceilingRank);
+
+  return { cstyPct, cstyPctRank, ceiling, ceilingRank };
+}
+
+function yFromPoints(pts) {
+  const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
+  return (1 - clamped / MAX_POINTS) * 100;
+}
+
+function bucketFor(pts, position) {
+  const thresholds = getConsistencyThresholds(position);
+  if (pts >= thresholds.high) {
+    return { name: 'High', color: '#78ffedff', glow: '0 0 8px 4px #78ffedff' };
+  }
+  if (pts >= thresholds.solid) {
+    return { name: 'Solid', color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' };
+  }
+  return { name: 'Low', color: '#f6ad', glow: '0 0 6px 4px #f6ac' };
+}
+
+function getValueColor(pts, position) {
+  const thresholds = getConsistencyThresholds(position);
+  if (pts >= thresholds.high) return '#51CBA5CF';
+  if (pts >= thresholds.solid) return '#9f8bff';
+  return '#d44f76';
+}
+
+function createZones(position) {
+  const lineLayer = document.getElementById('weekly-chart-points');
+  if (!lineLayer) return;
+  lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+
+  const thresholds = getConsistencyThresholds(position);
+  const stops = [
+    { className: 'weekly-zone--bad', label: `Low 0–${thresholds.solid}`, from: 0, to: thresholds.solid },
+    { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}–${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
+    { className: 'weekly-zone--great', label: `High ${thresholds.high}–${MAX_POINTS}`, from: thresholds.high, to: MAX_POINTS }
+  ];
+
+  stops.forEach(zone => {
+    const topPct = ((MAX_POINTS - zone.to) / MAX_POINTS) * 100;
+    const bottomPct = ((MAX_POINTS - zone.from) / MAX_POINTS) * 100;
+    const heightPct = bottomPct - topPct;
+
+    const zoneEl = document.createElement('div');
+    zoneEl.className = `weekly-zone ${zone.className}`;
+    zoneEl.style.top = `${topPct}%`;
+    zoneEl.style.height = `${heightPct}%`;
+
+    const label = document.createElement('span');
+    label.className = 'weekly-zone-label';
+    label.textContent = zone.label;
+    zoneEl.appendChild(label);
+
+    lineLayer.appendChild(zoneEl);
+  });
+}
+
+function renderXAxis(weeks) {
+  const xAxisEl = document.getElementById('weekly-chart-x-axis');
+  if (!xAxisEl) return;
+  xAxisEl.innerHTML = '';
+  weeks.forEach(week => {
+    const span = document.createElement('span');
+    span.textContent = `WK ${week}`;
+    xAxisEl.appendChild(span);
+  });
+}
+
+function renderYAxis() {
+  const yAxisEl = document.getElementById('weekly-chart-y-axis');
+  if (!yAxisEl) return;
+  yAxisEl.innerHTML = '';
+  [40, 30, 20, 10, 0].forEach(tick => {
+    const tickEl = document.createElement('div');
+    tickEl.className = 'weekly-chart-y-tick';
+    tickEl.textContent = `${tick} fpts`;
+    yAxisEl.appendChild(tickEl);
+  });
+}
+
+function drawCurve(points) {
+  const pointsLayer = document.getElementById('weekly-chart-points');
+  if (!pointsLayer || !points.length) return;
+
+  const box = pointsLayer.getBoundingClientRect();
+  const width = box.width;
+  const height = box.height;
+
+  if (!curveSvg) {
+    curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    curveSvg.setAttribute('class', 'weekly-curve-layer');
+    curveSvg.style.position = 'absolute';
+    curveSvg.style.inset = '0';
+    pointsLayer.prepend(curveSvg);
+  }
+
+  curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  curveSvg.setAttribute('width', width);
+  curveSvg.setAttribute('height', height);
+
+  const toXY = point => ({
+    x: (point.x / 100) * width,
+    y: (point.y / 100) * height
+  });
+
+  const absPoints = points.map(toXY);
+  let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+
+  for (let i = 0; i < absPoints.length - 1; i += 1) {
+    const p0 = absPoints[i];
+    const p1 = absPoints[i + 1];
+    const dx = (p1.x - p0.x) * 0.35;
+    const c1x = p0.x + dx;
+    const c1y = p0.y;
+    const c2x = p1.x - dx;
+    const c2y = p1.y;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+  }
+
+  const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  pathCore.setAttribute('d', d);
+  pathCore.setAttribute('fill', 'none');
+  pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
+  pathCore.setAttribute('stroke-width', '2');
+  pathCore.setAttribute('stroke-linecap', 'round');
+  pathCore.setAttribute('stroke-linejoin', 'round');
+
+  curveSvg.innerHTML = '';
+  curveSvg.appendChild(pathCore);
+}
+
+function renderPoints(weeklyData, position) {
+  const pointsLayer = document.getElementById('weekly-chart-points');
+  if (!pointsLayer) return;
+
+  pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
+
+  if (!weeklyData.length) {
+    pointsLayer.innerHTML = '<div class="no-data-message">No weekly sheet data available.</div>';
+    curveSvg = null;
+    return;
+  }
+
+  const n = weeklyData.length;
+  const curvePoints = [];
+
+  weeklyData.forEach((entry, index) => {
+    const pctX = ((index + 0.5) / n) * 100;
+    const pctY = yFromPoints(entry.pts);
+    curvePoints.push({ x: pctX, y: pctY });
+
+    const bucket = bucketFor(entry.pts, position);
+    const pointEl = document.createElement('div');
+    pointEl.className = 'weekly-point';
+    pointEl.style.left = `calc(${pctX}% - 4px)`;
+    pointEl.style.top = `calc(${pctY}% - 4px)`;
+    pointEl.style.background = bucket.color;
+    pointEl.style.boxShadow = `0 0 4px ${bucket.color}`;
+
+    const valueColor = getValueColor(entry.pts, position);
+    const label = document.createElement('div');
+    label.className = 'weekly-point-label';
+    const displayFpts = entry.originalPts ?? entry.pts;
+    label.innerHTML = `
+      <span class="weekly-point-label__week">WK ${entry.week}</span>
+      <span class="weekly-point-label__value"><span style="color: ${valueColor};">${displayFpts.toFixed(1)}</span><span class="weekly-point-label__suffix">fpts</span></span>
+      <span class="weekly-point-label__bucket">${bucket.name}</span>
+    `;
+    pointEl.appendChild(label);
+    pointsLayer.appendChild(pointEl);
+  });
+
+  drawCurve(curvePoints);
+}
+
+function hydrateProgressCircles(metrics, position) {
+  // Left circle: Consistency percentage (0-100%)
+  const consistencyCircle = document.querySelector('.progress-circle--consistency .progress-ring-fill');
+  if (consistencyCircle) {
+    const pct = typeof metrics.cstyPct === 'number' ? Math.max(0, Math.min(metrics.cstyPct, 100)) / 100 : 0;
+    consistencyCircle.style.setProperty('--progress', pct.toFixed(3));
+  }
+
+  // Right circle: Ceiling positional rank (inverted so rank 1 = 100% filled)
+  const ceilingCircle = document.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
+  if (ceilingCircle) {
+    const maxRank = RADAR_STATS_CONFIG[position]?.maxRank || 36;
+    
+    if (typeof metrics.ceilingRank === 'number' && metrics.ceilingRank > 0) {
+      // Invert rank: rank 1 = best = 100% progress, rank maxRank = worst = 0% progress
+      const rank = Math.min(metrics.ceilingRank, maxRank);
+      const normalized = Math.max(0, Math.min(1, (maxRank - rank) / Math.max(1, maxRank - 1)));
+      ceilingCircle.style.setProperty('--progress', normalized.toFixed(3));
+    } else {
+      // No rank data available - set to 0
+      ceilingCircle.style.setProperty('--progress', '0');
+    }
+  }
+}
+
+function renderConsistencyChart() {
+  const chartBox = document.getElementById('weekly-chart-box');
+  const pointsLayer = document.getElementById('weekly-chart-points');
+  const xAxisEl = document.getElementById('weekly-chart-x-axis');
+  const yAxisEl = document.getElementById('weekly-chart-y-axis');
+  
+  // Defensive check: ensure all DOM elements exist
+  if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) {
+    console.warn('Consistency chart DOM elements not found');
+    return;
+  }
+
+  const player = state.currentGameLogsPlayer;
+  if (!player || !player.id) {
+    console.warn('No current player for consistency chart');
+    return;
+  }
+
+  // Get player position (default to QB if missing)
+  const position = (player.pos || 'QB').toUpperCase();
+  
+  // Fetch weekly FPTS data from Google Sheets
+  const weeklyData = getPlayerWeeklyFpts(player.id);
+  
+  // Fetch consistency metrics (CSTY%, CL) from season sheets
+  const metrics = getPlayerConsistencyMetrics(player.id);
+  
+  // Get dynamic week list from PLAYER_STATS_SHEETS (single source of truth)
+  const axisWeeks = Object.keys(PLAYER_STATS_SHEETS.weeks).map(Number).sort((a, b) => a - b);
+
+  // Clear previous chart elements
+  pointsLayer.innerHTML = '';
+  chartBox.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+  curveSvg = null;
+
+  // Handle no data scenario: still render axes and HUD with placeholders
+  if (!weeklyData.length) {
+    renderYAxis();
+    renderXAxis(axisWeeks);
+    hydrateProgressCircles(metrics, position);
+    updateConsistencyHUD([], metrics, position);
+    pointsLayer.innerHTML = '<div class="no-data-message">No weekly data available for this player.</div>';
+    return;
+  }
+
+  // Render complete chart with real data
+  createZones(position);  // Position-specific threshold zones
+  renderYAxis();  // Y-axis: 0-40 FPTS scale
+  renderXAxis(axisWeeks);  // X-axis: WK 1, WK 2, etc.
+  renderPoints(weeklyData, position);  // Data points with line curve
+  hydrateProgressCircles(metrics, position);  // Animated progress rings
+  updateConsistencyHUD(weeklyData, metrics, position);  // HUD text and metrics
+}
+
+function updateConsistencyHUD(weeklyData, metrics, position) {
+  const thresholds = getConsistencyThresholds(position);
+  const weeksCount = weeklyData.length;
+  const firstWeek = weeksCount > 0 ? weeklyData[0].week : null;
+  const lastWeek = weeksCount > 0 ? weeklyData[weeksCount - 1].week : null;
+
+  // Update context line: "X Weeks Charted • WK Y–Z"
+  const hudContext = document.querySelector('.hud-context');
+  if (hudContext) {
+    if (weeksCount > 0) {
+      const rangeText = weeksCount === 1 ? `WK ${firstWeek}` : `WK ${firstWeek}–${lastWeek}`;
+      hudContext.textContent = `${weeksCount} Week${weeksCount !== 1 ? 's' : ''} Charted • ${rangeText}`;
+    } else {
+      hudContext.textContent = 'No Weeks Available';
+    }
+  }
+
+  const formatRank = (rank) => (typeof rank === 'number' ? `${position}·${rank}` : `${position}·NA`);
+  const cstyRankText = formatRank(metrics.cstyPctRank);
+  const ceilingRankText = formatRank(metrics.ceilingRank);
+  const cstyColor = getConditionalColorByRank(typeof metrics.cstyPctRank === 'number' ? metrics.cstyPctRank : 999, position);
+  const ceilingColor = getConditionalColorByRank(typeof metrics.ceilingRank === 'number' ? metrics.ceilingRank : 999, position);
+
+  const cstyValueEl = document.getElementById('metric-value-csty');
+  if (cstyValueEl) {
+    cstyValueEl.textContent = typeof metrics.cstyPct === 'number' ? `${metrics.cstyPct.toFixed(1)}%` : '--';
+    cstyValueEl.style.color = cstyColor;
+  }
+  const cstyRankEl = document.getElementById('metric-rank-csty');
+  if (cstyRankEl) {
+    cstyRankEl.textContent = `Pos Rank: ${cstyRankText}`;
+    cstyRankEl.style.color = cstyColor;
+  }
+
+  const clValueEl = document.getElementById('metric-value-cl');
+  if (clValueEl) {
+    clValueEl.textContent = typeof metrics.ceiling === 'number' ? metrics.ceiling.toFixed(1) : '--';
+    clValueEl.style.color = ceilingColor;
+  }
+  const clRankEl = document.getElementById('metric-rank-cl');
+  if (clRankEl) {
+    clRankEl.textContent = `Pos Rank: ${ceilingRankText}`;
+    clRankEl.style.color = ceilingColor;
+  }
+
+  const consistencyValue = document.querySelector('.progress-circle--consistency .progress-value');
+  const consistencyLabel = document.querySelector('.progress-circle--consistency .progress-label');
+  const consistencyCaption = document.querySelector('.progress-circle--consistency .progress-caption');
+  if (consistencyValue) {
+    consistencyValue.textContent = typeof metrics.cstyPct === 'number' ? `${metrics.cstyPct.toFixed(1)}%` : '--';
+    consistencyValue.style.color = cstyColor;
+  }
+  if (consistencyLabel) {
+    consistencyLabel.innerHTML = `CSTY% <span style=\"color: ${cstyColor};\">${cstyRankText}</span>`;
+  }
+  if (consistencyCaption) {
+    consistencyCaption.textContent = 'Consistency Rate';
+  }
+
+  const ceilingValue = document.querySelector('.progress-circle--ceiling .progress-value');
+  const ceilingLabel = document.querySelector('.progress-circle--ceiling .progress-label');
+  const ceilingCaption = document.querySelector('.progress-circle--ceiling .progress-caption');
+  if (ceilingValue) {
+    ceilingValue.textContent = typeof metrics.ceilingRank === 'number' ? ordinalSuffix(metrics.ceilingRank) : 'NA';
+    ceilingValue.style.color = ceilingColor;
+  }
+  if (ceilingLabel) {
+    ceilingLabel.innerHTML = `CL Rank <span style=\"color: ${ceilingColor};\">${position}</span>`;
+  }
+  if (ceilingCaption) {
+    ceilingCaption.textContent = 'Ceiling Pos Rank';
+  }
+
+  const zoneLegend = document.querySelector('.hud-zones-legend');
+  if (zoneLegend) {
+    zoneLegend.innerHTML = `
+      <span class="zone-chip zone-chip--bad">Low 0–${thresholds.solid}</span>
+      <span class="zone-chip zone-chip--good">Solid ${thresholds.solid}–${thresholds.high}</span>
+      <span class="zone-chip zone-chip--great">High ${thresholds.high}–${MAX_POINTS}</span>
+    `;
+  }
+}
+
 
 // === Loading Ring Animation (merged from loader-ring.js) ===
 (function(){
