@@ -347,12 +347,12 @@
               <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
                 <svg viewBox="0 0 120 120" class="progress-ring">
                   <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0.667;" />
+                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0;" />
                 </svg>
                 <div class="progress-circle-inner">
-                  <div class="progress-value">66.7%</div>
-                  <div class="progress-label">Consistency Rate</div>
-                  <div class="progress-caption">2025 CSTY RATE</div>
+                  <div class="progress-value">--</div>
+                  <div class="progress-label">CSTY% • Consistency</div>
+                  <div class="progress-caption">Consistency Rate</div>
                 </div>
               </div>
             </div>
@@ -360,21 +360,21 @@
             <!-- Center: Key stats -->
             <div class="hud-segment hud-segment--center">
               <div class="hud-player">
-                <div class="hud-context">Weeks 1–10</div>
+                <div class="hud-context">Weeks —</div>
               </div>
               <div class="hud-metrics">
-                <div class="metric-block">
-                  <div class="metric-label">Consistency</div>
+                <div class="metric-block metric-block--csty">
+                  <div class="metric-label">CSTY% • Consistency</div>
                   <div class="metric-primary">
-                    <span class="metric-value">66.7%</span>
-                    <span class="metric-sub">Pos Rank: 13</span>
+                    <span class="metric-value" id="metric-value-csty">--</span>
+                    <span class="metric-sub" id="metric-rank-csty">Pos Rank: --</span>
                   </div>
                 </div>
-                <div class="metric-block">
-                  <div class="metric-label">Ceiling</div>
+                <div class="metric-block metric-block--ceiling">
+                  <div class="metric-label">CL • Ceiling</div>
                   <div class="metric-primary">
-                    <span class="metric-value">28.8</span>
-                    <span class="metric-sub">Pos Rank: 4</span>
+                    <span class="metric-value" id="metric-value-cl">--</span>
+                    <span class="metric-sub" id="metric-rank-cl">Pos Rank: --</span>
                   </div>
                 </div>
               </div>
@@ -390,12 +390,12 @@
               <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
                 <svg viewBox="0 0 120 120" class="progress-ring">
                   <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0.842;" />
+                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0;" />
                 </svg>
                 <div class="progress-circle-inner">
-                  <div class="progress-value">4</div>
-                  <div class="progress-label">Ceiling<br> Rank</div>
-                  <div class="progress-caption">2025 CL POS RANK</div>
+                  <div class="progress-value">--</div>
+                  <div class="progress-label">Ceiling Rank</div>
+                  <div class="progress-caption">CL Positional Rank</div>
                 </div>
               </div>
             </div>
