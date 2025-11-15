@@ -2012,6 +2012,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'YPR': 'ypr',
             'RR': 'rr',
             'TS%': 'ts_per_rr',
+            'CSTY%': 'csty_pct',
             'YPRR': 'yprr',
             '1DRR': 'first_down_rec_rate',
             'IMP': 'imp',
@@ -2019,6 +2020,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'SNP%': 'snp_pct',
             'YDS(t)': 'yds_total',
             'FPOE': 'fpoe',
+            'CL': 'ceiling',
             'YPG(t)': 'ypg',
             'paYPG': 'pa_ypg',
             'ruYPG': 'ru_ypg',
@@ -4375,8 +4377,6 @@ const wrTeStatOrder = [
             const otherPlayer = players[1];
             const getStatOrderForPosition = (pos) => {
 const qbStatOrder = [
-   'fpts',
-  'proj',
   'pass_rtg',
   'pass_yd',
   'pass_td',
@@ -4398,11 +4398,11 @@ const qbStatOrder = [
   'pass_sack',
   'pass_int',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const rbStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rush_att',
   'rush_yd',
@@ -4424,11 +4424,11 @@ const rbStatOrder = [
   'rec_yar',
   'imp_per_g',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const wrTeStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rec_tgt',
   'rec',
@@ -4449,12 +4449,14 @@ const wrTeStatOrder = [
   'rush_yd',
   'rush_td',
   'ypc',
-  'fum'
+  'fum',
+  'csty_pct',
+  'ceiling'
 ];
                 if (pos === 'QB') return qbStatOrder;
                 if (pos === 'RB') return rbStatOrder;
                 if (pos === 'WR' || pos === 'TE') return wrTeStatOrder;
-                return ['fpts','pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe'];
+                return ['pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
             };
             const userPlayerStatOrder = getStatOrderForPosition(userPlayer.pos);
             const otherPlayerStatOrder = getStatOrderForPosition(otherPlayer.pos);
@@ -4546,6 +4548,36 @@ const wrTeStatOrder = [
                                     const total = aggregatedTotals['cmp_pct'] || 0;
                                     const count = statValueCounts['cmp_pct'] || 0;
                                     cv = count > 0 ? total / count : 0; dv = formatPercentage(cv); break;
+                                }
+                                case 'csty_pct': {
+                                    const seasonValue = typeof seasonTotals?.csty_pct === 'number' ? seasonTotals.csty_pct : null;
+                                    const total = aggregatedTotals['csty_pct'] || 0;
+                                    const count = statValueCounts['csty_pct'] || 0;
+                                    const fallback = count > 0 ? total / count : null;
+                                    const pct = seasonValue ?? fallback;
+                                    if (pct === null || Number.isNaN(pct)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = pct;
+                                        dv = formatPercentage(pct);
+                                    }
+                                    break;
+                                }
+                                case 'ceiling': {
+                                    const seasonValue = typeof seasonTotals?.ceiling === 'number' ? seasonTotals.ceiling : null;
+                                    const aggregatedValue = Object.prototype.hasOwnProperty.call(aggregatedTotals, 'ceiling')
+                                        ? aggregatedTotals['ceiling']
+                                        : null;
+                                    const value = seasonValue ?? aggregatedValue;
+                                    if (value === null || value === undefined || Number.isNaN(value)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = value;
+                                        dv = Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+                                    }
+                                    break;
                                 }
                                 case 'pass_rtg': {
                                     const takeNumeric = (value) => {
@@ -4687,6 +4719,7 @@ const wrTeStatOrder = [
                 `;
                 const statDescriptions = {
                     'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
+                    'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score'
                 };
                 let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
                 for (const key in statLabels) {
@@ -6536,7 +6569,7 @@ function drawCurve(points) {
   const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
   pathCore.setAttribute("d", d);
   pathCore.setAttribute("fill", "none");
-  pathCore.setAttribute("stroke", "#4c02de");
+  pathCore.setAttribute("stroke", "rgba(120, 120, 255, 0.6)");
   pathCore.setAttribute("stroke-width", "2");
   pathCore.setAttribute("stroke-linecap", "round");
   pathCore.setAttribute("stroke-linejoin", "round");
@@ -6583,70 +6616,27 @@ function renderPoints() {
   drawCurve(curvePoints);
 }
 
-const PROGRESS_RING = {
-  cx: 60,
-  cy: 60,
-  radius: 46,
-  startAngle: -90,
-};
-
-function polarToRingPoint(angleDeg) {
-  const rad = (angleDeg * Math.PI) / 180;
-  return {
-    x: PROGRESS_RING.cx + PROGRESS_RING.radius * Math.cos(rad),
-    y: PROGRESS_RING.cy + PROGRESS_RING.radius * Math.sin(rad),
-  };
-}
-
-function updateGradientVector(gradientId, progress) {
-  const gradient = document.getElementById(gradientId);
-  if (!gradient) return;
-  const clamped = Math.max(0, Math.min(1, progress || 0));
-  const sweepAngle = PROGRESS_RING.startAngle + Math.max(clamped, 0.001) * 360;
-  const startPoint = polarToRingPoint(PROGRESS_RING.startAngle);
-  const endPoint = polarToRingPoint(sweepAngle);
-  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
-  gradient.setAttribute("x1", startPoint.x.toFixed(3));
-  gradient.setAttribute("y1", startPoint.y.toFixed(3));
-  gradient.setAttribute("x2", endPoint.x.toFixed(3));
-  gradient.setAttribute("y2", endPoint.y.toFixed(3));
-}
-
 function hydrateProgressCircles() {
-  const applyProgress = (wrapperSelector, fillSelector, value) => {
-    const wrapper = document.querySelector(wrapperSelector);
-    if (!wrapper) return;
-    wrapper.style.setProperty("--progress", value);
-    const fill = wrapper.querySelector(fillSelector);
-    if (fill) {
-      fill.style.setProperty("--progress", value);
-    }
-  };
+  const consistencyCircle = document.querySelector(
+    ".progress-circle--consistency .progress-ring-fill"
+  );
+  if (consistencyCircle) {
+    consistencyCircle.style.setProperty(
+      "--progress",
+      (PROGRESS_CONFIG.consistencyPercent / 100).toFixed(3)
+    );
+  }
 
-  const consistencyPct = PROGRESS_CONFIG.consistencyPercent / 100;
-  const consistencyValue = Math.max(0, Math.min(1, consistencyPct));
-  applyProgress(
-    ".progress-circle--consistency",
-    ".progress-ring-fill",
-    consistencyValue.toFixed(3)
+  const ceilingCircle = document.querySelector(
+    ".progress-circle--ceiling .progress-ring-fill--ceiling"
   );
-  updateGradientVector("consistencyGradient", consistencyValue);
-
-  const rank = PROGRESS_CONFIG.ceilingRank;
-  const normalizedValue = Math.max(
-    0,
-    Math.min(
-      1,
-      (PROGRESS_CONFIG.ceilingRankMax - rank) /
-        (PROGRESS_CONFIG.ceilingRankMax - 1)
-    )
-  );
-  applyProgress(
-    ".progress-circle--ceiling",
-    ".progress-ring-fill--ceiling",
-    normalizedValue.toFixed(3)
-  );
-  updateGradientVector("ceilingGradient", normalizedValue);
+  if (ceilingCircle) {
+    const rank = PROGRESS_CONFIG.ceilingRank;
+    const normalized = Math.max(0, Math.min(1,
+      (PROGRESS_CONFIG.ceilingRankMax - rank) / (PROGRESS_CONFIG.ceilingRankMax - 1)
+    ));
+    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+  }
 }
 
 function renderConsistencyChart() {
