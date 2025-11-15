@@ -4752,12 +4752,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .progress-ring-track {
         fill: none;
         stroke: rgba(90, 112, 164, 0.35);
-        stroke-width: 5;
+        stroke-width: 7;
     }
 
     .progress-ring-fill {
         fill: none;
-        stroke-width: 5;
+        stroke-width: 7;
         stroke-linecap: round;
         stroke-dasharray: 289;
         stroke-dashoffset: calc(289 * (1 - var(--progress, 0)));
@@ -5096,7 +5096,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .progress-ring-track,
         .progress-ring-fill {
-            stroke-width: 4;
+            stroke-width: 7;
         }
 
         .progress-value {

@@ -6439,7 +6439,7 @@ let curveSvg = null;
 // Progress data for HUD circles
 const PROGRESS_CONFIG = {
   ceilingRankMax: 20,
-  consistencyPercent: 66.7,
+  consistencyPercent: 90.7,
   ceilingRank: 4
 };
 
