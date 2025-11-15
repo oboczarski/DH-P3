@@ -4913,6 +4913,26 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         border-radius: 8px;
     }
 
+    .weekly-chart-empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.5rem;
+      text-align: center;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(239, 246, 255, 0.78);
+      background: radial-gradient(circle at top, rgba(10, 19, 40, 0.92), rgba(4, 7, 15, 0.94));
+      border: 1px dashed rgba(132, 177, 255, 0.28);
+      border-radius: 10px;
+      z-index: 9;
+      backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+
     .weekly-chart-y-axis {
         position: absolute;
         top: -2px;
@@ -5158,6 +5178,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .weekly-chart-box {
             height: 238px;
+        }
+
+        .weekly-chart-empty-state {
+          font-size: 0.46rem;
+          padding: 0 0.8rem;
         }
 
       .weekly-chart-y-axis {
