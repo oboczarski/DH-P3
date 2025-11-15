@@ -314,7 +314,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
         const assignedLeagueColors = new Map();
         let nextColorIndex = 0;
         const assignedRyColors = new Map();
@@ -3240,6 +3240,7 @@ const SEASON_META_HEADERS = {
                 if (consistencyContainer) {
                     consistencyContainer.classList.add('hidden');
                     modalBody.appendChild(consistencyContainer);
+                    prepareConsistencyPanel(player);
                 }
                 return;
             }
@@ -4105,6 +4106,7 @@ const wrTeStatOrder = [
             if (consistencyContainer) {
                 consistencyContainer.classList.add('hidden');
                 modalBody.appendChild(consistencyContainer);
+                prepareConsistencyPanel(player);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -6419,244 +6421,383 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 
-// === Consistency Chart Functions (adapted from csty.js) ===
-// Sample data for weekly fantasy points (9 weeks total)
-const WEEKLY_DATA = [
-  { week: 1, pts: 27.9 },
-  { week: 2, pts: 18.8 },
-  { week: 3, pts: 15.6 },
-  { week: 4, pts: 14.5 },
-  { week: 5, pts: 15.6 },
-  { week: 6, pts: 18.8 },
-  { week: 7, pts: 29.9 },
-  { week: 8, pts: 26.3 },
-  { week: 9, pts: 28.7 }
-];
-
-const MAX_POINTS = 40;
+// === Consistency Chart & HUD (sheet-driven) ===
+const MAX_CONSISTENCY_POINTS = 40;
+const CONSISTENCY_THRESHOLD_MAP = {
+    QB: { solid: 16, high: 22 },
+    RB: { solid: 12, high: 18 },
+    WR: { solid: 12, high: 18 },
+    TE: { solid: 11, high: 17 },
+    DEFAULT: { solid: 14, high: 20 }
+};
+const CONSISTENCY_BUCKET_STYLES = {
+    high: { color: '#78ffedff', glow: '0 0 8px 4px #78ffedff' },
+    solid: { color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' },
+    low: { color: '#f6ad', glow: '0 0 6px 4px #f6ac' }
+};
 let curveSvg = null;
 
-// Progress data for HUD circles
-const PROGRESS_CONFIG = {
-  ceilingRankMax: 20,
-  consistencyPercent: 90.7,
-  ceilingRank: 4
-};
-
-function yFromPoints(pts) {
-  const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
-  return (1 - clamped / MAX_POINTS) * 100;
+function getConsistencyAxisWeeks() {
+    return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
+        .map(Number)
+        .filter(Number.isFinite)
+        .sort((a, b) => a - b);
 }
 
-function bucketFor(pts) {
-  if (pts >= 22) {
-    return { name: "Elite", color: "#78ffedff", glow: "0 0 8px 4px #78ffedff" };
-  }
-  if (pts >= 16) {
-    return { name: "Solid", color: "#00caffaa", glow: "0 0 8px 4px rgba(0, 191, 255, .81)" };
-  }
-  return { name: "Under", color: "#f6ad", glow: "0 0 6px 4px #f6ac" };
+function getConsistencyThresholds(position) {
+    const key = position ? position.toUpperCase() : '';
+    return CONSISTENCY_THRESHOLD_MAP[key] || CONSISTENCY_THRESHOLD_MAP.DEFAULT;
 }
 
-function getValueColor(pts) {
-  if (pts >= 22) {
-    return "#51CBA5CF";
-  }
-  if (pts >= 16) {
-    return "#9f8bff";
-  }
-  return "#d44f76";
+function clampConsistencyPoints(value) {
+    if (!Number.isFinite(value)) return null;
+    return Math.max(0, Math.min(MAX_CONSISTENCY_POINTS, value));
 }
 
-function createZones() {
-  const lineLayer = document.getElementById('weekly-chart-points');
-  if (!lineLayer) return;
-  
-  // Remove existing zones
-  lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
-  
-  const stops = [
-    { className: "weekly-zone--bad", label: "Bad < 16", from: 0, to: 16 },
-    { className: "weekly-zone--good", label: "Solid 16-22", from: 16, to: 22 },
-    { className: "weekly-zone--great", label: "Elite ≥ 22", from: 22, to: MAX_POINTS }
-  ];
-
-  stops.forEach((zone) => {
-    // Convert point values to percentage from TOP (CSS coordinate system)
-    // Within the line layer: 0% = 40 points (top), 100% = 0 points (bottom)
-    const topPct = ((MAX_POINTS - zone.to) / MAX_POINTS) * 100;
-    const bottomPct = ((MAX_POINTS - zone.from) / MAX_POINTS) * 100;
-    const heightPct = bottomPct - topPct;
-    
-    const zoneEl = document.createElement("div");
-    zoneEl.className = `weekly-zone ${zone.className}`;
-    zoneEl.style.top = `${topPct}%`;
-    zoneEl.style.height = `${heightPct}%`;
-
-    const label = document.createElement("span");
-    label.className = "weekly-zone-label";
-    label.textContent = zone.label;
-    zoneEl.appendChild(label);
-
-    lineLayer.appendChild(zoneEl);
-  });
+function getConsistencyBucket(pts, thresholds) {
+    if (!Number.isFinite(pts)) return { ...CONSISTENCY_BUCKET_STYLES.low, name: 'low' };
+    if (pts >= thresholds.high) return { ...CONSISTENCY_BUCKET_STYLES.high, name: 'high' };
+    if (pts >= thresholds.solid) return { ...CONSISTENCY_BUCKET_STYLES.solid, name: 'solid' };
+    return { ...CONSISTENCY_BUCKET_STYLES.low, name: 'low' };
 }
 
-function renderXAxis() {
-  const xAxisEl = document.getElementById('weekly-chart-x-axis');
-  if (!xAxisEl) return;
-  xAxisEl.innerHTML = "";
-  
-  WEEKLY_DATA.forEach((entry) => {
-    const span = document.createElement("span");
-    span.textContent = `WK ${entry.week}`;
-    xAxisEl.appendChild(span);
-  });
+function formatHudPercentage(value, decimals = 1) {
+    if (!Number.isFinite(value)) return 'N/A';
+    return Number(value).toFixed(decimals) + '%';
 }
 
-function renderYAxis() {
-  const yAxisEl = document.getElementById('weekly-chart-y-axis');
-  if (!yAxisEl) return;
-  yAxisEl.innerHTML = "";
-  
-  [40, 30, 20, 10, 0].forEach((tick) => {
-    const tickEl = document.createElement("div");
-    tickEl.className = "weekly-chart-y-tick";
-    tickEl.textContent = `${tick} fpts`;
-    yAxisEl.appendChild(tickEl);
-  });
+function formatHudRank(rank) {
+    if (!Number.isFinite(rank)) return 'Pos Rank: NA';
+    return `Pos Rank: ${rank}`;
 }
 
-function drawCurve(points) {
-  const pointsLayer = document.getElementById('weekly-chart-points');
-  if (!pointsLayer || !points.length) return;
-
-  const box = pointsLayer.getBoundingClientRect();
-  const width = box.width;
-  const height = box.height;
-
-  if (!curveSvg) {
-    curveSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    curveSvg.setAttribute("class", "weekly-curve-layer");
-    curveSvg.style.position = "absolute";
-    curveSvg.style.inset = "0";
-    pointsLayer.prepend(curveSvg);
-  }
-
-  curveSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-  curveSvg.setAttribute("width", width);
-  curveSvg.setAttribute("height", height);
-
-  const toXY = (point) => ({
-    x: (point.x / 100) * width,
-    y: (point.y / 100) * height
-  });
-
-  const absPoints = points.map(toXY);
-  let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
-
-  for (let i = 0; i < absPoints.length - 1; i += 1) {
-    const p0 = absPoints[i];
-    const p1 = absPoints[i + 1];
-    const dx = (p1.x - p0.x) * 0.35;
-    const c1x = p0.x + dx;
-    const c1y = p0.y;
-    const c2x = p1.x - dx;
-    const c2y = p1.y;
-    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
-  }
-
-  const pathCore = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  pathCore.setAttribute("d", d);
-  pathCore.setAttribute("fill", "none");
-  pathCore.setAttribute("stroke", "rgba(120, 120, 255, 0.6)");
-  pathCore.setAttribute("stroke-width", "2");
-  pathCore.setAttribute("stroke-linecap", "round");
-  pathCore.setAttribute("stroke-linejoin", "round");
-
-  curveSvg.innerHTML = "";
-  curveSvg.appendChild(pathCore);
+function formatCeilingValue(value) {
+    if (!Number.isFinite(value)) return 'N/A';
+    return Number(value).toFixed(1);
 }
 
-function renderPoints() {
-  const pointsLayer = document.getElementById('weekly-chart-points');
-  if (!pointsLayer) return;
-  
-  // Remove only point elements, preserve SVG curve
-  const pointElements = pointsLayer.querySelectorAll('.weekly-point');
-  pointElements.forEach(el => el.remove());
-
-  const n = WEEKLY_DATA.length;
-  const curvePoints = [];
-
-  WEEKLY_DATA.forEach((entry, index) => {
-    const pctX = ((index + 0.5) / n) * 100;
-    const pctY = yFromPoints(entry.pts);
-    curvePoints.push({ x: pctX, y: pctY });
-
-    const bucket = bucketFor(entry.pts);
-    const pointEl = document.createElement("div");
-    pointEl.className = "weekly-point";
-    pointEl.style.left = `calc(${pctX}% - 4px)`;
-    pointEl.style.top = `calc(${pctY}% - 4px)`;
-    pointEl.style.background = bucket.color;
-    pointEl.style.boxShadow = `0 0 4px ${bucket.color}`;
-
-    const valueColor = getValueColor(entry.pts);
-    const label = document.createElement("div");
-    label.className = "weekly-point-label";
-    label.innerHTML = `
-      <span class="weekly-point-label__week">WK ${entry.week}</span>
-      <span class="weekly-point-label__value"><span style="color: ${valueColor};">${entry.pts.toFixed(1)}</span><span class="weekly-point-label__suffix">fpts</span></span>
-    `;
-    pointEl.appendChild(label);
-    pointsLayer.appendChild(pointEl);
-  });
-
-  drawCurve(curvePoints);
+function pluralizeWeeks(count) {
+    if (!count) return 'No weeks charted';
+    return count === 1 ? '1 week charted' : `${count} weeks charted`;
 }
 
-function hydrateProgressCircles() {
-  const consistencyCircle = document.querySelector(
-    ".progress-circle--consistency .progress-ring-fill"
-  );
-  if (consistencyCircle) {
-    consistencyCircle.style.setProperty(
-      "--progress",
-      (PROGRESS_CONFIG.consistencyPercent / 100).toFixed(3)
-    );
-  }
+function buildConsistencyPanelData(player) {
+    if (!player || !player.id) return null;
+    const axisWeeks = getConsistencyAxisWeeks();
+    if (!axisWeeks.length) return null;
+    const playerId = player.id;
+    const weeklyStats = state.playerWeeklyStats || {};
+    const fullPlayer = state.players[playerId];
+    const resolvedPos = (player.pos || state.statsPagePlayerData?.pos || fullPlayer?.position || 'FLEX').toUpperCase();
+    const thresholds = getConsistencyThresholds(resolvedPos);
+    const series = [];
+    axisWeeks.forEach(week => {
+        const statsForWeek = weeklyStats?.[week]?.[playerId];
+        if (!statsForWeek) return;
+        const opponent = (statsForWeek.opponent || '').toUpperCase();
+        if (opponent === 'BYE') return;
+        const sheetFpts = statsForWeek.fpt_ppr;
+        const numeric = typeof sheetFpts === 'number' ? sheetFpts : Number(sheetFpts);
+        if (!Number.isFinite(numeric)) return;
+        const clamped = clampConsistencyPoints(numeric);
+        if (clamped === null) return;
+        series.push({
+            week,
+            pts: clamped,
+            originalPts: numeric,
+            opponent: statsForWeek.opponent || ''
+        });
+    });
+    series.sort((a, b) => a.week - b.week);
+    const seasonTotals = state.playerSeasonStats?.[playerId] || {};
+    const playerName = (fullPlayer ? `${fullPlayer.first_name || ''} ${fullPlayer.last_name || ''}` : player.name || '')
+        .replace(/\s+/g, ' ')
+        .trim() || player.name || 'Player';
+    const consistencyPct = Number(seasonTotals.csty_pct);
+    const ceilingValue = Number(seasonTotals.ceiling);
+    const consistencyRank = getSeasonRankValue(playerId, 'csty_pct');
+    const ceilingRank = getSeasonRankValue(playerId, 'ceiling');
+    const axisStart = axisWeeks[0];
+    const axisEnd = axisWeeks[axisWeeks.length - 1];
+    const weekRangeLabel = axisStart === axisEnd ? `Week ${axisStart}` : `Weeks ${axisStart}\u2013${axisEnd}`;
+    const ceilingRankMax = RADAR_STATS_CONFIG[resolvedPos]?.maxRank || 32;
+    return {
+        playerId,
+        playerName,
+        position: resolvedPos,
+        axisWeeks,
+        series,
+        chartedWeeksCount: series.length,
+        thresholds,
+        consistencyPct: Number.isFinite(consistencyPct) ? consistencyPct : null,
+        ceilingValue: Number.isFinite(ceilingValue) ? ceilingValue : null,
+        consistencyRank: Number.isFinite(consistencyRank) ? consistencyRank : null,
+        ceilingRank: Number.isFinite(ceilingRank) ? ceilingRank : null,
+        weekRangeLabel,
+        weeksChartedLabel: pluralizeWeeks(series.length),
+        ceilingRankMax
+    };
+}
 
-  const ceilingCircle = document.querySelector(
-    ".progress-circle--ceiling .progress-ring-fill--ceiling"
-  );
-  if (ceilingCircle) {
-    const rank = PROGRESS_CONFIG.ceilingRank;
-    const normalized = Math.max(0, Math.min(1,
-      (PROGRESS_CONFIG.ceilingRankMax - rank) / (PROGRESS_CONFIG.ceilingRankMax - 1)
-    ));
-    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
-  }
+function updateConsistencyHud(data) {
+    if (!consistencyContainer) return;
+    const fallbackName = state.currentGameLogsPlayer?.name || 'Player';
+    const nameEl = consistencyContainer.querySelector('[data-hud-player-name]');
+    if (nameEl) nameEl.textContent = data?.playerName || fallbackName;
+    const weekRangeEl = consistencyContainer.querySelector('[data-week-range]');
+    if (weekRangeEl) weekRangeEl.textContent = data?.weekRangeLabel || 'Weeks —';
+    const weeksChartedEl = consistencyContainer.querySelector('[data-weeks-charted]');
+    if (weeksChartedEl) weeksChartedEl.textContent = data?.weeksChartedLabel || 'No weeks charted';
+    const consistencyValueEl = consistencyContainer.querySelector('[data-consistency-value]');
+    const formattedPct = formatHudPercentage(data?.consistencyPct);
+    if (consistencyValueEl) consistencyValueEl.textContent = formattedPct;
+    const consistencyRankEl = consistencyContainer.querySelector('[data-consistency-rank]');
+    if (consistencyRankEl) consistencyRankEl.textContent = formatHudRank(data?.consistencyRank);
+    const ceilingValueEl = consistencyContainer.querySelector('[data-ceiling-value]');
+    if (ceilingValueEl) ceilingValueEl.textContent = formatCeilingValue(data?.ceilingValue);
+    const ceilingRankEl = consistencyContainer.querySelector('[data-ceiling-rank]');
+    if (ceilingRankEl) ceilingRankEl.textContent = formatHudRank(data?.ceilingRank);
+    const circleConsistencyValue = consistencyContainer.querySelector('[data-consistency-circle-value]');
+    if (circleConsistencyValue) circleConsistencyValue.textContent = formattedPct;
+    const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
+    if (circleCeilingValue) circleCeilingValue.textContent = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : 'NA';
+    const consistencyCaptionEl = consistencyContainer.querySelector('[data-consistency-circle-caption]');
+    if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
+    const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
+    if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
+    const lowChip = consistencyContainer.querySelector('[data-zone-chip="low"]');
+    const solidChip = consistencyContainer.querySelector('[data-zone-chip="solid"]');
+    const highChip = consistencyContainer.querySelector('[data-zone-chip="high"]');
+    const thresholds = data?.thresholds || getConsistencyThresholds();
+    if (lowChip) lowChip.textContent = `Low 0–${thresholds.solid}`;
+    if (solidChip) solidChip.textContent = `Solid ${thresholds.solid}–${thresholds.high}`;
+    if (highChip) highChip.textContent = `High ≥ ${thresholds.high}`;
+}
+
+function prepareConsistencyPanel(player) {
+    if (!consistencyContainer) return;
+    const data = buildConsistencyPanelData(player);
+    state.currentConsistencyData = data;
+    updateConsistencyHud(data);
+}
+
+function showConsistencyEmptyState(chartBox, message) {
+    if (!chartBox) return;
+    let emptyEl = chartBox.querySelector('.consistency-empty-state');
+    if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.className = 'consistency-empty-state';
+        chartBox.appendChild(emptyEl);
+    }
+    emptyEl.textContent = message;
+    emptyEl.classList.remove('hidden');
+}
+
+function hideConsistencyEmptyState(chartBox) {
+    const emptyEl = chartBox?.querySelector('.consistency-empty-state');
+    if (emptyEl) emptyEl.classList.add('hidden');
 }
 
 function renderConsistencyChart() {
-  const chartBox = document.getElementById('weekly-chart-box');
-  const pointsLayer = document.getElementById('weekly-chart-points');
-  const xAxisEl = document.getElementById('weekly-chart-x-axis');
-  const yAxisEl = document.getElementById('weekly-chart-y-axis');
-  
-  if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    if (!consistencyContainer) return;
+    const chartBox = document.getElementById('weekly-chart-box');
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    const data = state.currentConsistencyData;
+    updateConsistencyHud(data);
+    requestAnimationFrame(() => {
+        renderYAxis();
+        if (!data) {
+            renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
+            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
+            if (curveSvg) {
+                curveSvg.remove();
+                curveSvg = null;
+            }
+            showConsistencyEmptyState(chartBox, 'Consistency data unavailable.');
+            hydrateProgressCircles(null);
+            return;
+        }
+        createZones(data);
+        renderXAxis(data);
+        renderPoints(data);
+        hydrateProgressCircles(data);
+        if (data.series.length === 0) {
+            showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
+        } else {
+            hideConsistencyEmptyState(chartBox);
+        }
+    });
+}
 
-  // Clean up
-  chartBox.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
-  curveSvg = null;
+function createZones(data) {
+    const lineLayer = document.getElementById('weekly-chart-points');
+    if (!lineLayer) return;
+    lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+    const thresholds = data?.thresholds || getConsistencyThresholds();
+    const stops = [
+        { className: 'weekly-zone--bad', label: `Low < ${thresholds.solid}`, from: 0, to: thresholds.solid },
+        { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}-${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
+        { className: 'weekly-zone--great', label: `High ≥ ${thresholds.high}`, from: thresholds.high, to: MAX_CONSISTENCY_POINTS }
+    ];
+    stops.forEach(zone => {
+        const topPct = ((MAX_CONSISTENCY_POINTS - zone.to) / MAX_CONSISTENCY_POINTS) * 100;
+        const bottomPct = ((MAX_CONSISTENCY_POINTS - zone.from) / MAX_CONSISTENCY_POINTS) * 100;
+        const heightPct = bottomPct - topPct;
+        const zoneEl = document.createElement('div');
+        zoneEl.className = `weekly-zone ${zone.className}`;
+        zoneEl.style.top = `${topPct}%`;
+        zoneEl.style.height = `${heightPct}%`;
+        const label = document.createElement('span');
+        label.className = 'weekly-zone-label';
+        label.textContent = zone.label;
+        zoneEl.appendChild(label);
+        lineLayer.appendChild(zoneEl);
+    });
+}
 
-  // Render all components
-  createZones();
-  renderYAxis();
-  renderXAxis();
-  renderPoints();
-  hydrateProgressCircles();
+function renderXAxis(data) {
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    if (!xAxisEl) return;
+    xAxisEl.innerHTML = '';
+    const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
+    weeks.forEach(week => {
+        const span = document.createElement('span');
+        span.textContent = `WK ${week}`;
+        xAxisEl.appendChild(span);
+    });
+}
+
+function renderYAxis() {
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!yAxisEl) return;
+    yAxisEl.innerHTML = '';
+    [MAX_CONSISTENCY_POINTS, 30, 20, 10, 0].forEach(tick => {
+        const tickEl = document.createElement('div');
+        tickEl.className = 'weekly-chart-y-tick';
+        tickEl.textContent = `${tick} fpts`;
+        yAxisEl.appendChild(tickEl);
+    });
+}
+
+function drawCurve(pointsLayer, points) {
+    if (!pointsLayer || !points.length) return;
+    const box = pointsLayer.getBoundingClientRect();
+    const width = box.width;
+    const height = box.height;
+    if (!width || !height) return;
+    if (!curveSvg) {
+        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        curveSvg.setAttribute('class', 'weekly-curve-layer');
+        curveSvg.style.position = 'absolute';
+        curveSvg.style.inset = '0';
+        pointsLayer.prepend(curveSvg);
+    }
+    curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    curveSvg.setAttribute('width', width);
+    curveSvg.setAttribute('height', height);
+    const toXY = (point) => ({
+        x: (point.x / 100) * width,
+        y: (point.y / 100) * height
+    });
+    const absPoints = points.map(toXY);
+    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+    for (let i = 0; i < absPoints.length - 1; i += 1) {
+        const p0 = absPoints[i];
+        const p1 = absPoints[i + 1];
+        const dx = (p1.x - p0.x) * 0.35;
+        const c1x = p0.x + dx;
+        const c1y = p0.y;
+        const c2x = p1.x - dx;
+        const c2y = p1.y;
+        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+    }
+    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathCore.setAttribute('d', d);
+    pathCore.setAttribute('fill', 'none');
+    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
+    pathCore.setAttribute('stroke-width', '2');
+    pathCore.setAttribute('stroke-linecap', 'round');
+    pathCore.setAttribute('stroke-linejoin', 'round');
+    curveSvg.innerHTML = '';
+    curveSvg.appendChild(pathCore);
+}
+
+function yFromPoints(pts) {
+    const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
+    return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
+}
+
+function getValueColor(pts, thresholds) {
+    if (!Number.isFinite(pts)) return '#f8faff';
+    if (pts >= thresholds.high) return '#51CBA5CF';
+    if (pts >= thresholds.solid) return '#9f8bff';
+    return '#d44f76';
+}
+
+function renderPoints(data) {
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    if (!pointsLayer) return;
+    pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
+    if (curveSvg) {
+        curveSvg.remove();
+        curveSvg = null;
+    }
+    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
+    const totalSlots = axisWeeks.length || data.series.length || 1;
+    if (!data.series.length) return;
+    const curvePoints = [];
+    data.series.forEach(entry => {
+        const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
+        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
+        const pctY = yFromPoints(entry.pts);
+        curvePoints.push({ x: pctX, y: pctY });
+        const bucket = getConsistencyBucket(entry.pts, data.thresholds);
+        const pointEl = document.createElement('div');
+        pointEl.className = 'weekly-point';
+        pointEl.style.left = `calc(${pctX}% - 4px)`;
+        pointEl.style.top = `calc(${pctY}% - 4px)`;
+        pointEl.style.background = bucket.color;
+        pointEl.style.boxShadow = bucket.glow;
+        const valueColor = getValueColor(entry.pts, data.thresholds);
+        const label = document.createElement('div');
+        label.className = 'weekly-point-label';
+        const weekSpan = document.createElement('span');
+        weekSpan.className = 'weekly-point-label__week';
+        weekSpan.textContent = `WK ${entry.week}`;
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'weekly-point-label__value';
+        const valueNumber = document.createElement('span');
+        valueNumber.style.color = valueColor;
+        valueNumber.textContent = entry.pts.toFixed(1);
+        const suffix = document.createElement('span');
+        suffix.className = 'weekly-point-label__suffix';
+        suffix.textContent = 'fpts';
+        valueSpan.appendChild(valueNumber);
+        valueSpan.appendChild(suffix);
+        label.appendChild(weekSpan);
+        label.appendChild(valueSpan);
+        pointEl.appendChild(label);
+        pointsLayer.appendChild(pointEl);
+    });
+    drawCurve(pointsLayer, curvePoints);
+}
+
+function hydrateProgressCircles(data) {
+    const consistencyCircle = document.querySelector('.progress-circle--consistency .progress-ring-fill');
+    const pctValue = data && Number.isFinite(data.consistencyPct) ? Math.max(0, Math.min(100, data.consistencyPct)) / 100 : 0;
+    if (consistencyCircle) {
+        consistencyCircle.style.setProperty('--progress', pctValue.toFixed(3));
+    }
+    const ceilingCircle = document.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
+    if (ceilingCircle) {
+        const rankMax = Math.max(2, data?.ceilingRankMax || 24);
+        const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
+        const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
+        ceilingCircle.style.setProperty('--progress', normalized.toFixed(3));
+    }
 }
 
 // === Loading Ring Animation (merged from loader-ring.js) ===

@@ -360,9 +360,9 @@
                   <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)" style="--progress: 0.667;" />
                 </svg>
                 <div class="progress-circle-inner">
-                  <div class="progress-value">66.7%</div>
+                  <div class="progress-value" data-consistency-circle-value>66.7%</div>
                   <div class="progress-label">Consistency Rate</div>
-                  <div class="progress-caption">2025 CSTY RATE</div>
+                  <div class="progress-caption" data-consistency-circle-caption>2025 CSTY RATE</div>
                 </div>
               </div>
             </div>
@@ -370,28 +370,34 @@
             <!-- Center: Key stats -->
             <div class="hud-segment hud-segment--center">
               <div class="hud-player">
-                <div class="hud-context"><span class="hud-player-name">Player Name</span> • Weeks 1–9</div>
+                <div class="hud-context">
+                  <span class="hud-player-name" data-hud-player-name>Player Name</span>
+                  <span class="hud-context-divider">•</span>
+                  <span data-week-range>Weeks 1–9</span>
+                  <span class="hud-context-divider">•</span>
+                  <span data-weeks-charted>9 weeks charted</span>
+                </div>
               </div>
               <div class="hud-metrics">
                 <div class="metric-block">
                   <div class="metric-label">Consistency</div>
                   <div class="metric-primary">
-                    <span class="metric-value">66.7%</span>
-                    <span class="metric-sub">Pos Rank: 11</span>
+                    <span class="metric-value" data-consistency-value>66.7%</span>
+                    <span class="metric-sub" data-consistency-rank>Pos Rank: 11</span>
                   </div>
                 </div>
                 <div class="metric-block">
                   <div class="metric-label">Ceiling</div>
                   <div class="metric-primary">
-                    <span class="metric-value">28.8</span>
-                    <span class="metric-sub">Pos Rank: 4</span>
+                    <span class="metric-value" data-ceiling-value>28.8</span>
+                    <span class="metric-sub" data-ceiling-rank>Pos Rank: 4</span>
                   </div>
                 </div>
               </div>
               <div class="hud-zones-legend">
-                <span class="zone-chip zone-chip--bad">Bad 0–16</span>
-                <span class="zone-chip zone-chip--good">Good 16–22</span>
-                <span class="zone-chip zone-chip--great">Great 22–40</span>
+                <span class="zone-chip zone-chip--bad" data-zone-chip="low">Low 0–16</span>
+                <span class="zone-chip zone-chip--good" data-zone-chip="solid">Solid 16–22</span>
+                <span class="zone-chip zone-chip--great" data-zone-chip="high">High 22–40</span>
               </div>
             </div>
 
@@ -411,9 +417,9 @@
                   <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)" style="--progress: 0.842;" />
                 </svg>
                 <div class="progress-circle-inner">
-                  <div class="progress-value">4</div>
+                  <div class="progress-value" data-ceiling-circle-rank>4</div>
                   <div class="progress-label">Ceiling<br> Rank</div>
-                  <div class="progress-caption">2025 CL POS RANK</div>
+                  <div class="progress-caption" data-ceiling-circle-caption>2025 CL POS RANK</div>
                 </div>
               </div>
             </div>

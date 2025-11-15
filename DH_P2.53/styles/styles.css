@@ -4868,6 +4868,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         justify-content: center;
     }
 
+    .hud-context-divider {
+      margin: 0 0.32rem;
+      color: rgba(239, 246, 255, 0.45);
+      font-weight: 600;
+    }
+
     .zone-chip {
         padding: 0.1rem 0.32rem;
         border-radius: 999px;
@@ -4911,6 +4917,22 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         height: 283px;
         overflow: hidden;
         border-radius: 8px;
+    }
+
+    .consistency-empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: rgba(239, 246, 255, 0.78);
+      background: rgba(4, 10, 21, 0.72);
+      backdrop-filter: blur(8px);
+      border-radius: 8px;
+      z-index: 6;
     }
 
     .weekly-chart-y-axis {
@@ -5120,6 +5142,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .hud-context {
             margin-top: 0.18rem;
             font-size: 0.44rem;
+        }
+
+        .hud-context-divider {
+          margin: 0 0.18rem;
         }
 
         .hud-metrics {

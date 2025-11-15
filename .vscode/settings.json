@@ -7,7 +7,7 @@
   "window.menuBarVisibility": "classic",
   "github.copilot.nextEditSuggestions.enabled": true,
   "githubPullRequests.codingAgent.promptForConfirmation": false,
-  "chat.agent.maxRequests": 50,
+  "chat.agent.maxRequests": 150,
   "chat.agent.thinkingStyle": "collapsedPerItem",
   "chat.agent.todoList": {
     "position": "default"
