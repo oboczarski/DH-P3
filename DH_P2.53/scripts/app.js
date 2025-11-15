@@ -6453,6 +6453,23 @@ function extractSheetFantasyPoints(stats) {
   return null;
 }
 
+function shouldIncludeWeekFromProjection(projectionRaw) {
+  if (projectionRaw === undefined || projectionRaw === null) return true;
+  const trimmed = String(projectionRaw).trim();
+  if (!trimmed) return true;
+
+  if (parseInjuryDesignation(trimmed)) return false;
+  if (/\bbye\b/i.test(trimmed)) return false;
+
+  if (/[0-9]/.test(trimmed)) {
+    const numericPortion = Number.parseFloat(trimmed.replace(/[^0-9.\-]/g, ''));
+    if (Number.isFinite(numericPortion)) {
+      return true;
+    }
+  }
+
+  return false;
+}
 function buildConsistencyWeeklyData(playerId) {
   const weeklyData = [];
   const weeksMap = PLAYER_STATS_SHEETS?.weeks || {};
@@ -6464,6 +6481,7 @@ function buildConsistencyWeeklyData(playerId) {
   sortedWeeks.forEach(weekNumber => {
     const stats = state.playerWeeklyStats?.[weekNumber]?.[playerId];
     if (!stats) return;
+    if (!shouldIncludeWeekFromProjection(stats?.proj)) return;
     const sheetFpts = extractSheetFantasyPoints(stats);
     if (!Number.isFinite(sheetFpts)) return;
     weeklyData.push({
@@ -6522,6 +6540,15 @@ function getValueColor(pts, thresholds) {
     return '#9f8bff';
   }
   return '#d44f76';
+}
+function resolveRankAccentColor(rankValue) {
+  const numericRank = Number(rankValue);
+  if (!Number.isFinite(numericRank)) {
+    return '#4faafe';
+  }
+  if (numericRank <= 12) return '#78ffed';
+  if (numericRank <= 24) return '#4faafe';
+  return '#ca67d8';
 }
 
 function createZones(pointsLayer, thresholds) {
@@ -6722,13 +6749,18 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
 
   const cstyPct = metrics.cstyPct;
   const cstyRankDisplay = getRankDisplayText(metrics.cstyRank);
+ const consistencyAccent = resolveRankAccentColor(metrics.cstyRank);
 
   const normalizedConsistency = Number.isFinite(cstyPct) ? Math.max(0, Math.min(1, cstyPct / 100)) : 0;
   if (consistencyCircle) {
     consistencyCircle.style.setProperty('--progress', normalizedConsistency.toFixed(3));
+      consistencyCircle.setAttribute('stroke', consistencyAccent);
   }
   const cstyDisplay = Number.isFinite(cstyPct) ? `${cstyPct.toFixed(1)}%` : 'N/A';
-  if (consistencyValueEl) consistencyValueEl.textContent = cstyDisplay;
+  if (consistencyValueEl) {
+    consistencyValueEl.textContent = cstyDisplay;
+    consistencyValueEl.style.color = consistencyAccent;
+  }
   if (consistencyCaption) consistencyCaption.textContent = 'Season CSTY Rate';
   if (consistencyMetricBlock) {
     const valueEl = consistencyMetricBlock.querySelector('.metric-value');
@@ -6745,7 +6777,7 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
   const ceilingRank = metrics.ceilingRank;
   const ceilingRankDisplay = getRankDisplayText(ceilingRank);
   const ceilingValue = Number.isFinite(metrics.ceiling) ? (Number.isInteger(metrics.ceiling) ? metrics.ceiling.toFixed(0) : metrics.ceiling.toFixed(1)) : 'N/A';
-
+  const ceilingAccent = resolveRankAccentColor(ceilingRank);
   if (ceilingValueEl) ceilingValueEl.textContent = Number.isFinite(metrics.ceiling) ? ceilingValue : 'N/A';
   if (ceilingCaption) ceilingCaption.textContent = 'Season CL Pos Rank';
   if (ceilingMetricBlock) {
@@ -6763,7 +6795,9 @@ function updateConsistencyHud(player, weeklyData, thresholds, metrics) {
   }
   if (ceilingCircle) {
     ceilingCircle.style.setProperty('--progress', normalizedCeiling.toFixed(3));
+   ceilingCircle.setAttribute('stroke', ceilingAccent);
   }
+  if (ceilingValueEl) ceilingValueEl.style.color = ceilingAccent;
 }
 
 function renderConsistencyChart() {
