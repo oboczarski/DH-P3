@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -314,7 +314,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
         const assignedLeagueColors = new Map();
         let nextColorIndex = 0;
         const assignedRyColors = new Map();
@@ -323,7 +323,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
         const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9' } };
+        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -514,6 +514,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            
+                            // If opening consistency panel, render consistency chart
+                            if (targetPanel === 'consistency' && state.currentGameLogsPlayer) {
+                                renderConsistencyChart();
                             }
                         }
                     });
@@ -650,23 +655,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +684,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown
@@ -772,10 +779,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
-                    viewDropdownLabel.textContent = 'Positional';
+                    viewDropdownLabel.textContent = 'View: POS';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
-                    viewDropdownLabel.textContent = 'Lineup';
+                    viewDropdownLabel.textContent = 'View: Lineup';
                 }
             }
             
@@ -2005,6 +2012,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'YPR': 'ypr',
             'RR': 'rr',
             'TS%': 'ts_per_rr',
+            'CSTY%': 'csty_pct',
             'YPRR': 'yprr',
             '1DRR': 'first_down_rec_rate',
             'IMP': 'imp',
@@ -2012,6 +2020,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'SNP%': 'snp_pct',
             'YDS(t)': 'yds_total',
             'FPOE': 'fpoe',
+            'CL': 'ceiling',
             'YPG(t)': 'ypg',
             'paYPG': 'pa_ypg',
             'ruYPG': 'ru_ypg',
@@ -3124,6 +3133,114 @@ const SEASON_META_HEADERS = {
             }
         };
 
+        const CONSISTENCY_ZONE_CONFIG = {
+            QB: { solidStart: 18, greatStart: 26 },
+            RB: { solidStart: 13, greatStart: 21 },
+            WR: { solidStart: 12, greatStart: 20 },
+            TE: { solidStart: 9, greatStart: 16 },
+            default: { solidStart: 13, greatStart: 20 }
+        };
+
+        function normalizePositionCode(pos) {
+            return typeof pos === 'string' ? pos.trim().toUpperCase() : '';
+        }
+
+        function getCeilingRankMax(position) {
+            const normalized = normalizePositionCode(position);
+            if (RADAR_STATS_CONFIG[normalized]?.maxRank) {
+                return RADAR_STATS_CONFIG[normalized].maxRank;
+            }
+            return 60;
+        }
+
+        function getZoneConfigForPosition(position) {
+            const normalized = normalizePositionCode(position);
+            const baseConfig = CONSISTENCY_ZONE_CONFIG[normalized] || CONSISTENCY_ZONE_CONFIG.default;
+            const solidStart = baseConfig.solidStart;
+            const greatStart = baseConfig.greatStart;
+            const formatRange = (label, from, to, isFinal = false) => {
+                if (isFinal) {
+                    return `${label} ≥ ${from}`;
+                }
+                return `${label} ${from}–${Math.max(from, to - 1)}`;
+            };
+            return {
+                position: normalized,
+                solidStart,
+                greatStart,
+                chips: {
+                    bad: formatRange('Low', 0, solidStart),
+                    good: formatRange('Solid', solidStart, greatStart),
+                    great: formatRange('Great', greatStart, greatStart + 1, true)
+                },
+                bands: [
+                    { className: 'weekly-zone--bad', from: 0, to: solidStart, label: formatRange('Low', 0, solidStart) },
+                    { className: 'weekly-zone--good', from: solidStart, to: greatStart, label: formatRange('Solid', solidStart, greatStart) },
+                    { className: 'weekly-zone--great', from: greatStart, to: Number.POSITIVE_INFINITY, label: formatRange('Great', greatStart, greatStart + 1, true) }
+                ]
+            };
+        }
+
+        function getWeeklySheetPoints(stats) {
+            if (!stats || typeof stats !== 'object') return null;
+            const candidates = ['fpt_ppr', 'fpts_ppr', 'fpts', 'fpts_override'];
+            for (const key of candidates) {
+                const value = stats[key];
+                if (typeof value === 'number' && Number.isFinite(value)) {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        function buildPlayerConsistencyDataset(player) {
+            if (!player || !player.id) return null;
+            const playerId = player.id;
+            const weeklyStats = state.playerWeeklyStats || {};
+            const projectionWeeks = state.playerProjectionWeeks || {};
+            const usableWeeks = Object.keys(weeklyStats)
+                .map(week => Number(week))
+                .filter(week => Number.isFinite(week) && projectionWeeks[week] !== true)
+                .sort((a, b) => a - b);
+
+            const points = [];
+            usableWeeks.forEach(week => {
+                const stats = weeklyStats[week]?.[playerId];
+                if (!stats) return;
+                const opponent = typeof stats.opponent === 'string' ? stats.opponent.trim().toUpperCase() : '';
+                if (opponent === 'BYE') return;
+                const weekPoints = getWeeklySheetPoints(stats);
+                if (!Number.isFinite(weekPoints)) return;
+                points.push({ week, rawPts: weekPoints });
+            });
+
+            const firstWeek = points.length ? points[0].week : null;
+            const lastWeek = points.length ? points[points.length - 1].week : null;
+            let weeksRangeLabel = 'No regular-season games logged';
+            if (Number.isFinite(firstWeek) && Number.isFinite(lastWeek)) {
+                weeksRangeLabel = firstWeek === lastWeek ? `Week ${firstWeek}` : `Weeks ${firstWeek}–${lastWeek}`;
+            }
+
+            const seasonTotals = state.playerSeasonStats?.[playerId] || {};
+            const statsSnapshot = {
+                consistencyPct: typeof seasonTotals.csty_pct === 'number' ? seasonTotals.csty_pct : null,
+                consistencyRank: getSeasonRankValue(playerId, 'csty_pct'),
+                ceilingValue: typeof seasonTotals.ceiling === 'number' ? seasonTotals.ceiling : null,
+                ceilingRank: getSeasonRankValue(playerId, 'ceiling'),
+                ceilingRankMax: getCeilingRankMax(player.pos),
+                seasonLabel: state.currentNflSeason || String(new Date().getFullYear())
+            };
+
+            return {
+                playerId,
+                position: normalizePositionCode(player.pos),
+                points,
+                weeksRangeLabel,
+                stats: statsSnapshot,
+                zoneConfig: getZoneConfigForPosition(player.pos)
+            };
+        }
+
         async function renderGameLogs(gameLogs, player, playerRanks) {
             // Store current player for modal panel interactions (e.g., radar chart)
             state.currentGameLogsPlayer = player;
@@ -3132,6 +3249,10 @@ const SEASON_META_HEADERS = {
                 fpts: playerRanks?.total_pts,
                 ppg: playerRanks?.ppg
             };
+            state.currentConsistencyData = buildPlayerConsistencyDataset(player);
+            if (consistencyContainer && !consistencyContainer.classList.contains('hidden')) {
+                requestAnimationFrame(() => renderConsistencyChart());
+            }
             
             // Stats page doesn't require league context (uses sheet data), other pages do
             const league = state.leagues.find(l => l.league_id === state.currentLeagueId);
@@ -3228,9 +3349,9 @@ const SEASON_META_HEADERS = {
                     radarChartContainer.classList.add('hidden');
                     modalBody.appendChild(radarChartContainer);
                 }
-                if (newsContainer) {
-                    newsContainer.classList.add('hidden');
-                    modalBody.appendChild(newsContainer);
+                if (consistencyContainer) {
+                    consistencyContainer.classList.add('hidden');
+                    modalBody.appendChild(consistencyContainer);
                 }
                 return;
             }
@@ -4093,9 +4214,9 @@ const wrTeStatOrder = [
                 radarChartContainer.classList.add('hidden');
                 modalBody.appendChild(radarChartContainer);
             }
-            if (newsContainer) {
-                newsContainer.classList.add('hidden');
-                modalBody.appendChild(newsContainer);
+            if (consistencyContainer) {
+                consistencyContainer.classList.add('hidden');
+                modalBody.appendChild(consistencyContainer);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -4368,8 +4489,6 @@ const wrTeStatOrder = [
             const otherPlayer = players[1];
             const getStatOrderForPosition = (pos) => {
 const qbStatOrder = [
-   'fpts',
-  'proj',
   'pass_rtg',
   'pass_yd',
   'pass_td',
@@ -4391,11 +4510,11 @@ const qbStatOrder = [
   'pass_sack',
   'pass_int',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const rbStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rush_att',
   'rush_yd',
@@ -4417,11 +4536,11 @@ const rbStatOrder = [
   'rec_yar',
   'imp_per_g',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const wrTeStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rec_tgt',
   'rec',
@@ -4442,12 +4561,14 @@ const wrTeStatOrder = [
   'rush_yd',
   'rush_td',
   'ypc',
-  'fum'
+  'fum',
+  'csty_pct',
+  'ceiling'
 ];
                 if (pos === 'QB') return qbStatOrder;
                 if (pos === 'RB') return rbStatOrder;
                 if (pos === 'WR' || pos === 'TE') return wrTeStatOrder;
-                return ['fpts','pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe'];
+                return ['pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
             };
             const userPlayerStatOrder = getStatOrderForPosition(userPlayer.pos);
             const otherPlayerStatOrder = getStatOrderForPosition(otherPlayer.pos);
@@ -4539,6 +4660,36 @@ const wrTeStatOrder = [
                                     const total = aggregatedTotals['cmp_pct'] || 0;
                                     const count = statValueCounts['cmp_pct'] || 0;
                                     cv = count > 0 ? total / count : 0; dv = formatPercentage(cv); break;
+                                }
+                                case 'csty_pct': {
+                                    const seasonValue = typeof seasonTotals?.csty_pct === 'number' ? seasonTotals.csty_pct : null;
+                                    const total = aggregatedTotals['csty_pct'] || 0;
+                                    const count = statValueCounts['csty_pct'] || 0;
+                                    const fallback = count > 0 ? total / count : null;
+                                    const pct = seasonValue ?? fallback;
+                                    if (pct === null || Number.isNaN(pct)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = pct;
+                                        dv = formatPercentage(pct);
+                                    }
+                                    break;
+                                }
+                                case 'ceiling': {
+                                    const seasonValue = typeof seasonTotals?.ceiling === 'number' ? seasonTotals.ceiling : null;
+                                    const aggregatedValue = Object.prototype.hasOwnProperty.call(aggregatedTotals, 'ceiling')
+                                        ? aggregatedTotals['ceiling']
+                                        : null;
+                                    const value = seasonValue ?? aggregatedValue;
+                                    if (value === null || value === undefined || Number.isNaN(value)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = value;
+                                        dv = Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+                                    }
+                                    break;
                                 }
                                 case 'pass_rtg': {
                                     const takeNumeric = (value) => {
@@ -4680,6 +4831,7 @@ const wrTeStatOrder = [
                 `;
                 const statDescriptions = {
                     'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
+                    'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score'
                 };
                 let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
                 for (const key in statLabels) {
@@ -6157,7 +6309,7 @@ const wrTeStatOrder = [
             modalBody.classList.remove('hidden'); // Ensure game logs table is visible
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all buttons to inactive, then activate game-logs button
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6172,7 +6324,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6186,10 +6338,20 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance = null;
             }
             
+            // Clean up consistency chart SVG
+            if (curveSvg) {
+                curveSvg = null;
+            }
+            const pointsLayer = document.getElementById('weekly-chart-points');
+            if (pointsLayer) {
+                pointsLayer.innerHTML = '';
+            }
+            
             // Clear current player reference
             state.currentGameLogsPlayer = null;
             state.currentGameLogsPlayerRanks = null;
             state.currentGameLogsSummary = null;
+            state.currentConsistencyData = null;
             
             if (!state.isGameLogModalOpenFromComparison) {
                 closeComparisonModal();
@@ -6369,6 +6531,336 @@ document.addEventListener('DOMContentLoaded', function(){
     legend.classList.add('hidden');
   }
 });
+
+// === Consistency Chart Functions (fed by Google Sheets) ===
+const MAX_POINTS = 40;
+let curveSvg = null;
+
+function ensureConsistencyDataset() {
+    if (state.currentConsistencyData && (!state.currentGameLogsPlayer || state.currentConsistencyData.playerId === state.currentGameLogsPlayer.id)) {
+        return state.currentConsistencyData;
+    }
+    if (!state.currentGameLogsPlayer) return null;
+    state.currentConsistencyData = buildPlayerConsistencyDataset(state.currentGameLogsPlayer);
+    return state.currentConsistencyData;
+}
+
+function setConsistencyEmptyState(message) {
+    const chartBox = document.getElementById('weekly-chart-box');
+    if (!chartBox) return;
+    let emptyState = chartBox.querySelector('.weekly-chart-empty-state');
+    if (!message) {
+        if (emptyState) emptyState.remove();
+        return;
+    }
+    if (!emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.className = 'weekly-chart-empty-state';
+        chartBox.appendChild(emptyState);
+    }
+    emptyState.textContent = message;
+}
+
+function getConsistencyMetricBlock(metric) {
+    if (!consistencyContainer) return null;
+    const block = consistencyContainer.querySelector(`.metric-block[data-metric="${metric}"]`);
+    if (block) return block;
+    const blocks = Array.from(consistencyContainer.querySelectorAll('.metric-block'));
+    if (!blocks.length) return null;
+    if (metric === 'consistency') return blocks[0];
+    if (metric === 'ceiling') return blocks[1] || null;
+    return null;
+}
+
+function updateConsistencyZoneLegend(zoneConfig) {
+    if (!consistencyContainer) return;
+    const chips = zoneConfig?.chips;
+    if (!chips) return;
+    const badChip = consistencyContainer.querySelector('.zone-chip--bad');
+    const goodChip = consistencyContainer.querySelector('.zone-chip--good');
+    const greatChip = consistencyContainer.querySelector('.zone-chip--great');
+    if (badChip && chips.bad) badChip.textContent = chips.bad;
+    if (goodChip && chips.good) goodChip.textContent = chips.good;
+    if (greatChip && chips.great) greatChip.textContent = chips.great;
+}
+
+function updateConsistencyHud(consistencyData) {
+    if (!consistencyContainer) return;
+    const stats = consistencyData?.stats || {};
+    const hudContext = consistencyContainer.querySelector('.hud-context');
+    if (hudContext) {
+        hudContext.textContent = consistencyData?.weeksRangeLabel || 'Consistency data unavailable';
+    }
+
+    const consistencyBlock = getConsistencyMetricBlock('consistency');
+    if (consistencyBlock) {
+        const valueEl = consistencyBlock.querySelector('.metric-value');
+        const subEl = consistencyBlock.querySelector('.metric-sub');
+        const pct = typeof stats.consistencyPct === 'number' ? stats.consistencyPct : null;
+        if (valueEl) valueEl.textContent = pct !== null ? `${pct.toFixed(1)}%` : '—';
+        if (subEl) {
+            const rankDisplay = Number.isFinite(stats.consistencyRank) ? stats.consistencyRank : 'NA';
+            subEl.textContent = `Pos Rank: ${rankDisplay}`;
+            subEl.style.color = Number.isFinite(stats.consistencyRank)
+                ? getConditionalColorByRank(stats.consistencyRank, consistencyData?.position)
+                : 'rgba(144, 150, 192, 0.85)';
+        }
+    }
+
+    const ceilingBlock = getConsistencyMetricBlock('ceiling');
+    if (ceilingBlock) {
+        const valueEl = ceilingBlock.querySelector('.metric-value');
+        const subEl = ceilingBlock.querySelector('.metric-sub');
+        const ceilingValue = typeof stats.ceilingValue === 'number' ? stats.ceilingValue : null;
+        if (valueEl) valueEl.textContent = ceilingValue !== null ? ceilingValue.toFixed(1) : '—';
+        if (subEl) {
+            const rankDisplay = Number.isFinite(stats.ceilingRank) ? stats.ceilingRank : 'NA';
+            subEl.textContent = `Pos Rank: ${rankDisplay}`;
+            subEl.style.color = Number.isFinite(stats.ceilingRank)
+                ? getConditionalColorByRank(stats.ceilingRank, consistencyData?.position)
+                : 'rgba(144, 150, 192, 0.85)';
+        }
+    }
+
+    updateConsistencyZoneLegend(consistencyData?.zoneConfig || getZoneConfigForPosition(consistencyData?.position));
+}
+
+function yFromPoints(pts) {
+    const clamped = Math.max(0, Math.min(pts, MAX_POINTS));
+    return (1 - clamped / MAX_POINTS) * 100;
+}
+
+function bucketFor(pts, zoneConfig) {
+    const numericPts = Number.isFinite(pts) ? pts : 0;
+    const config = zoneConfig || getZoneConfigForPosition();
+    const solidStart = config?.solidStart ?? 16;
+    const greatStart = config?.greatStart ?? 22;
+    if (numericPts >= greatStart) {
+        return { name: 'Great', color: '#78ffedff', glow: '0 0 8px 4px #78ffedff' };
+    }
+    if (numericPts >= solidStart) {
+        return { name: 'Solid', color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' };
+    }
+    return { name: 'Low', color: '#f6ad', glow: '0 0 6px 4px #f6ac' };
+}
+
+function getValueColor(pts, zoneConfig) {
+    const numericPts = Number.isFinite(pts) ? pts : 0;
+    const config = zoneConfig || getZoneConfigForPosition();
+    const solidStart = config?.solidStart ?? 16;
+    const greatStart = config?.greatStart ?? 22;
+    if (numericPts >= greatStart) return '#51CBA5CF';
+    if (numericPts >= solidStart) return '#9f8bff';
+    return '#d44f76';
+}
+
+function createZones(zoneConfig) {
+    const lineLayer = document.getElementById('weekly-chart-points');
+    if (!lineLayer) return;
+    lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+
+    const config = zoneConfig || getZoneConfigForPosition();
+    const bands = Array.isArray(config?.bands) && config.bands.length
+        ? config.bands
+        : [
+                { className: 'weekly-zone--bad', from: 0, to: 16, label: 'Low < 16' },
+                { className: 'weekly-zone--good', from: 16, to: 22, label: 'Solid 16–22' },
+                { className: 'weekly-zone--great', from: 22, to: MAX_POINTS, label: 'Great ≥ 22' }
+            ];
+
+    bands.forEach((zone) => {
+        const from = Math.max(0, zone.from);
+        const to = Number.isFinite(zone.to) ? Math.min(zone.to, MAX_POINTS) : MAX_POINTS;
+        const topPct = ((MAX_POINTS - to) / MAX_POINTS) * 100;
+        const bottomPct = ((MAX_POINTS - from) / MAX_POINTS) * 100;
+        const heightPct = Math.max(0, bottomPct - topPct);
+
+        const zoneEl = document.createElement('div');
+        zoneEl.className = `weekly-zone ${zone.className}`;
+        zoneEl.style.top = `${topPct}%`;
+        zoneEl.style.height = `${heightPct}%`;
+
+        if (zone.label) {
+            const label = document.createElement('span');
+            label.className = 'weekly-zone-label';
+            label.textContent = zone.label;
+            zoneEl.appendChild(label);
+        }
+
+        lineLayer.appendChild(zoneEl);
+    });
+}
+
+function renderXAxis(weeklyPoints) {
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    if (!xAxisEl) return;
+    xAxisEl.innerHTML = '';
+
+    weeklyPoints.forEach((entry) => {
+        const span = document.createElement('span');
+        span.textContent = `WK ${entry.week}`;
+        xAxisEl.appendChild(span);
+    });
+}
+
+function renderYAxis() {
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!yAxisEl) return;
+    yAxisEl.innerHTML = '';
+    [40, 30, 20, 10, 0].forEach((tick) => {
+        const tickEl = document.createElement('div');
+        tickEl.className = 'weekly-chart-y-tick';
+        tickEl.textContent = `${tick} fpts`;
+        yAxisEl.appendChild(tickEl);
+    });
+}
+
+function drawCurve(points) {
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    if (!pointsLayer || !points.length) return;
+
+    const box = pointsLayer.getBoundingClientRect();
+    const width = box.width;
+    const height = box.height;
+    if (!width || !height) return;
+
+    if (!curveSvg) {
+        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        curveSvg.setAttribute('class', 'weekly-curve-layer');
+        curveSvg.style.position = 'absolute';
+        curveSvg.style.inset = '0';
+        curveSvg.style.zIndex = '2';
+        curveSvg.style.pointerEvents = 'none';
+        pointsLayer.prepend(curveSvg);
+    }
+
+    curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    curveSvg.setAttribute('width', width);
+    curveSvg.setAttribute('height', height);
+
+    const toXY = (point) => ({
+        x: (point.x / 100) * width,
+        y: (point.y / 100) * height
+    });
+
+    const absPoints = points.map(toXY);
+    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+
+    for (let i = 0; i < absPoints.length - 1; i += 1) {
+        const p0 = absPoints[i];
+        const p1 = absPoints[i + 1];
+        const dx = (p1.x - p0.x) * 0.35;
+        const c1x = p0.x + dx;
+        const c1y = p0.y;
+        const c2x = p1.x - dx;
+        const c2y = p1.y;
+        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+    }
+
+    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathCore.setAttribute('d', d);
+    pathCore.setAttribute('fill', 'none');
+    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
+    pathCore.setAttribute('stroke-width', '2');
+    pathCore.setAttribute('stroke-linecap', 'round');
+    pathCore.setAttribute('stroke-linejoin', 'round');
+
+    curveSvg.innerHTML = '';
+    curveSvg.appendChild(pathCore);
+}
+
+function renderPoints(weeklyPoints, zoneConfig) {
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    if (!pointsLayer) return;
+    const n = weeklyPoints.length;
+    const curvePoints = [];
+
+    weeklyPoints.forEach((entry, index) => {
+        const rawValue = Number.isFinite(entry.rawPts) ? entry.rawPts : 0;
+        const plottedValue = Math.max(0, Math.min(rawValue, MAX_POINTS));
+        const pctX = ((index + 0.5) / n) * 100;
+        const pctY = yFromPoints(plottedValue);
+        curvePoints.push({ x: pctX, y: pctY });
+
+        const bucket = bucketFor(rawValue, zoneConfig);
+        const pointEl = document.createElement('div');
+        pointEl.className = 'weekly-point';
+        pointEl.style.left = `calc(${pctX}% - 4px)`;
+        pointEl.style.top = `calc(${pctY}% - 4px)`;
+        pointEl.style.background = bucket.color;
+        pointEl.style.boxShadow = bucket.glow || `0 0 4px ${bucket.color}`;
+
+        const valueColor = getValueColor(rawValue, zoneConfig);
+        const label = document.createElement('div');
+        label.className = 'weekly-point-label';
+        const displayValue = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '—';
+        label.innerHTML = `
+            <span class="weekly-point-label__week">WK ${entry.week}</span>
+            <span class="weekly-point-label__value"><span style="color: ${valueColor};">${displayValue}</span><span class="weekly-point-label__suffix">fpts</span></span>
+        `;
+        pointEl.appendChild(label);
+        pointsLayer.appendChild(pointEl);
+    });
+
+    drawCurve(curvePoints);
+}
+
+function hydrateProgressCircles(consistencyData) {
+    if (!consistencyContainer) return;
+    const stats = consistencyData?.stats || {};
+    const consistencyFill = consistencyContainer.querySelector('.progress-circle--consistency .progress-ring-fill');
+    const consistencyValueEl = consistencyContainer.querySelector('.progress-circle--consistency .progress-value');
+    const consistencyCaption = consistencyContainer.querySelector('.progress-circle--consistency .progress-caption');
+    const pct = typeof stats.consistencyPct === 'number' ? Math.max(0, Math.min(stats.consistencyPct, 100)) : null;
+    if (consistencyFill) {
+        const normalized = pct !== null ? pct / 100 : 0;
+        consistencyFill.style.setProperty('--progress', normalized.toFixed(3));
+    }
+    if (consistencyValueEl) consistencyValueEl.textContent = pct !== null ? `${pct.toFixed(1)}%` : '—';
+    if (consistencyCaption) consistencyCaption.textContent = `${stats.seasonLabel || 'Season'} CSTY RATE`;
+
+    const ceilingFill = consistencyContainer.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
+    const ceilingValueEl = consistencyContainer.querySelector('.progress-circle--ceiling .progress-value');
+    const ceilingCaption = consistencyContainer.querySelector('.progress-circle--ceiling .progress-caption');
+    const ceilingRank = Number.isFinite(stats.ceilingRank) && stats.ceilingRank > 0 ? stats.ceilingRank : null;
+    const ceilingRankMax = Number.isFinite(stats.ceilingRankMax) && stats.ceilingRankMax > 1 ? stats.ceilingRankMax : null;
+    let normalizedRank = 0;
+    if (ceilingRank !== null && ceilingRankMax) {
+        const clampedRank = Math.min(ceilingRank, ceilingRankMax);
+        normalizedRank = (ceilingRankMax - clampedRank) / (ceilingRankMax - 1);
+        normalizedRank = Math.max(0, Math.min(normalizedRank, 1));
+    }
+    if (ceilingFill) ceilingFill.style.setProperty('--progress', normalizedRank.toFixed(3));
+    if (ceilingValueEl) ceilingValueEl.textContent = ceilingRank !== null ? ceilingRank : '—';
+    if (ceilingCaption) ceilingCaption.textContent = `${stats.seasonLabel || 'Season'} CL POS RANK`;
+}
+
+function renderConsistencyChart() {
+    const chartBox = document.getElementById('weekly-chart-box');
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+
+    const dataset = ensureConsistencyDataset();
+    updateConsistencyHud(dataset);
+    hydrateProgressCircles(dataset);
+
+    pointsLayer.innerHTML = '';
+    curveSvg = null;
+    xAxisEl.innerHTML = '';
+    renderYAxis();
+
+    if (!dataset || !Array.isArray(dataset.points) || dataset.points.length === 0) {
+        setConsistencyEmptyState('Weekly consistency data is unavailable for this player yet.');
+        return;
+    }
+
+    setConsistencyEmptyState(null);
+    createZones(dataset.zoneConfig);
+    renderXAxis(dataset.points);
+    renderPoints(dataset.points, dataset.zoneConfig);
+}
 
 // === Loading Ring Animation (merged from loader-ring.js) ===
 (function(){
