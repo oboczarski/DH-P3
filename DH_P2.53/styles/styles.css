@@ -5086,13 +5086,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         color: #f8faff;
     }
 
-    .weekly-point-label__bucket {
-        font-size: 0.36rem;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        margin-top: 0.08rem;
-    }
-
     .weekly-curve-layer {
         pointer-events: none;
     }
@@ -5247,10 +5240,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             font-weight: 400;
         }
 
-        .weekly-point-label__bucket {
-            font-size: 0.28rem;
-            letter-spacing: 0.05em;
-        }
     }
 
     /* ⬇︎ PLAYER-COMP MODAL ⬇︎ */

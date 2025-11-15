@@ -6435,6 +6435,7 @@ const CONSISTENCY_BUCKET_STYLES = {
     solid: { color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' },
     low: { color: '#f6ad', glow: '0 0 6px 4px #f6ac' }
 };
+const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
 let curveSvg = null;
 
 function getConsistencyAxisWeeks() {
@@ -6494,6 +6495,7 @@ function buildConsistencyPanelData(player) {
     axisWeeks.forEach(week => {
         const statsForWeek = weeklyStats?.[week]?.[playerId];
         if (!statsForWeek) return;
+        if (shouldSkipConsistencyWeek(statsForWeek)) return;
         const opponent = (statsForWeek.opponent || '').toUpperCase();
         if (opponent === 'BYE') return;
         const sheetFpts = statsForWeek.fpt_ppr;
@@ -6537,6 +6539,21 @@ function buildConsistencyPanelData(player) {
         weeksChartedLabel: pluralizeWeeks(series.length),
         ceilingRankMax
     };
+}
+
+function shouldSkipConsistencyWeek(statsForWeek) {
+    if (!statsForWeek) return false;
+    const rawProj = statsForWeek.proj;
+    if (rawProj === undefined || rawProj === null) return false;
+    if (typeof rawProj === 'number' && Number.isFinite(rawProj)) return false;
+    const trimmed = String(rawProj).trim();
+    if (!trimmed) return false;
+    const numericValue = Number(trimmed);
+    if (Number.isFinite(numericValue)) return false;
+    const normalized = trimmed.toUpperCase();
+    if (CONSISTENCY_PROJECTION_SKIP_CODES.has(normalized)) return true;
+    // Treat any non-numeric projection text as an inactive week
+    return true;
 }
 
 function updateConsistencyHud(data) {
