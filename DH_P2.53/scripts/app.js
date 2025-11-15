@@ -4377,8 +4377,6 @@ const wrTeStatOrder = [
             const otherPlayer = players[1];
             const getStatOrderForPosition = (pos) => {
 const qbStatOrder = [
-   'fpts',
-  'proj',
   'pass_rtg',
   'pass_yd',
   'pass_td',
@@ -4399,14 +4397,12 @@ const qbStatOrder = [
   'prs_pct',
   'pass_sack',
   'pass_int',
-    'fum',
-    'fpoe',
-    'csty_pct',
-    'ceiling'
+  'fum',
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const rbStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rush_att',
   'rush_yd',
@@ -4426,15 +4422,13 @@ const rbStatOrder = [
   'rec_td',
   'rec_fd',
   'rec_yar',
-    'imp_per_g',
-    'fum',
-    'fpoe',
-    'csty_pct',
-    'ceiling'
+  'imp_per_g',
+  'fum',
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const wrTeStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rec_tgt',
   'rec',
@@ -4447,22 +4441,22 @@ const wrTeStatOrder = [
   'rec_ypg',
   'rec_yar',
   'ypr',
-    'imp_per_g',
-    'rr',
-    'fpoe',
-    'yds_total',
+  'imp_per_g',
+  'rr',
+  'fpoe',
+  'yds_total',
   'rush_att',
   'rush_yd',
   'rush_td',
   'ypc',
-    'fum',
-    'csty_pct',
-    'ceiling'
+  'fum',
+  'csty_pct',
+  'ceiling'
 ];
                 if (pos === 'QB') return qbStatOrder;
                 if (pos === 'RB') return rbStatOrder;
                 if (pos === 'WR' || pos === 'TE') return wrTeStatOrder;
-                return ['fpts','pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
+                return ['pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
             };
             const userPlayerStatOrder = getStatOrderForPosition(userPlayer.pos);
             const otherPlayerStatOrder = getStatOrderForPosition(otherPlayer.pos);
