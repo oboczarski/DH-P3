@@ -6431,9 +6431,9 @@ const CONSISTENCY_THRESHOLD_MAP = {
     DEFAULT: { solid: 14, high: 20 }
 };
 const CONSISTENCY_BUCKET_STYLES = {
-    high: { color: '#78ffedff', glow: '0 0 8px 4px #78ffedff' },
-    solid: { color: '#00caffaa', glow: '0 0 8px 4px rgba(0, 191, 255, .81)' },
-    low: { color: '#f6ad', glow: '0 0 6px 4px #f6ac' }
+    high: { color: '#78ffedff' },
+    solid: { color: '#00caffaa' },
+    low: { color: '#f6ad' }
 };
 const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
 let curveSvg = null;
@@ -6511,6 +6511,15 @@ function buildConsistencyPanelData(player) {
         });
     });
     series.sort((a, b) => a.week - b.week);
+    const bestGameEntry = series.reduce((best, entry) => {
+        if (!best) return entry;
+        return entry.pts > best.pts ? entry : best;
+    }, null);
+    const lastFive = series.slice(-5);
+    const lastFiveAvg = lastFive.length
+        ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
+        : null;
+    const highWeekCount = thresholds ? series.filter(entry => entry.pts >= thresholds.high).length : null;
     const seasonTotals = state.playerSeasonStats?.[playerId] || {};
     const playerName = (fullPlayer ? `${fullPlayer.first_name || ''} ${fullPlayer.last_name || ''}` : player.name || '')
         .replace(/\s+/g, ' ')
@@ -6537,7 +6546,10 @@ function buildConsistencyPanelData(player) {
         ceilingRank: Number.isFinite(ceilingRank) ? ceilingRank : null,
         weekRangeLabel,
         weeksChartedLabel: pluralizeWeeks(series.length),
-        ceilingRankMax
+        ceilingRankMax,
+        bestGame: bestGameEntry,
+        lastFiveAvg,
+        highWeekCount
     };
 }
 
@@ -6558,9 +6570,6 @@ function shouldSkipConsistencyWeek(statsForWeek) {
 
 function updateConsistencyHud(data) {
     if (!consistencyContainer) return;
-    const fallbackName = state.currentGameLogsPlayer?.name || 'Player';
-    const nameEl = consistencyContainer.querySelector('[data-hud-player-name]');
-    if (nameEl) nameEl.textContent = data?.playerName || fallbackName;
     const weekRangeEl = consistencyContainer.querySelector('[data-week-range]');
     if (weekRangeEl) weekRangeEl.textContent = data?.weekRangeLabel || 'Weeks —';
     const weeksChartedEl = consistencyContainer.querySelector('[data-weeks-charted]');
@@ -6582,13 +6591,35 @@ function updateConsistencyHud(data) {
     if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
     const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
     if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
-    const lowChip = consistencyContainer.querySelector('[data-zone-chip="low"]');
-    const solidChip = consistencyContainer.querySelector('[data-zone-chip="solid"]');
-    const highChip = consistencyContainer.querySelector('[data-zone-chip="high"]');
-    const thresholds = data?.thresholds || getConsistencyThresholds();
-    if (lowChip) lowChip.textContent = `Low 0–${thresholds.solid}`;
-    if (solidChip) solidChip.textContent = `Solid ${thresholds.solid}–${thresholds.high}`;
-    if (highChip) highChip.textContent = `High ≥ ${thresholds.high}`;
+    const bestGameEl = consistencyContainer.querySelector('[data-insight-best]');
+    if (bestGameEl) {
+        if (data?.bestGame) {
+            const ptsValue = Number.isFinite(data.bestGame.originalPts) ? data.bestGame.originalPts : data.bestGame.pts;
+            const weekLabel = Number.isFinite(data.bestGame.week) ? `WK ${data.bestGame.week}` : 'Best Game';
+            const formattedPts = Number.isFinite(ptsValue) ? `${ptsValue.toFixed(1)} fpts` : '—';
+            bestGameEl.textContent = `${weekLabel} • ${formattedPts}`;
+        } else {
+            bestGameEl.textContent = '—';
+        }
+    }
+    const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
+    if (lastFiveEl) {
+        if (Number.isFinite(data?.lastFiveAvg)) {
+            lastFiveEl.textContent = `${data.lastFiveAvg.toFixed(1)} fpts`;
+        } else {
+            lastFiveEl.textContent = '—';
+        }
+    }
+    const highWeeksEl = consistencyContainer.querySelector('[data-insight-high]');
+    if (highWeeksEl) {
+        if (Number.isFinite(data?.highWeekCount)) {
+            const count = data.highWeekCount;
+            const suffix = count === 1 ? 'week' : 'weeks';
+            highWeeksEl.textContent = `${count} ${suffix}`;
+        } else {
+            highWeeksEl.textContent = '—';
+        }
+    }
 }
 
 function prepareConsistencyPanel(player) {
@@ -6777,7 +6808,6 @@ function renderPoints(data) {
         pointEl.style.left = `calc(${pctX}% - 4px)`;
         pointEl.style.top = `calc(${pctY}% - 4px)`;
         pointEl.style.background = bucket.color;
-        pointEl.style.boxShadow = bucket.glow;
         const valueColor = getValueColor(entry.pts, data.thresholds);
         const label = document.createElement('div');
         label.className = 'weekly-point-label';
