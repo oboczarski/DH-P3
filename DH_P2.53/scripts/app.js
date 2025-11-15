@@ -6661,7 +6661,6 @@ function renderPoints(weeklyData, position) {
     const label = document.createElement('div');
     label.className = 'weekly-point-label';
     const displayFpts = entry.originalPts ?? entry.pts;
-    const bucket = bucketFor(entry.pts, position);
     label.innerHTML = `
       <span class="weekly-point-label__week">WK ${entry.week}</span>
       <span class="weekly-point-label__value"><span style="color: ${valueColor};">${displayFpts.toFixed(1)}</span><span class="weekly-point-label__suffix">fpts</span></span>
