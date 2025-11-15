@@ -346,16 +346,8 @@
             <div class="hud-segment hud-segment--left">
               <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
                 <svg viewBox="0 0 120 120" class="progress-ring">
-                  <defs>
-                    <linearGradient id="consistencyGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
-                        <stop offset="0%" stop-color="#00b2fe" />
-                        <stop offset="40%" stop-color="#00b2fe" />
-                        <stop offset="65%" stop-color="#4faafe" />
-                        <stop offset="100%" stop-color="#4faafecc" />
-                    </linearGradient>
-                  </defs>
                   <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)" style="--progress: 0.667;" />
+                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0.667;" />
                 </svg>
                 <div class="progress-circle-inner">
                   <div class="progress-value">66.7%</div>
@@ -368,14 +360,14 @@
             <!-- Center: Key stats -->
             <div class="hud-segment hud-segment--center">
               <div class="hud-player">
-                <div class="hud-context">Weeks 1–9</div>
+                <div class="hud-context">Weeks 1–10</div>
               </div>
               <div class="hud-metrics">
                 <div class="metric-block">
                   <div class="metric-label">Consistency</div>
                   <div class="metric-primary">
                     <span class="metric-value">66.7%</span>
-                    <span class="metric-sub">Pos Rank: 11</span>
+                    <span class="metric-sub">Pos Rank: 13</span>
                   </div>
                 </div>
                 <div class="metric-block">
@@ -387,8 +379,8 @@
                 </div>
               </div>
               <div class="hud-zones-legend">
-                <span class="zone-chip zone-chip--bad">Bad 0–16</span>
-                <span class="zone-chip zone-chip--good">Good 16–22</span>
+                <span class="zone-chip zone-chip--bad">Low 0–16</span>
+                <span class="zone-chip zone-chip--good">Solid 16–22</span>
                 <span class="zone-chip zone-chip--great">Great 22–40</span>
               </div>
             </div>
@@ -397,16 +389,8 @@
             <div class="hud-segment hud-segment--right">
               <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
                 <svg viewBox="0 0 120 120" class="progress-ring">
-                  <defs>
-                    <linearGradient id="ceilingGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
-                        <stop offset="0%" stop-color="#00b2fe" />
-                        <stop offset="40%" stop-color="#00b2fe" />
-                        <stop offset="65%" stop-color="#4faafe" />
-                        <stop offset="100%" stop-color="#4faafecc" />
-                    </linearGradient>
-                  </defs>
                   <circle class="progress-ring-track" cx="60" cy="60" r="46" />
-                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)" style="--progress: 0.842;" />
+                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="#1890fc" style="--progress: 0.842;" />
                 </svg>
                 <div class="progress-circle-inner">
                   <div class="progress-value">4</div>
