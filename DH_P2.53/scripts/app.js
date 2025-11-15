@@ -6467,17 +6467,19 @@ function getPlayerConsistencyMetrics(playerId, position) {
   }
   
   const seasonStats = state.playerSeasonStats[playerId];
+  const seasonRanks = state.playerSeasonRanks?.[playerId];
+  
   if (!seasonStats) {
     return { cstyPct: null, cstyPctRank: null, ceiling: null, ceilingRank: null };
   }
   
-  // Get CSTY% value and rank
+  // Get CSTY% value from stats and rank from ranks sheet
   const cstyPct = typeof seasonStats.csty_pct === 'number' ? seasonStats.csty_pct : null;
-  const cstyPctRank = typeof seasonStats.csty_pct_pos_rank === 'number' ? seasonStats.csty_pct_pos_rank : null;
+  const cstyPctRank = seasonRanks && typeof seasonRanks.csty_pct === 'number' ? seasonRanks.csty_pct : null;
   
-  // Get CL (Ceiling) value and rank
+  // Get CL (Ceiling) value from stats and rank from ranks sheet
   const ceiling = typeof seasonStats.ceiling === 'number' ? seasonStats.ceiling : null;
-  const ceilingRank = typeof seasonStats.ceiling_pos_rank === 'number' ? seasonStats.ceiling_pos_rank : null;
+  const ceilingRank = seasonRanks && typeof seasonRanks.ceiling === 'number' ? seasonRanks.ceiling : null;
   
   return { cstyPct, cstyPctRank, ceiling, ceilingRank };
 }
