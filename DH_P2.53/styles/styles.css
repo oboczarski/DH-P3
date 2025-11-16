@@ -5119,12 +5119,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         color: #f8faff;
         display: inline;
         white-space: nowrap;
+      order: 1;
     }
 
     .weekly-point-label__suffix {
         font-size: 0.38rem;
         font-weight: 600;
         color: #f8faff;
+      order: 2;
     }
 
     .weekly-curve-layer {
@@ -5228,15 +5230,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-line-layer {
-          inset: 0.21rem 0.12rem 1.38rem 0.12rem;
+            inset: 0.7rem 0.06rem 1.04rem 0.06rem;
         }
 
         .weekly-chart-x-axis {
             background: #3462;
             border-radius: 0 0 4px 4px;
-          left: 0.12rem;
+            left: 0.06rem;
+            right: 0.06rem;
             font-size: 0.45rem;
-          padding: 0.01rem 0.31rem 0.01rem 0.31rem;
+            padding: 0.08rem 0.16rem 0.12rem;
         }
 
         .weekly-zone {
@@ -5260,29 +5263,34 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label {
-          top: -1px;
-          min-width: 4px;
-          padding: 0.08rem 0.01rem;
+          top: -4px;
+          min-width: 20px;
+          padding: 0.04rem 0.1rem;
           border-radius: 0.35rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(10px);
+          gap: 0.04rem;
+          align-items: center;
         }
 
         .weekly-point-label__week {
-          font-size: 0.34rem;
-          font-weight: 700;
-        }
-
-        .weekly-point-label__value {
-          font-size: 0.5rem;
-          border-radius: 4px;
-          padding: 0px 1px;
-          font-weight: 500;
+          display: none;
         }
 
         .weekly-point-label__suffix {
-          font-size: 0.3rem;
-          font-weight: 500;
+          order: 0;
+          font-size: 0.34rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          text-transform: uppercase;
+        }
+
+        .weekly-point-label__value {
+          order: 1;
+          font-size: 0.54rem;
+          font-weight: 600;
+          border-radius: 4px;
+          padding: 0;
         }
 
     }
