@@ -4950,8 +4950,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       color: rgba(239, 246, 255, 0.78);
       background: rgba(4, 10, 21, 0.72);
       backdrop-filter: blur(8px);
-      border-radius: 8px;
+      border-radius: inherit;
       z-index: 6;
+      pointer-events: none;
     }
 
     .weekly-chart-y-axis {
@@ -6145,20 +6146,20 @@ img.team-logo.glow[alt="WAS"] {
     backdrop-filter: blur(6px) saturate(110%) brightness(110%);
     box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .05), inset 0px 8px 0px -6px rgba(255, 255, 255, .051);
     opacity: 0.1;
-    filter: blur(6px) drop-shadow(10px 4px 10px black) brightness(110%);
-    pointer-events: none;
-}
-/* === Radar Chart Styles === */
-.radar-chart-content {
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 320px;
-    position: relative;
-}
-
-#player-radar-canvas {
+        position: relative;
+        width: 100%;
+        min-height: 220px;
+        border-radius: 1rem;
+        background:
+          radial-gradient(circle at top left, rgba(80, 250, 255, 0.16), transparent 60%),
+          radial-gradient(circle at bottom right, rgba(147, 51, 234, 0.18), transparent 55%),
+          linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94));
+        box-shadow:
+          0 18px 45px rgba(15, 23, 42, 0.85),
+          0 0 0 1px rgba(148, 163, 184, 0.14),
+          inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(22px);
+        overflow: hidden;
     max-width: 100%;
     max-height: 460px;
     width: 100% !important;

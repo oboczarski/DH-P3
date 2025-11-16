@@ -6228,13 +6228,11 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance = null;
             }
             
-            // Clean up consistency chart SVG
-            if (curveSvg) {
-                curveSvg = null;
-            }
-            const pointsLayer = document.getElementById('weekly-chart-points');
-            if (pointsLayer) {
-                pointsLayer.innerHTML = '';
+            // Clean up consistency chart instance to avoid stale canvases
+            disposeConsistencyChartInstance();
+            const { chartEl } = getConsistencyChartElements();
+            if (chartEl) {
+                chartEl.innerHTML = '';
             }
             
             // Clear current player reference
@@ -6436,7 +6434,9 @@ const CONSISTENCY_BUCKET_STYLES = {
     low: { color: '#f6ad' }
 };
 const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
-let curveSvg = null;
+let consistencyChartInstance = null;
+let consistencyChartResizeObserver = null;
+let consistencyChartWindowResizeHandler = null;
 
 function getConsistencyAxisWeeks() {
     return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
@@ -6588,6 +6588,70 @@ function shouldSkipConsistencyWeek(statsForWeek) {
     return true;
 }
 
+function getConsistencyChartElements() {
+    const chartEl = document.getElementById('consistency-echart');
+    const shell = chartEl?.closest('.consistency-chart-shell') || consistencyContainer?.querySelector('.consistency-chart-shell');
+    return { chartEl, shell };
+}
+
+function disposeConsistencyChartInstance() {
+    if (consistencyChartResizeObserver) {
+        consistencyChartResizeObserver.disconnect();
+        consistencyChartResizeObserver = null;
+    }
+    if (consistencyChartWindowResizeHandler) {
+        window.removeEventListener('resize', consistencyChartWindowResizeHandler);
+        consistencyChartWindowResizeHandler = null;
+    }
+    if (consistencyChartInstance) {
+        consistencyChartInstance.dispose();
+        consistencyChartInstance = null;
+    }
+}
+
+function bindConsistencyChartResize(chartEl) {
+    if (typeof ResizeObserver === 'function') {
+        if (consistencyChartResizeObserver) {
+            consistencyChartResizeObserver.disconnect();
+        }
+        consistencyChartResizeObserver = new ResizeObserver(() => {
+            if (consistencyChartInstance) {
+                consistencyChartInstance.resize();
+            }
+        });
+        consistencyChartResizeObserver.observe(chartEl);
+        return;
+    }
+    if (!consistencyChartWindowResizeHandler) {
+        consistencyChartWindowResizeHandler = () => {
+            if (consistencyChartInstance) {
+                consistencyChartInstance.resize();
+            }
+        };
+        window.addEventListener('resize', consistencyChartWindowResizeHandler);
+    }
+}
+
+function ensureConsistencyChartInstance() {
+    if (!window.echarts) {
+        console.warn('ECharts runtime unavailable for consistency panel.');
+        return null;
+    }
+    const { chartEl } = getConsistencyChartElements();
+    if (!chartEl) return null;
+    if (consistencyChartInstance && consistencyChartInstance.getDom() !== chartEl) {
+        disposeConsistencyChartInstance();
+    }
+    if (!consistencyChartInstance) {
+        consistencyChartInstance = echarts.init(chartEl, null, {
+            renderer: 'canvas',
+            useDirtyRect: true
+        });
+        bindConsistencyChartResize(chartEl);
+    }
+    return consistencyChartInstance;
+}
+
 function updateConsistencyHud(data) {
     if (!consistencyContainer) return;
     const weekRangeEl = consistencyContainer.querySelector('[data-week-range]');
@@ -6658,207 +6722,218 @@ function prepareConsistencyPanel(player) {
     updateConsistencyHud(data);
 }
 
-function showConsistencyEmptyState(chartBox, message) {
-    if (!chartBox) return;
-    let emptyEl = chartBox.querySelector('.consistency-empty-state');
+function showConsistencyEmptyState(message) {
+    const { chartEl } = getConsistencyChartElements();
+    if (!chartEl) return;
+    let emptyEl = chartEl.querySelector('.consistency-empty-state');
     if (!emptyEl) {
         emptyEl = document.createElement('div');
         emptyEl.className = 'consistency-empty-state';
-        chartBox.appendChild(emptyEl);
+        chartEl.appendChild(emptyEl);
     }
     emptyEl.textContent = message;
     emptyEl.classList.remove('hidden');
 }
 
-function hideConsistencyEmptyState(chartBox) {
-    const emptyEl = chartBox?.querySelector('.consistency-empty-state');
+function hideConsistencyEmptyState() {
+    const { chartEl } = getConsistencyChartElements();
+    const emptyEl = chartEl?.querySelector('.consistency-empty-state');
     if (emptyEl) emptyEl.classList.add('hidden');
 }
 
 function renderConsistencyChart() {
     if (!consistencyContainer) return;
-    const chartBox = document.getElementById('weekly-chart-box');
-    const pointsLayer = document.getElementById('weekly-chart-points');
-    const xAxisEl = document.getElementById('weekly-chart-x-axis');
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    const { chartEl } = getConsistencyChartElements();
+    if (!chartEl) return;
     const data = state.currentConsistencyData;
     updateConsistencyHud(data);
-    requestAnimationFrame(() => {
-        renderYAxis();
-        if (!data) {
-            renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
-            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
-            if (curveSvg) {
-                curveSvg.remove();
-                curveSvg = null;
+    hydrateProgressCircles(data);
+    const axisWeeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
+    if (!data || !axisWeeks.length) {
+        disposeConsistencyChartInstance();
+        showConsistencyEmptyState('Consistency data unavailable.');
+        return;
+    }
+    const seriesMap = new Map((data.series || []).map(entry => [entry.week, entry]));
+    if (!seriesMap.size) {
+        disposeConsistencyChartInstance();
+        showConsistencyEmptyState('No sheet-based fantasy points recorded yet.');
+        return;
+    }
+    const thresholds = data.thresholds || getConsistencyThresholds();
+    const weekLabels = axisWeeks.map(week => `WK ${week}`);
+    const plottedData = axisWeeks.map(week => {
+        const entry = seriesMap.get(week);
+        if (!entry) return null;
+        const value = clampConsistencyPoints(entry.pts);
+        if (value === null) return null;
+        const bucket = getConsistencyBucket(value, thresholds);
+        return {
+            value,
+            week,
+            opponent: entry.opponent || '—',
+            rawValue: Number.isFinite(entry.originalPts) ? entry.originalPts : value,
+            bucket: bucket.name,
+            itemStyle: {
+                color: bucket.color,
+                borderColor: '#040914',
+                borderWidth: 1.2
             }
-            showConsistencyEmptyState(chartBox, 'Consistency data unavailable.');
-            hydrateProgressCircles(null);
-            return;
-        }
-        createZones(data);
-        renderXAxis(data);
-        renderPoints(data);
-        hydrateProgressCircles(data);
-        if (data.series.length === 0) {
-            showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
-        } else {
-            hideConsistencyEmptyState(chartBox);
-        }
+        };
     });
-}
-
-function createZones(data) {
-    const lineLayer = document.getElementById('weekly-chart-points');
-    if (!lineLayer) return;
-    lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
-    const thresholds = data?.thresholds || getConsistencyThresholds();
-    const stops = [
-        { className: 'weekly-zone--bad', label: `Low < ${thresholds.solid}`, from: 0, to: thresholds.solid },
-        { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}-${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
-        { className: 'weekly-zone--great', label: `High ≥ ${thresholds.high}`, from: thresholds.high, to: MAX_CONSISTENCY_POINTS }
+    if (!plottedData.some(point => point !== null)) {
+        disposeConsistencyChartInstance();
+        showConsistencyEmptyState('No sheet-based fantasy points recorded yet.');
+        return;
+    }
+    hideConsistencyEmptyState();
+    const chart = ensureConsistencyChartInstance();
+    if (!chart) {
+        showConsistencyEmptyState('Chart renderer unavailable.');
+        return;
+    }
+    const gradientFill = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: 'rgba(124, 245, 255, 0.35)' },
+        { offset: 1, color: 'rgba(8, 13, 32, 0.05)' }
+    ]);
+    const zoneAreas = [
+        [
+            { xAxis: 'min', yAxis: thresholds.high, itemStyle: { color: 'rgba(105, 248, 224, 0.07)' } },
+            { xAxis: 'max', yAxis: MAX_CONSISTENCY_POINTS }
+        ],
+        [
+            { xAxis: 'min', yAxis: thresholds.solid, itemStyle: { color: 'rgba(82, 123, 255, 0.08)' } },
+            { xAxis: 'max', yAxis: thresholds.high }
+        ],
+        [
+            { xAxis: 'min', yAxis: 0, itemStyle: { color: 'rgba(249, 115, 197, 0.05)' } },
+            { xAxis: 'max', yAxis: thresholds.solid }
+        ]
     ];
-    stops.forEach(zone => {
-        const topPct = ((MAX_CONSISTENCY_POINTS - zone.to) / MAX_CONSISTENCY_POINTS) * 100;
-        const bottomPct = ((MAX_CONSISTENCY_POINTS - zone.from) / MAX_CONSISTENCY_POINTS) * 100;
-        const heightPct = bottomPct - topPct;
-        const zoneEl = document.createElement('div');
-        zoneEl.className = `weekly-zone ${zone.className}`;
-        zoneEl.style.top = `${topPct}%`;
-        zoneEl.style.height = `${heightPct}%`;
-        const label = document.createElement('span');
-        label.className = 'weekly-zone-label';
-        label.textContent = zone.label;
-        zoneEl.appendChild(label);
-        lineLayer.appendChild(zoneEl);
-    });
-}
-
-function renderXAxis(data) {
-    const xAxisEl = document.getElementById('weekly-chart-x-axis');
-    if (!xAxisEl) return;
-    xAxisEl.innerHTML = '';
-    const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
-    weeks.forEach(week => {
-        const span = document.createElement('span');
-        span.textContent = `WK ${week}`;
-        xAxisEl.appendChild(span);
-    });
-}
-
-function renderYAxis() {
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!yAxisEl) return;
-    yAxisEl.innerHTML = '';
-    [MAX_CONSISTENCY_POINTS, 30, 20, 10, 0].forEach(tick => {
-        const tickEl = document.createElement('div');
-        tickEl.className = 'weekly-chart-y-tick';
-        tickEl.textContent = `${tick} fpts`;
-        yAxisEl.appendChild(tickEl);
-    });
-}
-
-function drawCurve(pointsLayer, points) {
-    if (!pointsLayer || !points.length) return;
-    const box = pointsLayer.getBoundingClientRect();
-    const width = box.width;
-    const height = box.height;
-    if (!width || !height) return;
-    if (!curveSvg) {
-        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        curveSvg.setAttribute('class', 'weekly-curve-layer');
-        curveSvg.style.position = 'absolute';
-        curveSvg.style.inset = '0';
-        pointsLayer.prepend(curveSvg);
-    }
-    curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    curveSvg.setAttribute('width', width);
-    curveSvg.setAttribute('height', height);
-    const toXY = (point) => ({
-        x: (point.x / 100) * width,
-        y: (point.y / 100) * height
-    });
-    const absPoints = points.map(toXY);
-    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
-    for (let i = 0; i < absPoints.length - 1; i += 1) {
-        const p0 = absPoints[i];
-        const p1 = absPoints[i + 1];
-        const dx = (p1.x - p0.x) * 0.35;
-        const c1x = p0.x + dx;
-        const c1y = p0.y;
-        const c2x = p1.x - dx;
-        const c2y = p1.y;
-        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
-    }
-    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathCore.setAttribute('d', d);
-    pathCore.setAttribute('fill', 'none');
-    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
-    pathCore.setAttribute('stroke-width', '2');
-    pathCore.setAttribute('stroke-linecap', 'round');
-    pathCore.setAttribute('stroke-linejoin', 'round');
-    curveSvg.innerHTML = '';
-    curveSvg.appendChild(pathCore);
-}
-
-function yFromPoints(pts) {
-    const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
-    return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
-}
-
-function getValueColor(pts, thresholds) {
-    if (!Number.isFinite(pts)) return '#f8faff';
-    if (pts >= thresholds.high) return '#51CBA5CF';
-    if (pts >= thresholds.solid) return '#9f8bff';
-    return '#d44f76';
-}
-
-function renderPoints(data) {
-    const pointsLayer = document.getElementById('weekly-chart-points');
-    if (!pointsLayer) return;
-    pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
-    if (curveSvg) {
-        curveSvg.remove();
-        curveSvg = null;
-    }
-    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
-    const totalSlots = axisWeeks.length || data.series.length || 1;
-    if (!data.series.length) return;
-    const curvePoints = [];
-    data.series.forEach(entry => {
-        const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
-        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
-        const pctY = yFromPoints(entry.pts);
-        curvePoints.push({ x: pctX, y: pctY });
-        const bucket = getConsistencyBucket(entry.pts, data.thresholds);
-        const pointEl = document.createElement('div');
-        pointEl.className = 'weekly-point';
-        pointEl.style.left = `calc(${pctX}% - 4px)`;
-        pointEl.style.top = `calc(${pctY}% - 4px)`;
-        pointEl.style.background = bucket.color;
-        const valueColor = getValueColor(entry.pts, data.thresholds);
-        const label = document.createElement('div');
-        label.className = 'weekly-point-label';
-        const weekSpan = document.createElement('span');
-        weekSpan.className = 'weekly-point-label__week';
-        weekSpan.textContent = `WK ${entry.week}`;
-        const valueSpan = document.createElement('span');
-        valueSpan.className = 'weekly-point-label__value';
-        const valueNumber = document.createElement('span');
-        valueNumber.style.color = valueColor;
-        valueNumber.textContent = entry.pts.toFixed(1);
-        const suffix = document.createElement('span');
-        suffix.className = 'weekly-point-label__suffix';
-        suffix.textContent = 'fpts';
-        valueSpan.appendChild(valueNumber);
-        valueSpan.appendChild(suffix);
-        label.appendChild(weekSpan);
-        label.appendChild(valueSpan);
-        pointEl.appendChild(label);
-        pointsLayer.appendChild(pointEl);
-    });
-    drawCurve(pointsLayer, curvePoints);
+    const thresholdLines = [
+        {
+            yAxis: thresholds.high,
+            lineStyle: { color: 'rgba(124, 255, 237, 0.75)', type: 'solid', width: 1.1 },
+            label: {
+                formatter: `High ≥ ${thresholds.high}`,
+                position: 'end',
+                color: 'rgba(124, 255, 237, 0.85)',
+                backgroundColor: 'rgba(2, 9, 22, 0.8)',
+                fontSize: 10,
+                padding: [3, 6],
+                borderRadius: 4
+            }
+        },
+        {
+            yAxis: thresholds.solid,
+            lineStyle: { color: 'rgba(126, 154, 255, 0.65)', type: 'dashed', width: 1 },
+            label: {
+                formatter: `Solid ≥ ${thresholds.solid}`,
+                position: 'end',
+                color: 'rgba(168, 190, 255, 0.85)',
+                fontSize: 10,
+                padding: [3, 6],
+                borderRadius: 4,
+                backgroundColor: 'rgba(2, 9, 22, 0.75)'
+            }
+        }
+    ];
+    const option = {
+        backgroundColor: 'transparent',
+        animationDuration: 620,
+        grid: {
+            left: 34,
+            right: 18,
+            top: 30,
+            bottom: 38,
+            containLabel: true
+        },
+        tooltip: {
+            trigger: 'axis',
+            enterable: false,
+            backgroundColor: 'rgba(4, 7, 18, 0.92)',
+            borderColor: 'rgba(124, 181, 255, 0.35)',
+            borderWidth: 1,
+            padding: [10, 12],
+            textStyle: { color: '#f8faff', fontSize: 12, fontWeight: 500 },
+            axisPointer: {
+                type: 'line',
+                lineStyle: { color: 'rgba(124, 181, 255, 0.6)', width: 1, type: 'dashed' }
+            },
+            formatter: (params = []) => {
+                const point = params[0];
+                if (!point) return '';
+                const item = point.data || {};
+                const week = item.week ?? axisWeeks[point.dataIndex] ?? '-';
+                const pts = Number.isFinite(item.rawValue) ? item.rawValue.toFixed(1) : '—';
+                const bucketLabel = item.bucket ? item.bucket.toUpperCase() : '';
+                const opponent = item.opponent && item.opponent !== '—' ? `vs ${item.opponent}` : '';
+                return [
+                    `<div class="consistency-tooltip">`,
+                    `<div class="consistency-tooltip-week">Week ${week} ${opponent}</div>`,
+                    `<div class="consistency-tooltip-value">${pts} fpts</div>`,
+                    bucketLabel ? `<div class="consistency-tooltip-bucket">${bucketLabel} tier</div>` : '',
+                    `</div>`
+                ].filter(Boolean).join('');
+            }
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: weekLabels,
+            axisLine: { lineStyle: { color: 'rgba(148, 186, 255, 0.35)' } },
+            axisLabel: { color: 'rgba(227, 236, 255, 0.78)', fontSize: 11, rotate: 0 },
+            axisTick: { show: false },
+            splitLine: { show: false }
+        },
+        yAxis: {
+            type: 'value',
+            min: 0,
+            max: MAX_CONSISTENCY_POINTS,
+            interval: 10,
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: {
+                color: 'rgba(227, 236, 255, 0.7)',
+                fontSize: 10,
+                formatter: value => `${value}`
+            },
+            splitLine: { lineStyle: { color: 'rgba(148, 186, 255, 0.12)', type: 'dashed' } }
+        },
+        series: [
+            {
+                name: 'Weekly Fantasy Points',
+                type: 'line',
+                data: plottedData,
+                smooth: true,
+                connectNulls: false,
+                showSymbol: true,
+                symbol: 'circle',
+                symbolSize: 10,
+                lineStyle: {
+                    color: '#7cf5ff',
+                    width: 3,
+                    shadowColor: 'rgba(8, 23, 45, 0.45)',
+                    shadowBlur: 14,
+                    shadowOffsetY: 6
+                },
+                areaStyle: { color: gradientFill },
+                emphasis: { focus: 'series', scale: true },
+                markArea: {
+                    silent: true,
+                    data: zoneAreas
+                },
+                markLine: {
+                    silent: true,
+                    symbol: 'none',
+                    label: { distance: 6 },
+                    data: thresholdLines
+                },
+                zlevel: 2
+            }
+        ]
+    };
+    chart.setOption(option, true);
 }
 
 function hydrateProgressCircles(data) {
