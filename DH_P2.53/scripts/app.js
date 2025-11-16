@@ -6690,12 +6690,10 @@ function renderConsistencyChart() {
     const chartBox = document.getElementById('weekly-chart-box');
     const pointsLayer = document.getElementById('weekly-chart-points');
     const xAxisEl = document.getElementById('weekly-chart-x-axis');
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    if (!chartBox || !pointsLayer || !xAxisEl) return;
     const data = state.currentConsistencyData;
     updateConsistencyHud(data);
     requestAnimationFrame(() => {
-        renderYAxis();
         if (!data) {
             renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
             pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
@@ -6707,7 +6705,6 @@ function renderConsistencyChart() {
             hydrateProgressCircles(null);
             return;
         }
-        createZones(data);
         renderXAxis(data);
         renderPoints(data);
         hydrateProgressCircles(data);
@@ -6723,26 +6720,6 @@ function createZones(data) {
     const lineLayer = document.getElementById('weekly-chart-points');
     if (!lineLayer) return;
     lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
-    const thresholds = data?.thresholds || getConsistencyThresholds();
-    const stops = [
-        { className: 'weekly-zone--bad', label: `Low < ${thresholds.solid}`, from: 0, to: thresholds.solid },
-        { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}-${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
-        { className: 'weekly-zone--great', label: `High ≥ ${thresholds.high}`, from: thresholds.high, to: MAX_CONSISTENCY_POINTS }
-    ];
-    stops.forEach(zone => {
-        const topPct = ((MAX_CONSISTENCY_POINTS - zone.to) / MAX_CONSISTENCY_POINTS) * 100;
-        const bottomPct = ((MAX_CONSISTENCY_POINTS - zone.from) / MAX_CONSISTENCY_POINTS) * 100;
-        const heightPct = bottomPct - topPct;
-        const zoneEl = document.createElement('div');
-        zoneEl.className = `weekly-zone ${zone.className}`;
-        zoneEl.style.top = `${topPct}%`;
-        zoneEl.style.height = `${heightPct}%`;
-        const label = document.createElement('span');
-        label.className = 'weekly-zone-label';
-        label.textContent = zone.label;
-        zoneEl.appendChild(label);
-        lineLayer.appendChild(zoneEl);
-    });
 }
 
 function renderXAxis(data) {
@@ -6754,18 +6731,6 @@ function renderXAxis(data) {
         const span = document.createElement('span');
         span.textContent = `WK ${week}`;
         xAxisEl.appendChild(span);
-    });
-}
-
-function renderYAxis() {
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!yAxisEl) return;
-    yAxisEl.innerHTML = '';
-    [MAX_CONSISTENCY_POINTS, 30, 20, 10, 0].forEach(tick => {
-        const tickEl = document.createElement('div');
-        tickEl.className = 'weekly-chart-y-tick';
-        tickEl.textContent = `${tick} fpts`;
-        yAxisEl.appendChild(tickEl);
     });
 }
 
