@@ -4855,6 +4855,18 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         font-size: 0.48rem;
         color: #7cf5ff;
         opacity: 0.9;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.18rem;
+    }
+
+    .metric-sub-label {
+      color: #9096c0;
+      font-weight: 500;
+    }
+
+    .metric-sub-value {
+      font-weight: 600;
     }
 
     .consistency-hud .hud-insights {

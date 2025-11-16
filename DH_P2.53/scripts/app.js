@@ -6468,13 +6468,33 @@ function formatHudPercentage(value, decimals = 1) {
 }
 
 function formatHudRank(rank) {
-    if (!Number.isFinite(rank)) return 'Pos Rank: NA';
-    return `Pos Rank: ${rank}`;
+    if (!Number.isFinite(rank)) return 'NA';
+    return `${rank}`;
 }
 
 function formatCeilingValue(value) {
     if (!Number.isFinite(value)) return 'N/A';
     return Number(value).toFixed(1);
+}
+
+function getRankAccentColor(rank) {
+    if (!Number.isFinite(rank)) return '#f8faff';
+    if (rank <= 12) return '#7cf5ff';
+    if (rank <= 24) return '#56c4ff';
+    return '#d3a5ff';
+}
+
+function applyRankStyling({ rank, metricValueEl, metricSubEl, circleValueEl }) {
+    const color = getRankAccentColor(rank);
+    if (metricValueEl) metricValueEl.style.color = color;
+    if (circleValueEl) circleValueEl.style.color = color;
+    if (metricSubEl) {
+        const valueNode = metricSubEl.querySelector('.metric-sub-value');
+        if (valueNode) {
+            valueNode.textContent = formatHudRank(rank);
+            valueNode.style.color = color;
+        }
+    }
 }
 
 function pluralizeWeeks(count) {
@@ -6578,11 +6598,9 @@ function updateConsistencyHud(data) {
     const formattedPct = formatHudPercentage(data?.consistencyPct);
     if (consistencyValueEl) consistencyValueEl.textContent = formattedPct;
     const consistencyRankEl = consistencyContainer.querySelector('[data-consistency-rank]');
-    if (consistencyRankEl) consistencyRankEl.textContent = formatHudRank(data?.consistencyRank);
     const ceilingValueEl = consistencyContainer.querySelector('[data-ceiling-value]');
     if (ceilingValueEl) ceilingValueEl.textContent = formatCeilingValue(data?.ceilingValue);
     const ceilingRankEl = consistencyContainer.querySelector('[data-ceiling-rank]');
-    if (ceilingRankEl) ceilingRankEl.textContent = formatHudRank(data?.ceilingRank);
     const circleConsistencyValue = consistencyContainer.querySelector('[data-consistency-circle-value]');
     if (circleConsistencyValue) circleConsistencyValue.textContent = formattedPct;
     const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
@@ -6591,13 +6609,24 @@ function updateConsistencyHud(data) {
     if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
     const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
     if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
+    applyRankStyling({
+        rank: data?.consistencyRank,
+        metricValueEl: consistencyValueEl,
+        metricSubEl: consistencyRankEl,
+        circleValueEl: circleConsistencyValue
+    });
+    applyRankStyling({
+        rank: data?.ceilingRank,
+        metricValueEl: ceilingValueEl,
+        metricSubEl: ceilingRankEl,
+        circleValueEl: circleCeilingValue
+    });
     const bestGameEl = consistencyContainer.querySelector('[data-insight-best]');
     if (bestGameEl) {
         if (data?.bestGame) {
             const ptsValue = Number.isFinite(data.bestGame.originalPts) ? data.bestGame.originalPts : data.bestGame.pts;
-            const weekLabel = Number.isFinite(data.bestGame.week) ? `WK ${data.bestGame.week}` : 'Best Game';
             const formattedPts = Number.isFinite(ptsValue) ? `${ptsValue.toFixed(1)} fpts` : '—';
-            bestGameEl.textContent = `${weekLabel} • ${formattedPts}`;
+            bestGameEl.textContent = formattedPts;
         } else {
             bestGameEl.textContent = '—';
         }
