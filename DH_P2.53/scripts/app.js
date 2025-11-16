@@ -6764,6 +6764,8 @@ function drawCurve(pointsLayer, chartPoints, thresholds) {
         y: (point.pctY / 100) * height,
         value: point.pts
     }));
+    const curvePoints = insertThresholdSplitPoints(absPoints, thresholds);
+    const linePoints = (curvePoints && curvePoints.length >= 2) ? curvePoints : absPoints;
 
     const defs = createSvgElement('defs');
     defs.appendChild(createLineGlowFilter());
@@ -6771,7 +6773,7 @@ function drawCurve(pointsLayer, chartPoints, thresholds) {
     defs.appendChild(createAreaGradient(thresholds, height));
     curveSvg.appendChild(defs);
 
-    if (absPoints.length >= 2) {
+    if (linePoints.length >= 2) {
         const areaPath = buildAreaPath(absPoints, height);
         areaPath.setAttribute('fill', 'url(#consistencyAreaGradient)');
         areaPath.setAttribute('opacity', '0.94');
@@ -6779,11 +6781,10 @@ function drawCurve(pointsLayer, chartPoints, thresholds) {
         curveSvg.appendChild(areaPath);
 
         const lineGroup = createSvgElement('g');
-        absPoints.forEach((point, index) => {
-            if (index === absPoints.length - 1) return;
-            const next = absPoints[index + 1];
-            const avgValue = (point.value + next.value) / 2;
-            const color = getValueColor(avgValue, thresholds);
+        for (let index = 0; index < linePoints.length - 1; index += 1) {
+            const point = linePoints[index];
+            const next = linePoints[index + 1];
+            const color = getValueColor(point.value, thresholds);
             const segmentPath = createSvgElement('path');
             segmentPath.setAttribute('d', buildSegmentPath(point, next));
             segmentPath.setAttribute('fill', 'none');
@@ -6793,9 +6794,57 @@ function drawCurve(pointsLayer, chartPoints, thresholds) {
             segmentPath.setAttribute('stroke-linejoin', 'round');
             segmentPath.setAttribute('filter', 'url(#consistencyLineGlow)');
             lineGroup.appendChild(segmentPath);
-        });
+        }
         curveSvg.appendChild(lineGroup);
     }
+}
+
+
+function insertThresholdSplitPoints(points, thresholds) {
+    if (!points?.length || !thresholds) return points || [];
+    if (points.length === 1) return points;
+    const expanded = [points[0]];
+    for (let i = 0; i < points.length - 1; i += 1) {
+        const start = points[i];
+        const end = points[i + 1];
+        const splits = computeThresholdIntersections(start, end, thresholds);
+        splits.forEach((pt) => expanded.push(pt));
+        expanded.push(end);
+    }
+    return expanded;
+}
+
+function computeThresholdIntersections(start, end, thresholds) {
+    const result = [];
+    if (!start || !end) return result;
+    const boundaries = [thresholds.solid, thresholds.high].filter((boundary) => isBetweenExclusive(boundary, start.value, end.value));
+    if (!boundaries.length) return result;
+    const denom = end.value - start.value;
+    if (!Number.isFinite(denom) || Math.abs(denom) < 1e-6) return result;
+    const ratios = boundaries
+        .map((boundary) => ({ ratio: (boundary - start.value) / denom, value: boundary }))
+        .filter(({ ratio }) => ratio > 0 && ratio < 1)
+        .sort((a, b) => a.ratio - b.ratio);
+    if (!ratios.length) return result;
+    const startX = start.x;
+    const startY = start.y;
+    const deltaX = end.x - start.x;
+    const deltaY = end.y - start.y;
+    ratios.forEach(({ ratio, value }) => {
+        result.push({
+            x: startX + deltaX * ratio,
+            y: startY + deltaY * ratio,
+            value
+        });
+    });
+    return result;
+}
+
+function isBetweenExclusive(target, a, b) {
+    if (!Number.isFinite(target) || !Number.isFinite(a) || !Number.isFinite(b)) return false;
+    const min = Math.min(a, b);
+    const max = Math.max(a, b);
+    return target > min && target < max;
 }
 
 function createSvgElement(tag) {
