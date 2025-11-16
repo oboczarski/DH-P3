@@ -6228,13 +6228,11 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance = null;
             }
             
-            // Clean up consistency chart SVG
-            if (curveSvg) {
-                curveSvg = null;
-            }
-            const pointsLayer = document.getElementById('weekly-chart-points');
-            if (pointsLayer) {
-                pointsLayer.innerHTML = '';
+            // Clean up consistency chart instance
+            clearConsistencyChartInstance();
+            const echartContainer = document.getElementById('consistency-echart');
+            if (echartContainer) {
+                hideConsistencyEmptyState(echartContainer);
             }
             
             // Clear current player reference
@@ -6436,7 +6434,8 @@ const CONSISTENCY_BUCKET_STYLES = {
     low: { color: '#f6ad' }
 };
 const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
-let curveSvg = null;
+let consistencyChartInstance = null;
+let hasBoundConsistencyResizeHandler = false;
 
 function getConsistencyAxisWeeks() {
     return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
@@ -6675,190 +6674,328 @@ function hideConsistencyEmptyState(chartBox) {
     if (emptyEl) emptyEl.classList.add('hidden');
 }
 
+function clearConsistencyChartInstance() {
+    if (consistencyChartInstance) {
+        consistencyChartInstance.clear();
+    }
+}
+
+function mapConsistencySeriesData(axisWeeks, seriesEntries) {
+    const weekValueMap = new Map();
+    if (Array.isArray(seriesEntries)) {
+        seriesEntries.forEach(entry => {
+            if (!entry || !Number.isFinite(entry.pts)) return;
+            const sanitized = Math.max(0, Math.min(MAX_CONSISTENCY_POINTS, entry.pts));
+            weekValueMap.set(String(entry.week), Number(sanitized.toFixed(1)));
+        });
+    }
+    return axisWeeks.map(week => {
+        const label = String(week ?? '');
+        const value = weekValueMap.get(label);
+        return Number.isFinite(value) ? value : null;
+    });
+}
+
+function getConsistencyChartTargetHeight() {
+    if (typeof window === 'undefined' || typeof window.innerHeight !== 'number') {
+        return 360;
+    }
+    const viewportHeight = Math.max(window.innerHeight, 600);
+    const viewportWidth = window.innerWidth || 1024;
+    const ratio = viewportWidth <= 480 ? 0.68 : viewportWidth <= 768 ? 0.58 : viewportWidth <= 1200 ? 0.48 : 0.42;
+    const target = Math.round(viewportHeight * ratio);
+    return Math.max(240, Math.min(520, target));
+}
+
+function applyConsistencyChartDimensions(container) {
+    if (!container) return;
+    const targetHeight = getConsistencyChartTargetHeight();
+    container.style.minHeight = targetHeight + 'px';
+    container.style.height = targetHeight + 'px';
+}
+
+function buildConsistencyChartOption({ axisWeeks, seriesData, thresholds }) {
+    const safeThresholds = thresholds || getConsistencyThresholds();
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1280;
+    const isTablet = viewportWidth <= 1024;
+    const isMobile = viewportWidth <= 640;
+
+    const axisLabelFormatter = (value) => {
+        if (value === undefined || value === null || value === '') return '';
+        return 'WK ' + value;
+    };
+
+    return {
+        backgroundColor: '#13223510',
+        textStyle: { color: '#eee' },
+        visualMap: {
+            type: 'piecewise',
+            show: false,
+            dimension: 1,
+            seriesIndex: 0,
+            pieces: buildConsistencyVisualPieces(safeThresholds)
+        },
+        grid: {
+            left: '2%',
+            right: '2%',
+            bottom: isMobile ? '3%' : isTablet ? '3%' : '3%',
+            containLabel: true
+        },
+        tooltip: {
+            trigger: 'axis',
+            appendToBody: true,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            borderColor: '#555',
+            textStyle: { color: '#fff' },
+            formatter(params) {
+                if (!params || !params.length) return '';
+                const point = params[0];
+                const value = Number(point.value);
+                const valueText = Number.isFinite(value) ? value.toFixed(1) + ' FPTS' : 'No data';
+                const label = axisLabelFormatter(point.axisValue ?? point.name);
+                const seriesName = point.seriesName || 'FPTS';
+                return '<strong>Week: ' + label + '</strong><br/>' + seriesName + ': ' + valueText;
+            }
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: axisWeeks,
+            axisLine: { lineStyle: { color: '#888' } },
+            axisLabel: {
+                color: '#b0c4de',
+                fontSize: isMobile ? 7 : 8,
+                formatter: axisLabelFormatter
+            }
+        },
+        yAxis: {
+            type: 'value',
+            min: 0,
+            max: MAX_CONSISTENCY_POINTS,
+            name: 'FPTS',
+            nameLocation: 'end',
+            nameTextStyle: {
+                color: '#b0c4de',
+                fontSize: isMobile ? 12 : 14
+            },
+            splitLine: { show: false },
+            axisLine: {
+                show: false,
+                lineStyle: { color: '#888' }
+            },
+            axisLabel: {
+                color: '#b0c4de',
+                fontSize: isMobile ? 9 : 11
+            }
+        },
+        series: [
+            {
+                name: 'FPTS',
+                type: 'line',
+                smooth: 0.7,
+                connectNulls: true,
+                symbol: 'circle',
+                symbolSize: isMobile ? 2 : 4,
+                symbolOffset: [0, 2],
+                showSymbol: true,
+                showAllSymbol: 'auto',
+                data: seriesData,
+                label: {
+                    show: true,
+                    position: 'top',
+                    color: 'inherit',
+                    fontSize: 7,
+                    formatter(params) {
+                        const numericValue = Number(params.value);
+                        if (!Number.isFinite(numericValue)) return '';
+                        return numericValue.toFixed(1) + ' FPTS';
+                    },
+                    distance: 1,
+                    offset: [0, -4],
+                    backgroundColor: 'rgba(15, 23, 42, 0.3)',
+                    padding: [2, 3],
+                    borderRadius: 5,
+                },
+                labelLayout: {
+                    hideOverlap: true,
+                    moveOverlap: 'shiftY'
+                },
+                lineStyle: {
+                    width: 1,
+                    type: 'solid',
+                    opacity: 0.95,
+                    cap: 'round',
+                    join: 'round',
+                    shadowColor: 'rgba(210,230,250,0.2)',
+                    shadowBlur: 8,
+                    shadowOffsetY: 6
+                },
+                itemStyle: {
+                    borderColor: '#fff',
+                    borderWidth: 4
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [
+                            { offset: 0, color: '#00ffab20' },
+                            { offset: 0.51, color: '#005cff20' },
+                            { offset: 1, color: '#c26cfc20' }
+                        ]
+                    },
+                    origin: 'auto',
+                    opacity: 0.94,
+                    shadowBlur: 155,
+                    shadowColor: 'rgba(56, 189, 248, 0.35)',
+                    shadowOffsetY: 16
+                },
+                markArea: {
+                    silent: true,
+                    itemStyle: { opacity: 0.1 },
+                    data: buildConsistencyMarkAreas(safeThresholds)
+                },
+                sampling: 'lttb'
+            }
+        ]
+    };
+}
+
+function buildConsistencyVisualPieces(thresholds) {
+    const solid = Number.isFinite(thresholds?.solid) ? thresholds.solid : 0;
+    const high = Number.isFinite(thresholds?.high) ? thresholds.high : solid;
+    const pieces = [
+        {
+            lt: solid,
+            label: 'Low < ' + solid,
+            color: '#c26cfc'
+        }
+    ];
+
+    if (high > solid) {
+        pieces.push({
+            gte: solid,
+            lt: high,
+            label: 'Solid ' + solid + '-' + high,
+            color: '#00c5ff'
+        });
+        pieces.push({
+            gte: high,
+            label: 'High >= ' + high,
+            color: '#00ffc1'
+        });
+    } else {
+        pieces.push({
+            gte: solid,
+            label: 'High >= ' + solid,
+            color: '#00ffc1'
+        });
+    }
+
+    return pieces;
+}
+
+function buildConsistencyMarkAreas(thresholds) {
+    const rawSolid = Number.isFinite(thresholds?.solid) ? thresholds.solid : 0;
+    const rawHigh = Number.isFinite(thresholds?.high) ? thresholds.high : rawSolid;
+    const solid = Math.max(0, Math.min(MAX_CONSISTENCY_POINTS, rawSolid));
+    const high = Math.max(solid, Math.min(MAX_CONSISTENCY_POINTS, rawHigh));
+    return [
+        [
+            { yAxis: 0, itemStyle: { color: 'rgba(185, 28, 28, 0.17)' } },
+            { yAxis: solid }
+        ],
+        [
+            { yAxis: solid, itemStyle: { color: 'rgba(76, 29, 149, 0.17)' } },
+            { yAxis: high }
+        ],
+        [
+            { yAxis: high, itemStyle: { color: 'rgba(30, 64, 175, 0.17)' } },
+            { yAxis: MAX_CONSISTENCY_POINTS }
+        ]
+    ];
+}
+
+function ensureConsistencyChartResizeHandler() {
+    if (hasBoundConsistencyResizeHandler) return;
+    hasBoundConsistencyResizeHandler = true;
+    window.addEventListener('resize', () => resizeConsistencyChartIfVisible());
+}
+
+function resizeConsistencyChartIfVisible() {
+    const chartContainer = document.getElementById('consistency-echart');
+    if (chartContainer) {
+        applyConsistencyChartDimensions(chartContainer);
+    }
+    if (!consistencyChartInstance) return;
+    if (gameLogsModal && gameLogsModal.classList.contains('hidden')) return;
+    consistencyChartInstance.resize();
+}
+
 function renderConsistencyChart() {
     if (!consistencyContainer) return;
-    const chartBox = document.getElementById('weekly-chart-box');
-    const pointsLayer = document.getElementById('weekly-chart-points');
-    const xAxisEl = document.getElementById('weekly-chart-x-axis');
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    const chartContainer = document.getElementById('consistency-echart');
+    if (!chartContainer) return;
+    applyConsistencyChartDimensions(chartContainer);
     const data = state.currentConsistencyData;
     updateConsistencyHud(data);
     requestAnimationFrame(() => {
-        renderYAxis();
         if (!data) {
-            renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
-            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
-            if (curveSvg) {
-                curveSvg.remove();
-                curveSvg = null;
-            }
-            showConsistencyEmptyState(chartBox, 'Consistency data unavailable.');
+            clearConsistencyChartInstance();
+            showConsistencyEmptyState(chartContainer, 'Consistency data unavailable.');
             hydrateProgressCircles(null);
             return;
         }
-        createZones(data);
-        renderXAxis(data);
-        renderPoints(data);
-        hydrateProgressCircles(data);
-        if (data.series.length === 0) {
-            showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
-        } else {
-            hideConsistencyEmptyState(chartBox);
+        let axisWeeks = Array.isArray(data.axisWeeks) ? data.axisWeeks.slice() : [];
+        if (!axisWeeks.length) {
+            axisWeeks = getConsistencyAxisWeeks();
         }
+        if (!axisWeeks.length) {
+            axisWeeks = Array.isArray(data.series) ? data.series.map(entry => entry.week) : [];
+        }
+        if (!axisWeeks.length) {
+            clearConsistencyChartInstance();
+            showConsistencyEmptyState(chartContainer, 'Consistency data unavailable.');
+            hydrateProgressCircles(data);
+            return;
+        }
+        const hasSeries = Array.isArray(data.series) && data.series.length > 0;
+        if (!hasSeries) {
+            clearConsistencyChartInstance();
+            showConsistencyEmptyState(chartContainer, 'No sheet-based fantasy points recorded yet.');
+            hydrateProgressCircles(data);
+            return;
+        }
+        const normalizedAxisWeeks = axisWeeks.map(week => {
+            if (week === null || week === undefined) return '';
+            const numericWeek = Number(week);
+            if (Number.isFinite(numericWeek)) return numericWeek;
+            return String(week);
+        });
+        const thresholds = data.thresholds || getConsistencyThresholds(data.position);
+        const seriesData = mapConsistencySeriesData(normalizedAxisWeeks, data.series);
+        if (typeof echarts === 'undefined') {
+            clearConsistencyChartInstance();
+            showConsistencyEmptyState(chartContainer, 'Chart library unavailable.');
+            return;
+        }
+        if (!consistencyChartInstance) {
+            consistencyChartInstance = echarts.init(chartContainer);
+        }
+        hideConsistencyEmptyState(chartContainer);
+        const option = buildConsistencyChartOption({
+            axisWeeks: normalizedAxisWeeks,
+            seriesData,
+            thresholds
+        });
+        consistencyChartInstance.setOption(option, true);
+        hydrateProgressCircles(data);
+        ensureConsistencyChartResizeHandler();
+        resizeConsistencyChartIfVisible();
     });
-}
-
-function createZones(data) {
-    const lineLayer = document.getElementById('weekly-chart-points');
-    if (!lineLayer) return;
-    lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
-    const thresholds = data?.thresholds || getConsistencyThresholds();
-    const stops = [
-        { className: 'weekly-zone--bad', label: `Low < ${thresholds.solid}`, from: 0, to: thresholds.solid },
-        { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}-${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
-        { className: 'weekly-zone--great', label: `High ≥ ${thresholds.high}`, from: thresholds.high, to: MAX_CONSISTENCY_POINTS }
-    ];
-    stops.forEach(zone => {
-        const topPct = ((MAX_CONSISTENCY_POINTS - zone.to) / MAX_CONSISTENCY_POINTS) * 100;
-        const bottomPct = ((MAX_CONSISTENCY_POINTS - zone.from) / MAX_CONSISTENCY_POINTS) * 100;
-        const heightPct = bottomPct - topPct;
-        const zoneEl = document.createElement('div');
-        zoneEl.className = `weekly-zone ${zone.className}`;
-        zoneEl.style.top = `${topPct}%`;
-        zoneEl.style.height = `${heightPct}%`;
-        const label = document.createElement('span');
-        label.className = 'weekly-zone-label';
-        label.textContent = zone.label;
-        zoneEl.appendChild(label);
-        lineLayer.appendChild(zoneEl);
-    });
-}
-
-function renderXAxis(data) {
-    const xAxisEl = document.getElementById('weekly-chart-x-axis');
-    if (!xAxisEl) return;
-    xAxisEl.innerHTML = '';
-    const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
-    weeks.forEach(week => {
-        const span = document.createElement('span');
-        span.textContent = `WK ${week}`;
-        xAxisEl.appendChild(span);
-    });
-}
-
-function renderYAxis() {
-    const yAxisEl = document.getElementById('weekly-chart-y-axis');
-    if (!yAxisEl) return;
-    yAxisEl.innerHTML = '';
-    [MAX_CONSISTENCY_POINTS, 30, 20, 10, 0].forEach(tick => {
-        const tickEl = document.createElement('div');
-        tickEl.className = 'weekly-chart-y-tick';
-        tickEl.textContent = `${tick} fpts`;
-        yAxisEl.appendChild(tickEl);
-    });
-}
-
-function drawCurve(pointsLayer, points) {
-    if (!pointsLayer || !points.length) return;
-    const box = pointsLayer.getBoundingClientRect();
-    const width = box.width;
-    const height = box.height;
-    if (!width || !height) return;
-    if (!curveSvg) {
-        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        curveSvg.setAttribute('class', 'weekly-curve-layer');
-        curveSvg.style.position = 'absolute';
-        curveSvg.style.inset = '0';
-        pointsLayer.prepend(curveSvg);
-    }
-    curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    curveSvg.setAttribute('width', width);
-    curveSvg.setAttribute('height', height);
-    const toXY = (point) => ({
-        x: (point.x / 100) * width,
-        y: (point.y / 100) * height
-    });
-    const absPoints = points.map(toXY);
-    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
-    for (let i = 0; i < absPoints.length - 1; i += 1) {
-        const p0 = absPoints[i];
-        const p1 = absPoints[i + 1];
-        const dx = (p1.x - p0.x) * 0.35;
-        const c1x = p0.x + dx;
-        const c1y = p0.y;
-        const c2x = p1.x - dx;
-        const c2y = p1.y;
-        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
-    }
-    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathCore.setAttribute('d', d);
-    pathCore.setAttribute('fill', 'none');
-    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
-    pathCore.setAttribute('stroke-width', '2');
-    pathCore.setAttribute('stroke-linecap', 'round');
-    pathCore.setAttribute('stroke-linejoin', 'round');
-    curveSvg.innerHTML = '';
-    curveSvg.appendChild(pathCore);
-}
-
-function yFromPoints(pts) {
-    const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
-    return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
-}
-
-function getValueColor(pts, thresholds) {
-    if (!Number.isFinite(pts)) return '#f8faff';
-    if (pts >= thresholds.high) return '#51CBA5CF';
-    if (pts >= thresholds.solid) return '#9f8bff';
-    return '#d44f76';
-}
-
-function renderPoints(data) {
-    const pointsLayer = document.getElementById('weekly-chart-points');
-    if (!pointsLayer) return;
-    pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
-    if (curveSvg) {
-        curveSvg.remove();
-        curveSvg = null;
-    }
-    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
-    const totalSlots = axisWeeks.length || data.series.length || 1;
-    if (!data.series.length) return;
-    const curvePoints = [];
-    data.series.forEach(entry => {
-        const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
-        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
-        const pctY = yFromPoints(entry.pts);
-        curvePoints.push({ x: pctX, y: pctY });
-        const bucket = getConsistencyBucket(entry.pts, data.thresholds);
-        const pointEl = document.createElement('div');
-        pointEl.className = 'weekly-point';
-        pointEl.style.left = `calc(${pctX}% - 4px)`;
-        pointEl.style.top = `calc(${pctY}% - 4px)`;
-        pointEl.style.background = bucket.color;
-        const valueColor = getValueColor(entry.pts, data.thresholds);
-        const label = document.createElement('div');
-        label.className = 'weekly-point-label';
-        const weekSpan = document.createElement('span');
-        weekSpan.className = 'weekly-point-label__week';
-        weekSpan.textContent = `WK ${entry.week}`;
-        const valueSpan = document.createElement('span');
-        valueSpan.className = 'weekly-point-label__value';
-        const valueNumber = document.createElement('span');
-        valueNumber.style.color = valueColor;
-        valueNumber.textContent = entry.pts.toFixed(1);
-        const suffix = document.createElement('span');
-        suffix.className = 'weekly-point-label__suffix';
-        suffix.textContent = 'fpts';
-        valueSpan.appendChild(valueNumber);
-        valueSpan.appendChild(suffix);
-        label.appendChild(weekSpan);
-        label.appendChild(valueSpan);
-        pointEl.appendChild(label);
-        pointsLayer.appendChild(pointEl);
-    });
-    drawCurve(pointsLayer, curvePoints);
 }
 
 function hydrateProgressCircles(data) {
