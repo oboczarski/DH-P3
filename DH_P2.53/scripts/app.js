@@ -6433,9 +6433,9 @@ const CONSISTENCY_LINE_FILTER_ID = 'consistency-line-glow';
 const CONSISTENCY_AREA_FILTER_ID = 'consistency-area-glow';
 const CONSISTENCY_AREA_GRADIENT_ID = 'consistency-area-gradient';
 const CONSISTENCY_GRADIENT_COLORS = {
-    low: '#c26cfc20',
-    solid: '#005cff20',
-    high: '#00ffc120'
+    low: '#c26cfc10',
+    solid: '#005cff10',
+    high: '#00ffc110'
 };
 const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
 let curveSvg = null;
@@ -7004,7 +7004,7 @@ function drawSegmentedCurve(pointsLayer, relPoints, data) {
             const color = getConsistencyBucket(avg, data.thresholds).color;
             segmentPath.setAttribute('fill', 'none');
             segmentPath.setAttribute('stroke', color);
-            segmentPath.setAttribute('stroke-width', '3');
+            segmentPath.setAttribute('stroke-width', '2');
             segmentPath.setAttribute('stroke-linecap', 'round');
             segmentPath.setAttribute('stroke-linejoin', 'round');
             segmentPath.setAttribute('filter', `url(#${CONSISTENCY_LINE_FILTER_ID})`);
