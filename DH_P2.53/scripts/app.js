@@ -43,7 +43,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
         const statsKeyContainer = document.getElementById('stats-key-container');
         const radarChartContainer = document.getElementById('radar-chart-container');
-        const newsContainer = document.getElementById('news-container');
+        const consistencyContainer = document.getElementById('consistency-container');
         const modalOverlay = document.querySelector('.modal-overlay');
         const modalPlayerName = document.getElementById('modal-player-name');
         const modalPlayerVitals = document.getElementById('modal-player-vitals');
@@ -314,7 +314,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
         const assignedLeagueColors = new Map();
         let nextColorIndex = 0;
         const assignedRyColors = new Map();
@@ -323,7 +323,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
         const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9' } };
+        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -463,7 +463,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         const overlayContainers = {
                             'stats-key': statsKeyContainer,
                             'radar-chart': radarChartContainer,
-                            'news': newsContainer
+                            'consistency': consistencyContainer
                         };
                         
                         // Special handling for game-logs - can't be toggled off
@@ -514,6 +514,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                                 if (player && player.pos) {
                                     renderPlayerRadarChart(player.id, player.pos);
                                 }
+                            }
+                            
+                            // If opening consistency panel, render consistency chart
+                            if (targetPanel === 'consistency' && state.currentGameLogsPlayer) {
+                                renderConsistencyChart();
                             }
                         }
                     });
@@ -650,23 +655,24 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                     leagueNavName.textContent = currentLeague.name;
                 }
                 
-                // Update arrow button states
+                // Enable both arrows for cycling (no longer disable at boundaries)
                 if (leagueNavPrev) {
-                    leagueNavPrev.disabled = currentIndex <= 0;
+                    leagueNavPrev.disabled = false;
                 }
                 if (leagueNavNext) {
-                    leagueNavNext.disabled = currentIndex >= state.leagues.length - 1;
+                    leagueNavNext.disabled = false;
                 }
             }
             
-            // Navigate to previous league
+            // Navigate to previous league (with cycling)
             async function navigateToPreviousLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex <= 0) return;
                 
-                const prevLeague = state.leagues[currentIndex - 1];
+                // Cycle to last league if at the beginning
+                const prevIndex = currentIndex <= 0 ? state.leagues.length - 1 : currentIndex - 1;
+                const prevLeague = state.leagues[prevIndex];
                 state.currentLeagueId = prevLeague.league_id;
                 
                 // Update league select dropdown
@@ -678,14 +684,15 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 await handleLeagueSelect();
             }
             
-            // Navigate to next league
+            // Navigate to next league (with cycling)
             async function navigateToNextLeague() {
                 if (!state.leagues || state.leagues.length === 0) return;
                 
                 const currentIndex = state.leagues.findIndex(l => l.league_id === state.currentLeagueId);
-                if (currentIndex >= state.leagues.length - 1) return;
                 
-                const nextLeague = state.leagues[currentIndex + 1];
+                // Cycle to first league if at the end
+                const nextIndex = currentIndex >= state.leagues.length - 1 ? 0 : currentIndex + 1;
+                const nextLeague = state.leagues[nextIndex];
                 state.currentLeagueId = nextLeague.league_id;
                 
                 // Update league select dropdown
@@ -772,10 +779,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
-                    viewDropdownLabel.textContent = 'Positional';
+                    viewDropdownLabel.textContent = 'View: POS';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
-                    viewDropdownLabel.textContent = 'Lineup';
+                    viewDropdownLabel.textContent = 'View: Lineup';
                 }
             }
             
@@ -2005,6 +2012,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'YPR': 'ypr',
             'RR': 'rr',
             'TS%': 'ts_per_rr',
+            'CSTY%': 'csty_pct',
             'YPRR': 'yprr',
             '1DRR': 'first_down_rec_rate',
             'IMP': 'imp',
@@ -2012,6 +2020,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'SNP%': 'snp_pct',
             'YDS(t)': 'yds_total',
             'FPOE': 'fpoe',
+            'CL': 'ceiling',
             'YPG(t)': 'ypg',
             'paYPG': 'pa_ypg',
             'ruYPG': 'ru_ypg',
@@ -3228,9 +3237,10 @@ const SEASON_META_HEADERS = {
                     radarChartContainer.classList.add('hidden');
                     modalBody.appendChild(radarChartContainer);
                 }
-                if (newsContainer) {
-                    newsContainer.classList.add('hidden');
-                    modalBody.appendChild(newsContainer);
+                if (consistencyContainer) {
+                    consistencyContainer.classList.add('hidden');
+                    modalBody.appendChild(consistencyContainer);
+                    prepareConsistencyPanel(player);
                 }
                 return;
             }
@@ -4093,9 +4103,10 @@ const wrTeStatOrder = [
                 radarChartContainer.classList.add('hidden');
                 modalBody.appendChild(radarChartContainer);
             }
-            if (newsContainer) {
-                newsContainer.classList.add('hidden');
-                modalBody.appendChild(newsContainer);
+            if (consistencyContainer) {
+                consistencyContainer.classList.add('hidden');
+                modalBody.appendChild(consistencyContainer);
+                prepareConsistencyPanel(player);
             }
             hScroll.scrollLeft = 0;
             bodyWrapper.scrollTop = 0;
@@ -4368,8 +4379,6 @@ const wrTeStatOrder = [
             const otherPlayer = players[1];
             const getStatOrderForPosition = (pos) => {
 const qbStatOrder = [
-   'fpts',
-  'proj',
   'pass_rtg',
   'pass_yd',
   'pass_td',
@@ -4391,11 +4400,11 @@ const qbStatOrder = [
   'pass_sack',
   'pass_int',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const rbStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rush_att',
   'rush_yd',
@@ -4417,11 +4426,11 @@ const rbStatOrder = [
   'rec_yar',
   'imp_per_g',
   'fum',
-  'fpoe'
+  'fpoe',
+  'csty_pct',
+  'ceiling'
 ];
 const wrTeStatOrder = [
-  'fpts',
-  'proj',
   'snp_pct',
   'rec_tgt',
   'rec',
@@ -4442,12 +4451,14 @@ const wrTeStatOrder = [
   'rush_yd',
   'rush_td',
   'ypc',
-  'fum'
+  'fum',
+  'csty_pct',
+  'ceiling'
 ];
                 if (pos === 'QB') return qbStatOrder;
                 if (pos === 'RB') return rbStatOrder;
                 if (pos === 'WR' || pos === 'TE') return wrTeStatOrder;
-                return ['fpts','pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe'];
+                return ['pass_att','pass_cmp','pass_yd','pass_td','pass_fd','imp_per_g','pass_rtg','pass_imp','pass_imp_per_att','rush_att','rush_yd','ypc','rush_td','rush_fd','ttt','prs_pct','mtf','mtf_per_att','rush_yac','yco_per_att','rec_tgt','rec','rec_yd','rec_td','rec_fd','rec_yar','ypr','yprr','ts_per_rr','rr','fum','snp_pct','yds_total','fpoe','csty_pct','ceiling'];
             };
             const userPlayerStatOrder = getStatOrderForPosition(userPlayer.pos);
             const otherPlayerStatOrder = getStatOrderForPosition(otherPlayer.pos);
@@ -4539,6 +4550,36 @@ const wrTeStatOrder = [
                                     const total = aggregatedTotals['cmp_pct'] || 0;
                                     const count = statValueCounts['cmp_pct'] || 0;
                                     cv = count > 0 ? total / count : 0; dv = formatPercentage(cv); break;
+                                }
+                                case 'csty_pct': {
+                                    const seasonValue = typeof seasonTotals?.csty_pct === 'number' ? seasonTotals.csty_pct : null;
+                                    const total = aggregatedTotals['csty_pct'] || 0;
+                                    const count = statValueCounts['csty_pct'] || 0;
+                                    const fallback = count > 0 ? total / count : null;
+                                    const pct = seasonValue ?? fallback;
+                                    if (pct === null || Number.isNaN(pct)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = pct;
+                                        dv = formatPercentage(pct);
+                                    }
+                                    break;
+                                }
+                                case 'ceiling': {
+                                    const seasonValue = typeof seasonTotals?.ceiling === 'number' ? seasonTotals.ceiling : null;
+                                    const aggregatedValue = Object.prototype.hasOwnProperty.call(aggregatedTotals, 'ceiling')
+                                        ? aggregatedTotals['ceiling']
+                                        : null;
+                                    const value = seasonValue ?? aggregatedValue;
+                                    if (value === null || value === undefined || Number.isNaN(value)) {
+                                        cv = -1;
+                                        dv = 'N/A';
+                                    } else {
+                                        cv = value;
+                                        dv = Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+                                    }
+                                    break;
                                 }
                                 case 'pass_rtg': {
                                     const takeNumeric = (value) => {
@@ -4680,6 +4721,7 @@ const wrTeStatOrder = [
                 `;
                 const statDescriptions = {
                     'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
+                    'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score'
                 };
                 let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
                 for (const key in statLabels) {
@@ -6157,7 +6199,7 @@ const wrTeStatOrder = [
             modalBody.classList.remove('hidden'); // Ensure game logs table is visible
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all buttons to inactive, then activate game-logs button
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6172,7 +6214,7 @@ const wrTeStatOrder = [
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
-            if (newsContainer) newsContainer.classList.add('hidden');
+            if (consistencyContainer) consistencyContainer.classList.add('hidden');
             
             // Reset all button active states
             const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
@@ -6184,6 +6226,15 @@ const wrTeStatOrder = [
                 radarContainer._chartInstance.destroy();
                 radarContainer.innerHTML = '';
                 radarContainer._chartInstance = null;
+            }
+            
+            // Clean up consistency chart SVG
+            if (curveSvg) {
+                curveSvg = null;
+            }
+            const pointsLayer = document.getElementById('weekly-chart-points');
+            if (pointsLayer) {
+                pointsLayer.innerHTML = '';
             }
             
             // Clear current player reference
@@ -6369,6 +6420,461 @@ document.addEventListener('DOMContentLoaded', function(){
     legend.classList.add('hidden');
   }
 });
+
+// === Consistency Chart & HUD (sheet-driven) ===
+const MAX_CONSISTENCY_POINTS = 40;
+const CONSISTENCY_THRESHOLD_MAP = {
+    QB: { solid: 16, high: 22 },
+    RB: { solid: 12, high: 18 },
+    WR: { solid: 12, high: 18 },
+    TE: { solid: 11, high: 17 },
+    DEFAULT: { solid: 14, high: 20 }
+};
+const CONSISTENCY_BUCKET_STYLES = {
+    high: { color: '#78ffedff' },
+    solid: { color: '#00caffaa' },
+    low: { color: '#f6ad' }
+};
+const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
+let curveSvg = null;
+
+function getConsistencyAxisWeeks() {
+    return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
+        .map(Number)
+        .filter(Number.isFinite)
+        .sort((a, b) => a - b);
+}
+
+function getConsistencyThresholds(position) {
+    const key = position ? position.toUpperCase() : '';
+    return CONSISTENCY_THRESHOLD_MAP[key] || CONSISTENCY_THRESHOLD_MAP.DEFAULT;
+}
+
+function clampConsistencyPoints(value) {
+    if (!Number.isFinite(value)) return null;
+    return Math.max(0, Math.min(MAX_CONSISTENCY_POINTS, value));
+}
+
+function getConsistencyBucket(pts, thresholds) {
+    if (!Number.isFinite(pts)) return { ...CONSISTENCY_BUCKET_STYLES.low, name: 'low' };
+    if (pts >= thresholds.high) return { ...CONSISTENCY_BUCKET_STYLES.high, name: 'high' };
+    if (pts >= thresholds.solid) return { ...CONSISTENCY_BUCKET_STYLES.solid, name: 'solid' };
+    return { ...CONSISTENCY_BUCKET_STYLES.low, name: 'low' };
+}
+
+function formatHudPercentage(value, decimals = 1) {
+    if (!Number.isFinite(value)) return 'N/A';
+    return Number(value).toFixed(decimals) + '%';
+}
+
+function formatHudRank(rank) {
+    if (!Number.isFinite(rank)) return 'NA';
+    return `${rank}`;
+}
+
+function formatCeilingValue(value) {
+    if (!Number.isFinite(value)) return 'N/A';
+    return Number(value).toFixed(1);
+}
+
+function getRankAccentColor(rank) {
+    if (!Number.isFinite(rank)) return '#f8faff';
+    if (rank <= 12) return '#7cf5ff';
+    if (rank <= 24) return '#56c4ff';
+    return '#d3a5ff';
+}
+
+function applyRankStyling({ rank, metricValueEl, metricSubEl, circleValueEl }) {
+    const color = getRankAccentColor(rank);
+    if (metricValueEl) metricValueEl.style.color = color;
+    if (circleValueEl) circleValueEl.style.color = color;
+    if (metricSubEl) {
+        const valueNode = metricSubEl.querySelector('.metric-sub-value');
+        if (valueNode) {
+            valueNode.textContent = formatHudRank(rank);
+            valueNode.style.color = color;
+        }
+    }
+}
+
+function pluralizeWeeks(count) {
+    if (!count) return 'No weeks charted';
+    return count === 1 ? '1 week charted' : `${count} weeks charted`;
+}
+
+function buildConsistencyPanelData(player) {
+    if (!player || !player.id) return null;
+    const axisWeeks = getConsistencyAxisWeeks();
+    if (!axisWeeks.length) return null;
+    const playerId = player.id;
+    const weeklyStats = state.playerWeeklyStats || {};
+    const fullPlayer = state.players[playerId];
+    const resolvedPos = (player.pos || state.statsPagePlayerData?.pos || fullPlayer?.position || 'FLEX').toUpperCase();
+    const thresholds = getConsistencyThresholds(resolvedPos);
+    const series = [];
+    axisWeeks.forEach(week => {
+        const statsForWeek = weeklyStats?.[week]?.[playerId];
+        if (!statsForWeek) return;
+        if (shouldSkipConsistencyWeek(statsForWeek)) return;
+        const opponent = (statsForWeek.opponent || '').toUpperCase();
+        if (opponent === 'BYE') return;
+        const sheetFpts = statsForWeek.fpt_ppr;
+        const numeric = typeof sheetFpts === 'number' ? sheetFpts : Number(sheetFpts);
+        if (!Number.isFinite(numeric)) return;
+        const clamped = clampConsistencyPoints(numeric);
+        if (clamped === null) return;
+        series.push({
+            week,
+            pts: clamped,
+            originalPts: numeric,
+            opponent: statsForWeek.opponent || ''
+        });
+    });
+    series.sort((a, b) => a.week - b.week);
+    const bestGameEntry = series.reduce((best, entry) => {
+        if (!best) return entry;
+        return entry.pts > best.pts ? entry : best;
+    }, null);
+    const lastFive = series.slice(-5);
+    const lastFiveAvg = lastFive.length
+        ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
+        : null;
+    const highWeekCount = thresholds ? series.filter(entry => entry.pts >= thresholds.high).length : null;
+    const seasonTotals = state.playerSeasonStats?.[playerId] || {};
+    const playerName = (fullPlayer ? `${fullPlayer.first_name || ''} ${fullPlayer.last_name || ''}` : player.name || '')
+        .replace(/\s+/g, ' ')
+        .trim() || player.name || 'Player';
+    const consistencyPct = Number(seasonTotals.csty_pct);
+    const ceilingValue = Number(seasonTotals.ceiling);
+    const consistencyRank = getSeasonRankValue(playerId, 'csty_pct');
+    const ceilingRank = getSeasonRankValue(playerId, 'ceiling');
+    const axisStart = axisWeeks[0];
+    const axisEnd = axisWeeks[axisWeeks.length - 1];
+    const weekRangeLabel = axisStart === axisEnd ? `Week ${axisStart}` : `Weeks ${axisStart}\u2013${axisEnd}`;
+    const ceilingRankMax = RADAR_STATS_CONFIG[resolvedPos]?.maxRank || 32;
+    return {
+        playerId,
+        playerName,
+        position: resolvedPos,
+        axisWeeks,
+        series,
+        chartedWeeksCount: series.length,
+        thresholds,
+        consistencyPct: Number.isFinite(consistencyPct) ? consistencyPct : null,
+        ceilingValue: Number.isFinite(ceilingValue) ? ceilingValue : null,
+        consistencyRank: Number.isFinite(consistencyRank) ? consistencyRank : null,
+        ceilingRank: Number.isFinite(ceilingRank) ? ceilingRank : null,
+        weekRangeLabel,
+        weeksChartedLabel: pluralizeWeeks(series.length),
+        ceilingRankMax,
+        bestGame: bestGameEntry,
+        lastFiveAvg,
+        highWeekCount
+    };
+}
+
+function shouldSkipConsistencyWeek(statsForWeek) {
+    if (!statsForWeek) return false;
+    const rawProj = statsForWeek.proj;
+    if (rawProj === undefined || rawProj === null) return false;
+    if (typeof rawProj === 'number' && Number.isFinite(rawProj)) return false;
+    const trimmed = String(rawProj).trim();
+    if (!trimmed) return false;
+    const numericValue = Number(trimmed);
+    if (Number.isFinite(numericValue)) return false;
+    const normalized = trimmed.toUpperCase();
+    if (CONSISTENCY_PROJECTION_SKIP_CODES.has(normalized)) return true;
+    // Treat any non-numeric projection text as an inactive week
+    return true;
+}
+
+function updateConsistencyHud(data) {
+    if (!consistencyContainer) return;
+    const weekRangeEl = consistencyContainer.querySelector('[data-week-range]');
+    if (weekRangeEl) weekRangeEl.textContent = data?.weekRangeLabel || 'Weeks —';
+    const weeksChartedEl = consistencyContainer.querySelector('[data-weeks-charted]');
+    if (weeksChartedEl) weeksChartedEl.textContent = data?.weeksChartedLabel || 'No weeks charted';
+    const consistencyValueEl = consistencyContainer.querySelector('[data-consistency-value]');
+    const formattedPct = formatHudPercentage(data?.consistencyPct);
+    if (consistencyValueEl) consistencyValueEl.textContent = formattedPct;
+    const consistencyRankEl = consistencyContainer.querySelector('[data-consistency-rank]');
+    const ceilingValueEl = consistencyContainer.querySelector('[data-ceiling-value]');
+    if (ceilingValueEl) ceilingValueEl.textContent = formatCeilingValue(data?.ceilingValue);
+    const ceilingRankEl = consistencyContainer.querySelector('[data-ceiling-rank]');
+    const circleConsistencyValue = consistencyContainer.querySelector('[data-consistency-circle-value]');
+    if (circleConsistencyValue) circleConsistencyValue.textContent = formattedPct;
+    const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
+    if (circleCeilingValue) circleCeilingValue.textContent = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : 'NA';
+    const consistencyCaptionEl = consistencyContainer.querySelector('[data-consistency-circle-caption]');
+    if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
+    const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
+    if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
+    applyRankStyling({
+        rank: data?.consistencyRank,
+        metricValueEl: consistencyValueEl,
+        metricSubEl: consistencyRankEl,
+        circleValueEl: circleConsistencyValue
+    });
+    applyRankStyling({
+        rank: data?.ceilingRank,
+        metricValueEl: ceilingValueEl,
+        metricSubEl: ceilingRankEl,
+        circleValueEl: circleCeilingValue
+    });
+    const bestGameEl = consistencyContainer.querySelector('[data-insight-best]');
+    if (bestGameEl) {
+        if (data?.bestGame) {
+            const ptsValue = Number.isFinite(data.bestGame.originalPts) ? data.bestGame.originalPts : data.bestGame.pts;
+            const formattedPts = Number.isFinite(ptsValue) ? `${ptsValue.toFixed(1)} fpts` : '—';
+            bestGameEl.textContent = formattedPts;
+        } else {
+            bestGameEl.textContent = '—';
+        }
+    }
+    const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
+    if (lastFiveEl) {
+        if (Number.isFinite(data?.lastFiveAvg)) {
+            lastFiveEl.textContent = `${data.lastFiveAvg.toFixed(1)} fpts`;
+        } else {
+            lastFiveEl.textContent = '—';
+        }
+    }
+    const highWeeksEl = consistencyContainer.querySelector('[data-insight-high]');
+    if (highWeeksEl) {
+        if (Number.isFinite(data?.highWeekCount)) {
+            const count = data.highWeekCount;
+            const suffix = count === 1 ? 'week' : 'weeks';
+            highWeeksEl.textContent = `${count} ${suffix}`;
+        } else {
+            highWeeksEl.textContent = '—';
+        }
+    }
+}
+
+function prepareConsistencyPanel(player) {
+    if (!consistencyContainer) return;
+    const data = buildConsistencyPanelData(player);
+    state.currentConsistencyData = data;
+    updateConsistencyHud(data);
+}
+
+function showConsistencyEmptyState(chartBox, message) {
+    if (!chartBox) return;
+    let emptyEl = chartBox.querySelector('.consistency-empty-state');
+    if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.className = 'consistency-empty-state';
+        chartBox.appendChild(emptyEl);
+    }
+    emptyEl.textContent = message;
+    emptyEl.classList.remove('hidden');
+}
+
+function hideConsistencyEmptyState(chartBox) {
+    const emptyEl = chartBox?.querySelector('.consistency-empty-state');
+    if (emptyEl) emptyEl.classList.add('hidden');
+}
+
+function renderConsistencyChart() {
+    if (!consistencyContainer) return;
+    const chartBox = document.getElementById('weekly-chart-box');
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!chartBox || !pointsLayer || !xAxisEl || !yAxisEl) return;
+    const data = state.currentConsistencyData;
+    updateConsistencyHud(data);
+    requestAnimationFrame(() => {
+        renderYAxis();
+        if (!data) {
+            renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
+            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
+            if (curveSvg) {
+                curveSvg.remove();
+                curveSvg = null;
+            }
+            showConsistencyEmptyState(chartBox, 'Consistency data unavailable.');
+            hydrateProgressCircles(null);
+            return;
+        }
+        createZones(data);
+        renderXAxis(data);
+        renderPoints(data);
+        hydrateProgressCircles(data);
+        if (data.series.length === 0) {
+            showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
+        } else {
+            hideConsistencyEmptyState(chartBox);
+        }
+    });
+}
+
+function createZones(data) {
+    const lineLayer = document.getElementById('weekly-chart-points');
+    if (!lineLayer) return;
+    lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+    const thresholds = data?.thresholds || getConsistencyThresholds();
+    const stops = [
+        { className: 'weekly-zone--bad', label: `Low < ${thresholds.solid}`, from: 0, to: thresholds.solid },
+        { className: 'weekly-zone--good', label: `Solid ${thresholds.solid}-${thresholds.high}`, from: thresholds.solid, to: thresholds.high },
+        { className: 'weekly-zone--great', label: `High ≥ ${thresholds.high}`, from: thresholds.high, to: MAX_CONSISTENCY_POINTS }
+    ];
+    stops.forEach(zone => {
+        const topPct = ((MAX_CONSISTENCY_POINTS - zone.to) / MAX_CONSISTENCY_POINTS) * 100;
+        const bottomPct = ((MAX_CONSISTENCY_POINTS - zone.from) / MAX_CONSISTENCY_POINTS) * 100;
+        const heightPct = bottomPct - topPct;
+        const zoneEl = document.createElement('div');
+        zoneEl.className = `weekly-zone ${zone.className}`;
+        zoneEl.style.top = `${topPct}%`;
+        zoneEl.style.height = `${heightPct}%`;
+        const label = document.createElement('span');
+        label.className = 'weekly-zone-label';
+        label.textContent = zone.label;
+        zoneEl.appendChild(label);
+        lineLayer.appendChild(zoneEl);
+    });
+}
+
+function renderXAxis(data) {
+    const xAxisEl = document.getElementById('weekly-chart-x-axis');
+    if (!xAxisEl) return;
+    xAxisEl.innerHTML = '';
+    const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
+    weeks.forEach(week => {
+        const span = document.createElement('span');
+        span.textContent = `WK ${week}`;
+        xAxisEl.appendChild(span);
+    });
+}
+
+function renderYAxis() {
+    const yAxisEl = document.getElementById('weekly-chart-y-axis');
+    if (!yAxisEl) return;
+    yAxisEl.innerHTML = '';
+    [MAX_CONSISTENCY_POINTS, 30, 20, 10, 0].forEach(tick => {
+        const tickEl = document.createElement('div');
+        tickEl.className = 'weekly-chart-y-tick';
+        tickEl.textContent = `${tick} fpts`;
+        yAxisEl.appendChild(tickEl);
+    });
+}
+
+function drawCurve(pointsLayer, points) {
+    if (!pointsLayer || !points.length) return;
+    const box = pointsLayer.getBoundingClientRect();
+    const width = box.width;
+    const height = box.height;
+    if (!width || !height) return;
+    if (!curveSvg) {
+        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        curveSvg.setAttribute('class', 'weekly-curve-layer');
+        curveSvg.style.position = 'absolute';
+        curveSvg.style.inset = '0';
+        pointsLayer.prepend(curveSvg);
+    }
+    curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    curveSvg.setAttribute('width', width);
+    curveSvg.setAttribute('height', height);
+    const toXY = (point) => ({
+        x: (point.x / 100) * width,
+        y: (point.y / 100) * height
+    });
+    const absPoints = points.map(toXY);
+    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
+    for (let i = 0; i < absPoints.length - 1; i += 1) {
+        const p0 = absPoints[i];
+        const p1 = absPoints[i + 1];
+        const dx = (p1.x - p0.x) * 0.35;
+        const c1x = p0.x + dx;
+        const c1y = p0.y;
+        const c2x = p1.x - dx;
+        const c2y = p1.y;
+        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+    }
+    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathCore.setAttribute('d', d);
+    pathCore.setAttribute('fill', 'none');
+    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
+    pathCore.setAttribute('stroke-width', '2');
+    pathCore.setAttribute('stroke-linecap', 'round');
+    pathCore.setAttribute('stroke-linejoin', 'round');
+    curveSvg.innerHTML = '';
+    curveSvg.appendChild(pathCore);
+}
+
+function yFromPoints(pts) {
+    const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
+    return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
+}
+
+function getValueColor(pts, thresholds) {
+    if (!Number.isFinite(pts)) return '#f8faff';
+    if (pts >= thresholds.high) return '#51CBA5CF';
+    if (pts >= thresholds.solid) return '#9f8bff';
+    return '#d44f76';
+}
+
+function renderPoints(data) {
+    const pointsLayer = document.getElementById('weekly-chart-points');
+    if (!pointsLayer) return;
+    pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
+    if (curveSvg) {
+        curveSvg.remove();
+        curveSvg = null;
+    }
+    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
+    const totalSlots = axisWeeks.length || data.series.length || 1;
+    if (!data.series.length) return;
+    const curvePoints = [];
+    data.series.forEach(entry => {
+        const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
+        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
+        const pctY = yFromPoints(entry.pts);
+        curvePoints.push({ x: pctX, y: pctY });
+        const bucket = getConsistencyBucket(entry.pts, data.thresholds);
+        const pointEl = document.createElement('div');
+        pointEl.className = 'weekly-point';
+        pointEl.style.left = `calc(${pctX}% - 4px)`;
+        pointEl.style.top = `calc(${pctY}% - 4px)`;
+        pointEl.style.background = bucket.color;
+        const valueColor = getValueColor(entry.pts, data.thresholds);
+        const label = document.createElement('div');
+        label.className = 'weekly-point-label';
+        const weekSpan = document.createElement('span');
+        weekSpan.className = 'weekly-point-label__week';
+        weekSpan.textContent = `WK ${entry.week}`;
+        const valueSpan = document.createElement('span');
+        valueSpan.className = 'weekly-point-label__value';
+        const valueNumber = document.createElement('span');
+        valueNumber.style.color = valueColor;
+        valueNumber.textContent = entry.pts.toFixed(1);
+        const suffix = document.createElement('span');
+        suffix.className = 'weekly-point-label__suffix';
+        suffix.textContent = 'fpts';
+        valueSpan.appendChild(valueNumber);
+        valueSpan.appendChild(suffix);
+        label.appendChild(weekSpan);
+        label.appendChild(valueSpan);
+        pointEl.appendChild(label);
+        pointsLayer.appendChild(pointEl);
+    });
+    drawCurve(pointsLayer, curvePoints);
+}
+
+function hydrateProgressCircles(data) {
+    const consistencyCircle = document.querySelector('.progress-circle--consistency .progress-ring-fill');
+    const pctValue = data && Number.isFinite(data.consistencyPct) ? Math.max(0, Math.min(100, data.consistencyPct)) / 100 : 0;
+    if (consistencyCircle) {
+        consistencyCircle.style.setProperty('--progress', pctValue.toFixed(3));
+    }
+    const ceilingCircle = document.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
+    if (ceilingCircle) {
+        const rankMax = Math.max(2, data?.ceilingRankMax || 24);
+        const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
+        const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
+        ceilingCircle.style.setProperty('--progress', normalized.toFixed(3));
+    }
+}
 
 // === Loading Ring Animation (merged from loader-ring.js) ===
 (function(){
