@@ -6431,18 +6431,18 @@ const CONSISTENCY_THRESHOLD_MAP = {
     DEFAULT: { solid: 14, high: 20 }
 };
 const CONSISTENCY_ZONE_COLORS = {
-    low: #c26cfc,
-    solid: #00c5ff,
-    high: #00ffc1
+    low: '#c26cfc',
+    solid: '#00c5ff',
+    high: '#00ffc1'
 };
 const CONSISTENCY_BUCKET_STYLES = {
     high: { color: CONSISTENCY_ZONE_COLORS.high },
     solid: { color: CONSISTENCY_ZONE_COLORS.solid },
     low: { color: CONSISTENCY_ZONE_COLORS.low }
 };
-const CONSISTENCY_PROJECTION_SKIP_CODES = new Set([IR, OUT, PUP, BYE, Q, D]);
+const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
 let curveSvg = null;
-const SVG_NS = http://www.w3.org/2000/svg;
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function getConsistencyAxisWeeks() {
     return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
