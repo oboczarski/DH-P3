@@ -6430,13 +6430,19 @@ const CONSISTENCY_THRESHOLD_MAP = {
     TE: { solid: 11, high: 17 },
     DEFAULT: { solid: 14, high: 20 }
 };
-const CONSISTENCY_BUCKET_STYLES = {
-    high: { color: '#78ffedff' },
-    solid: { color: '#00caffaa' },
-    low: { color: '#f6ad' }
+const CONSISTENCY_ZONE_COLORS = {
+    low: #c26cfc,
+    solid: #00c5ff,
+    high: #00ffc1
 };
-const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
+const CONSISTENCY_BUCKET_STYLES = {
+    high: { color: CONSISTENCY_ZONE_COLORS.high },
+    solid: { color: CONSISTENCY_ZONE_COLORS.solid },
+    low: { color: CONSISTENCY_ZONE_COLORS.low }
+};
+const CONSISTENCY_PROJECTION_SKIP_CODES = new Set([IR, OUT, PUP, BYE, Q, D]);
 let curveSvg = null;
+const SVG_NS = http://www.w3.org/2000/svg;
 
 function getConsistencyAxisWeeks() {
     return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
@@ -6734,47 +6740,157 @@ function renderXAxis(data) {
     });
 }
 
-function drawCurve(pointsLayer, points) {
-    if (!pointsLayer || !points.length) return;
+function drawCurve(pointsLayer, chartPoints, thresholds) {
+    if (!pointsLayer || !chartPoints.length) return;
     const box = pointsLayer.getBoundingClientRect();
     const width = box.width;
     const height = box.height;
     if (!width || !height) return;
     if (!curveSvg) {
-        curveSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        curveSvg = document.createElementNS(SVG_NS, 'svg');
         curveSvg.setAttribute('class', 'weekly-curve-layer');
         curveSvg.style.position = 'absolute';
         curveSvg.style.inset = '0';
+        curveSvg.style.pointerEvents = 'none';
         pointsLayer.prepend(curveSvg);
     }
+    curveSvg.innerHTML = '';
     curveSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     curveSvg.setAttribute('width', width);
     curveSvg.setAttribute('height', height);
-    const toXY = (point) => ({
-        x: (point.x / 100) * width,
-        y: (point.y / 100) * height
-    });
-    const absPoints = points.map(toXY);
-    let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
-    for (let i = 0; i < absPoints.length - 1; i += 1) {
-        const p0 = absPoints[i];
-        const p1 = absPoints[i + 1];
-        const dx = (p1.x - p0.x) * 0.35;
-        const c1x = p0.x + dx;
-        const c1y = p0.y;
-        const c2x = p1.x - dx;
-        const c2y = p1.y;
-        d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+
+    const absPoints = chartPoints.map((point) => ({
+        x: (point.pctX / 100) * width,
+        y: (point.pctY / 100) * height,
+        value: point.pts
+    }));
+
+    const defs = createSvgElement('defs');
+    defs.appendChild(createLineGlowFilter());
+    defs.appendChild(createAreaShadowFilter());
+    defs.appendChild(createAreaGradient(thresholds, height));
+    curveSvg.appendChild(defs);
+
+    if (absPoints.length >= 2) {
+        const areaPath = buildAreaPath(absPoints, height);
+        areaPath.setAttribute('fill', 'url(#consistencyAreaGradient)');
+        areaPath.setAttribute('opacity', '0.94');
+        areaPath.setAttribute('filter', 'url(#consistencyAreaShadow)');
+        curveSvg.appendChild(areaPath);
+
+        const lineGroup = createSvgElement('g');
+        absPoints.forEach((point, index) => {
+            if (index === absPoints.length - 1) return;
+            const next = absPoints[index + 1];
+            const avgValue = (point.value + next.value) / 2;
+            const color = getValueColor(avgValue, thresholds);
+            const segmentPath = createSvgElement('path');
+            segmentPath.setAttribute('d', buildSegmentPath(point, next));
+            segmentPath.setAttribute('fill', 'none');
+            segmentPath.setAttribute('stroke', color);
+            segmentPath.setAttribute('stroke-width', '3');
+            segmentPath.setAttribute('stroke-linecap', 'round');
+            segmentPath.setAttribute('stroke-linejoin', 'round');
+            segmentPath.setAttribute('filter', 'url(#consistencyLineGlow)');
+            lineGroup.appendChild(segmentPath);
+        });
+        curveSvg.appendChild(lineGroup);
     }
-    const pathCore = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    pathCore.setAttribute('d', d);
-    pathCore.setAttribute('fill', 'none');
-    pathCore.setAttribute('stroke', 'rgba(120, 120, 255, 0.6)');
-    pathCore.setAttribute('stroke-width', '2');
-    pathCore.setAttribute('stroke-linecap', 'round');
-    pathCore.setAttribute('stroke-linejoin', 'round');
-    curveSvg.innerHTML = '';
-    curveSvg.appendChild(pathCore);
+}
+
+function createSvgElement(tag) {
+    return document.createElementNS(SVG_NS, tag);
+}
+
+function buildAreaPath(points, height) {
+    const path = createSvgElement('path');
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i += 1) {
+        d += ` ${buildBezierCommand(points[i], points[i + 1])}`;
+    }
+    const last = points[points.length - 1];
+    const first = points[0];
+    d += ` L ${last.x} ${height}`;
+    d += ` L ${first.x} ${height} Z`;
+    path.setAttribute('d', d);
+    return path;
+}
+
+function buildSegmentPath(p0, p1) {
+    return `M ${p0.x} ${p0.y} ${buildBezierCommand(p0, p1)}`;
+}
+
+function buildBezierCommand(p0, p1) {
+    const dx = (p1.x - p0.x) * 0.35;
+    const c1x = p0.x + dx;
+    const c1y = p0.y;
+    const c2x = p1.x - dx;
+    const c2y = p1.y;
+    return `C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+}
+
+function createLineGlowFilter() {
+    const filter = createSvgElement('filter');
+    filter.setAttribute('id', 'consistencyLineGlow');
+    filter.setAttribute('x', '-30%');
+    filter.setAttribute('y', '-30%');
+    filter.setAttribute('width', '160%');
+    filter.setAttribute('height', '200%');
+    const dropShadow = createSvgElement('feDropShadow');
+    dropShadow.setAttribute('dx', '0');
+    dropShadow.setAttribute('dy', '8');
+    dropShadow.setAttribute('stdDeviation', '5');
+    dropShadow.setAttribute('flood-color', '#d2e6fa');
+    dropShadow.setAttribute('flood-opacity', '0.2');
+    filter.appendChild(dropShadow);
+    return filter;
+}
+
+function createAreaShadowFilter() {
+    const filter = createSvgElement('filter');
+    filter.setAttribute('id', 'consistencyAreaShadow');
+    filter.setAttribute('x', '-50%');
+    filter.setAttribute('y', '-50%');
+    filter.setAttribute('width', '200%');
+    filter.setAttribute('height', '260%');
+    const dropShadow = createSvgElement('feDropShadow');
+    dropShadow.setAttribute('dx', '0');
+    dropShadow.setAttribute('dy', '16');
+    dropShadow.setAttribute('stdDeviation', '45');
+    dropShadow.setAttribute('flood-color', '#38bdf8');
+    dropShadow.setAttribute('flood-opacity', '0.35');
+    filter.appendChild(dropShadow);
+    return filter;
+}
+
+function clamp01(value) {
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.min(1, value));
+}
+
+function createAreaGradient(thresholds, height) {
+    const gradient = createSvgElement('linearGradient');
+    gradient.setAttribute('id', 'consistencyAreaGradient');
+    gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+    gradient.setAttribute('x1', '0');
+    gradient.setAttribute('y1', `${height}`);
+    gradient.setAttribute('x2', '0');
+    gradient.setAttribute('y2', '0');
+    const solidRatio = clamp01((thresholds?.solid ?? 0) / MAX_CONSISTENCY_POINTS);
+    const highRatio = clamp01((thresholds?.high ?? MAX_CONSISTENCY_POINTS) / MAX_CONSISTENCY_POINTS);
+    const stops = [
+        { offset: 0, color: '#c26cfc20' },
+        { offset: solidRatio, color: '#00c5ff20' },
+        { offset: highRatio, color: '#00ffc120' },
+        { offset: 1, color: '#00ffc120' }
+    ];
+    stops.forEach((stopDef) => {
+        const stop = createSvgElement('stop');
+        stop.setAttribute('offset', clamp01(stopDef.offset).toString());
+        stop.setAttribute('stop-color', stopDef.color);
+        gradient.appendChild(stop);
+    });
+    return gradient;
 }
 
 function yFromPoints(pts) {
@@ -6783,36 +6899,36 @@ function yFromPoints(pts) {
 }
 
 function getValueColor(pts, thresholds) {
-    if (!Number.isFinite(pts)) return '#f8faff';
-    if (pts >= thresholds.high) return '#51CBA5CF';
-    if (pts >= thresholds.solid) return '#9f8bff';
-    return '#d44f76';
+    return getConsistencyBucket(pts, thresholds).color;
 }
 
 function renderPoints(data) {
     const pointsLayer = document.getElementById('weekly-chart-points');
     if (!pointsLayer) return;
-    pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
+    pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
     if (curveSvg) {
         curveSvg.remove();
         curveSvg = null;
     }
+    if (!data.series.length) return;
     const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
     const totalSlots = axisWeeks.length || data.series.length || 1;
-    if (!data.series.length) return;
-    const curvePoints = [];
-    data.series.forEach(entry => {
-        const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
-        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
+    const thresholds = data.thresholds || getConsistencyThresholds(data.position);
+    const chartPoints = [];
+    data.series.forEach((entry, index) => {
+        const slotIndex = axisWeeks.indexOf(entry.week);
+        const resolvedIndex = slotIndex >= 0 ? slotIndex : index;
+        const pctX = ((resolvedIndex + 0.5) / totalSlots) * 100;
         const pctY = yFromPoints(entry.pts);
-        curvePoints.push({ x: pctX, y: pctY });
-        const bucket = getConsistencyBucket(entry.pts, data.thresholds);
+        chartPoints.push({ pctX, pctY, pts: entry.pts });
+        const bucket = getConsistencyBucket(entry.pts, thresholds);
         const pointEl = document.createElement('div');
         pointEl.className = 'weekly-point';
-        pointEl.style.left = `calc(${pctX}% - 4px)`;
-        pointEl.style.top = `calc(${pctY}% - 4px)`;
+        pointEl.style.left = `calc(${pctX}% - 7px)`;
+        pointEl.style.top = `calc(${pctY}% - 7px)`;
         pointEl.style.background = bucket.color;
-        const valueColor = getValueColor(entry.pts, data.thresholds);
+        pointEl.style.setProperty('--point-color', bucket.color);
+        pointEl.setAttribute('data-zone', bucket.name);
         const label = document.createElement('div');
         label.className = 'weekly-point-label';
         const weekSpan = document.createElement('span');
@@ -6821,7 +6937,7 @@ function renderPoints(data) {
         const valueSpan = document.createElement('span');
         valueSpan.className = 'weekly-point-label__value';
         const valueNumber = document.createElement('span');
-        valueNumber.style.color = valueColor;
+        valueNumber.style.color = getValueColor(entry.pts, thresholds);
         valueNumber.textContent = entry.pts.toFixed(1);
         const suffix = document.createElement('span');
         suffix.className = 'weekly-point-label__suffix';
@@ -6833,7 +6949,7 @@ function renderPoints(data) {
         pointEl.appendChild(label);
         pointsLayer.appendChild(pointEl);
     });
-    drawCurve(pointsLayer, curvePoints);
+    drawCurve(pointsLayer, chartPoints, thresholds);
 }
 
 function hydrateProgressCircles(data) {
