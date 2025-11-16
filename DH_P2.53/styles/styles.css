@@ -5265,11 +5265,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .weekly-point-label {
           top: -4px;
           min-width: 20px;
-          padding: 0.04rem 0.1rem;
+          padding: 0.05rem 0.051rem;
           border-radius: 0.35rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(10px);
-          gap: 0.04rem;
           align-items: center;
         }
 
