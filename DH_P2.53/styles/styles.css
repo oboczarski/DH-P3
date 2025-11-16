@@ -4927,7 +4927,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         border: 0px solid rgba(115, 158, 255, 0.35);
         box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08),inset 0 1px 60px rgba(255, 255, 255, 0.018);
         overflow: hidden;
-        background: #1128;
     }
 
     .consistency-echart-container {
@@ -4936,14 +4935,6 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         min-height: 240px;
         height: clamp(240px, 45vh, 520px);
         border-radius: 1rem;
-        background:
-            radial-gradient(circle at top left, rgba(80, 250, 255, 0.16), transparent 60%),
-            radial-gradient(circle at bottom right, rgba(147, 51, 234, 0.18), transparent 55%),
-            linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.94));
-        box-shadow:
-            0 18px 45px rgba(15, 23, 42, 0.85),
-            0 0 0 1px rgba(148, 163, 184, 0.14),
-            inset 0 0 0 1px rgba(15, 23, 42, 0.9);
         backdrop-filter: blur(22px);
         overflow: hidden;
         box-sizing: border-box;
