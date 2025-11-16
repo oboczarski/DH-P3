@@ -6843,13 +6843,93 @@ function ensureAreaFilter(defs) {
     defs.appendChild(filter);
 }
 
-function buildSegmentPath(p0, p1) {
+function getSegmentThresholds(thresholds) {
+    if (!thresholds) return [];
+    const values = [thresholds.solid, thresholds.high]
+        .filter(value => Number.isFinite(value));
+    return Array.from(new Set(values)).sort((a, b) => a - b);
+}
+
+function createCubicSegment(p0, p1, v0, v1) {
     const dx = (p1.x - p0.x) * 0.35;
-    const c1x = p0.x + dx;
-    const c1y = p0.y;
-    const c2x = p1.x - dx;
-    const c2y = p1.y;
-    return `M ${p0.x} ${p0.y} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p1.x} ${p1.y}`;
+    return {
+        p0,
+        c1: { x: p0.x + dx, y: p0.y },
+        c2: { x: p1.x - dx, y: p1.y },
+        p1,
+        v0,
+        v1
+    };
+}
+
+function lerpPoint(a, b, t) {
+    return {
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t
+    };
+}
+
+function splitCubicSegment(segment, t) {
+    const { p0, c1, c2, p1, v0, v1 } = segment;
+    const p01 = lerpPoint(p0, c1, t);
+    const p12 = lerpPoint(c1, c2, t);
+    const p23 = lerpPoint(c2, p1, t);
+    const p012 = lerpPoint(p01, p12, t);
+    const p123 = lerpPoint(p12, p23, t);
+    const p0123 = lerpPoint(p012, p123, t);
+    const valueAtSplit = v0 + (v1 - v0) * t;
+    const left = {
+        p0,
+        c1: p01,
+        c2: p012,
+        p1: p0123,
+        v0,
+        v1: valueAtSplit
+    };
+    const right = {
+        p0: p0123,
+        c1: p123,
+        c2: p23,
+        p1,
+        v0: valueAtSplit,
+        v1
+    };
+    return [left, right];
+}
+
+function splitSegmentByThresholds(segment, thresholds) {
+    if (!thresholds.length) return [segment];
+    const delta = segment.v1 - segment.v0;
+    if (delta === 0) return [segment];
+    const tBreaks = thresholds
+        .map(threshold => {
+            const min = Math.min(segment.v0, segment.v1);
+            const max = Math.max(segment.v0, segment.v1);
+            if (threshold <= min || threshold >= max) return null;
+            const t = (threshold - segment.v0) / delta;
+            if (t <= 0 || t >= 1) return null;
+            return t;
+        })
+        .filter((value) => value !== null)
+        .sort((a, b) => a - b);
+    if (!tBreaks.length) return [segment];
+    const segments = [];
+    let remaining = segment;
+    let prevOriginalT = 0;
+    tBreaks.forEach(originalT => {
+        const adjustedT = (originalT - prevOriginalT) / (1 - prevOriginalT);
+        const [left, right] = splitCubicSegment(remaining, adjustedT);
+        segments.push(left);
+        remaining = right;
+        prevOriginalT = originalT;
+    });
+    segments.push(remaining);
+    return segments;
+}
+
+function cubicSegmentToPath(segment) {
+    const { p0, c1, c2, p1 } = segment;
+    return `M ${p0.x} ${p0.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p1.x} ${p1.y}`;
 }
 
 function buildCurvePath(absPoints) {
@@ -6908,18 +6988,28 @@ function drawSegmentedCurve(pointsLayer, relPoints, data) {
     areaPath.setAttribute('fill-opacity', '0.92');
     areaPath.setAttribute('filter', `url(#${CONSISTENCY_AREA_FILTER_ID})`);
     lineGroup.innerHTML = '';
+    const thresholdValues = getSegmentThresholds(data.thresholds);
     for (let i = 0; i < absPoints.length - 1; i += 1) {
-        const segmentPath = document.createElementNS(SVG_NS, 'path');
-        segmentPath.setAttribute('d', buildSegmentPath(absPoints[i], absPoints[i + 1]));
-        const avg = (relPoints[i].value + relPoints[i + 1].value) / 2;
-        const color = getConsistencyBucket(avg, data.thresholds).color;
-        segmentPath.setAttribute('fill', 'none');
-        segmentPath.setAttribute('stroke', color);
-        segmentPath.setAttribute('stroke-width', '3');
-        segmentPath.setAttribute('stroke-linecap', 'round');
-        segmentPath.setAttribute('stroke-linejoin', 'round');
-        segmentPath.setAttribute('filter', `url(#${CONSISTENCY_LINE_FILTER_ID})`);
-        lineGroup.appendChild(segmentPath);
+        const baseSegment = createCubicSegment(
+            absPoints[i],
+            absPoints[i + 1],
+            absPoints[i].value,
+            absPoints[i + 1].value
+        );
+        const splitSegments = splitSegmentByThresholds(baseSegment, thresholdValues);
+        splitSegments.forEach(seg => {
+            const segmentPath = document.createElementNS(SVG_NS, 'path');
+            segmentPath.setAttribute('d', cubicSegmentToPath(seg));
+            const avg = (seg.v0 + seg.v1) / 2;
+            const color = getConsistencyBucket(avg, data.thresholds).color;
+            segmentPath.setAttribute('fill', 'none');
+            segmentPath.setAttribute('stroke', color);
+            segmentPath.setAttribute('stroke-width', '3');
+            segmentPath.setAttribute('stroke-linecap', 'round');
+            segmentPath.setAttribute('stroke-linejoin', 'round');
+            segmentPath.setAttribute('filter', `url(#${CONSISTENCY_LINE_FILTER_ID})`);
+            lineGroup.appendChild(segmentPath);
+        });
     }
 }
 
