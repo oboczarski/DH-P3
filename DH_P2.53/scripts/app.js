@@ -6609,18 +6609,28 @@ function updateConsistencyHud(data) {
     if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
     const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
     if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
+    const consistencyRingFill = consistencyContainer.querySelector('.progress-circle--consistency .progress-ring-fill');
+    const ceilingRingFill = consistencyContainer.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
     applyRankStyling({
         rank: data?.consistencyRank,
         metricValueEl: consistencyValueEl,
         metricSubEl: consistencyRankEl,
         circleValueEl: circleConsistencyValue
     });
+    if (consistencyRingFill) {
+        const consistencyStrokeColor = getRankAccentColor(data?.consistencyRank);
+        consistencyRingFill.setAttribute('stroke', consistencyStrokeColor);
+    }
     applyRankStyling({
         rank: data?.ceilingRank,
         metricValueEl: ceilingValueEl,
         metricSubEl: ceilingRankEl,
         circleValueEl: circleCeilingValue
     });
+    if (ceilingRingFill) {
+        const ceilingStrokeColor = getRankAccentColor(data?.ceilingRank);
+        ceilingRingFill.setAttribute('stroke', ceilingStrokeColor);
+    }
     const bestGameEl = consistencyContainer.querySelector('[data-insight-best]');
     if (bestGameEl) {
         if (data?.bestGame) {
