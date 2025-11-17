@@ -4964,7 +4964,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-chart-line-layer {
       position: absolute;
-      inset: 0.25rem 0.2rem 1.75rem 0.2rem;
+      inset: 0.25rem 0.05rem 1.75rem 0.05rem;
       z-index: 4;
       border-radius: 14px;
     }
@@ -5230,16 +5230,16 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-line-layer {
-            inset: 0.7rem 0.06rem 1.04rem 0.06rem;
+          inset: 0.7rem 0.02rem 1rem 0.02rem;
         }
 
         .weekly-chart-x-axis {
             background: #3462;
             border-radius: 0 0 4px 4px;
-            left: 0.06rem;
-            right: 0.06rem;
+            left: 0.02rem;
+            right: 0.02rem;
             font-size: 0.45rem;
-            padding: 0.08rem 0.16rem 0.12rem;
+            padding: 0.08rem 0.18rem 0.12rem;
         }
 
         .weekly-zone {
