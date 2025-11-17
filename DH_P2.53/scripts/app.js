@@ -6932,6 +6932,22 @@ function cubicSegmentToPath(segment) {
     return `M ${p0.x} ${p0.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p1.x} ${p1.y}`;
 }
 
+function extendCurvePoints(points) {
+    if (!points?.length) return [];
+    if (points.length === 1) {
+        const single = points[0];
+        return [
+            { ...single, x: 0 },
+            { ...single, x: 100 }
+        ];
+    }
+    const first = points[0];
+    const last = points[points.length - 1];
+    const extendedStart = { ...first, x: 0 };
+    const extendedEnd = { ...last, x: 100 };
+    return [extendedStart, ...points, extendedEnd];
+}
+
 function buildCurvePath(absPoints) {
     if (absPoints.length < 2) return '';
     let d = `M ${absPoints[0].x} ${absPoints[0].y}`;
@@ -7063,7 +7079,8 @@ function renderPoints(data) {
         pointEl.appendChild(label);
         pointsLayer.appendChild(pointEl);
     });
-    drawSegmentedCurve(pointsLayer, curvePoints, data);
+    const extendedCurvePoints = extendCurvePoints(curvePoints);
+    drawSegmentedCurve(pointsLayer, extendedCurvePoints, data);
 }
 
 function hydrateProgressCircles(data) {
