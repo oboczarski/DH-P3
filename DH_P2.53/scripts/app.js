@@ -7046,9 +7046,13 @@ function renderPoints(data) {
     const totalSlots = axisWeeks.length || data.series.length || 1;
     if (!data.series.length) return;
     const curvePoints = [];
+    const spanSlots = Math.max(1, totalSlots - 1);
+    const EDGE_PADDING_PCT = totalSlots > 1 ? 2.5 : 0;
     data.series.forEach(entry => {
         const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
-        const pctX = ((slotIndex + 0.5) / totalSlots) * 100;
+        const pctX = totalSlots === 1
+            ? 50
+            : EDGE_PADDING_PCT + ((100 - EDGE_PADDING_PCT * 2) * (slotIndex / spanSlots));
         const pctY = yFromPoints(entry.pts);
         curvePoints.push({ x: pctX, y: pctY, value: entry.pts });
         const bucket = getConsistencyBucket(entry.pts, data.thresholds);
