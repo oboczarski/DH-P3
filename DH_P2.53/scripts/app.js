@@ -7047,7 +7047,7 @@ function renderPoints(data) {
     if (!data.series.length) return;
     const curvePoints = [];
     const spanSlots = Math.max(1, totalSlots - 1);
-    const EDGE_PADDING_PCT = totalSlots > 1 ? 2.5 : 0;
+    const EDGE_PADDING_PCT = totalSlots > 1 ? 2.8 : 0;
     data.series.forEach(entry => {
         const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
         const pctX = totalSlots === 1
