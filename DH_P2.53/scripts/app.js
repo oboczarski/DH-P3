@@ -6437,6 +6437,7 @@ const CONSISTENCY_GRADIENT_COLORS = {
     solid: '#005cff10',
     high: '#00ffc110'
 };
+const CONSISTENCY_EDGE_PADDING_PCT = 2.8;
 const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q', 'D']);
 let curveSvg = null;
 
@@ -6764,9 +6765,21 @@ function renderXAxis(data) {
     if (!xAxisEl) return;
     xAxisEl.innerHTML = '';
     const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
-    weeks.forEach(week => {
+    const totalSlots = weeks.length || 1;
+    const spanSlots = Math.max(1, totalSlots - 1);
+    const paddingPct = getEdgePaddingPct(totalSlots);
+    if (paddingPct > 0) {
+        xAxisEl.dataset.padding = paddingPct;
+    } else {
+        delete xAxisEl.dataset.padding;
+    }
+    weeks.forEach((week, slotIndex) => {
+        const pctX = totalSlots === 1
+            ? 50
+            : paddingPct + ((100 - paddingPct * 2) * (slotIndex / spanSlots));
         const span = document.createElement('span');
         span.textContent = `WK ${week}`;
+        span.style.left = `${pctX}%`;
         xAxisEl.appendChild(span);
     });
 }
@@ -7064,6 +7077,10 @@ function drawSegmentedCurve(pointsLayer, relPoints, data) {
     }
 }
 
+function getEdgePaddingPct(slotCount) {
+    return slotCount > 1 ? CONSISTENCY_EDGE_PADDING_PCT : 0;
+}
+
 function yFromPoints(pts) {
     const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
     return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
@@ -7082,12 +7099,12 @@ function renderPoints(data) {
     if (!data.series.length) return;
     const curvePoints = [];
     const spanSlots = Math.max(1, totalSlots - 1);
-    const EDGE_PADDING_PCT = totalSlots > 1 ? 2.8 : 0;
+    const edgePaddingPct = getEdgePaddingPct(totalSlots);
     data.series.forEach(entry => {
         const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
         const pctX = totalSlots === 1
             ? 50
-            : EDGE_PADDING_PCT + ((100 - EDGE_PADDING_PCT * 2) * (slotIndex / spanSlots));
+            : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
         const pctY = yFromPoints(entry.pts);
         curvePoints.push({ x: pctX, y: pctY, value: entry.pts });
         const bucket = getConsistencyBucket(entry.pts, data.thresholds);
