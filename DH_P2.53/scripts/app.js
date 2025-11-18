@@ -6698,6 +6698,7 @@ function renderConsistencyChart() {
     requestAnimationFrame(() => {
         if (!data) {
             renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
+            renderZoneSummary(null);
             pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
             if (curveSvg) {
                 curveSvg.remove();
@@ -6708,6 +6709,7 @@ function renderConsistencyChart() {
             return;
         }
         renderXAxis(data);
+        renderZoneSummary(data);
         renderPoints(data);
         hydrateProgressCircles(data);
         if (data.series.length === 0) {
@@ -6722,6 +6724,39 @@ function createZones(data) {
     const lineLayer = document.getElementById('weekly-chart-points');
     if (!lineLayer) return;
     lineLayer.querySelectorAll('.weekly-zone').forEach(zone => zone.remove());
+}
+
+function renderZoneSummary(data) {
+    const container = document.getElementById('weekly-zone-summary');
+    if (!container) return;
+    const lowEl = container.querySelector('[data-zone-low]');
+    const solidEl = container.querySelector('[data-zone-solid]');
+    const highEl = container.querySelector('[data-zone-high]');
+    const resetCounts = () => {
+        if (lowEl) lowEl.textContent = '0';
+        if (solidEl) solidEl.textContent = '0';
+        if (highEl) highEl.textContent = '0';
+    };
+    if (!data || !data.series || !data.series.length) {
+        resetCounts();
+        return;
+    }
+    const thresholds = data.thresholds || getConsistencyThresholds(data.position);
+    let low = 0, solid = 0, high = 0;
+    data.series.forEach(entry => {
+        const pts = entry?.pts;
+        if (!Number.isFinite(pts)) return;
+        if (pts > thresholds.high) {
+            high += 1;
+        } else if (pts >= thresholds.solid) {
+            solid += 1;
+        } else {
+            low += 1;
+        }
+    });
+    if (lowEl) lowEl.textContent = low;
+    if (solidEl) solidEl.textContent = solid;
+    if (highEl) highEl.textContent = high;
 }
 
 function renderXAxis(data) {

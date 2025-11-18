@@ -4938,6 +4938,62 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         border-radius: 8px;
     }
 
+    .weekly-zone-summary {
+        position: absolute;
+        top: 0.25rem;
+        left: 0.4rem;
+        right: 0.4rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        z-index: 7;
+        pointer-events: none;
+    }
+
+    .zone-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.18rem 0.48rem;
+        border-radius: 999px;
+        font-size: 0.5rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(5, 9, 20, 0.76);
+        box-shadow: 0 6px 18px rgba(4, 8, 18, 0.35);
+        backdrop-filter: blur(14px);
+        pointer-events: none;
+    }
+
+    .zone-chip-label {
+        color: rgba(239, 246, 255, 0.78);
+        font-weight: 600;
+    }
+
+    .zone-chip-value {
+        font-weight: 700;
+        color: #f8faff;
+    }
+
+    .zone-chip--low {
+        border-color: rgba(194, 108, 252, 0.45);
+        background: rgba(194, 108, 252, 0.14);
+        color: #e7d2ff;
+    }
+
+    .zone-chip--solid {
+        border-color: rgba(0, 197, 255, 0.4);
+        background: rgba(0, 197, 255, 0.12);
+        color: #d1f6ff;
+    }
+
+    .zone-chip--high {
+        border-color: rgba(0, 255, 193, 0.35);
+        background: rgba(0, 255, 193, 0.12);
+        color: #d6fff6;
+    }
+
     .consistency-empty-state {
       position: absolute;
       inset: 0;
@@ -4964,7 +5020,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-chart-line-layer {
       position: absolute;
-      inset: 0.25rem 0.05rem 1.75rem 0.05rem;
+      inset: 2.4rem 0.05rem 1.75rem 0.05rem;
       z-index: 4;
       border-radius: 14px;
     }
@@ -5226,11 +5282,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-chart-box {
-            height: 238px;
+            height: 239px;
         }
 
         .weekly-chart-line-layer {
-          inset: 0.7rem 0.02rem 1rem 0.02rem;
+          inset: 2.05rem 0.02rem 1rem 0.02rem;
         }
 
         .weekly-chart-x-axis {
@@ -5240,6 +5296,17 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             right: 0.02rem;
             font-size: 0.45rem;
             padding: 0.08rem 0.18rem 0.12rem;
+        }
+
+        .weekly-zone-summary {
+            top: 0.14rem;
+            gap: 0.28rem;
+        }
+
+        .zone-chip {
+            padding: 0.12rem 0.34rem;
+            font-size: 0.42rem;
+            letter-spacing: 0.05em;
         }
 
         .weekly-zone {
