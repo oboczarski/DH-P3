@@ -6609,9 +6609,9 @@ function updateConsistencyHud(data) {
     const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
     if (circleCeilingValue) circleCeilingValue.textContent = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : 'NA';
     const consistencyCaptionEl = consistencyContainer.querySelector('[data-consistency-circle-caption]');
-    if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'Season CSTY RATE';
+    if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'CSTY RATE';
     const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
-    if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'Season CL POS RANK';
+    if (ceilingCaptionEl) ceilingCaptionEl.textContent = 'CL POS RANK';
     const consistencyRingFill = consistencyContainer.querySelector('.progress-circle--consistency .progress-ring-fill');
     const ceilingRingFill = consistencyContainer.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
     applyRankStyling({
