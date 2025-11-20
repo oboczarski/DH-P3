@@ -5188,14 +5188,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .weekly-point-label--capped::after {
-      content: '+';
+      content: '✧';
       position: absolute;
-      top: 3px;
-      right: 5px;
-      font-size: 0.5rem;
+      top: 2px;
+      right: 2px;
+      font-size: 0.6rem;
       font-weight: 800;
-      color: #ffc877;
-      text-shadow: 0 0 6px rgba(255, 200, 119, 0.7);
+      color: #00ffc0;
+      text-shadow: 0 0 5px rgb(197 193 214);
       opacity: 0.9;
       pointer-events: none;
     }
@@ -5364,7 +5364,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .weekly-point-label {
           top: -4px;
           min-width: 20px;
-          padding: 0.07rem 0.1rem;
+          padding: 0.07rem 0.15rem;
           border-radius: 0.35rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(10px);
@@ -5375,9 +5375,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label--capped::after {
-          top: 1px;
-          right: 3px;
-          font-size: 0.38rem;
+          content: '⇧';
+          top: -3px;
+          right: -4px;
+          font-size: 0.45rem;
+          color: #00ffc0;
+          text-shadow: 0 0 5px rgb(197 193 214);
+          opacity: 0.9;
         }
 
         .weekly-point-label__week {
