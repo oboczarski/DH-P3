@@ -7133,7 +7133,8 @@ function renderPoints(data) {
         valueSpan.className = 'weekly-point-label__value';
         const valueNumber = document.createElement('span');
         valueNumber.style.color = bucket.color;
-        valueNumber.textContent = entry.pts.toFixed(1);
+        const rawValue = Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts;
+        valueNumber.textContent = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '—';
         valueSpan.appendChild(valueNumber);
         label.appendChild(suffix);
         label.appendChild(valueSpan);
