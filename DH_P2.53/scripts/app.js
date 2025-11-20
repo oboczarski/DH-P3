@@ -6597,13 +6597,17 @@ function updateConsistencyHud(data) {
     if (weekRangeEl) weekRangeEl.textContent = data?.weekRangeLabel || 'Weeks —';
     const weeksChartedEl = consistencyContainer.querySelector('[data-weeks-charted]');
     if (weeksChartedEl) weeksChartedEl.textContent = data?.weeksChartedLabel || 'No weeks charted';
-    const consistencyValueEl = consistencyContainer.querySelector('[data-consistency-value]');
     const formattedPct = formatHudPercentage(data?.consistencyPct);
-    if (consistencyValueEl) consistencyValueEl.textContent = formattedPct;
     const consistencyRankEl = consistencyContainer.querySelector('[data-consistency-rank]');
+    if (consistencyRankEl) {
+        if (Number.isFinite(data?.consistencyRank)) {
+            consistencyRankEl.textContent = `#${data.consistencyRank}`;
+        } else {
+            consistencyRankEl.textContent = 'NA';
+        }
+    }
     const ceilingValueEl = consistencyContainer.querySelector('[data-ceiling-value]');
     if (ceilingValueEl) ceilingValueEl.textContent = formatCeilingValue(data?.ceilingValue);
-    const ceilingRankEl = consistencyContainer.querySelector('[data-ceiling-rank]');
     const circleConsistencyValue = consistencyContainer.querySelector('[data-consistency-circle-value]');
     if (circleConsistencyValue) circleConsistencyValue.textContent = formattedPct;
     const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
@@ -6616,8 +6620,8 @@ function updateConsistencyHud(data) {
     const ceilingRingFill = consistencyContainer.querySelector('.progress-circle--ceiling .progress-ring-fill--ceiling');
     applyRankStyling({
         rank: data?.consistencyRank,
-        metricValueEl: consistencyValueEl,
-        metricSubEl: consistencyRankEl,
+        metricValueEl: consistencyRankEl,
+        metricSubEl: null,
         circleValueEl: circleConsistencyValue
     });
     if (consistencyRingFill) {
@@ -6627,7 +6631,7 @@ function updateConsistencyHud(data) {
     applyRankStyling({
         rank: data?.ceilingRank,
         metricValueEl: ceilingValueEl,
-        metricSubEl: ceilingRankEl,
+        metricSubEl: null,
         circleValueEl: circleCeilingValue
     });
     if (ceilingRingFill) {

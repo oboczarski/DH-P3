@@ -4845,10 +4845,19 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         align-items: flex-start;
     }
 
+    .metric-primary--single {
+        gap: 0;
+    }
+
     .metric-value {
         font-size: 0.9rem;
         font-weight: 500;
         color: #9f8bff;
+        align-self: center;
+    }
+
+    .metric-value--rank {
+        letter-spacing: 0.08em;
     }
 
     .metric-sub {
@@ -5245,7 +5254,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .hud-metrics {
-            gap: 0.5rem;
+            gap: 1.5rem;
             margin: 0.02rem 0 0.14rem;
         }
 
