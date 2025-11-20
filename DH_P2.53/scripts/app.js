@@ -7136,6 +7136,9 @@ function renderPoints(data) {
         const rawValue = Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts;
         valueNumber.textContent = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '—';
         valueSpan.appendChild(valueNumber);
+        if (Number.isFinite(rawValue) && rawValue > MAX_CONSISTENCY_POINTS) {
+            label.classList.add('weekly-point-label--capped');
+        }
         label.appendChild(suffix);
         label.appendChild(valueSpan);
         pointEl.appendChild(label);

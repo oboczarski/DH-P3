@@ -5187,6 +5187,19 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       box-shadow: 0 10px 20px rgba(0, 255, 193, 0.2);
     }
 
+    .weekly-point-label--capped::after {
+      content: '+';
+      position: absolute;
+      top: 3px;
+      right: 5px;
+      font-size: 0.5rem;
+      font-weight: 800;
+      color: #ffc877;
+      text-shadow: 0 0 6px rgba(255, 200, 119, 0.7);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
     .weekly-point-label__value {
         font-size: 0.68rem;
         font-weight: 700;
@@ -5359,6 +5372,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
           justify-content: center;
           gap: 0.06rem;
           flex-direction: column;
+        }
+
+        .weekly-point-label--capped::after {
+          top: 1px;
+          right: 3px;
+          font-size: 0.38rem;
         }
 
         .weekly-point-label__week {
