@@ -6538,11 +6538,13 @@ function buildConsistencyPanelData(player) {
         if (!best) return entry;
         return entry.pts > best.pts ? entry : best;
     }, null);
+    const solidHighCount = thresholds
+        ? series.filter(entry => entry.pts >= thresholds.solid).length
+        : null;
     const lastFive = series.slice(-5);
     const lastFiveAvg = lastFive.length
         ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
         : null;
-    const highWeekCount = thresholds ? series.filter(entry => entry.pts >= thresholds.high).length : null;
     const seasonTotals = state.playerSeasonStats?.[playerId] || {};
     const playerName = (fullPlayer ? `${fullPlayer.first_name || ''} ${fullPlayer.last_name || ''}` : player.name || '')
         .replace(/\s+/g, ' ')
@@ -6572,7 +6574,9 @@ function buildConsistencyPanelData(player) {
         ceilingRankMax,
         bestGame: bestGameEntry,
         lastFiveAvg,
-        highWeekCount
+        highWeekCount: thresholds ? series.filter(entry => entry.pts >= thresholds.high).length : null,
+        solidHighCount,
+        totalWeeks: series.length
     };
 }
 
@@ -6656,14 +6660,15 @@ function updateConsistencyHud(data) {
             lastFiveEl.textContent = '—';
         }
     }
-    const highWeeksEl = consistencyContainer.querySelector('[data-insight-high]');
-    if (highWeeksEl) {
-        if (Number.isFinite(data?.highWeekCount)) {
-            const count = data.highWeekCount;
-            const suffix = count === 1 ? 'week' : 'weeks';
-            highWeeksEl.textContent = `${count} ${suffix}`;
+    const cstyCountEl = consistencyContainer.querySelector('[data-insight-cstycount]');
+    if (cstyCountEl) {
+        const made = Number.isFinite(data?.solidHighCount) ? data.solidHighCount : null;
+        const total = Number.isFinite(data?.totalWeeks) ? data.totalWeeks : null;
+        if (made !== null && total !== null && total > 0) {
+            const color = getRankAccentColor(data?.consistencyRank);
+            cstyCountEl.innerHTML = `<span class="csty-made" style="color:${color}">${made}</span>/<span class="csty-total">${total}</span>`;
         } else {
-            highWeeksEl.textContent = '—';
+            cstyCountEl.textContent = '—';
         }
     }
 }
@@ -7121,9 +7126,6 @@ function renderPoints(data) {
         const label = document.createElement('div');
         label.className = 'weekly-point-label';
         label.classList.add(`weekly-point-label--${bucket.name}`);
-        const weekSpan = document.createElement('span');
-        weekSpan.className = 'weekly-point-label__week';
-        weekSpan.textContent = `WK ${entry.week}`;
         const suffix = document.createElement('span');
         suffix.className = 'weekly-point-label__suffix';
         suffix.textContent = 'fpts';
@@ -7133,7 +7135,6 @@ function renderPoints(data) {
         valueNumber.style.color = bucket.color;
         valueNumber.textContent = entry.pts.toFixed(1);
         valueSpan.appendChild(valueNumber);
-        label.appendChild(weekSpan);
         label.appendChild(suffix);
         label.appendChild(valueSpan);
         pointEl.appendChild(label);

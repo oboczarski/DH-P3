@@ -4928,6 +4928,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
     }
 
+    .hud-insight-value .csty-made {
+      font-weight: 700;
+    }
+
+    .hud-insight-value .csty-total {
+      color: rgba(239, 246, 255, 0.78);
+    }
+
     /* Chart Shell */
     .consistency-chart-shell {
         margin-top: 0.45rem;
@@ -5139,21 +5147,24 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       --point-color: #00ffc1;
     }
 
-      .weekly-point-label {
+    .weekly-point-label {
       position: absolute;
       top: 3px;
       left: 50%;
       transform: translate(-50%, -100%);
       border-radius: 0.55rem;
-      padding: 0.22rem 0.35rem;
+      padding: 0.18rem 0.4rem;
       text-align: center;
-      min-width: 38px;
+      min-width: 46px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(24px);
       pointer-events: none;
-      line-height: 1;
-      display: flex;
+      line-height: 1.05;
+      display: inline-flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.08rem;
       box-shadow: 0 8px 24px rgba(4, 10, 25, 0.35);
       background: rgba(5, 9, 20, 0.78);
     }
@@ -5176,26 +5187,20 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       box-shadow: 0 10px 20px rgba(0, 255, 193, 0.2);
     }
 
-    .weekly-point-label__week {
-        font-size: 0.42rem;
-        color: rgba(239, 246, 255, 0.65);
-        display: block;
-    }
-
     .weekly-point-label__value {
-        font-size: 0.6rem;
-        font-weight: 600;
+        font-size: 0.68rem;
+        font-weight: 700;
         color: #f8faff;
-        display: inline;
+        display: inline-flex;
         white-space: nowrap;
       order: 1;
     }
 
     .weekly-point-label__suffix {
-        font-size: 0.38rem;
+        font-size: 0.44rem;
         font-weight: 600;
         color: #f8faff;
-      order: 2;
+      order: 0;
     }
 
     .weekly-curve-layer {
@@ -5346,11 +5351,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .weekly-point-label {
           top: -4px;
           min-width: 20px;
-          padding: 0.05rem 0.051rem;
+          padding: 0.07rem 0.1rem;
           border-radius: 0.35rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(10px);
           align-items: center;
+          justify-content: center;
+          gap: 0.06rem;
+          flex-direction: column;
         }
 
         .weekly-point-label__week {
@@ -5368,7 +5376,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .weekly-point-label__value {
           order: 1;
           font-size: 0.54rem;
-          font-weight: 600;
+          font-weight: 700;
           border-radius: 4px;
           padding: 0;
         }
