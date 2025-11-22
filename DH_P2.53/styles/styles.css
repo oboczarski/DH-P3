@@ -4617,9 +4617,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     overflow: hidden;
 }
 
-/* Hide game logs table when consistency panel is visible */
+/* Hide game logs table when consistency or radar panel is visible */
 #game-logs-modal #consistency-container:not(.hidden) ~ .game-logs-table-container,
-#game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-table-container {
+#game-logs-modal #modal-body:has(#consistency-container:not(.hidden)) .game-logs-table-container,
+#game-logs-modal #radar-chart-container:not(.hidden) ~ .game-logs-table-container,
+#game-logs-modal #modal-body:has(#radar-chart-container:not(.hidden)) .game-logs-table-container {
     opacity: 0;
     pointer-events: none;
 }
