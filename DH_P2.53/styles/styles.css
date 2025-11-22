@@ -5153,9 +5153,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       left: 50%;
       transform: translate(-50%, -100%);
       border-radius: 0.55rem;
-      padding: 0.18rem 0.4rem;
+      padding: 0.18rem 0.14rem;
       text-align: center;
-      min-width: 46px;
+      min-width: 30px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(24px);
       pointer-events: none;
@@ -5190,12 +5190,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .weekly-point-label--capped::after {
       content: '✧';
       position: absolute;
-      top: 2px;
-      right: 2px;
+      top: -2px;
+      right: 23px;
       font-size: 0.6rem;
       font-weight: 800;
-      color: #00ffc0;
-      text-shadow: 0 0 5px rgb(197 193 214);
+      color: #09ffb8;
       opacity: 0.9;
       pointer-events: none;
     }
@@ -5213,7 +5212,8 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         font-size: 0.44rem;
         font-weight: 600;
         color: #f8faff;
-      order: 0;
+        order: 0;
+        text-transform: uppercase;
     }
 
     .weekly-curve-layer {
@@ -5364,7 +5364,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .weekly-point-label {
           top: -4px;
           min-width: 20px;
-          padding: 0.07rem 0.15rem;
+          padding: 0.07rem 0.07rem;
           border-radius: 0.35rem;
           border: 1px solid rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(10px);
@@ -5375,12 +5375,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .weekly-point-label--capped::after {
-          content: '⇧';
-          top: -3px;
-          right: -4px;
+          top: -2px;
+          right: 18px;
           font-size: 0.45rem;
           color: #00ffc0;
-          text-shadow: 0 0 5px rgb(197 193 214);
+          text-shadow: 0 0 5px rgb(0 188 143);
           opacity: 0.9;
         }
 
