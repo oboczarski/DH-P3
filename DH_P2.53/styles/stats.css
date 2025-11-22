@@ -294,6 +294,7 @@
   color: var(--color-text-tertiary);
   text-align: left;
   white-space: nowrap;
+  text-align: center;
 }
 .stats-controls-body {
   display: flex;
@@ -1170,10 +1171,10 @@
 }
 
 .stats-eff-asterisk {
-  color: #fa8072;
-  font-size: 0.82em;
+  color: #f06f54;
+  font-size: 1.05em;
   font-weight: 700;
-  margin-left: 0.12rem;
+  margin-left: -0.05rem;
   vertical-align: text-top;
   line-height: 1;
 }
