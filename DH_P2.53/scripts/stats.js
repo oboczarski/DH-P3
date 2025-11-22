@@ -230,8 +230,8 @@
   // Efficiency columns (plus any header containing '/' or '%')
   const EFFICIENCY_COLUMNS = new Set([
     'PPG', 'CSTY%', 'CL', 'SNP%', 'IMP/OPP', 'pIMP/A', 'IMP/G', 'pIMP/G', 'ruIMP/G',
-    'CMP%', 'paRTG', 'PRS%', 'TTT', 'MTF/A', 'YCO/A', 'YPC', 'ruYPG', 'recYPG', 'paYPG',
-    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR'
+    'CMP%', 'paRTG', 'PRS%', 'TTT', 'ELU','MTF/A', 'YCO/A', 'YPC', 'ruYPG', 'recYPG', 'paYPG',
+    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC'
   ]);
   
   function getColumnWidth(columnKey) {
