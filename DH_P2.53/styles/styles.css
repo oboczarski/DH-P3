@@ -300,14 +300,14 @@
         .glass-panel {
        background-color: rgba(13, 14, 35, 0.21);
        background-image: linear-gradient(rgba(255,255,255, 0.03), rgba(255,255,255, 0.03));
-        -webkit-backdrop-filter: blur(6px) saturate(120%) brightness(120%);
-        backdrop-filter: blur(6px) saturate(120%) brightness(120%);
-        box-shadow: inset 0 0 0 0px rgba(255,255,255, 0.05), inset 0 0 0 3px rgba(200,200,200, 0.025), 0 10px 26px rgba(0,0,0, var(--outerA, .22));
+       -webkit-backdrop-filter: blur(5px) saturate(120%) brightness(120%);
+       backdrop-filter: blur(5px) saturate(120%) brightness(120%);
+       box-shadow: inset 0 0 0 0px rgba(255,255,255, 0.05), inset 0 0 0 3px rgba(200,200,200, 0.025), 0 10px 26px rgba(0,0,0, var(--outerA, .22));
         /* · · Frame · · */
-        border: 1px solid rgba(128, 138, 189, 0.2);
-        border-radius: 10px;
-        box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
-        }
+       border: 1px solid rgba(128, 138, 189, 0.2);
+       border-radius: 10px;
+       box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
+       }
 /* ⬇︎ NEW REDESIGNED HEADER LAYOUT ⬇︎ */
 /* === ROW 1: Logo + Navigation Buttons === */
 #primary-header-row {
@@ -4580,10 +4580,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     padding: 0.41rem;
     overflow-y: auto;
     border-radius: 9px;
-    background: radial-gradient(circle at center, #151723 15%, #262940 100%);
-    box-shadow: 0 8px 32px rgba(31, 38, 105, 0.2), inset 0 6px 18px rgba(255, 255, 255, 0.04);
+    background: #7770;
+    box-shadow: 0 8px 32px rgba(31, 38, 105, 0), inset 0 4px 58px rgba(255, 255, 255, 0.05);
     z-index: 5;
-    border: 1px solid #7779;
+    border: 0px solid #7770;
 }
 
 /* News Container - Same overlay behavior */
@@ -4626,7 +4626,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     pointer-events: none;
 }
 
-.stats-key-panel h4 {
+.stats-key-panel:not(.radar-panel) h4 {
     font-size: 0.95rem;
     font-weight: 200;
     color: var(--color-text-primary);
@@ -4637,6 +4637,19 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     border: 0.0625rem solid rgba(250, 250, 250, 0.06);
     border-radius: 5px;
     background: #4f40701f;
+}
+
+.radar-panel h4 {
+    font-size: 0.95rem;
+    font-weight: 200;
+    color: var(--color-text-primary);
+    margin-bottom: 0.3rem;
+    margin-top: 0rem;
+    text-align: center;
+    border: 1px solid var(--color-panel-border);
+    border: 1px solid rgba(250, 250, 250, 0.05);
+    border-radius: 5px;
+    background: #fff0;
 }
 .stats-key-panel ul {
     list-style: none;
@@ -6305,6 +6318,7 @@ img.team-logo.glow[alt="WAS"] {
     width: 100% !important;
     height: 370px !important;
     padding: 8px 4px 0px 4px;
+    background: #1230;
 }
 
 .no-data-message {
