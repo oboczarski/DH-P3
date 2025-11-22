@@ -289,9 +289,8 @@
 .stats-controls-footer {
   margin: 0;
   margin-top: 0.1rem;
-  font-size: 0.62rem;
+  font-size: 0.5rem;
   color: var(--color-text-tertiary);
-  letter-spacing: 0.045em;
   text-align: left;
 }
 .stats-controls-body {
