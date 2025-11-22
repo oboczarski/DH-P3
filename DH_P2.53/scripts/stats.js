@@ -960,7 +960,7 @@
         if (descriptor.asterisk) {
           const star = document.createElement('span');
           star.className = 'stats-eff-asterisk';
-          star.textContent = '*';
+          star.textContent = '✼';
           td.appendChild(star);
         }
         if (style) Object.assign(td.style, style);

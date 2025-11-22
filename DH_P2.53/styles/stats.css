@@ -1173,10 +1173,10 @@
 }
 
 .stats-eff-asterisk {
-  color: #f06f54;
-  font-size: 1.05em;
-  font-weight: 700;
-  margin-left: -0.05rem;
+  color: #ff5d23;
+  font-size: 0.9em;
+  font-weight: 300;
+  margin-left: 0rem;
   vertical-align: text-top;
   line-height: 1;
 }
