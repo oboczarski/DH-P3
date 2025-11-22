@@ -217,6 +217,22 @@
   };
   
   const DEFAULT_COLUMN_WIDTH = 76;
+  // Columns we want to always treat as numeric for sorting
+  const NUMERIC_SORT_COLUMNS = new Set([
+    'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP',
+    'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'paYPG', 'ruYDS', 'ruTD',
+    'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE',
+    'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D',
+    'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR', 'CSTY%', 'CL',
+    'TS%', 'OPP', 'recYDS', 'pIMP/G', 'ruIMP/G', 'IMP/G'
+  ]);
+
+  // Efficiency columns (plus any header containing '/' or '%')
+  const EFFICIENCY_COLUMNS = new Set([
+    'PPG', 'CSTY%', 'CL', 'SNP%', 'IMP/OPP', 'pIMP/A', 'IMP/G', 'pIMP/G', 'ruIMP/G',
+    'CMP%', 'paRTG', 'PRS%', 'TTT', 'MTF/A', 'YCO/A', 'YPC', 'ruYPG', 'recYPG', 'paYPG',
+    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR'
+  ]);
   
   function getColumnWidth(columnKey) {
     const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
@@ -431,6 +447,70 @@
       return combined || fallback;
     }
     return fallback;
+  }
+
+  function isEfficiencyColumn(column) {
+    if (!column) return false;
+    if (EFFICIENCY_COLUMNS.has(column)) return true;
+    return column.includes('%') || column.includes('/');
+  }
+
+  function isNumericColumn(column) {
+    if (!column) return false;
+    if (NUMERIC_SORT_COLUMNS.has(column)) return true;
+    return column.includes('%') || column.includes('/');
+  }
+
+  function getNumericSortValue(entry, column) {
+    if (!column) return null;
+    if (column === 'FPTS') return Number.isFinite(entry.meta.fpts) ? entry.meta.fpts : toNumber(entry.row[column]);
+    if (column === 'PPG') return Number.isFinite(entry.meta.ppg) ? entry.meta.ppg : toNumber(entry.row[column]);
+    if (column === 'VALUE') return Number.isFinite(entry.meta.value) ? entry.meta.value : toNumber(entry.row[column]);
+    if (column === 'AGE') return Number.isFinite(entry.meta.age) ? entry.meta.age : toNumber(entry.row[column]);
+    if (column === 'RK') return Number.isFinite(entry.meta.rank) ? entry.meta.rank : toNumber(entry.row[column], { allowFloat: false });
+    return toNumber(entry.row[column]);
+  }
+
+  function hasSortableValue(entry, column) {
+    if (!column) return true;
+    const raw = entry.row[column];
+
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if (!trimmed) {
+        const numeric = getNumericSortValue(entry, column);
+        return Number.isFinite(numeric);
+      }
+      const upper = trimmed.toUpperCase();
+      if (upper === 'NA' || upper === 'N/A') return false;
+    }
+
+    if (raw === undefined || raw === null || raw === '') {
+      const numeric = getNumericSortValue(entry, column);
+      return Number.isFinite(numeric);
+    }
+
+    if (!isNumericColumn(column)) return true; // non-numeric columns just need a non-empty value
+
+    const numeric = getNumericSortValue(entry, column);
+    return Number.isFinite(numeric);
+  }
+
+  function shouldAnnotateEfficiency(entry, column) {
+    if (!column || statsState.sort.direction === 0) return false;
+    if (column !== statsState.sort.column) return false;
+    if (!isEfficiencyColumn(column)) return false;
+    const snap = getNumericSortValue(entry, 'SNP%');
+    const games = getNumericSortValue(entry, 'G');
+    return (Number.isFinite(snap) && snap < 45) || (Number.isFinite(games) && games < 7);
+  }
+
+  function annotateEfficiencyValue(column, entry, value) {
+    if (!shouldAnnotateEfficiency(entry, column)) return value;
+    if (value === null || value === undefined) return value;
+    const str = value.toString();
+    if (!str.length) return str;
+    return `${str}*`;
   }
   function formatDisplayName(playerId, fallback = '') {
     const source = state.players?.[playerId];
@@ -658,7 +738,19 @@
     if (statsState.activePosition === 'RDP' && meta.pos !== 'RDP') return false;
     // Conditional filtering based on active sort
     const sortColumn = statsState.sort.column;
-    if (sortColumn && statsState.sort.direction !== 0) {
+    const sortActive = sortColumn && statsState.sort.direction !== 0;
+    if (sortActive) {
+      // Exclude rows with missing/empty/NA values for the active sort column
+      if (!hasSortableValue(entry, sortColumn)) return false;
+
+      // Efficiency stat thresholds
+      if (isEfficiencyColumn(sortColumn)) {
+        const snapPct = getNumericSortValue(entry, 'SNP%');
+        const games = getNumericSortValue(entry, 'G');
+        if (!Number.isFinite(snapPct) || snapPct < 40) return false;
+        if (!Number.isFinite(games) || games < 3) return false;
+      }
+
       const statCategory = getColumnCategory(sortColumn);
       // Passing filter: paATT >= 36
       if (statsState.activePosition === 'QB' && statCategory === 'passing') {
@@ -681,9 +773,6 @@
   function compareValues(a, b, column) {
     const aRaw = a.row[column];
     const bRaw = b.row[column];
-    const numericColumns = new Set([
-      'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'paYPG', 'ruYDS', 'ruTD', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR', 'CSTY%', 'CL'
-    ]);
     if (column === 'FPTS') {
       return (a.meta.fpts ?? -Infinity) - (b.meta.fpts ?? -Infinity);
     }
@@ -696,9 +785,9 @@
     if (column === 'AGE') {
       return (a.meta.age ?? -Infinity) - (b.meta.age ?? -Infinity);
     }
-    if (numericColumns.has(column)) {
-      const numA = toNumber(aRaw);
-      const numB = toNumber(bRaw);
+    if (isNumericColumn(column)) {
+      const numA = getNumericSortValue(a, column);
+      const numB = getNumericSortValue(b, column);
       if (numA === null && numB === null) return 0;
       if (numA === null) return -1;
       if (numB === null) return 1;
@@ -873,6 +962,7 @@
       const rowData = {};
       for (const column of columnSet) {
         const textValue = formatCellValue(column, entry);
+        const displayValue = annotateEfficiencyValue(column, entry, textValue);
         if (column === 'PLAYER') {
           rowData[column] = {
             render: (td) => {
@@ -882,7 +972,7 @@
               button.className = 'stats-player-btn';
               button.dataset.playerId = entry.meta.playerId;
               button.dataset.entryIndex = entryIndex;
-              button.textContent = textValue;
+              button.textContent = displayValue;
               td.appendChild(button);
             }
           };
@@ -906,7 +996,7 @@
               const span = document.createElement('span');
               span.className = 'stats-value-chip';
               span.style.cssText = entry.meta.valueStyle;
-              span.textContent = textValue;
+              span.textContent = displayValue;
               td.appendChild(span);
             }
           };
@@ -922,12 +1012,12 @@
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue}</span>`;
               }
             }
           };
         } else {
-          rowData[column] = createTextDescriptor(textValue);
+          rowData[column] = createTextDescriptor(displayValue);
         }
       }
       return rowData;
@@ -1081,6 +1171,7 @@
       const rowData = {};
       for (const column of columnSet) {
         const textValue = formatCellValue(column, entry);
+        const displayValue = annotateEfficiencyValue(column, entry, textValue);
         if (column === 'PLAYER') {
           rowData[column] = {
             render: (td) => {
@@ -1090,7 +1181,7 @@
               button.className = 'stats-player-btn';
               button.dataset.playerId = entry.meta.playerId;
               button.dataset.entryIndex = entryIndex;
-              button.textContent = textValue;
+              button.textContent = displayValue;
               td.appendChild(button);
             }
           };
@@ -1115,7 +1206,7 @@
               const span = document.createElement('span');
               span.className = 'stats-value-chip';
               span.style.cssText = entry.meta.valueStyle;
-              span.textContent = textValue;
+              span.textContent = displayValue;
               td.appendChild(span);
             }
           };
@@ -1131,12 +1222,12 @@
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${textValue}</span>`;
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue}</span>`;
               }
             }
           };
         } else {
-          rowData[column] = createTextDescriptor(textValue);
+          rowData[column] = createTextDescriptor(displayValue);
         }
       }
       return rowData;
