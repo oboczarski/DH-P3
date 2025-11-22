@@ -289,9 +289,11 @@
 .stats-controls-footer {
   margin: 0;
   margin-top: 0.1rem;
+  margin-left: -4px;
   font-size: 0.5rem;
   color: var(--color-text-tertiary);
   text-align: left;
+  white-space: nowrap;
 }
 .stats-controls-body {
   display: flex;
