@@ -19,7 +19,7 @@
     ['IMP/OPP', 'IMP/OPP']
   ]);
   const COLUMN_SETS = {
-    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
+    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
     QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
@@ -506,11 +506,11 @@
   }
 
   function annotateEfficiencyValue(column, entry, value) {
-    if (!shouldAnnotateEfficiency(entry, column)) return value;
-    if (value === null || value === undefined) return value;
-    const str = value.toString();
-    if (!str.length) return str;
-    return `${str}*`;
+    const baseText = value === undefined || value === null ? '' : value;
+    if (!shouldAnnotateEfficiency(entry, column)) {
+      return { text: baseText, asterisk: false };
+    }
+    return { text: baseText, asterisk: true };
   }
   function formatDisplayName(playerId, fallback = '') {
     const source = state.players?.[playerId];
@@ -951,9 +951,18 @@
     
     statsState.lastRenderedRows = sortedRows;
 
-    const createTextDescriptor = (text, style) => ({
+    const createTextDescriptor = (textOrDescriptor, style) => ({
       render: (td) => {
-        td.textContent = text;
+        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
+          ? textOrDescriptor
+          : { text: textOrDescriptor, asterisk: false };
+        td.textContent = descriptor.text ?? '';
+        if (descriptor.asterisk) {
+          const star = document.createElement('span');
+          star.className = 'stats-eff-asterisk';
+          star.textContent = '*';
+          td.appendChild(star);
+        }
         if (style) Object.assign(td.style, style);
       }
     });
@@ -972,7 +981,13 @@
               button.className = 'stats-player-btn';
               button.dataset.playerId = entry.meta.playerId;
               button.dataset.entryIndex = entryIndex;
-              button.textContent = displayValue;
+              button.textContent = displayValue.text ?? displayValue;
+              if (displayValue.asterisk) {
+                const star = document.createElement('span');
+                star.className = 'stats-eff-asterisk';
+                star.textContent = '*';
+                button.appendChild(star);
+              }
               td.appendChild(button);
             }
           };
@@ -996,7 +1011,13 @@
               const span = document.createElement('span');
               span.className = 'stats-value-chip';
               span.style.cssText = entry.meta.valueStyle;
-              span.textContent = displayValue;
+              span.textContent = displayValue.text ?? displayValue;
+              if (displayValue.asterisk) {
+                const star = document.createElement('span');
+                star.className = 'stats-eff-asterisk';
+                star.textContent = '*';
+                span.appendChild(star);
+              }
               td.appendChild(span);
             }
           };
@@ -1012,7 +1033,7 @@
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue}</span>`;
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
             }
           };
@@ -1160,9 +1181,18 @@
     statsState.lastRenderedRows = sortedRows;
 
     // --- Data Transformation for TanStack Table ---
-    const createTextDescriptor = (text, style) => ({
+    const createTextDescriptor = (textOrDescriptor, style) => ({
       render: (td) => {
-        td.textContent = text;
+        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
+          ? textOrDescriptor
+          : { text: textOrDescriptor, asterisk: false };
+        td.textContent = descriptor.text ?? '';
+        if (descriptor.asterisk) {
+          const star = document.createElement('span');
+          star.className = 'stats-eff-asterisk';
+          star.textContent = '*';
+          td.appendChild(star);
+        }
         if (style) Object.assign(td.style, style);
       }
     });
@@ -1181,7 +1211,13 @@
               button.className = 'stats-player-btn';
               button.dataset.playerId = entry.meta.playerId;
               button.dataset.entryIndex = entryIndex;
-              button.textContent = displayValue;
+              button.textContent = displayValue.text ?? displayValue;
+              if (displayValue.asterisk) {
+                const star = document.createElement('span');
+                star.className = 'stats-eff-asterisk';
+                star.textContent = '*';
+                button.appendChild(star);
+              }
               td.appendChild(button);
             }
           };
@@ -1206,7 +1242,13 @@
               const span = document.createElement('span');
               span.className = 'stats-value-chip';
               span.style.cssText = entry.meta.valueStyle;
-              span.textContent = displayValue;
+              span.textContent = displayValue.text ?? displayValue;
+              if (displayValue.asterisk) {
+                const star = document.createElement('span');
+                star.className = 'stats-eff-asterisk';
+                star.textContent = '*';
+                span.appendChild(star);
+              }
               td.appendChild(span);
             }
           };
@@ -1222,7 +1264,7 @@
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue}</span>`;
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
             }
           };

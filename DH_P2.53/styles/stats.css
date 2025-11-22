@@ -1168,6 +1168,15 @@
   text-align: center;
 }
 
+.stats-eff-asterisk {
+  color: #fa8072;
+  font-size: 0.82em;
+  font-weight: 700;
+  margin-left: 0.12rem;
+  vertical-align: text-top;
+  line-height: 1;
+}
+
 .stats-table .stats-player-btn {
   color: inherit;
   font-weight: 400;
