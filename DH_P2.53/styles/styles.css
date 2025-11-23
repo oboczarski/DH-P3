@@ -5864,7 +5864,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 /* Compact comparison list (replaces table view) */
 #player-comparison-modal .comparison-list-container {
-  padding: 0.25rem 0.5rem 0.8rem;
+  padding: 0.2rem 0.35rem 0.8rem;
   overflow-y: auto;
 }
 #player-comparison-modal .comparison-list {
@@ -5885,7 +5885,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 }
 #player-comparison-modal .comparison-left,
 #player-comparison-modal .comparison-right {
-  font-weight: 400;
+  font-weight: 500;
   font-size: 0.8rem; /* larger stat value */
   text-align: center;
   color: var(--color-text-secondary);
@@ -5894,7 +5894,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.05rem;
+  gap: 0.005rem;
 }
 #player-comparison-modal .comparison-label {
   font-size: 0.75rem;
@@ -5911,19 +5911,18 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
 }
 #player-comparison-modal .comparison-bar-left {
-  background: linear-gradient(to right, #52c2FFe0, rgba(82, 194, 255, 0.6));
+  background: linear-gradient(to right, #47befe, rgb(82 194 255 / 55%));
 }
 #player-comparison-modal .comparison-bar-right {
-  background: linear-gradient(to left, #00e7c0d0, rgba(0, 231, 192, 0.6));
+  background: linear-gradient(to left, #36ffddf2, rgb(0 231 192 / 59%));
 }
 #player-comparison-modal .comparison-bar-left.worse-stat-bar {
-  opacity: 0.5;
-background: linear-gradient(to right, #52c2FFe0, rgba(82, 194, 255, 0.6));
+  opacity: 0.7;
+  background: linear-gradient(to right, #02cfff61, rgb(1 200 247 / 80%));
 }
 #player-comparison-modal .comparison-bar-right.worse-stat-bar {
-  opacity: 0.5;
-  background: linear-gradient(to left, #00e7c0d0, rgba(0, 231, 192, 0.6));
-
+  opacity: 0.7;
+  background: linear-gradient(to left, #03ffbd57, rgb(58 255 249 / 64%));
 }
 #player-comparison-modal .best-stat {
     color: var(--color-accent-trade-win) !important;
@@ -5936,11 +5935,11 @@ background: linear-gradient(to right, #52c2FFe0, rgba(82, 194, 255, 0.6));
 @media (max-width: 520px) {
   #player-comparison-modal .comparison-row {
       grid-template-columns: 50px 1fr 50px;
-      padding: 0rem  0.13rem 0.23rem 0.13rem;
+      padding: 0rem  0.33rem 0.23rem 0.33rem;
       gap: 0.3rem;
     }
   /* slightly larger mobile font so stacked rank remains readable */
-  #player-comparison-modal .comparison-left, #player-comparison-modal .comparison-right {font-size: 0.8rem;}
+  #player-comparison-modal .comparison-left, #player-comparison-modal .comparison-right {font-size: 0.7rem;}
   #player-comparison-modal .comparison-label { font-size: 0.7rem; }
   #player-comparison-modal .comparison-bar { height: 7px; }
 }
