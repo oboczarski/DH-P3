@@ -288,7 +288,7 @@
     infoBtn: document.querySelector('#game-logs-modal .modal-info-btn'),
     keyPanel: document.getElementById('stats-key-container'),
     radarPanel: document.getElementById('radar-chart-container'),
-    newsPanel: document.getElementById('news-container')
+    consistencyPanel: document.getElementById('consistency-container')
   };
   if (dom.leagueChip) {
     dom.leagueChip.textContent = 'DH DATA HUB';
@@ -1817,7 +1817,7 @@
       // Hide all overlay panels
       gameLogDom.keyPanel?.classList.add('hidden');
       gameLogDom.radarPanel?.classList.add('hidden');
-      gameLogDom.newsPanel?.classList.add('hidden');
+      gameLogDom.consistencyPanel?.classList.add('hidden');
       
       // Reset to game-logs active state
       const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
@@ -1847,12 +1847,12 @@
       const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
       modalInfoBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-          const targetPanel = btn.getAttribute('data-panel');
-          const overlayContainers = {
-            'stats-key': gameLogDom.keyPanel,
-            'radar-chart': gameLogDom.radarPanel,
-            'news': gameLogDom.newsPanel
-          };
+      const targetPanel = btn.getAttribute('data-panel');
+      const overlayContainers = {
+        'stats-key': gameLogDom.keyPanel,
+        'radar-chart': gameLogDom.radarPanel,
+        'consistency': gameLogDom.consistencyPanel
+      };
           
           // Special handling for game-logs - can't be toggled off
           if (targetPanel === 'game-logs') {
@@ -1871,7 +1871,7 @@
           const isCurrentlyVisible = overlayContainers[targetPanel] && 
                                      !overlayContainers[targetPanel].classList.contains('hidden');
           
-          // For overlay panels (stats-key, radar-chart, news)
+          // For overlay panels (stats-key, radar-chart, consistency)
           if (isCurrentlyVisible) {
             // Toggling off - return to game-logs view
             overlayContainers[targetPanel].classList.add('hidden');
@@ -1902,6 +1902,10 @@
               if (player && player.pos) {
                 renderPlayerRadarChart(player.id, player.pos);
               }
+            }
+            // If opening consistency panel, render chart
+            if (targetPanel === 'consistency' && typeof renderConsistencyChart === 'function') {
+              renderConsistencyChart();
             }
           }
         });
