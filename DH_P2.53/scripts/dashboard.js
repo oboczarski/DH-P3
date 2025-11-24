@@ -566,8 +566,9 @@ function setupCustomSelect() {
 function renderSelectedDetails() {
   const player = getSelected();
   const posRankText = Number.isFinite(player.ranks?.posRank) ? `#${player.ranks.posRank}` : 'NA';
+  setText('rating-label-top', 'POS RK');
   setText('rating-value', Number.isFinite(player.ranks?.posRank) ? player.ranks.posRank : 'NA');
-  setText('rating-meta', `${player.position} · FPTS RANK // ${player.team}`);
+  setText('rating-meta', '');
 }
 
 function renderRadar() {
@@ -1018,7 +1019,10 @@ function drawScatterChart(containerId, data) {
 
   // Grid
   const xAxisGrid = d3.axisBottom(x).tickSize(-innerHeight).tickFormat('').ticks(5);
-  const yAxisGrid = d3.axisLeft(y).tickSize(-innerWidth).tickFormat('').ticks(5);
+  const yAxisGrid = d3.axisLeft(y)
+    .tickValues([25, 30, 35, 40])
+    .tickSize(-innerWidth)
+    .tickFormat('');
 
   g.append('g')
     .attr('class', 'scatter-grid')
@@ -1039,7 +1043,7 @@ function drawScatterChart(containerId, data) {
 
   g.append('g')
     .attr('class', 'scatter-axis')
-    .call(d3.axisLeft(y).ticks(5))
+    .call(d3.axisLeft(y).tickValues([25, 30, 35, 40]))
     .selectAll('text')
     .style('font-size', isMobile ? '8px' : '14px');
 

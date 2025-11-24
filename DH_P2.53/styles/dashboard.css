@@ -377,20 +377,21 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0em;
+  gap: 0.05em;
   pointer-events: none;
 }
 
 .fc-radar-label {
-  font-size: 0.6em;
+  font-size: 0.7em;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
+  margin-bottom: -0.15em;
 }
 
 .fc-radar-score {
-  font-size: 2.5em;
+  font-size: 3em;
   font-weight: 900;
   color: white;
   line-height: 1;
@@ -398,8 +399,8 @@
 }
 
 .fc-radar-meta {
-  font-size: 0.625em;
-  color: var(--text-muted);
+  font-size: 0.001em;
+  color: transparent;
 }
 
 .fc-legend {
