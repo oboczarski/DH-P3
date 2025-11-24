@@ -550,6 +550,8 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             // For welcome page, just show the screen - no loading needed
             if (pageType === 'welcome') {
                 if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+                // Initialize home dashboard (sample data)
+                try { if (typeof window.initHomeDashboard === 'function') window.initHomeDashboard(); } catch (e) { console.error('Dashboard init failed', e); }
                 // Prevent mobile keyboard appearing when arriving via nav with ?username=
                 try {
                     const params = new URLSearchParams(window.location.search);
