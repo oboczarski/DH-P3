@@ -636,6 +636,17 @@ function renderScatter() {
     }
     if (scatterPool.length >= 24) break;
   }
+  if (scatterPool.length < 8) {
+    // Fallback: allow points with one metric missing, substituting 0 to avoid an empty chart
+    for (const p of topByFpts) {
+      if (scatterPool.find(x => x.id === p.id)) continue;
+      const hasAny = Number.isFinite(p.csty) || Number.isFinite(p.ceiling);
+      if (hasAny) {
+        scatterPool.push({ ...p, csty: Number.isFinite(p.csty) ? p.csty : 0, consistency: Number.isFinite(p.consistency) ? p.consistency : (Number.isFinite(p.csty) ? p.csty : 0), ceiling: Number.isFinite(p.ceiling) ? p.ceiling : 0 });
+      }
+      if (scatterPool.length >= 24) break;
+    }
+  }
   drawScatterChart('scatter-chart', scatterPool);
 }
 
