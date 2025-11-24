@@ -256,6 +256,7 @@ async function loadDashboardData() {
       const fptsStat = toNumber(statRow.FPTS);
       const ppgStat = toNumber(statRow.PPG);
       const gamesStat = toNumber(statRow.G, { allowFloat: false });
+      const ceilingRow = toNumber(statRow.CL);
 
       const fptsSeason = safeValue(stats, STAT_KEY_OVERRIDES.fpts);
       const gamesSeason = toNumber(stats.games_played, { allowFloat: false });
@@ -287,7 +288,7 @@ async function loadDashboardData() {
           if (val === null) return null;
           return val <= 1 ? val * 100 : val;
         })(), // legacy naming for charts
-        ceiling: safeValue(stats, STAT_KEY_OVERRIDES.ceiling),
+        ceiling: Number.isFinite(ceilingRow) ? ceilingRow : safeValue(stats, STAT_KEY_OVERRIDES.ceiling),
         ts: (() => {
           const val = safeValue(stats, STAT_KEY_OVERRIDES.ts_per_rr);
           if (val === null) return null;
@@ -564,10 +565,9 @@ function setupCustomSelect() {
 
 function renderSelectedDetails() {
   const player = getSelected();
-  // Removed avatar/name/meta updates for the deleted block
-  setText('rating-value', calculatePlayerScore(player));
   const posRankText = Number.isFinite(player.ranks?.posRank) ? `#${player.ranks.posRank}` : 'NA';
-  setText('rating-meta', `${player.position} · ${posRankText} // ${player.team}`);
+  setText('rating-value', Number.isFinite(player.ranks?.posRank) ? player.ranks.posRank : 'NA');
+  setText('rating-meta', `${player.position} · FPTS RANK // ${player.team}`);
 }
 
 function renderRadar() {
@@ -1003,9 +1003,10 @@ function drawScatterChart(containerId, data) {
   const xDomain = d3.extent(data, d => d.consistency).map((v, i, arr) => (
     i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)
   ));
-  const yDomain = d3.extent(data, d => d.ceiling).map((v, i, arr) => (
-    i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)
-  ));
+  // Clamp CL to [23,42] for plotting; labeled ticks will run 25..40 by 5s
+  const yMin = 23;
+  const yMax = 42;
+  let yDomain = [yMin, yMax];
 
   const x = d3.scaleLinear()
     .domain(xDomain)
