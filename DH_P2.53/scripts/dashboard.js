@@ -39,6 +39,13 @@ const byMetric = metric => [...players].sort((a, b) => b[metric] - a[metric]);
 const getTop = metric => byMetric(metric)[0];
 const getSelected = () => players.find(p => p.id === state.selectedPlayerId) || players[0];
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+const formatInitialLast = (name = '') => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstInitial = parts[0]?.[0] ? `${parts[0][0].toUpperCase()}.` : '';
+  const last = parts.slice(1).join(' ');
+  return `${firstInitial} ${last}`.trim();
+};
 
 function calculatePlayerScore(player) {
   const score = (player.consistency + player.ppg * 3 + player.ceiling) / 3;
@@ -86,11 +93,11 @@ function renderSummary() {
   const projectedMaxPoints = 450; // visual scale only
 
   setText('total-points-value', topPoints.totalPoints.toFixed(1));
-  setText('total-points-name', topPoints.name);
+  setText('total-points-name', formatInitialLast(topPoints.name));
   setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
 
   setText('consistency-value', `${topConsistencyRB.consistency}%`);
-  setText('consistency-name', topConsistencyRB.name);
+  setText('consistency-name', formatInitialLast(topConsistencyRB.name));
   setWidth('consistency-bar', topConsistencyRB.consistency);
 
   setText('ppg-value', topPPG.ppg.toFixed(1));
