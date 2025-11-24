@@ -1,3 +1,4 @@
+(function() {
 // Fantasy Command - Vanilla JS rebuild
 // Data model
 const defaultPlayers = [
@@ -782,3 +783,4 @@ window.initFantasyDashboard = function(data) {
 document.addEventListener('DOMContentLoaded', () => {
   window.initFantasyDashboard();
 });
+})();
