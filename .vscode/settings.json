@@ -167,7 +167,7 @@
   ],
   /* ------------------------------------------------------------------------ */
 
-  "liveServer.settings.port": 5504,
+  "liveServer.settings.port": 5505,
   "editor.colorDecorators": true,
   "editor.colorDecoratorsLimit": 2200
 }
