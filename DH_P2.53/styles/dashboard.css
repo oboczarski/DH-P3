@@ -177,6 +177,17 @@
   box-shadow: 0 0 0.9375em rgba(56, 189, 248, 0.12);
 }
 
+/* Soft base glow per badge color */
+.fc-summary-card.fc-card--cyan { box-shadow: var(--glass-shadow), 0 0 14px rgba(6, 182, 212, 0.22); }
+.fc-summary-card.fc-card--pink { box-shadow: var(--glass-shadow), 0 0 14px rgba(236, 72, 153, 0.22); }
+.fc-summary-card.fc-card--purple { box-shadow: var(--glass-shadow), 0 0 14px rgba(168, 85, 247, 0.22); }
+.fc-summary-card.fc-card--emerald { box-shadow: var(--glass-shadow), 0 0 14px rgba(16, 185, 129, 0.22); }
+
+.fc-summary-card.fc-card--cyan.fc-card--hover:hover { box-shadow: 0 0 1.2em rgba(6, 182, 212, 0.32); }
+.fc-summary-card.fc-card--pink.fc-card--hover:hover { box-shadow: 0 0 1.2em rgba(236, 72, 153, 0.32); }
+.fc-summary-card.fc-card--purple.fc-card--hover:hover { box-shadow: 0 0 1.2em rgba(168, 85, 247, 0.32); }
+.fc-summary-card.fc-card--emerald.fc-card--hover:hover { box-shadow: 0 0 1.2em rgba(16, 185, 129, 0.32); }
+
 /* Card Glow Effects */
 .fc-card__glow {
   position: absolute;
@@ -214,6 +225,33 @@
   font-weight: 700;
   color: white;
   margin-top: 0.25em;
+}
+
+/* Inline tags in summary titles */
+.fc-card-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25em 0.5em;
+  margin-left: 0.4em;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  line-height: 1;
+  background: transparent;
+}
+.fc-card-tag--cyan {color: #4ce7ffd4;border: 1px solid #6cc6fd44;}
+.fc-card-tag--pink {color: #bd6694;border: 1px solid #ff8aad44;}
+.fc-card-tag--purple {color: var(--color-purple-light);border: 1px solid #ae79ff54;}
+
+@media (max-width: 768px) {
+  .fc-card-tag {
+    border-radius: 3px;
+    padding: 0.2em 0.3em;
+    font-size: 0.9em;
+  }
 }
 
 .fc-badge {
@@ -608,7 +646,7 @@
 
 /* --- SUMMARY CARDS (Mobile) --- */
 @media (max-width: 768px) {
-  .fc-summary-card { padding: 1.5em; }
+  .fc-summary-card {padding: 1.25em;}
   .fc-summary-card .fc-card__header { margin-bottom: 1.25em; }
   .fc-summary-card .fc-card__title { font-size: 1.4em; }
   .fc-summary-card .fc-card__subtitle { font-size: 0.85em; }
