@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fantasy Command Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="HP-styles.css">
+  <style>
+    /* Standalone demo reset */
+    body.fc-body { margin: 0; background-color: #0f172a; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+</head>
+<body class="fc-body">
+  <div id="fc-dashboard-root" class="fc-dashboard">
+    <!-- Decorative Background Blobs -->
+    <div class="fc-blob fc-blob--blue"></div>
+    <div class="fc-blob fc-blob--purple"></div>
+
+    <!-- Top Navigation / Header removed -->
+
+    <main class="fc-main">
+      <!-- Key Metrics Row -->
+      <div class="fc-grid-metrics">
+        <!-- Total PPR FPTS -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--cyan">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div>
+              <p class="fc-card__subtitle">Production</p>
+              <h3 class="fc-card__title">Total PPR FPTS</h3>
+            </div>
+            <div class="fc-badge fc-badge--cyan">Output</div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="total-points-value" class="fc-metric-value fc-text-glow">0</div>
+            <div class="fc-metric-sub fc-text-cyan">
+              <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+              <span id="total-points-name">Player</span>
+            </div>
+          </div>
+          <div class="fc-progress-bg">
+            <div id="total-points-bar" class="fc-progress-bar fc-bg-cyan" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- PPR PPG -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--pink">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div>
+              <p class="fc-card__subtitle">Efficiency</p>
+              <h3 class="fc-card__title">PPR PPG</h3>
+            </div>
+            <div class="fc-badge fc-badge--pink">Dominance</div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="ppg-value" class="fc-metric-value fc-text-glow">0</div>
+            <div class="fc-metric-sub fc-text-pink">pts</div>
+          </div>
+          <div class="fc-card__footer">
+            Held by <span id="ppg-name" class="fc-text-pink-light">Player</span>
+          </div>
+        </div>
+
+        <!-- Consistency Rate(RB) -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--purple">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div>
+              <p class="fc-card__subtitle">RELIABILITY</p>
+              <h3 class="fc-card__title">Consistency Rate(RB)</h3>
+            </div>
+            <div class="fc-badge fc-badge--purple">Floor</div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="consistency-value" class="fc-metric-value fc-text-glow">0%</div>
+            <div class="fc-metric-sub fc-text-purple">
+              <span id="consistency-name">Player</span>
+            </div>
+          </div>
+          <div class="fc-progress-bg">
+            <div id="consistency-bar" class="fc-progress-bar fc-bg-purple" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Target Share -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--emerald">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div>
+              <p class="fc-card__subtitle">USAGE</p>
+              <h3 class="fc-card__title">Target Share</h3>
+            </div>
+            <div class="fc-badge fc-badge--emerald">Volume</div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="share-value" class="fc-metric-value fc-text-glow">0%</div>
+            <div class="fc-metric-sub fc-text-emerald">Share</div>
+          </div>
+          <div class="fc-card__footer">
+            Held by <span id="share-name" class="fc-text-emerald-light">Player</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="fc-grid-charts">
+        <!-- Radar Chart -->
+        <div class="fc-card fc-glass fc-chart-panel fc-radar-panel">
+          <div class="fc-chart-header">
+            <div>
+              <h3 class="fc-card__title">Performance Map</h3>
+              <p class="fc-card__subtitle-text">Multi-Stat Performance Profile(Top 50)</p>
+            </div>
+            <!-- Custom Searchable Dropdown -->
+            <div class="fc-custom-select" id="player-select-container">
+              <div class="fc-select-trigger" id="player-select-trigger">
+                <span id="player-select-label">Select Player</span>
+                <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+              <div class="fc-select-dropdown" id="player-select-dropdown">
+                <div class="fc-search-wrapper">
+                  <svg class="fc-icon-xs fc-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                  <input type="text" class="fc-select-search" id="player-select-search" placeholder="Search players..." autocomplete="off">
+                </div>
+                <ul class="fc-select-options" id="player-select-options">
+                  <!-- Options injected via JS -->
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="fc-chart-container fc-radar-container">
+            <div id="radar-chart" class="fc-chart-canvas"></div>
+            <div class="fc-radar-center">
+              <div class="fc-radar-label">Rating</div>
+              <div id="rating-value" class="fc-radar-score">0</div>
+              <div id="rating-meta" class="fc-radar-meta">POS // TEAM</div>
+            </div>
+          </div>
+
+          <div class="fc-legend">
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-red"></span><span class="fc-legend-full">FPTS</span><span class="fc-legend-abbr">FPTS</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-orange"></span><span class="fc-legend-full">PPG</span><span class="fc-legend-abbr">PPG</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-yellow"></span><span class="fc-legend-full">REC</span><span class="fc-legend-abbr">REC</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-cyan"></span><span class="fc-legend-full">recYPG</span><span class="fc-legend-abbr">rYPG</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-violet"></span><span class="fc-legend-full">TS %</span><span class="fc-legend-abbr">TS%</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-emerald"></span><span class="fc-legend-full">YPRR</span><span class="fc-legend-abbr">YPRR</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-pink"></span><span class="fc-legend-full">1DRR</span><span class="fc-legend-abbr">1DRR</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-purple"></span><span class="fc-legend-full">IMP/G</span><span class="fc-legend-abbr">IMP</span></div>
+          </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="fc-card fc-glass fc-chart-panel fc-bar-panel">
+          <div class="fc-chart-header">
+            <div>
+              <h3 class="fc-card__title">Efficiency Spectrum</h3>
+              <p class="fc-card__subtitle-text">Points Per Game distribution across the top 10 at each position</p>
+            </div>
+            <div class="fc-filter-group" id="filter-buttons">
+              <button data-filter="all" class="fc-filter-btn fc-filter-btn--active">All</button>
+              <button data-filter="WR" class="fc-filter-btn">WR</button>
+              <button data-filter="RB" class="fc-filter-btn">RB</button>
+              <button data-filter="QB" class="fc-filter-btn">QB</button>
+              <button data-filter="TE" class="fc-filter-btn">TE</button>
+            </div>
+          </div>
+          <div class="fc-chart-container">
+            <div id="bar-chart" class="fc-chart-canvas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scatter Plot Section (Replaces Leaderboard) -->
+      <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel">
+        <div class="fc-chart-header">
+          <div>
+            <h3 class="fc-card__title">Consistency / Ceiling Index</h3>
+            <p class="fc-card__subtitle-text">PPR Top 24 • Consistency vs. Ceiling Analysis</p>
+          </div>
+          <div class="fc-legend-inline">
+            <div class="fc-legend-item"><span class="fc-dot fc-pos-qb-dot"></span>QB</div>
+            <div class="fc-legend-item"><span class="fc-dot fc-pos-rb-dot"></span>RB</div>
+            <div class="fc-legend-item"><span class="fc-dot fc-pos-wr-dot"></span>WR</div>
+            <div class="fc-legend-item"><span class="fc-dot fc-pos-te-dot"></span>TE</div>
+          </div>
+        </div>
+        <div class="fc-chart-container">
+          <div id="scatter-chart" class="fc-chart-canvas"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="HP-app.js"></script>
+</body>
+</html>
