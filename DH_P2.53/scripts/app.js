@@ -308,6 +308,8 @@ if (pageType === 'welcome') {
 }
         // --- State ---
 let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+// Expose state globally for dashboard.js
+window.state = state;
         const assignedLeagueColors = new Map();
         let nextColorIndex = 0;
         const assignedRyColors = new Map();
@@ -547,9 +549,8 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 return;
             }
             
-            // For welcome page, just show the screen - no loading needed
+            // For welcome page, we still need to load data for the dashboard
             if (pageType === 'welcome') {
-                if (welcomeScreen) welcomeScreen.classList.remove('hidden');
                 // Prevent mobile keyboard appearing when arriving via nav with ?username=
                 try {
                     const params = new URLSearchParams(window.location.search);
@@ -558,7 +559,7 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                         setTimeout(() => { try { usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {} }, 50);
                     }
                 } catch (e) {}
-                return;
+                // Do NOT return here, let it fall through to data loading so dashboard has stats
             }
             
             // Prevent mobile keyboard appearing when arriving via nav with ?username=
@@ -2020,7 +2021,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
             'recYPG': 'rec_ypg',
             'PROJ': 'proj',
             'FPT_PPR': 'fpt_ppr',
-            'FPTS_PPR': 'fpt_ppr'
+            'FPTS_PPR': 'fpt_ppr',
+            'FPTS': 'fpt_ppr',
+            'PPG': 'ppg',
+            'fpts_ppr': 'fpt_ppr',
+            'ppg': 'ppg'
         };
         const WEEKLY_META_HEADER_MAP = {
             'VS': 'opponent',

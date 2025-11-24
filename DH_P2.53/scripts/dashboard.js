@@ -1,33 +1,28 @@
 (function() {
 // Fantasy Command - Vanilla JS rebuild
 // Data model
-const defaultPlayers = [
-  { id: '1', name: 'Justin Jefferson', position: 'WR', team: 'MIN', totalPoints: 342.5, ppg: 22.4, consistency: 92, ceiling: 45, floor: 12, targetShare: 29.5, redZone: 95, burst: 80, clutch: 88, avatarUrl: 'https://picsum.photos/seed/jefferson/100/100', trend: 'up' },
-  { id: '2', name: 'Christian McCaffrey', position: 'RB', team: 'SF', totalPoints: 380.2, ppg: 24.8, consistency: 95, ceiling: 50, floor: 15, targetShare: 18.2, redZone: 90, burst: 78, clutch: 96, avatarUrl: 'https://picsum.photos/seed/cmc/100/100', trend: 'stable' },
-  { id: '3', name: 'Tyreek Hill', position: 'WR', team: 'MIA', totalPoints: 310.8, ppg: 20.1, consistency: 78, ceiling: 60, floor: 5, targetShare: 28.0, redZone: 60, burst: 99, clutch: 70, avatarUrl: 'https://picsum.photos/seed/tyreek/100/100', trend: 'down' },
-  { id: '4', name: 'Josh Allen', position: 'QB', team: 'BUF', totalPoints: 402.1, ppg: 25.3, consistency: 85, ceiling: 46, floor: 16, targetShare: 0, redZone: 82, burst: 76, clutch: 92, avatarUrl: 'https://picsum.photos/seed/allen/100/100', trend: 'up' },
-  { id: '5', name: 'Travis Kelce', position: 'TE', team: 'KC', totalPoints: 210.4, ppg: 14.5, consistency: 92, ceiling: 28, floor: 7, targetShare: 24.0, redZone: 97, burst: 62, clutch: 95, avatarUrl: 'https://picsum.photos/seed/kelce/100/100', trend: 'stable' },
-  { id: '6', name: 'CeeDee Lamb', position: 'WR', team: 'DAL', totalPoints: 335.9, ppg: 21.5, consistency: 87, ceiling: 40, floor: 10, targetShare: 27.0, redZone: 70, burst: 88, clutch: 82, avatarUrl: 'https://picsum.photos/seed/lamb/100/100', trend: 'up' },
-  { id: '7', name: 'Lamar Jackson', position: 'QB', team: 'BAL', totalPoints: 360.5, ppg: 23.1, consistency: 80, ceiling: 50, floor: 12, targetShare: 0, redZone: 68, burst: 95, clutch: 78, avatarUrl: 'https://picsum.photos/seed/lamar/100/100', trend: 'up' },
-  { id: '8', name: 'Bijan Robinson', position: 'RB', team: 'ATL', totalPoints: 245.3, ppg: 16.2, consistency: 70, ceiling: 32, floor: 5, targetShare: 12.0, redZone: 44, burst: 86, clutch: 60, avatarUrl: 'https://picsum.photos/seed/bijan/100/100', trend: 'down' },
-  { id: '9', name: 'Amon-Ra St. Brown', position: 'WR', team: 'DET', totalPoints: 298.4, ppg: 19.9, consistency: 90, ceiling: 35, floor: 11, targetShare: 30.2, redZone: 72, burst: 68, clutch: 85, avatarUrl: 'https://picsum.photos/seed/amonra/100/100', trend: 'stable' },
-  { id: '10', name: 'Saquon Barkley', position: 'RB', team: 'NYG', totalPoints: 270.1, ppg: 17.6, consistency: 76, ceiling: 45, floor: 8, targetShare: 15.0, redZone: 55, burst: 92, clutch: 74, avatarUrl: 'https://picsum.photos/seed/saquon/100/100', trend: 'up' },
-  { id: '11', name: 'Garrett Wilson', position: 'WR', team: 'NYJ', totalPoints: 240.4, ppg: 15.0, consistency: 68, ceiling: 28, floor: 4, targetShare: 33.0, redZone: 35, burst: 80, clutch: 58, avatarUrl: 'https://picsum.photos/seed/garrettwilson/100/100', trend: 'down' },
-  { id: '12', name: 'Anthony Richardson', position: 'QB', team: 'IND', totalPoints: 255.0, ppg: 19.0, consistency: 60, ceiling: 55, floor: 6, targetShare: 0, redZone: 65, burst: 98, clutch: 50, avatarUrl: 'https://picsum.photos/seed/richardson/100/100', trend: 'stable' },
-  // New Players for Scatter Plot
-  { id: '13', name: 'Ja\'Marr Chase', position: 'WR', team: 'CIN', totalPoints: 305.2, ppg: 18.5, consistency: 75, ceiling: 55, floor: 3, targetShare: 26.0, redZone: 65, burst: 94, clutch: 75, avatarUrl: 'https://picsum.photos/seed/chase/100/100', trend: 'up' },
-  { id: '14', name: 'Breece Hall', position: 'RB', team: 'NYJ', totalPoints: 260.5, ppg: 16.8, consistency: 82, ceiling: 40, floor: 8, targetShare: 14.0, redZone: 50, burst: 88, clutch: 65, avatarUrl: 'https://picsum.photos/seed/breece/100/100', trend: 'up' },
-  { id: '15', name: 'Jalen Hurts', position: 'QB', team: 'PHI', totalPoints: 385.0, ppg: 24.2, consistency: 88, ceiling: 45, floor: 18, targetShare: 0, redZone: 95, burst: 70, clutch: 90, avatarUrl: 'https://picsum.photos/seed/hurts/100/100', trend: 'stable' },
-  { id: '16', name: 'Mark Andrews', position: 'TE', team: 'BAL', totalPoints: 195.0, ppg: 13.5, consistency: 85, ceiling: 25, floor: 5, targetShare: 22.0, redZone: 88, burst: 55, clutch: 80, avatarUrl: 'https://picsum.photos/seed/andrews/100/100', trend: 'down' },
-  { id: '17', name: 'Davante Adams', position: 'WR', team: 'LV', totalPoints: 280.0, ppg: 17.5, consistency: 80, ceiling: 38, floor: 6, targetShare: 32.0, redZone: 75, burst: 60, clutch: 85, avatarUrl: 'https://picsum.photos/seed/adams/100/100', trend: 'down' },
-  { id: '18', name: 'Jahmyr Gibbs', position: 'RB', team: 'DET', totalPoints: 230.0, ppg: 15.5, consistency: 65, ceiling: 42, floor: 4, targetShare: 16.0, redZone: 45, burst: 95, clutch: 55, avatarUrl: 'https://picsum.photos/seed/gibbs/100/100', trend: 'up' },
-  { id: '19', name: 'Patrick Mahomes', position: 'QB', team: 'KC', totalPoints: 370.0, ppg: 23.5, consistency: 90, ceiling: 40, floor: 15, targetShare: 0, redZone: 85, burst: 65, clutch: 98, avatarUrl: 'https://picsum.photos/seed/mahomes/100/100', trend: 'stable' },
-  { id: '20', name: 'Sam LaPorta', position: 'TE', team: 'DET', totalPoints: 185.0, ppg: 12.8, consistency: 78, ceiling: 26, floor: 4, targetShare: 18.0, redZone: 70, burst: 68, clutch: 72, avatarUrl: 'https://picsum.photos/seed/laporta/100/100', trend: 'up' },
-  { id: '21', name: 'Puka Nacua', position: 'WR', team: 'LAR', totalPoints: 275.0, ppg: 17.2, consistency: 84, ceiling: 32, floor: 8, targetShare: 28.0, redZone: 55, burst: 72, clutch: 78, avatarUrl: 'https://picsum.photos/seed/puka/100/100', trend: 'stable' },
-  { id: '22', name: 'Kyren Williams', position: 'RB', team: 'LAR', totalPoints: 250.0, ppg: 19.5, consistency: 86, ceiling: 35, floor: 10, targetShare: 12.0, redZone: 85, burst: 65, clutch: 82, avatarUrl: 'https://picsum.photos/seed/kyren/100/100', trend: 'up' },
-  { id: '23', name: 'CJ Stroud', position: 'QB', team: 'HOU', totalPoints: 340.0, ppg: 21.0, consistency: 82, ceiling: 42, floor: 12, targetShare: 0, redZone: 60, burst: 85, clutch: 88, avatarUrl: 'https://picsum.photos/seed/stroud/100/100', trend: 'up' },
-  { id: '24', name: 'George Kittle', position: 'TE', team: 'SF', totalPoints: 190.0, ppg: 13.0, consistency: 72, ceiling: 35, floor: 2, targetShare: 19.0, redZone: 65, burst: 82, clutch: 85, avatarUrl: 'https://picsum.photos/seed/kittle/100/100', trend: 'down' }
-];
+const RADAR_STATS_CONFIG = {
+    QB: {
+        stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
+        labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+        maxRank: 36
+    },
+    RB: {
+        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'rec_tgt', 'mtf_per_att', 'yco_per_att'],
+        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
+        maxRank: 48
+    },
+    WR: {
+        stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
+        labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
+        maxRank: 72
+    },
+    TE: {
+        stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
+        labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
+        maxRank: 24
+    }
+};
 
 let players = [];
 const state = {
@@ -35,9 +30,84 @@ const state = {
   filter: 'all'
 };
 
+// Data Processing
+function processDashboardData() {
+    // Debug logging
+    console.log('Dashboard: Checking state...', { 
+        hasState: !!window.state, 
+        statsLoaded: window.state?.statsSheetsLoaded, 
+        playersLoaded: !!window.state?.players,
+        playerCount: window.state?.players ? Object.keys(window.state.players).length : 0,
+        seasonStatsCount: window.state?.playerSeasonStats ? Object.keys(window.state.playerSeasonStats).length : 0
+    });
+
+    if (!window.state || !window.state.playerSeasonStats || !window.state.players) {
+        console.warn('Dashboard: Missing state data');
+        return;
+    }
+
+    const seasonStats = window.state.playerSeasonStats;
+    const sleeperPlayers = window.state.players;
+    const processed = [];
+
+    // Helper to parse float safely
+    const parse = (v) => {
+        if (typeof v === 'number') return v;
+        if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
+        return 0;
+    };
+
+    Object.keys(seasonStats).forEach(playerId => {
+        const stats = seasonStats[playerId];
+        const meta = sleeperPlayers[playerId];
+        if (!meta) return;
+
+        // Basic validation - ensure they have points
+        const fpts = parse(stats.fpt_ppr);
+        
+        if (fpts <= 0) return;
+
+        processed.push({
+            id: playerId,
+            name: `${meta.first_name} ${meta.last_name}`,
+            position: meta.position,
+            team: meta.team || 'FA',
+            totalPoints: fpts,
+            ppg: parse(stats.ppg),
+            consistency: parse(stats.csty_pct),
+            ceiling: parse(stats.ceiling),
+            targetShare: parse(stats.ts_per_rr),
+            avatarUrl: `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`,
+            trend: 'stable'
+        });
+    });
+
+    console.log(`Dashboard: Processed ${processed.length} players`);
+    players = processed.sort((a, b) => b.totalPoints - a.totalPoints);
+    
+    // Select top player by default if none selected
+    if (!state.selectedPlayerId && players.length > 0) {
+        state.selectedPlayerId = players[0].id;
+    }
+
+    // Initial Render
+    renderSummary();
+    renderCustomSelect();
+    setupCustomSelect();
+    renderSelectedDetails();
+    renderRadar();
+    renderBar();
+    renderScatter();
+    renderTable();
+}
+
 // Helpers
-const byMetric = metric => [...players].sort((a, b) => b[metric] - a[metric]);
-const getTop = metric => byMetric(metric)[0];
+const byMetric = (metric, pos) => {
+    let pool = players;
+    if (pos) pool = pool.filter(p => p.position === pos);
+    return [...pool].sort((a, b) => b[metric] - a[metric]);
+};
+const getTop = (metric, pos) => byMetric(metric, pos)[0];
 const getSelected = () => players.find(p => p.id === state.selectedPlayerId) || players[0];
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
 const formatInitialLast = (name = '') => {
@@ -49,29 +119,46 @@ const formatInitialLast = (name = '') => {
 };
 
 function calculatePlayerScore(player) {
-  const score = (player.consistency + player.ppg * 3 + player.ceiling) / 3;
-  return clamp(Math.round(score), 0, 99);
+    if (!player) return 0;
+    const score = (player.consistency + (player.ppg / 30 * 100) + player.ceiling) / 3;
+    return clamp(Math.round(score), 0, 99);
 }
 
 function radarData(player) {
-  // Mock data generation for missing metrics based on player quality
-  const seed = player.ppg + player.consistency;
-  const rec = Math.min(100, (player.ppg * 3.5)); 
-  const recYpg = Math.min(100, (player.ppg * 4));
-  const yprr = Math.min(100, (player.consistency * 0.9));
-  const firstDrr = Math.min(100, (player.ceiling * 1.5));
-  const impG = Math.min(100, (player.ppg * 3 + 10));
+    if (!player) return [];
+    const config = RADAR_STATS_CONFIG[player.position];
+    if (!config) return [];
 
-  return [
-    { axis: 'FPTS', value: Math.min(100, (player.totalPoints / 400) * 100) },
-    { axis: 'PPG', value: Math.min(100, (player.ppg / 30) * 100) },
-    { axis: 'REC', value: rec },
-    { axis: 'recYPG', value: recYpg },
-    { axis: 'TS %', value: Math.min(100, (player.targetShare / 40) * 100) },
-    { axis: 'YPRR', value: yprr },
-    { axis: '1DRR', value: firstDrr },
-    { axis: 'IMP/G', value: impG }
-  ];
+    const ranks = window.state.playerSeasonRanks?.[player.id] || {};
+    
+    return config.stats.map((statKey, i) => {
+        const label = config.labels[i];
+        let rankKey = statKey;
+        if (statKey === 'fpts') rankKey = 'fpt_ppr';
+        
+        let val = ranks[rankKey];
+        
+        // Handle missing/string values
+        if (val === undefined || val === null) val = config.maxRank;
+        if (typeof val === 'string') val = parseFloat(val) || config.maxRank;
+        
+        // Scaling Logic from app.js
+        // rank 1 -> 85, rank 7 -> 73, rank maxRank -> 10
+        let scaled;
+        if (val <= 1) {
+            scaled = 85;
+        } else if (val >= config.maxRank) {
+            scaled = 10;
+        } else if (val <= 7) {
+            // Compress ranks 1-7 into the 73-85 range
+            scaled = 85 - ((val - 1) / 6) * 12;
+        } else {
+            // Scale ranks 7-maxRank linearly from 73 to 10
+            scaled = 73 - ((val - 7) / (config.maxRank - 7)) * 63;
+        }
+        
+        return { axis: label, value: scaled, rank: val };
+    });
 }
 
 function ppgBarData(filter) {
@@ -84,28 +171,36 @@ function ppgBarData(filter) {
 
 // Rendering functions
 function renderSummary() {
+  if (players.length === 0) return;
+
   const topPoints = getTop('totalPoints');
-  const topConsistencyRB = [...players]
-    .filter(p => p.position === 'RB')
-    .sort((a, b) => b.consistency - a.consistency)[0] || getTop('consistency');
+  const topConsistencyRB = getTop('consistency', 'RB');
   const topPPG = getTop('ppg');
-  const topShare = getTop('targetShare');
+  const topShare = getTop('targetShare', 'WR');
 
-  const projectedMaxPoints = 450; // visual scale only
+  const projectedMaxPoints = 450; 
 
-  setText('total-points-value', topPoints.totalPoints.toFixed(1));
-  setText('total-points-name', formatInitialLast(topPoints.name));
-  setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
+  if (topPoints) {
+      setText('total-points-value', topPoints.totalPoints.toFixed(1));
+      setText('total-points-name', formatInitialLast(topPoints.name));
+      setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
+  }
 
-  setText('consistency-value', `${topConsistencyRB.consistency}%`);
-  setText('consistency-name', formatInitialLast(topConsistencyRB.name));
-  setWidth('consistency-bar', topConsistencyRB.consistency);
+  if (topConsistencyRB) {
+      setText('consistency-value', `${topConsistencyRB.consistency.toFixed(1)}%`);
+      setText('consistency-name', formatInitialLast(topConsistencyRB.name));
+      setWidth('consistency-bar', topConsistencyRB.consistency);
+  }
 
-  setText('ppg-value', topPPG.ppg.toFixed(1));
-  setText('ppg-name', topPPG.name);
+  if (topPPG) {
+      setText('ppg-value', topPPG.ppg.toFixed(1));
+      setText('ppg-name', topPPG.name);
+  }
 
-  setText('share-value', `${topShare.targetShare}%`);
-  setText('share-name', topShare.name);
+  if (topShare) {
+      setText('share-value', `${topShare.targetShare.toFixed(1)}%`);
+      setText('share-name', topShare.name);
+  }
 }
 
 function renderCustomSelect() {
@@ -113,8 +208,10 @@ function renderCustomSelect() {
   const label = document.getElementById('player-select-label');
   if (!optionsContainer) return;
 
-  // Populate options
-  optionsContainer.innerHTML = players
+  // Top 100 players by FPTS
+  const top100 = players.slice(0, 100);
+
+  optionsContainer.innerHTML = top100
     .map(p => `
       <li class="fc-option ${p.id === state.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
         <span>${p.name}</span>
@@ -123,7 +220,6 @@ function renderCustomSelect() {
     `)
     .join('');
 
-  // Update label
   const selected = getSelected();
   if (label && selected) {
     label.textContent = selected.name;
@@ -217,7 +313,8 @@ function renderSelectedDetails() {
 
 function renderRadar() {
   const data = radarData(getSelected());
-  drawRadarChart('radar-chart', data);
+  const fptsRank = data[0]?.rank ? `#${data[0].rank}` : '';
+  drawRadarChart('radar-chart', data, fptsRank);
 }
 
 function renderBar() {
@@ -226,8 +323,16 @@ function renderBar() {
 }
 
 function renderTable() {
+  // The table body ID in index.html is missing, so we need to create it or target the correct element.
+  // Looking at index.html, there is no table structure in the dashboard section.
+  // We need to inject the table structure if it doesn't exist, or skip rendering if not intended.
+  // Assuming the user wants a leaderboard, we should probably add it to the DOM or fix the selector.
+  // For now, let's log a warning if not found.
   const tbody = document.getElementById('leaderboard-body');
-  if (!tbody) return;
+  if (!tbody) {
+      console.warn('Dashboard: leaderboard-body element not found');
+      return;
+  }
   
   const rows = [...players]
     .sort((a, b) => b.totalPoints - a.totalPoints)
@@ -268,7 +373,11 @@ function renderTable() {
 }
 
 function renderScatter() {
-  drawScatterChart('scatter-chart', players);
+  // Top 24 FPTS players
+  const top24 = [...players]
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+    .slice(0, 24);
+  drawScatterChart('scatter-chart', top24);
 }
 
 // Event wiring
@@ -332,7 +441,7 @@ function trendSvg(trend) {
 }
 
 // D3 radar
-function drawRadarChart(containerId, data) {
+function drawRadarChart(containerId, data, centerText) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
@@ -417,6 +526,20 @@ function drawRadarChart(containerId, data) {
         .style('pointer-events', 'none');
     }
   });
+
+  // Center Text
+  if (centerText) {
+      svg.append('text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .text(centerText)
+        .attr('fill', '#fff')
+        .attr('font-size', `${innerRadius * 0.8}px`)
+        .attr('font-weight', 'bold')
+        .style('text-shadow', '0 2px 10px rgba(0,0,0,0.5)');
+  }
 }
 
 // D3 bar chart
@@ -764,23 +887,23 @@ function drawScatterChart(containerId, data) {
       .attr('y', (d, i) => labelNodes[i].y);
 }
 
-// Initialize
-window.initFantasyDashboard = function(data) {
-  players = data || defaultPlayers;
-  state.selectedPlayerId = players[0].id;
-  
-  renderSummary();
-  renderCustomSelect();
-  setupCustomSelect();
-  renderSelectedDetails();
-  renderRadar();
-  renderBar();
-  renderScatter();
-  updateFilterButtons();
-  wireEvents();
+// Initialization
+window.initFantasyDashboard = function() {
+    const checkData = () => {
+        if (window.state && window.state.statsSheetsLoaded && window.state.players && Object.keys(window.state.players).length > 0) {
+            processDashboardData();
+            wireEvents();
+        } else {
+            setTimeout(checkData, 200);
+        }
+    };
+    checkData();
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.initFantasyDashboard();
-});
+// Auto-init if standalone
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    window.initFantasyDashboard();
+} else {
+    document.addEventListener('DOMContentLoaded', window.initFantasyDashboard);
+}
 })();
