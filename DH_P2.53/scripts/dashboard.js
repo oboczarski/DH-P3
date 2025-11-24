@@ -458,7 +458,8 @@ function drawBarChart(containerId, data) {
   const x = d3.scaleBand()
     .range([0, innerWidth])
     .domain(data.map(d => d.label))
-    .padding(0.45);
+    .paddingInner(0.6)
+    .paddingOuter(0.05);
 
   const maxValue = d3.max(data, d => d.value) || 0;
   const y = d3.scaleLinear()
@@ -500,7 +501,7 @@ function drawBarChart(containerId, data) {
   const isMobile = window.innerWidth < 768;
   const strokeMain = Math.max(1, width * 0.008);
   const strokeGlow = Math.max(2, width * 0.015);
-  const fontSizeVal = Math.max(8, width * 0.025);
+  const fontSizeVal = Math.max(8, width * 0.02);
   const fontSizeAxis = isMobile ? 5 : Math.max(8, width * 0.015);
 
   barGroups.append('rect')
