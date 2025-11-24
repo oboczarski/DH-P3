@@ -1,45 +1,29 @@
 (function() {
-// Fantasy Command - Vanilla JS rebuild
-// Data model
-const defaultPlayers = [
-  { id: '1', name: 'Justin Jefferson', position: 'WR', team: 'MIN', totalPoints: 342.5, ppg: 22.4, consistency: 92, ceiling: 45, floor: 12, targetShare: 29.5, redZone: 95, burst: 80, clutch: 88, avatarUrl: 'https://picsum.photos/seed/jefferson/100/100', trend: 'up' },
-  { id: '2', name: 'Christian McCaffrey', position: 'RB', team: 'SF', totalPoints: 380.2, ppg: 24.8, consistency: 95, ceiling: 50, floor: 15, targetShare: 18.2, redZone: 90, burst: 78, clutch: 96, avatarUrl: 'https://picsum.photos/seed/cmc/100/100', trend: 'stable' },
-  { id: '3', name: 'Tyreek Hill', position: 'WR', team: 'MIA', totalPoints: 310.8, ppg: 20.1, consistency: 78, ceiling: 60, floor: 5, targetShare: 28.0, redZone: 60, burst: 99, clutch: 70, avatarUrl: 'https://picsum.photos/seed/tyreek/100/100', trend: 'down' },
-  { id: '4', name: 'Josh Allen', position: 'QB', team: 'BUF', totalPoints: 402.1, ppg: 25.3, consistency: 85, ceiling: 46, floor: 16, targetShare: 0, redZone: 82, burst: 76, clutch: 92, avatarUrl: 'https://picsum.photos/seed/allen/100/100', trend: 'up' },
-  { id: '5', name: 'Travis Kelce', position: 'TE', team: 'KC', totalPoints: 210.4, ppg: 14.5, consistency: 92, ceiling: 28, floor: 7, targetShare: 24.0, redZone: 97, burst: 62, clutch: 95, avatarUrl: 'https://picsum.photos/seed/kelce/100/100', trend: 'stable' },
-  { id: '6', name: 'CeeDee Lamb', position: 'WR', team: 'DAL', totalPoints: 335.9, ppg: 21.5, consistency: 87, ceiling: 40, floor: 10, targetShare: 27.0, redZone: 70, burst: 88, clutch: 82, avatarUrl: 'https://picsum.photos/seed/lamb/100/100', trend: 'up' },
-  { id: '7', name: 'Lamar Jackson', position: 'QB', team: 'BAL', totalPoints: 360.5, ppg: 23.1, consistency: 80, ceiling: 50, floor: 12, targetShare: 0, redZone: 68, burst: 95, clutch: 78, avatarUrl: 'https://picsum.photos/seed/lamar/100/100', trend: 'up' },
-  { id: '8', name: 'Bijan Robinson', position: 'RB', team: 'ATL', totalPoints: 245.3, ppg: 16.2, consistency: 70, ceiling: 32, floor: 5, targetShare: 12.0, redZone: 44, burst: 86, clutch: 60, avatarUrl: 'https://picsum.photos/seed/bijan/100/100', trend: 'down' },
-  { id: '9', name: 'Amon-Ra St. Brown', position: 'WR', team: 'DET', totalPoints: 298.4, ppg: 19.9, consistency: 90, ceiling: 35, floor: 11, targetShare: 30.2, redZone: 72, burst: 68, clutch: 85, avatarUrl: 'https://picsum.photos/seed/amonra/100/100', trend: 'stable' },
-  { id: '10', name: 'Saquon Barkley', position: 'RB', team: 'NYG', totalPoints: 270.1, ppg: 17.6, consistency: 76, ceiling: 45, floor: 8, targetShare: 15.0, redZone: 55, burst: 92, clutch: 74, avatarUrl: 'https://picsum.photos/seed/saquon/100/100', trend: 'up' },
-  { id: '11', name: 'Garrett Wilson', position: 'WR', team: 'NYJ', totalPoints: 240.4, ppg: 15.0, consistency: 68, ceiling: 28, floor: 4, targetShare: 33.0, redZone: 35, burst: 80, clutch: 58, avatarUrl: 'https://picsum.photos/seed/garrettwilson/100/100', trend: 'down' },
-  { id: '12', name: 'Anthony Richardson', position: 'QB', team: 'IND', totalPoints: 255.0, ppg: 19.0, consistency: 60, ceiling: 55, floor: 6, targetShare: 0, redZone: 65, burst: 98, clutch: 50, avatarUrl: 'https://picsum.photos/seed/richardson/100/100', trend: 'stable' },
-  // New Players for Scatter Plot
-  { id: '13', name: 'Ja\'Marr Chase', position: 'WR', team: 'CIN', totalPoints: 305.2, ppg: 18.5, consistency: 75, ceiling: 55, floor: 3, targetShare: 26.0, redZone: 65, burst: 94, clutch: 75, avatarUrl: 'https://picsum.photos/seed/chase/100/100', trend: 'up' },
-  { id: '14', name: 'Breece Hall', position: 'RB', team: 'NYJ', totalPoints: 260.5, ppg: 16.8, consistency: 82, ceiling: 40, floor: 8, targetShare: 14.0, redZone: 50, burst: 88, clutch: 65, avatarUrl: 'https://picsum.photos/seed/breece/100/100', trend: 'up' },
-  { id: '15', name: 'Jalen Hurts', position: 'QB', team: 'PHI', totalPoints: 385.0, ppg: 24.2, consistency: 88, ceiling: 45, floor: 18, targetShare: 0, redZone: 95, burst: 70, clutch: 90, avatarUrl: 'https://picsum.photos/seed/hurts/100/100', trend: 'stable' },
-  { id: '16', name: 'Mark Andrews', position: 'TE', team: 'BAL', totalPoints: 195.0, ppg: 13.5, consistency: 85, ceiling: 25, floor: 5, targetShare: 22.0, redZone: 88, burst: 55, clutch: 80, avatarUrl: 'https://picsum.photos/seed/andrews/100/100', trend: 'down' },
-  { id: '17', name: 'Davante Adams', position: 'WR', team: 'LV', totalPoints: 280.0, ppg: 17.5, consistency: 80, ceiling: 38, floor: 6, targetShare: 32.0, redZone: 75, burst: 60, clutch: 85, avatarUrl: 'https://picsum.photos/seed/adams/100/100', trend: 'down' },
-  { id: '18', name: 'Jahmyr Gibbs', position: 'RB', team: 'DET', totalPoints: 230.0, ppg: 15.5, consistency: 65, ceiling: 42, floor: 4, targetShare: 16.0, redZone: 45, burst: 95, clutch: 55, avatarUrl: 'https://picsum.photos/seed/gibbs/100/100', trend: 'up' },
-  { id: '19', name: 'Patrick Mahomes', position: 'QB', team: 'KC', totalPoints: 370.0, ppg: 23.5, consistency: 90, ceiling: 40, floor: 15, targetShare: 0, redZone: 85, burst: 65, clutch: 98, avatarUrl: 'https://picsum.photos/seed/mahomes/100/100', trend: 'stable' },
-  { id: '20', name: 'Sam LaPorta', position: 'TE', team: 'DET', totalPoints: 185.0, ppg: 12.8, consistency: 78, ceiling: 26, floor: 4, targetShare: 18.0, redZone: 70, burst: 68, clutch: 72, avatarUrl: 'https://picsum.photos/seed/laporta/100/100', trend: 'up' },
-  { id: '21', name: 'Puka Nacua', position: 'WR', team: 'LAR', totalPoints: 275.0, ppg: 17.2, consistency: 84, ceiling: 32, floor: 8, targetShare: 28.0, redZone: 55, burst: 72, clutch: 78, avatarUrl: 'https://picsum.photos/seed/puka/100/100', trend: 'stable' },
-  { id: '22', name: 'Kyren Williams', position: 'RB', team: 'LAR', totalPoints: 250.0, ppg: 19.5, consistency: 86, ceiling: 35, floor: 10, targetShare: 12.0, redZone: 85, burst: 65, clutch: 82, avatarUrl: 'https://picsum.photos/seed/kyren/100/100', trend: 'up' },
-  { id: '23', name: 'CJ Stroud', position: 'QB', team: 'HOU', totalPoints: 340.0, ppg: 21.0, consistency: 82, ceiling: 42, floor: 12, targetShare: 0, redZone: 60, burst: 85, clutch: 88, avatarUrl: 'https://picsum.photos/seed/stroud/100/100', trend: 'up' },
-  { id: '24', name: 'George Kittle', position: 'TE', team: 'SF', totalPoints: 190.0, ppg: 13.0, consistency: 72, ceiling: 35, floor: 2, targetShare: 19.0, redZone: 65, burst: 82, clutch: 85, avatarUrl: 'https://picsum.photos/seed/kittle/100/100', trend: 'down' }
-];
+// === Dashboard Data Layer (sheet-first, no league context) ===
 
+// Working set populated from Google Sheets (STAT_1QB / STAT_SFLX + season stats/ranks)
 let players = [];
-const state = {
+
+// Dashboard UI state
+const dashState = {
   selectedPlayerId: null,
-  filter: 'all'
+  filter: 'all',
+  currentTab: 'oneQb', // mirrors stats page tabs; default 1QB
+  rankCache: {},       // computed FPTS/PPG ranks (overall + positional) from sheets
+  seasonStats: {},
+  seasonRanks: {},
+  ready: false
 };
 
 // Helpers
-const byMetric = metric => [...players].sort((a, b) => b[metric] - a[metric]);
-const getTop = metric => byMetric(metric)[0];
-const getSelected = () => players.find(p => p.id === state.selectedPlayerId) || players[0];
 const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+const toNumber = (value, { allowFloat = true } = {}) => {
+  if (value === null || value === undefined) return null;
+  let source = value;
+  if (typeof source === 'string') source = source.replace(/,/g, '');
+  const numeric = allowFloat ? parseFloat(source) : parseInt(source, 10);
+  return Number.isNaN(numeric) ? null : numeric;
+};
 const formatInitialLast = (name = '') => {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0];
@@ -47,35 +31,390 @@ const formatInitialLast = (name = '') => {
   const last = parts.slice(1).join(' ');
   return `${firstInitial} ${last}`.trim();
 };
+const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId) || players[0];
+
+// --- Sheet-driven rank cache (FPTS/PPG overall + positional) ---
+function buildRankCacheFromSeasonStats(seasonStats) {
+  const entries = [];
+  Object.entries(seasonStats || {}).forEach(([playerId, stats]) => {
+    const fpts = toNumber(stats.fpts_ppr);
+    const games = toNumber(stats.games_played, { allowFloat: false }) || 0;
+    const pos = (stats.pos || '').toUpperCase();
+    if (!Number.isFinite(fpts) || fpts <= 0 || !pos) return;
+    const ppg = games > 0 ? fpts / games : null;
+    entries.push({ playerId, fpts, games, ppg, pos });
+  });
+
+  const cache = {};
+  // Overall ranks by FPTS
+  entries.slice().sort((a, b) => b.fpts - a.fpts).forEach((entry, idx) => {
+    cache[entry.playerId] = cache[entry.playerId] || {};
+    cache[entry.playerId].overallRank = idx + 1;
+    cache[entry.playerId].pos = entry.pos;
+  });
+  // Overall ranks by PPG (only players with games >0)
+  entries
+    .filter(e => Number.isFinite(e.ppg) && e.ppg > 0)
+    .sort((a, b) => b.ppg - a.ppg)
+    .forEach((entry, idx) => {
+      cache[entry.playerId] = cache[entry.playerId] || {};
+      cache[entry.playerId].ppgOverallRank = idx + 1;
+    });
+
+  // Positional ranks
+  const grouped = entries.reduce((acc, e) => {
+    acc[e.pos] = acc[e.pos] || [];
+    acc[e.pos].push(e);
+    return acc;
+  }, {});
+
+  Object.values(grouped).forEach(group => {
+    group.slice().sort((a, b) => b.fpts - a.fpts).forEach((entry, idx) => {
+      cache[entry.playerId] = cache[entry.playerId] || {};
+      cache[entry.playerId].posRank = idx + 1;
+    });
+    group
+      .filter(e => Number.isFinite(e.ppg) && e.ppg > 0)
+      .sort((a, b) => b.ppg - a.ppg)
+      .forEach((entry, idx) => {
+        cache[entry.playerId] = cache[entry.playerId] || {};
+        cache[entry.playerId].ppgPosRank = idx + 1;
+      });
+  });
+
+  return cache;
+}
+
+// --- Sheet value helpers ---
+function getPlayerName(playerId) {
+  const meta = (typeof window !== 'undefined' ? window.state : dashState)?.players?.[playerId];
+  if (meta) {
+    const first = (meta.first_name || '').trim();
+    const last = (meta.last_name || '').trim();
+    const name = `${first} ${last}`.trim();
+    return name || playerId;
+  }
+  return playerId;
+}
+
+function getPlayerTeam(playerId) {
+  const meta = (typeof window !== 'undefined' ? window.state : dashState)?.players?.[playerId];
+  return (meta?.team || 'FA').toUpperCase();
+}
+
+function safeValue(stats, key) {
+  const v = stats?.[key];
+  const num = toNumber(v);
+  return Number.isFinite(num) ? num : null;
+}
+
+// Map stat keys used in radar / cards to season stat keys if different
+const STAT_KEY_OVERRIDES = {
+  fpts: 'fpts_ppr',
+  ts_per_rr: 'ts_per_rr',
+  csty_pct: 'csty_pct',
+  ceiling: 'cl'
+};
+
+// --- Lightweight CSV parser & stat-sheet loader (mirrors stats page) ---
+function parseCsv(text) {
+  const lines = (text || '').split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return { headers: [], rows: [] };
+  const parseLine = (line) => {
+    const out = [];
+    let cur = '';
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; continue; }
+        if (ch === '"') { inQ = false; continue; }
+        cur += ch;
+      } else {
+        if (ch === '"') { inQ = true; continue; }
+        if (ch === ',') { out.push(cur.trim()); cur = ''; continue; }
+        cur += ch;
+      }
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  const headers = parseLine(lines[0]);
+  const rows = lines.slice(1).map(parseLine);
+  return { headers, rows };
+}
+
+const STAT_HEADER_ALIASES = new Map([
+  ['PLAYER NAME', 'PLAYER'],
+  ['POS RK', 'POS | RK'],
+  ['POS·RK', 'POS | RK'],
+  ['POS_RK', 'POS | RK'],
+  ['FPTS_PPR', 'FPTS'],
+  ['FPT_PPR', 'FPTS'],
+  ['YDS(T)', 'YDS(t)'],
+  ['YPG(T)', 'YPG(t)'],
+  ['IMP/OPP', 'IMP/OPP']
+]);
+
+function normalizeStatHeaders(rawHeaders) {
+  return rawHeaders.map(h => STAT_HEADER_ALIASES.get(h) || h);
+}
+
+async function fetchStatSheet(tabKey = 'oneQb') {
+  const sheetId = typeof window !== 'undefined' ? window.PLAYER_STATS_SHEET_ID : null;
+  if (!sheetId) return [];
+  const sheetName = tabKey === 'sflx' ? 'STAT_SFLX' : 'STAT_1QB';
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`Failed to fetch ${sheetName}`);
+  const csvText = await res.text();
+  const { headers, rows } = parseCsv(csvText);
+  const normalizedHeaders = normalizeStatHeaders(headers);
+  const data = [];
+  rows.forEach(cols => {
+    const row = {};
+    normalizedHeaders.forEach((h, idx) => { row[h] = cols[idx]; });
+    data.push(row);
+  });
+  return data;
+}
+
+function buildRankCacheFromStatRows(rows) {
+  const entries = rows.map(r => {
+    const playerId = (r.SLPR_ID || '').trim();
+    const pos = (r.POS || '').trim().toUpperCase();
+    const fpts = toNumber(r.FPTS);
+    const ppg = toNumber(r.PPG);
+    return { playerId, pos, fpts, ppg };
+  }).filter(e => e.playerId && e.pos && Number.isFinite(e.fpts));
+
+  const cache = {};
+  const byFpts = entries.slice().sort((a, b) => (b.fpts || 0) - (a.fpts || 0));
+  byFpts.forEach((e, idx) => {
+    cache[e.playerId] = cache[e.playerId] || {};
+    cache[e.playerId].overallRank = idx + 1;
+  });
+  const byPpg = entries.filter(e => Number.isFinite(e.ppg)).slice().sort((a, b) => (b.ppg || 0) - (a.ppg || 0));
+  byPpg.forEach((e, idx) => {
+    cache[e.playerId] = cache[e.playerId] || {};
+    cache[e.playerId].ppgOverallRank = idx + 1;
+  });
+  const grouped = entries.reduce((acc, e) => {
+    acc[e.pos] = acc[e.pos] || [];
+    acc[e.pos].push(e);
+    return acc;
+  }, {});
+  Object.values(grouped).forEach(group => {
+    group.slice().sort((a, b) => (b.fpts || 0) - (a.fpts || 0)).forEach((e, idx) => {
+      cache[e.playerId] = cache[e.playerId] || {};
+      cache[e.playerId].posRank = idx + 1;
+    });
+    group.filter(e => Number.isFinite(e.ppg)).slice().sort((a, b) => (b.ppg || 0) - (a.ppg || 0)).forEach((e, idx) => {
+      cache[e.playerId] = cache[e.playerId] || {};
+      cache[e.playerId].ppgPosRank = idx + 1;
+    });
+  });
+  return cache;
+}
+
+// --- Data loading ---
+async function loadDashboardData() {
+  // show global loading overlay if available
+  const loading = document.getElementById('loading');
+  loading?.classList.remove('hidden');
+  try {
+    // Ensure Sleeper players and sheet stats are loaded
+    if (typeof fetchSleeperPlayers === 'function' && (!window.state?.players || Object.keys(window.state.players).length === 0)) {
+      await fetchSleeperPlayers();
+    }
+    if (typeof fetchPlayerStatsSheets === 'function' && !window.state?.statsSheetsLoaded) {
+      await fetchPlayerStatsSheets();
+    }
+
+    // Fetch STAT tab data (same source as stats page)
+    const statRows = await fetchStatSheet(dashState.currentTab);
+    const statRowById = new Map();
+    statRows.forEach(r => {
+      const id = (r.SLPR_ID || '').trim();
+      if (id) statRowById.set(id, r);
+    });
+    dashState.rankCache = statRows.length ? buildRankCacheFromStatRows(statRows) : buildRankCacheFromSeasonStats(window.state?.playerSeasonStats || {});
+
+    dashState.seasonStats = window.state?.playerSeasonStats || {};
+    dashState.seasonRanks = window.state?.playerSeasonRanks || {};
+
+    // Build player list from season stats (sheet only, no league data)
+    const built = [];
+    Object.entries(dashState.seasonStats).forEach(([playerId, stats]) => {
+      const pos = (stats.pos || '').toUpperCase();
+      const statRow = statRowById.get(playerId) || {};
+      const rowPos = (statRow.POS || '').trim().toUpperCase();
+      const usePos = ['QB','RB','WR','TE'].includes(rowPos) ? rowPos : pos;
+      if (!['QB', 'RB', 'WR', 'TE'].includes(usePos)) return;
+
+      // Prefer STAT sheet values for FPTS/PPG
+      const fptsStat = toNumber(statRow.FPTS);
+      const ppgStat = toNumber(statRow.PPG);
+      const gamesStat = toNumber(statRow.G, { allowFloat: false });
+
+      const fptsSeason = safeValue(stats, STAT_KEY_OVERRIDES.fpts);
+      const gamesSeason = toNumber(stats.games_played, { allowFloat: false });
+
+      const fpts = Number.isFinite(fptsStat) ? fptsStat : (fptsSeason || 0);
+      const games = Number.isFinite(gamesStat) ? gamesStat : (gamesSeason || 0);
+      const ppg = Number.isFinite(ppgStat)
+        ? ppgStat
+        : (games > 0 ? fpts / games : null);
+
+      const playerRanks = dashState.rankCache[playerId] || {};
+      const statRanks = dashState.seasonRanks[playerId] || {};
+
+      const player = {
+        id: playerId,
+        name: getPlayerName(playerId),
+        position: usePos,
+        team: getPlayerTeam(playerId),
+        totalPoints: fpts,
+        ppg: ppg || 0,
+        gamesPlayed: games,
+        csty: (() => {
+          const val = safeValue(stats, STAT_KEY_OVERRIDES.csty_pct);
+          if (val === null) return null;
+          return val <= 1 ? val * 100 : val;
+        })(),
+        consistency: (() => {
+          const val = safeValue(stats, STAT_KEY_OVERRIDES.csty_pct);
+          if (val === null) return null;
+          return val <= 1 ? val * 100 : val;
+        })(), // legacy naming for charts
+        ceiling: safeValue(stats, STAT_KEY_OVERRIDES.ceiling),
+        ts: (() => {
+          const val = safeValue(stats, STAT_KEY_OVERRIDES.ts_per_rr);
+          if (val === null) return null;
+          return val <= 1 ? val * 100 : val; // normalize if stored as fraction
+        })(),
+        avatarUrl: `https://cdn.sleeperscdn.com/images/players/${playerId}.jpg`,
+        trend: 'stable',
+        stats: {
+          fpts: fpts,
+          ppg: ppg,
+          games_played: games,
+          pass_rtg: safeValue(stats, 'pass_rtg'),
+          cmp_pct: safeValue(stats, 'cmp_pct'),
+          pa_ypg: safeValue(stats, 'pa_ypg'),
+          ttt: safeValue(stats, 'ttt'),
+          yds_total: safeValue(stats, 'yds_total'),
+          imp_per_g: safeValue(stats, 'imp_per_g'),
+          imp: safeValue(stats, 'imp'),
+          snp_pct: safeValue(stats, 'snp_pct'),
+          ypc: safeValue(stats, 'ypc'),
+          rec_tgt: safeValue(stats, 'rec_tgt'),
+          mtf_per_att: safeValue(stats, 'mtf_per_att'),
+          yco_per_att: safeValue(stats, 'yco_per_att'),
+          rec: safeValue(stats, 'rec'),
+          rec_ypg: safeValue(stats, 'rec_ypg'),
+          ts_per_rr: safeValue(stats, 'ts_per_rr'),
+          yprr: safeValue(stats, 'yprr'),
+          first_down_rec_rate: safeValue(stats, 'first_down_rec_rate'),
+          imp_per_g_wrte: safeValue(stats, 'imp_per_g'),
+          ceiling: safeValue(stats, 'cl'),
+          pass_yd: safeValue(stats, 'pass_yd')
+        },
+        ranks: {
+          posRank: playerRanks.posRank || null,
+          ppgPosRank: playerRanks.ppgPosRank || null,
+          overallRank: playerRanks.overallRank || null,
+          ppgOverallRank: playerRanks.ppgOverallRank || null
+        },
+        statRanks: statRanks
+      };
+
+      built.push(player);
+    });
+
+    players = built
+      .filter(p => Number.isFinite(p.totalPoints) && p.totalPoints > 0)
+      .sort((a, b) => b.totalPoints - a.totalPoints);
+
+    // Default selection: highest FPTS
+    dashState.selectedPlayerId = players[0]?.id || null;
+    dashState.ready = true;
+  } catch (err) {
+    console.error('Dashboard data load failed', err);
+  } finally {
+    loading?.classList.add('hidden');
+  }
+}
 
 function calculatePlayerScore(player) {
-  const score = (player.consistency + player.ppg * 3 + player.ceiling) / 3;
+  const consistency = Number.isFinite(player.csty) ? player.csty : 0;
+  const ppg = Number.isFinite(player.ppg) ? player.ppg : 0;
+  const ceiling = Number.isFinite(player.ceiling) ? player.ceiling : 0;
+  const score = (consistency + ppg * 3 + ceiling) / 3;
   return clamp(Math.round(score), 0, 99);
 }
 
-function radarData(player) {
-  // Mock data generation for missing metrics based on player quality
-  const seed = player.ppg + player.consistency;
-  const rec = Math.min(100, (player.ppg * 3.5)); 
-  const recYpg = Math.min(100, (player.ppg * 4));
-  const yprr = Math.min(100, (player.consistency * 0.9));
-  const firstDrr = Math.min(100, (player.ceiling * 1.5));
-  const impG = Math.min(100, (player.ppg * 3 + 10));
+// Map position to radar config used in app.js
+const RADAR_STATS_CONFIG = {
+  QB: {
+    stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
+    labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+    maxRank: 36
+  },
+  RB: {
+    stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'rec_tgt', 'mtf_per_att', 'yco_per_att'],
+    labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
+    maxRank: 48
+  },
+  WR: {
+    stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
+    labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
+    maxRank: 72
+  },
+  TE: {
+    stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
+    labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
+    maxRank: 24
+  }
+};
 
-  return [
-    { axis: 'FPTS', value: Math.min(100, (player.totalPoints / 400) * 100) },
-    { axis: 'PPG', value: Math.min(100, (player.ppg / 30) * 100) },
-    { axis: 'REC', value: rec },
-    { axis: 'recYPG', value: recYpg },
-    { axis: 'TS %', value: Math.min(100, (player.targetShare / 40) * 100) },
-    { axis: 'YPRR', value: yprr },
-    { axis: '1DRR', value: firstDrr },
-    { axis: 'IMP/G', value: impG }
-  ];
+function buildRadarDataset(player) {
+  const cfg = RADAR_STATS_CONFIG[player.position];
+  if (!cfg) return [];
+  return cfg.stats.map((statKey, idx) => {
+    const label = cfg.labels[idx];
+    let statValue = player.stats[statKey];
+
+    // Derived fallbacks for missing sheet fields
+    if ((statKey === 'imp_per_g' || statKey === 'imp_per_g_wrte') && (statValue === null || statValue === undefined)) {
+      const imp = player.stats.imp || player.stats.imp_per_g_wrte;
+      if (Number.isFinite(imp) && player.gamesPlayed > 0) {
+        statValue = imp / player.gamesPlayed;
+      }
+    }
+    if (statKey === 'pa_ypg' && (statValue === null || statValue === undefined)) {
+      if (Number.isFinite(player.stats.pass_yd) && player.gamesPlayed > 0) {
+        statValue = player.stats.pass_yd / player.gamesPlayed;
+      }
+    }
+
+    let rank = null;
+    if (statKey === 'fpts') rank = player.ranks.posRank;
+    else if (statKey === 'ppg') rank = player.ranks.ppgPosRank;
+    else rank = player.statRanks?.[statKey] ?? null;
+
+    const maxRank = cfg.maxRank;
+    const fill = Number.isFinite(rank)
+      ? clamp(((maxRank - rank + 1) / maxRank) * 100, 0, 100)
+      : 8; // small sliver when missing
+
+    return { axis: label, value: fill, rawValue: statValue, rank };
+  });
 }
 
 function ppgBarData(filter) {
   return [...players]
+    .filter(p => Number.isFinite(p.ppg) && p.ppg > 0)
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.ppg - a.ppg)
     .slice(0, 10)
@@ -84,28 +423,41 @@ function ppgBarData(filter) {
 
 // Rendering functions
 function renderSummary() {
-  const topPoints = getTop('totalPoints');
+  if (!players.length) return;
+  const topPoints = [...players].sort((a, b) => b.totalPoints - a.totalPoints)[0];
+  const topPPG = [...players]
+    .filter(p => Number.isFinite(p.ppg) && p.ppg > 0)
+    .sort((a, b) => b.ppg - a.ppg)[0];
   const topConsistencyRB = [...players]
-    .filter(p => p.position === 'RB')
-    .sort((a, b) => b.consistency - a.consistency)[0] || getTop('consistency');
-  const topPPG = getTop('ppg');
-  const topShare = getTop('targetShare');
+    .filter(p => p.position === 'RB' && Number.isFinite(p.csty))
+    .sort((a, b) => b.csty - a.csty)[0];
+  const topTSWR = [...players]
+    .filter(p => p.position === 'WR' && Number.isFinite(p.ts))
+    .sort((a, b) => b.ts - a.ts)[0];
 
-  const projectedMaxPoints = 450; // visual scale only
+  const projectedMaxPoints = Math.max(450, topPoints?.totalPoints || 0);
 
-  setText('total-points-value', topPoints.totalPoints.toFixed(1));
-  setText('total-points-name', formatInitialLast(topPoints.name));
-  setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
+  if (topPoints) {
+    setText('total-points-value', topPoints.totalPoints.toFixed(1));
+    setText('total-points-name', formatInitialLast(topPoints.name));
+    setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
+  }
 
-  setText('consistency-value', `${topConsistencyRB.consistency}%`);
-  setText('consistency-name', formatInitialLast(topConsistencyRB.name));
-  setWidth('consistency-bar', topConsistencyRB.consistency);
+  if (topConsistencyRB) {
+    setText('consistency-value', `${topConsistencyRB.csty.toFixed(1)}%`);
+    setText('consistency-name', formatInitialLast(topConsistencyRB.name));
+    setWidth('consistency-bar', topConsistencyRB.csty);
+  }
 
-  setText('ppg-value', topPPG.ppg.toFixed(1));
-  setText('ppg-name', topPPG.name);
+  if (topPPG) {
+    setText('ppg-value', topPPG.ppg.toFixed(1));
+    setText('ppg-name', topPPG.name);
+  }
 
-  setText('share-value', `${topShare.targetShare}%`);
-  setText('share-name', topShare.name);
+  if (topTSWR) {
+    setText('share-value', `${topTSWR.ts.toFixed(1)}%`);
+    setText('share-name', topTSWR.name);
+  }
 }
 
 function renderCustomSelect() {
@@ -113,10 +465,12 @@ function renderCustomSelect() {
   const label = document.getElementById('player-select-label');
   if (!optionsContainer) return;
 
+  const optionsList = players.slice(0, 100); // already sorted by FPTS
+
   // Populate options
-  optionsContainer.innerHTML = players
+  optionsContainer.innerHTML = optionsList
     .map(p => `
-      <li class="fc-option ${p.id === state.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
+      <li class="fc-option ${p.id === dashState.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
         <span>${p.name}</span>
         <span class="fc-option-team">${p.position} - ${p.team}</span>
       </li>
@@ -180,7 +534,7 @@ function setupCustomSelect() {
 
     const value = option.dataset.value;
     if (value) {
-      state.selectedPlayerId = value;
+      dashState.selectedPlayerId = value;
       
       // Update UI
       renderCustomSelect(); // Re-renders options to update selected state
@@ -212,16 +566,19 @@ function renderSelectedDetails() {
   const player = getSelected();
   // Removed avatar/name/meta updates for the deleted block
   setText('rating-value', calculatePlayerScore(player));
-  setText('rating-meta', `${player.position} // ${player.team}`);
+  const posRankText = Number.isFinite(player.ranks?.posRank) ? `#${player.ranks.posRank}` : 'NA';
+  setText('rating-meta', `${player.position} · ${posRankText} // ${player.team}`);
 }
 
 function renderRadar() {
-  const data = radarData(getSelected());
+  const player = getSelected();
+  const data = buildRadarDataset(player);
   drawRadarChart('radar-chart', data);
 }
 
 function renderBar() {
-  const data = ppgBarData(state.filter);
+  const data = ppgBarData(dashState.filter);
+  if (!data.length) return;
   drawBarChart('bar-chart', data);
 }
 
@@ -268,7 +625,18 @@ function renderTable() {
 }
 
 function renderScatter() {
-  drawScatterChart('scatter-chart', players);
+  const topByFpts = [...players]
+    .filter(p => Number.isFinite(p.totalPoints))
+    .sort((a, b) => b.totalPoints - a.totalPoints);
+
+  const scatterPool = [];
+  for (const p of topByFpts) {
+    if (Number.isFinite(p.csty) && Number.isFinite(p.ceiling)) {
+      scatterPool.push(p);
+    }
+    if (scatterPool.length >= 24) break;
+  }
+  drawScatterChart('scatter-chart', scatterPool);
 }
 
 // Event wiring
@@ -282,7 +650,7 @@ function wireEvents() {
       if (!btn) return;
       const filter = btn.dataset.filter;
       if (!filter) return;
-      state.filter = filter;
+      dashState.filter = filter;
       updateFilterButtons();
       renderBar();
     });
@@ -297,7 +665,7 @@ function wireEvents() {
 
 function updateFilterButtons() {
   document.querySelectorAll('#filter-buttons button').forEach(btn => {
-    const active = btn.dataset.filter === state.filter;
+    const active = btn.dataset.filter === dashState.filter;
     btn.classList.toggle('fc-filter-btn--active', active);
   });
 }
@@ -334,7 +702,7 @@ function trendSvg(trend) {
 // D3 radar
 function drawRadarChart(containerId, data) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !data || !data.length) return;
   container.innerHTML = '';
 
   const rect = container.getBoundingClientRect();
@@ -595,7 +963,7 @@ function drawBarChart(containerId, data) {
 // D3 Scatter Chart
 function drawScatterChart(containerId, data) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !data || !data.length) return;
   container.innerHTML = '';
 
   const rect = container.getBoundingClientRect();
@@ -621,12 +989,19 @@ function drawScatterChart(containerId, data) {
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
   // Scales
+  const xDomain = d3.extent(data, d => d.consistency).map((v, i, arr) => (
+    i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)
+  ));
+  const yDomain = d3.extent(data, d => d.ceiling).map((v, i, arr) => (
+    i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)
+  ));
+
   const x = d3.scaleLinear()
-    .domain([50, 100]) // Consistency range
+    .domain(xDomain)
     .range([0, innerWidth]);
 
   const y = d3.scaleLinear()
-    .domain([20, 70]) // Ceiling range
+    .domain(yDomain)
     .range([innerHeight, 0]);
 
   // Grid
@@ -765,10 +1140,11 @@ function drawScatterChart(containerId, data) {
 }
 
 // Initialize
-window.initFantasyDashboard = function(data) {
-  players = data || defaultPlayers;
-  state.selectedPlayerId = players[0].id;
-  
+window.initFantasyDashboard = async function() {
+  if (dashState.ready) return;
+  await loadDashboardData();
+  if (!players.length) return;
+
   renderSummary();
   renderCustomSelect();
   setupCustomSelect();

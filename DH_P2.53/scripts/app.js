@@ -308,6 +308,11 @@ if (pageType === 'welcome') {
 }
         // --- State ---
 let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+
+// Expose state for dashboard/home reuse (sheet-only consumers)
+if (typeof window !== 'undefined') {
+    window.state = state;
+}
         const assignedLeagueColors = new Map();
         let nextColorIndex = 0;
         const assignedRyColors = new Map();
@@ -315,7 +320,11 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
         // --- Constants ---
         const API_BASE = 'https://api.sleeper.app/v1';
         const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
-        const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
+const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
+// Expose for dashboard / shared loaders
+if (typeof window !== 'undefined') {
+    window.PLAYER_STATS_SHEET_ID = PLAYER_STATS_SHEET_ID;
+}
         const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10', 11: 'WK11' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
@@ -1499,6 +1508,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 state.calculatedRankCache = null;
             } catch (e) { console.error("Failed to fetch Sleeper players:", e); }
         }
+        // Expose for dashboard/home reuse
+        if (typeof window !== 'undefined') {
+            window.fetchSleeperPlayers = fetchSleeperPlayers;
+        }
         async function fetchGameLogs(playerId) {
             if (!state.statsSheetsLoaded) {
                 await fetchPlayerStatsSheets();
@@ -1794,6 +1807,10 @@ let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {
                 state.liveStatsLoaded = true;
                 state.calculatedRankCache = null;
             }
+        }
+        // Expose for dashboard/home reuse
+        if (typeof window !== 'undefined') {
+            window.fetchPlayerStatsSheets = fetchPlayerStatsSheets;
         }
         async function ensureSleeperLiveStats(force = false) {
             if (!force && state.liveStatsLoaded) {
