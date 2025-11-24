@@ -614,7 +614,7 @@
   .fc-summary-card .fc-card__subtitle { font-size: 0.85em; }
   .fc-summary-card .fc-badge { padding: 0.35em 0.75em; font-size: 0.85em; }
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
-  .fc-summary-card .fc-metric-sub { margin-bottom: 0.35em; font-size: 1em; }
+  .fc-summary-card .fc-metric-sub {margin-bottom: 0.35em;font-size: 1.2em;}
   .fc-summary-card .fc-card__footer { margin-top: 1.25em; font-size: 1em; }
 }
 
