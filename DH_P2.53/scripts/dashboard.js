@@ -1,205 +1,74 @@
 (function() {
-// Fantasy Command - Vanilla JS rebuild
-// Data model
-const RADAR_STATS_CONFIG = {
-    QB: {
-        stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
-        labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
-        maxRank: 36
-    },
-    RB: {
-        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'rec_tgt', 'mtf_per_att', 'yco_per_att'],
-        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
-        maxRank: 48
-    },
-    WR: {
-        stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
-        labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
-        maxRank: 72
-    },
-    TE: {
-        stats: ['fpts', 'ppg', 'rec', 'rec_ypg', 'ts_per_rr', 'yprr', 'first_down_rec_rate', 'imp_per_g'],
-        labels: ['FPTS', 'PPG', 'REC', 'recYPG', 'TS%', 'YPRR', '1DRR', 'IMP/G'],
-        maxRank: 24
-    }
-};
+// ---- Manual dashboard config (edit twice weekly) ----
+const MANUAL_PLAYERS = [
+  { id: '1',  name: 'Justin Jefferson',      position: 'WR', team: 'MIN', totalPoints: 342.5, ppg: 22.4, consistency: 92, ceiling: 45, targetShare: 29.5, redZone: 95, burst: 80, clutch: 88, avatarUrl: 'https://picsum.photos/seed/jefferson/100/100', trend: 'up' },
+  { id: '2',  name: 'Christian McCaffrey',   position: 'RB', team: 'SF',  totalPoints: 380.2, ppg: 24.8, consistency: 95, ceiling: 50, targetShare: 18.2, redZone: 90, burst: 78, clutch: 96, avatarUrl: 'https://picsum.photos/seed/cmc/100/100', trend: 'stable' },
+  { id: '3',  name: 'Tyreek Hill',           position: 'WR', team: 'MIA', totalPoints: 310.8, ppg: 20.1, consistency: 78, ceiling: 60, targetShare: 28.0, redZone: 60, burst: 99, clutch: 70, avatarUrl: 'https://picsum.photos/seed/tyreek/100/100', trend: 'down' },
+  { id: '4',  name: 'Josh Allen',            position: 'QB', team: 'BUF', totalPoints: 402.1, ppg: 25.3, consistency: 85, ceiling: 46, targetShare: 0,    redZone: 82, burst: 76, clutch: 92, avatarUrl: 'https://picsum.photos/seed/allen/100/100', trend: 'up' },
+  { id: '5',  name: 'Travis Kelce',          position: 'TE', team: 'KC',  totalPoints: 210.4, ppg: 14.5, consistency: 92, ceiling: 28, targetShare: 24.0, redZone: 97, burst: 62, clutch: 95, avatarUrl: 'https://picsum.photos/seed/kelce/100/100', trend: 'stable' },
+  { id: '6',  name: 'CeeDee Lamb',           position: 'WR', team: 'DAL', totalPoints: 335.9, ppg: 21.5, consistency: 87, ceiling: 40, targetShare: 27.0, redZone: 70, burst: 88, clutch: 82, avatarUrl: 'https://picsum.photos/seed/lamb/100/100', trend: 'up' },
+  { id: '7',  name: 'Lamar Jackson',         position: 'QB', team: 'BAL', totalPoints: 360.5, ppg: 23.1, consistency: 80, ceiling: 50, targetShare: 0,    redZone: 68, burst: 95, clutch: 78, avatarUrl: 'https://picsum.photos/seed/lamar/100/100', trend: 'up' },
+  { id: '8',  name: 'Bijan Robinson',        position: 'RB', team: 'ATL', totalPoints: 245.3, ppg: 16.2, consistency: 70, ceiling: 32, targetShare: 12.0, redZone: 44, burst: 86, clutch: 60, avatarUrl: 'https://picsum.photos/seed/bijan/100/100', trend: 'down' },
+  { id: '9',  name: 'Amon-Ra St. Brown',     position: 'WR', team: 'DET', totalPoints: 298.4, ppg: 19.9, consistency: 90, ceiling: 35, targetShare: 30.2, redZone: 72, burst: 68, clutch: 85, avatarUrl: 'https://picsum.photos/seed/amonra/100/100', trend: 'stable' },
+  { id: '10', name: 'Saquon Barkley',        position: 'RB', team: 'NYG', totalPoints: 270.1, ppg: 17.6, consistency: 76, ceiling: 45, targetShare: 15.0, redZone: 55, burst: 92, clutch: 74, avatarUrl: 'https://picsum.photos/seed/saquon/100/100', trend: 'up' },
+  { id: '11', name: 'Garrett Wilson',        position: 'WR', team: 'NYJ', totalPoints: 240.4, ppg: 15.0, consistency: 68, ceiling: 28, targetShare: 33.0, redZone: 35, burst: 80, clutch: 58, avatarUrl: 'https://picsum.photos/seed/garrettwilson/100/100', trend: 'down' },
+  { id: '12', name: 'Jalen Hurts',           position: 'QB', team: 'PHI', totalPoints: 385.0, ppg: 24.2, consistency: 88, ceiling: 45, targetShare: 0,    redZone: 95, burst: 70, clutch: 90, avatarUrl: 'https://picsum.photos/seed/hurts/100/100', trend: 'stable' },
+  { id: '13', name: 'Davante Adams',         position: 'WR', team: 'LV',  totalPoints: 280.0, ppg: 17.5, consistency: 80, ceiling: 38, targetShare: 32.0, redZone: 75, burst: 60, clutch: 85, avatarUrl: 'https://picsum.photos/seed/adams/100/100', trend: 'down' },
+  { id: '14', name: 'Jahmyr Gibbs',          position: 'RB', team: 'DET', totalPoints: 230.0, ppg: 15.5, consistency: 65, ceiling: 42, targetShare: 16.0, redZone: 45, burst: 95, clutch: 55, avatarUrl: 'https://picsum.photos/seed/gibbs/100/100', trend: 'up' },
+  { id: '15', name: 'Sam LaPorta',           position: 'TE', team: 'DET', totalPoints: 185.0, ppg: 12.8, consistency: 78, ceiling: 26, targetShare: 18.0, redZone: 70, burst: 68, clutch: 72, avatarUrl: 'https://picsum.photos/seed/laporta/100/100', trend: 'up' }
+];
 
 let players = [];
-const state = {
-  selectedPlayerId: null,
-  filter: 'all'
-};
+const state = { selectedPlayerId: null, filter: 'all' };
 
-// Data Processing
-function processDashboardData() {
-    // Debug logging
-    console.log('Dashboard: Checking state...', { 
-        hasState: !!window.state, 
-        statsLoaded: window.state?.statsSheetsLoaded, 
-        playersLoaded: !!window.state?.players,
-        playerCount: window.state?.players ? Object.keys(window.state.players).length : 0,
-        seasonStatsCount: window.state?.playerSeasonStats ? Object.keys(window.state.playerSeasonStats).length : 0
-    });
-
-    if (!window.state || !window.state.playerSeasonStats || !window.state.players) {
-        console.warn('Dashboard: Missing state data');
-        return;
-    }
-
-    const seasonStats = window.state.playerSeasonStats;
-    const sleeperPlayers = window.state.players;
-    const processed = [];
-
-    // Helper to parse float safely
-    const parse = (v) => {
-        if (typeof v === 'number') return v;
-        if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
-        return 0;
-    };
-
-    Object.keys(seasonStats).forEach(playerId => {
-        const stats = seasonStats[playerId];
-        const meta = sleeperPlayers[playerId];
-        if (!meta) return;
-
-        // Basic validation - ensure they have points
-        const fpts = parse(stats.fpt_ppr);
-        
-        if (fpts <= 0) return;
-
-        processed.push({
-            id: playerId,
-            name: `${meta.first_name} ${meta.last_name}`,
-            position: meta.position,
-            team: meta.team || 'FA',
-            totalPoints: fpts,
-            ppg: parse(stats.ppg),
-            consistency: parse(stats.csty_pct),
-            ceiling: parse(stats.ceiling),
-            targetShare: parse(stats.ts_per_rr),
-            avatarUrl: `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`,
-            trend: 'stable'
-        });
-    });
-
-    console.log(`Dashboard: Processed ${processed.length} players`);
-    players = processed.sort((a, b) => b.totalPoints - a.totalPoints);
-    
-    // Select top player by default if none selected
-    if (!state.selectedPlayerId && players.length > 0) {
-        state.selectedPlayerId = players[0].id;
-    }
-
-    // Initial Render
-    renderSummary();
-    renderCustomSelect();
-    setupCustomSelect();
-    renderSelectedDetails();
-    renderRadar();
-    renderBar();
-    renderScatter();
-    renderTable();
-}
-
-// Helpers
-const byMetric = (metric, pos) => {
-    let pool = players;
-    if (pos) pool = pool.filter(p => p.position === pos);
-    return [...pool].sort((a, b) => b[metric] - a[metric]);
-};
-const getTop = (metric, pos) => byMetric(metric, pos)[0];
-const getSelected = () => players.find(p => p.id === state.selectedPlayerId) || players[0];
-const clamp = (val, min, max) => Math.min(max, Math.max(min, val));
+// ---- Helpers ----
+const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 const formatInitialLast = (name = '') => {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0];
-  const firstInitial = parts[0]?.[0] ? `${parts[0][0].toUpperCase()}.` : '';
-  const last = parts.slice(1).join(' ');
-  return `${firstInitial} ${last}`.trim();
+  return `${(parts[0][0] || '').toUpperCase()}. ${parts.slice(1).join(' ')}`.trim();
 };
-
-function calculatePlayerScore(player) {
-    if (!player) return 0;
-    const score = (player.consistency + (player.ppg / 30 * 100) + player.ceiling) / 3;
-    return clamp(Math.round(score), 0, 99);
-}
-
-function radarData(player) {
-    if (!player) return [];
-    const config = RADAR_STATS_CONFIG[player.position];
-    if (!config) return [];
-
-    const ranks = window.state.playerSeasonRanks?.[player.id] || {};
-    
-    return config.stats.map((statKey, i) => {
-        const label = config.labels[i];
-        let rankKey = statKey;
-        if (statKey === 'fpts') rankKey = 'fpt_ppr';
-        
-        let val = ranks[rankKey];
-        
-        // Handle missing/string values
-        if (val === undefined || val === null) val = config.maxRank;
-        if (typeof val === 'string') val = parseFloat(val) || config.maxRank;
-        
-        // Scaling Logic from app.js
-        // rank 1 -> 85, rank 7 -> 73, rank maxRank -> 10
-        let scaled;
-        if (val <= 1) {
-            scaled = 85;
-        } else if (val >= config.maxRank) {
-            scaled = 10;
-        } else if (val <= 7) {
-            // Compress ranks 1-7 into the 73-85 range
-            scaled = 85 - ((val - 1) / 6) * 12;
-        } else {
-            // Scale ranks 7-maxRank linearly from 73 to 10
-            scaled = 73 - ((val - 7) / (config.maxRank - 7)) * 63;
-        }
-        
-        return { axis: label, value: scaled, rank: val };
-    });
-}
-
-function ppgBarData(filter) {
+const byMetric = (metric, pos) => {
+  const pool = pos ? players.filter(p => p.position === pos) : players;
+  return [...pool].sort((a, b) => (b[metric] || 0) - (a[metric] || 0));
+};
+const getTop = (metric, pos) => byMetric(metric, pos)[0];
+const calculatePlayerScore = (p) => {
+  if (!p) return 0;
+  return clamp(Math.round((p.consistency + (p.ppg / 30 * 100) + p.ceiling) / 3), 0, 99);
+};
+const ppgBarData = (filter) => {
   return [...players]
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.ppg - a.ppg)
     .slice(0, 10)
     .map(p => ({ label: p.name.split(' ').pop() || p.name, value: p.ppg }));
-}
+};
 
-// Rendering functions
+// ---- Renderers ----
 function renderSummary() {
-  if (players.length === 0) return;
-
   const topPoints = getTop('totalPoints');
-  const topConsistencyRB = getTop('consistency', 'RB');
+  const topConsistencyRB = getTop('consistency', 'RB') || getTop('consistency');
   const topPPG = getTop('ppg');
-  const topShare = getTop('targetShare', 'WR');
-
-  const projectedMaxPoints = 450; 
+  const topShare = getTop('targetShare', 'WR') || getTop('targetShare');
 
   if (topPoints) {
-      setText('total-points-value', topPoints.totalPoints.toFixed(1));
-      setText('total-points-name', formatInitialLast(topPoints.name));
-      setWidth('total-points-bar', (topPoints.totalPoints / projectedMaxPoints) * 100);
+    setText('total-points-value', topPoints.totalPoints.toFixed(1));
+    setText('total-points-name', formatInitialLast(topPoints.name));
+    setWidth('total-points-bar', (topPoints.totalPoints / 450) * 100);
   }
-
   if (topConsistencyRB) {
-      setText('consistency-value', `${topConsistencyRB.consistency.toFixed(1)}%`);
-      setText('consistency-name', formatInitialLast(topConsistencyRB.name));
-      setWidth('consistency-bar', topConsistencyRB.consistency);
+    setText('consistency-value', `${topConsistencyRB.consistency.toFixed(1)}%`);
+    setText('consistency-name', formatInitialLast(topConsistencyRB.name));
+    setWidth('consistency-bar', topConsistencyRB.consistency);
   }
-
   if (topPPG) {
-      setText('ppg-value', topPPG.ppg.toFixed(1));
-      setText('ppg-name', topPPG.name);
+    setText('ppg-value', topPPG.ppg.toFixed(1));
+    setText('ppg-name', topPPG.name);
   }
-
   if (topShare) {
-      setText('share-value', `${topShare.targetShare.toFixed(1)}%`);
-      setText('share-name', topShare.name);
+    setText('share-value', `${topShare.targetShare.toFixed(1)}%`);
+    setText('share-name', topShare.name);
   }
 }
 
@@ -208,22 +77,17 @@ function renderCustomSelect() {
   const label = document.getElementById('player-select-label');
   if (!optionsContainer) return;
 
-  // Top 100 players by FPTS
-  const top100 = players.slice(0, 100);
-
-  optionsContainer.innerHTML = top100
+  optionsContainer.innerHTML = players
     .map(p => `
       <li class="fc-option ${p.id === state.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
         <span>${p.name}</span>
         <span class="fc-option-team">${p.position} - ${p.team}</span>
       </li>
     `)
-    .join('');
+    .join('') || '<li class="fc-option is-selected">No players</li>';
 
   const selected = getSelected();
-  if (label && selected) {
-    label.textContent = selected.name;
-  }
+  if (label && selected) label.textContent = selected.name;
 }
 
 function setupCustomSelect() {
@@ -232,171 +96,96 @@ function setupCustomSelect() {
   const dropdown = document.getElementById('player-select-dropdown');
   const searchInput = document.getElementById('player-select-search');
   const optionsContainer = document.getElementById('player-select-options');
-
   if (!container || !trigger || !dropdown || !searchInput || !optionsContainer) return;
 
-  // Toggle Dropdown
   trigger.addEventListener('click', (e) => {
     e.stopPropagation();
-    const isOpen = container.classList.contains('is-open');
-    
-    if (isOpen) {
-      closeDropdown();
-    } else {
-      openDropdown();
-    }
+    container.classList.toggle('is-open');
+    trigger.classList.toggle('is-open');
+    searchInput.value = '';
+    const opts = optionsContainer.querySelectorAll('.fc-option');
+    opts.forEach(opt => opt.style.display = 'flex');
+    if (container.classList.contains('is-open')) searchInput.focus();
   });
 
-  // Close on click outside
   document.addEventListener('click', (e) => {
     if (!container.contains(e.target)) {
-      closeDropdown();
+      container.classList.remove('is-open');
+      trigger.classList.remove('is-open');
     }
   });
 
-  // Search Filter
   searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
-    const options = optionsContainer.querySelectorAll('.fc-option');
-    
-    options.forEach(opt => {
-      const text = opt.textContent.toLowerCase();
-      if (text.includes(term)) {
-        opt.style.display = 'flex';
-      } else {
-        opt.style.display = 'none';
-      }
+    optionsContainer.querySelectorAll('.fc-option').forEach(opt => {
+      opt.style.display = opt.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
     });
   });
 
-  // Option Selection
   optionsContainer.addEventListener('click', (e) => {
     const option = e.target.closest('.fc-option');
     if (!option) return;
-
-    const value = option.dataset.value;
-    if (value) {
-      state.selectedPlayerId = value;
-      
-      // Update UI
-      renderCustomSelect(); // Re-renders options to update selected state
-      renderSelectedDetails();
-      renderRadar();
-      
-      closeDropdown();
-    }
+    state.selectedPlayerId = option.dataset.value;
+    renderCustomSelect();
+    renderSelectedDetails();
+    renderRadar();
   });
-
-  function openDropdown() {
-    container.classList.add('is-open');
-    trigger.classList.add('is-open');
-    searchInput.value = ''; // Clear search
-    searchInput.focus();
-    
-    // Reset options visibility
-    const options = optionsContainer.querySelectorAll('.fc-option');
-    options.forEach(opt => opt.style.display = 'flex');
-  }
-
-  function closeDropdown() {
-    container.classList.remove('is-open');
-    trigger.classList.remove('is-open');
-  }
 }
 
 function renderSelectedDetails() {
   const player = getSelected();
-  // Removed avatar/name/meta updates for the deleted block
   setText('rating-value', calculatePlayerScore(player));
-  setText('rating-meta', `${player.position} // ${player.team}`);
+  setText('rating-meta', player ? `${player.position} // ${player.team}` : '');
 }
 
 function renderRadar() {
-  const data = radarData(getSelected());
-  const fptsRank = data[0]?.rank ? `#${data[0].rank}` : '';
-  drawRadarChart('radar-chart', data, fptsRank);
+  const player = getSelected();
+  const data = radarData(player);
+  drawRadarChart('radar-chart', data, player ? player.position : '');
+}
+
+function radarData(player) {
+  if (!player) return [];
+  const maxFpts = Math.max(...players.map(p => p.totalPoints || 0), 1);
+  const maxPPG = Math.max(...players.map(p => p.ppg || 0), 1);
+  const maxCons = Math.max(...players.map(p => p.consistency || 0), 1);
+  const maxCeil = Math.max(...players.map(p => p.ceiling || 0), 1);
+  const maxTs = Math.max(...players.map(p => p.targetShare || 0), 1);
+  return [
+    { axis: 'FPTS', value: clamp((player.totalPoints / maxFpts) * 100, 0, 100) },
+    { axis: 'PPG',  value: clamp((player.ppg / maxPPG) * 100, 0, 100) },
+    { axis: 'CSTY', value: clamp((player.consistency / maxCons) * 100, 0, 100) },
+    { axis: 'CEIL', value: clamp((player.ceiling / maxCeil) * 100, 0, 100) },
+    { axis: 'TS%',  value: clamp((player.targetShare / maxTs) * 100, 0, 100) },
+    { axis: 'RZ',   value: clamp((player.redZone || 0), 0, 100) },
+    { axis: 'BUR',  value: clamp((player.burst || 0), 0, 100) },
+    { axis: 'CLUT', value: clamp((player.clutch || 0), 0, 100) }
+  ];
 }
 
 function renderBar() {
   const data = ppgBarData(state.filter);
-  drawBarChart('bar-chart', data);
-}
-
-function renderTable() {
-  // The table body ID in index.html is missing, so we need to create it or target the correct element.
-  // Looking at index.html, there is no table structure in the dashboard section.
-  // We need to inject the table structure if it doesn't exist, or skip rendering if not intended.
-  // Assuming the user wants a leaderboard, we should probably add it to the DOM or fix the selector.
-  // For now, let's log a warning if not found.
-  const tbody = document.getElementById('leaderboard-body');
-  if (!tbody) {
-      console.warn('Dashboard: leaderboard-body element not found');
-      return;
-  }
-  
-  const rows = [...players]
-    .sort((a, b) => b.totalPoints - a.totalPoints)
-    .map((p, i) => {
-      const posClass =
-        p.position === 'WR' ? 'fc-pos-wr' :
-        p.position === 'RB' ? 'fc-pos-rb' :
-        p.position === 'QB' ? 'fc-pos-qb' :
-        'fc-pos-te';
-
-      const trendIcon = trendSvg(p.trend);
-
-      return `
-        <tr class="fc-tr">
-          <td class="fc-td fc-td-rank">#${i + 1}</td>
-          <td class="fc-td">
-            <div class="fc-td-player">
-              <img src="${p.avatarUrl}" class="fc-avatar-sm" alt="">
-              <div>
-                <div class="fc-player-name">${p.name}</div>
-                <div class="fc-player-team">${p.team}</div>
-              </div>
-            </div>
-          </td>
-          <td class="fc-td fc-text-center">
-            <span class="fc-pos-badge ${posClass}">${p.position}</span>
-          </td>
-          <td class="fc-td fc-text-right fc-td-val">${p.totalPoints.toFixed(1)}</td>
-          <td class="fc-td fc-text-right fc-td-sub">${p.ppg.toFixed(1)}</td>
-          <td class="fc-td fc-text-right fc-td-sub">${p.ceiling}</td>
-          <td class="fc-td fc-text-center">${trendIcon}</td>
-        </tr>
-      `;
-    })
-    .join('');
-
-  tbody.innerHTML = rows;
+  if (data.length) drawBarChart('bar-chart', data);
 }
 
 function renderScatter() {
-  // Top 24 FPTS players
-  const top24 = [...players]
-    .sort((a, b) => b.totalPoints - a.totalPoints)
-    .slice(0, 24);
+  if (!players.length) return;
+  const top24 = [...players].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 24);
   drawScatterChart('scatter-chart', top24);
 }
 
-// Event wiring
+// ---- Events ----
 function wireEvents() {
-  // Old select listener removed
-
   const filterBtns = document.getElementById('filter-buttons');
   if (filterBtns) {
     filterBtns.addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
-      const filter = btn.dataset.filter;
-      if (!filter) return;
-      state.filter = filter;
+      state.filter = btn.dataset.filter || 'all';
       updateFilterButtons();
       renderBar();
     });
   }
-
   window.addEventListener('resize', debounce(() => {
     renderRadar();
     renderBar();
@@ -406,504 +195,138 @@ function wireEvents() {
 
 function updateFilterButtons() {
   document.querySelectorAll('#filter-buttons button').forEach(btn => {
-    const active = btn.dataset.filter === state.filter;
-    btn.classList.toggle('fc-filter-btn--active', active);
+    btn.classList.toggle('fc-filter-btn--active', btn.dataset.filter === state.filter);
   });
 }
 
-// Small utilities
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-
-function setWidth(id, pct) {
-  const el = document.getElementById(id);
-  if (el) el.style.width = `${clamp(pct, 0, 100)}%`;
-}
-
-function debounce(fn, delay = 150) {
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), delay);
-  };
-}
-
+// ---- Utilities ----
+function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+function setWidth(id, pct) { const el = document.getElementById(id); if (el) el.style.width = `${clamp(pct, 0, 100)}%`; }
+function debounce(fn, delay = 150) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; }
 function trendSvg(trend) {
-  if (trend === 'up') {
-    return '<span style="color: var(--color-emerald-light); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>';
-  }
-  if (trend === 'down') {
-    return '<span style="color: var(--color-red); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg></span>';
-  }
+  if (trend === 'up') return '<span style="color: var(--color-emerald-light); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>';
+  if (trend === 'down') return '<span style="color: var(--color-red); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg></span>';
   return '<span style="color: var(--text-muted); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg></span>';
 }
 
-// D3 radar
+// ---- D3 Charts (compact) ----
 function drawRadarChart(containerId, data, centerText) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !data.length) return;
   container.innerHTML = '';
-
   const rect = container.getBoundingClientRect();
-  const width = rect.width || 360;
-  const height = rect.height || 360;
-  const size = Math.min(width, height);
-
-  const svg = d3.select(container)
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height)
-    .append('g')
-    .attr('transform', `translate(${width / 2},${height / 2})`);
-
-  const numRings = data.length;
-  // Use proportional padding instead of fixed 30px
-  const maxRadius = size / 2 * 0.95; 
-  const innerRadius = size * 0.12; // Proportional inner hole
-  const ringWidth = (maxRadius - innerRadius) / numRings;
-  const gap = size * 0.01; // Proportional gap
-  const colors = ['#ef4444', '#f97316', '#eab308', '#22d3ee', '#8b5cf6', '#10b981', '#ec4899', '#a855f7'];
-  const fontSize = Math.max(8, size * 0.025); 
+  const size = Math.min(rect.width || 360, rect.height || 360);
+  const svg = d3.select(container).append('svg').attr('width', size).attr('height', size).append('g').attr('transform', `translate(${size/2},${size/2})`);
+  const maxRadius = size * 0.45;
+  const inner = size * 0.12;
+  const ring = (maxRadius - inner) / data.length;
+  const gap = size * 0.01;
+  const colors = ['#ef4444','#f97316','#eab308','#22d3ee','#8b5cf6','#10b981','#ec4899','#a855f7'];
   const isMobile = window.innerWidth < 768;
+  const fontSize = Math.max(8, size * 0.025);
 
   data.forEach((d, i) => {
-    const rInner = innerRadius + i * ringWidth + gap;
-    const rOuter = innerRadius + (i + 1) * ringWidth;
+    const rIn = inner + i * ring + gap;
+    const rOut = inner + (i + 1) * ring;
     const color = colors[i % colors.length];
-
-    const bgArc = d3.arc()
-      .innerRadius(rInner)
-      .outerRadius(rOuter)
-      .startAngle(0)
-      .endAngle(2 * Math.PI)
-      .cornerRadius(ringWidth / 2);
-
-    svg.append('path')
-      .attr('d', bgArc)
-      .attr('fill', color)
-      .attr('opacity', 0.1);
-
-    const endAngle = (d.value / 100) * 2 * Math.PI;
-
-    const fgArc = d3.arc()
-      .innerRadius(rInner)
-      .outerRadius(rOuter)
-      .startAngle(0)
-      .endAngle(endAngle)
-      .cornerRadius(ringWidth / 2);
-
-    svg.append('path')
-      .attr('fill', color)
-      .attr('d', fgArc)
-      .transition()
-      .duration(1200)
-      .ease(d3.easeCubicOut)
-      .attrTween('d', function() {
-        const interpolate = d3.interpolate(0, endAngle);
-        return function(t) {
-          const arcFn = d3.arc()
-            .innerRadius(rInner)
-            .outerRadius(rOuter)
-            .startAngle(0)
-            .endAngle(interpolate(t))
-            .cornerRadius(ringWidth / 2);
-          return arcFn();
-        };
-      });
-
+    svg.append('path').attr('d', d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(2*Math.PI).cornerRadius(ring/2)).attr('fill', color).attr('opacity', 0.1);
+    const end = (d.value / 100) * 2 * Math.PI;
+    svg.append('path').attr('fill', color).attr('d', d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(end).cornerRadius(ring/2)).transition().duration(900).ease(d3.easeCubicOut).attrTween('d', () => {
+      const interp = d3.interpolate(0, end);
+      return t => d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(interp(t)).cornerRadius(ring/2)();
+    });
     if (!isMobile) {
-      svg.append('text')
-        .attr('x', 5)
-        .attr('y', -(rInner + (ringWidth - gap) / 2))
-        .attr('dy', '0.35em')
-        .text(d.axis.substring(0, 3).toUpperCase())
-        .attr('fill', '#fff')
-        .attr('font-size', `${fontSize}px`)
-        .attr('font-weight', 'bold')
-        .attr('opacity', 0.8)
-        .style('pointer-events', 'none');
+      svg.append('text').attr('x', 5).attr('y', -(rIn + (ring - gap)/2)).attr('dy','0.35em').text(d.axis.toUpperCase()).attr('fill','#fff').attr('font-size', `${fontSize}px`).attr('font-weight','bold').attr('opacity',0.8);
     }
   });
 
-  // Center Text
-  if (centerText) {
-      svg.append('text')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('dy', '0.35em')
-        .attr('text-anchor', 'middle')
-        .text(centerText)
-        .attr('fill', '#fff')
-        .attr('font-size', `${innerRadius * 0.8}px`)
-        .attr('font-weight', 'bold')
-        .style('text-shadow', '0 2px 10px rgba(0,0,0,0.5)');
-  }
+  if (centerText) svg.append('text').attr('text-anchor','middle').attr('dy','0.35em').text(centerText).attr('fill','#fff').attr('font-size', `${inner*0.8}px`).attr('font-weight','bold').style('text-shadow','0 2px 10px rgba(0,0,0,0.5)');
 }
 
-// D3 bar chart
 function drawBarChart(containerId, data) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !data.length) return;
   container.innerHTML = '';
-
   const rect = container.getBoundingClientRect();
   const width = rect.width || 640;
   const height = rect.height || 360;
-
-  // Proportional margins
-  const margin = { 
-    top: height * 0.12, 
-    right: width * 0.03, 
-    bottom: height * 0.12, 
-    left: width * 0.03 
-  };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-
-  const svg = d3.select(container)
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height);
-
-  const defs = svg.append('defs');
-  const filter = defs.append('filter')
-    .attr('id', 'neon-glow')
-    .attr('x', '-50%')
-    .attr('y', '-50%')
-    .attr('width', '200%')
-    .attr('height', '200%');
-
-  filter.append('feGaussianBlur')
-    .attr('stdDeviation', '3')
-    .attr('result', 'coloredBlur');
-
-  const feMerge = filter.append('feMerge');
-  feMerge.append('feMergeNode').attr('in', 'coloredBlur');
-  feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-
-  const g = svg.append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
-
-  const x = d3.scaleBand()
-    .range([0, innerWidth])
-    .domain(data.map(d => d.label))
-    .paddingInner(0.6)
-    .paddingOuter(0.05);
-
-  const maxValue = d3.max(data, d => d.value) || 0;
-  const y = d3.scaleLinear()
-    .range([innerHeight, 0])
-    .domain([0, maxValue * 1.15]);
-
-  const colorScale = d3.scaleLinear()
-    .domain([0, data.length - 1])
-    .range(['#06b6d4', '#a855f7'])
-    .interpolate(d3.interpolateRgb);
-
-  const uid = Date.now();
-
-  data.forEach((d, i) => {
-    const color = colorScale(i);
-    const gradId = `bar-grad-${uid}-${i}`;
-    const grad = defs.append('linearGradient')
-      .attr('id', gradId)
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '0%')
-      .attr('y2', '100%');
-
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.5);
-    grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.1);
-    grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0);
-  });
-
-  const barGroups = g.selectAll('.bar-group')
-    .data(data)
-    .enter()
-    .append('g')
-    .attr('class', 'bar-group');
-
-  const barWidth = x.bandwidth();
-  const radius = barWidth / 2;
-  
-  // Proportional stroke widths
+  const m = { top: height*0.12, right: width*0.03, bottom: height*0.12, left: width*0.03 };
+  const innerW = width - m.left - m.right;
+  const innerH = height - m.top - m.bottom;
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+  const x = d3.scaleBand().range([0, innerW]).domain(data.map(d => d.label)).paddingInner(0.6).paddingOuter(0.05);
+  const y = d3.scaleLinear().range([innerH, 0]).domain([0, (d3.max(data, d => d.value) || 0) * 1.15]);
+  const color = d3.scaleLinear().domain([0, data.length-1]).range(['#06b6d4','#a855f7']).interpolate(d3.interpolateRgb);
+  const barW = x.bandwidth();
+  const radius = barW/2;
   const isMobile = window.innerWidth < 768;
-  const strokeMain = Math.max(1, width * 0.008);
-  const strokeGlow = Math.max(2, width * 0.015);
-  const fontSizeVal = Math.max(8, width * 0.02);
-  const fontSizeAxis = isMobile ? 5 : Math.max(8, width * 0.015);
+  const fontVal = Math.max(8, width*0.02);
+  const fontAxis = isMobile ? 5 : Math.max(8, width*0.015);
 
-  barGroups.append('rect')
-    .attr('x', d => x(d.label))
-    .attr('y', innerHeight)
-    .attr('width', barWidth)
-    .attr('height', 0)
-    .attr('rx', radius)
-    .attr('ry', radius)
-    .attr('fill', 'none')
-    .attr('stroke', (d, i) => colorScale(i))
-    .attr('stroke-width', strokeGlow)
-    .attr('stroke-opacity', 0.3)
-    .style('filter', 'url(#neon-glow)')
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 50)
-    .ease(d3.easeCubicOut)
-    .attr('y', d => y(d.value))
-    .attr('height', d => innerHeight - y(d.value));
+  const bars = g.selectAll('.bar').data(data).enter().append('g').attr('class','bar');
+  bars.append('rect').attr('x', d => x(d.label)).attr('y', innerH).attr('width', barW).attr('height',0).attr('rx', radius).attr('ry', radius).attr('fill', (d,i) => color(i)).attr('opacity',0.6)
+    .transition().duration(900).delay((d,i)=>i*40).attr('y', d => y(d.value)).attr('height', d => innerH - y(d.value));
+  bars.append('text').text(d => d.value.toFixed(1)).attr('x', d => x(d.label)+barW/2).attr('y', innerH).attr('text-anchor','middle').attr('fill',(d,i)=>color(i)).attr('font-size', `${fontVal}px`).attr('font-weight','700').style('text-shadow','0 0 10px rgba(0,0,0,1)').style('opacity',0)
+    .transition().duration(900).delay((d,i)=>i*40+300).attr('y', d => y(d.value) - (isMobile ? height*0.05 : height*0.02)).style('opacity',1);
 
-  barGroups.append('rect')
-    .attr('x', d => x(d.label))
-    .attr('y', innerHeight)
-    .attr('width', barWidth)
-    .attr('height', 0)
-    .attr('rx', radius)
-    .attr('ry', radius)
-    .attr('fill', (d, i) => `url(#bar-grad-${uid}-${i})`)
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 50)
-    .ease(d3.easeCubicOut)
-    .attr('y', d => y(d.value))
-    .attr('height', d => innerHeight - y(d.value));
-
-  barGroups.append('rect')
-    .attr('x', d => x(d.label))
-    .attr('y', innerHeight)
-    .attr('width', barWidth)
-    .attr('height', 0)
-    .attr('rx', radius)
-    .attr('ry', radius)
-    .attr('fill', 'none')
-    .attr('stroke', (d, i) => colorScale(i))
-    .attr('stroke-width', strokeMain)
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 50)
-    .ease(d3.easeCubicOut)
-    .attr('y', d => y(d.value))
-    .attr('height', d => innerHeight - y(d.value));
-
-  barGroups.append('text')
-    .text(d => d.value.toFixed(1))
-    .attr('x', d => x(d.label) + barWidth / 2)
-    .attr('y', innerHeight)
-    .attr('text-anchor', 'middle')
-    .attr('fill', (d, i) => colorScale(i))
-    .attr('font-size', `${fontSizeVal}px`)
-    .attr('font-weight', '700')
-    .style('text-shadow', '0 0 10px rgba(0,0,0,1)')
-    .style('opacity', 0)
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 50 + 400)
-    .attr('y', d => y(d.value) - (isMobile ? height * 0.05 : height * 0.02))
-    .style('opacity', 1);
-
-  g.append('g')
-    .attr('transform', `translate(0,${innerHeight})`)
-    .call(d3.axisBottom(x).tickSize(0))
-    .selectAll('text')
-    .style('text-anchor', 'middle')
-    .style('fill', '#94a3b8')
-    .style('font-size', `${fontSizeAxis}px`)
-    .style('font-weight', '500')
-    .attr('dy', '1.5em');
-
+  g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').style('fill','#94a3b8').style('font-size', `${fontAxis}px`).style('font-weight','500').attr('dy','1.5em');
   g.select('.domain').remove();
 }
 
-// D3 Scatter Chart
 function drawScatterChart(containerId, data) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !data.length) return;
   container.innerHTML = '';
-
   const rect = container.getBoundingClientRect();
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
+  const m = { top: isMobile ? 10 : height*0.02, right: width*0.05, bottom: isMobile ? 40 : height*0.1, left: isMobile ? 40 : width*0.06 };
+  const innerW = width - m.left - m.right;
+  const innerH = height - m.top - m.bottom;
+  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
+  const x = d3.scaleLinear().domain([50,100]).range([0, innerW]);
+  const y = d3.scaleLinear().domain([20,70]).range([innerH,0]);
+  const colorMap = { QB:'#f472b6', RB:'#4ade80', WR:'#22d3ee', TE:'#fb923c' };
 
-  const margin = { 
-    top: isMobile ? 10 : height * 0.02, // Very small top margin
-    right: width * 0.05, 
-    bottom: isMobile ? 40 : height * 0.1, // Fixed bottom for mobile
-    left: isMobile ? 40 : width * 0.06 // Fixed left for mobile (reduced from previous calculation)
-  };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+  g.append('g').attr('class','scatter-grid').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).tickSize(-innerH).tickFormat(''));
+  g.append('g').attr('class','scatter-grid').call(d3.axisLeft(y).tickSize(-innerW).tickFormat(''));
+  g.append('g').attr('class','scatter-axis').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).ticks(5)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
+  g.append('g').attr('class','scatter-axis').call(d3.axisLeft(y).ticks(5)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
+  g.append('text').attr('x', innerW/2).attr('y', innerH + (isMobile ? 35 : m.bottom-5)).attr('text-anchor','middle').attr('fill','#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight','bold').attr('letter-spacing','0.1em').text('CONSISTENCY');
+  g.append('text').attr('transform','rotate(-90)').attr('x', -innerH/2).attr('y', isMobile ? -30 : -m.left + 20).attr('text-anchor','middle').attr('fill','#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight','bold').attr('letter-spacing','0.1em').text('CEILING');
 
-  const svg = d3.select(container)
-    .append('svg')
-    .attr('width', width)
-    .attr('height', height);
+  g.selectAll('.scatter-dot').data(data).enter().append('circle').attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`).attr('cx', d => x(d.consistency)).attr('cy', d => y(d.ceiling)).attr('r',0).attr('fill', d => colorMap[d.position] || '#a855f7')
+    .transition().duration(900).delay((d,i)=>i*25).ease(d3.easeBackOut).attr('r', isMobile ? 3.5 : 7);
 
-  const g = svg.append('g')
-    .attr('transform', `translate(${margin.left},${margin.top})`);
+  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class','scatter-label').attr('x', d => x(d.consistency)).attr('y', d => y(d.ceiling)).text(d => {
+    const parts = d.name.split(' '); return `${parts[0][0]}. ${parts[parts.length-1]}`; }).attr('opacity',0).style('fill','#fff').style('font-size', isMobile ? '8px' : '10px').style('font-weight','600');
 
-  // Scales
-  const x = d3.scaleLinear()
-    .domain([50, 100]) // Consistency range
-    .range([0, innerWidth]);
-
-  const y = d3.scaleLinear()
-    .domain([20, 70]) // Ceiling range
-    .range([innerHeight, 0]);
-
-  // Grid
-  const xAxisGrid = d3.axisBottom(x).tickSize(-innerHeight).tickFormat('').ticks(5);
-  const yAxisGrid = d3.axisLeft(y).tickSize(-innerWidth).tickFormat('').ticks(5);
-
-  g.append('g')
-    .attr('class', 'scatter-grid')
-    .attr('transform', `translate(0,${innerHeight})`)
-    .call(xAxisGrid);
-
-  g.append('g')
-    .attr('class', 'scatter-grid')
-    .call(yAxisGrid);
-
-  // Axes
-  g.append('g')
-    .attr('class', 'scatter-axis')
-    .attr('transform', `translate(0,${innerHeight})`)
-    .call(d3.axisBottom(x).ticks(5))
-    .selectAll('text')
-    .style('font-size', isMobile ? '8px' : '14px');
-
-  g.append('g')
-    .attr('class', 'scatter-axis')
-    .call(d3.axisLeft(y).ticks(5))
-    .selectAll('text')
-    .style('font-size', isMobile ? '8px' : '14px');
-
-  // Axis Labels
-  g.append('text')
-    .attr('x', innerWidth / 2)
-    .attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)) // Fixed offset for mobile
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#94a3b8')
-    .attr('font-size', isMobile ? '8px' : '16px') // Bigger on desktop
-    .attr('font-weight', 'bold')
-    .attr('letter-spacing', '0.1em')
-    .text('CONSISTENCY');
-
-  g.append('text')
-    .attr('transform', 'rotate(-90)')
-    .attr('x', -innerHeight / 2)
-    .attr('y', isMobile ? -30 : -margin.left + 20) // Fixed offset for mobile (closer to axis), adjusted desktop
-    .attr('text-anchor', 'middle')
-    .attr('fill', '#94a3b8')
-    .attr('font-size', isMobile ? '8px' : '16px') // Bigger on desktop
-    .attr('font-weight', 'bold')
-    .attr('letter-spacing', '0.1em')
-    .text('CEILING');
-
-  // Color Mapping
-  const colorMap = {
-    'QB': '#f472b6', // Pink
-    'RB': '#4ade80', // Emerald
-    'WR': '#22d3ee', // Cyan
-    'TE': '#fb923c'  // Orange
-  };
-
-  // Dots
-  g.selectAll('.scatter-dot')
-    .data(data)
-    .enter()
-    .append('circle')
-    .attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`)
-    .attr('cx', d => x(d.consistency))
-    .attr('cy', d => y(d.ceiling))
-    .attr('r', 0)
-    // fill is handled by CSS
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 30)
-    .ease(d3.easeBackOut)
-    .attr('r', isMobile ? 3.5 : 7); // Responsive radius: smaller on mobile, bigger on desktop
-
-  // Labels with collision avoidance
-  const labels = g.selectAll('.scatter-label')
-    .data(data)
-    .enter()
-    .append('text')
-    .attr('class', 'scatter-label')
-    .attr('x', d => x(d.consistency))
-    .attr('y', d => y(d.ceiling))
-    .text(d => {
-      const parts = d.name.split(' ');
-      return `${parts[0][0]}. ${parts[parts.length - 1]}`;
-    })
-    .attr('opacity', 0);
-
-  // Simple force simulation for label placement
-  const simulation = d3.forceSimulation(data)
-    .force('x', d3.forceX(d => x(d.consistency)).strength(1))
-    .force('y', d3.forceY(d => y(d.ceiling)).strength(1))
-    .force('collide', d3.forceCollide(12)) // Radius of collision
-    .stop();
-
-  // Run simulation manually for a few ticks to settle
-  for (let i = 0; i < 30; ++i) simulation.tick();
-
-  labels
-    .transition()
-    .duration(1000)
-    .delay((d, i) => i * 30 + 500)
-    .attr('x', d => d.x) // Use simulated positions if we bound data to simulation, but here we didn't bind directly to DOM elements yet.
-    // Actually, d3.forceSimulation modifies the data objects directly adding x, y, vx, vy.
-    // But wait, I passed `data` to simulation. So `d.x` and `d.y` on the data object are updated.
-    // However, the initial x/y in simulation needs to be set.
-    // Let's re-do the simulation setup correctly.
-    .attr('opacity', 1);
-    
-    // Correct simulation usage:
-    // We need separate nodes for labels so we don't move the dots.
-    const labelNodes = data.map(d => ({
-      ...d,
-      fx: x(d.consistency), // Anchor to the dot
-      fy: y(d.ceiling),
-      x: x(d.consistency),
-      y: y(d.ceiling)
-    }));
-    
-    // Actually, we want labels to be NEAR dots but not overlapping EACH OTHER.
-    // Anchoring them exactly (fx, fy) defeats collision.
-    // We want a force that pulls them to the dot, but collision pushes them away.
-    
-    const sim = d3.forceSimulation(labelNodes)
-      .force('anchorX', d3.forceX(d => x(d.consistency)).strength(3))
-      .force('anchorY', d3.forceY(d => y(d.ceiling) - 10).strength(3)) // Target slightly above
-      .force('collide', d3.forceCollide(14))
-      .stop();
-
-    for (let i = 0; i < 60; ++i) sim.tick();
-
-    labels
-      .attr('x', (d, i) => labelNodes[i].x)
-      .attr('y', (d, i) => labelNodes[i].y);
+  labels.transition().duration(900).delay((d,i)=>i*25+300).attr('opacity',1).attr('y', d => y(d.ceiling) - 10);
 }
 
-// Initialization
-window.initFantasyDashboard = function() {
-    const checkData = () => {
-        if (window.state && window.state.statsSheetsLoaded && window.state.players && Object.keys(window.state.players).length > 0) {
-            processDashboardData();
-            wireEvents();
-        } else {
-            setTimeout(checkData, 200);
-        }
-    };
-    checkData();
-};
+// ---- Init ----
+function initFantasyDashboard() {
+  players = MANUAL_PLAYERS.slice();
+  if (!players.length) return;
+  state.selectedPlayerId = state.selectedPlayerId || players[0].id;
+  renderSummary();
+  renderCustomSelect();
+  setupCustomSelect();
+  renderSelectedDetails();
+  renderRadar();
+  renderBar();
+  renderScatter();
+  wireEvents();
+}
 
-// Auto-init if standalone
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    window.initFantasyDashboard();
+  initFantasyDashboard();
 } else {
-    document.addEventListener('DOMContentLoaded', window.initFantasyDashboard);
+  document.addEventListener('DOMContentLoaded', initFantasyDashboard);
 }
+
+window.initFantasyDashboard = initFantasyDashboard;
 })();

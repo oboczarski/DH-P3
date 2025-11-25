@@ -549,7 +549,7 @@ window.state = state;
                 return;
             }
             
-            // For welcome page, we still need to load data for the dashboard
+            // For welcome page, no data loading needed - dashboard uses static config
             if (pageType === 'welcome') {
                 // Prevent mobile keyboard appearing when arriving via nav with ?username=
                 try {
@@ -559,7 +559,9 @@ window.state = state;
                         setTimeout(() => { try { usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {} }, 50);
                     }
                 } catch (e) {}
-                // Do NOT return here, let it fall through to data loading so dashboard has stats
+                // Show welcome screen immediately
+                if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+                return;
             }
             
             // Prevent mobile keyboard appearing when arriving via nav with ?username=
