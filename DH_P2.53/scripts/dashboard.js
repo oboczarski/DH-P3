@@ -1,332 +1,3157 @@
-(function() {
-// ---- Manual dashboard config (edit twice weekly) ----
-const MANUAL_PLAYERS = [
-  { id: '1',  name: 'Justin Jefferson',      position: 'WR', team: 'MIN', totalPoints: 342.5, ppg: 22.4, consistency: 92, ceiling: 45, targetShare: 29.5, redZone: 95, burst: 80, clutch: 88, avatarUrl: 'https://picsum.photos/seed/jefferson/100/100', trend: 'up' },
-  { id: '2',  name: 'Christian McCaffrey',   position: 'RB', team: 'SF',  totalPoints: 380.2, ppg: 24.8, consistency: 95, ceiling: 50, targetShare: 18.2, redZone: 90, burst: 78, clutch: 96, avatarUrl: 'https://picsum.photos/seed/cmc/100/100', trend: 'stable' },
-  { id: '3',  name: 'Tyreek Hill',           position: 'WR', team: 'MIA', totalPoints: 310.8, ppg: 20.1, consistency: 78, ceiling: 60, targetShare: 28.0, redZone: 60, burst: 99, clutch: 70, avatarUrl: 'https://picsum.photos/seed/tyreek/100/100', trend: 'down' },
-  { id: '4',  name: 'Josh Allen',            position: 'QB', team: 'BUF', totalPoints: 402.1, ppg: 25.3, consistency: 85, ceiling: 46, targetShare: 0,    redZone: 82, burst: 76, clutch: 92, avatarUrl: 'https://picsum.photos/seed/allen/100/100', trend: 'up' },
-  { id: '5',  name: 'Travis Kelce',          position: 'TE', team: 'KC',  totalPoints: 210.4, ppg: 14.5, consistency: 92, ceiling: 28, targetShare: 24.0, redZone: 97, burst: 62, clutch: 95, avatarUrl: 'https://picsum.photos/seed/kelce/100/100', trend: 'stable' },
-  { id: '6',  name: 'CeeDee Lamb',           position: 'WR', team: 'DAL', totalPoints: 335.9, ppg: 21.5, consistency: 87, ceiling: 40, targetShare: 27.0, redZone: 70, burst: 88, clutch: 82, avatarUrl: 'https://picsum.photos/seed/lamb/100/100', trend: 'up' },
-  { id: '7',  name: 'Lamar Jackson',         position: 'QB', team: 'BAL', totalPoints: 360.5, ppg: 23.1, consistency: 80, ceiling: 50, targetShare: 0,    redZone: 68, burst: 95, clutch: 78, avatarUrl: 'https://picsum.photos/seed/lamar/100/100', trend: 'up' },
-  { id: '8',  name: 'Bijan Robinson',        position: 'RB', team: 'ATL', totalPoints: 245.3, ppg: 16.2, consistency: 70, ceiling: 32, targetShare: 12.0, redZone: 44, burst: 86, clutch: 60, avatarUrl: 'https://picsum.photos/seed/bijan/100/100', trend: 'down' },
-  { id: '9',  name: 'Amon-Ra St. Brown',     position: 'WR', team: 'DET', totalPoints: 298.4, ppg: 19.9, consistency: 90, ceiling: 35, targetShare: 30.2, redZone: 72, burst: 68, clutch: 85, avatarUrl: 'https://picsum.photos/seed/amonra/100/100', trend: 'stable' },
-  { id: '10', name: 'Saquon Barkley',        position: 'RB', team: 'NYG', totalPoints: 270.1, ppg: 17.6, consistency: 76, ceiling: 45, targetShare: 15.0, redZone: 55, burst: 92, clutch: 74, avatarUrl: 'https://picsum.photos/seed/saquon/100/100', trend: 'up' },
-  { id: '11', name: 'Garrett Wilson',        position: 'WR', team: 'NYJ', totalPoints: 240.4, ppg: 15.0, consistency: 68, ceiling: 28, targetShare: 33.0, redZone: 35, burst: 80, clutch: 58, avatarUrl: 'https://picsum.photos/seed/garrettwilson/100/100', trend: 'down' },
-  { id: '12', name: 'Jalen Hurts',           position: 'QB', team: 'PHI', totalPoints: 385.0, ppg: 24.2, consistency: 88, ceiling: 45, targetShare: 0,    redZone: 95, burst: 70, clutch: 90, avatarUrl: 'https://picsum.photos/seed/hurts/100/100', trend: 'stable' },
-  { id: '13', name: 'Davante Adams',         position: 'WR', team: 'LV',  totalPoints: 280.0, ppg: 17.5, consistency: 80, ceiling: 38, targetShare: 32.0, redZone: 75, burst: 60, clutch: 85, avatarUrl: 'https://picsum.photos/seed/adams/100/100', trend: 'down' },
-  { id: '14', name: 'Jahmyr Gibbs',          position: 'RB', team: 'DET', totalPoints: 230.0, ppg: 15.5, consistency: 65, ceiling: 42, targetShare: 16.0, redZone: 45, burst: 95, clutch: 55, avatarUrl: 'https://picsum.photos/seed/gibbs/100/100', trend: 'up' },
-  { id: '15', name: 'Sam LaPorta',           position: 'TE', team: 'DET', totalPoints: 185.0, ppg: 12.8, consistency: 78, ceiling: 26, targetShare: 18.0, redZone: 70, burst: 68, clutch: 72, avatarUrl: 'https://picsum.photos/seed/laporta/100/100', trend: 'up' }
+const HP_DATA = 
+[
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4034,
+    "NM": "Christian McCaffrey",
+    "POS": "RB",
+    "AGE": 29.3,
+    "TM": "SF",
+    "G": 11,
+    "FPTS": 283.9,
+    "PPG": 25.80909091,
+    "CSTY%": 0.9090909091,
+    "CL": 36.16666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1439,
+    "IMP/G": 7.272727273,
+    "SNP%": 0.8319672131,
+    "YPC": 3.66,
+    "TGT": 96,
+    "MTF/A": 1.528497409,
+    "YCO/A": 1.528497409,
+    "recYPG": 66.54545455,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6813,
+    "NM": "Jonathan Taylor",
+    "POS": "RB",
+    "AGE": 26.7,
+    "TM": "IND",
+    "G": 10,
+    "FPTS": 273.9,
+    "PPG": 27.39,
+    "CSTY%": 0.9,
+    "CL": 40.4,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1399,
+    "IMP/G": 6.9,
+    "SNP%": 0.8290076336,
+    "YPC": 6.03,
+    "TGT": 32,
+    "MTF/A": 3.195767196,
+    "YCO/A": 3.195767196,
+    "recYPG": 26.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4984,
+    "NM": "Josh Allen",
+    "POS": "QB",
+    "AGE": 29.4,
+    "TM": "BUF",
+    "G": 10,
+    "FPTS": 254.34,
+    "PPG": 25.434,
+    "CSTY%": 0.9,
+    "CL": 37.42,
+    "TS%": NaN,
+    "paYPG": 245.6,
+    "paRTG": 105.55,
+    "CMP%": 0.6962457338,
+    "TTT": 2.972047782,
+    "YDS(t)": 2807,
+    "IMP/G": 14.5,
+    "SNP%": 0.9634703196,
+    "YPC": 5.4,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9226,
+    "NM": "De'Von Achane",
+    "POS": "RB",
+    "AGE": 24.0,
+    "TM": "MIA",
+    "G": 11,
+    "FPTS": 235.0,
+    "PPG": 21.36363636,
+    "CSTY%": 1.0,
+    "CL": 32.56666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1270,
+    "IMP/G": 5.181818182,
+    "SNP%": 0.7962382445,
+    "YPC": 5.49,
+    "TGT": 71,
+    "MTF/A": 2.81097561,
+    "YCO/A": 2.81097561,
+    "recYPG": 33.63636364,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11564,
+    "NM": "Drake Maye",
+    "POS": "QB",
+    "AGE": 23.1,
+    "TM": "NE",
+    "G": 11,
+    "FPTS": 228.14,
+    "PPG": 20.74,
+    "CSTY%": 0.8181818182,
+    "CL": 26.94,
+    "TS%": NaN,
+    "paYPG": 257.8181818,
+    "paRTG": 113.23,
+    "CMP%": 0.71875,
+    "TTT": 2.91378125,
+    "YDS(t)": 3123,
+    "IMP/G": 13.90909091,
+    "SNP%": 0.9773691655,
+    "YPC": 4.07,
+    "TGT": 1,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.1818181818,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4046,
+    "NM": "Patrick Mahomes",
+    "POS": "QB",
+    "AGE": 30.0,
+    "TM": "KC",
+    "G": 10,
+    "FPTS": 225.8,
+    "PPG": 22.58,
+    "CSTY%": 0.7,
+    "CL": 28.83333333,
+    "TS%": NaN,
+    "paYPG": 262.5,
+    "paRTG": 95.86,
+    "CMP%": 0.6454293629,
+    "TTT": 2.689473684,
+    "YDS(t)": 2913,
+    "IMP/G": 15.0,
+    "SNP%": 0.9673590504,
+    "YPC": 6.0,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9488,
+    "NM": "Jaxon Smith-Njigba",
+    "POS": "WR",
+    "AGE": 23.6,
+    "TM": "SEA",
+    "G": 10,
+    "FPTS": 217.9,
+    "PPG": 21.79,
+    "CSTY%": 1.0,
+    "CL": 27.9,
+    "TS%": 0.351,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1179,
+    "IMP/G": 5.4,
+    "SNP%": 0.7296,
+    "YPC": 6.6,
+    "TGT": 97,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 114.6,
+    "YPRR": 4.390804598
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6797,
+    "NM": "Justin Herbert",
+    "POS": "QB",
+    "AGE": 27.6,
+    "TM": "LAC",
+    "G": 11,
+    "FPTS": 215.14,
+    "PPG": 19.55818182,
+    "CSTY%": 0.5454545455,
+    "CL": 28.84,
+    "TS%": NaN,
+    "paYPG": 244.6363636,
+    "paRTG": 94.18,
+    "CMP%": 0.664893617,
+    "TTT": 2.856515957,
+    "YDS(t)": 3036,
+    "IMP/G": 13.63636364,
+    "SNP%": 0.9742547425,
+    "YPC": 6.39,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9509,
+    "NM": "Bijan Robinson",
+    "POS": "RB",
+    "AGE": 23.7,
+    "TM": "ATL",
+    "G": 10,
+    "FPTS": 209.9,
+    "PPG": 20.99,
+    "CSTY%": 0.8,
+    "CL": 31.4,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1289,
+    "IMP/G": 5.5,
+    "SNP%": 0.7884914463,
+    "YPC": 4.96,
+    "TGT": 59,
+    "MTF/A": 2.53164557,
+    "YCO/A": 2.53164557,
+    "recYPG": 50.6,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11563,
+    "NM": "Bo Nix",
+    "POS": "QB",
+    "AGE": 25.6,
+    "TM": "DEN",
+    "G": 11,
+    "FPTS": 206.14,
+    "PPG": 18.74,
+    "CSTY%": 0.5454545455,
+    "CL": 30.49333333,
+    "TS%": NaN,
+    "paYPG": 220.0909091,
+    "paRTG": 86.07,
+    "CMP%": 0.6124031008,
+    "TTT": 2.780155039,
+    "YDS(t)": 2634,
+    "IMP/G": 11.90909091,
+    "SNP%": 0.9945280438,
+    "YPC": 4.26,
+    "TGT": 1,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9221,
+    "NM": "Jahmyr Gibbs",
+    "POS": "RB",
+    "AGE": 23.5,
+    "TM": "DET",
+    "G": 10,
+    "FPTS": 203.6,
+    "PPG": 20.36,
+    "CSTY%": 0.8,
+    "CL": 33.96666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1066,
+    "IMP/G": 5.0,
+    "SNP%": 0.6148969889,
+    "YPC": 5.23,
+    "TGT": 43,
+    "MTF/A": 1.507142857,
+    "YCO/A": 1.507142857,
+    "recYPG": 33.4,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 421,
+    "NM": "Matthew Stafford",
+    "POS": "QB",
+    "AGE": 37.6,
+    "TM": "LAR",
+    "G": 10,
+    "FPTS": 203.38,
+    "PPG": 20.338,
+    "CSTY%": 0.6,
+    "CL": 27.22666667,
+    "TS%": NaN,
+    "paYPG": 255.7,
+    "paRTG": 112.75,
+    "CMP%": 0.6597633136,
+    "TTT": 2.734585799,
+    "YDS(t)": 2548,
+    "IMP/G": 13.2,
+    "SNP%": 0.9954058193,
+    "YPC": -0.38,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6904,
+    "NM": "Jalen Hurts",
+    "POS": "QB",
+    "AGE": 27.1,
+    "TM": "PHI",
+    "G": 10,
+    "FPTS": 201.3,
+    "PPG": 20.13,
+    "CSTY%": 0.7,
+    "CL": 26.22666667,
+    "TS%": NaN,
+    "paYPG": 199.5,
+    "paRTG": 107.02,
+    "CMP%": 0.6691449814,
+    "TTT": 3.015539033,
+    "YDS(t)": 2260,
+    "IMP/G": 11.6,
+    "SNP%": 0.9967051071,
+    "YPC": 3.63,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5870,
+    "NM": "Daniel Jones",
+    "POS": "QB",
+    "AGE": 28.3,
+    "TM": "IND",
+    "G": 10,
+    "FPTS": 199.66,
+    "PPG": 19.966,
+    "CSTY%": 0.8,
+    "CL": 25.38,
+    "TS%": NaN,
+    "paYPG": 265.9,
+    "paRTG": 101.6,
+    "CMP%": 0.6990595611,
+    "TTT": 2.743354232,
+    "YDS(t)": 2802,
+    "IMP/G": 14.7,
+    "SNP%": 0.9694656489,
+    "YPC": 3.58,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 3294,
+    "NM": "Dak Prescott",
+    "POS": "QB",
+    "AGE": 32.2,
+    "TM": "DAL",
+    "G": 10,
+    "FPTS": 199.18,
+    "PPG": 19.918,
+    "CSTY%": 0.7,
+    "CL": 27.85333333,
+    "TS%": NaN,
+    "paYPG": 258.7,
+    "paRTG": 102.53,
+    "CMP%": 0.6988950276,
+    "TTT": 2.810856354,
+    "YDS(t)": 2704,
+    "IMP/G": 13.8,
+    "SNP%": 0.972181552,
+    "YPC": 3.55,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11560,
+    "NM": "Caleb Williams",
+    "POS": "QB",
+    "AGE": 23.9,
+    "TM": "CHI",
+    "G": 10,
+    "FPTS": 196.56,
+    "PPG": 19.656,
+    "CSTY%": 0.6,
+    "CL": 30.97333333,
+    "TS%": NaN,
+    "paYPG": 232.9,
+    "paRTG": 89.89,
+    "CMP%": 0.5969230769,
+    "TTT": 3.291661538,
+    "YDS(t)": 2623,
+    "IMP/G": 12.5,
+    "SNP%": 0.9838472834,
+    "YPC": 5.23,
+    "TGT": 2,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 2.2,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7564,
+    "NM": "Ja'Marr Chase",
+    "POS": "WR",
+    "AGE": 25.6,
+    "TM": "CIN",
+    "G": 10,
+    "FPTS": 193.7,
+    "PPG": 19.37,
+    "CSTY%": 0.6,
+    "CL": 34.53333333,
+    "TS%": 0.314,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 867,
+    "IMP/G": 4.3,
+    "SNP%": 0.9516908213,
+    "YPC": 3.0,
+    "TGT": 117,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 86.1,
+    "YPRR": 2.265789474
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9493,
+    "NM": "Puka Nacua",
+    "POS": "WR",
+    "AGE": 24.3,
+    "TM": "LAR",
+    "G": 9,
+    "FPTS": 193.3,
+    "PPG": 21.47777778,
+    "CSTY%": 0.8888888889,
+    "CL": 29.36666667,
+    "TS%": 0.257,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 923,
+    "IMP/G": 5.111111111,
+    "SNP%": 0.6861063465,
+    "YPC": 12.17,
+    "TGT": 87,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 94.44444444,
+    "YPRR": 3.526970954
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8137,
+    "NM": "George Pickens",
+    "POS": "WR",
+    "AGE": 24.6,
+    "TM": "DAL",
+    "G": 10,
+    "FPTS": 190.8,
+    "PPG": 19.08,
+    "CSTY%": 0.9,
+    "CL": 31.53333333,
+    "TS%": 0.224,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 908,
+    "IMP/G": 5.0,
+    "SNP%": 0.8374816984,
+    "YPC": 0.0,
+    "TGT": 83,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 90.8,
+    "YPRR": 2.57223796
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7547,
+    "NM": "Amon-Ra St. Brown",
+    "POS": "WR",
+    "AGE": 25.9,
+    "TM": "DET",
+    "G": 10,
+    "FPTS": 188.4,
+    "PPG": 18.84,
+    "CSTY%": 0.8,
+    "CL": 28.63333333,
+    "TS%": 0.3,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 744,
+    "IMP/G": 3.9,
+    "SNP%": 0.882725832,
+    "YPC": 3.0,
+    "TGT": 94,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 73.5,
+    "YPRR": 2.355769231
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8130,
+    "NM": "Trey McBride",
+    "POS": "TE",
+    "AGE": 25.8,
+    "TM": "ARI",
+    "G": 10,
+    "FPTS": 184.8,
+    "PPG": 18.48,
+    "CSTY%": 0.9,
+    "CL": 28.2,
+    "TS%": 0.264,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 718,
+    "IMP/G": 3.8,
+    "SNP%": 0.9014492754,
+    "YPC": 0.0,
+    "TGT": 99,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 71.8,
+    "YPRR": 1.967123288
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4892,
+    "NM": "Baker Mayfield",
+    "POS": "QB",
+    "AGE": 30.4,
+    "TM": "TB",
+    "G": 10,
+    "FPTS": 183.3,
+    "PPG": 18.33,
+    "CSTY%": 0.8,
+    "CL": 24.05333333,
+    "TS%": NaN,
+    "paYPG": 236.5,
+    "paRTG": 97.0,
+    "CMP%": 0.6352941176,
+    "TTT": 2.820676471,
+    "YDS(t)": 2562,
+    "IMP/G": 12.1,
+    "SNP%": 0.9939577039,
+    "YPC": 7.3,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8138,
+    "NM": "James Cook",
+    "POS": "RB",
+    "AGE": 26.0,
+    "TM": "BUF",
+    "G": 10,
+    "FPTS": 182.8,
+    "PPG": 18.28,
+    "CSTY%": 0.7,
+    "CL": 27.53333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1158,
+    "IMP/G": 5.0,
+    "SNP%": 0.599695586,
+    "YPC": 5.32,
+    "TGT": 23,
+    "MTF/A": 2.362637363,
+    "YCO/A": 2.362637363,
+    "recYPG": 19.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5850,
+    "NM": "Josh Jacobs",
+    "POS": "RB",
+    "AGE": 27.6,
+    "TM": "GB",
+    "G": 10,
+    "FPTS": 180.5,
+    "PPG": 18.05,
+    "CSTY%": 0.9,
+    "CL": 27.4,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 885,
+    "IMP/G": 4.8,
+    "SNP%": 0.6398104265,
+    "YPC": 3.83,
+    "TGT": 35,
+    "MTF/A": 2.218934911,
+    "YCO/A": 2.218934911,
+    "recYPG": 23.7,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 3163,
+    "NM": "Jared Goff",
+    "POS": "QB",
+    "AGE": 31.0,
+    "TM": "DET",
+    "G": 10,
+    "FPTS": 177.8,
+    "PPG": 17.78,
+    "CSTY%": 0.5,
+    "CL": 26.29333333,
+    "TS%": NaN,
+    "paYPG": 249.0,
+    "paRTG": 110.82,
+    "CMP%": 0.6967741935,
+    "TTT": 2.733258065,
+    "YDS(t)": 2512,
+    "IMP/G": 12.6,
+    "SNP%": 0.9746434231,
+    "YPC": 1.83,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8112,
+    "NM": "Drake London",
+    "POS": "WR",
+    "AGE": 24.2,
+    "TM": "ATL",
+    "G": 9,
+    "FPTS": 177.0,
+    "PPG": 19.66666667,
+    "CSTY%": 0.6666666667,
+    "CL": 31.86666667,
+    "TS%": 0.287,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 810,
+    "IMP/G": 4.333333333,
+    "SNP%": 0.9190556492,
+    "YPC": 0.0,
+    "TGT": 94,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 90.0,
+    "YPRR": 2.736486486
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6804,
+    "NM": "Jordan Love",
+    "POS": "QB",
+    "AGE": 26.9,
+    "TM": "GB",
+    "G": 10,
+    "FPTS": 168.34,
+    "PPG": 16.834,
+    "CSTY%": 0.4,
+    "CL": 25.15333333,
+    "TS%": NaN,
+    "paYPG": 242.1,
+    "paRTG": 103.17,
+    "CMP%": 0.6774193548,
+    "TTT": 2.875193548,
+    "YDS(t)": 2566,
+    "IMP/G": 12.5,
+    "SNP%": 0.9889415482,
+    "YPC": 4.39,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8150,
+    "NM": "Kyren Williams",
+    "POS": "RB",
+    "AGE": 25.1,
+    "TM": "LAR",
+    "G": 10,
+    "FPTS": 166.2,
+    "PPG": 16.62,
+    "CSTY%": 0.7,
+    "CL": 24.23333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 932,
+    "IMP/G": 5.5,
+    "SNP%": 0.7151607963,
+    "YPC": 4.75,
+    "TGT": 31,
+    "MTF/A": 1.85443038,
+    "YCO/A": 1.85443038,
+    "recYPG": 18.2,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7588,
+    "NM": "Javonte Williams",
+    "POS": "RB",
+    "AGE": 25.4,
+    "TM": "DAL",
+    "G": 10,
+    "FPTS": 166.2,
+    "PPG": 16.62,
+    "CSTY%": 0.7,
+    "CL": 24.1,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 902,
+    "IMP/G": 4.9,
+    "SNP%": 0.7496339678,
+    "YPC": 5.02,
+    "TGT": 36,
+    "MTF/A": 2.795031056,
+    "YCO/A": 2.795031056,
+    "recYPG": 9.3,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7523,
+    "NM": "Trevor Lawrence",
+    "POS": "QB",
+    "AGE": 26.0,
+    "TM": "JAX",
+    "G": 10,
+    "FPTS": 166.14,
+    "PPG": 16.614,
+    "CSTY%": 0.6,
+    "CL": 23.56,
+    "TS%": NaN,
+    "paYPG": 215.1,
+    "paRTG": 79.39,
+    "CMP%": 0.5976331361,
+    "TTT": 2.799408284,
+    "YDS(t)": 2332,
+    "IMP/G": 12.4,
+    "SNP%": 0.9885550787,
+    "YPC": 3.69,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12508,
+    "NM": "Jaxson Dart",
+    "POS": "QB",
+    "AGE": 22.4,
+    "TM": "NYG",
+    "G": 9,
+    "FPTS": 163.38,
+    "PPG": 18.15333333,
+    "CSTY%": 0.7777777778,
+    "CL": 27.64666667,
+    "TS%": NaN,
+    "paYPG": 157.4444444,
+    "paRTG": 93.53,
+    "CMP%": 0.6274509804,
+    "TTT": 2.893823529,
+    "YDS(t)": 1734,
+    "IMP/G": 9.777777778,
+    "SNP%": 0.6785185185,
+    "YPC": 5.56,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7021,
+    "NM": "Rico Dowdle",
+    "POS": "RB",
+    "AGE": 27.3,
+    "TM": "CAR",
+    "G": 11,
+    "FPTS": 162.0,
+    "PPG": 14.72727273,
+    "CSTY%": 0.4545454545,
+    "CL": 31.46666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 1030,
+    "IMP/G": 4.727272727,
+    "SNP%": 0.5543478261,
+    "YPC": 4.96,
+    "TGT": 30,
+    "MTF/A": 2.172619048,
+    "YCO/A": 2.172619048,
+    "recYPG": 17.90909091,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 2133,
+    "NM": "Davante Adams",
+    "POS": "WR",
+    "AGE": 32.8,
+    "TM": "LAR",
+    "G": 10,
+    "FPTS": 159.9,
+    "PPG": 15.99,
+    "CSTY%": 0.7,
+    "CL": 24.03333333,
+    "TS%": 0.254,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 569,
+    "IMP/G": 3.5,
+    "SNP%": 0.7503828484,
+    "YPC": 0.0,
+    "TGT": 86,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 56.9,
+    "YPRR": 1.86557377
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4943,
+    "NM": "Sam Darnold",
+    "POS": "QB",
+    "AGE": 28.3,
+    "TM": "SEA",
+    "G": 10,
+    "FPTS": 156.64,
+    "PPG": 15.664,
+    "CSTY%": 0.6,
+    "CL": 25.61333333,
+    "TS%": NaN,
+    "paYPG": 254.1,
+    "paRTG": 105.04,
+    "CMP%": 0.7022058824,
+    "TTT": 2.864338235,
+    "YDS(t)": 2591,
+    "IMP/G": 11.5,
+    "SNP%": 0.9568,
+    "YPC": 3.33,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12514,
+    "NM": "Emeka Egbuka",
+    "POS": "WR",
+    "AGE": 23.0,
+    "TM": "TB",
+    "G": 10,
+    "FPTS": 155.6,
+    "PPG": 15.56,
+    "CSTY%": 0.6,
+    "CL": 26.13333333,
+    "TS%": 0.25,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 726,
+    "IMP/G": 2.7,
+    "SNP%": 0.8277945619,
+    "YPC": 4.5,
+    "TGT": 85,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 71.7,
+    "YPRR": 2.23364486
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12526,
+    "NM": "Tetairoa McMillan",
+    "POS": "WR",
+    "AGE": 22.5,
+    "TM": "CAR",
+    "G": 11,
+    "FPTS": 152.8,
+    "PPG": 13.89090909,
+    "CSTY%": 0.4545454545,
+    "CL": 22.6,
+    "TS%": 0.254,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 748,
+    "IMP/G": 4.0,
+    "SNP%": 0.8858695652,
+    "YPC": 0.0,
+    "TGT": 89,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 68.0,
+    "YPRR": 2.089385475
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 96,
+    "NM": "Aaron Rodgers",
+    "POS": "QB",
+    "AGE": 41.8,
+    "TM": "PIT",
+    "G": 10,
+    "FPTS": 152.36,
+    "PPG": 15.236,
+    "CSTY%": 0.4,
+    "CL": 22.57333333,
+    "TS%": NaN,
+    "paYPG": 196.9,
+    "paRTG": 97.66,
+    "CMP%": 0.6643598616,
+    "TTT": 2.639930796,
+    "YDS(t)": 1995,
+    "IMP/G": 8.6,
+    "SNP%": 0.9416809605,
+    "YPC": 1.86,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7526,
+    "NM": "Jaylen Waddle",
+    "POS": "WR",
+    "AGE": 26.8,
+    "TM": "MIA",
+    "G": 11,
+    "FPTS": 151.52,
+    "PPG": 13.77454545,
+    "CSTY%": 0.6363636364,
+    "CL": 21.1,
+    "TS%": 0.221,
+    "paYPG": 0.7272727273,
+    "paRTG": 100.0,
+    "CMP%": 1.0,
+    "TTT": NaN,
+    "YDS(t)": 730,
+    "IMP/G": 3.181818182,
+    "SNP%": 0.8150470219,
+    "YPC": 0.0,
+    "TGT": 73,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 65.63636364,
+    "YPRR": 2.506944444
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4866,
+    "NM": "Saquon Barkley",
+    "POS": "RB",
+    "AGE": 28.6,
+    "TM": "PHI",
+    "G": 10,
+    "FPTS": 150.9,
+    "PPG": 15.09,
+    "CSTY%": 0.6,
+    "CL": 23.2,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 869,
+    "IMP/G": 3.4,
+    "SNP%": 0.7858319605,
+    "YPC": 3.78,
+    "TGT": 33,
+    "MTF/A": 1.468571429,
+    "YCO/A": 1.468571429,
+    "recYPG": 20.7,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6819,
+    "NM": "Michael Pittman",
+    "POS": "WR",
+    "AGE": 28.0,
+    "TM": "IND",
+    "G": 10,
+    "FPTS": 150.0,
+    "PPG": 15.0,
+    "CSTY%": 0.7,
+    "CL": 21.6,
+    "TS%": 0.216,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 580,
+    "IMP/G": 3.5,
+    "SNP%": 0.841221374,
+    "YPC": 0.0,
+    "TGT": 70,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 58.0,
+    "YPRR": 1.920529801
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8144,
+    "NM": "Chris Olave",
+    "POS": "WR",
+    "AGE": 25.2,
+    "TM": "NO",
+    "G": 10,
+    "FPTS": 149.1,
+    "PPG": 14.91,
+    "CSTY%": 0.7,
+    "CL": 21.33333333,
+    "TS%": 0.277,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 661,
+    "IMP/G": 2.7,
+    "SNP%": 0.8341085271,
+    "YPC": -3.0,
+    "TGT": 95,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 66.4,
+    "YPRR": 1.976190476
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 19,
+    "NM": "Joe Flacco",
+    "POS": "QB",
+    "AGE": 40.7,
+    "TM": "CIN",
+    "G": 9,
+    "FPTS": 144.52,
+    "PPG": 16.05777778,
+    "CSTY%": 0.4444444444,
+    "CL": 27.66666667,
+    "TS%": NaN,
+    "paYPG": 252.0,
+    "paRTG": 80.81,
+    "CMP%": 0.6112600536,
+    "TTT": 2.723136729,
+    "YDS(t)": 2296,
+    "IMP/G": 12.33333333,
+    "SNP%": 0.8833819242,
+    "YPC": 1.87,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6768,
+    "NM": "Tua Tagovailoa",
+    "POS": "QB",
+    "AGE": 27.6,
+    "TM": "MIA",
+    "G": 11,
+    "FPTS": 143.72,
+    "PPG": 13.06545455,
+    "CSTY%": 0.2727272727,
+    "CL": 22.18,
+    "TS%": NaN,
+    "paYPG": 193.0,
+    "paRTG": 88.13,
+    "CMP%": 0.6826923077,
+    "TTT": 2.579967949,
+    "YDS(t)": 2161,
+    "IMP/G": 10.18181818,
+    "SNP%": 0.9561128527,
+    "YPC": 2.71,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7591,
+    "NM": "Justin Fields",
+    "POS": "QB",
+    "AGE": 26.6,
+    "TM": "NYJ",
+    "G": 9,
+    "FPTS": 143.66,
+    "PPG": 15.96222222,
+    "CSTY%": 0.5555555556,
+    "CL": 27.52666667,
+    "TS%": NaN,
+    "paYPG": 139.8888889,
+    "paRTG": 89.48,
+    "CMP%": 0.6274509804,
+    "TTT": 2.929411765,
+    "YDS(t)": 1642,
+    "IMP/G": 9.333333333,
+    "SNP%": 0.9076086957,
+    "YPC": 5.39,
+    "TGT": 1,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 4881,
+    "NM": "Lamar Jackson",
+    "POS": "QB",
+    "AGE": 28.7,
+    "TM": "BAL",
+    "G": 7,
+    "FPTS": 143.28,
+    "PPG": 20.46857143,
+    "CSTY%": 0.7142857143,
+    "CL": 27.56,
+    "TS%": NaN,
+    "paYPG": 206.0,
+    "paRTG": 115.5,
+    "CMP%": 0.6802325581,
+    "TTT": 2.846627907,
+    "YDS(t)": 1668,
+    "IMP/G": 11.85714286,
+    "SNP%": 0.9530864198,
+    "YPC": 5.79,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6794,
+    "NM": "Justin Jefferson",
+    "POS": "WR",
+    "AGE": 26.3,
+    "TM": "MIN",
+    "G": 10,
+    "FPTS": 143.1,
+    "PPG": 14.31,
+    "CSTY%": 0.7,
+    "CL": 19.53333333,
+    "TS%": 0.292,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 751,
+    "IMP/G": 3.2,
+    "SNP%": 0.9619205298,
+    "YPC": 4.0,
+    "TGT": 93,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 74.7,
+    "YPRR": 2.190615836
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7543,
+    "NM": "Travis Etienne",
+    "POS": "RB",
+    "AGE": 26.7,
+    "TM": "JAX",
+    "G": 10,
+    "FPTS": 142.9,
+    "PPG": 14.29,
+    "CSTY%": 0.6,
+    "CL": 19.13333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 859,
+    "IMP/G": 3.9,
+    "SNP%": 0.5793991416,
+    "YPC": 4.73,
+    "TGT": 33,
+    "MTF/A": 2.38961039,
+    "YCO/A": 2.38961039,
+    "recYPG": 13.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 2449,
+    "NM": "Stefon Diggs",
+    "POS": "WR",
+    "AGE": 31.8,
+    "TM": "NE",
+    "G": 11,
+    "FPTS": 142.9,
+    "PPG": 12.99090909,
+    "CSTY%": 0.5454545455,
+    "CL": 20.06666667,
+    "TS%": 0.224,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 659,
+    "IMP/G": 3.090909091,
+    "SNP%": 0.5530410184,
+    "YPC": 0.0,
+    "TGT": 72,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 59.90909091,
+    "YPRR": 2.678861789
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11635,
+    "NM": "Ladd McConkey",
+    "POS": "WR",
+    "AGE": 23.9,
+    "TM": "LAC",
+    "G": 11,
+    "FPTS": 142.4,
+    "PPG": 12.94545455,
+    "CSTY%": 0.5454545455,
+    "CL": 21.5,
+    "TS%": 0.216,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 644,
+    "IMP/G": 2.636363636,
+    "SNP%": 0.7723577236,
+    "YPC": 0.0,
+    "TGT": 84,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 58.54545455,
+    "YPRR": 1.731182796
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5872,
+    "NM": "Deebo Samuel",
+    "POS": "WR",
+    "AGE": 29.7,
+    "TM": "WAS",
+    "G": 10,
+    "FPTS": 141.2,
+    "PPG": 14.12,
+    "CSTY%": 0.6,
+    "CL": 22.3,
+    "TS%": 0.221,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 522,
+    "IMP/G": 2.2,
+    "SNP%": 0.7406807131,
+    "YPC": 4.73,
+    "TGT": 68,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 47.0,
+    "YPRR": 1.934156379
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12527,
+    "NM": "Ashton Jeanty",
+    "POS": "RB",
+    "AGE": 21.8,
+    "TM": "LV",
+    "G": 10,
+    "FPTS": 140.7,
+    "PPG": 14.07,
+    "CSTY%": 0.6,
+    "CL": 23.33333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 717,
+    "IMP/G": 3.6,
+    "SNP%": 0.7312186978,
+    "YPC": 3.72,
+    "TGT": 38,
+    "MTF/A": 2.422818792,
+    "YCO/A": 2.422818792,
+    "recYPG": 16.3,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8110,
+    "NM": "Jake Ferguson",
+    "POS": "TE",
+    "AGE": 26.7,
+    "TM": "DAL",
+    "G": 10,
+    "FPTS": 140.0,
+    "PPG": 14.0,
+    "CSTY%": 0.7,
+    "CL": 22.33333333,
+    "TS%": 0.191,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 400,
+    "IMP/G": 1.9,
+    "SNP%": 0.6852122987,
+    "YPC": 0.0,
+    "TGT": 71,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 40.0,
+    "YPRR": 1.408450704
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 1479,
+    "NM": "Keenan Allen",
+    "POS": "WR",
+    "AGE": 33.4,
+    "TM": "LAC",
+    "G": 11,
+    "FPTS": 139.2,
+    "PPG": 12.65454545,
+    "CSTY%": 0.3636363636,
+    "CL": 22.73333333,
+    "TS%": 0.222,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 592,
+    "IMP/G": 3.272727273,
+    "SNP%": 0.5636856369,
+    "YPC": 0.0,
+    "TGT": 86,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 53.81818182,
+    "YPRR": 1.986577181
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 1466,
+    "NM": "Travis Kelce",
+    "POS": "TE",
+    "AGE": 36.0,
+    "TM": "KC",
+    "G": 10,
+    "FPTS": 139.1,
+    "PPG": 13.91,
+    "CSTY%": 0.6,
+    "CL": 21.7,
+    "TS%": 0.183,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 631,
+    "IMP/G": 3.3,
+    "SNP%": 0.7596439169,
+    "YPC": 0.0,
+    "TGT": 66,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 63.1,
+    "YPRR": 2.117449664
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8155,
+    "NM": "Breece Hall",
+    "POS": "RB",
+    "AGE": 24.3,
+    "TM": "NYJ",
+    "G": 10,
+    "FPTS": 138.96,
+    "PPG": 13.896,
+    "CSTY%": 0.5,
+    "CL": 23.28666667,
+    "TS%": NaN,
+    "paYPG": 0.4,
+    "paRTG": 122.92,
+    "CMP%": 1.0,
+    "TTT": NaN,
+    "YDS(t)": 952,
+    "IMP/G": 4.9,
+    "SNP%": 0.6231884058,
+    "YPC": 4.75,
+    "TGT": 33,
+    "MTF/A": 2.203947368,
+    "YCO/A": 2.203947368,
+    "recYPG": 22.6,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7569,
+    "NM": "Nico Collins",
+    "POS": "WR",
+    "AGE": 26.5,
+    "TM": "HOU",
+    "G": 9,
+    "FPTS": 138.0,
+    "PPG": 15.33333333,
+    "CSTY%": 0.6666666667,
+    "CL": 23.06666667,
+    "TS%": 0.227,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 650,
+    "IMP/G": 3.222222222,
+    "SNP%": 0.7786885246,
+    "YPC": 8.0,
+    "TGT": 82,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 71.33333333,
+    "YPRR": 2.244755245
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 3198,
+    "NM": "Derrick Henry",
+    "POS": "RB",
+    "AGE": 31.7,
+    "TM": "BAL",
+    "G": 10,
+    "FPTS": 137.1,
+    "PPG": 13.71,
+    "CSTY%": 0.5,
+    "CL": 22.83333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 39.58,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 881,
+    "IMP/G": 4.1,
+    "SNP%": 0.5612244898,
+    "YPC": 4.86,
+    "TGT": 15,
+    "MTF/A": 1.981927711,
+    "YCO/A": 1.981927711,
+    "recYPG": 7.4,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12518,
+    "NM": "Tyler Warren",
+    "POS": "TE",
+    "AGE": 23.4,
+    "TM": "IND",
+    "G": 10,
+    "FPTS": 136.3,
+    "PPG": 13.63,
+    "CSTY%": 0.7,
+    "CL": 18.16666667,
+    "TS%": 0.207,
+    "paYPG": 0.0,
+    "paRTG": 39.58,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 623,
+    "IMP/G": 3.2,
+    "SNP%": 0.8229007634,
+    "YPC": 1.5,
+    "TGT": 67,
+    "MTF/A": 0.5,
+    "YCO/A": 0.5,
+    "recYPG": 61.7,
+    "YPRR": 2.187943262
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7527,
+    "NM": "Mac Jones",
+    "POS": "QB",
+    "AGE": 27.1,
+    "TM": "SF",
+    "G": 9,
+    "FPTS": 136.14,
+    "PPG": 15.12666667,
+    "CSTY%": 0.4444444444,
+    "CL": 22.66666667,
+    "TS%": NaN,
+    "paYPG": 239.0,
+    "paRTG": 97.4,
+    "CMP%": 0.6955017301,
+    "TTT": 2.715017301,
+    "YDS(t)": 2212,
+    "IMP/G": 13.0,
+    "SNP%": 0.7363387978,
+    "YPC": 1.97,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5045,
+    "NM": "Courtland Sutton",
+    "POS": "WR",
+    "AGE": 30.0,
+    "TM": "DEN",
+    "G": 11,
+    "FPTS": 135.9,
+    "PPG": 12.35454545,
+    "CSTY%": 0.4545454545,
+    "CL": 20.33333333,
+    "TS%": 0.191,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 649,
+    "IMP/G": 2.909090909,
+    "SNP%": 0.8796169631,
+    "YPC": 0.0,
+    "TGT": 74,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 59.0,
+    "YPRR": 1.744623656
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9228,
+    "NM": "Bryce Young",
+    "POS": "QB",
+    "AGE": 24.2,
+    "TM": "CAR",
+    "G": 10,
+    "FPTS": 135.78,
+    "PPG": 13.578,
+    "CSTY%": 0.3,
+    "CL": 24.53333333,
+    "TS%": NaN,
+    "paYPG": 196.2,
+    "paRTG": 85.97,
+    "CMP%": 0.627388535,
+    "TTT": 2.785636943,
+    "YDS(t)": 2045,
+    "IMP/G": 11.2,
+    "SNP%": 0.9466666667,
+    "YPC": 3.61,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6790,
+    "NM": "D'Andre Swift",
+    "POS": "RB",
+    "AGE": 26.7,
+    "TM": "CHI",
+    "G": 9,
+    "FPTS": 135.4,
+    "PPG": 15.04444444,
+    "CSTY%": 0.6666666667,
+    "CL": 20.76666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 844,
+    "IMP/G": 5.0,
+    "SNP%": 0.6039933444,
+    "YPC": 4.73,
+    "TGT": 33,
+    "MTF/A": 1.873134328,
+    "YCO/A": 1.873134328,
+    "recYPG": 23.33333333,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11620,
+    "NM": "Rome Odunze",
+    "POS": "WR",
+    "AGE": 23.3,
+    "TM": "CHI",
+    "G": 10,
+    "FPTS": 135.0,
+    "PPG": 13.5,
+    "CSTY%": 0.6,
+    "CL": 23.6,
+    "TS%": 0.227,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 600,
+    "IMP/G": 3.3,
+    "SNP%": 0.8986784141,
+    "YPC": 0.0,
+    "TGT": 75,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 60.0,
+    "YPRR": 1.886792453
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9224,
+    "NM": "Chase Brown",
+    "POS": "RB",
+    "AGE": 25.5,
+    "TM": "CIN",
+    "G": 10,
+    "FPTS": 133.8,
+    "PPG": 13.38,
+    "CSTY%": 0.5,
+    "CL": 21.13333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 748,
+    "IMP/G": 3.7,
+    "SNP%": 0.6779388084,
+    "YPC": 4.12,
+    "TGT": 53,
+    "MTF/A": 2.261904762,
+    "YCO/A": 2.261904762,
+    "recYPG": 22.9,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7525,
+    "NM": "DeVonta Smith",
+    "POS": "WR",
+    "AGE": 26.9,
+    "TM": "PHI",
+    "G": 10,
+    "FPTS": 133.5,
+    "PPG": 13.35,
+    "CSTY%": 0.5,
+    "CL": 24.23333333,
+    "TS%": 0.249,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 665,
+    "IMP/G": 2.8,
+    "SNP%": 0.9176276771,
+    "YPC": 0.0,
+    "TGT": 67,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 66.5,
+    "YPRR": 2.285223368
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6801,
+    "NM": "Tee Higgins",
+    "POS": "WR",
+    "AGE": 26.7,
+    "TM": "CIN",
+    "G": 10,
+    "FPTS": 133.4,
+    "PPG": 13.34,
+    "CSTY%": 0.4,
+    "CL": 23.33333333,
+    "TS%": 0.172,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 544,
+    "IMP/G": 2.7,
+    "SNP%": 0.8599033816,
+    "YPC": 0.0,
+    "TGT": 64,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 54.4,
+    "YPRR": 1.515320334
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8126,
+    "NM": "Wan'Dale Robinson",
+    "POS": "WR",
+    "AGE": 24.7,
+    "TM": "NYG",
+    "G": 11,
+    "FPTS": 133.0,
+    "PPG": 12.09090909,
+    "CSTY%": 0.4545454545,
+    "CL": 21.36666667,
+    "TS%": 0.25,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 640,
+    "IMP/G": 2.363636364,
+    "SNP%": 0.9103078983,
+    "YPC": 2.0,
+    "TGT": 88,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 58.0,
+    "YPRR": 1.817663818
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11627,
+    "NM": "Troy Franklin",
+    "POS": "WR",
+    "AGE": 22.6,
+    "TM": "DEN",
+    "G": 11,
+    "FPTS": 131.8,
+    "PPG": 11.98181818,
+    "CSTY%": 0.4545454545,
+    "CL": 21.96666667,
+    "TS%": 0.209,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 518,
+    "IMP/G": 2.363636364,
+    "SNP%": 0.6648426813,
+    "YPC": 2.25,
+    "TGT": 81,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 46.27272727,
+    "YPRR": 1.585669782
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 1373,
+    "NM": "Geno Smith",
+    "POS": "QB",
+    "AGE": 35.0,
+    "TM": "LV",
+    "G": 10,
+    "FPTS": 130.48,
+    "PPG": 13.048,
+    "CSTY%": 0.3,
+    "CL": 23.93333333,
+    "TS%": NaN,
+    "paYPG": 208.2,
+    "paRTG": 80.86,
+    "CMP%": 0.6634304207,
+    "TTT": 2.827799353,
+    "YDS(t)": 2184,
+    "IMP/G": 11.3,
+    "SNP%": 0.9883138564,
+    "YPC": 3.0,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9997,
+    "NM": "Zay Flowers",
+    "POS": "WR",
+    "AGE": 25.0,
+    "TM": "BAL",
+    "G": 10,
+    "FPTS": 130.4,
+    "PPG": 13.04,
+    "CSTY%": 0.6,
+    "CL": 19.13333333,
+    "TS%": 0.271,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 734,
+    "IMP/G": 2.9,
+    "SNP%": 0.869047619,
+    "YPC": 5.17,
+    "TGT": 71,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 70.3,
+    "YPRR": 2.594095941
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12481,
+    "NM": "Cam Skattebo",
+    "POS": "RB",
+    "AGE": 23.6,
+    "TM": "NYG",
+    "G": 8,
+    "FPTS": 127.7,
+    "PPG": 15.9625,
+    "CSTY%": 0.75,
+    "CL": 24.5,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 617,
+    "IMP/G": 4.75,
+    "SNP%": 0.5412844037,
+    "YPC": 4.06,
+    "TGT": 32,
+    "MTF/A": 1.900990099,
+    "YCO/A": 1.900990099,
+    "recYPG": 25.875,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9758,
+    "NM": "C.J. Stroud",
+    "POS": "QB",
+    "AGE": 24.0,
+    "TM": "HOU",
+    "G": 8,
+    "FPTS": 125.98,
+    "PPG": 15.7475,
+    "CSTY%": 0.375,
+    "CL": 23.3,
+    "TS%": NaN,
+    "paYPG": 212.75,
+    "paRTG": 93.37,
+    "CMP%": 0.6652892562,
+    "TTT": 2.742272727,
+    "YDS(t)": 1891,
+    "IMP/G": 11.375,
+    "SNP%": 0.8825688073,
+    "YPC": 6.52,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12529,
+    "NM": "TreVeyon Henderson",
+    "POS": "RB",
+    "AGE": 22.9,
+    "TM": "NE",
+    "G": 11,
+    "FPTS": 125.7,
+    "PPG": 11.42727273,
+    "CSTY%": 0.3636363636,
+    "CL": 24.33333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 657,
+    "IMP/G": 2.818181818,
+    "SNP%": 0.4611032532,
+    "YPC": 4.92,
+    "TGT": 30,
+    "MTF/A": 2.46,
+    "YCO/A": 2.46,
+    "recYPG": 15.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11559,
+    "NM": "Michael Penix Jr.",
+    "POS": "QB",
+    "AGE": 25.4,
+    "TM": "ATL",
+    "G": 9,
+    "FPTS": 123.28,
+    "PPG": 13.69777778,
+    "CSTY%": 0.3333333333,
+    "CL": 22.16,
+    "TS%": NaN,
+    "paYPG": 220.2222222,
+    "paRTG": 88.47,
+    "CMP%": 0.6014492754,
+    "TTT": 2.789456522,
+    "YDS(t)": 2052,
+    "IMP/G": 11.55555556,
+    "SNP%": 0.9325463744,
+    "YPC": 3.33,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5846,
+    "NM": "DK Metcalf",
+    "POS": "WR",
+    "AGE": 27.8,
+    "TM": "PIT",
+    "G": 10,
+    "FPTS": 122.1,
+    "PPG": 12.21,
+    "CSTY%": 0.5,
+    "CL": 19.86666667,
+    "TS%": 0.202,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 551,
+    "IMP/G": 2.6,
+    "SNP%": 0.8885077187,
+    "YPC": 0.0,
+    "TGT": 62,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 55.1,
+    "YPRR": 1.794788274
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9754,
+    "NM": "Quentin Johnston",
+    "POS": "WR",
+    "AGE": 24.1,
+    "TM": "LAC",
+    "G": 10,
+    "FPTS": 121.9,
+    "PPG": 12.19,
+    "CSTY%": 0.5,
+    "CL": 21.53333333,
+    "TS%": 0.168,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 509,
+    "IMP/G": 1.8,
+    "SNP%": 0.7982195846,
+    "YPC": 3.5,
+    "TGT": 66,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 50.2,
+    "YPRR": 1.467836257
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 10213,
+    "NM": "Tre Tucker",
+    "POS": "WR",
+    "AGE": 24.6,
+    "TM": "LV",
+    "G": 10,
+    "FPTS": 121.8,
+    "PPG": 12.18,
+    "CSTY%": 0.4,
+    "CL": 23.0,
+    "TS%": 0.173,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 538,
+    "IMP/G": 2.3,
+    "SNP%": 0.9365609349,
+    "YPC": 6.0,
+    "TGT": 54,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 50.2,
+    "YPRR": 1.544615385
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8228,
+    "NM": "Jaylen Warren",
+    "POS": "RB",
+    "AGE": 26.9,
+    "TM": "PIT",
+    "G": 9,
+    "FPTS": 118.5,
+    "PPG": 13.16666667,
+    "CSTY%": 0.5555555556,
+    "CL": 18.03333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 755,
+    "IMP/G": 4.444444444,
+    "SNP%": 0.5433962264,
+    "YPC": 4.36,
+    "TGT": 28,
+    "MTF/A": 2.739837398,
+    "YCO/A": 2.739837398,
+    "recYPG": 24.33333333,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8148,
+    "NM": "Jameson Williams",
+    "POS": "WR",
+    "AGE": 24.5,
+    "TM": "DET",
+    "G": 10,
+    "FPTS": 118.2,
+    "PPG": 11.82,
+    "CSTY%": 0.5,
+    "CL": 20.8,
+    "TS%": 0.16,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 572,
+    "IMP/G": 2.6,
+    "SNP%": 0.8874801902,
+    "YPC": 2.5,
+    "TGT": 50,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 56.2,
+    "YPRR": 1.784126984
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 9484,
+    "NM": "Tucker Kraft",
+    "POS": "TE",
+    "AGE": 24.9,
+    "TM": "GB",
+    "G": 8,
+    "FPTS": 117.2,
+    "PPG": 14.65,
+    "CSTY%": 0.5,
+    "CL": 24.83333333,
+    "TS%": 0.141,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 492,
+    "IMP/G": 2.75,
+    "SNP%": 0.8607843137,
+    "YPC": 3.0,
+    "TGT": 44,
+    "MTF/A": 0.0,
+    "YCO/A": 0.0,
+    "recYPG": 61.125,
+    "YPRR": 2.657608696
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6806,
+    "NM": "J.K. Dobbins",
+    "POS": "RB",
+    "AGE": 26.8,
+    "TM": "DEN",
+    "G": 10,
+    "FPTS": 115.9,
+    "PPG": 11.59,
+    "CSTY%": 0.5,
+    "CL": 15.4,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 809,
+    "IMP/G": 3.7,
+    "SNP%": 0.5082212257,
+    "YPC": 5.05,
+    "TGT": 14,
+    "MTF/A": 2.444444444,
+    "YCO/A": 2.444444444,
+    "recYPG": 3.7,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8121,
+    "NM": "Romeo Doubs",
+    "POS": "WR",
+    "AGE": 25.5,
+    "TM": "GB",
+    "G": 10,
+    "FPTS": 114.9,
+    "PPG": 11.49,
+    "CSTY%": 0.3,
+    "CL": 19.7,
+    "TS%": 0.205,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 499,
+    "IMP/G": 3.0,
+    "SNP%": 0.8120063191,
+    "YPC": 0.0,
+    "TGT": 64,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 49.9,
+    "YPRR": 1.883018868
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5022,
+    "NM": "Dallas Goedert",
+    "POS": "TE",
+    "AGE": 30.7,
+    "TM": "PHI",
+    "G": 9,
+    "FPTS": 113.6,
+    "PPG": 12.62222222,
+    "CSTY%": 0.4444444444,
+    "CL": 21.16666667,
+    "TS%": 0.186,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 356,
+    "IMP/G": 2.222222222,
+    "SNP%": 0.8409506399,
+    "YPC": 0.0,
+    "TGT": 50,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 39.55555556,
+    "YPRR": 1.589285714
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11566,
+    "NM": "Jayden Daniels",
+    "POS": "QB",
+    "AGE": 24.8,
+    "TM": "WAS",
+    "G": 6,
+    "FPTS": 113.56,
+    "PPG": 18.92666667,
+    "CSTY%": 1.0,
+    "CL": 20.82,
+    "TS%": NaN,
+    "paYPG": 197.3333333,
+    "paRTG": 94.44,
+    "CMP%": 0.625,
+    "TTT": 2.808928571,
+    "YDS(t)": 1446,
+    "IMP/G": 11.33333333,
+    "SNP%": 0.9265822785,
+    "YPC": 4.85,
+    "TGT": 0,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12512,
+    "NM": "Quinshon Judkins",
+    "POS": "RB",
+    "AGE": 21.9,
+    "TM": "CLE",
+    "G": 9,
+    "FPTS": 113.0,
+    "PPG": 12.55555556,
+    "CSTY%": 0.4444444444,
+    "CL": 21.46666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 690,
+    "IMP/G": 4.444444444,
+    "SNP%": 0.4907872697,
+    "YPC": 3.95,
+    "TGT": 20,
+    "MTF/A": 2.407643312,
+    "YCO/A": 2.407643312,
+    "recYPG": 7.777777778,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8676,
+    "NM": "Rashid Shaheed",
+    "POS": "WR",
+    "AGE": 27.1,
+    "TM": "SEA",
+    "G": 11,
+    "FPTS": 112.6,
+    "PPG": 10.23636364,
+    "CSTY%": 0.1818181818,
+    "CL": 16.13333333,
+    "TS%": 0.261,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 556,
+    "IMP/G": 2.272727273,
+    "SNP%": 0.6804979253,
+    "YPC": 5.4,
+    "TGT": 72,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 48.09090909,
+    "YPRR": 1.663522013
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11628,
+    "NM": "Marvin Harrison Jr.",
+    "POS": "WR",
+    "AGE": 23.1,
+    "TM": "ARI",
+    "G": 9,
+    "FPTS": 112.5,
+    "PPG": 12.5,
+    "CSTY%": 0.5555555556,
+    "CL": 19.76666667,
+    "TS%": 0.165,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 525,
+    "IMP/G": 2.777777778,
+    "SNP%": 0.7846655791,
+    "YPC": 0.0,
+    "TGT": 62,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 58.33333333,
+    "YPRR": 1.761744966
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8151,
+    "NM": "Kenneth Walker III",
+    "POS": "RB",
+    "AGE": 24.9,
+    "TM": "SEA",
+    "G": 10,
+    "FPTS": 111.3,
+    "PPG": 11.13,
+    "CSTY%": 0.4,
+    "CL": 18.96666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 733,
+    "IMP/G": 3.3,
+    "SNP%": 0.4544,
+    "YPC": 4.46,
+    "TGT": 15,
+    "MTF/A": 1.669117647,
+    "YCO/A": 1.669117647,
+    "recYPG": 12.7,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5892,
+    "NM": "David Montgomery",
+    "POS": "RB",
+    "AGE": 28.3,
+    "TM": "DET",
+    "G": 10,
+    "FPTS": 110.02,
+    "PPG": 11.002,
+    "CSTY%": 0.3,
+    "CL": 20.24,
+    "TS%": NaN,
+    "paYPG": 0.3,
+    "paRTG": 118.75,
+    "CMP%": 1.0,
+    "TTT": NaN,
+    "YDS(t)": 612,
+    "IMP/G": 3.2,
+    "SNP%": 0.4088748019,
+    "YPC": 4.48,
+    "TGT": 19,
+    "MTF/A": 2.190909091,
+    "YCO/A": 2.190909091,
+    "recYPG": 11.6,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8134,
+    "NM": "Khalil Shakir",
+    "POS": "WR",
+    "AGE": 25.6,
+    "TM": "BUF",
+    "G": 10,
+    "FPTS": 109.9,
+    "PPG": 10.99,
+    "CSTY%": 0.5,
+    "CL": 17.73333333,
+    "TS%": 0.204,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 459,
+    "IMP/G": 2.1,
+    "SNP%": 0.596651446,
+    "YPC": 5.0,
+    "TGT": 61,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 45.4,
+    "YPRR": 1.907563025
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7567,
+    "NM": "Kenneth Gainwell",
+    "POS": "RB",
+    "AGE": 26.5,
+    "TM": "PIT",
+    "G": 10,
+    "FPTS": 109.8,
+    "PPG": 10.98,
+    "CSTY%": 0.2,
+    "CL": 23.5,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 448,
+    "IMP/G": 2.9,
+    "SNP%": 0.4596912521,
+    "YPC": 4.0,
+    "TGT": 42,
+    "MTF/A": 1.967213115,
+    "YCO/A": 1.967213115,
+    "recYPG": 20.4,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 7002,
+    "NM": "Juwan Johnson",
+    "POS": "TE",
+    "AGE": 29.0,
+    "TM": "NO",
+    "G": 10,
+    "FPTS": 108.1,
+    "PPG": 10.81,
+    "CSTY%": 0.6,
+    "CL": 16.9,
+    "TS%": 0.175,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 491,
+    "IMP/G": 2.4,
+    "SNP%": 0.8093023256,
+    "YPC": 0.0,
+    "TGT": 60,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 49.1,
+    "YPRR": 1.687285223
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 6786,
+    "NM": "CeeDee Lamb",
+    "POS": "WR",
+    "AGE": 26.5,
+    "TM": "DAL",
+    "G": 7,
+    "FPTS": 107.9,
+    "PPG": 15.41428571,
+    "CSTY%": 0.8571428571,
+    "CL": 20.06666667,
+    "TS%": 0.164,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 559,
+    "IMP/G": 3.285714286,
+    "SNP%": 0.7174348697,
+    "YPC": 2.0,
+    "TGT": 61,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 79.57142857,
+    "YPRR": 2.543378995
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 12489,
+    "NM": "RJ Harvey",
+    "POS": "RB",
+    "AGE": 24.6,
+    "TM": "DEN",
+    "G": 11,
+    "FPTS": 107.9,
+    "PPG": 9.809090909,
+    "CSTY%": 0.2727272727,
+    "CL": 20.16666667,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 39.58,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 439,
+    "IMP/G": 1.636363636,
+    "SNP%": 0.3187414501,
+    "YPC": 4.0,
+    "TGT": 32,
+    "MTF/A": 2.06557377,
+    "YCO/A": 2.06557377,
+    "recYPG": 17.72727273,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 10859,
+    "NM": "Sam LaPorta",
+    "POS": "TE",
+    "AGE": 24.7,
+    "TM": "DET",
+    "G": 9,
+    "FPTS": 106.9,
+    "PPG": 11.87777778,
+    "CSTY%": 0.4444444444,
+    "CL": 19.46666667,
+    "TS%": 0.157,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 489,
+    "IMP/G": 2.555555556,
+    "SNP%": 0.9038461538,
+    "YPC": 0.0,
+    "TGT": 49,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 54.33333333,
+    "YPRR": 2.020661157
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5001,
+    "NM": "Dalton Schultz",
+    "POS": "TE",
+    "AGE": 29.2,
+    "TM": "HOU",
+    "G": 10,
+    "FPTS": 105.9,
+    "PPG": 10.59,
+    "CSTY%": 0.5,
+    "CL": 16.93333333,
+    "TS%": 0.188,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 489,
+    "IMP/G": 2.6,
+    "SNP%": 0.7014492754,
+    "YPC": 0.0,
+    "TGT": 68,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 48.9,
+    "YPRR": 1.727915194
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 5848,
+    "NM": "Marquise Brown",
+    "POS": "WR",
+    "AGE": 28.3,
+    "TM": "KC",
+    "G": 10,
+    "FPTS": 104.9,
+    "PPG": 10.49,
+    "CSTY%": 0.3,
+    "CL": 17.73333333,
+    "TS%": 0.158,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 429,
+    "IMP/G": 2.2,
+    "SNP%": 0.5400593472,
+    "YPC": 0.0,
+    "TGT": 57,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 42.9,
+    "YPRR": 1.95
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11604,
+    "NM": "Brock Bowers",
+    "POS": "TE",
+    "AGE": 22.8,
+    "TM": "LV",
+    "G": 7,
+    "FPTS": 104.7,
+    "PPG": 14.95714286,
+    "CSTY%": 0.4285714286,
+    "CL": 24.26666667,
+    "TS%": 0.176,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 457,
+    "IMP/G": 3.0,
+    "SNP%": 0.783908046,
+    "YPC": 1.0,
+    "TGT": 55,
+    "MTF/A": 1.5,
+    "YCO/A": 1.5,
+    "recYPG": 65.0,
+    "YPRR": 2.166666667
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 11562,
+    "NM": "Spencer Rattler",
+    "POS": "QB",
+    "AGE": 25.0,
+    "TM": "NO",
+    "G": 8,
+    "FPTS": 104.14,
+    "PPG": 13.0175,
+    "CSTY%": 0.25,
+    "CL": 17.24,
+    "TS%": NaN,
+    "paYPG": 198.25,
+    "paRTG": 86.82,
+    "CMP%": 0.6796875,
+    "TTT": 2.676210938,
+    "YDS(t)": 1753,
+    "IMP/G": 11.375,
+    "SNP%": 0.7581395349,
+    "YPC": 5.39,
+    "TGT": 2,
+    "MTF/A": NaN,
+    "YCO/A": NaN,
+    "recYPG": 0.0,
+    "YPRR": NaN
+  },
+  {
+    "SZN": 2025,
+    "SLPR_ID": 8136,
+    "NM": "Rachaad White",
+    "POS": "RB",
+    "AGE": 26.7,
+    "TM": "TB",
+    "G": 10,
+    "FPTS": 104.0,
+    "PPG": 10.4,
+    "CSTY%": 0.3,
+    "CL": 18.43333333,
+    "TS%": NaN,
+    "paYPG": 0.0,
+    "paRTG": 0.0,
+    "CMP%": 0.0,
+    "TTT": NaN,
+    "YDS(t)": 520,
+    "IMP/G": 3.7,
+    "SNP%": 0.5513595166,
+    "YPC": 3.88,
+    "TGT": 32,
+    "MTF/A": 1.360824742,
+    "YCO/A": 1.360824742,
+    "recYPG": 14.4,
+    "YPRR": NaN
+  }
 ];
 
-let players = [];
-const state = { selectedPlayerId: null, filter: 'all' };
+// Dashboard Logic
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Dashboard initializing with static data...', HP_DATA.length, 'players');
 
-// ---- Helpers ----
-const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-const formatInitialLast = (name = '') => {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  return `${(parts[0][0] || '').toUpperCase()}. ${parts.slice(1).join(' ')}`.trim();
-};
-const byMetric = (metric, pos) => {
-  const pool = pos ? players.filter(p => p.position === pos) : players;
-  return [...pool].sort((a, b) => (b[metric] || 0) - (a[metric] || 0));
-};
-const getTop = (metric, pos) => byMetric(metric, pos)[0];
-const calculatePlayerScore = (p) => {
-  if (!p) return 0;
-  return clamp(Math.round((p.consistency + (p.ppg / 30 * 100) + p.ceiling) / 3), 0, 99);
-};
-const ppgBarData = (filter) => {
-  return [...players]
-    .filter(p => filter === 'all' || p.position === filter)
-    .sort((a, b) => b.ppg - a.ppg)
-    .slice(0, 10)
-    .map(p => ({ label: p.name.split(' ').pop() || p.name, value: p.ppg }));
-};
+    // --- Configuration & Constants ---
+    const POSITIONS = ['QB', 'RB', 'WR', 'TE'];
+    
+    // Stats to rank per position
+    const RANK_CONFIG = {
+        QB: {
+            stats: ['paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+            // TTT is "Time To Throw" - lower is better? User said "Low value is better"
+            // Others are higher is better.
+            ascending: ['TTT'] 
+        },
+        RB: {
+            stats: ['YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
+            thresholdStats: ['YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'], // All subject to threshold?
+            threshold: { stat: 'SNP%', value: 0.40 }
+        },
+        WR: {
+            stats: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)'], // Added YDS(t) as 6th filler since 1DRR is missing
+            thresholdStats: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)'],
+            threshold: { stat: 'SNP%', value: 0.40 }
+        },
+        TE: {
+            stats: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)'],
+            thresholdStats: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)'],
+            threshold: { stat: 'SNP%', value: 0.40 }
+        }
+    };
 
-// ---- Renderers ----
-function renderSummary() {
-  const topPoints = getTop('totalPoints');
-  const topConsistencyRB = getTop('consistency', 'RB') || getTop('consistency');
-  const topPPG = getTop('ppg');
-  const topShare = getTop('targetShare', 'WR') || getTop('targetShare');
+    // Radar Chart Labels Map
+    const RADAR_LABELS = {
+        QB: ['paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+        RB: ['YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
+        WR: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)'],
+        TE: ['TGT', 'recYPG', 'TS%', 'YPRR', 'IMP/G', 'YDS(t)']
+    };
 
-  if (topPoints) {
-    setText('total-points-value', topPoints.totalPoints.toFixed(1));
-    setText('total-points-name', formatInitialLast(topPoints.name));
-    setWidth('total-points-bar', (topPoints.totalPoints / 450) * 100);
-  }
-  if (topConsistencyRB) {
-    setText('consistency-value', `${topConsistencyRB.consistency.toFixed(1)}%`);
-    setText('consistency-name', formatInitialLast(topConsistencyRB.name));
-    setWidth('consistency-bar', topConsistencyRB.consistency);
-  }
-  if (topPPG) {
-    setText('ppg-value', topPPG.ppg.toFixed(1));
-    setText('ppg-name', topPPG.name);
-  }
-  if (topShare) {
-    setText('share-value', `${topShare.targetShare.toFixed(1)}%`);
-    setText('share-name', topShare.name);
-  }
-}
+    // --- State ---
+    let state = {
+        players: [], // Enriched players
+        selectedPlayer: null,
+        barFilter: 'all'
+    };
 
-function renderCustomSelect() {
-  const optionsContainer = document.getElementById('player-select-options');
-  const label = document.getElementById('player-select-label');
-  if (!optionsContainer) return;
-
-  optionsContainer.innerHTML = players
-    .map(p => `
-      <li class="fc-option ${p.id === state.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
-        <span>${p.name}</span>
-        <span class="fc-option-team">${p.position} - ${p.team}</span>
-      </li>
-    `)
-    .join('') || '<li class="fc-option is-selected">No players</li>';
-
-  const selected = getSelected();
-  if (label && selected) label.textContent = selected.name;
-}
-
-function setupCustomSelect() {
-  const container = document.getElementById('player-select-container');
-  const trigger = document.getElementById('player-select-trigger');
-  const dropdown = document.getElementById('player-select-dropdown');
-  const searchInput = document.getElementById('player-select-search');
-  const optionsContainer = document.getElementById('player-select-options');
-  if (!container || !trigger || !dropdown || !searchInput || !optionsContainer) return;
-
-  trigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    container.classList.toggle('is-open');
-    trigger.classList.toggle('is-open');
-    searchInput.value = '';
-    const opts = optionsContainer.querySelectorAll('.fc-option');
-    opts.forEach(opt => opt.style.display = 'flex');
-    if (container.classList.contains('is-open')) searchInput.focus();
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!container.contains(e.target)) {
-      container.classList.remove('is-open');
-      trigger.classList.remove('is-open');
+    // --- Initialization ---
+    function init() {
+        processData();
+        setupUI();
+        renderMetrics();
+        renderLeaderboard();
+        initCharts();
+        
+        // Select first player by default
+        if (state.players.length > 0) {
+            selectPlayer(state.players[0].SLPR_ID);
+        }
     }
-  });
 
-  searchInput.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    optionsContainer.querySelectorAll('.fc-option').forEach(opt => {
-      opt.style.display = opt.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
-    });
-  });
+    // --- Data Processing ---
+    function processData() {
+        // Clone data to avoid mutating original if needed, but here we just extend it
+        state.players = HP_DATA.map(p => ({ ...p, _ranks: {} }));
 
-  optionsContainer.addEventListener('click', (e) => {
-    const option = e.target.closest('.fc-option');
-    if (!option) return;
-    state.selectedPlayerId = option.dataset.value;
-    renderCustomSelect();
-    renderSelectedDetails();
-    renderRadar();
-  });
-}
+        // 1. Compute Rankings
+        // Global Ranks (FPTS, PPG)
+        rankField(state.players, 'FPTS', false);
+        rankField(state.players, 'PPG', false);
 
-function renderSelectedDetails() {
-  const player = getSelected();
-  setText('rating-value', calculatePlayerScore(player));
-  setText('rating-meta', player ? `${player.position} // ${player.team}` : '');
-}
-
-function renderRadar() {
-  const player = getSelected();
-  const data = radarData(player);
-  drawRadarChart('radar-chart', data, player ? player.position : '');
-}
-
-function radarData(player) {
-  if (!player) return [];
-  const maxFpts = Math.max(...players.map(p => p.totalPoints || 0), 1);
-  const maxPPG = Math.max(...players.map(p => p.ppg || 0), 1);
-  const maxCons = Math.max(...players.map(p => p.consistency || 0), 1);
-  const maxCeil = Math.max(...players.map(p => p.ceiling || 0), 1);
-  const maxTs = Math.max(...players.map(p => p.targetShare || 0), 1);
-  return [
-    { axis: 'FPTS', value: clamp((player.totalPoints / maxFpts) * 100, 0, 100) },
-    { axis: 'PPG',  value: clamp((player.ppg / maxPPG) * 100, 0, 100) },
-    { axis: 'CSTY', value: clamp((player.consistency / maxCons) * 100, 0, 100) },
-    { axis: 'CEIL', value: clamp((player.ceiling / maxCeil) * 100, 0, 100) },
-    { axis: 'TS%',  value: clamp((player.targetShare / maxTs) * 100, 0, 100) },
-    { axis: 'RZ',   value: clamp((player.redZone || 0), 0, 100) },
-    { axis: 'BUR',  value: clamp((player.burst || 0), 0, 100) },
-    { axis: 'CLUT', value: clamp((player.clutch || 0), 0, 100) }
-  ];
-}
-
-function renderBar() {
-  const data = ppgBarData(state.filter);
-  if (data.length) drawBarChart('bar-chart', data);
-}
-
-function renderScatter() {
-  if (!players.length) return;
-  const top24 = [...players].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 24);
-  drawScatterChart('scatter-chart', top24);
-}
-
-// ---- Events ----
-function wireEvents() {
-  const filterBtns = document.getElementById('filter-buttons');
-  if (filterBtns) {
-    filterBtns.addEventListener('click', e => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      state.filter = btn.dataset.filter || 'all';
-      updateFilterButtons();
-      renderBar();
-    });
-  }
-  window.addEventListener('resize', debounce(() => {
-    renderRadar();
-    renderBar();
-    renderScatter();
-  }, 200));
-}
-
-function updateFilterButtons() {
-  document.querySelectorAll('#filter-buttons button').forEach(btn => {
-    btn.classList.toggle('fc-filter-btn--active', btn.dataset.filter === state.filter);
-  });
-}
-
-// ---- Utilities ----
-function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
-function setWidth(id, pct) { const el = document.getElementById(id); if (el) el.style.width = `${clamp(pct, 0, 100)}%`; }
-function debounce(fn, delay = 150) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; }
-function trendSvg(trend) {
-  if (trend === 'up') return '<span style="color: var(--color-emerald-light); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>';
-  if (trend === 'down') return '<span style="color: var(--color-red); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg></span>';
-  return '<span style="color: var(--text-muted); display: flex; justify-content: center;"><svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg></span>';
-}
-
-// ---- D3 Charts (compact) ----
-function drawRadarChart(containerId, data, centerText) {
-  const container = document.getElementById(containerId);
-  if (!container || !data.length) return;
-  container.innerHTML = '';
-  const rect = container.getBoundingClientRect();
-  const size = Math.min(rect.width || 360, rect.height || 360);
-  const svg = d3.select(container).append('svg').attr('width', size).attr('height', size).append('g').attr('transform', `translate(${size/2},${size/2})`);
-  const maxRadius = size * 0.45;
-  const inner = size * 0.12;
-  const ring = (maxRadius - inner) / data.length;
-  const gap = size * 0.01;
-  const colors = ['#ef4444','#f97316','#eab308','#22d3ee','#8b5cf6','#10b981','#ec4899','#a855f7'];
-  const isMobile = window.innerWidth < 768;
-  const fontSize = Math.max(8, size * 0.025);
-
-  data.forEach((d, i) => {
-    const rIn = inner + i * ring + gap;
-    const rOut = inner + (i + 1) * ring;
-    const color = colors[i % colors.length];
-    svg.append('path').attr('d', d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(2*Math.PI).cornerRadius(ring/2)).attr('fill', color).attr('opacity', 0.1);
-    const end = (d.value / 100) * 2 * Math.PI;
-    svg.append('path').attr('fill', color).attr('d', d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(end).cornerRadius(ring/2)).transition().duration(900).ease(d3.easeCubicOut).attrTween('d', () => {
-      const interp = d3.interpolate(0, end);
-      return t => d3.arc().innerRadius(rIn).outerRadius(rOut).startAngle(0).endAngle(interp(t)).cornerRadius(ring/2)();
-    });
-    if (!isMobile) {
-      svg.append('text').attr('x', 5).attr('y', -(rIn + (ring - gap)/2)).attr('dy','0.35em').text(d.axis.toUpperCase()).attr('fill','#fff').attr('font-size', `${fontSize}px`).attr('font-weight','bold').attr('opacity',0.8);
+        // Positional Ranks
+        POSITIONS.forEach(pos => {
+            const posPlayers = state.players.filter(p => p.POS === pos);
+            const config = RANK_CONFIG[pos];
+            
+            if (config) {
+                config.stats.forEach(stat => {
+                    const isAsc = config.ascending && config.ascending.includes(stat);
+                    // Check threshold
+                    let pool = posPlayers;
+                    if (config.threshold) {
+                        // If this stat is in the threshold list (or all of them)
+                        // User said "Threshold ... needs to be met for the following stats..."
+                        // So we filter the pool for ranking purposes, but keep the player in the list?
+                        // "otherwise the efficiency stat rankings should be NA"
+                        // So we only rank those who meet the threshold.
+                        pool = posPlayers.filter(p => {
+                            const val = p[config.threshold.stat];
+                            return typeof val === 'number' && val >= config.threshold.value;
+                        });
+                    }
+                    
+                    rankField(pool, stat, isAsc, posPlayers); // Pass full list to assign NA to others
+                });
+            }
+        });
     }
-  });
 
-  if (centerText) svg.append('text').attr('text-anchor','middle').attr('dy','0.35em').text(centerText).attr('fill','#fff').attr('font-size', `${inner*0.8}px`).attr('font-weight','bold').style('text-shadow','0 2px 10px rgba(0,0,0,0.5)');
-}
+    function rankField(pool, stat, asc, fullList = null) {
+        // Filter out invalid values
+        const valid = pool.filter(p => {
+            const v = p[stat];
+            return typeof v === 'number' && !isNaN(v);
+        });
 
-function drawBarChart(containerId, data) {
-  const container = document.getElementById(containerId);
-  if (!container || !data.length) return;
-  container.innerHTML = '';
-  const rect = container.getBoundingClientRect();
-  const width = rect.width || 640;
-  const height = rect.height || 360;
-  const m = { top: height*0.12, right: width*0.03, bottom: height*0.12, left: width*0.03 };
-  const innerW = width - m.left - m.right;
-  const innerH = height - m.top - m.bottom;
-  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
-  const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
-  const x = d3.scaleBand().range([0, innerW]).domain(data.map(d => d.label)).paddingInner(0.6).paddingOuter(0.05);
-  const y = d3.scaleLinear().range([innerH, 0]).domain([0, (d3.max(data, d => d.value) || 0) * 1.15]);
-  const color = d3.scaleLinear().domain([0, data.length-1]).range(['#06b6d4','#a855f7']).interpolate(d3.interpolateRgb);
-  const barW = x.bandwidth();
-  const radius = barW/2;
-  const isMobile = window.innerWidth < 768;
-  const fontVal = Math.max(8, width*0.02);
-  const fontAxis = isMobile ? 5 : Math.max(8, width*0.015);
+        // Sort
+        valid.sort((a, b) => {
+            return asc ? a[stat] - b[stat] : b[stat] - a[stat];
+        });
 
-  const bars = g.selectAll('.bar').data(data).enter().append('g').attr('class','bar');
-  bars.append('rect').attr('x', d => x(d.label)).attr('y', innerH).attr('width', barW).attr('height',0).attr('rx', radius).attr('ry', radius).attr('fill', (d,i) => color(i)).attr('opacity',0.6)
-    .transition().duration(900).delay((d,i)=>i*40).attr('y', d => y(d.value)).attr('height', d => innerH - y(d.value));
-  bars.append('text').text(d => d.value.toFixed(1)).attr('x', d => x(d.label)+barW/2).attr('y', innerH).attr('text-anchor','middle').attr('fill',(d,i)=>color(i)).attr('font-size', `${fontVal}px`).attr('font-weight','700').style('text-shadow','0 0 10px rgba(0,0,0,1)').style('opacity',0)
-    .transition().duration(900).delay((d,i)=>i*40+300).attr('y', d => y(d.value) - (isMobile ? height*0.05 : height*0.02)).style('opacity',1);
+        // Assign ranks
+        valid.forEach((p, i) => {
+            p._ranks[stat] = i + 1;
+            p._rankTotal = valid.length; // Store total for normalization
+        });
 
-  g.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').style('fill','#94a3b8').style('font-size', `${fontAxis}px`).style('font-weight','500').attr('dy','1.5em');
-  g.select('.domain').remove();
-}
+        // If fullList provided, ensure others have null rank
+        if (fullList) {
+            fullList.forEach(p => {
+                if (!valid.includes(p)) {
+                    p._ranks[stat] = null;
+                }
+            });
+        }
+    }
 
-function drawScatterChart(containerId, data) {
-  const container = document.getElementById(containerId);
-  if (!container || !data.length) return;
-  container.innerHTML = '';
-  const rect = container.getBoundingClientRect();
-  const width = rect.width || 640;
-  const height = rect.height || 360;
-  const isMobile = window.innerWidth < 768;
-  const m = { top: isMobile ? 10 : height*0.02, right: width*0.05, bottom: isMobile ? 40 : height*0.1, left: isMobile ? 40 : width*0.06 };
-  const innerW = width - m.left - m.right;
-  const innerH = height - m.top - m.bottom;
-  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
-  const g = svg.append('g').attr('transform', `translate(${m.left},${m.top})`);
-  const x = d3.scaleLinear().domain([50,100]).range([0, innerW]);
-  const y = d3.scaleLinear().domain([20,70]).range([innerH,0]);
-  const colorMap = { QB:'#f472b6', RB:'#4ade80', WR:'#22d3ee', TE:'#fb923c' };
+    // --- UI Setup ---
+    function setupUI() {
+        // Search Dropdown
+        const searchInput = document.getElementById('player-select-search');
+        const optionsContainer = document.getElementById('player-select-options');
+        const triggerLabel = document.getElementById('player-select-label');
+        const dropdown = document.getElementById('player-select-dropdown');
+        const trigger = document.getElementById('player-select-trigger');
 
-  g.append('g').attr('class','scatter-grid').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).tickSize(-innerH).tickFormat(''));
-  g.append('g').attr('class','scatter-grid').call(d3.axisLeft(y).tickSize(-innerW).tickFormat(''));
-  g.append('g').attr('class','scatter-axis').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(x).ticks(5)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('g').attr('class','scatter-axis').call(d3.axisLeft(y).ticks(5)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('text').attr('x', innerW/2).attr('y', innerH + (isMobile ? 35 : m.bottom-5)).attr('text-anchor','middle').attr('fill','#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight','bold').attr('letter-spacing','0.1em').text('CONSISTENCY');
-  g.append('text').attr('transform','rotate(-90)').attr('x', -innerH/2).attr('y', isMobile ? -30 : -m.left + 20).attr('text-anchor','middle').attr('fill','#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight','bold').attr('letter-spacing','0.1em').text('CEILING');
+        // Populate options
+        function renderOptions(filter = '') {
+            optionsContainer.innerHTML = '';
+            const filtered = state.players.filter(p => p.NM.toLowerCase().includes(filter.toLowerCase()));
+            
+            filtered.slice(0, 100).forEach(p => { // Limit to 100 for perf
+                const li = document.createElement('li');
+                li.className = 'fc-select-option';
+                li.textContent = `${p.NM} (${p.POS} - ${p.TM})`;
+                li.dataset.id = p.SLPR_ID;
+                li.onclick = () => {
+                    selectPlayer(p.SLPR_ID);
+                    dropdown.classList.remove('active');
+                };
+                optionsContainer.appendChild(li);
+            });
+        }
 
-  g.selectAll('.scatter-dot').data(data).enter().append('circle').attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`).attr('cx', d => x(d.consistency)).attr('cy', d => y(d.ceiling)).attr('r',0).attr('fill', d => colorMap[d.position] || '#a855f7')
-    .transition().duration(900).delay((d,i)=>i*25).ease(d3.easeBackOut).attr('r', isMobile ? 3.5 : 7);
+        renderOptions();
 
-  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class','scatter-label').attr('x', d => x(d.consistency)).attr('y', d => y(d.ceiling)).text(d => {
-    const parts = d.name.split(' '); return `${parts[0][0]}. ${parts[parts.length-1]}`; }).attr('opacity',0).style('fill','#fff').style('font-size', isMobile ? '8px' : '10px').style('font-weight','600');
+        searchInput.addEventListener('input', (e) => renderOptions(e.target.value));
+        
+        trigger.addEventListener('click', () => {
+            dropdown.classList.toggle('active');
+            if (dropdown.classList.contains('active')) searchInput.focus();
+        });
 
-  labels.transition().duration(900).delay((d,i)=>i*25+300).attr('opacity',1).attr('y', d => y(d.ceiling) - 10);
-}
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('player-select-container').contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
 
-// ---- Init ----
-function initFantasyDashboard() {
-  players = MANUAL_PLAYERS.slice();
-  if (!players.length) return;
-  state.selectedPlayerId = state.selectedPlayerId || players[0].id;
-  renderSummary();
-  renderCustomSelect();
-  setupCustomSelect();
-  renderSelectedDetails();
-  renderRadar();
-  renderBar();
-  renderScatter();
-  wireEvents();
-}
+        // Bar Chart Filters
+        document.querySelectorAll('.fc-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.fc-filter-btn').forEach(b => b.classList.remove('fc-filter-btn--active'));
+                e.target.classList.add('fc-filter-btn--active');
+                state.barFilter = e.target.dataset.filter;
+                updateBarChart();
+            });
+        });
+    }
 
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  initFantasyDashboard();
-} else {
-  document.addEventListener('DOMContentLoaded', initFantasyDashboard);
-}
+    function selectPlayer(id) {
+        const player = state.players.find(p => p.SLPR_ID == id);
+        if (!player) return;
 
-window.initFantasyDashboard = initFantasyDashboard;
-})();
+        state.selectedPlayer = player;
+        document.getElementById('player-select-label').textContent = player.NM;
+        
+        // Update Radar
+        updateRadar(player);
+    }
+
+    // --- Metrics ---
+    function renderMetrics() {
+        // 1. Max FPTS
+        const maxFpts = state.players.reduce((prev, curr) => (curr.FPTS > prev.FPTS ? curr : prev), state.players[0]);
+        document.getElementById('total-points-value').textContent = maxFpts.FPTS.toFixed(1);
+        document.getElementById('total-points-name').textContent = maxFpts.NM;
+        document.getElementById('total-points-bar').style.width = '100%';
+
+        // 2. Max PPG
+        const maxPpg = state.players.reduce((prev, curr) => (curr.PPG > prev.PPG ? curr : prev), state.players[0]);
+        document.getElementById('ppg-value').textContent = maxPpg.PPG.toFixed(1);
+        document.getElementById('ppg-name').textContent = maxPpg.NM;
+
+        // 3. Max CSTY% (RB)
+        const rbs = state.players.filter(p => p.POS === 'RB');
+        const maxCsty = rbs.reduce((prev, curr) => (curr['CSTY%'] > prev['CSTY%'] ? curr : prev), rbs[0] || {});
+        if (maxCsty.NM) {
+            document.getElementById('consistency-value').textContent = (maxCsty['CSTY%'] * 100).toFixed(0) + '%';
+            document.getElementById('consistency-name').textContent = maxCsty.NM;
+            document.getElementById('consistency-bar').style.width = (maxCsty['CSTY%'] * 100) + '%';
+        }
+
+        // 4. Max TS% (WR)
+        const wrs = state.players.filter(p => p.POS === 'WR');
+        const maxTs = wrs.reduce((prev, curr) => ((curr['TS%'] || 0) > (prev['TS%'] || 0) ? curr : prev), wrs[0] || {});
+        if (maxTs.NM) {
+            document.getElementById('share-value').textContent = ((maxTs['TS%'] || 0) * 100).toFixed(1) + '%';
+            document.getElementById('share-name').textContent = maxTs.NM;
+        }
+    }
+
+    // --- Leaderboard ---
+    function renderLeaderboard() {
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        
+        // Top 100 FPTS (Data is already sorted by FPTS mostly, but let's ensure)
+        const top100 = [...state.players].sort((a, b) => b.FPTS - a.FPTS).slice(0, 100);
+
+        top100.forEach((p, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fc-td fc-text-center">${i + 1}</td>
+                <td class="fc-td">
+                    <div class="fc-player-cell">
+                        <div class="fc-player-info">
+                            <span class="fc-player-name">${p.NM}</span>
+                            <span class="fc-player-team">${p.TM}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="fc-td fc-text-center"><span class="fc-badge fc-badge--${p.POS.toLowerCase()}">${p.POS}</span></td>
+                <td class="fc-td fc-text-right fc-text-bold">${p.FPTS.toFixed(1)}</td>
+                <td class="fc-td fc-text-right">${p.PPG.toFixed(1)}</td>
+                <td class="fc-td fc-text-right">${p.CL ? p.CL.toFixed(1) : '-'}</td>
+                <td class="fc-td fc-text-center">
+                    <span class="fc-trend fc-trend--up">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- Charts ---
+    let radarChart, barChart, scatterChart;
+
+    function initCharts() {
+        // Radar
+        const radarCtx = document.getElementById('radar-chart');
+        // Create canvas if not exists (it's a div in HTML, need to append canvas)
+        // Wait, HTML says <div id="radar-chart" class="fc-chart-canvas"></div>
+        // Chart.js needs a canvas.
+        radarCtx.innerHTML = '<canvas></canvas>';
+        const radarCanvas = radarCtx.querySelector('canvas');
+
+        radarChart = new Chart(radarCanvas, {
+            type: 'radar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Player Stats',
+                    data: [],
+                    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                    borderColor: 'rgba(56, 189, 248, 1)',
+                    pointBackgroundColor: 'rgba(56, 189, 248, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { display: false },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: { size: 10 }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Bar
+        const barCtx = document.getElementById('bar-chart');
+        barCtx.innerHTML = '<canvas></canvas>';
+        const barCanvas = barCtx.querySelector('canvas');
+
+        barChart = new Chart(barCanvas, {
+            type: 'bar',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    }
+                }
+            }
+        });
+        updateBarChart();
+
+        // Scatter
+        const scatterCtx = document.getElementById('scatter-chart');
+        scatterCtx.innerHTML = '<canvas></canvas>';
+        const scatterCanvas = scatterCtx.querySelector('canvas');
+
+        scatterChart = new Chart(scatterCanvas, {
+            type: 'scatter',
+            data: { datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const p = ctx.raw.player;
+                                return `${p.NM}: CSTY ${ctx.raw.x}%, CL ${ctx.raw.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Consistency % (CSTY%)', color: 'rgba(255,255,255,0.5)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Ceiling (CL)', color: 'rgba(255,255,255,0.5)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    }
+                }
+            }
+        });
+        updateScatterChart();
+    }
+
+    function updateRadar(player) {
+        if (!radarChart) return;
+
+        const pos = player.POS;
+        const labels = RADAR_LABELS[pos] || [];
+        const data = [];
+
+        labels.forEach(stat => {
+            const rank = player._ranks[stat];
+            if (rank === undefined || rank === null) {
+                data.push(0); // NA
+            } else {
+                // Normalize rank to 0-100 (1 is best -> 100)
+                // Formula: 100 - ((rank - 1) / (total - 1) * 100)
+                // Actually, simpler: (Total - Rank + 1) / Total * 100
+                // If Rank 1 of 10: (10 - 1 + 1)/10 = 100%
+                // If Rank 10 of 10: (10 - 10 + 1)/10 = 10%
+                const total = player._rankTotal || 100;
+                const score = ((total - rank + 1) / total) * 100;
+                data.push(score);
+            }
+        });
+
+        radarChart.data.labels = labels;
+        radarChart.data.datasets[0].data = data;
+        radarChart.update();
+
+        // Update Meta
+        document.getElementById('rating-value').textContent = player.FPTS.toFixed(0); // Using FPTS as "Rating" for now
+        document.getElementById('rating-meta').textContent = `${player.POS} // ${player.TM}`;
+    }
+
+    function updateBarChart() {
+        if (!barChart) return;
+
+        let filtered = state.players;
+        if (state.barFilter !== 'all') {
+            filtered = filtered.filter(p => p.POS === state.barFilter);
+        }
+
+        // Top 10 by PPG
+        const top10 = [...filtered].sort((a, b) => b.PPG - a.PPG).slice(0, 10);
+
+        barChart.data.labels = top10.map(p => p.NM);
+        barChart.data.datasets = [{
+            label: 'PPG',
+            data: top10.map(p => p.PPG),
+            backgroundColor: top10.map(p => {
+                switch(p.POS) {
+                    case 'QB': return '#f43f5e';
+                    case 'RB': return '#8b5cf6';
+                    case 'WR': return '#0ea5e9';
+                    case 'TE': return '#10b981';
+                    default: return '#cbd5e1';
+                }
+            }),
+            borderRadius: 4
+        }];
+        barChart.update();
+    }
+
+    function updateScatterChart() {
+        if (!scatterChart) return;
+
+        // Top 24 FPTS
+        const top24 = [...state.players].sort((a, b) => b.FPTS - a.FPTS).slice(0, 24);
+
+        const datasets = POSITIONS.map(pos => ({
+            label: pos,
+            data: top24.filter(p => p.POS === pos).map(p => ({
+                x: (p['CSTY%'] || 0) * 100,
+                y: p.CL || 0,
+                player: p
+            })),
+            backgroundColor: pos === 'QB' ? '#f43f5e' : pos === 'RB' ? '#8b5cf6' : pos === 'WR' ? '#0ea5e9' : '#10b981'
+        }));
+
+        scatterChart.data.datasets = datasets;
+        scatterChart.update();
+    }
+
+    // Start
+    init();
+});
