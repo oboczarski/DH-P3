@@ -776,6 +776,9 @@
   .fc-chart-panel { padding: 1.25em; }
   .fc-chart-panel .fc-card__title { font-size: 1.125em; }
   .fc-chart-panel .fc-card__subtitle-text { font-size: 0.75em; }
+  .fc-subtitle-radar { font-size: 1.5em; }
+  .fc-subtitle-bar { font-size: 1.5em; }
+  .fc-subtitle-scatter { font-size: 1.5em; }
   
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
@@ -790,6 +793,9 @@
   .fc-chart-panel {padding: 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 1.8em;}
   .fc-chart-panel .fc-card__subtitle-text {font-size: 1.5em;}
+  .fc-subtitle-radar { font-size: 1.5em; }
+  .fc-subtitle-bar { font-size: 1.5em; }
+  .fc-subtitle-scatter { font-size: 1.5em; }
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
@@ -843,7 +849,7 @@
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
-    font-size: 6px !important;
+    font-size: 8px !important;
   }
 
   /* Scatter Axis Labels: Smaller */

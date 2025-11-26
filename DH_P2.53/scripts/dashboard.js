@@ -3421,7 +3421,7 @@ function drawScatterChart(containerId, data) {
     .duration(1000)
     .delay((d, i) => i * 30)
     .ease(d3.easeBackOut)
-    .attr('r', isMobile ? 3.5 : 7)
+    .attr('r', isMobile ? 4.8 : 7)
     .selection();
 
   let activeTooltipId = null;
