@@ -3440,12 +3440,24 @@ function drawScatterChart(containerId, data) {
       <div><strong>CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
       <div><strong>CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
     `;
-    tooltip.style.left = `${pageX + 12}px`;
-    tooltip.style.top = `${pageY - 20}px`;
+    tooltip.style.left = '0px';
+    tooltip.style.top = '0px';
+    tooltip.style.display = 'block';
+    const ttWidth = tooltip.offsetWidth || 180;
+    const ttHeight = tooltip.offsetHeight || 80;
+    let left = pageX + 12;
+    if (left + ttWidth > window.innerWidth - 8) {
+      left = pageX - ttWidth - 12;
+      if (left < 8) left = 8;
+    }
+    let top = pageY - ttHeight - 12;
+    if (top < 8) top = pageY + 12;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
     tooltip.style.display = 'block';
     activeTooltipId = d.id;
   }
-  function hideTooltip() { tooltip.style.display = 'none'; }
+  function hideTooltip() { tooltip.style.display = 'none'; activeTooltipId = null; }
 
   circles.on('mouseenter', function(event,d){ if (!isMobile) showTooltip(event,d); })
          .on('mousemove', function(event,d){ if (!isMobile) showTooltip(event,d); })
@@ -3453,13 +3465,31 @@ function drawScatterChart(containerId, data) {
          .on('touchstart', function(event,d){
             event.preventDefault();
             if (!isMobile) return;
+            if (activeTooltipId && activeTooltipId !== d.id) hideTooltip();
             if (activeTooltipId === d.id) {
               hideTooltip();
-              activeTooltipId = null;
             } else {
               showTooltip(event,d);
             }
-         });
+          });
+
+  if (isMobile) {
+    document.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      const isDot = target.closest && target.closest('.scatter-dot');
+      const isTooltip = target.closest && target.closest('.scatter-tooltip');
+      if (!isDot && !isTooltip) hideTooltip();
+    }, { passive: true });
+  }
+
+  if (isMobile) {
+    document.addEventListener('touchstart', (e) => {
+      const target = e.target;
+      const isDot = target.closest && target.closest('.scatter-dot');
+      const isTooltip = target.closest && target.closest('.scatter-tooltip');
+      if (!isDot && !isTooltip) hideTooltip();
+    }, { passive: true });
+  }
   const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1]))).attr('y', d => y(d.stats.ceiling)).text(d => {
     const parts = d.name.split(' ');
     const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';

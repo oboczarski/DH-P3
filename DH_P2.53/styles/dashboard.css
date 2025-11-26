@@ -797,6 +797,13 @@
   .fc-subtitle-bar { font-size: 1.5em; }
   .fc-subtitle-scatter { font-size: 1.5em; }
 
+  /* Radial dropdown sizing */
+  .fc-custom-select { width: 14em; }
+  .fc-select-dropdown { width: 90vw; max-width: 22em; }
+  .fc-search-wrapper { padding: 1em; }
+  .fc-search-icon { width: 1.1em; height: 1.1em; left: 1em; }
+  .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
+
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
