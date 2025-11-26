@@ -3094,12 +3094,12 @@ function renderSummary() {
 
   if (topFpts) {
     setText('total-points-value', topFpts.stats.fpts.toFixed(1));
-    setText('total-points-name', formatInitialLast(topFpts.name));
+    setText('total-points-name', topFpts.name);
     setWidth('total-points-bar', (topFpts.stats.fpts / projectedMax) * 100);
   }
   if (topCstyRB) {
     setText('consistency-value', `${topCstyRB.stats.csty.toFixed(1)}%`);
-    setText('consistency-name', formatInitialLast(topCstyRB.name));
+    setText('consistency-name', topCstyRB.name);
     setWidth('consistency-bar', topCstyRB.stats.csty);
   }
   if (topPPG) {
