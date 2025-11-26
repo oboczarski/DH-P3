@@ -490,7 +490,7 @@
   grid-template-columns: repeat(4, 1fr);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: #afb9c8;
   font-weight: 700;
   text-align: center;
   flex-shrink: 0;
@@ -504,7 +504,7 @@
   gap: 0.25em;
 }
 
-.fc-dot { width: 0.5em; height: 0.5em; border-radius: 50%; }
+.fc-dot {width: 0.8em;height: 0.8em;border-radius: 14px;}
 .fc-bg-red { background-color: var(--color-red); }
 .fc-bg-orange { background-color: var(--color-orange); }
 .fc-bg-yellow { background-color: var(--color-yellow); }
@@ -776,9 +776,9 @@
   .fc-chart-panel { padding: 1.25em; }
   .fc-chart-panel .fc-card__title { font-size: 1.125em; }
   .fc-chart-panel .fc-card__subtitle-text { font-size: 0.75em; }
-  .fc-subtitle-radar { font-size: 0.75em; }
-  .fc-subtitle-bar { font-size: 0.75em; }
-  .fc-subtitle-scatter { font-size: 0.75em; }
+  .fc-subtitle-radar { font-size: 1.5em; }
+  .fc-subtitle-bar { font-size: 1.5em; }
+  .fc-subtitle-scatter { font-size: 1.5em; }
   
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
@@ -793,9 +793,6 @@
   .fc-chart-panel {padding: 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 1.8em;}
   .fc-chart-panel .fc-card__subtitle-text {font-size: 1.5em;}
-  .fc-subtitle-radar { font-size: 1.5em; }
-  .fc-subtitle-bar { font-size: 1.5em; }
-  .fc-subtitle-scatter { font-size: 1.5em; }
   .fc-subtitle-radar { font-size: 1.5em; }
   .fc-subtitle-bar { font-size: 1.5em; }
   .fc-subtitle-scatter { font-size: 1.5em; }
@@ -835,7 +832,7 @@
   }
   .fc-bar-panel .filter-btn {
     padding: 0.1em 0.38em !important;
-    font-size: 0.9em !important;
+    font-size: 2.1em !important;
     height: auto !important;
     min-height: 0 !important;
     border-radius: 0.45em;
@@ -846,7 +843,7 @@
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
-    font-size: 1.45em;
+    font-size: 1.5em;
     gap: 0.7em;
   }
   .fc-legend-full { display: none; }
@@ -1019,21 +1016,13 @@
   }
   
   .fc-select-trigger {
-    padding: 0.12rem 0.45em 0.08rem;
-    font-size: 1.35em;
-  }
-
-  .fc-search-wrapper { padding: 0.95em; }
-  .fc-search-icon { width: 1.15em; height: 1.15em; left: 1em; }
-  .fc-select-search {
-    font-size: 16px; /* prevent iOS zoom */
-    padding: 0.78em 0.78em 0.78em 2.7em;
-    line-height: 1.25;
+    padding: 0.1rem 0.4em 0.05rem;
+    font-size: 1.55em;
   }
   
   .fc-option {
-    padding: 0.55em 0.35em;
-    font-size: 1.4em;
+    padding: 0.5em 0.3em;
+    font-size: 1.65em;
     border: 1px solid #fff1;
   }
 }
