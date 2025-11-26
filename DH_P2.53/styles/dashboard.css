@@ -796,6 +796,9 @@
   .fc-subtitle-radar { font-size: 1.5em; }
   .fc-subtitle-bar { font-size: 1.5em; }
   .fc-subtitle-scatter { font-size: 1.5em; }
+  .fc-subtitle-radar { font-size: 1.5em; }
+  .fc-subtitle-bar { font-size: 1.5em; }
+  .fc-subtitle-scatter { font-size: 1.5em; }
 
   /* Radial dropdown sizing */
   .fc-custom-select { width: 14em; }
