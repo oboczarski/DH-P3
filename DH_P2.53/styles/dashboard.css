@@ -776,9 +776,9 @@
   .fc-chart-panel { padding: 1.25em; }
   .fc-chart-panel .fc-card__title { font-size: 1.125em; }
   .fc-chart-panel .fc-card__subtitle-text { font-size: 0.75em; }
-  .fc-subtitle-radar { font-size: 1.5em; }
-  .fc-subtitle-bar { font-size: 1.5em; }
-  .fc-subtitle-scatter { font-size: 1.5em; }
+  .fc-subtitle-radar { font-size: 0.75em; }
+  .fc-subtitle-bar { font-size: 0.75em; }
+  .fc-subtitle-scatter { font-size: 0.75em; }
   
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
@@ -1019,28 +1019,21 @@
   }
   
   .fc-select-trigger {
-    padding: 0.1rem 0.4em 0.05rem;
-    font-size: 1.55em;
+    padding: 0.12rem 0.45em 0.08rem;
+    font-size: 1.35em;
   }
 
   .fc-search-wrapper { padding: 0.95em; }
   .fc-search-icon { width: 1.15em; height: 1.15em; left: 1em; }
   .fc-select-search {
     font-size: 16px; /* prevent iOS zoom */
-    padding: 0.78em 0.78em 0.78em 2.6em;
+    padding: 0.78em 0.78em 0.78em 2.7em;
     line-height: 1.25;
-  }
-  .fc-search-wrapper { padding: 0.9em; }
-  .fc-search-icon { width: 1.1em; height: 1.1em; left: 1em; }
-  .fc-select-search {
-    font-size: 16px; /* prevent iOS zoom */
-    padding: 0.75em 0.75em 0.75em 2.6em;
-    line-height: 1.2;
   }
   
   .fc-option {
-    padding: 0.5em 0.3em;
-    font-size: 1.65em;
+    padding: 0.55em 0.35em;
+    font-size: 1.4em;
     border: 1px solid #fff1;
   }
 }

@@ -3121,7 +3121,7 @@ function renderCustomSelect() {
     .map(p => `
       <li class="fc-option ${p.id === dashState.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
         <span>${p.name}</span>
-        <span class="fc-option-team">${p.position} - ${p.team}</span>
+        <span class="fc-option-team fc-option-pos-${p.position.toLowerCase()}">${p.position} - ${p.team}</span>
       </li>
     `)
     .join('');
