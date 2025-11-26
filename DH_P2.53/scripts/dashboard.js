@@ -186,8 +186,8 @@ const HP_DATA = [
     "G": 11,
     "FPTS": 243.88,
     "PPG": 22.17090909,
-    "CSTY%": 0.7272727273,
-    "CL": 28.83333333,
+    "CSTY%": 0.729,
+    "CL": 28.94,
     "TS%": null,
     "paYPG": 270.6363636,
     "paRTG": 93.78,
@@ -244,13 +244,13 @@ const HP_DATA = [
     "G": 11,
     "FPTS": 232.16,
     "PPG": 21.10545455,
-    "CSTY%": 0.7272727273,
-    "CL": 28.42,
+    "CSTY%": 0.724,
+    "CL": 28.0,
     "TS%": null,
     "paYPG": 207.6363636,
     "paRTG": 106.03,
     "CMP%": 0.6720779221,
-    "TTT": 2.998376623,
+    "TTT": 2.94,
     "YDS(t)": 2582,
     "IMP/G": 12.09090909,
     "SNP%": 0.9970149254,
@@ -274,7 +274,7 @@ const HP_DATA = [
     "FPTS": 227.24,
     "PPG": 20.65818182,
     "CSTY%": 0.7272727273,
-    "CL": 29.1,
+    "CL": 29.94,
     "TS%": null,
     "paYPG": 267.3636364,
     "paRTG": 102.6,
@@ -332,7 +332,7 @@ const HP_DATA = [
     "FPTS": 224.6,
     "PPG": 20.41818182,
     "CSTY%": 0.8181818182,
-    "CL": 31.4,
+    "CL": 31.1,
     "TS%": null,
     "paYPG": 0.0,
     "paRTG": 0.0,
@@ -390,7 +390,7 @@ const HP_DATA = [
     "FPTS": 218.3,
     "PPG": 19.84545455,
     "CSTY%": 0.8181818182,
-    "CL": 31.7,
+    "CL": 31.94,
     "TS%": 0.301,
     "paYPG": 0.0,
     "paRTG": 0.0,
@@ -563,8 +563,8 @@ const HP_DATA = [
     "G": 11,
     "FPTS": 204.7,
     "PPG": 18.60909091,
-    "CSTY%": 0.7272727273,
-    "CL": 27.53333333,
+    "CSTY%": 0.729,
+    "CL": 27.06,
     "TS%": null,
     "paYPG": 0.0,
     "paRTG": 0.0,
@@ -2594,7 +2594,7 @@ const HP_DATA = [
     "FPTS": 117.2,
     "PPG": 14.65,
     "CSTY%": 0.5,
-    "CL": 24.83333333,
+    "CL": 24.94,
     "TS%": 0.132,
     "paYPG": 0.0,
     "paRTG": 0.0,
@@ -2681,7 +2681,7 @@ const HP_DATA = [
     "FPTS": 116.2,
     "PPG": 14.525,
     "CSTY%": 0.5,
-    "CL": 24.26666667,
+    "CL": 24.0,
     "TS%": 0.18,
     "paYPG": 0.0,
     "paRTG": 0.0,
@@ -3396,12 +3396,12 @@ function drawScatterChart(containerId, data) {
   tooltip.className = 'scatter-tooltip';
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
-  const yDomain = [18, 42];
-  const xDomain = [44, 102];
+  const yDomain = [18, 44];
+  const xDomain = [49.5, 103];
   const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
-  const xAxisGrid = d3.axisBottom(x).tickValues(xTicks).tickSize(-innerHeight).tickFormat('');
+  const xAxisGrid = d3.axisBottom(x).tickValues([60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
   const yAxisGrid = d3.axisLeft(y).tickValues([20, 25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
   g.append('g').attr('class', 'scatter-grid').attr('transform', `translate(0,${innerHeight})`).call(xAxisGrid);
   g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
@@ -3424,6 +3424,8 @@ function drawScatterChart(containerId, data) {
     .attr('r', isMobile ? 3.5 : 7)
     .selection();
 
+  let activeTooltipId = null;
+
   function showTooltip(event, d) {
     const pageX = (event.touches ? event.touches[0].pageX : event.pageX);
     const pageY = (event.touches ? event.touches[0].pageY : event.pageY);
@@ -3441,16 +3443,37 @@ function drawScatterChart(containerId, data) {
     tooltip.style.left = `${pageX + 12}px`;
     tooltip.style.top = `${pageY - 20}px`;
     tooltip.style.display = 'block';
+    activeTooltipId = d.id;
   }
   function hideTooltip() { tooltip.style.display = 'none'; }
 
   circles.on('mouseenter', function(event,d){ if (!isMobile) showTooltip(event,d); })
          .on('mousemove', function(event,d){ if (!isMobile) showTooltip(event,d); })
          .on('mouseleave', function(){ if (!isMobile) hideTooltip(); })
-         .on('touchstart', function(event,d){ showTooltip(event,d); event.preventDefault(); })
-         .on('touchend', function(){ hideTooltip(); });
+         .on('touchstart', function(event,d){
+            event.preventDefault();
+            if (!isMobile) return;
+            if (activeTooltipId === d.id) {
+              hideTooltip();
+              activeTooltipId = null;
+            } else {
+              showTooltip(event,d);
+            }
+         });
   const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1]))).attr('y', d => y(d.stats.ceiling)).text(d => {
-    const parts = d.name.split(' '); return `${parts[0][0]}. ${parts[parts.length - 1]}`;
+    const parts = d.name.split(' ');
+    const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
+    let last = parts.slice(1).join(' ');
+    if (parts.length >= 3) {
+      const penultimate = parts[parts.length - 2];
+      const lastWord = parts[parts.length - 1];
+      if (/^[A-Za-z]{2,3}\.?$/.test(penultimate)) {
+        last = `${penultimate} ${lastWord}`;
+      } else {
+        last = lastWord;
+      }
+    }
+    return `${firstInitial} ${last}`.trim();
   }).attr('opacity', 0);
   const labelNodes = data.map(d => {
     const cx = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));

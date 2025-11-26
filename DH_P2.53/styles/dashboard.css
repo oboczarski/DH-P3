@@ -220,7 +220,7 @@
   color: white;
   margin-top: 0.1em;
   margin-bottom: 0.05em;
-  margin-left: 10px;
+  margin-left: 0px;
 }
 
 /* Inline tags in summary titles */
@@ -253,7 +253,7 @@
 @media (max-width: 768px) {
   .fc-card-tag {
     padding: 0 0.15em;
-    font-size: 0.9em;
+    font-size: 1em;
     margin-left: 0.2em;
   }
 }
@@ -317,15 +317,16 @@
 .fc-card__footer {
   color: var(--text-secondary);
   margin-top: 0.6em;
+  text-align: center;
 }
 .fc-footer-name { font-weight: 600; }
 
 .fc-progress-accent {
   width: 100%;
-  height: 0.28em;
+  height: 0.56em;
   border-radius: var(--radius-full);
-  margin-top: 0.5em;
-  margin-bottom: 0.35em;
+  margin-top: 0.9em;
+  margin-bottom: 0em;
   position: relative;
   overflow: hidden;
   background: rgba(255,255,255,0.04);
@@ -339,9 +340,9 @@
   background-image: linear-gradient(90deg, rgba(16,185,129,0.32), rgba(16,185,129,0.06));
 }
 
-.fc-icon-value { width: 1.75em; height: 1.75em; }
-.fc-icon-consistency { width: 1.75em; height: 1.75em; display: inline-flex; align-items: center; justify-content: center; }
-.fc-metric-sub { display: flex; align-items: center; gap: 0.35em; }
+.fc-icon-value {width: 1.5em;height: 1.5em;}
+.fc-icon-consistency {width: 1.75em;height: 1.35em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
+.fc-metric-sub {display: flex;align-items: center;gap: 0.35em;}
 
 /* Charts */
 .fc-chart-panel {
@@ -750,24 +751,24 @@
 @media (min-width: 769px) {
   .fc-summary-card { padding: 1.25em; }
   .fc-summary-card .fc-card__header { margin-bottom: 1em; }
-  .fc-summary-card .fc-card__title { font-size: 1.125em; }
+  .fc-summary-card .fc-card__title {font-size: 1.125em;margin-left: 10px;}
   .fc-summary-card .fc-card__subtitle { font-size: 0.75em; }
   .fc-summary-card .fc-badge { padding: 0.25em 0.5em; font-size: 0.75em; }
   .fc-summary-card .fc-metric-value { font-size: 2.25em; }
-  .fc-summary-card .fc-metric-sub { margin-bottom: 0.25em; font-size: 0.875em; }
-  .fc-summary-card .fc-card__footer { margin-top: 1em; font-size: 0.875em; }
+  .fc-summary-card .fc-metric-sub {margin-bottom: 0.025em;font-size: 1.2em;}
+  .fc-summary-card .fc-card__footer {margin-top: 1em;font-size: 1.15em;}
 }
 
 /* --- SUMMARY CARDS (Mobile) --- */
 @media (max-width: 768px) {
-  .fc-summary-card {padding: 1.25em 1em 1em 1em;}
+  .fc-summary-card {padding: 1.25em 0.5em 0.6em 0.5em;}
   .fc-summary-card .fc-card__header { margin-bottom: 1.25em; }
-  .fc-summary-card .fc-card__title {font-size: 1.7em;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.05em;}
+  .fc-summary-card .fc-card__title {font-size: 1.7em;margin-left: 7px;}
+  .fc-summary-card .fc-card__subtitle {font-size: 1.15em;}
   .fc-summary-card .fc-badge { padding: 0.35em 0.75em; font-size: 0.85em; }
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
-  .fc-summary-card .fc-metric-sub {margin-bottom: 0.15em;font-size: 1em;}
-  .fc-summary-card .fc-card__footer { margin-top: 1.25em; font-size: 1em; }
+  .fc-summary-card .fc-metric-sub {margin-bottom: 0em;font-size: 1.5em;}
+  .fc-summary-card .fc-card__footer {margin-top: 0.57em;font-size: 1.4em;}
 }
 
 /* --- CHART PANELS (Desktop) --- */
@@ -787,8 +788,8 @@
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 1.65em;}
-  .fc-chart-panel .fc-card__subtitle-text {font-size: 1.3em;}
+  .fc-chart-panel .fc-card__title {font-size: 1.8em;}
+  .fc-chart-panel .fc-card__subtitle-text {font-size: 1.5em;}
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
@@ -812,13 +813,13 @@
     gap: 0.25em;
     flex: 0 0 auto;
     background: #dddded05;
-    border: 1px solid #ffffff10;
+    border: 1px solid #ffffff05;
     border-radius: 0.6em;
     padding: 0.1em;
   }
   .fc-bar-panel .filter-btn {
     padding: 0.1em 0.38em !important;
-    font-size: 1.6em !important;
+    font-size: 2em !important;
     height: auto !important;
     min-height: 0 !important;
     border-radius: 0.45em;
@@ -888,7 +889,7 @@
   top: calc(100% + 0.5em);
   right: 0; /* Align right to prevent overflow on mobile */
   width: 18em; /* Wider than trigger for better search experience */
-  background: #1e293b; /* Solid background to cover content */
+  background: #3b3d5a; /* Solid background to cover content */
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5em;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
@@ -903,13 +904,13 @@
 }
 
 .fc-custom-select.is-open .fc-select-dropdown {
-  opacity: 1;
+  opacity: 0.97;
   visibility: visible;
   transform: translateY(0);
 }
 
 .fc-search-wrapper {
-  padding: 0.75em;
+  padding: 0.65em;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   display: flex;
@@ -921,6 +922,7 @@
   left: 1em;
   color: var(--text-muted);
   pointer-events: none;
+  font-size: 2em;
 }
 
 .fc-select-search {
@@ -930,7 +932,8 @@
   border-radius: 0.25em;
   padding: 0.5em 0.5em 0.5em 2.25em; /* Space for icon */
   color: white;
-  font-size: 0.85em;
+  font-size: 1.15em;
+  margin-left: 4px;
   outline: none;
   font-family: inherit;
 }
@@ -941,7 +944,7 @@
 
 .fc-select-options {
   list-style: none;
-  max-height: 15em;
+  max-height: 32em;
   overflow-y: auto;
   padding: 0.25em;
 }
@@ -981,7 +984,7 @@
 }
 
 .fc-option-team {
-  font-size: 0.75em;
+  font-size: 1em;
   color: var(--text-muted);
   margin-left: 0.5em;
 }
@@ -994,18 +997,19 @@
   }
   
   .fc-select-dropdown {
-    width: 85vw; /* Wide on mobile */
-    max-width: 20em;
+    width: 96vw; /* Wide on mobile */
+    max-width: 28em;
     right: 0; /* Align with right edge */
   }
   
   .fc-select-trigger {
-    padding: 0.1rem 0.8em 0.05rem;
-    font-size: 1.25em;
+    padding: 0.1rem 0.4em 0.05rem;
+    font-size: 1.55em;
   }
   
   .fc-option {
-    padding: 0.75em 1em;
-    font-size: 1em;
+    padding: 0.5em 0.3em;
+    font-size: 1.65em;
+    border: 1px solid #fff1;
   }
 }
