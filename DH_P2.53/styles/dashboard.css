@@ -241,6 +241,12 @@
 .fc-card-tag--pink {color: #bd6694;}
 .fc-card-tag--purple {color: var(--color-purple-light);} 
 .fc-card-tag--emerald {color: var(--color-emerald-light);} 
+
+.fc-card-tag--mini {
+  font-size: 1em;
+  margin-left: 0;
+  margin-right: 0.15em;
+}
 .fc-card-tag--emerald {color: var(--color-emerald-light);} 
 
 @media (max-width: 768px) {
