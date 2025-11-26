@@ -217,7 +217,7 @@
 .fc-card__title {
   font-weight: 700;
   color: white;
-  margin-top: 0.25em;
+  margin-top: 0.35em;
 }
 
 /* Inline tags in summary titles */
@@ -237,13 +237,14 @@
 }
 .fc-card-tag--cyan {color: #4ce7ffd4;border: 1px solid #6cc6fd44;}
 .fc-card-tag--pink {color: #bd6694;border: 1px solid #ff8aad44;}
-.fc-card-tag--purple {color: var(--color-purple-light);border: 1px solid #ae79ff54;}
+.fc-card-tag--purple {color: var(--color-purple-light);}
 
 @media (max-width: 768px) {
   .fc-card-tag {
     border-radius: 3px;
-    padding: 0.2em 0.3em;
+    padding: 0.2em 0.4em;
     font-size: 0.9em;
+    margin-left: 4px;
   }
 }
 
@@ -319,6 +320,24 @@
   align-items: center;
   flex-shrink: 0;
   z-index: 20;
+}
+
+.fc-chart-header--bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35em;
+}
+
+.fc-chart-header-top--bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  width: 100%;
+}
+
+.fc-chart-subtitle {
+  margin: 0;
 }
 
 .fc-chart-header--radar {
@@ -707,7 +726,7 @@
 @media (max-width: 768px) {
   .fc-summary-card {padding: 1.25em 1em 1em 1em;}
   .fc-summary-card .fc-card__header { margin-bottom: 1.25em; }
-  .fc-summary-card .fc-card__title { font-size: 1.4em; }
+  .fc-summary-card .fc-card__title {font-size: 1.7em;}
   .fc-summary-card .fc-card__subtitle {font-size: 1.05em;}
   .fc-summary-card .fc-badge { padding: 0.35em 0.75em; font-size: 0.85em; }
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
@@ -732,12 +751,16 @@
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em;}
-  .fc-chart-panel .fc-card__title { font-size: 1.4em; }
+  .fc-chart-panel .fc-card__title {font-size: 1.55em;}
   .fc-chart-panel .fc-card__subtitle-text {font-size: 1.3em;}
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
+  .fc-chart-header-top--bar {
+    flex-wrap: nowrap;
+    gap: 0.35em;
+  }
   .fc-radar-panel .fc-chart-container { min-height: 32em; }
   .fc-bar-panel .fc-chart-container { min-height: 28em; }
 
@@ -745,15 +768,24 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.6em;
+    width: 100%;
   }
   .fc-bar-panel .fc-filter-group {
-    width: 100%;
+    width: auto;
     flex-wrap: wrap;
+    gap: 0.25em;
+    flex: 0 0 auto;
+    background: #dddded05;
+    border: 1px solid #ffffff10;
+    border-radius: 0.6em;
+    padding: 0.1em;
   }
   .fc-bar-panel .filter-btn {
-    padding: 0.16em 0.42em;
-    font-size: 0.8em;
-    line-height: 1.05;
+    padding: 0.1em 0.38em !important;
+    font-size: 1.6em !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 0.45em;
   }
 
   /* Scatter Panel: Tall on mobile */
