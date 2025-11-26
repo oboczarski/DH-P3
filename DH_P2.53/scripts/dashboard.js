@@ -3462,15 +3462,15 @@ function drawScatterChart(containerId, data) {
   circles.on('mouseenter', function(event,d){ if (!isMobile) showTooltip(event,d); })
          .on('mousemove', function(event,d){ if (!isMobile) showTooltip(event,d); })
          .on('mouseleave', function(){ if (!isMobile) hideTooltip(); })
-         .on('touchstart', function(event,d){
+         .on('click touchstart', function(event,d){
             if (!isMobile) return;
-            // If same dot tapped again, toggle off
+            event.preventDefault();
+            // always show on tap; if same dot tapped again, toggle off
             if (activeTooltipId === d.id) {
               hideTooltip();
               return;
             }
-            // Switch from any other dot
-            if (activeTooltipId && activeTooltipId !== d.id) hideTooltip();
+            hideTooltip();
             showTooltip(event,d);
           });
 
@@ -3497,6 +3497,17 @@ function drawScatterChart(containerId, data) {
     }
     return `${firstInitial} ${last}`.trim();
   }).attr('opacity', 0);
+
+  if (isMobile) {
+    labels.on('click touchstart', function(event,d){
+      if (activeTooltipId === d.id) {
+        hideTooltip();
+        return;
+      }
+      hideTooltip();
+      showTooltip(event,d);
+    });
+  }
   const labelNodes = data.map(d => {
     const cx = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));
     const cy = y(d.stats.ceiling);
