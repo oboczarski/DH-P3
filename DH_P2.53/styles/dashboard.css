@@ -835,7 +835,7 @@
   }
   .fc-bar-panel .filter-btn {
     padding: 0.1em 0.38em !important;
-    font-size: 2.1em !important;
+    font-size: 0.9em !important;
     height: auto !important;
     min-height: 0 !important;
     border-radius: 0.45em;
@@ -1021,6 +1021,13 @@
   .fc-select-trigger {
     padding: 0.1rem 0.4em 0.05rem;
     font-size: 1.55em;
+  }
+  .fc-search-wrapper { padding: 0.9em; }
+  .fc-search-icon { width: 1.1em; height: 1.1em; left: 1em; }
+  .fc-select-search {
+    font-size: 16px; /* prevent iOS zoom */
+    padding: 0.75em 0.75em 0.75em 2.6em;
+    line-height: 1.2;
   }
   
   .fc-option {

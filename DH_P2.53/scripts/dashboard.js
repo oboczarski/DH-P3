@@ -3464,25 +3464,15 @@ function drawScatterChart(containerId, data) {
          .on('mouseleave', function(){ if (!isMobile) hideTooltip(); })
          .on('touchstart', function(event,d){
             if (!isMobile) return;
-            if (activeTooltipId && activeTooltipId !== d.id) hideTooltip();
-            showTooltip(event,d);
-          })
-          .on('touchend', function(event,d){
-            if (!isMobile) return;
-            // toggle off if same dot tapped again
+            // If same dot tapped again, toggle off
             if (activeTooltipId === d.id) {
               hideTooltip();
+              return;
             }
+            // Switch from any other dot
+            if (activeTooltipId && activeTooltipId !== d.id) hideTooltip();
+            showTooltip(event,d);
           });
-
-  if (isMobile) {
-    document.addEventListener('touchstart', (e) => {
-      const target = e.target;
-      const isDot = target.closest && target.closest('.scatter-dot');
-      const isTooltip = target.closest && target.closest('.scatter-tooltip');
-      if (!isDot && !isTooltip) hideTooltip();
-    }, { passive: true });
-  }
 
   if (isMobile) {
     document.addEventListener('touchstart', (e) => {
