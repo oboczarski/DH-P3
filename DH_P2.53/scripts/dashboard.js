@@ -52,6 +52,21 @@ const toPct = (v) => {
   if (!Number.isFinite(n)) return null;
   return n <= 1 && n >= 0 ? n * 100 : n;
 };
+const formatPct1 = (n) => Number.isFinite(n) ? `${n.toFixed(1)}%` : 'NA';
+const formatNum1 = (n) => Number.isFinite(n) ? n.toFixed(1) : 'NA';
+const ordinal = (n) => {
+  const s = ['th','st','nd','rd'];
+  const v = n % 100;
+  return Number.isFinite(n) ? `${n}${s[(v-20)%10]||s[v]||s[0]}` : 'NA';
+};
+const rankColor = (rank) => {
+  if (!Number.isFinite(rank)) return '#9ca3af';
+  if (rank === 1) return '#22c55e';         // bright green
+  if (rank <= 3) return '#38bdf8';          // cyan for elite
+  if (rank <= 8) return '#a855f7';          // purple for very good
+  if (rank <= 15) return '#f59e0b';         // amber for solid
+  return '#f87171';                         // red for lower
+};
 
 function normalizePlayer(row) {
   const pos = (row.POS || '').toUpperCase();
@@ -68,6 +83,7 @@ function normalizePlayer(row) {
       csty: toPct(row['CSTY%']),
       ts: toPct(row['TS%']),
       ceiling: toNum(row.CL),
+      cl: toNum(row.CL),
       pa_ypg: toNum(row['paYPG']),
       pass_rtg: toNum(row['paRTG']),
       cmp_pct: toPct(row['CMP%']),
@@ -108,10 +124,10 @@ function computePositionalRanks(players) {
 
   const EFF_THRESH = 40; // 40% snap share
   const statConfig = {
-    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['pa_ypg', false], ['ttt', true], ['yds_total', false], ['imp_per_g', false] ],
-    RB: [ ['yds_total', false], ['snp_pct', false], ['ypc', false], ['rec_tgt', false], ['mtf_per_att', false], ['yco_per_att', false] ],
-    WR: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false] ],
-    TE: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false] ]
+    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['pa_ypg', false], ['ttt', true], ['yds_total', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
+    RB: [ ['yds_total', false], ['snp_pct', false], ['ypc', false], ['rec_tgt', false], ['mtf_per_att', false], ['yco_per_att', false], ['cl', false], ['csty', false] ],
+    WR: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
+    TE: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ]
   };
 
   Object.entries(statConfig).forEach(([pos, stats]) => {
@@ -455,6 +471,24 @@ function drawScatterChart(containerId, data) {
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  // Tooltip element
+  const tooltip = document.createElement('div');
+  tooltip.className = 'scatter-tooltip';
+  Object.assign(tooltip.style, {
+    position: 'fixed',
+    pointerEvents: 'none',
+    background: 'rgba(10,12,24,0.9)',
+    color: '#e5e7eb',
+    padding: '6px 8px',
+    border: '1px solid #4b5563',
+    borderRadius: '6px',
+    fontSize: '12px',
+    lineHeight: '1.4',
+    zIndex: '9999',
+    display: 'none'
+  });
+  document.body.appendChild(tooltip);
   const yDomain = [23, 42];
   const xDomain = d3.extent(data, d => d.stats.csty).map((v, i) => (i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)));
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
@@ -467,7 +501,33 @@ function drawScatterChart(containerId, data) {
   g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
   g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
-  g.selectAll('.scatter-dot').data(data).enter().append('circle').attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`).attr('cx', d => x(d.stats.csty)).attr('cy', d => y(d.stats.ceiling)).attr('r', 0).transition().duration(1000).delay((d, i) => i * 30).ease(d3.easeBackOut).attr('r', isMobile ? 3.5 : 7);
+  const circles = g.selectAll('.scatter-dot').data(data).enter().append('circle').attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`).attr('cx', d => x(d.stats.csty)).attr('cy', d => y(d.stats.ceiling)).attr('r', 0).transition().duration(1000).delay((d, i) => i * 30).ease(d3.easeBackOut).attr('r', isMobile ? 3.5 : 7).selection();
+
+  function showTooltip(event, d) {
+    const pageX = (event.touches ? event.touches[0].pageX : event.pageX);
+    const pageY = (event.touches ? event.touches[0].pageY : event.pageY);
+    const clRank = d.statRanks?.cl;
+    const cstyRank = d.statRanks?.csty;
+    const clRankTxt = Number.isFinite(clRank) ? ordinal(clRank) : 'NA';
+    const cstyRankTxt = Number.isFinite(cstyRank) ? ordinal(cstyRank) : 'NA';
+    const clColor = rankColor(clRank);
+    const cstyColor = rankColor(cstyRank);
+    tooltip.innerHTML = `
+      <div><strong>${d.name}</strong> • ${d.position}</div>
+      <div>CL: <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
+      <div>CSTY%: <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
+    `;
+    tooltip.style.left = `${pageX + 12}px`;
+    tooltip.style.top = `${pageY - 20}px`;
+    tooltip.style.display = 'block';
+  }
+  function hideTooltip() { tooltip.style.display = 'none'; }
+
+  circles.on('mouseenter', function(event,d){ if (!isMobile) showTooltip(event,d); })
+         .on('mousemove', function(event,d){ if (!isMobile) showTooltip(event,d); })
+         .on('mouseleave', function(){ if (!isMobile) hideTooltip(); })
+         .on('touchstart', function(event,d){ showTooltip(event,d); event.preventDefault(); })
+         .on('touchend', function(){ hideTooltip(); });
   const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(d.stats.csty)).attr('y', d => y(d.stats.ceiling)).text(d => {
     const parts = d.name.split(' '); return `${parts[0][0]}. ${parts[parts.length - 1]}`;
   }).attr('opacity', 0);
