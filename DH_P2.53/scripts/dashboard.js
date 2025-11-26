@@ -3078,7 +3078,7 @@ function ppgBarData(filter) {
     .filter(p => Number.isFinite(p.stats?.ppg) && p.stats.ppg > 0)
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.stats.ppg - a.stats.ppg)
-    .slice(0, 10)
+    .slice(0, 8)
     .map(p => ({ label: p.name.split(' ').pop() || p.name, value: p.stats.ppg }));
 }
 
@@ -3214,13 +3214,15 @@ function updateLegendForPosition(pos) {
 
 function renderScatter() {
   const topByFpts = [...players]
-    .filter(p => Number.isFinite(p.stats?.fpts))
-    .sort((a, b) => b.stats.fpts - a.stats.fpts);
+    .filter(p => Number.isFinite(p.stats?.ppg))
+    .sort((a, b) => b.stats.ppg - a.stats.ppg);
   const scatterPool = [];
-  for (const p of topByFpts) {
-    if (Number.isFinite(p.stats.csty) && Number.isFinite(p.stats.ceiling)) scatterPool.push(p);
-    if (scatterPool.length >= 24) break;
-  }
+  ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
+    const byPos = topByFpts
+      .filter(p => p.position === pos && Number.isFinite(p.stats.csty) && Number.isFinite(p.stats.ceiling))
+      .slice(0, 6);
+    scatterPool.push(...byPos);
+  });
   if (!scatterPool.length) return;
   drawScatterChart('scatter-chart', scatterPool);
 }
@@ -3348,7 +3350,7 @@ function drawBarChart(containerId, data) {
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
   const x = d3.scaleBand().range([0, innerWidth]).domain(data.map(d => d.label)).paddingInner(0.6).paddingOuter(0.05);
   const maxValue = d3.max(data, d => d.value) || 0;
-  const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.15]);
+  const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.05]);
   const colorScale = d3.scaleLinear().domain([0, data.length - 1]).range(['#06b6d4', '#a855f7']).interpolate(d3.interpolateRgb);
   const uid = Date.now();
   data.forEach((d, i) => {
@@ -3394,17 +3396,17 @@ function drawScatterChart(containerId, data) {
   tooltip.className = 'scatter-tooltip';
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
-  const yDomain = [23, 41];
-  const xDomain = [54, 102];
-  const xTicks = [60, 70, 80, 90, 100];
+  const yDomain = [18, 42];
+  const xDomain = [44, 102];
+  const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
   const xAxisGrid = d3.axisBottom(x).tickValues(xTicks).tickSize(-innerHeight).tickFormat('');
-  const yAxisGrid = d3.axisLeft(y).tickValues([25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
+  const yAxisGrid = d3.axisLeft(y).tickValues([20, 25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
   g.append('g').attr('class', 'scatter-grid').attr('transform', `translate(0,${innerHeight})`).call(xAxisGrid);
   g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
-  g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickValues(xTicks)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
+  g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d => `${d}%`)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
+  g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([20, 25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
   g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
   const circles = g.selectAll('.scatter-dot')

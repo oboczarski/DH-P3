@@ -5,27 +5,21 @@
   --bg-gradient-start: #020617;
   --bg-gradient-mid: #1e1b4b;
   --bg-gradient-end: #020617;
-  
   --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  
   --color-cyan: #06b6d4;
   --color-cyan-light: #22d3ee;
   --color-cyan-bg: rgba(6, 182, 212, 0.1);
-  
   --color-purple: #a855f7;
   --color-purple-light: #c084fc;
   --color-purple-bg: rgba(168, 85, 247, 0.1);
-  
   --color-pink: #ec4899;
   --color-pink-light: #f472b6;
   --color-pink-bg: rgba(236, 72, 153, 0.1);
-  
   --color-emerald: #10b981;
   --color-emerald-light: #34d399;
   --color-emerald-bg: rgba(16, 185, 129, 0.1);
-
   --color-red: #ef4444;
   --color-orange: #f97316;
   --color-yellow: #eab308;
@@ -42,8 +36,7 @@
   --radius-md: 0.75em;
   --radius-sm: 0.5em;
   --radius-full: 9999px;
-  
-  --font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-family: 'Product Sans', system-ui, -apple-system, sans-serif;
 
   /* Base Styles for Dashboard Context */
   font-family: var(--font-family);
@@ -149,8 +142,8 @@
 
 .fc-grid-charts {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1.5em;
+  grid-template-columns: 1.15fr 1.35fr; /* Bar chart slightly wider than radar */
+  gap: 1.25em;
 }
 
 /* Cards & Glassmorphism */
@@ -315,7 +308,7 @@
 
 /* Charts */
 .fc-chart-panel {
-  min-height: 31.25em; /* 500px */
+  min-height: 32em;
   display: flex;
   flex-direction: column;
 }
@@ -326,6 +319,24 @@
   align-items: center;
   flex-shrink: 0;
   z-index: 20;
+}
+
+.fc-chart-header--radar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35em;
+}
+
+.fc-chart-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+}
+
+.fc-chart-subtitle {
+  margin: 0.61em;
+  text-align: center;
 }
 
 .fc-card__subtitle-text {
@@ -347,9 +358,12 @@
 .fc-chart-container {
   flex: 1;
   width: 100%;
-  min-height: 21.875em; /* 350px */
+  min-height: 23em;
   position: relative;
 }
+
+.fc-radar-panel .fc-chart-container { min-height: 26em; }
+.fc-bar-panel .fc-chart-container { min-height: 26em; }
 
 .fc-chart-canvas {
   position: absolute;
@@ -367,6 +381,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 26em;
 }
 
 .fc-radar-center {
@@ -662,6 +677,8 @@
    Separated for thorough implementation
    ========================================= */
 
+/* Keep side-by-side layout; no column stacking */
+
 .fc-legend-abbr { display: none; } /* Default hidden */
 
 /* --- GLOBAL HEADINGS (Desktop) --- */
@@ -716,7 +733,28 @@
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em;}
   .fc-chart-panel .fc-card__title { font-size: 1.4em; }
-  .fc-chart-panel .fc-card__subtitle-text { font-size: 0.85em; }
+  .fc-chart-panel .fc-card__subtitle-text {font-size: 1.3em;}
+
+  /* Keep dropdown to the right of the title on mobile */
+  .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
+  .fc-chart-header-top .fc-custom-select {min-width: 17em;}
+  .fc-radar-panel .fc-chart-container { min-height: 32em; }
+  .fc-bar-panel .fc-chart-container { min-height: 28em; }
+
+  .fc-bar-panel .fc-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6em;
+  }
+  .fc-bar-panel .fc-filter-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .fc-bar-panel .filter-btn {
+    padding: 0.16em 0.42em;
+    font-size: 0.8em;
+    line-height: 1.05;
+  }
 
   /* Scatter Panel: Tall on mobile */
   .fc-scatter-panel { min-height: 60em; }
@@ -894,9 +932,8 @@
   }
   
   .fc-select-trigger {
-    margin-top: -8px;
     padding: 0.1rem 0.8em 0.05rem;
-    font-size: 0.9em;
+    font-size: 1.25em;
   }
   
   .fc-option {
