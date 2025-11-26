@@ -61,11 +61,10 @@ const ordinal = (n) => {
 };
 const rankColor = (rank) => {
   if (!Number.isFinite(rank)) return '#9ca3af';
-  if (rank === 1) return '#22c55e';         // bright green
-  if (rank <= 3) return '#38bdf8';          // cyan for elite
-  if (rank <= 8) return '#a855f7';          // purple for very good
-  if (rank <= 15) return '#f59e0b';         // amber for solid
-  return '#f87171';                         // red for lower
+  if (rank <= 3) return '#76ffc3';         // bright green
+  if (rank <= 6) return '#3EACD1';          // cyan for elite
+  if (rank <= 10) return '#728cff';          // purple for very good
+  return '#A27FF0';                         // red for lower
 };
 
 function normalizePlayer(row) {
