@@ -420,7 +420,11 @@ function drawBarChart(containerId, data) {
   const margin = { top: height * 0.12, right: width * 0.03, bottom: height * 0.12, left: width * 0.03 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
-  const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('class', 'scatter-svg');
   const defs = svg.append('defs');
   const filter = defs.append('filter').attr('id', 'neon-glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
   filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
@@ -474,33 +478,35 @@ function drawScatterChart(containerId, data) {
   // Tooltip element
   const tooltip = document.createElement('div');
   tooltip.className = 'scatter-tooltip';
-  Object.assign(tooltip.style, {
-    position: 'fixed',
-    pointerEvents: 'none',
-    background: 'rgba(10,12,24,0.9)',
-    color: '#e5e7eb',
-    padding: '6px 8px',
-    border: '1px solid #4b5563',
-    borderRadius: '6px',
-    fontSize: '12px',
-    lineHeight: '1.4',
-    zIndex: '9999',
-    display: 'none'
-  });
+  tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [23, 42];
-  const xDomain = d3.extent(data, d => d.stats.csty).map((v, i) => (i === 0 ? Math.max(0, v - 5) : Math.min(100, v + 5)));
+  const xDomain = [54, 102];
+  const xTicks = [60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
-  const xAxisGrid = d3.axisBottom(x).tickSize(-innerHeight).tickFormat('').ticks(5);
+  const xAxisGrid = d3.axisBottom(x).tickValues(xTicks).tickSize(-innerHeight).tickFormat('');
   const yAxisGrid = d3.axisLeft(y).tickValues([25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
   g.append('g').attr('class', 'scatter-grid').attr('transform', `translate(0,${innerHeight})`).call(xAxisGrid);
   g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
-  g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).ticks(5)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
+  g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickValues(xTicks)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
   g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
-  const circles = g.selectAll('.scatter-dot').data(data).enter().append('circle').attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`).attr('cx', d => x(d.stats.csty)).attr('cy', d => y(d.stats.ceiling)).attr('r', 0).transition().duration(1000).delay((d, i) => i * 30).ease(d3.easeBackOut).attr('r', isMobile ? 3.5 : 7).selection();
+  const circles = g.selectAll('.scatter-dot')
+    .data(data)
+    .enter()
+    .append('circle')
+    .attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`)
+    .attr('cx', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1])))
+    .attr('cy', d => y(d.stats.ceiling))
+    .attr('r', 0)
+    .transition()
+    .duration(1000)
+    .delay((d, i) => i * 30)
+    .ease(d3.easeBackOut)
+    .attr('r', isMobile ? 3.5 : 7)
+    .selection();
 
   function showTooltip(event, d) {
     const pageX = (event.touches ? event.touches[0].pageX : event.pageX);
@@ -513,8 +519,8 @@ function drawScatterChart(containerId, data) {
     const cstyColor = rankColor(cstyRank);
     tooltip.innerHTML = `
       <div><strong>${d.name}</strong> • ${d.position}</div>
-      <div>CL: <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
-      <div>CSTY%: <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
+      <div><strong>CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
+      <div><strong>CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
     `;
     tooltip.style.left = `${pageX + 12}px`;
     tooltip.style.top = `${pageY - 20}px`;
@@ -527,10 +533,14 @@ function drawScatterChart(containerId, data) {
          .on('mouseleave', function(){ if (!isMobile) hideTooltip(); })
          .on('touchstart', function(event,d){ showTooltip(event,d); event.preventDefault(); })
          .on('touchend', function(){ hideTooltip(); });
-  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(d.stats.csty)).attr('y', d => y(d.stats.ceiling)).text(d => {
+  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1]))).attr('y', d => y(d.stats.ceiling)).text(d => {
     const parts = d.name.split(' '); return `${parts[0][0]}. ${parts[parts.length - 1]}`;
   }).attr('opacity', 0);
-  const labelNodes = data.map(d => ({ ...d, fx: x(d.stats.csty), fy: y(d.stats.ceiling), x: x(d.stats.csty), y: y(d.stats.ceiling) }));
+  const labelNodes = data.map(d => {
+    const cx = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));
+    const cy = y(d.stats.ceiling);
+    return { ...d, fx: cx, fy: cy, x: cx, y: cy };
+  });
   const sim = d3.forceSimulation(labelNodes)
     .force('anchorX', d3.forceX(d => x(d.stats.csty)).strength(3))
     .force('anchorY', d3.forceY(d => y(d.stats.ceiling) - 10).strength(3))

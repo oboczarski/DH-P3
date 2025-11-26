@@ -556,6 +556,10 @@
   --glass-blur: 6px;
 }
 
+.scatter-svg {
+  border-radius: var(--radius-lg);
+}
+
 .fc-legend-inline {
   display: flex;
   gap: 1em;
@@ -615,6 +619,20 @@
 .scatter-dot-rb { fill: var(--color-emerald-light); filter: drop-shadow(0 0 8px var(--color-emerald)); }
 .scatter-dot-wr { fill: var(--color-cyan-light); filter: drop-shadow(0 0 8px var(--color-cyan)); }
 .scatter-dot-te { fill: var(--color-orange); filter: drop-shadow(0 0 8px var(--color-orange)); }
+
+.scatter-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: rgba(10, 12, 24, 0.92);
+  color: #e5e7eb;
+  padding: 6px 8px;
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  z-index: 9999;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
 
 /* =========================================
    RESPONSIVE SIZING & LAYOUT RULES
