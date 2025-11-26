@@ -225,26 +225,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25em 0.5em;
-  margin-left: 0.4em;
-  font-size: 0.78em;
+  padding: 0 0.15em;
+  margin-left: 0.2em;
+  font-size: 0.9em;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-radius: 6px;
   line-height: 1;
   background: transparent;
+  border: none;
 }
-.fc-card-tag--cyan {color: #4ce7ffd4;border: 1px solid #6cc6fd44;}
-.fc-card-tag--pink {color: #bd6694;border: 1px solid #ff8aad44;}
-.fc-card-tag--purple {color: var(--color-purple-light);}
+.fc-card-tag--cyan {color: #4ce7ffd4;}
+.fc-card-tag--pink {color: #bd6694;}
+.fc-card-tag--purple {color: var(--color-purple-light);} 
+.fc-card-tag--emerald {color: var(--color-emerald-light);} 
 
 @media (max-width: 768px) {
   .fc-card-tag {
-    border-radius: 3px;
-    padding: 0.2em 0.4em;
+    padding: 0 0.15em;
     font-size: 0.9em;
-    margin-left: 4px;
+    margin-left: 0.2em;
   }
 }
 
@@ -262,6 +262,7 @@
   display: flex;
   align-items: flex-end;
   gap: 1em;
+  justify-content: center;
 }
 
 .fc-metric-value {
@@ -751,7 +752,7 @@
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 1.55em;}
+  .fc-chart-panel .fc-card__title {font-size: 1.65em;}
   .fc-chart-panel .fc-card__subtitle-text {font-size: 1.3em;}
 
   /* Keep dropdown to the right of the title on mobile */
@@ -793,7 +794,7 @@
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
-    font-size: 1.25em;
+    font-size: 1.45em;
     gap: 0.7em;
   }
   .fc-legend-full { display: none; }
