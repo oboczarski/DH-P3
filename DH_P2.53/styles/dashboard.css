@@ -377,7 +377,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.05em;
+  gap: 0;
   pointer-events: none;
 }
 
@@ -386,21 +386,32 @@
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.18em;
   margin-bottom: -0.15em;
 }
 
 .fc-radar-score {
-  font-size: 3em;
+  font-size: 2.35em;
   font-weight: 900;
   color: white;
   line-height: 1;
   filter: drop-shadow(0 0 0.9375em rgba(255, 255, 255, 0.2));
 }
 
+.fc-radar-suffix {
+  font-size: 0.6em;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.05em;
+  margin-left: 0.04em;
+}
+
 .fc-radar-meta {
-  font-size: 0.001em;
-  color: transparent;
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: -0.05em;
 }
 
 .fc-legend {

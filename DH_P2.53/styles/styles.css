@@ -227,6 +227,11 @@
             text-shadow: 0 0 9px #5300ff;
             margin-bottom: 0.5rem;
         }
+        #welcome-screen > p {
+            font-size: 1rem;
+            line-height: 1.35;
+            color: var(--color-text-secondary);
+        }
 .custom-tooltip {
   position: absolute;
   padding: 0.4rem 0.8rem;
@@ -3229,7 +3234,7 @@ font-weight: 500 !important;
 #rosterPlayerCardKey .kv-left .value,
 #rosterPlayerCardKey .kv-right .value{
   font-size: 1rem !important;            /* numeric size (edit) */
-  font-weight: 800 !important;
+  font-weight: 400 !important;
   line-height: 1.15 !important;
 }
 #rosterPlayerCardKey .legend-ktc{ color: #00EBC7 !important; }

@@ -59,6 +59,13 @@ const ordinal = (n) => {
   const v = n % 100;
   return Number.isFinite(n) ? `${n}${s[(v-20)%10]||s[v]||s[0]}` : 'NA';
 };
+const ordinalParts = (n) => {
+  if (!Number.isFinite(n)) return { num: 'NA', suffix: '' };
+  const s = ['th','st','nd','rd'];
+  const v = n % 100;
+  const suffix = s[(v-20)%10] || s[v] || s[0];
+  return { num: `${Math.trunc(n)}`, suffix };
+};
 const rankColor = (rank) => {
   if (!Number.isFinite(rank)) return '#9ca3af';
   if (rank <= 3) return '#76ffc3';         // bright green
@@ -269,10 +276,11 @@ function setupCustomSelect() {
 
 function renderSelectedDetails() {
   const player = getSelected();
-  const posRankText = Number.isFinite(player.ranks?.posRank) ? player.ranks.posRank : 'NA';
-  setText('rating-label-top', 'FPTS POS•RK');
-  setText('rating-value', posRankText);
-  setText('rating-meta', '');
+  const posRank = player.ranks?.posRank;
+  const { num, suffix } = ordinalParts(posRank);
+  setText('rating-label-top', 'FPTS');
+  setHTML('rating-value', `${num}<span class="fc-radar-suffix">${suffix}</span>`);
+  setText('rating-meta', 'POS•RK');
 }
 
 function renderRadar() {
@@ -341,6 +349,7 @@ function wireEvents() {
 function updateFilterButtons() {
   document.querySelectorAll('#filter-buttons button').forEach(btn => {
     const active = btn.dataset.filter === dashState.filter;
+    btn.classList.toggle('active', active);
     btn.classList.toggle('fc-filter-btn--active', active);
   });
 }
@@ -349,6 +358,10 @@ function updateFilterButtons() {
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el) el.textContent = value;
+}
+function setHTML(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = value;
 }
 function setWidth(id, pct) {
   const el = document.getElementById(id);

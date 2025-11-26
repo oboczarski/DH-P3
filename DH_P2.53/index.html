@@ -209,11 +209,11 @@
               <p class="fc-card__subtitle-text">Points Per Game distribution across the top 10 at each position</p>
             </div>
             <div class="fc-filter-group" id="filter-buttons">
-              <button data-filter="all" class="fc-filter-btn fc-filter-btn--active">All</button>
-              <button data-filter="WR" class="fc-filter-btn">WR</button>
-              <button data-filter="RB" class="fc-filter-btn">RB</button>
-              <button data-filter="QB" class="fc-filter-btn">QB</button>
-              <button data-filter="TE" class="fc-filter-btn">TE</button>
+              <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
+              <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
+              <button data-filter="RB" data-position="RB" class="filter-btn">RB</button>
+              <button data-filter="WR" data-position="WR" class="filter-btn">WR</button>
+              <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
             </div>
           </div>
           <div class="fc-chart-container">
@@ -356,8 +356,8 @@
 </div>
 <!-- Bottom row: KTC left, ADP right (no chips) -->
 <div class="player-value-line legend-bottom"><div class="legend-bottom-bg">
-<span class="kv-left"><span class="value player-ktc legend-ktc">KTC VALUE(POS RK)</span></span>
-<span class="kv-right"><span class="value player-adp legend-adp">PPG</span></span>
+<span class="kv-left"><span class="value player-ktc legend-ktc"><b>KTC VALUE</b> (POS RK)</span></span>
+<span class="kv-right"><span class="value player-adp legend-adp"><b>PPG</b></span></span>
 </div></div>
 </div><div class="legend-footnote" id="rosterCardFootnote">KTC VALUE AND ADP ARE SPECIFIC TO LEAGUE SCORING / FORMAT.</div></section>
 <div id="loading" class="hidden">
