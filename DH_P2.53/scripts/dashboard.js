@@ -480,7 +480,7 @@ function drawScatterChart(containerId, data) {
   tooltip.className = 'scatter-tooltip';
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
-  const yDomain = [23, 42];
+  const yDomain = [23, 41];
   const xDomain = [54, 102];
   const xTicks = [60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);

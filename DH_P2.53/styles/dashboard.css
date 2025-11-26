@@ -386,7 +386,7 @@
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.02em;
   margin-bottom: -0.15em;
 }
 
@@ -440,7 +440,7 @@
 .fc-filter-btn {
   padding: 0.25em 0.75em;
   border-radius: 0.5em;
-  font-size: 0.75em;
+  font-size: 1em;
   background: transparent;
   color: var(--text-muted);
   border: 1px solid transparent;
@@ -623,7 +623,7 @@
 .scatter-tooltip {
   position: fixed;
   pointer-events: none;
-  background: rgba(10, 12, 24, 0.92);
+  background: linear-gradient(145deg, #346e, #457e, #567e);
   color: #e5e7eb;
   padding: 6px 8px;
   border: 1px solid #4b5563;
@@ -733,7 +733,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5em;
