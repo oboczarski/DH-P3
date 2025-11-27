@@ -779,7 +779,23 @@
   .fc-subtitle-radar { font-size: 1.5em; }
   .fc-subtitle-bar { font-size: 1.5em; }
   .fc-subtitle-scatter { font-size: 1.5em; }
-  
+
+  .fc-radar-label {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #fe9d9d;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: -0.15em;
+  }
+  .fc-radar-meta {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: -0.05em;
+  }
+
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
   .fc-legend-inline { font-size: 1.2em; }
@@ -951,6 +967,7 @@
   outline: none;
   font-family: inherit;
 }
+.fc-select-search::placeholder { color: rgba(255,255,255,0.35); }
 
 .fc-select-search:focus {
   border-color: var(--color-cyan);
@@ -1023,6 +1040,24 @@
   .fc-select-trigger {
     padding: 0.1rem 0.4em 0.05rem;
     font-size: 1.6em;
+  }
+
+  .fc-search-icon {
+    position: absolute;
+    left: 0.5em;
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 3em;
+    padding-bottom: 1px;
+  }
+
+  .fc-search-icon {
+    position: absolute;
+    left: 0.5em;
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 3em;
+    padding-bottom: 1px;
   }
   
   .fc-option {
