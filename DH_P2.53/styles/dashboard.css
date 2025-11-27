@@ -448,7 +448,12 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  pointer-events: none;
+  pointer-events: auto; /* Changed from none to auto */
+  cursor: pointer;      /* Added cursor pointer */
+  transition: transform 0.2s ease;
+}
+.fc-radar-center:hover {
+  transform: scale(1.05);
 }
 
 .fc-radar-label {
@@ -1065,4 +1070,228 @@
     font-size: 2.2em;
     border: 1px solid #fff1;
   }
+}
+
+/* Radar Modal Styles */
+.fc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.fc-modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fc-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.fc-modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5em;
+  padding: 1.5em;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+.fc-modal.is-visible .fc-modal-content {
+  transform: scale(1);
+}
+
+.fc-modal-close {
+  position: absolute;
+  top: 0.75em;
+  right: 0.75em;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5em;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.2em;
+  transition: color 0.2s;
+}
+.fc-modal-close:hover {
+  color: white;
+}
+
+/* New Modal Title Styles */
+#radar-modal-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fc-modal-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+/* Position Tags - Inherited from global styles.css */
+/* .player-tag styles removed to use global definition */
+
+.fc-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75em 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.fc-stat-row:last-child {
+  border-bottom: none;
+}
+
+.fc-stat-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.fc-stat-values {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.fc-stat-val {
+  color: white;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 1.1em;
+}
+
+.fc-stat-rank {
+  font-size: 0.85em;
+  font-weight: 600;
+  padding: 0.15em 0.5em;
+  border-radius: 0.25em;
+  background: rgba(255, 255, 255, 0.05);
+  min-width: 3em;
+  text-align: center;
+}
+
+.fc-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 0.5em; /* Avoid scrollbar overlap */
+}
+
+/* Mobile Modal Optimizations */
+@media (max-width: 768px) {
+  .fc-modal-content {
+    width: 95%;
+    padding: 1.2em 1em;
+    border-radius: 1em;
+  }
+  
+  #radar-modal-title {
+    font-size: 1.3em;
+    margin-bottom: 0.6em;
+    padding-right: 1.5em; /* Space for close button */
+  }
+
+  .fc-modal-close {
+    font-size: 1.8em;
+    top: 0.3em;
+    right: 0.3em;
+    color: var(--text-secondary);
+  }
+
+  .fc-stat-row {
+    padding: 0.5em 0;
+  }
+
+  .fc-stat-label {
+    font-size: 0.95em;
+  }
+
+  .fc-stat-val {
+    font-size: 1.1em;
+  }
+
+  .fc-stat-rank {
+    font-size: 0.85em;
+    min-width: 3em;
+    padding: 0.15em 0.5em;
+  }
+  
+  .fc-modal-body {
+    max-height: 60vh;
+  }
+}
+
+/* Radar Modal Position Tags - Ported from styles.css */
+.fc-modal-pos-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    position: relative;
+    line-height: 0.9rem;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.005);
+    backdrop-filter: blur(1px) saturate(180%);
+    border: 1px solid rgba(250, 250, 250, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+}
+
+.fc-modal-pos-tag::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 8px;
+    backdrop-filter: blur(1px);
+    box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
+    inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
+    opacity: 0.34;
+    z-index: -1;
+    filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+    pointer-events: none;
+}
+
+.fc-modal-pos-tag.QB {
+    color: #FF3A75c0;
+    box-shadow: inset 0 0 10px #FF3A7513;
+}
+
+.fc-modal-pos-tag.RB {
+    color: #00EBC7c0;
+    box-shadow: inset 0 0 6px #00EBC715;
+}
+
+.fc-modal-pos-tag.WR {
+    color: #58A7FFca;
+    box-shadow: inset 0 0 10px #58A7FF25;
+}
+
+.fc-modal-pos-tag.TE {
+    color: #B469FFca;
+    box-shadow: inset 0 0 10px #B469FF26;
 }

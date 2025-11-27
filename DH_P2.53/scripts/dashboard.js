@@ -3242,11 +3242,100 @@ function wireEvents() {
     });
   }
 
+  // Radar Center Click
+  const radarCenter = document.querySelector('.fc-radar-center');
+  if (radarCenter) {
+    radarCenter.addEventListener('click', openRadarModal);
+  }
+
+  // Modal Events
+  const modal = document.getElementById('radar-modal');
+  const closeBtn = modal?.querySelector('.fc-modal-close');
+  const overlay = modal?.querySelector('.fc-modal-overlay');
+
+  if (closeBtn) closeBtn.addEventListener('click', closeRadarModal);
+  if (overlay) overlay.addEventListener('click', closeRadarModal);
+  
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('is-visible')) {
+      closeRadarModal();
+    }
+  });
+
   window.addEventListener('resize', debounce(() => {
     renderRadar();
     renderBar();
     renderScatter();
   }, 200));
+}
+
+function openRadarModal() {
+  const player = getSelected();
+  if (!player) return;
+
+  const modal = document.getElementById('radar-modal');
+  const title = document.getElementById('radar-modal-title');
+  const body = document.getElementById('radar-modal-body');
+  
+  if (!modal || !title || !body) return;
+
+  title.innerHTML = `
+    <div class="fc-modal-title-row">
+      <span class="fc-modal-player-name">${player.name}</span>
+      <div class="fc-modal-pos-tag ${player.position}">${player.position}</div>
+    </div>
+  `;
+  
+  const cfg = RADAR_STATS_CONFIG[player.position];
+  if (!cfg) return;
+
+  const statsHtml = cfg.stats.map((statKey, idx) => {
+    const label = cfg.labels[idx];
+    let val = player.stats[statKey];
+    let rank = null;
+    
+    // Determine rank based on stat key logic from buildRadarDataset
+    if (statKey === 'fpts') rank = player.ranks?.posRank;
+    else if (statKey === 'ppg') rank = player.ranks?.ppgPosRank;
+    else rank = player.statRanks?.[statKey];
+
+    // Format value
+    let displayVal = 'NA';
+    if (Number.isFinite(val)) {
+      // Check if it's a percentage stat
+      if (['csty', 'ts', 'cmp_pct', 'snp_pct', 'ts_per_rr'].includes(statKey) || label.includes('%')) {
+         displayVal = val.toFixed(1) + '%';
+      } else {
+         displayVal = val.toFixed(1);
+      }
+    }
+
+    const rankTxt = Number.isFinite(rank) ? ordinal(rank) : '-';
+    const rColor = rankColor(rank);
+
+    return `
+      <div class="fc-stat-row">
+        <span class="fc-stat-label">${label}</span>
+        <div class="fc-stat-values">
+          <span class="fc-stat-val">${displayVal}</span>
+          <span class="fc-stat-rank" style="color: ${rColor}; border: 1px solid ${rColor}40;">${rankTxt}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  body.innerHTML = statsHtml;
+  modal.classList.add('is-visible');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeRadarModal() {
+  const modal = document.getElementById('radar-modal');
+  if (modal) {
+    modal.classList.remove('is-visible');
+    modal.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function updateFilterButtons() {
