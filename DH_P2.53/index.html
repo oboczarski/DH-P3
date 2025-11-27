@@ -250,18 +250,6 @@
     </main>
   </div>
 
-  <!-- Radar Stats Modal -->
-  <div id="radar-modal" class="fc-modal" aria-hidden="true">
-    <div class="fc-modal-overlay"></div>
-    <div class="fc-modal-content fc-glass">
-      <button class="fc-modal-close" aria-label="Close modal">&times;</button>
-      <h3 id="radar-modal-title" class="fc-modal-title">Player Stats</h3>
-      <div id="radar-modal-body" class="fc-modal-body">
-        <!-- Stats injected via JS -->
-      </div>
-    </div>
-  </div>
-
 <div id="welcome-screen">
 <picture class="welcome-logo">
   <img 
@@ -434,6 +422,19 @@
   This App uses KTC player values and Sleeper roster data (updated daily). Data is owned by their respective providers. This App is not affiliated with or endorsed by KTC or Sleeper.
 </footer>
 </div>
+
+<!-- Radar Stats Modal - Direct child of body for page-relative positioning -->
+<div id="radar-modal" class="fc-modal" aria-hidden="true">
+  <div class="fc-modal-overlay"></div>
+  <div class="fc-modal-content fc-glass">
+    <button class="fc-modal-close" aria-label="Close modal">&times;</button>
+    <h3 id="radar-modal-title" class="fc-modal-title">Player Stats</h3>
+    <div id="radar-modal-body" class="fc-modal-body">
+      <!-- Stats injected via JS -->
+    </div>
+  </div>
+</div>
+
 <script defer src="scripts/app.js?v=20250826235225"></script>  <script src="scripts/dh-scramble.js"></script>
 <script src="scripts/dashboard.js"></script>
 </body>

@@ -1072,17 +1072,16 @@
   }
 }
 
-/* Radar Modal Styles */
+/* Radar Modal Styles - Page-relative positioning (scrolls with content) */
 .fc-modal {
-  position: fixed;
-  inset: 0;
+  position: absolute;   /* Relative to the document/page, NOT viewport */
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  /* Position on the page - adjust these values as needed */
+  top: 345px;           /* Distance from TOP of the page */
+  right: 30px;          /* Distance from RIGHT of the page */
 }
 .fc-modal.is-visible {
   opacity: 1;
@@ -1090,15 +1089,12 @@
 }
 
 .fc-modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(1px);
+  display: none;  /* No overlay needed for inline modal */
 }
 
 .fc-modal-content {
   position: relative;
-  width: 90%;
+  width: auto;
   max-width: 400px;
   background: rgb(39 48 67 / 95%);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1197,11 +1193,22 @@
 
 /* Mobile Modal Optimizations */
 @media (max-width: 768px) {
+  /* Adjust page position for mobile - tweak these values */
+  .fc-modal {
+    top: 345px;         /* Distance from TOP of page */
+    right: 10px;        /* Distance from RIGHT of page */
+  }
+
   .fc-modal-content {
-    width: 100%;
     padding: 0.9em 0.58em 0.9em 0.8em;
     border-radius: 1em;
     max-width: 221px;
+    transform: scale(0.8);
+    transform-origin: top right;
+  }
+  
+  .fc-modal.is-visible .fc-modal-content {
+    transform: scale(0.8);
   }
   
   #radar-modal-title {
