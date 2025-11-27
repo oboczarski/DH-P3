@@ -3290,14 +3290,6 @@ function openRadarModal() {
   
   if (!modal || !title || !body) return;
 
-  // Calculate position: align modal top with legend top
-  const legend = document.querySelector('.fc-radar-panel .fc-legend');
-  if (legend) {
-    const legendRect = legend.getBoundingClientRect();
-    // Set modal top to legend's top position
-    modal.style.setProperty('--radar-modal-top', `${legendRect.top}px`);
-  }
-
   title.innerHTML = `
     <div class="fc-modal-title-row">
       <span class="fc-modal-player-name">${player.name}</span>

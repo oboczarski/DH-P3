@@ -1075,13 +1075,10 @@
 /* Radar Modal Styles */
 .fc-modal {
   position: fixed;
-  /* Top positioned to align with radar legend area */
-  top: var(--radar-modal-top, 50%);
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
@@ -1093,8 +1090,10 @@
 }
 
 .fc-modal-overlay {
-  /* Hidden to keep radar chart fully visible */
-  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(1px);
 }
 
 .fc-modal-content {
