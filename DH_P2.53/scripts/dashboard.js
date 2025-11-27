@@ -3310,6 +3310,35 @@ function openRadarModal() {
   const cfg = RADAR_STATS_CONFIG[player.position];
   if (!cfg) return;
 
+  // Ring colors matching the radial bar graph
+  const ringColors = ['#ef4444', '#f97316', '#eab308', '#22d3ee', '#8b5cf6', '#10b981', '#ec4899', '#a855f7'];
+
+  // Number formatting config per stat key
+  const formatConfig = {
+    // General stats
+    fpts: { decimals: 1, percent: false },
+    ppg: { decimals: 1, percent: false },
+    csty: { decimals: 1, percent: true },
+    cl: { decimals: 1, percent: false },
+    ts: { decimals: 1, percent: true },
+    pa_ypg: { decimals: 1, percent: false },
+    pass_rtg: { decimals: 1, percent: false },
+    cmp_pct: { decimals: 1, percent: true },
+    ttt: { decimals: 2, percent: false },
+    yds_total: { decimals: 0, percent: false },
+    imp_per_g: { decimals: 1, percent: false },
+    snp_pct: { decimals: 1, percent: true },
+    ypc: { decimals: 2, percent: false },
+    rec_tgt: { decimals: 0, percent: false },
+    rec: { decimals: 0, percent: false },
+    mtf_per_att: { decimals: 3, percent: false },
+    yco_per_att: { decimals: 2, percent: false },
+    rec_ypg: { decimals: 1, percent: false },
+    yprr: { decimals: 2, percent: false },
+    first_down_rec_rate: { decimals: 3, percent: false },
+    ts_per_rr: { decimals: 1, percent: true }
+  };
+
   const statsHtml = cfg.stats.map((statKey, idx) => {
     const label = cfg.labels[idx];
     let val = player.stats[statKey];
@@ -3320,23 +3349,24 @@ function openRadarModal() {
     else if (statKey === 'ppg') rank = player.ranks?.ppgPosRank;
     else rank = player.statRanks?.[statKey];
 
-    // Format value
+    // Format value based on config
     let displayVal = 'NA';
     if (Number.isFinite(val)) {
-      // Check if it's a percentage stat
-      if (['csty', 'ts', 'cmp_pct', 'snp_pct', 'ts_per_rr'].includes(statKey) || label.includes('%')) {
-         displayVal = val.toFixed(1) + '%';
+      const fmt = formatConfig[statKey] || { decimals: 1, percent: false };
+      if (fmt.percent) {
+        displayVal = val.toFixed(fmt.decimals) + '%';
       } else {
-         displayVal = val.toFixed(1);
+        displayVal = val.toFixed(fmt.decimals);
       }
     }
 
     const rankTxt = Number.isFinite(rank) ? ordinal(rank) : '-';
     const rColor = getRadarRankColor(rank);
+    const labelColor = ringColors[idx % ringColors.length];
 
     return `
       <div class="fc-stat-row">
-        <span class="fc-stat-label">${label}</span>
+        <span class="fc-stat-label" style="color: ${labelColor};">${label}</span>
         <div class="fc-stat-values">
           <span class="fc-stat-val" style="color: ${rColor};">${displayVal}</span>
           <span class="fc-stat-rank" style="color: ${rColor}; border: 1px solid ${rColor}40;">${rankTxt}</span>
