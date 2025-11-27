@@ -779,11 +779,11 @@
 /* --- CHART PANELS (Desktop) --- */
 @media (min-width: 769px) {
   .fc-chart-panel { padding: 1.25em; }
-  .fc-chart-panel .fc-card__title { font-size: 1.125em; }
-  .fc-chart-panel .fc-card__subtitle-text { font-size: 0.75em; }
-  .fc-subtitle-radar { font-size: 1.5em; }
-  .fc-subtitle-bar { font-size: 1.5em; }
-  .fc-subtitle-scatter { font-size: 1.5em; }
+  .fc-chart-panel .fc-card__title {font-size: 1.5em;}
+  .fc-chart-panel .fc-card__subtitle-text {}
+  .fc-subtitle-radar {font-size: 1.2em;}
+  .fc-subtitle-bar {font-size: 1.2em;}
+  .fc-subtitle-scatter {font-size: 1.2em;}
 
   .fc-radar-label {
     font-size: 1.1em;
