@@ -3366,7 +3366,7 @@ function openRadarModal() {
 
     return `
       <div class="fc-stat-row">
-        <span class="fc-stat-label">${label}<span class="fc-stat-dot" style="background-color: ${dotColor};"></span></span>
+        <span class="fc-stat-label"><span class="fc-stat-dot" style="background-color: ${dotColor};"></span>${label}</span>
         <div class="fc-stat-values">
           <span class="fc-stat-val" style="color: ${rColor};">${displayVal}</span>
           <span class="fc-stat-rank" style="color: ${rColor}; border: 1px solid ${rColor}40;">${rankTxt}</span>
