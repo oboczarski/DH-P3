@@ -3362,11 +3362,11 @@ function openRadarModal() {
 
     const rankTxt = Number.isFinite(rank) ? ordinal(rank) : '-';
     const rColor = getRadarRankColor(rank);
-    const labelColor = ringColors[idx % ringColors.length];
+    const dotColor = ringColors[idx % ringColors.length];
 
     return `
       <div class="fc-stat-row">
-        <span class="fc-stat-label" style="color: ${labelColor};">${label}</span>
+        <span class="fc-stat-label">${label}<span class="fc-stat-dot" style="background-color: ${dotColor};"></span></span>
         <div class="fc-stat-values">
           <span class="fc-stat-val" style="color: ${rColor};">${displayVal}</span>
           <span class="fc-stat-rank" style="color: ${rColor}; border: 1px solid ${rColor}40;">${rankTxt}</span>
