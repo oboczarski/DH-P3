@@ -1080,7 +1080,7 @@
   pointer-events: none;
   transition: opacity 0.3s ease;
   /* Horizontal position set via JS to center over radar chart */
-  top: 345px;           /* Distance from TOP of the page */
+  top: 645px;           /* Distance from TOP of the page */
   left: 0;              /* Will be set by JS */
   transform: translateX(-50%); /* Center the modal on the left position */
 }
@@ -1107,6 +1107,13 @@
 }
 .fc-modal.is-visible .fc-modal-content {
   transform: scale(1);
+}
+
+/* Desktop-only: Make modal wider */
+@media (min-width: 769px) {
+  .fc-modal-content {
+    min-width: 380px;
+  }
 }
 
 .fc-modal-close {
@@ -1215,8 +1222,10 @@
   
   #radar-modal-title {
     font-size: 0.9em;
-    margin-bottom: 0.6em;
-    padding-right: 1.5em; /* Space for close button */
+    margin-bottom: 0.1em;
+    padding-right: 2.5em; /* Space for close button */
+    padding-bottom: 0.4em;
+    border-bottom: 1px solid #FFF2;
   }
 
   .fc-modal-close {
@@ -1240,9 +1249,11 @@
   }
 
   .fc-stat-rank {
-    font-size: 0.55em;
+    font-size: 0.6em;
     min-width: 3.4em;
     max-width: 3.4em;
+    min-height: 2.1em;
+    max-height: 2.1em;
     padding: 0.15em 0.5em;
     border-radius: 5px;
   }
