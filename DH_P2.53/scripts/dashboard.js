@@ -3290,6 +3290,16 @@ function openRadarModal() {
   
   if (!modal || !title || !body) return;
 
+  // Center modal horizontally over the radar chart
+  const radarPanel = document.querySelector('.fc-radar-panel');
+  if (radarPanel) {
+    const rect = radarPanel.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    // Calculate center of radar panel (page-relative)
+    const centerX = rect.left + scrollX + (rect.width / 2);
+    modal.style.left = centerX + 'px';
+  }
+
   title.innerHTML = `
     <div class="fc-modal-title-row">
       <span class="fc-modal-player-name">${player.name}</span>

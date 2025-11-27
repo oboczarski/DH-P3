@@ -1079,9 +1079,10 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  /* Position on the page - adjust these values as needed */
+  /* Horizontal position set via JS to center over radar chart */
   top: 345px;           /* Distance from TOP of the page */
-  right: 30px;          /* Distance from RIGHT of the page */
+  left: 0;              /* Will be set by JS */
+  transform: translateX(-50%); /* Center the modal on the left position */
 }
 .fc-modal.is-visible {
   opacity: 1;
@@ -1193,10 +1194,11 @@
 
 /* Mobile Modal Optimizations */
 @media (max-width: 768px) {
-  /* Adjust page position for mobile - tweak these values */
+  /* Mobile: Horizontal position still set by JS, just adjust top */
   .fc-modal {
     top: 345px;         /* Distance from TOP of page */
-    right: 155px;        /* Distance from RIGHT of page */
+    /* left is set by JS for centering over radar chart */
+    /* translateX(-50%) is inherited from base styles for centering */
   }
 
   .fc-modal-content {
@@ -1204,7 +1206,7 @@
     border-radius: 1em;
     max-width: 221px;
     transform: scale(0.8);
-    transform-origin: top left;
+    transform-origin: top center;
   }
   
   .fc-modal.is-visible .fc-modal-content {
