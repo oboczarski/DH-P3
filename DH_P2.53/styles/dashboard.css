@@ -1093,14 +1093,14 @@
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(1px);
 }
 
 .fc-modal-content {
   position: relative;
   width: 90%;
   max-width: 400px;
-  background: rgba(15, 23, 42, 0.9);
+  background: rgb(39 48 67 / 95%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5em;
   padding: 1.5em;
@@ -1136,7 +1136,6 @@
     font-size: 1.2rem;
     font-weight: 300;
     color: white;
-    text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
@@ -1164,7 +1163,7 @@
 
 .fc-stat-label {
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.9em;
 }
 
@@ -1176,7 +1175,7 @@
 
 .fc-stat-val {
   color: white;
-  font-weight: 700;
+  font-weight: 400;
   font-size: 1.1em;
 }
 
@@ -1193,50 +1192,54 @@
 .fc-modal-body {
   max-height: 70vh;
   overflow-y: auto;
-  padding-right: 0.5em; /* Avoid scrollbar overlap */
+  padding-right: 0.2em; /* Avoid scrollbar overlap */
 }
 
 /* Mobile Modal Optimizations */
 @media (max-width: 768px) {
   .fc-modal-content {
-    width: 95%;
-    padding: 1.2em 1em;
+    width: 100%;
+    padding: 0.9em 0.58em 0.9em 0.8em;
     border-radius: 1em;
+    max-width: 221px;
   }
   
   #radar-modal-title {
-    font-size: 1.3em;
+    font-size: 0.9em;
     margin-bottom: 0.6em;
     padding-right: 1.5em; /* Space for close button */
   }
 
   .fc-modal-close {
-    font-size: 1.8em;
-    top: 0.3em;
-    right: 0.3em;
+    font-size: 1.5em;
+    top: -0.2em;
+    right: 0.1em;
     color: var(--text-secondary);
   }
 
   .fc-stat-row {
-    padding: 0.5em 0;
+    padding: 0.35em 0;
   }
 
   .fc-stat-label {
-    font-size: 0.95em;
+    font-size: 0.75em;
   }
 
   .fc-stat-val {
-    font-size: 1.1em;
+    font-size: 0.8em;
+    margin-right: 1px;
   }
 
   .fc-stat-rank {
-    font-size: 0.85em;
-    min-width: 3em;
+    font-size: 0.55em;
+    min-width: 3.4em;
+    max-width: 3.4em;
     padding: 0.15em 0.5em;
+    border-radius: 5px;
   }
   
   .fc-modal-body {
-    max-height: 60vh;
+    max-height: 30vh;
   }
 }
 
@@ -1247,9 +1250,9 @@
     justify-content: center;
     font-weight: 700;
     position: relative;
-    line-height: 0.9rem;
-    font-size: 0.9rem;
-    padding: 4px 8px;
+    line-height: 0.6rem;
+    font-size: 0.6rem;
+    padding: 4px 4px;
     background: rgba(255, 255, 255, 0.005);
     backdrop-filter: blur(1px) saturate(180%);
     border: 1px solid rgba(250, 250, 250, 0.12);
@@ -1277,7 +1280,7 @@
 
 .fc-modal-pos-tag.QB {
     color: #FF3A75c0;
-    box-shadow: inset 0 0 16px #ff3a7529;
+    box-shadow: inset 0 0 11px #ff3a7529;
 }
 
 .fc-modal-pos-tag.RB {
@@ -1287,7 +1290,7 @@
 
 .fc-modal-pos-tag.WR {
     color: #58A7FFca;
-    box-shadow: inset 0 0 10px #58A7FF25;
+    box-shadow: inset 0 0 4px #58A7FF25;
 }
 
 .fc-modal-pos-tag.TE {

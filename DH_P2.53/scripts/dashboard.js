@@ -2975,6 +2975,16 @@ const rankColor = (rank) => {
   return '#A27FF0';                         // red for lower
 };
 
+const getRadarRankColor = (rank) => {
+  if (!Number.isFinite(rank)) return '#9ca3af';
+  if (rank <= 3) return '#76FFC3';
+  if (rank <= 12) return '#3EACD1';
+  if (rank <= 18) return '#728CFF';
+  if (rank <= 24) return '#A27FF0';
+  if (rank <= 36) return '#FF6FE1';
+  return '#FF2EB2';
+};
+
 function normalizePlayer(row) {
   const pos = (row.POS || '').toUpperCase();
   const snp = toPct(row['SNP%']);
@@ -3312,7 +3322,7 @@ function openRadarModal() {
     }
 
     const rankTxt = Number.isFinite(rank) ? ordinal(rank) : '-';
-    const rColor = rankColor(rank);
+    const rColor = getRadarRankColor(rank);
 
     return `
       <div class="fc-stat-row">
