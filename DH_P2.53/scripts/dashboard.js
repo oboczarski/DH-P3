@@ -3089,7 +3089,7 @@ function ppgBarData(filter) {
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.stats.ppg - a.stats.ppg)
     .slice(0, 8)
-    .map(p => ({ label: p.name.split(' ').pop() || p.name, value: p.stats.ppg }));
+    .map(p => ({ label: p.name, value: p.stats.ppg }));
 }
 
 // Rendering
@@ -3472,7 +3472,9 @@ function drawBarChart(containerId, data) {
   const rect = container.getBoundingClientRect();
   const width = rect.width || 640;
   const height = rect.height || 360;
-  const margin = { top: height * 0.12, right: width * 0.03, bottom: height * 0.12, left: width * 0.03 };
+  const isMobile = window.innerWidth < 768;
+  // Reduced top margin to move bars up, increased bottom for angled labels on mobile
+  const margin = { top: height * 0.06, right: width * 0.03, bottom: isMobile ? height * 0.18 : height * 0.12, left: width * 0.03 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container)
@@ -3489,7 +3491,8 @@ function drawBarChart(containerId, data) {
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
   const x = d3.scaleBand().range([0, innerWidth]).domain(data.map(d => d.label)).paddingInner(0.6).paddingOuter(0.05);
   const maxValue = d3.max(data, d => d.value) || 0;
-  const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.05]);
+  // Reduced headroom above bars (1.02 instead of 1.05)
+  const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.02]);
   const colorScale = d3.scaleLinear().domain([0, data.length - 1]).range(['#06b6d4', '#a855f7']).interpolate(d3.interpolateRgb);
   const uid = Date.now();
   data.forEach((d, i) => {
@@ -3503,16 +3506,44 @@ function drawBarChart(containerId, data) {
   const barGroups = g.selectAll('.bar-group').data(data).enter().append('g').attr('class', 'bar-group');
   const barWidth = x.bandwidth();
   const radius = barWidth / 2;
-  const isMobile = window.innerWidth < 768;
   const strokeMain = Math.max(1, width * 0.008);
   const strokeGlow = Math.max(2, width * 0.015);
-  const fontSizeVal = Math.max(8, width * 0.02);
-  const fontSizeAxis = isMobile ? 5 : Math.max(8, width * 0.015);
+  // Font sizes - increased axis font size
+  const fontSizeVal = isMobile ? Math.max(6, width * 0.016) : Math.max(14, width * 0.024);
+  const fontSizeAxis = isMobile ? Math.max(6, width * 0.016) : Math.max(11, width * 0.02);
+  
+  // Helper to format player name: First initial + truncated last name (max 9 chars)
+  function formatBarLabel(fullName) {
+    const parts = fullName.split(' ');
+    const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
+    let lastName = parts.slice(1).join(' ');
+    // Truncate last name to 9 characters max (including hyphens/spaces)
+    if (lastName.length > 9) {
+      lastName = lastName.substring(0, 9);
+    }
+    return `${firstInitial} ${lastName}`.trim();
+  }
+  
+  // Outer glow rect
   barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeGlow).attr('stroke-opacity', 0.3).style('filter', 'url(#neon-glow)').transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
+  // Gradient fill rect
   barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', (d, i) => `url(#bar-grad-${uid}-${i})`).transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
+  // Main stroke rect
   barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeMain).transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
-  barGroups.append('text').text(d => d.value.toFixed(1)).attr('x', d => x(d.label) + barWidth / 2).attr('y', innerHeight).attr('text-anchor', 'middle').attr('fill', (d, i) => colorScale(i)).attr('font-size', `${fontSizeVal}px`).attr('font-weight', '700').style('text-shadow', '0 0 10px rgba(0,0,0,1)').style('opacity', 0).transition().duration(1000).delay((d, i) => i * 50 + 400).attr('y', d => y(d.value) - (isMobile ? height * 0.05 : height * 0.02)).style('opacity', 1);
-  g.append('g').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickSize(0)).selectAll('text').style('text-anchor', 'middle').style('fill', '#94a3b8').style('font-size', `${fontSizeAxis}px`).style('font-weight', '500').attr('dy', '1.5em');
+  
+  // Data labels ABOVE the bars (original position)
+  barGroups.append('text').text(d => d.value.toFixed(1)).attr('x', d => x(d.label) + barWidth / 2).attr('y', innerHeight).attr('text-anchor', 'middle').attr('fill', (d, i) => colorScale(i)).attr('font-size', `${fontSizeVal}px`).attr('font-weight', '700').style('text-shadow', '0 0 10px rgba(0,0,0,1)').style('opacity', 0).transition().duration(1000).delay((d, i) => i * 50 + 400).attr('y', d => y(d.value) - (isMobile ? height * 0.02 : height * 0.02)).style('opacity', 1);
+  
+  // X-axis with formatted names at bottom
+  const xAxis = g.append('g').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickSize(0).tickFormat((d, i) => formatBarLabel(d)));
+  xAxis.selectAll('text')
+    .style('text-anchor', isMobile ? 'end' : 'middle')
+    .style('fill', (d, i) => colorScale(i))
+    .style('font-size', `${fontSizeAxis}px`)
+    .style('font-weight', '600')
+    .attr('dx', isMobile ? '1.1em' : '0')
+    .attr('dy', isMobile ? '1.1em' : '1.5em')
+    .attr('transform', isMobile ? 'rotate(-45)' : 'rotate(0)');
   g.select('.domain').remove();
 }
 
@@ -3548,19 +3579,56 @@ function drawScatterChart(containerId, data) {
   g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([20, 25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
   g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
+  
+  // Calculate offsets for overlapping dots
+  const dotRadius = isMobile ? 4.8 : 7;
+  const offsetDistance = dotRadius * 1.2; // How far apart to spread overlapping dots
+  
+  // Group dots by their exact x,y position and calculate offsets
+  const positionMap = new Map();
+  data.forEach((d, i) => {
+    const rawX = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));
+    const rawY = y(d.stats.ceiling);
+    const key = `${rawX.toFixed(1)},${rawY.toFixed(1)}`;
+    if (!positionMap.has(key)) {
+      positionMap.set(key, []);
+    }
+    positionMap.get(key).push({ data: d, index: i, rawX, rawY });
+  });
+  
+  // Calculate offset positions for each dot
+  const dotPositions = new Array(data.length);
+  positionMap.forEach((dots) => {
+    if (dots.length === 1) {
+      // No overlap, use original position
+      dotPositions[dots[0].index] = { cx: dots[0].rawX, cy: dots[0].rawY };
+    } else {
+      // Multiple dots at same position - spread them around the center point
+      const centerX = dots[0].rawX;
+      const centerY = dots[0].rawY;
+      const angleStep = (2 * Math.PI) / dots.length;
+      dots.forEach((dot, i) => {
+        const angle = angleStep * i - Math.PI / 2; // Start from top
+        const offsetX = Math.cos(angle) * offsetDistance;
+        const offsetY = Math.sin(angle) * offsetDistance;
+        dotPositions[dot.index] = { cx: centerX + offsetX, cy: centerY + offsetY };
+      });
+    }
+  });
+  
   const circles = g.selectAll('.scatter-dot')
     .data(data)
     .enter()
     .append('circle')
     .attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`)
-    .attr('cx', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1])))
-    .attr('cy', d => y(d.stats.ceiling))
+    .attr('cx', (d, i) => dotPositions[i].cx)
+    .attr('cy', (d, i) => dotPositions[i].cy)
     .attr('r', 0)
     .transition()
     .duration(1000)
     .delay((d, i) => i * 30)
     .ease(d3.easeBackOut)
-    .attr('r', isMobile ? 4.8 : 7)
+    .attr('r', dotRadius)
     .selection();
 
   let activeTooltipId = null;
@@ -3621,7 +3689,7 @@ function drawScatterChart(containerId, data) {
       if (!isDot && !isTooltip) hideTooltip();
     }, { passive: true });
   }
-  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', d => x(clamp(d.stats.csty, xDomain[0], xDomain[1]))).attr('y', d => y(d.stats.ceiling)).text(d => {
+  const labels = g.selectAll('.scatter-label').data(data).enter().append('text').attr('class', 'scatter-label').attr('x', (d, i) => dotPositions[i].cx).attr('y', (d, i) => dotPositions[i].cy).text(d => {
     const parts = d.name.split(' ');
     const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
     let last = parts.slice(1).join(' ');
@@ -3647,14 +3715,14 @@ function drawScatterChart(containerId, data) {
       showTooltip(event,d);
     });
   }
-  const labelNodes = data.map(d => {
-    const cx = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));
-    const cy = y(d.stats.ceiling);
+  const labelNodes = data.map((d, i) => {
+    const cx = dotPositions[i].cx;
+    const cy = dotPositions[i].cy;
     return { ...d, fx: cx, fy: cy, x: cx, y: cy };
   });
   const sim = d3.forceSimulation(labelNodes)
-    .force('anchorX', d3.forceX(d => x(d.stats.csty)).strength(3))
-    .force('anchorY', d3.forceY(d => y(d.stats.ceiling) - 10).strength(3))
+    .force('anchorX', d3.forceX((d, i) => dotPositions[i].cx).strength(3))
+    .force('anchorY', d3.forceY((d, i) => dotPositions[i].cy - 10).strength(3))
     .force('collide', d3.forceCollide(14))
     .stop();
   for (let i = 0; i < 60; ++i) sim.tick();
