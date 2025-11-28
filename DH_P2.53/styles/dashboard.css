@@ -724,11 +724,11 @@
   filter: drop-shadow(0 0 8px white) !important; /* Override specific color glow on hover */
 }
 
-/* Specific Dot Styles to match Legend */
-.scatter-dot-qb { fill: var(--color-pink-light); filter: drop-shadow(0 0 8px var(--color-pink)); }
-.scatter-dot-rb { fill: var(--color-emerald-light); filter: drop-shadow(0 0 8px var(--color-emerald)); }
-.scatter-dot-wr { fill: var(--color-cyan-light); filter: drop-shadow(0 0 8px var(--color-cyan)); }
-.scatter-dot-te { fill: var(--color-orange); filter: drop-shadow(0 0 8px var(--color-orange)); }
+/* Specific Dot Styles to match Legend - glow handled by SVG filters for iOS compatibility */
+.scatter-dot-qb { fill: var(--color-pink-light); }
+.scatter-dot-rb { fill: var(--color-emerald-light); }
+.scatter-dot-wr { fill: var(--color-cyan-light); }
+.scatter-dot-te { fill: var(--color-orange); }
 
 .scatter-tooltip {
   position: fixed;

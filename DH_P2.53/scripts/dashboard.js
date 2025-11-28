@@ -3559,6 +3559,27 @@ function drawScatterChart(containerId, data) {
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+  
+  // Add SVG filter definitions for iOS-compatible glow effects
+  const defs = svg.append('defs');
+  const glowColors = {
+    qb: { color: '#ec4899', id: 'glow-qb' },
+    rb: { color: '#10b981', id: 'glow-rb' },
+    wr: { color: '#06b6d4', id: 'glow-wr' },
+    te: { color: '#f97316', id: 'glow-te' }
+  };
+  Object.values(glowColors).forEach(({ color, id }) => {
+    const filter = defs.append('filter')
+      .attr('id', id)
+      .attr('x', '-50%').attr('y', '-50%')
+      .attr('width', '200%').attr('height', '200%');
+    filter.append('feDropShadow')
+      .attr('dx', 0).attr('dy', 0)
+      .attr('stdDeviation', 3)
+      .attr('flood-color', color)
+      .attr('flood-opacity', 0.8);
+  });
+  
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
 
   // Tooltip element
@@ -3621,6 +3642,7 @@ function drawScatterChart(containerId, data) {
     .enter()
     .append('circle')
     .attr('class', d => `scatter-dot scatter-dot-${d.position.toLowerCase()}`)
+    .attr('filter', d => `url(#glow-${d.position.toLowerCase()})`)
     .attr('cx', (d, i) => dotPositions[i].cx)
     .attr('cy', (d, i) => dotPositions[i].cy)
     .attr('r', 0)
