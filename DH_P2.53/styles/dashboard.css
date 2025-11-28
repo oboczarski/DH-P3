@@ -421,6 +421,17 @@
 .fc-radar-panel .fc-chart-container { min-height: 26em; }
 .fc-bar-panel .fc-chart-container { min-height: 26em; }
 
+/* Allow bar chart labels to overflow into padding */
+.fc-bar-panel {
+  overflow: visible;
+}
+.fc-bar-panel .fc-chart-container {
+  overflow: visible;
+}
+.fc-bar-panel .fc-chart-container svg {
+  overflow: visible;
+}
+
 .fc-chart-canvas {
   position: absolute;
   inset: 0;
@@ -811,7 +822,7 @@
 
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
-  .fc-chart-panel {padding: 1.15em;}
+  .fc-chart-panel {padding: 1.15em 1.15em 0.75em 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 1.8em;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1.75em !important;}
