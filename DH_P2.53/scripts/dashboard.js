@@ -3601,41 +3601,53 @@ function drawScatterChart(containerId, data) {
   g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
   g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
   
-  // Calculate offsets for overlapping dots
+  // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
-  const offsetDistance = dotRadius * 1.2; // How far apart to spread overlapping dots
+  const minDistance = dotRadius * 2.2; // Minimum distance between dot centers to avoid overlap
   
-  // Group dots by their exact x,y position and calculate offsets
-  const positionMap = new Map();
-  data.forEach((d, i) => {
-    const rawX = x(clamp(d.stats.csty, xDomain[0], xDomain[1]));
-    const rawY = y(d.stats.ceiling);
-    const key = `${rawX.toFixed(1)},${rawY.toFixed(1)}`;
-    if (!positionMap.has(key)) {
-      positionMap.set(key, []);
-    }
-    positionMap.get(key).push({ data: d, index: i, rawX, rawY });
-  });
+  // Get initial positions for all dots
+  const dotPositions = data.map((d, i) => ({
+    index: i,
+    cx: x(clamp(d.stats.csty, xDomain[0], xDomain[1])),
+    cy: y(d.stats.ceiling),
+    originalX: x(clamp(d.stats.csty, xDomain[0], xDomain[1])),
+    originalY: y(d.stats.ceiling)
+  }));
   
-  // Calculate offset positions for each dot
-  const dotPositions = new Array(data.length);
-  positionMap.forEach((dots) => {
-    if (dots.length === 1) {
-      // No overlap, use original position
-      dotPositions[dots[0].index] = { cx: dots[0].rawX, cy: dots[0].rawY };
-    } else {
-      // Multiple dots at same position - spread them around the center point
-      const centerX = dots[0].rawX;
-      const centerY = dots[0].rawY;
-      const angleStep = (2 * Math.PI) / dots.length;
-      dots.forEach((dot, i) => {
-        const angle = angleStep * i - Math.PI / 2; // Start from top
-        const offsetX = Math.cos(angle) * offsetDistance;
-        const offsetY = Math.sin(angle) * offsetDistance;
-        dotPositions[dot.index] = { cx: centerX + offsetX, cy: centerY + offsetY };
-      });
+  // Collision detection and resolution - run multiple passes to separate overlapping dots
+  const maxIterations = 15;
+  for (let iter = 0; iter < maxIterations; iter++) {
+    let moved = false;
+    for (let i = 0; i < dotPositions.length; i++) {
+      for (let j = i + 1; j < dotPositions.length; j++) {
+        const dx = dotPositions[j].cx - dotPositions[i].cx;
+        const dy = dotPositions[j].cy - dotPositions[i].cy;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minDistance && distance > 0) {
+          // Dots are overlapping - push them apart
+          const overlap = minDistance - distance;
+          const pushX = (dx / distance) * (overlap / 2);
+          const pushY = (dy / distance) * (overlap / 2);
+          
+          dotPositions[i].cx -= pushX;
+          dotPositions[i].cy -= pushY;
+          dotPositions[j].cx += pushX;
+          dotPositions[j].cy += pushY;
+          moved = true;
+        } else if (distance === 0) {
+          // Exact same position - offset in a random direction
+          const angle = Math.random() * Math.PI * 2;
+          dotPositions[i].cx -= Math.cos(angle) * (minDistance / 2);
+          dotPositions[i].cy -= Math.sin(angle) * (minDistance / 2);
+          dotPositions[j].cx += Math.cos(angle) * (minDistance / 2);
+          dotPositions[j].cy += Math.sin(angle) * (minDistance / 2);
+          moved = true;
+        }
+      }
     }
-  });
+    if (!moved) break; // No more overlaps
+  }
   
   const circles = g.selectAll('.scatter-dot')
     .data(data)
