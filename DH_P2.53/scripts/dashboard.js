@@ -3770,9 +3770,10 @@ function drawScatterChart(containerId, data) {
     const cstyRankTxt = Number.isFinite(cstyRank) ? ordinal(cstyRank) : 'NA';
     const clColor = rankColor(clRank);
     const cstyColor = rankColor(cstyRank);
-    const posClr = posColor(d.position);
+    const posKey = (d.position || '').trim().toUpperCase();
+    const posClr = posColor(posKey);
     tooltip.innerHTML = `
-      <div><strong>${d.name}</strong> • <span class="tooltip-pos" style="color:${posClr}">${d.position}</span></div>
+      <div><strong>${d.name}</strong> • <span class="tooltip-pos tooltip-pos-${posKey.toLowerCase()}" style="color:${posClr}">${d.position}</span></div>
       <div><strong class="scatter-tooltip-label">CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
       <div><strong class="scatter-tooltip-label">CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
     `;
