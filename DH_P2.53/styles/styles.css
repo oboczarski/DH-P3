@@ -222,7 +222,7 @@
             flex-direction: column;
             gap: 0.75rem;
         }
-        /* Branding Panel: Logo + App Name side by side, centered */
+        /* Branding Panel: Logo + App Name side by side, centered - matches fc-card fc-glass styling */
         .welcome-branding-panel {
             display: flex;
             flex-direction: row;
@@ -230,14 +230,31 @@
             justify-content: center;
             gap: 0.75rem;
             padding: 1rem 1.5rem;
-            background: rgb(47 29 104 / 10%);
-            border: 1px solid var(--color-panel-border);
-            border-radius: var(--panel-border-radius);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            /* Match fc-glass card styles */
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5em;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
             max-width: 600px;
             margin: 0.5rem auto 0;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Subtle glow effect matching cards */
+        .welcome-branding-panel::before {
+            content: "";
+            position: absolute;
+            top: -1.5em;
+            right: -1.5em;
+            width: 6em;
+            height: 6em;
+            border-radius: 50%;
+            background-color: #a855f7;
+            filter: blur(2.5em);
+            opacity: 0.2;
+            pointer-events: none;
         }
         .welcome-branding-panel .welcome-logo {
             --welcome-logo-size: clamp(48px, 14vw, 72px);
@@ -246,6 +263,8 @@
             height: auto;
             margin: 0;
             flex-shrink: 0;
+            position: relative;
+            z-index: 1;
         }
         .welcome-branding-panel h2 {
             margin: 0 !important;
@@ -253,6 +272,8 @@
             font-weight: 300;
             color: var(--color-text-primary);
             text-shadow: 0 0 9px #5300ff;
+            position: relative;
+            z-index: 1;
             white-space: nowrap;
         }
         /* Info Panel: Instructions + Install */
