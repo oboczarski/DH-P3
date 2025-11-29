@@ -3555,7 +3555,7 @@ function drawScatterChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
-  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.05, bottom: isMobile ? 40 : height * 0.1, left: isMobile ? 40 : width * 0.06 };
+  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.05, bottom: isMobile ? 34 : height * 0.1, left: isMobile ? 34 : width * 0.06 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
