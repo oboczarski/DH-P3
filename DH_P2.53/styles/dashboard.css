@@ -785,11 +785,11 @@
 
 /* --- SUMMARY CARDS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-summary-card { padding: 1.25em; }
-  .fc-summary-card .fc-card__header { margin-bottom: 1em; }
-  .fc-summary-card .fc-card__title {font-size: 1.125em;margin-left: 10px;}
-  .fc-summary-card .fc-card__subtitle { font-size: 0.75em; }
-  .fc-summary-card .fc-badge { padding: 0.25em 0.5em; font-size: 0.75em; }
+  .fc-summary-card {padding: 1.25em 1.25em 0.85em;}
+  .fc-summary-card .fc-card__header {margin-bottom: 0.6em;}
+  .fc-summary-card .fc-card__title {font-size: 1.45em;margin-left: 4px;}
+  .fc-summary-card .fc-card__subtitle {font-size: 0.95em;}
+  .fc-summary-card .fc-badge {padding: 0.25em 0.5em;font-size: 0.85em;}
   .fc-summary-card .fc-metric-value { font-size: 2.25em; }
   .fc-summary-card .fc-metric-sub {margin-bottom: 0.025em;font-size: 1.2em;}
   .fc-summary-card .fc-card__footer {margin-top: 1em;font-size: 1.15em;}
@@ -869,7 +869,7 @@
   .fc-bar-panel .fc-chart-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.6em;
+    gap: 0.3em;
     width: 100%;
   }
   .fc-bar-panel .fc-filter-group {
@@ -883,8 +883,8 @@
     padding: 0.1em;
   }
   .fc-bar-panel .filter-btn {
-    padding: 0.1em 0.38em !important;
-    font-size: 2.15em !important;
+    padding: 0.1em 0.4em !important;
+    font-size: 2.25em !important;
     height: auto !important;
     min-height: 0 !important;
     border-radius: 0.45em;
