@@ -3621,7 +3621,7 @@ function drawScatterChart(containerId, data) {
     .selectAll('text')
     .style('font-size', isMobile ? '8px' : '14px');
 
-  const xLabelOffset = isMobile ? margin.bottom - 2 : margin.bottom - 8;
+  const xLabelOffset = isMobile ? margin.bottom - 4 : margin.bottom - 1; // mobile: pull title up slightly; desktop unchanged
   const yLabelOffset = isMobile ? -(margin.left - 6) : -(margin.left - 14);
 
   g.append('text')
