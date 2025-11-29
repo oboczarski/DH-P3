@@ -3668,7 +3668,7 @@ function drawScatterChart(containerId, data) {
     .attr('font-size', isMobile ? '8px' : '16px')
     .attr('font-weight', 'bold')
     .attr('letter-spacing', '0.1em')
-    .text('CONSISTENCY');
+    .text('CONSISTENCY % (CSTY %)');
 
   g.append('text')
     .attr('transform', 'rotate(-90)')
@@ -3679,7 +3679,7 @@ function drawScatterChart(containerId, data) {
     .attr('font-size', isMobile ? '8px' : '16px')
     .attr('font-weight', 'bold')
     .attr('letter-spacing', '0.1em')
-    .text('CEILING');
+    .text('CEILING (CL)');
   
   // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
