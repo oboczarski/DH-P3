@@ -210,7 +210,7 @@
 
 .fc-card__subtitle-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
 }
 
@@ -798,7 +798,7 @@
 /* --- SUMMARY CARDS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-summary-card {padding: 1.25em 0.5em 0.6em 0.5em;}
-  .fc-summary-card .fc-card__header { margin-bottom: 1.25em; }
+  .fc-summary-card .fc-card__header {margin-bottom: 0.65em;}
   .fc-summary-card .fc-card__title {font-size: 1.7em;margin-left: 7px;}
   .fc-summary-card .fc-card__subtitle {font-size: 1.15em;}
   .fc-summary-card .fc-badge { padding: 0.35em 0.75em; font-size: 0.85em; }

@@ -280,7 +280,7 @@
         #header-container {
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 1000;
             padding: 0.1rem 0rem 0.4rem 0rem;
             border-radius: var(--panel-border-radius);  /* EDITED: Changed background to be more transparent to see bg */
             background: linear-gradient(180deg, rgba(11, 11, 18, 0.2) 10%, transparent 100%);
@@ -2624,7 +2624,7 @@ body[data-page="welcome"] .home-menu {
   top: calc(100% + 4px);
   left: 0;
   min-width: 160px;
-  background: rgba(38,37,63,0.94);
+  background: rgb(47 46 72 / 94%);
   border: 1px solid rgba(128,138,189,0.14);
   box-shadow: 0 18px 40px rgba(0,0,0,0.6);
   padding: 8px;
