@@ -2919,6 +2919,12 @@ const formatInitialLast = (name = '') => {
   return `${firstInitial} ${last}`.trim();
 };
 const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId) || players[0];
+const posColor = (pos) => ({
+  QB: 'var(--color-pink-light)',
+  RB: 'var(--color-emerald-light)',
+  WR: 'var(--color-cyan-light)',
+  TE: 'var(--color-orange)'
+}[pos] || '#e5e7eb');
 
 const RADAR_STATS_CONFIG = {
   QB: {
@@ -3129,12 +3135,15 @@ function renderCustomSelect() {
   if (!optionsContainer) return;
   const optionsList = players.slice(0, 100);
   optionsContainer.innerHTML = optionsList
-    .map(p => `
+    .map(p => {
+      const posClass = `fc-option-pos fc-option-pos-${p.position.toLowerCase()}`;
+      return `
       <li class="fc-option ${p.id === dashState.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
         <span>${p.name}</span>
-        <span class="fc-option-team fc-option-pos-${p.position.toLowerCase()}">${p.position} - ${p.team}</span>
+        <span class="fc-option-team"><span class="${posClass}">${p.position}</span> • ${p.team}</span>
       </li>
-    `)
+    `;
+    })
     .join('');
   const selected = getSelected();
   if (label && selected) label.textContent = selected.name;
@@ -3761,10 +3770,11 @@ function drawScatterChart(containerId, data) {
     const cstyRankTxt = Number.isFinite(cstyRank) ? ordinal(cstyRank) : 'NA';
     const clColor = rankColor(clRank);
     const cstyColor = rankColor(cstyRank);
+    const posClr = posColor(d.position);
     tooltip.innerHTML = `
-      <div><strong>${d.name}</strong> • ${d.position}</div>
-      <div><strong>CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
-      <div><strong>CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
+      <div><strong>${d.name}</strong> • <span class="tooltip-pos" style="color:${posClr}">${d.position}</span></div>
+      <div><strong class="scatter-tooltip-label">CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
+      <div><strong class="scatter-tooltip-label">CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
     `;
     tooltip.style.left = '0px';
     tooltip.style.top = '0px';

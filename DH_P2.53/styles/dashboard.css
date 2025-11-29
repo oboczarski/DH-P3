@@ -830,6 +830,13 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.35);
 }
 
+.scatter-tooltip-label { font-weight: 800; letter-spacing: 0.03em; }
+
+.scatter-tooltip .tooltip-pos-qb { color: var(--color-pink-light); }
+.scatter-tooltip .tooltip-pos-rb { color: var(--color-emerald-light); }
+.scatter-tooltip .tooltip-pos-wr { color: var(--color-cyan-light); }
+.scatter-tooltip .tooltip-pos-te { color: var(--color-orange); }
+
 /* =========================================
    RESPONSIVE SIZING & LAYOUT RULES
    Separated for thorough implementation
@@ -1134,6 +1141,13 @@
   color: var(--text-muted);
   margin-left: 0.5em;
 }
+
+/* Position accent colors for custom select */
+.fc-option-pos {font-weight: 400;}
+.fc-option-pos-qb { color: var(--color-pink-light); }
+.fc-option-pos-rb { color: var(--color-emerald-light); }
+.fc-option-pos-wr { color: var(--color-cyan-light); }
+.fc-option-pos-te { color: var(--color-orange); }
 
 /* Mobile Adjustments for Dropdown */
 @media (max-width: 768px) {
