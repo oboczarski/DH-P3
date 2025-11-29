@@ -2919,12 +2919,6 @@ const formatInitialLast = (name = '') => {
   return `${firstInitial} ${last}`.trim();
 };
 const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId) || players[0];
-const posColor = (pos) => ({
-  QB: 'var(--color-pink-light)',
-  RB: 'var(--color-emerald-light)',
-  WR: 'var(--color-cyan-light)',
-  TE: 'var(--color-orange)'
-}[pos] || '#e5e7eb');
 
 const RADAR_STATS_CONFIG = {
   QB: {
@@ -3770,10 +3764,8 @@ function drawScatterChart(containerId, data) {
     const cstyRankTxt = Number.isFinite(cstyRank) ? ordinal(cstyRank) : 'NA';
     const clColor = rankColor(clRank);
     const cstyColor = rankColor(cstyRank);
-    const posKey = (d.position || '').trim().toUpperCase();
-    const posClr = posColor(posKey);
     tooltip.innerHTML = `
-      <div><strong>${d.name}</strong> • <span class="tooltip-pos tooltip-pos-${posKey.toLowerCase()}" style="color:${posClr}">${d.position}</span></div>
+      <div><strong>${d.name}</strong> • ${d.position}</div>
       <div><strong class="scatter-tooltip-label">CL:</strong> <span style="color:${clColor}">${formatNum1(d.stats.ceiling)}</span> &middot; | &middot; <span style="color:${clColor}">${clRankTxt} (${d.position})</span></div>
       <div><strong class="scatter-tooltip-label">CSTY%:</strong> <span style="color:${cstyColor}">${formatPct1(d.stats.csty)}</span> &middot; | &middot; <span style="color:${cstyColor}">${cstyRankTxt} (${d.position})</span></div>
     `;

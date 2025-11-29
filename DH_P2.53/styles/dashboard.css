@@ -832,11 +832,6 @@
 
 .scatter-tooltip-label { font-weight: 800; letter-spacing: 0.03em; }
 
-.scatter-tooltip .tooltip-pos-qb { color: var(--color-pink-light); }
-.scatter-tooltip .tooltip-pos-rb { color: var(--color-emerald-light); }
-.scatter-tooltip .tooltip-pos-wr { color: var(--color-cyan-light); }
-.scatter-tooltip .tooltip-pos-te { color: var(--color-orange); }
-
 /* =========================================
    RESPONSIVE SIZING & LAYOUT RULES
    Separated for thorough implementation
