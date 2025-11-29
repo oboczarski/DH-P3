@@ -3555,7 +3555,8 @@ function drawScatterChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
-  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.05, bottom: isMobile ? 34 : height * 0.1, left: isMobile ? 34 : width * 0.06 };
+  // Tightened margins to reclaim space from removed tick marks (mobile-first)
+  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.05, bottom: isMobile ? 30 : height * 0.085, left: isMobile ? 30 : width * 0.055 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
@@ -3596,10 +3597,53 @@ function drawScatterChart(containerId, data) {
   const yAxisGrid = d3.axisLeft(y).tickValues([20, 25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
   g.append('g').attr('class', 'scatter-grid').attr('transform', `translate(0,${innerHeight})`).call(xAxisGrid);
   g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
-  g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d => `${d}%`)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([20, 25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 28 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
-  g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -25 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
+
+  const xAxis = d3.axisBottom(x)
+    .tickValues(xTicks)
+    .tickFormat(d => `${d}%`)
+    .tickSize(0)
+    .tickPadding(isMobile ? 6 : 8);
+  const yAxis = d3.axisLeft(y)
+    .tickValues([20, 25, 30, 35, 40])
+    .tickSize(0)
+    .tickPadding(isMobile ? 6 : 8);
+
+  g.append('g')
+    .attr('class', 'scatter-axis')
+    .attr('transform', `translate(0,${innerHeight})`)
+    .call(xAxis)
+    .selectAll('text')
+    .style('font-size', isMobile ? '8px' : '14px');
+
+  g.append('g')
+    .attr('class', 'scatter-axis')
+    .call(yAxis)
+    .selectAll('text')
+    .style('font-size', isMobile ? '8px' : '14px');
+
+  const xLabelOffset = isMobile ? margin.bottom - 2 : margin.bottom - 8;
+  const yLabelOffset = isMobile ? -(margin.left - 6) : -(margin.left - 14);
+
+  g.append('text')
+    .attr('x', innerWidth / 2)
+    .attr('y', innerHeight + xLabelOffset)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', isMobile ? '8px' : '16px')
+    .attr('font-weight', 'bold')
+    .attr('letter-spacing', '0.1em')
+    .text('CONSISTENCY');
+
+  g.append('text')
+    .attr('transform', 'rotate(-90)')
+    .attr('x', -innerHeight / 2)
+    .attr('y', yLabelOffset)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#94a3b8')
+    .attr('font-size', isMobile ? '8px' : '16px')
+    .attr('font-weight', 'bold')
+    .attr('letter-spacing', '0.1em')
+    .text('CEILING');
   
   // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
