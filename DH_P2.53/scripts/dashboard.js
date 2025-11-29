@@ -3631,8 +3631,13 @@ function drawScatterChart(containerId, data) {
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
   const xAxisGrid = d3.axisBottom(x).tickValues([60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
   const yAxisGrid = d3.axisLeft(y).tickValues([20, 25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
-  g.append('g').attr('class', 'scatter-grid').attr('transform', `translate(0,${innerHeight})`).call(xAxisGrid);
-  g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
+ // g.append('g')
+  // .attr('class', 'scatter-grid')
+  // .attr('transform', `translate(0,${innerHeight})`)
+  // .call(xAxisGrid);
+  g.append('g')
+  .attr('class', 'scatter-grid')
+  .call(yAxisGrid);
 
   const xAxis = d3.axisBottom(x)
     .tickValues(xTicks)
