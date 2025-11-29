@@ -471,7 +471,7 @@
 }
 
 .fc-radar-panel .fc-chart-container { min-height: 26em; }
-.fc-bar-panel .fc-chart-container { min-height: 26em; }
+.fc-bar-panel .fc-chart-container {min-height: 26em;}
 
 /* Allow bar chart labels to overflow into padding */
 .fc-bar-panel {
@@ -861,9 +861,9 @@
   .fc-summary-card .fc-card__footer {margin-top: 1em;font-size: 1.15em;}
 
   .fc-chart-helper { font-size: 0.95em; }
-  .fc-chart-helper--scatter { font-size: 0.9em; }
+  .fc-chart-helper--scatter {font-size: 1em;align-self: end;font-weight: 400;font-style: italic;}
   .fc-chart-helper--radar { font-size: 0.9em; }
-  .fc-scatter-subline { gap: 0.6em; }
+  .fc-scatter-subline {gap: 0em;}
 }
 
 /* --- SUMMARY CARDS (Mobile) --- */

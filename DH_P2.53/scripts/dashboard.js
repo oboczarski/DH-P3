@@ -3510,7 +3510,7 @@ function drawBarChart(containerId, data) {
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
   // Reduced top margin to move bars up, increased bottom for angled labels on mobile
-  const margin = { top: height * 0.06, right: width * 0.03, bottom: isMobile ? height * 0.18 : height * 0.12, left: width * 0.03 };
+  const margin = { top: height * 0.06, right: width * 0.03, bottom: isMobile ? height * 0.15 : height * 0.10, left: width * 0.03 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container)
