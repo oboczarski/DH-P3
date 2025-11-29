@@ -206,13 +206,92 @@
 /* ⬇︎ GENERAL UI ⬇︎ */
         #loading, #welcome-screen {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 0;
             font-size: 1.2rem;
             color: var(--color-text-secondary);
             max-width: 600px;
             margin: 0.51rem auto;
+            background: none;
+            border: none;
+            box-shadow: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
-        #welcome-screen, #loading {
+        #welcome-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        /* Branding Panel: Logo + App Name side by side, centered */
+        .welcome-branding-panel {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: rgb(47 29 104 / 10%);
+            border: 1px solid var(--color-panel-border);
+            border-radius: var(--panel-border-radius);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        .welcome-branding-panel .welcome-logo {
+            --welcome-logo-size: clamp(48px, 14vw, 72px);
+            display: block;
+            width: var(--welcome-logo-size);
+            height: auto;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .welcome-branding-panel h2 {
+            margin: 0 !important;
+            font-size: clamp(1.4rem, 5vw, 1.8rem);
+            font-weight: 300;
+            color: var(--color-text-primary);
+            text-shadow: 0 0 9px #5300ff;
+            white-space: nowrap;
+        }
+        /* Info Panel: Instructions + Install */
+        .welcome-info-panel {
+            padding: 1.25rem 1.5rem;
+            background: rgb(47 29 104 / 10%);
+            border: 1px solid var(--color-panel-border);
+            border-radius: var(--panel-border-radius);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .welcome-info-panel > p {
+            font-size: 1rem;
+            line-height: 1.35;
+            color: var(--color-text-secondary);
+            margin-bottom: 1rem;
+        }
+        /* Mobile optimizations */
+        @media (max-width: 520px) {
+            .welcome-branding-panel {
+                gap: 0.5rem;
+                padding: 0.75rem 1rem;
+            }
+            .welcome-branding-panel .welcome-logo {
+                --welcome-logo-size: clamp(40px, 12vw, 56px);
+            }
+            .welcome-branding-panel h2 {
+                font-size: clamp(1.2rem, 5vw, 1.5rem);
+            }
+            .welcome-info-panel {
+                padding: 1rem;
+            }
+            .welcome-info-panel > p {
+                font-size: 0.9rem;
+            }
+        }
+        /* Loading screen keeps the panel background */
+        #loading {
+            padding: 4rem 2rem;
             background: rgb(47 29 104 / 10%);
             border: 1px solid var(--color-panel-border);
             border-radius: var(--panel-border-radius);
@@ -3247,14 +3326,11 @@ font-weight: 500 !important;
 }
   /* · · Welcome-only logo + padding (surgical) · · */
 #welcome-screen { padding-top: 0.3rem !important; padding-bottom: 0.25rem !important; }
-#welcome-screen h1, #welcome-screen h2, #welcome-screen h3 {margin-bottom: 0.05rem !important;margin-top: -0.5rem;}
+/* Branding panel h2 styling - no negative margins needed */
+.welcome-branding-panel h2 {
+  margin: 0 !important;
+}
 #welcome-screen .welcome-logo {
-  /* Default size can be overridden by setting --welcome-logo-size on the #welcome-screen or via a global rule. Value can be px, %, vw, or a clamp expression. Percentage values are relative to the containing block. */
-  --welcome-logo-size: clamp(72px, 24vw, 128px);
-  display: block;
-  margin: 0 auto -1rem;
-  width: var(--welcome-logo-size);
-  height: auto;
   position: relative;
   z-index: 0;
 }
