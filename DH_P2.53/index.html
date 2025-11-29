@@ -239,17 +239,17 @@
 
       <!-- Scatter Plot Section (Replaces Leaderboard) -->
       <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel">
-        <div class="fc-chart-header">
-          <div>
+        <div class="fc-chart-header fc-chart-header--scatter">
+          <div class="fc-chart-header-top fc-chart-header-top--scatter">
             <h3 class="fc-card__title">Consistency vs. Ceiling Grid</h3>
-            <p class="fc-card__subtitle-text fc-subtitle-scatter">Consistency Rate vs. Ceiling — Landscape across Top 6 in PPG at each position</p>
+            <div class="fc-legend-inline fc-scatter-legend" role="group" aria-label="Scatter position filter">
+              <button class="fc-legend-item" type="button" data-pos="QB"><span class="fc-dot fc-pos-qb-dot"></span>QB</button>
+              <button class="fc-legend-item" type="button" data-pos="RB"><span class="fc-dot fc-pos-rb-dot"></span>RB</button>
+              <button class="fc-legend-item" type="button" data-pos="WR"><span class="fc-dot fc-pos-wr-dot"></span>WR</button>
+              <button class="fc-legend-item" type="button" data-pos="TE"><span class="fc-dot fc-pos-te-dot"></span>TE</button>
+            </div>
           </div>
-          <div class="fc-legend-inline">
-            <div class="fc-legend-item"><span class="fc-dot fc-pos-qb-dot"></span>QB</div>
-            <div class="fc-legend-item"><span class="fc-dot fc-pos-rb-dot"></span>RB</div>
-            <div class="fc-legend-item"><span class="fc-dot fc-pos-wr-dot"></span>WR</div>
-            <div class="fc-legend-item"><span class="fc-dot fc-pos-te-dot"></span>TE</div>
-          </div>
+          <p class="fc-card__subtitle-text fc-subtitle-scatter">Consistency Rate vs. Ceiling — Landscape across Top 6 in PPG at each position</p>
         </div>
         <div class="fc-chart-container">
           <div id="scatter-chart" class="fc-chart-canvas"></div>

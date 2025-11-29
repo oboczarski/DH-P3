@@ -2906,7 +2906,8 @@ const HP_DATA = [
 
 // === State ===
 let players = [];
-const dashState = { selectedPlayerId: null, filter: 'all' };
+let scatterAll = [];
+const dashState = { selectedPlayerId: null, filter: 'all', scatterFilter: 'ALL' };
 
 // === Helpers ===
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -3233,8 +3234,17 @@ function renderScatter() {
       .slice(0, 6);
     scatterPool.push(...byPos);
   });
-  if (!scatterPool.length) return;
-  drawScatterChart('scatter-chart', scatterPool);
+  scatterAll = scatterPool;
+  applyScatterFilter(dashState.scatterFilter);
+}
+
+function applyScatterFilter(pos) {
+  if (!scatterAll.length) return;
+  const selected = pos && pos !== 'ALL' ? pos : 'ALL';
+  dashState.scatterFilter = selected;
+  const filtered = selected === 'ALL' ? scatterAll : scatterAll.filter(p => p.position === selected);
+  drawScatterChart('scatter-chart', filtered);
+  updateScatterLegend(selected);
 }
 
 // Event wiring
@@ -3278,6 +3288,32 @@ function wireEvents() {
     renderBar();
     renderScatter();
   }, 200));
+
+  wireScatterLegend();
+}
+
+function wireScatterLegend() {
+  const legend = document.querySelector('.fc-scatter-legend');
+  if (!legend) return;
+  legend.addEventListener('click', e => {
+    const item = e.target.closest('.fc-legend-item');
+    if (!item || !legend.contains(item)) return;
+    const pos = item.dataset.pos;
+    if (!pos) return;
+    const next = dashState.scatterFilter === pos ? 'ALL' : pos;
+    applyScatterFilter(next);
+  });
+}
+
+function updateScatterLegend(activePos) {
+  const legend = document.querySelector('.fc-scatter-legend');
+  if (!legend) return;
+  legend.classList.toggle('has-filter', activePos !== 'ALL');
+  legend.querySelectorAll('.fc-legend-item').forEach(item => {
+    const pos = item.dataset.pos;
+    const isActive = activePos !== 'ALL' && pos === activePos;
+    item.classList.toggle('is-active', isActive);
+  });
 }
 
 function openRadarModal() {
