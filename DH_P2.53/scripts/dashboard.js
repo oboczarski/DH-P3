@@ -3588,7 +3588,7 @@ function drawScatterChart(containerId, data) {
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [18, 44];
-  const xDomain = [49.5, 103];
+  const xDomain = [49.5, 104];
   const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
@@ -3598,8 +3598,8 @@ function drawScatterChart(containerId, data) {
   g.append('g').attr('class', 'scatter-grid').call(yAxisGrid);
   g.append('g').attr('class', 'scatter-axis').attr('transform', `translate(0,${innerHeight})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d => `${d}%`)).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
   g.append('g').attr('class', 'scatter-axis').call(d3.axisLeft(y).tickValues([20, 25, 30, 35, 40])).selectAll('text').style('font-size', isMobile ? '8px' : '14px');
-  g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 35 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
-  g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -30 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
+  g.append('text').attr('x', innerWidth / 2).attr('y', innerHeight + (isMobile ? 28 : margin.bottom - 5)).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CONSISTENCY');
+  g.append('text').attr('transform', 'rotate(-90)').attr('x', -innerHeight / 2).attr('y', isMobile ? -25 : -margin.left + 20).attr('text-anchor', 'middle').attr('fill', '#94a3b8').attr('font-size', isMobile ? '8px' : '16px').attr('font-weight', 'bold').attr('letter-spacing', '0.1em').text('CEILING');
   
   // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
