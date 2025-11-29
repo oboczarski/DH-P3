@@ -402,7 +402,7 @@
 .fc-chart-header--scatter {
   flex-direction: column;
   align-items: stretch;
-  gap: 0.4em;
+  gap: 0em;
 }
 
 .fc-chart-header-top--scatter {
@@ -422,6 +422,28 @@
 .fc-chart-subtitle {
   margin: 0.61em;
   text-align: center;
+}
+
+.fc-chart-helper {
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.fc-chart-helper--radar {
+  text-align: center;
+  margin: 0.25em 0 0.35em;
+}
+
+.fc-scatter-subline {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  flex-wrap: wrap;
+}
+
+.fc-chart-helper--scatter {
+  white-space: nowrap;
 }
 
 .fc-card__subtitle-text {
@@ -530,7 +552,7 @@
 }
 
 .fc-legend {
-  margin-top: 1em;
+  margin-top: 0em;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   text-transform: uppercase;
@@ -835,6 +857,11 @@
   .fc-summary-card .fc-metric-value { font-size: 2.25em; }
   .fc-summary-card .fc-metric-sub {margin-bottom: 0.025em;font-size: 1.2em;}
   .fc-summary-card .fc-card__footer {margin-top: 1em;font-size: 1.15em;}
+
+  .fc-chart-helper { font-size: 0.95em; }
+  .fc-chart-helper--scatter { font-size: 0.9em; }
+  .fc-chart-helper--radar { font-size: 0.9em; }
+  .fc-scatter-subline { gap: 0.6em; }
 }
 
 /* --- SUMMARY CARDS (Mobile) --- */
@@ -899,7 +926,7 @@
   .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
 
   /* Keep dropdown to the right of the title on mobile */
-  .fc-chart-header-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5em; }
+  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.5em;}
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
   .fc-chart-header-top--bar {
     flex-wrap: nowrap;
@@ -947,6 +974,11 @@
   .fc-legend-inline {
     font-size: 1.9em;
   }
+
+  .fc-chart-helper {font-size: 1.25em;}
+  .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;}
+  .fc-chart-helper--radar {font-size: 1.3em;margin: 0.35em 0 0.45em;margin-top: 1.5em;}
+  .fc-scatter-subline { gap: 0.45em; }
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
