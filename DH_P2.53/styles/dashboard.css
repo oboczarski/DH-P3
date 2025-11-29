@@ -977,9 +977,9 @@
   }
 
   .fc-chart-helper {font-size: 1.25em;}
-  .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;}
+  .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
   .fc-chart-helper--radar {font-size: 1.3em;margin: 0.35em 0 0.45em;margin-top: 1.5em;}
-  .fc-scatter-subline { gap: 0.45em; }
+  .fc-scatter-subline {gap: 0;}
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
