@@ -237,8 +237,8 @@
             backdrop-filter: blur(2px);
             -webkit-backdrop-filter: blur(2px);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
-            max-width: 600px;
-            margin: 0.5rem auto 0;
+            width: 100%;
+            margin: 0.5rem 0 0;
             position: relative;
             overflow: hidden;
         }
@@ -314,20 +314,6 @@
             }
             .welcome-info-panel > p {
                 font-size: 0.9rem;
-            }
-        }
-        /* Desktop optimizations - larger branding panel matching page content width */
-        @media (min-width: 769px) {
-            .welcome-branding-panel {
-                max-width: 1114px;
-                gap: 1rem;
-                padding: 1.25rem 2rem;
-            }
-            .welcome-branding-panel .welcome-logo {
-                --welcome-logo-size: 96px;
-            }
-            .welcome-branding-panel h2 {
-                font-size: 2.2rem;
             }
         }
         /* Loading screen keeps the panel background */
@@ -2632,14 +2618,16 @@ body[data-page="welcome"] .app-header {
 /* tighter grid: menu - username - enter */
 /* Desktop: center the header group and keep controls tightly grouped */
 @media (min-width: 820px) {
+  body[data-page="welcome"] .app-header {
+    max-width: 1114px;
+    margin: 0 auto;
+  }
   body[data-page="welcome"] #primary-header-row {
     display: flex;
     align-items: center;
     justify-content: center; /* keep the group centered */
     gap: 0.5rem; /* small gap between controls */
     width: auto;
-    max-width: 1114px;
-    margin: 0 auto;
     padding-left: 8px;
     padding-right: 8px;
   }
