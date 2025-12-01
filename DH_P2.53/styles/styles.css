@@ -2469,6 +2469,16 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             align-items: center;
             gap: 0.5rem;
         }
+        .pl-player-name-btn {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font: inherit;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+        .pl-player-name-btn:hover { color: var(--color-text-secondary); }
         .pl-player-details {
             font-size: 0.8rem;
             color: var(--color-text-secondary);
@@ -2490,6 +2500,37 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             flex-shrink: 0;
             margin-right: 0.3rem; /* EDITED */
         }
+        /* Ownership-only position tags (decoupled from modal styles) */
+        .ownership-pos-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.9rem;
+            height: 1.32rem;
+            line-height: 1rem;
+            padding: 0;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            border-radius: 6px;
+            border: 1px solid rgba(250, 250, 250, 0.12);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(1px) saturate(150%);
+            box-shadow: 0 6px 18px rgba(31, 38, 135, 0.18), inset 0 3px 14px rgba(255, 255, 255, 0.04);
+            color: inherit;
+            position: relative;
+        }
+        .ownership-pos-tag::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.01);
+            pointer-events: none;
+        }
+        .ownership-pos-tag.QB { color: #FF3A75c0; box-shadow: inset 0 0 10px #FF3A7513, 0 6px 18px rgba(31, 38, 135, 0.18), inset 0 3px 14px rgba(255,255,255,0.04); }
+        .ownership-pos-tag.RB { color: #00EBC7c0; box-shadow: inset 0 0 6px #00EBC715, 0 6px 18px rgba(31, 38, 135, 0.18), inset 0 3px 14px rgba(255,255,255,0.04); }
+        .ownership-pos-tag.WR { color: #58A7FFca; box-shadow: inset 0 0 10px #58A7FF25, 0 6px 18px rgba(31, 38, 135, 0.18), inset 0 3px 14px rgba(255,255,255,0.04); }
+        .ownership-pos-tag.TE { color: #B469FFca; box-shadow: inset 0 0 10px #B469FF26, 0 6px 18px rgba(31, 38, 135, 0.18), inset 0 3px 14px rgba(255,255,255,0.04); }
         .pl-list-tag-spacer {
             width: 24px; /* EDITED */
             height: 1px;
@@ -2832,6 +2873,11 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
   .player-list-section .pl-player-row .pl-list-tag-spacer {
     width: 26px !important;
     margin-right: 6px !important;
+  }
+  .player-list-section .pl-player-row .ownership-pos-tag {
+    min-width: 1.5rem !important;
+    height: 1.0rem !important;
+    font-size: 0.56rem !important;
   }
   /* 📱 Guard “Age:” and similar tiny bits inside rows 📱 */
   .player-list-section .pl-player-row .player-meta-line,

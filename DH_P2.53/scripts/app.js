@@ -308,6 +308,8 @@ if (pageType === 'welcome') {
 }
         // --- State ---
 let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+// STAT sheet cache (mirrors stats page source: STAT_1QB / STAT_SFLX)
+let statSheetCache = { oneQb: null, sflx: null, ranks: { oneQb: null, sflx: null } };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -325,7 +327,7 @@ const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
 if (typeof window !== 'undefined') {
     window.PLAYER_STATS_SHEET_ID = PLAYER_STATS_SHEET_ID;
 }
-        const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10', 11: 'WK11', 12: 'WK12' } };
+const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10', 11: 'WK11', 12: 'WK12' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
         const MAX_DISPLAY_WEEKS = 17;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -454,84 +456,6 @@ if (typeof window !== 'undefined') {
             positionalFiltersContainer?.addEventListener('click', handlePositionFilter);
             clearFiltersButton?.addEventListener('click', handleClearFilters);
             startSitButton?.addEventListener('click', handleStartSitButtonClick);
-            if (gameLogsModal) {
-                modalCloseBtn.addEventListener('click', () => closeModal());
-                modalOverlay.addEventListener('click', () => closeModal());
-                
-                // Panel toggle buttons with tab-like behavior
-                modalInfoBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const targetPanel = btn.getAttribute('data-panel');
-                        const overlayContainers = {
-                            'stats-key': statsKeyContainer,
-                            'radar-chart': radarChartContainer,
-                            'consistency': consistencyContainer
-                        };
-                        
-                        // Special handling for game-logs - can't be toggled off
-                        if (targetPanel === 'game-logs') {
-                            // Hide all overlay panels to show game logs underneath
-                            Object.values(overlayContainers).forEach(container => {
-                                if (container) container.classList.add('hidden');
-                            });
-                            
-                            // Update button active states
-                            modalInfoBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            return;
-                        }
-                        
-                        // Check if the clicked overlay panel is currently visible
-                        const isCurrentlyVisible = overlayContainers[targetPanel] && 
-                                                   !overlayContainers[targetPanel].classList.contains('hidden');
-                        
-                        // For overlay panels (stats-key, radar-chart, news)
-                        if (isCurrentlyVisible) {
-                            // Toggling off - return to game-logs view
-                            overlayContainers[targetPanel].classList.add('hidden');
-                            
-                            // Update button active states - activate game-logs
-                            modalInfoBtns.forEach(b => {
-                                b.classList.remove('active');
-                                if (b.getAttribute('data-panel') === 'game-logs') {
-                                    b.classList.add('active');
-                                }
-                            });
-                        } else {
-                            // Opening a new overlay panel - hide other overlays first
-                            Object.values(overlayContainers).forEach(container => {
-                                if (container) container.classList.add('hidden');
-                            });
-                            
-                            // Show the target overlay panel
-                            overlayContainers[targetPanel].classList.remove('hidden');
-                            
-                            // Update button active states
-                            modalInfoBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            
-                            // If opening radar chart panel, render chart
-                            if (targetPanel === 'radar-chart' && state.currentGameLogsPlayer) {
-                                const player = state.currentGameLogsPlayer;
-                                if (player && player.pos) {
-                                    renderPlayerRadarChart(player.id, player.pos);
-                                }
-                            }
-                            
-                            // If opening consistency panel, render consistency chart
-                            if (targetPanel === 'consistency' && state.currentGameLogsPlayer) {
-                                renderConsistencyChart();
-                            }
-                        }
-                    });
-                });
-                
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && !gameLogsModal.classList.contains('hidden')) {
-                        closeModal();
-                    }
-                });
-            }
             if (playerComparisonModal) {
                 const closeBtn = playerComparisonModal.querySelector('.modal-close-btn');
                 const overlay = playerComparisonModal.querySelector('.modal-overlay');
@@ -544,6 +468,66 @@ if (typeof window !== 'undefined') {
                 });
             }
         }
+        // --- Shared Game Logs Modal Wiring (rosters + ownership) ---
+        if (gameLogsModal && (pageType === 'rosters' || pageType === 'ownership')) {
+            if (!gameLogsModal.dataset.appWired) {
+                if (modalCloseBtn) modalCloseBtn.addEventListener('click', () => closeModal());
+                if (modalOverlay) modalOverlay.addEventListener('click', () => closeModal());
+
+                modalInfoBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const targetPanel = btn.getAttribute('data-panel');
+                        const overlayContainers = {
+                            'stats-key': statsKeyContainer,
+                            'radar-chart': radarChartContainer,
+                            'consistency': consistencyContainer
+                        };
+
+                        if (targetPanel === 'game-logs') {
+                            Object.values(overlayContainers).forEach(container => container?.classList.add('hidden'));
+                            modalInfoBtns.forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            return;
+                        }
+
+                        const targetEl = overlayContainers[targetPanel];
+                        const isVisible = targetEl && !targetEl.classList.contains('hidden');
+
+                        if (isVisible) {
+                            targetEl.classList.add('hidden');
+                            modalInfoBtns.forEach(b => {
+                                b.classList.remove('active');
+                                if (b.getAttribute('data-panel') === 'game-logs') b.classList.add('active');
+                            });
+                        } else {
+                            Object.values(overlayContainers).forEach(container => container?.classList.add('hidden'));
+                            if (targetEl) targetEl.classList.remove('hidden');
+                            modalInfoBtns.forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+
+                            if (targetPanel === 'radar-chart' && typeof renderPlayerRadarChart === 'function') {
+                                const player = state.currentGameLogsPlayer;
+                                if (player && player.pos) {
+                                    renderPlayerRadarChart(player.id, player.pos);
+                                }
+                            }
+                            if (targetPanel === 'consistency' && typeof renderConsistencyChart === 'function') {
+                                renderConsistencyChart();
+                            }
+                        }
+                    });
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !gameLogsModal.classList.contains('hidden')) {
+                        closeModal();
+                    }
+                });
+
+                gameLogsModal.dataset.appWired = '1';
+            }
+        }
+
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             if (pageType === 'analyzer') return;
@@ -2161,6 +2145,53 @@ const SEASON_META_HEADERS = {
             const numVal = parseFloat(trimmed);
             return Number.isNaN(numVal) ? null : numVal;
         }
+        function parseStatSheetCsv(csvText) {
+            const { headers, rows } = parseCsv(csvText);
+            if (!headers.length || !rows.length) return [];
+            const headerIndex = new Map(headers.map((h, i) => [h.trim().toUpperCase(), i]));
+            const get = (row, nameArr) => {
+                const names = Array.isArray(nameArr) ? nameArr : [nameArr];
+                for (const n of names) {
+                    const idx = headerIndex.get(String(n).trim().toUpperCase());
+                    if (idx !== undefined) return row[idx];
+                }
+                return undefined;
+            };
+            return rows.map(r => {
+                const idRaw = get(r, ['SLPR_ID','SLPR ID','PLAYER ID','PLAYERID']);
+                const playerId = (idRaw || '').toString().trim();
+                const pos = (get(r, 'POS') || '').toString().trim().toUpperCase();
+                const fpts = Number.parseFloat(get(r, ['FPTS','FPTS_PPR','FPTS_PPR '])) || 0;
+                const ppg = Number.parseFloat(get(r, ['PPG','PPG_PPR'])) || 0;
+                const games = Number.parseInt(get(r, ['G','GP','GAMES']), 10) || 0;
+                return { playerId, pos, fpts, ppg, games };
+            }).filter(entry => entry.playerId);
+        }
+        function buildStatSheetRankCache(entries) {
+            const cache = {};
+            const overall = [...entries].sort((a,b)=>b.fpts - a.fpts);
+            overall.forEach((e,i)=>{ cache[e.playerId] = cache[e.playerId] || {}; cache[e.playerId].overallRank = i+1; });
+            const overallPpg = [...entries].sort((a,b)=>b.ppg - a.ppg);
+            overallPpg.forEach((e,i)=>{ cache[e.playerId] = cache[e.playerId] || {}; cache[e.playerId].ppgOverallRank = i+1; });
+            const byPos = entries.reduce((m,e)=>{ if(!e.pos) return m; if(!m[e.pos]) m[e.pos]=[]; m[e.pos].push(e); return m; },{});
+            Object.entries(byPos).forEach(([pos,list])=>{
+                list.sort((a,b)=>b.fpts - a.fpts);
+                list.forEach((e,i)=>{ cache[e.playerId] = cache[e.playerId] || {}; cache[e.playerId].posRank = i+1; });
+                const ppgList = [...list].sort((a,b)=>b.ppg - a.ppg);
+                ppgList.forEach((e,i)=>{ cache[e.playerId] = cache[e.playerId] || {}; cache[e.playerId].ppgPosRank = i+1; });
+            });
+            return cache;
+        }
+        async function ensureStatSheetData() {
+            const needsOneQb = !statSheetCache.oneQb;
+            const needsSflx = !statSheetCache.sflx;
+            if (!needsOneQb && !needsSflx) return;
+            const promises = [];
+            const fetchSheet = (sheet) => fetch(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`).then(res => res.text());
+            if (needsOneQb) promises.push(fetchSheet('STAT_1QB').then(text => { const entries = parseStatSheetCsv(text); statSheetCache.oneQb = entries; statSheetCache.ranks.oneQb = buildStatSheetRankCache(entries); }));
+            if (needsSflx) promises.push(fetchSheet('STAT_SFLX').then(text => { const entries = parseStatSheetCsv(text); statSheetCache.sflx = entries; statSheetCache.ranks.sflx = buildStatSheetRankCache(entries); }));
+            await Promise.all(promises);
+        }
         const STAT_KEY_RANK_OVERRIDES = { fpts: 'fpts_ppr' };
         function getSeasonRankKey(statKey) {
             return STAT_KEY_RANK_OVERRIDES[statKey] || statKey;
@@ -2176,11 +2207,11 @@ const SEASON_META_HEADERS = {
                 }
                 return parseRankValue(String(value)) ?? null;
             };
-            if (statKey === 'fpts' || statKey === 'ppg') {
-                // Stats page uses pre-calculated ranks from sheets
-                if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
-                    const liveRank = statKey === 'fpts' 
-                        ? state.statsPagePlayerData.posRank 
+        if (statKey === 'fpts' || statKey === 'ppg') {
+            // Stats page uses pre-calculated ranks from sheets
+            if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
+                const liveRank = statKey === 'fpts' 
+                    ? state.statsPagePlayerData.posRank 
                         : state.statsPagePlayerData.ppgPosRank;
                     const normalizedLiveRank = normalizeRank(liveRank);
                     if (normalizedLiveRank !== null) {
@@ -3013,6 +3044,11 @@ const SEASON_META_HEADERS = {
             const existingHeaderContainer = document.querySelector('.modal-header-left-container');
             if(existingHeaderContainer) existingHeaderContainer.remove();
             
+            // Ensure weekly stats are available for radar/consistency tabs
+            if (!state.statsSheetsLoaded && typeof fetchPlayerStatsSheets === 'function') {
+                try { await fetchPlayerStatsSheets(); } catch (e) { console.warn('Weekly stats load failed', e); }
+            }
+
             // Enhanced loading state with animation - add loading classes
             modalBody.classList.add('loading');
             gameLogsModal.classList.add('loading');
@@ -3051,6 +3087,28 @@ const SEASON_META_HEADERS = {
                 gameLogsModal.style.zIndex = '1050';
             }
             openModal();
+            // For stats-page mode, populate stat sheet data before rendering chips/footers
+            if (state.isGameLogFromStatsPage) {
+                await ensureStatSheetData();
+                const sheetSet = state.isSuperflex ? 'sflx' : 'oneQb';
+                const statEntries = statSheetCache[sheetSet] || [];
+                const statRanks = statSheetCache.ranks[sheetSet] || {};
+                const statEntry = statEntries.find(e => e.playerId === player.id) || null;
+                const rankData = statRanks[player.id] || {};
+                const fpts = statEntry?.fpts ?? 0;
+                const gamesPlayed = statEntry?.games ?? 0;
+                const ppg = statEntry?.ppg ?? (gamesPlayed > 0 ? fpts / gamesPlayed : 0);
+                state.statsPagePlayerData = {
+                    fpts,
+                    ppg,
+                    gamesPlayed,
+                    posRank: rankData.posRank || null,
+                    overallRank: rankData.overallRank || null,
+                    ppgPosRank: rankData.ppgPosRank || null,
+                    ppgOverallRank: rankData.ppgOverallRank || null
+                };
+            }
+
             const gameLogs = await fetchGameLogs(player.id);
             
             // Remove loading classes and panel before rendering content
@@ -3839,7 +3897,9 @@ const wrTeStatOrder = [
                 const footerRow = document.createElement('tr');
                 const totalTh = document.createElement('th');
                 totalTh.className = 'modal-table-footer-label week-column-header';
-                const gamesPlayed = getAdjustedGamesPlayed(player.id, scoringSettings);
+                const gamesPlayed = state.isGameLogFromStatsPage && state.statsPagePlayerData
+                    ? (state.statsPagePlayerData.gamesPlayed ?? getAdjustedGamesPlayed(player.id, scoringSettings))
+                    : getAdjustedGamesPlayed(player.id, scoringSettings);
                 totalTh.innerHTML = `<span class="season-label">2025</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
                 const weekColumnSize = columnSizes[0] || DEFAULT_COLUMN_WIDTH;
                 totalTh.style.width = `${weekColumnSize}px`;
@@ -4083,6 +4143,13 @@ const wrTeStatOrder = [
                     }
                 } else {
                     footerStatsForRadar.__gamesPlayed = gameLogsWithData.length;
+                }
+
+                // Override with stat-sheet values when in stats-page mode for full consistency
+                if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
+                    footerStatsForRadar.fpts = state.statsPagePlayerData.fpts;
+                    footerStatsForRadar.ppg = state.statsPagePlayerData.ppg;
+                    footerStatsForRadar.__gamesPlayed = state.statsPagePlayerData.gamesPlayed ?? footerStatsForRadar.__gamesPlayed;
                 }
                 
                 // Store calculated footer stats in state for radar chart
@@ -5473,6 +5540,17 @@ const wrTeStatOrder = [
             assignedRyColors.clear();
             nextRyColorIndex = 0;
             const userLeagues = await fetchUserLeagues(state.userId);
+            state.leagues = userLeagues || [];
+            if (!state.currentLeagueId && userLeagues.length) {
+                state.currentLeagueId = userLeagues[0].league_id;
+            }
+            if (state.currentLeagueId) {
+                const league = userLeagues.find(l => l.league_id === state.currentLeagueId) || userLeagues[0];
+                const rosterPositions = league?.roster_positions || [];
+                const superflexSlots = rosterPositions.filter(p => p === 'SUPER_FLEX').length;
+                const qbSlots = rosterPositions.filter(p => p === 'QB').length;
+                state.isSuperflex = (superflexSlots > 0) || (qbSlots > 1);
+            }
             const rostersByLeague = await Promise.all(userLeagues.map(l => fetchWithCache(`${API_BASE}/league/${l.league_id}/rosters`)));
             const agg = new Map();
             rostersByLeague.forEach((rosters, idx) => {
@@ -5534,7 +5612,7 @@ const wrTeStatOrder = [
         function createPlayerListRow(pid, leagueSet, totalLeagues) {
             const p = state.players[pid];
             if (!p) return null;
-            const pos = p.position || (p.fantasy_positions && p.fantasy_positions[0]) || '';
+            const pos = (p.position || (p.fantasy_positions && p.fantasy_positions[0]) || '').toUpperCase();
             const first = (p.first_name || '').trim();
             const last = (p.last_name || '').trim();
             let displayName = `${first} ${last}`.trim() || pid;
@@ -5548,11 +5626,10 @@ const wrTeStatOrder = [
             const ageFromSheet = valueData?.age;
             const formattedAge = (typeof ageFromSheet === 'number') ? ageFromSheet.toFixed(1) : (p.age ? Number(p.age).toFixed(1) : '?');
             const detailParts = [];
-            const adp1QB = state.oneQbData[pid]?.adp;
-            const adpSFLX = state.sflxData[pid]?.adp;
             const rookieYear = deriveRookieYear(p);
-            if (adp1QB) detailParts.push(`ADP <span style="color:${getAdpColorForRoster(adp1QB) || 'inherit'}">${adp1QB.toFixed(1)}</span>`);
-            if (adpSFLX) detailParts.push(`SFLX <span style="color:${getAdpColorForRoster(adpSFLX) || 'inherit'}">${adpSFLX.toFixed(1)}</span>`);
+            if (formattedAge !== '?') {
+                detailParts.push(`Age <span style="color:${getAgeColorForRoster(pos, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span>`);
+            }
             if (rookieYear) {
                 const ryAbbr = String(rookieYear).slice(-2);
                 detailParts.push(`RY-<span style="color:${getRyColor(rookieYear) || 'inherit'}">${ryAbbr}</span>`);
@@ -5567,12 +5644,11 @@ const wrTeStatOrder = [
             const sortedAbbrs = Array.from(leagueSet).sort();
             const leaguesHTML = sortedAbbrs.map((abbr, index) => `<span style="color: ${getLeagueColor(abbr)}">${abbr}</span>`).join(', ');
             row.innerHTML = `
-                <div class="pl-list-tag" style="background-color: ${TAG_COLORS[pos] || 'var(--pos-bn)'};">${pos}</div>
+                <div class="pl-list-tag ownership-pos-tag ${pos}">${pos}</div>
                 <div class="pl-player-info">
                     <div class="pl-player-name">
-                        <span>${displayName}</span>
+                        <button type="button" class="pl-player-name-btn" data-player-id="${pid}">${displayName}</button>
                         <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
-                        ${formattedAge !== '?' ? `<span style="font-size: 0.8rem; color: var(--color-text-tertiary);">Age: <span style="color:${getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span></span>` : ''}
                     </div>
                     <div class="pl-player-details">${detailsHTML}</div>
                 </div>
@@ -5582,6 +5658,30 @@ const wrTeStatOrder = [
                     <span class="pl-col-lgs">${leaguesHTML}</span>
                 </div>
             `;
+
+            const nameButton = row.querySelector('.pl-player-name-btn');
+            if (nameButton) {
+                nameButton.addEventListener('click', async () => {
+                    const valuations = state.isSuperflex ? state.sflxData[pid] : state.oneQbData[pid];
+                    const posRankNumeric = valuations?.posRank || valuations?.pos_rank_ppr || null;
+                    const overallRankNumeric = valuations?.overallRank || valuations?.overall_rank_ppr || null;
+
+                    // Use stats-page flow for game logs (non-league specific FPTS/PPG)
+                    state.isGameLogFromStatsPage = true;
+                    state.statsPagePlayerData = null; // will be populated in handlePlayerNameClick after modal opens
+
+                    const payload = {
+                        id: pid,
+                        name: `${first} ${last}`.trim() || displayName,
+                        pos: pos || (p.position || '').toUpperCase() || 'FA',
+                        team: (p.team || 'FA').toUpperCase(),
+                        ktc: valuations?.ktc || null,
+                        overallRank: overallRankNumeric ?? null,
+                        posRank: posRankNumeric ? `${pos}·${posRankNumeric}` : null
+                    };
+                    await handlePlayerNameClick(payload);
+                });
+            }
             return row;
         }
         // --- Formatting Helpers ---
