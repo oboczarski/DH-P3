@@ -6531,12 +6531,20 @@ function buildConsistencyPanelData(player) {
     const resolvedPos = (player.pos || state.statsPagePlayerData?.pos || fullPlayer?.position || 'FLEX').toUpperCase();
     const thresholds = getConsistencyThresholds(resolvedPos);
     const series = [];
+    const skippedLabels = {};
     axisWeeks.forEach(week => {
         const statsForWeek = weeklyStats?.[week]?.[playerId];
         if (!statsForWeek) return;
-        if (shouldSkipConsistencyWeek(statsForWeek)) return;
+        const projReason = formatProjReason(statsForWeek.proj);
+        if (shouldSkipConsistencyWeek(statsForWeek)) {
+            if (projReason) skippedLabels[week] = projReason;
+            return;
+        }
         const opponent = (statsForWeek.opponent || '').toUpperCase();
-        if (opponent === 'BYE') return;
+        if (opponent === 'BYE') {
+            skippedLabels[week] = 'BYE';
+            return;
+        }
         const sheetFpts = statsForWeek.fpt_ppr;
         const numeric = typeof sheetFpts === 'number' ? sheetFpts : Number(sheetFpts);
         if (!Number.isFinite(numeric)) return;
@@ -6592,7 +6600,8 @@ function buildConsistencyPanelData(player) {
         lastFiveAvg,
         highWeekCount: thresholds ? series.filter(entry => entry.pts >= thresholds.high).length : null,
         solidHighCount,
-        totalWeeks: series.length
+        totalWeeks: series.length,
+        skippedLabels
     };
 }
 
@@ -6609,6 +6618,13 @@ function shouldSkipConsistencyWeek(statsForWeek) {
     if (CONSISTENCY_PROJECTION_SKIP_CODES.has(normalized)) return true;
     // Treat any non-numeric projection text as an inactive week
     return true;
+}
+
+function formatProjReason(rawProj) {
+    if (rawProj === undefined || rawProj === null) return '';
+    const text = String(rawProj).trim();
+    if (!text) return '';
+    return text.toUpperCase();
 }
 
 function updateConsistencyHud(data) {
@@ -7128,6 +7144,7 @@ function renderPoints(data) {
     const pointsLayer = document.getElementById('weekly-chart-points');
     if (!pointsLayer) return;
     pointsLayer.querySelectorAll('.weekly-point').forEach(el => el.remove());
+    pointsLayer.querySelectorAll('.weekly-skip-label').forEach(el => el.remove());
     if (curveSvg) {
         curveSvg.remove();
         curveSvg = null;
@@ -7172,6 +7189,36 @@ function renderPoints(data) {
         label.appendChild(valueSpan);
         pointEl.appendChild(label);
         pointsLayer.appendChild(pointEl);
+    });
+    // Add markers for skipped weeks (BYE/OUT/etc.) positioned on the line between surrounding games
+    const skipped = data?.skippedLabels || {};
+    const playedWeekSet = new Set(data.series.map(entry => entry.week));
+    axisWeeks.forEach((week, slotIndex) => {
+        if (!skipped[week]) return;
+        if (playedWeekSet.has(week)) return; // should not happen, but guard
+        const pctX = totalSlots === 1
+            ? 50
+            : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
+        // Find surrounding played weeks to interpolate y
+        const prev = [...data.series].reverse().find(entry => entry.week < week);
+        const next = data.series.find(entry => entry.week > week);
+        let interpPts = null;
+        if (prev && next && next.week !== prev.week) {
+            const t = (week - prev.week) / (next.week - prev.week);
+            interpPts = prev.pts + (next.pts - prev.pts) * t;
+        } else if (prev) {
+            interpPts = prev.pts;
+        } else if (next) {
+            interpPts = next.pts;
+        }
+        if (!Number.isFinite(interpPts)) return;
+        const pctY = yFromPoints(interpPts);
+        const marker = document.createElement('div');
+        marker.className = 'weekly-skip-label';
+        marker.textContent = skipped[week];
+        marker.style.left = `${pctX}%`;
+        marker.style.top = `${pctY}%`;
+        pointsLayer.appendChild(marker);
     });
     const extendedCurvePoints = extendCurvePoints(curvePoints);
     drawSegmentedCurve(pointsLayer, extendedCurvePoints, data);
