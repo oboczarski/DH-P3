@@ -5591,11 +5591,11 @@ const wrTeStatOrder = [
             const ageFromSheet = valueData?.age;
             const formattedAge = (typeof ageFromSheet === 'number') ? ageFromSheet.toFixed(1) : (p.age ? Number(p.age).toFixed(1) : '?');
             const detailParts = [];
-            const adp1QB = state.oneQbData[pid]?.adp;
-            const adpSFLX = state.sflxData[pid]?.adp;
             const rookieYear = deriveRookieYear(p);
-            if (adp1QB) detailParts.push(`ADP <span style="color:${getAdpColorForRoster(adp1QB) || 'inherit'}">${adp1QB.toFixed(1)}</span>`);
-            if (adpSFLX) detailParts.push(`SFLX <span style="color:${getAdpColorForRoster(adpSFLX) || 'inherit'}">${adpSFLX.toFixed(1)}</span>`);
+            // Age moved to details row (where ADP was), ADP and SFLX removed
+            if (formattedAge !== '?') {
+                detailParts.push(`Age <span style="color:${getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span>`);
+            }
             if (rookieYear) {
                 const ryAbbr = String(rookieYear).slice(-2);
                 detailParts.push(`RY-<span style="color:${getRyColor(rookieYear) || 'inherit'}">${ryAbbr}</span>`);
@@ -5611,12 +5611,11 @@ const wrTeStatOrder = [
             const leaguesHTML = sortedAbbrs.map((abbr, index) => `<span style="color: ${getLeagueColor(abbr)}">${abbr}</span>`).join(', ');
             row.dataset.playerId = pid;
             row.innerHTML = `
-                <div class="pl-list-tag" style="background-color: ${TAG_COLORS[pos] || 'var(--pos-bn)'};">${pos}</div>
+                <div class="pl-list-tag ${pos}" style="background-color: transparent;">${pos}</div>
                 <div class="pl-player-info">
                     <div class="pl-player-name">
                         <span class="pl-player-name-clickable" style="cursor: pointer;">${displayName}</span>
                         <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
-                        ${formattedAge !== '?' ? `<span style="font-size: 0.8rem; color: var(--color-text-tertiary);">Age: <span style="color:${getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span></span>` : ''}
                     </div>
                     <div class="pl-player-details">${detailsHTML}</div>
                 </div>

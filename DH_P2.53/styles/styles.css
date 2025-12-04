@@ -9358,3 +9358,78 @@ body[data-page="research"] #secondary-header-row {
     margin-left: 19px;
   }
 }
+
+/* ============================================================
+   OWNERSHIP PAGE SPECIFIC STYLES
+   Position tags styled to match game logs modal appearance
+   ============================================================ */
+
+/* Base ownership position tag - matches modal-pos-tag glass style */
+body[data-page="ownership"] .pl-list-tag {
+  position: relative;
+  line-height: 0.9rem;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  min-width: 28px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.005);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  color: inherit;
+}
+
+/* Ownership position tag glass overlay effect */
+body[data-page="ownership"] .pl-list-tag::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 1rem;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
+              inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
+  opacity: 0.34;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+  pointer-events: none;
+}
+
+/* Ownership QB position tag */
+body[data-page="ownership"] .pl-list-tag.QB {
+  background-color: transparent;
+  color: #FF3A75c0;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 0 10px #FF3A7513;
+}
+
+/* Ownership RB position tag */
+body[data-page="ownership"] .pl-list-tag.RB {
+  background-color: transparent;
+  color: #00EBC7c0;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 0 6px #00EBC715;
+}
+
+/* Ownership WR position tag */
+body[data-page="ownership"] .pl-list-tag.WR {
+  background-color: transparent;
+  color: #58A7FFca;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 0 10px #58A7FF25;
+}
+
+/* Ownership TE position tag */
+body[data-page="ownership"] .pl-list-tag.TE {
+  background-color: transparent;
+  color: #B469FFca;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 0 10px #B469FF26;
+}
+
+/* Ownership player details row (bottom row with age) */
+body[data-page="ownership"] .pl-player-details {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
