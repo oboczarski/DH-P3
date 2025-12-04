@@ -5511,6 +5511,65 @@ const wrTeStatOrder = [
                 });
             };
         }
+
+        async function openOwnershipGameLogs(playerId) {
+            try {
+                state.isGameLogFromStatsPage = true;
+                state.isGameLogModalOpenFromComparison = false;
+
+                if (!state.statsSheetsLoaded && typeof fetchPlayerStatsSheets === 'function') {
+                    await fetchPlayerStatsSheets();
+                }
+
+                const player = state.players?.[playerId] || {};
+                const pos = (player.position || (Array.isArray(player.fantasy_positions) && player.fantasy_positions[0]) || 'FA').toUpperCase();
+                const team = (player.team || 'FA').toUpperCase();
+
+                const valuationsMap = state.isSuperflex ? state.sflxData : state.oneQbData;
+                const valuation = valuationsMap ? valuationsMap[playerId] || {} : {};
+
+                const seasonStats = state.playerSeasonStats?.[playerId] || {};
+                const fpts = Number.isFinite(seasonStats.fpts_ppr) ? seasonStats.fpts_ppr : 0;
+                const gamesPlayed = Number.isFinite(seasonStats.games_played)
+                    ? seasonStats.games_played
+                    : (Number.isFinite(seasonStats.g) ? seasonStats.g : 0);
+                const ppg = Number.isFinite(seasonStats.ppg)
+                    ? seasonStats.ppg
+                    : (gamesPlayed > 0 ? fpts / gamesPlayed : 0);
+
+                const posRank = Number.isFinite(seasonStats.pos_rank_ppr) ? seasonStats.pos_rank_ppr : null;
+                const overallRank = Number.isFinite(seasonStats.overall_rank_ppr) ? seasonStats.overall_rank_ppr : null;
+                const ppgPosRank = Number.isFinite(seasonStats.ppg_pos_rank_ppr) ? seasonStats.ppg_pos_rank_ppr : null;
+                const ppgOverallRank = Number.isFinite(seasonStats.ppg_rank_ppr) ? seasonStats.ppg_rank_ppr : null;
+
+                state.statsPagePlayerData = {
+                    fpts,
+                    ppg,
+                    gamesPlayed,
+                    posRank,
+                    overallRank,
+                    ppgPosRank,
+                    ppgOverallRank
+                };
+
+                const name = `${(player.first_name || '').trim()} ${(player.last_name || '').trim()}`.trim()
+                    || player.display_name || player.full_name || playerId;
+
+                const payload = {
+                    id: playerId,
+                    name,
+                    pos,
+                    team,
+                    ktc: Number.isFinite(valuation.ktc) ? valuation.ktc : 0,
+                    posRank: posRank ? `${pos}·${posRank}` : null,
+                    overallRank: overallRank ?? null
+                };
+
+                handlePlayerNameClick(payload);
+            } catch (err) {
+                console.error('Unable to open ownership game logs', err);
+            }
+        }
         function createPlayerListHeader() {
             const header = document.createElement('div');
             header.className = 'pl-player-row pl-list-header';
@@ -5570,7 +5629,9 @@ const wrTeStatOrder = [
                 <div class="pl-list-tag" style="background-color: ${TAG_COLORS[pos] || 'var(--pos-bn)'};">${pos}</div>
                 <div class="pl-player-info">
                     <div class="pl-player-name">
-                        <span>${displayName}</span>
+                        <button type="button" class="pl-player-name-button" data-player-id="${pid}" aria-label="View game logs for ${displayName}" style="background:none;border:none;padding:0;margin:0;color:inherit;cursor:pointer;text-align:left;">
+                            ${displayName}
+                        </button>
                         <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
                         ${formattedAge !== '?' ? `<span style="font-size: 0.8rem; color: var(--color-text-tertiary);">Age: <span style="color:${getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span></span>` : ''}
                     </div>
@@ -5582,6 +5643,20 @@ const wrTeStatOrder = [
                     <span class="pl-col-lgs">${leaguesHTML}</span>
                 </div>
             `;
+
+            const nameBtn = row.querySelector('.pl-player-name-button');
+            if (nameBtn) {
+                nameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openOwnershipGameLogs(pid);
+                });
+                nameBtn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openOwnershipGameLogs(pid);
+                    }
+                });
+            }
             return row;
         }
         // --- Formatting Helpers ---
