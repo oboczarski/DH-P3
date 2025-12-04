@@ -6631,7 +6631,16 @@ function updateConsistencyHud(data) {
     const circleConsistencyValue = consistencyContainer.querySelector('[data-consistency-circle-value]');
     if (circleConsistencyValue) circleConsistencyValue.textContent = formattedPct;
     const circleCeilingValue = consistencyContainer.querySelector('[data-ceiling-circle-rank]');
-    if (circleCeilingValue) circleCeilingValue.textContent = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : 'NA';
+    if (circleCeilingValue) {
+        if (Number.isFinite(data?.ceilingRank)) {
+            const rankInt = Math.round(data.ceilingRank);
+            const ordinal = ordinalSuffix(rankInt);
+            const suffix = ordinal.slice(String(rankInt).length) || '';
+            circleCeilingValue.innerHTML = `${rankInt}<span class="ceiling-rank-suffix">${suffix}</span>`;
+        } else {
+            circleCeilingValue.textContent = 'NA';
+        }
+    }
     const consistencyCaptionEl = consistencyContainer.querySelector('[data-consistency-circle-caption]');
     if (consistencyCaptionEl) consistencyCaptionEl.textContent = 'CSTY RATE';
     const ceilingCaptionEl = consistencyContainer.querySelector('[data-ceiling-circle-caption]');
