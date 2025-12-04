@@ -6918,10 +6918,10 @@ function ensureLineFilter(defs) {
     filter.setAttribute('height', '160%');
     const shadow = document.createElementNS(SVG_NS, 'feDropShadow');
     shadow.setAttribute('dx', '0');
-    shadow.setAttribute('dy', '8');
-    shadow.setAttribute('stdDeviation', '5');
+    shadow.setAttribute('dy', '4');
+    shadow.setAttribute('stdDeviation', '2');
     shadow.setAttribute('flood-color', '#d2e6fa');
-    shadow.setAttribute('flood-opacity', '0.2');
+    shadow.setAttribute('flood-opacity', '0.12');
     filter.appendChild(shadow);
     defs.appendChild(filter);
 }
@@ -6937,10 +6937,10 @@ function ensureAreaFilter(defs) {
     filter.setAttribute('height', '240%');
     const shadow = document.createElementNS(SVG_NS, 'feDropShadow');
     shadow.setAttribute('dx', '0');
-    shadow.setAttribute('dy', '16');
-    shadow.setAttribute('stdDeviation', '60');
+    shadow.setAttribute('dy', '10');
+    shadow.setAttribute('stdDeviation', '30');
     shadow.setAttribute('flood-color', '#38bdf8');
-    shadow.setAttribute('flood-opacity', '0.35');
+    shadow.setAttribute('flood-opacity', '0.22');
     filter.appendChild(shadow);
     defs.appendChild(filter);
 }
