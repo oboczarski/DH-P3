@@ -5232,11 +5232,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .zone-chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0.18rem 0.48rem;
+        gap: 0.18rem;
+        padding: 0.18rem 0.42rem;
         border-radius: 999px;
-        font-size: 0.5rem;
-        letter-spacing: 0.06em;
+        font-size: 0.44rem;
+        letter-spacing: 0.04em;
         text-transform: uppercase;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(5, 9, 20, 0.76);
@@ -5248,11 +5248,20 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .zone-chip-label {
         color: rgba(239, 246, 255, 0.78);
         font-weight: 600;
+        font-size: 0.44rem;
+    }
+
+    .zone-chip-threshold {
+        color: rgba(239, 246, 255, 0.55);
+        font-weight: 500;
+        font-size: 0.42rem;
+        letter-spacing: 0.02em;
     }
 
     .zone-chip-value {
         font-weight: 700;
         color: #f8faff;
+        font-size: 0.62rem;
     }
 
     .zone-chip--low {
@@ -5361,6 +5370,23 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             background: rgba(18, 24, 40, 0.7);
             color: rgba(200, 208, 230, 0.8);
             line-height: 1;
+        }
+        .weekly-zone-summary {
+            gap: 0.25rem;
+        }
+        .zone-chip {
+            gap: 0.12rem;
+            padding: 0.14rem 0.32rem;
+            font-size: 0.38rem;
+        }
+        .zone-chip-label {
+            font-size: 0.38rem;
+        }
+        .zone-chip-threshold {
+            font-size: 0.36rem;
+        }
+        .zone-chip-value {
+            font-size: 0.54rem;
         }
     }
 

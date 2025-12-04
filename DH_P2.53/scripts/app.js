@@ -6783,21 +6783,35 @@ function renderZoneSummary(data) {
     const lowEl = container.querySelector('[data-zone-low]');
     const solidEl = container.querySelector('[data-zone-solid]');
     const highEl = container.querySelector('[data-zone-high]');
+    const lowThresholdEl = container.querySelector('[data-threshold-low]');
+    const solidThresholdEl = container.querySelector('[data-threshold-solid]');
+    const highThresholdEl = container.querySelector('[data-threshold-high]');
     const resetCounts = () => {
         if (lowEl) lowEl.textContent = '0';
         if (solidEl) solidEl.textContent = '0';
         if (highEl) highEl.textContent = '0';
     };
+    const resetThresholds = () => {
+        if (lowThresholdEl) lowThresholdEl.textContent = '';
+        if (solidThresholdEl) solidThresholdEl.textContent = '';
+        if (highThresholdEl) highThresholdEl.textContent = '';
+    };
     if (!data || !data.series || !data.series.length) {
         resetCounts();
+        resetThresholds();
         return;
     }
     const thresholds = data.thresholds || getConsistencyThresholds(data.position);
+    const solidRounded = Math.round(thresholds.solid);
+    const highRounded = Math.round(thresholds.high);
+    if (lowThresholdEl) lowThresholdEl.textContent = `(<${solidRounded}):`;
+    if (solidThresholdEl) solidThresholdEl.textContent = `(${solidRounded}-${highRounded}):`;
+    if (highThresholdEl) highThresholdEl.textContent = `(≥${highRounded}):`;
     let low = 0, solid = 0, high = 0;
     data.series.forEach(entry => {
         const pts = entry?.pts;
         if (!Number.isFinite(pts)) return;
-        if (pts > thresholds.high) {
+        if (pts >= thresholds.high) {
             high += 1;
         } else if (pts >= thresholds.solid) {
             solid += 1;
