@@ -5557,7 +5557,7 @@ const wrTeStatOrder = [
                 const ryAbbr = String(rookieYear).slice(-2);
                 detailParts.push(`RY-<span style="color:${getRyColor(rookieYear) || 'inherit'}">${ryAbbr}</span>`);
             }
-            const detailsHTML = detailParts.join(' • ');
+            const detailsHTML = detailParts.join('<span class="pl-details-sep"> • </span>');
             const count = leagueSet.size;
             const pctVal = Math.round((count / totalLeagues) * 100);
             let countClass, pctClass;

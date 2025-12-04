@@ -2823,25 +2823,30 @@ body[data-page="welcome"] .home-menu-item {
 /* Desktop ownership row tuning (desktop only) */
 @media (min-width: 820px) {
   body[data-page="ownership"] .player-list-section .pl-player-row {
-    padding: 0.42rem 1rem;
-    gap: 0.8rem;
+    padding: 0.22rem 0.9rem;
+    gap: 1.2rem;
     align-items: center;
   }
   body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-name {
     font-size: 0.96rem;
-    gap: 0.65rem;
+    gap: 1.25rem;
     line-height: 1.16;
   }
   body[data-page="ownership"] .player-list-section .pl-player-row .team-tag {
     font-size: 0.7rem;
     padding: 2px 8px;
     border-radius: 6px;
+    min-height: 18px;
+    max-width: 32px;
   }
   body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-details {
     font-size: 0.83rem;
     letter-spacing: 0.012em;
     margin-top: 2px;
     word-spacing: 0.26rem; /* open space around the dot separator */
+  }
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-details .pl-details-sep {
+    margin: 0 0.45rem; /* extra space around • on desktop only */
   }
   body[data-page="ownership"] .player-list-section .pl-player-info {
     flex: 0 1 52%;
@@ -2915,6 +2920,9 @@ body[data-page="welcome"] .home-menu-item {
     line-height: 1.15 !important;
     white-space: normal !important;
   }
+  .player-list-section .pl-player-row .pl-player-details .pl-details-sep {
+    margin: 0 0.25rem; /* extra space around • on mobile */
+  }
   /* 📱 Right meta columns (count | % | leagues) for rows 📱 */
   .player-list-section .pl-player-row .pl-right-meta {
     width: 160px !important;
@@ -2927,7 +2935,7 @@ body[data-page="welcome"] .home-menu-item {
     text-align: center !important;
   }
   .player-list-section .pl-player-row .pl-col-lgs {
-    font-size: 0.68rem !important;
+    font-size: 0.58rem !important;
     white-space: normal !important;
     text-align: left !important;
     line-height: 1.15 !important;
