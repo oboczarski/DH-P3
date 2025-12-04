@@ -5566,11 +5566,12 @@ const wrTeStatOrder = [
             else { countClass = 'pl-count-low'; pctClass = 'pl-pct-low'; }
             const sortedAbbrs = Array.from(leagueSet).sort();
             const leaguesHTML = sortedAbbrs.map((abbr, index) => `<span style="color: ${getLeagueColor(abbr)}">${abbr}</span>`).join(', ');
+            row.dataset.playerId = pid;
             row.innerHTML = `
                 <div class="pl-list-tag" style="background-color: ${TAG_COLORS[pos] || 'var(--pos-bn)'};">${pos}</div>
                 <div class="pl-player-info">
                     <div class="pl-player-name">
-                        <span>${displayName}</span>
+                        <span class="pl-player-name-clickable" style="cursor: pointer;">${displayName}</span>
                         <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
                         ${formattedAge !== '?' ? `<span style="font-size: 0.8rem; color: var(--color-text-tertiary);">Age: <span style="color:${getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit'}">${formattedAge}</span></span>` : ''}
                     </div>
@@ -5582,6 +5583,16 @@ const wrTeStatOrder = [
                     <span class="pl-col-lgs">${leaguesHTML}</span>
                 </div>
             `;
+            // Add click handler for player name to open game logs modal
+            const nameClickable = row.querySelector('.pl-player-name-clickable');
+            if (nameClickable) {
+                nameClickable.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof window.openOwnershipGameLogs === 'function') {
+                        window.openOwnershipGameLogs(pid);
+                    }
+                });
+            }
             return row;
         }
         // --- Formatting Helpers ---
@@ -7179,6 +7190,155 @@ function hydrateProgressCircles(data) {
         ceilingCircle.style.setProperty('--progress', normalized.toFixed(3));
     }
 }
+
+// === Ownership Page: Game Logs Modal Wiring ===
+// Uses same data flow as stats page (sheet-based, not league-specific)
+(function wireOwnershipGameLogs() {
+    if (typeof document === 'undefined') return;
+    const pageType = document.body?.dataset?.page;
+    if (pageType !== 'ownership') return;
+    
+    const ownershipGameLogDom = {
+        modal: document.getElementById('game-logs-modal'),
+        closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
+        overlay: document.querySelector('#game-logs-modal .modal-overlay'),
+        keyPanel: document.getElementById('stats-key-container'),
+        radarPanel: document.getElementById('radar-chart-container'),
+        consistencyPanel: document.getElementById('consistency-container')
+    };
+    
+    if (!ownershipGameLogDom.modal) return;
+    
+    let ownershipEscapeBound = false;
+    
+    function performOwnershipModalClose() {
+        if (typeof closeModal === 'function') {
+            closeModal();
+        } else if (ownershipGameLogDom.modal) {
+            ownershipGameLogDom.modal.classList.add('hidden');
+            ownershipGameLogDom.keyPanel?.classList.add('hidden');
+            ownershipGameLogDom.radarPanel?.classList.add('hidden');
+            ownershipGameLogDom.consistencyPanel?.classList.add('hidden');
+            
+            const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+            modalInfoBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-panel') === 'game-logs') {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        if (typeof state === 'object') {
+            state.isGameLogModalOpenFromComparison = false;
+            state.isGameLogFromStatsPage = false;
+            state.statsPagePlayerData = null;
+            state.currentGameLogsPlayer = null;
+        }
+    }
+    
+    // Wire close button and overlay
+    ownershipGameLogDom.closeBtn?.addEventListener('click', performOwnershipModalClose);
+    ownershipGameLogDom.overlay?.addEventListener('click', performOwnershipModalClose);
+    
+    // Wire tab panel buttons
+    const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+    modalInfoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetPanel = btn.getAttribute('data-panel');
+            const overlayContainers = {
+                'stats-key': ownershipGameLogDom.keyPanel,
+                'radar-chart': ownershipGameLogDom.radarPanel,
+                'consistency': ownershipGameLogDom.consistencyPanel
+            };
+            
+            if (targetPanel === 'game-logs') {
+                Object.values(overlayContainers).forEach(container => {
+                    if (container) container.classList.add('hidden');
+                });
+                modalInfoBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                return;
+            }
+            
+            const isCurrentlyVisible = overlayContainers[targetPanel] && 
+                                       !overlayContainers[targetPanel].classList.contains('hidden');
+            
+            if (isCurrentlyVisible) {
+                overlayContainers[targetPanel].classList.add('hidden');
+                modalInfoBtns.forEach(b => {
+                    b.classList.remove('active');
+                    if (b.getAttribute('data-panel') === 'game-logs') {
+                        b.classList.add('active');
+                    }
+                });
+            } else {
+                Object.values(overlayContainers).forEach(container => {
+                    if (container) container.classList.add('hidden');
+                });
+                overlayContainers[targetPanel].classList.remove('hidden');
+                modalInfoBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                if (targetPanel === 'radar-chart' && typeof renderPlayerRadarChart === 'function') {
+                    const player = state.currentGameLogsPlayer;
+                    if (player && player.pos) {
+                        renderPlayerRadarChart(player.id, player.pos);
+                    }
+                }
+                if (targetPanel === 'consistency' && typeof renderConsistencyChart === 'function') {
+                    renderConsistencyChart();
+                }
+            }
+        });
+    });
+    
+    // Escape key handler
+    if (!ownershipEscapeBound) {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && ownershipGameLogDom.modal && !ownershipGameLogDom.modal.classList.contains('hidden')) {
+                performOwnershipModalClose();
+            }
+        });
+        ownershipEscapeBound = true;
+    }
+    
+    // Expose function for opening game logs from ownership page
+    window.openOwnershipGameLogs = function(playerId) {
+        if (typeof handlePlayerNameClick !== 'function') return;
+        
+        const p = state.players[playerId];
+        if (!p) return;
+        
+        const pos = p.position || (p.fantasy_positions && p.fantasy_positions[0]) || '';
+        const first = (p.first_name || '').trim();
+        const last = (p.last_name || '').trim();
+        const fullName = `${first} ${last}`.trim() || playerId;
+        
+        // Use 1QB or SFLX data based on state (default to 1QB for ownership since no specific league context)
+        const valueData = state.oneQbData[playerId] || state.sflxData[playerId] || {};
+        
+        // Set flag to use sheet-based data (same as stats page)
+        state.isGameLogModalOpenFromComparison = false;
+        state.isGameLogFromStatsPage = true;
+        
+        // For ownership, we don't have calculated ranks from a stats table, 
+        // so pass null - handlePlayerNameClick will use sheet data approach
+        state.statsPagePlayerData = null;
+        
+        const player = {
+            id: playerId,
+            name: fullName,
+            pos: pos,
+            team: p.team || 'FA',
+            ktc: valueData.ktc || 0,
+            posRank: valueData.posRank || null,
+            overallRank: valueData.overallRank || null
+        };
+        
+        handlePlayerNameClick(player);
+    };
+})();
 
 // === Loading Ring Animation (merged from loader-ring.js) ===
 (function(){
