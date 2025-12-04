@@ -863,6 +863,14 @@ if (typeof window !== 'undefined') {
                 handleError(error, username);
             } finally {
                 setLoading(false);
+                
+                // Start loading weekly stats in background for game logs (non-blocking)
+                // Same as rosters page - preload data so game logs modal has FPTS/PPG ready
+                if (!state.statsSheetsLoaded && typeof fetchPlayerStatsSheets === 'function') {
+                    fetchPlayerStatsSheets().catch(err => {
+                        console.warn('Background load of weekly stats failed:', err);
+                    });
+                }
             }
         }
         async function handleLeagueSelect() {
@@ -7315,16 +7323,43 @@ function hydrateProgressCircles(data) {
         const last = (p.last_name || '').trim();
         const fullName = `${first} ${last}`.trim() || playerId;
         
-        // Use 1QB or SFLX data based on state (default to 1QB for ownership since no specific league context)
-        const valueData = state.oneQbData[playerId] || state.sflxData[playerId] || {};
+        // Always use 1QB data for KTC on ownership page
+        const valueData = state.oneQbData[playerId] || {};
+        
+        // Ensure weekly stats are loaded before opening game logs (same as stats page)
+        // If still loading, handlePlayerNameClick will show loading state
+        if (!state.statsSheetsLoaded && typeof fetchPlayerStatsSheets === 'function') {
+            // Trigger load if not already started, but don't block - handlePlayerNameClick handles this
+            fetchPlayerStatsSheets().catch(err => console.warn('Failed to load weekly stats:', err));
+        }
+        
+        // Get season stats from sheet data (same source as stats page)
+        // These values will be populated after fetchPlayerStatsSheets completes
+        const seasonStats = state.playerSeasonStats?.[playerId] || {};
+        const fpts = typeof seasonStats.fpts_ppr === 'number' ? seasonStats.fpts_ppr : 0;
+        const gamesPlayed = typeof seasonStats.games_played === 'number' ? seasonStats.games_played : 0;
+        const ppg = typeof seasonStats.ppg === 'number' ? seasonStats.ppg : (gamesPlayed > 0 ? fpts / gamesPlayed : 0);
+        
+        // Get ranks from computed season rankings (same as stats page)
+        const posRank = seasonStats.pos_rank_ppr || null;
+        const overallRank = seasonStats.overall_rank_ppr || null;
+        const ppgPosRank = seasonStats.ppg_pos_rank_ppr || null;
+        const ppgOverallRank = seasonStats.ppg_rank_ppr || null;
         
         // Set flag to use sheet-based data (same as stats page)
         state.isGameLogModalOpenFromComparison = false;
         state.isGameLogFromStatsPage = true;
         
-        // For ownership, we don't have calculated ranks from a stats table, 
-        // so pass null - handlePlayerNameClick will use sheet data approach
-        state.statsPagePlayerData = null;
+        // Populate statsPagePlayerData with season stats from sheets (same method as stats page)
+        state.statsPagePlayerData = {
+            fpts: fpts,
+            ppg: ppg,
+            gamesPlayed: gamesPlayed,
+            posRank: posRank,
+            overallRank: overallRank,
+            ppgPosRank: ppgPosRank,
+            ppgOverallRank: ppgOverallRank
+        };
         
         const player = {
             id: playerId,
