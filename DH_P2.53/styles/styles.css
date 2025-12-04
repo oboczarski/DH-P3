@@ -5270,12 +5270,17 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .weekly-chart-line-layer .weekly-skip-label {
         position: absolute;
         transform: translate(-50%, -50%);
-        font-size: 0.58rem;
+        font-size: 0.6rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: rgba(239, 246, 255, 0.8);
+        color: rgba(175, 181, 211, 0.8); /* match PROJ column tint */
         pointer-events: none;
         text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+        background: rgba(13, 14, 35, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 3px 7px;
+        line-height: 1.05;
     }
 
     .weekly-zone {
