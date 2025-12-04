@@ -2490,6 +2490,58 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             flex-shrink: 0;
             margin-right: 0.3rem; /* EDITED */
         }
+        /* Ownership page: position tags styled like game logs modal */
+        body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: auto;
+            padding: 4px 8px;
+            line-height: 0.95rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.005);
+            backdrop-filter: blur(1px) saturate(180%);
+            border: 1px solid rgba(250, 250, 250, 0.12);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+            color: var(--color-text-primary);
+        }
+        body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 4px;
+            backdrop-filter: blur(1px);
+            box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
+            inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
+            opacity: 0.34;
+            z-index: -1;
+            filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+            pointer-events: none;
+        }
+        body[data-page="ownership"] .ownership-pos-tag.QB {
+            color: #FF3A75c0; /* QB color */
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #FF3A7513;
+        }
+        body[data-page="ownership"] .ownership-pos-tag.RB {
+            color: #00EBC7c0; /* RB color */
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 6px #00EBC715;
+        }
+        body[data-page="ownership"] .ownership-pos-tag.WR {
+            color: #58A7FFca; /* WR color */
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #58A7FF25;
+        }
+        body[data-page="ownership"] .ownership-pos-tag.TE {
+            color: #B469FFca; /* TE color */
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #B469FF26;
+        }
         .pl-list-tag-spacer {
             width: 24px; /* EDITED */
             height: 1px;
@@ -2797,7 +2849,7 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
     font-size: 0.6rem !important;
     padding: 1px 6px !important;
   }
-  /* 📱 Secondary details line (ADP, SFLX, RY) 📱 */
+  /* 📱 Secondary details line (Age, RY) 📱 */
   .player-list-section .pl-player-row .pl-player-details {
     font-size: 0.60rem !important;
     line-height: 1.15 !important;
@@ -2828,6 +2880,14 @@ body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
     line-height: 18px !important;
     font-size: 0.68rem !important;
     margin-right: 4px !important;
+  }
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-list-tag.ownership-pos-tag {
+    min-width: 28px !important;
+    height: auto !important;
+    padding: 3px 7px !important;
+    line-height: 0.9rem !important;
+    font-size: 0.78rem !important;
+    border-radius: 1rem !important;
   }
   .player-list-section .pl-player-row .pl-list-tag-spacer {
     width: 26px !important;
