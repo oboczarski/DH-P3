@@ -307,7 +307,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipStatsData: null, ownershipStatsRankCache: null, ownershipStatsLoaded: false };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -858,6 +858,13 @@ if (typeof window !== 'undefined') {
                 await fetchAndSetUser(username);
                 rosterView.classList.add('hidden');
                 playerListView.classList.remove('hidden');
+                
+                // Load STAT_1QB sheet data for game logs (same data as stats page)
+                // This loads FPTS and PPG directly from sheet, NOT from league-specific data
+                if (typeof loadOwnershipStatsSheet === 'function' && !state.ownershipStatsLoaded) {
+                    await loadOwnershipStatsSheet();
+                }
+                
                 await renderPlayerList();
             } catch (error) {
                 handleError(error, username);
@@ -7227,6 +7234,162 @@ function hydrateProgressCircles(data) {
     }
 }
 
+// === Ownership Page: Stats Sheet Loading (same as stats.js) ===
+// Loads STAT_1QB sheet to get FPTS and PPG directly, just like stats page
+async function loadOwnershipStatsSheet() {
+    if (state.ownershipStatsLoaded) return;
+    
+    try {
+        const sheetId = PLAYER_STATS_SHEET_ID;
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=STAT_1QB`;
+        const response = await fetch(url, { cache: 'no-cache' });
+        if (!response.ok) throw new Error(`Failed to fetch STAT_1QB: ${response.status}`);
+        const csvText = await response.text();
+        
+        // Parse CSV (same method as stats.js parseCsv)
+        const lines = (csvText || '').split(/\r?\n/).filter(Boolean);
+        if (!lines.length) return;
+        
+        const parseLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (inQuotes) {
+                    if (char === '"') {
+                        if (line[i + 1] === '"') {
+                            current += '"';
+                            i += 1;
+                        } else {
+                            inQuotes = false;
+                        }
+                    } else {
+                        current += char;
+                    }
+                } else if (char === '"') {
+                    inQuotes = true;
+                } else if (char === ',') {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        };
+        
+        // Header aliases (same as stats.js)
+        const HEADER_ALIASES = new Map([
+            ['PLAYER NAME', 'PLAYER'],
+            ['SLPR_ID', 'SLPR_ID'],
+            ['POS', 'POS'],
+            ['FPTS_PPR', 'FPTS'],
+            ['FPT_PPR', 'FPTS']
+        ]);
+        
+        const rawHeaders = parseLine(lines[0]);
+        const headers = rawHeaders.map(raw => HEADER_ALIASES.get(raw) || raw);
+        
+        // Parse rows into enriched player data
+        const enrichedData = {};
+        const allPlayers = []; // For rank calculations
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseLine(lines[i]);
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index] !== undefined ? values[index] : '';
+            });
+            
+            const playerId = row.SLPR_ID || row.slpr_id || '';
+            if (!playerId) continue;
+            
+            const pos = (row.POS || '').toUpperCase();
+            
+            // Parse numbers (same as stats.js toNumber)
+            const parseNum = (val) => {
+                if (val === null || val === undefined) return null;
+                let source = String(val).replace(/,/g, '');
+                const numeric = parseFloat(source);
+                return Number.isNaN(numeric) ? null : numeric;
+            };
+            
+            // Extract FPTS and PPG directly from sheet (SAME as stats.js buildRow)
+            const fpts = parseNum(row.FPTS);
+            const ppg = parseNum(row.PPG);
+            const gamesPlayed = parseNum(row.G) || 0;
+            
+            const playerData = {
+                playerId,
+                pos,
+                fpts: fpts !== null ? fpts : 0,
+                ppg: ppg !== null ? ppg : 0,
+                gamesPlayed
+            };
+            
+            enrichedData[playerId] = playerData;
+            
+            // Only include players with actual stats for ranking
+            if (fpts !== null && fpts > 0 && pos !== 'RDP') {
+                allPlayers.push(playerData);
+            }
+        }
+        
+        state.ownershipStatsData = enrichedData;
+        
+        // Build rank cache (same as stats.js buildStatsPageRankCache)
+        const rankCache = {};
+        
+        if (allPlayers.length > 0) {
+            // FPTS overall ranks
+            const fptsSorted = [...allPlayers].sort((a, b) => b.fpts - a.fpts);
+            fptsSorted.forEach((p, index) => {
+                if (!rankCache[p.playerId]) rankCache[p.playerId] = {};
+                rankCache[p.playerId].overallRank = index + 1;
+            });
+            
+            // PPG overall ranks
+            const ppgSorted = [...allPlayers].sort((a, b) => b.ppg - a.ppg);
+            ppgSorted.forEach((p, index) => {
+                if (!rankCache[p.playerId]) rankCache[p.playerId] = {};
+                rankCache[p.playerId].ppgOverallRank = index + 1;
+            });
+            
+            // Group by position
+            const positionGroups = new Map();
+            allPlayers.forEach(p => {
+                if (!p.pos) return;
+                if (!positionGroups.has(p.pos)) positionGroups.set(p.pos, []);
+                positionGroups.get(p.pos).push(p);
+            });
+            
+            // Position ranks for FPTS and PPG
+            positionGroups.forEach((players, pos) => {
+                // FPTS position ranks
+                const fptsByPos = [...players].sort((a, b) => b.fpts - a.fpts);
+                fptsByPos.forEach((p, index) => {
+                    rankCache[p.playerId].posRank = index + 1;
+                });
+                
+                // PPG position ranks
+                const ppgByPos = [...players].sort((a, b) => b.ppg - a.ppg);
+                ppgByPos.forEach((p, index) => {
+                    rankCache[p.playerId].ppgPosRank = index + 1;
+                });
+            });
+        }
+        
+        state.ownershipStatsRankCache = rankCache;
+        state.ownershipStatsLoaded = true;
+        
+        console.log('[Ownership] Loaded STAT_1QB sheet data for', Object.keys(enrichedData).length, 'players');
+    } catch (err) {
+        console.error('[Ownership] Failed to load STAT_1QB sheet:', err);
+    }
+}
+
 // === Ownership Page: Game Logs Modal Wiring ===
 // Uses same data flow as stats page (sheet-based, not league-specific)
 (function wireOwnershipGameLogs() {
@@ -7361,24 +7524,25 @@ function hydrateProgressCircles(data) {
             fetchPlayerStatsSheets().catch(err => console.warn('Failed to load weekly stats:', err));
         }
         
-        // Get season stats from sheet data (same source as stats page)
-        // These values will be populated after fetchPlayerStatsSheets completes
-        const seasonStats = state.playerSeasonStats?.[playerId] || {};
-        const fpts = typeof seasonStats.fpts_ppr === 'number' ? seasonStats.fpts_ppr : 0;
-        const gamesPlayed = typeof seasonStats.games_played === 'number' ? seasonStats.games_played : 0;
-        const ppg = typeof seasonStats.ppg === 'number' ? seasonStats.ppg : (gamesPlayed > 0 ? fpts / gamesPlayed : 0);
+        // Get season stats from STAT_1QB sheet data (SAME SOURCE as stats page)
+        // This uses state.ownershipStatsData which is loaded from the same STAT_1QB sheet that stats.js uses
+        const playerStats = state.ownershipStatsData?.[playerId] || {};
+        const fpts = playerStats.fpts || 0;
+        const ppg = playerStats.ppg || 0;
+        const gamesPlayed = playerStats.gamesPlayed || 0;
         
-        // Get ranks from computed season rankings (same as stats page)
-        const posRank = seasonStats.pos_rank_ppr || null;
-        const overallRank = seasonStats.overall_rank_ppr || null;
-        const ppgPosRank = seasonStats.ppg_pos_rank_ppr || null;
-        const ppgOverallRank = seasonStats.ppg_rank_ppr || null;
+        // Get ranks from computed rank cache (SAME METHOD as stats.js buildStatsPageRankCache)
+        const rankData = state.ownershipStatsRankCache?.[playerId] || {};
+        const posRank = rankData.posRank || null;
+        const overallRank = rankData.overallRank || null;
+        const ppgPosRank = rankData.ppgPosRank || null;
+        const ppgOverallRank = rankData.ppgOverallRank || null;
         
         // Set flag to use sheet-based data (same as stats page)
         state.isGameLogModalOpenFromComparison = false;
         state.isGameLogFromStatsPage = true;
         
-        // Populate statsPagePlayerData with season stats from sheets (same method as stats page)
+        // Populate statsPagePlayerData with season stats from STAT_1QB sheet (SAME as stats page)
         state.statsPagePlayerData = {
             fpts: fpts,
             ppg: ppg,
