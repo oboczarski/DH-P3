@@ -1660,19 +1660,33 @@ if (typeof window !== 'undefined') {
         function getStatsPagePlayerRanks(playerId) {
             // ONLY called when state.isGameLogFromStatsPage === true
             // Uses season totals and calculated ranks from STAT_1QB/STAT_SFLX sheets passed by stats.js
+            // OR falls back to state.playerSeasonStats for ownership page (after fetchPlayerStatsSheets completes)
             const statsData = state.statsPagePlayerData;
             
             if (!statsData) return getDefaultPlayerRanks();
             
-            const fpts = statsData.fpts || 0;
-            const ppg = statsData.ppg || 0;
-            const gamesPlayed = statsData.gamesPlayed || 0;
+            // If statsPagePlayerData has actual values (from stats.js), use them
+            // Otherwise fall back to state.playerSeasonStats (for ownership page)
+            let fpts = statsData.fpts || 0;
+            let ppg = statsData.ppg || 0;
+            let gamesPlayed = statsData.gamesPlayed || 0;
+            let posRank = statsData.posRank || null;
+            let overallRank = statsData.overallRank || null;
+            let ppgPosRank = statsData.ppgPosRank || null;
+            let ppgOverallRank = statsData.ppgOverallRank || null;
             
-            // Use the calculated ranks passed from stats.js
-            const posRank = statsData.posRank || null;
-            const overallRank = statsData.overallRank || null;
-            const ppgPosRank = statsData.ppgPosRank || null;
-            const ppgOverallRank = statsData.ppgOverallRank || null;
+            // Fall back to state.playerSeasonStats if values are missing (ownership page case)
+            // This data is populated after fetchPlayerStatsSheets completes
+            if (fpts === 0 && state.playerSeasonStats && state.playerSeasonStats[playerId]) {
+                const seasonStats = state.playerSeasonStats[playerId];
+                fpts = typeof seasonStats.fpts_ppr === 'number' ? seasonStats.fpts_ppr : 0;
+                gamesPlayed = typeof seasonStats.games_played === 'number' ? seasonStats.games_played : 0;
+                ppg = typeof seasonStats.ppg === 'number' ? seasonStats.ppg : (gamesPlayed > 0 ? fpts / gamesPlayed : 0);
+                posRank = seasonStats.pos_rank_ppr || null;
+                overallRank = seasonStats.overall_rank_ppr || null;
+                ppgPosRank = seasonStats.ppg_pos_rank_ppr || null;
+                ppgOverallRank = seasonStats.ppg_rank_ppr || null;
+            }
             
             return {
                 total_pts: fpts.toFixed(1),
@@ -2262,6 +2276,7 @@ const SEASON_META_HEADERS = {
                 
                 // PPG must ALWAYS use playerRanks.ppg (same source as summary chips)
                 if (statKey === 'ppg') {
+                    // PPG uses playerRanks.ppg which already has fallback logic
                     statValue = playerRanks?.ppg;
                 } else {
                     // For all other stats, try footerStats first
@@ -2272,10 +2287,13 @@ const SEASON_META_HEADERS = {
                             if (summarySnapshot && summarySnapshot.fpts !== undefined) {
                                 statValue = summarySnapshot.fpts;
                             }
-                            if (statValue === undefined) {
+                            if (statValue === undefined || statValue === '0.0' || statValue === 0) {
+                                // Try statsPagePlayerData first
                                 if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
                                     statValue = state.statsPagePlayerData.fpts || state.statsPagePlayerData.totalPts || null;
-                                } else if (seasonTotals && typeof seasonTotals.fpts_ppr === 'number') {
+                                }
+                                // Fall back to seasonTotals (covers ownership page case)
+                                if (!statValue && seasonTotals && typeof seasonTotals.fpts_ppr === 'number') {
                                     statValue = seasonTotals.fpts_ppr;
                                 }
                             }
@@ -3906,9 +3924,13 @@ const wrTeStatOrder = [
                     } else if (key === 'fpts') {
                         // Stats page uses season total from passed data, rosters page sums matchup data
                         if (state.isGameLogFromStatsPage) {
-                            // Use season total passed from stats.js
+                            // Use season total passed from stats.js, or fall back to playerSeasonStats
                             const statsData = state.statsPagePlayerData;
-                            const seasonFpts = statsData?.fpts || 0;
+                            let seasonFpts = statsData?.fpts || 0;
+                            // Fall back to playerSeasonStats if statsPagePlayerData is empty (ownership page)
+                            if (seasonFpts === 0 && seasonTotals && typeof seasonTotals.fpts_ppr === 'number') {
+                                seasonFpts = seasonTotals.fpts_ppr;
+                            }
                             displayValue = seasonFpts.toFixed(1);
                         } else {
                             // Sum league-specific matchup data for rosters page
@@ -3926,7 +3948,13 @@ const wrTeStatOrder = [
                         // Calculate PPG from FPTS and games played
                         if (state.isGameLogFromStatsPage) {
                             const statsData = state.statsPagePlayerData;
-                            const ppg = statsData?.ppg || 0;
+                            let ppg = statsData?.ppg || 0;
+                            // Fall back to playerSeasonStats if statsPagePlayerData is empty (ownership page)
+                            if (ppg === 0 && seasonTotals) {
+                                const fpts = typeof seasonTotals.fpts_ppr === 'number' ? seasonTotals.fpts_ppr : 0;
+                                const gp = typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : 0;
+                                ppg = typeof seasonTotals.ppg === 'number' ? seasonTotals.ppg : (gp > 0 ? fpts / gp : 0);
+                            }
                             displayValue = ppg.toFixed(1);
                         } else {
                             // Calculate from matchup data for rosters page
