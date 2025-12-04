@@ -5308,7 +5308,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
     .weekly-chart-line-layer {
       position: absolute;
-      inset: 2.4rem 0.05rem 1.75rem 0.05rem;
+      inset: 2.9rem 0.05rem 1.75rem 0.05rem;
       z-index: 4;
       border-radius: 14px;
     }
