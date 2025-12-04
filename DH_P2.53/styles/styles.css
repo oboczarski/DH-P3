@@ -5223,7 +5223,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         left: 0.4rem;
         right: 0.4rem;
         display: flex;
-        justify-content: center;
+        justify-content: space-around;
         gap: 0.4rem;
         z-index: 7;
         pointer-events: none;
@@ -5390,6 +5390,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         .zone-chip-value {
             font-size: 0.6rem;
             line-height: 0.6rem;
+            margin-left: 3px;
         }
     }
 
