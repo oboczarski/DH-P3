@@ -7217,7 +7217,7 @@ function renderPoints(data) {
         marker.className = 'weekly-skip-label';
         marker.textContent = skipped[week];
         marker.style.left = `${pctX}%`;
-        marker.style.top = `calc(${pctY}% + 12px)`; // nudge below the line
+        marker.style.top = `${pctY}%`; // sit on the line
         pointsLayer.appendChild(marker);
     });
     const extendedCurvePoints = extendCurvePoints(curvePoints);
