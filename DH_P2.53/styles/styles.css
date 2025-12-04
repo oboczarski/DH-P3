@@ -4970,10 +4970,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         text-shadow: 0 0 16px rgba(124, 245, 255, 0.52);
     }
     .progress-circle--ceiling .progress-value .ceiling-rank-suffix {
-        font-size: 0.55em;
-        vertical-align: super;
+        font-size: 0.7em;
+        font-weight: 500;
         line-height: 1;
-        margin-left: 1px;
+        vertical-align: baseline;
+        display: inline-block;
     }
 
     .progress-label {
