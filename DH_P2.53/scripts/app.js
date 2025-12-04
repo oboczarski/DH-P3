@@ -7149,9 +7149,15 @@ function getEdgePaddingPct(slotCount) {
     return slotCount > 1 ? CONSISTENCY_EDGE_PADDING_PCT : 0;
 }
 
+// Vertical padding percentage for chart top/bottom to prevent overlap with summary chips
+const CONSISTENCY_VERTICAL_PADDING_PCT = 8;
+
 function yFromPoints(pts) {
     const clamped = Math.max(0, Math.min(pts, MAX_CONSISTENCY_POINTS));
-    return (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
+    // Map 0-100% to paddingPct to (100 - paddingPct) range
+    const rawPct = (1 - clamped / MAX_CONSISTENCY_POINTS) * 100;
+    const paddedRange = 100 - (CONSISTENCY_VERTICAL_PADDING_PCT * 2);
+    return CONSISTENCY_VERTICAL_PADDING_PCT + (rawPct / 100) * paddedRange;
 }
 
 function renderPoints(data) {
