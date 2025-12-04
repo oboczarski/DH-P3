@@ -6926,16 +6926,16 @@ function ensureLineFilter(defs) {
     if (filter) return;
     filter = document.createElementNS(SVG_NS, 'filter');
     filter.id = CONSISTENCY_LINE_FILTER_ID;
-    filter.setAttribute('x', '-20%');
-    filter.setAttribute('y', '-20%');
-    filter.setAttribute('width', '140%');
-    filter.setAttribute('height', '160%');
+    filter.setAttribute('x', '-10%');
+    filter.setAttribute('y', '-10%');
+    filter.setAttribute('width', '120%');
+    filter.setAttribute('height', '120%');
     const shadow = document.createElementNS(SVG_NS, 'feDropShadow');
     shadow.setAttribute('dx', '0');
-    shadow.setAttribute('dy', '4');
-    shadow.setAttribute('stdDeviation', '2');
+    shadow.setAttribute('dy', '1');
+    shadow.setAttribute('stdDeviation', '0.5');
     shadow.setAttribute('flood-color', '#d2e6fa');
-    shadow.setAttribute('flood-opacity', '0.12');
+    shadow.setAttribute('flood-opacity', '0.06');
     filter.appendChild(shadow);
     defs.appendChild(filter);
 }
