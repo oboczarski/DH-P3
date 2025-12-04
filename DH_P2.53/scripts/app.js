@@ -6799,6 +6799,7 @@ function renderXAxis(data) {
     if (!xAxisEl) return;
     xAxisEl.innerHTML = '';
     const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
+    const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map(entry => entry.week) : []);
     const totalSlots = weeks.length || 1;
     const spanSlots = Math.max(1, totalSlots - 1);
     const paddingPct = getEdgePaddingPct(totalSlots);
@@ -6812,7 +6813,10 @@ function renderXAxis(data) {
             ? 50
             : paddingPct + ((100 - paddingPct * 2) * (slotIndex / spanSlots));
         const span = document.createElement('span');
-        span.textContent = `WK ${week}`;
+        span.textContent = `WK${week}`;
+        if (playedWeeks.size && !playedWeeks.has(week)) {
+            span.classList.add('axis-week-missed');
+        }
         span.style.left = `${pctX}%`;
         xAxisEl.appendChild(span);
     });

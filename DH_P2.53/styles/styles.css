@@ -5262,6 +5262,11 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         text-align: center;
         pointer-events: none;
     }
+    .weekly-chart-x-axis .axis-week-missed {
+        color: rgba(239, 246, 255, 0.38);
+        opacity: 0.55;
+        text-shadow: none;
+    }
 
     .weekly-zone {
         position: absolute;
