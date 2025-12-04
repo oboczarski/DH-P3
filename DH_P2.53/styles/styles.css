@@ -5095,10 +5095,10 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .metric-label {
-        font-size: 0.44rem;
+        font-size: 0.54rem;
         text-transform: uppercase;
         letter-spacing: 0.13em;
-        color: #6b7096;
+        color: #9aa2dc;
     }
 
     .metric-primary {
@@ -5177,14 +5177,14 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .hud-insight-label {
-      font-size: 0.38rem;
+      font-size: 0.58rem;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       color: rgba(194, 208, 255, 0.78);
     }
 
     .hud-insight-value {
-      font-size: 0.64rem;
+      font-size: 0.75rem;
       font-weight: 500;
       color: #f8faff;
       text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
