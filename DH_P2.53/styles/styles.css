@@ -225,10 +225,9 @@
         /* Branding Panel: Logo + App Name side by side, centered - matches fc-card fc-glass styling */
         .welcome-branding-panel {
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 1rem;
             padding: 1rem 1.5rem;
             /* Match fc-glass card styles */
             background: rgba(255, 255, 255, 0.03);
@@ -239,15 +238,6 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
             width: 100%;
             margin: 0.5rem 0 0;
-            position: sticky;
-            top: 10px;
-            z-index: 1001;
-            overflow: visible;
-            min-height: 100px; /* Ensure visibility */
-        }
-        /* Ensure dashboard is above noise overlay on welcome page */
-        body[data-page="welcome"] .fc-main {
-            z-index: 950 !important;
         }
         .branding-top-row {
             display: flex;
@@ -432,7 +422,7 @@
         /* · · Frame · · */
        border: 1px solid rgba(128, 138, 189, 0.2);
        border-radius: 10px;
-       box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
+       box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
        }
 /* ⬇︎ NEW REDESIGNED HEADER LAYOUT ⬇︎ */
 /* === ROW 1: Logo + Navigation Buttons === */
@@ -2684,10 +2674,11 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         justify-content: flex-end;
     }
 }
+
 /* === Home page (welcome) — scoped header simplification === */
 body[data-page="welcome"] .app-header.glass-panel {
     -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
-    backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+    backdrop-filter: blur(1px) saturate(112%) brightness(110%);
 }
 body[data-page="welcome"] .app-header {
   display: flex !important;
@@ -2838,6 +2829,9 @@ body[data-page="welcome"] .home-menu-item {
 }
   body[data-page="welcome"] .home-menu-item:hover { background: rgba(255,255,255,0.02); color: var(--color-text-primary); }
   body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
+  /* Fix for tiny hamburger icon */
+  body[data-page="welcome"] .menu-toggle i { font-size: 1.25rem; }
+
 /* Desktop ownership row tuning (desktop only) */
 @media (min-width: 820px) {
   body[data-page="ownership"] .player-list-section .pl-player-row {
