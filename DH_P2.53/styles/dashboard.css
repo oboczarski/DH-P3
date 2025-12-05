@@ -911,6 +911,16 @@
   
   /* Scatter Panel */
   .fc-scatter-panel {min-height: 45em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+
+  /* Desktop-only: Ensure all containers have at least 2px blur */
+  .fc-glass {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .fc-summary-card {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
 }
 
 /* --- CHART PANELS (Mobile) --- */
