@@ -85,6 +85,17 @@
   gap: 1.5em;
 }
 
+/* Desktop-only: Scale entire dashboard to ~90% by reducing base font-size and max-width */
+/* This only applies above 1114px so it doesn't affect mobile/tablet scaling */
+@media (min-width: 1115px) {
+  .fc-dashboard {
+    font-size: 11.53px; /* 12.81px × 0.9 */
+  }
+  .fc-main {
+    max-width: 1003px; /* 1114px × 0.9 */
+  }
+}
+
 /* Background Blobs */
 .fc-blob {
   position: absolute;
