@@ -234,7 +234,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5em;
-            backdrop-filter: blur(1px);
+            backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(1px);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
             width: 100%;
@@ -3372,9 +3372,9 @@ main#content { align-items: stretch !important; }
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 0.9rem !important;
+  font-size: 0.8rem !important;
   font-weight: 400 !important;
-  color: #EAEBF0 !important;
+  color: #9170ff !important;
   padding: 0.4rem 0.55rem !important;   /* ← edit these to resize the POS chip */
   border-radius: 6px !important;
   line-height: 1.05 !important;
@@ -3405,14 +3405,14 @@ main#content { align-items: stretch !important; }
   line-height: 1.2 !important;
 }
 #rosterPlayerCardKey .legend-pos-rank{
-  color: #FF3A75CA !important;
+  color: #6661fff5!important;
   font-weight: 400 !important;
   text-align: center !important;
   font-size: 0.8rem !important;
   line-height: 1.2 !important;
 }
 #rosterPlayerCardKey .legend-age{
-  color: #766DFF !important;
+  color: #6661fff5!important;
   font-weight: 700 !important;
   font-size: 1rem !important;
   line-height: 1.2 !important;
@@ -3435,9 +3435,9 @@ font-weight: 500 !important;
   justify-content: center !important;
   font-size: 0.9rem !important;
   font-weight: 400 !important;
-  color: #EAEBF0 !important;
+  color: #6661fff5 !important;
   padding: 0.4rem 0.55rem !important;   /* ← edit these to resize the TEAM chip */
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   line-height: 1.1 !important;
   white-space: nowrap !important;
 }
