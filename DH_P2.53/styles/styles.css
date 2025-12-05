@@ -2670,6 +2670,10 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
     }
 }
 /* === Home page (welcome) — scoped header simplification === */
+body[data-page="welcome"] .app-header.glass-panel {
+    -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
+    backdrop-filter: blur(0px) saturate(120%) brightness(120%);
+}
 body[data-page="welcome"] .app-header {
   display: flex !important;
   align-items: center;
