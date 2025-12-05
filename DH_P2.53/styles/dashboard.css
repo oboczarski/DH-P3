@@ -156,7 +156,7 @@
 }
 
 .fc-glass {
-  background: rgb(65 67 110 / 14%);
+  background: rgb(65 67 110 / 10%);
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
   border: 1px solid var(--glass-border);
@@ -715,6 +715,7 @@
   display: flex;
   flex-direction: column;
   --glass-blur: 5px;
+  background: rgb(104 61 162 / 7%);
 }
 
 .scatter-svg {
@@ -963,7 +964,7 @@
   }
 
   /* Scatter Panel: Tall on mobile */
-  .fc-scatter-panel {min-height: 60em;backdrop-filter: blur(2px);}
+  .fc-scatter-panel {min-height: 60em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
@@ -980,7 +981,7 @@
 
   .fc-chart-helper {font-size: 1.25em;}
   .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
-  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.35em 0 0.45em;margin-top: 1.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 6px #7310ffad;}
+  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.35em 0 0.45em;margin-top: 1.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffad;}
   .fc-scatter-subline {gap: 0;}
 
   /* Scatter Data Labels: Smaller */

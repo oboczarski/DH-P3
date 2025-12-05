@@ -235,7 +235,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5em;
             backdrop-filter: blur(0px);
-            -webkit-backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(0px);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
             width: 100%;
             margin: 0.5rem 0 0;
