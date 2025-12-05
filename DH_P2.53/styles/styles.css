@@ -225,7 +225,7 @@
         /* Branding Panel: Logo + App Name side by side, centered - matches fc-card fc-glass styling */
         .welcome-branding-panel {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
@@ -239,8 +239,23 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
             width: 100%;
             margin: 0.5rem 0 0;
-            position: relative;
-            overflow: hidden;
+            position: sticky;
+            top: 10px;
+            z-index: 1001;
+            overflow: visible;
+            min-height: 100px; /* Ensure visibility */
+        }
+        /* Ensure dashboard is above noise overlay on welcome page */
+        body[data-page="welcome"] .fc-main {
+            z-index: 950 !important;
+        }
+        .branding-top-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
         }
         /* Subtle glow effect matching cards */
         .welcome-branding-panel::before {
