@@ -244,7 +244,7 @@
             flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 0.95rem;
             width: 100%;
         }
         /* Subtle glow effect matching cards */
@@ -312,7 +312,7 @@
                 --welcome-logo-size: clamp(40px, 12vw, 56px);
             }
             .welcome-branding-panel h2 {
-                font-size: clamp(1.2rem, 29vw, 1.8rem);
+                font-size: clamp(1.2rem, 29vw, 2.2rem);
             }
             .welcome-info-panel {
                 padding: 1rem;
@@ -693,7 +693,7 @@
     }
     #primary-header-row {
         gap: 1rem;
-        padding: 0.35rem;
+        padding: 0.1rem;
     }
     #secondary-header-row .username-area,
     #secondary-header-row .custom-select-wrapper {
@@ -2704,7 +2704,7 @@ body[data-page="welcome"] .app-header {
 
 /* New Heading Style */
 .welcome-header-title {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: var(--color-text-secondary);
     margin: 0;
     padding: 0 0.5rem;
@@ -2712,6 +2712,35 @@ body[data-page="welcome"] .app-header {
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: 0.02em;
+}
+
+/* New Footer Style (Mobile Default) */
+.welcome-header-footer {
+    font-size: 0.55rem;
+    color: var(--color-text-secondary);
+    opacity: 0.8;
+    margin: 0.2rem 0 0 0;
+    text-align: center;
+    line-height: 1.2;
+    font-style: italic;
+}
+
+/* New Subtitle Style (Mobile Default) */
+.welcome-subtitle-row {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+    width: 100%;
+}
+.welcome-subtitle-row h3 {
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 /* tighter grid: menu - username - enter */
@@ -2723,7 +2752,7 @@ body[data-page="welcome"] .app-header {
     flex-direction: row;
     align-items: stretch; /* Ensure equal height */
     justify-content: space-between; /* Spread to fill width */
-    gap: 0.75rem; /* Match grid gap for uniform width alignment */
+    gap: 1em; /* Match grid gap (1em) for perfect alignment */
     width: 100%;
     max-width: none; /* Allow full width to match grid */
     margin: 0 auto;
@@ -2742,10 +2771,11 @@ body[data-page="welcome"] .app-header {
   }
   /* Scale down branding content */
   body[data-page="welcome"] .welcome-logo img {
-      height: 3.5rem; width: 3.5rem;
+      height: 4.7rem;
+      width: 5rem;
   }
   body[data-page="welcome"] .welcome-branding-panel h2 {
-      font-size: 2.8rem;
+      font-size: 3.2rem;
   }
   
   /* Adjust Header Container on Desktop */
@@ -2764,13 +2794,13 @@ body[data-page="welcome"] .app-header {
     width: 100%; /* Fill the container */
     margin: 0;
     height: 100%; /* Match container height */
-    padding: 0.5rem 0.5rem; /* Reduced vertical padding */
+    padding: 0.3rem 0.5rem; /* Reduced vertical padding further */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     border-radius: 1.5em; /* Match branding panel radius */
-    gap: 0.4rem;
+    gap: 0.2rem; /* Tighter gap */
   }
 
   /* Scale up header content */
@@ -2791,8 +2821,21 @@ body[data-page="welcome"] .app-header {
       width: auto;
   }
   body[data-page="welcome"] .welcome-header-title {
-      font-size: 0.85rem;
-      margin-bottom: 0.1rem;
+      font-size: 0.7rem;
+      margin-bottom: 0;
+      font-weight: 300; /* Lighter weight */
+  }
+  body[data-page="welcome"] .welcome-header-footer {
+      font-size: 0.55rem;
+      margin-top: 0;
+  }
+  
+  /* Subtitle Desktop Adjustment */
+  .welcome-subtitle-row {
+      padding: 0.25rem 0 0.75rem 0;
+  }
+  .welcome-subtitle-row h3 {
+      font-size: 1rem;
   }
 
   body[data-page="welcome"] #primary-header-row {
