@@ -1584,8 +1584,8 @@ body[data-page="stats"] .glass-panel {
 @media (min-width: 869px) {
   body[data-page="stats"] #game-logs-modal .modal-overlay {
     background-color: rgb(0 0 0 / 35%);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(13px) brightness(123%);
+    -webkit-backdrop-filter: blur(13px) brightness(123%);
   }
 }
 
