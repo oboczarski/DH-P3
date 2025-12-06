@@ -2695,10 +2695,25 @@ body[data-page="welcome"] .app-header.glass-panel {
 }
 body[data-page="welcome"] .app-header {
   display: flex !important;
+  flex-direction: column; /* Stack title and controls */
   align-items: center;
   justify-content: center; /* center header on desktop */
   padding: 0.3rem 0.15rem;
+  gap: 0.2rem;
 }
+
+/* New Heading Style */
+.welcome-header-title {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+    padding: 0 0.5rem;
+    text-align: center;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
 /* tighter grid: menu - username - enter */
 /* Desktop: center the header group and keep controls tightly grouped */
 @media (min-width: 820px) {
@@ -2710,7 +2725,7 @@ body[data-page="welcome"] .app-header {
     justify-content: space-between; /* Spread to fill width */
     gap: 0.75rem; /* Match grid gap for uniform width alignment */
     width: 100%;
-    max-width: 1114px;
+    max-width: none; /* Allow full width to match grid */
     margin: 0 auto;
   }
 
@@ -2749,11 +2764,13 @@ body[data-page="welcome"] .app-header {
     width: 100%; /* Fill the container */
     margin: 0;
     height: 100%; /* Match container height */
-    padding: 0.2rem 0.5rem; /* Reduced vertical padding */
+    padding: 0.5rem 0.5rem; /* Reduced vertical padding */
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     border-radius: 1.5em; /* Match branding panel radius */
+    gap: 0.4rem;
   }
 
   /* Scale up header content */
@@ -2766,14 +2783,24 @@ body[data-page="welcome"] .app-header {
   }
   body[data-page="welcome"] #usernameInput {
       font-size: 1.1rem; padding: 0.5rem 0.8rem;
+      width: 100%;
+  }
+  body[data-page="welcome"] .username-area {
+      flex-grow: 1;
+      max-width: none;
+      width: auto;
+  }
+  body[data-page="welcome"] .welcome-header-title {
+      font-size: 0.85rem;
+      margin-bottom: 0.1rem;
   }
 
   body[data-page="welcome"] #primary-header-row {
     display: flex;
     align-items: center;
     justify-content: center; /* keep the group centered */
-    gap: 0.6rem; /* small gap between controls */
-    width: auto;
+    gap: 1.2rem; /* small gap between controls */
+    width: 100%;
     padding-left: 8px;
     padding-right: 8px;
   }
