@@ -1928,6 +1928,20 @@
     statsState.currentTab = tabKey;
     statsState.sort = { column: null, direction: 0 };
     statsState.needsFullRebuild = true; // Tab change requires full rebuild
+    
+    // Untoggle Pick Values (RDP) when switching tabs
+    if (statsState.activePosition === 'RDP') {
+      statsState.activePosition = 'ALL';
+      // Update filter button states
+      dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.position === 'ALL');
+      });
+      // Update RDP button state
+      const rdpButton = document.getElementById('statsSecondaryFilterGroup');
+      if (rdpButton) {
+        rdpButton.classList.remove('active');
+      }
+    }
     dom.tabButtons.forEach((btn) => {
       const isActive = btn.dataset.tab === tabKey;
       btn.classList.toggle('active', isActive);
@@ -2041,10 +2055,9 @@
     dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.position === statsState.activePosition);
     });
-    // Update secondary RDP filter
-    const rdpButton = dom.secondaryFilterGroup.querySelector('[data-position="RDP"]');
-    if (rdpButton) {
-      rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
+    // Update secondary RDP filter (dom.secondaryFilterGroup IS the RDP button)
+    if (dom.secondaryFilterGroup) {
+      dom.secondaryFilterGroup.classList.toggle('active', statsState.activePosition === 'RDP');
     }
     syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
     // Filter changes require full rebuild (different column set)
@@ -2160,9 +2173,9 @@
       dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.position === statsState.activePosition);
       });
-      const rdpButton = dom.secondaryFilterGroup.querySelector('[data-position="RDP"]');
-      if (rdpButton) {
-        rdpButton.classList.toggle('active', statsState.activePosition === 'RDP');
+      // dom.secondaryFilterGroup IS the RDP button
+      if (dom.secondaryFilterGroup) {
+        dom.secondaryFilterGroup.classList.toggle('active', statsState.activePosition === 'RDP');
       }
       dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
       syncReceivingSubfilterUi();
