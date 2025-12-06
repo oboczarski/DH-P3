@@ -145,13 +145,13 @@
   position: relative;
   padding: 0.26rem 0.85rem;
   font-size: 1.1rem;
-  font-weight: 400;
+  font-weight: 500;
   border-radius: 999px;
   border: 1px solid #ffffff11;
   cursor: pointer;
-  color: #94a3b8;
+  color: #6e738c;
   background: rgb(65 69 90 / 5%);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.051em;
   box-shadow: inset 0 4px 12px -2px rgba(255, 255, 255, 0.07), 0 0 12px -8px #00aaff;
   text-transform: uppercase;
   flex: 1 1 0;
@@ -171,7 +171,7 @@
   background: rgba(28, 32, 54, 0.68);
 }
 .stats-tab-button.active {
-  color: #ffffff;
+  color: #848ba7;
   box-shadow: 0 0 16px rgba(0, 158, 253, 0.32), inset 0 0 6px rgba(0, 158, 253, 0.28);
 }
 .stats-tab-button.active::after {
@@ -183,6 +183,7 @@
 .stats-tab-button-1qb.active {
   background: rgba(0, 158, 253, 0.16);
   border-color: rgba(0, 158, 253, 0.52);
+  font-weight: 600;
 }
 .stats-tab-button-sflx {
   box-shadow: inset 0 4px 12px -2px rgba(255, 255, 255, 0.07), 0 0 11px -8px #ec48ff;
@@ -191,6 +192,7 @@
   background: rgba(236, 72, 153, 0.16);
   border-color: rgba(236, 72, 153, 0.52);
   box-shadow: 0 0 16px rgba(236, 72, 153, 0.32), inset 0 0 6px rgba(236, 72, 153, 0.28);
+  font-weight: 600;
 }
 .stats-tab-headers {
   text-align: center;
@@ -285,6 +287,16 @@
 .stats-key-button i {
   font-size: 0.75rem;
 }
+
+/* Key button label visibility - Mobile shows "Key & Info", Desktop shows "Key" */
+.stats-key-label-desktop {
+  display: none;
+}
+.stats-key-label-mobile {
+  display: inline;
+}
+
+/* MOBILE: Controls footer styling */
 .stats-controls-footer {
   margin: 0;
   margin-top: 0.1rem;
@@ -297,6 +309,25 @@
 }
 .stats-controls-footer i {
   font-size: 0.48rem;
+}
+
+/* DESKTOP: Key button label and controls footer styling */
+@media (min-width: 869px) {
+  .stats-key-label-desktop {
+    display: inline;
+  }
+  .stats-key-label-mobile {
+    display: none;
+  }
+  
+  /* DESKTOP: Controls footer with increased font size */
+  .stats-controls-footer {
+    font-size: 0.62rem;
+    margin-top: 0.15rem;
+  }
+  .stats-controls-footer i {
+    font-size: 0.58rem;
+  }
 }
 .stats-controls-body {
   display: flex;
@@ -535,23 +566,31 @@
   align-items: center;
   justify-content: center;
   flex-direction: row;
-  padding: 0.25rem 1.6rem;
+  padding: 0.35rem 1.6rem;
   line-height: 1.2;
   gap: 0.35rem;
   letter-spacing: 0.1em;
   min-height: 1.5rem;
   text-transform: uppercase;
   font-size: 0.68rem;
+  font-weight: 500;
+  border: 1px solid rgb(255 255 255 / 4%);
+  background: #5424ff0d;
+  color: #7a7e9aeb;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(2px);
 }
 .stats-filter-btn-secondary:hover {
-  background: rgba(28, 32, 54, 0.4);
   border-color: rgba(128, 138, 189, 0.2);
 }
+/* Pick Values button active glow - matching 1QB/SFLX tab style exactly */
 .stats-filter-btn-secondary.active[data-position="RDP"] {
-  color: #8983a0;
-  background: rgba(137, 131, 160, 0.1);
-  border-color: rgba(137, 131, 160, 0.3);
-  box-shadow: inset 0 0 8px rgba(130, 128, 135, 0.2), 0 0 10px rgba(130, 128, 135, 0.1);
+  color: #929aa9;
+  background: #4a1eea26;
+  border-color: #5424ffa1;
+  box-shadow: 0 0 16px #5424ff5d, inset 0 0 6px #5424ff0d;
 }
 .stats-filter-btn-secondary.active[data-position="Rookies"] {
   color: #8466fb;
@@ -1573,4 +1612,27 @@ body[data-page="stats"] .glass-panel {
   border: 1px solid rgba(128, 138, 189, 0.2);
   border-radius: 14px;
   box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
+}
+
+/* ============================================ */
+/* STATS PAGE GAME LOGS MODAL OVERLAY          */
+/* Separate rules for desktop and mobile       */
+/* ============================================ */
+
+/* DESKTOP ONLY: Stats page game logs modal overlay (lighter) */
+@media (min-width: 869px) {
+  body[data-page="stats"] #game-logs-modal .modal-overlay {
+    background-color: rgb(0 0 0 / 35%);
+    backdrop-filter: blur(13px) brightness(123%);
+    -webkit-backdrop-filter: blur(13px) brightness(123%);
+  }
+}
+
+/* MOBILE ONLY: Stats page game logs modal overlay */
+@media (max-width: 868px) {
+  body[data-page="stats"] #game-logs-modal .modal-overlay {
+    background-color: rgb(0 0 0 / 50%);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
 }
