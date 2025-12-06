@@ -2676,6 +2676,9 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
 }
 
 /* === Home page (welcome) — scoped header simplification === */
+body[data-page="welcome"] #header-container {
+    padding: 0.1rem 0rem 0.1rem 0rem;
+}
 body[data-page="welcome"] .app-header.glass-panel {
     -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
     backdrop-filter: blur(1px) saturate(112%) brightness(110%);
@@ -2701,6 +2704,16 @@ body[data-page="welcome"] .app-header {
     width: auto;
     padding-left: 8px;
     padding-right: 8px;
+  }
+  /* Reduce gaps on desktop for welcome page */
+  body[data-page="welcome"] #welcome-screen {
+      gap: 0.5rem;
+  }
+  body[data-page="welcome"] .fc-grid-metrics {
+      gap: 0.75rem;
+  }
+  body[data-page="welcome"] .fc-grid-charts {
+      gap: 0.75rem;
   }
 }
 /* For narrow viewports, keep a compact grid to allow wrapping */
