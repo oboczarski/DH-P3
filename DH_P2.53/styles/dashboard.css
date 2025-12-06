@@ -85,6 +85,12 @@
   gap: 0.95em;
 }
 
+@media (max-width: 819px) {
+  .fc-main {
+    gap: 1.25em;
+  }
+}
+
 /* Background Blobs */
 .fc-blob {
   position: absolute;
