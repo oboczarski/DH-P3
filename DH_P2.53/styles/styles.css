@@ -1518,8 +1518,8 @@ body[data-page="welcome"] .enter-button {
 /* Small tweak: ensure the hamburger/menu button matches sizing */
 body[data-page="welcome"] .menu-button,
 body[data-page="welcome"] #homeMenuToggle {
-  height: 100% !important;
-  width: 40px !important; /* fixed square for consistent visual */
+  height: 108% !important;
+  width: 44px !important; /* fixed square for consistent visual */
   min-width: 40px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -2676,9 +2676,19 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
 }
 
 /* === Home page (welcome) — scoped header simplification === */
+/* Wrapper for branding and header to control layout */
+.welcome-header-group {
+  display: contents; /* Unwrap on mobile so sticky header works relative to body */
+}
+
+/* Mobile Sticky Header Fix */
 body[data-page="welcome"] #header-container {
     padding: 0.1rem 0rem 0.1rem 0rem;
+    position: sticky; /* Ensure sticky on mobile */
+    top: 0;
+    z-index: 1000;
 }
+
 body[data-page="welcome"] .app-header.glass-panel {
     -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
     backdrop-filter: blur(1px) saturate(112%) brightness(110%);
@@ -2692,15 +2702,77 @@ body[data-page="welcome"] .app-header {
 /* tighter grid: menu - username - enter */
 /* Desktop: center the header group and keep controls tightly grouped */
 @media (min-width: 820px) {
-  body[data-page="welcome"] .app-header {
+  /* Side-by-side layout for desktop */
+  .welcome-header-group {
+    display: flex; /* Restore flex for desktop */
+    flex-direction: row;
+    align-items: stretch; /* Ensure equal height */
+    justify-content: space-between; /* Spread to fill width */
+    gap: 0.75rem; /* Match grid gap for uniform width alignment */
+    width: 100%;
     max-width: 1114px;
     margin: 0 auto;
   }
+
+  /* Adjust Branding Panel on Desktop */
+  body[data-page="welcome"] .welcome-branding-panel {
+    flex: 1; /* Take up equal space */
+    width: auto;
+    margin: 0;
+    padding: 0 1rem; /* Reduced padding */
+    max-width: none; /* Remove max-width restriction */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Scale down branding content */
+  body[data-page="welcome"] .welcome-logo img {
+      height: 3.5rem; width: 3.5rem;
+  }
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+      font-size: 2.8rem;
+  }
+  
+  /* Adjust Header Container on Desktop */
+  body[data-page="welcome"] #header-container {
+    flex: 1; /* Take up equal space */
+    width: auto;
+    position: static; /* Unfreeze on desktop */
+    padding: 0;
+    background: none;
+    max-width: none; /* Remove max-width restriction */
+    display: flex;
+    align-items: center; /* Center content vertically */
+  }
+
+  body[data-page="welcome"] .app-header {
+    width: 100%; /* Fill the container */
+    margin: 0;
+    height: 100%; /* Match container height */
+    padding: 0.2rem 0.5rem; /* Reduced vertical padding */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.5em; /* Match branding panel radius */
+  }
+
+  /* Scale up header content */
+  body[data-page="welcome"] .menu-toggle {
+      height: 48px;
+      font-size: 1.2rem;
+  }
+  body[data-page="welcome"] .enter-button {
+      height: 44px;
+  }
+  body[data-page="welcome"] #usernameInput {
+      font-size: 1.1rem; padding: 0.5rem 0.8rem;
+  }
+
   body[data-page="welcome"] #primary-header-row {
     display: flex;
     align-items: center;
     justify-content: center; /* keep the group centered */
-    gap: 0.5rem; /* small gap between controls */
+    gap: 0.6rem; /* small gap between controls */
     width: auto;
     padding-left: 8px;
     padding-right: 8px;
@@ -2847,7 +2919,7 @@ body[data-page="welcome"] .home-menu-item {
   body[data-page="welcome"] .home-menu-item:hover { background: rgba(255,255,255,0.02); color: var(--color-text-primary); }
   body[data-page="welcome"] .home-menu-item i { width: 16px; text-align: center; }
   /* Fix for tiny hamburger icon */
-  body[data-page="welcome"] .menu-toggle i { font-size: 1.25rem; }
+  body[data-page="welcome"] .menu-toggle i {font-size: 1.45rem;}
 
 /* Desktop ownership row tuning (desktop only) */
 @media (min-width: 820px) {
