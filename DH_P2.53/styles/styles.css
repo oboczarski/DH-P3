@@ -35,6 +35,9 @@
 .player-ppg-wrapper .value {
   margin-left: 0.03rem; /* subtle spacing between label and value */
 }
+.player-ktc-wrapper .stat-rank-number {
+  color: inherit;
+}
 .stat-rank-variant-ktc .stat-rank-number {
   margin: 0; /* keep number tight to suffix */
   padding: 0;
@@ -1879,6 +1882,18 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             border: solid 1px #B469FF99;
             box-shadow: inset 0 0 20px #B469FF20;
     }
+      .starters-section h3 {
+            color: #69ffe1b2;
+            font-weight: 500;
+            border: solid 1px #69ffe152;
+            box-shadow: inset 0 0 20px #69ffe120;
+    }
+       .bench-section h3 {
+            color: #ff7be5c4;
+            font-weight: 500;
+            border: solid 1px #ff33ea52;
+            box-shadow: inset 0 0 20px #f92c8520;
+    }
     /* · · Card Box Shadows by POS · · */
         .qb-section .player-row {
             box-shadow: inset 0 0 15px #FF3A7522;   /* QB border */
@@ -1908,9 +1923,15 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         /* Condensed roster view trims padding/gaps without changing type scale */
+        #rosterGrid.condensed-mode {
+            gap: 1px;
+        }
         #rosterGrid.condensed-mode .roster-column {
             width: 120px;
             gap: 0.22rem;
+        }
+        #rosterGrid.condensed-mode .team-header-item {
+            padding: 0.2rem 0.45rem;
         }
         .player-row.player-row-condensed {
             padding: 0.12rem 0.12rem 0.01rem;
@@ -1919,6 +1940,11 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         .player-row-condensed .player-main-line {
             gap: 0.16rem;
             align-items: center;
+        }
+        .player-row-condensed .player-tag {
+            font-size: 0.5rem;
+            padding: 1px 2px;
+            line-height: 0.5rem;
         }
         .player-row-condensed .player-pos-rank {
             margin-left: auto;
@@ -1936,10 +1962,19 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             gap: 0.18rem;
             margin-top: 0px;
         }
+        .player-row-condensed .player-value-line .value {
+            font-size: 0.6rem;
+        }
         .player-row-condensed .player-name {
             min-width: 0;
             font-size: 0.62rem;
             margin-left: 2px;
+        }
+        #rosterGrid.condensed-mode .team-card {
+            gap: 0.15rem;
+        }
+        #rosterGrid.condensed-mode .roster-section h3 {
+            font-size: 0.65rem;
         }
         .start-sit-column .player-row,
         .start-sit-column .pick-row {
