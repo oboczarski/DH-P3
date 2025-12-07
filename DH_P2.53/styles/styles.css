@@ -242,8 +242,8 @@
         .branding-top-row {
             display: flex;
             flex-direction: row;
-            justify-content: flex-start;
-            gap: 3.05rem;
+            justify-content: center;
+            gap: 2.05rem;
             width: 100%;
         }
         /* Subtle glow effect matching cards */
@@ -2841,8 +2841,13 @@ body[data-page="welcome"] .app-header {
   .welcome-subtitle-row h3 {
       font-size: 2.35rem;
       font-weight: 200;
-      color: #6145ff;
-      text-shadow: 0 0 6px #6300ff, 0 0 7px #6300ff, 0 0 10px #7609ffeb;
+      /* Original gradient slightly brightened */
+      background: linear-gradient(90deg, #6300FF 0%, #f9327687 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      /* Matching glow */
+      filter: drop-shadow(0 0 8px rgba(112, 26, 255, 0.4));
   }
 
   body[data-page="welcome"] #primary-header-row {
@@ -3665,7 +3670,7 @@ font-weight: 500 !important;
 /* Branding panel h2 styling - no negative margins needed */
 .welcome-branding-panel h2 {
   margin: 0 !important;
-  margin-right: 42px !important;
+  margin-right: 78px !important;
   margin-left: 12px !important;
 }
 #welcome-screen .welcome-logo {
