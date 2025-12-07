@@ -5147,6 +5147,22 @@ const wrTeStatOrder = [
                 </div>
             `;
             if (isCondensedView) {
+                const nameEl = row.querySelector('.player-name-clickable');
+                const cutoff = 7; // condensed view: stricter limit for last name only
+                if (nameEl && nameEl.textContent) {
+                    const label = nameEl.textContent.trim();
+                    const match = label.match(/^(\S+)\s+(.+)$/); // first token + last name/remaining
+                    if (match) {
+                        const firstToken = match[1];
+                        let lastPart = match[2].replace(/\.+$/, ''); // strip trailing dots from prior truncation
+                        if (lastPart.length > cutoff) {
+                            lastPart = lastPart.slice(0, cutoff) + '..';
+                        }
+                        nameEl.textContent = `${firstToken} ${lastPart}`;
+                    }
+                }
+            }
+            if (isCondensedView) {
                 row.classList.add('player-row-condensed');
             }
             const ageEl = row.querySelector('.player-age');
