@@ -1219,26 +1219,21 @@ body[data-page="stats"] #header-container {
   color: #ff336f;
   font-size: 0.85em;
   font-weight: 300;
-  margin-left: 0.25rem;
   line-height: 1;
 }
 
-.stats-controls-footer em.stats-footer-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 0.1rem;
-  row-gap: 0.1rem;
-  align-items: start;
+.stats-controls-footer {
+  margin-top: 0.25rem;
 }
-.stats-footer-label {
-  font-weight: 650;
+
+.stats-footer-simple {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  line-height: 1.25;
 }
-.stats-footer-body,
-.stats-footer-continuation {
-  font-weight: 400;
-  text-align: start;
-}
-.stats-footer-spacer {
+
+.stats-footer-line {
   display: block;
 }
 
