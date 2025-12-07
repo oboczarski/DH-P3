@@ -2735,7 +2735,7 @@ body[data-page="welcome"] .app-header {
 .welcome-subtitle-row h3 {
     font-size: 1rem;
     color: rgba(207, 199, 255, 0.75); /* Dimmer, soft purple-white */
-    font-weight: 600;
+    font-weight: 200;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin: 0;
