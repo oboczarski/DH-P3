@@ -14,6 +14,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png?v=20250926r5c" />
   <link rel="shortcut icon" href="assets/icons/favicon.ico?v=20250926r5c" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<link rel="stylesheet" href="styles/dashboard.css">
 
 </head>
 <body data-page="welcome" class="p-2 sm:p-4">
@@ -26,122 +28,328 @@
 </div>
 <div id="noise-overlay"></div>
 <!-- EDITED: Added a class for layout control -->
-<div class="relative z-10 content-wrapper">
-<div id="header-container">
-<header class="app-header glass-panel">
-  <div class="header-row" id="primary-header-row">
-    <!-- Menu toggle on the left for mobile/compact navigation -->
-    <div class="home-menu-slot">
-      <button id="homeMenuToggle" class="menu-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Open menu">
-        <i class="fa-solid fa-bars" aria-hidden="true"></i>
-      </button>
-      <div id="homeMenu" class="home-menu hidden" role="menu" aria-hidden="true">
-        <button class="home-menu-item" data-page="home"><i class="fa-solid fa-house"></i><span>Home</span></button>
-        <button class="home-menu-item" data-page="rosters"><i class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
-        <button class="home-menu-item" data-page="ownership"><i class="fa-solid fa-percent"></i><span>Ownership</span></button>
-        <button class="home-menu-item" data-page="stats"><i class="fa-solid fa-chart-column"></i><span>Stats</span></button>
-        <button class="home-menu-item" data-page="analyzer"><i class="fa-solid fa-square-poll-vertical"></i><span>L.Analyze</span></button>
-        <button class="home-menu-item" data-page="research"><i class="fa-solid fa-flask"></i><span>Research</span></button>
-      </div>
-    </div>
-
-    <!-- Username input -->
-    <div class="username-area">
-      <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
-    </div>
-
-    <!-- Single enter button on the right (reuses rostersButton id so existing JS still works) -->
-    <div class="home-enter-slot">
-      <button class="enter-button nav-button" id="rostersButton" data-nav="rosters" aria-label="Pull Rosters">
-        <span class="enter-circle" aria-hidden="true"><i class="fa-solid fa-share fa-rotate-180"></i></span>
-        <span class="enter-label">Enter</span>
-      </button>
-    </div>
-  </div>
-</header>
-</div>
 <main class="container mx-auto" id="content">
+  <div id="fc-dashboard-root" class="fc-dashboard">
+    <main class="fc-main">
+      <!-- Branding Panel: Logo + App Name (scrolls with content, not frozen) -->
+      <div class="welcome-branding-panel" id="welcome-branding">
+        <div class="branding-top-row">
+          <picture class="welcome-logo">
+            <img 
+              alt="App logo" 
+              decoding="async" 
+              height="128" 
+              loading="eager" 
+              width="128"
+              src="assets/welcome/welcome-logo-256.png"
+              style="
+                -webkit-mask-image: radial-gradient(circle at 52% 51%, rgba(0,0,0,0.81) 40%, rgba(0,0,0,0) 99%);
+              mask-image: radial-gradient(circle at 52% 51%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0) 99%);
+              -webkit-mask-repeat: no-repeat;
+              mask-repeat: no-repeat;
+              -webkit-mask-size: 100% 100%;
+              mask-size: 100% 100%;
+              filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0px 0px 16px #7300ff48);
+              "
+            />
+          </picture>
+          <h2><span id="dh-scramble">Dynasty Hub</span></h2>
+        </div>
+      </div>
+      
+      <div id="header-container">
+        <header class="app-header glass-panel">
+          <div class="header-row" id="primary-header-row">
+            <!-- Menu toggle on the left for mobile/compact navigation -->
+            <div class="home-menu-slot">
+              <button id="homeMenuToggle" class="menu-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Open menu">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+              </button>
+              <div id="homeMenu" class="home-menu hidden" role="menu" aria-hidden="true">
+                <button class="home-menu-item" data-page="home"><i class="fa-solid fa-house"></i><span>Home</span></button>
+                <button class="home-menu-item" data-page="rosters"><i class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
+                <button class="home-menu-item" data-page="ownership"><i class="fa-solid fa-percent"></i><span>Ownership</span></button>
+                <button class="home-menu-item" data-page="stats"><i class="fa-solid fa-chart-column"></i><span>Stats</span></button>
+                <button class="home-menu-item" data-page="analyzer"><i class="fa-solid fa-square-poll-vertical"></i><span>L.Analyze</span></button>
+                <button class="home-menu-item" data-page="research"><i class="fa-solid fa-flask"></i><span>Research</span></button>
+              </div>
+            </div>
+
+            <!-- Username input -->
+            <div class="username-area">
+              <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
+            </div>
+
+            <!-- Single enter button on the right (reuses rostersButton id so existing JS still works) -->
+            <div class="home-enter-slot">
+              <button class="enter-button nav-button" id="rostersButton" data-nav="rosters" aria-label="Pull Rosters">
+                <span class="enter-circle" aria-hidden="true"><i class="fa-solid fa-share fa-rotate-180"></i></span>
+                <span class="enter-label">Enter</span>
+              </button>
+            </div>
+          </div>
+        </header>
+      </div>
+      <!-- Key Metrics Row -->
+      <div class="fc-grid-metrics">
+        <!-- Total PPR FPTS -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--cyan">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div class="fc-card__subtitle-row">
+              <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--cyan fc-card-tag--mini">PPR</span> • Production</p>
+            </div>
+            <div class="fc-card__title-row">
+              <h3 class="fc-card__title">FPTS</h3>
+              <div class="fc-badge fc-badge--cyan">Output</div>
+            </div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="total-points-value" class="fc-metric-value fc-text-glow">0</div>
+            <div class="fc-metric-sub fc-text-cyan">
+              <svg class="fc-icon-xs fc-icon-value" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+          </div>
+          <div class="fc-progress-bg">
+            <div id="total-points-bar" class="fc-progress-bar fc-bg-cyan" style="width: 0%"></div>
+          </div>
+          <div class="fc-card__footer">
+            <span id="total-points-name" class="fc-text-cyan fc-footer-name">Player</span>
+          </div>
+        </div>
+
+        <!-- PPR PPG -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--pink">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div class="fc-card__subtitle-row">
+              <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--pink fc-card-tag--mini">PPR</span> • Efficiency</p>
+            </div>
+            <div class="fc-card__title-row">
+              <h3 class="fc-card__title">PPG</h3>
+              <div class="fc-badge fc-badge--pink">Dominance</div>
+            </div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="ppg-value" class="fc-metric-value fc-text-glow">0</div>
+            <div class="fc-metric-sub fc-text-pink">pts</div>
+          </div>
+          <div class="fc-progress-accent fc-progress-accent--pink"></div>
+          <div class="fc-card__footer">
+            <span id="ppg-name" class="fc-text-pink-light fc-footer-name">Player</span>
+          </div>
+        </div>
+
+        <!-- Consistency Rate(RB) -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--purple">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div class="fc-card__subtitle-row">
+              <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--purple fc-card-tag--mini">RB</span> • Consistency %</p>
+            </div>
+            <div class="fc-card__title-row">
+              <h3 class="fc-card__title">CSTY%</h3>
+              <div class="fc-badge fc-badge--purple">Floor</div>
+            </div>
+          </div>
+              <div class="fc-metric-row">
+                <div id="consistency-value" class="fc-metric-value fc-text-glow">0%</div>
+              <div class="fc-metric-sub fc-text-purple">
+                <i class="fa-solid fa-repeat fc-icon-value fc-icon-consistency" aria-hidden="true"></i>
+              </div>
+            </div>
+          <div class="fc-progress-bg">
+            <div id="consistency-bar" class="fc-progress-bar fc-bg-purple" style="width: 0%"></div>
+          </div>
+          <div class="fc-card__footer">
+            <span id="consistency-name" class="fc-text-purple fc-footer-name">Player</span>
+          </div>
+        </div>
+
+        <!-- Target Share -->
+        <div class="fc-summary-card fc-card fc-glass fc-card--hover fc-card--emerald">
+          <div class="fc-card__glow"></div>
+          <div class="fc-card__header">
+            <div class="fc-card__subtitle-row">
+              <p class="fc-card__subtitle"><span class="fc-card-tag fc-card-tag--emerald fc-card-tag--mini">WR</span> • Usage</p>
+            </div>
+            <div class="fc-card__title-row">
+              <h3 class="fc-card__title">TS%</h3>
+              <div class="fc-badge fc-badge--emerald">Volume</div>
+            </div>
+          </div>
+          <div class="fc-metric-row">
+            <div id="share-value" class="fc-metric-value fc-text-glow">0%</div>
+            <div class="fc-metric-sub fc-text-emerald">Share</div>
+          </div>
+          <div class="fc-progress-accent fc-progress-accent--emerald"></div>
+          <div class="fc-card__footer">
+            <span id="share-name" class="fc-text-emerald-light fc-footer-name">Player</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="fc-grid-charts">
+        <!-- Radar Chart -->
+        <div class="fc-card fc-glass fc-chart-panel fc-radar-panel">
+          <div class="fc-chart-header fc-chart-header--radar">
+            <div class="fc-chart-header-top">
+              <h3 class="fc-card__title">Performance Map</h3>
+              <!-- Custom Searchable Dropdown -->
+              <div class="fc-custom-select" id="player-select-container">
+                <div class="fc-select-trigger" id="player-select-trigger">
+                  <span id="player-select-label">Select Player</span>
+                  <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+                <div class="fc-select-dropdown" id="player-select-dropdown">
+                  <div class="fc-search-wrapper">
+                    <svg class="fc-icon-xs fc-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" class="fc-select-search" id="player-select-search" placeholder="Search..." autocomplete="off">
+                  </div>
+                  <ul class="fc-select-options" id="player-select-options">
+                    <!-- Options injected via JS -->
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-radar">Multi-Stat Performance Profile(Top 100)</p>
+          </div>
+
+          <div class="fc-chart-container fc-radar-container">
+            <div id="radar-chart" class="fc-chart-canvas"></div>
+            <div class="fc-radar-center">
+              <div id="rating-label-top" class="fc-radar-label">POS RK</div>
+              <div id="rating-value" class="fc-radar-score">0</div>
+              <div id="rating-meta" class="fc-radar-meta"></div>
+            </div>
+          </div>
+
+          <p class="fc-chart-helper fc-chart-helper--radar">✦ Tap Center for Stat Values &amp; Pos. Rankings</p>
+
+          <div class="fc-legend">
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-red"></span><span class="fc-legend-full">FPTS</span><span class="fc-legend-abbr">FPTS</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-orange"></span><span class="fc-legend-full">PPG</span><span class="fc-legend-abbr">PPG</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-yellow"></span><span class="fc-legend-full">REC</span><span class="fc-legend-abbr">REC</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-cyan"></span><span class="fc-legend-full">recYPG</span><span class="fc-legend-abbr">rYPG</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-violet"></span><span class="fc-legend-full">TS %</span><span class="fc-legend-abbr">TS%</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-emerald"></span><span class="fc-legend-full">YPRR</span><span class="fc-legend-abbr">YPRR</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-pink"></span><span class="fc-legend-full">1DRR</span><span class="fc-legend-abbr">1DRR</span></div>
+            <div class="fc-legend-item"><span class="fc-dot fc-bg-purple"></span><span class="fc-legend-full">IMP/G</span><span class="fc-legend-abbr">IMP</span></div>
+          </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="fc-card fc-glass fc-chart-panel fc-bar-panel">
+          <div class="fc-chart-header fc-chart-header--bar">
+            <div class="fc-chart-header-top fc-chart-header-top--bar">
+              <h3 class="fc-card__title">PPG Leaders</h3>
+              <div class="fc-filter-group" id="filter-buttons">
+                <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
+                <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
+                <button data-filter="RB" data-position="RB" class="filter-btn">RB</button>
+                <button data-filter="WR" data-position="WR" class="filter-btn">WR</button>
+                <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
+              </div>
+            </div>
+            <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Efficiency Index — Positional Leaders (Top 8)</p>
+          </div>
+          <div class="fc-chart-container">
+            <div id="bar-chart" class="fc-chart-canvas"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scatter Plot Section (Replaces Leaderboard) -->
+        <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel">
+          <div class="fc-chart-header fc-chart-header--scatter">
+            <div class="fc-chart-header-top fc-chart-header-top--scatter">
+              <h3 class="fc-card__title">Consistency Rate vs. Ceiling Grid</h3>
+              <div class="fc-legend-inline fc-scatter-legend" role="group" aria-label="Scatter position filter">
+                <button class="fc-legend-item" type="button" data-pos="QB"><span class="fc-dot fc-pos-qb-dot"></span>QB</button>
+                <button class="fc-legend-item" type="button" data-pos="RB"><span class="fc-dot fc-pos-rb-dot"></span>RB</button>
+                <button class="fc-legend-item" type="button" data-pos="WR"><span class="fc-dot fc-pos-wr-dot"></span>WR</button>
+                <button class="fc-legend-item" type="button" data-pos="TE"><span class="fc-dot fc-pos-te-dot"></span>TE</button>
+              </div>
+            </div>
+          <div class="fc-scatter-subline">
+            <p class="fc-card__subtitle-text fc-subtitle-scatter">CSTY % vs. CL — Landscape across Top 6 in PPG at each position</p>
+            <span class="fc-chart-helper fc-chart-helper--scatter">✦ Tap Data Points for Values &amp; Pos. Rankings</span>
+          </div>
+          </div>
+          <div class="fc-chart-container">
+            <div id="scatter-chart" class="fc-chart-canvas"></div>
+          </div>
+        </div>
+    </main>
+  </div>
+
 <div id="welcome-screen">
-<picture class="welcome-logo">
-  <img 
-    alt="App logo" 
-    decoding="async" 
-    height="128" 
-    loading="eager" 
-    width="128"
-    src="assets/welcome/welcome-logo-256.png"
-    style="
-      -webkit-mask-image: radial-gradient(circle at 52% 51%, rgba(0,0,0,0.81) 40%, rgba(0,0,0,0) 99%);
-    mask-image: radial-gradient(circle at 52% 51%, rgba(0,0,0,0.75) 40%, rgba(0,0,0,0) 99%);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0px 0px 16px #7300ff48);
+  <!-- Panel: Instructions + Install -->
+  <div class="welcome-info-panel">
+    <p>
+      Welcome! Enter a Sleeper username and click 'Rosters' or 'Ownership %' to get started.
+    </p>
 
-          "
-  />
-</picture>
+    <section 
+      aria-label="Install as a web app" 
+      class="panel install-panel" 
+      id="install-webapp"
+    >
+      <h3 class="panel-title">Set up as a Web App</h3>
 
-<h2><span id="dh-scramble">Dynasty Hub</span></h2>
-<p>
-  Welcome! Enter a Sleeper username and click 'Rosters' or 'Ownership %' to get started.
-</p>
+      <details class="install-details">
+        <summary>iPhone, iPad, Android, and Mac</summary>
 
-<section 
-  aria-label="Install as a web app" 
-  class="panel install-panel" 
-  id="install-webapp"
->
-  <h3 class="panel-title">Set up as a Web App</h3>
+        <div class="install-columns">
 
-  <details class="install-details">
-    <summary>iPhone, iPad, Android, and Mac</summary>
+          <div class="install-card">
+            <h4>iPhone (Safari)</h4>
+            <ol>
+              <li>Open this site in Safari.</li>
+              <li>Tap Share.</li>
+              <li>Scroll and tap Add to Home Screen.</li>
+            </ol>
+            <p class="hint">
+              Tip: If you don't see it, tap Edit Actions and enable Add to Home Screen.
+            </p>
+          </div>
 
-    <div class="install-columns">
+          <div class="install-card">
+            <h4>iPad (Safari)</h4>
+            <ol>
+              <li>Open this site in Safari.</li>
+              <li>Tap Share in the toolbar.</li>
+              <li>Tap Add to Home Screen.</li>
+            </ol>
+          </div>
 
-      <div class="install-card">
-        <h4>iPhone (Safari)</h4>
-        <ol>
-          <li>Open this site in Safari.</li>
-          <li>Tap Share.</li>
-          <li>Scroll and tap Add to Home Screen.</li>
-        </ol>
-        <p class="hint">
-          Tip: If you don't see it, tap Edit Actions and enable Add to Home Screen.
-        </p>
-      </div>
+          <div class="install-card">
+            <h4>Android (Chrome)</h4>
+            <ol>
+              <li>Open this site in Chrome.</li>
+              <li>Tap the ⋮ menu.</li>
+              <li>Choose Add to Home screen or Install app.</li>
+            </ol>
+          </div>
 
-      <div class="install-card">
-        <h4>iPad (Safari)</h4>
-        <ol>
-          <li>Open this site in Safari.</li>
-          <li>Tap Share in the toolbar.</li>
-          <li>Tap Add to Home Screen.</li>
-        </ol>
-      </div>
+          <div class="install-card">
+            <h4>Mac (Safari)</h4>
+            <ol>
+              <li>Open this site in Safari.</li>
+              <li>Choose File → Add to Dock (or Share → Add to Dock).</li>
+            </ol>
+          </div>
 
-      <div class="install-card">
-        <h4>Android (Chrome)</h4>
-        <ol>
-          <li>Open this site in Chrome.</li>
-          <li>Tap the ⋮ menu.</li>
-          <li>Choose Add to Home screen or Install app.</li>
-        </ol>
-      </div>
-
-      <div class="install-card">
-        <h4>Mac (Safari)</h4>
-        <ol>
-          <li>Open this site in Safari.</li>
-          <li>Choose File → Add to Dock (or Share → Add to Dock).</li>
-        </ol>
-      </div>
-
-    </div>
-  </details>
-</section>
-  <div class="install-footnote" id="installFootnote">• A Dynasty-Hub© App •</div>
+        </div>
+      </details>
+    </section>
+    <div class="install-footnote" id="installFootnote">• A Dynasty-Hub© App •</div>
+  </div>
 
 <!-- hidden SVG mask for the glow -->
 <svg width="0" height="0" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
@@ -167,7 +375,7 @@
 </div>
 <!-- Middle row: Position Rank • Age • Team tag (right aligned) -->
 <div class="player-meta-line legend-meta">
-<span class="player-pos-rank legend-pos-rank">POSITION<br/>RANK (KTC)</span>
+<span class="player-pos-rank legend-pos-rank">POSITION RANK<br/> (PPR FPTS)</span>
 <span class="separator">•</span>
 <span><span class="player-age legend-age">AGE</span></span>
 <span class="separator">•</span>
@@ -175,8 +383,8 @@
 </div>
 <!-- Bottom row: KTC left, ADP right (no chips) -->
 <div class="player-value-line legend-bottom"><div class="legend-bottom-bg">
-<span class="kv-left"><span class="value player-ktc legend-ktc">KTC VALUE</span></span>
-<span class="kv-right"><span class="value player-adp legend-adp">ADP</span></span>
+<span class="kv-left"><span class="value player-ktc legend-ktc"><b>KTC VALUE</b> (POS RK)</span></span>
+<span class="kv-right"><span class="value player-adp legend-adp"><b>PPG</b></span></span>
 </div></div>
 </div><div class="legend-footnote" id="rosterCardFootnote">KTC VALUE AND ADP ARE SPECIFIC TO LEAGUE SCORING / FORMAT.</div></section>
 <div id="loading" class="hidden">
@@ -233,6 +441,20 @@
   This App uses KTC player values and Sleeper roster data (updated daily). Data is owned by their respective providers. This App is not affiliated with or endorsed by KTC or Sleeper.
 </footer>
 </div>
+
+<!-- Radar Stats Modal - Direct child of body for page-relative positioning -->
+<div id="radar-modal" class="fc-modal" aria-hidden="true">
+  <div class="fc-modal-overlay"></div>
+  <div class="fc-modal-content fc-glass">
+    <button class="fc-modal-close" aria-label="Close modal">&times;</button>
+    <h3 id="radar-modal-title" class="fc-modal-title">Player Stats</h3>
+    <div id="radar-modal-body" class="fc-modal-body">
+      <!-- Stats injected via JS -->
+    </div>
+  </div>
+</div>
+
 <script defer src="scripts/app.js?v=20250826235225"></script>  <script src="scripts/dh-scramble.js"></script>
+<script src="scripts/dashboard.js"></script>
 </body>
 </html>
