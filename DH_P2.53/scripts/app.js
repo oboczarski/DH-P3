@@ -20,6 +20,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const compareSearchInput   = document.getElementById('compareSearchInput');
         const compareSearchClose   = document.getElementById('compareSearchClose');
         const positionalViewBtn = document.getElementById('positionalViewBtn');
+        const condensedViewBtn = document.getElementById('condensedViewBtn');
         const lineupViewBtn = document.getElementById('lineupViewBtn');
         const viewDropdownToggle = document.getElementById('viewDropdownToggle');
         const viewDropdownMenu = document.getElementById('viewDropdownMenu');
@@ -428,6 +429,7 @@ if (typeof window !== 'undefined') {
             });
             compareButton?.addEventListener('click', handleCompareClick);
             positionalViewBtn?.addEventListener('click', () => setRosterView('positional'));
+            condensedViewBtn?.addEventListener('click', () => setRosterView('condensed'));
             lineupViewBtn?.addEventListener('click', () => setRosterView('lineup'));
             
             // View dropdown handlers (mobile)
@@ -792,12 +794,17 @@ if (typeof window !== 'undefined') {
     hideLegend();
             state.currentRosterView = view;
             const isPositional = view === 'positional';
+            const isCondensed = view === 'condensed';
+            const isPositionalFamily = isPositional || isCondensed;
             
             // Update dropdown toggle display (mobile)
             if (viewDropdownIcon && viewDropdownLabel) {
                 if (isPositional) {
                     viewDropdownIcon.className = 'fa-solid fa-users';
                     viewDropdownLabel.textContent = 'View: POS';
+                } else if (isCondensed) {
+                    viewDropdownIcon.className = 'fa-solid fa-compress';
+                    viewDropdownLabel.textContent = 'View: Condensed';
                 } else {
                     viewDropdownIcon.className = 'fa-solid fa-list-ol';
                     viewDropdownLabel.textContent = 'View: Lineup';
@@ -815,9 +822,13 @@ if (typeof window !== 'undefined') {
             // Legacy support for old button-based switcher (desktop)
             if (positionalViewBtn && lineupViewBtn) {
                 positionalViewBtn.classList.toggle('active', isPositional);
-                lineupViewBtn.classList.toggle('active', !isPositional);
-                positionalViewBtn.classList.toggle('counterpart-active', !isPositional);
-                lineupViewBtn.classList.toggle('counterpart-active', isPositional);
+                lineupViewBtn.classList.toggle('active', !isPositionalFamily);
+                positionalViewBtn.classList.toggle('counterpart-active', !isPositionalFamily);
+                lineupViewBtn.classList.toggle('counterpart-active', isPositionalFamily);
+            }
+            if (condensedViewBtn) {
+                condensedViewBtn.classList.toggle('active', isCondensed);
+                condensedViewBtn.classList.toggle('counterpart-active', !isCondensed);
             }
             
             if (state.currentTeams) {
@@ -4792,6 +4803,8 @@ const wrTeStatOrder = [
             rosterGrid.innerHTML = '';
             rosterGrid.style.justifyContent = ''; // Reset style
             rosterGrid.classList.toggle('start-sit-mode', state.isStartSitMode);
+            const shouldUseCondensed = state.currentRosterView === 'condensed' && !state.isStartSitMode;
+            rosterGrid.classList.toggle('condensed-mode', shouldUseCondensed);
             if (state.isStartSitMode) {
                 renderStartSitColumns(teams);
                 adjustStickyHeaders();
@@ -4835,7 +4848,9 @@ const wrTeStatOrder = [
                     recordSpan.textContent = `(${team.record})`;
                     header.appendChild(recordSpan);
                 }
-                const card = state.currentRosterView === 'positional' ? createPositionalTeamCard(team) : createDepthChartTeamCard(team);
+                const card = (state.currentRosterView === 'positional' || state.currentRosterView === 'condensed')
+                    ? createPositionalTeamCard(team)
+                    : createDepthChartTeamCard(team);
                 columnWrapper.appendChild(header);
                 columnWrapper.appendChild(card);
                 fragment.appendChild(columnWrapper);
@@ -5028,6 +5043,7 @@ const wrTeStatOrder = [
             const row = document.createElement('div');
             row.className = 'player-row';
             const slotAbbr = { 'SUPER_FLEX': 'SFLX', 'FLEX': 'FLX' };
+            const isCondensedView = state.currentRosterView === 'condensed' && !state.isStartSitMode;
             const displaySlot = state.currentRosterView === 'depth' ? (slotAbbr[player.slot] || player.slot) : player.pos;
             const fullPlayer = state.players?.[player.id];
             // Use pre-calculated ranks if available, otherwise calculate once
@@ -5101,27 +5117,38 @@ const wrTeStatOrder = [
             const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
             const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
             const injuryDesignation = player.injuryDesignation;
-            const injuryBadgeHtml = injuryDesignation
+            const injuryBadgeHtml = !isCondensedView && injuryDesignation
                 ? `<div class="player-injury-badge" style="color: ${injuryDesignation.color};">${injuryDesignation.designation}</div>`
                 : '';
-            row.innerHTML = `
-                <div class="player-main-line">
+            const mainPosRankHtml = isCondensedView
+                ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
+                : '';
+            const mainLineHtml = `
+                <div class="player-main-line${isCondensedView ? ' condensed-main-line' : ''}">
                     <div class="player-tag" style="background-color: ${TAG_COLORS[displaySlot] || 'var(--pos-bn)'};">${displaySlot}</div>
                     <div class="player-name"><span class="player-name-clickable">${player.name}</span></div>
+                    ${mainPosRankHtml}
                     ${injuryBadgeHtml}
-                </div>
+                </div>`;
+            const metaLineHtml = isCondensedView ? '' : `
                 <div class="player-meta-line">
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
-                    <span><span class="player-age">${player.age || '?'}</span> y.o. </span>
+                    <span><span class="player-age">${player.age || '?'} </span> y.o. </span>
                     <span class="separator">•</span>
                     ${teamTagHTML}
-                </div>
+                </div>`;
+            row.innerHTML = `
+                ${mainLineHtml}
+                ${metaLineHtml}
                 <div class="player-value-line">
                     <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
                     <span class="player-ppg-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>
                 </div>
             `;
+            if (isCondensedView) {
+                row.classList.add('player-row-condensed');
+            }
             const ageEl = row.querySelector('.player-age');
             const ktcEl = row.querySelector('.player-ktc');
             const ppgEl = row.querySelector('.player-ppg');
