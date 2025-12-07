@@ -5174,11 +5174,9 @@ const wrTeStatOrder = [
                 ktcWrapper.appendChild(createRankAnnotation(typeof ktcPosRankNumber === 'number' ? ktcPosRankNumber : 'NA', { wrapInParens: true, ordinal: true, variant: 'ktc' }));
                 // Match KTC rank color to the KTC value color for all views
                 const ktcRankNumber = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-number');
-                const ktcRankSuffix = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-suffix');
                 const ktcColor = ktcEl?.style?.color || '';
-                if (ktcColor) {
-                    if (ktcRankNumber) ktcRankNumber.style.color = ktcColor;
-                    if (ktcRankSuffix) ktcRankSuffix.style.color = ktcColor;
+                if (ktcColor && ktcRankNumber) {
+                    ktcRankNumber.style.color = ktcColor;
                 }
             }
             const playerNameClickableEl = row.querySelector('.player-name-clickable');
