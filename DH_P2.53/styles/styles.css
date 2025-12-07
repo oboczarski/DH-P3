@@ -242,9 +242,8 @@
         .branding-top-row {
             display: flex;
             flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 0.95rem;
+            justify-content: flex-start;
+            gap: 3.05rem;
             width: 100%;
         }
         /* Subtle glow effect matching cards */
@@ -2731,17 +2730,19 @@ body[data-page="welcome"] .app-header {
     justify-content: center;
     padding: 0.2rem 0;
     width: 100%;
+    margin-bottom: -5px !important;
+    margin-top: -3px !important;
 }
 .welcome-subtitle-row h3 {
-    font-size: 1rem;
-    color: #6145ff; /* Dimmer, soft purple-white */
-    font-weight: 600;
+    font-size: 1.1rem;
+    color: #ddd7ff; /* Dimmer, soft purple-white */
+    font-weight: 200;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin: 0;
     text-align: center;
     /* Nice glow effect */
-    text-shadow: 0 0 6px #6300ff,0 0 7px #6300ff, 0 0 10px #7609ffeb;
+    text-shadow: 0 0 12px #766dff80, 0 0 10px #7609ffeb;
 }
 
 /* tighter grid: menu - username - enter */
@@ -2834,12 +2835,14 @@ body[data-page="welcome"] .app-header {
   /* Subtitle Desktop Adjustment */
   .welcome-subtitle-row {
       padding: 0.1rem 0 0.4rem 0;
-      margin-bottom: -15px !important;
-      margin-top: -4px !important;
+      margin-bottom: -9px !important;
+      margin-top: 1px !important;
   }
   .welcome-subtitle-row h3 {
-      font-size: 2.25rem;
+      font-size: 2.35rem;
       font-weight: 200;
+      color: #6145ff;
+      text-shadow: 0 0 6px #6300ff, 0 0 7px #6300ff, 0 0 10px #7609ffeb;
   }
 
   body[data-page="welcome"] #primary-header-row {
