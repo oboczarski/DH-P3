@@ -1236,6 +1236,7 @@ body[data-page="stats"] #header-container {
 .stats-footer-body,
 .stats-footer-continuation {
   font-weight: 400;
+  text-align: start;
 }
 .stats-footer-spacer {
   display: block;
