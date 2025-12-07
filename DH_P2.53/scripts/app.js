@@ -346,10 +346,26 @@ if (typeof window !== 'undefined') {
             if (upper === 'NA' || upper === 'N/A' || upper === 'UNDEFINED' || upper === 'NULL') return null;
             const numericPattern = /^-?\d+(?:\.\d+)?$/;
             if (numericPattern.test(trimmed)) return null;
-            const primaryToken = upper.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
+            let primaryToken = upper.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
             if (!primaryToken) return null;
+            // Normalize common full-text Sleeper injury strings to badge codes
+            if (primaryToken.startsWith('QUESTION')) primaryToken = 'Q';
+            else if (primaryToken.startsWith('DOUBT')) primaryToken = 'D';
+            else if (primaryToken === 'OUT') primaryToken = 'OUT';
+            else if (primaryToken.includes('IR')) primaryToken = 'IR';
+            else if (primaryToken.startsWith('PUP')) primaryToken = 'PUP';
+            else if (primaryToken.startsWith('DNP')) primaryToken = 'DNP';
             const color = INJURY_DESIGNATION_COLORS[primaryToken] || 'var(--color-text-secondary)';
             return { designation: primaryToken, color, raw: trimmed };
+        }
+        // Derive an injury designation from Sleeper player metadata (rosters page)
+        function getSleeperInjuryDesignation(playerId) {
+            if (!playerId || !state.players) return null;
+            const player = state.players[playerId];
+            if (!player || !player.injury_status) return null;
+            const parsed = parseInjuryDesignation(player.injury_status);
+            if (!parsed) return null;
+            return { designation: parsed.designation, color: parsed.color, week: null };
         }
         const STARTER_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
         const TEAM_COLORS = { ARI:"#97233F", ATL:"#A71930", BAL:"#241773", BUF:"#00338D", CAR:"#0085CA", CHI:"#1a2d4e", CIN:"#FB4F14", CLE:"#311D00", DAL:"#003594", DEN:"#FB4F14", DET:"#0076B6", GB:"#203731", HOU:"#03202F", IND:"#002C5F", JAX:"#006778", KC:"#E31837", LAC:"#0080C6", LAR:"#003594", LV:"#A5ACAF", MIA:"#008E97", MIN:"#4F2683", NE:"#002244", NO:"#D3BC8D", NYG:"#0B2265", NYJ:"#125740", PHI:"#004C54", PIT:"#FFB612", SEA:"#69BE28", SF:"#B3995D", TB:"#D50A0A", TEN:"#4B92DB", WAS:"#5A1414", FA: "#64748b" };
@@ -2960,7 +2976,7 @@ const SEASON_META_HEADERS = {
         }
         function getPlayerData(playerId, slot) {
             const player = state.players[playerId];
-            if (!player) return { id: playerId, name: 'Unknown Player', pos: '?', age: '?', team: '?', adp: null, ktc: null, slot, posRank: null, ppg: 0 };
+            if (!player) return { id: playerId, name: 'Unknown Player', pos: '?', age: '?', team: '?', adp: null, ktc: null, slot, posRank: null, ppg: 0, injuryDesignation: null };
             const valueData = state.isSuperflex ? state.sflxData[playerId] : state.oneQbData[playerId];
             let lastName = player.last_name || '';
             if (lastName.length > 9) lastName = lastName.slice(0, 9) + '..'; // add ellipsis if truncated
@@ -2969,7 +2985,8 @@ const SEASON_META_HEADERS = {
             const ageFromSheet = valueData?.age;
             const formattedAge = (typeof ageFromSheet === 'number') ? ageFromSheet.toFixed(1) : (player.age ? Number(player.age).toFixed(1) : '?');
             const playerRanks = calculatePlayerStatsAndRanks(playerId) || getDefaultPlayerRanks();
-            const upcomingDesignation = getUpcomingProjectionDesignation(playerId);
+            // Prefer direct Sleeper injury status; fall back to sheet-based upcoming projection designation
+            const upcomingDesignation = getSleeperInjuryDesignation(playerId) || getUpcomingProjectionDesignation(playerId);
             return { 
                 id: playerId, 
                 name: displayName, 
