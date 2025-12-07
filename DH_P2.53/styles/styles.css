@@ -1913,7 +1913,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             gap: 0.22rem;
         }
         .player-row.player-row-condensed {
-            padding: 0.12rem 0.12rem 0.09rem;
+            padding: 0.12rem 0.12rem 0.01rem;
             gap: 0.06rem;
         }
         .player-row-condensed .player-main-line {
