@@ -1978,6 +1978,13 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         #rosterGrid.condensed-mode .roster-section h3 {
             font-size: 0.65rem;
         }
+        #rosterGrid.condensed-mode .pick-row {
+            font-size: 0.68rem;
+        }
+        #rosterGrid.condensed-mode .team-compare-checkbox {
+            width: 0.8rem;
+            height: 0.8rem;
+        }
         .start-sit-column .player-row,
         .start-sit-column .pick-row {
             gap: 0.001rem;
