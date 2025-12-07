@@ -1237,6 +1237,23 @@ body[data-page="stats"] #header-container {
   display: block;
 }
 
+.stats-bullet {
+  display: inline-block;
+  padding-right: 0.3rem;
+}
+
+.stats-arrow-gap {
+  display: inline-block;
+  width: 0.4rem;
+}
+
+@media (max-width: 819px) {
+  .stats-footer-simple {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
 .stats-table .stats-player-btn {
   color: inherit;
   font-weight: 400;
