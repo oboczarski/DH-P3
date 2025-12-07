@@ -1927,7 +1927,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             gap: 0px;
         }
         #rosterGrid.condensed-mode .roster-column {
-            width: 106px;
+            width: 102px;
             gap: 0.22rem;
         }
         #rosterGrid.condensed-mode .team-header-item {
@@ -1943,9 +1943,9 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             align-items: center;
         }
         .player-row-condensed .player-tag {
-            font-size: 0.5rem;
+            font-size: 0.47rem;
             padding: 1px 2px;
-            line-height: 0.5rem;
+            line-height: 0.47rem;
         }
         .player-row-condensed .player-pos-rank {
             margin-left: auto;
@@ -1965,12 +1965,12 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             font-size: 0.52rem;
         }
         .player-row-condensed .player-value-line .value {
-            font-size: 0.53rem;
+            font-size: 0.51rem;
         }
         .player-row-condensed .player-name {
             min-width: 0;
             font-size: 0.6rem;
-            margin-left: 2px;
+            margin-left: 1px;
         }
         #rosterGrid.condensed-mode .team-card {
             gap: 0.15rem;
