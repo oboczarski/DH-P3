@@ -23,7 +23,8 @@
     QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
-    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL']
+    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
+    RDP: ['RK', 'YEAR', 'RANGE', 'ROUND', 'VALUE', 'POS', 'AGE', 'TM', 'G', 'FPTS', 'PPG']
   };
   const COLUMN_CATEGORY = {
     'FPTS': 'all',
@@ -213,7 +214,10 @@
     'RR': 64,
     'OPP': 64,
     'IMP': 64,
-    'IMP/OPP': 76
+    'IMP/OPP': 76,
+    'YEAR': 64,
+    'RANGE': 72,
+    'ROUND': 72
   };
   
   const DEFAULT_COLUMN_WIDTH = 76;
@@ -698,12 +702,46 @@
     return cache;
   }
   function getColumnSet() {
+    if (statsState.activePosition === 'RDP') return COLUMN_SETS.RDP;
     if (!statsState.activePosition || statsState.activePosition === 'ALL') return COLUMN_SETS.default;
     if (statsState.activePosition === 'QB') return COLUMN_SETS.QB;
     if (statsState.activePosition === 'RB') return COLUMN_SETS.RB;
     if (statsState.activePosition === 'Receiving') return COLUMN_SETS.WR; // Use WR set for Receiving
     if (statsState.activePosition === 'TE') return COLUMN_SETS.TE;
     return COLUMN_SETS.default;
+  }
+  
+  // Parse pick name like "2026 Late 4th" into {year, range, round}
+  function parsePickName(pickName) {
+    if (!pickName || typeof pickName !== 'string') {
+      return { year: '', range: '', round: '' };
+    }
+    const parts = pickName.trim().split(/\s+/);
+    let year = '';
+    let range = '';
+    let round = '';
+    
+    // First part is usually the year (4 digits)
+    if (parts[0] && /^\d{4}$/.test(parts[0])) {
+      year = parts[0];
+      parts.shift();
+    }
+    
+    // Last part is usually the round (1st, 2nd, 3rd, 4th, etc.)
+    if (parts.length > 0) {
+      const lastPart = parts[parts.length - 1];
+      if (/^\d+(st|nd|rd|th)$/i.test(lastPart)) {
+        round = lastPart;
+        parts.pop();
+      }
+    }
+    
+    // Everything in between is the range (Early, Mid, Late, etc.)
+    if (parts.length > 0) {
+      range = parts.join(' ');
+    }
+    
+    return { year, range, round };
   }
   function getColumnCategory(column) {
     return COLUMN_CATEGORY[column] || 'all';
@@ -843,6 +881,12 @@
       if (rank === null || rank === undefined) return '';
       return formatInteger(rank);
     }
+    // Handle pick-specific columns (YEAR, RANGE, ROUND)
+    if (column === 'YEAR' || column === 'RANGE' || column === 'ROUND') {
+      const pickName = meta.fullName || meta.name || '';
+      const parsed = parsePickName(pickName);
+      return parsed[column.toLowerCase()] || '';
+    }
     const raw = row[column];
     const formatted = formatSheetCellValue(column, raw);
     if (formatted !== '') return formatted;
@@ -906,6 +950,7 @@
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
     const columnSet = baseColumnSet.filter((column, index) => {
       if (index < 3) return true;
+      if (statsState.activePosition === 'RDP' && ['YEAR', 'RANGE', 'ROUND'].includes(column)) return true;
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
@@ -942,7 +987,10 @@
     }
 
     sortedRows.forEach((entry, index) => {
-      if (entry.meta.pos !== 'RDP') {
+      // In RDP mode, give picks proper ranks; otherwise only rank non-RDP entries
+      if (statsState.activePosition === 'RDP') {
+        entry.meta.currentRank = index + 1;
+      } else if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
         entry.meta.currentRank = null;
@@ -1134,6 +1182,7 @@
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
     const columnSet = baseColumnSet.filter((column, index) => {
       if (index < 3) return true; // Always show first 3 columns
+      if (statsState.activePosition === 'RDP' && ['YEAR', 'RANGE', 'ROUND'].includes(column)) return true;
       if (!availableColumns) return true;
       return availableColumns.has(column);
     });
@@ -1171,7 +1220,10 @@
     }
 
     sortedRows.forEach((entry, index) => {
-      if (entry.meta.pos !== 'RDP') {
+      // In RDP mode, give picks proper ranks; otherwise only rank non-RDP entries
+      if (statsState.activePosition === 'RDP') {
+        entry.meta.currentRank = index + 1;
+      } else if (entry.meta.pos !== 'RDP') {
         entry.meta.currentRank = index + 1;
       } else {
         entry.meta.currentRank = null;
