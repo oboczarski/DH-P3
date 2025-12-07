@@ -1219,9 +1219,26 @@ body[data-page="stats"] #header-container {
   color: #ff336f;
   font-size: 0.85em;
   font-weight: 300;
-  margin-left: -0.05rem;
-  vertical-align: text-top;
+  margin-left: 0.25rem;
   line-height: 1;
+}
+
+.stats-controls-footer em.stats-footer-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.1rem;
+  row-gap: 0.1rem;
+  align-items: start;
+}
+.stats-footer-label {
+  font-weight: 650;
+}
+.stats-footer-body,
+.stats-footer-continuation {
+  font-weight: 400;
+}
+.stats-footer-spacer {
+  display: block;
 }
 
 .stats-table .stats-player-btn {
