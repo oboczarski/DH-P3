@@ -1939,9 +1939,11 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             gap: 0.06rem;
         }
         .player-row-condensed .player-main-line {
-            gap: 0.08rem;
-            align-items: center;
+            gap: 0;
+            align-items: normal;
+            justify-content: space-between;
             min-height: auto;
+            width: 100%;
         }
         .player-row-condensed .player-tag {
             font-size: 0.47rem;
@@ -1950,15 +1952,13 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         }
         .player-row-condensed .player-pos-rank {
             margin: 0;
-            margin-right: 0.12rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.48rem;
+            font-size: 0.55rem;
             line-height: 0.9;
             white-space: nowrap;
-            width: 20px;
-            flex-shrink: 0;
+            flex: 0 1 auto;
         }
         .player-row-condensed .player-meta-line { display: none !important; }
         .player-row-condensed .player-injury-badge { display: none !important; }
@@ -1974,14 +1974,15 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         .player-row-condensed .player-name {
             min-width: 0;
             font-size: 0.6rem;
-            margin-left: 1px;
-            margin-right: auto;
+            margin: 0 0.1rem;
+            flex: 1 1 auto;
         }
         .player-row-condensed .condensed-team-tag {
             display: inline-flex;
             align-items: center;
-            margin-left: 0.25rem;
-            flex-shrink: 0;
+            margin: 0;
+            flex: 0 1 auto;
+            justify-content: flex-end;
         }
         .player-row-condensed .condensed-team-tag .team-logo.glow {
             width: 14px;
