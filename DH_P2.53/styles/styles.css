@@ -48,6 +48,10 @@
   margin-left: 0; /* no gap between number and suffix */
   padding-left: 0;
 }
+#rosterGrid.condensed-mode .stat-rank-variant-ktc .stat-rank-number,
+#rosterGrid.condensed-mode .stat-rank-variant-ktc .stat-rank-suffix-ktc {
+  filter: brightness(1.4);
+}
 /* ⬇︎ VARIABLES, THEME, & FOUNDATION ⬇︎ */
       :root {
         --font-sans: 'Product Sans', 'Google Sans', 'Quicksand', sans-serif;
@@ -1882,6 +1886,10 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             border: solid 1px #B469FF99;
             box-shadow: inset 0 0 20px #B469FF20;
     }
+        #rosterGrid.condensed-mode .qb-section h3 { border-color: #FF3A7569; }
+        #rosterGrid.condensed-mode .rb-section h3 { border-color: #00EBC769; }
+        #rosterGrid.condensed-mode .wr-section h3 { border-color: #58A7FF69; }
+        #rosterGrid.condensed-mode .te-section h3 { border-color: #B469FF69; }
       .starters-section h3 {
             color: #69ffe1b2;
             font-weight: 500;

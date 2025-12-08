@@ -5101,6 +5101,7 @@ const wrTeStatOrder = [
             const hasFptsPosRank = Number.isFinite(fptsPosRankNumber) && fptsPosRankNumber > 0;
             const fptsPosRankDisplay = hasFptsPosRank ? `${basePos}·${fptsPosRankNumber}` : basePos;
             const posRankColor = getPosRankColor(fptsPosRankDisplay);
+            const effectivePosRankColor = (isCondensedView && basePos === 'TE') ? '#a181ff' : posRankColor;
             const ppgRawString = typeof playerRanks.ppg === 'string' ? playerRanks.ppg.trim() : '';
             const numericPpgValue = typeof playerRanks.ppg === 'number'
                 ? playerRanks.ppg
@@ -5121,7 +5122,7 @@ const wrTeStatOrder = [
                 ? `<div class="player-injury-badge" style="color: ${injuryDesignation.color};">${injuryDesignation.designation}</div>`
                 : '';
             const condensedPosRankHtml = isCondensedView
-                ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
+                ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
                 : '';
             const playerTagHtml = !isCondensedView
                 ? `<div class="player-tag" style="background-color: ${TAG_COLORS[displaySlot] || 'var(--pos-bn)'};">${displaySlot}</div>`
@@ -5176,7 +5177,7 @@ const wrTeStatOrder = [
             const playerPosRankEl = row.querySelector('.player-pos-rank');
             if (playerPosRankEl) {
                 playerPosRankEl.textContent = fptsPosRankDisplay;
-                playerPosRankEl.style.color = posRankColor;
+                playerPosRankEl.style.color = effectivePosRankColor;
             }
             if (ageEl && player.age && player.age !== '?') ageEl.style.color = getAgeColorForRoster(player.pos, parseFloat(player.age));
             if (ktcEl && player.ktc) ktcEl.style.color = getKtcColor(player.ktc);
