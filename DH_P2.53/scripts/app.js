@@ -6681,6 +6681,11 @@ function buildConsistencyPanelData(player) {
 
 function shouldSkipConsistencyWeek(statsForWeek) {
     if (!statsForWeek) return false;
+    // If the player actually scored meaningful fantasy points this week,
+    // always treat it as a normal data point, regardless of PROJ text.
+    const rawFpts = statsForWeek.fpt_ppr;
+    const numericFpts = typeof rawFpts === 'number' ? rawFpts : Number(rawFpts);
+    if (Number.isFinite(numericFpts) && numericFpts > 0.5) return false;
     const rawProj = statsForWeek.proj;
     if (rawProj === undefined || rawProj === null) return false;
     if (typeof rawProj === 'number' && Number.isFinite(rawProj)) return false;

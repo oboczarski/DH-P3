@@ -1988,6 +1988,8 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             font-size: 0.6rem;
             margin: 0 0.1rem;
             flex: 1 1 auto;
+            filter: brightness(1.15) 
+drop-shadow(0px 0px 0px #6380ff);
         }
         .player-row-condensed .condensed-team-tag {
             display: inline-flex;
@@ -2078,7 +2080,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         }
     .player-name-clickable {
         text-decoration: underline;
-        text-decoration-color: #9096D090;
+        text-decoration-color: #9094c152;
     }
         .player-tag {
             display: inline-flex;
