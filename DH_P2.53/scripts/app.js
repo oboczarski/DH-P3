@@ -2990,7 +2990,7 @@ const SEASON_META_HEADERS = {
             if (!player) return { id: playerId, name: 'Unknown Player', pos: '?', age: '?', team: '?', adp: null, ktc: null, slot, posRank: null, ppg: 0, injuryDesignation: null };
             const valueData = state.isSuperflex ? state.sflxData[playerId] : state.oneQbData[playerId];
             let lastName = player.last_name || '';
-            if (lastName.length > 9) lastName = lastName.slice(0, 9) + '..'; // add ellipsis if truncated
+            if (lastName.length > 8) lastName = lastName.slice(0, 8) + '..'; // add ellipsis if truncated
             let displayName = `${player.first_name.charAt(0)}. ${lastName}`;
             // Prioritize age from the sheet and format it to one decimal place
             const ageFromSheet = valueData?.age;
@@ -5190,9 +5190,11 @@ const wrTeStatOrder = [
                 ktcWrapper.appendChild(createRankAnnotation(typeof ktcPosRankNumber === 'number' ? ktcPosRankNumber : 'NA', { wrapInParens: true, ordinal: true, variant: 'ktc' }));
                 // Match KTC rank color to the KTC value color for all views
                 const ktcRankNumber = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-number');
+                const ktcRankSuffix = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-suffix');
                 const ktcColor = ktcEl?.style?.color || '';
-                if (ktcColor && ktcRankNumber) {
-                    ktcRankNumber.style.color = ktcColor;
+                if (ktcColor) {
+                    if (ktcRankNumber) ktcRankNumber.style.color = ktcColor;
+                    if (ktcRankSuffix) ktcRankSuffix.style.color = ktcColor;
                 }
             }
             const playerNameClickableEl = row.querySelector('.player-name-clickable');
