@@ -1959,6 +1959,8 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             line-height: 0.9;
             white-space: nowrap;
             flex: 0 1 auto;
+            width: 24px;
+            margin-right: 1px;
         }
         .player-row-condensed .player-meta-line { display: none !important; }
         .player-row-condensed .player-injury-badge { display: none !important; }
