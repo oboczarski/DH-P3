@@ -5120,15 +5120,20 @@ const wrTeStatOrder = [
             const injuryBadgeHtml = !isCondensedView && injuryDesignation
                 ? `<div class="player-injury-badge" style="color: ${injuryDesignation.color};">${injuryDesignation.designation}</div>`
                 : '';
-            const mainPosRankHtml = isCondensedView
+            const condensedPosRankHtml = isCondensedView
                 ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
+                : '';
+            const playerTagHtml = !isCondensedView
+                ? `<div class="player-tag" style="background-color: ${TAG_COLORS[displaySlot] || 'var(--pos-bn)'};">${displaySlot}</div>`
+                : '';
+            const condensedTeamTagHtml = isCondensedView
+                ? `<span class="condensed-team-tag">${teamTagHTML}</span>`
                 : '';
             const mainLineHtml = `
                 <div class="player-main-line${isCondensedView ? ' condensed-main-line' : ''}">
-                    <div class="player-tag" style="background-color: ${TAG_COLORS[displaySlot] || 'var(--pos-bn)'};">${displaySlot}</div>
+                    ${isCondensedView ? condensedPosRankHtml : playerTagHtml}
                     <div class="player-name"><span class="player-name-clickable">${player.name}</span></div>
-                    ${mainPosRankHtml}
-                    ${injuryBadgeHtml}
+                    ${isCondensedView ? condensedTeamTagHtml : injuryBadgeHtml}
                 </div>`;
             const metaLineHtml = isCondensedView ? '' : `
                 <div class="player-meta-line">
