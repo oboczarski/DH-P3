@@ -1968,7 +1968,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             line-height: 0.9;
             white-space: nowrap;
             flex: 0 1 auto;
-            width: 25px;
+            width: 23px;
             margin-right: 1px;
             filter: brightness(1) saturate(2.5);
         }
@@ -4840,7 +4840,7 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
-    padding: 0.05rem 0.2rem; /* tighter rows */
+    padding: 0rem 0.2rem; /* tighter rows */
   }
   /* Game log week tag container */
   #game-logs-modal .gamelog-week-tag {
@@ -4852,8 +4852,8 @@ body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
     justify-items: center;
     width: var(--week-tag-w);
     min-width: var(--week-tag-w);
-    height: var(--week-tag-h);
-    min-height: var(--week-tag-h);
+    height: 1.2rem;
+    min-height: 1.5rem;
     line-height: 1; /* normalize to avoid extra vertical space */
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.02);
