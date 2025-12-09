@@ -5192,15 +5192,51 @@ const wrTeStatOrder = [
             const ktcWrapper = row.querySelector('.player-ktc-wrapper');
             if (ktcWrapper) {
                 ktcWrapper.classList.add('has-rank-annotation');
-                // Render KTC rank inline with ordinal suffix wrapped in parentheses
-                ktcWrapper.appendChild(createRankAnnotation(typeof ktcPosRankNumber === 'number' ? ktcPosRankNumber : 'NA', { wrapInParens: true, ordinal: true, variant: 'ktc' }));
-                // Match KTC rank color to the KTC value color for all views
-                const ktcRankNumber = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-number');
-                const ktcRankSuffix = ktcWrapper.querySelector('.stat-rank-variant-ktc .stat-rank-suffix');
+                const annotation = createRankAnnotation(
+                    typeof ktcPosRankNumber === 'number' ? ktcPosRankNumber : 'NA',
+                    { wrapInParens: true, ordinal: true, variant: 'ktc' }
+                );
+                ktcWrapper.appendChild(annotation);
+
+                const valueSpan = ktcWrapper.querySelector('.value.player-ktc');
+                const rankNumberSpan = annotation.querySelector('.stat-rank-number');
+                const rankSuffixSpan = annotation.querySelector('.stat-rank-suffix');
+                const rankNumberText = rankNumberSpan ? rankNumberSpan.textContent : '';
+                const rankSuffixText = rankSuffixSpan ? rankSuffixSpan.textContent : '';
+
+                // Rebuild annotation to wrap the KTC value inside parentheses
+                if (annotation && valueSpan) {
+                    // Remove the value from its original position before moving it
+                    if (valueSpan.parentElement === ktcWrapper) {
+                        ktcWrapper.removeChild(valueSpan);
+                    }
+                    while (annotation.firstChild) annotation.removeChild(annotation.firstChild);
+                    annotation.appendChild(document.createTextNode(' ('));
+                    annotation.appendChild(valueSpan);
+                    annotation.appendChild(document.createTextNode(')'));
+                }
+
+                // Insert rank + suffix where the KTC value used to be
+                const rankDisplay = document.createElement('span');
+                rankDisplay.className = 'ktc-rank-display';
+                rankDisplay.textContent = rankNumberText || '';
+
+                const rankSuffixDisplay = document.createElement('span');
+                rankSuffixDisplay.className = 'ktc-rank-suffix-display';
+                rankSuffixDisplay.textContent = rankSuffixText || '';
+
+                ktcWrapper.insertBefore(rankDisplay, annotation);
+                if (rankSuffixText) {
+                    ktcWrapper.insertBefore(rankSuffixDisplay, annotation);
+                }
+
+                // Match rank color to the KTC value color for all views
                 const ktcColor = ktcEl?.style?.color || '';
                 if (ktcColor) {
-                    if (ktcRankNumber) ktcRankNumber.style.color = ktcColor;
-                    if (ktcRankSuffix) ktcRankSuffix.style.color = ktcColor;
+                    rankDisplay.style.color = ktcColor;
+                    if (rankSuffixText) {
+                        rankSuffixDisplay.style.color = ktcColor;
+                    }
                 }
             }
             const playerNameClickableEl = row.querySelector('.player-name-clickable');
