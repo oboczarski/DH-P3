@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions for DH-P3 / DH_P2.53
 
+## Follow Prompt Instructions Meticulously
+
+Always follow prompt instructions. This includes adhering to any specific guidelines or requirements outlined in the user's requests. Ensure every single detail is addressed. Carefully read and follow all instructions provided, and carry out all tasks exactly as requested.
+
 ## Initial Review (Important First Step):
 
 Before modifying any code, thoroughly review and analyze the existing structures, functionality, layout, setup, and styles relevant to the task.  
@@ -9,10 +13,6 @@ Analyze the sections related to the prompt to fully understand the current HTML 
 
 When assisting in this repo, proactively review relevant files and previous conversations to gather context. This will help you provide more accurate and helpful responses.
 
-## Follow Prompt Instructions Meticulously
-
-Always follow prompt instructions. This includes adhering to any specific guidelines or requirements outlined in the user's requests. Ensure every single detail is addressed. Carefully read and follow all instructions provided, and carry out all tasks exactly as requested.
-
 ## How to Work in This Repo
 
 - Always start by reading the relevant HTML, JS, and CSS for the page you’re touching (`index.html`, `stats/stats.html`, `analyzer/analyzer.html`, `research/research.html`, `rosters/rosters.html`, `ownership/ownership.html` plus the matching `scripts/` and `styles/` files). Do not guess the layout or data flow.
@@ -20,7 +20,11 @@ Always follow prompt instructions. This includes adhering to any specific guidel
 - The app is **mobile-first**. Prioritize correct behavior and layout on mobile widths, then ensure desktop is also optimized and polished (no broken layouts, awkward spacing, or unreadable tables).
 - When you touch cross-cutting concerns (navigation, modals, game logs, proxies, service worker, etc.), align with existing patterns in `scripts/app.js`, `styles/styles.css`, and the current HTML shells.
 
----
+## App / Project Description
+
+This repository contains the source code for **Dynasty Hub**, a multi-page fantasy football web app (PWA) focused on dynasty leagues. The app is designed and optimized for both mobile and desktop use.
+
+Core functionality is split across dedicated pages (Home / Fantasy Dashboard, Rosters, Ownership, Stats, Analyzer, Research / SYOP). Any changes made to files in this repo directly affect how the live app looks, behaves, and fetches data.
 
 ## Project Structure Overview
 
