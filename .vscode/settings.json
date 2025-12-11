@@ -175,5 +175,7 @@
   "inlineChat.enableV2": true,
   "github.copilot.chat.anthropic.tools.websearch.enabled": true,
   "github.copilot.chat.codesearch.enabled": true,
-  "github.copilot.chat.tools.memory.enabled": true
+  "github.copilot.chat.tools.memory.enabled": true,
+  "chat.renderRelatedFiles": true,
+  "github.copilot.chat.newWorkspace.useContext7": true
 }
