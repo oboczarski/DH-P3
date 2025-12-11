@@ -2,24 +2,21 @@
 
 ## Initial Review (Important First Step):
 
-Before modifying any code, thoroughly review the existing structures, functionality, layout, setup, and styles relevant to the task. Develop a deep understanding of how the pages are set up, how components are implemented, and how to alter each component on every page.
-
-Analyze the relevant sections related to the prompt to fully understand the current HTML structure, JavaScript rendering logic, data flow, and CSS styling.
-
-Make sure you are always very thorough, and review files necessary for context, so that you have working knowledge and full understanding of the project.
+Before modifying any code, thoroughly review and analyze the existing structures, functionality, layout, setup, and styles relevant to the task.  
+Analyze the sections related to the prompt to fully understand the current HTML structure, JavaScript rendering logic, data flow, and CSS styling. Develop a deep understanding of how the pages are set up, how components are implemented, and how to alter each component on every page. Always be very thorough, and review all files necessary for context so that you have working knowledge and a full understanding of the project.
 
 ### Be Proactive About Context
 
-When assisting in this repo, proactively review relevant files and previous conversations to gather context. This will help you provide more accurate and helpful responses. Don't hesitate to ask clarifying questions if you're unsure about any aspect of the project or the user's needs.
+When assisting in this repo, proactively review relevant files and previous conversations to gather context. This will help you provide more accurate and helpful responses.
 
-Always follow prompt instructions. This includes adhering to any specific guidelines or requirements outlined in the user's requests. Ensure every single detail is addressed. Make sure to carefully read and follow all instructions provided.
+## Follow Prompt Instructions Meticulously
 
----
+Always follow prompt instructions. This includes adhering to any specific guidelines or requirements outlined in the user's requests. Ensure every single detail is addressed. Carefully read and follow all instructions provided, and carry out all tasks exactly as requested.
 
 ## How to Work in This Repo
 
 - Always start by reading the relevant HTML, JS, and CSS for the page you’re touching (`index.html`, `stats/stats.html`, `analyzer/analyzer.html`, `research/research.html`, `rosters/rosters.html`, `ownership/ownership.html` plus the matching `scripts/` and `styles/` files). Do not guess the layout or data flow.
-- Respect the existing Deep Space / glass-panel visual system. Reuse existing classes and CSS variables instead of inventing new patterns when possible.
+- Respect the existing Deep Space / glass-panel visual system. Reuse the same design language (colors, radii, shadows, CSS variables), but prefer **separate, page- and component-specific classes/selectors**, even when styles are currently identical, so later edits to one area do not unintentionally change others.
 - The app is **mobile-first**. Prioritize correct behavior and layout on mobile widths, then ensure desktop is also optimized and polished (no broken layouts, awkward spacing, or unreadable tables).
 - When you touch cross-cutting concerns (navigation, modals, game logs, proxies, service worker, etc.), align with existing patterns in `scripts/app.js`, `styles/styles.css`, and the current HTML shells.
 
