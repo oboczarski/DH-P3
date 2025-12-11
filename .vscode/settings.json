@@ -169,5 +169,11 @@
 
   "liveServer.settings.port": 5507,
   "editor.colorDecorators": true,
-  "editor.colorDecoratorsLimit": 2200
+  "editor.colorDecoratorsLimit": 2200,
+  "chat.checkpoints.showFileChanges": true,
+  "chat.todoListTool.descriptionField": true,
+  "inlineChat.enableV2": true,
+  "github.copilot.chat.anthropic.tools.websearch.enabled": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.tools.memory.enabled": true
 }
