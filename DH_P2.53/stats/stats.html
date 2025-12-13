@@ -73,36 +73,38 @@
   </div>
 
   <main id="content" class="stats-page-content">
-    <section class="stats-page-intro glass-panel">
-      <div class="stats-intro-stack">
-        <div class="stats-league-chip" id="statsLeagueContext" aria-live="polite">DH DATA HUB</div>
-        <h1 class="stats-page-title">
-          <span class="stats-tab-heading" data-tab-heading="oneQb">
-            <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
-          </span>
-          <span class="stats-tab-heading hidden" data-tab-heading="sflx">
-            <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
-          </span>
-        </h1>
-      </div>
-      <div class="stats-tabs" role="presentation">
-        <div class="stats-tabs-buttons" role="tablist">
-          <button class="stats-tab-button stats-tab-button-1qb active" data-tab="oneQb" type="button" role="tab" aria-selected="true">
-            1QB
-          </button>
-          <button class="stats-tab-button stats-tab-button-sflx" data-tab="sflx" type="button" role="tab" aria-selected="false">
-            SFLX
+    <!-- Desktop: side-by-side panels wrapper -->
+    <div class="stats-top-panels-row">
+      <section class="stats-page-intro glass-panel">
+        <div class="stats-intro-stack">
+          <div class="stats-league-chip" id="statsLeagueContext" aria-live="polite">DH DATA HUB</div>
+          <h1 class="stats-page-title">
+            <span class="stats-tab-heading" data-tab-heading="oneQb">
+              <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> Trade Values &amp; Stats
+            </span>
+            <span class="stats-tab-heading hidden" data-tab-heading="sflx">
+              <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> Trade Values &amp; Stats
+            </span>
+          </h1>
+        </div>
+        <div class="stats-tabs" role="presentation">
+          <div class="stats-tabs-buttons" role="tablist">
+            <button class="stats-tab-button stats-tab-button-1qb active" data-tab="oneQb" type="button" role="tab" aria-selected="true">
+              1QB
+            </button>
+            <button class="stats-tab-button stats-tab-button-sflx" data-tab="sflx" type="button" role="tab" aria-selected="false">
+              SFLX
+            </button>
+          </div>
+        </div>
+        <div class="stats-intro-picks" role="presentation">
+          <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
+            Pick Values
           </button>
         </div>
-      </div>
-      <div class="stats-intro-picks" role="presentation">
-        <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
-          Pick Values
-        </button>
-      </div>
-    </section>
+      </section>
 
-    <section class="stats-controls-panel glass-panel">
+      <section class="stats-controls-panel glass-panel">
       <button class="stats-key-button stats-key-button-floating" id="statsKeyButton" type="button" aria-label="Show stats key">
         <i class="fa-solid fa-key" aria-hidden="true"></i>
         <span class="stats-key-label-desktop">Key</span>
@@ -152,6 +154,7 @@
         </p>
       </div>
     </section>
+    </div><!-- end .stats-top-panels-row -->
 
     <section class="stats-table-region glass-panel">
       <div class="stats-loading hidden" id="statsLoading">

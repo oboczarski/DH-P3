@@ -689,6 +689,14 @@
   margin: 1px;
   box-shadow: 0 0 2px #fff2, 0 0 10px #73f5 !important;
 }
+
+/* ============================================ */
+/* DESKTOP SIDE-BY-SIDE PANELS ROW             */
+/* ============================================ */
+/* Mobile: invisible wrapper, panels stack via page-content's flex-direction: column */
+.stats-top-panels-row {
+  display: contents; /* Mobile: wrapper is invisible, children flow as if no wrapper */
+}
 /* Stats Key Popup */
 .stats-key-popup {
   position: fixed;
@@ -830,10 +838,141 @@ body[data-page="stats"] #header-container {
     margin-left: auto;
     margin-right: auto;
   }
+  
+  /* ========================================== */
+  /* DESKTOP: Side-by-side panels layout       */
+  /* ========================================== */
+  /* Wrapper becomes a flex row on desktop */
+  body[data-page="stats"] .stats-top-panels-row {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    width: min(100%, var(--stats-desktop-panel-width, 900px));
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  
+  /* Each panel takes ~50% width, uniform sizing */
   body[data-page="stats"] .stats-page-intro,
   body[data-page="stats"] .stats-controls-panel {
-    width: min(100%, var(--stats-desktop-panel-width, 900px));
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    margin: 0; /* Remove auto margins since row handles centering */
   }
+  
+  /* Scale down intro panel content for compact side-by-side layout */
+  body[data-page="stats"] .stats-page-intro {
+    padding: 0.35rem 0.6rem 0.3rem;
+    gap: 0.2rem;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-intro-stack {
+    gap: 0.2rem;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-league-chip {
+    font-size: 0.52rem;
+    padding: 0.18rem 0.45rem;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-page-title {
+    font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+    gap: 0.18rem;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-tabs {
+    gap: 0.28rem;
+    max-width: 100%;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-tabs-buttons {
+    gap: 0.8rem;
+    padding: 0.08rem 0;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-tab-button {
+    font-size: 0.85rem;
+    padding: 0.2rem 0.6rem;
+    min-width: 4.5rem;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-intro-picks {
+    margin-top: 0.25rem;
+    max-width: 100%;
+  }
+  body[data-page="stats"] .stats-page-intro .stats-picks-btn {
+    font-size: 0.58rem;
+    padding: 0.28rem 1rem;
+    min-height: 1.3rem;
+    width: clamp(110px, 75%, 180px);
+  }
+  
+  /* Scale down controls panel content for compact side-by-side layout */
+  body[data-page="stats"] .stats-controls-panel {
+    padding: clamp(0.8rem, 2vw, 1rem) clamp(0.4rem, 1.2vw, 0.6rem) clamp(0.15rem, 0.4vw, 0.15rem);
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls {
+    margin-top: -0.9rem;
+    gap: 0.32rem;
+    max-width: 100%;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls-heading {
+    padding: 0.15rem 0.2rem;
+    min-height: 0.6rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls-header {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls-body {
+    gap: 0.45rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-filter-block {
+    gap: 0.4rem;
+    max-width: 100%;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-filter-btn {
+    font-size: 0.58rem;
+    padding: 0.2rem 0.08rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-receiving-subfilter {
+    font-size: 0.52rem;
+    min-height: 1.15rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-secondary-row {
+    gap: 0.45rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-search-input {
+    font-size: 0.65rem;
+    padding: 0.32rem 1.6rem 0.32rem 0.6rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-search-icon,
+  body[data-page="stats"] .stats-controls-panel .stats-search-clear {
+    font-size: 0.72rem;
+    right: 0.5rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-rookie-btn {
+    font-size: 0.56rem;
+    padding: 0.2rem 0.2rem;
+    min-width: 3.5rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-secondary-separator {
+    height: 1.5rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls-footer {
+    font-size: 0.52rem;
+    margin-top: 0.1rem;
+    margin-left: -2px;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-controls-footer i {
+    font-size: 0.48rem;
+  }
+  /* Floating key button adjustments */
+  body[data-page="stats"] .stats-controls-panel .stats-key-button-floating {
+    top: 4px;
+    right: 4px;
+    padding: 0.22rem 0.35rem;
+    font-size: 0.52rem;
+    gap: 0.25rem;
+  }
+  body[data-page="stats"] .stats-controls-panel .stats-key-button-floating i {
+    font-size: 0.65rem;
+  }
+
   /* Keep the table container width configurable via its own token for easy future adjustments */
   body[data-page="stats"] .stats-table-region {
     width: min(100%, var(--stats-desktop-table-width, 900px));
