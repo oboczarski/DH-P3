@@ -14,13 +14,14 @@
     ['TEAM', 'TM'],
     ['FPTS_PPR', 'FPTS'],
     ['FPT_PPR', 'FPTS'],
+    ['CMP PCT', 'CMP%'],
     ['YDS(T)', 'YDS(t)'],
     ['YPG(T)', 'YPG(t)'],
     ['IMP/OPP', 'IMP/OPP']
   ]);
   const COLUMN_SETS = {
     default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
-    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    QB: ['RK', 'PLAYER', 'POS', 'TM', 'EPA/DB', 'CPOE', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
     WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
     TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
@@ -55,6 +56,8 @@
     'YPR': 'receiving',
     'RR': 'receiving',
     'paRTG': 'passing',
+    'EPA/DB': 'passing',
+    'CPOE': 'passing',
     'paYDS': 'passing',
     'paTD': 'passing',
     'CMP%': 'passing',
@@ -107,6 +110,7 @@
     ['TTT', 2],
     ['FPOE', 1],
     ['paRTG', 1],
+    ['EPA/DB', 2],
     ['1DRR', 2],
     ['CL', 1]
   ]);
@@ -115,7 +119,8 @@
     ['PRS%', 1],
     ['CMP%', 1],
     ['TS%', 1],
-    ['CSTY%', 1]
+    ['CSTY%', 1],
+    ['CPOE', 1]
   ]);
   const VALUE_COLOR_SCALE = [
     { value: 9000, color: '#00EEB6' },
@@ -193,6 +198,8 @@
     'CSTY%': 90,
     'CL': 64,
     'paRTG': 76,
+    'EPA/DB': 76,
+    'CPOE': 76,
     'paYDS': 76,
     'paTD': 64,
     'CMP%': 76,
@@ -228,14 +235,14 @@
     'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE',
     'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D',
     'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR', 'CSTY%', 'CL',
-    'TS%', 'OPP', 'recYDS', 'pIMP/G', 'ruIMP/G', 'IMP/G'
+    'TS%', 'OPP', 'recYDS', 'pIMP/G', 'ruIMP/G', 'IMP/G', 'CPOE'
   ]);
 
   // Efficiency columns (plus any header containing '/' or '%')
   const EFFICIENCY_COLUMNS = new Set([
     'PPG', 'CSTY%', 'CL', 'SNP%', 'IMP/OPP', 'pIMP/A', 'IMP/G', 'pIMP/G', 'ruIMP/G',
     'CMP%', 'paRTG', 'PRS%', 'TTT', 'ELU','MTF/A', 'YCO/A', 'YPC', 'ruYPG', 'recYPG', 'paYPG',
-    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC'
+    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE'
   ]);
   
   function getColumnWidth(columnKey) {
