@@ -6960,6 +6960,9 @@ function renderXAxis(data) {
     const xAxisEl = document.getElementById('weekly-chart-x-axis');
     if (!xAxisEl) return;
     xAxisEl.innerHTML = '';
+    const isMobile = typeof window !== 'undefined'
+        && typeof window.matchMedia === 'function'
+        && window.matchMedia('(max-width: 540px)').matches;
     const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
     const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map(entry => entry.week) : []);
     const totalSlots = weeks.length || 1;
@@ -6975,14 +6978,19 @@ function renderXAxis(data) {
             ? 50
             : paddingPct + ((100 - paddingPct * 2) * (slotIndex / spanSlots));
         const span = document.createElement('span');
-        const prefix = document.createElement('span');
-        prefix.className = 'axis-week-prefix';
-        prefix.textContent = 'WK';
-        const number = document.createElement('span');
-        number.className = 'axis-week-number';
-        number.textContent = `${week}`;
-        span.appendChild(prefix);
-        span.appendChild(number);
+        if (isMobile) {
+            const prefix = document.createElement('span');
+            prefix.className = 'axis-week-prefix';
+            prefix.textContent = 'WK';
+            const number = document.createElement('span');
+            number.className = 'axis-week-number';
+            number.textContent = `${week}`;
+            span.appendChild(prefix);
+            span.appendChild(number);
+        } else {
+            // Desktop/tablet: keep original rendering (single text node)
+            span.textContent = `WK${week}`;
+        }
         if (playedWeeks.size && !playedWeeks.has(week)) {
             span.classList.add('axis-week-missed');
         }
