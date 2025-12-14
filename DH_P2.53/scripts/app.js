@@ -3155,8 +3155,8 @@ const SEASON_META_HEADERS = {
         const RADAR_STATS_CONFIG = {
             QB: {
                 // QB-only: swap out IMP/G and YDS(t) for new advanced passing metrics
-                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'epa_per_db', 'cpoe'],
-                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'EPA/DB', 'CPOE'],
+                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'cpoe', 'epa_per_db'],
+                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'CPOE', 'EPA/DB'],
                 maxRank: 36
             },
             RB: {

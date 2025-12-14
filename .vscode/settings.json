@@ -167,7 +167,7 @@
   ],
   /* ------------------------------------------------------------------------ */
 
-  "liveServer.settings.port": 5507,
+  "liveServer.settings.port": 5508,
   "editor.colorDecorators": true,
   "editor.colorDecoratorsLimit": 2200,
   "chat.checkpoints.showFileChanges": true,
