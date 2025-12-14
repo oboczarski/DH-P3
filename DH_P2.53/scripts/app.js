@@ -2022,6 +2022,8 @@ if (typeof window !== 'undefined') {
             'paYDS': 'pass_yd',
             'paTD': 'pass_td',
             'pa1D': 'pass_fd',
+            'EPA/DB': 'epa_per_db',
+            'CPOE': 'cpoe',
             'IMP/G': 'imp_per_g',
             'paRTG': 'pass_rtg',
             'pIMP': 'pass_imp',
@@ -2086,6 +2088,8 @@ if (typeof window !== 'undefined') {
             'yprr',
             'ts_per_rr',
             'imp_per_g',
+            'epa_per_db',
+            'cpoe',
             'snp_pct',
             'prs_pct',
             'ypr',
@@ -3150,8 +3154,9 @@ const SEASON_META_HEADERS = {
         // Labels use exact spreadsheet column headers (keys from PLAYER_STAT_HEADER_MAP)
         const RADAR_STATS_CONFIG = {
             QB: {
-                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
-                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+                // QB-only: swap out IMP/G and YDS(t) for new advanced passing metrics
+                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'epa_per_db', 'cpoe'],
+                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'EPA/DB', 'CPOE'],
                 maxRank: 36
             },
             RB: {
@@ -5759,6 +5764,13 @@ const wrTeStatOrder = [
                 statKey === 'prs_pct' || statKey === 'pass_imp_per_att') {
                 return numericValue.toFixed(1) + '%';
             }
+
+            // CPOE is a percentage-like metric (often stored as fraction or percentage points).
+            // Heuristic: if |value| <= 1.5 treat it as a fraction (e.g., 0.056 -> 5.6%).
+            if (statKey === 'cpoe') {
+                const display = Math.abs(numericValue) <= 1.5 ? (numericValue * 100) : numericValue;
+                return display.toFixed(1) + '%';
+            }
             
             // 1DRR (first_down_rec_rate) - 2 decimals, not a percentage display in radar
             if (statKey === 'first_down_rec_rate') {
@@ -5788,6 +5800,11 @@ const wrTeStatOrder = [
                 return numericValue.toFixed(1);
             }
             if (statKey === 'ttt' || statKey === 'imp_per_g') {
+                return numericValue.toFixed(2);
+            }
+
+            // EPA/DB: show to 2 decimals (keeps consistency with other efficiency-style metrics)
+            if (statKey === 'epa_per_db') {
                 return numericValue.toFixed(2);
             }
             
