@@ -6975,7 +6975,14 @@ function renderXAxis(data) {
             ? 50
             : paddingPct + ((100 - paddingPct * 2) * (slotIndex / spanSlots));
         const span = document.createElement('span');
-        span.textContent = `WK${week}`;
+        const prefix = document.createElement('span');
+        prefix.className = 'axis-week-prefix';
+        prefix.textContent = 'WK';
+        const number = document.createElement('span');
+        number.className = 'axis-week-number';
+        number.textContent = `${week}`;
+        span.appendChild(prefix);
+        span.appendChild(number);
         if (playedWeeks.size && !playedWeeks.has(week)) {
             span.classList.add('axis-week-missed');
         }

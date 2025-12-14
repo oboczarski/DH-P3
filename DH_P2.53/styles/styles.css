@@ -5999,6 +5999,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
             min-height: 1.3rem;
         }
 
+        /* Mobile-only: make the "WK" prefix slightly smaller than the week number */
+        .weekly-chart-x-axis .axis-week-prefix {
+          font-size: 0.82em;
+          letter-spacing: 0.06em;
+          opacity: 0.92;
+        }
+
         .weekly-zone-summary {
             top: 0.14rem;
             gap: 1.68rem;
