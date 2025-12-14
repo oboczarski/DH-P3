@@ -6697,6 +6697,9 @@ function buildConsistencyPanelData(player) {
         ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
         : null;
     const seasonTotals = state.playerSeasonStats?.[playerId] || {};
+    const gamesPlayed = (typeof seasonTotals.games_played === 'number' && Number.isFinite(seasonTotals.games_played))
+        ? seasonTotals.games_played
+        : series.length;
     const playerName = (fullPlayer ? `${fullPlayer.first_name || ''} ${fullPlayer.last_name || ''}` : player.name || '')
         .replace(/\s+/g, ' ')
         .trim() || player.name || 'Player';
@@ -6715,6 +6718,7 @@ function buildConsistencyPanelData(player) {
         axisWeeks,
         series,
         chartedWeeksCount: series.length,
+        gamesPlayed,
         thresholds,
         consistencyPct: Number.isFinite(consistencyPct) ? consistencyPct : null,
         ceilingValue: Number.isFinite(ceilingValue) ? ceilingValue : null,
@@ -6815,14 +6819,19 @@ function updateConsistencyHud(data) {
         const ceilingStrokeColor = getRankAccentColor(data?.ceilingRank);
         ceilingRingFill.setAttribute('stroke', ceilingStrokeColor);
     }
-    const bestGameEl = consistencyContainer.querySelector('[data-insight-best]');
-    if (bestGameEl) {
-        if (data?.bestGame) {
-            const ptsValue = Number.isFinite(data.bestGame.originalPts) ? data.bestGame.originalPts : data.bestGame.pts;
-            const formattedPts = Number.isFinite(ptsValue) ? `${ptsValue.toFixed(1)} fpts` : '—';
-            bestGameEl.textContent = formattedPts;
+    // Middle insight chip: High Score% (games above the position-specific "high" threshold)
+    const highScorePctEl = consistencyContainer.querySelector('[data-insight-best]');
+    if (highScorePctEl) {
+        const highCount = Number.isFinite(data?.highWeekCount) ? data.highWeekCount : null;
+        const gamesPlayed = Number.isFinite(data?.gamesPlayed)
+            ? data.gamesPlayed
+            : (Number.isFinite(data?.totalWeeks) ? data.totalWeeks : null);
+
+        if (highCount !== null && gamesPlayed !== null && gamesPlayed > 0) {
+            const pct = (highCount / gamesPlayed) * 100;
+            highScorePctEl.textContent = formatHudPercentage(pct, 1);
         } else {
-            bestGameEl.textContent = '—';
+            highScorePctEl.textContent = '—';
         }
     }
     const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
