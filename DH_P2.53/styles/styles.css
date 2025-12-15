@@ -5592,13 +5592,13 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     .zone-chip-label {
         color: rgba(239, 246, 255, 0.78);
         font-weight: 600;
-        font-size: 0.44rem;
+        font-size: 0.52rem;
     }
 
     .zone-chip-threshold {
         color: rgba(239, 246, 255, 0.55);
         font-weight: 500;
-        font-size: 0.42rem;
+        font-size: 0.52rem;
         letter-spacing: 0.02em;
     }
 
