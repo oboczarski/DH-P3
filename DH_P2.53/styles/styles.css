@@ -1660,6 +1660,39 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         .start-sit-container .trade-header {
             background: linear-gradient(120deg, rgba(118, 109, 255, 0.14), rgba(0, 235, 199, 0.08));
         }
+
+        /* Start/Sit preview: allow up to 6 players by stacking rows of two.
+           Scoped to Start/Sit only so the Trade Preview grid is unaffected. */
+        .start-sit-container .trade-body {
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
+          align-items: stretch;
+        }
+        .start-sit-preview-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0.45rem;
+        }
+        .start-sit-preview-row {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 0.25rem;
+          align-items: stretch;
+        }
+        .start-sit-preview-row .trade-divider.start-sit-divider {
+          height: auto;
+          align-self: stretch;
+        }
+        @media (max-width: 520px) {
+          .start-sit-container .trade-body,
+          .start-sit-preview-stack {
+            gap: 0.35rem;
+          }
+          .start-sit-preview-row {
+            gap: 0.18rem;
+          }
+        }
         .start-sit-chip {
             display: flex;
             align-items: center;
