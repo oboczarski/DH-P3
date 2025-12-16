@@ -6412,6 +6412,11 @@ const wrTeStatOrder = [
                 const header = document.getElementById('header-container');
                 const tradePreview = document.getElementById('tradeSimulator');
                 if (modalContent && header && tradePreview) {
+                    if (state.isStartSitMode) {
+                        tradePreview.classList.add('start-sit-compare-active');
+                        // Ensure the collapsed preview height is applied before measuring.
+                        void tradePreview.offsetHeight;
+                    }
                     const headerRect = header.getBoundingClientRect();
                     const tradePreviewRect = tradePreview.getBoundingClientRect();
                     const topPosition = headerRect.bottom + 10;
@@ -6437,6 +6442,10 @@ const wrTeStatOrder = [
                     modalContent.style.top = '';
                     modalContent.style.height = '';
                     modalContent.style.bottom = '';
+                }
+                const tradePreview = document.getElementById('tradeSimulator');
+                if (tradePreview) {
+                    tradePreview.classList.remove('start-sit-compare-active');
                 }
                 playerComparisonModal.classList.add('hidden');
                 if (comparisonBackgroundOverlay) {
