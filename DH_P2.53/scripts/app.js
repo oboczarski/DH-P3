@@ -6578,6 +6578,58 @@ function setLoading(isLoading, message = 'Loading...') {
     el.addEventListener('click', () => { persistNormalized(); }, { capture: true });
   });
 })();
+// === Mobile pinch-zoom stability guard ===
+// iOS WebKit (Safari + iOS Chrome) can crash on pinch-zoom when large fixed, blended, animated
+// backgrounds are present. When the user zooms, temporarily remove the heaviest layers to keep
+// the page stable (prevents "A problem repeatedly occurred").
+(function installZoomStabilityGuard(){
+  try {
+    if (!document || !document.documentElement) return;
+    const starfield = document.getElementById('starfield');
+    if (!starfield) return;
+    const isTouchDevice = (navigator.maxTouchPoints || 0) > 0
+      || (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches);
+    if (!isTouchDevice) return;
+
+    const root = document.documentElement;
+    let lastZoomed = null;
+    const getScale = () => {
+      try {
+        const vv = window.visualViewport;
+        return vv && typeof vv.scale === 'number' ? vv.scale : 1;
+      } catch (e) {
+        return 1;
+      }
+    };
+    const setZoomed = (zoomed) => {
+      if (zoomed === lastZoomed) return;
+      lastZoomed = zoomed;
+      root.classList.toggle('user-zoomed', zoomed);
+    };
+    const update = () => {
+      const scale = getScale();
+      setZoomed(Number.isFinite(scale) && scale > 1.01);
+    };
+
+    // iOS Safari fires gesture events early during pinch.
+    try {
+      document.addEventListener('gesturestart', () => setZoomed(true), { passive: true });
+      document.addEventListener('gesturechange', () => setZoomed(true), { passive: true });
+      document.addEventListener('gestureend', update, { passive: true });
+    } catch (e) {
+      // no-op (unsupported options/events)
+    }
+
+    const vv = window.visualViewport;
+    if (vv && typeof vv.addEventListener === 'function') {
+      vv.addEventListener('resize', update, { passive: true });
+      vv.addEventListener('scroll', update, { passive: true });
+    } else {
+      window.addEventListener('resize', update, { passive: true });
+    }
+    update();
+  } catch (e) {}
+})();
 // === Hotfix guards (20250825104842) ===
 (function(){ 
   const welcome = document.getElementById('welcome-screen');

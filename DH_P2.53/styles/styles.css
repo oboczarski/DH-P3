@@ -3632,6 +3632,18 @@ body { min-height: 100%; }
 }
   /* · · Layers · · */
 #stars, #stars1, #stars2, #stars3 { position: absolute; left: 0; top: 0; }
+/* Reduce GPU/memory pressure while pinch-zoomed on mobile WebKit (prevents "A problem repeatedly occurred"). */
+html.user-zoomed #stars,
+html.user-zoomed #stars1,
+html.user-zoomed #stars2,
+html.user-zoomed #stars3,
+html.user-zoomed #noise-overlay {
+  display: none !important;
+}
+html.user-zoomed * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
 #stars1 {
   width: 1px;
   height: 1px;
