@@ -416,13 +416,20 @@ if (typeof window !== 'undefined') {
                     if (isModalOpen) {
                         closeComparisonModal();
                     } else {
-                        const selectedPlayers = state.isStartSitMode
-                            ? state.startSitSelections
-                            : Object.values(state.tradeBlock).flat().filter(asset => asset.pos !== 'DP');
-                        if (selectedPlayers.length !== 2) {
-                            showTemporaryTooltip(compareButton, 'Please select exactly 2 players to compare.');
+                        if (state.isStartSitMode) {
+                            const selectedPlayers = state.startSitSelections || [];
+                            if (selectedPlayers.length < 2) {
+                                showTemporaryTooltip(compareButton, 'Please select at least 2 players to compare.');
+                            } else {
+                                handlePlayerCompare(e);
+                            }
                         } else {
-                            handlePlayerCompare(e);
+                            const selectedPlayers = Object.values(state.tradeBlock).flat().filter(asset => asset.pos !== 'DP');
+                            if (selectedPlayers.length !== 2) {
+                                showTemporaryTooltip(compareButton, 'Please select exactly 2 players to compare.');
+                            } else {
+                                handlePlayerCompare(e);
+                            }
                         }
                     }
                 }
@@ -1090,16 +1097,22 @@ if (typeof window !== 'undefined') {
             renderTradeBlock();
         }
         function recalcStartSitNextSide() {
-            const count = state.startSitSelections.length;
-            if (count === 0) {
-                state.startSitNextSide = 'left';
-                return;
+            if (!Array.isArray(state.startSitSelections)) {
+                state.startSitSelections = [];
             }
-            if (count === 1) {
-                state.startSitNextSide = state.startSitSelections[0].side === 'left' ? 'right' : 'left';
-                return;
-            }
-            state.startSitNextSide = count % 2 === 0 ? 'left' : 'right';
+            state.startSitSelections.forEach((selection, index) => {
+                if (!selection) return;
+                selection.side = index % 2 === 0 ? 'left' : 'right';
+            });
+            state.startSitNextSide = state.startSitSelections.length % 2 === 0 ? 'left' : 'right';
+            document.querySelectorAll('.roster-column.start-sit-column .player-selected').forEach(row => {
+                const playerId = row.dataset.assetId;
+                if (!playerId) return;
+                const selection = state.startSitSelections.find(sel => sel?.id === playerId);
+                if (selection) {
+                    row.dataset.startSitSide = selection.side;
+                }
+            });
         }
         function getPlayerProjectionForWeek(playerId, week = null) {
             if (!playerId) return { value: null, display: 'NA' };
@@ -1218,8 +1231,8 @@ if (typeof window !== 'undefined') {
                 renderTradeBlock();
                 return;
             }
-            if (state.startSitSelections.length >= 2) {
-                showTemporaryTooltip(row, 'Select up to two players.');
+            if (state.startSitSelections.length >= 6) {
+                showTemporaryTooltip(row, 'Select up to six players.');
                 return;
             }
             const ranks = calculatePlayerStatsAndRanks(playerId) || getDefaultPlayerRanks();
@@ -1258,7 +1271,7 @@ if (typeof window !== 'undefined') {
             state.startSitSelections.push(selection);
             row.classList.add('player-selected');
             row.dataset.startSitSide = selection.side;
-            state.startSitNextSide = selection.side === 'left' ? 'right' : 'left';
+            recalcStartSitNextSide();
             renderTradeBlock();
         }
         function handleClearCompare(keepUserTeam = false) {
@@ -4170,7 +4183,8 @@ const wrTeStatOrder = [
         async function handlePlayerCompare(e) {
             let selectedPlayersWithTeams = [];
             if (state.isStartSitMode) {
-                selectedPlayersWithTeams = state.startSitSelections.map(selection => {
+                const compareSelections = (state.startSitSelections || []).slice(0, 2);
+                selectedPlayersWithTeams = compareSelections.map((selection, index) => {
                     const fullPlayer = state.players[selection.id];
                     const firstName = (fullPlayer?.first_name || '').trim();
                     const lastName = (fullPlayer?.last_name || '').trim();
@@ -4185,7 +4199,7 @@ const wrTeStatOrder = [
                         pos: primaryPos || selection.pos,
                         displayPos: selection.pos,
                         team: normalizedTeam,
-                        side: selection.side
+                        side: index === 0 ? 'left' : 'right'
                     };
                 });
             } else {
@@ -5269,7 +5283,7 @@ const wrTeStatOrder = [
             return row;
         }
         function renderStartSitPreview() {
-            const selections = state.startSitSelections || [];
+            const selections = (state.startSitSelections || []).slice(0, 6);
             const currentWeekNumber = getCurrentNflWeekNumber();
             // weekLabel now holds just the WK number (e.g. WK5). Bracketing and styling are applied in the template.
             const weekLabel = Number.isFinite(currentWeekNumber) ? `WK${currentWeekNumber}` : '';
@@ -5312,12 +5326,9 @@ const wrTeStatOrder = [
         </div>
     <button id="showTradeButton"><i class="fa-solid fa-circle-chevron-up"></i> <span class="show-button-label">Start/Sit <i class="fa-solid fa-elevator analyzer-icon"></i></span><span class="start-sit-week"></span> <i class="fa-solid fa-circle-chevron-up"></i></button>
   `;
-            const sides = ['left', 'right'];
-            const sideLabels = { left: 'Player 1', right: 'Player 2' };
             const tradeBody = tradeSimulator.querySelector('.trade-body');
-            let bodyHtml = '';
-            sides.forEach((side, index) => {
-                const selection = selections.find(sel => sel.side === side);
+            const slotsToRender = Math.max(2, Math.min(6, Math.ceil(selections.length / 2) * 2));
+            const renderStartSitSlot = (selection, slotNumber) => {
                 let assetsHTML = '';
                 let totalDisplay = '—';
                 let projectionColor = 'var(--color-text-tertiary)';
@@ -5391,9 +5402,9 @@ const wrTeStatOrder = [
                     assetsHTML = `<span class="text-xs text-slate-500 p-2">Select a player...</span>`;
                 }
                 const safeTotal = escapeHtml(totalDisplay);
-                bodyHtml += `
+                return `
                     <div class="trade-team-column start-sit-preview-column">
-                        <h4>${sideLabels[side]}</h4>
+                        <h4>Player ${slotNumber}</h4>
                         <div class="trade-assets">${assetsHTML}</div>
                         <div class="trade-total even start-sit-total">
                             <span class="start-sit-total-label">Projected Points:</span>
@@ -5402,14 +5413,23 @@ const wrTeStatOrder = [
                         ${matchupSectionHtml}
                     </div>
                 `;
-                if (index < sides.length - 1) {
-                    bodyHtml += `<div class="trade-divider"></div>`;
-                }
-            });
+            };
+            let bodyHtml = '';
+            for (let slotIndex = 0; slotIndex < slotsToRender; slotIndex += 2) {
+                const leftSlotNumber = slotIndex + 1;
+                const rightSlotNumber = slotIndex + 2;
+                bodyHtml += `
+                    <div class="start-sit-pair">
+                        ${renderStartSitSlot(selections[slotIndex], leftSlotNumber)}
+                        <div class="trade-divider"></div>
+                        ${renderStartSitSlot(selections[slotIndex + 1], rightSlotNumber)}
+                    </div>
+                `;
+            }
             tradeBody.innerHTML = bodyHtml;
             const comparePlayersButton = document.getElementById('comparePlayersButton');
             if (comparePlayersButton) {
-                if (selections.length === 2) {
+                if (selections.length >= 2) {
                     comparePlayersButton.classList.add('enabled');
                 } else {
                     comparePlayersButton.classList.remove('enabled');

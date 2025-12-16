@@ -1756,6 +1756,25 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             gap: 0.42rem !important;
             padding: 0.12rem 0.2rem 0;
         }
+        .trade-container.start-sit-container .trade-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            align-items: stretch;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+        }
+        .trade-container.start-sit-container .start-sit-pair {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.25rem;
+            align-items: stretch;
+        }
+        .trade-container.start-sit-container .start-sit-pair .trade-divider {
+            height: auto;
+            align-self: stretch;
+        }
         .start-sit-preview-column > h4 {
             margin: 0;
             font-size: 0.78rem;
@@ -2234,6 +2253,8 @@ drop-shadow(0px 0px 0px #6380ff);
         }
         .trade-container.start-sit-container {
             gap: 0.24rem;
+            max-height: 75vh;
+            overflow: hidden;
         }
         .trade-container.start-sit-container .trade-footnote {
             margin-top: 0.01rem;
