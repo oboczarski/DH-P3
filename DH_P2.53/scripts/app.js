@@ -2019,6 +2019,8 @@ if (typeof window !== 'undefined') {
             'paATT': 'pass_att',
             'CMP': 'pass_cmp',
             'CMP%': 'cmp_pct',
+            'EPA/DB': 'epa_per_db',
+            'CPOE': 'cpoe',
             'paYDS': 'pass_yd',
             'paTD': 'pass_td',
             'pa1D': 'pass_fd',
@@ -3150,8 +3152,8 @@ const SEASON_META_HEADERS = {
         // Labels use exact spreadsheet column headers (keys from PLAYER_STAT_HEADER_MAP)
         const RADAR_STATS_CONFIG = {
             QB: {
-                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
-                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+                stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'epa_per_db', 'cpoe'],
+                labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'EPA/DB', 'CPOE'],
                 maxRank: 36
             },
             RB: {
@@ -5753,6 +5755,13 @@ const wrTeStatOrder = [
             
             const numericValue = Number(value);
             if (Number.isNaN(numericValue)) return 'N/A';
+
+            // EPA/DB - show explicit + sign for positive values (2 decimals)
+            if (statKey === 'epa_per_db') {
+                const rounded = Math.round(numericValue * 100) / 100;
+                const text = rounded.toFixed(2);
+                return rounded > 0 ? `+${text}` : text;
+            }
 
             // Percentage stats (1 decimal)
             if (statKey === 'cmp_pct' || statKey === 'snp_pct' || statKey === 'ts_per_rr' || 
