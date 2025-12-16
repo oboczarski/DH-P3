@@ -364,6 +364,7 @@
 
 .fc-icon-value {width: 1.5em;height: 1.5em;}
 .fc-icon-consistency {width: 1.75em;height: 1.35em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
+.fc-icon-target {width: 1.6em;height: 1.35em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
 .fc-metric-sub {display: flex;align-items: center;gap: 0.35em;}
 
 /* Charts */

@@ -3122,8 +3122,8 @@ const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId)
 
 const RADAR_STATS_CONFIG = {
   QB: {
-    stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'yds_total', 'imp_per_g'],
-    labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'YDS(t)', 'IMP/G'],
+    stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'epa_db', 'ttt', 'yds_total', 'cpoe'],
+    labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'EPA/DB', 'TTT', 'YDS(t)', 'CPOE'],
     maxRank: 36,
     invert: new Set(['ttt'])
   },
@@ -3153,6 +3153,11 @@ const toPct = (v) => {
   const n = toNum(v);
   if (!Number.isFinite(n)) return null;
   return n <= 1 && n >= 0 ? n * 100 : n;
+};
+const toSignedPct = (v) => {
+  const n = toNum(v);
+  if (!Number.isFinite(n)) return null;
+  return Math.abs(n) <= 1 ? n * 100 : n;
 };
 const formatPct1 = (n) => Number.isFinite(n) ? `${n.toFixed(1)}%` : 'NA';
 const formatNum1 = (n) => Number.isFinite(n) ? n.toFixed(1) : 'NA';
@@ -3202,6 +3207,8 @@ function normalizePlayer(row) {
       ts: toPct(row['TS%']),
       ceiling: toNum(row.CL),
       cl: toNum(row.CL),
+      epa_db: toNum(row['EPA/DB']),
+      cpoe: toSignedPct(row.CPOE),
       pa_ypg: toNum(row['paYPG']),
       pass_rtg: toNum(row['paRTG']),
       cmp_pct: toPct(row['CMP%']),
@@ -3242,7 +3249,7 @@ function computePositionalRanks(players) {
 
   const EFF_THRESH = 40; // 40% snap share
   const statConfig = {
-    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['pa_ypg', false], ['ttt', true], ['yds_total', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
+    QB: [ ['pass_rtg', false], ['cmp_pct', false], ['epa_db', false], ['ttt', true], ['yds_total', false], ['cpoe', false], ['cl', false], ['csty', false] ],
     RB: [ ['yds_total', false], ['snp_pct', false], ['ypc', false], ['rec_tgt', false], ['mtf_per_att', false], ['yco_per_att', false], ['cl', false], ['csty', false] ],
     WR: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ],
     TE: [ ['rec', false], ['rec_ypg', false], ['ts_per_rr', false], ['yprr', false], ['first_down_rec_rate', false], ['imp_per_g', false], ['cl', false], ['csty', false] ]
@@ -3297,7 +3304,7 @@ function ppgBarData(filter) {
 function renderSummary() {
   if (!players.length) return;
   const topFpts = players[0];
-  const topPPG = [...players].filter(p => Number.isFinite(p.stats.ppg) && p.stats.ppg > 0).sort((a,b)=>b.stats.ppg - a.stats.ppg)[0];
+  const topEPAQB = [...players].filter(p => p.position === 'QB' && Number.isFinite(p.stats.epa_db)).sort((a,b)=>b.stats.epa_db - a.stats.epa_db)[0];
   const topCstyRB = [...players].filter(p => p.position === 'RB' && Number.isFinite(p.stats.csty)).sort((a,b)=>b.stats.csty - a.stats.csty)[0];
   const topTSWR = [...players].filter(p => p.position === 'WR' && Number.isFinite(p.stats.ts)).sort((a,b)=>b.stats.ts - a.stats.ts)[0];
 
@@ -3313,9 +3320,9 @@ function renderSummary() {
     setText('consistency-name', topCstyRB.name);
     setWidth('consistency-bar', topCstyRB.stats.csty);
   }
-  if (topPPG) {
-    setText('ppg-value', topPPG.stats.ppg.toFixed(1));
-    setText('ppg-name', topPPG.name);
+  if (topEPAQB) {
+    setText('ppg-value', topEPAQB.stats.epa_db.toFixed(2));
+    setText('ppg-name', topEPAQB.name);
   }
   if (topTSWR) {
     setText('share-value', `${topTSWR.stats.ts.toFixed(1)}%`);
@@ -3560,6 +3567,8 @@ function openRadarModal() {
     csty: { decimals: 1, percent: true },
     cl: { decimals: 1, percent: false },
     ts: { decimals: 1, percent: true },
+    epa_db: { decimals: 2, percent: false },
+    cpoe: { decimals: 1, percent: true },
     pa_ypg: { decimals: 1, percent: false },
     pass_rtg: { decimals: 1, percent: false },
     cmp_pct: { decimals: 1, percent: true },
