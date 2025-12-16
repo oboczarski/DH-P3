@@ -5380,7 +5380,9 @@ const wrTeStatOrder = [
                             const rankHtml = hasRankText
                                 ? `<span class="start-sit-matchup-sep">•</span><span class="start-sit-matchup-rank"${rankStyle}>${escapeHtml(rankRawText)}</span>`
                                 : '';
-                            matchupSectionHtml = `<div class="start-sit-matchup-meta"><span class="start-sit-matchup-opponent"${opponentStyle}>${safeOpponent}</span>${rankHtml}</div>`;
+                            // Render matchup inline (next to projected points) to reduce vertical space.
+                            // Keep the same data; this is purely a placement/layout change.
+                            matchupSectionHtml = `<span class="start-sit-matchup-inline"><span class="start-sit-matchup-opponent"${opponentStyle}>${safeOpponent}</span>${rankHtml}</span>`;
                         }
                     }
                     const rankParts = rankText.split('·');
@@ -5405,11 +5407,9 @@ const wrTeStatOrder = [
                     <div class="trade-team-column start-sit-preview-column">
                         <h4>Player ${slotNumber}</h4>
                         <div class="trade-assets">${assetsHTML}</div>
-                        <div class="start-sit-projection-line">
-                            <div class="trade-total even start-sit-total">
-                                <span class="start-sit-total-label">Projected Points:</span>
-                                <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
-                            </div>
+                        <div class="trade-total even start-sit-total">
+                            <span class="start-sit-total-label">Projected Points:</span>
+                            <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
                             ${matchupSectionHtml}
                         </div>
                     </div>
