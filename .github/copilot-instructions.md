@@ -163,17 +163,15 @@ DH-P3/DH_P2.53
 - **Stats page (Sheets-driven advanced stats explorer)**  
   - `DH_P2.53/stats/stats.html` + `DH_P2.53/scripts/stats.js` + `DH_P2.53/styles/stats.css`.  
   - The table uses a multi-section layout with sticky/frozen columns and scrollable regions, driven by specific wrappers and CSS variables for widths.  
-  - When changing columns or layout, keep the containers and scroll behavior intact; update JS and CSS together. Avoid adding new heavy table libraries.
+  - When changing columns or layout, keep the containers and scroll behavior intact; update JS and CSS together.
 
 - **League Analyzer**  
   - `DH_P2.53/analyzer/analyzer.html` + `DH_P2.53/scripts/analyzer.js`.  
-  - Uses Chart.js with custom plugins (radar background/labels, bar totals). Reuse or extend these rather than creating parallel implementations.  
   - Analyzer fetches Sleeper and KTC data. Prefer routing new Sleeper/Sheets calls through the Netlify proxies (see below) unless matching an existing direct pattern is explicitly required.
 
 - **Research / SYOP**  
   - `DH_P2.53/research/research.html` + `DH_P2.53/scripts/syop.js`.  
-  - All charts here are hand-built SVG (sunburst, distributions, gauges, draft charts). Do not introduce chart libraries on this page.  
-  - Keep resize-aware rendering: reuse the existing helpers and patterns for recomputing layout on window resize or tab change.
+  - Keep resize-aware rendering
 
 - **Rosters & Ownership**  
   - `DH_P2.53/rosters/rosters.html`, `DH_P2.53/ownership/ownership.html` + `DH_P2.53/scripts/app.js` + global styles.  
@@ -191,18 +189,5 @@ DH-P3/DH_P2.53
 - The site is deployed via Netlify (`netlify.toml`), and external data is intended to flow mostly through **edge proxies**:
   - Google Sheets: `/api/sheet/*` → `netlify/edge-functions/sheet-proxy.js`
   - Sleeper: `/api/sleeper/*` → `netlify/edge-functions/sleeper-proxy.js`
-- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. Only call external origins directly if you are intentionally mirroring an existing pattern and it is safe under the CSP.
+- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
 - Be mindful of caching semantics in the proxies (different behavior during “live-ish” windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
-
----
-
-## General Guidelines for Changes
-
-- Before editing, skim any relevant summary docs in the repo (for example, dashboard or stats-page implementation/fix summaries) to understand prior decisions and constraints, especially for the dashboard and Stats page.
-- Prefer small, focused changes. When you modify a visualization or layout, always check:
-  - **Mobile widths first**, then tablet/desktop.
-  - Interactions with existing filters, tabs, and modals.
-- Reuse existing helpers and utility functions instead of duplicating logic (for example, number formatting, rank/position color chips, Chart.js plugins, SVG helpers, Sleeper/Sheets fetch helpers).
-- Keep JS vanilla (no new heavy frameworks or chart libraries) unless explicitly requested and the page architecture supports it.
-- Do not rename or change critical identifiers (e.g., `player_id`, sheet tab names, header labels, league IDs, or key objects like `HP_DATA`) unless the task explicitly requires it and you update all dependent code paths.
-- Avoid large-scale file restructuring (splitting or merging modules) unless explicitly asked; favor incremental refactors that preserve existing structure and behavior.
