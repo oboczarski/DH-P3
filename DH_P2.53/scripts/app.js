@@ -51,6 +51,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         const modalBody = document.getElementById('modal-body');
         const playerComparisonModal = document.getElementById('player-comparison-modal');
         const comparisonBackgroundOverlay = document.getElementById('comparison-modal-background-overlay');
+        let gameLogsModalRequestSeq = 0;
         const supportsContentVisibility = typeof CSS !== 'undefined'
             && typeof CSS.supports === 'function'
             && CSS.supports('content-visibility', 'auto');
@@ -3043,6 +3044,16 @@ const SEASON_META_HEADERS = {
         }
         // --- UI Rendering ---
         async function handlePlayerNameClick(player) {
+            const requestSeq = ++gameLogsModalRequestSeq;
+            if (gameLogsModal) {
+                gameLogsModal.dataset.activePlayerId = String(player?.id ?? '');
+                gameLogsModal.dataset.activeRequestSeq = String(requestSeq);
+            }
+            state.currentGameLogsPlayer = null;
+            state.currentGameLogsPlayerRanks = null;
+            state.currentGameLogsSummary = null;
+            const isStaleRequest = () => requestSeq !== gameLogsModalRequestSeq;
+
             const fullPlayer = state.players[player.id];
             const playerName = fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : player.name;
             modalPlayerName.textContent = `${playerName}`;
@@ -3092,6 +3103,7 @@ const SEASON_META_HEADERS = {
             }
             openModal();
             const gameLogs = await fetchGameLogs(player.id);
+            if (isStaleRequest()) return;
             
             // Remove loading classes and panel before rendering content
             modalBody.classList.remove('loading');
@@ -3103,7 +3115,8 @@ const SEASON_META_HEADERS = {
             const playerRanks = state.isGameLogFromStatsPage 
                 ? getStatsPagePlayerRanks(player.id)
                 : calculatePlayerStatsAndRanks(player.id);
-            await renderGameLogs(gameLogs, player, playerRanks);
+            if (isStaleRequest()) return;
+            await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
         }
         function getOpponentRankColor(rank) {
             const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
@@ -3184,7 +3197,9 @@ const SEASON_META_HEADERS = {
             }
         };
 
-        async function renderGameLogs(gameLogs, player, playerRanks) {
+        async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
+            const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
+            if (isStaleRequest()) return;
             // Store current player for modal panel interactions (e.g., radar chart)
             state.currentGameLogsPlayer = player;
             state.currentGameLogsPlayerRanks = playerRanks;
@@ -3709,6 +3724,7 @@ const wrTeStatOrder = [
                 console.error('Failed to load TanStack Table library', error);
                 tableCore = null;
             }
+            if (isStaleRequest()) return;
             let tableInstance = null;
             let columnSizes = tableColumns.map(col => Number.isFinite(col.size) ? col.size : DEFAULT_COLUMN_WIDTH);
             if (tableCore) {
@@ -6392,6 +6408,16 @@ const wrTeStatOrder = [
             });
         }
         function closeModal() {
+            gameLogsModalRequestSeq += 1;
+            if (gameLogsModal) {
+                delete gameLogsModal.dataset.activePlayerId;
+                delete gameLogsModal.dataset.activeRequestSeq;
+                gameLogsModal.classList.remove('loading');
+                gameLogsModal.querySelector('.game-logs-loading-container')?.remove();
+            }
+            if (modalBody) {
+                modalBody.classList.remove('loading');
+            }
             gameLogsModal.classList.add('hidden');
             statsKeyContainer.classList.add('hidden');
             if (radarChartContainer) radarChartContainer.classList.add('hidden');
@@ -6544,29 +6570,18 @@ function setLoading(isLoading, message = 'Loading...') {
     else localStorage.removeItem(KEY);
     input.blur();
   }
-  // iOS viewport reset helper (temporary max-scale=1 toggle)
-  function resetIOSZoom() {
-    const meta = document.querySelector('meta[name="viewport"]');
-    if (!meta) return;
-    const orig = meta.getAttribute('content') || 'width=device-width, initial-scale=1';
-    const cleaned = orig
-      .replace(/\s*,?\s*maximum-scale\s*=\s*[^,]+/gi, '')
-      .replace(/\s*,?\s*user-scalable\s*=\s*[^,]+/gi, '');
-    meta.setAttribute('content', cleaned + ', maximum-scale=1, user-scalable=no');
-    setTimeout(() => meta.setAttribute('content', cleaned), 300);
-  }
   // hydrate
   const saved = (localStorage.getItem(KEY) || '').trim();
   if (saved) input.value = saved; else { input.removeAttribute('value'); input.value = ''; }
   // listeners
   input.addEventListener('change', persistNormalized);
   input.addEventListener('blur', () => { persistNormalized(); });
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalized(); resetIOSZoom(); }});
-  // Hook buttons (capture) so normalization executes before fetch handlers, then reset zoom
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalized(); }});
+  // Hook buttons (capture) so normalization executes before fetch handlers.
   ['rostersButton','ownershipButton', 'analyzerButton', 'researchButton'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener('click', () => { persistNormalized(); resetIOSZoom(); }, { capture: true });
+    el.addEventListener('click', () => { persistNormalized(); }, { capture: true });
   });
 })();
 // === Hotfix guards (20250825104842) ===
