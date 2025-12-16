@@ -5409,8 +5409,10 @@ const wrTeStatOrder = [
                         <div class="trade-assets">${assetsHTML}</div>
                         <div class="trade-total even start-sit-total">
                             <span class="start-sit-total-label">Projected Points:</span>
-                            <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
-                            ${matchupSectionHtml}
+                            <span class="start-sit-proj-inline-row">
+                                <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
+                                ${matchupSectionHtml}
+                            </span>
                         </div>
                     </div>
                 `;

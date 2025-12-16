@@ -1825,7 +1825,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
             line-height: 1;
         }
 
-        /* Start/Sit: keep projected points + matchup on a single line and baseline-aligned. */
+        /* Start/Sit: layout for projected points + matchup (no font resizing). */
         .start-sit-preview-column .trade-total.start-sit-total {
           display: flex;
           flex-direction: row;
@@ -1833,7 +1833,6 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
           justify-content: center;
           flex-wrap: nowrap;
           gap: 0.45rem;
-          white-space: nowrap;
         }
         .start-sit-preview-column .trade-total.start-sit-total .start-sit-total-label {
           margin-right: 0;
@@ -1841,6 +1840,16 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
         }
         .start-sit-preview-column .trade-total.start-sit-total .start-sit-total-value {
           white-space: nowrap;
+        }
+
+        /* The inline row is only the VALUE + matchup (label is separate). */
+        .start-sit-preview-column .trade-total.start-sit-total .start-sit-proj-inline-row {
+          display: inline-flex;
+          align-items: baseline;
+          justify-content: center;
+          flex-wrap: nowrap;
+          white-space: nowrap;
+          gap: 0.45rem;
         }
 
         /* Start/Sit preview: matchup inline next to projected points (layout only; font sizes unchanged). */
@@ -1857,13 +1866,20 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
           font-weight: 500;
         }
 
-        /* Mobile priority: show PROJ value + matchup inline (hide the label text). */
+        /* Mobile priority: label stays visible; VALUE + matchup are on one non-wrapping line below it. */
         @media (max-width: 520px) {
           .start-sit-preview-column .trade-total.start-sit-total {
-            gap: 0.4rem;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.18rem;
           }
           .start-sit-preview-column .trade-total.start-sit-total .start-sit-total-label {
-            display: none;
+            display: inline-block;
+            white-space: nowrap;
+          }
+          .start-sit-preview-column .trade-total.start-sit-total .start-sit-proj-inline-row {
+            white-space: nowrap;
           }
         }
         .start-sit-total-label {
