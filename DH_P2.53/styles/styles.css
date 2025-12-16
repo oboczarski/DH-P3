@@ -1856,6 +1856,16 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
           letter-spacing: 0.01em;
           font-weight: 500;
         }
+
+        /* Mobile priority: show PROJ value + matchup inline (hide the label text). */
+        @media (max-width: 520px) {
+          .start-sit-preview-column .trade-total.start-sit-total {
+            gap: 0.4rem;
+          }
+          .start-sit-preview-column .trade-total.start-sit-total .start-sit-total-label {
+            display: none;
+          }
+        }
         .start-sit-total-label {
             color: var(--color-text-secondary);
             margin-right: 0.35rem;
