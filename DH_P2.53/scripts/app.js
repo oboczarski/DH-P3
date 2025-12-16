@@ -3045,10 +3045,6 @@ const SEASON_META_HEADERS = {
         // --- UI Rendering ---
         async function handlePlayerNameClick(player) {
             const requestSeq = ++gameLogsModalRequestSeq;
-            if (gameLogsModal) {
-                gameLogsModal.dataset.activePlayerId = String(player?.id ?? '');
-                gameLogsModal.dataset.activeRequestSeq = String(requestSeq);
-            }
             state.currentGameLogsPlayer = null;
             state.currentGameLogsPlayerRanks = null;
             state.currentGameLogsSummary = null;
@@ -6410,8 +6406,6 @@ const wrTeStatOrder = [
         function closeModal() {
             gameLogsModalRequestSeq += 1;
             if (gameLogsModal) {
-                delete gameLogsModal.dataset.activePlayerId;
-                delete gameLogsModal.dataset.activeRequestSeq;
                 gameLogsModal.classList.remove('loading');
                 gameLogsModal.querySelector('.game-logs-loading-container')?.remove();
             }
