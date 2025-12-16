@@ -308,7 +308,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -5283,6 +5283,7 @@ const wrTeStatOrder = [
             // weekLabel now holds just the WK number (e.g. WK5). Bracketing and styling are applied in the template.
             const weekLabel = Number.isFinite(currentWeekNumber) ? `WK${currentWeekNumber}` : '';
             const weekLabelDisplay = weekLabel ? `[${weekLabel}]` : '';
+            const isCompactPreview = Boolean(state.startSitCompactPreview);
             const escapeHtml = (value) => {
                 if (value === null || value === undefined) return '';
                 return String(value)
@@ -5413,8 +5414,11 @@ const wrTeStatOrder = [
                 `;
             };
 
-            let bodyHtml = '<div class="start-sit-preview-stack">';
+            const renderedRows = [];
             for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+                if (isCompactPreview && rowIndex > 0) {
+                    continue;
+                }
                 const leftSlotIndex = rowIndex * 2;
                 const rightSlotIndex = leftSlotIndex + 1;
                 const leftSelection = slotSelections[leftSlotIndex];
@@ -5425,14 +5429,22 @@ const wrTeStatOrder = [
                     continue;
                 }
 
-                bodyHtml += `
+                renderedRows.push(`
                     <div class="start-sit-preview-row">
                         ${buildStartSitSlotColumn(leftSelection, leftSlotIndex + 1)}
                         <div class="trade-divider start-sit-divider"></div>
                         ${buildStartSitSlotColumn(rightSelection, rightSlotIndex + 1)}
                     </div>
-                `;
+                `);
             }
+
+            let bodyHtml = '<div class="start-sit-preview-stack">';
+            renderedRows.forEach((rowHtml, idx) => {
+                bodyHtml += rowHtml;
+                if (idx < renderedRows.length - 1) {
+                    bodyHtml += '<div class="start-sit-row-separator" role="separator" aria-hidden="true"></div>';
+                }
+            });
             bodyHtml += '</div>';
             tradeBody.innerHTML = bodyHtml;
 
@@ -6420,6 +6432,15 @@ const wrTeStatOrder = [
                 const modalContent = playerComparisonModal.querySelector('.modal-content');
                 const header = document.getElementById('header-container');
                 const tradePreview = document.getElementById('tradeSimulator');
+                // Start/Sit-only: compact the preview (hide players 3–6) while comparison is open.
+                if (state.isStartSitMode && !state.startSitCompactPreview) {
+                    state.startSitCompactPreview = true;
+                    try {
+                        renderStartSitPreview();
+                    } catch (e) {
+                        // no-op
+                    }
+                }
                 if (modalContent && header && tradePreview) {
                     const headerRect = header.getBoundingClientRect();
                     const tradePreviewRect = tradePreview.getBoundingClientRect();
@@ -6448,6 +6469,7 @@ const wrTeStatOrder = [
                     modalContent.style.bottom = '';
                 }
                 playerComparisonModal.classList.add('hidden');
+                playerComparisonModal.classList.remove('start-sit-compare');
                 if (comparisonBackgroundOverlay) {
                     comparisonBackgroundOverlay.classList.add('hidden');
                 }
@@ -6457,6 +6479,16 @@ const wrTeStatOrder = [
                 }
                 if (rosterGrid) {
                     rosterGrid.classList.remove('hidden');
+                }
+            }
+
+            // Start/Sit-only: restore full preview after closing the comparison modal.
+            if (state.isStartSitMode && state.startSitCompactPreview) {
+                state.startSitCompactPreview = false;
+                try {
+                    renderStartSitPreview();
+                } catch (e) {
+                    // no-op
                 }
             }
         }

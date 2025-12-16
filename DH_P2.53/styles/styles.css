@@ -1684,6 +1684,13 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
           height: auto;
           align-self: stretch;
         }
+        .start-sit-row-separator {
+          height: 1px;
+          width: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+          box-shadow: 0 0 10px rgba(149, 124, 255, 0.10);
+          opacity: 0.95;
+        }
         @media (max-width: 520px) {
           .start-sit-container .trade-body,
           .start-sit-preview-stack {
