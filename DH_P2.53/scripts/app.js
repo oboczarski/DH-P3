@@ -5405,11 +5405,13 @@ const wrTeStatOrder = [
                     <div class="trade-team-column start-sit-preview-column">
                         <h4>Player ${slotNumber}</h4>
                         <div class="trade-assets">${assetsHTML}</div>
-                        <div class="trade-total even start-sit-total">
-                            <span class="start-sit-total-label">Projected Points:</span>
-                            <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
+                        <div class="start-sit-projection-line">
+                            <div class="trade-total even start-sit-total">
+                                <span class="start-sit-total-label">Projected Points:</span>
+                                <span class="start-sit-total-value" style="color: ${projectionColor};">${safeTotal}</span>
+                            </div>
+                            ${matchupSectionHtml}
                         </div>
-                        ${matchupSectionHtml}
                     </div>
                 `;
             };
