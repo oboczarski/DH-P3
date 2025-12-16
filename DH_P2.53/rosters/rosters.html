@@ -79,6 +79,10 @@
                     <i class="fa-solid fa-users" aria-hidden="true"></i>
                     <span class="switcher-label">Positional</span>
                 </button>
+                <button id="condensedViewBtn">
+                    <i class="fa-solid fa-compress" aria-hidden="true"></i>
+                    <span class="switcher-label">Condensed</span>
+                </button>
                 <button id="lineupViewBtn">
                     <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
                     <span class="switcher-label">Lineup</span>
@@ -87,17 +91,21 @@
             <div class="view-switcher-dropdown">
                 <button id="viewDropdownToggle" class="view-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
                     <i class="fa-solid fa-users" id="viewDropdownIcon" aria-hidden="true"></i>
-                    <span class="switcher-label" id="viewDropdownLabel">Positional</span>
+                    <span class="switcher-label" id="viewDropdownLabel">View: POS</span>
                     <i class="fa-solid fa-caret-down view-dropdown-arrow" aria-hidden="true"></i>
                 </button>
                 <div id="viewDropdownMenu" class="view-dropdown-menu hidden">
                     <button class="view-dropdown-option active" data-view="positional">
                         <i class="fa-solid fa-users" aria-hidden="true"></i>
-                        <span>Positional</span>
+                        <span>View: POS</span>
+                    </button>
+                    <button class="view-dropdown-option" data-view="condensed">
+                        <i class="fa-solid fa-compress" aria-hidden="true"></i>
+                        <span>View: Condensed</span>
                     </button>
                     <button class="view-dropdown-option" data-view="lineup">
                         <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                        <span>Lineup</span>
+                        <span>View: Lineup</span>
                     </button>
                 </div>
             </div>
@@ -328,16 +336,121 @@
 						<li><strong>FUM:</strong> Fumbles Lost</li>
       </ul>
     </div>
-    <div id="radar-chart-container" class="hidden stats-key-panel">
+    <div id="radar-chart-container" class="hidden stats-key-panel radar-panel">
         <h4> Efficiency & Production • Position Rankings </h4>
         <div class="radar-chart-content">
           <!-- Radar chart will be dynamically rendered here -->
         </div>
     </div>
-    <div id="news-container" class="hidden stats-key-panel">
-        <h4>Player News & Updates</h4>
-        <div class="news-content">
-          <!-- News content will be rendered here -->
+    <div id="consistency-container" class="hidden stats-key-panel">
+        <div class="consistency-shell">
+          <!-- Eyebrow header above HUD -->
+          <div class="consistency-eyebrow-header">
+            <div class="hud-eyebrow">Consistency & Ceiling  |  Weekly Overview</div>
+          </div>
+          <!-- Top integrated HUD band -->
+          <header class="consistency-hud">
+            <!-- Left: Consistency progress circle -->
+            <div class="hud-segment hud-segment--left">
+              <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
+                <svg viewBox="0 0 120 120" class="progress-ring">
+                  <defs>
+                    <linearGradient id="consistencyGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                      <stop offset="0%" stop-color="#5300ff" />
+                      <stop offset="35%" stop-color="#5300ff" />
+                      <stop offset="65%" stop-color="#6900ff" />
+                      <stop offset="75%" stop-color="#7300ff" />
+                      <stop offset="90%" stop-color="#7B00ED" />
+                      <stop offset="100%" stop-color="#7B00EDCC" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="progress-ring-track" cx="60" cy="60" r="46" />
+                  <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#consistencyGradient)" style="--progress: 0.667;" />
+                </svg>
+                <div class="progress-circle-inner">
+                  <div class="progress-value" data-consistency-circle-value>66.7%</div>
+                  <div class="progress-label">Consistency Rate</div>
+                  <div class="progress-caption" data-consistency-circle-caption>2025 CSTY RATE</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Center: Key stats -->
+            <div class="hud-segment hud-segment--center">
+              <div class="hud-player">
+                <div class="hud-context">
+                  <span data-week-range>Weeks 1–9</span>
+                  <span class="hud-context-divider">•</span>
+                  <span data-weeks-charted>9 weeks charted</span>
+                </div>
+              </div>
+              <div class="hud-metrics">
+                <div class="metric-block">
+                  <div class="metric-label">CSTY% POS RK</div>
+                  <div class="metric-primary metric-primary--single">
+                    <span class="metric-value metric-value--rank" data-consistency-rank>#11</span>
+                  </div>
+                </div>
+                <div class="metric-block">
+                  <div class="metric-label">Ceiling</div>
+                  <div class="metric-primary metric-primary--single">
+                    <span class="metric-value" data-ceiling-value>28.8</span>
+                  </div>
+                </div>
+              </div>
+              <div class="hud-insights">
+                <div class="summary-chip hud-insight">
+                  <div class="hud-insight-label">CSTY Count</div>
+                  <div class="hud-insight-value" data-insight-cstycount>10/11</div>
+                </div>
+                <div class="summary-chip hud-insight">
+                  <div class="hud-insight-label">Best Game</div>
+                  <div class="hud-insight-value" data-insight-best>29.9 fpts</div>
+                </div>
+                <div class="summary-chip hud-insight">
+                  <div class="hud-insight-label">Last 5 Avg</div>
+                  <div class="hud-insight-value" data-insight-last5>24.1 fpts</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Ceiling positional ranking circle -->
+            <div class="hud-segment hud-segment--right">
+              <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
+                <svg viewBox="0 0 120 120" class="progress-ring">
+                  <defs>
+                    <linearGradient id="ceilingGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                        <stop offset="0%" stop-color="#00b2fe" />
+                        <stop offset="40%" stop-color="#00b2fe" />
+                        <stop offset="65%" stop-color="#4faafe" />
+                        <stop offset="100%" stop-color="#4faafecc" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="progress-ring-track" cx="60" cy="60" r="46" />
+                  <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="url(#ceilingGradient)" style="--progress: 0.842;" />
+                </svg>
+                <div class="progress-circle-inner">
+                  <div class="progress-value" data-ceiling-circle-rank>4<span class="ceiling-rank-suffix">th</span></div>
+                  <div class="progress-label">Ceiling<br> Rank</div>
+                  <div class="progress-caption" data-ceiling-circle-caption>2025 CL POS RANK</div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Chart container -->
+          <section class="consistency-chart-shell">
+            <div class="weekly-chart-box" id="weekly-chart-box">
+              <div class="weekly-zone-summary" id="weekly-zone-summary">
+                <span class="zone-chip zone-chip--low"><span class="zone-chip-label">Low</span><span class="zone-chip-threshold" data-threshold-low></span><span class="zone-chip-value" data-zone-low>0</span></span>
+                <span class="zone-chip zone-chip--solid"><span class="zone-chip-label">Solid</span><span class="zone-chip-threshold" data-threshold-solid></span><span class="zone-chip-value" data-zone-solid>0</span></span>
+                <span class="zone-chip zone-chip--high"><span class="zone-chip-label">High</span><span class="zone-chip-threshold" data-threshold-high></span><span class="zone-chip-value" data-zone-high>0</span></span>
+              </div>
+              <div class="weekly-chart-grid" aria-hidden="true"></div>
+              <div class="weekly-chart-line-layer" id="weekly-chart-points"></div>
+              <div class="weekly-chart-x-axis" id="weekly-chart-x-axis"></div>
+            </div>
+          </section>
         </div>
     </div>
    <div class="modal-footer">
@@ -349,9 +462,9 @@
     <i class="fa-solid fa-chart-area"></i>
     <span>Performance</span>
   </div>
-  <div class="key-chip modal-info-btn" data-panel="news">
-    <i class="fa-solid fa-newspaper"></i>
-    <span>News</span>
+  <div class="key-chip modal-info-btn" data-panel="consistency">
+    <i class="fa-solid fa-chart-line"></i>
+    <span>Consistency</span>
   </div>
   <div class="key-chip modal-info-btn" data-panel="stats-key">
     <i class="fa-solid fa-key"></i>
@@ -379,6 +492,6 @@
     </div>
   </div>
 </div>
-  <script defer="True" src="../scripts/app.js?v=20250826235225"></script>
+  <script defer="True" src="../scripts/app.js?v=20251214000000"></script>
 </body>
 </html>
