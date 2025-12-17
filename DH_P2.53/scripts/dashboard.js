@@ -3321,7 +3321,8 @@ function renderSummary() {
     setWidth('consistency-bar', topCstyRB.stats.csty);
   }
   if (topEPAQB) {
-    setText('ppg-value', topEPAQB.stats.epa_db.toFixed(2));
+    const epa = topEPAQB.stats.epa_db;
+    setText('ppg-value', `${epa > 0 ? '+' : ''}${epa.toFixed(2)}`);
     setText('ppg-name', topEPAQB.name);
   }
   if (topTSWR) {
@@ -3605,6 +3606,9 @@ function openRadarModal() {
         displayVal = val.toFixed(fmt.decimals) + '%';
       } else {
         displayVal = val.toFixed(fmt.decimals);
+      }
+      if ((statKey === 'epa_db' || statKey === 'cpoe') && val > 0) {
+        displayVal = `+${displayVal}`;
       }
     }
 
