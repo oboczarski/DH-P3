@@ -5567,7 +5567,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .metric-value {
-        font-size: 0.9rem;
+        font-size: 1rem;
         font-weight: 500;
         color: #9f8bff;
         align-self: center;
@@ -5639,9 +5639,9 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
     }
 
     .hud-insight-value {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 500;
-      color: #f8faff;
+      color: #a0a6b5;
       text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
     }
 
@@ -6061,7 +6061,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .metric-value {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
         }
 
         .metric-sub {
@@ -6070,7 +6070,7 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 
         .consistency-hud .hud-insights {
           margin-top: -0.05rem;
-          gap: 0.15rem;
+          gap: 0.1rem;
         }
 
         .consistency-hud .hud-insight.summary-chip {
@@ -6079,11 +6079,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
         }
 
         .hud-insight-label {
-          font-size: 0.4rem;
+          font-size: 0.40rem;
         }
 
         .hud-insight-value {
-          font-size: 0.5rem;
+          font-size: 0.55rem;
+          margin-top: -2px;
         }
 
         .consistency-chart-shell {

@@ -6703,6 +6703,11 @@ const CONSISTENCY_BUCKET_STYLES = {
     solid: { color: '#00c5ff' },
     low: { color: '#c26cfc' }
 };
+const CONSISTENCY_HUD_CONDITIONAL_COLORS = {
+    high: '#7cf5ff',
+    solid: '#56c4ff',
+    low: '#d3a5ff'
+};
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const CONSISTENCY_LINE_FILTER_ID = 'consistency-line-glow';
 const CONSISTENCY_AREA_FILTER_ID = 'consistency-area-glow';
@@ -6961,10 +6966,12 @@ function updateConsistencyHud(data) {
 
         if (highCount !== null && gamesPlayed !== null && gamesPlayed > 0) {
             const pct = (highCount / gamesPlayed) * 100;
-            highScorePctEl.textContent = formatHudPercentage(pct, 1);
-            highScorePctEl.style.color = pct > 40
-                ? CONSISTENCY_BUCKET_STYLES.high.color
-                : (pct < 23 ? CONSISTENCY_BUCKET_STYLES.low.color : CONSISTENCY_BUCKET_STYLES.solid.color);
+            const formatted = Number(pct).toFixed(1);
+            const color = pct > 40
+                ? CONSISTENCY_HUD_CONDITIONAL_COLORS.high
+                : (pct < 23 ? CONSISTENCY_HUD_CONDITIONAL_COLORS.low : CONSISTENCY_HUD_CONDITIONAL_COLORS.solid);
+            highScorePctEl.style.color = '';
+            highScorePctEl.innerHTML = `<span style="color:${color}">${formatted}</span><span>%</span>`;
         } else {
             highScorePctEl.textContent = '—';
             highScorePctEl.style.color = '';
@@ -6973,11 +6980,16 @@ function updateConsistencyHud(data) {
     const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
     if (lastFiveEl) {
         if (Number.isFinite(data?.lastFiveAvg)) {
-            lastFiveEl.textContent = `${data.lastFiveAvg.toFixed(1)} fpts`;
+            const formatted = data.lastFiveAvg.toFixed(1);
             if (data?.thresholds) {
                 const bucket = getConsistencyBucket(data.lastFiveAvg, data.thresholds);
-                lastFiveEl.style.color = bucket?.color || '';
+                const color = bucket?.name === 'high'
+                    ? CONSISTENCY_HUD_CONDITIONAL_COLORS.high
+                    : (bucket?.name === 'solid' ? CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
+                lastFiveEl.style.color = '';
+                lastFiveEl.innerHTML = `<span style="color:${color}">${formatted}</span><span> fpts</span>`;
             } else {
+                lastFiveEl.textContent = `${formatted} fpts`;
                 lastFiveEl.style.color = '';
             }
         } else {
