@@ -5651,6 +5651,12 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
 	      text-shadow: none;
 	    }
 
+	    @media (min-width: 641px) {
+	      .hud-insight-value .hud-insight-suffix {
+	        font-size: 0.75rem;
+	      }
+	    }
+
 	    .hud-insight-value .csty-made {
 	      font-weight: 700;
 	    }
