@@ -83,7 +83,7 @@
     font-size: 0.55rem;
   }
   #rosterGrid .player-ktc-wrapper .player-ktc {
-    font-size: 0.45rem;
+    font-size: 0.48rem;
   }
 }
 /* ⬇︎ VARIABLES, THEME, & FOUNDATION ⬇︎ */
@@ -2261,7 +2261,7 @@ drop-shadow(0px 0px 0px #6380ff);
             margin-top: -2px;
         }
         .player-value-line .value {
-            font-weight: 600;
+            font-weight: 500;
             font-size: 0.52rem;
             color: var(--color-text-primary);
             filter: brightness(1.15);
