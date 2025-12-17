@@ -6704,8 +6704,8 @@ const CONSISTENCY_BUCKET_STYLES = {
     low: { color: '#c26cfc' }
 };
 const CONSISTENCY_HUD_CONDITIONAL_COLORS = {
-    high: '#7cf5ff',
-    solid: '#56c4ff',
+    high: '#5dfdca',
+    solid: '#47befd',
     low: '#d3a5ff'
 };
 const SVG_NS = 'http://www.w3.org/2000/svg';
