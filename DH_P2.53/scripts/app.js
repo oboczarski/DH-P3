@@ -5804,11 +5804,17 @@ const wrTeStatOrder = [
             if (Number.isNaN(numericValue)) return fallback;
             return numericValue.toFixed(decimals) + '%';
         }
-        function formatRadarStatValue(statKey, value) {
+            function formatRadarStatValue(statKey, value) {
             // Reuse preformatted strings (matches summary chip display for league-specific stats)
             if (typeof value === 'string') {
                 const trimmed = value.trim();
-                if (trimmed) return trimmed;
+                if (trimmed) {
+                    if ((statKey === 'cpoe' || statKey === 'epa_per_db') && !trimmed.startsWith('-') && !trimmed.startsWith('+')) {
+                        const numeric = parseFloat(trimmed.replace('%', ''));
+                        if (Number.isFinite(numeric) && numeric > 0) return `+${trimmed}`;
+                    }
+                    return trimmed;
+                }
             }
 
             if (value === null || value === undefined || Number.isNaN(value)) return 'N/A';
@@ -5822,11 +5828,10 @@ const wrTeStatOrder = [
                 return numericValue.toFixed(1) + '%';
             }
 
-            // CPOE is a percentage-like metric (often stored as fraction or percentage points).
-            // Heuristic: if |value| <= 1.5 treat it as a fraction (e.g., 0.056 -> 5.6%).
+        // CPOE is already stored as percentage points in the stats sheets.
             if (statKey === 'cpoe') {
-                const display = Math.abs(numericValue) <= 1.5 ? (numericValue * 100) : numericValue;
-                return display.toFixed(1) + '%';
+                const formatted = numericValue.toFixed(1) + '%';
+                return numericValue > 0 ? `+${formatted}` : formatted;
             }
             
             // 1DRR (first_down_rec_rate) - 2 decimals, not a percentage display in radar
@@ -5862,7 +5867,8 @@ const wrTeStatOrder = [
 
             // EPA/DB: show to 2 decimals (keeps consistency with other efficiency-style metrics)
             if (statKey === 'epa_per_db') {
-                return numericValue.toFixed(2);
+                const formatted = numericValue.toFixed(2);
+                return numericValue > 0 ? `+${formatted}` : formatted;
             }
             
             // All other stats (2 decimals)
