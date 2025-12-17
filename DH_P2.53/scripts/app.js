@@ -6971,7 +6971,7 @@ function updateConsistencyHud(data) {
                 ? CONSISTENCY_HUD_CONDITIONAL_COLORS.high
                 : (pct < 23 ? CONSISTENCY_HUD_CONDITIONAL_COLORS.low : CONSISTENCY_HUD_CONDITIONAL_COLORS.solid);
             highScorePctEl.style.color = '';
-            highScorePctEl.innerHTML = `<span style="color:${color}">${formatted}</span><span>%</span>`;
+            highScorePctEl.innerHTML = `<span style="color:${color}">${formatted}</span><span class="hud-insight-suffix">%</span>`;
         } else {
             highScorePctEl.textContent = '—';
             highScorePctEl.style.color = '';
@@ -6979,23 +6979,23 @@ function updateConsistencyHud(data) {
     }
     const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
     if (lastFiveEl) {
-        if (Number.isFinite(data?.lastFiveAvg)) {
-            const formatted = data.lastFiveAvg.toFixed(1);
-            if (data?.thresholds) {
-                const bucket = getConsistencyBucket(data.lastFiveAvg, data.thresholds);
-                const color = bucket?.name === 'high'
-                    ? CONSISTENCY_HUD_CONDITIONAL_COLORS.high
-                    : (bucket?.name === 'solid' ? CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
-                lastFiveEl.style.color = '';
-                lastFiveEl.innerHTML = `<span style="color:${color}">${formatted}</span><span> fpts</span>`;
-            } else {
-                lastFiveEl.textContent = `${formatted} fpts`;
-                lastFiveEl.style.color = '';
-            }
-        } else {
-            lastFiveEl.textContent = '—';
-            lastFiveEl.style.color = '';
-        }
+	        if (Number.isFinite(data?.lastFiveAvg)) {
+	            const formatted = data.lastFiveAvg.toFixed(1);
+	            if (data?.thresholds) {
+	                const bucket = getConsistencyBucket(data.lastFiveAvg, data.thresholds);
+	                const color = bucket?.name === 'high'
+	                    ? CONSISTENCY_HUD_CONDITIONAL_COLORS.high
+	                    : (bucket?.name === 'solid' ? CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
+	                lastFiveEl.style.color = '';
+	                lastFiveEl.innerHTML = `<span style="color:${color}">${formatted}</span><span class="hud-insight-suffix"> fpts</span>`;
+	            } else {
+	                lastFiveEl.style.color = '';
+	                lastFiveEl.innerHTML = `<span>${formatted}</span><span class="hud-insight-suffix"> fpts</span>`;
+	            }
+	        } else {
+	            lastFiveEl.textContent = '—';
+	            lastFiveEl.style.color = '';
+	        }
     }
     const cstyCountEl = consistencyContainer.querySelector('[data-insight-cstycount]');
     if (cstyCountEl) {
@@ -7003,7 +7003,7 @@ function updateConsistencyHud(data) {
         const total = Number.isFinite(data?.totalWeeks) ? data.totalWeeks : null;
         if (made !== null && total !== null && total > 0) {
             const color = getRankAccentColor(data?.consistencyRank);
-            cstyCountEl.innerHTML = `<span class="csty-made" style="color:${color}">${made}</span>/<span class="csty-total">${total}</span>`;
+            cstyCountEl.innerHTML = `<span class="csty-made" style="color:${color}">${made}</span><span class="hud-insight-suffix">/${total}</span>`;
         } else {
             cstyCountEl.textContent = '—';
         }

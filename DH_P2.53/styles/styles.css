@@ -5638,20 +5638,28 @@ inset 0px 0px 155px rgba(216, 215, 255, 0.1);
       color: rgba(194, 208, 255, 0.78);
     }
 
-    .hud-insight-value {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: #a0a6b5;
-      text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
-    }
+	    .hud-insight-value {
+	      font-size: 0.8rem;
+	      font-weight: 500;
+	      color: #a0a6b5;
+	      text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
+	    }
 
-    .hud-insight-value .csty-made {
-      font-weight: 700;
-    }
+	    .hud-insight-value .hud-insight-suffix {
+	      color: rgba(160, 166, 181, 0.72);
+	      font-weight: 400;
+	      text-shadow: none;
+	    }
 
-    .hud-insight-value .csty-total {
-      color: rgba(239, 246, 255, 0.78);
-    }
+	    .hud-insight-value .csty-made {
+	      font-weight: 700;
+	    }
+
+	    .hud-insight-value .csty-total {
+	      color: rgba(160, 166, 181, 0.72);
+	      font-weight: 400;
+	      text-shadow: none;
+	    }
 
     /* Chart Shell */
     .consistency-chart-shell {
