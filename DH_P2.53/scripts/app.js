@@ -6951,7 +6951,7 @@ function updateConsistencyHud(data) {
         const ceilingStrokeColor = getRankAccentColor(data?.ceilingRank);
         ceilingRingFill.setAttribute('stroke', ceilingStrokeColor);
     }
-    // Middle insight chip: High Score% (games above the position-specific "high" threshold)
+    // Middle insight chip: Big Game % (games above the position-specific "high" threshold)
     const highScorePctEl = consistencyContainer.querySelector('[data-insight-best]');
     if (highScorePctEl) {
         const highCount = Number.isFinite(data?.highWeekCount) ? data.highWeekCount : null;
@@ -6962,16 +6962,27 @@ function updateConsistencyHud(data) {
         if (highCount !== null && gamesPlayed !== null && gamesPlayed > 0) {
             const pct = (highCount / gamesPlayed) * 100;
             highScorePctEl.textContent = formatHudPercentage(pct, 1);
+            highScorePctEl.style.color = pct > 40
+                ? CONSISTENCY_BUCKET_STYLES.high.color
+                : (pct < 23 ? CONSISTENCY_BUCKET_STYLES.low.color : CONSISTENCY_BUCKET_STYLES.solid.color);
         } else {
             highScorePctEl.textContent = '—';
+            highScorePctEl.style.color = '';
         }
     }
     const lastFiveEl = consistencyContainer.querySelector('[data-insight-last5]');
     if (lastFiveEl) {
         if (Number.isFinite(data?.lastFiveAvg)) {
             lastFiveEl.textContent = `${data.lastFiveAvg.toFixed(1)} fpts`;
+            if (data?.thresholds) {
+                const bucket = getConsistencyBucket(data.lastFiveAvg, data.thresholds);
+                lastFiveEl.style.color = bucket?.color || '';
+            } else {
+                lastFiveEl.style.color = '';
+            }
         } else {
             lastFiveEl.textContent = '—';
+            lastFiveEl.style.color = '';
         }
     }
     const cstyCountEl = consistencyContainer.querySelector('[data-insight-cstycount]');
