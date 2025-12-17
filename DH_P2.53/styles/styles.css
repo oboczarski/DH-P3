@@ -1787,6 +1787,7 @@ body[data-page="welcome"] .enter-label { line-height: 1; }
 }
 .start-sit-rank-pos {
     font-size: 0.65rem;
+    filter: saturate(2);
 }
         .start-sit-preview-column {
             display: flex;
