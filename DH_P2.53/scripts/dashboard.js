@@ -3122,8 +3122,8 @@ const getSelected = () => players.find(p => p.id === dashState.selectedPlayerId)
 
 const RADAR_STATS_CONFIG = {
   QB: {
-    stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'epa_db', 'ttt', 'yds_total', 'cpoe'],
-    labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'EPA/DB', 'TTT', 'YDS(t)', 'CPOE'],
+    stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'yds_total', 'ttt', 'epa_db', 'cpoe'],
+    labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'YDS(t)', 'TTT', 'EPA/DB', 'CPOE'],
     maxRank: 36,
     invert: new Set(['ttt'])
   },
