@@ -1336,9 +1336,10 @@
 @media (max-width: 768px) {
   /* Mobile: Horizontal position still set by JS, just adjust top */
   .fc-modal {
-    top: 345px;         /* Distance from TOP of page */
+    top: 474px;         /* Distance from TOP of page */
     /* left is set by JS for centering over radar chart */
     /* translateX(-50%) is inherited from base styles for centering */
+    width: 12rem;
   }
 
   .fc-modal-content {
@@ -1350,7 +1351,7 @@
   }
   
   .fc-modal.is-visible .fc-modal-content {
-    transform: scale(0.8);
+    transform: scale(0.9);
   }
   
   #radar-modal-title {
@@ -1399,12 +1400,13 @@
 /* Radar Modal Position Tags - Ported from styles.css */
 .fc-modal-pos-tag {
     display: inline-flex;
+    margin-bottom: 0.2rem;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     position: relative;
-    line-height: 0.6rem;
-    font-size: 0.6rem;
+    line-height: 0.5rem;
+    font-size: 0.55rem;
     padding: 4px 4px;
     background: rgba(255, 255, 255, 0.005);
     backdrop-filter: blur(1px) saturate(180%);
