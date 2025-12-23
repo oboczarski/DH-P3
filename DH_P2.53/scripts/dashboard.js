@@ -3150,7 +3150,7 @@ const RADAR_STATS_CONFIG = {
 // Position-specific palettes: pick 1-4 to compare distinct schemes.
 const RADAR_THEME_VARIANT = 1; // 1-4
 // Custom ring mids (exact colors per ring, inner -> outer)
-const QB_CUSTOM_RING_MIDS = ['#FF00A2', '#FF00F7', '#DB3CFB', '#B061FF', '#7866FF', '#4D79FF', '#00B3FF', '#00DDFA'];
+const QB_CUSTOM_RING_MIDS = ['#ff0aa5ff', '#fe26f7ff', '#d747ffff', '#a74effff', '#7866FF', '#4D79FF', '#00a9f1ff', '#00DDFA'];
 const RB_CUSTOM_RING_MIDS = ['#e8d058ff', '#FFB847', '#FF916B', '#FF6B6B', '#f94d95ff', '#CE34F9', '#8F33FF', '#7B5CFF'];
 const WR_CUSTOM_RING_MIDS = ['#00FF99', '#3ffdbeff', '#69D6FF', '#52ACF8', '#5882D6', '#6053D5', '#5F03DF', '#3A0CA3'];
 const TE_CUSTOM_RING_MIDS = ['#00FF99', '#00FFCC', '#0099FF', '#0066ffff', '#4c00ffff', '#5D00FF', '#8F00FF', '#D200FF'];
@@ -3833,7 +3833,7 @@ function drawRadarChart(containerId, data) {
   const maxRadius = size / 2 * 0.95;
   const innerRadius = size * 0.12;
   const ringWidth = (maxRadius - innerRadius) / numRings;
-  const gap = size * 0.007;
+  const gap = size * 0.009;
   const palette = activeRadarPalette;
   const colors = activeRadarColors;
   const fontSize = Math.max(8, size * 0.025);
