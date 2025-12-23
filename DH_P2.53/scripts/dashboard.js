@@ -3285,7 +3285,7 @@ function applyRadarLegendPalette(palette) {
     const end = gradient.stops[2] || gradient.stops[1] || gradient.stops[0];
     dot.style.backgroundColor = mid;
     dot.style.backgroundImage = `linear-gradient(135deg, ${start}, ${mid} 55%, ${end})`;
-    dot.style.boxShadow = `0 0 9px ${hexToRgba(mid, 0.55)}`;
+    dot.style.boxShadow = `0 0 3px ${hexToRgba(mid, 0.18)}`;
   });
 }
 

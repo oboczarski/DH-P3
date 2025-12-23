@@ -588,15 +588,15 @@
 
 /* Radar legend: uniform dot sizing + new neon gradients (scoped to radar legend only) */
 .fc-legend .fc-dot {
-  width: 0.78em;
-  height: 0.78em;
+  width: 0.96em;
+  height: 0.96em;
   aspect-ratio: 1;
   border-radius: 999px;
-  flex: 0 0 0.78em;
+  flex: 0 0 0.96em;
   display: inline-block;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.08);
 }
 .fc-legend .fc-bg-red {
   background-color: #7c5cff;
