@@ -3149,8 +3149,11 @@ const RADAR_STATS_CONFIG = {
 
 // Position-specific palettes: pick 1-4 to compare distinct schemes.
 const RADAR_THEME_VARIANT = 1; // 1-4
-// Custom QB ring mids (exact colors per ring, inner -> outer)
-const QB_CUSTOM_RING_MIDS = ['#00FF99', '#76FFEB', '#48BEFF', '#6176FF', '#957CFF', '#767693', '#FF6FE1', '#FF2EB2'];
+// Custom ring mids (exact colors per ring, inner -> outer)
+const QB_CUSTOM_RING_MIDS = ['#FF79C6', '#BD93F9', '#7B5CFF', '#8BE9FD', '#50FA7B', '#F1FA8C', '#FFB86C', '#FF5555'];
+const RB_CUSTOM_RING_MIDS = ['#e8d058ff', '#FFB847', '#FF916B', '#FF6B6B', '#f94d95ff', '#CE34F9', '#8F33FF', '#7B5CFF'];
+const WR_CUSTOM_RING_MIDS = ['#00FF99', '#40FFE3', '#6FDEFF', '#51B3FF', '#5390D9', '#5E60CE', '#6500E9', '#3A0CA3'];
+const TE_CUSTOM_RING_MIDS = ['#89FC00', '#04E762', '#00A1E4', '#8338EC', '#FF006E', '#E70E02', '#FB5607', '#FFBE0B'];
 const RADAR_THEME_VARIANTS = [
   {
     name: 'Nocturne',
@@ -3256,6 +3259,15 @@ const ACTIVE_RADAR_THEME = RADAR_THEME_VARIANTS[themeIndex];
 const RADAR_PALETTES = buildThemePalettes(ACTIVE_RADAR_THEME.anchors);
 if (QB_CUSTOM_RING_MIDS.length) {
   RADAR_PALETTES.QB = buildPaletteFromMids(QB_CUSTOM_RING_MIDS);
+}
+if (RB_CUSTOM_RING_MIDS.length) {
+  RADAR_PALETTES.RB = buildPaletteFromMids(RB_CUSTOM_RING_MIDS);
+}
+if (WR_CUSTOM_RING_MIDS.length) {
+  RADAR_PALETTES.WR = buildPaletteFromMids(WR_CUSTOM_RING_MIDS);
+}
+if (TE_CUSTOM_RING_MIDS.length) {
+  RADAR_PALETTES.TE = buildPaletteFromMids(TE_CUSTOM_RING_MIDS);
 }
 
 const getRadarPalette = (pos) => RADAR_PALETTES[pos] || RADAR_PALETTES.QB;
@@ -3840,38 +3852,24 @@ function drawRadarChart(containerId, data) {
   const glowMerge = glow.append('feMerge');
   glowMerge.append('feMergeNode').attr('in', 'blur');
   glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-  const ringGradients = palette.map((gradient, i) => {
-    const gradId = `${uid}-ring-${i}`;
-    const grad = defs.append('linearGradient')
-      .attr('id', gradId)
-      .attr('gradientUnits', 'userSpaceOnUse')
-      .attr('x1', -maxRadius)
-      .attr('y1', -maxRadius)
-      .attr('x2', maxRadius)
-      .attr('y2', maxRadius);
-    grad.append('stop').attr('offset', '0%').attr('stop-color', gradient.stops[0]).attr('stop-opacity', 0.95);
-    grad.append('stop').attr('offset', '55%').attr('stop-color', gradient.stops[1] || gradient.stops[0]).attr('stop-opacity', 0.9);
-    grad.append('stop').attr('offset', '100%').attr('stop-color', gradient.stops[2] || gradient.stops[1] || gradient.stops[0]).attr('stop-opacity', 0.95);
-    return gradId;
-  });
   const strokeWidth = Math.max(1, ringWidth * 0.08);
   data.forEach((d, i) => {
     const rInner = innerRadius + i * ringWidth + gap;
     const rOuter = innerRadius + (i + 1) * ringWidth;
     const color = colors[i % colors.length];
-    const gradId = ringGradients[i % ringGradients.length];
     const bgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(2 * Math.PI).cornerRadius(ringWidth / 2);
     svg.append('path')
       .attr('d', bgArc)
-      .attr('fill', `url(#${gradId})`)
+      .attr('fill', color)
       .attr('opacity', 0.12);
     const endAngle = (d.value / 100) * 2 * Math.PI;
     const fgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(endAngle).cornerRadius(ringWidth / 2);
     svg.append('path')
-      .attr('fill', `url(#${gradId})`)
+      .attr('fill', color)
+      .attr('fill-opacity', 0.95)
       .attr('stroke', color)
       .attr('stroke-width', strokeWidth)
-      .attr('stroke-opacity', 0.55)
+      .attr('stroke-opacity', 0.6)
       .style('filter', `url(#${glowId})`)
       .attr('d', fgArc)
       .transition()
