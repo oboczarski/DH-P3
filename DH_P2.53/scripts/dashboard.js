@@ -3150,10 +3150,10 @@ const RADAR_STATS_CONFIG = {
 // Position-specific palettes: pick 1-4 to compare distinct schemes.
 const RADAR_THEME_VARIANT = 1; // 1-4
 // Custom ring mids (exact colors per ring, inner -> outer)
-const QB_CUSTOM_RING_MIDS = ['#FF79C6', '#BD93F9', '#7B5CFF', '#8BE9FD', '#50FA7B', '#F1FA8C', '#FFB86C', '#FF5555'];
+const QB_CUSTOM_RING_MIDS = ['#FF00A2', '#FF00F7', '#DB3CFB', '#B061FF', '#7866FF', '#4D79FF', '#00B3FF', '#00DDFA'];
 const RB_CUSTOM_RING_MIDS = ['#e8d058ff', '#FFB847', '#FF916B', '#FF6B6B', '#f94d95ff', '#CE34F9', '#8F33FF', '#7B5CFF'];
-const WR_CUSTOM_RING_MIDS = ['#00FF99', '#40FFE3', '#6FDEFF', '#51B3FF', '#5390D9', '#5E60CE', '#6500E9', '#3A0CA3'];
-const TE_CUSTOM_RING_MIDS = ['#89FC00', '#04E762', '#00A1E4', '#8338EC', '#FF006E', '#E70E02', '#FB5607', '#FFBE0B'];
+const WR_CUSTOM_RING_MIDS = ['#00FF99', '#3ffdbeff', '#69D6FF', '#52ACF8', '#5882D6', '#6053D5', '#5F03DF', '#3A0CA3'];
+const TE_CUSTOM_RING_MIDS = ['#00FF99', '#00FFCC', '#0099FF', '#0066ffff', '#4c00ffff', '#5D00FF', '#8F00FF', '#D200FF'];
 const RADAR_THEME_VARIANTS = [
   {
     name: 'Nocturne',
