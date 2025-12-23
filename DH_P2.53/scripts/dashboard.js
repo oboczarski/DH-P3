@@ -3848,7 +3848,7 @@ function drawRadarChart(containerId, data) {
       .attr('d', bgArc)
       .attr('fill', color)
       .attr('opacity', 0.12);
-    const maxFill = 0.95;
+    const maxFill = 0.97;
     const endAngle = (d.value / 100) * 2 * Math.PI * maxFill;
     const fgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(endAngle).cornerRadius(ringWidth / 2);
     svg.append('path')
