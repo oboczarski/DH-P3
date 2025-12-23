@@ -3833,7 +3833,7 @@ function drawRadarChart(containerId, data) {
   const maxRadius = size / 2 * 0.95;
   const innerRadius = size * 0.12;
   const ringWidth = (maxRadius - innerRadius) / numRings;
-  const gap = size * 0.009;
+  const gap = size * (window.innerWidth < 768 ? 0.009 : 0.005);
   const palette = activeRadarPalette;
   const colors = activeRadarColors;
   const fontSize = Math.max(8, size * 0.025);
@@ -3848,7 +3848,8 @@ function drawRadarChart(containerId, data) {
       .attr('d', bgArc)
       .attr('fill', color)
       .attr('opacity', 0.12);
-    const endAngle = (d.value / 100) * 2 * Math.PI;
+    const maxFill = 0.95;
+    const endAngle = (d.value / 100) * 2 * Math.PI * maxFill;
     const fgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(endAngle).cornerRadius(ringWidth / 2);
     svg.append('path')
       .attr('fill', color)
