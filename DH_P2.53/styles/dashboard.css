@@ -586,6 +586,51 @@
 .fc-bg-pink { background-color: var(--color-pink); }
 .fc-bg-violet { background-color: var(--color-violet); }
 
+/* Radar legend: uniform dot sizing + new neon gradients (scoped to radar legend only) */
+.fc-legend .fc-dot {
+  width: 0.78em;
+  height: 0.78em;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  flex: 0 0 0.78em;
+  display: inline-block;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+}
+.fc-legend .fc-bg-red {
+  background-color: #7c5cff;
+  background-image: linear-gradient(135deg, #b7a4ff, #7c5cff 55%, #3d2bff);
+}
+.fc-legend .fc-bg-orange {
+  background-color: #3b7bff;
+  background-image: linear-gradient(135deg, #8cb4ff, #3b7bff 55%, #1a2cff);
+}
+.fc-legend .fc-bg-yellow {
+  background-color: #00c9ff;
+  background-image: linear-gradient(135deg, #7ce7ff, #00c9ff 55%, #008bff);
+}
+.fc-legend .fc-bg-cyan {
+  background-color: #00e6c3;
+  background-image: linear-gradient(135deg, #6fffe9, #00e6c3 55%, #00b8a9);
+}
+.fc-legend .fc-bg-violet {
+  background-color: #22ff7a;
+  background-image: linear-gradient(135deg, #88ffb7, #22ff7a 55%, #00c86b);
+}
+.fc-legend .fc-bg-emerald {
+  background-color: #c7ff2e;
+  background-image: linear-gradient(135deg, #f2ff7a, #c7ff2e 55%, #8edb00);
+}
+.fc-legend .fc-bg-pink {
+  background-color: #ffb02e;
+  background-image: linear-gradient(135deg, #ffd38a, #ffb02e 55%, #ff7a00);
+}
+.fc-legend .fc-bg-purple {
+  background-color: #ff5f7a;
+  background-image: linear-gradient(135deg, #ffc1c7, #ff5f7a 55%, #ff2a5c);
+}
+
 /* Bar Chart Filters */
 .fc-filter-group {
   display: flex;

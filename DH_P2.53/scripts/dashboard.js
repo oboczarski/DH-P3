@@ -3147,6 +3147,19 @@ const RADAR_STATS_CONFIG = {
   }
 };
 
+// Neon gradient palette for radar rings (shared with legend + modal dots)
+const RADAR_RING_GRADIENTS = [
+  { name: 'violet-core', stops: ['#B7A4FF', '#7C5CFF', '#3D2BFF'] },
+  { name: 'royal-blue', stops: ['#8CB4FF', '#3B7BFF', '#1A2CFF'] },
+  { name: 'electric-cyan', stops: ['#7CE7FF', '#00C9FF', '#008BFF'] },
+  { name: 'aqua-teal', stops: ['#6FFFE9', '#00E6C3', '#00B8A9'] },
+  { name: 'emerald-glow', stops: ['#88FFB7', '#22FF7A', '#00C86B'] },
+  { name: 'chartreuse', stops: ['#F2FF7A', '#C7FF2E', '#8EDB00'] },
+  { name: 'amber', stops: ['#FFD38A', '#FFB02E', '#FF7A00'] },
+  { name: 'coral', stops: ['#FFC1C7', '#FF5F7A', '#FF2A5C'] }
+];
+const RADAR_RING_COLORS = RADAR_RING_GRADIENTS.map(gradient => gradient.stops[1] || gradient.stops[0]);
+
 // Utility helpers
 const toNum = (v) => (v === null || v === undefined ? null : Number(v));
 const toPct = (v) => {
@@ -3558,7 +3571,7 @@ function openRadarModal() {
   if (!cfg) return;
 
   // Ring colors matching the radial bar graph
-  const ringColors = ['#ef4444', '#f97316', '#eab308', '#22d3ee', '#8b5cf6', '#10b981', '#ec4899', '#a855f7'];
+  const ringColors = RADAR_RING_COLORS;
 
   // Number formatting config per stat key
   const formatConfig = {
@@ -3685,23 +3698,66 @@ function drawRadarChart(containerId, data) {
   const innerRadius = size * 0.12;
   const ringWidth = (maxRadius - innerRadius) / numRings;
   const gap = size * 0.01;
-  const colors = ['#ef4444', '#f97316', '#eab308', '#22d3ee', '#8b5cf6', '#10b981', '#ec4899', '#a855f7'];
+  const colors = RADAR_RING_COLORS;
   const fontSize = Math.max(8, size * 0.025);
   const isMobile = window.innerWidth < 768;
+  const defs = svg.append('defs');
+  const uid = `radar-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  const glowId = `${uid}-glow`;
+  const glowBlur = Math.max(1.5, size * 0.006);
+  const glow = defs.append('filter')
+    .attr('id', glowId)
+    .attr('x', '-50%')
+    .attr('y', '-50%')
+    .attr('width', '200%')
+    .attr('height', '200%');
+  glow.append('feGaussianBlur').attr('stdDeviation', glowBlur).attr('result', 'blur');
+  const glowMerge = glow.append('feMerge');
+  glowMerge.append('feMergeNode').attr('in', 'blur');
+  glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
+  const ringGradients = RADAR_RING_GRADIENTS.map((gradient, i) => {
+    const gradId = `${uid}-ring-${i}`;
+    const grad = defs.append('linearGradient')
+      .attr('id', gradId)
+      .attr('gradientUnits', 'userSpaceOnUse')
+      .attr('x1', -maxRadius)
+      .attr('y1', -maxRadius)
+      .attr('x2', maxRadius)
+      .attr('y2', maxRadius);
+    grad.append('stop').attr('offset', '0%').attr('stop-color', gradient.stops[0]).attr('stop-opacity', 0.95);
+    grad.append('stop').attr('offset', '55%').attr('stop-color', gradient.stops[1] || gradient.stops[0]).attr('stop-opacity', 0.9);
+    grad.append('stop').attr('offset', '100%').attr('stop-color', gradient.stops[2] || gradient.stops[1] || gradient.stops[0]).attr('stop-opacity', 0.95);
+    return gradId;
+  });
+  const strokeWidth = Math.max(1, ringWidth * 0.08);
   data.forEach((d, i) => {
     const rInner = innerRadius + i * ringWidth + gap;
     const rOuter = innerRadius + (i + 1) * ringWidth;
     const color = colors[i % colors.length];
+    const gradId = ringGradients[i % ringGradients.length];
     const bgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(2 * Math.PI).cornerRadius(ringWidth / 2);
-    svg.append('path').attr('d', bgArc).attr('fill', color).attr('opacity', 0.1);
+    svg.append('path')
+      .attr('d', bgArc)
+      .attr('fill', `url(#${gradId})`)
+      .attr('opacity', 0.12);
     const endAngle = (d.value / 100) * 2 * Math.PI;
     const fgArc = d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(endAngle).cornerRadius(ringWidth / 2);
-    svg.append('path').attr('fill', color).attr('d', fgArc).transition().duration(1200).ease(d3.easeCubicOut).attrTween('d', function() {
-      const interpolate = d3.interpolate(0, endAngle);
-      return function(t) {
-        return d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(interpolate(t)).cornerRadius(ringWidth / 2)();
-      };
-    });
+    svg.append('path')
+      .attr('fill', `url(#${gradId})`)
+      .attr('stroke', color)
+      .attr('stroke-width', strokeWidth)
+      .attr('stroke-opacity', 0.55)
+      .style('filter', `url(#${glowId})`)
+      .attr('d', fgArc)
+      .transition()
+      .duration(1200)
+      .ease(d3.easeCubicOut)
+      .attrTween('d', function() {
+        const interpolate = d3.interpolate(0, endAngle);
+        return function(t) {
+          return d3.arc().innerRadius(rInner).outerRadius(rOuter).startAngle(0).endAngle(interpolate(t)).cornerRadius(ringWidth / 2)();
+        };
+      });
     if (!isMobile) {
       svg.append('text')
         .attr('x', 5)
