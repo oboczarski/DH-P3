@@ -3833,25 +3833,11 @@ function drawRadarChart(containerId, data) {
   const maxRadius = size / 2 * 0.95;
   const innerRadius = size * 0.12;
   const ringWidth = (maxRadius - innerRadius) / numRings;
-  const gap = size * 0.01;
+  const gap = size * 0.007;
   const palette = activeRadarPalette;
   const colors = activeRadarColors;
   const fontSize = Math.max(8, size * 0.025);
   const isMobile = window.innerWidth < 768;
-  const defs = svg.append('defs');
-  const uid = `radar-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-  const glowId = `${uid}-glow`;
-  const glowBlur = Math.max(1.5, size * 0.006);
-  const glow = defs.append('filter')
-    .attr('id', glowId)
-    .attr('x', '-50%')
-    .attr('y', '-50%')
-    .attr('width', '200%')
-    .attr('height', '200%');
-  glow.append('feGaussianBlur').attr('stdDeviation', glowBlur).attr('result', 'blur');
-  const glowMerge = glow.append('feMerge');
-  glowMerge.append('feMergeNode').attr('in', 'blur');
-  glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
   const strokeWidth = Math.max(1, ringWidth * 0.08);
   data.forEach((d, i) => {
     const rInner = innerRadius + i * ringWidth + gap;
@@ -3870,7 +3856,6 @@ function drawRadarChart(containerId, data) {
       .attr('stroke', color)
       .attr('stroke-width', strokeWidth)
       .attr('stroke-opacity', 0.6)
-      .style('filter', `url(#${glowId})`)
       .attr('d', fgArc)
       .transition()
       .duration(1200)
