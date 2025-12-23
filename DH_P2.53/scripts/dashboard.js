@@ -3147,18 +3147,141 @@ const RADAR_STATS_CONFIG = {
   }
 };
 
-// Neon gradient palette for radar rings (shared with legend + modal dots)
-const RADAR_RING_GRADIENTS = [
-  { name: 'violet-core', stops: ['#B7A4FF', '#7C5CFF', '#3D2BFF'] },
-  { name: 'royal-blue', stops: ['#8CB4FF', '#3B7BFF', '#1A2CFF'] },
-  { name: 'electric-cyan', stops: ['#7CE7FF', '#00C9FF', '#008BFF'] },
-  { name: 'aqua-teal', stops: ['#6FFFE9', '#00E6C3', '#00B8A9'] },
-  { name: 'emerald-glow', stops: ['#88FFB7', '#22FF7A', '#00C86B'] },
-  { name: 'chartreuse', stops: ['#F2FF7A', '#C7FF2E', '#8EDB00'] },
-  { name: 'amber', stops: ['#FFD38A', '#FFB02E', '#FF7A00'] },
-  { name: 'coral', stops: ['#FFC1C7', '#FF5F7A', '#FF2A5C'] }
+// Position-specific palettes: pick 1-4 to compare distinct schemes.
+const RADAR_THEME_VARIANT = 1; // 1-4
+// Custom QB ring mids (exact colors per ring, inner -> outer)
+const QB_CUSTOM_RING_MIDS = ['#00FF99', '#76FFEB', '#48BEFF', '#6176FF', '#957CFF', '#767693', '#FF6FE1', '#FF2EB2'];
+const RADAR_THEME_VARIANTS = [
+  {
+    name: 'Nocturne',
+    anchors: {
+      QB: ['#101A3A', '#2C5BFF', '#00C9FF', '#D8F6FF'],
+      RB: ['#2A0500', '#8A1A00', '#FF4D1A', '#FFB347'],
+      WR: ['#052A18', '#00A86B', '#2BFF88', '#C7FF2E'],
+      TE: ['#250530', '#6B1FA8', '#D62BFF', '#FF6B98']
+    }
+  },
+  {
+    name: 'Desert-Glass',
+    anchors: {
+      QB: ['#0B1E2D', '#0D5D8F', '#46C2FF', '#E6FFFF'],
+      RB: ['#2B140A', '#7A3A20', '#FF8A2A', '#FFE08A'],
+      WR: ['#042A2E', '#007C88', '#00E6C3', '#B9FFF1'],
+      TE: ['#2A001E', '#7A003E', '#C026D3', '#FFC1D6']
+    }
+  },
+  {
+    name: 'Circuit-Bloom',
+    anchors: {
+      QB: ['#190B3A', '#4B2BFF', '#00B2FF', '#9AE6FF'],
+      RB: ['#2E1000', '#B12C00', '#FF6A00', '#FFE66D'],
+      WR: ['#003B1E', '#00C26E', '#7CFF00', '#F2FF7A'],
+      TE: ['#1E0B2E', '#5D1E9C', '#FF2D9A', '#FF7A8A']
+    }
+  },
+  {
+    name: 'Polar-Ember',
+    anchors: {
+      QB: ['#0C1020', '#1A2CFF', '#00D6FF', '#DFF6FF'],
+      RB: ['#1B0B0B', '#C1123A', '#FF7A00', '#FFD1A6'],
+      WR: ['#022E2A', '#00B37E', '#4CFF8F', '#D7FF6A'],
+      TE: ['#220C2E', '#9C27B0', '#FF2D9A', '#FF6B98']
+    }
+  }
 ];
-const RADAR_RING_COLORS = RADAR_RING_GRADIENTS.map(gradient => gradient.stops[1] || gradient.stops[0]);
+
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+const hexToRgb = (hex) => {
+  const cleaned = hex.replace('#', '').trim();
+  if (cleaned.length !== 6) return { r: 255, g: 255, b: 255 };
+  const r = parseInt(cleaned.slice(0, 2), 16);
+  const g = parseInt(cleaned.slice(2, 4), 16);
+  const b = parseInt(cleaned.slice(4, 6), 16);
+  return { r, g, b };
+};
+const rgbToHex = (r, g, b) => {
+  const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+const mixHex = (a, b, t) => {
+  const ta = clamp01(t);
+  const c1 = hexToRgb(a);
+  const c2 = hexToRgb(b);
+  const r = c1.r + (c2.r - c1.r) * ta;
+  const g = c1.g + (c2.g - c1.g) * ta;
+  const bch = c1.b + (c2.b - c1.b) * ta;
+  return rgbToHex(r, g, bch);
+};
+const hexToRgba = (hex, alpha) => {
+  const c = hexToRgb(hex);
+  return `rgba(${c.r}, ${c.g}, ${c.b}, ${alpha})`;
+};
+const lerpColor = (a, b, t) => mixHex(a, b, t);
+
+const buildPaletteFromAnchors = (anchors, count = 8) => {
+  const steps = Math.max(1, count);
+  const segments = Math.max(1, anchors.length - 1);
+  const mids = [];
+  for (let i = 0; i < steps; i += 1) {
+    const t = steps === 1 ? 0 : i / (steps - 1);
+    const seg = Math.min(segments - 1, Math.floor(t * segments));
+    const localT = (t - seg / segments) * segments;
+    const mid = lerpColor(anchors[seg], anchors[seg + 1], localT);
+    mids.push(mid);
+  }
+  return mids.map((mid, idx) => {
+    const start = mixHex(mid, '#FFFFFF', 0.35);
+    const end = mixHex(mid, '#000000', 0.28);
+    return { name: `ring-${idx + 1}`, stops: [start, mid, end] };
+  });
+};
+
+const buildPaletteFromMids = (mids) => (
+  mids.map((mid, idx) => {
+    const start = mixHex(mid, '#FFFFFF', 0.35);
+    const end = mixHex(mid, '#000000', 0.28);
+    return { name: `ring-${idx + 1}`, stops: [start, mid, end] };
+  })
+);
+
+const buildThemePalettes = (anchorsByPos) => ({
+  QB: buildPaletteFromAnchors(anchorsByPos.QB),
+  RB: buildPaletteFromAnchors(anchorsByPos.RB),
+  WR: buildPaletteFromAnchors(anchorsByPos.WR),
+  TE: buildPaletteFromAnchors(anchorsByPos.TE)
+});
+
+const themeIndex = Math.min(Math.max(RADAR_THEME_VARIANT - 1, 0), RADAR_THEME_VARIANTS.length - 1);
+const ACTIVE_RADAR_THEME = RADAR_THEME_VARIANTS[themeIndex];
+const RADAR_PALETTES = buildThemePalettes(ACTIVE_RADAR_THEME.anchors);
+if (QB_CUSTOM_RING_MIDS.length) {
+  RADAR_PALETTES.QB = buildPaletteFromMids(QB_CUSTOM_RING_MIDS);
+}
+
+const getRadarPalette = (pos) => RADAR_PALETTES[pos] || RADAR_PALETTES.QB;
+const getRadarRingColors = (palette) => palette.map(gradient => gradient.stops[1] || gradient.stops[0]);
+let activeRadarPalette = getRadarPalette('QB');
+let activeRadarColors = getRadarRingColors(activeRadarPalette);
+
+function applyRadarLegendPalette(palette) {
+  const dots = document.querySelectorAll('.fc-legend .fc-dot');
+  if (!dots.length) return;
+  dots.forEach((dot, idx) => {
+    const gradient = palette[idx % palette.length];
+    const start = gradient.stops[0];
+    const mid = gradient.stops[1] || gradient.stops[0];
+    const end = gradient.stops[2] || gradient.stops[1] || gradient.stops[0];
+    dot.style.backgroundColor = mid;
+    dot.style.backgroundImage = `linear-gradient(135deg, ${start}, ${mid} 55%, ${end})`;
+    dot.style.boxShadow = `0 0 9px ${hexToRgba(mid, 0.55)}`;
+  });
+}
+
+function setRadarPalette(pos) {
+  activeRadarPalette = getRadarPalette(pos);
+  activeRadarColors = getRadarRingColors(activeRadarPalette);
+  applyRadarLegendPalette(activeRadarPalette);
+}
 
 // Utility helpers
 const toNum = (v) => (v === null || v === undefined ? null : Number(v));
@@ -3422,6 +3545,7 @@ function renderSelectedDetails() {
 function renderRadar() {
   const player = getSelected();
   const data = buildRadarDataset(player);
+  setRadarPalette(player.position);
   updateLegendForPosition(player.position);
   drawRadarChart('radar-chart', data);
 }
@@ -3571,7 +3695,7 @@ function openRadarModal() {
   if (!cfg) return;
 
   // Ring colors matching the radial bar graph
-  const ringColors = RADAR_RING_COLORS;
+  const ringColors = activeRadarColors;
 
   // Number formatting config per stat key
   const formatConfig = {
@@ -3698,7 +3822,8 @@ function drawRadarChart(containerId, data) {
   const innerRadius = size * 0.12;
   const ringWidth = (maxRadius - innerRadius) / numRings;
   const gap = size * 0.01;
-  const colors = RADAR_RING_COLORS;
+  const palette = activeRadarPalette;
+  const colors = activeRadarColors;
   const fontSize = Math.max(8, size * 0.025);
   const isMobile = window.innerWidth < 768;
   const defs = svg.append('defs');
@@ -3715,7 +3840,7 @@ function drawRadarChart(containerId, data) {
   const glowMerge = glow.append('feMerge');
   glowMerge.append('feMergeNode').attr('in', 'blur');
   glowMerge.append('feMergeNode').attr('in', 'SourceGraphic');
-  const ringGradients = RADAR_RING_GRADIENTS.map((gradient, i) => {
+  const ringGradients = palette.map((gradient, i) => {
     const gradId = `${uid}-ring-${i}`;
     const grad = defs.append('linearGradient')
       .attr('id', gradId)
