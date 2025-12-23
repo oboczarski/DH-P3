@@ -3101,7 +3101,7 @@ body[data-page="welcome"] .app-header {
       font-size: 2.35rem;
       font-weight: 200;
       /* Original gradient slightly brightened */
-      background: linear-gradient(90deg, #6300FF 0%, #f9327687 100%);
+      background: linear-gradient(131deg, #77a4ff 0%, #ff8484 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
