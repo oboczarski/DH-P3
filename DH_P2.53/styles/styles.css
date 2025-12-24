@@ -7301,7 +7301,7 @@ body[data-page="research"] .app-header {
 }
 @media (min-width: 869px) {
   body[data-page="research"] {
-    --research-desktop-content-max: 1250px;
+    --research-desktop-content-max: 1100px;
     --research-desktop-panel-width: min(calc(100vw - 3.5rem), var(--research-desktop-content-max));
     --research-desktop-shell-width: min(calc(100vw - 3rem), var(--research-desktop-content-max));
     --research-desktop-nav-button-width: clamp(4.2rem, 4.5vw, 4.85rem);
@@ -7379,27 +7379,25 @@ body[data-page="research"] .app-header {
 .syop-main {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.65rem;
   padding-bottom: 1.5rem;
 }
 .syop-hero {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  padding: 0.7rem 0.9rem 0.78rem;
-  background: radial-gradient(circle at 20% 18%, rgba(96, 165, 250, 0.18), transparent 58%),
-              radial-gradient(circle at 82% 56%, rgba(192, 132, 252, 0.2), transparent 68%),
-              rgba(18, 21, 38, 0.78);
+  padding: 0.5rem 0.9rem 0.18rem;
+  background: radial-gradient(circle at 20% 18%, rgba(96, 165, 250, 0.18), transparent 58%), radial-gradient(circle at 82% 56%, rgba(192, 132, 252, 0.2), transparent 68%), rgb(18 21 38 / 0%);
   border: 1px solid rgba(132, 146, 255, 0.16);
   border-radius: 20px;
   box-shadow: 0 14px 28px rgba(7, 10, 20, 0.5);
+  filter: saturate(1.1);
 }
 .syop-hero-intro {
   flex: 1 1 260px;
   min-width: 220px;
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
   align-items: center;
 }
 .syop-hero-summary {
@@ -7464,7 +7462,7 @@ body[data-page="research"] .app-header {
 .syop-hero-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.38rem;
+  gap: 0.28rem;
   padding: 0;
   width: 100%;
 }
@@ -7472,9 +7470,8 @@ body[data-page="research"] .app-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.28rem;
-  padding: 0.36rem 0.85rem;
-  min-height: 48px;
+  padding: 0.16rem 0.55rem;
+  min-height: 11px;
   border-radius: 999px;
   background: rgba(16, 20, 34, 0.32);
   border: 1px solid rgba(132, 146, 255, 0.22);
@@ -7484,7 +7481,7 @@ body[data-page="research"] .app-header {
   letter-spacing: 0.01em;
   text-align: center;
   width: 100%;
-  max-width: 720px;
+  max-width: 520px;
 }
 .syop-hero-meta-item .meta-label {
   letter-spacing: 0.14em;
@@ -7566,13 +7563,13 @@ body[data-page="research"] .app-header {
 }
 .syop-panels-grid {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.35rem;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   grid-auto-flow: row;
 }
 .syop-panel {
   position: relative;
-  padding: 0.9rem 0.85rem;
+  padding: 0.6rem 0.85rem;
   border-radius: 16px;
   background: transparent;
   border: none;
@@ -7610,9 +7607,10 @@ body[data-page="research"] .app-header {
   border-radius: 8px;
 }
 .syop-panel header p {
-  margin: 0.22rem 0 1rem;
+  margin: 0.22rem 0 0.2rem;
   color: rgba(182, 185, 214, 0.78);
-  font-size: 0.86rem;
+  font-size: 1.06rem;
+  text-align: center;
 }
 .syop-panel-subhead {
   margin: 0.22rem 0 0.55rem;
@@ -7715,7 +7713,7 @@ body[data-page="research"] .app-header {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  padding: 1.1rem 1.25rem 1.2rem;
+  padding: 0rem 0.05rem 0rem;
   background: transparent;
   border-radius: 16px;
   border: none;
@@ -7729,6 +7727,7 @@ body[data-page="research"] .app-header {
     row-gap: 0.75rem;
     max-width: none;
     margin-inline: 0;
+    margin-top: -14px;
   }
   .syop-panels-grid > .syop-key-legend {
     grid-column: 1 / -1;
@@ -7743,8 +7742,8 @@ body[data-page="research"] .app-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.35rem 0.6rem;
+  gap: 0em;
+  padding: 0.1rem 0.35rem 0.6rem;
 }
 .syop-gauge-svg {
   width: 100%;
@@ -7755,10 +7754,11 @@ body[data-page="research"] .app-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0rem;
   text-transform: uppercase;
   letter-spacing: 0.24em;
   font-size: 0.64rem;
+  margin-top: -18px;
 }
 .syop-gauge-label .gauge-value {
   font-size: 1.08rem;
@@ -8068,7 +8068,7 @@ body[data-page="research"] .app-header {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .syop-hero h1 {
-    font-size: clamp(3.45rem, 1.18rem + 0.85vw, 1.9rem);
+    font-size: clamp(2.95rem, 1.18rem + 0.85vw, 1.9rem);
     margin: 0.0rem 0 0.0rem;
     letter-spacing: -0.02em;
     font-weight: 200;
@@ -8078,7 +8078,7 @@ body[data-page="research"] .app-header {
 @media (max-width: 768px) {
   .syop-hero {
     padding: 0.6rem 0.75rem 0.66rem;
-    gap: 0.58rem;
+    gap: 0.08rem;
   }
   .syop-hero-intro {
     align-items: center;
@@ -8107,6 +8107,7 @@ body[data-page="research"] .app-header {
   }
   .syop-tabs {
     padding: 0.14rem;
+    margin-top: -15px;
   }
   .syop-tab {
     flex: 1 1 150px;
@@ -8141,13 +8142,14 @@ body[data-page="research"] .app-header {
 }
 @media (max-width: 540px) {
   .syop-hero {
-    padding: 0.54rem 0.65rem 0.6rem;
+    padding: 0.24rem 0.65rem 0.3rem;
   }
   .syop-hero h1 {
-    font-size: clamp(1.2rem, 3.6vw, 1.18rem);
+    font-size: clamp(1.3rem, 3.6vw, 1.18rem);
     white-space: nowrap;
     text-align: center;
     letter-spacing: -0.018em;
+    padding: 1px;
   }
   .syop-hero-summary {
     gap: 0.45rem;
@@ -8163,12 +8165,12 @@ body[data-page="research"] .app-header {
     font-size: 0.78rem;
   }
   .syop-hero-meta {
-    gap: 0.24rem;
+    gap: 0.04rem;
   }
   .syop-hero-meta-item {
-    padding: 0.2rem 0.52rem;
+    padding: 0.25rem 0.52rem;
     font-size: 0.7rem;
-    min-height: 36px;
+    min-height: 24px;
   }
   .syop-hero-meta-item .meta-label {
     font-size: 0.54rem;
@@ -8177,14 +8179,15 @@ body[data-page="research"] .app-header {
     flex: 1 1 130px;
     padding: 0.32rem 0.44rem;
     font-size: 0.76rem;
+    filter: saturate(1.4) opacity(0.9);
   }
   .syop-panel,
   .syop-gauges {
-    padding: 0.72rem;
+    padding: 0.52rem 0.52rem 0rem;
   }
   .syop-gauges {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: 0.15rem;
   }
   .syop-section-heading p {
     font-size: 0.86rem;
