@@ -916,9 +916,8 @@
     const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
     const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
     if (hScroll) {
-      const scrollableBody = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay');
       const scrollableHeader = hScroll.querySelector('.stats-scrollable-header');
-      statsState.scrollPositions.horizontal = scrollableBody?.scrollLeft ?? scrollableHeader?.scrollLeft ?? 0;
+      statsState.scrollPositions.horizontal = scrollableHeader?.scrollLeft ?? 0;
     }
     if (vScroll) {
       statsState.scrollPositions.vertical = vScroll.scrollTop || 0;
@@ -932,15 +931,12 @@
       const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
       const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
       const scrollableHeader = hScroll?.querySelector('.stats-scrollable-header');
-      const scrollableBody = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay');
-      const headerTable = scrollableHeader?.querySelector('table');
+      const overlayInner = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay-inner');
       
-      if (Number.isFinite(statsState.scrollPositions.horizontal) && statsState.scrollPositions.horizontal > 0) {
-        if (scrollableBody) {
-          scrollableBody.scrollLeft = statsState.scrollPositions.horizontal;
-        }
-        if (headerTable) {
-          headerTable.style.transform = `translateX(-${statsState.scrollPositions.horizontal}px)`;
+      if (scrollableHeader && statsState.scrollPositions.horizontal > 0) {
+        scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal;
+        if (overlayInner) {
+          overlayInner.style.transform = `translateX(-${statsState.scrollPositions.horizontal}px)`;
         }
       }
       if (vScroll && statsState.scrollPositions.vertical > 0) {
@@ -1630,40 +1626,161 @@
     }
 
     // Scroll synchronization (horizontal)
-    const headerTable = scrollableHeaderTable;
-    let horizontalSyncFrame = null;
-    let pendingScrollLeft = 0;
+    let isSyncingHorizontal = false;
 
-    const syncHeaderTransform = () => {
-      horizontalSyncFrame = null;
-      if (!headerTable) return;
-      headerTable.style.transform = `translateX(-${pendingScrollLeft}px)`;
-    };
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll.
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves.
+    const overlayInner = scrollableBodyOverlayInner;
+    scrollableHeader.addEventListener('scroll', () => {
+      if (!isSyncingHorizontal && overlayInner) {
+        isSyncingHorizontal = true;
+        const scrollLeft = scrollableHeader.scrollLeft;
+        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
+        requestAnimationFrame(() => {
+          isSyncingHorizontal = false;
+        });
+      }
+    });
 
-    const scheduleHeaderSync = () => {
-      pendingScrollLeft = scrollableBodyOverlay.scrollLeft;
-      if (horizontalSyncFrame) return;
-      horizontalSyncFrame = requestAnimationFrame(syncHeaderTransform);
-    };
-
-    scrollableBodyOverlay.addEventListener('scroll', scheduleHeaderSync, { passive: true });
-
-    const routeHorizontalWheelToBody = (event) => {
+    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
+    const routeHorizontalWheelToHeader = (event) => {
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY) || event.shiftKey) {
-        scrollableBodyOverlay.scrollLeft += event.deltaX !== 0 ? event.deltaX : event.deltaY;
+        scrollableHeader.scrollLeft += event.deltaX !== 0 ? event.deltaX : event.deltaY;
         event.preventDefault();
       }
     };
 
-    vScrollContainer.addEventListener('wheel', routeHorizontalWheelToBody, { passive: false });
-    frozenBody.addEventListener('wheel', routeHorizontalWheelToBody, { passive: false });
-    scrollableHeader.addEventListener('wheel', routeHorizontalWheelToBody, { passive: false });
+    vScrollContainer.addEventListener('wheel', routeHorizontalWheelToHeader, { passive: false });
+    frozenBody.addEventListener('wheel', routeHorizontalWheelToHeader, { passive: false });
+    scrollableBodyOverlay.addEventListener('wheel', routeHorizontalWheelToHeader, { passive: false });
+
+    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
+    const attachTouchScroller = (surface, onHorizontalScroll) => {
+      if (!surface) return;
+
+      let touchActive = false;
+      let isHorizontal = null;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let lastTouchX = 0;
+      let lastTimestamp = 0;
+      const VELOCITY_HISTORY_LIMIT = 4;
+      const velocitySamples = [];
+      let momentumFrame = null;
+      const H_THRESHOLD = 8;
+
+      const cancelMomentum = () => {
+        if (momentumFrame) {
+          cancelAnimationFrame(momentumFrame);
+          momentumFrame = null;
+        }
+      };
+
+      const startMomentum = (initialVelocity) => {
+        cancelMomentum();
+        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < 0.02) return;
+        const decay = 0.0025;
+        let velocity = initialVelocity;
+        let prev = performance.now();
+
+        const step = (now) => {
+          const elapsed = now - prev;
+          prev = now;
+          const delta = velocity * elapsed;
+          if (delta !== 0 && typeof onHorizontalScroll === 'function') {
+            onHorizontalScroll(delta);
+          }
+          const attenuation = 1 / (1 + decay * elapsed);
+          velocity *= attenuation;
+          if (Math.abs(velocity) > 0.01) {
+            momentumFrame = requestAnimationFrame(step);
+          } else {
+            momentumFrame = null;
+          }
+        };
+
+        momentumFrame = requestAnimationFrame(step);
+      };
+
+      surface.addEventListener('touchstart', (event) => {
+        if (event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        cancelMomentum();
+        touchActive = true;
+        isHorizontal = null;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        lastTouchX = touch.clientX;
+        lastTimestamp = event.timeStamp;
+        velocitySamples.length = 0;
+      }, { passive: true });
+
+      surface.addEventListener('touchmove', (event) => {
+        if (!touchActive || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        const deltaXFromStart = touch.clientX - touchStartX;
+        const deltaYFromStart = touch.clientY - touchStartY;
+
+        if (isHorizontal === null) {
+          if (Math.abs(deltaXFromStart) > H_THRESHOLD && Math.abs(deltaXFromStart) > Math.abs(deltaYFromStart)) {
+            isHorizontal = true;
+          } else if (Math.abs(deltaYFromStart) > H_THRESHOLD) {
+            isHorizontal = false;
+          }
+        }
+
+        if (isHorizontal) {
+          event.preventDefault();
+          const deltaX = touch.clientX - lastTouchX;
+          const elapsed = event.timeStamp - lastTimestamp;
+          if (elapsed > 0) {
+            const instantaneousVelocity = deltaX / elapsed;
+            velocitySamples.push(instantaneousVelocity);
+            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
+              velocitySamples.shift();
+            }
+          }
+          if (deltaX !== 0) {
+            if (typeof onHorizontalScroll === 'function') {
+              onHorizontalScroll(deltaX);
+            } else {
+              scrollableHeader.scrollLeft -= deltaX;
+            }
+          }
+          lastTouchX = touch.clientX;
+          lastTimestamp = event.timeStamp;
+        }
+      }, { passive: false });
+
+      const resetTouchState = () => {
+        touchActive = false;
+        isHorizontal = null;
+        if (velocitySamples.length && typeof onHorizontalScroll === 'function') {
+          const averagedVelocity = velocitySamples.reduce((sum, v) => sum + v, 0) / velocitySamples.length;
+          startMomentum(averagedVelocity);
+        }
+        velocitySamples.length = 0;
+      };
+
+      surface.addEventListener('touchend', resetTouchState, { passive: true });
+      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
+    };
+
+    const applyImmediateSync = (deltaX) => {
+      scrollableHeader.scrollLeft -= deltaX;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+      }
+    };
+
+    attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
+    attachTouchScroller(frozenBody, applyImmediateSync);
     
     // Initialize scroll positions
-    scrollableBodyOverlay.scrollLeft = 0;
+    scrollableHeader.scrollLeft = 0;
     vScrollContainer.scrollTop = 0;
-    if (headerTable) {
-      headerTable.style.transform = 'translateX(0px)';
+    if (overlayInner) {
+      overlayInner.style.transform = 'translateX(0px)';
     }
 
     // Empty state handling

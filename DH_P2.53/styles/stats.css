@@ -1071,16 +1071,13 @@ body[data-page="stats"] #header-container {
 
 /* Scrollable header (columns 4+) */
 .stats-scrollable-header {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     flex-shrink: 0;
     background: rgb(30 34 51 / 17%);
     border-bottom: 1px solid #fafbff02;
     position: relative;
     z-index: 2;
-}
-
-.stats-scrollable-header table {
-    will-change: transform;
 }
 
 .stats-scrollable-header::-webkit-scrollbar {
@@ -1198,21 +1195,13 @@ body[data-page="stats"] #header-container {
     right: 0;
     z-index: 3;
     pointer-events: auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    background: transparent;
-}
-
-.stats-scrollable-body-overlay::-webkit-scrollbar {
-    height: 0;
-    width: 0;
+    overflow: hidden;
     background: transparent;
 }
 
 /* Inner wrapper for the scrollable table */
 .stats-scrollable-body-overlay-inner {
+    will-change: transform;
     position: relative;
 }
 
