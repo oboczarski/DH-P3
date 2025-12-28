@@ -203,6 +203,29 @@
     { max: 108, color: '#ff2eb2ba' },
     { max: Infinity, color: '#ff0080ba' }
   ];
+
+  const AGE_CONDITIONAL_COLOR_SCALES = {
+    wrTe: [
+      { max: 22.5, color: '#00ffc4' }, { max: 25, color: '#85fff3' },
+      { max: 26, color: '#56dfe8' },   { max: 27, color: '#7dd1ff' },
+      { max: 29, color: '#89a3ff' },   { max: 30, color: '#957cff' },
+      { max: 31, color: '#a642ff' },   { max: 32, color: '#cf60ff' },
+      { max: 33, color: '#ff6fe1' }
+    ],
+    rb: [
+      { max: 22.5, color: '#00ffc4' }, { max: 24, color: '#85fff3' },
+      { max: 25, color: '#56dfe8' },   { max: 26, color: '#7dd1ff' },
+      { max: 27, color: '#89a3ff' },   { max: 28, color: '#957cff' },
+      { max: 29, color: '#a642ff' },   { max: 30, color: '#cf60ff' },
+      { max: 31, color: '#ff6fe1' }
+    ],
+    qb: [
+      { max: 25.5, color: '#00ffc4' }, { max: 28, color: '#85fff3' },
+      { max: 29, color: '#7dd1ff' },   { max: 31, color: '#48a6ff' },
+      { max: 33, color: '#957cff' },   { max: 36, color: '#a642ff' },
+      { max: 40, color: '#cf60ff' },   { max: 44, color: '#ff6fe1' }
+    ]
+  };
   
   // Column width configuration (explicit pixel values for perfect alignment)
   const STATS_COLUMN_WIDTHS = {
@@ -686,6 +709,29 @@
     ) {
       const color = overviewRankColors[column]?.get(entry.meta.playerId);
       if (color) return { color };
+    }
+
+    // Positional age scale (text color only).
+    if (column === 'AGE' && entry.meta.pos !== 'RDP') {
+      const age = Number.isFinite(entry.meta.age) ? entry.meta.age : getNumericSortValue(entry, 'AGE');
+      if (Number.isFinite(age) && age > 0) {
+        const pos = (entry.meta.pos || '').toUpperCase();
+        const scale = pos === 'WR' || pos === 'TE'
+          ? AGE_CONDITIONAL_COLOR_SCALES.wrTe
+          : pos === 'RB'
+            ? AGE_CONDITIONAL_COLOR_SCALES.rb
+            : pos === 'QB'
+              ? AGE_CONDITIONAL_COLOR_SCALES.qb
+              : null;
+
+        if (scale) {
+          for (const tier of scale) {
+            if (age <= tier.max) return { color: tier.color };
+          }
+          const fallback = scale[scale.length - 1]?.color;
+          if (fallback) return { color: fallback };
+        }
+      }
     }
 
     // Value-based conditional formatting (all stat categories).
@@ -1287,12 +1333,23 @@
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
-	              }
-	            }
-	          };
-	        } else {
-	          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry, overviewRankColors));
-	        }
+              }
+            }
+          };
+        } else if (column === 'FPTS') {
+          rowData[column] = {
+            render: (td) => {
+              const style = getConditionalCellStyle(column, entry, overviewRankColors);
+              if (style) Object.assign(td.style, style);
+              const tag = document.createElement('span');
+              tag.className = 'stats-fpts-tag';
+              tag.textContent = displayValue.text ?? displayValue;
+              td.appendChild(tag);
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry, overviewRankColors));
+        }
 	      }
 	      return rowData;
 	    });
@@ -1531,6 +1588,17 @@
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
+            }
+          };
+        } else if (column === 'FPTS') {
+          rowData[column] = {
+            render: (td) => {
+              const style = getConditionalCellStyle(column, entry, overviewRankColors);
+              if (style) Object.assign(td.style, style);
+              const tag = document.createElement('span');
+              tag.className = 'stats-fpts-tag';
+              tag.textContent = displayValue.text ?? displayValue;
+              td.appendChild(tag);
             }
           };
         } else {
