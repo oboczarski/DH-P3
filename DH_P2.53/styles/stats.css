@@ -612,6 +612,10 @@
   text-transform: uppercase;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 12px rgba(7, 10, 25, 0.12);
 }
+.stats-filter-paren {
+  font-size: 0.92em;
+  font-weight: 400;
+}
 .stats-filter-btn[data-position="QB"] {
   box-shadow: 0 0 4px #fc497f03, inset 0 0 7px 4px #fc497f06;
 }

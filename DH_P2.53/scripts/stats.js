@@ -2188,6 +2188,19 @@
     renderTable();
     dom.searchInput.focus();
   }
+
+  let scheduledFullRebuildFrame1 = null;
+  let scheduledFullRebuildFrame2 = null;
+  function scheduleFullRebuildAfterPaint() {
+    if (scheduledFullRebuildFrame1 || scheduledFullRebuildFrame2) return;
+    scheduledFullRebuildFrame1 = requestAnimationFrame(() => {
+      scheduledFullRebuildFrame1 = null;
+      scheduledFullRebuildFrame2 = requestAnimationFrame(() => {
+        scheduledFullRebuildFrame2 = null;
+        renderTable();
+      });
+    });
+  }
   function handleFilterClick(event) {
     const button = event.target.closest('.stats-filter-btn[data-position]') || event.target.closest('.stats-filter-btn-secondary[data-position]');
     if (!button || button.classList.contains('stats-rookie-btn')) return;
@@ -2221,7 +2234,7 @@
     syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
     // Filter changes require full rebuild (different column set)
     statsState.needsFullRebuild = true;
-    renderTable();
+    scheduleFullRebuildAfterPaint();
   }
   function handleReceivingSubfilterClick(event) {
     const btn = event.target.closest('.stats-receiving-subfilter');
