@@ -160,6 +160,24 @@
     { value: 280, color: '#c70097' },
     { value: 500, color: '#FF0080' }
   ];
+
+  const CSTY_CONDITIONAL_STYLE_SCALE = [
+    { min: 80, style: { color: '#00ffc4c0' } },
+    { min: 70, style: { color: '#7dd1ffc0' } },
+    { min: 60, style: { color: '#48a6ffc0' } },
+    { min: 50, style: { color: '#957cffc0' } },
+    { min: 40, style: { color: '#a642ffc0' } },
+    { min: 30, style: { color: '#ff6fe1c0' } },
+    { min: -Infinity, style: { color: '#ff0080c0' } }
+  ];
+
+  const CL_CONDITIONAL_STYLE_SCALE = [
+    { min: 30, style: { color: '#00ffc4' } },
+    { min: 25, style: { color: '#48a6ff' } },
+    { min: 20, style: { color: '#957cff' } },
+    { min: 16, style: { color: '#ff6fe1' } },
+    { min: -Infinity, style: { color: '#ff0080' } }
+  ];
   
   // Column width configuration (explicit pixel values for perfect alignment)
   const STATS_COLUMN_WIDTHS = {
@@ -630,6 +648,25 @@
       if (rank <= tier.value) return tier.color;
     }
     return RK_COLOR_SCALE[RK_COLOR_SCALE.length - 1].color;
+  }
+  function getConditionalCellStyle(column, entry) {
+    if (column !== 'CSTY%' && column !== 'CL') return null;
+    let numeric = getNumericSortValue(entry, column);
+    if (!Number.isFinite(numeric)) return null;
+
+    // Percent columns may arrive as 0-1 in sheets; align conditional thresholds to displayed percent values.
+    if (column === 'CSTY%' && Math.abs(numeric) <= 1) {
+      numeric *= 100;
+    }
+
+    const scale = column === 'CSTY%'
+      ? CSTY_CONDITIONAL_STYLE_SCALE
+      : CL_CONDITIONAL_STYLE_SCALE;
+
+    for (const tier of scale) {
+      if (numeric >= tier.min) return tier.style;
+    }
+    return null;
   }
   function normalizeHeadersRow(headers, rowValues) {
     const row = {};
@@ -1152,7 +1189,7 @@
             }
           };
         } else {
-          rowData[column] = createTextDescriptor(displayValue);
+          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry));
         }
       }
       return rowData;
@@ -1179,6 +1216,7 @@
         const tr = document.createElement('tr');
         cols.forEach((col) => {
           const td = document.createElement('td');
+          td.dataset.columnKey = col;
           const descriptor = rowData[col];
           applyCellDescriptor(td, descriptor);
           tr.appendChild(td);
@@ -1387,7 +1425,7 @@
             }
           };
         } else {
-          rowData[column] = createTextDescriptor(displayValue);
+          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry));
         }
       }
       return rowData;
@@ -1570,18 +1608,19 @@
     };
 
     // Helper to render body rows
-    const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
-      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
-      rowsData.forEach((rowData, idx) => {
-        const tr = document.createElement('tr');
-        cols.forEach((col, cIdx) => {
-          const td = document.createElement('td');
-          // Get the descriptor for this column from the full row data
-          const descriptor = rowData[col];
-          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
-          applyCellDescriptor(td, descriptor);
-          
-          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
+	    const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
+	      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
+	      rowsData.forEach((rowData, idx) => {
+	        const tr = document.createElement('tr');
+	        cols.forEach((col, cIdx) => {
+	          const td = document.createElement('td');
+	          td.dataset.columnKey = col;
+	          // Get the descriptor for this column from the full row data
+	          const descriptor = rowData[col];
+	          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
+	          applyCellDescriptor(td, descriptor);
+	          
+	          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
           td.style.width = `${w}px`;
           td.style.minWidth = `${w}px`;
           td.style.maxWidth = `${w}px`;

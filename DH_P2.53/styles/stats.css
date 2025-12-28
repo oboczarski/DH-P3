@@ -1674,14 +1674,17 @@ body[data-page="stats"] #header-container {
   .stats-search-block {
     max-width: none;
   }
-  .stats-table {
-    font-size: 0.56rem;
-  }
-  .stats-table thead th,
-  .stats-table tbody td {
-    padding: 0.15rem 0.35rem;
-    height: 1.7rem;
-    min-height: 1.7rem;
+	  .stats-table {
+	    font-size: 0.56rem;
+	  }
+	  .stats-table tbody td:not([data-column-key="POS"]):not([data-column-key="VALUE"]):not([data-column-key="TM"]) {
+	    font-size: 0.6rem;
+	  }
+	  .stats-table thead th,
+	  .stats-table tbody td {
+	    padding: 0.15rem 0.35rem;
+	    height: 1.7rem;
+	    min-height: 1.7rem;
     max-height: 1.7rem;
     line-height: 1.1rem;
   }
