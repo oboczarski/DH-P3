@@ -1026,7 +1026,6 @@ body[data-page="stats"] #header-container {
     flex: 1;
     min-height: 0;
     --frozen-width: 192px; /* Default, overridden by JS */
-    will-change: opacity, transform;
 }
 
 .stats-table-container.incoming {
@@ -1036,6 +1035,7 @@ body[data-page="stats"] #header-container {
 .stats-table-container.incoming,
 .stats-table-container.outgoing {
     transition: opacity 80ms ease;
+    will-change: opacity, transform;
 }
 
 .stats-table-container.outgoing {
@@ -1266,8 +1266,6 @@ body[data-page="stats"] #header-container {
     border-collapse: collapse;
     width: 100%;
     table-layout: fixed;
-    will-change: transform;
-    transform: translateZ(0);
 }
 
 .stats-table thead {
@@ -1281,8 +1279,6 @@ body[data-page="stats"] #header-container {
     padding: 0.5rem;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     height: 2.5rem;
     min-height: 2.5rem;
     max-height: 2.5rem;

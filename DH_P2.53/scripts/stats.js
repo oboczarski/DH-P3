@@ -235,14 +235,14 @@
     'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE',
     'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D',
     'YAC', 'ELU', 'ruYPG', 'YPRR', '1DRR', 'recYPG', 'YPR', 'RR', 'CSTY%', 'CL',
-    'TS%', 'OPP', 'recYDS', 'pIMP/G', 'ruIMP/G', 'IMP/G', 'CPOE'
+    'TS%', 'OPP', 'recYDS', 'pIMP/G', 'ruIMP/G', 'IMP/G', 'CPOE', 'EPA/DB'
   ]);
 
   // Efficiency columns (plus any header containing '/' or '%')
   const EFFICIENCY_COLUMNS = new Set([
     'PPG', 'CSTY%', 'CL', 'SNP%', 'IMP/OPP', 'pIMP/A', 'IMP/G', 'pIMP/G', 'ruIMP/G',
     'CMP%', 'paRTG', 'PRS%', 'TTT', 'ELU','MTF/A', 'YCO/A', 'YPC', 'ruYPG', 'recYPG', 'paYPG',
-    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE'
+    'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE', 'EPA/DB'
   ]);
   
   const MOBILE_BREAKPOINT = 600;
@@ -337,6 +337,50 @@
     };
   })();
   const params = new URLSearchParams(window.location.search);
+
+  const TEAM_LOGO_KEY_MAP = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+  function getTeamLogoSrc(teamKey) {
+    const upper = (teamKey || '').toString().trim().toUpperCase();
+    if (!upper || upper === 'FA' || upper === 'RDP') return null;
+    const normalizedKey = TEAM_LOGO_KEY_MAP[upper] || upper.toLowerCase();
+    return `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+  }
+
+  function preloadTeamLogosFromDatasets() {
+    try {
+      if (typeof Image === 'undefined') return;
+      const srcs = new Set();
+      for (const dataset of statsState.datasets.values()) {
+        dataset.forEach((entry) => {
+          if (!entry || entry.meta?.pos === 'RDP') return;
+          const src = getTeamLogoSrc(entry.meta?.team || entry.row?.TM);
+          if (src) srcs.add(src);
+        });
+      }
+      srcs.forEach((src) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = src;
+        if (typeof img.decode === 'function') {
+          img.decode().catch(() => {});
+        }
+      });
+    } catch (e) {
+      // ignore – purely a performance enhancement
+    }
+  }
+
+  function scheduleTeamLogoPreload() {
+    try {
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(preloadTeamLogosFromDatasets, { timeout: 600 });
+      } else {
+        setTimeout(preloadTeamLogosFromDatasets, 0);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
 
   function updateReceivingSubfilterButtons() {
     if (!dom.receivingSubfilterButtons) return;
@@ -812,7 +856,7 @@
         const snapPct = getNumericSortValue(entry, 'SNP%');
         const games = getNumericSortValue(entry, 'G');
         if (!Number.isFinite(snapPct) || snapPct < 40) return false;
-        if (!Number.isFinite(games) || games < 3) return false;
+        if (!Number.isFinite(games) || games < 4) return false;
       }
 
       const statCategory = getColumnCategory(sortColumn);
@@ -2273,6 +2317,7 @@
       }
       // Don't await - weekly stats now load in background after page renders
       await loadAllTabs();
+      scheduleTeamLogoPreload();
       
       // Build rank cache for the initial tab
       const initialDataset = statsState.datasets.get(statsState.currentTab);
