@@ -1701,10 +1701,19 @@
       let touchStartY = 0;
       let lastTouchX = 0;
       let lastTimestamp = 0;
-      const VELOCITY_HISTORY_LIMIT = 4;
+
+      // Match iOS scroll momentum more closely:
+      // UIScrollViewDecelerationRateNormal = 0.998, UIScrollViewDecelerationRateFast = 0.99
+      // (per ms multiplier; we apply `rate^elapsedMs` each frame)
+      // Source: grep.app search results for UIScrollViewDecelerationRateNormal.
+      const DECELERATION_RATE = 0.998;
+      const VELOCITY_HISTORY_LIMIT = 6;
       const velocitySamples = [];
       let momentumFrame = null;
-      const H_THRESHOLD = 8;
+      const H_THRESHOLD = 6;
+      const DIRECTION_LOCK_RATIO = 1.1;
+      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
+      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
 
       const cancelMomentum = () => {
         if (momentumFrame) {
@@ -1715,8 +1724,7 @@
 
       const startMomentum = (initialVelocity) => {
         cancelMomentum();
-        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < 0.02) return;
-        const decay = 0.0025;
+        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) return;
         let velocity = initialVelocity;
         let prev = performance.now();
 
@@ -1725,11 +1733,17 @@
           prev = now;
           const delta = velocity * elapsed;
           if (delta !== 0 && typeof onHorizontalScroll === 'function') {
-            onHorizontalScroll(delta);
+            const moved = onHorizontalScroll(delta);
+            if (moved === false) {
+              momentumFrame = null;
+              return;
+            }
           }
-          const attenuation = 1 / (1 + decay * elapsed);
+
+          // Exponential decay: v(t+dt) = v(t) * rate^dt
+          const attenuation = Math.pow(DECELERATION_RATE, elapsed);
           velocity *= attenuation;
-          if (Math.abs(velocity) > 0.01) {
+          if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
             momentumFrame = requestAnimationFrame(step);
           } else {
             momentumFrame = null;
@@ -1759,9 +1773,11 @@
         const deltaYFromStart = touch.clientY - touchStartY;
 
         if (isHorizontal === null) {
-          if (Math.abs(deltaXFromStart) > H_THRESHOLD && Math.abs(deltaXFromStart) > Math.abs(deltaYFromStart)) {
+          const absX = Math.abs(deltaXFromStart);
+          const absY = Math.abs(deltaYFromStart);
+          if (absX > H_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
             isHorizontal = true;
-          } else if (Math.abs(deltaYFromStart) > H_THRESHOLD) {
+          } else if (absY > H_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
             isHorizontal = false;
           }
         }
@@ -1804,10 +1820,13 @@
     };
 
     const applyImmediateSync = (deltaX) => {
-      scrollableHeader.scrollLeft -= deltaX;
+      const before = scrollableHeader.scrollLeft;
+      scrollableHeader.scrollLeft = before - deltaX;
+      const after = scrollableHeader.scrollLeft;
       if (overlayInner) {
-        overlayInner.style.transform = `translateX(-${scrollableHeader.scrollLeft}px)`;
+        overlayInner.style.transform = `translateX(-${after}px)`;
       }
+      return after !== before;
     };
 
     attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
