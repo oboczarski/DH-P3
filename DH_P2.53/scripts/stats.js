@@ -178,6 +178,31 @@
     { min: 16, style: { color: '#ff6fe1' } },
     { min: -Infinity, style: { color: '#ff0080' } }
   ];
+
+  const OVERVIEW_RANKED_STAT_COLUMNS = [
+    'FPTS',
+    'PPG',
+    'SNP%',
+    'YDS(t)',
+    'YPG(t)',
+    'OPP',
+    'IMP',
+    'IMP/OPP'
+  ];
+  const OVERVIEW_RANKED_STAT_COLUMN_SET = new Set(OVERVIEW_RANKED_STAT_COLUMNS);
+
+  const OVERVIEW_RANK_COLOR_SCALE = [
+    { max: 12, color: '#00ffc4ba' },
+    { max: 24, color: '#85fff3ba' },
+    { max: 36, color: '#7dd1ffba' },
+    { max: 48, color: '#48a6ffba' },
+    { max: 60, color: '#957cffba' },
+    { max: 72, color: '#a642ffba' },
+    { max: 84, color: '#cf60ffba' },
+    { max: 96, color: '#ff6fe1ba' },
+    { max: 108, color: '#ff2eb2ba' },
+    { max: Infinity, color: '#ff0080ba' }
+  ];
   
   // Column width configuration (explicit pixel values for perfect alignment)
   const STATS_COLUMN_WIDTHS = {
@@ -649,24 +674,94 @@
     }
     return RK_COLOR_SCALE[RK_COLOR_SCALE.length - 1].color;
   }
-  function getConditionalCellStyle(column, entry) {
-    if (column !== 'CSTY%' && column !== 'CL') return null;
-    let numeric = getNumericSortValue(entry, column);
-    if (!Number.isFinite(numeric)) return null;
+  function getConditionalCellStyle(column, entry, overviewRankColors) {
+    if (!column || !entry || !entry.meta) return null;
 
-    // Percent columns may arrive as 0-1 in sheets; align conditional thresholds to displayed percent values.
-    if (column === 'CSTY%' && Math.abs(numeric) <= 1) {
-      numeric *= 100;
+    // Overview-only rank formatting (text color only).
+    if (
+      overviewRankColors &&
+      (statsState.activePosition === 'ALL' || !statsState.activePosition) &&
+      OVERVIEW_RANKED_STAT_COLUMN_SET.has(column) &&
+      entry.meta.pos !== 'RDP'
+    ) {
+      const color = overviewRankColors[column]?.get(entry.meta.playerId);
+      if (color) return { color };
     }
 
-    const scale = column === 'CSTY%'
-      ? CSTY_CONDITIONAL_STYLE_SCALE
-      : CL_CONDITIONAL_STYLE_SCALE;
+    // Value-based conditional formatting (all stat categories).
+    if (column === 'CSTY%' || column === 'CL') {
+      let numeric = getNumericSortValue(entry, column);
+      if (!Number.isFinite(numeric)) return null;
 
-    for (const tier of scale) {
-      if (numeric >= tier.min) return tier.style;
+      // Percent columns may arrive as 0-1 in sheets; align conditional thresholds to displayed percent values.
+      if (column === 'CSTY%' && Math.abs(numeric) <= 1) {
+        numeric *= 100;
+      }
+
+      const scale = column === 'CSTY%'
+        ? CSTY_CONDITIONAL_STYLE_SCALE
+        : CL_CONDITIONAL_STYLE_SCALE;
+
+      for (const tier of scale) {
+        if (numeric >= tier.min) return tier.style;
+      }
+    }
+
+    return null;
+  }
+  function getOverviewRankColor(rank) {
+    if (!Number.isFinite(rank) || rank <= 0) return null;
+    for (const tier of OVERVIEW_RANK_COLOR_SCALE) {
+      if (rank <= tier.max) return tier.color;
     }
     return null;
+  }
+  function buildOverviewRankColorCache(dataset, columnsToRank) {
+    const cache = Object.create(null);
+    if (!Array.isArray(columnsToRank) || columnsToRank.length === 0) return cache;
+
+    const base = (dataset || []).filter((entry) => {
+      if (!entry || !entry.meta) return false;
+      if (entry.meta.pos === 'RDP') return false;
+      if (statsState.rookieOnly) {
+        const targetYear = Number(state.currentNflSeason) || new Date().getFullYear();
+        if (entry.meta.rookieYear !== targetYear) return false;
+      }
+      return true;
+    });
+
+    for (const column of columnsToRank) {
+      const eligible = [];
+      for (const entry of base) {
+        if (!hasSortableValue(entry, column)) continue;
+
+        // Mirror the same eligibility rules used when sorting efficiency stats.
+        if (isEfficiencyColumn(column)) {
+          const snapPct = getNumericSortValue(entry, 'SNP%');
+          const games = getNumericSortValue(entry, 'G');
+          if (!Number.isFinite(snapPct) || snapPct < 40) continue;
+          if (!Number.isFinite(games) || games < 4) continue;
+        }
+
+        const numeric = getNumericSortValue(entry, column);
+        if (!Number.isFinite(numeric)) continue;
+        eligible.push(entry);
+      }
+
+      eligible.sort((a, b) => compareValues(b, a, column)); // Desc (best first)
+
+      const colorByPlayerId = new Map();
+      eligible.forEach((entry, index) => {
+        const playerId = entry.meta.playerId;
+        if (!playerId) return;
+        const rank = index + 1;
+        const color = getOverviewRankColor(rank);
+        if (color) colorByPlayerId.set(playerId, color);
+      });
+      cache[column] = colorByPlayerId;
+    }
+
+    return cache;
   }
   function normalizeHeadersRow(headers, rowValues) {
     const row = {};
@@ -1102,11 +1197,11 @@
     
     statsState.lastRenderedRows = sortedRows;
 
-    const createTextDescriptor = (textOrDescriptor, style) => ({
-      render: (td) => {
-        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
-          ? textOrDescriptor
-          : { text: textOrDescriptor, asterisk: false };
+	    const createTextDescriptor = (textOrDescriptor, style) => ({
+	      render: (td) => {
+	        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
+	          ? textOrDescriptor
+	          : { text: textOrDescriptor, asterisk: false };
         td.textContent = descriptor.text ?? '';
         if (descriptor.asterisk) {
           const star = document.createElement('span');
@@ -1114,14 +1209,21 @@
           star.textContent = '✼';
           td.appendChild(star);
         }
-        if (style) Object.assign(td.style, style);
-      }
-    });
+	        if (style) Object.assign(td.style, style);
+	      }
+	    });
 
-    const tableRows = sortedRows.map((entry, entryIndex) => {
-      const rowData = {};
-      for (const column of columnSet) {
-        const textValue = formatCellValue(column, entry);
+	    const overviewRankColumns = (statsState.activePosition === 'ALL' || !statsState.activePosition)
+	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
+	      : [];
+	    const overviewRankColors = overviewRankColumns.length
+	      ? buildOverviewRankColorCache(dataset, overviewRankColumns)
+	      : null;
+
+	    const tableRows = sortedRows.map((entry, entryIndex) => {
+	      const rowData = {};
+	      for (const column of columnSet) {
+	        const textValue = formatCellValue(column, entry);
         const displayValue = annotateEfficiencyValue(column, entry, textValue);
         if (column === 'PLAYER') {
           rowData[column] = {
@@ -1185,15 +1287,15 @@
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
-              }
-            }
-          };
-        } else {
-          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry));
-        }
-      }
-      return rowData;
-    });
+	              }
+	            }
+	          };
+	        } else {
+	          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry, overviewRankColors));
+	        }
+	      }
+	      return rowData;
+	    });
 
     const FROZEN_COLUMN_COUNT = 3;
     const frozenColumns = columnSet.slice(0, FROZEN_COLUMN_COUNT);
@@ -1353,6 +1455,13 @@
       }
     });
 
+    const overviewRankColumns = (statsState.activePosition === 'ALL' || !statsState.activePosition)
+      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
+      : [];
+    const overviewRankColors = overviewRankColumns.length
+      ? buildOverviewRankColorCache(dataset, overviewRankColumns)
+      : null;
+
     const tableRows = sortedRows.map((entry, entryIndex) => {
       const rowData = {};
       for (const column of columnSet) {
@@ -1425,7 +1534,7 @@
             }
           };
         } else {
-          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry));
+          rowData[column] = createTextDescriptor(displayValue, getConditionalCellStyle(column, entry, overviewRankColors));
         }
       }
       return rowData;
