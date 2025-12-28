@@ -1153,7 +1153,6 @@ body[data-page="stats"] #header-container {
     background: transparent;
     border-right: 1px solid #fafbff02;
     pointer-events: auto;
-    will-change: transform;
     overflow: hidden;
 }
 
@@ -1201,7 +1200,6 @@ body[data-page="stats"] #header-container {
 
 /* Inner wrapper that gets transformed for horizontal scrolling */
 .stats-scrollable-body-overlay-inner {
-    will-change: transform;
     position: relative;
 }
 

@@ -372,11 +372,7 @@
 
   function scheduleTeamLogoPreload() {
     try {
-      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(preloadTeamLogosFromDatasets, { timeout: 600 });
-      } else {
-        setTimeout(preloadTeamLogosFromDatasets, 0);
-      }
+      preloadTeamLogosFromDatasets();
     } catch (e) {
       // ignore
     }
@@ -1150,7 +1146,7 @@
                 const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
-                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
             }
@@ -1385,7 +1381,7 @@
                 const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
                 const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
-                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20" loading="lazy" decoding="async">`
+                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
             }
@@ -1656,23 +1652,32 @@
       return true;
     };
 
-    const updateContentHeight = () => {
-      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
-      const frozenBodyHeight = frozenBodyTable.offsetHeight;
-      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
-      if (maxHeight > 0) {
-        frozenBody.style.height = `${maxHeight}px`;
-        scrollableBodyOverlay.style.height = `${maxHeight}px`;
-        vScrollContent.style.minHeight = `${maxHeight}px`;
-      }
-    };
+	    const updateContentHeight = () => {
+	      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
+	      const frozenBodyHeight = frozenBodyTable.offsetHeight;
+	      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
+	      if (maxHeight > 0) {
+	        frozenBody.style.height = `${maxHeight}px`;
+	        scrollableBodyOverlay.style.height = `${maxHeight}px`;
+	        vScrollContent.style.minHeight = `${maxHeight}px`;
+	      }
+	    };
 
-    const handleResize = () => {
-      requestAnimationFrame(() => {
-        applyHeaderMetrics();
-        updateContentHeight();
-      });
-    };
+	    // iOS Safari can fire resize events repeatedly while scrolling (URL bar show/hide),
+	    // which forces expensive layout reads. Only recompute when the viewport width changes.
+	    let lastResizeWidth = window.innerWidth;
+	    let resizeFrame = null;
+	    const handleResize = () => {
+	      const nextWidth = window.innerWidth;
+	      if (nextWidth === lastResizeWidth) return;
+	      lastResizeWidth = nextWidth;
+	      if (resizeFrame) cancelAnimationFrame(resizeFrame);
+	      resizeFrame = requestAnimationFrame(() => {
+	        resizeFrame = null;
+	        applyHeaderMetrics();
+	        updateContentHeight();
+	      });
+	    };
 
     const mountContainer = () => {
       if (!applyHeaderMetrics()) {
@@ -1683,11 +1688,12 @@
       } else {
         updateContentHeight();
       }
-      window.addEventListener('resize', handleResize);
-      container._teardown = () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    };
+	      window.addEventListener('resize', handleResize);
+	      container._teardown = () => {
+	        window.removeEventListener('resize', handleResize);
+	        if (resizeFrame) cancelAnimationFrame(resizeFrame);
+	      };
+	    };
 
     if (previousContainer) {
       container.classList.add('incoming');
