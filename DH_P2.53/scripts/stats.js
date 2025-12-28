@@ -202,7 +202,7 @@
     'CPOE': 76,
     'paYDS': 76,
     'paTD': 64,
-    'CMP%': 76,
+    'CMP%': 64,
     'paATT': 64,
     'CMP': 64,
     'pa1D': 64,
@@ -245,11 +245,30 @@
     'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE'
   ]);
   
+  const MOBILE_BREAKPOINT = 600;
+  const MOBILE_WIDTH_SCALE_BASE = 0.75; // keep existing sizing for key columns on mobile
+  const MOBILE_WIDTH_SCALE_REDUCED = 0.7; // slightly tighter for most columns on mobile
+  const DESKTOP_WIDTH_SCALE_REDUCED = 0.92; // slightly tighter for most columns on desktop
+  const NO_WIDTH_REDUCTION_COLUMNS = new Set(['RK', 'PLAYER', 'POS', 'TM', 'AGE']);
+
   function getColumnWidth(columnKey) {
     const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
-    // Scale down by 25% on mobile (600px and below)
-    const isMobile = window.innerWidth <= 600;
-    return isMobile ? Math.round(baseWidth * 0.75) : baseWidth;
+    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+
+    // Keep Pick Values (RDP) column widths exactly as-is.
+    if (statsState.activePosition === 'RDP') {
+      return isMobile ? Math.round(baseWidth * MOBILE_WIDTH_SCALE_BASE) : baseWidth;
+    }
+
+    if (isMobile) {
+      const scale = NO_WIDTH_REDUCTION_COLUMNS.has(columnKey)
+        ? MOBILE_WIDTH_SCALE_BASE
+        : MOBILE_WIDTH_SCALE_REDUCED;
+      return Math.round(baseWidth * scale);
+    }
+
+    if (NO_WIDTH_REDUCTION_COLUMNS.has(columnKey)) return baseWidth;
+    return Math.round(baseWidth * DESKTOP_WIDTH_SCALE_REDUCED);
   }
   
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
@@ -258,7 +277,7 @@
     activePosition: 'ALL',
     rookieOnly: false,
     searchTerm: '',
-    sort: { column: null, direction: 0 },
+    sort: { column: 'FPTS', direction: 2 },
     datasets: new Map(),
     headerLabels: new Map(),
     availableColumns: new Map(),
@@ -431,7 +450,7 @@
     const headerDisplay = new Map();
     const headers = rawHeaders.map((raw) => {
       const canonical = HEADER_ALIASES.get(raw) || raw;
-      const displayLabel = raw || canonical;
+      const displayLabel = canonical;
       if (!headerDisplay.has(canonical)) {
         headerDisplay.set(canonical, displayLabel);
       }
@@ -2014,7 +2033,7 @@
   function toggleTab(tabKey) {
     if (statsState.currentTab === tabKey) return;
     statsState.currentTab = tabKey;
-    statsState.sort = { column: null, direction: 0 };
+    statsState.sort = { column: 'FPTS', direction: 2 };
     statsState.needsFullRebuild = true; // Tab change requires full rebuild
     
     // Untoggle Pick Values (RDP) when switching tabs
@@ -2138,7 +2157,9 @@
       statsState.activePosition = position;
     }
     
-    statsState.sort = { column: null, direction: 0 }; // Reset sort when changing filter
+    statsState.sort = statsState.activePosition === 'RDP'
+      ? { column: null, direction: 0 }
+      : { column: 'FPTS', direction: 2 }; // Reset sort when changing filter
     // Update main filters
     dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.position === statsState.activePosition);
@@ -2176,7 +2197,9 @@
   function toggleRookieFilter() {
     statsState.rookieOnly = !statsState.rookieOnly;
     dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
-    statsState.sort = { column: null, direction: 0 };
+    statsState.sort = statsState.activePosition === 'RDP'
+      ? { column: null, direction: 0 }
+      : { column: 'FPTS', direction: 2 };
     // Rookie filter changes data, use fast update
     updateTableRows();
   }

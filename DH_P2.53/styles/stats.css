@@ -1681,28 +1681,28 @@ body[data-page="stats"] #header-container {
   }
   .stats-table thead th,
   .stats-table tbody td {
-    padding: 0.2rem 0.35rem;
-    height: 1.85rem;
-    min-height: 1.85rem;
-    max-height: 1.85rem;
-    line-height: 1.2rem;
+    padding: 0.15rem 0.35rem;
+    height: 1.7rem;
+    min-height: 1.7rem;
+    max-height: 1.7rem;
+    line-height: 1.1rem;
   }
   .stats-table tbody tr {
-    height: 1.85rem;
-    min-height: 1.85rem;
-    max-height: 1.85rem;
+    height: 1.7rem;
+    min-height: 1.7rem;
+    max-height: 1.7rem;
   }
   .stats-frozen-body th,
   .stats-frozen-body td {
-    height: 1.85rem;
-    min-height: 1.85rem;
-    max-height: 1.85rem;
-    line-height: 1.2rem;
+    height: 1.7rem;
+    min-height: 1.7rem;
+    max-height: 1.7rem;
+    line-height: 1.1rem;
   }
   .stats-frozen-body tbody tr {
-    height: 1.85rem;
-    min-height: 1.85rem;
-    max-height: 1.85rem;
+    height: 1.7rem;
+    min-height: 1.7rem;
+    max-height: 1.7rem;
   }
   /* Prevent iOS zoom by ensuring input font-size >= 16px */
   /* Prevent iOS zoom by ensuring input font-size >= 16px, but visually scale down so it appears smaller while keeping the browser happy. We compensate the width so the scaled input still fills the available space. */
