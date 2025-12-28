@@ -1710,10 +1710,11 @@
       const VELOCITY_HISTORY_LIMIT = 6;
       const velocitySamples = [];
       let momentumFrame = null;
-      const H_THRESHOLD = 6;
+      const H_THRESHOLD = 3;
       const DIRECTION_LOCK_RATIO = 1.1;
       const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
       const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
+      const MIN_VELOCITY_SAMPLE_MS = 8;
 
       const cancelMomentum = () => {
         if (momentumFrame) {
@@ -1771,6 +1772,8 @@
         const touch = event.touches[0];
         const deltaXFromStart = touch.clientX - touchStartX;
         const deltaYFromStart = touch.clientY - touchStartY;
+        const deltaX = touch.clientX - lastTouchX;
+        const elapsed = event.timeStamp - lastTimestamp;
 
         if (isHorizontal === null) {
           const absX = Math.abs(deltaXFromStart);
@@ -1784,9 +1787,7 @@
 
         if (isHorizontal) {
           event.preventDefault();
-          const deltaX = touch.clientX - lastTouchX;
-          const elapsed = event.timeStamp - lastTimestamp;
-          if (elapsed > 0) {
+          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
             const instantaneousVelocity = deltaX / elapsed;
             velocitySamples.push(instantaneousVelocity);
             if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
@@ -1800,16 +1801,25 @@
               scrollableHeader.scrollLeft -= deltaX;
             }
           }
-          lastTouchX = touch.clientX;
-          lastTimestamp = event.timeStamp;
         }
+
+        // Always advance the baseline so horizontal locking doesn't "jump" when it kicks in.
+        lastTouchX = touch.clientX;
+        lastTimestamp = event.timeStamp;
       }, { passive: false });
 
       const resetTouchState = () => {
         touchActive = false;
         isHorizontal = null;
-        if (velocitySamples.length && typeof onHorizontalScroll === 'function') {
-          const averagedVelocity = velocitySamples.reduce((sum, v) => sum + v, 0) / velocitySamples.length;
+        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
+          let weightedSum = 0;
+          let weightTotal = 0;
+          for (let i = 0; i < velocitySamples.length; i++) {
+            const weight = i + 1; // favor most-recent samples to reduce "extra scroll" on lift
+            weightedSum += velocitySamples[i] * weight;
+            weightTotal += weight;
+          }
+          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
           startMomentum(averagedVelocity);
         }
         velocitySamples.length = 0;
