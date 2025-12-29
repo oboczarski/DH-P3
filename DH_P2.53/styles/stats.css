@@ -1435,13 +1435,12 @@ body[data-page="stats"] #header-container {
   padding: 0.06rem 0.12rem;
   box-sizing: border-box;
   border-radius: 6px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
+  font-weight: 500;
   line-height: 1;
   color: inherit;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.1));
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0px 0px 8px color-mix(in srgb, currentColor 20%, transparent);
 }
 .stats-table .stats-team-chip {
   display: inline-flex;
@@ -1765,10 +1764,11 @@ body[data-page="stats"] #header-container {
 	  }
 
 	  .stats-table .stats-fpts-tag {
-	    height: 1.2rem; /* 1.34rem * 0.75 */
-	    min-height: 1.2rem; /* 1.34rem * 0.75 */
-	    border-radius: 13.1px; /* 6px * 0.75 */
+	    height: 1.15rem; /* 1.34rem * 0.75 */
+	    min-height: 1.15rem; /* 1.34rem * 0.75 */
+	    border-radius: 42.1px; /* 6px * 0.75 */
 	    padding: 0.045rem 0.09rem; /* 0.06rem * 0.75, 0.12rem * 0.75 */
+	    width: 2.2rem;
 	  }
 	  
 	  /* Team chip */
