@@ -1765,9 +1765,9 @@ body[data-page="stats"] #header-container {
 	  }
 
 	  .stats-table .stats-fpts-tag {
-	    height: 1.005rem; /* 1.34rem * 0.75 */
-	    min-height: 1.005rem; /* 1.34rem * 0.75 */
-	    border-radius: 4.5px; /* 6px * 0.75 */
+	    height: 1.2rem; /* 1.34rem * 0.75 */
+	    min-height: 1.2rem; /* 1.34rem * 0.75 */
+	    border-radius: 13.1px; /* 6px * 0.75 */
 	    padding: 0.045rem 0.09rem; /* 0.06rem * 0.75, 0.12rem * 0.75 */
 	  }
 	  
