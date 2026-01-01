@@ -1136,10 +1136,26 @@
   function applySortIndicator(target) {
     if (!target) return;
     target.classList.remove('stats-sort-asc', 'stats-sort-desc');
+
+    const ensureSortIcon = () => {
+      let icon = target.querySelector('.stats-sort-icon');
+      if (icon) return icon;
+      icon = document.createElement('i');
+      icon.className = 'stats-sort-icon fa-solid';
+      icon.setAttribute('aria-hidden', 'true');
+      target.appendChild(icon);
+      return icon;
+    };
+
+    const icon = ensureSortIcon();
+    icon.classList.remove('fa-arrow-down-wide-short', 'fa-arrow-up-short-wide');
+
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
+      icon.classList.add('fa-arrow-up-short-wide');
     } else if (statsState.sort.direction === 2) {
       target.classList.add('stats-sort-desc');
+      icon.classList.add('fa-arrow-down-wide-short');
     }
   }
   
