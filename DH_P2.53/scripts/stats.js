@@ -160,72 +160,6 @@
     { value: 280, color: '#c70097' },
     { value: 500, color: '#FF0080' }
   ];
-
-  // Conditional formatting scales
-  const CSTY_COLOR_SCALE = [
-    { value: 80, color: '#00ffc4c0' },
-    { value: 70, color: '#7dd1ffc0' },
-    { value: 60, color: '#48a6ffc0' },
-    { value: 50, color: '#957cffc0' },
-    { value: 40, color: '#a642ffc0' },
-    { value: 30, color: '#ff6fe1c0' },
-    { value: -Infinity, color: '#ff0080c0' }
-  ];
-
-  const CL_COLOR_SCALE = [
-    { value: 30, color: '#00ffc4' },
-    { value: 25, color: '#48a6ff' },
-    { value: 20, color: '#957cff' },
-    { value: 16, color: '#ff6fe1' },
-    { value: -Infinity, color: '#ff0080' }
-  ];
-
-  const OVERVIEW_RANKED_STAT_COLUMN_SET = new Set([
-    'FPTS',
-    'PPG',
-    'SNP%',
-    'YDS(t)',
-    'YPG(t)',
-    'OPP',
-    'IMP',
-    'IMP/OPP'
-  ]);
-
-  const OVERVIEW_RANK_COLOR_SCALE = [
-    { value: 12, color: '#00ffc4ba' },
-    { value: 24, color: '#85fff3ba' },
-    { value: 36, color: '#7dd1ffba' },
-    { value: 48, color: '#48a6ffba' },
-    { value: 60, color: '#957cffba' },
-    { value: 72, color: '#a642ffba' },
-    { value: 84, color: '#cf60ffba' },
-    { value: 96, color: '#ff6fe1ba' },
-    { value: 108, color: '#ff2eb2ba' },
-    { value: Infinity, color: '#ff0080ba' }
-  ];
-
-  const AGE_CONDITIONAL_COLOR_SCALES = {
-    wrTe: [
-      { value: 22.5, color: '#00ffc4' }, { value: 25, color: '#85fff3' },
-      { value: 26, color: '#56dfe8' }, { value: 27, color: '#7dd1ff' },
-      { value: 29, color: '#89a3ff' }, { value: 30, color: '#957cff' },
-      { value: 31, color: '#a642ff' }, { value: 32, color: '#cf60ff' },
-      { value: 33, color: '#ff6fe1' }
-    ],
-    rb: [
-      { value: 22.5, color: '#00ffc4' }, { value: 24, color: '#85fff3' },
-      { value: 25, color: '#56dfe8' }, { value: 26, color: '#7dd1ff' },
-      { value: 27, color: '#89a3ff' }, { value: 28, color: '#957cff' },
-      { value: 29, color: '#a642ff' }, { value: 30, color: '#cf60ff' },
-      { value: 31, color: '#ff6fe1' }
-    ],
-    qb: [
-      { value: 25.5, color: '#00ffc4' }, { value: 28, color: '#85fff3' },
-      { value: 29, color: '#7dd1ff' }, { value: 31, color: '#48a6ff' },
-      { value: 33, color: '#957cff' }, { value: 36, color: '#a642ff' },
-      { value: 40, color: '#cf60ff' }, { value: 44, color: '#ff6fe1' }
-    ]
-  };
   
   // Column width configuration (explicit pixel values for perfect alignment)
   const STATS_COLUMN_WIDTHS = {
@@ -977,114 +911,6 @@
     });
     return sorted;
   }
-
-  function normalizePercentValue(value) {
-    if (!Number.isFinite(value)) return null;
-    // Sheet data may already be 0-100 or 0-1; treat <= 1 as a fraction.
-    if (value > 0 && value <= 1) return value * 100;
-    return value;
-  }
-
-  function getColorForThreshold(scale, value) {
-    if (!Array.isArray(scale) || !Number.isFinite(value)) return null;
-    for (const tier of scale) {
-      if (value >= tier.value) return tier.color;
-    }
-    return null;
-  }
-
-  function getOverviewRankColorValue(rank) {
-    if (!Number.isFinite(rank) || rank <= 0) return null;
-    for (const tier of OVERVIEW_RANK_COLOR_SCALE) {
-      if (rank <= tier.value) return tier.color;
-    }
-    return OVERVIEW_RANK_COLOR_SCALE[OVERVIEW_RANK_COLOR_SCALE.length - 1]?.color || null;
-  }
-
-  function getAgeScaleForPos(pos) {
-    const upper = (pos || '').toUpperCase();
-    if (upper === 'QB') return AGE_CONDITIONAL_COLOR_SCALES.qb;
-    if (upper === 'RB') return AGE_CONDITIONAL_COLOR_SCALES.rb;
-    if (upper === 'WR' || upper === 'TE') return AGE_CONDITIONAL_COLOR_SCALES.wrTe;
-    return null;
-  }
-
-  function getPositionalAgeColor(pos, age) {
-    if (!Number.isFinite(age) || age <= 0) return null;
-    const scale = getAgeScaleForPos(pos);
-    if (!scale || !scale.length) return null;
-    for (const tier of scale) {
-      if (age <= tier.value) return tier.color;
-    }
-    return scale[scale.length - 1].color;
-  }
-
-  function buildOverviewRankColorCache(entries, columnsToRank) {
-    const result = new Map();
-    if (!Array.isArray(entries) || !Array.isArray(columnsToRank) || !columnsToRank.length) return result;
-
-    const players = entries.filter((entry) => entry?.meta?.pos !== 'RDP' && entry?.meta?.playerId);
-
-    columnsToRank.forEach((column) => {
-      const eligible = players.filter((entry) => {
-        if (!hasSortableValue(entry, column)) return false;
-        if (isEfficiencyColumn(column)) {
-          const snapPct = getNumericSortValue(entry, 'SNP%');
-          const games = getNumericSortValue(entry, 'G');
-          if (!Number.isFinite(snapPct) || snapPct < 40) return false;
-          if (!Number.isFinite(games) || games < 4) return false;
-        }
-        return true;
-      });
-
-      eligible.sort((a, b) => compareValues(b, a, column));
-
-      const columnMap = new Map();
-      eligible.forEach((entry, index) => {
-        const color = getOverviewRankColorValue(index + 1);
-        if (color) {
-          columnMap.set(entry.meta.playerId, color);
-        }
-      });
-
-      result.set(column, columnMap);
-    });
-
-    return result;
-  }
-
-  function getConditionalCellStyle(column, entry, overviewRankColors) {
-    if (!column || !entry) return null;
-    if (entry?.meta?.pos === 'RDP') return null;
-
-    if (column === 'CSTY%') {
-      const raw = getNumericSortValue(entry, column);
-      const pct = normalizePercentValue(raw);
-      const color = Number.isFinite(pct) ? getColorForThreshold(CSTY_COLOR_SCALE, pct) : null;
-      return color ? { color } : null;
-    }
-
-    if (column === 'CL') {
-      const value = getNumericSortValue(entry, column);
-      const color = Number.isFinite(value) ? getColorForThreshold(CL_COLOR_SCALE, value) : null;
-      return color ? { color } : null;
-    }
-
-    if (column === 'AGE') {
-      const age = getNumericSortValue(entry, column);
-      const color = getPositionalAgeColor(entry.meta.pos, age);
-      return color ? { color } : null;
-    }
-
-    const isOverview = !statsState.activePosition || statsState.activePosition === 'ALL';
-    if (isOverview && overviewRankColors && OVERVIEW_RANKED_STAT_COLUMN_SET.has(column)) {
-      const playerId = entry.meta.playerId;
-      const color = playerId ? overviewRankColors.get(column)?.get(playerId) : null;
-      return color ? { color } : null;
-    }
-
-    return null;
-  }
   function formatCellValue(column, entry) {
     const { row, meta } = entry;
     if (column === 'PLAYER') {
@@ -1136,9 +962,6 @@
   function applySortIndicator(target) {
     if (!target) return;
     target.classList.remove('stats-sort-asc', 'stats-sort-desc');
-    // Clean up any previously injected icons from older builds.
-    target.querySelector('.stats-sort-icon')?.remove();
-
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
     } else if (statsState.sort.direction === 2) {
@@ -1242,11 +1065,11 @@
     
     statsState.lastRenderedRows = sortedRows;
 
-	    const createTextDescriptor = (textOrDescriptor, style) => ({
-	      render: (td) => {
-	        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
-	          ? textOrDescriptor
-	          : { text: textOrDescriptor, asterisk: false };
+    const createTextDescriptor = (textOrDescriptor, style) => ({
+      render: (td) => {
+        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
+          ? textOrDescriptor
+          : { text: textOrDescriptor, asterisk: false };
         td.textContent = descriptor.text ?? '';
         if (descriptor.asterisk) {
           const star = document.createElement('span');
@@ -1254,22 +1077,15 @@
           star.textContent = '✼';
           td.appendChild(star);
         }
-	        if (style) Object.assign(td.style, style);
-	      }
-	    });
+        if (style) Object.assign(td.style, style);
+      }
+    });
 
-	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
-	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : [];
-	    const overviewRankColors = overviewRankColumns.length
-	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
-	      : null;
-
-	    const tableRows = sortedRows.map((entry, entryIndex) => {
-	      const rowData = {};
-	      for (const column of columnSet) {
-	        const textValue = formatCellValue(column, entry);
-	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue = formatCellValue(column, entry);
+        const displayValue = annotateEfficiencyValue(column, entry, textValue);
         if (column === 'PLAYER') {
           rowData[column] = {
             render: (td) => {
@@ -1319,11 +1135,11 @@
               td.appendChild(span);
             }
           };
-	        } else if (column === 'TM') {
-	          rowData[column] = {
-	            render: (td) => {
-	              if (entry.meta.pos === 'RDP') {
-	                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
               } else {
                 const teamKey = (textValue || 'FA').toUpperCase();
                 const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
@@ -1333,15 +1149,14 @@
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
-	            }
-	          };
-	        } else {
-	          const style = getConditionalCellStyle(column, entry, overviewRankColors);
-	          rowData[column] = createTextDescriptor(displayValue, style);
-	        }
-	      }
-	      return rowData;
-	    });
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(displayValue);
+        }
+      }
+      return rowData;
+    });
 
     const FROZEN_COLUMN_COUNT = 3;
     const frozenColumns = columnSet.slice(0, FROZEN_COLUMN_COUNT);
@@ -1484,11 +1299,11 @@
     statsState.lastRenderedRows = sortedRows;
 
     // --- Data Transformation for TanStack Table ---
-	    const createTextDescriptor = (textOrDescriptor, style) => ({
-	      render: (td) => {
-	        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
-	          ? textOrDescriptor
-	          : { text: textOrDescriptor, asterisk: false };
+    const createTextDescriptor = (textOrDescriptor, style) => ({
+      render: (td) => {
+        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
+          ? textOrDescriptor
+          : { text: textOrDescriptor, asterisk: false };
         td.textContent = descriptor.text ?? '';
         if (descriptor.asterisk) {
           const star = document.createElement('span');
@@ -1496,22 +1311,15 @@
           star.textContent = '*';
           td.appendChild(star);
         }
-	        if (style) Object.assign(td.style, style);
-	      }
-	    });
+        if (style) Object.assign(td.style, style);
+      }
+    });
 
-	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
-	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : [];
-	    const overviewRankColors = overviewRankColumns.length
-	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
-	      : null;
-
-	    const tableRows = sortedRows.map((entry, entryIndex) => {
-	      const rowData = {};
-	      for (const column of columnSet) {
-	        const textValue = formatCellValue(column, entry);
-	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue = formatCellValue(column, entry);
+        const displayValue = annotateEfficiencyValue(column, entry, textValue);
         if (column === 'PLAYER') {
           rowData[column] = {
             render: (td) => {
@@ -1562,11 +1370,11 @@
               td.appendChild(span);
             }
           };
-	        } else if (column === 'TM') {
-	          rowData[column] = {
-	            render: (td) => {
-	              if (entry.meta.pos === 'RDP') {
-	                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
               } else {
                 const teamKey = (textValue || 'FA').toUpperCase();
                 const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
@@ -1576,15 +1384,14 @@
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
               }
-	            }
-	          };
-	        } else {
-	          const style = getConditionalCellStyle(column, entry, overviewRankColors);
-	          rowData[column] = createTextDescriptor(displayValue, style);
-	        }
-	      }
-	      return rowData;
-	    });
+            }
+          };
+        } else {
+          rowData[column] = createTextDescriptor(displayValue);
+        }
+      }
+      return rowData;
+    });
 
     const columns = columnSet.map(column => ({
       id: column,
@@ -1911,70 +1718,47 @@
       restoreScrollPositions();
     }
 
-	    // Scroll synchronization
-	    // Sync horizontal scroll: move overlay inner content based on header scrollLeft.
-	    // Use rAF with the *latest* scrollLeft to avoid "lag/jitter" on mobile.
-	    const overlayInner = scrollableBodyOverlay._innerWrapper;
-	    let pendingOverlayScrollLeft = 0;
-	    let overlaySyncFrame = null;
-	
-	    const syncOverlayInner = (scrollLeft) => {
-	      if (!overlayInner) return;
-	      overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
-	    };
-	
-	    const scheduleOverlaySync = () => {
-	      if (!overlayInner || overlaySyncFrame) return;
-	      overlaySyncFrame = requestAnimationFrame(() => {
-	        overlaySyncFrame = null;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	      });
-	    };
-	
-	    scrollableHeader.addEventListener('scroll', () => {
-	      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	      scheduleOverlaySync();
-	    });
-	
-	    if (typeof container._teardown === 'function') {
-	      const previousTeardown = container._teardown;
-	      container._teardown = () => {
-	        previousTeardown();
-	        if (overlaySyncFrame) {
-	          cancelAnimationFrame(overlaySyncFrame);
-	          overlaySyncFrame = null;
-	        }
-	      };
-	    }
+    // Scroll synchronization
+    let isSyncingHorizontal = false;
+    
+    // Sync horizontal scroll: transform inner content of overlay based on header scroll
+    // The overlay stays fixed at left: var(--frozen-width), only the inner content moves
+    const overlayInner = scrollableBodyOverlay._innerWrapper;
+    scrollableHeader.addEventListener('scroll', () => {
+      if (!isSyncingHorizontal && overlayInner) {
+        isSyncingHorizontal = true;
+        const scrollLeft = scrollableHeader.scrollLeft;
+        // Transform the inner content (not the overlay itself) to scroll horizontally
+        // Negative translateX moves content left, showing columns further to the right
+        overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
+        requestAnimationFrame(() => {
+          isSyncingHorizontal = false;
+        });
+      }
+    });
     
     // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-	    vScrollContainer.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
+    vScrollContainer.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
     
     // Also handle horizontal scroll on frozen body and overlay
-	    frozenBody.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
+    frozenBody.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
     
-	    scrollableBodyOverlay.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
+    scrollableBodyOverlay.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     // Touch gesture support so mobile users can drag anywhere on the body/frozen section
     const attachTouchScroller = (surface, onHorizontalScroll) => {
@@ -2114,14 +1898,15 @@
       surface.addEventListener('touchcancel', resetTouchState, { passive: true });
     };
 
-	    const applyImmediateSync = (deltaX) => {
-	      const before = scrollableHeader.scrollLeft;
-	      scrollableHeader.scrollLeft = before - deltaX;
-	      const after = scrollableHeader.scrollLeft;
-	      pendingOverlayScrollLeft = after;
-	      syncOverlayInner(after);
-	      return after !== before;
-	    };
+    const applyImmediateSync = (deltaX) => {
+      const before = scrollableHeader.scrollLeft;
+      scrollableHeader.scrollLeft = before - deltaX;
+      const after = scrollableHeader.scrollLeft;
+      if (overlayInner) {
+        overlayInner.style.transform = `translateX(-${after}px)`;
+      }
+      return after !== before;
+    };
 
     attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
     attachTouchScroller(frozenBody, applyImmediateSync);

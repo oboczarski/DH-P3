@@ -1329,25 +1329,16 @@ body[data-page="stats"] #header-container {
 }
 
 /* Sort indicators */
-.stats-table thead th.stats-sort-asc::after,
-.stats-table thead th.stats-sort-desc::after {
-  display: inline-block;
-  margin-left: 0.2rem;
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-  font-size: 0.55rem;
-  opacity: 0.6;
-  vertical-align: middle;
-}
-
-/* fa-arrow-up-short-wide */
 .stats-table thead th.stats-sort-asc::after {
-  content: "\f885";
+  content: ' ▲';
+  font-size: 0.5rem;
+  opacity: 0.6;
 }
 
-/* fa-arrow-down-wide-short */
 .stats-table thead th.stats-sort-desc::after {
-  content: "\f160";
+  content: ' ▼';
+  font-size: 0.5rem;
+  opacity: 0.6;
 }
 
 .stats-table td.stats-player-cell {
