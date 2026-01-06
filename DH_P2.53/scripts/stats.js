@@ -1149,11 +1149,11 @@
   // Helper to save scroll positions before re-render
   function saveScrollPositions() {
     if (!statsState.currentContainer) return;
-    const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
     const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
-    if (hScroll) {
-      statsState.scrollPositions.horizontal = hScroll.querySelector('.stats-scrollable-header')?.scrollLeft || 0;
-    }
+    const horizontalScroller =
+      statsState.currentContainer.querySelector('.stats-scrollable-body-overlay') ||
+      statsState.currentContainer.querySelector('.stats-scrollable-header');
+    statsState.scrollPositions.horizontal = horizontalScroller?.scrollLeft || 0;
     if (vScroll) {
       statsState.scrollPositions.vertical = vScroll.scrollTop || 0;
     }
@@ -1166,12 +1166,14 @@
       const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
       const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
       const scrollableHeader = hScroll?.querySelector('.stats-scrollable-header');
-      const overlayInner = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay-inner');
+      const scrollableBodyOverlay = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay');
       
-      if (scrollableHeader && statsState.scrollPositions.horizontal > 0) {
-        scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal;
-        if (overlayInner) {
-          overlayInner.style.transform = `translateX(-${statsState.scrollPositions.horizontal}px)`;
+      if (statsState.scrollPositions.horizontal > 0) {
+        if (scrollableBodyOverlay) {
+          scrollableBodyOverlay.scrollLeft = statsState.scrollPositions.horizontal;
+        }
+        if (scrollableHeader) {
+          scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal;
         }
       }
       if (vScroll && statsState.scrollPositions.vertical > 0) {
@@ -1654,32 +1656,23 @@
     frozenCornerTable.appendChild(frozenCornerThead);
     frozenCorner.appendChild(frozenCornerTable);
     
-    // Create horizontal scroll container (scrollable header + body)
-    const hScrollContainer = document.createElement('div');
-    hScrollContainer.className = 'stats-hscroll-container';
-    
-    // Scrollable header (columns 4+)
-    const scrollableHeader = document.createElement('div');
-    scrollableHeader.className = 'stats-scrollable-header';
+	    // Create horizontal scroll container (scrollable header + body)
+	    const hScrollContainer = document.createElement('div');
+	    hScrollContainer.className = 'stats-hscroll-container';
+	    
+	    // Scrollable header (columns 4+)
+	    const scrollableHeader = document.createElement('div');
+	    scrollableHeader.className = 'stats-scrollable-header';
     const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
     const scrollableHeaderThead = document.createElement('thead');
-    scrollableHeaderTable.appendChild(scrollableHeaderThead);
-    scrollableHeader.appendChild(scrollableHeaderTable);
-    
-    // Scrollable body wrapper (columns 4+) - used only for scroll event handling
-    const scrollableBodyWrapper = document.createElement('div');
-    scrollableBodyWrapper.className = 'stats-scrollable-body-wrapper';
-    const scrollableBodyTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    const scrollableBodyTbody = document.createElement('tbody');
-    scrollableBodyTable.appendChild(scrollableBodyTbody);
-    scrollableBodyWrapper.appendChild(scrollableBodyTable);
-    
-    hScrollContainer.appendChild(scrollableHeader);
-    // Don't add scrollableBodyWrapper to hScrollContainer - it's only for reference
-    
-    // Create vertical scroll container (frozen body + scrollable body overlay)
-    const vScrollContainer = document.createElement('div');
-    vScrollContainer.className = 'stats-vscroll-container';
+	    scrollableHeaderTable.appendChild(scrollableHeaderThead);
+	    scrollableHeader.appendChild(scrollableHeaderTable);
+	    
+	    hScrollContainer.appendChild(scrollableHeader);
+	    
+	    // Create vertical scroll container (frozen body + scrollable body overlay)
+	    const vScrollContainer = document.createElement('div');
+	    vScrollContainer.className = 'stats-vscroll-container';
     
     // Frozen body (first 3 body columns) - direct child of container for proper positioning
     const frozenBody = document.createElement('div');
@@ -1693,30 +1686,22 @@
     const vScrollContent = document.createElement('div');
     vScrollContent.className = 'stats-vscroll-content';
     
-    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
-    const scrollableBodyOverlay = document.createElement('div');
-    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
-    // Inner wrapper that will be transformed for horizontal scrolling
-    const scrollableBodyOverlayInner = document.createElement('div');
-    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
-    // We'll clone the scrollable body table content here
-    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    const scrollableBodyOverlayTbody = document.createElement('tbody');
-    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
-    scrollableBodyOverlayInner.appendChild(scrollableBodyOverlayTable);
-    scrollableBodyOverlay.appendChild(scrollableBodyOverlayInner);
-    
-    // Append frozen body directly to container, scrollable content to wrapper
-    vScrollContainer.appendChild(frozenBody);
-    vScrollContent.appendChild(scrollableBodyOverlay);
-    vScrollContainer.appendChild(vScrollContent);
-    
-    // Store reference to inner wrapper for scroll synchronization
-    scrollableBodyOverlay._innerWrapper = scrollableBodyOverlayInner;
+	    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
+	    const scrollableBodyOverlay = document.createElement('div');
+	    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
+	    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+	    const scrollableBodyOverlayTbody = document.createElement('tbody');
+	    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
+	    scrollableBodyOverlay.appendChild(scrollableBodyOverlayTable);
+	    
+	    // Append frozen body directly to container, scrollable content to wrapper
+	    vScrollContainer.appendChild(frozenBody);
+	    vScrollContent.appendChild(scrollableBodyOverlay);
+	    vScrollContainer.appendChild(vScrollContent);
 
-    // Apply cell descriptor helper
-    const applyCellDescriptor = (td, descriptor) => {
-      td.textContent = '';
+	    // Apply cell descriptor helper
+	    const applyCellDescriptor = (td, descriptor) => {
+	      td.textContent = '';
       td.innerHTML = '';
       if (!descriptor) return;
       if (typeof descriptor.render === 'function') {
@@ -1790,39 +1775,26 @@
     // Render scrollable header (columns 4+)
     renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, null);
 
-    // Render frozen body rows (first 3 columns)
-    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
+	    // Render frozen body rows (first 3 columns)
+	    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
 
-    // Render scrollable body rows (columns 4+) - render for both wrapper (hidden, for scroll sync) and overlay (visible)
-    renderBodyRows(scrollableBodyTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
-    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
-    
-    // Add scrollable body wrapper to a hidden container for scroll event handling
-    const hiddenScrollContainer = document.createElement('div');
-    hiddenScrollContainer.style.position = 'absolute';
-    hiddenScrollContainer.style.visibility = 'hidden';
-    hiddenScrollContainer.style.pointerEvents = 'none';
-    hiddenScrollContainer.style.height = '1px';
-    hiddenScrollContainer.style.overflow = 'auto';
-    hiddenScrollContainer.appendChild(scrollableBodyWrapper);
-    container.appendChild(hiddenScrollContainer);
+	    // Render scrollable body rows (columns 4+)
+	    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
 
-    // Calculate table widths
-    if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
+	    // Calculate table widths
+	    if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
       frozenCornerTable.style.width = `${frozenWidth}px`;
       frozenCornerTable.style.minWidth = `${frozenWidth}px`;
       frozenBodyTable.style.width = `${frozenWidth}px`;
       frozenBodyTable.style.minWidth = `${frozenWidth}px`;
     }
-    
-    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
-      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
-      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
-      scrollableBodyTable.style.width = `${scrollableWidth}px`;
-      scrollableBodyTable.style.minWidth = `${scrollableWidth}px`;
-      scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
-      scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
-    }
+	    
+	    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
+	      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
+	      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
+	      scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
+	      scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
+	    }
     
     // Get header height for positioning vertical scroll container
     const getHeaderHeight = () => {
@@ -1911,231 +1883,62 @@
       restoreScrollPositions();
     }
 
-	    // Scroll synchronization
-	    // Sync horizontal scroll: move overlay inner content based on header scrollLeft.
-	    // Use rAF with the *latest* scrollLeft to avoid "lag/jitter" on mobile.
-	    const overlayInner = scrollableBodyOverlay._innerWrapper;
-	    let pendingOverlayScrollLeft = 0;
-	    let overlaySyncFrame = null;
-	
-	    const syncOverlayInner = (scrollLeft) => {
-	      if (!overlayInner) return;
-	      overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
-	    };
-	
-	    const scheduleOverlaySync = () => {
-	      if (!overlayInner || overlaySyncFrame) return;
-	      overlaySyncFrame = requestAnimationFrame(() => {
-	        overlaySyncFrame = null;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	      });
-	    };
-	
-	    scrollableHeader.addEventListener('scroll', () => {
-	      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	      scheduleOverlaySync();
-	    });
-	
-	    if (typeof container._teardown === 'function') {
-	      const previousTeardown = container._teardown;
-	      container._teardown = () => {
-	        previousTeardown();
-	        if (overlaySyncFrame) {
-	          cancelAnimationFrame(overlaySyncFrame);
-	          overlaySyncFrame = null;
-	        }
-	      };
-	    }
-    
-    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-	    vScrollContainer.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
-    
-    // Also handle horizontal scroll on frozen body and overlay
-	    frozenBody.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
-    
-	    scrollableBodyOverlay.addEventListener('wheel', (e) => {
-	      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-	        scrollableHeader.scrollLeft += e.deltaX !== 0 ? e.deltaX : e.deltaY;
-	        pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-	        syncOverlayInner(pendingOverlayScrollLeft);
-	        e.preventDefault();
-	      }
-	    }, { passive: false });
+		    // Scroll synchronization
+		    // Keep header + body perfectly in sync using native scrolling on the body overlay.
+		    // Avoid rAF-based transforms here; iOS handles native scroll momentum much more smoothly.
+		    const syncScrollLeft = (source, target) => {
+		      if (!source || !target) return;
+		      const next = source.scrollLeft;
+		      if (Math.abs((target.scrollLeft || 0) - next) > 0.5) {
+		        target.scrollLeft = next;
+		      }
+		    };
+		
+		    scrollableBodyOverlay.addEventListener('scroll', () => {
+		      syncScrollLeft(scrollableBodyOverlay, scrollableHeader);
+		    });
+		
+		    scrollableHeader.addEventListener('scroll', () => {
+		      syncScrollLeft(scrollableHeader, scrollableBodyOverlay);
+		    });
+	    
+	    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
+		    vScrollContainer.addEventListener('wheel', (e) => {
+		      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+		        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+		        scrollableBodyOverlay.scrollLeft += delta;
+		        syncScrollLeft(scrollableBodyOverlay, scrollableHeader);
+		        e.preventDefault();
+		      }
+		    }, { passive: false });
+	    
+	    // Also handle horizontal scroll on frozen body and overlay
+		    frozenBody.addEventListener('wheel', (e) => {
+		      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+		        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+		        scrollableBodyOverlay.scrollLeft += delta;
+		        syncScrollLeft(scrollableBodyOverlay, scrollableHeader);
+		        e.preventDefault();
+		      }
+		    }, { passive: false });
+	    
+		    scrollableBodyOverlay.addEventListener('wheel', (e) => {
+		      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+		        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+		        scrollableBodyOverlay.scrollLeft += delta;
+		        syncScrollLeft(scrollableBodyOverlay, scrollableHeader);
+		        e.preventDefault();
+		      }
+		    }, { passive: false });
+	    
+	    // Initialize scroll positions
+	    scrollableHeader.scrollLeft = 0;
+	    scrollableBodyOverlay.scrollLeft = 0;
+	    vScrollContainer.scrollTop = 0;
 
-    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
-    const attachTouchScroller = (surface, onHorizontalScroll) => {
-      if (!surface) return;
-
-      let touchActive = false;
-      let isHorizontal = null;
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let lastTouchX = 0;
-      let lastTimestamp = 0;
-
-      // Match iOS scroll momentum more closely:
-      // UIScrollViewDecelerationRateNormal = 0.998, UIScrollViewDecelerationRateFast = 0.99
-      // (per ms multiplier; we apply `rate^elapsedMs` each frame)
-      // Source: grep.app search results for UIScrollViewDecelerationRateNormal.
-      const DECELERATION_RATE = 0.998;
-      const VELOCITY_HISTORY_LIMIT = 6;
-      const velocitySamples = [];
-      let momentumFrame = null;
-      const H_THRESHOLD = 3;
-      const DIRECTION_LOCK_RATIO = 1.1;
-      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
-      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
-      const MIN_VELOCITY_SAMPLE_MS = 8;
-
-      const cancelMomentum = () => {
-        if (momentumFrame) {
-          cancelAnimationFrame(momentumFrame);
-          momentumFrame = null;
-        }
-      };
-
-      const startMomentum = (initialVelocity) => {
-        cancelMomentum();
-        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) return;
-        let velocity = initialVelocity;
-        let prev = performance.now();
-
-        const step = (now) => {
-          const elapsed = now - prev;
-          prev = now;
-          const delta = velocity * elapsed;
-          if (delta !== 0 && typeof onHorizontalScroll === 'function') {
-            const moved = onHorizontalScroll(delta);
-            if (moved === false) {
-              momentumFrame = null;
-              return;
-            }
-          }
-
-          // Exponential decay: v(t+dt) = v(t) * rate^dt
-          const attenuation = Math.pow(DECELERATION_RATE, elapsed);
-          velocity *= attenuation;
-          if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
-            momentumFrame = requestAnimationFrame(step);
-          } else {
-            momentumFrame = null;
-          }
-        };
-
-        momentumFrame = requestAnimationFrame(step);
-      };
-
-      surface.addEventListener('touchstart', (event) => {
-        if (event.touches.length !== 1) return;
-        const touch = event.touches[0];
-        cancelMomentum();
-        touchActive = true;
-        isHorizontal = null;
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-        lastTouchX = touch.clientX;
-        lastTimestamp = event.timeStamp;
-        velocitySamples.length = 0;
-      }, { passive: true });
-
-      surface.addEventListener('touchmove', (event) => {
-        if (!touchActive || event.touches.length !== 1) return;
-        const touch = event.touches[0];
-        const deltaXFromStart = touch.clientX - touchStartX;
-        const deltaYFromStart = touch.clientY - touchStartY;
-        const deltaX = touch.clientX - lastTouchX;
-        const elapsed = event.timeStamp - lastTimestamp;
-
-        if (isHorizontal === null) {
-          const absX = Math.abs(deltaXFromStart);
-          const absY = Math.abs(deltaYFromStart);
-          if (absX > H_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
-            isHorizontal = true;
-          } else if (absY > H_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
-            isHorizontal = false;
-          }
-        }
-
-        if (isHorizontal) {
-          event.preventDefault();
-          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
-            const instantaneousVelocity = deltaX / elapsed;
-            velocitySamples.push(instantaneousVelocity);
-            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
-              velocitySamples.shift();
-            }
-          }
-          if (deltaX !== 0) {
-            if (typeof onHorizontalScroll === 'function') {
-              onHorizontalScroll(deltaX);
-            } else {
-              scrollableHeader.scrollLeft -= deltaX;
-            }
-          }
-        }
-
-        // Always advance the baseline so horizontal locking doesn't "jump" when it kicks in.
-        lastTouchX = touch.clientX;
-        lastTimestamp = event.timeStamp;
-      }, { passive: false });
-
-      const resetTouchState = () => {
-        touchActive = false;
-        isHorizontal = null;
-        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
-          let weightedSum = 0;
-          let weightTotal = 0;
-          for (let i = 0; i < velocitySamples.length; i++) {
-            const weight = i + 1; // favor most-recent samples to reduce "extra scroll" on lift
-            weightedSum += velocitySamples[i] * weight;
-            weightTotal += weight;
-          }
-          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
-          startMomentum(averagedVelocity);
-        }
-        velocitySamples.length = 0;
-      };
-
-      surface.addEventListener('touchend', resetTouchState, { passive: true });
-      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
-    };
-
-	    const applyImmediateSync = (deltaX) => {
-	      const before = scrollableHeader.scrollLeft;
-	      scrollableHeader.scrollLeft = before - deltaX;
-	      const after = scrollableHeader.scrollLeft;
-	      pendingOverlayScrollLeft = after;
-	      syncOverlayInner(after);
-	      return after !== before;
-	    };
-
-    attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
-    attachTouchScroller(frozenBody, applyImmediateSync);
-    
-    // Initialize scroll positions
-    scrollableHeader.scrollLeft = 0;
-    vScrollContainer.scrollTop = 0;
-    if (scrollableBodyOverlay._innerWrapper) {
-      scrollableBodyOverlay._innerWrapper.style.transform = 'translateX(0px)';
-    }
-
-    // Empty state handling
-    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
-  }
+	    // Empty state handling
+	    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
+	  }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
     const { meta } = entry;

@@ -1062,9 +1062,7 @@ body[data-page="stats"] #header-container {
     margin-left: var(--frozen-width);
     display: flex;
     flex-direction: column;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     flex: 1;
     min-height: 0;
 }
@@ -1078,6 +1076,7 @@ body[data-page="stats"] #header-container {
     border-bottom: 1px solid #fafbff02;
     position: relative;
     z-index: 2;
+    -webkit-overflow-scrolling: touch;
 }
 
 .stats-scrollable-header::-webkit-scrollbar {
@@ -1194,13 +1193,22 @@ body[data-page="stats"] #header-container {
     right: 0;
     z-index: 3;
     pointer-events: auto;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
     background: transparent;
 }
 
-/* Inner wrapper that gets transformed for horizontal scrolling */
-.stats-scrollable-body-overlay-inner {
-    position: relative;
+/* Hide horizontal scrollbars while keeping native scroll */
+.stats-scrollable-body-overlay {
+    scrollbar-width: none;
+}
+
+.stats-scrollable-body-overlay::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+    background: transparent;
 }
 
 .stats-scrollable-body-overlay table {
