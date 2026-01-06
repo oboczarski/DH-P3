@@ -1684,8 +1684,6 @@
 			    // Inner wrapper that will be transformed for horizontal scrolling (keeps overlay itself fixed).
 			    const scrollableBodyOverlayInner = document.createElement('div');
 			    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
-			    // Ensure we start on a composited transform to avoid a "first horizontal scroll" jerk on iOS.
-			    scrollableBodyOverlayInner.style.transform = 'translate3d(0, 0, 0)';
 			    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
 			    const scrollableBodyOverlayTbody = document.createElement('tbody');
 			    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
@@ -1890,11 +1888,15 @@
 				    let ignoreHeaderScrollEvent = false;
 				    let ignoreHeaderScrollResetFrame = null;
 			
-			    const syncOverlayInner = (scrollLeft) => {
-			      if (!overlayInner) return;
-			      // translate3d helps iOS keep this on the compositor for smoother scroll.
-			      overlayInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
-			    };
+				    const syncOverlayInner = (scrollLeft) => {
+				      if (!overlayInner) return;
+				      // translate3d helps iOS keep this on the compositor for smoother scroll.
+				      overlayInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
+				    };
+				
+				    // Ensure the overlay starts aligned (even at scrollLeft=0) before any user interaction.
+				    pendingOverlayScrollLeft = scrollableHeader.scrollLeft || 0;
+				    syncOverlayInner(pendingOverlayScrollLeft);
 			
 				    // Temporarily promote the overlay during active horizontal scroll to reduce jitter.
 				    let hScrollActiveTimer = null;
@@ -2027,16 +2029,18 @@
 			      // UIScrollViewDecelerationRateNormal = 0.998, UIScrollViewDecelerationRateFast = 0.99
 			      // (per ms multiplier; we apply `rate^elapsedMs` each frame)
 			      // Source: grep.app search results for UIScrollViewDecelerationRateNormal.
-			      const DECELERATION_RATE = 0.998;
-				      const VELOCITY_HISTORY_LIMIT = 6;
-				      const velocitySamples = [];
-				      let lastVelocitySign = 0;
-				      let momentumFrame = null;
-				      const H_THRESHOLD = 1;
-				      const DIRECTION_LOCK_RATIO = 1.1;
-			      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
-			      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
-			      const MIN_VELOCITY_SAMPLE_MS = 8;
+				      const DECELERATION_RATE = 0.998;
+					      const VELOCITY_HISTORY_LIMIT = 6;
+					      const velocitySamples = [];
+					      let lastVelocitySign = 0;
+					      let momentumFrame = null;
+					      const H_THRESHOLD = 1;
+					      const DIRECTION_LOCK_RATIO = 1.1;
+				      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
+				      const MOMENTUM_SINGLE_SAMPLE_MIN_VELOCITY = 0.24; // px/ms (240px/s) - allow flicks with only 1 sample
+				      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
+				      const MIN_VELOCITY_SAMPLE_MS = 8;
+				      const SIGN_FLIP_RESET_MIN_VELOCITY = 0.18; // only reset history on meaningful direction changes
 			
 			      const cancelMomentum = () => {
 			        if (momentumFrame) {
@@ -2126,7 +2130,8 @@
 				          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
 				            const instantaneousVelocity = deltaX / elapsed;
 				            const sign = Math.sign(instantaneousVelocity);
-				            if (sign !== 0 && lastVelocitySign !== 0 && sign !== lastVelocitySign) {
+				            if (sign !== 0 && lastVelocitySign !== 0 && sign !== lastVelocitySign
+				              && Math.abs(instantaneousVelocity) >= SIGN_FLIP_RESET_MIN_VELOCITY) {
 				              // Fast direction changes should favor the newest direction to avoid twitchy momentum.
 				              velocitySamples.length = 0;
 				            }
@@ -2157,16 +2162,23 @@
 				      const resetTouchState = () => {
 				        touchActive = false;
 				        isHorizontal = null;
-				        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
-			          let weightedSum = 0;
-			          let weightTotal = 0;
-			          for (let i = 0; i < velocitySamples.length; i++) {
-			            const weight = i + 1; // favor most-recent samples to reduce "extra scroll" on lift
-			            weightedSum += velocitySamples[i] * weight;
-			            weightTotal += weight;
-			          }
+				        if (typeof onHorizontalScroll === 'function' && velocitySamples.length >= 2) {
+				          let weightedSum = 0;
+				          let weightTotal = 0;
+				          for (let i = 0; i < velocitySamples.length; i++) {
+				            const weight = i + 1; // favor most-recent samples to reduce "extra scroll" on lift
+				            weightedSum += velocitySamples[i] * weight;
+				            weightTotal += weight;
+				          }
 				          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
 				          startMomentum(averagedVelocity);
+				        } else if (typeof onHorizontalScroll === 'function' && velocitySamples.length === 1) {
+				          const v = velocitySamples[0];
+				          // Flicks can sometimes produce only a single touchmove sample; still allow momentum,
+				          // but keep the threshold high so slow drags don't "drift" on lift.
+				          if (Number.isFinite(v) && Math.abs(v) >= MOMENTUM_SINGLE_SAMPLE_MIN_VELOCITY) {
+				            startMomentum(v);
+				          }
 				        }
 				        velocitySamples.length = 0;
 				        lastVelocitySign = 0;
