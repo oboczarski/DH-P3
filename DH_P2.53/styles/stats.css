@@ -1202,6 +1202,11 @@ body[data-page="stats"] #header-container {
     position: relative;
 }
 
+/* During active horizontal scroll, hint the compositor to keep the translated layer smooth. */
+.stats-table-container.stats-is-hscrolling .stats-scrollable-body-overlay-inner {
+    will-change: transform;
+}
+
 .stats-scrollable-body-overlay table {
     border-collapse: collapse;
 }

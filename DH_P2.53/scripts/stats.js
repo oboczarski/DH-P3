@@ -1889,11 +1889,24 @@
 			
 			    const syncOverlayInner = (scrollLeft) => {
 			      if (!overlayInner) return;
-			      overlayInner.style.transform = `translateX(-${scrollLeft}px)`;
+			      // translate3d helps iOS keep this on the compositor for smoother scroll.
+			      overlayInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
+			    };
+			
+			    // Temporarily promote the overlay during active horizontal scroll to reduce jitter.
+			    let hScrollActiveTimer = null;
+			    const markHScrollingActive = () => {
+			      container.classList.add('stats-is-hscrolling');
+			      if (hScrollActiveTimer) clearTimeout(hScrollActiveTimer);
+			      hScrollActiveTimer = setTimeout(() => {
+			        container.classList.remove('stats-is-hscrolling');
+			        hScrollActiveTimer = null;
+			      }, 160);
 			    };
 			
 			    const scheduleOverlaySync = () => {
 			      if (!overlayInner || overlaySyncFrame) return;
+			      markHScrollingActive();
 			      overlaySyncFrame = requestAnimationFrame(() => {
 			        overlaySyncFrame = null;
 			        syncOverlayInner(pendingOverlayScrollLeft);
@@ -1903,6 +1916,9 @@
 			    scrollableHeader.addEventListener('scroll', () => {
 			      if (ignoreHeaderScrollEvent) return;
 			      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
+			      // Apply immediately to reduce 1-frame lag when users drag the header itself.
+			      syncOverlayInner(pendingOverlayScrollLeft);
+			      markHScrollingActive();
 			      scheduleOverlaySync();
 			    });
 			
@@ -1910,6 +1926,10 @@
 			      const previousTeardown = container._teardown;
 			      container._teardown = () => {
 			        previousTeardown();
+			        if (hScrollActiveTimer) {
+			          clearTimeout(hScrollActiveTimer);
+			          hScrollActiveTimer = null;
+			        }
 			        if (overlaySyncFrame) {
 			          cancelAnimationFrame(overlaySyncFrame);
 			          overlaySyncFrame = null;
@@ -1924,6 +1944,7 @@
 			      ignoreHeaderScrollEvent = false;
 			      pendingOverlayScrollLeft = applied;
 			      syncOverlayInner(applied);
+			      markHScrollingActive();
 			      return applied;
 			    };
 			
@@ -1960,8 +1981,8 @@
 			    }, { passive: false });
 			
 			    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
-			    const attachTouchScroller = (surface, onHorizontalScroll) => {
-			      if (!surface) return;
+				    const attachTouchScroller = (surface, onHorizontalScroll) => {
+				      if (!surface) return;
 			
 			      let touchActive = false;
 			      let isHorizontal = null;
@@ -1978,8 +1999,8 @@
 			      const VELOCITY_HISTORY_LIMIT = 6;
 			      const velocitySamples = [];
 			      let momentumFrame = null;
-			      const H_THRESHOLD = 3;
-			      const DIRECTION_LOCK_RATIO = 1.1;
+				      const H_THRESHOLD = 1;
+				      const DIRECTION_LOCK_RATIO = 1.1;
 			      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
 			      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
 			      const MIN_VELOCITY_SAMPLE_MS = 8;
