@@ -1882,10 +1882,11 @@
 			    // Scroll synchronization
 			    // Single source of truth: the header is the only horizontal scroller.
 			    // The body overlay content is translated to match immediately (no body-native horizontal scroll).
-			    const overlayInner = scrollableBodyOverlayInner;
-			    let pendingOverlayScrollLeft = 0;
-			    let overlaySyncFrame = null;
-			    let ignoreHeaderScrollEvent = false;
+				    const overlayInner = scrollableBodyOverlayInner;
+				    let pendingOverlayScrollLeft = 0;
+				    let overlaySyncFrame = null;
+				    let ignoreHeaderScrollEvent = false;
+				    let ignoreHeaderScrollResetFrame = null;
 			
 			    const syncOverlayInner = (scrollLeft) => {
 			      if (!overlayInner) return;
@@ -1913,23 +1914,30 @@
 			      });
 			    };
 			
-			    scrollableHeader.addEventListener('scroll', () => {
-			      if (ignoreHeaderScrollEvent) return;
-			      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-			      // Apply immediately to reduce 1-frame lag when users drag the header itself.
-			      syncOverlayInner(pendingOverlayScrollLeft);
-			      markHScrollingActive();
-			      scheduleOverlaySync();
-			    });
+				    scrollableHeader.addEventListener('scroll', () => {
+				      if (ignoreHeaderScrollEvent) return;
+				      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
+				      // Apply immediately once per frame to reduce perceived lag when users drag the header itself,
+				      // while still batching the final sync to rAF to avoid over-updating transforms.
+				      if (!overlaySyncFrame) {
+				        syncOverlayInner(pendingOverlayScrollLeft);
+				      }
+				      markHScrollingActive();
+				      scheduleOverlaySync();
+				    });
 			
-			    if (typeof container._teardown === 'function') {
-			      const previousTeardown = container._teardown;
-			      container._teardown = () => {
-			        previousTeardown();
-			        if (hScrollActiveTimer) {
-			          clearTimeout(hScrollActiveTimer);
-			          hScrollActiveTimer = null;
-			        }
+				    if (typeof container._teardown === 'function') {
+				      const previousTeardown = container._teardown;
+				      container._teardown = () => {
+				        previousTeardown();
+				        if (ignoreHeaderScrollResetFrame) {
+				          cancelAnimationFrame(ignoreHeaderScrollResetFrame);
+				          ignoreHeaderScrollResetFrame = null;
+				        }
+				        if (hScrollActiveTimer) {
+				          clearTimeout(hScrollActiveTimer);
+				          hScrollActiveTimer = null;
+				        }
 			        if (overlaySyncFrame) {
 			          cancelAnimationFrame(overlaySyncFrame);
 			          overlaySyncFrame = null;
@@ -1937,52 +1945,64 @@
 			      };
 			    }
 			
-			    const setHorizontalScrollLeft = (nextScrollLeft) => {
-			      ignoreHeaderScrollEvent = true;
-			      scrollableHeader.scrollLeft = nextScrollLeft;
-			      const applied = scrollableHeader.scrollLeft;
-			      ignoreHeaderScrollEvent = false;
-			      pendingOverlayScrollLeft = applied;
-			      syncOverlayInner(applied);
-			      markHScrollingActive();
-			      return applied;
-			    };
+				    const setHorizontalScrollLeft = (nextScrollLeft, beforeScrollLeft = scrollableHeader.scrollLeft) => {
+				      // Suppress the header's scroll event that fires due to this programmatic scrollLeft update,
+				      // otherwise we double-sync (and jitter) on iOS during touch-driven scrolling.
+				      ignoreHeaderScrollEvent = true;
+				      if (!ignoreHeaderScrollResetFrame) {
+				        ignoreHeaderScrollResetFrame = requestAnimationFrame(() => {
+				          ignoreHeaderScrollEvent = false;
+				          ignoreHeaderScrollResetFrame = null;
+				        });
+				      }
+				      scrollableHeader.scrollLeft = nextScrollLeft;
+				      const applied = scrollableHeader.scrollLeft;
+				      if (applied !== beforeScrollLeft) {
+				        pendingOverlayScrollLeft = applied;
+				        syncOverlayInner(applied);
+				        markHScrollingActive();
+				      }
+				      return applied;
+				    };
 			
-			    const applyImmediateSync = (deltaX) => {
-			      const before = scrollableHeader.scrollLeft;
-			      const after = setHorizontalScrollLeft(before - deltaX);
-			      return after !== before;
-			    };
+				    const applyImmediateSync = (deltaX) => {
+				      const before = scrollableHeader.scrollLeft;
+				      const after = setHorizontalScrollLeft(before - deltaX, before);
+				      return after !== before;
+				    };
 		    
-		    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-			    vScrollContainer.addEventListener('wheel', (e) => {
-			      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-			        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-			        setHorizontalScrollLeft(scrollableHeader.scrollLeft + delta);
-			        e.preventDefault();
-			      }
-			    }, { passive: false });
+			    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
+				    vScrollContainer.addEventListener('wheel', (e) => {
+				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+				        const before = scrollableHeader.scrollLeft;
+				        setHorizontalScrollLeft(before + delta, before);
+				        e.preventDefault();
+				      }
+				    }, { passive: false });
 		    
-		    // Also handle horizontal scroll on frozen body and overlay
-			    frozenBody.addEventListener('wheel', (e) => {
-			      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-			        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-			        setHorizontalScrollLeft(scrollableHeader.scrollLeft + delta);
-			        e.preventDefault();
-			      }
-			    }, { passive: false });
+			    // Also handle horizontal scroll on frozen body and overlay
+				    frozenBody.addEventListener('wheel', (e) => {
+				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+				        const before = scrollableHeader.scrollLeft;
+				        setHorizontalScrollLeft(before + delta, before);
+				        e.preventDefault();
+				      }
+				    }, { passive: false });
 		    
-			    scrollableBodyOverlay.addEventListener('wheel', (e) => {
-			      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-			        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-			        setHorizontalScrollLeft(scrollableHeader.scrollLeft + delta);
-			        e.preventDefault();
-			      }
-			    }, { passive: false });
+				    scrollableBodyOverlay.addEventListener('wheel', (e) => {
+				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+				        const before = scrollableHeader.scrollLeft;
+				        setHorizontalScrollLeft(before + delta, before);
+				        e.preventDefault();
+				      }
+				    }, { passive: false });
 			
 			    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
-				    const attachTouchScroller = (surface, onHorizontalScroll) => {
-				      if (!surface) return;
+					    const attachTouchScroller = (surface, onHorizontalScroll) => {
+					      if (!surface) return;
 			
 			      let touchActive = false;
 			      let isHorizontal = null;
@@ -1996,9 +2016,10 @@
 			      // (per ms multiplier; we apply `rate^elapsedMs` each frame)
 			      // Source: grep.app search results for UIScrollViewDecelerationRateNormal.
 			      const DECELERATION_RATE = 0.998;
-			      const VELOCITY_HISTORY_LIMIT = 6;
-			      const velocitySamples = [];
-			      let momentumFrame = null;
+				      const VELOCITY_HISTORY_LIMIT = 6;
+				      const velocitySamples = [];
+				      let lastVelocitySign = 0;
+				      let momentumFrame = null;
 				      const H_THRESHOLD = 1;
 				      const DIRECTION_LOCK_RATIO = 1.1;
 			      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
@@ -2012,30 +2033,42 @@
 			        }
 			      };
 			
-			      const startMomentum = (initialVelocity) => {
-			        cancelMomentum();
-			        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) return;
-			        let velocity = initialVelocity;
-			        let prev = performance.now();
-			
-			        const step = (now) => {
-			          const elapsed = now - prev;
-			          prev = now;
-			          const delta = velocity * elapsed;
-			          if (delta !== 0 && typeof onHorizontalScroll === 'function') {
-			            const moved = onHorizontalScroll(delta);
-			            if (moved === false) {
-			              momentumFrame = null;
-			              return;
-			            }
-			          }
-			
-			          // Exponential decay: v(t+dt) = v(t) * rate^dt
-			          const attenuation = Math.pow(DECELERATION_RATE, elapsed);
-			          velocity *= attenuation;
-			          if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
-			            momentumFrame = requestAnimationFrame(step);
-			          } else {
+				      const startMomentum = (initialVelocity) => {
+				        cancelMomentum();
+				        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) return;
+				        let velocity = initialVelocity;
+				        let prev = performance.now();
+				        const MAX_ELAPSED_MS = 64;
+				        const STEP_MAX_MS = 16;
+				
+				        const step = (now) => {
+				          const elapsed = Math.min(now - prev, MAX_ELAPSED_MS);
+				          prev = now;
+				
+				          // Sub-step long frames so decay is integrated over time (avoids "jerk" on dropped frames).
+				          let remaining = elapsed;
+				          while (remaining > 0) {
+				            const dt = Math.min(remaining, STEP_MAX_MS);
+				            const delta = velocity * dt;
+				            if (delta !== 0 && typeof onHorizontalScroll === 'function') {
+				              const moved = onHorizontalScroll(delta);
+				              if (moved === false) {
+				                momentumFrame = null;
+				                return;
+				              }
+				            } else if (delta !== 0) {
+				              scrollableHeader.scrollLeft -= delta;
+				            }
+				
+				            // Exponential decay: v(t+dt) = v(t) * rate^dt
+				            const attenuation = Math.pow(DECELERATION_RATE, dt);
+				            velocity *= attenuation;
+				            remaining -= dt;
+				            if (Math.abs(velocity) <= MOMENTUM_STOP_VELOCITY) break;
+				          }
+				          if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
+				            momentumFrame = requestAnimationFrame(step);
+				          } else {
 			            momentumFrame = null;
 			          }
 			        };
@@ -2043,18 +2076,19 @@
 			        momentumFrame = requestAnimationFrame(step);
 			      };
 			
-			      surface.addEventListener('touchstart', (event) => {
-			        if (event.touches.length !== 1) return;
-			        const touch = event.touches[0];
-			        cancelMomentum();
-			        touchActive = true;
-			        isHorizontal = null;
-			        touchStartX = touch.clientX;
-			        touchStartY = touch.clientY;
-			        lastTouchX = touch.clientX;
-			        lastTimestamp = event.timeStamp;
-			        velocitySamples.length = 0;
-			      }, { passive: true });
+				      surface.addEventListener('touchstart', (event) => {
+				        if (event.touches.length !== 1) return;
+				        const touch = event.touches[0];
+				        cancelMomentum();
+				        touchActive = true;
+				        isHorizontal = null;
+				        touchStartX = touch.clientX;
+				        touchStartY = touch.clientY;
+				        lastTouchX = touch.clientX;
+				        lastTimestamp = event.timeStamp;
+				        velocitySamples.length = 0;
+				        lastVelocitySign = 0;
+				      }, { passive: true });
 			
 			      surface.addEventListener('touchmove', (event) => {
 			        if (!touchActive || event.touches.length !== 1) return;
@@ -2074,33 +2108,43 @@
 			          }
 			        }
 			
-			        if (isHorizontal) {
-			          event.preventDefault();
-			          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
-			            const instantaneousVelocity = deltaX / elapsed;
-			            velocitySamples.push(instantaneousVelocity);
-			            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
-			              velocitySamples.shift();
-			            }
-			          }
-			          if (deltaX !== 0) {
-			            if (typeof onHorizontalScroll === 'function') {
-			              onHorizontalScroll(deltaX);
-			            } else {
-			              scrollableHeader.scrollLeft -= deltaX;
-			            }
-			          }
-			        }
+				        if (isHorizontal) {
+				          event.preventDefault();
+				          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
+				            const instantaneousVelocity = deltaX / elapsed;
+				            const sign = Math.sign(instantaneousVelocity);
+				            if (sign !== 0 && lastVelocitySign !== 0 && sign !== lastVelocitySign) {
+				              // Fast direction changes should favor the newest direction to avoid twitchy momentum.
+				              velocitySamples.length = 0;
+				            }
+				            if (sign !== 0) lastVelocitySign = sign;
+				            velocitySamples.push(instantaneousVelocity);
+				            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
+				              velocitySamples.shift();
+				            }
+				          }
+				          if (deltaX !== 0) {
+				            if (typeof onHorizontalScroll === 'function') {
+				              const moved = onHorizontalScroll(deltaX);
+				              if (moved === false) {
+				                velocitySamples.length = 0;
+				                lastVelocitySign = 0;
+				              }
+				            } else {
+				              scrollableHeader.scrollLeft -= deltaX;
+				            }
+				          }
+				        }
 			
 			        // Always advance the baseline so horizontal locking doesn't "jump" when it kicks in.
 			        lastTouchX = touch.clientX;
 			        lastTimestamp = event.timeStamp;
 			      }, { passive: false });
 			
-			      const resetTouchState = () => {
-			        touchActive = false;
-			        isHorizontal = null;
-			        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
+				      const resetTouchState = () => {
+				        touchActive = false;
+				        isHorizontal = null;
+				        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
 			          let weightedSum = 0;
 			          let weightTotal = 0;
 			          for (let i = 0; i < velocitySamples.length; i++) {
@@ -2108,11 +2152,12 @@
 			            weightedSum += velocitySamples[i] * weight;
 			            weightTotal += weight;
 			          }
-			          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
-			          startMomentum(averagedVelocity);
-			        }
-			        velocitySamples.length = 0;
-			      };
+				          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
+				          startMomentum(averagedVelocity);
+				        }
+				        velocitySamples.length = 0;
+				        lastVelocitySign = 0;
+				      };
 			
 			      surface.addEventListener('touchend', resetTouchState, { passive: true });
 			      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
