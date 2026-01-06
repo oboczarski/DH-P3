@@ -1802,21 +1802,21 @@
     container.appendChild(hScrollContainer);
     container.appendChild(vScrollContainer);
 
-    const applyHeaderMetrics = () => {
-      const headerHeight = getHeaderHeight();
-      if (!headerHeight) return false;
-      frozenCorner.style.height = `${headerHeight}px`;
-      scrollableHeader.style.height = `${headerHeight}px`;
-      vScrollContainer.style.top = `${headerHeight}px`;
-      vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
-      frozenBody.style.top = '0';
-      return true;
-    };
-
-	    const updateContentHeight = () => {
-	      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
-	      const frozenBodyHeight = frozenBodyTable.offsetHeight;
-	      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
+	    const applyHeaderMetrics = () => {
+	      const headerHeight = getHeaderHeight();
+	      if (!headerHeight) return false;
+	      frozenCorner.style.height = `${headerHeight}px`;
+	      scrollableHeader.style.height = `${headerHeight}px`;
+	      vScrollContainer.style.top = `${headerHeight}px`;
+	      vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
+	      frozenBody.style.top = '0';
+	      return true;
+	    };
+	    
+		    const updateContentHeight = () => {
+		      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
+		      const frozenBodyHeight = frozenBodyTable.offsetHeight;
+		      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
 	      if (maxHeight > 0) {
 	        frozenBody.style.height = `${maxHeight}px`;
 	        scrollableBodyOverlay.style.height = `${maxHeight}px`;
@@ -1828,31 +1828,31 @@
 	    // which forces expensive layout reads. Only recompute when the viewport width changes.
 	    let lastResizeWidth = window.innerWidth;
 	    let resizeFrame = null;
-	    const handleResize = () => {
-	      const nextWidth = window.innerWidth;
-	      if (nextWidth === lastResizeWidth) return;
-	      lastResizeWidth = nextWidth;
-	      if (resizeFrame) cancelAnimationFrame(resizeFrame);
-	      resizeFrame = requestAnimationFrame(() => {
-	        resizeFrame = null;
-	        applyHeaderMetrics();
-	        updateContentHeight();
-	      });
-	    };
+		    const handleResize = () => {
+		      const nextWidth = window.innerWidth;
+		      if (nextWidth === lastResizeWidth) return;
+		      lastResizeWidth = nextWidth;
+		      if (resizeFrame) cancelAnimationFrame(resizeFrame);
+		      resizeFrame = requestAnimationFrame(() => {
+		        resizeFrame = null;
+		        applyHeaderMetrics();
+		        updateContentHeight();
+		      });
+		    };
 
-    const mountContainer = () => {
-      if (!applyHeaderMetrics()) {
-        requestAnimationFrame(applyHeaderMetrics);
-      }
-      if (scrollableBodyOverlayTable.offsetHeight === 0) {
-        requestAnimationFrame(updateContentHeight);
-      } else {
-        updateContentHeight();
-      }
-	      window.addEventListener('resize', handleResize);
-	      container._teardown = () => {
-	        window.removeEventListener('resize', handleResize);
-	        if (resizeFrame) cancelAnimationFrame(resizeFrame);
+	    const mountContainer = () => {
+	      if (!applyHeaderMetrics()) {
+	        requestAnimationFrame(applyHeaderMetrics);
+	      }
+	      if (scrollableBodyOverlayTable.offsetHeight === 0) {
+	        requestAnimationFrame(updateContentHeight);
+	      } else {
+	        updateContentHeight();
+	      }
+		      window.addEventListener('resize', handleResize);
+		      container._teardown = () => {
+		        window.removeEventListener('resize', handleResize);
+		        if (resizeFrame) cancelAnimationFrame(resizeFrame);
 	      };
 	    };
 
@@ -1894,16 +1894,26 @@
 			      overlayInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
 			    };
 			
-			    // Temporarily promote the overlay during active horizontal scroll to reduce jitter.
-			    let hScrollActiveTimer = null;
-			    const markHScrollingActive = () => {
-			      container.classList.add('stats-is-hscrolling');
-			      if (hScrollActiveTimer) clearTimeout(hScrollActiveTimer);
-			      hScrollActiveTimer = setTimeout(() => {
-			        container.classList.remove('stats-is-hscrolling');
-			        hScrollActiveTimer = null;
-			      }, 160);
-			    };
+				    // Temporarily promote the overlay during active horizontal scroll to reduce jitter.
+				    let hScrollActiveTimer = null;
+				    let hScrollActiveUntil = 0;
+				    const markHScrollingActive = () => {
+				      hScrollActiveUntil = performance.now() + 160;
+				      container.classList.add('stats-is-hscrolling');
+				      if (hScrollActiveTimer) return;
+				
+				      const tick = () => {
+				        const remaining = hScrollActiveUntil - performance.now();
+				        if (remaining <= 0) {
+				          container.classList.remove('stats-is-hscrolling');
+				          hScrollActiveTimer = null;
+				          return;
+				        }
+				        hScrollActiveTimer = setTimeout(tick, Math.min(remaining, 160));
+				      };
+				
+				      hScrollActiveTimer = setTimeout(tick, 160);
+				    };
 			
 			    const scheduleOverlaySync = () => {
 			      if (!overlayInner || overlaySyncFrame) return;
@@ -1945,25 +1955,25 @@
 			      };
 			    }
 			
-				    const setHorizontalScrollLeft = (nextScrollLeft, beforeScrollLeft = scrollableHeader.scrollLeft) => {
-				      // Suppress the header's scroll event that fires due to this programmatic scrollLeft update,
-				      // otherwise we double-sync (and jitter) on iOS during touch-driven scrolling.
-				      ignoreHeaderScrollEvent = true;
+					    const setHorizontalScrollLeft = (nextScrollLeft, beforeScrollLeft = scrollableHeader.scrollLeft) => {
+					      // Suppress the header's scroll event that fires due to this programmatic scrollLeft update,
+					      // otherwise we double-sync (and jitter) on iOS during touch-driven scrolling.
+					      ignoreHeaderScrollEvent = true;
 				      if (!ignoreHeaderScrollResetFrame) {
 				        ignoreHeaderScrollResetFrame = requestAnimationFrame(() => {
 				          ignoreHeaderScrollEvent = false;
 				          ignoreHeaderScrollResetFrame = null;
 				        });
 				      }
-				      scrollableHeader.scrollLeft = nextScrollLeft;
-				      const applied = scrollableHeader.scrollLeft;
-				      if (applied !== beforeScrollLeft) {
-				        pendingOverlayScrollLeft = applied;
-				        syncOverlayInner(applied);
-				        markHScrollingActive();
-				      }
-				      return applied;
-				    };
+					      scrollableHeader.scrollLeft = nextScrollLeft;
+					      const applied = scrollableHeader.scrollLeft;
+					      if (applied !== beforeScrollLeft) {
+					        pendingOverlayScrollLeft = applied;
+					        syncOverlayInner(applied);
+					        markHScrollingActive();
+					      }
+					      return applied;
+					    };
 			
 				    const applyImmediateSync = (deltaX) => {
 				      const before = scrollableHeader.scrollLeft;
@@ -2098,15 +2108,16 @@
 			        const deltaX = touch.clientX - lastTouchX;
 			        const elapsed = event.timeStamp - lastTimestamp;
 			
-			        if (isHorizontal === null) {
-			          const absX = Math.abs(deltaXFromStart);
-			          const absY = Math.abs(deltaYFromStart);
-			          if (absX > H_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
-			            isHorizontal = true;
-			          } else if (absY > H_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
-			            isHorizontal = false;
-			          }
-			        }
+				        if (isHorizontal === null) {
+				          const absX = Math.abs(deltaXFromStart);
+				          const absY = Math.abs(deltaYFromStart);
+				          if (absX > H_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
+				            isHorizontal = true;
+				            markHScrollingActive();
+				          } else if (absY > H_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
+				            isHorizontal = false;
+				          }
+				        }
 			
 				        if (isHorizontal) {
 				          event.preventDefault();
