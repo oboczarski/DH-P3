@@ -1158,21 +1158,21 @@
 	  }
   
   // Helper to restore scroll positions after re-render
-	  function restoreScrollPositions() {
-	    if (!statsState.currentContainer) return;
-	    requestAnimationFrame(() => {
-	      const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
-	      const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
-	      const scrollableHeader = hScroll?.querySelector('.stats-scrollable-header');
-	      const overlayInner = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay-inner');
-	      
-	      if (scrollableHeader) scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal || 0;
-	      if (overlayInner) overlayInner.style.transform = `translateX(-${statsState.scrollPositions.horizontal || 0}px)`;
-	      if (vScroll && statsState.scrollPositions.vertical > 0) {
-	        vScroll.scrollTop = statsState.scrollPositions.vertical;
-	      }
-	    });
-	  }
+		  function restoreScrollPositions() {
+		    if (!statsState.currentContainer) return;
+		    requestAnimationFrame(() => {
+		      const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
+		      const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
+		      const scrollableHeader = hScroll?.querySelector('.stats-scrollable-header');
+		      const overlayInner = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay-inner');
+		      
+		      if (scrollableHeader) scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal || 0;
+		      if (overlayInner) overlayInner.style.transform = `translate3d(-${statsState.scrollPositions.horizontal || 0}px, 0, 0)`;
+		      if (vScroll && statsState.scrollPositions.vertical > 0) {
+		        vScroll.scrollTop = statsState.scrollPositions.vertical;
+		      }
+		    });
+		  }
   
   // Fast row update - only re-renders tbody rows without touching structure
   function updateTableRows() {
@@ -1681,12 +1681,14 @@
 		    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
 		    const scrollableBodyOverlay = document.createElement('div');
 		    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
-		    // Inner wrapper that will be transformed for horizontal scrolling (keeps overlay itself fixed).
-		    const scrollableBodyOverlayInner = document.createElement('div');
-		    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
-		    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-		    const scrollableBodyOverlayTbody = document.createElement('tbody');
-		    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
+			    // Inner wrapper that will be transformed for horizontal scrolling (keeps overlay itself fixed).
+			    const scrollableBodyOverlayInner = document.createElement('div');
+			    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
+			    // Ensure we start on a composited transform to avoid a "first horizontal scroll" jerk on iOS.
+			    scrollableBodyOverlayInner.style.transform = 'translate3d(0, 0, 0)';
+			    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
+			    const scrollableBodyOverlayTbody = document.createElement('tbody');
+			    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
 		    scrollableBodyOverlayInner.appendChild(scrollableBodyOverlayTable);
 		    scrollableBodyOverlay.appendChild(scrollableBodyOverlayInner);
 	    
