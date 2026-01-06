@@ -18,7 +18,7 @@
   "chat.emptyState.history.enabled": true,
   "window.nativeTabs": true,
   "github.copilot.chat.alternateGptPrompt.enabled": true,
-  "editor.fontSize": 11,
+  "editor.fontSize": 12,
   "markdown.preview.fontSize": 11,
   "debug.console.fontSize": 11,
   "scm.inputFontSize": 11,
