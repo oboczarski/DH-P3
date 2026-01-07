@@ -931,7 +931,16 @@ if (typeof window !== 'undefined') {
                 ]);
                 
                 // Fetch league-specific matchup data for FPTS/PPG
-                await fetchLeagueMatchupData(leagueId);
+                // If current league is a new season (e.g., 2026) with no games yet, use previous season's league
+                const leagueSeason = parseInt(leagueInfo?.season, 10);
+                const previousLeagueId = leagueInfo?.previous_league_id;
+                const sheetDataSeason = 2025; // The season our Google Sheets data covers
+                
+                // Use previous league's matchup data if current league season is newer than sheet data
+                const matchupLeagueId = (previousLeagueId && leagueSeason > sheetDataSeason) 
+                    ? previousLeagueId 
+                    : leagueId;
+                await fetchLeagueMatchupData(matchupLeagueId);
                 
                 const teams = processRosterData(rosters, users, tradedPicks, leagueInfo);
                 const userTeam = teams.find(team => team.isUserTeam);
