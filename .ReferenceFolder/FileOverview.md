@@ -1,103 +1,406 @@
-Dynasty Hub – Comprehensive App File Analysis (Fully Verified & Accurate)
+# Dynasty Hub Application - File Overview
 
-This document provides a complete, code-verified analysis of the Dynasty Hub application.
-All line counts, functionality, and implementation details have been cross-referenced with actual source code.
+This document provides a comprehensive overview of all files in the Dynasty Hub application, a Progressive Web App (PWA) for fantasy football league analysis and management. The application integrates with Sleeper API and Google Sheets for data, featuring advanced analytics, player valuations, and interactive visualizations.
 
-⸻
+## Project Structure
 
-Files (Verified Actual Counts)
-	•	app.js — Core application logic
-	•	Actual line count: 5,229 lines
-	•	styles.css — Global styles  
-	•	Actual line count: 7,513 lines
-	•	index.html — Welcome/entry page
-	•	Actual line count: 291 lines
-	•	rosters.html — Main rosters page
-	•	Actual line count: 291 lines
+```
+DH_P2.53/
+├── index.html                 # Main entry point (welcome page)
+├── manifest.webmanifest       # PWA manifest
+├── service-worker.js          # Service worker for offline caching
+├── analyzer/
+│   └── analyzer.html          # League Analyzer page
+├── assets/                    # Static assets (icons, logos, etc.)
+├── ownership/
+│   └── ownership.html         # Ownership percentages page
+├── research/
+│   └── research.html          # Research page (SYOP, draft analysis)
+├── rosters/
+│   └── rosters.html           # Rosters page
+├── scripts/                   # JavaScript modules
+│   ├── analyzer.js            # League analyzer logic
+│   ├── app.js                 # Core application logic
+│   ├── dh-scramble.js         # Title scramble animation
+│   ├── stats.js               # Stats page logic
+│   └── syop.js                # Research page visualizations
+├── stats/
+│   └── stats.html             # Player stats page
+└── styles/                    # CSS stylesheets
+    ├── stats.css              # Stats page specific styles
+    └── styles.css             # Global styles
 
-Other pages: Ownership (ownership.html), Stats (stats.html), Research (research.html), League Analyzer (analyzer.html).
+netlify/
+├── edge-functions/
+│   ├── sheet-proxy.js         # Google Sheets proxy
+│   └── sleeper-proxy.js       # Sleeper API proxy
+└── netlify.toml               # Netlify configuration
+```
 
-⸻
+## Core Files Overview
 
-Application Architecture Overview
+### HTML Pages
 
-Core Stack
-	•	PWA with service worker caching (service-worker.js, 158 lines)
-	•	Vanilla JavaScript (no frameworks)
-	•	TanStack Table Core v8.11.0 (dynamically loaded from CDN for game logs modal)
-	•	D3.js rendering for charts (Research and Analyzer pages)
-	•	Sleeper API + Google Sheets CSV (via Netlify edge function proxies) for data
-	•	Font Awesome 6.5.1 for icons
+#### index.html (291 lines)
+**Purpose**: Main entry point and welcome page for the Dynasty Hub application.
 
-High-Level Data Flow
+**Key Features**:
+- Welcome screen with logo and instructions
+- Username input for Sleeper integration
+- Navigation menu for different app sections
+- PWA installation instructions for various devices
+- Loading screen with animated ring
+- Player card legend section
 
-User Input
-   → Sleeper API (via sleeper-proxy.js edge function)
-   → Google Sheets proxy (sheet-proxy.js for KTC / stats CSV)
-   → Service Worker Cache (version-based invalidation)
-   → In-Memory State (global state object in app.js)
-   → DOM Rendering (player cards, tables, modals, comparison views)
+**Structure**:
+- Header with menu toggle, username input, and enter button
+- Main content with welcome logo, scramble animation, and install panel
+- Footer with data attribution disclaimer
+- Loading overlay with animated text ring
 
-⸻
+**Dependencies**: app.js, dh-scramble.js, styles.css
 
-Design System
+#### rosters/rosters.html (291 lines)
+**Purpose**: Displays team rosters with player cards, supporting comparisons and trade simulations.
 
-Styling Approach
-	•	Glassmorphism panels using backdrop-filter: blur(18px) with translucent backgrounds and layered shadows
-	•	Starfield background with 4 animated layers (#stars, #stars1, #stars2, #stars3) + noise overlay
-	•	Position-specific colors: QB (#FF3A75), RB (#00EBC7), WR (#58A7FF), TE (#FFD23F)
-	•	Conditional coloring system for ranks, ages, heights, weights, and injury designations
-	•	Team logo glows via per-team CSS custom properties (32 NFL teams defined)
-	•	Comprehensive responsive breakpoints: 520px, 540px, 700px, 768px, 820px, 869px, 1280px, 1440px
-	•	Injury designation color system: IR (#d93d76), BYE (#C3A8FB), Q (#fd9a3dff), D (#e780c3ff), PUP/OUT (#D47DC6)
+**Key Features**:
+- Roster views with player cards showing position, rank, age, team, KTC value, ADP
+- Team selection dropdown
+- View switcher (roster/player list)
+- Loading screen and modals for game logs and player comparisons
 
-Key Visual Elements
-	•	Player cards: three-line structure (main: position + name | meta: pos rank + age + team | value: KTC/PPG with ranks)
-	•	Rank annotations: ordinal suffix variants with position-specific placement (.stat-rank-variant-ktc, .stat-rank-variant-gamelogs-footer, .stat-rank-variant-gamelogs-opponent, .stat-rank-variant-compare)
-	•	Trade preview/Start-Sit preview: bottom-fixed, collapsible panel with glass styling
-	•	Modals: Game Logs (TanStack Table with sticky columns and week headers) and Player Comparison (side-by-side stats with bar visualization)
-	•	Compare Search Popover: searchable dropdown for team selection during comparison mode
+**Structure**:
+- Navigation header with team select and view controls
+- Main content area for roster display
+- Modals for game logs and player comparison
+- Loading screen overlay
 
-Representative Glass Panel Style
+**Dependencies**: app.js for dynamic rendering and event handling
 
-.glass-panel {
-  background-color: rgba(13,14,35,0.18);
-  backdrop-filter: blur(18px) saturate(120%) brightness(115%);
-  border: 1px solid rgba(128,138,189,0.26);
-  box-shadow: inset 0 0 0 4px rgba(200,200,200,0.025),
-              0 10px 26px rgba(0,0,0,0.22);
-}
+#### analyzer/analyzer.html (structured)
+**Purpose**: League Analyzer page featuring charts and tables for league value and production analysis.
 
-	•	Nested borders: outer panel border (rgba 128,138,189) + subtle inner white overlay (rgba 200,200,200)
-	•	Shadows provide depth with soft inset glow and external drop shadow
+**Key Features**:
+- Summary stats display
+- Multiple chart panels: lineup value, overall value, radar chart
+- Standings table and leaders table
+- Toggle buttons for different views
 
-⸻
+**Structure**:
+- Hero section with summary stats grid
+- Panel containers for various charts and tables
+- Loading screen
 
-Pages & Structure
+**Dependencies**: analyzer.js for data processing and Chart.js for visualizations
 
-1) Welcome Page — index.html (291 lines)
+#### ownership/ownership.html (structured)
+**Purpose**: Displays player ownership percentages across leagues.
 
-Purpose
-	•	Entry point: user enters Sleeper username and navigates to rosters page
+**Key Features**:
+- Ownership percentage visualization
+- Legend showing KTC VALUE and ADP
+- Roster and player list views
+- Similar structure to rosters page
 
-Key Components
-	•	Header with home menu dropdown (.menu-toggle), username input, and circular Enter button with rotating icon
-	•	Animated "Dynasty Hub" logo with SVG mask effect and glow (letter scrambling animated by dh-scramble.js)
-	•	Install instructions panel with PWA setup for iOS, Android, and Mac (collapsed <details> element)
-	•	Player Card Legend (#legend-section) showing roster card anatomy with example data
-	•	Loading overlay with orbit ring animation (28 characters: "LOADING INITIAL DATA • • • •")
+**Structure**:
+- Navigation header
+- Main content with ownership views
+- Loading screen and modals
 
-Styling Notes
-	•	data-page="welcome" scoping for page-specific CSS overrides
-	•	4-layer starfield: #stars (small), #stars1, #stars2 (medium), #stars3 (large) with box-shadow rendering
-	•	Animation durations: 100s, 350s, 400s with continuous -2000px translateY
-	•	Glassmorphism UI with gradient masks and soft glows
+**Dependencies**: app.js for rendering and data handling
 
-Data Flow
-	•	Username input → Enter button → fetchAndSetUser() validates via Sleeper API → stores userId → navigate to rosters.html
-	•	localStorage persists username for auto-population
+#### research/research.html (structured)
+**Purpose**: Research page with tabs for SYOP (Significant Years of Production) analysis and NFL Draft hit rates.
 
-⸻
+**Key Features**:
+- Tabbed interface (SYOP and Draft tabs)
+- Hero sections for each analysis type
+- Chart panels for sunburst, bar charts, gauges, and draft visualizations
+
+**Structure**:
+- Tab buttons and panels
+- Hero sections with descriptions
+- Grid layouts for charts
+
+**Dependencies**: syop.js for visualizations, app.js for navigation
+
+#### stats/stats.html (structured)
+**Purpose**: Player statistics page showing sortable tables with player stats and trade values.
+
+**Key Features**:
+- Tabs for 1QB and SFLX scoring formats
+- Search and filter controls
+- Sortable player stats table
+- Game logs modal
+
+**Structure**:
+- Intro section with controls
+- Table region with stats display
+- Game logs modal
+
+**Dependencies**: stats.js for table handling, app.js for modals
+
+### JavaScript Files
+
+#### scripts/app.js (6417 lines)
+**Purpose**: Core application logic managing global state, navigation, data fetching, rendering, and user interactions.
+
+**Key Features**:
+- Global state management (userId, leagues, players, etc.)
+- Navigation between pages
+- Data fetching from Sleeper API and Google Sheets
+- Player card rendering with conditional styling
+- Trade simulation and comparison modals
+- Game logs modal with TanStack Table integration
+- Player comparison logic
+- Trade block rendering
+- Player list (ownership) views
+- Extensive formatting utilities for stats, vitals, colors
+- PWA service worker registration
+- Focus suppression for mobile keyboards
+- Content visibility optimization
+
+**Key Functions**:
+- `state`: Global state object
+- `fetchAndSetUser()`, `fetchSleeperPlayers()`: Data fetching
+- `handlePlayerNameClick()`, `renderGameLogs()`: Event handlers
+- `renderPlayerComparison()`, `renderTradeBlock()`: Modal rendering
+- `getRankColor()`, `getVitalsColor()`: Formatting helpers
+
+**Dependencies**: External APIs (Sleeper, Google Sheets), Chart.js plugins, DOM elements
+
+#### scripts/analyzer.js (1920 lines)
+**Purpose**: JavaScript logic for the League Analyzer page, handling data fetching, processing, and chart rendering.
+
+**Key Features**:
+- Chart plugins for radar background, labels, bar totals
+- League data processing (rosters, stats, KTC values)
+- Rendering functions for lineup, overall, and radar charts
+- Utility functions for formatting and colors
+
+**Key Functions**:
+- `radarBackgroundPlugin`: Chart.js plugin
+- `processLeagueData()`: Data processing
+- `renderLineupChart()`, `renderOverallChart()`, `renderRadarChart()`: Chart rendering
+- `formatNumber()`: Formatting utility
+
+**Dependencies**: Chart.js, HTML canvases and tables
+
+#### scripts/stats.js (structured, ~1000+ lines)
+**Purpose**: JavaScript specific to the Stats page, handling data fetching from STAT_1QB/STAT_SFLX sheets, calculating stats, managing tab/filter states, rendering sortable player stats table, and integrating game logs modal.
+
+**Key Features**:
+- Tab management (1QB/SFLX)
+- Data fetching and CSV parsing
+- Filtering by position, rookie status, search
+- Sorting with conditional logic
+- Rank cache building for FPTS/PPG
+- Table rendering with sticky columns
+- Game logs integration
+- Color scaling for VALUE and RK
+
+**Key Functions**:
+- `buildStatsPageRankCache()`: Rank calculation
+- `passesFilters()`: Filtering logic
+- `renderTable()`: DOM rendering
+- `openGameLogs()`: Modal integration
+
+**Dependencies**: app.js for modals, Google Sheets API
+
+#### scripts/syop.js (structured, ~1000+ lines)
+**Purpose**: JavaScript for the Research page, responsible for rendering SYOP sunburst chart, bar charts, gauges, and NFL Draft hit rate visualizations.
+
+**Key Features**:
+- Sunburst chart with hierarchical data (QB/RB/WR/TE positions)
+- Bar charts for SYOP distribution
+- Gauge charts for average SYOP by position
+- Draft overall and positional charts
+- Tab switching between SYOP and Draft views
+- Responsive design with resize handling
+
+**Key Data Structures**:
+- `SUNBURST_NODES`: Hierarchical position data
+- `SYOP_DATA`: Distribution percentages
+- `GAUGES`: Position averages
+- `DRAFT_OVERALL/POSITIONAL`: Draft hit rates
+
+**Key Functions**:
+- `renderSunburst()`: D3.js sunburst visualization
+- `renderBarChart()`: Interactive bar charts
+- `renderGauges()`: SVG gauge charts
+- `renderDraftOverall/Positional()`: Line and bar charts
+
+**Dependencies**: D3.js for advanced visualizations, Chart.js for some charts
+
+#### scripts/dh-scramble.js (structured, ~100 lines)
+**Purpose**: Creates a letter-by-letter scramble animation for the "Dynasty Hub" title on the welcome page.
+
+**Key Features**:
+- Randomized character set (alphanumeric + symbols)
+- Shuffled lock order for letters
+- Flickering effect with random intervals
+- Space preservation in title
+
+**Implementation**:
+- IIFE (Immediately Invoked Function Expression)
+- Interval-based animation
+- DOM manipulation for text replacement
+
+**Dependencies**: None (standalone animation)
+
+### CSS Files
+
+#### styles/styles.css (8399 lines)
+**Purpose**: Global CSS styles defining the visual theme, glassmorphism effects, responsive layouts, and conditional coloring for the application.
+
+**Key Features**:
+- Rank suffix styling for modals
+- CSS variables for colors, fonts, dimensions
+- Glassmorphism panels with backdrop filters
+- Background orbs and noise overlays
+- Custom scrollbars
+- General UI elements (loading screens, tooltips)
+- Header layouts with navigation buttons, username input, league select, view switchers
+- Modal styling (player vitals, summary chips, game logs tables, player comparison tables)
+- Team logo glow effects
+- Page-specific styles for research (SYOP, draft), analyzer (charts, tables), stats (tables)
+- Responsive design with breakpoints up to 1440px
+
+**Key Classes**:
+- `.glass-panel`: Glassmorphism effect
+- `--color-text-primary`: CSS variables
+- `#player-comparison-modal`: Modal layouts
+- `img.team-logo.glow`: Logo effects
+- `@media (max-width: 768px)`: Responsive queries
+
+**Dependencies**: Applied across all HTML pages
+
+#### styles/stats.css (structured)
+**Purpose**: CSS styles specific to the Stats page, defining table layouts, sticky columns, filter buttons, tabs, and modal adjustments.
+
+**Key Features**:
+- Sticky column implementation for ranks and player names
+- Table width calculations with CSS variables
+- Filter button styling
+- Tab navigation
+- Modal overlay adjustments
+- Responsive table behavior
+
+**Dependencies**: styles.css for base styles
+
+### Configuration Files
+
+#### manifest.webmanifest (structured)
+**Purpose**: Web application manifest for PWA functionality.
+
+**Key Features**:
+- App metadata (name, short_name, start_url)
+- Display mode (standalone)
+- Theme colors
+- Icon definitions for various sizes
+- Maskable icons for adaptive icon support
+
+**Configuration**:
+- Background color: #0D0E1B
+- Theme color: #0D0E1B
+- Icons: 192x192, 256x256, 512x512, maskable
+
+#### service-worker.js (structured)
+**Purpose**: Service worker script enabling PWA features like offline caching and background updates.
+
+**Key Features**:
+- Cache-first strategy for immutable assets (fonts, scripts, assets)
+- Network-first strategy for dynamic content (API calls, HTML)
+- Cache versioning and cleanup
+- Fallback to index.html for navigation failures
+
+**Cache Configuration**:
+- `CACHE_NAME`: 'sleeper-tool-cache-v1.0.0-20251026'
+- `IMMUTABLE_ASSETS`: Fonts, CDNs, specific scripts
+- `CORE_ASSETS`: HTML pages, CSS, JS files
+
+**Event Handlers**:
+- `install`: Cache core assets
+- `activate`: Clean old caches
+- `fetch`: Serve cached/network content
+
+### Netlify Configuration
+
+#### netlify.toml (structured)
+**Purpose**: Configuration file for Netlify deployment, specifying build settings, redirects, headers, and edge functions.
+
+**Key Features**:
+- Build publish directory: "DH_P2.53"
+- Clean URL redirects for page routes
+- Security headers (X-Frame-Options, CSP, etc.)
+- Cache control headers
+- Edge function routing for API proxies
+
+**Redirects**:
+- `/` → `/index.html`
+- `/rosters` → `/rosters/rosters.html`
+- etc.
+
+**Edge Functions**:
+- `/api/sheet/*` → sheet-proxy
+- `/api/sleeper/*` → sleeper-proxy
+
+#### netlify/edge-functions/sheet-proxy.js (structured)
+**Purpose**: Netlify Edge Function proxying requests to Google Sheets API with caching.
+
+**Key Features**:
+- URL parameter handling (id, sheet, gid, url)
+- Dynamic cache headers based on time windows
+- Live window detection (Sundays, Mon/Thu evenings)
+- Error handling and response proxying
+
+**Cache Strategy**:
+- Live window: 5min max-age, 15min stale-while-revalidate
+- Normal: 30min max-age, 2hr stale-while-revalidate
+
+#### netlify/edge-functions/sleeper-proxy.js (structured)
+**Purpose**: Netlify Edge Function proxying requests to Sleeper API with intelligent caching.
+
+**Key Features**:
+- Path-based routing to Sleeper API
+- Content-aware cache durations
+- Live window detection for dynamic data
+- Special handling for all-players endpoint
+
+**Cache Strategy**:
+- All players: 7 days max-age, 14 days stale
+- Live data (stats/rosters): 5-30min based on window
+- Static data: 24hr max-age, 7 days stale
+
+## Dependencies and Technologies
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Visualization**: Chart.js, D3.js
+- **APIs**: Sleeper API, Google Sheets API
+- **Deployment**: Netlify with Edge Functions
+- **PWA**: Service Worker, Web App Manifest
+- **Fonts/Icons**: Google Fonts, Font Awesome
+- **Build**: No build process (static files)
+
+## Data Flow
+
+1. User enters Sleeper username
+2. App fetches user leagues and player data
+3. Data cached locally and in service worker
+4. Page-specific scripts render visualizations
+5. API calls proxied through Netlify edge functions
+6. Google Sheets data fetched for stats/valuations
+
+## Performance Optimizations
+
+- Service worker caching with cache-first/network-first strategies
+- Lazy loading of assets
+- DocumentFragment for bulk DOM updates
+- Event delegation for efficient event handling
+- Content visibility API for rendering optimization
+- Resize throttling for responsive charts
+
+This overview provides a foundation for understanding the Dynasty Hub application's architecture, functionality, and implementation details.
 
 2) Rosters Page — rosters.html (291 lines)
 
