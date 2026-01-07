@@ -329,7 +329,7 @@ if (typeof window !== 'undefined') {
 }
         const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10', 11: 'WK11', 12: 'WK12', 13: 'WK13', 14: 'WK14', 15:'WK15', 16:'WK16', 17: 'WK17', 18: 'WK18' } };
         // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
-        const MAX_DISPLAY_WEEKS = 17;
+        const MAX_DISPLAY_WEEKS = 18;
         const TAG_COLORS = { QB:"var(--pos-qb)", RB:"var(--pos-rb)", WR:"var(--pos-wr)", TE:"var(--pos-te)", BN:"var(--pos-bn)", TX:"var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
         const INJURY_DESIGNATION_COLORS = {
             'IR': '#d93d76',
