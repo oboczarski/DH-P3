@@ -937,10 +937,11 @@ if (typeof window !== 'undefined') {
                 const sheetDataSeason = 2025; // The season our Google Sheets data covers
                 
                 // Use previous league's matchup data if current league season is newer than sheet data
-                const matchupLeagueId = (previousLeagueId && leagueSeason > sheetDataSeason) 
-                    ? previousLeagueId 
-                    : leagueId;
-                await fetchLeagueMatchupData(matchupLeagueId);
+                // When using previous season, fetch all 18 weeks (full completed season)
+                const usePreviousSeason = previousLeagueId && leagueSeason > sheetDataSeason;
+                const matchupLeagueId = usePreviousSeason ? previousLeagueId : leagueId;
+                const matchupMaxWeek = usePreviousSeason ? 18 : null; // null uses current week
+                await fetchLeagueMatchupData(matchupLeagueId, matchupMaxWeek);
                 
                 const teams = processRosterData(rosters, users, tradedPicks, leagueInfo);
                 const userTeam = teams.find(team => team.isUserTeam);
