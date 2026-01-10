@@ -2986,9 +2986,18 @@ const SEASON_META_HEADERS = {
         function getOwnedPicks(rosterId, tradedPicks, leagueInfo) {
             const defaultRounds = leagueInfo.settings.draft_rounds || 5;
             const leagueSeason = parseInt(leagueInfo.season);
-            const firstPickSeason = leagueSeason + 1;
+            // Draft pick window logic:
+            // - Before the rookie draft happens for the current league season, show that season's picks
+            //   (e.g., in early 2026 before the 2026 rookie draft, show 2026 picks).
+            // - After the rookie draft completes (league is in-season), shift the window forward so the
+            //   next future year appears (e.g., show 2029 picks instead of 2026).
+            const leagueStatus = String(leagueInfo?.status || '').toLowerCase();
+            const isPreDraft = leagueStatus === 'pre_draft' || leagueStatus === 'drafting';
+            const firstPickSeason = isPreDraft ? leagueSeason : (leagueSeason + 1);
+            const seasonsToShow = 3;
+            const lastPickSeason = firstPickSeason + (seasonsToShow - 1);
             let ownedPicks = [];
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < seasonsToShow; i++) {
                 const season = firstPickSeason + i;
                 for (let round = 1; round <= defaultRounds; round++) {
                     ownedPicks.push({ season: String(season), round, original_owner_id: rosterId });
@@ -3000,12 +3009,17 @@ const SEASON_META_HEADERS = {
                     if (i > -1) ownedPicks.splice(i, 1);
                 }
                 if (pick.owner_id === rosterId && pick.roster_id !== rosterId) {
-                    if (parseInt(pick.season) >= firstPickSeason) {
+                    const pickSeason = parseInt(pick.season);
+                    if (Number.isFinite(pickSeason) && pickSeason >= firstPickSeason && pickSeason <= lastPickSeason) {
                         ownedPicks.push({ season: pick.season, round: pick.round, original_owner_id: pick.roster_id });
                     }
                 }
             });
-            ownedPicks = ownedPicks.filter(p => parseInt(p.season) < 2029);
+            // Ensure we only show picks in the configured year window.
+            ownedPicks = ownedPicks.filter(p => {
+                const pickSeason = parseInt(p.season);
+                return Number.isFinite(pickSeason) && pickSeason >= firstPickSeason && pickSeason <= lastPickSeason;
+            });
             return ownedPicks.sort((a, b) => a.season.localeCompare(b.season) || a.round - b.round);
         }
         function getPlayerData(playerId, slot) {
