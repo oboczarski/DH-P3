@@ -309,7 +309,7 @@ if (pageType === 'welcome') {
     }
 }
         // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -914,6 +914,7 @@ if (typeof window !== 'undefined') {
             state.currentLeagueId = leagueId;
             state.calculatedRankCache = null;
             state.matchupDataLoaded = false; // Reset matchup data state
+            state.draftOrderBySeason = {}; // Reset draft order map for pick labels/values
             handleClearCompare(); 
             const leagueInfo = state.leagues.find(l => l.league_id === leagueId);
             const leagueName = leagueInfo?.name || 'league';
@@ -924,10 +925,11 @@ if (typeof window !== 'undefined') {
                 const superflexSlots = rosterPositions.filter(p => p === 'SUPER_FLEX').length;
                 const qbSlots = rosterPositions.filter(p => p === 'QB').length;
                 state.isSuperflex = (superflexSlots > 0) || (qbSlots > 1);
-                const [rosters, users, tradedPicks] = await Promise.all([
+                const [rosters, users, tradedPicks, drafts] = await Promise.all([
                     fetchWithCache(`${API_BASE}/league/${leagueId}/rosters`),
                     fetchWithCache(`${API_BASE}/league/${leagueId}/users`),
                     fetchWithCache(`${API_BASE}/league/${leagueId}/traded_picks`),
+                    fetchWithCache(`${API_BASE}/league/${leagueId}/drafts`),
                 ]);
                 
                 // Fetch league-specific matchup data for FPTS/PPG
@@ -942,6 +944,9 @@ if (typeof window !== 'undefined') {
                 const matchupLeagueId = usePreviousSeason ? previousLeagueId : leagueId;
                 const matchupMaxWeek = usePreviousSeason ? 18 : null; // null uses current week
                 await fetchLeagueMatchupData(matchupLeagueId, matchupMaxWeek);
+
+                // Hydrate draft order (for precise pick labels like 2026 1.02 and KTC early/mid/late buckets)
+                await hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts });
                 
                 const teams = processRosterData(rosters, users, tradedPicks, leagueInfo);
                 const userTeam = teams.find(team => team.isUserTeam);
@@ -2962,7 +2967,19 @@ const SEASON_META_HEADERS = {
                     starters,
                     bench: bench.map(p => getPlayerData(p, 'BN')).sort((a, b) => (b.ktc || 0) - (a.ktc || 0)),
                     taxi,
-                    draftPicks: draftPicks.map(p => getPickData(p, leagueInfo)),
+                    draftPicks: draftPicks
+                        .map(p => getPickData(p, leagueInfo))
+                        .sort((a, b) => {
+                            const aSeason = Number.parseInt(a.season, 10);
+                            const bSeason = Number.parseInt(b.season, 10);
+                            if (Number.isFinite(aSeason) && Number.isFinite(bSeason) && aSeason !== bSeason) {
+                                return aSeason - bSeason;
+                            }
+                            if (a.round !== b.round) return a.round - b.round;
+                            const aPir = Number.isFinite(a.pickInRound) ? a.pickInRound : 999;
+                            const bPir = Number.isFinite(b.pickInRound) ? b.pickInRound : 999;
+                            return aPir - bPir;
+                        }),
                     allPlayers: allPlayers.map(pId => getPlayerData(pId, ''))
                 };
             });
@@ -2982,6 +2999,130 @@ const SEASON_META_HEADERS = {
             }
             const baseRecord = `${wins}-${losses}`;
             return ties ? `${baseRecord}-${ties}` : baseRecord;
+        }
+
+        // --- Draft order hydration (Sleeper) ---
+        // Used ONLY for displaying/valuing future picks (e.g., 2026 1.02 + Early/Mid/Late KTC buckets).
+        // Does not interact with player stats, matchup scoring, or game logs.
+        function buildRosterIdByUserIdFromRosters(rosters) {
+            const map = Object.create(null);
+            (rosters || []).forEach(r => {
+                const rosterId = r?.roster_id;
+                if (!rosterId) return;
+                if (r?.owner_id) map[r.owner_id] = rosterId;
+                if (Array.isArray(r?.co_owners)) {
+                    r.co_owners.forEach(uid => {
+                        if (uid) map[uid] = rosterId;
+                    });
+                }
+            });
+            return map;
+        }
+
+        function normalizeDraftType(raw) {
+            const t = String(raw || '').toLowerCase();
+            // Sleeper drafts often use 'snake' or 'linear'. Anything unknown, treat as linear.
+            return t === 'snake' ? 'snake' : 'linear';
+        }
+
+        function computePickInRoundFromSlot({ round, slot, teamsCount, draftType }) {
+            if (!Number.isFinite(slot) || slot <= 0) return null;
+            const type = normalizeDraftType(draftType);
+            const teams = Number.isFinite(teamsCount) && teamsCount > 0 ? teamsCount : null;
+            if (type === 'snake' && teams) {
+                // Snake: odd rounds follow draft order; even rounds reverse.
+                return (round % 2 === 1) ? slot : (teams - slot + 1);
+            }
+            // Linear: same order every round.
+            return slot;
+        }
+
+        function pad2(n) {
+            const v = Number(n);
+            if (!Number.isFinite(v)) return String(n);
+            return String(v).padStart(2, '0');
+        }
+
+        function getPickBucketLabel(pickInRound, teamsCount) {
+            const pickNum = Number(pickInRound);
+            const teams = Number(teamsCount);
+            if (!Number.isFinite(pickNum) || pickNum <= 0) return null;
+            if (!Number.isFinite(teams) || teams <= 0) return null;
+            // Default: split into thirds.
+            // For 12-team: early 1-4, mid 5-8, late 9-12 (matches your requirement).
+            const earlyEnd = Math.ceil(teams / 3);
+            const midEnd = Math.ceil((2 * teams) / 3);
+            if (pickNum <= earlyEnd) return 'Early';
+            if (pickNum <= midEnd) return 'Mid';
+            return 'Late';
+        }
+
+        async function hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts }) {
+            try {
+                const rosterIdByUserId = buildRosterIdByUserIdFromRosters(rosters);
+                const knownRosterIds = new Set((rosters || []).map(r => String(r?.roster_id)).filter(Boolean));
+                const teamsCount = Number.isFinite(leagueInfo?.total_rosters)
+                    ? leagueInfo.total_rosters
+                    : (Array.isArray(rosters) ? rosters.length : null);
+
+                const out = Object.create(null);
+                const draftList = Array.isArray(drafts) ? drafts : [];
+                for (const draft of draftList) {
+                    if (!draft) continue;
+                    const season = String(draft.season || '').trim();
+                    if (!season) continue;
+
+                    let order = draft.draft_order;
+                    let draftType = draft.type;
+
+                    // Some league drafts payloads may omit draft_order; fetch draft details if needed.
+                    if ((!order || typeof order !== 'object') && draft.draft_id) {
+                        try {
+                            const fullDraft = await fetchWithCache(`${API_BASE}/draft/${draft.draft_id}`);
+                            order = fullDraft?.draft_order;
+                            draftType = fullDraft?.type || draftType;
+                        } catch (e) {
+                            // Non-fatal: we can still show generic pick labels.
+                        }
+                    }
+                    if (!order || typeof order !== 'object') continue;
+
+                    const slotByRosterId = Object.create(null);
+                    Object.entries(order).forEach(([userId, slot]) => {
+                        const slotNum = Number(slot);
+                        if (!Number.isFinite(slotNum) || slotNum <= 0) return;
+
+                        // Most common: keys are user_id -> slot.
+                        const rosterIdFromUser = rosterIdByUserId[userId];
+                        if (rosterIdFromUser) {
+                            slotByRosterId[String(rosterIdFromUser)] = slotNum;
+                            return;
+                        }
+
+                        // Defensive: some payloads may key draft_order by roster_id -> slot.
+                        const possibleRosterId = String(userId);
+                        if (knownRosterIds.has(possibleRosterId)) {
+                            slotByRosterId[possibleRosterId] = slotNum;
+                        }
+                    });
+                    if (Object.keys(slotByRosterId).length === 0) continue;
+
+                    const candidate = {
+                        teamsCount,
+                        draftType: normalizeDraftType(draftType),
+                        slotByRosterId
+                    };
+                    const existing = out[season];
+                    if (!existing || Object.keys(candidate.slotByRosterId).length > Object.keys(existing.slotByRosterId || {}).length) {
+                        out[season] = candidate;
+                    }
+                }
+
+                state.draftOrderBySeason = out;
+            } catch (e) {
+                // Non-fatal; keep generic pick labels/values.
+                state.draftOrderBySeason = {};
+            }
         }
         function getOwnedPicks(rosterId, tradedPicks, leagueInfo) {
             const defaultRounds = leagueInfo.settings.draft_rounds || 5;
@@ -3051,20 +3192,69 @@ const SEASON_META_HEADERS = {
                 injuryDesignation: upcomingDesignation
             };
         }
-        function getPickData(pick) {
+        function getPickData(pick, leagueInfo) {
             const { season, round } = pick;
-            const label = `${season} ${ordinalSuffix(round)}`;
+            const seasonKey = String(season);
+            const roundNum = Number(round);
+
+            const draftMeta = state.draftOrderBySeason?.[seasonKey] || null;
+            const teamsCount = draftMeta?.teamsCount
+                ?? (Number.isFinite(leagueInfo?.total_rosters) ? leagueInfo.total_rosters : null);
+            const slot = draftMeta?.slotByRosterId?.[String(pick.original_owner_id)];
+            const pickInRound = computePickInRoundFromSlot({
+                round: roundNum,
+                slot: Number(slot),
+                teamsCount: Number(teamsCount),
+                draftType: draftMeta?.draftType
+            });
+
+            const label = pickInRound
+                ? `${season} ${roundNum}.${pad2(pickInRound)}`
+                : `${season} ${ordinalSuffix(roundNum)}`;
             const staticVals = { oneqb: { 1: 5200, 2: 3200, 3: 2000, 4: 1200, 5: 400 }, sflx: { 1: 4300, 2: 2600, 3: 1700, 4: 1000, 5: 400 } };
             let ktc = null;
             if (parseInt(season) >= 2028 || round >= 5) {
                 ktc = (state.isSuperflex ? staticVals.sflx : staticVals.oneqb)[round] || null;
             } else {
                 const sfx = round === 1 ? 'st' : round === 2 ? 'nd' : round === 3 ? 'rd' : 'th';
-                const ktcKey = `${season} Mid ${round}${sfx}`;
+                const bucket = pickInRound ? getPickBucketLabel(pickInRound, teamsCount) : 'Mid';
+                const bucketKey = bucket || 'Mid';
+                // Primary key format expected by the sheet (examples: "2026 Early 1st", "2026 Mid 2nd", "2026 Late 4th")
                 const dataSet = state.isSuperflex ? state.sflxData : state.oneQbData;
-                ktc = dataSet[ktcKey]?.ktc || null;
+                const buildKeyCandidates = (seasonStr, bucketStr, roundStr, suffixStr) => {
+                    const b = String(bucketStr || '').trim();
+                    const variants = b
+                        ? [b, b.toLowerCase(), b.toUpperCase()]
+                        : [];
+                    const unique = new Set();
+                    variants.forEach(v => unique.add(`${seasonStr} ${v} ${roundStr}${suffixStr}`));
+                    return Array.from(unique);
+                };
+                const tryKeys = (keys) => {
+                    for (const k of keys) {
+                        const v = dataSet?.[k]?.ktc;
+                        if (typeof v === 'number' && Number.isFinite(v)) return v;
+                    }
+                    return null;
+                };
+
+                const primaryKeys = buildKeyCandidates(String(season), bucketKey, String(round), sfx);
+                ktc = tryKeys(primaryKeys);
+
+                // Safety fallback to Mid if Early/Late is missing in the sheet.
+                if (ktc === null && bucketKey !== 'Mid') {
+                    const midKeys = buildKeyCandidates(String(season), 'Mid', String(round), sfx);
+                    ktc = tryKeys(midKeys);
+                }
             }
-            return { label, ktc, id: `${season}-${round}-${pick.original_owner_id}` };
+            return {
+                label,
+                ktc,
+                id: `${season}-${round}-${pick.original_owner_id}-${pickInRound || 'xx'}`,
+                season: seasonKey,
+                round: roundNum,
+                pickInRound
+            };
         }
         // --- UI Rendering ---
         async function handlePlayerNameClick(player) {
