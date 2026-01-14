@@ -3973,7 +3973,7 @@ function drawScatterChart(containerId, data) {
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
   // Tightened margins to reclaim space from removed tick marks (mobile-first)
-  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.05, bottom: isMobile ? 30 : height * 0.085, left: isMobile ? 30 : width * 0.055 };
+  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.02, bottom: isMobile ? 30 : height * 0.085, left: isMobile ? 30 : width * 0.055 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
@@ -4006,8 +4006,8 @@ function drawScatterChart(containerId, data) {
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [18, 44];
-  const xDomain = [49.5, 104];
-  const xTicks = [50, 60, 70, 80, 90, 100];
+  const xDomain = [45, 104];
+  const xTicks = [45, 55, 65, 75, 85, 95, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
   const xAxisGrid = d3.axisBottom(x).tickValues([60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
