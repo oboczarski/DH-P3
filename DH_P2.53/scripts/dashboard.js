@@ -3444,7 +3444,7 @@ function ppgBarData(filter) {
     .filter(p => Number.isFinite(p.stats?.ppg) && p.stats.ppg > 0)
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.stats.ppg - a.stats.ppg)
-    .slice(0, 8)
+    .slice(0, 10)
     .map(p => ({ label: p.name, value: p.stats.ppg }));
 }
 
@@ -3591,7 +3591,7 @@ function renderScatter() {
   ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
     const byPos = topByFpts
       .filter(p => p.position === pos && Number.isFinite(p.stats.csty) && Number.isFinite(p.stats.ceiling))
-      .slice(0, 6);
+      .slice(0, 10);
     scatterPool.push(...byPos);
   });
   scatterAll = scatterPool;
