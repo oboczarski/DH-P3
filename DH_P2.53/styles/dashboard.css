@@ -1016,7 +1016,7 @@
   }
 
   /* Scatter Panel: Tall on mobile */
-  .fc-scatter-panel {min-height: 60em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
+  .fc-scatter-panel {min-height: 64em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
@@ -1038,12 +1038,12 @@
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
-    font-size: 8px !important;
+    font-size: 7px !important;
   }
 
   /* Scatter Axis Labels: Smaller */
   .scatter-axis-label {
-    font-size: 8px !important;
+    font-size: 7px !important;
   }
 }
 
