@@ -647,8 +647,8 @@
 
 .nav-more-caret {
   position: absolute;
-  right: -10px;
-  top: -7px;
+  right: 7px;
+  top: 12px;
   font-size: 0.5rem;
   line-height: 1;
   opacity: 0.8;
@@ -873,7 +873,8 @@
     
     /* Caret must not inherit the larger nav icon sizing */
     .nav-button.nav-more-toggle > i.nav-more-caret {
-      font-size: 0.5rem;
+      font-size: 1rem;
+      color: #b7b1f8;
     }
     
     .nav-more-dropdown {
