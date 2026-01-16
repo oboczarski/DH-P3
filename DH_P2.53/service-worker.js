@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sleeper-tool-cache-v1.0.0-20251026';
+const CACHE_NAME = 'sleeper-tool-cache-v1.0.0-20260116';
 const IMMUTABLE_ASSETS = [
   '/assets/',
   'fonts.googleapis.com',
