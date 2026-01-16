@@ -616,7 +616,7 @@
   min-height: 2.25rem;
     background: rgba(13, 14, 35, 0.3);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(128, 138, 189, 0.15);
+    border: 1px solid rgba(128, 138, 249, 0.35);
     border-radius: 7px;
     color: var(--color-text-secondary);
     cursor: pointer;
