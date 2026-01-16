@@ -44,10 +44,6 @@
             <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
             <span class="nav-label">Rosters</span>
           </button>
-          <button class="nav-button" id="ownershipButton" data-nav="ownership">
-            <i class="fa-solid fa-percent" aria-hidden="true"></i>
-            <span class="nav-label">Ownership</span>
-          </button>
           <button class="nav-button active" id="statsButton" data-nav="stats">
             <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
             <span class="nav-label">Stats</span>
@@ -60,6 +56,26 @@
             <i class="fa-solid fa-flask" aria-hidden="true"></i>
             <span class="nav-label">Research</span>
           </button>
+          <div class="nav-more-dropdown-container">
+            <button class="nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
+              <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+              <span class="nav-label">More</span>
+            </button>
+            <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
+              <button class="nav-more-item" data-nav="ownership" role="menuitem">
+                <i class="fa-solid fa-percent" aria-hidden="true"></i>
+                <span class="nav-label">Ownership</span>
+              </button>
+              <button class="nav-more-item disabled" data-nav="dtr" role="menuitem">
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                <span class="nav-label">DTR</span>
+              </button>
+              <button class="nav-more-item disabled" data-nav="matchups" role="menuitem">
+                <i class="fa-solid fa-helmet-safety" aria-hidden="true"></i>
+                <span class="nav-label">Matchups</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="stats-nav-hidden-inputs">

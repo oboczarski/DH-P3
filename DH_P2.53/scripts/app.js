@@ -34,7 +34,6 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
         // New nav buttons
         const homeButton = document.getElementById('homeButton');
         const rostersButton = document.getElementById('rostersButton');
-        const ownershipButton = document.getElementById('ownershipButton');
     const statsButton = document.getElementById('statsButton');
         const analyzerButton = document.getElementById('analyzerButton');
         const researchButton = document.getElementById('researchButton');
@@ -246,10 +245,6 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
             try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {}
             await ensureNavigate('rosters');
         });
-        ownershipButton?.addEventListener('click', async () => {
-            try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {}
-            await ensureNavigate('ownership');
-        });
         // Placeholder stats button (inserted between Ownership and Analyzer)
         statsButton?.addEventListener('click', async () => {
             try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {}
@@ -264,7 +259,7 @@ function showLegend(){ try{ document.getElementById('legend-section')?.classList
             await ensureNavigate('research');
     });
 // Add pointer/touch guards so quick taps on mobile also blur the input before navigation fires
-['homeButton','rostersButton','ownershipButton','statsButton','analyzerButton','researchButton'].forEach(id=>{
+['homeButton','rostersButton','statsButton','analyzerButton','researchButton'].forEach(id=>{
     const el = document.getElementById(id);
     if (!el) return;
     const handler = () => { try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch(e){} };
@@ -308,6 +303,56 @@ if (pageType === 'welcome') {
         });
     }
 }
+
+// --- More Dropdown Navigation Logic (for all non-welcome pages) ---
+if (pageType !== 'welcome') {
+    const moreButton = document.getElementById('moreButton');
+    const moreDropdown = document.getElementById('moreDropdown');
+    
+    if (moreButton && moreDropdown) {
+        // Toggle dropdown on button click
+        moreButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = moreDropdown.classList.toggle('hidden');
+            moreButton.setAttribute('aria-expanded', String(!isOpen));
+            moreDropdown.setAttribute('aria-hidden', String(isOpen));
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!moreDropdown.contains(e.target) && !moreButton.contains(e.target)) {
+                if (!moreDropdown.classList.contains('hidden')) {
+                    moreDropdown.classList.add('hidden');
+                    moreButton.setAttribute('aria-expanded', 'false');
+                    moreDropdown.setAttribute('aria-hidden', 'true');
+                }
+            }
+        });
+        
+        // Wire dropdown menu items
+        moreDropdown.querySelectorAll('.nav-more-item:not(.disabled)').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const page = btn.dataset.nav;
+                try {
+                    suppressFocusTemporary();
+                    usernameInput?.blur();
+                    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                        document.activeElement.blur();
+                    }
+                } catch (err) {}
+                
+                // Close dropdown
+                moreDropdown.classList.add('hidden');
+                moreButton.setAttribute('aria-expanded', 'false');
+                moreDropdown.setAttribute('aria-hidden', 'true');
+                
+                // Navigate using ensureNavigate
+                await ensureNavigate(page);
+            });
+        });
+    }
+}
+
         // --- State ---
 let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
 
@@ -6792,7 +6837,7 @@ function setLoading(isLoading, message = 'Loading...') {
   input.addEventListener('blur', () => { persistNormalized(); });
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalized(); }});
   // Hook buttons (capture) so normalization executes before fetch handlers.
-  ['rostersButton','ownershipButton', 'analyzerButton', 'researchButton'].forEach(id => {
+  ['rostersButton', 'analyzerButton', 'researchButton'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('click', () => { persistNormalized(); }, { capture: true });
@@ -6889,7 +6934,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 // Hide legend when switching away from Welcome via UI controls
-['rostersButton','ownershipButton','analyzerButton', 'researchButton', 'leagueSelect','positionalViewBtn','lineupViewBtn'].forEach(id=>{
+['rostersButton','analyzerButton', 'researchButton', 'leagueSelect','positionalViewBtn','lineupViewBtn'].forEach(id=>{
   const el = document.getElementById(id);
   if (el) el.addEventListener('click', hideLegend, {capture:true});
 });
