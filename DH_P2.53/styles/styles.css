@@ -572,6 +572,7 @@
     padding: 0.4rem 0.6rem;
     min-height: 2.25rem;
   width: 100%;
+  position: relative;
     background: rgba(13, 14, 35, 0.25);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(128, 138, 189, 0.2);
@@ -680,17 +681,16 @@
 }
 
 .nav-more-label {
-  display: inline-block;
-  position: relative;
-  padding-right: 0.5rem;
+  display: block;
+  width: 100%;
+  text-align: center;
   margin-top: 0.05rem;
 }
 
 .nav-more-caret {
   position: absolute;
-  right: 0;
-  top: 0;
-  transform: translateY(0.05rem);
+  right: -10px;
+  top: -7px;
   font-size: 0.5rem;
   line-height: 1;
   opacity: 0.8;
@@ -865,6 +865,9 @@
         min-height: 1.9rem;
       max-width: 4rem;
         gap: 0.05rem;
+    }
+    .nav-more-dropdown-container {
+      max-width: 4rem;
     }
     
     .nav-more-toggle i {
