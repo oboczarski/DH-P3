@@ -680,16 +680,21 @@
 }
 
 .nav-more-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
+  display: inline-block;
+  position: relative;
+  padding-right: 0.5rem;
   margin-top: 0.05rem;
 }
 
 .nav-more-caret {
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateY(0.05rem);
   font-size: 0.5rem;
   line-height: 1;
   opacity: 0.8;
+  pointer-events: none;
 }
 
 .nav-more-item:hover {
