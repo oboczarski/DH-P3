@@ -578,7 +578,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    min-width: 0;
+    min-width: 63px;
     width: fit-content;
     background: linear-gradient(145deg, rgba(47, 46, 72, 0.97), rgba(32, 31, 56, 0.97));
     backdrop-filter: blur(16px);
