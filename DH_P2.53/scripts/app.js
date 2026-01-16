@@ -313,7 +313,8 @@ if (pageType !== 'welcome') {
         const positionMoreDropdown = () => {
             try {
                 const rect = moreButton.getBoundingClientRect();
-                const margin = 8;
+                const margin = 4;
+                const gap = 4;
 
                 // Dropdown is `position: fixed` in CSS; we compute its coordinates here.
                 // Temporarily ensure it has layout so offsetWidth is measurable.
@@ -326,13 +327,14 @@ if (pageType !== 'welcome') {
                 const dropdownWidth = moreDropdown.offsetWidth || 0;
                 const dropdownHeight = moreDropdown.offsetHeight || 0;
 
-                let left = rect.right - dropdownWidth;
+                // Center horizontally under the button.
+                let left = rect.left + (rect.width / 2) - (dropdownWidth / 2);
                 left = Math.max(margin, Math.min(left, window.innerWidth - dropdownWidth - margin));
 
-                let top = rect.bottom + 6;
+                let top = rect.bottom + gap;
                 // If it would overflow the viewport bottom, try placing it above.
                 if (top + dropdownHeight + margin > window.innerHeight) {
-                    top = Math.max(margin, rect.top - 6 - dropdownHeight);
+                    top = Math.max(margin, rect.top - gap - dropdownHeight);
                 }
 
                 moreDropdown.style.left = `${Math.round(left)}px`;
@@ -359,6 +361,8 @@ if (pageType !== 'welcome') {
                 moreDropdown.style.visibility = 'hidden';
                 positionMoreDropdown();
                 requestAnimationFrame(() => {
+                    // Reposition after paint in case fonts/styles adjust sizing.
+                    positionMoreDropdown();
                     moreDropdown.style.visibility = '';
                 });
                 moreButton.setAttribute('aria-expanded', 'true');
@@ -387,6 +391,13 @@ if (pageType !== 'welcome') {
                 positionMoreDropdown();
             }
         });
+
+        // Keep positioning correct on scroll when open (sticky headers / iOS browser UI).
+        window.addEventListener('scroll', () => {
+            if (!moreDropdown.classList.contains('hidden')) {
+                positionMoreDropdown();
+            }
+        }, { passive: true });
         
         // Wire dropdown menu items
         moreDropdown.querySelectorAll('.nav-more-item:not(.disabled)').forEach(btn => {
