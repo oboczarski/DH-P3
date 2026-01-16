@@ -310,12 +310,64 @@ if (pageType !== 'welcome') {
     const moreDropdown = document.getElementById('moreDropdown');
     
     if (moreButton && moreDropdown) {
+        const positionMoreDropdown = () => {
+            try {
+                const rect = moreButton.getBoundingClientRect();
+                const margin = 8;
+
+                // Dropdown is `position: fixed` in CSS; we compute its coordinates here.
+                // Temporarily ensure it has layout so offsetWidth is measurable.
+                const wasHidden = moreDropdown.classList.contains('hidden');
+                if (wasHidden) {
+                    moreDropdown.classList.remove('hidden');
+                    moreDropdown.style.visibility = 'hidden';
+                }
+
+                const dropdownWidth = moreDropdown.offsetWidth || 0;
+                const dropdownHeight = moreDropdown.offsetHeight || 0;
+
+                let left = rect.right - dropdownWidth;
+                left = Math.max(margin, Math.min(left, window.innerWidth - dropdownWidth - margin));
+
+                let top = rect.bottom + 6;
+                // If it would overflow the viewport bottom, try placing it above.
+                if (top + dropdownHeight + margin > window.innerHeight) {
+                    top = Math.max(margin, rect.top - 6 - dropdownHeight);
+                }
+
+                moreDropdown.style.left = `${Math.round(left)}px`;
+                moreDropdown.style.top = `${Math.round(top)}px`;
+
+                if (wasHidden) {
+                    // Keep it hidden until the click handler opens it for real.
+                    moreDropdown.classList.add('hidden');
+                    moreDropdown.style.visibility = '';
+                }
+            } catch (e) {
+                // Non-fatal: positioning is best-effort.
+            }
+        };
+
         // Toggle dropdown on button click
         moreButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isOpen = moreDropdown.classList.toggle('hidden');
-            moreButton.setAttribute('aria-expanded', String(!isOpen));
-            moreDropdown.setAttribute('aria-hidden', String(isOpen));
+            const willOpen = moreDropdown.classList.contains('hidden');
+
+            if (willOpen) {
+                // Place before showing to prevent first-frame "jump".
+                moreDropdown.classList.remove('hidden');
+                moreDropdown.style.visibility = 'hidden';
+                positionMoreDropdown();
+                requestAnimationFrame(() => {
+                    moreDropdown.style.visibility = '';
+                });
+                moreButton.setAttribute('aria-expanded', 'true');
+                moreDropdown.setAttribute('aria-hidden', 'false');
+            } else {
+                moreDropdown.classList.add('hidden');
+                moreButton.setAttribute('aria-expanded', 'false');
+                moreDropdown.setAttribute('aria-hidden', 'true');
+            }
         });
         
         // Close dropdown when clicking outside
@@ -326,6 +378,13 @@ if (pageType !== 'welcome') {
                     moreButton.setAttribute('aria-expanded', 'false');
                     moreDropdown.setAttribute('aria-hidden', 'true');
                 }
+            }
+        });
+
+        // Keep positioning correct on resize when open.
+        window.addEventListener('resize', () => {
+            if (!moreDropdown.classList.contains('hidden')) {
+                positionMoreDropdown();
             }
         });
         

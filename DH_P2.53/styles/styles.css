@@ -555,53 +555,17 @@
 }
 
 /* === "More" Dropdown Navigation === */
-.nav-more-dropdown-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-  flex: 1;
-  max-width: 4.5rem;
-}
 
-.nav-more-toggle {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.1rem;
-    padding: 0.4rem 0.6rem;
-    min-height: 2.25rem;
-  width: 100%;
+/*
+  IMPORTANT: The "More" toggle must size exactly like the other nav buttons.
+  To ensure it inherits all existing per-page overrides (e.g. Stats/Rosters desktop),
+  the toggle uses the shared `.nav-button` class in HTML.
+*/
+.nav-button.nav-more-toggle {
   position: relative;
-    background: rgba(13, 14, 35, 0.25);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(128, 138, 189, 0.2);
-    border-radius: 8px;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    flex: 1;
-    max-width: 4.5rem;
 }
 
-.nav-more-toggle i {
-    font-size: 1.1rem;
-    line-height: 1;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-}
-
-.nav-more-toggle:hover {
-    color: var(--color-text-primary);
-    background: rgba(13, 14, 35, 0.35);
-    border-color: rgba(128, 138, 189, 0.35);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-}
-
-.nav-more-toggle[aria-expanded="true"] {
+.nav-button.nav-more-toggle[aria-expanded="true"] {
     color: var(--color-accent-secondary);
     background: rgba(66, 194, 255, 0.08);
     border-color: rgba(66, 194, 255, 0.3);
@@ -610,11 +574,12 @@
 }
 
 .nav-more-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-  min-width: 0;
-  width: fit-content;
+    /* Positioned via JS relative to the toggle to avoid needing a wrapper div */
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 0;
+    width: fit-content;
     background: linear-gradient(145deg, rgba(47, 46, 72, 0.97), rgba(32, 31, 56, 0.97));
     backdrop-filter: blur(16px);
     border: 1px solid rgba(128, 138, 189, 0.25);
@@ -678,13 +643,6 @@
     line-height: 1;
     color: inherit;
     white-space: nowrap;
-}
-
-.nav-more-label {
-  display: block;
-  width: 100%;
-  text-align: center;
-  margin-top: 0.05rem;
 }
 
 .nav-more-caret {
@@ -860,18 +818,9 @@
         gap: 0.05rem;
     }
     
-    .nav-more-toggle {
-        padding: 0.25rem 0.3rem;
-        min-height: 1.9rem;
-      max-width: 4rem;
-        gap: 0.05rem;
-    }
-    .nav-more-dropdown-container {
-      max-width: 4rem;
-    }
-    
-    .nav-more-toggle i {
-        font-size: 0.95rem;
+    /* Caret must not inherit the larger nav icon sizing */
+    .nav-button.nav-more-toggle > i.nav-more-caret {
+      font-size: 0.5rem;
     }
     
     .nav-more-dropdown {
@@ -922,15 +871,9 @@
         font-size: 0.5rem;
     }
     
-    .nav-more-toggle {
-        padding: 0.4rem 0.7rem;
-        min-height: 2.5rem;
-        max-height: 2.5rem;
-        gap: 0.15rem;
-    }
-    
-    .nav-more-toggle i {
-        font-size: 1.2rem;
+    /* Caret must not inherit the larger nav icon sizing */
+    .nav-button.nav-more-toggle > i.nav-more-caret {
+      font-size: 0.5rem;
     }
     
     .nav-more-dropdown {
@@ -975,12 +918,6 @@
     .nav-button {
         max-width: 6rem;
     }
-  .nav-more-dropdown-container {
-    max-width: 6rem;
-  }
-  .nav-more-toggle {
-    max-width: 6rem;
-  }
   .nav-more-item {
     max-width: 6rem;
   }
