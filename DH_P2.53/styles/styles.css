@@ -876,8 +876,9 @@
     }
     
     .nav-more-dropdown {
-      padding: 7px;
+      padding: 3px;
       gap: 7px;
+      min-width: 80px;
     }
     
     .nav-more-item {
