@@ -582,7 +582,7 @@
     width: fit-content;
     background: linear-gradient(145deg, rgba(47, 46, 72, 0.97), rgba(32, 31, 56, 0.97));
     backdrop-filter: blur(16px);
-    border: 1px solid 1px solid #7360ffa0;
+    border: 1px solid #7360ff70;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 35px -5px #5300ff7a;
     padding: 6px;
     border-radius: 10px;
@@ -822,7 +822,7 @@
     }
     
     .nav-more-dropdown {
-      padding: 2px;
+      padding: 3px;
       gap: 4px;
     }
     

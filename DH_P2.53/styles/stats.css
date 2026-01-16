@@ -9,7 +9,7 @@
   --stats-header-mask-height: 2.25rem;
 }
 .stats-header-shell {
-  padding: 0.24rem 0.4rem;
+  padding: 0.24rem 0.04rem;
   gap: 0.18rem;
 }
 .stats-nav-hidden-inputs {
