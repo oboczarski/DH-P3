@@ -438,9 +438,11 @@ if (pageType !== 'welcome') {
         }, { passive: true });
         
         // Wire dropdown menu items
-        moreDropdown.querySelectorAll('.nav-more-item:not(.disabled)').forEach(btn => {
+        moreDropdown.querySelectorAll('.nav-more-item').forEach(btn => {
+            if (btn.classList.contains('disabled')) return;
             btn.addEventListener('click', async (e) => {
                 const page = btn.dataset.nav;
+                const url = btn.dataset.url;
                 try {
                     suppressFocusTemporary();
                     usernameInput?.blur();
@@ -453,9 +455,22 @@ if (pageType !== 'welcome') {
                 moreDropdown.classList.add('hidden');
                 moreButton.setAttribute('aria-expanded', 'false');
                 moreDropdown.setAttribute('aria-hidden', 'true');
-                
-                // Navigate using ensureNavigate
-                await ensureNavigate(page);
+
+                // External destinations (Matchups / Trophy Room)
+                if (url) {
+                    try {
+                        const win = window.open(url, '_blank', 'noopener,noreferrer');
+                        if (!win) window.location.href = url;
+                    } catch (err) {
+                        window.location.href = url;
+                    }
+                    return;
+                }
+
+                // Internal destinations (Ownership)
+                if (page) {
+                    await ensureNavigate(page);
+                }
             });
         });
     }
