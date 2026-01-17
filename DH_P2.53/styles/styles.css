@@ -591,14 +591,20 @@
     gap: 6px;
     z-index: 1200;
     opacity: 0;
-    transform: translateY(-8px);
+    /*
+      IMPORTANT: use a single `transform` with CSS variables so JS can horizontally
+      center the menu under the button in a Safari-safe way (avoid `translate:`).
+    */
+    --nav-more-tx: 0px;
+    --nav-more-ty: -8px;
+    transform: translate(var(--nav-more-tx), var(--nav-more-ty));
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .nav-more-dropdown:not(.hidden) {
     opacity: 1;
-    transform: translateY(0);
+    --nav-more-ty: 0px;
     pointer-events: all;
 }
 

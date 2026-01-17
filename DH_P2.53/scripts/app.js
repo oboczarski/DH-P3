@@ -336,7 +336,10 @@ if (pageType !== 'welcome') {
                 // so we don't depend on offsetWidth being correct at measure time.
                 const centerX = rect.left + (rect.width / 2);
                 const belowY = rect.bottom + gap;
-                moreDropdown.style.translate = '-50% 0';
+                // NOTE: Avoid using the CSS individual `translate` property here.
+                // Some macOS Safari versions ignore it, causing the menu to appear far to the right.
+                // We instead drive centering through CSS variables consumed by `transform`.
+                moreDropdown.style.setProperty('--nav-more-tx', '-50%');
                 setCoords(centerX, belowY);
 
                 // Clamp within viewport (after translate applies).
