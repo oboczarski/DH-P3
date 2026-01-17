@@ -313,8 +313,16 @@ if (pageType !== 'welcome') {
         const positionMoreDropdown = () => {
             try {
                 const rect = moreButton.getBoundingClientRect();
-                const margin = 4;
-                const gap = 4;
+                const margin = 6;
+                const gap = 2;
+
+                const setCoords = (x, y) => {
+                    moreDropdown.style.left = `${Math.round(x)}px`;
+                    moreDropdown.style.top = `${Math.round(y)}px`;
+                    // Defensive: ensure no other positioning axis overrides apply.
+                    moreDropdown.style.right = 'auto';
+                    moreDropdown.style.bottom = 'auto';
+                };
 
                 // Dropdown is `position: fixed` in CSS; we compute its coordinates here.
                 // Temporarily ensure it has layout so offsetWidth is measurable.
@@ -324,21 +332,35 @@ if (pageType !== 'welcome') {
                     moreDropdown.style.visibility = 'hidden';
                 }
 
-                const dropdownWidth = moreDropdown.offsetWidth || 0;
-                const dropdownHeight = moreDropdown.offsetHeight || 0;
+                // Always anchor to the button center and center the menu with translate,
+                // so we don't depend on offsetWidth being correct at measure time.
+                const centerX = rect.left + (rect.width / 2);
+                const belowY = rect.bottom + gap;
+                moreDropdown.style.translate = '-50% 0';
+                setCoords(centerX, belowY);
 
-                // Center horizontally under the button.
-                let left = rect.left + (rect.width / 2) - (dropdownWidth / 2);
-                left = Math.max(margin, Math.min(left, window.innerWidth - dropdownWidth - margin));
-
-                let top = rect.bottom + gap;
-                // If it would overflow the viewport bottom, try placing it above.
-                if (top + dropdownHeight + margin > window.innerHeight) {
-                    top = Math.max(margin, rect.top - gap - dropdownHeight);
+                // Clamp within viewport (after translate applies).
+                let menuRect = moreDropdown.getBoundingClientRect();
+                let adjustedX = centerX;
+                if (menuRect.left < margin) {
+                    adjustedX += (margin - menuRect.left);
+                }
+                if (menuRect.right > window.innerWidth - margin) {
+                    adjustedX -= (menuRect.right - (window.innerWidth - margin));
+                }
+                if (adjustedX !== centerX) {
+                    setCoords(adjustedX, belowY);
+                    menuRect = moreDropdown.getBoundingClientRect();
                 }
 
-                moreDropdown.style.left = `${Math.round(left)}px`;
-                moreDropdown.style.top = `${Math.round(top)}px`;
+                // If it would overflow the viewport bottom, try placing it above (only if it fits).
+                const menuHeight = menuRect.height || 0;
+                if (belowY + menuHeight + margin > window.innerHeight) {
+                    const aboveY = rect.top - gap - menuHeight;
+                    if (aboveY >= margin) {
+                        setCoords(adjustedX, aboveY);
+                    }
+                }
 
                 if (wasHidden) {
                     // Keep it hidden until the click handler opens it for real.
