@@ -310,6 +310,19 @@ if (pageType !== 'welcome') {
     const moreDropdown = document.getElementById('moreDropdown');
     
     if (moreButton && moreDropdown) {
+        // IMPORTANT (Safari/WebKit): `position: fixed` can become relative to the nearest ancestor
+        // that creates a containing block (commonly via `transform`, `filter`, or `backdrop-filter`).
+        // Our headers use a glass effect (`backdrop-filter`), and on some desktop Safari builds this
+        // causes the dropdown to render far away from the button even when the math is correct.
+        // Portaling the menu to <body> ensures it is positioned against the viewport consistently.
+        try {
+            if (document.body && moreDropdown.parentElement !== document.body) {
+                document.body.appendChild(moreDropdown);
+            }
+        } catch (e) {
+            // Non-fatal: if portaling fails, positioning remains best-effort.
+        }
+
         const positionMoreDropdown = () => {
             try {
                 const rect = moreButton.getBoundingClientRect();
