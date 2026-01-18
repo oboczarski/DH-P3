@@ -9832,6 +9832,26 @@ body[data-page="research"] #secondary-header-row {
 
 /* ⬇︎ MOBILE-ONLY ROSTERS PAGE HEADER LAYOUT ⬇︎ */
 @media (max-width: 819px) {
+  /*
+    IMPORTANT:
+    The rosters page header is intentionally sticky (in-flow) on mobile.
+    A fixed rosters header + JS-computed padding can cause large blank gaps/overlaps
+    when the header layout reflows at small widths.
+    We override any earlier fixed-header rules here (end-of-file) to ensure mobile stability.
+  */
+  body[data-page="rosters"] #header-container {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  body[data-page="rosters"] main#content {
+    padding-top: 0 !important;
+  }
+
   /* Hide username and league select on rosters page mobile */
   body[data-page="rosters"] .username-area,
   body[data-page="rosters"] .custom-select-wrapper {
@@ -10197,6 +10217,29 @@ body[data-page="research"] #secondary-header-row {
 
 /* Desktop rosters - extend search popover to cover filters */
 @media (min-width: 820px) {
+  /*
+    Desktop rosters uses a fixed header for consistent positioning.
+    When fixed, we must pad the content by the measured header height.
+  */
+  body[data-page="rosters"] #header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    max-width: none;
+    will-change: auto;
+  }
+
+  body[data-page="rosters"] #header-container .app-header {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="rosters"] main#content {
+    padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
+  }
+
   body[data-page="rosters"] .compare-search-popover {
     right: 0;
     left: auto;
@@ -10214,102 +10257,11 @@ body[data-page="research"] #secondary-header-row {
     margin-left: 19px;
   }
 }
-display: flex;
-    justify-content: center;
-    padding: 0.5rem 0 0.9rem;
-  }
-  body[data-page="rosters"] #header-container .app-header {
-    --roster-desktop-gap: 0.75rem;
-    --roster-desktop-field-width: 200px;
-    --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
-    display: grid;
-    grid-template-columns: var(--roster-desktop-field-width) repeat(5, auto);
-    grid-template-rows: auto auto;
-    column-gap: var(--roster-desktop-gap);
-    row-gap: 0.85rem;
-    align-items: center;
-    justify-content: center;
-    padding: 0.9rem 1.15rem 1rem;
-    margin: 0 auto;
-    width: fit-content;
-    max-width: var(--roster-desktop-max);
-  }
-  body[data-page="rosters"] #primary-header-row,
-  body[data-page="rosters"] #contextual-controls,
-  body[data-page="rosters"] #secondary-header-row,
-  body[data-page="rosters"] #filters-row,
-  body[data-page="rosters"] .filters-container {
-    display: contents !important;
-  }
-  body[data-page="rosters"] #contextual-controls .header-row {
-    border-top: 0;
-    padding: 0;
-  }
-  body[data-page="rosters"] .username-area {
-    grid-column: 1;
-    grid-row: 1;
-    width: var(--roster-desktop-field-width);
-    max-width: var(--roster-desktop-field-width);
-  }
-  body[data-page="rosters"] .nav-buttons-container {
-    grid-column: 2 / span 5;
-    grid-row: 1;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    min-width: 0;
-  }
-  body[data-page="rosters"] .nav-buttons-container .nav-button {
-    flex: 0 0 auto;
-    width: 77px;
-  }
-  body[data-page="rosters"] .custom-select-wrapper {
-    grid-column: 1;
-    grid-row: 2;
-    width: var(--roster-desktop-field-width);
-    max-width: var(--roster-desktop-field-width);
-  }
-  body[data-page="rosters"] .view-switcher {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: flex-start;
-  }
-  body[data-page="rosters"] .start-sit-button-slot {
-    grid-column: 3;
-    grid-row: 2;
-    justify-self: flex-start;
-  }
-  body[data-page="rosters"] #positional-filters {
-    grid-column: 4;
-    grid-row: 2;
-    justify-content: flex-start;
-    margin-left: 3px;
-  }
-  body[data-page="rosters"] #clearFiltersButton {
-    grid-column: 5;
-    grid-row: 2;
-    margin: 0;
-  }
-  body[data-page="rosters"] .compare-controls {
-    grid-column: 6;
-    grid-row: 2;
-    display: flex;
-    align-items: center;
-    justify-self: flex-start;
-    position: static;
-  }
-  body[data-page="rosters"] .compare-controls .compare-search-toggle {
-    margin: 0;
-  }
-  body[data-page="rosters"] #header-container {
-    position: fixed;
-    top: 0;
-    top: 7px;
-    left: 0;
-    right: 0;
-    width: 100vw;
-  }
-}
+
+/* NOTE: Removed a corrupted/partial rosters header layout block here.
+   It contained orphaned declarations and a stray closing brace which broke CSS parsing.
+   Rosters header layout is handled by the dedicated rosters mobile/desktop media queries.
+*/
 @media (min-width: 869px) {
   body[data-page="rosters"] #homeButton {
     margin-left: 20px;
@@ -19115,6 +19067,20 @@ body[data-page="research"] #secondary-header-row {
 
 /* ⬇︎ MOBILE-ONLY ROSTERS PAGE HEADER LAYOUT ⬇︎ */
 @media (max-width: 819px) {
+  /* Ensure rosters header stays in-flow on mobile; override any earlier fixed-header rules. */
+  body[data-page="rosters"] #header-container {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  body[data-page="rosters"] main#content {
+    padding-top: 0 !important;
+  }
+
   /* Hide username and league select on rosters page mobile */
   body[data-page="rosters"] .username-area,
   body[data-page="rosters"] .custom-select-wrapper {
@@ -19480,6 +19446,26 @@ body[data-page="research"] #secondary-header-row {
 
 /* Desktop rosters - extend search popover to cover filters */
 @media (min-width: 820px) {
+  /* Desktop: fixed header + content padding */
+  body[data-page="rosters"] #header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    max-width: none;
+    will-change: auto;
+  }
+
+  body[data-page="rosters"] #header-container .app-header {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="rosters"] main#content {
+    padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
+  }
+
   body[data-page="rosters"] .compare-search-popover {
     right: 0;
     left: auto;
