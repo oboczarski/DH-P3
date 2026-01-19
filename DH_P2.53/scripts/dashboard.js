@@ -4072,7 +4072,8 @@ function drawScatterChart(containerId, data) {
   
   // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
-  const minDistance = dotRadius * 2.2; // Minimum distance between dot centers to avoid overlap
+  // Minimum distance between dot centers to avoid overlap (slightly stronger than before)
+  const minDistance = dotRadius * 2.6;
   
   // Get initial positions for all dots
   const dotPositions = data.map((d, i) => ({
@@ -4084,7 +4085,7 @@ function drawScatterChart(containerId, data) {
   }));
   
   // Collision detection and resolution - run multiple passes to separate overlapping dots
-  const maxIterations = 15;
+  const maxIterations = 25;
   for (let iter = 0; iter < maxIterations; iter++) {
     let moved = false;
     for (let i = 0; i < dotPositions.length; i++) {
@@ -4106,13 +4107,19 @@ function drawScatterChart(containerId, data) {
           moved = true;
         } else if (distance === 0) {
           // Exact same position - offset in a random direction
-          const angle = Math.random() * Math.PI * 2;
+          const angle = ((i * 37 + j * 17) % 360) * (Math.PI / 180);
           dotPositions[i].cx -= Math.cos(angle) * (minDistance / 2);
           dotPositions[i].cy -= Math.sin(angle) * (minDistance / 2);
           dotPositions[j].cx += Math.cos(angle) * (minDistance / 2);
           dotPositions[j].cy += Math.sin(angle) * (minDistance / 2);
           moved = true;
         }
+
+        // Keep dots within the plot bounds so collision resolution doesn't push them off-chart
+        dotPositions[i].cx = clamp(dotPositions[i].cx, 0, innerWidth);
+        dotPositions[i].cy = clamp(dotPositions[i].cy, 0, innerHeight);
+        dotPositions[j].cx = clamp(dotPositions[j].cx, 0, innerWidth);
+        dotPositions[j].cy = clamp(dotPositions[j].cy, 0, innerHeight);
       }
     }
     if (!moved) break; // No more overlaps
@@ -4192,26 +4199,17 @@ function drawScatterChart(containerId, data) {
       if (!isDot && !isTooltip) hideTooltip();
     }, { passive: true });
   }
-  const labelRadius = isMobile ? 10 : 8;
-  const labelCollide = isMobile ? 14 : 16;
-  const labelAngles = [-Math.PI / 4, Math.PI / 4, -3 * Math.PI / 4, 3 * Math.PI / 4, 0, Math.PI, -Math.PI / 2, Math.PI / 2];
-  const labelSeeds = dotPositions.map((pos, i) => {
-    const angle = labelAngles[i % labelAngles.length] + (i * 0.35);
-    return {
-      x: pos.cx + Math.cos(angle) * labelRadius,
-      y: pos.cy + Math.sin(angle) * labelRadius,
-      angle
-    };
-  });
-
+  // Data labels: restore the original fixed positioning relative to each dot
+  const labelDx = isMobile ? 6 : 8;
+  const labelDy = isMobile ? -6 : -8;
   const labels = g.selectAll('.scatter-label')
     .data(data)
     .enter()
     .append('text')
     .attr('class', 'scatter-label')
-    .attr('text-anchor', 'middle')
-    .attr('x', (d, i) => labelSeeds[i].x)
-    .attr('y', (d, i) => labelSeeds[i].y)
+    .attr('text-anchor', 'start')
+    .attr('x', (d, i) => dotPositions[i].cx + labelDx)
+    .attr('y', (d, i) => dotPositions[i].cy + labelDy)
     .text(d => {
     const parts = d.name.split(' ');
     const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
@@ -4239,31 +4237,9 @@ function drawScatterChart(containerId, data) {
       showTooltip(event,d);
     });
   }
-  const labelNodes = data.map((d, i) => ({
-    ...d,
-    fx: dotPositions[i].cx,
-    fy: dotPositions[i].cy,
-    x: labelSeeds[i].x,
-    y: labelSeeds[i].y
-  }));
-  const sim = d3.forceSimulation(labelNodes)
-    .force('anchorX', d3.forceX((d, i) => dotPositions[i].cx).strength(0.6))
-    .force('anchorY', d3.forceY((d, i) => dotPositions[i].cy).strength(0.6))
-    .force('collide', d3.forceCollide(labelCollide))
-    .force('charge', d3.forceManyBody().strength(isMobile ? -18 : -22))
-    .stop();
-  for (let i = 0; i < 60; ++i) sim.tick();
-  labels.attr('text-anchor', (d, i) => {
-    const dx = labelNodes[i].x - dotPositions[i].cx;
-    if (dx > 6) return 'start';
-    if (dx < -6) return 'end';
-    return 'middle';
-  });
   labels.transition()
-    .duration(1000)
-    .delay((d, i) => i * 30 + 500)
-    .attr('x', (d, i) => labelNodes[i].x)
-    .attr('y', (d, i) => labelNodes[i].y)
+    .duration(900)
+    .delay((d, i) => i * 25 + 450)
     .attr('opacity', 1);
 }
 
