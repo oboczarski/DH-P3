@@ -4192,8 +4192,17 @@ function drawScatterChart(containerId, data) {
       if (!isDot && !isTooltip) hideTooltip();
     }, { passive: true });
   }
-  const labelOffset = isMobile ? 14 : 12;
-  const labelCollide = isMobile ? 16 : 18;
+  const labelRadius = isMobile ? 10 : 8;
+  const labelCollide = isMobile ? 14 : 16;
+  const labelAngles = [-Math.PI / 4, Math.PI / 4, -3 * Math.PI / 4, 3 * Math.PI / 4, 0, Math.PI, -Math.PI / 2, Math.PI / 2];
+  const labelSeeds = dotPositions.map((pos, i) => {
+    const angle = labelAngles[i % labelAngles.length] + (i * 0.35);
+    return {
+      x: pos.cx + Math.cos(angle) * labelRadius,
+      y: pos.cy + Math.sin(angle) * labelRadius,
+      angle
+    };
+  });
 
   const labels = g.selectAll('.scatter-label')
     .data(data)
@@ -4201,8 +4210,8 @@ function drawScatterChart(containerId, data) {
     .append('text')
     .attr('class', 'scatter-label')
     .attr('text-anchor', 'middle')
-    .attr('x', (d, i) => dotPositions[i].cx)
-    .attr('y', (d, i) => dotPositions[i].cy - labelOffset)
+    .attr('x', (d, i) => labelSeeds[i].x)
+    .attr('y', (d, i) => labelSeeds[i].y)
     .text(d => {
     const parts = d.name.split(' ');
     const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
@@ -4230,37 +4239,32 @@ function drawScatterChart(containerId, data) {
       showTooltip(event,d);
     });
   }
-  const labelNodes = data.map((d, i) => {
-    const cx = dotPositions[i].cx;
-    const cy = dotPositions[i].cy - labelOffset;
-    return { ...d, fx: cx, fy: cy, x: cx, y: cy };
-  });
+  const labelNodes = data.map((d, i) => ({
+    ...d,
+    fx: dotPositions[i].cx,
+    fy: dotPositions[i].cy,
+    x: labelSeeds[i].x,
+    y: labelSeeds[i].y
+  }));
   const sim = d3.forceSimulation(labelNodes)
-    .force('anchorX', d3.forceX((d, i) => dotPositions[i].cx).strength(3))
-    .force('anchorY', d3.forceY((d, i) => dotPositions[i].cy - labelOffset).strength(3))
+    .force('anchorX', d3.forceX((d, i) => dotPositions[i].cx).strength(0.6))
+    .force('anchorY', d3.forceY((d, i) => dotPositions[i].cy).strength(0.6))
     .force('collide', d3.forceCollide(labelCollide))
+    .force('charge', d3.forceManyBody().strength(isMobile ? -18 : -22))
     .stop();
   for (let i = 0; i < 60; ++i) sim.tick();
+  labels.attr('text-anchor', (d, i) => {
+    const dx = labelNodes[i].x - dotPositions[i].cx;
+    if (dx > 6) return 'start';
+    if (dx < -6) return 'end';
+    return 'middle';
+  });
   labels.transition()
     .duration(1000)
     .delay((d, i) => i * 30 + 500)
     .attr('x', (d, i) => labelNodes[i].x)
     .attr('y', (d, i) => labelNodes[i].y)
-    .attr('opacity', 1)
-    .on('end', function() {
-      if (!isMobile) return;
-      const node = this;
-      const bbox = node.getBBox();
-      const halfWidth = bbox.width / 2 + 2;
-      let xPos = Number(node.getAttribute('x')) || 0;
-      let yPos = Number(node.getAttribute('y')) || 0;
-      if (xPos - halfWidth < 0) xPos = halfWidth;
-      if (xPos + halfWidth > innerWidth) xPos = innerWidth - halfWidth;
-      if (yPos - bbox.height < 0) yPos = bbox.height;
-      if (yPos > innerHeight - 2) yPos = innerHeight - 2;
-      node.setAttribute('x', xPos.toString());
-      node.setAttribute('y', yPos.toString());
-    });
+    .attr('opacity', 1);
 }
 
 // Initialize

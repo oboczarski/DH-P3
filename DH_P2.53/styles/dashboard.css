@@ -770,6 +770,11 @@
   background: rgb(104 61 162 / 7%);
 }
 
+.fc-scatter-panel .fc-chart-container,
+.fc-scatter-panel .fc-chart-container svg {
+  overflow: visible;
+}
+
 .scatter-svg {
   border-radius: var(--radius-lg);
 }
@@ -1018,10 +1023,6 @@
   /* Scatter Panel: Tall on mobile */
   .fc-scatter-panel {min-height: 68em;backdrop-filter: blur(4px);-webkit-backdrop-filter: blur(4px);}
 
-  .fc-scatter-panel .fc-chart-container,
-  .fc-scatter-panel .fc-chart-container svg {
-    overflow: visible;
-  }
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
