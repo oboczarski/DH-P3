@@ -346,42 +346,28 @@ if (pageType !== 'welcome') {
                 }
 
                 // Horizontal positioning
-                // Default: center the menu under the button.
-                // If centering would overflow the viewport, align to the button edge instead.
+                // Center under the button, then clamp within the viewport.
                 const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-                const centerX = rect.left + (rect.width / 2);
                 const belowY = rect.bottom + gap;
 
                 // Ensure we have up-to-date menu metrics.
                 let menuRect = moreDropdown.getBoundingClientRect();
                 const menuWidth = menuRect.width || 0;
 
-                // Decide alignment mode.
-                const centeredLeft = centerX - (menuWidth / 2);
-                const centeredRight = centerX + (menuWidth / 2);
-                let tx = '-50%';
-                let x = centerX;
+                // Compute a real left edge (does not rely on CSS translate/variables).
+                let left = rect.left + (rect.width - menuWidth) / 2;
+                if (menuWidth === 0) left = rect.left;
+                if (!Number.isFinite(left)) left = rect.left;
 
-                if (menuWidth > 0 && (centeredLeft < margin || centeredRight > (viewportWidth - margin))) {
-                    // Prefer aligning to the button edge that keeps the menu on-screen.
-                    // Near the right edge (common on mobile): align menu's right edge to button's right edge.
-                    const rightAlignedLeft = rect.right - menuWidth;
-                    const leftAlignedLeft = rect.left;
-
-                    if (centeredRight > (viewportWidth - margin)) {
-                        tx = '0px';
-                        x = Math.max(margin, Math.min(rightAlignedLeft, viewportWidth - margin - menuWidth));
-                    } else if (centeredLeft < margin) {
-                        tx = '0px';
-                        x = Math.max(margin, Math.min(leftAlignedLeft, viewportWidth - margin - menuWidth));
-                    }
+                // Clamp to viewport margins when possible.
+                const maxLeft = viewportWidth - margin - (menuWidth || 0);
+                if (Number.isFinite(maxLeft)) {
+                    left = Math.max(margin, Math.min(left, maxLeft));
                 }
 
-                // NOTE: Avoid using the CSS individual `translate` property here.
-                // Some macOS Safari versions ignore it, causing the menu to appear far to the right.
-                // We instead drive translation through CSS variables consumed by `transform`.
-                moreDropdown.style.setProperty('--nav-more-tx', tx);
-                setCoords(x, belowY);
+                // Keep any legacy var deterministic (even if unused by CSS in this build).
+                moreDropdown.style.setProperty('--nav-more-tx', '0px');
+                setCoords(left, belowY);
 
                 // Re-measure after coords to ensure vertical overflow calculations are correct.
                 menuRect = moreDropdown.getBoundingClientRect();
