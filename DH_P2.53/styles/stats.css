@@ -1684,7 +1684,7 @@ body[data-page="stats"] #header-container {
     max-width: none;
   }
   .stats-table {
-    font-size: 0.56rem;
+    font-size: 0.65rem;
   }
   .stats-table thead th,
   .stats-table tbody td {
@@ -1692,7 +1692,7 @@ body[data-page="stats"] #header-container {
     height: 1.7rem;
     min-height: 1.7rem;
     max-height: 1.7rem;
-    line-height: 1.1rem;
+    line-height: 1.05rem;
   }
   .stats-table tbody tr {
     height: 1.7rem;
