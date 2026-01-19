@@ -20,33 +20,6 @@ When assisting in this repo, proactively review relevant files and previous conv
 - The app is **mobile-first**. Prioritize correct behavior and layout on mobile widths, then ensure desktop is also optimized and polished (no broken layouts, awkward spacing, or unreadable tables).
 - When you touch cross-cutting concerns (navigation, modals, game logs, proxies, service worker, etc.), align with existing patterns in `scripts/app.js`, `styles/styles.css`, and the current HTML shells.
 
-### Critical Mobile-First Patterns
-
-**Header Positioning:**
-- **Default (most pages)**: `position: sticky` — header stays in document flow, scrolls naturally with content
-- **Rosters page exception**:
-  - Mobile (≤819px): `position: sticky` (in-flow, no artificial padding)
-  - Desktop (≥820px): `position: fixed` (out-of-flow) with JS-computed `padding-top` on `main#content` using CSS variable `--roster-header-height`
-  - Never mix fixed headers with sticky headers without media query separation
-
-**Navigation Dropdown ("More"):**
-- Present on all non-dashboard pages (Rosters, Stats, Analyzer, Research, Ownership)
-- Contains: Ownership (internal nav), Trophy Room (external: dynastyhub-trophyroom.netlify.app), Matchups (external: dynastyhub-matchups.netlify.app)
-- **Positioning strategy** (in `app.js`):
-  - Dropdown is **portaled to `document.body`** to avoid WebKit `backdrop-filter` containing-block issues
-  - Uses `position: fixed` + JS-computed coordinates via `getBoundingClientRect()`
-  - **Centers under button** when space allows (`--nav-more-tx: -50%`)
-  - **Edge-aligns** near viewport edges to prevent overflow (`--nav-more-tx: 0px`)
-  - Uses CSS `transform` variables (not individual `translate` property) for Safari compatibility
-  - Repositions on `resize` and `scroll` when open
-- **DO NOT** use inline styles to position the dropdown — always use the JS positioning function pattern
-
-**Responsive Breakpoints:**
-- `520px`: Ultra-mobile nav button compression
-- `768px`: Desktop nav button expansion
-- `819px`: Rosters mobile/desktop layout pivot
-- `869px`: Full desktop header grid layouts (Stats, Rosters)
-
 ## App / Project Description
 
 This repository contains the source code for **Dynasty Hub**, a multi-page fantasy football web app (PWA) focused on dynasty leagues. The app is designed and optimized for both mobile and desktop use.
@@ -126,12 +99,9 @@ DH-P3/DH_P2.53
 
 - **/DH_P2.53/scripts/app.js**: Core shared application logic. Manages:
   - Global state (username, userId, leagues, players, sheet/value data).
-  - Navigation between pages via header buttons and "More" dropdown.
-  - **"More" dropdown positioning system**: JS-driven fixed positioning with viewport-aware centering/edge-alignment, portaled to `<body>` to avoid WebKit containing-block issues.
-  - External link support: dropdown items can use `data-url` to open new tabs (Trophy Room, Matchups).
+  - Navigation between pages via header buttons.
   - Sleeper API integration for user, leagues, rosters, matchups, and (optionally) live stats.
   - Roster rendering, view modes, positional filters, comparison/trade/start-sit flows, and ownership aggregation logic.
-  - Rosters-specific: `adjustStickyHeaders()` computes `--roster-header-height` CSS variable for desktop fixed-header content padding.
   - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
 
 - **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
@@ -161,11 +131,8 @@ DH-P3/DH_P2.53
 
 - **/DH_P2.53/styles/styles.css**: Global stylesheet defining:
   - The “Deep Space” theme, starfield background, noise overlay, and glass-panel styles.
-  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.  - **Navigation system**: `.nav-button` base class, `.nav-more-toggle` for More button, `.nav-more-dropdown` with `position: fixed` and `transform: translate(var(--nav-more-tx), var(--nav-more-ty))` for JS-driven positioning.
-  - **Rosters page responsive overrides**:
-    - Mobile (≤819px): 2-row header, sticky positioning, condensed controls, view-dropdown instead of view-switcher
-    - Desktop (≥820px): Grid layout, fixed header, standard controls
-  - Media queries at 520px, 768px, 819px, 869px for responsive behavior.
+  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.
+
 - **/DH_P2.53/styles/stats.css**: Stats-page-specific styles. Controls:
   - Stats header shell, intro card, filter/controls panel.
   - Table layout, sticky headers, column widths, loading/empty states.
@@ -197,39 +164,21 @@ DH-P3/DH_P2.53
   - `DH_P2.53/stats/stats.html` + `DH_P2.53/scripts/stats.js` + `DH_P2.53/styles/stats.css`.  
   - The table uses a multi-section layout with sticky/frozen columns and scrollable regions, driven by specific wrappers and CSS variables for widths.  
   - When changing columns or layout, keep the containers and scroll behavior intact; update JS and CSS together.
-  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
 
 - **League Analyzer**  
   - `DH_P2.53/analyzer/analyzer.html` + `DH_P2.53/scripts/analyzer.js`.  
   - Analyzer fetches Sleeper and KTC data. Prefer routing new Sleeper/Sheets calls through the Netlify proxies (see below) unless matching an existing direct pattern is explicitly required.
-  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
 
 - **Research / SYOP**  
   - `DH_P2.53/research/research.html` + `DH_P2.53/scripts/syop.js`.  
-  - SVG-based visualizations with resize-aware rendering. Handles tab switching between SYOP and hit-rate sections.
-  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
+  - Keep resize-aware rendering
 
-- **Rosters Page (Complex Mobile/Desktop Layout)**  
-  - `DH_P2.53/rosters/rosters.html` + `DH_P2.53/scripts/app.js` + global styles.  
-  - **Mobile (≤819px)**:
-    - 2-row header: Nav buttons on row 1, controls on row 2
-    - Username/league hidden, controls condensed (Start/Sit, View dropdown, filters, compare)
-    - View dropdown replaces view switcher (Positional/Condensed/Lineup options)
-    - Sticky header (in-flow, no artificial padding)
-  - **Desktop (≥820px)**:
-    - Grid layout with username/league visible
-    - Fixed header with JS-computed `--roster-header-height` padding on content
-    - View switcher instead of dropdown
-  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
-  - `app.js` coordinates roster rendering, view modes, positional filters, comparison/trade/start-sit tools.
-
-- **Ownership Page**  
-  - `DH_P2.53/ownership/ownership.html` + `DH_P2.53/scripts/app.js` + global styles.  
-  - Displays multi-league ownership/exposure data per player.
-  - **Navigation**: Includes "More" dropdown (Ownership marked active, Trophy Room/Matchups).
+- **Rosters & Ownership**  
+  - `DH_P2.53/rosters/rosters.html`, `DH_P2.53/ownership/ownership.html` + `DH_P2.53/scripts/app.js` + global styles.  
+  - `app.js` coordinates global state, navigation, player cards, modals, comparison/trade/start-sit tools, and ownership aggregation. Align with its patterns when adding cross-page features or changing roster/ownership behavior.
 
 - **Shared app logic & other behavior**  
-  - `DH_P2.53/scripts/app.js` is the core engine for navigation, Sleeper integration, dropdown positioning, and shared UI behaviors (legend, game logs, modals, etc.).  
+  - `DH_P2.53/scripts/app.js` is the core engine for navigation, Sleeper integration, and shared UI behaviors (legend, game logs, comparison modal, etc.).  
   - `DH_P2.53/scripts/dh-scramble.js` handles title animation on the welcome/dashboard header.  
   - `DH_P2.53/service-worker.js` and `DH_P2.53/manifest.webmanifest` implement PWA behavior and app metadata.
 
@@ -240,87 +189,5 @@ DH-P3/DH_P2.53
 - The site is deployed via Netlify (`netlify.toml`), and external data is intended to flow mostly through **edge proxies**:
   - Google Sheets: `/api/sheet/*` → `netlify/edge-functions/sheet-proxy.js`
   - Sleeper: `/api/sleeper/*` → `netlify/edge-functions/sleeper-proxy.js`
-- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
-- Be mindful of caching semantics in the proxies (different behavior during "live-ish" windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
----
-
-## Navigation Architecture
-
-### Primary Navigation (All Pages)
-- **Dashboard/Welcome**: Home menu toggle with page options
-- **Non-dashboard pages**: Nav buttons (Home, Rosters, Stats, L.Analyze, Research) + "More" dropdown
-
-### "More" Dropdown System
-**Location**: All non-dashboard pages (Rosters, Stats, Analyzer, Research, Ownership)
-
-**Contents**:
-- **Ownership**: Internal navigation (`data-nav="ownership"`)
-- **Trophy Room**: External link (`data-url="https://dynastyhub-trophyroom.netlify.app/"`)
-- **Matchups**: External link (`data-url="http://dynastyhub-matchups.netlify.app/"`)
-
-**Implementation Details** (in `app.js`):
-1. **Portal to Body**: Dropdown appended to `document.body` to escape WebKit containing-block constraints from `backdrop-filter` on headers
-2. **Positioning Function** (`positionMoreDropdown()`):
-   - Measures button position via `getBoundingClientRect()`
-   - **Default**: Center under button (`--nav-more-tx: -50%`, `left = centerX`)
-   - **Overflow handling**: Edge-align when centering would exceed viewport (`--nav-more-tx: 0px`, clamp X)
-   - Uses CSS `transform` variables (not individual `translate` property) for Safari compatibility
-   - Handles vertical overflow by repositioning above button if space allows
-3. **Event Handlers**:
-   - Click toggle with ARIA state management
-   - Click-outside-to-close listener
-   - Resize/scroll listeners to maintain correct position when open
-4. **Item Click Handling**:
-   - Internal navigation: uses `ensureNavigate(page)` with username/league propagation
-   - External links: `window.open(url, '_blank', 'noopener,noreferrer')` with fallback to `window.location.href`
-
-**CSS Structure** (in `styles/styles.css`):
-- `.nav-button.nav-more-toggle`: Inherits all nav button sizing/styling
-- `.nav-more-dropdown`: `position: fixed`, `transform: translate(var(--nav-more-tx), var(--nav-more-ty))`
-- `.nav-more-item`: Dropdown menu items styled like nav buttons
-- Responsive overrides at 520px and 700px breakpoints
-
-**IMPORTANT**: Never manually set `left`/`top` inline styles on the dropdown — always use the `positionMoreDropdown()` function pattern and CSS variables.
-
----
-
-## Rosters Page Mobile Architecture
-
-The Rosters page has unique mobile-specific layout requirements:
-
-### Mobile Layout (≤819px)
-**Header Structure**:
-- **Row 1**: Nav buttons (Home, Rosters, Stats, L.Analyze, Research, More)
-- **Row 2**: Start/Sit button, View dropdown, Position filters, Compare search
-- Username/league selectors **hidden**
-- Clear filters button **hidden**
-
-**Key Mobile Patterns**:
-- **Header positioning**: `position: sticky` (in-flow, no artificial padding on content)
-- **View control**: Dropdown replaces switcher (icon + label + caret, shows Positional/Condensed/Lineup)
-- **Button sizing**: Aggressive compression (0.32rem padding, 0.72-0.85rem icons, 0.45rem labels)
-- **Flexbox order**: Start/Sit (order: 1), View (order: 2), Filters (order: 3), Compare (order: 4)
-- **Compare search**: Overlays row, spans full width except Start/Sit
-
-### Desktop Layout (≥820px)
-**Header Structure**:
-- Grid layout with 6 columns, 2 rows
-- Row 1: Username input, Nav buttons (spanning 5 columns)
-- Row 2: League select, View switcher, Start/Sit, Filters, Clear, Compare
-
-**Key Desktop Patterns**:
-- **Header positioning**: `position: fixed` at top with `--roster-header-height` computed by JS
-- **Content padding**: `padding-top: max(calc(var(--roster-header-height) - var(--roster-header-gap)), 0px)`
-- **View control**: Standard view switcher (3 buttons)
-- **Grid columns**: Precisely positioned via `grid-column` and `grid-row`
-
-### JS Responsibilities (`app.js`)
-- `adjustStickyHeaders()`: Computes and sets `--roster-header-height` CSS variable
-- `syncRosterHeaderPosition()`: Manages sticky positioning (currently no-op, kept for future use)
-- View dropdown/switcher event handlers
-- Start/Sit mode activation
-- Positional filter logic
-
-**IMPORTANT**: When modifying rosters header, always update **both** mobile and desktop media query blocks to maintain layout integrity across breakpoints.  - Sleeper: `/api/sleeper/*` → `netlify/edge-functions/sleeper-proxy.js`
 - When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
 - Be mindful of caching semantics in the proxies (different behavior during “live-ish” windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.

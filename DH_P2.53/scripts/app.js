@@ -6752,19 +6752,33 @@ const wrTeStatOrder = [
             }
         }
         window.addEventListener('resize', adjustStickyHeaders);
+        let rosterHeaderBaseLeft = null;
+        let rosterHeaderBaseViewportWidth = null;
         function syncRosterHeaderPosition() {
             const header = document.getElementById('header-container');
             if (!header) return;
             const isRosterPage = document.body?.dataset?.page === 'rosters';
             if (!isRosterPage) {
+                rosterHeaderBaseLeft = null;
+                rosterHeaderBaseViewportWidth = null;
                 if (header.style.transform) {
                     header.style.transform = '';
                 }
                 return;
             }
-            if (header.style.transform) {
-                header.style.transform = '';
+
+            // On the rosters page (mobile especially), the body can be horizontally scrollable.
+            // Keep the global header visually locked in place on horizontal scroll without changing layout/styles.
+            // Measure the header position *without* our own transform applied, then apply a counter-translate.
+            header.style.transform = '';
+            const rect = header.getBoundingClientRect();
+            const viewportWidth = document.documentElement.clientWidth;
+            if (rosterHeaderBaseLeft === null || rosterHeaderBaseViewportWidth !== viewportWidth) {
+                rosterHeaderBaseLeft = rect.left;
+                rosterHeaderBaseViewportWidth = viewportWidth;
             }
+            const dx = rosterHeaderBaseLeft - rect.left;
+            header.style.transform = Math.abs(dx) > 0.5 ? `translateX(${Math.round(dx)}px)` : '';
         }
         window.addEventListener('scroll', syncRosterHeaderPosition, { passive: true });
         window.addEventListener('resize', syncRosterHeaderPosition);
