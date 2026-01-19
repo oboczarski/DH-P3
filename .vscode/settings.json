@@ -159,7 +159,8 @@
     { "text": "]", "color": "#FF25D4", "backgroundColor": "#00000000", "isWholeLine": false },
 
     { "text": "oscarbrandsllc:",  "color": "#FF6AB4", "backgroundColor": "#00000000", "isWholeLine": false },
-    { "text": "GitHub Copilot:",  "color": "#FA8072", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "User:",  "color": "#FA8072", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "GitHub Copilot:",  "color": "#FF6AB4", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "⤵️ NEW PROMPT ⤵️", "color": "#FF6AB4", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "<!-- —————————————————————— ⤵️ NEW PROMPT ⤵️ ——————————————————————— -->",
       "color": "#FF6AB4", "backgroundColor": "#00000000", "isWholeLine": false },
