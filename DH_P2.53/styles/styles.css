@@ -73,7 +73,7 @@
 
 #rosterGrid .player-ktc-wrapper .ktc-rank-display {
   margin-left: 0.03rem;
-  font-weight: 600;
+  font-weight: 800;
   font-size: 0.62rem;
 }
 
@@ -100,15 +100,17 @@
 
 @media (max-width: 819px) {
   #rosterGrid .player-ktc-wrapper .ktc-rank-display {
-    font-size: 0.52rem;
+    font-size: 0.6rem;
+    font-family: 'Google Sans';
   }
 
   #rosterGrid .player-ktc-wrapper .ktc-rank-suffix-display {
+    margin-right: 2px;
     font-size: 0.55rem;
   }
 
   #rosterGrid .player-ktc-wrapper .player-ktc {
-    font-size: 0.48rem;
+    font-size: 0.56rem;
   }
 }
 
@@ -2865,10 +2867,11 @@ body[data-page="welcome"] .enter-label {
 }
 
 .player-value-line .value {
-  font-weight: 500;
-  font-size: 0.52rem;
+  font-weight: 300;
+  font-size: 0.55rem;
   color: var(--color-text-primary);
-  filter: brightness(1.15);
+  filter: brightness(1.45);
+  font-family: 'google sans';
 }
 
 /* Lower the rank annotation on player cards' KTC value line */
@@ -7846,10 +7849,12 @@ body::before {
 /* Restore compact inline annotation for general UI (player cards, tables) */
 .has-rank-annotation .stat-rank-annotation {
   display: inline-block;
-  font-size: .92em;
+  font-size: 1.15em;
   line-height: 1;
   margin-left: 0.1em;
   transform: translateY(-0.25em);
+  color: #eefd;
+  font-weight: 300;
 }
 
 /* For the comparison list, show the stat rank below the stat value and slightly larger */
