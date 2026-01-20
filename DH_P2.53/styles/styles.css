@@ -571,9 +571,9 @@ body[data-page="rosters"] main#content {
 }
 
 .nav-logo {
-  width: 1.15rem;
+  width: 1.3rem;
   /* match icon size */
-  height: 1.1rem;
+  height: 1.25rem;
   object-fit: contain;
   display: block;
   filter: opacity(0.8) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
@@ -957,7 +957,7 @@ body[data-page="rosters"] main#content {
   }
 
   .nav-button i {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 
   .nav-label {
@@ -11794,9 +11794,9 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button {
-    padding: 0.32rem 0.38rem !important;
+    padding: 0.25rem 0.38rem !important;
     gap: 0.1rem !important;
-    min-width: 3rem !important;
+    min-width: 3.3rem !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -11804,17 +11804,20 @@ body[data-page="research"] #secondary-header-row {
     justify-content: center !important;
     flex: 0 0 auto !important;
     width: auto !important;
+    margin-bottom: -2px;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
-    font-size: 0.85rem !important;
+    font-size: 0.95rem !important;
     line-height: 1 !important;
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.57rem !important;
+    font-size: 0.6rem !important;
     margin-top: 0.04rem !important;
-    line-height: 1 !important;
+    line-height: 1.05 !important;
+    font-weight: 700;
+    font-family: 'Google Sans';
   }
 
   /* Prevent alignment shifts on Start/Sit button - NO transform or outline */
@@ -11916,16 +11919,15 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-toggle i:first-child {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     line-height: 1 !important;
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.55rem !important;
-    font-weight: 500;
-    line-height: 1 !important;
-    margin-top: 0.04rem !important;
-    letter-spacing: 0.01rem;
+    font-size: 0.57rem !important;
+    line-height: 1.05 !important;
+    font-weight: 700;
+    font-family: 'Google Sans';
   }
 
   /* Prevent alignment shifts on View dropdown - NO transform or outline */
@@ -12020,8 +12022,7 @@ body[data-page="research"] #secondary-header-row {
 
   body[data-page="rosters"] .filter-btn {
     padding: 0.32rem 0.35rem !important;
-    font-size: 0.72rem !important;
-    font-weight: 400;
+    font-size: 0.8rem !important;
     flex: 1 1 0;
     min-width: 0;
     white-space: nowrap;
@@ -12030,6 +12031,8 @@ body[data-page="research"] #secondary-header-row {
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
+    font-weight: 500;
+    font-family: 'Product Sans';
   }
 
   body[data-page="rosters"] .filter-btn:not(.active):hover {
