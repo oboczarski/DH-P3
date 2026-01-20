@@ -959,7 +959,7 @@ body[data-page="rosters"] main#content {
   }
 
   .nav-label {
-    font-size: 0.55rem;
+    font-size: 0.7rem;
   }
 
   .app-logo {
@@ -11807,7 +11807,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .start-sit-button .analyzer-label {
-    font-size: 0.45rem !important;
+    font-size: 0.57rem !important;
     margin-top: 0.04rem !important;
     line-height: 1 !important;
   }
@@ -11916,7 +11916,7 @@ body[data-page="research"] #secondary-header-row {
   }
 
   body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
-    font-size: 0.45rem !important;
+    font-size: 0.55rem !important;
     font-weight: 500;
     line-height: 1 !important;
     margin-top: 0.04rem !important;
