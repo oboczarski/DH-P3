@@ -984,10 +984,10 @@ function setRosterView(view) {
             viewDropdownLabel.textContent = 'View: POS';
         } else if (isCondensed) {
             viewDropdownIcon.className = 'fa-solid fa-compress';
-            viewDropdownLabel.textContent = 'View: Condensed';
+            viewDropdownLabel.textContent = 'Condensed';
         } else {
             viewDropdownIcon.className = 'fa-solid fa-list-ol';
-            viewDropdownLabel.textContent = 'View: Lineup';
+            viewDropdownLabel.textContent = 'Lineup';
         }
     }
 
