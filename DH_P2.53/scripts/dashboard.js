@@ -3591,7 +3591,7 @@ function renderScatter() {
   ['QB', 'RB', 'WR', 'TE'].forEach(pos => {
     const byPos = topByFpts
       .filter(p => p.position === pos && Number.isFinite(p.stats.csty) && Number.isFinite(p.stats.ceiling))
-      .slice(0, 10);
+      .slice(0, 8);
     scatterPool.push(...byPos);
   });
   scatterAll = scatterPool;
