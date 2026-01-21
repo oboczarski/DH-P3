@@ -705,7 +705,7 @@ body[data-page="rosters"] main#content {
 
 @media (max-width: 640px) {
   body[data-page="ownership"].nav-more-dropdown:not(.hidden) {
-  transform: translateX(8px);
+  transform: translateX(6px);
 }}
 
 .nav-more-dropdown.hidden {
