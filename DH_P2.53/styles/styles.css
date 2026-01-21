@@ -703,11 +703,10 @@ body[data-page="rosters"] main#content {
   transform: translateX(0px);
 }
 
-@media (max-width: 640px) {
+
   body[data-page="ownership"].nav-more-dropdown:not(.hidden) {
   transform: translateX(8px);
   }
-}
 
 .nav-more-dropdown.hidden {
   display: none;
