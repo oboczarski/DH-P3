@@ -704,7 +704,7 @@ body[data-page="rosters"] main#content {
 }
 
 @media (max-width: 640px) {
-  body[data-page="rosters"].nav-more-dropdown:not(.hidden) {
+  body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
   transform: translateX(8px);
 }}
 
