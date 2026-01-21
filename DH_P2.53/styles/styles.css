@@ -2466,12 +2466,12 @@ body[data-page="welcome"] .enter-label {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 0.1rem;
+  column-gap: 0.05rem;
   font-size: 0.7rem;
   font-weight: 500;
   color: #d0d1ee;
   text-align: center;
-  padding: 0.32rem 0.15rem 0.32rem 0.3rem;
+  padding: 0.32rem 0.2rem 0.32rem 0.3rem;
   cursor: pointer;
   /* · · Glass look to match filter groups · · */
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
@@ -11752,8 +11752,8 @@ body[data-page="research"] #secondary-header-row {
   body[data-page="rosters"] #header-container .app-header {
     display: flex;
     flex-direction: column;
-    padding: 0.57rem 0.15rem 0.46rem;
-    gap: 0.46rem;
+    padding: 0.4rem 0.15rem 0.45rem;
+    gap: 0.35rem;
   }
 
   /* First row: Navigation buttons */
