@@ -700,6 +700,9 @@ body[data-page="rosters"] main#content {
   opacity: 1;
   transform: translateY(0);
   pointer-events: all;
+  transform: translateX(0px);
+}
+body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
   transform: translateX(2px);
 }
 
