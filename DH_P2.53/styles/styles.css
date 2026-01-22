@@ -4059,7 +4059,7 @@ body[data-page="welcome"] .home-menu {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  min-width: 158px;
+  min-width: 144px;
   /* Increased slightly */
   width: max-content;
   /* Ensure it expands to fit text */
@@ -4070,7 +4070,7 @@ body[data-page="welcome"] .home-menu {
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   z-index: 1200;
   max-height: 60vh;
   overflow: auto;
@@ -4081,14 +4081,14 @@ body[data-page="welcome"] .home-menu.hidden {
 }
 
 body[data-page="welcome"] .home-menu-item {
-  background: transparent;
+  background: #85a2cf1f;
   color: var(--color-text-secondary);
   border: none;
   text-align: left;
   padding: 4px 12px;
   /* Increased padding for better touch targets */
   display: flex;
-  gap: 10px;
+  gap: 9px;
   /* Increased gap */
   align-items: center;
   cursor: pointer;
@@ -4108,6 +4108,7 @@ body[data-page="welcome"] .home-menu-item:hover {
 body[data-page="welcome"] .home-menu-item i {
   width: 16px;
   text-align: center;
+  color: #99a3e5;
 }
 
 /* Fix for tiny hamburger icon */
