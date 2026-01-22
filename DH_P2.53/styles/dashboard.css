@@ -992,7 +992,7 @@
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
   .fc-chart-header-top--bar {
     flex-wrap: nowrap;
-    gap: 0.35em;
+    gap: 0.15em;
     margin-left: -3px;
   }
   .fc-radar-panel .fc-chart-container { min-height: 32em; }
@@ -1021,7 +1021,7 @@
     margin-right: -6px;
   }
   .fc-bar-panel .filter-btn {
-    padding: 0.1em 0.5em !important;
+    padding: 0.1em 0.55em !important;
     font-size: 2.2em !important;
     height: auto !important;
     min-height: 0 !important;
