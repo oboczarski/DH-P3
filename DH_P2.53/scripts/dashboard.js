@@ -260,8 +260,8 @@ const HP_DATA = [
     "G": 17,
     "FPTS": 358.38,
     "PPG": 21.08117647,
-    "CSTY%": 0.6470588235,
-    "CL": 28.55333333,
+    "CSTY%": 0.63,
+    "CL": 28.15,
     "TS%": NaN,
     "CPOE": 0.015,
     "EPA/DB": 0.2,
@@ -323,7 +323,7 @@ const HP_DATA = [
     "FPTS": 325.18,
     "PPG": 19.12823529,
     "CSTY%": 0.6470588235,
-    "CL": 30.97333333,
+    "CL": 32.07,
     "TS%": NaN,
     "CPOE": -0.069,
     "EPA/DB": 0.05,
@@ -664,7 +664,7 @@ const HP_DATA = [
     "FPTS": 296.68,
     "PPG": 21.19142857,
     "CSTY%": 0.6428571429,
-    "CL": 29.54666667,
+    "CL": 29.74666667,
     "TS%": NaN,
     "CPOE": -0.029,
     "EPA/DB": 0.11,
@@ -757,7 +757,7 @@ const HP_DATA = [
     "FPTS": 282.6,
     "PPG": 16.62352941,
     "CSTY%": 0.7058823529,
-    "CL": 29.16666667,
+    "CL": 29.94666667,
     "TS%": NaN,
     "CPOE": NaN,
     "EPA/DB": NaN,
@@ -818,8 +818,8 @@ const HP_DATA = [
     "G": 16,
     "FPTS": 269.0,
     "PPG": 16.8125,
-    "CSTY%": 0.75,
-    "CL": 29.83333333,
+    "CSTY%": 0.77,
+    "CL": 29.93333333,
     "TS%": 0.264,
     "CPOE": NaN,
     "EPA/DB": NaN,
@@ -2772,7 +2772,7 @@ const HP_DATA = [
     "FPTS": 176.2,
     "PPG": 14.68333333,
     "CSTY%": 0.5833333333,
-    "CL": 26.96666667,
+    "CL": 26.69,
     "TS%": 0.167,
     "CPOE": NaN,
     "EPA/DB": NaN,
@@ -4073,7 +4073,7 @@ function drawScatterChart(containerId, data) {
   // Calculate offsets for overlapping/nearby dots
   const dotRadius = isMobile ? 4.8 : 7;
   // Minimum distance between dot centers to avoid overlap (slightly stronger than before)
-  const minDistance = dotRadius * 2.6;
+  const minDistance = dotRadius * 3;
   
   // Get initial positions for all dots
   const dotPositions = data.map((d, i) => ({
@@ -4200,8 +4200,8 @@ function drawScatterChart(containerId, data) {
     }, { passive: true });
   }
   // Data labels: restore the original fixed positioning relative to each dot
-  const labelDx = isMobile ? 6 : 8;
-  const labelDy = isMobile ? -6 : -8;
+  const labelDx = isMobile ? -2 : 3;
+  const labelDy = isMobile ? 2 : 1;
   const labels = g.selectAll('.scatter-label')
     .data(data)
     .enter()

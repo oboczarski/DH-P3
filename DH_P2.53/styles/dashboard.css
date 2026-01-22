@@ -854,7 +854,7 @@
   font-size: 11px;
   font-weight: 500;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  text-shadow: 0 0px 2px #000, 0 0px 2px #000, 0 0px 2px #000;
 }
 
 .scatter-dot {
@@ -1039,12 +1039,12 @@
 
   .fc-chart-helper {font-size: 1.25em;}
   .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
-  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.35em 0 0.45em;margin-top: 1.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffad;}
+  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.35em 0 0.45em;margin-top: 1.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffdd;color: #ff7b46;}
   .fc-scatter-subline {gap: 0;}
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
-    font-size: 8px !important;
+    font-size: 7px !important;
   }
 
   /* Scatter Axis Labels: Smaller */
