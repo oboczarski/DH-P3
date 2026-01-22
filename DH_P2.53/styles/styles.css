@@ -356,7 +356,7 @@ main#content {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 0.55rem;
+    gap: 0.35rem;
     width: 100%;
   }
 }
@@ -431,7 +431,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
   .welcome-branding-panel .welcome-logo {
     --welcome-logo-size: clamp(40px, 15vw, 56px);
-    margin-top: 1px;
+    margin-top: 0px;
   }
 
   .welcome-branding-panel h2 {
