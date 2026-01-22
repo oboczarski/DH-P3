@@ -997,6 +997,11 @@
   .fc-radar-panel .fc-chart-container { min-height: 32em; }
   .fc-bar-panel .fc-chart-container { min-height: 28em; }
 
+  .fc-chart-panel.fc-radar-panel {
+    padding: 1.05em 0.45em 0.75em;
+}
+
+
   .fc-bar-panel .fc-chart-header {
     flex-direction: column;
     align-items: flex-start;
