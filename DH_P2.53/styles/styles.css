@@ -351,6 +351,16 @@ main#content {
   width: 100%;
 }
 
+@media (max-width: 520px) {
+  .branding-top-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.55rem;
+    width: 100%;
+  }
+}
+
 /* Subtle glow effect matching cards */
 .welcome-branding-panel::before {
   content: "";
@@ -367,7 +377,7 @@ main#content {
 }
 
 .welcome-branding-panel .welcome-logo {
-  --welcome-logo-size: clamp(48px, 14vw, 72px);
+  --welcome-logo-size: clamp(48px, 14vw, 79px);
   display: block;
   width: var(--welcome-logo-size);
   height: auto;
@@ -420,7 +430,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 
   .welcome-branding-panel .welcome-logo {
-    --welcome-logo-size: clamp(40px, 12vw, 56px);
+    --welcome-logo-size: clamp(40px, 14vw, 56px);
   }
 
   .welcome-branding-panel h2 {
@@ -576,8 +586,7 @@ body[data-page="rosters"] main#content {
   height: 1.25rem;
   object-fit: contain;
   display: block;
-  filter: opacity(0.5) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12)) brightness(1.5) hue-rotate(
-42deg);
+  filter: opacity(0.5) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12)) brightness(1.5) hue-rotate(42deg);
 }
 
 /* Reduce vertical spacing specifically for the Home button logo so it matches other nav buttons */
@@ -705,8 +714,9 @@ body[data-page="rosters"] main#content {
 
 @media (max-width: 640px) {
   body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
-  transform: translateX(5px);
-}}
+    transform: translateX(5px);
+  }
+}
 
 .nav-more-dropdown.hidden {
   display: none;
@@ -3800,8 +3810,8 @@ body[data-page="welcome"] .app-header {
 
   /* Scale down branding content */
   body[data-page="welcome"] .welcome-logo img {
-    height: 4.7rem;
-    width: 5rem;
+    height: 5rem;
+    width: 5.6rem;
   }
 
   body[data-page="welcome"] .welcome-branding-panel h2 {
