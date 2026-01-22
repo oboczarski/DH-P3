@@ -930,8 +930,8 @@
   .fc-summary-card {padding: 0.8em 0.5em 0.6em 0.5em;}
   .fc-summary-card .fc-card__header {margin-bottom: 0.65em;}
   .fc-summary-card .fc-card__title {font-size: 1.7em;margin-left: 5px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.15em;}
-  .fc-summary-card .fc-badge {padding: 0.35em 0.75em;font-size: 1.1em;}
+  .fc-summary-card .fc-card__subtitle {font-size: 1.45em;}
+  .fc-summary-card .fc-badge {padding: 0.35em 0.75em;font-size: 1.3em;}
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
   .fc-summary-card .fc-metric-sub {margin-bottom: 0em;font-size: 1.5em;}
   .fc-summary-card .fc-card__footer {margin-top: 0.57em;font-size: 1.4em;}
