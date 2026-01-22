@@ -416,7 +416,7 @@ const HP_DATA = [
     "FPTS": 322.8,
     "PPG": 20.175,
     "CSTY%": 1.0,
-    "CL": 32.56666667,
+    "CL": 32.86666667,
     "TS%": NaN,
     "CPOE": NaN,
     "EPA/DB": NaN,
