@@ -427,7 +427,7 @@
 }
 
 .fc-chart-subtitle {
-  margin: 0.61em;
+  margin: 0.41em 0.61em;
   text-align: center;
 }
 
@@ -932,7 +932,7 @@
   .fc-summary-card .fc-card__header {margin-bottom: 0.25em;}
   .fc-summary-card .fc-card__title {font-size: 1.8em;margin-left: 4px;}
   .fc-summary-card .fc-card__subtitle {font-size: 1.45em;}
-  .fc-summary-card .fc-badge {padding: 0.35em 0.65em;font-size: 1.35em;}
+  .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.35em;}
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
   .fc-summary-card .fc-metric-sub {margin-bottom: 0em;font-size: 1.5em;}
   .fc-summary-card .fc-card__footer {margin-top: 0.07em;font-size: 1.7em;}
@@ -976,8 +976,8 @@
   .fc-chart-panel {padding: 1.15em 1.15em 0.75em 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 1.8em;}
   .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1.75em !important;}
-  .fc-subtitle-bar {font-size: 1.65em !important;padding: 0px !important;margin: 2px -2px 1px -2px;}
+  .fc-subtitle-radar {font-size: 1.85em !important;}
+  .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
   /* Radial dropdown sizing */
@@ -988,7 +988,7 @@
   .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
 
   /* Keep dropdown to the right of the title on mobile */
-  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.5em;}
+  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.2em;}
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
   .fc-chart-header-top--bar {
     flex-wrap: nowrap;
@@ -1029,6 +1029,7 @@
   .fc-legend {
     font-size: 1.5em;
     gap: 0.7em;
+    margin: 1px 2px 1px 4px;
   }
   .fc-legend-full { display: none; }
   .fc-legend-abbr { display: inline; }
@@ -1218,8 +1219,8 @@
   }
   
   .fc-select-trigger {
-    padding: 0.1rem 0.4em 0.05rem;
-    font-size: 1.6em;
+    padding: 0.05rem 0.4em 0.05rem;
+    font-size: 1.8em;
   }
 
   .fc-search-icon {
