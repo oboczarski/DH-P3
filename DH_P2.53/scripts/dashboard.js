@@ -4243,6 +4243,41 @@ function drawScatterChart(containerId, data) {
     .attr('opacity', 1);
 }
 
+// Home menu: support external destinations (Trophy Room / Matchups) without impacting shared app.js navigation.
+// This file loads before deferred `app.js`, so we can intercept clicks and stop the default handler for these items.
+(() => {
+  const homeMenu = document.getElementById('homeMenu');
+  if (!homeMenu) return;
+
+  const homeMenuToggle = document.getElementById('homeMenuToggle');
+  const closeHomeMenu = () => {
+    if (!homeMenu.classList.contains('hidden')) {
+      homeMenu.classList.add('hidden');
+    }
+    homeMenu.setAttribute('aria-hidden', 'true');
+    homeMenuToggle?.setAttribute('aria-expanded', 'false');
+  };
+
+  homeMenu.querySelectorAll('.home-menu-item[data-url]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const url = btn.dataset.url;
+      if (!url) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      e.stopPropagation();
+
+      closeHomeMenu();
+
+      try {
+        const win = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!win) window.location.href = url;
+      } catch (err) {
+        window.location.href = url;
+      }
+    });
+  });
+})();
+
 // Initialize
 window.initFantasyDashboard = function() {
   players = HP_DATA.map(normalizePlayer);
