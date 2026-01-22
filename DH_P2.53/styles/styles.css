@@ -431,6 +431,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
   .welcome-branding-panel .welcome-logo {
     --welcome-logo-size: clamp(40px, 15vw, 56px);
+    margin-top: 1px;
   }
 
   .welcome-branding-panel h2 {
