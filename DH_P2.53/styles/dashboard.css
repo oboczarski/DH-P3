@@ -569,6 +569,7 @@
   text-align: center;
   flex-shrink: 0;
   z-index: 1;
+  justify-items: start;
 }
 
 .fc-legend-item {
@@ -1044,7 +1045,7 @@
 
   /* Scatter Data Labels: Smaller */
   .scatter-label {
-    font-size: 7px !important;
+    font-size: 8px !important;
   }
 
   /* Scatter Axis Labels: Smaller */
