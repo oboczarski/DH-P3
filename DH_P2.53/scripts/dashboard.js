@@ -4006,7 +4006,8 @@ function drawScatterChart(containerId, data) {
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [17, 44];
-  const xDomain = [45, 104];
+  // Keep 100% at the right edge of the axis (avoid pulling it left via an extended domain)
+  const xDomain = [45, 100];
   const xTicks = [45, 55, 65, 75, 85, 95, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
@@ -4037,8 +4038,13 @@ function drawScatterChart(containerId, data) {
     .selectAll('text')
     .style('font-size', isMobile ? '8px' : '14px');
 
-  xAxisText.filter(d => d === 100)
-    .attr('dx', isMobile ? '0.35em' : '0.3em');
+  // Prevent edge tick labels from crowding neighbors on narrow widths
+  xAxisText.filter(d => d === xDomain[0])
+    .style('text-anchor', 'start')
+    .attr('dx', '0.25em');
+  xAxisText.filter(d => d === xDomain[1])
+    .style('text-anchor', 'end')
+    .attr('dx', '-0.25em');
 
   g.append('g')
     .attr('class', 'scatter-axis')
