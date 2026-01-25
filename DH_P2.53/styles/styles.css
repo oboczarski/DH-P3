@@ -2697,9 +2697,11 @@ body[data-page="welcome"] .enter-label {
   display: none !important;
 }
 
+/* 
 .player-row-condensed .player-injury-badge {
   display: none !important;
 }
+*/
 
 .player-row-condensed .player-value-line {
   padding: 0.02rem 0.08rem 0rem;
@@ -2809,6 +2811,8 @@ body[data-page="welcome"] .enter-label {
   gap: 0.25rem;
 }
 
+/* TODO: Re-enable the injury badge styles at the start of the next season. */
+/*
 .player-injury-badge {
   display: inline-flex;
   align-items: center;
@@ -2820,6 +2824,7 @@ body[data-page="welcome"] .enter-label {
   text-transform: uppercase;
   line-height: 1;
 }
+*/
 
 .player-name {
   font-weight: 400;

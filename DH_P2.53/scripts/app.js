@@ -5599,9 +5599,13 @@ function createPlayerRow(player, teamName) {
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
     const injuryDesignation = player.injuryDesignation;
+    // OFF-SEASON: Injury badges are hidden. Re-enable the block below at the start of the next season.
+    const injuryBadgeHtml = '';
+    /*
     const injuryBadgeHtml = !isCondensedView && injuryDesignation
         ? `<div class="player-injury-badge" style="color: ${injuryDesignation.color};">${injuryDesignation.designation}</div>`
         : '';
+    */
     const condensedPosRankHtml = isCondensedView
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
         : '';
