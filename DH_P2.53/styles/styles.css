@@ -87,6 +87,10 @@
   font-size: 0.57rem;
 }
 
+#rosterGrid.condensed-mode .player-ktc-wrapper .player-ktc {
+  font-size: 0.53rem;
+}
+
 /* Match previous brightness treatment on KTC rank after the markup swap */
 #rosterGrid .player-ktc-wrapper .ktc-rank-display,
 #rosterGrid .player-ktc-wrapper .ktc-rank-suffix-display {
@@ -96,6 +100,7 @@
 #rosterGrid.condensed-mode .player-ktc-wrapper .ktc-rank-display,
 #rosterGrid.condensed-mode .player-ktc-wrapper .ktc-rank-suffix-display {
   filter: brightness(1.24);
+  font-size: 0.55rem;
 }
 
 @media (max-width: 819px) {
