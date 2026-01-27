@@ -9392,6 +9392,7 @@ body[data-page="research"] .app-header {
   margin: 0.22rem 0 0.55rem;
   color: rgba(182, 185, 214, 0.78);
   font-size: 0.86rem;
+  font-weight: 600;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 1.1rem;

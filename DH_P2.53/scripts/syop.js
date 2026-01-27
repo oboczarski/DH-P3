@@ -131,10 +131,10 @@
   ];
 
   const DRAFT_SERIES = [
-    { key: 'QB', color: '#FF41E1' },
-    { key: 'RB', color: '#20F7A7' },
-    { key: 'TE', color: '#9E5AF7' },
-    { key: 'WR', color: '#46E7FF' }
+    { key: 'QB', color: '#ff41b0' },
+    { key: 'RB', color: '#06ffa8e8' },
+    { key: 'TE', color: '#8942fc' },
+    { key: 'WR', color: '#46a9ff' }
   ];
 
   const DRAFT_OVERALL_MAX = Math.max(...DRAFT_OVERALL.map((row) => row.hit));
