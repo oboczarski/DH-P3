@@ -9382,10 +9382,15 @@ body[data-page="research"] .app-header {
 }
 
 .syop-panel header p {
-  margin: 0.4rem 0 -1.1rem;
+  margin: 0.1rem 0 0.2rem;
   color: rgba(182, 185, 214, 0.78);
   font-size: 1.06rem;
   text-align: center;
+}
+
+/* Specific margin for Overall Hit Probability panel in NFL Draft tab */
+#draft-overall-panel header p {
+  margin: 0.4rem 0 -1.1rem;
 }
 
 .syop-panel-subhead {
@@ -10579,6 +10584,7 @@ body[data-page="research"] .app-header {
 @media (max-width: 480px) {
   .syop-bar-controls {
     gap: 0.7rem;
+    margin-top: 0.4rem;
   }
 
   .syop-view-toggle {
