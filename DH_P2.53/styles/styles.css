@@ -9382,14 +9382,14 @@ body[data-page="research"] .app-header {
 }
 
 .syop-panel header p {
-  margin: 0.22rem 0 0.2rem;
+  margin: 0.4rem 0 -1.1rem;
   color: rgba(182, 185, 214, 0.78);
   font-size: 1.06rem;
   text-align: center;
 }
 
 .syop-panel-subhead {
-  margin: 0.22rem 0 0.55rem;
+  margin: 0.5rem 0 -1rem;
   color: rgba(182, 185, 214, 0.78);
   font-size: 0.86rem;
   font-weight: 600;
@@ -9397,6 +9397,7 @@ body[data-page="research"] .app-header {
   flex-wrap: wrap;
   gap: 0.6rem 1.1rem;
   align-items: center;
+  justify-content: center;
 }
 
 .syop-panel-subhead .syop-line-legend {
@@ -9886,6 +9887,9 @@ body[data-page="research"] .app-header {
   text-transform: uppercase;
   color: rgba(233, 236, 249, 0.92);
   text-align: center;
+  white-space: nowrap;
+  margin-top: 0.7rem;
+
 }
 
 @media (min-width: 768px) {
@@ -10128,6 +10132,16 @@ body[data-page="research"] .app-header {
     font-size: 0.78rem;
     line-height: 1.28;
     color: rgba(232, 235, 255, 0.95);
+  }
+
+  /* Mobile-only adjustments for Positional Hit Rate Trends by Round chart */
+  #draft-positional-panel .syop-panel-subhead {
+    margin: 0.22rem 0 -2rem;
+    justify-content: center;
+  }
+
+  #draft-positional-panel header h3 {
+    margin: 1rem 0rem 0rem;
   }
 }
 
