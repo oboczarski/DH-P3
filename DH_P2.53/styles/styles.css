@@ -9798,7 +9798,7 @@ body[data-page="research"] .app-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .35rem;
+  gap: 0.05rem;
   min-width: 0;
 }
 
