@@ -10151,7 +10151,7 @@ body[data-page="research"] .app-header {
 
   /* Mobile-only adjustments for draft round chips */
   .draft-round-chip-container {
-    margin-top: -0.25rem;
+    margin-top: 0rem;
   }
 
   .draft-round-chip {
