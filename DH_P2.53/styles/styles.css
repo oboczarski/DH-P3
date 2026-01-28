@@ -10143,6 +10143,18 @@ body[data-page="research"] .app-header {
   #draft-positional-panel header h3 {
     margin: 1rem 0rem 0rem;
   }
+
+  /* Mobile-only adjustments for draft round chips */
+  .draft-round-chip-container {
+    margin-top: -0.25rem;
+  }
+
+  .draft-round-chip {
+    padding: 0.18rem 0.45rem;
+    background: rgb(31 34 48 / 72%);
+    max-width: 2.8rem;
+    min-width: 2.8rem;
+  }
 }
 
 @media (max-width: 380px) {
@@ -10422,6 +10434,8 @@ body[data-page="research"] .app-header {
 
 .syop-bar-axis-title-x {
   text-anchor: middle;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .syop-bar-x-label {
