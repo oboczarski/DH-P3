@@ -9416,7 +9416,7 @@ body[data-page="research"] .app-header {
 }
 
 .syop-draft-hero {
-  margin-bottom: 1.35rem;
+  margin-bottom: 0.65rem;
   gap: 0.9rem 1.45rem;
   padding: 0.9rem 1.2rem 1.05rem;
   background: radial-gradient(circle at 24% 18%, rgba(96, 165, 250, 0.22), transparent 62%),
