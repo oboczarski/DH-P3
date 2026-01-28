@@ -10435,7 +10435,7 @@ body[data-page="research"] .app-header {
 .syop-bar-axis-title-x {
   text-anchor: middle;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 700 !important;
 }
 
 .syop-bar-x-label {

@@ -1123,6 +1123,7 @@
       y: chartHeight + 42,
       fill: colors.subtext,
       'font-size': '12',
+      'font-weight': '700',
       'text-anchor': 'middle'
     }, document.createTextNode('Draft Round')));
 
@@ -1280,6 +1281,7 @@
       y: chartHeight + 42,
       fill: colors.subtext,
       'font-size': '12',
+      'font-weight': '700',
       'text-anchor': 'middle'
     }, document.createTextNode('Draft Round')));
 
