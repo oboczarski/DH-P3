@@ -490,12 +490,7 @@ if (pageType !== 'welcome') {
                     const destination = typeof window.__dhBuildExternalUrl === 'function'
                         ? window.__dhBuildExternalUrl(url)
                         : url;
-                    try {
-                        const win = window.open(destination, '_blank', 'noopener,noreferrer');
-                        if (!win) window.location.href = destination;
-                    } catch (err) {
-                        window.location.href = destination;
-                    }
+                    window.location.href = destination;
                     return;
                 }
 
