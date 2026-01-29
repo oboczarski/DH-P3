@@ -3919,6 +3919,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'rec',
         'rec_yd',
         'rec_tgt',
+        // Show TS% for RBs as well (right after targets).
+        'ts_per_rr',
         'yds_total',
         'elu',
         'mtf_per_att',
