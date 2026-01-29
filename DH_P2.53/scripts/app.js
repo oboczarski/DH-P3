@@ -90,6 +90,32 @@ const __suppressFocusMs = 700;
 function suppressFocusTemporary(ms) {
     __suppressFocusUntil = Date.now() + (ms || __suppressFocusMs);
 }
+(function installExternalNavHelpers() {
+    const TROPHY_ROOM_HOST = 'dynastyhub-trophyroom.netlify.app';
+    const readStoredUsername = () => {
+        const inputValue = typeof usernameInput?.value === 'string' ? usernameInput.value.trim() : '';
+        if (inputValue) return inputValue;
+        try {
+            return (localStorage.getItem('sleeper_username') || '').trim();
+        } catch (e) {
+            return '';
+        }
+    };
+    window.__dhBuildExternalUrl = (rawUrl) => {
+        if (!rawUrl) return rawUrl;
+        let parsed;
+        try {
+            parsed = new URL(rawUrl, window.location.origin);
+        } catch (e) {
+            return rawUrl;
+        }
+        if (parsed.hostname !== TROPHY_ROOM_HOST) return rawUrl;
+        const username = readStoredUsername();
+        if (!username) return rawUrl;
+        parsed.searchParams.set('user', username);
+        return parsed.toString();
+    };
+})();
 (function installFocusGuard() {
     try {
         const originalFocus = HTMLElement.prototype.focus;
@@ -461,11 +487,14 @@ if (pageType !== 'welcome') {
 
                 // External destinations (Matchups / Trophy Room)
                 if (url) {
+                    const destination = typeof window.__dhBuildExternalUrl === 'function'
+                        ? window.__dhBuildExternalUrl(url)
+                        : url;
                     try {
-                        const win = window.open(url, '_blank', 'noopener,noreferrer');
-                        if (!win) window.location.href = url;
+                        const win = window.open(destination, '_blank', 'noopener,noreferrer');
+                        if (!win) window.location.href = destination;
                     } catch (err) {
-                        window.location.href = url;
+                        window.location.href = destination;
                     }
                     return;
                 }

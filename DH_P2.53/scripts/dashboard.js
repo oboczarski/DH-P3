@@ -4250,6 +4250,34 @@ function drawScatterChart(containerId, data) {
   if (!homeMenu) return;
 
   const homeMenuToggle = document.getElementById('homeMenuToggle');
+  const TROPHY_ROOM_HOST = 'dynastyhub-trophyroom.netlify.app';
+  const readStoredUsername = () => {
+    const input = document.getElementById('usernameInput');
+    const inputValue = typeof input?.value === 'string' ? input.value.trim() : '';
+    if (inputValue) return inputValue;
+    try {
+      return (localStorage.getItem('sleeper_username') || '').trim();
+    } catch (e) {
+      return '';
+    }
+  };
+  const buildExternalUrl = (rawUrl) => {
+    if (typeof window.__dhBuildExternalUrl === 'function') {
+      return window.__dhBuildExternalUrl(rawUrl);
+    }
+    if (!rawUrl) return rawUrl;
+    let parsed;
+    try {
+      parsed = new URL(rawUrl, window.location.origin);
+    } catch (e) {
+      return rawUrl;
+    }
+    if (parsed.hostname !== TROPHY_ROOM_HOST) return rawUrl;
+    const username = readStoredUsername();
+    if (!username) return rawUrl;
+    parsed.searchParams.set('user', username);
+    return parsed.toString();
+  };
   const closeHomeMenu = () => {
     if (!homeMenu.classList.contains('hidden')) {
       homeMenu.classList.add('hidden');
@@ -4268,11 +4296,12 @@ function drawScatterChart(containerId, data) {
 
       closeHomeMenu();
 
+      const destination = buildExternalUrl(url);
       try {
-        const win = window.open(url, '_blank', 'noopener,noreferrer');
-        if (!win) window.location.href = url;
+        const win = window.open(destination, '_blank', 'noopener,noreferrer');
+        if (!win) window.location.href = destination;
       } catch (err) {
-        window.location.href = url;
+        window.location.href = destination;
       }
     });
   });
