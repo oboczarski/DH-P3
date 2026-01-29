@@ -361,7 +361,7 @@ main#content {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 0.65rem;
+    gap: 0rem;
     width: 100%;
   }
 }
@@ -3781,6 +3781,7 @@ body[data-page="welcome"] .app-header {
   text-align: center;
   /* Nice glow effect */
   text-shadow: 0 0 12px #766dff69, 0 0 10px #4e09ff87;
+  white-space: nowrap;
 }
 
 /* tighter grid: menu - username - enter */
