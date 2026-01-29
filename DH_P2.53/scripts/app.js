@@ -2382,12 +2382,14 @@ function getAdjustedGamesPlayed(playerId, scoringSettings = null) {
     return initialGames + additionalGames;
 }
 const PLAYER_STAT_HEADER_MAP = {
-    'paATT': 'pass_att',
-    'CMP': 'pass_cmp',
-    'CMP%': 'cmp_pct',
-    'paYDS': 'pass_yd',
-    'paTD': 'pass_td',
-    'pa1D': 'pass_fd',
+  'paATT': 'pass_att',
+  'CMP': 'pass_cmp',
+  // Weekly CSVs may use `CMP PCT` instead of `CMP%` — treat them the same.
+  'CMP PCT': 'cmp_pct',
+  'CMP%': 'cmp_pct',
+  'paYDS': 'pass_yd',
+  'paTD': 'pass_td',
+  'pa1D': 'pass_fd',
     'EPA/DB': 'epa_per_db',
     'CPOE': 'cpoe',
     'IMP/G': 'imp_per_g',
