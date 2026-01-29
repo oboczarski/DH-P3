@@ -361,7 +361,7 @@ main#content {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 0rem;
+    gap: 0.65rem;
     width: 100%;
   }
 }
@@ -3781,7 +3781,6 @@ body[data-page="welcome"] .app-header {
   text-align: center;
   /* Nice glow effect */
   text-shadow: 0 0 12px #766dff69, 0 0 10px #4e09ff87;
-  white-space: nowrap;
 }
 
 /* tighter grid: menu - username - enter */
@@ -5087,8 +5086,8 @@ main#content {
 /* Branding panel h2 styling - no negative margins needed */
 .welcome-branding-panel h2 {
   margin: 0 !important;
-  margin-right: 78px !important;
-  margin-left: 12px !important;
+  margin-right: 71px !important;
+  margin-left: 4px !important;
 }
 
 #welcome-screen .welcome-logo {
