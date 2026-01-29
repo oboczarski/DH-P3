@@ -523,6 +523,18 @@ if (typeof window !== 'undefined') {
     window.PLAYER_STATS_SHEET_ID = PLAYER_STATS_SHEET_ID;
 }
 const PLAYER_STATS_SHEETS = { season: 'SZN', seasonRanks: 'SZN_RKs', weeks: { 1: 'WK1', 2: 'WK2', 3: 'WK3', 4: 'WK4', 5: 'WK5', 6: 'WK6', 7: 'WK7', 8: 'WK8', 9: 'WK9', 10: 'WK10', 11: 'WK11', 12: 'WK12', 13: 'WK13', 14: 'WK14', 15: 'WK15', 16: 'WK16', 17: 'WK17', 18: 'WK18' } };
+// === Player stats data source (Game Logs / weekly sheets) ===
+// We now ship the 2025 season player stats as static CSVs in `DH_P2.53/data/NFL-2025_Stats/**`.
+// IMPORTANT:
+// - Default = CSVs (so we do NOT pull SZN / SZN_RKs / WK1..WK18 from Google Sheets anymore).
+// - We intentionally keep the Google Sheets loader in-code for an easy switch next season.
+//   To temporarily re-enable Sheets for player stats, use: `?playerStatsSource=sheets`
+const PLAYER_STATS_CSV_PATHS = {
+    season: 'data/NFL-2025_Stats/SZN.csv',
+    seasonRanks: 'data/NFL-2025_Stats/SZN_RKs.csv',
+    weeksDir: 'data/NFL-2025_Stats/Weeks'
+};
+const PLAYER_STATS_SOURCE_QUERY_PARAM = 'playerStatsSource';
 // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
 const MAX_DISPLAY_WEEKS = 18;
 const TAG_COLORS = { QB: "var(--pos-qb)", RB: "var(--pos-rb)", WR: "var(--pos-wr)", TE: "var(--pos-te)", BN: "var(--pos-bn)", TX: "var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
@@ -2036,66 +2048,158 @@ function parseSheetData(csvText) {
     });
     return dataMap;
 }
+// In-flight guard so we only load the player stats dataset once per session,
+// even if background prefetch + a user click triggers concurrent requests.
+let playerStatsSheetsLoadPromise = null;
+const playerStatsTextCache = new Map();
+function getAppRootPrefix() {
+    // HTML pages live either at app root (`index.html`) or one directory deep (`/rosters/*`, `/stats/*`, etc.).
+    // This keeps data fetches working across all pages.
+    return pageType === 'welcome' ? '' : '../';
+}
+function buildAppStaticUrl(pathFromAppRoot) {
+    const raw = String(pathFromAppRoot || '');
+    const normalized = raw.replace(/^\/+/, '');
+    return `${getAppRootPrefix()}${normalized}`;
+}
+async function fetchTextWithCache(url) {
+    const key = String(url);
+    if (playerStatsTextCache.has(key)) return playerStatsTextCache.get(key);
+    const promise = fetch(key)
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`Failed to fetch ${key}: ${res.status}`);
+            }
+            return res.text();
+        })
+        .catch((err) => {
+            playerStatsTextCache.delete(key);
+            throw err;
+        });
+    playerStatsTextCache.set(key, promise);
+    return promise;
+}
+function shouldUsePlayerStatsGoogleSheets() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const raw = (params.get(PLAYER_STATS_SOURCE_QUERY_PARAM) || '').trim().toLowerCase();
+        return raw === 'sheets' || raw === 'sheet' || raw === 'google';
+    } catch (e) {
+        return false;
+    }
+}
+async function loadPlayerStatsFromCsvFiles() {
+    const seasonPromise = fetchTextWithCache(buildAppStaticUrl(PLAYER_STATS_CSV_PATHS.season));
+    const seasonRanksPromise = fetchTextWithCache(buildAppStaticUrl(PLAYER_STATS_CSV_PATHS.seasonRanks));
+    // Fetch stats for completed weeks (from PLAYER_STATS_SHEETS.weeks)
+    const weeklyPromises = Object.entries(PLAYER_STATS_SHEETS.weeks).map(async ([week, sheetName]) => {
+        const csvPath = `${PLAYER_STATS_CSV_PATHS.weeksDir}/${sheetName}.csv`;
+        const csv = await fetchTextWithCache(buildAppStaticUrl(csvPath));
+        return { week: Number(week), csv, hasFullStats: true };
+    });
+    // Fetch projection data for remaining weeks up to MAX_DISPLAY_WEEKS
+    const completedWeeks = Object.keys(PLAYER_STATS_SHEETS.weeks).map(Number);
+    const maxCompletedWeek = completedWeeks.length > 0 ? Math.max(...completedWeeks) : 0;
+    const projectionPromises = [];
+    for (let week = maxCompletedWeek + 1; week <= MAX_DISPLAY_WEEKS; week++) {
+        const sheetName = `WK${week}`;
+        const csvPath = `${PLAYER_STATS_CSV_PATHS.weeksDir}/${sheetName}.csv`;
+        projectionPromises.push(
+            fetchTextWithCache(buildAppStaticUrl(csvPath))
+                .then(csv => ({ week, csv, hasFullStats: false }))
+                .catch(() => ({ week, csv: null, hasFullStats: false })) // Handle missing weeks gracefully
+        );
+    }
+    const [seasonCsv, seasonRanksCsv, ...allWeeklyCsvs] = await Promise.all([
+        seasonPromise,
+        seasonRanksPromise,
+        ...weeklyPromises,
+        ...projectionPromises
+    ]);
+    return { seasonCsv, seasonRanksCsv, allWeeklyCsvs };
+}
+// Kept for next season / rapid rollback. Do not remove.
+async function loadPlayerStatsFromGoogleSheets() {
+    const seasonPromise = fetchTextWithCache(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${PLAYER_STATS_SHEETS.season}`);
+    const seasonRanksPromise = fetchTextWithCache(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${PLAYER_STATS_SHEETS.seasonRanks}`);
+    // Fetch stats for completed weeks (from PLAYER_STATS_SHEETS.weeks)
+    const weeklyPromises = Object.entries(PLAYER_STATS_SHEETS.weeks).map(async ([week, sheetName]) => {
+        const csv = await fetchTextWithCache(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`);
+        return { week: Number(week), csv, hasFullStats: true };
+    });
+    // Fetch projection data for remaining weeks up to MAX_DISPLAY_WEEKS
+    const completedWeeks = Object.keys(PLAYER_STATS_SHEETS.weeks).map(Number);
+    const maxCompletedWeek = completedWeeks.length > 0 ? Math.max(...completedWeeks) : 0;
+    const projectionPromises = [];
+    for (let week = maxCompletedWeek + 1; week <= MAX_DISPLAY_WEEKS; week++) {
+        const sheetName = `WK${week}`;
+        projectionPromises.push(
+            fetchTextWithCache(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`)
+                .then(csv => ({ week, csv, hasFullStats: false }))
+                .catch(() => ({ week, csv: null, hasFullStats: false })) // Handle missing sheets gracefully
+        );
+    }
+    const [seasonCsv, seasonRanksCsv, ...allWeeklyCsvs] = await Promise.all([
+        seasonPromise,
+        seasonRanksPromise,
+        ...weeklyPromises,
+        ...projectionPromises
+    ]);
+    return { seasonCsv, seasonRanksCsv, allWeeklyCsvs };
+}
 async function fetchPlayerStatsSheets() {
     if (state.statsSheetsLoaded) {
         await ensureSleeperLiveStats();
         return;
     }
-    try {
-        const seasonPromise = fetch(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${PLAYER_STATS_SHEETS.season}`).then(res => res.text());
-        const seasonRanksPromise = fetch(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${PLAYER_STATS_SHEETS.seasonRanks}`).then(res => res.text());
-        // Fetch stats for completed weeks (from PLAYER_STATS_SHEETS.weeks)
-        const weeklyPromises = Object.entries(PLAYER_STATS_SHEETS.weeks).map(async ([week, sheetName]) => {
-            const csv = await fetch(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`).then(res => res.text());
-            return { week: Number(week), csv, hasFullStats: true };
-        });
-        // Fetch projection data for remaining weeks up to MAX_DISPLAY_WEEKS
-        const completedWeeks = Object.keys(PLAYER_STATS_SHEETS.weeks).map(Number);
-        const maxCompletedWeek = completedWeeks.length > 0 ? Math.max(...completedWeeks) : 0;
-        const projectionPromises = [];
-        for (let week = maxCompletedWeek + 1; week <= MAX_DISPLAY_WEEKS; week++) {
-            const sheetName = `WK${week}`;
-            projectionPromises.push(
-                fetch(`https://docs.google.com/spreadsheets/d/${PLAYER_STATS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetName}`)
-                    .then(res => res.text())
-                    .then(csv => ({ week, csv, hasFullStats: false }))
-                    .catch(() => ({ week, csv: null, hasFullStats: false })) // Handle missing sheets gracefully
-            );
-        }
-        const [seasonCsv, seasonRanksCsv, ...allWeeklyCsvs] = await Promise.all([seasonPromise, seasonRanksPromise, ...weeklyPromises, ...projectionPromises]);
-        state.playerSeasonStats = parseSeasonStatsCsv(seasonCsv);
-        state.playerSeasonRanks = parseSeasonRanksCsv(seasonRanksCsv);
-        state.seasonRankCache = computeSeasonRankings(state.playerSeasonStats);
-        const weeklyStats = {};
-        const projectionWeeks = {};
-        allWeeklyCsvs.forEach(({ week, csv, hasFullStats }) => {
-            if (csv) {
-                weeklyStats[week] = parseWeeklyStatsCsv(csv);
-                if (!hasFullStats) {
-                    projectionWeeks[week] = true; // Mark this week as projection-only
-                }
-            }
-        });
-        state.playerWeeklyStats = weeklyStats;
-        state.weeklyStats = weeklyStats;
-        state.playerProjectionWeeks = projectionWeeks;
-        state.statsSheetsLoaded = true;
-        state.liveStatsLoaded = false;
-        state.calculatedRankCache = null;
-        await ensureSleeperLiveStats();
-    } catch (error) {
-        console.error('Failed to fetch player stats from sheet.', error);
-        state.playerSeasonStats = {};
-        state.playerSeasonRanks = {};
-        state.playerWeeklyStats = {};
-        state.weeklyStats = {};
-        state.playerProjectionWeeks = {};
-        state.seasonRankCache = null;
-        state.statsSheetsLoaded = false;
-        state.liveWeeklyStats = {};
-        state.liveStatsLoaded = true;
-        state.calculatedRankCache = null;
+    if (playerStatsSheetsLoadPromise) {
+        await playerStatsSheetsLoadPromise;
+        return;
     }
+    playerStatsSheetsLoadPromise = (async () => {
+        try {
+            // Default path: local CSVs (no Google Sheets fetches for SZN/SZN_RKs/WK1..WK18).
+            // Opt-in Sheets loader: `?playerStatsSource=sheets`
+            const { seasonCsv, seasonRanksCsv, allWeeklyCsvs } = shouldUsePlayerStatsGoogleSheets()
+                ? await loadPlayerStatsFromGoogleSheets()
+                : await loadPlayerStatsFromCsvFiles();
+            state.playerSeasonStats = parseSeasonStatsCsv(seasonCsv);
+            state.playerSeasonRanks = parseSeasonRanksCsv(seasonRanksCsv);
+            state.seasonRankCache = computeSeasonRankings(state.playerSeasonStats);
+            const weeklyStats = {};
+            const projectionWeeks = {};
+            allWeeklyCsvs.forEach(({ week, csv, hasFullStats }) => {
+                if (csv) {
+                    weeklyStats[week] = parseWeeklyStatsCsv(csv);
+                    if (!hasFullStats) {
+                        projectionWeeks[week] = true; // Mark this week as projection-only
+                    }
+                }
+            });
+            state.playerWeeklyStats = weeklyStats;
+            state.weeklyStats = weeklyStats;
+            state.playerProjectionWeeks = projectionWeeks;
+            state.statsSheetsLoaded = true;
+            state.liveStatsLoaded = false;
+            state.calculatedRankCache = null;
+            await ensureSleeperLiveStats();
+        } catch (error) {
+            console.error('Failed to fetch player stats (CSV/Sheets).', error);
+            state.playerSeasonStats = {};
+            state.playerSeasonRanks = {};
+            state.playerWeeklyStats = {};
+            state.weeklyStats = {};
+            state.playerProjectionWeeks = {};
+            state.seasonRankCache = null;
+            state.statsSheetsLoaded = false;
+            state.liveWeeklyStats = {};
+            state.liveStatsLoaded = true;
+            state.calculatedRankCache = null;
+        } finally {
+            playerStatsSheetsLoadPromise = null;
+        }
+    })();
+    await playerStatsSheetsLoadPromise;
 }
 // Expose for dashboard/home reuse
 if (typeof window !== 'undefined') {
