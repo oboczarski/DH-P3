@@ -692,6 +692,17 @@ if (pageType === 'rosters') {
         modalCloseBtn.addEventListener('click', () => closeModal());
         modalOverlay.addEventListener('click', () => closeModal());
 
+        // GL/SZN view switcher (SZN replaces game logs table in-place)
+        const viewSwitcher = gameLogsModal.querySelector('.gamelogs-view-switcher');
+        if (viewSwitcher) {
+            viewSwitcher.addEventListener('click', (e) => {
+                const btn = e.target.closest('.gamelogs-view-option');
+                if (!btn) return;
+                const view = btn.dataset.gamelogsView;
+                setGameLogsModalView(view);
+            });
+        }
+
         // Panel toggle buttons with tab-like behavior
         modalInfoBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -3771,6 +3782,308 @@ const RADAR_STATS_CONFIG = {
     }
 };
 
+// === Game Logs Modal: Season stats (SZN) view helpers ===
+const SZN_PROGRESS_THRESHOLDS = {
+    QB: { half: 30, zero: 60 },
+    RB: { half: 60, zero: 72 },
+    WR: { half: 72, zero: 96 },
+    TE: { half: 30, zero: 60 }
+};
+function computeSznProgressPercent(rank, position) {
+    const numericRank = typeof rank === 'number' ? rank : Number(rank);
+    if (!Number.isFinite(numericRank) || numericRank <= 0) return 0;
+    const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    const thresholds = SZN_PROGRESS_THRESHOLDS[posKey] || SZN_PROGRESS_THRESHOLDS.WR;
+    const half = thresholds.half;
+    const zero = thresholds.zero;
+    if (numericRank <= 1) return 100;
+    if (numericRank >= zero) return 0;
+    if (numericRank <= half) {
+        const span = Math.max(half - 1, 1);
+        const t = (numericRank - 1) / span; // 0..1
+        return Math.max(0, Math.min(100, 100 - (t * 50)));
+    }
+    const span = Math.max(zero - half, 1);
+    const t = (numericRank - half) / span; // 0..1
+    return Math.max(0, Math.min(100, 50 - (t * 50)));
+}
+function resolveCssColorToRgb(color) {
+    if (!color || typeof document === 'undefined') return null;
+    try {
+        const probe = document.createElement('span');
+        probe.style.position = 'absolute';
+        probe.style.left = '-9999px';
+        probe.style.top = '-9999px';
+        probe.style.opacity = '0';
+        probe.style.pointerEvents = 'none';
+        probe.style.color = color;
+        document.body.appendChild(probe);
+        const computed = getComputedStyle(probe).color || '';
+        probe.remove();
+        const match = computed.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        if (!match) return null;
+        return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]) };
+    } catch (e) {
+        return null;
+    }
+}
+function buildSznRankGradient(rankColor) {
+    const rgb = resolveCssColorToRgb(rankColor);
+    if (!rgb) return null;
+    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`;
+    const mid = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.32)`;
+    const end = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.90)`;
+    return `linear-gradient(90deg, ${start} 0%, ${mid} 45%, ${end} 100%)`;
+}
+function buildSznRankGlow(rankColor) {
+    const rgb = resolveCssColorToRgb(rankColor);
+    if (!rgb) return null;
+    return `0 0 14px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.22)`;
+}
+function getGameLogsSeasonDisplayValue({
+    key,
+    seasonTotals,
+    aggregatedTotals,
+    snapPctValues,
+    statValueCounts,
+    gameLogsWithData,
+    player,
+    scoringSettings
+}) {
+    if (key === 'proj') return '-';
+    let displayValue;
+    if (NO_FALLBACK_KEYS.has(key)) {
+        const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
+        if (raw === null) {
+            displayValue = 'N/A';
+        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
+            displayValue = formatPercentage(raw);
+        } else {
+            displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
+        }
+    } else if (key === 'fpts') {
+        if (state.isGameLogFromStatsPage) {
+            const statsData = state.statsPagePlayerData;
+            const seasonFpts = statsData?.fpts || 0;
+            displayValue = seasonFpts.toFixed(1);
+        } else {
+            const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
+                const weekNum = week.week;
+                const playerId = player.id;
+                if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
+                    return sum + state.leagueMatchupStats[weekNum][playerId];
+                }
+                return sum + 0;
+            }, 0);
+            displayValue = totalPoints.toFixed(1);
+        }
+    } else if (key === 'ppg') {
+        if (state.isGameLogFromStatsPage) {
+            const statsData = state.statsPagePlayerData;
+            const ppg = statsData?.ppg || 0;
+            displayValue = ppg.toFixed(1);
+        } else {
+            const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
+                const weekNum = week.week;
+                const playerId = player.id;
+                if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
+                    return sum + state.leagueMatchupStats[weekNum][playerId];
+                }
+                return sum + 0;
+            }, 0);
+            const gamesPlayed = (gameLogsWithData || []).length;
+            const ppg = gamesPlayed > 0 ? totalPoints / gamesPlayed : 0;
+            displayValue = ppg.toFixed(1);
+        }
+    } else if (key === 'ypc') {
+        const totalYards = seasonTotals && typeof seasonTotals.rush_yd === 'number' ? seasonTotals.rush_yd : (aggregatedTotals['rush_yd'] || 0);
+        const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
+        const avgYpc = totalCarries > 0 ? totalYards / totalCarries : 0;
+        displayValue = avgYpc.toFixed(2);
+    } else if (key === 'yco_per_att') {
+        const totalYco = seasonTotals && typeof seasonTotals.rush_yac === 'number' ? seasonTotals.rush_yac : (aggregatedTotals['rush_yac'] || 0);
+        const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
+        const avgYcoPerCar = totalCarries > 0 ? totalYco / totalCarries : 0;
+        displayValue = avgYcoPerCar.toFixed(2);
+    } else if (key === 'mtf_per_att') {
+        const totalMtf = seasonTotals && typeof seasonTotals.mtf === 'number' ? seasonTotals.mtf : (aggregatedTotals['mtf'] || 0);
+        const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
+        const avgMtfPerAtt = totalCarries > 0 ? totalMtf / totalCarries : 0;
+        displayValue = avgMtfPerAtt.toFixed(2);
+    } else if (key === 'pass_rtg') {
+        if (seasonTotals && typeof seasonTotals.pass_rtg === 'number') {
+            const rating = seasonTotals.pass_rtg;
+            displayValue = Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
+        } else {
+            const totalPassRtg = aggregatedTotals['pass_rtg'] || 0;
+            const gamesWithPassAttempts = (gameLogsWithData || []).filter(w => (w.stats['pass_att'] || 0) > 0).length;
+            const avgPassRtg = gamesWithPassAttempts > 0 ? totalPassRtg / gamesWithPassAttempts : 0;
+            displayValue = avgPassRtg.toFixed(1);
+        }
+    } else if (key === 'pass_imp_per_att') {
+        let pctValue = seasonTotals && typeof seasonTotals.pass_imp_per_att === 'number' ? seasonTotals.pass_imp_per_att : null;
+        if (pctValue === null) {
+            const totalPassImp = seasonTotals && typeof seasonTotals.pass_imp === 'number' ? seasonTotals.pass_imp : (aggregatedTotals['pass_imp'] || 0);
+            const totalPassAtt = seasonTotals && typeof seasonTotals.pass_att === 'number' ? seasonTotals.pass_att : (aggregatedTotals['pass_att'] || 0);
+            if (totalPassAtt > 0) pctValue = (totalPassImp / totalPassAtt) * 100;
+            else if (statValueCounts['pass_imp_per_att']) pctValue = (aggregatedTotals['pass_imp_per_att'] || 0) / statValueCounts['pass_imp_per_att'];
+            else pctValue = 0;
+        }
+        displayValue = formatPercentage(pctValue);
+    } else if (key === 'ttt') {
+        let avgTtt = seasonTotals && typeof seasonTotals.ttt === 'number' ? seasonTotals.ttt : null;
+        if (avgTtt === null) {
+            const totalTtt = aggregatedTotals['ttt'] || 0;
+            const count = statValueCounts['ttt'] || 0;
+            avgTtt = count > 0 ? totalTtt / count : 0;
+        }
+        displayValue = Number.isInteger(avgTtt) ? String(avgTtt) : Number(avgTtt).toFixed(2);
+    } else if (key === 'prs_pct') {
+        let pctValue = seasonTotals && typeof seasonTotals.prs_pct === 'number' ? seasonTotals.prs_pct : null;
+        if (pctValue === null) {
+            const total = aggregatedTotals['prs_pct'] || 0;
+            const count = statValueCounts['prs_pct'] || 0;
+            pctValue = count > 0 ? total / count : 0;
+        }
+        displayValue = formatPercentage(pctValue);
+    } else if (key === 'cmp_pct') {
+        let pctValue = seasonTotals && typeof seasonTotals.cmp_pct === 'number' ? seasonTotals.cmp_pct : null;
+        if (pctValue === null) {
+            const total = aggregatedTotals['cmp_pct'] || 0;
+            const count = statValueCounts['cmp_pct'] || 0;
+            pctValue = count > 0 ? total / count : 0;
+        }
+        displayValue = formatPercentage(pctValue);
+    } else if (key === 'snp_pct') {
+        let pctValue = seasonTotals && typeof seasonTotals.snp_pct === 'number' ? seasonTotals.snp_pct : null;
+        if (pctValue === null) {
+            pctValue = snapPctValues.length > 0 ? snapPctValues.reduce((sum, val) => sum + val, 0) / snapPctValues.length : 0;
+        }
+        displayValue = formatPercentage(pctValue);
+    } else if (key === 'imp_per_g') {
+        let impPerGame = seasonTotals && typeof seasonTotals.imp_per_g === 'number' ? seasonTotals.imp_per_g : null;
+        if (impPerGame === null) {
+            const totalImp = seasonTotals && typeof seasonTotals.imp === 'number' ? seasonTotals.imp : (aggregatedTotals['imp'] || 0);
+            const games = seasonTotals && typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : (gameLogsWithData || []).length;
+            impPerGame = games > 0 ? totalImp / games : 0;
+        }
+        displayValue = Number.isInteger(impPerGame) ? String(impPerGame) : Number(impPerGame).toFixed(2);
+    } else if (key === 'yprr') {
+        let value = seasonTotals && typeof seasonTotals.yprr === 'number' ? seasonTotals.yprr : null;
+        if (value === null) {
+            const totalRoutes = seasonTotals && typeof seasonTotals.rr === 'number' ? seasonTotals.rr : (aggregatedTotals['rr'] || 0);
+            const totalRecYds = seasonTotals && typeof seasonTotals.rec_yd === 'number' ? seasonTotals.rec_yd : (aggregatedTotals['rec_yd'] || 0);
+            value = totalRoutes > 0 ? totalRecYds / totalRoutes : 0;
+        }
+        displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
+    } else if (key === 'ts_per_rr') {
+        let pctValue = seasonTotals && typeof seasonTotals.ts_per_rr === 'number' ? seasonTotals.ts_per_rr : null;
+        if (pctValue === null) {
+            const totalRoutes = seasonTotals && typeof seasonTotals.rr === 'number' ? seasonTotals.rr : (aggregatedTotals['rr'] || 0);
+            const totalTargets = seasonTotals && typeof seasonTotals.rec_tgt === 'number' ? seasonTotals.rec_tgt : (aggregatedTotals['rec_tgt'] || 0);
+            pctValue = totalRoutes > 0 ? (totalTargets / totalRoutes) * 100 : 0;
+        }
+        displayValue = formatPercentage(pctValue);
+    } else if (key === 'ypr') {
+        let value = seasonTotals && typeof seasonTotals.ypr === 'number' ? seasonTotals.ypr : null;
+        if (value === null) {
+            const totalReceptions = seasonTotals && typeof seasonTotals.rec === 'number' ? seasonTotals.rec : (aggregatedTotals['rec'] || 0);
+            const totalRecYds = seasonTotals && typeof seasonTotals.rec_yd === 'number' ? seasonTotals.rec_yd : (aggregatedTotals['rec_yd'] || 0);
+            value = totalReceptions > 0 ? totalRecYds / totalReceptions : 0;
+        }
+        displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
+    } else if (key === 'first_down_rec_rate') {
+        let value = seasonTotals && typeof seasonTotals.first_down_rec_rate === 'number' ? seasonTotals.first_down_rec_rate : null;
+        if (value === null) {
+            const totalRecFd = seasonTotals && typeof seasonTotals.rec_fd === 'number' ? seasonTotals.rec_fd : (aggregatedTotals['rec_fd'] || 0);
+            const totalRec = seasonTotals && typeof seasonTotals.rec === 'number' ? seasonTotals.rec : (aggregatedTotals['rec'] || 0);
+            value = totalRec > 0 ? (totalRecFd / totalRec) : 0;
+        }
+        displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
+    } else {
+        const totalValue = seasonTotals && typeof seasonTotals[key] === 'number' ? seasonTotals[key] : (aggregatedTotals[key] || 0);
+        displayValue = Number.isInteger(totalValue) ? String(totalValue) : Number(totalValue || 0).toFixed(2);
+    }
+    return displayValue;
+}
+function renderGameLogsSeasonStatsView({
+    container,
+    player,
+    orderedStatKeys,
+    statLabels,
+    seasonTotals,
+    aggregatedTotals,
+    snapPctValues,
+    statValueCounts,
+    gameLogsWithData,
+    scoringSettings,
+    statGroupByKey
+}) {
+    if (!container) return;
+    container.innerHTML = '';
+    const list = document.createElement('div');
+    list.className = 'gamelogs-szn-list';
+    for (const statKey of orderedStatKeys) {
+        if (!statLabels[statKey] || statKey === 'proj') continue;
+        const labelText = statLabels[statKey];
+        const rankValue = getSeasonRankValue(player.id, statKey);
+        const rankColor = getConditionalColorByRank(rankValue, player.pos);
+        const progressPct = computeSznProgressPercent(rankValue, player.pos);
+        const displayValue = getGameLogsSeasonDisplayValue({
+            key: statKey,
+            seasonTotals,
+            aggregatedTotals,
+            snapPctValues,
+            statValueCounts,
+            gameLogsWithData,
+            player,
+            scoringSettings
+        });
+        const row = document.createElement('div');
+        row.className = 'gamelogs-szn-row';
+        const group = statGroupByKey?.get(statKey);
+        if (group) row.classList.add(`gamelogs-szn-row--${group}`);
+        const label = document.createElement('div');
+        label.className = 'gamelogs-szn-label';
+        label.textContent = labelText;
+        const bar = document.createElement('div');
+        bar.className = 'gamelogs-szn-bar';
+        bar.setAttribute('role', 'img');
+        bar.setAttribute('aria-label', `${labelText} rank ${getRankDisplayText(rankValue)}`);
+        const fill = document.createElement('div');
+        fill.className = 'gamelogs-szn-bar-fill';
+        fill.style.width = `${progressPct}%`;
+        if (progressPct > 0) {
+            const gradient = buildSznRankGradient(rankColor);
+            if (gradient) {
+                fill.style.backgroundImage = gradient;
+                const glow = buildSznRankGlow(rankColor);
+                if (glow) fill.style.boxShadow = glow;
+            } else if (rankColor && rankColor !== 'inherit') {
+                fill.style.backgroundImage = 'none';
+                fill.style.backgroundColor = rankColor;
+            }
+        }
+        bar.appendChild(fill);
+        const value = document.createElement('div');
+        value.className = 'gamelogs-szn-value has-rank-annotation';
+        const valueMain = document.createElement('span');
+        valueMain.className = 'gamelogs-szn-value-main';
+        valueMain.textContent = displayValue;
+        const rankAnnot = createRankAnnotation(rankValue, { ordinal: true, variant: 'szn' });
+        if (rankColor && rankColor !== 'inherit') {
+            rankAnnot.style.color = rankColor;
+        }
+        value.appendChild(valueMain);
+        value.appendChild(rankAnnot);
+        row.appendChild(label);
+        row.appendChild(bar);
+        row.appendChild(value);
+        list.appendChild(row);
+    }
+    container.appendChild(list);
+}
+
 async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
     if (isStaleRequest()) return;
@@ -3864,26 +4177,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 </div>
             `;
     modalBody.innerHTML = ''; // Clear existing content
-    if (!gameLogs || gameLogs.length === 0) {
-        const noLogsEl = document.createElement('p');
-        noLogsEl.className = 'no-logs';
-        noLogsEl.textContent = `No game logs found for ${playerName} for the current season.`;
-        modalBody.appendChild(noLogsEl);
-        if (statsKeyContainer) {
-            statsKeyContainer.classList.add('hidden');
-            modalBody.appendChild(statsKeyContainer);
-        }
-        if (radarChartContainer) {
-            radarChartContainer.classList.add('hidden');
-            modalBody.appendChild(radarChartContainer);
-        }
-        if (consistencyContainer) {
-            consistencyContainer.classList.add('hidden');
-            modalBody.appendChild(consistencyContainer);
-            prepareConsistencyPanel(player);
-        }
-        return;
-    }
+
+    // Build shared stat metadata (used by both GL and SZN views)
     const statLabels = buildStatLabels();
     const qbStatOrder = [
         'fpts',
@@ -3961,7 +4256,6 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'ypc',
         'fum'
     ];
-
     const statGroupByKey = new Map();
     const assignStatGroup = (group, keys) => {
         for (const key of keys) statGroupByKey.set(key, group);
@@ -3984,6 +4278,46 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     else if (player.pos === 'RB') orderedStatKeys = rbStatOrder;
     else if (player.pos === 'WR' || player.pos === 'TE') orderedStatKeys = wrTeStatOrder;
     else orderedStatKeys = ['fpts', 'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'imp_per_g', 'pass_rtg', 'pass_imp', 'pass_imp_per_att', 'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'ttt', 'prs_pct', 'mtf', 'mtf_per_att', 'rush_yac', 'yco_per_att', 'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr', 'ts_per_rr', 'rr', 'fum', 'snp_pct', 'yds_total', 'fpoe'];
+
+    if (!gameLogs || gameLogs.length === 0) {
+        const noLogsEl = document.createElement('p');
+        noLogsEl.className = 'no-logs';
+        noLogsEl.dataset.gamelogsView = 'gl';
+        noLogsEl.textContent = `No game logs found for ${playerName} for the current season.`;
+        modalBody.appendChild(noLogsEl);
+        const sznContainer = document.createElement('div');
+        sznContainer.className = 'game-logs-szn-view hidden';
+        const seasonTotals = state.playerSeasonStats?.[player.id] || null;
+        renderGameLogsSeasonStatsView({
+            container: sznContainer,
+            player,
+            orderedStatKeys,
+            statLabels,
+            seasonTotals,
+            aggregatedTotals: {},
+            snapPctValues: [],
+            statValueCounts: {},
+            gameLogsWithData: [],
+            scoringSettings,
+            statGroupByKey
+        });
+        modalBody.appendChild(sznContainer);
+        if (statsKeyContainer) {
+            statsKeyContainer.classList.add('hidden');
+            modalBody.appendChild(statsKeyContainer);
+        }
+        if (radarChartContainer) {
+            radarChartContainer.classList.add('hidden');
+            modalBody.appendChild(radarChartContainer);
+        }
+        if (consistencyContainer) {
+            consistencyContainer.classList.add('hidden');
+            modalBody.appendChild(consistencyContainer);
+            prepareConsistencyPanel(player);
+        }
+        setGameLogsModalView(state.currentGameLogsView || 'gl');
+        return;
+    }
     const container = document.createElement('div');
     container.className = 'game-logs-table-container';
     const COLUMN_WIDTHS = {
@@ -4449,6 +4783,24 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         const referenceRow = rowsMeta[dividerIndex]?.domRow || null;
         tableBodyTbody.insertBefore(dividerRow, referenceRow);
     }
+    // Shared season totals/aggregates (used by footer + SZN view)
+    const seasonTotals = state.playerSeasonStats?.[player.id] || null;
+    const aggregatedTotals = {};
+    const snapPctValues = [];
+    const statValueCounts = {};
+    gameLogsWithData.forEach(weekStats => {
+        for (const key in weekStats.stats) {
+            const statValue = parseFloat(weekStats.stats[key]);
+            if (Number.isNaN(statValue)) continue;
+            if (key === 'snp_pct') {
+                snapPctValues.push(statValue);
+            } else {
+                aggregatedTotals[key] = (aggregatedTotals[key] || 0) + statValue;
+            }
+            statValueCounts[key] = (statValueCounts[key] || 0) + 1;
+        }
+    });
+
     // Add table footer for totals
     state.currentGameLogsFooterStats = { __gamesPlayed: gameLogsWithData.length };
     if (gameLogsWithData.length > 0) {
@@ -4479,26 +4831,9 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         totalTh.style.minWidth = `${weekColumnSize}px`;
         totalTh.style.maxWidth = `${weekColumnSize}px`;
         footerRow.appendChild(totalTh);
-        const seasonTotals = state.playerSeasonStats?.[player.id] || null;
-        const aggregatedTotals = {};
-        const snapPctValues = [];
-        const statValueCounts = {};
 
         // Store calculated footer stats for radar chart
         const footerStatsForRadar = {};
-
-        gameLogsWithData.forEach(weekStats => {
-            for (const key in weekStats.stats) {
-                const statValue = parseFloat(weekStats.stats[key]);
-                if (Number.isNaN(statValue)) continue;
-                if (key === 'snp_pct') {
-                    snapPctValues.push(statValue);
-                } else {
-                    aggregatedTotals[key] = (aggregatedTotals[key] || 0) + statValue;
-                }
-                statValueCounts[key] = (statValueCounts[key] || 0) + 1;
-            }
-        });
         for (let i = 1; i < tableColumns.length; i++) {
             const column = tableColumns[i];
             const key = column.meta?.statKey;
@@ -4518,164 +4853,16 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 footerRow.appendChild(td);
                 continue;
             }
-            let displayValue;
-            if (NO_FALLBACK_KEYS.has(key)) {
-                const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
-                if (raw === null) {
-                    displayValue = 'N/A';
-                } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
-                    displayValue = formatPercentage(raw);
-                } else {
-                    displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
-                }
-            } else if (key === 'fpts') {
-                // Stats page uses season total from passed data, rosters page sums matchup data
-                if (state.isGameLogFromStatsPage) {
-                    // Use season total passed from stats.js
-                    const statsData = state.statsPagePlayerData;
-                    const seasonFpts = statsData?.fpts || 0;
-                    displayValue = seasonFpts.toFixed(1);
-                } else {
-                    // Sum league-specific matchup data for rosters page
-                    const totalPoints = gameLogsWithData.reduce((sum, week) => {
-                        const weekNum = week.week;
-                        const playerId = player.id;
-                        if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
-                            return sum + state.leagueMatchupStats[weekNum][playerId];
-                        }
-                        return sum + 0;
-                    }, 0);
-                    displayValue = totalPoints.toFixed(1);
-                }
-            } else if (key === 'ppg') {
-                // Calculate PPG from FPTS and games played
-                if (state.isGameLogFromStatsPage) {
-                    const statsData = state.statsPagePlayerData;
-                    const ppg = statsData?.ppg || 0;
-                    displayValue = ppg.toFixed(1);
-                } else {
-                    // Calculate from matchup data for rosters page
-                    const totalPoints = gameLogsWithData.reduce((sum, week) => {
-                        const weekNum = week.week;
-                        const playerId = player.id;
-                        if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
-                            return sum + state.leagueMatchupStats[weekNum][playerId];
-                        }
-                        return sum + 0;
-                    }, 0);
-                    const gamesPlayed = gameLogsWithData.length;
-                    const ppg = gamesPlayed > 0 ? totalPoints / gamesPlayed : 0;
-                    displayValue = ppg.toFixed(1);
-                }
-            } else if (key === 'ypc') {
-                const totalYards = seasonTotals && typeof seasonTotals.rush_yd === 'number' ? seasonTotals.rush_yd : (aggregatedTotals['rush_yd'] || 0);
-                const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
-                const avgYpc = totalCarries > 0 ? totalYards / totalCarries : 0;
-                displayValue = avgYpc.toFixed(2);
-            } else if (key === 'yco_per_att') {
-                const totalYco = seasonTotals && typeof seasonTotals.rush_yac === 'number' ? seasonTotals.rush_yac : (aggregatedTotals['rush_yac'] || 0);
-                const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
-                const avgYcoPerCar = totalCarries > 0 ? totalYco / totalCarries : 0;
-                displayValue = avgYcoPerCar.toFixed(2);
-            } else if (key === 'mtf_per_att') {
-                const totalMtf = seasonTotals && typeof seasonTotals.mtf === 'number' ? seasonTotals.mtf : (aggregatedTotals['mtf'] || 0);
-                const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
-                const avgMtfPerAtt = totalCarries > 0 ? totalMtf / totalCarries : 0;
-                displayValue = avgMtfPerAtt.toFixed(2);
-            } else if (key === 'pass_rtg') {
-                if (seasonTotals && typeof seasonTotals.pass_rtg === 'number') {
-                    const rating = seasonTotals.pass_rtg;
-                    displayValue = Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
-                } else {
-                    const totalPassRtg = aggregatedTotals['pass_rtg'] || 0;
-                    const gamesWithPassAttempts = gameLogsWithData.filter(w => (w.stats['pass_att'] || 0) > 0).length;
-                    const avgPassRtg = gamesWithPassAttempts > 0 ? totalPassRtg / gamesWithPassAttempts : 0;
-                    displayValue = avgPassRtg.toFixed(1);
-                }
-            } else if (key === 'pass_imp_per_att') {
-                let pctValue = seasonTotals && typeof seasonTotals.pass_imp_per_att === 'number' ? seasonTotals.pass_imp_per_att : null;
-                if (pctValue === null) {
-                    const totalPassImp = seasonTotals && typeof seasonTotals.pass_imp === 'number' ? seasonTotals.pass_imp : (aggregatedTotals['pass_imp'] || 0);
-                    const totalPassAtt = seasonTotals && typeof seasonTotals.pass_att === 'number' ? seasonTotals.pass_att : (aggregatedTotals['pass_att'] || 0);
-                    if (totalPassAtt > 0) pctValue = (totalPassImp / totalPassAtt) * 100;
-                    else if (statValueCounts['pass_imp_per_att']) pctValue = (aggregatedTotals['pass_imp_per_att'] || 0) / statValueCounts['pass_imp_per_att'];
-                    else pctValue = 0;
-                }
-                displayValue = formatPercentage(pctValue);
-            } else if (key === 'ttt') {
-                let avgTtt = seasonTotals && typeof seasonTotals.ttt === 'number' ? seasonTotals.ttt : null;
-                if (avgTtt === null) {
-                    const totalTtt = aggregatedTotals['ttt'] || 0;
-                    const count = statValueCounts['ttt'] || 0;
-                    avgTtt = count > 0 ? totalTtt / count : 0;
-                }
-                displayValue = Number.isInteger(avgTtt) ? String(avgTtt) : Number(avgTtt).toFixed(2);
-            } else if (key === 'prs_pct') {
-                let pctValue = seasonTotals && typeof seasonTotals.prs_pct === 'number' ? seasonTotals.prs_pct : null;
-                if (pctValue === null) {
-                    const total = aggregatedTotals['prs_pct'] || 0;
-                    const count = statValueCounts['prs_pct'] || 0;
-                    pctValue = count > 0 ? total / count : 0;
-                }
-                displayValue = formatPercentage(pctValue);
-            } else if (key === 'cmp_pct') {
-                let pctValue = seasonTotals && typeof seasonTotals.cmp_pct === 'number' ? seasonTotals.cmp_pct : null;
-                if (pctValue === null) {
-                    const total = aggregatedTotals['cmp_pct'] || 0;
-                    const count = statValueCounts['cmp_pct'] || 0;
-                    pctValue = count > 0 ? total / count : 0;
-                }
-                displayValue = formatPercentage(pctValue);
-            } else if (key === 'snp_pct') {
-                let pctValue = seasonTotals && typeof seasonTotals.snp_pct === 'number' ? seasonTotals.snp_pct : null;
-                if (pctValue === null) {
-                    pctValue = snapPctValues.length > 0 ? snapPctValues.reduce((sum, val) => sum + val, 0) / snapPctValues.length : 0;
-                }
-                displayValue = formatPercentage(pctValue);
-            } else if (key === 'imp_per_g') {
-                let impPerGame = seasonTotals && typeof seasonTotals.imp_per_g === 'number' ? seasonTotals.imp_per_g : null;
-                if (impPerGame === null) {
-                    const totalImp = seasonTotals && typeof seasonTotals.imp === 'number' ? seasonTotals.imp : (aggregatedTotals['imp'] || 0);
-                    const games = seasonTotals && typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : gameLogsWithData.length;
-                    impPerGame = games > 0 ? totalImp / games : 0;
-                }
-                displayValue = Number.isInteger(impPerGame) ? String(impPerGame) : Number(impPerGame).toFixed(2);
-            } else if (key === 'yprr') {
-                let value = seasonTotals && typeof seasonTotals.yprr === 'number' ? seasonTotals.yprr : null;
-                if (value === null) {
-                    const totalRoutes = seasonTotals && typeof seasonTotals.rr === 'number' ? seasonTotals.rr : (aggregatedTotals['rr'] || 0);
-                    const totalRecYds = seasonTotals && typeof seasonTotals.rec_yd === 'number' ? seasonTotals.rec_yd : (aggregatedTotals['rec_yd'] || 0);
-                    value = totalRoutes > 0 ? totalRecYds / totalRoutes : 0;
-                }
-                displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
-            } else if (key === 'ts_per_rr') {
-                let pctValue = seasonTotals && typeof seasonTotals.ts_per_rr === 'number' ? seasonTotals.ts_per_rr : null;
-                if (pctValue === null) {
-                    const totalRoutes = seasonTotals && typeof seasonTotals.rr === 'number' ? seasonTotals.rr : (aggregatedTotals['rr'] || 0);
-                    const totalTargets = seasonTotals && typeof seasonTotals.rec_tgt === 'number' ? seasonTotals.rec_tgt : (aggregatedTotals['rec_tgt'] || 0);
-                    pctValue = totalRoutes > 0 ? (totalTargets / totalRoutes) * 100 : 0;
-                }
-                displayValue = formatPercentage(pctValue);
-            } else if (key === 'ypr') {
-                let value = seasonTotals && typeof seasonTotals.ypr === 'number' ? seasonTotals.ypr : null;
-                if (value === null) {
-                    const totalReceptions = seasonTotals && typeof seasonTotals.rec === 'number' ? seasonTotals.rec : (aggregatedTotals['rec'] || 0);
-                    const totalRecYds = seasonTotals && typeof seasonTotals.rec_yd === 'number' ? seasonTotals.rec_yd : (aggregatedTotals['rec_yd'] || 0);
-                    value = totalReceptions > 0 ? totalRecYds / totalReceptions : 0;
-                }
-                displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
-            } else if (key === 'first_down_rec_rate') {
-                let value = seasonTotals && typeof seasonTotals.first_down_rec_rate === 'number' ? seasonTotals.first_down_rec_rate : null;
-                if (value === null) {
-                    const totalRecFd = seasonTotals && typeof seasonTotals.rec_fd === 'number' ? seasonTotals.rec_fd : (aggregatedTotals['rec_fd'] || 0);
-                    const totalRec = seasonTotals && typeof seasonTotals.rec === 'number' ? seasonTotals.rec : (aggregatedTotals['rec'] || 0);
-                    value = totalRec > 0 ? (totalRecFd / totalRec) : 0;
-                }
-                displayValue = Number.isInteger(value) ? String(value) : Number(value).toFixed(2);
-            } else {
-                const totalValue = seasonTotals && typeof seasonTotals[key] === 'number' ? seasonTotals[key] : (aggregatedTotals[key] || 0);
-                displayValue = Number.isInteger(totalValue) ? String(totalValue) : Number(totalValue || 0).toFixed(2);
-            }
+            const displayValue = getGameLogsSeasonDisplayValue({
+                key,
+                seasonTotals,
+                aggregatedTotals,
+                snapPctValues,
+                statValueCounts,
+                gameLogsWithData,
+                player,
+                scoringSettings
+            });
             const rankValue = getSeasonRankValue(player.id, key);
             const rankAnnotation = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'gamelogs-footer' });
             rankAnnotation.classList.add('stat-rank-annotation--bulleted');
@@ -4738,6 +4925,22 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     hScroll.appendChild(hContent);
     container.appendChild(hScroll);
     modalBody.appendChild(container);
+    const sznContainer = document.createElement('div');
+    sznContainer.className = 'game-logs-szn-view hidden';
+    renderGameLogsSeasonStatsView({
+        container: sznContainer,
+        player,
+        orderedStatKeys,
+        statLabels,
+        seasonTotals,
+        aggregatedTotals,
+        snapPctValues,
+        statValueCounts,
+        gameLogsWithData,
+        scoringSettings,
+        statGroupByKey
+    });
+    modalBody.appendChild(sznContainer);
     if (statsKeyContainer) {
         statsKeyContainer.classList.add('hidden');
         modalBody.appendChild(statsKeyContainer);
@@ -4766,6 +4969,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     if (playerVitalsElement) {
         playerVitalsElement.style.width = `${summaryChipsWidth}px`;
     }
+    setGameLogsModalView(state.currentGameLogsView || 'gl');
 }
 async function handlePlayerCompare(e) {
     let selectedPlayersWithTeams = [];
@@ -7004,12 +7208,47 @@ function showTemporaryTooltip(element, message) {
     setTimeout(() => tooltip.classList.add('is-hiding'), 2000);
     setTimeout(() => tooltip.remove(), 2400);
 }
+function setGameLogsModalView(view) {
+    const normalizedView = view === 'szn' ? 'szn' : 'gl';
+    try {
+        const viewButtons = gameLogsModal?.querySelectorAll?.('.gamelogs-view-option');
+        if (viewButtons && viewButtons.length) {
+            viewButtons.forEach((btn) => {
+                const isActive = btn.dataset.gamelogsView === normalizedView;
+                btn.classList.toggle('is-active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+        if (modalBody) {
+            const glNodes = modalBody.querySelectorAll('.game-logs-table-container, .no-logs[data-gamelogs-view="gl"]');
+            glNodes.forEach((node) => node.classList.toggle('hidden', normalizedView !== 'gl'));
+            const sznNode = modalBody.querySelector('.game-logs-szn-view');
+            if (sznNode) sznNode.classList.toggle('hidden', normalizedView !== 'szn');
+        }
+        statsKeyContainer?.classList.add('hidden');
+        radarChartContainer?.classList.add('hidden');
+        consistencyContainer?.classList.add('hidden');
+        const modalInfoBtns = document.querySelectorAll('#game-logs-modal .modal-info-btn');
+        if (modalInfoBtns && modalInfoBtns.length) {
+            modalInfoBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-panel') === 'game-logs') {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        state.currentGameLogsView = normalizedView;
+    } catch (e) {
+        // fail safely – view toggling is non-critical
+    }
+}
 function openModal() {
     gameLogsModal.classList.remove('hidden');
     modalBody.classList.remove('hidden'); // Ensure game logs table is visible
     statsKeyContainer.classList.add('hidden');
     if (radarChartContainer) radarChartContainer.classList.add('hidden');
     if (consistencyContainer) consistencyContainer.classList.add('hidden');
+    setGameLogsModalView('gl');
 
     // Reset all buttons to inactive, then activate game-logs button
     const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
