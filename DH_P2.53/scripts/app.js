@@ -3854,9 +3854,12 @@ const SZN_STAT_SECTIONS_BY_POS = {
             stats: ['pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'cpoe', 'epa_per_db', 'pa_ypg']
         },
         { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', stats: ['rush_att', 'rush_yd', 'rush_td'] },
+
         { id: 'rushing-efficiency', label: 'RUSHING EFFICIENCY', tone: 'rushing', stats: ['ypc'] },
-        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'imp_per_g'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['fum'] }
+
+        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'fum'] },
+
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['imp_per_g'] }
     ],
     RB: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
