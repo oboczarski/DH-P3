@@ -3833,6 +3833,95 @@ const SZN_PROGRESS_THRESHOLDS = {
     WR: { half: 72, zero: 96 },
     TE: { half: 30, zero: 60 }
 };
+
+// === Game Logs Modal: SZN stat sectioning (per position) ===
+// These sections drive the SZN view order + grouping only (GL table ordering is separate).
+// Edit freely to add/remove/reorder sections or move stat keys between them.
+const SZN_STAT_SECTIONS_BY_POS = {
+    QB: [
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        {
+            id: 'passing-production',
+            label: 'PASSING PRODUCTION',
+            tone: 'passing',
+            stats: ['pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'pass_imp']
+        },
+        {
+            id: 'passing-efficiency',
+            label: 'PASSING EFFICIENCY',
+            tone: 'passing',
+            stats: ['pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'pass_int']
+        },
+        { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', stats: ['rush_att', 'rush_yd', 'rush_td'] },
+        { id: 'rushing-efficiency', label: 'RUSHING EFFICIENCY', tone: 'rushing', stats: ['ypc'] },
+        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'imp_per_g'] },
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['fum'] }
+    ],
+    RB: [
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        {
+            id: 'rushing-production',
+            label: 'RUSHING PRODUCTION',
+            tone: 'rushing',
+            stats: ['rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'mtf']
+        },
+        {
+            id: 'rushing-efficiency',
+            label: 'RUSHING EFFICIENCY',
+            tone: 'rushing',
+            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att']
+        },
+        {
+            id: 'receiving-production',
+            label: 'RECEIVING PRODUCTION',
+            tone: 'receiving',
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar']
+        },
+        { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr'] },
+        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'imp_per_g'] },
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum'] }
+    ],
+    WR: [
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        {
+            id: 'receiving-production',
+            label: 'RECEIVING PRODUCTION',
+            tone: 'receiving',
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'imp_per_g']
+        },
+        {
+            id: 'receiving-efficiency',
+            label: 'RECEIVING EFFICIENCY',
+            tone: 'receiving',
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr']
+        },
+        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
+    ],
+    TE: [
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        {
+            id: 'receiving-production',
+            label: 'RECEIVING PRODUCTION',
+            tone: 'receiving',
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'imp_per_g']
+        },
+        {
+            id: 'receiving-efficiency',
+            label: 'RECEIVING EFFICIENCY',
+            tone: 'receiving',
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr']
+        },
+        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
+    ]
+};
+function getSznSectionsForPosition(position) {
+    const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    if (posKey && Array.isArray(SZN_STAT_SECTIONS_BY_POS[posKey])) return SZN_STAT_SECTIONS_BY_POS[posKey];
+    return [];
+}
+
 function computeSznProgressPercent(rank, position) {
     const numericRank = typeof rank === 'number' ? rank : Number(rank);
     if (!Number.isFinite(numericRank) || numericRank <= 0) return 0;
@@ -4067,8 +4156,9 @@ function renderGameLogsSeasonStatsView({
     container.innerHTML = '';
     const list = document.createElement('div');
     list.className = 'gamelogs-szn-list';
-    for (const statKey of orderedStatKeys) {
-        if (!statLabels[statKey] || statKey === 'proj') continue;
+
+    const appendSznStatRow = (statKey) => {
+        if (!statLabels?.[statKey] || statKey === 'proj') return false;
         const labelText = statLabels[statKey];
         const rankValue = getSeasonRankValue(player.id, statKey);
         const rankColor = getConditionalColorByRank(rankValue, player.pos);
@@ -4087,9 +4177,11 @@ function renderGameLogsSeasonStatsView({
         row.className = 'gamelogs-szn-row';
         const group = statGroupByKey?.get(statKey);
         if (group) row.classList.add(`gamelogs-szn-row--${group}`);
+
         const label = document.createElement('div');
         label.className = 'gamelogs-szn-label';
         label.textContent = labelText;
+
         const bar = document.createElement('div');
         bar.className = 'gamelogs-szn-bar';
         bar.setAttribute('role', 'img');
@@ -4109,6 +4201,7 @@ function renderGameLogsSeasonStatsView({
             }
         }
         bar.appendChild(fill);
+
         const value = document.createElement('div');
         value.className = 'gamelogs-szn-value has-rank-annotation';
         const valueMain = document.createElement('span');
@@ -4120,11 +4213,45 @@ function renderGameLogsSeasonStatsView({
         }
         value.appendChild(valueMain);
         value.appendChild(rankAnnot);
+
         row.appendChild(label);
         row.appendChild(bar);
         row.appendChild(value);
         list.appendChild(row);
+        return true;
+    };
+
+    const usedKeys = new Set();
+    const sections = getSznSectionsForPosition(player?.pos);
+
+    if (sections.length) {
+        for (const section of sections) {
+            const statKeys = Array.isArray(section?.stats) ? section.stats : [];
+            const visibleKeys = statKeys.filter((key) => {
+                if (usedKeys.has(key)) return false;
+                if (key === 'proj') return false;
+                return Boolean(statLabels?.[key]);
+            });
+            if (!visibleKeys.length) continue;
+
+            const header = document.createElement('div');
+            header.className = 'gamelogs-szn-section-header';
+            if (section.tone) header.classList.add(`gamelogs-szn-section-header--${section.tone}`);
+            header.setAttribute('role', 'heading');
+            header.setAttribute('aria-level', '4');
+            header.textContent = section.label || 'SECTION';
+            list.appendChild(header);
+
+            for (const statKey of visibleKeys) {
+                if (appendSznStatRow(statKey)) usedKeys.add(statKey);
+            }
+        }
+    } else if (Array.isArray(orderedStatKeys)) {
+        for (const statKey of orderedStatKeys) {
+            if (appendSznStatRow(statKey)) usedKeys.add(statKey);
+        }
     }
+
     container.appendChild(list);
 }
 
