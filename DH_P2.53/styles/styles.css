@@ -6572,10 +6572,12 @@ body::before {
 }
 
 .modal-table-footer-label .season-label {
-  margin-top: 4px;
-  font-size: 1.15em;
+  font-weight: 700;
+  margin-top: 0px;
+  font-size: 1.2em;
   /* tweak */
   color: var(--color-text-secondary);
+  text-shadow: -1px -1px 0px #dcf8;
 }
 
 .modal-table-footer-label .gp-label {
