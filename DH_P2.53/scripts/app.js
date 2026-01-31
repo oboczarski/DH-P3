@@ -3845,13 +3845,13 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'passing-production',
             label: 'PASSING PRODUCTION',
             tone: 'passing',
-            stats: ['pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'pass_imp']
+            stats: ['pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'pass_imp', 'pass_sack', 'pass_int']
         },
         {
             id: 'passing-efficiency',
             label: 'PASSING EFFICIENCY',
             tone: 'passing',
-            stats: ['pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'pass_int']
+            stats: ['pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'cpoe', 'epa_per_db', 'pa_ypg']
         },
         { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', stats: ['rush_att', 'rush_yd', 'rush_td'] },
         { id: 'rushing-efficiency', label: 'RUSHING EFFICIENCY', tone: 'rushing', stats: ['ypc'] },
@@ -3864,7 +3864,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'rushing-production',
             label: 'RUSHING PRODUCTION',
             tone: 'rushing',
-            stats: ['rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'mtf']
+            stats: ['rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'mtf', 'ru_ypg']
         },
         {
             id: 'rushing-efficiency',
@@ -3894,7 +3894,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency',
             label: 'RECEIVING EFFICIENCY',
             tone: 'receiving',
-            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr']
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
@@ -3911,7 +3911,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency',
             label: 'RECEIVING EFFICIENCY',
             tone: 'receiving',
-            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr']
+            stats: ['ts_per_rr', 'yprr', 'firstDownRecRate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
@@ -4435,11 +4435,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('all', ['fpts', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
-        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'pass_int'
+        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'pass_int', 'epa_per_db'
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
-        'yco_per_att', 'mtf', 'rush_yac'
+        'yco_per_att', 'mtf', 'rush_yac', 'ryoe'
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
