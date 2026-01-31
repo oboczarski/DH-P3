@@ -2462,6 +2462,7 @@ const PLAYER_STAT_HEADER_MAP = {
     'ru1D': 'rush_fd',
     'MTF': 'mtf',
     'ELU': 'elu',
+    'RYOE': 'ryoe',
     'YCO': 'rush_yac',
     'YCO/A': 'yco_per_att',
     'MTF/A': 'mtf_per_att',
@@ -3869,7 +3870,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'rushing-efficiency',
             label: 'RUSHING EFFICIENCY',
             tone: 'rushing',
-            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att']
+            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'ryoe']
         },
         {
             id: 'receiving-production',
