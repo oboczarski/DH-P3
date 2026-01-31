@@ -6066,7 +6066,8 @@ body::before {
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 0.22rem;
+  gap: 0.25rem;
+  margin-left: 13px;
 }
 
 #game-logs-modal .gamelogs-szn-value .stat-rank-annotation {
@@ -6098,13 +6099,14 @@ body::before {
 
   #game-logs-modal .gamelogs-szn-row {
     grid-template-columns: 52px 1fr auto;
-    gap: 0.35rem;
-    padding: 0.14rem 0.33rem;
+    gap: 0rem;
+    padding: 0.05rem 0.33rem;
   }
 
   #game-logs-modal .gamelogs-szn-label {
     font-size: 0.66rem;
     letter-spacing: 0.02em;
+    margin-right: -30px !important;
   }
 
   #game-logs-modal .gamelogs-szn-bar {
