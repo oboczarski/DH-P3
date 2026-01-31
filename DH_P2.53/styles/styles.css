@@ -7635,8 +7635,8 @@ body::before {
 
   /* Mobile-only: make the "WK" prefix slightly smaller than the week number */
   .weekly-chart-x-axis .axis-week-prefix {
-    font-size: 0.82em;
-    letter-spacing: 0.06em;
+    font-size: 0.7em;
+    letter-spacing: 0em;
     opacity: 0.92;
   }
 

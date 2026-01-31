@@ -7756,7 +7756,7 @@ function renderXAxis(data) {
         if (isMobile) {
             const prefix = document.createElement('span');
             prefix.className = 'axis-week-prefix';
-            prefix.textContent = 'WK';
+            prefix.textContent = 'wk';
             const number = document.createElement('span');
             number.className = 'axis-week-number';
             number.textContent = `${week}`;
