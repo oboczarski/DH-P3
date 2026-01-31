@@ -703,6 +703,50 @@ if (pageType === 'rosters') {
             });
         }
 
+        // SZN scroll forwarding: allow vertical scrolling even when the gesture starts
+        // slightly outside the scrollable stats area (e.g., on the header/nav row).
+        const gameLogsModalContent = gameLogsModal.querySelector('.modal-content');
+        if (gameLogsModalContent && modalBody) {
+            gameLogsModalContent.addEventListener('wheel', (e) => {
+                if (state.currentGameLogsView !== 'szn') return;
+                if (modalBody.contains(e.target)) return;
+                const absX = Math.abs(e.deltaX || 0);
+                const absY = Math.abs(e.deltaY || 0);
+                if (absY <= absX) return;
+                if (modalBody.scrollHeight <= modalBody.clientHeight) return;
+                modalBody.scrollTop += e.deltaY;
+                e.preventDefault();
+            }, { passive: false });
+
+            let sznTouchScrollActive = false;
+            let sznTouchLastY = 0;
+            const endSznTouchScroll = () => {
+                sznTouchScrollActive = false;
+            };
+
+            gameLogsModalContent.addEventListener('touchstart', (e) => {
+                if (state.currentGameLogsView !== 'szn') return;
+                if (!e.touches || e.touches.length !== 1) return;
+                if (modalBody.contains(e.target)) return;
+                if (modalBody.scrollHeight <= modalBody.clientHeight) return;
+                sznTouchScrollActive = true;
+                sznTouchLastY = e.touches[0].clientY;
+            }, { passive: true });
+
+            gameLogsModalContent.addEventListener('touchmove', (e) => {
+                if (!sznTouchScrollActive) return;
+                if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
+                const y = e.touches[0].clientY;
+                const dy = sznTouchLastY - y;
+                sznTouchLastY = y;
+                modalBody.scrollTop += dy;
+                e.preventDefault();
+            }, { passive: false });
+
+            gameLogsModalContent.addEventListener('touchend', endSznTouchScroll, { passive: true });
+            gameLogsModalContent.addEventListener('touchcancel', endSznTouchScroll, { passive: true });
+        }
+
         // Panel toggle buttons with tab-like behavior
         modalInfoBtns.forEach(btn => {
             btn.addEventListener('click', () => {
