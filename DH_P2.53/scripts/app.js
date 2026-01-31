@@ -5034,6 +5034,8 @@ function renderPlayerComparison(players) {
             'pass_att',
             'pass_cmp',
             'pass_fd',
+            'epa_per_db',
+            'cpoe',
             'imp_per_g',
             'pass_imp',
             'pass_imp_per_att',
@@ -5057,6 +5059,8 @@ function renderPlayerComparison(players) {
             'rec',
             'rec_yd',
             'rec_tgt',
+            'ts_per_rr',
+            'ypr',
             'yds_total',
             'ru_ypg',
             'elu',
@@ -5365,7 +5369,9 @@ function renderPlayerComparison(players) {
                 `;
         const statDescriptions = {
             'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
-            'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score'
+            'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score',
+            'epa_per_db': 'EPA per Dropback', 'cpoe': 'Completion % Over Expected',
+            'pa_ypg': 'Passing Yards per Game', 'ru_ypg': 'Rushing Yards per Game', 'rec_ypg': 'Receiving Yards per Game'
         };
         let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
         for (const key in statLabels) {
