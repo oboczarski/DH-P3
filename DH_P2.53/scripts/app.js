@@ -4005,7 +4005,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         imp_per_g: 45,
         pass_rtg: 48,
         pass_yd: 40,
-        pass_td: 38,
+        pass_td: 36,
         pass_att: 38,
         pass_cmp: 38,
         pass_imp_per_att: 44,
