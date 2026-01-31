@@ -3888,7 +3888,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
             tone: 'receiving',
-            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'imp_per_g']
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr']
         },
         {
             id: 'receiving-efficiency',
@@ -3897,7 +3897,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
     ],
     TE: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
@@ -3905,7 +3905,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
             tone: 'receiving',
-            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'imp_per_g']
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr']
         },
         {
             id: 'receiving-efficiency',
@@ -3914,7 +3914,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             stats: ['ts_per_rr', 'yprr', 'firstDownRecRate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'ypc', 'fum'] }
+        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
     ]
 };
 function getSznSectionsForPosition(position) {
@@ -4435,15 +4435,15 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('all', ['fpts', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
-        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'pass_int', 'epa_per_db'
+        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'pass_int', 'epa_per_db', 'pa_ypg'
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
-        'yco_per_att', 'mtf', 'rush_yac', 'ryoe'
+        'yco_per_att', 'mtf', 'rush_yac', 'ryoe', 'ru_ypg'
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
-        'ts_per_rr', 'first_down_rec_rate', 'rr'
+        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rec_ypg'
     ]);
     let orderedStatKeys;
     if (player.pos === 'QB') orderedStatKeys = qbStatOrder;
