@@ -6572,7 +6572,8 @@ body::before {
 }
 
 .modal-table-footer-label .season-label {
-  font-size: 1.2em;
+  margin-top: 4px;
+  font-size: 1.15em;
   /* tweak */
   color: var(--color-text-secondary);
 }
@@ -6581,7 +6582,7 @@ body::before {
   font-size: 0.95em;
   color: var(--color-text-tertiary);
   display: block;
-  margin-top: 1.5px;
+  margin-top: 1.2px;
 }
 
 /* · · Unplayed and Bye Week Row Styles · · */
