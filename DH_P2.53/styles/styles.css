@@ -28,7 +28,7 @@
 /* Game logs modal: SZN view rank suffixes */
 #game-logs-modal .stat-rank-variant-szn sup.stat-rank-suffix-szn {
   top: 0em !important;
-  font-size: 0.4rem !important;
+  font-size: 0.5rem !important;
 }
 
 /* KTC rank in player cards */
@@ -6072,19 +6072,20 @@ body::before {
 #game-logs-modal .gamelogs-szn-value .stat-rank-annotation {
   display: inline-flex;
   align-items: baseline;
-  font-size: 0.78em;
+  font-size: 0.8em;
   line-height: 1;
   margin-left: 0;
   transform: none;
   letter-spacing: 0.02em;
   color: inherit;
+  font-weight: 500;
   opacity: 0.95;
 }
 
 #game-logs-modal .gamelogs-szn-value .stat-rank-annotation sup {
   font-size: 0.6em;
   line-height: 1;
-  margin-left: 0.08em;
+  margin-left: 0.04em;
   vertical-align: baseline;
   opacity: 0.95;
   font-variant-numeric: ordinal;
@@ -8213,7 +8214,7 @@ body::before {
   margin-left: 0.1em;
   transform: translateY(-0.25em);
   color: #eefd;
-  font-weight: 400;
+  font-weight: 300;
 }
 
 /* For the comparison list, show the stat rank below the stat value and slightly larger */
