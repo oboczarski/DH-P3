@@ -3988,7 +3988,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     container.className = 'game-logs-table-container';
     const COLUMN_WIDTHS = {
         week: 56,
-        proj: 34,
+        proj: 32,
         snp_pct: 44,
         ts_per_rr: 38,
         first_down_rec_rate: 30,
