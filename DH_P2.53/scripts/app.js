@@ -833,6 +833,65 @@ if (pageType === 'rosters') {
         });
     }
 }
+
+// Game logs modal wiring for Stats page (needs GL/SZN switcher too)
+if (pageType === 'stats' && gameLogsModal) {
+    // GL/SZN view switcher (SZN replaces game logs table in-place)
+    const viewSwitcher = gameLogsModal.querySelector('.gamelogs-view-switcher');
+    if (viewSwitcher && !viewSwitcher.dataset.gamelogsViewWired) {
+        viewSwitcher.dataset.gamelogsViewWired = 'true';
+        viewSwitcher.addEventListener('click', (e) => {
+            const btn = e.target.closest('.gamelogs-view-option');
+            if (!btn) return;
+            const view = btn.dataset.gamelogsView;
+            setGameLogsModalView(view);
+        });
+    }
+
+    // Match rosters behavior: keep vertical scrolling working even if the gesture starts
+    // slightly outside the scrollable stats area (header/edges).
+    const gameLogsModalContent = gameLogsModal.querySelector('.modal-content');
+    if (gameLogsModalContent && modalBody && !gameLogsModalContent.dataset.sznScrollForwardingWired) {
+        gameLogsModalContent.dataset.sznScrollForwardingWired = 'true';
+
+        gameLogsModalContent.addEventListener('wheel', (e) => {
+            if (state.currentGameLogsView !== 'szn') return;
+            if (modalBody.contains(e.target)) return;
+            const absX = Math.abs(e.deltaX || 0);
+            const absY = Math.abs(e.deltaY || 0);
+            if (absY <= absX) return;
+            if (modalBody.scrollHeight <= modalBody.clientHeight) return;
+            modalBody.scrollTop += e.deltaY;
+            e.preventDefault();
+        }, { passive: false });
+
+        let sznTouchScrollActive = false;
+        let sznTouchLastY = 0;
+        const endSznTouchScroll = () => { sznTouchScrollActive = false; };
+
+        gameLogsModalContent.addEventListener('touchstart', (e) => {
+            if (state.currentGameLogsView !== 'szn') return;
+            if (!e.touches || e.touches.length !== 1) return;
+            if (modalBody.contains(e.target)) return;
+            if (modalBody.scrollHeight <= modalBody.clientHeight) return;
+            sznTouchScrollActive = true;
+            sznTouchLastY = e.touches[0].clientY;
+        }, { passive: true });
+
+        gameLogsModalContent.addEventListener('touchmove', (e) => {
+            if (!sznTouchScrollActive) return;
+            if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
+            const y = e.touches[0].clientY;
+            const dy = sznTouchLastY - y;
+            sznTouchLastY = y;
+            modalBody.scrollTop += dy;
+            e.preventDefault();
+        }, { passive: false });
+
+        gameLogsModalContent.addEventListener('touchend', endSznTouchScroll, { passive: true });
+        gameLogsModalContent.addEventListener('touchcancel', endSznTouchScroll, { passive: true });
+    }
+}
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     if (pageType === 'analyzer') return;
@@ -2136,6 +2195,9 @@ async function fetchTextWithCache(url) {
 }
 function shouldUsePlayerStatsGoogleSheets() {
     try {
+        // Rosters page should always use shipped CSVs for player stats (SZN + weekly),
+        // so the SZN modal reflects the local data source consistently.
+        if (pageType === 'rosters') return false;
         const params = new URLSearchParams(window.location.search);
         const raw = (params.get(PLAYER_STATS_SOURCE_QUERY_PARAM) || '').trim().toLowerCase();
         return raw === 'sheets' || raw === 'sheet' || raw === 'google';
@@ -2632,6 +2694,15 @@ function getSeasonRankValue(playerId, statKey) {
         return parseRankValue(String(value)) ?? null;
     };
     if (statKey === 'fpts' || statKey === 'ppg') {
+        // Prefer the currently-open modal's computed ranks (matches summary chips exactly).
+        const modalRanks = state.currentGameLogsPlayerRanks;
+        if (modalRanks) {
+            const liveRank = statKey === 'fpts' ? modalRanks.posRank : modalRanks.ppgPosRank;
+            const normalizedLiveRank = normalizeRank(liveRank);
+            if (normalizedLiveRank !== null) {
+                return normalizedLiveRank;
+            }
+        }
         // Stats page uses pre-calculated ranks from sheets
         if (state.isGameLogFromStatsPage && state.statsPagePlayerData) {
             const liveRank = statKey === 'fpts'
@@ -3840,7 +3911,7 @@ const SZN_PROGRESS_THRESHOLDS = {
 // Edit freely to add/remove/reorder sections or move stat keys between them.
 const SZN_STAT_SECTIONS_BY_POS = {
     QB: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'passing-production',
             label: 'PASSING PRODUCTION',
@@ -3862,7 +3933,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['imp_per_g'] }
     ],
     RB: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'rushing-production',
             label: 'RUSHING PRODUCTION',
@@ -3886,7 +3957,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum'] }
     ],
     WR: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
@@ -3903,7 +3974,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
     ],
     TE: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
@@ -3914,7 +3985,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency',
             label: 'RECEIVING EFFICIENCY',
             tone: 'receiving',
-            stats: ['ts_per_rr', 'yprr', 'firstDownRecRate', 'ypr', 'rec_ypg']
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
         { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
@@ -3999,7 +4070,11 @@ function getGameLogsSeasonDisplayValue({
             displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
         }
     } else if (key === 'fpts') {
-        if (state.isGameLogFromStatsPage) {
+        // Always use the same source as the summary chips.
+        const summaryFpts = state.currentGameLogsPlayerRanks?.total_pts;
+        if (summaryFpts !== null && summaryFpts !== undefined) {
+            displayValue = typeof summaryFpts === 'number' ? summaryFpts.toFixed(1) : String(summaryFpts);
+        } else if (state.isGameLogFromStatsPage) {
             const statsData = state.statsPagePlayerData;
             const seasonFpts = statsData?.fpts || 0;
             displayValue = seasonFpts.toFixed(1);
@@ -4015,7 +4090,11 @@ function getGameLogsSeasonDisplayValue({
             displayValue = totalPoints.toFixed(1);
         }
     } else if (key === 'ppg') {
-        if (state.isGameLogFromStatsPage) {
+        // Always use the same source as the summary chips.
+        const summaryPpg = state.currentGameLogsPlayerRanks?.ppg;
+        if (summaryPpg !== null && summaryPpg !== undefined) {
+            displayValue = typeof summaryPpg === 'number' ? summaryPpg.toFixed(1) : String(summaryPpg);
+        } else if (state.isGameLogFromStatsPage) {
             const statsData = state.statsPagePlayerData;
             const ppg = statsData?.ppg || 0;
             displayValue = ppg.toFixed(1);
@@ -4435,7 +4514,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const assignStatGroup = (group, keys) => {
         for (const key of keys) statGroupByKey.set(key, group);
     };
-    assignStatGroup('all', ['fpts', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
+    assignStatGroup('all', ['fpts', 'ppg', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
         'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'pass_int', 'epa_per_db', 'pa_ypg'
