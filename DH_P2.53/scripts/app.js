@@ -3942,10 +3942,34 @@ const RADAR_STATS_CONFIG = {
 
 // === Game Logs Modal: Season stats (SZN) view helpers ===
 const SZN_PROGRESS_THRESHOLDS = {
-    QB: { half: 30, zero: 60 },
-    RB: { half: 60, zero: 72 },
-    WR: { half: 72, zero: 96 },
-    TE: { half: 30, zero: 60 }
+    QB: [
+        { rank: 1, pct: 100 },
+        { rank: 13, pct: 75 },
+        { rank: 26, pct: 50 },
+        { rank: 39, pct: 25 },
+        { rank: 53, pct: 0 } // 0% for >52
+    ],
+    RB: [
+        { rank: 1, pct: 100 },
+        { rank: 16, pct: 75 },
+        { rank: 32, pct: 50 },
+        { rank: 48, pct: 25 },
+        { rank: 65, pct: 0 } // 0% for >64
+    ],
+    WR: [
+        { rank: 1, pct: 100 },
+        { rank: 24, pct: 75 },
+        { rank: 48, pct: 50 },
+        { rank: 72, pct: 25 },
+        { rank: 96, pct: 0 }
+    ],
+    TE: [
+        { rank: 1, pct: 100 },
+        { rank: 13, pct: 75 },
+        { rank: 26, pct: 50 },
+        { rank: 39, pct: 25 },
+        { rank: 53, pct: 0 } // 0% for >52
+    ]
 };
 
 // === Game Logs Modal: SZN stat sectioning (per position) ===
@@ -4044,18 +4068,21 @@ function computeSznProgressPercent(rank, position) {
     if (!Number.isFinite(numericRank) || numericRank <= 0) return 0;
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
     const thresholds = SZN_PROGRESS_THRESHOLDS[posKey] || SZN_PROGRESS_THRESHOLDS.WR;
-    const half = thresholds.half;
-    const zero = thresholds.zero;
-    if (numericRank <= 1) return 100;
-    if (numericRank >= zero) return 0;
-    if (numericRank <= half) {
-        const span = Math.max(half - 1, 1);
-        const t = (numericRank - 1) / span; // 0..1
-        return Math.max(0, Math.min(100, 100 - (t * 50)));
+    const sorted = thresholds.slice().sort((a, b) => a.rank - b.rank);
+    if (!sorted.length) return 0;
+    if (numericRank <= sorted[0].rank) return sorted[0].pct;
+    if (numericRank >= sorted[sorted.length - 1].rank) return sorted[sorted.length - 1].pct;
+    for (let i = 0; i < sorted.length - 1; i += 1) {
+        const start = sorted[i];
+        const end = sorted[i + 1];
+        if (numericRank >= start.rank && numericRank <= end.rank) {
+            const span = Math.max(end.rank - start.rank, 1);
+            const t = (numericRank - start.rank) / span;
+            const pct = start.pct + (end.pct - start.pct) * t;
+            return Math.max(0, Math.min(100, pct));
+        }
     }
-    const span = Math.max(zero - half, 1);
-    const t = (numericRank - half) / span; // 0..1
-    return Math.max(0, Math.min(100, 50 - (t * 50)));
+    return 0;
 }
 function resolveCssColorToRgb(color) {
     if (!color || typeof document === 'undefined') return null;
@@ -4331,7 +4358,7 @@ function renderGameLogsSeasonStatsView({
                 fill.style.backgroundColor = rankColor;
             }
         }
-        const rankAnnot = createRankAnnotation(rankValue, { ordinal: true, variant: 'szn' });
+        const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
         rankAnnot.classList.add('gamelogs-szn-bar-rank');
         if (rankColor && rankColor !== 'inherit') {
             rankAnnot.style.color = rankColor;

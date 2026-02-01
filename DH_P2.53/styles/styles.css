@@ -6061,7 +6061,8 @@ body::before {
 
 #game-logs-modal .gamelogs-szn-row {
   display: grid;
-  grid-template-columns: 64px 1fr auto;
+  --szn-value-col: 64px;
+  grid-template-columns: 64px minmax(0, 1fr) var(--szn-value-col);
   align-items: center;
   gap: 0.45rem;
   padding: 0.18rem 0.4rem;
@@ -6203,7 +6204,8 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-szn-row {
-    grid-template-columns: 52px 1fr auto;
+    --szn-value-col: 56px;
+    grid-template-columns: 52px minmax(0, 1fr) var(--szn-value-col);
     gap: 0rem;
     padding: 0.05rem 0.33rem;
   }
