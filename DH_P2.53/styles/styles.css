@@ -6071,8 +6071,8 @@ body::before {
   --szn-value-col: 64px;
   grid-template-columns: 64px minmax(0, 1fr) var(--szn-value-col);
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.18rem 0.4rem;
+  gap: 0.2rem;
+  padding: 0.18rem 0.2rem;
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(15, 35, 55, 0.02), rgba(255, 255, 255, 0.01));
   border: 1px solid rgba(128, 138, 189, 0.1);
@@ -6114,7 +6114,8 @@ body::before {
   border: 1px solid rgba(250, 250, 250, 0.07);
   display: flex;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-  margin-left: -6px;
+  margin-left: -10px;
+  margin-right: -12px;
 }
 
 #game-logs-modal .gamelogs-szn-bar-fill {
@@ -6217,7 +6218,7 @@ body::before {
     --szn-value-col: 56px;
     grid-template-columns: 52px minmax(0, 1fr) var(--szn-value-col);
     gap: 0rem;
-    padding: 0.05rem 0.33rem;
+    padding: 0.05rem 0.15rem;
   }
 
   #game-logs-modal .gamelogs-szn-label {
@@ -6228,6 +6229,8 @@ body::before {
 
   #game-logs-modal .gamelogs-szn-bar {
     height: 10px;
+    margin-left: -10px;
+    margin-right: -12px;
   }
 
   #game-logs-modal .gamelogs-szn-value {

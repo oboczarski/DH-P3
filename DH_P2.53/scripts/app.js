@@ -3992,7 +3992,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'passing-efficiency',
             label: 'PASSING EFFICIENCY',
             tone: 'passing',
-            stats: ['pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'cpoe', 'epa_per_db', 'pa_ypg']
+            stats: ['epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pa_ypg']
         },
         { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', stats: ['rush_att', 'rush_yd', 'rush_td'] },
 
