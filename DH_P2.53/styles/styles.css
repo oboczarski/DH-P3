@@ -6606,7 +6606,6 @@ body::before {
   font-weight: 700;
   letter-spacing: 0.08em;
   line-height: 1;
-  text-transform: uppercase;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
@@ -6629,7 +6628,7 @@ body::before {
 
 @media (max-width: 640px) {
   #game-logs-modal .gamelogs-nav-row {
-    gap: 2.65rem;
+    gap: 1.95rem;
     margin-bottom: 0.45rem;
     margin-right: 0;
     padding: 0 0.15rem;
@@ -6640,16 +6639,16 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-season-tab {
-    padding: 0.2rem 0.52rem;
+    padding: 0.25rem 0.52rem;
     font-size: 0.72rem;
     letter-spacing: 0.02em;
   }
 
   #game-logs-modal .gamelogs-view-option {
-    padding: 0.17rem 0.52rem;
+    padding: 0.25rem 0.52rem;
     font-size: 0.72rem;
     letter-spacing: 0;
-    width: 2.8rem;
+    width: 5.3rem;
     border-radius: 6px;
   }
 }
