@@ -34,10 +34,8 @@ When assisting in this repo, proactively review relevant files and previous conv
 - Contains: Ownership (internal nav), Trophy Room (external: dynastyhub-trophyroom.netlify.app), Matchups (external: dynastyhub-matchups.netlify.app)
 - **Positioning strategy** (in `app.js`):
   - Dropdown is **portaled to `document.body`** to avoid WebKit `backdrop-filter` containing-block issues
-  - Uses `position: fixed` + JS-computed coordinates via `getBoundingClientRect()`
-  - **Centers under button** when space allows (`--nav-more-tx: -50%`)
-  - **Edge-aligns** near viewport edges to prevent overflow (`--nav-more-tx: 0px`)
-  - Uses CSS `transform` variables (not individual `translate` property) for Safari compatibility
+  - Uses `position: fixed` + JS-computed **left/top** coordinates via `getBoundingClientRect()`
+  - **Centers under button** when space allows, then clamps within viewport margins
   - Repositions on `resize` and `scroll` when open
 - **DO NOT** use inline styles to position the dropdown — always use the JS positioning function pattern
 
@@ -68,6 +66,8 @@ DH-P3/DH_P2.53
   │   │   ├── logos/  
   │   │   ├── NFL-Tags_webp/  
   │   │   └── welcome/  
+  │   ├── data  
+  │   │   └── NFL-2025_Stats/  
   │   ├── index.html  
   │   ├── manifest.webmanifest  
   │   ├── ownership  
@@ -95,7 +95,7 @@ DH-P3/DH_P2.53
   │       ├── sheet-proxy.js  
   │       └── sleeper-proxy.js  
   ├── netlify.toml  
-  └── Reference Folder  
+  └── .ReferenceFolder  
 
 ---
 
@@ -132,6 +132,11 @@ DH-P3/DH_P2.53
   - Sleeper API integration for user, leagues, rosters, matchups, and (optionally) live stats.
   - Roster rendering, view modes, positional filters, comparison/trade/start-sit flows, and ownership aggregation logic.
   - Rosters-specific: `adjustStickyHeaders()` computes `--roster-header-height` CSS variable for desktop fixed-header content padding.
+  - **Game Logs modal**:
+    - GL/SZN switcher (SZN replaces the Game Logs table in-place).
+    - SZN view is a single-player season stats list with progress-style bars.
+    - Section/group ordering is driven by `SZN_STAT_SECTIONS_BY_POS` (see reference doc below).
+    - Ranks/colors are reused from the existing rank color logic.
   - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
 
 - **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
@@ -146,7 +151,7 @@ DH-P3/DH_P2.53
   - Populating the analyzer leaderboard table.
 
 - **/DH_P2.53/scripts/stats.js**: Logic for the **Stats** page. Handles:
-  - Fetching CSV data for `STAT_1QB` and `STAT_SFLX` from Google Sheets.
+  - Fetching CSV data for `STAT_1QB` and `STAT_SFLX` from Google Sheets (direct CSV endpoints).
   - Header normalization, column sets, and category mappings.
   - Position/category/rookie filters, search, and sorting rules (including efficiency-sort rules).
   - Rendering the stats table and wiring row clicks into the shared game logs modal.
@@ -161,7 +166,8 @@ DH-P3/DH_P2.53
 
 - **/DH_P2.53/styles/styles.css**: Global stylesheet defining:
   - The “Deep Space” theme, starfield background, noise overlay, and glass-panel styles.
-  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.  - **Navigation system**: `.nav-button` base class, `.nav-more-toggle` for More button, `.nav-more-dropdown` with `position: fixed` and `transform: translate(var(--nav-more-tx), var(--nav-more-ty))` for JS-driven positioning.
+  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.  
+  - **Navigation system**: `.nav-button` base class, `.nav-more-toggle` for More button, `.nav-more-dropdown` uses `position: fixed` with JS-applied `left/top` coordinates.
   - **Rosters page responsive overrides**:
     - Mobile (≤819px): 2-row header, sticky positioning, condensed controls, view-dropdown instead of view-switcher
     - Desktop (≥820px): Grid layout, fixed header, standard controls
@@ -182,7 +188,8 @@ DH-P3/DH_P2.53
 
 - **/netlify.toml**: Netlify configuration file specifying build settings, redirects, headers, and routing of `/api/sheet/*` and `/api/sleeper/*` to the appropriate edge functions.
 
-- **/Reference Folder**: Holds reference documentation, summaries, and notes used to guide implementation decisions (for example, dashboard or stats-page fix summaries). Consult relevant docs before large changes.
+- **/.ReferenceFolder**: Holds reference documentation, summaries, and notes used to guide implementation decisions.  
+  - `SZN_STATS_SECTIONS.md` explains how to add/reorder SZN stat sections and categories.
 
 ---
 
@@ -237,13 +244,33 @@ DH-P3/DH_P2.53
 
 ## Data Access, Netlify, and Environment
 
-- Deployed via Netlify. External data flows through **edge proxies**: Google Sheets (`/api/sheet/*`) and Sleeper (`/api/sleeper/*`).
-- Always route new requests through these proxies for caching, host validation, and CSP compatibility.
-- The site is deployed via Netlify (`netlify.toml`), and external data is intended to flow mostly through **edge proxies**:
+- Deployed via Netlify. **Edge proxies exist** for Google Sheets (`/api/sheet/*`) and Sleeper (`/api/sleeper/*`).
+- **Current code paths in `app.js` and `stats.js` still use direct endpoints** for some data (e.g., `https://api.sleeper.app/v1` and direct Google Sheets CSV links).
+- When adding new requests, **prefer the proxy endpoints** unless you are explicitly matching an existing direct-call pattern.
+- The site is deployed via Netlify (`netlify.toml`), and proxy routes are:
   - Google Sheets: `/api/sheet/*` → `netlify/edge-functions/sheet-proxy.js`
   - Sleeper: `/api/sleeper/*` → `netlify/edge-functions/sleeper-proxy.js`
-- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
 - Be mindful of caching semantics in the proxies (different behavior during "live-ish" windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
+
+### Player Stats Data (CSV vs Sheets)
+
+- **Season & weekly player stats (SZN/SZN_RKs/WK1..WK18)** are now shipped as **local CSVs**:
+  - `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
+  - `DH_P2.53/data/NFL-2025_Stats/SZN_RKs.csv`
+  - `DH_P2.53/data/NFL-2025_Stats/WK1.csv` … `WK18.csv`
+- **Rosters page always uses the local CSVs** for these stats (even though the Google Sheets loader still exists for easy re-enable next season).
+- The **Stats page table is the only page still pulling its main data from Google Sheets** (direct CSV endpoints) for `STAT_1QB` / `STAT_SFLX`.
+  - Other pages still pull **some** Google Sheets-derived data (e.g., KTC/value tables) via shared app logic.
+  - Proxy is available if you decide to switch later.
+
+### Game Logs Modal: GL/SZN
+
+- The Game Logs modal includes a **GL/SZN** switcher:
+  - **GL** = the traditional game logs table.
+  - **SZN** = the single-player season stats list rendered in the same table area.
+- The SZN view is grouped by **position-based sections** driven by `SZN_STAT_SECTIONS_BY_POS` in `DH_P2.53/scripts/app.js`.
+- Section configuration (categories, order, and stat lists) is documented in:
+  - `.ReferenceFolder/SZN_STATS_SECTIONS.md`
 ---
 
 ## Navigation Architecture
@@ -259,5 +286,3 @@ DH-P3/DH_P2.53
 - **Ownership**: Internal navigation (`data-nav="ownership"`)
 - **Trophy Room**: External link (`data-url="https://dynastyhub-trophyroom.netlify.app/"`)
 - **Matchups**: External link (`data-url="http://dynastyhub-matchups.netlify.app/"`)
-- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
-- Be mindful of caching semantics in the proxies (different behavior during “live-ish” windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
