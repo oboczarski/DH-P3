@@ -1,143 +1,263 @@
-## Dynasty Hub (DH_P2.53) — Copilot coding notes
+# GitHub Copilot Instructions for DH-P3 / DH_P2.53
 
-### Quick orientation (where the “truth” lives)
-- App root is `DH_P2.53/` (Netlify publishes this folder; see `netlify.toml`).
-- Shared app-shell JS: `DH_P2.53/scripts/app.js` (navigation, global `state`, rosters/ownership, comparison + game logs modals, Start/Sit, and a pile of browser hotfixes).
-- Page-specific JS:
-  - Welcome/Dashboard: `scripts/dashboard.js` + `styles/dashboard.css` (manual `HP_DATA` constant)
-  - Stats: `scripts/stats.js` + `stats/stats.html` + `styles/stats.css` (tables are tightly coupled)
-  - Analyzer: `scripts/analyzer.js` + `analyzer/analyzer.html`
-  - Research: `scripts/syop.js` + `research/research.html`
-- Offline/caching: `DH_P2.53/service-worker.js` + SW registration in `scripts/app.js`.
+## Follow Prompt Instructions Meticulously
 
-### What this repo is
-- Static, multi-page PWA published from `DH_P2.53/` (see `netlify.toml` `[build].publish`). Routes are HTML file redirects: `/rosters`, `/stats`, `/analyzer`, `/research`, `/ownership`.
-- No bundler/package manager in-repo; pages load scripts + libs via `<script>` tags (CDNs: Tailwind, Chart.js, D3, Font Awesome).
+Always follow prompt instructions. This includes adhering to any specific guidelines or requirements outlined in the user's requests. Ensure every single detail is addressed. Carefully read and follow all instructions provided, and carry out all tasks exactly as requested.
 
-### How to work in this repo (rules of engagement)
-- Before changing anything, read the relevant HTML + its page script + its page CSS **and** the shared shell (`scripts/app.js`, `styles/styles.css`). Don’t guess structure/data-flow from screenshots.
-- This app is **mobile-first**. Validate mobile behavior first, then tablet/desktop. Many layouts have breakpoint-specific behavior (see “Breakpoints to know”).
-- Prefer small, surgical edits (especially in `scripts/app.js`). Avoid large refactors / file splits unless explicitly requested.
-- Reuse the existing “Deep Space” / glass-panel design system: prefer existing CSS variables and patterns in `styles/styles.css`.
-- Keep JS vanilla. Avoid adding heavy frameworks or new chart/table libraries unless explicitly requested.
-- When touching cross-cutting concerns (navigation, modals, caching/proxies, service worker, global header), align with existing patterns in `scripts/app.js`.
+## Initial Review (Important First Step):
 
-### Breakpoints to know (UI contracts)
-- `520px`: many compact/mobile layout adjustments
-- `768px`: tablet-ish layout shifts
-- `819px` / `820px`: Rosters header pivots between in-flow sticky vs out-of-flow fixed
-- `869px`: “full desktop header grid” layouts (Stats + Rosters)
+Before modifying any code, thoroughly review and analyze the existing structures, functionality, layout, setup, and styles relevant to the task.  
+Analyze the sections related to the prompt to fully understand the current HTML structure, JavaScript rendering logic, data flow, and CSS styling. Develop a deep understanding of how the pages are set up, how components are implemented, and how to alter each component on every page. Always be very thorough, and review all files necessary for context so that you have working knowledge and a full understanding of the project.
 
-### Local workflow (important for SW + fetch)
-- Run via a local HTTP server with `DH_P2.53/` as the web root (service worker + relative fetches break on `file://`).
-- Example: start a static server with `DH_P2.53/` as the CWD, then open `http://localhost:<port>/`.
-- Debugging SW changes:
-  - SW is registered with a versioned URL in `scripts/app.js` (`service-worker.js?v=...`). If you change SW behavior, bump that `?v=` and also bump `CACHE_NAME` in `DH_P2.53/service-worker.js`.
-- When you add new pages/scripts/styles, confirm:
-  - paths are correct for both `index.html` (root) and subpages (use `../` prefixes),
-  - the service worker pre-cache list includes the new route(s) (see `DH_P2.53/service-worker.js` `CORE_ASSETS`) and bump `CACHE_NAME` so clients refresh.
+### Be Proactive About Context
 
-### Architecture / boundaries
-- Shared “app shell” behavior lives in `DH_P2.53/scripts/app.js` (navigation, global `state`, roster/ownership logic, modals incl. game logs + comparison, view modes, etc.). It’s large by design—prefer surgical edits.
-- Page scripts are gated by `body[data-page]`:
-  - Dashboard: `scripts/dashboard.js` (manual `HP_DATA` constant; don’t change field names)
-  - Stats: `scripts/stats.js` (tabs `STAT_1QB` / `STAT_SFLX`, heavy table layout tied to `stats/stats.html` + `styles/stats.css`)
-  - Analyzer: `scripts/analyzer.js`
-  - Research/SYOP: `scripts/syop.js`
+When assisting in this repo, proactively review relevant files and previous conversations to gather context. This will help you provide more accurate and helpful responses.
 
-### Routing, navigation, and URL conventions
-- Netlify routes are simple redirects (no SPA router): see `netlify.toml`.
-- Internal navigation URLs are built in `scripts/app.js` via `getPageUrl(page)`:
-  - Uses `../` base when navigating from subpages, and root-relative when on welcome.
-  - If `usernameInput` has a value, most non-home pages get `?username=<...>`.
-  - For `rosters` / `analyzer` / `stats`, a `leagueId` is propagated when available.
-- `ensureNavigate(page)` enforces username validation for league-connected pages (`rosters`, `ownership`, `analyzer`). Stats/Research are intentionally usable without a username.
-- Non-welcome pages share the “More” dropdown (Ownership + external Trophy Room/Matchups). Welcome page uses a separate hamburger menu.
+## How to Work in This Repo
 
-### Data flows (and when to use proxies)
-- Sleeper API:
-  - `scripts/app.js` primarily uses direct `API_BASE = 'https://api.sleeper.app/v1'` with `fetchWithCache(API_BASE + ...)`.
-  - The Analyzer uses the same-origin proxy: `GET /api/sleeper/<path>` (see `netlify/edge-functions/sleeper-proxy.js`) for caching (`s-maxage` + `stale-while-revalidate`).
-  - When adding new calls, match the local style of the file you’re editing; if you introduce new Sleeper fetches in a page script, prefer `/api/sleeper/...` unless there’s a reason not to.
-- Google Sheets CSV: prefer same-origin proxy `GET /api/sheet?id=<optional>&sheet=<name>` or `...&gid=<gid>` (host-validated + cached; see `netlify/edge-functions/sheet-proxy.js`).
-  - Legacy code still directly fetches `https://docs.google.com/.../gviz/tq?...` in places (e.g. parts of `scripts/app.js` and `scripts/stats.js`). If you touch those loaders, either keep the pattern consistent or migrate the whole call site to `/api/sheet`.
-- Player game logs / season stats (2025): default source is shipped CSVs under `DH_P2.53/data/NFL-2025_Stats/**` (see `scripts/app.js` “Player stats data source”).
-  - To temporarily switch back to Sheets: `?playerStatsSource=sheets` (see `PLAYER_STATS_SOURCE_QUERY_PARAM`).
+- Always start by reading the relevant HTML, JS, and CSS for the page you’re touching (`index.html`, `stats/stats.html`, `analyzer/analyzer.html`, `research/research.html`, `rosters/rosters.html`, `ownership/ownership.html` plus the matching `scripts/` and `styles/` files). Do not guess the layout or data flow.
+- Respect the existing Deep Space / glass-panel visual system. Reuse the same design language (colors, radii, shadows, CSS variables), but prefer **separate, page- and component-specific classes/selectors**, even when styles are currently identical, so later edits to one area do not unintentionally change others.
+- The app is **mobile-first**. Prioritize correct behavior and layout on mobile widths, then ensure desktop is also optimized and polished (no broken layouts, awkward spacing, or unreadable tables).
+- When you touch cross-cutting concerns (navigation, modals, game logs, proxies, service worker, etc.), align with existing patterns in `scripts/app.js`, `styles/styles.css`, and the current HTML shells.
 
-### Caching layers (be explicit which one you’re changing)
-- In-memory fetch cache: `scripts/app.js` `state.cache` via `fetchWithCache(url)` (memoizes JSON by URL for the session).
-- Service worker (`DH_P2.53/service-worker.js`):
-  - Cache-first for “immutable-ish” assets listed in `IMMUTABLE_ASSETS`.
-  - Network-first for everything else (HTML + API), with navigation fallback to `./index.html`.
-- Netlify Edge caching (proxies): `Cache-Control: public, s-maxage=..., stale-while-revalidate=...`.
+### Critical Mobile-First Patterns
 
-### Environment variables (Edge functions)
-- `netlify/edge-functions/sheet-proxy.js` can read sheet IDs from `PLAYER_STATS_SHEET_ID` or `GOOGLE_SHEET_ID` (falls back to query `id=...`). These are Netlify env vars (not used by the static client directly).
+**Header Positioning:**
+- **Default (most pages)**: `position: sticky` — header stays in document flow, scrolls naturally with content
+- **Rosters page exception**:
+  - Mobile (≤819px): `position: sticky` (in-flow, no artificial padding)
+  - Desktop (≥820px): `position: fixed` (out-of-flow) with JS-computed `padding-top` on `main#content` using CSS variable `--roster-header-height`
+  - Never mix fixed headers with sticky headers without media query separation
 
-### HTML shell conventions (app.js expects these IDs)
-- Most pages share a header/nav shell and include hidden inputs even when not used:
-  - `#usernameInput` and `#leagueSelect` exist on every page so `scripts/app.js` can propagate params and validate where required.
-  - Nav buttons use fixed IDs: `homeButton`, `rostersButton`, `statsButton`, `analyzerButton`, `researchButton`, plus `moreButton` + `moreDropdown` on non-welcome pages.
-  - Global layout hooks: `#header-container`, `main#content`, and a global `#loading` overlay (except Stats uses its own in-page spinner and `setLoading` intentionally no-ops).
-- If you add a new page, set `body[data-page="..."]` and follow the same ID conventions so shared wiring keeps working.
+**Navigation Dropdown ("More"):**
+- Present on all non-dashboard pages (Rosters, Stats, Analyzer, Research, Ownership)
+- Contains: Ownership (internal nav), Trophy Room (external: dynastyhub-trophyroom.netlify.app), Matchups (external: dynastyhub-matchups.netlify.app)
+- **Positioning strategy** (in `app.js`):
+  - Dropdown is **portaled to `document.body`** to avoid WebKit `backdrop-filter` containing-block issues
+  - Uses `position: fixed` + JS-computed coordinates via `getBoundingClientRect()`
+  - **Centers under button** when space allows (`--nav-more-tx: -50%`)
+  - **Edge-aligns** near viewport edges to prevent overflow (`--nav-more-tx: 0px`)
+  - Uses CSS `transform` variables (not individual `translate` property) for Safari compatibility
+  - Repositions on `resize` and `scroll` when open
+- **DO NOT** use inline styles to position the dropdown — always use the JS positioning function pattern
 
-### Versioning & cache-busting (real-world ops)
-- Many assets are loaded with `?v=...` query strings in HTML (CSS, scripts, manifest, SW registration). When you change behavior that users must pick up quickly:
-  - bump the page’s script/CSS `?v=` in the HTML,
-  - bump the SW registration `?v=` in `scripts/app.js`,
-  - and bump `CACHE_NAME` in `service-worker.js`.
+**Responsive Breakpoints:**
+- `520px`: Ultra-mobile nav button compression
+- `768px`: Desktop nav button expansion
+- `819px`: Rosters mobile/desktop layout pivot
+- `869px`: Full desktop header grid layouts (Stats, Rosters)
 
-### Security/CSP gotcha
-- `netlify.toml` uses `Content-Security-Policy-Report-Only` (violations won’t hard-block locally, but they will show up in reports/devtools).
-- If you add new external origins (scripts/fonts/images/connect), update the CSP allowlist in `netlify.toml`.
+## App / Project Description
 
-### UI/UX patterns that are easy to break
-- Theme system: “Deep Space” + glass panels are centralized in `styles/styles.css` (CSS vars like `--color-*`, `--pos-*`). Reuse vars; prefer page/component-specific selectors so edits don’t leak across pages.
-- Rosters header behavior is intentionally split by breakpoint:
-  - ≤819px: sticky/in-flow header
-  - ≥820px: fixed/out-of-flow header + JS-updated `--roster-header-height` padding on `main#content` (see `scripts/app.js`).
-  - Never mix fixed-header assumptions with sticky-header assumptions without media-query separation.
-- Rosters page horizontal scroll: `syncRosterHeaderPosition()` applies a counter `translateX(...)` so the header stays visually locked on horizontal scroll.
-- “More” dropdown (non-welcome pages) must stay portal-to-`document.body` + `position: fixed` + JS positioning to avoid Safari/WebKit `backdrop-filter` containing-block bugs (see `scripts/app.js` comment + `positionMoreDropdown`).
-- Rosters performance: `content-visibility` is toggled for `#rosterGrid` on mobile (`.roster-cv-enabled`). Don’t remove without profiling.
-- iOS pinch-zoom crash guard: `scripts/app.js` toggles `.user-zoomed` based on `visualViewport.scale` to reduce heavy background layers. If you change the starfield/noise layering in `styles.css`, verify zoom stability on iOS.
+This repository contains the source code for **Dynasty Hub**, a multi-page fantasy football web app (PWA) focused on dynasty leagues. The app is designed and optimized for both mobile and desktop use.
 
-### Page-specific conventions (don’t fight the architecture)
-- Dashboard (`scripts/dashboard.js`): uses a manual `HP_DATA` constant. If you extend it, keep field names consistent.
-- Stats (`scripts/stats.js`): tightly coupled to `stats/stats.html` + `styles/stats.css` (column widths, wrappers, sticky regions). If you change columns/layout, update JS + CSS together; avoid introducing new table libraries.
-- Analyzer (`scripts/analyzer.js`): Chart.js-heavy; prefer reusing/extending existing chart config/plugins rather than building parallel chart systems.
-- Research/SYOP (`scripts/syop.js`): visualizations are custom SVG/D3-style rendering. Avoid introducing Chart.js/other chart libraries here; keep resize-aware redraw patterns.
+Core functionality is split across dedicated pages (Home / Fantasy Dashboard, Rosters, Ownership, Stats, Analyzer, Research / SYOP). Any changes made to files in this repo directly affect how the live app looks, behaves, and fetches data.
 
-### Rosters header, trade preview, Start/Sit preview (extra caution)
-- If a task involves Rosters header/layout or trade/start-sit preview UI, review:
-  - `rosters/rosters.html` (DOM structure + control placement)
-  - `scripts/app.js` (rendering + state + event wiring)
-  - `styles/styles.css` (header + preview styling)
-- Keep desktop-only changes gated behind desktop media queries; don’t regress ≤819px behavior.
+## Project Structure Overview
 
-### Shared UI behaviors worth knowing before you touch them
-- Username persistence: `scripts/app.js` normalizes to lowercase and stores `localStorage['sleeper_username']`. Many flows read from this (including external link decoration).
-- Game Logs modal is shared across pages and has view state:
-  - `state.currentGameLogsView` is either `gl` or `szn` (see `setGameLogsModalView`).
-  - Modal toggles also control secondary panels (stats key / radar / consistency) and clean up charts to prevent leaks.
-- Comparison modal interacts with Start/Sit: opening comparison can “compact” the Start/Sit preview; closing restores it (`state.startSitCompactPreview`).
-- Loading UX differs by page: `setLoading(...)` intentionally skips the global loading overlay on the Stats page (Stats has its own spinner).
+DH-P3/DH_P2.53  
+  ├── .github  
+  │   └── copilot-instructions.md  
+  ├── .vscode  
+  │   └── settings.json  
+  ├── DH_P2.53 (main app folder)  
+  │   ├── analyzer  
+  │   │   └── analyzer.html  
+  │   ├── assets  
+  │   │   ├── icons/  
+  │   │   ├── logos/  
+  │   │   ├── NFL-Tags_webp/  
+  │   │   └── welcome/  
+  │   ├── index.html  
+  │   ├── manifest.webmanifest  
+  │   ├── ownership  
+  │   │   └── ownership.html  
+  │   ├── research  
+  │   │   └── research.html  
+  │   ├── rosters  
+  │   │   └── rosters.html  
+  │   ├── scripts  
+  │   │   ├── analyzer.js  
+  │   │   ├── app.js  
+  │   │   ├── dashboard.js  
+  │   │   ├── dh-scramble.js  
+  │   │   ├── stats.js  
+  │   │   └── syop.js  
+  │   ├── service-worker.js  
+  │   ├── stats  
+  │   │   └── stats.html  
+  │   └── styles  
+  │       ├── dashboard.css  
+  │       ├── stats.css  
+  │       └── styles.css  
+  ├── netlify  
+  │   └── edge-functions  
+  │       ├── sheet-proxy.js  
+  │       └── sleeper-proxy.js  
+  ├── netlify.toml  
+  └── Reference Folder  
 
-### Add-a-page / add-a-nav-item checklist
-- Update nav routing in `scripts/app.js` (`getPageUrl(...)`, button ids, and welcome menu vs non-welcome “More” dropdown).
-- Add redirect in `netlify.toml` and include the HTML in `service-worker.js` `CORE_ASSETS`.
-- Add script/style includes with correct relative paths (`../scripts/...`, `../styles/...`) on subpages.
-- If your new page depends on a username, add it to `pagesRequiringUsername` in `ensureNavigate(...)`.
-- If you add new external origins (CDN/API), update the CSP header in `netlify.toml` (currently `Content-Security-Policy-Report-Only`).
+---
 
-### Stats page conventions (easy to accidentally break)
-- `scripts/stats.js` is an IIFE gated by `body[data-page="stats"]`. Its DOM assumptions are tightly coupled to `stats/stats.html`.
-- Column layout is driven by explicit pixel widths (`STATS_COLUMN_WIDTHS`) and specific wrappers in `stats.html`; change columns/layout by updating JS + CSS together.
-- Stats uses header normalization (`HEADER_ALIASES`), per-position column sets (`COLUMN_SETS`), and conditional formatting scales (e.g. `VALUE_COLOR_SCALE`, `CSTY_COLOR_SCALE`).
-- Sorting has special rules for “efficiency” stats (filters out low games / low snap% and marks some values with an asterisk; see the footer copy in `stats.html`).
+## File Overviews
 
-### Debug quirks to know exist
-- Mobile keyboard/focus suppression after navigation is intentional (prevents unwanted iOS keyboard popups). Focus logging can be enabled via `?debugFocus=1` (see `scripts/app.js`).
-- External apps: Trophy Room URL is decorated with `?user=<username>` via `window.__dhBuildExternalUrl` in `scripts/app.js`.
+- **/.github/copilot-instructions.md**: Contains instructions for GitHub Copilot, emphasizing thoroughness, context gathering, mobile-first layout priority, and adherence to prompts.
+- **/.vscode/settings.json**: Configuration settings for VS Code (editor behavior, chat/Copilot settings, etc.).
 
+- **/DH_P2.53/assets/**: Contains various static assets:
+  - `icons/`: UI/shortcut icons used across pages.
+  - `logos/`: App and league branding logos.
+  - `NFL-Tags_webp/`: Team/position tag images in WebP format.
+  - `welcome/`: Assets used on the welcome/home experience.
 
+- **/DH_P2.53/index.html**: Main entry point and **Home / Fantasy Dashboard** page. Hosts the `.fc-dashboard` layout, summary metric cards, player selector, radar/bar/scatter chart containers, and the radar modal. Loads `styles/styles.css`, `styles/dashboard.css`, `scripts/app.js`, `scripts/dashboard.js`, and `scripts/dh-scramble.js`.
+
+- **/DH_P2.53/manifest.webmanifest**: Web app manifest defining PWA metadata (name, short name, start URL, theme/background colors, and icons).
+
+- **/DH_P2.53/analyzer/analyzer.html**: HTML for the **League Analyzer** page. Contains navigation, username/league selectors, layout for analyzer cards, radar and bar chart canvases, and the leaderboard table.
+
+- **/DH_P2.53/ownership/ownership.html**: HTML for the **Ownership** page. Displays multi-league ownership/exposure data per player and shares the same header/nav and glass-panel layout as the Rosters page.
+
+- **/DH_P2.53/research/research.html**: HTML for the **Research / SYOP** page. Contains the SYOP and draft hit-rate sections, tab/toggle layout, and chart containers for sunburst, distribution bars, gauges, and hit-rate visualizations.
+
+- **/DH_P2.53/rosters/rosters.html**: HTML for the **Rosters** page. Hosts username/league controls, roster view containers, positional/condensed/lineup view controls, comparison/trade/start-sit controls, and the shared game logs and comparison modals.
+
+- **/DH_P2.53/stats/stats.html**: HTML for the **Stats** page. Includes tabs for 1QB vs SFLX, search and filter controls, position/category toggles, the stats key popup, and the main table region with two table wrappers (one per tab).
+
+- **/DH_P2.53/scripts/app.js**: Core shared application logic. Manages:
+  - Global state (username, userId, leagues, players, sheet/value data).
+  - Navigation between pages via header buttons and "More" dropdown.
+  - **"More" dropdown positioning system**: JS-driven fixed positioning with viewport-aware centering/edge-alignment, portaled to `<body>` to avoid WebKit containing-block issues.
+  - External link support: dropdown items can use `data-url` to open new tabs (Trophy Room, Matchups).
+  - Sleeper API integration for user, leagues, rosters, matchups, and (optionally) live stats.
+  - Roster rendering, view modes, positional filters, comparison/trade/start-sit flows, and ownership aggregation logic.
+  - Rosters-specific: `adjustStickyHeaders()` computes `--roster-header-height` CSS variable for desktop fixed-header content padding.
+  - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
+
+- **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
+  - Builds summary metrics for dashboard cards.
+  - Renders radar, bar, and consistency-vs-ceiling scatter charts using Chart.js (and D3 where applicable).
+  - Manages player selection, position filters, and radar modal behavior.
+
+- **/DH_P2.53/scripts/analyzer.js**: Logic specific to the **League Analyzer** page. Handles:
+  - Fetching players and league data (Sleeper + KTC/value from Google Sheets, partly via proxies).
+  - Building per-team and per-slot aggregates.
+  - Rendering analyzer radar and bar charts using Chart.js with custom plugins.
+  - Populating the analyzer leaderboard table.
+
+- **/DH_P2.53/scripts/stats.js**: Logic for the **Stats** page. Handles:
+  - Fetching CSV data for `STAT_1QB` and `STAT_SFLX` from Google Sheets.
+  - Header normalization, column sets, and category mappings.
+  - Position/category/rookie filters, search, and sorting rules (including efficiency-sort rules).
+  - Rendering the stats table and wiring row clicks into the shared game logs modal.
+
+- **/DH_P2.53/scripts/syop.js**: Logic for the **Research / SYOP** page. Renders:
+  - SVG-based SYOP sunburst, distribution bar charts, gauges, and draft hit-rate visualizations.
+  - Handles tab switching and resize-aware redraw behavior.
+
+- **/DH_P2.53/scripts/dh-scramble.js**: Creates the letter-scrambling animation for the “Dynasty Hub” title on the home/welcome view.
+
+- **/DH_P2.53/service-worker.js**: Service worker enabling PWA features, including offline caching strategies, cache versioning, and fallback behavior for navigations and immutable assets.
+
+- **/DH_P2.53/styles/styles.css**: Global stylesheet defining:
+  - The “Deep Space” theme, starfield background, noise overlay, and glass-panel styles.
+  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.  - **Navigation system**: `.nav-button` base class, `.nav-more-toggle` for More button, `.nav-more-dropdown` with `position: fixed` and `transform: translate(var(--nav-more-tx), var(--nav-more-ty))` for JS-driven positioning.
+  - **Rosters page responsive overrides**:
+    - Mobile (≤819px): 2-row header, sticky positioning, condensed controls, view-dropdown instead of view-switcher
+    - Desktop (≥820px): Grid layout, fixed header, standard controls
+  - Media queries at 520px, 768px, 819px, 869px for responsive behavior.
+- **/DH_P2.53/styles/stats.css**: Stats-page-specific styles. Controls:
+  - Stats header shell, intro card, filter/controls panel.
+  - Table layout, sticky headers, column widths, loading/empty states.
+  - Stats key popup and responsive tweaks.
+
+- **/DH_P2.53/styles/dashboard.css**: Dashboard-specific styles scoped to `.fc-dashboard`. Defines:
+  - Dashboard background orbs, glass cards, and summary-grid layout.
+  - Player picker, metric typography, and chart panel styling for radar/bar/scatter.
+  - Responsive behavior for locked-desktop layout that scales down on smaller screens.
+
+- **/netlify/edge-functions/sheet-proxy.js**: Netlify Edge Function that proxies Google Sheets requests (`/api/sheet/*`), adds caching headers, and enforces host/URL validation.
+
+- **/netlify/edge-functions/sleeper-proxy.js**: Netlify Edge Function that proxies Sleeper API requests (`/api/sleeper/*`), applies environment-aware caching (live-ish windows vs off-hours), and adds diagnostic headers.
+
+- **/netlify.toml**: Netlify configuration file specifying build settings, redirects, headers, and routing of `/api/sheet/*` and `/api/sleeper/*` to the appropriate edge functions.
+
+- **/Reference Folder**: Holds reference documentation, summaries, and notes used to guide implementation decisions (for example, dashboard or stats-page fix summaries). Consult relevant docs before large changes.
+
+---
+
+## Pages and Scripts
+
+- **Homepage / Fantasy Dashboard**  
+  - `DH_P2.53/index.html` + `DH_P2.53/scripts/dashboard.js` + `DH_P2.53/styles/dashboard.css`.  
+  - Dashboard data comes from the `HP_DATA` constant (manual/top players). Preserve its structure and comments; if you extend it, keep field names consistent.  
+  - Keep `.fc-dashboard` styles scoped; don’t leak them into global layout. Maintain the “locked desktop layout + scale down on small screens” behavior while prioritizing mobile usability.
+
+- **Stats page (Sheets-driven advanced stats explorer)**  
+  - `DH_P2.53/stats/stats.html` + `DH_P2.53/scripts/stats.js` + `DH_P2.53/styles/stats.css`.  
+  - The table uses a multi-section layout with sticky/frozen columns and scrollable regions, driven by specific wrappers and CSS variables for widths.  
+  - When changing columns or layout, keep the containers and scroll behavior intact; update JS and CSS together.
+  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
+
+- **League Analyzer**  
+  - `DH_P2.53/analyzer/analyzer.html` + `DH_P2.53/scripts/analyzer.js`.  
+  - Analyzer fetches Sleeper and KTC data. Prefer routing new Sleeper/Sheets calls through the Netlify proxies (see below) unless matching an existing direct pattern is explicitly required.
+  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
+
+- **Research / SYOP**  
+  - `DH_P2.53/research/research.html` + `DH_P2.53/scripts/syop.js`.  
+  - SVG-based visualizations with resize-aware rendering. Handles tab switching between SYOP and hit-rate sections.
+  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
+
+- **Rosters Page (Complex Mobile/Desktop Layout)**  
+  - `DH_P2.53/rosters/rosters.html` + `DH_P2.53/scripts/app.js` + global styles.  
+  - **Mobile (≤819px)**:
+    - 2-row header: Nav buttons on row 1, controls on row 2
+    - Username/league hidden, controls condensed (Start/Sit, View dropdown, filters, compare)
+    - View dropdown replaces view switcher (Positional/Condensed/Lineup options)
+    - Sticky header (in-flow, no artificial padding)
+  - **Desktop (≥820px)**:
+    - Grid layout with username/league visible
+    - Fixed header with JS-computed `--roster-header-height` padding on content
+    - View switcher instead of dropdown
+  - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
+  - `app.js` coordinates roster rendering, view modes, positional filters, comparison/trade/start-sit tools.
+
+- **Ownership Page**  
+  - `DH_P2.53/ownership/ownership.html` + `DH_P2.53/scripts/app.js` + global styles.  
+  - Displays multi-league ownership/exposure data per player.
+  - **Navigation**: Includes "More" dropdown (Ownership marked active, Trophy Room/Matchups).
+
+- **Shared app logic & other behavior**  
+  - `DH_P2.53/scripts/app.js` is the core engine for navigation, Sleeper integration, dropdown positioning, and shared UI behaviors (legend, game logs, modals, etc.). 
+  - `DH_P2.53/scripts/dh-scramble.js` handles title animation on the welcome/dashboard header.  
+  - `DH_P2.53/service-worker.js` and `DH_P2.53/manifest.webmanifest` implement PWA behavior and app metadata.
+
+---
+
+## Data Access, Netlify, and Environment
+
+- Deployed via Netlify. External data flows through **edge proxies**: Google Sheets (`/api/sheet/*`) and Sleeper (`/api/sleeper/*`).
+- Always route new requests through these proxies for caching, host validation, and CSP compatibility.
+- The site is deployed via Netlify (`netlify.toml`), and external data is intended to flow mostly through **edge proxies**:
+  - Google Sheets: `/api/sheet/*` → `netlify/edge-functions/sheet-proxy.js`
+  - Sleeper: `/api/sleeper/*` → `netlify/edge-functions/sleeper-proxy.js`
+- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
+- Be mindful of caching semantics in the proxies (different behavior during "live-ish" windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
+---
+
+## Navigation Architecture
+
+### Primary Navigation (All Pages)
+- **Dashboard/Welcome**: Home menu toggle with page options
+- **Non-dashboard pages**: Nav buttons (Home, Rosters, Stats, L.Analyze, Research) + "More" dropdown
+
+### "More" Dropdown System
+**Location**: All non-dashboard pages (Rosters, Stats, Analyzer, Research, Ownership)
+
+**Contents**:
+- **Ownership**: Internal navigation (`data-nav="ownership"`)
+- **Trophy Room**: External link (`data-url="https://dynastyhub-trophyroom.netlify.app/"`)
+- **Matchups**: External link (`data-url="http://dynastyhub-matchups.netlify.app/"`)
+- When adding new Google Sheets or Sleeper requests, prefer these proxy endpoints so you inherit caching, host validation, and CSP compatibility. 
+- Be mindful of caching semantics in the proxies (different behavior during “live-ish” windows vs off-hours); avoid unnecessary cache-busting and respect existing cache headers.
