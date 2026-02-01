@@ -4119,7 +4119,7 @@ function buildSznRankGradient(rankColor) {
 function buildSznRankGlow(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    return `0 0 14px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.22)`;
+    return `0 0 8px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`;
 }
 function getGameLogsSeasonDisplayValue({
     key,
