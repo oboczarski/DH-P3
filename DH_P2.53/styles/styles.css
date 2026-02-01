@@ -6595,6 +6595,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   padding: 0.22rem 0.62rem;
   border-radius: 11px;
   border: 1px solid transparent;
