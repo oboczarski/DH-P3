@@ -5926,8 +5926,8 @@ body::before {
 .modal-body {
   position: relative;
   background: rgba(5, 0, 30, 0.081);
-  backdrop-filter: blur(1px) saturate(140%);
-  border: 1px solid rgba(250, 250, 250, 0.1);
+  backdrop-filter: blur(0px) saturate(130%);
+  border: 1px solid rgba(250, 250, 250, 0);
   border-radius: 9px;
   box-shadow: 0 8px 32px rgba(31, 38, 105, 0.15), inset 0 6px 20px rgba(255, 255, 255, 0.013);
   height: 416px;
@@ -5963,6 +5963,8 @@ body::before {
   flex-direction: column;
   gap: 0;
   height: 100%;
+  border: 2px solid #aaf2;
+  border-radius: 10px;
 }
 
 /* === Game Logs Modal: SZN (single-player season stats) view === */
@@ -5977,8 +5979,9 @@ body::before {
   scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
   width: 555px;
   justify-self: center;
-  border: 1px solid #aaf8;
+  border: 1px solid #aaf4;
   border-radius: 10px;
+  box-shadow: 0 0 64px #0003, -52px 0 28px 21px #0001;
 }
 
 #game-logs-modal .game-logs-szn-view::-webkit-scrollbar {
@@ -7215,7 +7218,7 @@ body::before {
   background: #7770;
   box-shadow: 0 8px 32px rgba(31, 38, 105, 0), inset 0 4px 58px rgba(255, 255, 255, 0.05);
   z-index: 5;
-  border: 0px solid #7770;
+  border: 1px solid #77a4;
 }
 
 /* News Container - Same overlay behavior */
