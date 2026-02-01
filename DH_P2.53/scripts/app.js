@@ -2587,6 +2587,7 @@ const PLAYER_STAT_HEADER_MAP = {
     'SNP%': 'snp_pct',
     'YDS(t)': 'yds_total',
     'FPOE': 'fpoe',
+    'aFPOE': 'fpoe',
     'CL': 'ceiling',
     'YPG(t)': 'ypg',
     'paYPG': 'pa_ypg',
@@ -2609,6 +2610,7 @@ function buildStatLabels() {
     labels['fpts'] = 'FPTS'; // computed, not from sheet
     labels['ppg'] = 'PPG';   // keep if used elsewhere
     labels['ts_per_rr'] = 'TS%';
+    labels['fpoe'] = 'FPOE';
     return labels;
 }
 // Stats that must not use code-derived fallbacks; sheet is source of truth
@@ -2636,6 +2638,7 @@ const SEASON_VALUE_HEADERS = {
 function parseSeasonStatsCsv(csvText) {
     const { headers, rows } = parseCsv(csvText);
     const normalizedHeaders = headers.map(normalizeHeader);
+    const hasAltFpoe = normalizedHeaders.includes('aFPOE');
     const result = {};
     rows.forEach(columns => {
         let playerId = null;
@@ -2647,6 +2650,7 @@ function parseSeasonStatsCsv(csvText) {
                 playerId = value.trim();
                 return;
             }
+            if (header === 'FPOE' && hasAltFpoe) return;
             const statKey = PLAYER_STAT_HEADER_MAP[header];
             if (statKey) {
                 const parsedValue = parseStatValue(header, value);
