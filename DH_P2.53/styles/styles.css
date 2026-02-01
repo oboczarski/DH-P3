@@ -6105,8 +6105,8 @@ body::before {
 }
 
 #game-logs-modal .gamelogs-szn-bar {
-  width: 100%;
-  height: 8px;
+  width: 106%;
+  height: 10px;
   border-radius: 4px;
   position: relative;
   overflow: visible;
@@ -6145,7 +6145,7 @@ body::before {
   border: 1px solid #fff2;
   border-radius: 6px;
   background: #4458;
-  margin-left: 12px;
+  margin-left: 10px;
   justify-content: center;
 }
 
@@ -6229,13 +6229,13 @@ body::before {
 
   #game-logs-modal .gamelogs-szn-bar {
     height: 10px;
-    margin-left: -10px;
-    margin-right: -12px;
+    margin-left: -7px;
+    margin-right: -8px !important;
   }
 
   #game-logs-modal .gamelogs-szn-value {
     font-size: 0.74rem;
-    margin-left: 15px;
+    margin-left: 0px;
   }
 }
 
