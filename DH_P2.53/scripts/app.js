@@ -4331,19 +4331,22 @@ function renderGameLogsSeasonStatsView({
                 fill.style.backgroundColor = rankColor;
             }
         }
-        bar.appendChild(fill);
-
-        const value = document.createElement('div');
-        value.className = 'gamelogs-szn-value has-rank-annotation';
-        const valueMain = document.createElement('span');
-        valueMain.className = 'gamelogs-szn-value-main';
-        valueMain.textContent = displayValue;
         const rankAnnot = createRankAnnotation(rankValue, { ordinal: true, variant: 'szn' });
+        rankAnnot.classList.add('gamelogs-szn-bar-rank');
         if (rankColor && rankColor !== 'inherit') {
             rankAnnot.style.color = rankColor;
         }
+        const rankPos = Math.min(98, Math.max(2, Number.isFinite(progressPct) ? progressPct : 0));
+        rankAnnot.style.setProperty('--szn-rank-pos', `${rankPos}%`);
+        bar.appendChild(fill);
+        bar.appendChild(rankAnnot);
+
+        const value = document.createElement('div');
+        value.className = 'gamelogs-szn-value';
+        const valueMain = document.createElement('span');
+        valueMain.className = 'gamelogs-szn-value-main';
+        valueMain.textContent = displayValue;
         value.appendChild(valueMain);
-        value.appendChild(rankAnnot);
 
         row.appendChild(label);
         row.appendChild(bar);
