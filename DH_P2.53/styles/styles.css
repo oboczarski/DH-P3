@@ -6124,20 +6124,23 @@ body::before {
   transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: baseline;
-  font-size: 0.7rem;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  font-size: 0.75rem;
+  line-height: 1.8;
   color: var(--color-text-secondary);
   font-weight: 600;
   opacity: 1;
   pointer-events: none;
   white-space: nowrap;
   z-index: 1;
-  padding: 4px 0px;
+  padding: 0px 0px;
+  width: 27px;
+  height: 24px;
   border: 1px solid #fff2;
-  border-radius: 6px;
+  border-radius: 14px;
   background: #4458;
-  margin-left: 10px;
+  margin-left: 12px;
+  justify-content: center;
+  filter: drop-shadow(0px 0px 6px #334);
 }
 
 #game-logs-modal .gamelogs-szn-bar-rank sup {
@@ -6208,6 +6211,7 @@ body::before {
     grid-template-columns: 52px minmax(0, 1fr) var(--szn-value-col);
     gap: 0rem;
     padding: 0.05rem 0.33rem;
+    height: 23px;
   }
 
   #game-logs-modal .gamelogs-szn-label {
