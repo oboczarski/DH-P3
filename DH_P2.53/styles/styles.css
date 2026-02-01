@@ -6706,6 +6706,9 @@ body::before {
     width: 5.3rem;
     border-radius: 6px;
   }
+  #game-logs-modal .gamelogs-view-option i {
+    font-size:14px;
+  }
 }
 
 /* · · Summary Chips · · */
