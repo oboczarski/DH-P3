@@ -6622,7 +6622,7 @@ body::before {
 
 @media (max-width: 640px) {
   #game-logs-modal .gamelogs-nav-row {
-    gap: 0.65rem;
+    gap: 2.65rem;
     margin-bottom: 0.45rem;
     margin-right: 0;
     padding: 0 0.15rem;
