@@ -6127,7 +6127,7 @@ body::before {
 #game-logs-modal .gamelogs-szn-value .stat-rank-annotation {
   display: inline-flex;
   align-items: baseline;
-  font-size: 0.8em;
+  font-size: 0.9em;
   line-height: 1;
   margin-left: 0;
   transform: none;
