@@ -6128,10 +6128,15 @@ body::before {
   letter-spacing: 0.02em;
   color: var(--color-text-secondary);
   font-weight: 600;
-  opacity: 0.95;
+  opacity: 1;
   pointer-events: none;
   white-space: nowrap;
   z-index: 1;
+  padding: 4px 0px;
+  border: 1px solid #fff2;
+  border-radius: 6px;
+  background: #4458;
+  margin-left: 10px;
 }
 
 #game-logs-modal .gamelogs-szn-bar-rank sup {
@@ -6215,6 +6220,7 @@ body::before {
 
   #game-logs-modal .gamelogs-szn-value {
     font-size: 0.74rem;
+    margin-left: 15px;
   }
 }
 
