@@ -706,42 +706,64 @@ if (pageType === 'rosters') {
         // SZN scroll forwarding: allow vertical scrolling even when the gesture starts
         // slightly outside the scrollable stats area (e.g., on the header/nav row).
         const gameLogsModalContent = gameLogsModal.querySelector('.modal-content');
-        if (gameLogsModalContent && modalBody) {
-            gameLogsModalContent.addEventListener('wheel', (e) => {
-                if (state.currentGameLogsView !== 'szn') return;
-                if (modalBody.contains(e.target)) return;
-                const absX = Math.abs(e.deltaX || 0);
-                const absY = Math.abs(e.deltaY || 0);
-                if (absY <= absX) return;
-                if (modalBody.scrollHeight <= modalBody.clientHeight) return;
-                modalBody.scrollTop += e.deltaY;
-                e.preventDefault();
-            }, { passive: false });
+		if (gameLogsModalContent && modalBody) {
+			gameLogsModalContent.addEventListener('wheel', (e) => {
+				if (state.currentGameLogsView !== 'szn') return;
+				// Never forward scroll while overlay tabs are open (Radar/Consistency/Key).
+				if ((statsKeyContainer && !statsKeyContainer.classList.contains('hidden')) ||
+					(radarChartContainer && !radarChartContainer.classList.contains('hidden')) ||
+					(consistencyContainer && !consistencyContainer.classList.contains('hidden'))) {
+					return;
+				}
+				const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+				if (!sznScroll) return;
+				// Let native scrolling happen when the gesture starts inside the SZN scroller.
+				if (sznScroll.contains(e.target)) return;
+				const absX = Math.abs(e.deltaX || 0);
+				const absY = Math.abs(e.deltaY || 0);
+				if (absY <= absX) return;
+				if (sznScroll.scrollHeight <= sznScroll.clientHeight) return;
+				sznScroll.scrollTop += e.deltaY;
+				e.preventDefault();
+			}, { passive: false });
 
-            let sznTouchScrollActive = false;
-            let sznTouchLastY = 0;
-            const endSznTouchScroll = () => {
-                sznTouchScrollActive = false;
-            };
+			let sznTouchScrollActive = false;
+			let sznTouchLastY = 0;
+			const endSznTouchScroll = () => {
+				sznTouchScrollActive = false;
+			};
+			const canForwardSznTouchScroll = (touchTarget) => {
+				if (state.currentGameLogsView !== 'szn') return false;
+				if ((statsKeyContainer && !statsKeyContainer.classList.contains('hidden')) ||
+					(radarChartContainer && !radarChartContainer.classList.contains('hidden')) ||
+					(consistencyContainer && !consistencyContainer.classList.contains('hidden'))) {
+					return false;
+				}
+				const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+				if (!sznScroll) return false;
+				if (sznScroll.contains(touchTarget)) return false;
+				if (sznScroll.scrollHeight <= sznScroll.clientHeight) return false;
+				return true;
+			};
 
-            gameLogsModalContent.addEventListener('touchstart', (e) => {
-                if (state.currentGameLogsView !== 'szn') return;
-                if (!e.touches || e.touches.length !== 1) return;
-                if (modalBody.contains(e.target)) return;
-                if (modalBody.scrollHeight <= modalBody.clientHeight) return;
-                sznTouchScrollActive = true;
-                sznTouchLastY = e.touches[0].clientY;
-            }, { passive: true });
+			gameLogsModalContent.addEventListener('touchstart', (e) => {
+				if (!canForwardSznTouchScroll(e.target)) return;
+				if (!e.touches || e.touches.length !== 1) return;
+				sznTouchScrollActive = true;
+				sznTouchLastY = e.touches[0].clientY;
+			}, { passive: true });
 
-            gameLogsModalContent.addEventListener('touchmove', (e) => {
-                if (!sznTouchScrollActive) return;
-                if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
-                const y = e.touches[0].clientY;
-                const dy = sznTouchLastY - y;
-                sznTouchLastY = y;
-                modalBody.scrollTop += dy;
-                e.preventDefault();
-            }, { passive: false });
+			gameLogsModalContent.addEventListener('touchmove', (e) => {
+				if (!sznTouchScrollActive) return;
+				if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
+				const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+				if (!sznScroll) return endSznTouchScroll();
+				const y = e.touches[0].clientY;
+				const dy = sznTouchLastY - y;
+				sznTouchLastY = y;
+				sznScroll.scrollTop += dy;
+				e.preventDefault();
+			}, { passive: false });
 
             gameLogsModalContent.addEventListener('touchend', endSznTouchScroll, { passive: true });
             gameLogsModalContent.addEventListener('touchcancel', endSznTouchScroll, { passive: true });
@@ -851,42 +873,62 @@ if (pageType === 'stats' && gameLogsModal) {
     // Match rosters behavior: keep vertical scrolling working even if the gesture starts
     // slightly outside the scrollable stats area (header/edges).
     const gameLogsModalContent = gameLogsModal.querySelector('.modal-content');
-    if (gameLogsModalContent && modalBody && !gameLogsModalContent.dataset.sznScrollForwardingWired) {
-        gameLogsModalContent.dataset.sznScrollForwardingWired = 'true';
+	    if (gameLogsModalContent && modalBody && !gameLogsModalContent.dataset.sznScrollForwardingWired) {
+	        gameLogsModalContent.dataset.sznScrollForwardingWired = 'true';
 
-        gameLogsModalContent.addEventListener('wheel', (e) => {
-            if (state.currentGameLogsView !== 'szn') return;
-            if (modalBody.contains(e.target)) return;
-            const absX = Math.abs(e.deltaX || 0);
-            const absY = Math.abs(e.deltaY || 0);
-            if (absY <= absX) return;
-            if (modalBody.scrollHeight <= modalBody.clientHeight) return;
-            modalBody.scrollTop += e.deltaY;
-            e.preventDefault();
-        }, { passive: false });
+	        gameLogsModalContent.addEventListener('wheel', (e) => {
+	            if (state.currentGameLogsView !== 'szn') return;
+	            if ((statsKeyContainer && !statsKeyContainer.classList.contains('hidden')) ||
+	                (radarChartContainer && !radarChartContainer.classList.contains('hidden')) ||
+	                (consistencyContainer && !consistencyContainer.classList.contains('hidden'))) {
+	                return;
+	            }
+	            const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+	            if (!sznScroll) return;
+	            if (sznScroll.contains(e.target)) return;
+	            const absX = Math.abs(e.deltaX || 0);
+	            const absY = Math.abs(e.deltaY || 0);
+	            if (absY <= absX) return;
+	            if (sznScroll.scrollHeight <= sznScroll.clientHeight) return;
+	            sznScroll.scrollTop += e.deltaY;
+	            e.preventDefault();
+	        }, { passive: false });
 
-        let sznTouchScrollActive = false;
-        let sznTouchLastY = 0;
-        const endSznTouchScroll = () => { sznTouchScrollActive = false; };
+	        let sznTouchScrollActive = false;
+	        let sznTouchLastY = 0;
+	        const endSznTouchScroll = () => { sznTouchScrollActive = false; };
+	        const canForwardSznTouchScroll = (touchTarget) => {
+	            if (state.currentGameLogsView !== 'szn') return false;
+	            if ((statsKeyContainer && !statsKeyContainer.classList.contains('hidden')) ||
+	                (radarChartContainer && !radarChartContainer.classList.contains('hidden')) ||
+	                (consistencyContainer && !consistencyContainer.classList.contains('hidden'))) {
+	                return false;
+	            }
+	            const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+	            if (!sznScroll) return false;
+	            if (sznScroll.contains(touchTarget)) return false;
+	            if (sznScroll.scrollHeight <= sznScroll.clientHeight) return false;
+	            return true;
+	        };
 
-        gameLogsModalContent.addEventListener('touchstart', (e) => {
-            if (state.currentGameLogsView !== 'szn') return;
-            if (!e.touches || e.touches.length !== 1) return;
-            if (modalBody.contains(e.target)) return;
-            if (modalBody.scrollHeight <= modalBody.clientHeight) return;
-            sznTouchScrollActive = true;
-            sznTouchLastY = e.touches[0].clientY;
-        }, { passive: true });
+	        gameLogsModalContent.addEventListener('touchstart', (e) => {
+	            if (!canForwardSznTouchScroll(e.target)) return;
+	            if (!e.touches || e.touches.length !== 1) return;
+	            sznTouchScrollActive = true;
+	            sznTouchLastY = e.touches[0].clientY;
+	        }, { passive: true });
 
-        gameLogsModalContent.addEventListener('touchmove', (e) => {
-            if (!sznTouchScrollActive) return;
-            if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
-            const y = e.touches[0].clientY;
-            const dy = sznTouchLastY - y;
-            sznTouchLastY = y;
-            modalBody.scrollTop += dy;
-            e.preventDefault();
-        }, { passive: false });
+	        gameLogsModalContent.addEventListener('touchmove', (e) => {
+	            if (!sznTouchScrollActive) return;
+	            if (!e.touches || e.touches.length !== 1) return endSznTouchScroll();
+	            const sznScroll = modalBody.querySelector('.game-logs-szn-view:not(.hidden)');
+	            if (!sznScroll) return endSznTouchScroll();
+	            const y = e.touches[0].clientY;
+	            const dy = sznTouchLastY - y;
+	            sznTouchLastY = y;
+	            sznScroll.scrollTop += dy;
+	            e.preventDefault();
+	        }, { passive: false });
 
         gameLogsModalContent.addEventListener('touchend', endSznTouchScroll, { passive: true });
         gameLogsModalContent.addEventListener('touchcancel', endSznTouchScroll, { passive: true });
@@ -4060,16 +4102,22 @@ function getGameLogsSeasonDisplayValue({
 }) {
     if (key === 'proj') return '-';
     let displayValue;
-    if (NO_FALLBACK_KEYS.has(key)) {
-        const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
-        if (raw === null) {
-            displayValue = 'N/A';
-        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
-            displayValue = formatPercentage(raw);
-        } else {
-            displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
-        }
-    } else if (key === 'fpts') {
+	if (NO_FALLBACK_KEYS.has(key)) {
+		const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
+		if (raw === null) {
+			displayValue = 'N/A';
+		} else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
+			displayValue = formatPercentage(raw);
+		} else if (key === 'cpoe') {
+			const formatted = formatPercentage(raw, 1);
+			displayValue = raw > 0 ? `+${formatted}` : formatted;
+		} else if (key === 'epa_per_db') {
+			const formatted = Number(raw).toFixed(2);
+			displayValue = raw > 0 ? `+${formatted}` : formatted;
+		} else {
+			displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
+		}
+	} else if (key === 'fpts') {
         // Always use the same source as the summary chips.
         const summaryFpts = state.currentGameLogsPlayerRanks?.total_pts;
         if (summaryFpts !== null && summaryFpts !== undefined) {
@@ -5600,13 +5648,21 @@ function renderPlayerComparison(players) {
                     statValueCounts[key] = (statValueCounts[key] || 0) + 1;
                 }
             });
-            if (NO_FALLBACK_KEYS.has(statKey)) {
-                const raw = (seasonTotals && typeof seasonTotals[statKey] === 'number') ? seasonTotals[statKey] : null;
-                calculatedValue = (raw === null) ? null : raw;
-                if (raw === null) displayValue = 'N/A';
-                else if (statKey === 'snp_pct' || statKey === 'prs_pct' || statKey === 'ts_per_rr' || statKey === 'cmp_pct') displayValue = formatPercentage(raw);
-                else displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
-            } else {
+			if (NO_FALLBACK_KEYS.has(statKey)) {
+				const raw = (seasonTotals && typeof seasonTotals[statKey] === 'number') ? seasonTotals[statKey] : null;
+				calculatedValue = (raw === null) ? null : raw;
+				if (raw === null) displayValue = 'N/A';
+				else if (statKey === 'snp_pct' || statKey === 'prs_pct' || statKey === 'ts_per_rr' || statKey === 'cmp_pct') displayValue = formatPercentage(raw);
+				else if (statKey === 'cpoe') {
+					const formatted = formatPercentage(raw, 1);
+					displayValue = raw > 0 ? `+${formatted}` : formatted;
+				}
+				else if (statKey === 'epa_per_db') {
+					const formatted = Number(raw).toFixed(2);
+					displayValue = raw > 0 ? `+${formatted}` : formatted;
+				}
+				else displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
+			} else {
                 const computeStat = (() => {
                     let cv = 0, dv = '0';
                     switch (statKey) {

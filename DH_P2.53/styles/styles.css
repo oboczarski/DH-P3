@@ -5916,32 +5916,10 @@ body::before {
   height: 8px;
 }
 
-/* When SZN view is active, let the modal body own vertical scrolling */
+/* When SZN view is active, the SZN container owns vertical scrolling (not the modal body).
+   This prevents the SZN scroll position from affecting overlay tabs (Radar/Consistency/Key). */
 #game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden)) {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
-}
-
-#game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden))::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  background: transparent;
-}
-
-#game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden))::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-#game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden))::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-}
-
-#game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden))::-webkit-scrollbar-track,
-#game-logs-modal #modal-body:has(.game-logs-szn-view:not(.hidden))::-webkit-scrollbar-corner {
-  background: transparent;
+  overflow-y: hidden;
 }
 
 /* · · Table Styling · · */
@@ -5989,8 +5967,36 @@ body::before {
 
 /* === Game Logs Modal: SZN (single-player season stats) view === */
 #game-logs-modal .game-logs-szn-view {
-  overflow: visible;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 0.2rem 0.35rem 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
+}
+
+#game-logs-modal .game-logs-szn-view::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+}
+
+#game-logs-modal .game-logs-szn-view::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+#game-logs-modal .game-logs-szn-view::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+#game-logs-modal .game-logs-szn-view::-webkit-scrollbar-track,
+#game-logs-modal .game-logs-szn-view::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 #game-logs-modal .gamelogs-szn-list {
