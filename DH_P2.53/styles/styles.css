@@ -6016,6 +6016,7 @@ body::before {
   margin: 0.1rem 0 0.45rem;
   padding: 0.32rem 0.55rem;
   border-radius: 10px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6039,6 +6040,31 @@ body::before {
 
 #game-logs-modal .gamelogs-szn-title-text {
   display: inline-block;
+}
+
+#game-logs-modal .gamelogs-szn-title-games {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+#game-logs-modal .gamelogs-szn-title-games-label {
+  opacity: 0.75;
+}
+
+#game-logs-modal .gamelogs-szn-title-games-value {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 #game-logs-modal .gamelogs-szn-section-header {
@@ -6259,6 +6285,11 @@ body::before {
     box-shadow: none;
     border: none;
     text-transform: uppercase;
+  }
+
+  #game-logs-modal .gamelogs-szn-title-games {
+    right: 0.15rem;
+    font-size: 0.72rem;
   }
 
   #game-logs-modal .gamelogs-szn-section-header {

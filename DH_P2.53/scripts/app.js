@@ -4488,6 +4488,22 @@ function renderGameLogsSeasonStatsView({
     titleText.textContent = 'Season Stats';
     title.appendChild(titleIcon);
     title.appendChild(titleText);
+    const gamesPlayed = seasonTotals && typeof seasonTotals.games_played === 'number' && Number.isFinite(seasonTotals.games_played)
+        ? Math.round(seasonTotals.games_played)
+        : null;
+    if (gamesPlayed !== null) {
+        const games = document.createElement('span');
+        games.className = 'gamelogs-szn-title-games';
+        const gamesLabel = document.createElement('span');
+        gamesLabel.className = 'gamelogs-szn-title-games-label';
+        gamesLabel.textContent = 'G:';
+        const gamesValue = document.createElement('span');
+        gamesValue.className = 'gamelogs-szn-title-games-value';
+        gamesValue.textContent = String(gamesPlayed);
+        games.appendChild(gamesLabel);
+        games.appendChild(gamesValue);
+        title.appendChild(games);
+    }
     const list = document.createElement('div');
     list.className = 'gamelogs-szn-list';
 
