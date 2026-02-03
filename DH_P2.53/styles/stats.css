@@ -223,7 +223,7 @@
 }
 .stats-tab-heading {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 200;
   color: var(--color-text-primary);
   letter-spacing: 0.05em;
@@ -582,7 +582,7 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   backdrop-filter: blur(2px);
-  box-shadow: inset 0 8px 0 rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 8px 10px -7px rgba(255, 255, 255, 0.05);
 }
 .stats-filter-btn-secondary.stats-picks-btn {
   position: static;
@@ -591,7 +591,7 @@
   justify-content: center;
   flex-direction: row;
   padding: 0.35rem 1.6rem;
-  line-height: 1.2;
+  line-height: 1.15;
   gap: 0.35rem;
   letter-spacing: 0.1em;
   min-height: 1.5rem;
@@ -603,8 +603,7 @@
   color: #7a7e9aeb;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  backdrop-filter: blur(2px);
+  letter-spacing: 0;
 }
 .stats-filter-btn-secondary:hover {
   border-color: rgba(128, 138, 189, 0.2);
@@ -624,9 +623,9 @@
 }
 .stats-filter-btn {
   position: relative;
-  padding: 0.24rem 0rem;
+  padding: 0.3rem 0rem;
   font-size: 0.59rem;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 7px;
   border: 1px solid rgba(128, 138, 189, 0.18);
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.11));
@@ -731,11 +730,11 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-  row-gap: 0.35rem;
-  column-gap: 0rem;
-  width: min(100%, 860px);
-  margin: 0 auto;
-  padding: 0.35rem 0.75rem 0.45rem;
+    row-gap: 0.25rem;
+    column-gap: 0rem;
+    width: min(100%, 860px);
+    margin: 0 auto;
+    padding: 0.35rem 0.75rem 0.45rem;
     border-radius: 12px;
     background: rgba(13, 14, 35, 0.22);
     background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
@@ -779,8 +778,8 @@
   body[data-page="stats"] .stats-top-panels-row #statsKeyButton {
     order: 3;
     flex: 0 0 auto;
-    position: static;
-    top: auto;
+    position: relative;
+    top: -3px;
     right: auto;
     margin-left: 0.5rem;
     align-self: center;
@@ -795,6 +794,7 @@
 
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-secondary-row {
     order: 0;
+    margin-top: -4px;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-filter-block {
@@ -815,7 +815,7 @@
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tabs::before {
-    content: 'Trade Values:';
+    content: 'Trade Value:';
     display: inline-flex;
     align-items: center;
     font-size: 0.7rem;
@@ -828,13 +828,13 @@
 
   body[data-page="stats"] .stats-top-panels-row .stats-tabs-buttons {
     width: auto;
-    padding: 0.07rem;
+    padding: 0.05rem;
     gap: 0rem;
     justify-content: flex-start;
     background: rgba(39, 41, 55, 0.22);
-    border: 1px solid rgba(128, 138, 189, 0.24);
+    border: 1px solid #aaf2;
     border-radius: 9px;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    box-shadow: inset 0px 9px 11px -14px rgba(255, 255, 255, 0.2);
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button {
@@ -846,7 +846,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     border-radius: 7px;
-    height: 25px;
+    height: 23px;
     line-height: 1.1;
   }
 
@@ -870,7 +870,7 @@
     width: auto;
     max-width: none;
     margin-top: 0;
-    padding-left: 0.45rem;
+    padding-left: 0.55rem;
     border-left: 1px solid rgba(128, 138, 189, 0.45);
     justify-content: flex-start;
     align-items: center;
@@ -879,9 +879,10 @@
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks .stats-picks-btn {
     width: auto;
     max-width: none;
-    padding: 0.22rem 0.55rem;
+    padding: 0.4rem 0.55rem;
     min-height: 1.25rem;
     font-size: 0.62rem;
+    white-space: nowrap;
   }
 
   /* Footer stays the same, just moved beneath the Values row */
@@ -1567,7 +1568,7 @@ body[data-page="stats"] #header-container {
 }
 
 .stats-controls-footer {
-  margin-top: 0.25rem;
+  margin-top: -0.15rem;
 }
 
 .stats-footer-simple {
@@ -1843,7 +1844,7 @@ body[data-page="stats"] #header-container {
     justify-content: center;
     max-width: 100%;
     flex-wrap: nowrap;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.15rem;
   }
   .stats-key-button {
     padding: 0.3rem 0.7rem;
@@ -1867,13 +1868,13 @@ body[data-page="stats"] #header-container {
   }
   .stats-filter-btn-secondary.stats-picks-btn {
     min-height: 0.75rem;
-    border-radius: 6px;
+    border-radius: 999px;
   }
   .stats-controls-heading {
     flex-direction: column;
     gap: 0.35rem;
     padding: 0.02rem 0.25rem 0.3rem 0.25rem;
-    margin-top: 0px;
+    margin-top: -4px;
   }
   .stats-tabs {
     width: 100%;
