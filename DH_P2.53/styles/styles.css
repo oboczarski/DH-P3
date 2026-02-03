@@ -11742,267 +11742,64 @@ body[data-page="analyzer"] .app-header {
   }
 }
 
-/* === Loading Overlay + Orbit Ring (uses existing theme colors) === */
+/* === Loading Overlay (global) === */
+/* Replaces the legacy orbit-ring loader with the Stats-style ring spinner + logo stack. */
 #loading.hidden {
   display: none;
 }
 
 #loading .loading-overlay {
-  display: grid;
-  gap: 1rem;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
   text-align: center;
   color: var(--color-text-primary, #EAEBF0);
 }
 
-#loading .loading-scene {
+#loading .loading-spinner {
+  width: 250px;
+  height: 250px;
   position: relative;
-  width: 320px;
-  height: 320px;
+  top: -20px;
+  border: 13px solid #f0f4ff00;
+  border-top-color: rgb(182 196 254 / 62%);
+  border-radius: 50%;
+  animation: dh-loading-spin 1.05s cubic-bezier(0.56, -0.07, 0.58, 1) infinite;
+  box-shadow: 0 0 23px #aaf, inset 0 0 74px #aaf5, inset 0 0 16px #aaf;
 }
 
-#loading .loading-logo-wrap {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+#loading .loading-body {
+  position: relative;
+  top: -257px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
 }
 
 #loading .loading-logo {
-  width: 132px;
-  height: 132px;
-  image-rendering: auto;
-  /* reuse the welcome mask look (soft vignette) */
-  -webkit-mask-image: radial-gradient(circle at 52% 51%, rgba(0, 0, 0, 0.85) 42%, rgba(0, 0, 0, 0) 99%);
-  mask-image: radial-gradient(circle at 52% 51%, rgba(0, 0, 0, 0.85) 42%, rgba(0, 0, 0, 0) 99%);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
+  width: min(216px, 70vw);
+  height: auto;
+  display: block;
+  filter: opacity(0.8) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
 }
 
-#loading .loading-ring {
-  --n: 28;
-  --r: 120px;
-  --offset: -120deg;
-  --angle: 0deg;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  transform-origin: 50% 50%;
-  will-change: transform;
+#loading .loading-message {
+  display: inline-block;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.05em;
+  line-height: 1.25;
+  max-width: 24rem;
+  margin-top: 20px;
 }
 
-#loading .loading-ring .ch {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform:
-    rotate(calc(var(--angle) + var(--offset) + (360deg / var(--n)) * var(--i))) translate3d(0, calc(-1 * var(--r)), 0);
-  transform-origin: center;
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  backface-visibility: hidden;
-  will-change: transform;
-}
-
-@keyframes ring-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-
+@keyframes dh-loading-spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-#loading .loading-text .loading-message {
-  display: inline-block;
-  font-size: 0.95rem;
-  color: var(--color-text-mid-test1, #BDC1D8);
-  text-shadow: 0 0 10px rgba(128, 138, 189, 0.12);
-}
-
-/* === End Loading Overlay === */
-/* Optical center fix: nudge logo down slightly */
-/* === Loading logo robust centering (prevents rare off-center shift on mobile) === */
-#loading .loading-logo-wrap {
-  position: absolute;
-  inset: auto;
-  top: 50%;
-  left: 50%;
-  width: auto;
-  height: auto;
-  transform: translate3d(-50%, -50%, 0);
-  display: block;
-  /* override grid centering to avoid rounding issues */
-}
-
-#loading .loading-logo {
-  display: block;
-  transform: translateY(var(--loading-logo-nudge, 3px));
-  will-change: transform;
-  -webkit-transform: translateY(var(--loading-logo-nudge, 3px));
-  -webkit-font-smoothing: antialiased;
-  backface-visibility: hidden;
-}
-
-/* === End robust centering === */
-/* === Orbit ring stability tweaks (prevent perceived center shift) === */
-#loading .loading-scene {
-  width: 320px;
-  /* integer size helps avoid half-pixel rounding */
-  height: 320px;
-  transform: translateZ(0);
-  /* force GPU compositing */
-  will-change: transform;
-  contain: layout paint style;
-  /* isolate layout/paint */
-}
-
-#loading .loading-ring {
-  --n: 28;
-  --r: 120px;
-  --offset: -120deg;
-  --angle: 0deg;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-/* Compute the angle as a variable to avoid repeated calc jitter */
-#loading .loading-ring {
-  --n: 28;
-  --r: 120px;
-  --offset: -120deg;
-  --angle: 0deg;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-#loading .loading-ring .ch {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform:
-    rotate(calc(var(--angle) + var(--offset) + (360deg / var(--n)) * var(--i))) translate3d(0, calc(-1 * var(--r)), 0);
-  transform-origin: center;
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  backface-visibility: hidden;
-  will-change: transform;
-}
-
-/* === End orbit ring stability tweaks === */
-/* === Loader (mobile-safe): radial ring + fixed center + logo mask/glow === */
-/* Scene box (integer size avoids sub-pixel wobble) */
-#loading .loading-scene {
-  position: relative;
-  width: 320px;
-  height: 320px;
-  margin: 0 auto;
-  transform: translateZ(0);
-  will-change: transform;
-  contain: layout paint style;
-}
-
-/* Ring: center is static; rotation driven by --angle (set by JS) */
-#loading .loading-ring {
-  --n: 28;
-  /* character count */
-  --r: 120px;
-  /* radius */
-  --offset: -120deg;
-  /* start angle */
-  --angle: 0deg;
-  /* animated via JS */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  /* center does NOT animate */
-  transform-origin: 50% 50%;
-  animation: none !important;
-  /* ensure no keyframe rotation */
-  will-change: transform;
-}
-
-/* Radial letters: bottoms point toward center */
-#loading .loading-ring .ch {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform:
-    rotate(calc(var(--angle) + var(--offset) + (360deg / var(--n)) * var(--i))) translate3d(0, calc(-1 * var(--r)), 0);
-  transform-origin: center;
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.08em;
-  backface-visibility: hidden;
-  will-change: transform;
-}
-
-/* Logo wrapper: transform-free centering (robust on iOS) */
-#loading .loading-logo-wrap {
-  position: absolute;
-  inset: 0;
-  /* top/right/bottom/left: 0 */
-  width: 132px;
-  /* fixed box = stable masking */
-  height: 132px;
-  margin: auto;
-  /* centers both axes (no %) */
-  display: block !important;
-  /* defeat any grid/other display */
-  transform: translate3d(4px, 7px, 0) !important;
-  /* <- pixel nudge: right 4px, down 7px */
-  pointer-events: none;
-  contain: layout paint style;
-}
-
-/* Move your mask + glow onto the IMG so it’s stable on mobile */
-#loading .loading-logo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  -webkit-mask-image: radial-gradient(circle at 52% 51%, rgba(0, 0, 0, 0.81) 40%, rgba(0, 0, 0, 0) 99%);
-  mask-image: radial-gradient(circle at 52% 51%, rgba(0, 0, 0, 0.99) 30%, rgba(0, 0, 0, 0.01) 99%);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  filter: drop-shadow(2px 2px 4px #5900ffed) drop-shadow(0px 0px 11px #7300ff58);
-  transform: none !important;
-  will-change: transform, filter;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-/* Soft ambient glow behind the logo */
-#loading .loading-logo-wrap::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 14px;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center,
-      rgba(0, 0, 0, 0.0) 14%,
-      rgba(0, 0, 0, 0.01) 25%,
-      rgba(0, 0, 0, 0.04) 42%,
-      rgba(0, 0, 0, 0) 65%);
-  filter: blur(4px);
-  z-index: -1;
-  /* sit behind the image */
 }
 
 /* Scramble dud character color */

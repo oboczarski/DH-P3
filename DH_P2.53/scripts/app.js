@@ -8974,7 +8974,9 @@ function hydrateProgressCircles(data) {
     }
 }
 
-// === Loading Ring Animation (merged from loader-ring.js) ===
+// === Legacy Loading Ring Animation ===
+// The orbit-ring loader markup was replaced with the Stats-style spinner, but this is kept as a no-op fallback
+// (it exits early when `.loading-ring` is not present).
 (function () {
     const RUNTIME_MS = 14000;
     let raf = null;
