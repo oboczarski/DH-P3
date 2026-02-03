@@ -151,7 +151,9 @@ DH-P3/DH_P2.53
   - Populating the analyzer leaderboard table.
 
 - **/DH_P2.53/scripts/stats.js**: Logic for the **Stats** page. Handles:
-  - Fetching CSV data for `STAT_1QB` and `STAT_SFLX` from Google Sheets (direct CSV endpoints).
+  - Building the Stats page table from the shipped season totals CSV: `DH_P2.53/data/NFL-2025_Stats/SZN.csv`.
+  - Pulling **KTC trade VALUE** + **RDP (pick) values** from the same Google Sheets workbook as the Rosters player cards (`KTC_1QB` / `KTC_SFLX`, via `fetchDataFromGoogleSheet()` in `app.js`).
+  - Keeping the legacy `STAT_1QB` / `STAT_SFLX` Google Sheets loader behind `?statsTableSource=sheets` for quick rollback/testing.
   - Header normalization, column sets, and category mappings.
   - Position/category/rookie filters, search, and sorting rules (including efficiency-sort rules).
   - Rendering the stats table and wiring row clicks into the shared game logs modal.
@@ -257,11 +259,12 @@ DH-P3/DH_P2.53
 - **Season & weekly player stats (SZN/SZN_RKs/WK1..WK18)** are now shipped as **local CSVs**:
   - `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
   - `DH_P2.53/data/NFL-2025_Stats/SZN_RKs.csv`
-  - `DH_P2.53/data/NFL-2025_Stats/WK1.csv` … `WK18.csv`
+  - `DH_P2.53/data/NFL-2025_Stats/Weeks/WK1.csv` … `WK18.csv`
 - **Rosters page always uses the local CSVs** for these stats (even though the Google Sheets loader still exists for easy re-enable next season).
-- The **Stats page table is the only page still pulling its main data from Google Sheets** (direct CSV endpoints) for `STAT_1QB` / `STAT_SFLX`.
-  - Other pages still pull **some** Google Sheets-derived data (e.g., KTC/value tables) via shared app logic.
-  - Proxy is available if you decide to switch later.
+- **Stats page table** now uses `SZN.csv` for displayed stats, and augments with:
+  - **KTC VALUE** + **RDP (pick) values** from `KTC_1QB` / `KTC_SFLX` in the Rosters KTC workbook (via `fetchDataFromGoogleSheet()` in `app.js`).
+  - Join key: `SLPR_ID` for players; picks are keyed by `PLAYER NAME` with `POS = RDP`.
+  - The legacy `STAT_1QB` / `STAT_SFLX` Google Sheets path is still available behind `?statsTableSource=sheets` for quick rollback/testing.
 
 ### Game Logs Modal: GL/SZN
 

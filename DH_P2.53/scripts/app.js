@@ -1959,11 +1959,41 @@ async function fetchUserLeagues(userId) {
     if (!leaguesRes || leaguesRes.length === 0) throw new Error(`No leagues found for this user for ${currentYear}.`);
     return leaguesRes;
 }
-async function fetchSleeperPlayers() {
+// === Sleeper player index (global) ===
+// Source: Sleeper `/players/nfl`
+// Used across pages for:
+// - Name/position/team metadata
+// - Display formatting (full name vs truncated name)
+// - Team logos, etc.
+//
+// Important: many startup paths call this; keep it single-flight + cached.
+async function fetchSleeperPlayers({ force = false } = {}) {
+    // In-flight + cache guard: multiple pages/scripts can request the Sleeper player index during startup.
+    // This prevents duplicate network requests and keeps startup fast.
     try {
-        state.players = await fetchWithCache(`${API_BASE}/players/nfl`);
-        state.calculatedRankCache = null;
-    } catch (e) { console.error("Failed to fetch Sleeper players:", e); }
+        if (!force && state.players && Object.keys(state.players).length) {
+            return state.players;
+        }
+        if (fetchSleeperPlayers.__inFlight) {
+            return fetchSleeperPlayers.__inFlight;
+        }
+        fetchSleeperPlayers.__inFlight = (async () => {
+            try {
+                state.players = await fetchWithCache(`${API_BASE}/players/nfl`);
+                state.calculatedRankCache = null;
+                return state.players;
+            } catch (e) {
+                console.error("Failed to fetch Sleeper players:", e);
+                return null;
+            } finally {
+                fetchSleeperPlayers.__inFlight = null;
+            }
+        })();
+        return fetchSleeperPlayers.__inFlight;
+    } catch (e) {
+        console.error("Failed to fetch Sleeper players:", e);
+        return null;
+    }
 }
 // Expose for dashboard/home reuse
 if (typeof window !== 'undefined') {
@@ -2108,7 +2138,7 @@ function calculatePlayerStatsAndRanks(playerId) {
 }
 function getStatsPagePlayerRanks(playerId) {
     // ONLY called when state.isGameLogFromStatsPage === true
-    // Uses season totals and calculated ranks from STAT_1QB/STAT_SFLX sheets passed by stats.js
+    // Uses season totals (SZN.csv) + ranks computed by stats.js and passed via state.statsPagePlayerData.
     const statsData = state.statsPagePlayerData;
 
     if (!statsData) return getDefaultPlayerRanks();
@@ -2133,17 +2163,44 @@ function getStatsPagePlayerRanks(playerId) {
         gamesPlayed: gamesPlayed
     };
 }
-async function fetchDataFromGoogleSheet() {
+// === KTC workbook (Rosters + Stats VALUE/RDP) ===
+// Source: `GOOGLE_SHEET_ID` (tabs: `KTC_1QB`, `KTC_SFLX`)
+//
+// Output:
+// - Players: `state.oneQbData[SLPR_ID]` / `state.sflxData[SLPR_ID]`
+// - Picks (RDP): `state.oneQbData['2026 Mid 1st']` / `state.sflxData['2026 Mid 1st']` (keyed by `PLAYER NAME`)
+//
+// NOTE: We intentionally keep this Google Sheets path even while other stats moved to CSV,
+// so next season we can re-enable/adjust without rewriting everything.
+async function fetchDataFromGoogleSheet({ force = false } = {}) {
     const sheetNames = { oneQb: 'KTC_1QB', sflx: 'KTC_SFLX' };
-    try {
-        const [oneQbCsv, sflxCsv] = await Promise.all([
-            fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetNames.oneQb}`).then(res => res.text()),
-            fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetNames.sflx}`).then(res => res.text())
-        ]);
-        state.oneQbData = parseSheetData(oneQbCsv);
-        state.sflxData = parseSheetData(sflxCsv);
-    } catch (e) { console.error("Fatal Error: Could not fetch data from Google Sheet.", e); }
+    // In-flight guard: multiple pages/scripts may call this during startup.
+    // Keep it single-flight so we don't duplicate requests to Google Sheets.
+    if (!force && state.oneQbData && state.sflxData && Object.keys(state.oneQbData).length && Object.keys(state.sflxData).length) {
+        return;
+    }
+    if (fetchDataFromGoogleSheet.__inFlight) {
+        return fetchDataFromGoogleSheet.__inFlight;
+    }
+    fetchDataFromGoogleSheet.__inFlight = (async () => {
+        try {
+            const [oneQbCsv, sflxCsv] = await Promise.all([
+                fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetNames.oneQb}`).then(res => res.text()),
+                fetch(`https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${sheetNames.sflx}`).then(res => res.text())
+            ]);
+            state.oneQbData = parseSheetData(oneQbCsv);
+            state.sflxData = parseSheetData(sflxCsv);
+        } catch (e) {
+            console.error("Fatal Error: Could not fetch data from Google Sheet.", e);
+        } finally {
+            fetchDataFromGoogleSheet.__inFlight = null;
+        }
+    })();
+    return fetchDataFromGoogleSheet.__inFlight;
 }
+// Parse a KTC workbook tab (CSV) into a lookup map.
+// - Player rows are keyed by `SLPR_ID` (Sleeper player id).
+// - Pick rows are keyed by `PLAYER NAME` and tagged with `POS = RDP`.
 function parseSheetData(csvText) {
     const dataMap = {};
     const { headers, rows } = parseCsv(csvText);
@@ -2174,32 +2231,54 @@ function parseSheetData(csvText) {
         return Number.isNaN(num) ? null : num;
     };
     rows.forEach(columns => {
-        const pos = getColumnValue(columns, 'POS');
+        const posRaw = getColumnValue(columns, 'POS');
+        const pos = (posRaw || '').trim().toUpperCase();
         const sleeperId = getColumnValue(columns, 'SLPR_ID');
         const ktcValue = toInt(getColumnValue(columns, ['VALUE', 'KTC']));
         const adp = toFloat(getColumnValue(columns, 'ADP'));
         const posRank = getColumnValue(columns, ['POS·RK', 'POS RK', 'POS_RK']);
         const age = toFloat(getColumnValue(columns, 'AGE'));
-        const overallRank = toInt(getColumnValue(columns, ['RANK', 'OVR', 'OVERALL']));
+        // KTC sheets: overall rank is typically `RANK`, but some tabs may label it differently (e.g. `sca`).
+        const overallRank = toInt(getColumnValue(columns, ['RANK', 'OVR', 'OVERALL', 'SCA']));
+        // Additional metadata used by the Stats page table (still sourced from this same workbook)
+        const tier = toInt(getColumnValue(columns, 'TIER'));
+        const trend = toInt(getColumnValue(columns, 'TREND'));
+        const rookieYear = toInt(getColumnValue(columns, 'RY'));
+        const exp = toInt(getColumnValue(columns, 'EXP'));
+        const team = getColumnValue(columns, ['TM', 'TEAM']);
         if (pos === 'RDP') {
+            // Picks are consumed elsewhere by name key (e.g., "2026 Early 1st") via `getPickData()`.
             const pickName = getColumnValue(columns, 'PLAYER NAME');
             if (pickName) {
                 dataMap[pickName] = {
+                    pos: 'RDP',
+                    team: team || null,
+                    age: age,
                     adp: null,
                     ktc: ktcValue,
                     posRank: null,
-                    overallRank: null
+                    overallRank: overallRank,
+                    tier: tier,
+                    trend: trend,
+                    rookieYear: rookieYear,
+                    exp: exp
                 };
             }
             return;
         }
         if (!sleeperId || sleeperId === 'NA') return;
         dataMap[sleeperId] = {
+            pos: pos || null,
+            team: team || null,
             age: age,
             adp: adp,
             ktc: ktcValue,
             posRank: posRank || null,
-            overallRank: overallRank
+            overallRank: overallRank,
+            tier: tier,
+            trend: trend,
+            rookieYear: rookieYear,
+            exp: exp
         };
     });
     return dataMap;

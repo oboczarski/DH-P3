@@ -2,18 +2,31 @@
   if (typeof document === 'undefined') return;
   const root = document.body;
   if (!root || root.dataset.page !== 'stats') return;
+  // === Stats page: data sources (PF-02) ===
+  // Table (this file):
+  // - Base season totals: `../data/NFL-2025_Stats/SZN.csv` (shipped with the app)
+  // - Trade VALUE + pick values (RDP): KTC workbook tabs `KTC_1QB` / `KTC_SFLX` loaded by `fetchDataFromGoogleSheet()` in `app.js`
+  // - Rollback: `?statsTableSource=sheets` will use legacy `STAT_1QB` / `STAT_SFLX` Google Sheets for the main table.
+  //
+  // Game Logs modal (shared, in `app.js`):
+  // - Weekly/season detail stats are still loaded via the existing `fetchPlayerStatsSheets()` pipeline.
+  // - League-specific FPTS/PPG/rank logic is untouched (critical for Rosters page).
   const TAB_CONFIG = {
     oneQb: { sheet: 'STAT_1QB', headingSelector: '[data-tab-heading="oneQb"]' },
     sflx: { sheet: 'STAT_SFLX', headingSelector: '[data-tab-heading="sflx"]' }
   };
   const HEADER_ALIASES = new Map([
     ['PLAYER NAME', 'PLAYER'],
+    // Season totals CSV uses `NM` for player name; treat it as PLAYER.
+    ['NM', 'PLAYER'],
     ['POS RK', 'POS | RK'],
     ['POS·RK', 'POS | RK'],
     ['POS_RK', 'POS | RK'],
     ['TEAM', 'TM'],
     ['FPTS_PPR', 'FPTS'],
     ['FPT_PPR', 'FPTS'],
+    // Season totals CSV uses `GM_P` for games played; treat it as `G` for the table.
+    ['GM_P', 'G'],
     ['CMP PCT', 'CMP%'],
     ['YDS(T)', 'YDS(t)'],
     ['YPG(T)', 'YPG(t)'],
@@ -726,7 +739,7 @@
     const name = row.PLAYER || row['PLAYER NAME'] || '';
     const pos = (row.POS || '').toUpperCase();
     const team = (row.TM || '').toUpperCase() || (state.players?.[playerId]?.team || 'FA');
-    const rank = toNumber(row.RK, { allowFloat: false }) ?? Infinity;
+    const rank = toNumber(row.RK, { allowFloat: false });
     const age = toNumber(row.AGE) ?? 0;
     const gmPlayed = toNumber(row.G, { allowFloat: false });
     const rookieYear = toNumber(row.RY, { allowFloat: false });
@@ -738,7 +751,7 @@
     const fullName = getFullName(playerId, name);
     const displayName = formatDisplayName(playerId, name);
     
-    // Stats page ONLY uses Google Sheets data for FPTS/PPG - no league-specific calculations
+    // Stats page uses season totals (SZN.csv) for stats + computes PPG (no league-specific calculations).
     const fpts = toNumber(row.FPTS);
     const ppg = toNumber(row.PPG);
     const fptsPosRank = null; // Not used on stats page
@@ -1120,6 +1133,8 @@
       return formatDecimal(meta.age, 1);
     }
     if (column === 'RK') {
+      // Displayed RK is the row rank in the *current* filtered/sorted view.
+      // (Underlying `row.RK` is still populated from the KTC workbook and used as the baseline order when sorting is cleared.)
       const rank = entry.meta.currentRank;
       if (rank === null || rank === undefined) return '';
       return formatInteger(rank);
@@ -1267,15 +1282,26 @@
 	      for (const column of columnSet) {
 	        const textValue = formatCellValue(column, entry);
 	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
-        if (column === 'PLAYER') {
-          rowData[column] = {
-            render: (td) => {
-              td.classList.add('stats-player-cell');
-              const button = document.createElement('button');
-              button.type = 'button';
-              button.className = 'stats-player-btn';
-              button.dataset.playerId = entry.meta.playerId;
-              button.dataset.entryIndex = entryIndex;
+	        if (column === 'PLAYER') {
+	          rowData[column] = {
+	            render: (td) => {
+	              td.classList.add('stats-player-cell');
+	              const isPickRow = entry.meta.pos === 'RDP' || !entry.meta.playerId;
+	              if (isPickRow) {
+	                td.textContent = displayValue.text ?? displayValue;
+	                if (displayValue.asterisk) {
+	                  const star = document.createElement('span');
+	                  star.className = 'stats-eff-asterisk';
+	                  star.textContent = '*';
+	                  td.appendChild(star);
+	                }
+	                return;
+	              }
+	              const button = document.createElement('button');
+	              button.type = 'button';
+	              button.className = 'stats-player-btn';
+	              button.dataset.playerId = entry.meta.playerId;
+	              button.dataset.entryIndex = entryIndex;
               button.textContent = displayValue.text ?? displayValue;
               if (displayValue.asterisk) {
                 const star = document.createElement('span');
@@ -1509,15 +1535,26 @@
 	      for (const column of columnSet) {
 	        const textValue = formatCellValue(column, entry);
 	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
-        if (column === 'PLAYER') {
-          rowData[column] = {
-            render: (td) => {
-              td.classList.add('stats-player-cell');
-              const button = document.createElement('button');
-              button.type = 'button';
-              button.className = 'stats-player-btn';
-              button.dataset.playerId = entry.meta.playerId;
-              button.dataset.entryIndex = entryIndex;
+	        if (column === 'PLAYER') {
+	          rowData[column] = {
+	            render: (td) => {
+	              td.classList.add('stats-player-cell');
+	              const isPickRow = entry.meta.pos === 'RDP' || !entry.meta.playerId;
+	              if (isPickRow) {
+	                td.textContent = displayValue.text ?? displayValue;
+	                if (displayValue.asterisk) {
+	                  const star = document.createElement('span');
+	                  star.className = 'stats-eff-asterisk';
+	                  star.textContent = '*';
+	                  td.appendChild(star);
+	                }
+	                return;
+	              }
+	              const button = document.createElement('button');
+	              button.type = 'button';
+	              button.className = 'stats-player-btn';
+	              button.dataset.playerId = entry.meta.playerId;
+	              button.dataset.entryIndex = entryIndex;
               button.textContent = displayValue.text ?? displayValue;
               if (displayValue.asterisk) {
                 const star = document.createElement('span');
@@ -2192,7 +2229,11 @@
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
     const { meta } = entry;
-    const valuations = state.isSuperflex ? state.sflxData?.[meta.playerId] : state.oneQbData?.[meta.playerId];
+    // Picks (RDP) have no player game logs.
+    if (!meta?.playerId || meta.pos === 'RDP') return;
+    // Stats tabs represent value context (1QB vs SFLX). Use the active tab's KTC dataset here.
+    const ktcDataset = statsState.currentTab === 'sflx' ? state.sflxData : state.oneQbData;
+    const valuations = ktcDataset?.[meta.playerId];
     
     // Get calculated ranks from cache
     const ranks = statsState.rankCache?.[meta.playerId] || {};
@@ -2226,7 +2267,7 @@
       name: meta.name,
       pos: meta.pos,
       team: meta.team,
-      ktc: valuations?.ktc || entry.meta.value || 0,
+      ktc: valuations?.ktc ?? entry.meta.value ?? 0,
       posRank: meta.posRankText,
       overallRank: meta.rank
     };
@@ -2554,7 +2595,36 @@
       console.warn('Unable to resolve league context for stats page:', error);
     }
   }
+  // === Stats table data source ===
+  // Stats page table now uses season totals from the shipped CSV:
+  // `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
+  // Trade VALUE + RK + RDP (pick values) are sourced from the same KTC workbook as the Rosters player cards:
+  // `KTC_1QB` / `KTC_SFLX` loaded by `fetchDataFromGoogleSheet()` in `app.js`.
+  // Join keys:
+  // - Players: `SLPR_ID` (SZN.csv) ↔ `SLPR_ID` (KTC sheets)
+  // - Picks: keyed by `PLAYER NAME` in the KTC sheets with `POS = RDP` (no `SLPR_ID`)
+  const STATS_TABLE_SOURCE_QUERY_PARAM = 'statsTableSource';
+  const STATS_SEASON_CSV_URL = new URL('../data/NFL-2025_Stats/SZN.csv', window.location.href).toString();
+  let seasonCsvTextPromise = null;
+  let seasonBasePromise = null;
+
+  function shouldUseStatsGoogleSheets() {
+    // Kept for quick rollback/testing: `?statsTableSource=sheets`
+    try {
+      const raw = (params.get(STATS_TABLE_SOURCE_QUERY_PARAM) || '').trim().toLowerCase();
+      return raw === 'sheets' || raw === 'sheet' || raw === 'google';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getKtcDatasetForTab(tabKey) {
+    // Tabs represent value context (1QB vs SFLX) — not different stat seasons.
+    return tabKey === 'sflx' ? state.sflxData : state.oneQbData;
+  }
+
   async function fetchSheetCsv(sheetName) {
+    // Legacy source (no longer used by default).
     const sheetId = typeof PLAYER_STATS_SHEET_ID !== 'undefined'
       ? PLAYER_STATS_SHEET_ID
       : '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
@@ -2563,9 +2633,132 @@
     if (!response.ok) throw new Error(`Failed to fetch ${sheetName}: ${response.status}`);
     return response.text();
   }
+
+  async function fetchSeasonCsvText() {
+    if (seasonCsvTextPromise) return seasonCsvTextPromise;
+    seasonCsvTextPromise = fetch(STATS_SEASON_CSV_URL)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to fetch SZN.csv: ${response.status}`);
+        return response.text();
+      })
+      .finally(() => {
+        seasonCsvTextPromise = null;
+      });
+    return seasonCsvTextPromise;
+  }
+
+  async function loadSeasonBase() {
+    if (seasonBasePromise) return seasonBasePromise;
+    seasonBasePromise = (async () => {
+      const csv = await fetchSeasonCsvText();
+      const { headers, rows, headerDisplay } = parseCsv(csv);
+      const parsedRows = rows.map((values) => normalizeHeadersRow(headers, values));
+      return { headers, parsedRows, headerDisplay };
+    })().catch((err) => {
+      seasonBasePromise = null;
+      throw err;
+    });
+    return seasonBasePromise;
+  }
+
+  function computePpg({ fpts, games }) {
+    if (!Number.isFinite(fpts)) return null;
+    if (!Number.isFinite(games) || games <= 0) return null;
+    return fpts / games;
+  }
+
+  function buildRdpRowsFromKtcDataset(ktcDataset) {
+    const out = [];
+    const entries = ktcDataset && typeof ktcDataset === 'object'
+      ? Object.entries(ktcDataset)
+      : [];
+    entries.forEach(([key, value]) => {
+      if (!value || value.pos !== 'RDP') return;
+      out.push({
+        // No SLPR_ID for picks; the table derives YEAR/RANGE/ROUND from the name.
+        PLAYER: key,
+        POS: 'RDP',
+        VALUE: value.ktc ?? '',
+        RK: value.overallRank ?? '',
+        AGE: value.age ?? '',
+        TM: value.team ?? '',
+        G: '',
+        FPTS: '',
+        PPG: ''
+      });
+    });
+    // Stable, human-friendly ordering for picks: year asc, round asc, range asc.
+    out.sort((a, b) => {
+      const pa = parsePickName(a.PLAYER);
+      const pb = parsePickName(b.PLAYER);
+      const ya = parseInt(pa.year || '', 10);
+      const yb = parseInt(pb.year || '', 10);
+      if (Number.isFinite(ya) && Number.isFinite(yb) && ya !== yb) return ya - yb;
+      const ra = pa.round || '';
+      const rb = pb.round || '';
+      if (ra !== rb) return ra.localeCompare(rb);
+      return (pa.range || '').localeCompare(pb.range || '');
+    });
+    return out;
+  }
   async function loadTabData(tabKey) {
     const tab = TAB_CONFIG[tabKey];
     if (!tab) return;
+    const ktcDataset = getKtcDatasetForTab(tabKey);
+
+    // Default source: local season totals CSV.
+    if (!shouldUseStatsGoogleSheets()) {
+      const { headers, parsedRows, headerDisplay } = await loadSeasonBase();
+      const available = new Set(headers);
+      // Computed / externally-sourced columns that the table expects.
+      ['RK', 'VALUE', 'PPG'].forEach((col) => available.add(col));
+      // RDP view columns are derived from the pick name, but keep them as "available" for clarity.
+      ['YEAR', 'RANGE', 'ROUND'].forEach((col) => available.add(col));
+
+      const augmentedRows = parsedRows.map((row) => {
+        const nextRow = { ...row };
+        const playerId = nextRow.SLPR_ID || nextRow.slpr_id || '';
+        const ktc = playerId ? ktcDataset?.[playerId] : null;
+
+        // Trade value context (from KTC workbook).
+        if (ktc) {
+          nextRow.VALUE = ktc.ktc ?? nextRow.VALUE ?? '';
+          nextRow.RK = ktc.overallRank ?? nextRow.RK ?? '';
+          nextRow['POS | RK'] = ktc.posRank ?? nextRow['POS | RK'] ?? '';
+          nextRow.RY = ktc.rookieYear ?? nextRow.RY ?? '';
+          nextRow.EXP = ktc.exp ?? nextRow.EXP ?? '';
+          nextRow.TIER = ktc.tier ?? nextRow.TIER ?? '';
+          nextRow.TREND = ktc.trend ?? nextRow.TREND ?? '';
+        } else {
+          if (nextRow.VALUE === undefined) nextRow.VALUE = '';
+          if (nextRow.RK === undefined) nextRow.RK = '';
+        }
+
+        // PPG is not present in SZN.csv; compute it from FPTS and G.
+        const fpts = toNumber(nextRow.FPTS);
+        const games = toNumber(nextRow.G, { allowFloat: false });
+        const ppg = computePpg({ fpts, games });
+        nextRow.PPG = Number.isFinite(ppg) ? ppg.toFixed(2) : '';
+
+        return nextRow;
+      });
+
+      // Append pick rows (RDP) sourced from the same KTC workbook.
+      const rdpRows = buildRdpRowsFromKtcDataset(ktcDataset);
+      const enriched = [...augmentedRows, ...rdpRows].map(buildRow);
+
+      const labels = new Map(headerDisplay);
+      ['RK', 'VALUE', 'PPG', 'G', 'FPTS', 'PLAYER'].forEach((col) => {
+        if (!labels.has(col)) labels.set(col, col);
+      });
+
+      statsState.datasets.set(tabKey, enriched);
+      statsState.headerLabels.set(tabKey, labels);
+      statsState.availableColumns.set(tabKey, available);
+      return;
+    }
+
+    // Rollback path: Google Sheets STAT_1QB / STAT_SFLX.
     const csv = await fetchSheetCsv(tab.sheet);
     const { headers, rows, headerDisplay } = parseCsv(csv);
     const parsedRows = rows.map((values) => normalizeHeadersRow(headers, values));
@@ -2588,6 +2781,10 @@
       await ensureLeagueContext();
       if (typeof fetchSleeperPlayers === 'function') {
         await fetchSleeperPlayers();
+      }
+      // Ensure KTC + pick values workbook is loaded (used for VALUE/RK + RDP rows).
+      if (typeof fetchDataFromGoogleSheet === 'function') {
+        await fetchDataFromGoogleSheet();
       }
       // Don't await - weekly stats now load in background after page renders
       await loadAllTabs();
