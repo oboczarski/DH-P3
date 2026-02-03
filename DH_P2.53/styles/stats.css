@@ -763,7 +763,7 @@
 
   /* Panel-2 header row replaces the old tab-row position */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-heading {
-    order: 2;
+    order: 3;
     flex: 1 1 auto;
     min-width: 0;
     justify-content: flex-start;
@@ -776,7 +776,7 @@
   }
 
   body[data-page="stats"] .stats-top-panels-row #statsKeyButton {
-    order: 3;
+    order: 4;
     flex: 0 0 auto;
     position: relative;
     top: -3px;
@@ -785,20 +785,20 @@
     align-self: center;
   }
 
-  /* Search + Rookies row (unchanged styling, moved up) + category pills row */
+  /* Search + Rookies row + Stat Categories label/key row + category pills row */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body {
-    order: 4;
-    flex: 1 1 100%;
-    gap: 0.45rem;
+    display: contents;
   }
 
-  body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-secondary-row {
-    order: 0;
+  body[data-page="stats"] .stats-top-panels-row .stats-secondary-row {
+    order: 2;
+    flex: 1 1 100%;
     margin-top: -4px;
   }
 
-  body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-filter-block {
-    order: 1;
+  body[data-page="stats"] .stats-top-panels-row .stats-filter-block {
+    order: 4;
+    flex: 1 1 100%;
   }
 
   /* Values row: compact 1QB/SFLX switcher + divider + Pick Values control */
