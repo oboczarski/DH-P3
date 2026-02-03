@@ -51,6 +51,7 @@
 
   "editor.tokenColorCustomizations": {
     "[Dracula Theme]": {
+      "comments": "#0095ff",
       "textMateRules": [
         {
           "name": "Strings → rose",

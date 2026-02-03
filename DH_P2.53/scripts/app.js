@@ -2619,6 +2619,11 @@ function getAdjustedGamesPlayed(playerId, scoringSettings = null) {
     }
     return initialGames + additionalGames;
 }
+
+// ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
+// Stats being Pulled from CSVs
+// ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
+
 const PLAYER_STAT_HEADER_MAP = {
   'paATT': 'pass_att',
   'CMP': 'pass_cmp',
@@ -2630,6 +2635,7 @@ const PLAYER_STAT_HEADER_MAP = {
   'pa1D': 'pass_fd',
     'EPA/DB': 'epa_per_db',
     'CPOE': 'cpoe',
+    'DP%': 'dp_pct',
     'IMP/G': 'imp_per_g',
     'paRTG': 'pass_rtg',
     'pIMP': 'pass_imp',
@@ -2676,6 +2682,8 @@ const PLAYER_STAT_HEADER_MAP = {
     'FPT_PPR': 'fpt_ppr',
     'FPTS_PPR': 'fpt_ppr'
 };
+// ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
+
 const WEEKLY_META_HEADER_MAP = {
     'VS': 'opponent',
     'vsRK': 'opponent_rank'
@@ -4054,10 +4062,11 @@ const SZN_PROGRESS_THRESHOLDS = {
         { rank: 53, pct: 0 } // 0% for >52
     ]
 };
-
+// ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
 // === Game Logs Modal: SZN stat sectioning (per position) ===
 // These sections drive the SZN view order + grouping only (GL table ordering is separate).
 // Edit freely to add/remove/reorder sections or move stat keys between them.
+// ✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦
 const SZN_STAT_SECTIONS_BY_POS = {
     QB: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', 
@@ -4072,7 +4081,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'passing-efficiency',
             label: 'PASSING EFFICIENCY',
             tone: 'passing',
-            stats: ['epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pa_ypg']
+            stats: ['epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'dp_pct', 'pa_ypg']
         },
         { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', 
             stats: ['rush_att', 'rush_yd', 'rush_td'] },
@@ -4709,7 +4718,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('all', ['fpts', 'ppg', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
-        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'pass_int', 'epa_per_db', 'pa_ypg'
+        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe','dp_pct', 'pass_int', 'epa_per_db', 'pa_ypg'
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
