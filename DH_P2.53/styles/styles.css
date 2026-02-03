@@ -6219,18 +6219,21 @@ body::before {
 
 @media (max-width: 620px) {
   #game-logs-modal .game-logs-szn-view {
-    padding: 0.15rem 0.25rem 0.5rem;
+    padding: 0rem 0.25rem 0.25rem;
     width: 100%;
-    border: 0px solid #fff0;
+    border: 1px solid #aaf1;
   }
 
   #game-logs-modal .gamelogs-szn-title {
-    margin: 0.05rem 0 0.25rem;
-    padding: 0.22rem 0.4rem;
+    margin: 0rem 0 0.15rem;
+    padding: 0.12rem 0.04rem;
     font-size: 0.92rem;
+    font-weight: 400;
     letter-spacing: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(10, 12, 28, 0.02));
+    background: none;
     box-shadow: none;
+    border: none;
+    text-transform: uppercase;
   }
 
   #game-logs-modal .gamelogs-szn-section-header {
@@ -6611,7 +6614,7 @@ body::before {
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  line-height: 1.1;
+  line-height: 1;
   transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 
@@ -6721,7 +6724,7 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-season-tab {
-    padding: 0.27rem 0.52rem;
+    padding: 0.3rem 0.52rem;
     font-size: 0.75rem;
     letter-spacing: 0.02em;
   }
