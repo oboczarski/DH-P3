@@ -5963,7 +5963,7 @@ body::before {
   flex-direction: column;
   gap: 0;
   height: 100%;
-  border: 2px solid #aaf2;
+  border: 1px solid #aaf2;
   border-radius: 10px;
 }
 

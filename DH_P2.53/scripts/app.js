@@ -4060,7 +4060,8 @@ const SZN_PROGRESS_THRESHOLDS = {
 // Edit freely to add/remove/reorder sections or move stat keys between them.
 const SZN_STAT_SECTIONS_BY_POS = {
     QB: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', 
+            stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'passing-production',
             label: 'PASSING PRODUCTION',
@@ -4086,7 +4087,8 @@ const SZN_STAT_SECTIONS_BY_POS = {
             stats: ['imp_per_g'] }
     ],
     RB: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', 
+            stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'rushing-production',
             label: 'RUSHING PRODUCTION',
@@ -4109,7 +4111,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency', 
             label: 'RECEIVING EFFICIENCY', 
             tone: 'receiving', 
-            stats: ['ts_per_rr'] 
+            stats: ['ts_per_rr','yprr'] 
         },
         { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
             stats: ['yds_total', 'fum'] },
@@ -4119,7 +4121,8 @@ const SZN_STAT_SECTIONS_BY_POS = {
     ],
 
     WR: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', 
+            stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
@@ -4133,14 +4136,15 @@ const SZN_STAT_SECTIONS_BY_POS = {
             stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
         { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
-            stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
+            stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td', 'fum'] },
         
         { id: 'general-efficiency', label: 'GENERAL EFFICIENCY', tone: 'all', 
-            stats: ['snp_pct', 'fum', 'imp_per_g'] }
+            stats: ['snp_pct', 'imp_per_g'] }
     ],
 
     TE: [
-        { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'all', 
+            stats: ['fpts', 'ppg', 'fpoe'] },
         {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
