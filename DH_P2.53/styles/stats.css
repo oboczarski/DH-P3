@@ -481,7 +481,7 @@
 .stats-filter-separator {
   width: 1px;
   align-self: stretch;
-  background: rgba(128, 138, 189, 0.3);
+  background: rgba(128, 138, 189, 0.2);
   margin: 0.15rem 0;
   flex-shrink: 0;
 }
@@ -734,7 +734,7 @@
     column-gap: 0rem;
     width: min(100%, 860px);
     margin: 0 auto;
-    padding: 0.35rem 0.75rem 0.45rem;
+    padding: 0.35rem 0.75rem 0.3rem;
     border-radius: 12px;
     background: rgba(13, 14, 35, 0.22);
     background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
@@ -871,7 +871,7 @@
     max-width: none;
     margin-top: 0;
     padding-left: 0.55rem;
-    border-left: 1px solid rgba(128, 138, 189, 0.45);
+    border-left: 1px solid rgba(128, 138, 189, 0.2);
     justify-content: flex-start;
     align-items: center;
   }
@@ -879,7 +879,7 @@
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks .stats-picks-btn {
     width: auto;
     max-width: none;
-    padding: 0.4rem 0.55rem;
+    padding: 0.35rem 0.55rem;
     min-height: 1.25rem;
     font-size: 0.62rem;
     white-space: nowrap;
@@ -1568,7 +1568,7 @@ body[data-page="stats"] #header-container {
 }
 
 .stats-controls-footer {
-  margin-top: -0.15rem;
+  margin-top: -0.05rem;
 }
 
 .stats-footer-simple {
