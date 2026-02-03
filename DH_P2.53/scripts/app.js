@@ -7925,6 +7925,18 @@ function setLoading(isLoading, message = 'Loading...') {
 
     // Skip loading panel on stats page (uses inline table spinner instead)
     if (document.body?.dataset?.page === 'stats') {
+        try {
+            if (typeof window.setStatsLoading === 'function') {
+                if (arguments.length >= 2) {
+                    window.setStatsLoading(isLoading, message);
+                } else {
+                    window.setStatsLoading(isLoading);
+                }
+            }
+        }
+        catch (e) {
+            // ignore
+        }
         return;
     }
 

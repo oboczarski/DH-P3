@@ -389,6 +389,31 @@
     receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
     receivingButton: document.querySelector('.stats-filter-btn-receiving')
   };
+  // Allow forcing the inline stats-table loader via DevTools, similar to the global `setLoading()` helper.
+  // Usage (Stats page only):
+  //   setStatsLoading(true, 'Debug: loader test');
+  //   setStatsLoading(false);
+  let statsLoadingLocked = false;
+  let statsLoadingDefaultText = null;
+  function setStatsLoading(isLoading, message) {
+    if (!dom.loading) return;
+    const textEl = dom.loading.querySelector('.stats-loading-text');
+    if (statsLoadingDefaultText === null && textEl) {
+      statsLoadingDefaultText = textEl.textContent || '';
+    }
+    statsLoadingLocked = !!isLoading;
+    if (statsLoadingLocked && typeof message === 'string' && message.trim()) {
+      if (textEl) textEl.textContent = message;
+    } else if (!statsLoadingLocked && textEl && statsLoadingDefaultText !== null) {
+      textEl.textContent = statsLoadingDefaultText;
+    }
+    toggleInlineLoading(!!isLoading);
+  }
+  try {
+    window.setStatsLoading = setStatsLoading;
+  } catch (e) {
+    // ignore – window may not be writable in some environments
+  }
   dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
   dom.receivingSubfilterButtons = dom.receivingSubfilters
     ? Array.from(dom.receivingSubfilters.querySelectorAll('.stats-receiving-subfilter'))
@@ -2564,7 +2589,7 @@
   }
   function toggleInlineLoading(show) {
     if (!dom.loading) return;
-    dom.loading.classList.toggle('hidden', !show);
+    dom.loading.classList.toggle('hidden', !(show || statsLoadingLocked));
   }
   async function ensureLeagueContext() {
     const username = params.get('username');
