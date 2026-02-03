@@ -1207,7 +1207,7 @@ body[data-page="stats"] #header-container {
   color: var(--color-text-secondary);
   letter-spacing: 0.05em;
   position: relative;
-  top: -165px;
+  top: -104px;
 }
 @keyframes stats-spin {
   to {
