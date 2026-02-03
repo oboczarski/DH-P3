@@ -4073,13 +4073,17 @@ const SZN_STAT_SECTIONS_BY_POS = {
             tone: 'passing',
             stats: ['epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pa_ypg']
         },
-        { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', stats: ['rush_att', 'rush_yd', 'rush_td'] },
+        { id: 'rushing-production', label: 'RUSHING PRODUCTION', tone: 'rushing', 
+            stats: ['rush_att', 'rush_yd', 'rush_td'] },
 
-        { id: 'rushing-efficiency', label: 'RUSHING EFFICIENCY', tone: 'rushing', stats: ['ypc'] },
+        { id: 'rushing-efficiency', label: 'RUSHING EFFICIENCY', tone: 'rushing', 
+            stats: ['ypc'] },
 
-        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'fum'] },
+        { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
+            stats: ['yds_total', 'fum'] },
 
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['imp_per_g'] }
+        { id: 'general-efficiency', label: 'GENERAL EFFICIENCY', tone: 'all', 
+            stats: ['imp_per_g'] }
     ],
     RB: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
@@ -4087,13 +4091,13 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'rushing-production',
             label: 'RUSHING PRODUCTION',
             tone: 'rushing',
-            stats: ['rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'mtf', 'ru_ypg']
+            stats: ['snp_pct', 'rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac', 'mtf']
         },
         {
             id: 'rushing-efficiency',
             label: 'RUSHING EFFICIENCY',
             tone: 'rushing',
-            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'ryoe']
+            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'ryoe', 'ru_ypg']
         },
         {
             id: 'receiving-production',
@@ -4101,10 +4105,19 @@ const SZN_STAT_SECTIONS_BY_POS = {
             tone: 'receiving',
             stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar']
         },
-        { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr'] },
-        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'imp_per_g'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum'] }
+        { 
+            id: 'receiving-efficiency', 
+            label: 'RECEIVING EFFICIENCY', 
+            tone: 'receiving', 
+            stats: ['ts_per_rr'] 
+        },
+        { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
+            stats: ['yds_total', 'fum'] },
+
+        { id: 'general-efficiency', label: 'GENERAL EFFICIENCY', tone: 'all', 
+            stats: ['imp_per_g'] }
     ],
+
     WR: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
@@ -4119,9 +4132,13 @@ const SZN_STAT_SECTIONS_BY_POS = {
             tone: 'receiving',
             stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
-        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
+        { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
+            stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
+        
+        { id: 'general-efficiency', label: 'GENERAL EFFICIENCY', tone: 'all', 
+            stats: ['snp_pct', 'fum', 'imp_per_g'] }
     ],
+
     TE: [
         { id: 'fantasy', label: 'FANTASY', tone: 'all', stats: ['fpts', 'ppg', 'fpoe'] },
         {
@@ -4136,9 +4153,13 @@ const SZN_STAT_SECTIONS_BY_POS = {
             tone: 'receiving',
             stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
         },
-        { id: 'general-production', label: 'GENERAL (TOTALS) PRODUCTION', tone: 'all', stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
-        { id: 'general-efficiency', label: 'GENERAL (TOTALS) EFFICIENCY', tone: 'all', stats: ['snp_pct', 'fum', 'imp_per_g'] }
+        { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
+            stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
+
+        { id: 'general-efficiency', label: 'GENERAL EFFICIENCY', tone: 'all', 
+            stats: ['snp_pct', 'fum', 'imp_per_g'] }
     ]
+
 };
 function getSznSectionsForPosition(position) {
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
