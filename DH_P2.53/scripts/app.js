@@ -4395,6 +4395,11 @@ function renderGameLogsSeasonStatsView({
 }) {
     if (!container) return;
     container.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'gamelogs-szn-title';
+    title.setAttribute('role', 'heading');
+    title.setAttribute('aria-level', '3');
+    title.textContent = 'Season Stats';
     const list = document.createElement('div');
     list.className = 'gamelogs-szn-list';
 
@@ -4496,6 +4501,7 @@ function renderGameLogsSeasonStatsView({
         }
     }
 
+    container.appendChild(title);
     container.appendChild(list);
 }
 
