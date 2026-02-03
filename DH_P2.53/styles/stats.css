@@ -188,8 +188,10 @@
 .stats-tab-button-sflx {
 }
 .stats-tab-button-sflx.active {
-  background: rgba(236, 72, 153, 0.05);
+  background: #ec489900;
   font-weight: 600;
+  box-shadow: inset 0px 9px 12px -8px #fff2 ,inset 0px 0px 19px -4px #EC489933;
+  color: #f5a1ee;
 }
 .stats-tab-headers {
   text-align: center;
