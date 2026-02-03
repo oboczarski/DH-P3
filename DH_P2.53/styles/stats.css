@@ -43,6 +43,8 @@
   gap: 0.4rem;
   padding-top: 0.25rem;
   flex-grow: 1;
+  /* Stats loader overlay anchors to the full page content region (below the sticky nav header). */
+  position: relative;
 }
 .stats-page-intro {
   display: flex;
@@ -1180,7 +1182,7 @@ body[data-page="stats"] #header-container {
 .stats-loading {
   position: absolute;
   inset: 0;
-  z-index: 50;
+  z-index: 900;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1192,26 +1194,59 @@ body[data-page="stats"] #header-container {
   -webkit-backdrop-filter: blur(8px) saturate(130%);
   backdrop-filter: blur(8px) saturate(130%);
 }
+.stats-loading-body {
+  position: relative;
+  top: -257px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+.stats-loading-logo {
+  /* Requested: ~3x larger logo vs prior size (72px -> 216px), with a small guard for very narrow screens. */
+  width: min(216px, 70vw);
+  height: auto;
+  display: block;
+  filter: opacity(0.8) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+}
 .stats-loading-spinner {
   width: 250px;
   height: 250px;
   position: relative;
   top: -20px;
-  border: 8px solid rgba(118, 109, 255, 0.25);
-  border-top-color: rgba(118, 109, 255, 0.9);
+  border: 13px solid #f0f4ff00;
+  border-top-color: rgb(182 196 254 / 62%);
   border-radius: 50%;
-  animation: stats-spin 0.75s linear infinite;
+  animation: stats-spin 1.05s cubic-bezier(0.56, -0.07, 0.58, 1) infinite;
+  box-shadow: 0 0 23px #aaf, inset 0 0 74px #aaf5, inset 0 0 16px #aaf;
 }
 .stats-loading-text {
   font-size: 0.82rem;
   color: var(--color-text-secondary);
   letter-spacing: 0.05em;
-  position: relative;
-  top: -104px;
+  line-height: 1.25;
+  max-width: 24rem;
+  margin-top: 20px;
 }
 @keyframes stats-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+body[data-page="stats"] {
+  --stats-loading-top: 0px;
+}
+
+@media (max-width: 868px) {
+  body[data-page="stats"] .stats-loading {
+    position: fixed;
+    inset: auto;
+    top: var(--stats-loading-top, 0px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
   }
 }
 

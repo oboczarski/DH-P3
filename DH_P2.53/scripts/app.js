@@ -7927,11 +7927,8 @@ function setLoading(isLoading, message = 'Loading...') {
     if (document.body?.dataset?.page === 'stats') {
         try {
             if (typeof window.setStatsLoading === 'function') {
-                if (arguments.length >= 2) {
-                    window.setStatsLoading(isLoading, message);
-                } else {
-                    window.setStatsLoading(isLoading);
-                }
+                // Always use the stats page's default loader copy when toggling via `setLoading(...)`.
+                window.setStatsLoading(isLoading);
             }
         }
         catch (e) {

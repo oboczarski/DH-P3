@@ -88,6 +88,13 @@
   </div>
 
   <main id="content" class="stats-page-content">
+    <div class="stats-loading hidden" id="statsLoading" role="status" aria-live="polite">
+      <div class="stats-loading-spinner" aria-hidden="true"></div>
+      <div class="stats-loading-body">
+        <img class="stats-loading-logo" src="../assets/welcome/welcome-logo-256.png" alt="Dynasty Hub" width="216" height="216" loading="eager" decoding="async"/>
+        <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
+      </div>
+    </div>
     <!-- Desktop: side-by-side panels wrapper -->
     <div class="stats-top-panels-row">
       <section class="stats-page-intro glass-panel">
@@ -172,10 +179,6 @@
     </div><!-- end .stats-top-panels-row -->
 
     <section class="stats-table-region glass-panel">
-      <div class="stats-loading hidden" id="statsLoading">
-        <div class="stats-loading-spinner" aria-hidden="true"></div>
-        <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
-      </div>
       <div class="stats-table-wrapper" data-tab-panel="oneQb">
         <table class="stats-table">
           <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>

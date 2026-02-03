@@ -391,8 +391,8 @@
   };
   // Allow forcing the inline stats-table loader via DevTools, similar to the global `setLoading()` helper.
   // Usage (Stats page only):
-  //   setStatsLoading(true, 'Debug: loader test');
-  //   setStatsLoading(false);
+  //   setLoading(true);
+  //   setLoading(false);
   let statsLoadingLocked = false;
   let statsLoadingDefaultText = null;
   function setStatsLoading(isLoading, message) {
@@ -413,6 +413,35 @@
     window.setStatsLoading = setStatsLoading;
   } catch (e) {
     // ignore – window may not be writable in some environments
+  }
+
+  // Stats page: when the inline loader is rendered as a fixed overlay (mobile),
+  // keep it pinned below the sticky navigation header by updating `--stats-loading-top`.
+  function updateStatsLoadingViewportTop() {
+    try {
+      const header = document.getElementById('header-container');
+      if (!header) return;
+      const rect = header.getBoundingClientRect();
+      const top = Math.max(0, Math.ceil(rect.bottom));
+      const target = document.body || document.documentElement;
+      target.style.setProperty('--stats-loading-top', `${top}px`);
+    } catch (e) {
+      // ignore
+    }
+  }
+  updateStatsLoadingViewportTop();
+  try {
+    window.addEventListener('resize', updateStatsLoadingViewportTop, { passive: true });
+    window.addEventListener('orientationchange', updateStatsLoadingViewportTop, { passive: true });
+    if (typeof ResizeObserver === 'function') {
+      const header = document.getElementById('header-container');
+      if (header) {
+        const ro = new ResizeObserver(() => updateStatsLoadingViewportTop());
+        ro.observe(header);
+      }
+    }
+  } catch (e) {
+    // ignore
   }
   dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
   dom.receivingSubfilterButtons = dom.receivingSubfilters
@@ -2797,7 +2826,7 @@
   }
   async function initialise() {
     try {
-      setLoading(true, 'Loading stats...');
+      setLoading(true);
     } catch (e) {
       // silent – setLoading may not be available yet
     }
