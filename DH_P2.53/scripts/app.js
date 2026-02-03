@@ -4303,6 +4303,53 @@ function getGameLogsSeasonDisplayValue({
             const ppg = gamesPlayed > 0 ? totalPoints / gamesPlayed : 0;
             displayValue = ppg.toFixed(1);
         }
+    } else if (key === 'fpoe') {
+        const hasSeasonValue = seasonTotals && typeof seasonTotals.fpoe === 'number' && Number.isFinite(seasonTotals.fpoe);
+        const hasAggregatedValue = aggregatedTotals && Object.prototype.hasOwnProperty.call(aggregatedTotals, 'fpoe') &&
+            typeof aggregatedTotals.fpoe === 'number' && Number.isFinite(aggregatedTotals.fpoe);
+        if (!hasSeasonValue && !hasAggregatedValue) {
+            displayValue = 'N/A';
+        } else {
+            const value = hasSeasonValue ? seasonTotals.fpoe : aggregatedTotals.fpoe;
+            displayValue = Number(value).toFixed(1);
+        }
+    } else if (key === 'pa_ypg') {
+        let ypgValue = seasonTotals && typeof seasonTotals.pa_ypg === 'number' ? seasonTotals.pa_ypg : null;
+        if (ypgValue === null) {
+            const totalPassYds = seasonTotals && typeof seasonTotals.pass_yd === 'number' ? seasonTotals.pass_yd : (aggregatedTotals['pass_yd'] || 0);
+            const games = seasonTotals && typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : (gameLogsWithData || []).length;
+            ypgValue = games > 0 ? totalPassYds / games : 0;
+        }
+        displayValue = Number(ypgValue).toFixed(1);
+    } else if (key === 'ru_ypg') {
+        let ypgValue = seasonTotals && typeof seasonTotals.ru_ypg === 'number' ? seasonTotals.ru_ypg : null;
+        if (ypgValue === null) {
+            const totalRushYds = seasonTotals && typeof seasonTotals.rush_yd === 'number' ? seasonTotals.rush_yd : (aggregatedTotals['rush_yd'] || 0);
+            const games = seasonTotals && typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : (gameLogsWithData || []).length;
+            ypgValue = games > 0 ? totalRushYds / games : 0;
+        }
+        displayValue = Number(ypgValue).toFixed(1);
+    } else if (key === 'rec_ypg') {
+        let ypgValue = seasonTotals && typeof seasonTotals.rec_ypg === 'number' ? seasonTotals.rec_ypg : null;
+        if (ypgValue === null) {
+            const totalRecYds = seasonTotals && typeof seasonTotals.rec_yd === 'number' ? seasonTotals.rec_yd : (aggregatedTotals['rec_yd'] || 0);
+            const games = seasonTotals && typeof seasonTotals.games_played === 'number' ? seasonTotals.games_played : (gameLogsWithData || []).length;
+            ypgValue = games > 0 ? totalRecYds / games : 0;
+        }
+        displayValue = Number(ypgValue).toFixed(1);
+    } else if (key === 'dp_pct') {
+        let pctValue = seasonTotals && typeof seasonTotals.dp_pct === 'number' ? seasonTotals.dp_pct : null;
+        if (pctValue === null) {
+            const hasTotal = aggregatedTotals && typeof aggregatedTotals.dp_pct === 'number' && Number.isFinite(aggregatedTotals.dp_pct);
+            const count = typeof statValueCounts?.dp_pct === 'number' ? statValueCounts.dp_pct : 0;
+            if (hasTotal && count > 0) pctValue = aggregatedTotals.dp_pct / count;
+        }
+        if (pctValue === null || pctValue === undefined || !Number.isFinite(Number(pctValue))) {
+            displayValue = 'N/A';
+        } else {
+            const normalized = Math.abs(pctValue) <= 1.5 ? pctValue * 100 : pctValue;
+            displayValue = formatPercentage(normalized, 1);
+        }
     } else if (key === 'ypc') {
         const totalYards = seasonTotals && typeof seasonTotals.rush_yd === 'number' ? seasonTotals.rush_yd : (aggregatedTotals['rush_yd'] || 0);
         const totalCarries = seasonTotals && typeof seasonTotals.rush_att === 'number' ? seasonTotals.rush_att : (aggregatedTotals['rush_att'] || 0);
@@ -4433,7 +4480,14 @@ function renderGameLogsSeasonStatsView({
     title.className = 'gamelogs-szn-title';
     title.setAttribute('role', 'heading');
     title.setAttribute('aria-level', '3');
-    title.textContent = 'Season Stats';
+    const titleIcon = document.createElement('i');
+    titleIcon.className = 'fa-regular fa-chart-bar gamelogs-szn-title-icon';
+    titleIcon.setAttribute('aria-hidden', 'true');
+    const titleText = document.createElement('span');
+    titleText.className = 'gamelogs-szn-title-text';
+    titleText.textContent = 'Season Stats';
+    title.appendChild(titleIcon);
+    title.appendChild(titleText);
     const list = document.createElement('div');
     list.className = 'gamelogs-szn-list';
 
@@ -4494,7 +4548,19 @@ function renderGameLogsSeasonStatsView({
         value.className = 'gamelogs-szn-value';
         const valueMain = document.createElement('span');
         valueMain.className = 'gamelogs-szn-value-main';
-        valueMain.textContent = displayValue;
+        const valueText = typeof displayValue === 'string' ? displayValue.trim() : String(displayValue ?? '');
+        if (valueText.endsWith('%') && valueText.length > 1) {
+            const numberPart = document.createElement('span');
+            numberPart.className = 'gamelogs-szn-value-number';
+            numberPart.textContent = valueText.slice(0, -1);
+            const percentPart = document.createElement('span');
+            percentPart.className = 'gamelogs-szn-value-percent';
+            percentPart.textContent = '%';
+            valueMain.appendChild(numberPart);
+            valueMain.appendChild(percentPart);
+        } else {
+            valueMain.textContent = displayValue;
+        }
         value.appendChild(valueMain);
 
         row.appendChild(label);
