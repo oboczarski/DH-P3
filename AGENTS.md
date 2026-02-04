@@ -11,6 +11,11 @@
 ## Required context pass before edits
 Before changing anything, review the actual files involved (HTML + JS + CSS) and any shared dependencies they touch (especially scripts/app.js and global styles).
 
+## Explanatory comments (required when adding or changing behavior)
+When you update code and make changes to the app, add comments that explain:
+- what the code targets (which UI area / feature),
+- what it does,
+- and any important notes.
 
 ## Data sources (Rosters + Stats)
 - Primary stats data source for both **Rosters** and **Stats** pages is the **CSV files**.
@@ -82,11 +87,6 @@ DH-P3/DH_P2.53
 ├── netlify.toml
 └── .ReferenceFolder
 
-## Explanatory comments (required when adding or changing behavior)
-When you add new code or meaningfully change behavior, add comments that explain:
-- what the code targets (which UI area / feature),
-- what it does,
-- and any important notes.
 
 ## Navigation: sister apps rule (do not break)
 The “Trophy Room” and “Matchups” buttons inside the “More” dropdown link to separate sister apps.
@@ -107,8 +107,8 @@ The “Trophy Room” and “Matchups” buttons inside the “More” dropdown 
 
 | Layer | What's Cached | Cleared By |
 |-------|---------------|------------|
-| **Service Worker Cache** | Same-origin HTML/JS/CSS/assets/data | Bumping `CACHE_NAME` + deploy |
-| **Browser HTTP Cache** | Per `Cache-Control` headers | Cache expiry or hard refresh |
+| **Service Worker Cache** | Same-origin HTML/JS/CSS/assets/data only | Bumping `CACHE_NAME` + deploy |
+| **Browser HTTP Cache** | Per `Cache-Control` headers | SW `fetchFresh` (no-store) or hard refresh |
 | **In-Memory JS State** | `state.cache`, etc. | Page reload |
 | **LocalStorage** | `sleeper_username` only | User clears (NOT touched by resets) |
 
@@ -116,15 +116,15 @@ The “Trophy Room” and “Matchups” buttons inside the “More” dropdown 
 1. **Edit** `DH_P2.53/service-worker.js` → Change `CACHE_NAME`
 2. **Deploy** to Netlify
 3. **User behavior** on next normal refresh:
-   - New SW installs with `cache: 'no-store'` (bypasses HTTP cache entirely)
-   - Old SW cache is purged
-   - All clients auto-reload to get fresh content immediately
+   - New SW installs and handles ALL same-origin static fetches with `cache: 'no-store'`
+   - Old SW version is purged; new SW takes control and forces all clients to auto-reload
+   - Result: Users get fresh HTML/JS/CSS/Assets/Data immediately without a manual "hard refresh"
 
 ### Key SW Design Decisions
-- **Only cache same-origin** — Third-party (Sleeper, Google, CDNs, fonts) never cached by SW
-- **Absolute URL cache keys** — Avoids `./` vs `/` mismatches
-- **`cache: 'no-store'` on install** — Forces network fetch, ignores browser HTTP cache
-- **Force client reload on activate** — Users get new content without manual hard refresh
+- **Only cache same-origin** — Third-party (Sleeper, Google, CDNs, fonts) are NEVER cached by the SW.
+- **Absolute URL cache keys** — Avoids `./` vs `/` mismatches in Cache Storage.
+- **`cache: 'no-store'` for ALL same-origin fetches** — Both during `install` pre-caching AND runtime `fetch` events. This is the "killer feature" that reliably bypasses stale browser HTTP caches.
+- **Force client reload on activate** — Users get new content automatically when the new version takes over.
 
 ### HTTP Caching Rules (`netlify.toml`)
 
@@ -137,8 +137,9 @@ The “Trophy Room” and “Matchups” buttons inside the “More” dropdown 
 > **No `immutable` headers** — Allows SW to force fresh fetches.
 
 ### Google Sheets (Post-Season)
-- **DISABLED** — All player stats come from local CSVs
-- **EXCEPTION**: KTC workbook (`GOOGLE_SHEET_ID`) is still fetched live for VALUE data
+- **DISABLED**: Google Sheets are disabled for now 
+— All player stats come from local CSVs
+- **EXCEPTION**: KTC trade values workbook SLP.TL (`GOOGLE_SHEET_ID`) is still fetched live for VALUE data
 - **Edge proxies** exist but are NOT used by frontend currently
 
 > ⚠️ **DO NOT** re-enable full Sheets loading without updating this doc.

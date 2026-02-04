@@ -32,12 +32,6 @@ When assisting in this repo, proactively review relevant files and previous conv
 **Navigation Dropdown ("More"):**
 - Present on all non-dashboard pages (Rosters, Stats, Analyzer, Research, Ownership)
 - Contains: Ownership (internal nav), Trophy Room (external: dynastyhub-trophyroom.netlify.app), Matchups (external: dynastyhub-matchups.netlify.app)
-- **Positioning strategy** (in `app.js`):
-  - Dropdown is **portaled to `document.body`** to avoid WebKit `backdrop-filter` containing-block issues
-  - Uses `position: fixed` + JS-computed **left/top** coordinates via `getBoundingClientRect()`
-  - **Centers under button** when space allows, then clamps within viewport margins
-  - Repositions on `resize` and `scroll` when open
-- **DO NOT** use inline styles to position the dropdown — always use the JS positioning function pattern
 
 **Responsive Breakpoints:**
 - `520px`: Ultra-mobile nav button compression
@@ -51,51 +45,71 @@ This repository contains the source code for **Dynasty Hub**, a multi-page fanta
 
 Core functionality is split across dedicated pages (Home / Fantasy Dashboard, Rosters, Ownership, Stats, Analyzer, Research / SYOP). Any changes made to files in this repo directly affect how the live app looks, behaves, and fetches data.
 
-## Project Structure Overview
-
-DH-P3/DH_P2.53  
-  ├── .github  
-  │   └── copilot-instructions.md  
-  ├── .vscode  
-  │   └── settings.json  
-  ├── DH_P2.53 (main app folder)  
-  │   ├── analyzer  
-  │   │   └── analyzer.html  
-  │   ├── assets  
-  │   │   ├── icons/  
-  │   │   ├── logos/  
-  │   │   ├── NFL-Tags_webp/  
-  │   │   └── welcome/  
-  │   ├── data  
-  │   │   └── NFL-2025_Stats/  
-  │   ├── index.html  
-  │   ├── manifest.webmanifest  
-  │   ├── ownership  
-  │   │   └── ownership.html  
-  │   ├── research  
-  │   │   └── research.html  
-  │   ├── rosters  
-  │   │   └── rosters.html  
-  │   ├── scripts  
-  │   │   ├── analyzer.js  
-  │   │   ├── app.js  
-  │   │   ├── dashboard.js  
-  │   │   ├── dh-scramble.js  
-  │   │   ├── stats.js  
-  │   │   └── syop.js  
-  │   ├── service-worker.js  
-  │   ├── stats  
-  │   │   └── stats.html  
-  │   └── styles  
-  │       ├── dashboard.css  
-  │       ├── stats.css  
-  │       └── styles.css  
-  ├── netlify  
-  │   └── edge-functions  
-  │       ├── sheet-proxy.js  
-  │       └── sleeper-proxy.js  
-  ├── netlify.toml  
-  └── .ReferenceFolder  
+## Full repo map (as of current structure)
+DH-P3/DH_P2.53
+├── .github
+│   └── copilot-instructions.md
+├── .vscode
+│   └── settings.json
+├── DH_P2.53 (main app folder)
+│   ├── analyzer
+│   │   └── analyzer.html
+│   ├── assets
+│   │   ├── icons/
+│   │   ├── logos/
+│   │   ├── NFL-Tags_webp/
+│   │   └── welcome/
+│   ├── data
+│   │   └── NFL-2025_Stats
+│   │       ├── Weeks
+│   │       │   ├── WK1.csv
+│   │       │   ├── WK2.csv
+│   │       │   ├── WK3.csv
+│   │       │   ├── WK4.csv
+│   │       │   ├── WK5.csv
+│   │       │   ├── WK6.csv
+│   │       │   ├── WK7.csv
+│   │       │   ├── WK8.csv
+│   │       │   ├── WK9.csv
+│   │       │   ├── WK10.csv
+│   │       │   ├── WK11.csv
+│   │       │   ├── WK12.csv
+│   │       │   ├── WK13.csv
+│   │       │   ├── WK14.csv
+│   │       │   ├── WK15.csv
+│   │       │   ├── WK16.csv
+│   │       │   ├── WK17.csv
+│   │       │   └── WK18.csv
+│   │       ├── SZN_RKS.csv
+│   │       └── SZN.csv
+│   ├── index.html
+│   ├── manifest.webmanifest
+│   ├── ownership
+│   │   └── ownership.html
+│   ├── research
+│   │   └── research.html
+│   ├── rosters
+│   │   └── rosters.html
+│   ├── scripts
+│   │   ├── analyzer.js
+│   │   ├── app.js
+│   │   ├── dashboard.js
+│   │   ├── dh-scramble.js
+│   │   ├── stats.js
+│   │   └── syop.js
+│   ├── service-worker.js
+│   ├── stats
+│   │   └── stats.html
+│   └── styles
+│       ├── dashboard.css
+│       ├── stats.css
+│       └── styles.css
+├── netlify
+│   └── edge-functions
+│       ├── sheet-proxy.js
+│       └── sleeper-proxy.js
+├── netlify.toml
+└── .ReferenceFolder
 
 ---
 
@@ -161,14 +175,8 @@ DH-P3/DH_P2.53
 - **/DH_P2.53/scripts/syop.js**: Logic for the **Research / SYOP** page. Renders:
   - SVG-based SYOP sunburst, distribution bar charts, gauges, and draft hit-rate visualizations.
   - Handles tab switching and resize-aware redraw behavior.
-
-- **/DH_P2.53/scripts/dh-scramble.js**: Creates the letter-scrambling animation for the “Dynasty Hub” title on the home/welcome view.
-
 - **/DH_P2.53/service-worker.js**: Service worker enabling PWA features, including offline caching strategies, cache versioning, and fallback behavior for navigations and immutable assets.
 
-- **/DH_P2.53/styles/styles.css**: Global stylesheet defining:
-  - The “Deep Space” theme, starfield background, noise overlay, and glass-panel styles.
-  - Global layout, typography, header/nav, buttons, modals, roster cards, and shared utilities across pages.  
   - **Navigation system**: `.nav-button` base class, `.nav-more-toggle` for More button, `.nav-more-dropdown` uses `position: fixed` with JS-applied `left/top` coordinates.
   - **Rosters page responsive overrides**:
     - Mobile (≤819px): 2-row header, sticky positioning, condensed controls, view-dropdown instead of view-switcher
@@ -177,8 +185,7 @@ DH-P3/DH_P2.53
 - **/DH_P2.53/styles/stats.css**: Stats-page-specific styles. Controls:
   - Stats header shell, intro card, filter/controls panel.
   - Table layout, sticky headers, column widths, loading/empty states.
-  - Stats key popup and responsive tweaks.
-
+  
 - **/DH_P2.53/styles/dashboard.css**: Dashboard-specific styles scoped to `.fc-dashboard`. Defines:
   - Dashboard background orbs, glass cards, and summary-grid layout.
   - Player picker, metric typography, and chart panel styling for radar/bar/scatter.
@@ -190,8 +197,7 @@ DH-P3/DH_P2.53
 
 - **/netlify.toml**: Netlify configuration file specifying build settings, redirects, headers, and routing of `/api/sheet/*` and `/api/sleeper/*` to the appropriate edge functions.
 
-- **/.ReferenceFolder**: Holds reference documentation, summaries, and notes used to guide implementation decisions.  
-  - `SZN_STATS_SECTIONS.md` explains how to add/reorder SZN stat sections and categories.
+- **/.ReferenceFolder**: Holds reference documentation for user.  
 
 ---
 
@@ -245,8 +251,6 @@ DH-P3/DH_P2.53
 ---
 
 ## Data Access, Netlify, and Environment
-
-- Deployed via Netlify. **Edge proxies exist** for Google Sheets (`/api/sheet/*`) and Sleeper (`/api/sleeper/*`).
 - **Current code paths in `app.js` and `stats.js` still use direct endpoints** for some data (e.g., `https://api.sleeper.app/v1` and direct Google Sheets CSV links).
 - When adding new requests, **prefer the proxy endpoints** unless you are explicitly matching an existing direct-call pattern.
 - The site is deployed via Netlify (`netlify.toml`), and proxy routes are:
@@ -260,7 +264,7 @@ DH-P3/DH_P2.53
   - `DH_P2.53/data/NFL-2025_Stats/SZN.csv`
   - `DH_P2.53/data/NFL-2025_Stats/SZN_RKs.csv`
   - `DH_P2.53/data/NFL-2025_Stats/Weeks/WK1.csv` … `WK18.csv`
-- **Rosters page always uses the local CSVs** for these stats (even though the Google Sheets loader still exists for easy re-enable next season).
+- **Rosters and Stats page always uses the local CSVs** for these stats (Google Sheets loader still exists for easy re-enable next season).
 - **Stats page table** now uses `SZN.csv` for displayed stats, and augments with:
   - **KTC VALUE** + **RDP (pick) values** from `KTC_1QB` / `KTC_SFLX` in the Rosters KTC workbook (via `fetchDataFromGoogleSheet()` in `app.js`).
   - Join key: `SLPR_ID` for players; picks are keyed by `PLAYER NAME` with `POS = RDP`.
@@ -298,8 +302,8 @@ DH-P3/DH_P2.53
 
 | Layer | What's Cached | Cleared By |
 |-------|---------------|------------|
-| **Service Worker Cache** | Same-origin HTML/JS/CSS/assets/data | Bumping `CACHE_NAME` + deploy |
-| **Browser HTTP Cache** | Per `Cache-Control` headers | Cache expiry or hard refresh |
+| **Service Worker Cache** | Same-origin HTML/JS/CSS/assets/data only | Bumping `CACHE_NAME` + deploy |
+| **Browser HTTP Cache** | Per `Cache-Control` headers | SW `fetchFresh` (no-store) or hard refresh |
 | **In-Memory JS State** | `state.cache`, etc. | Page reload |
 | **LocalStorage** | `sleeper_username` only | User clears (NOT touched by resets) |
 
@@ -307,15 +311,15 @@ DH-P3/DH_P2.53
 1. **Edit** `DH_P2.53/service-worker.js` → Change `CACHE_NAME`
 2. **Deploy** to Netlify
 3. **User behavior** on next normal refresh:
-   - New SW installs with `cache: 'no-store'` (bypasses HTTP cache entirely)
-   - Old SW cache is purged
-   - All clients auto-reload to get fresh content immediately
+   - New SW installs and handles ALL same-origin static fetches with `cache: 'no-store'`
+   - Old SW version is purged; new SW takes control and forces all clients to auto-reload
+   - Result: Users get fresh HTML/JS/CSS/Assets/Data immediately without a manual "hard refresh"
 
 ### Key SW Design Decisions
-- **Only cache same-origin** — Third-party (Sleeper, Google, CDNs, fonts) never cached by SW
-- **Absolute URL cache keys** — Avoids `./` vs `/` mismatches
-- **`cache: 'no-store'` on install** — Forces network fetch, ignores browser HTTP cache
-- **Force client reload on activate** — Users get new content without manual hard refresh
+- **Only cache same-origin** — Third-party (Sleeper, Google, CDNs, fonts) are NEVER cached by the SW.
+- **Absolute URL cache keys** — Avoids `./` vs `/` mismatches in Cache Storage.
+- **`cache: 'no-store'` for ALL same-origin fetches** — Both during `install` pre-caching AND runtime `fetch` events. This is the "killer feature" that reliably bypasses stale browser HTTP caches.
+- **Force client reload on activate** — Users get new content automatically when the new version takes over.
 
 ### HTTP Caching Rules (`netlify.toml`)
 
