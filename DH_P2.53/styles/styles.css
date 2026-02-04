@@ -11771,31 +11771,31 @@ body[data-page="analyzer"] .app-header {
 }
 
 #loading .loading-spinner {
-  width: 250px;
-  height: 250px;
+  width: 236px;
+  height: 236px;
   position: relative;
-  top: 40px;
-  border: 11px solid #f0f4ff05;
+  top: 49px;
+  border: 12px solid #f0f4ff05;
   border-top-color: rgb(182 196 254 / 62%);
   border-radius: 50%;
   animation: dh-loading-spin 1.05s ease-in-out infinite;
-  box-shadow: 0 0 27px #aaf, inset 0 0 86px #AAF6, inset 0 0 18px #aaf;
+  box-shadow: 0 0 27px #aaf, inset 0 0 50px #AAF6, inset 0 0 18px #aaf;
 }
 
 #loading .loading-body {
   position: relative;
-  top: -198px;
+  top: -169px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.65rem;
+  gap: 2.65rem;
 }
 
 #loading .loading-logo {
-  width: min(216px, 70vw);
+  width: min(188px, 70vw);
   height: auto;
   display: block;
-  filter: opacity(0.8) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.35));
+  filter: opacity(0.9) drop-shadow(0 10px 22px #fff1);
 }
 
 #loading .loading-message {
