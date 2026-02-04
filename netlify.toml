@@ -1,5 +1,6 @@
 [build]
   publish = "DH_P2.53"
+  command = "node netlify/build-deploy-id.js"
 
 [[redirects]]
   from = "/"
@@ -32,6 +33,96 @@
   status = 200
 
 [[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/sw-build-id.js"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/rosters"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/ownership"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/analyzer"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/research"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/stats"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/rosters/rosters.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/ownership/ownership.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/analyzer/analyzer.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/research/research.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/stats/stats.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/scripts/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/styles/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
@@ -39,12 +130,14 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
     Content-Security-Policy-Report-Only = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; connect-src 'self' https://docs.google.com https://api.sleeper.app; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    # Keep a small cache for non-asset routes (e.g. API proxies) while static
+    # app assets are forced to revalidate via the more specific rules above.
     Cache-Control = "public, max-age=300"
 
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "no-cache"
 
 [[edge_functions]]
   path = "/api/sheet/*"

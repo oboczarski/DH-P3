@@ -8069,13 +8069,19 @@ async function fetchWithCache(url) {
         if (!window.__reloadedOnce) { window.__reloadedOnce = true; location.reload(); }
     });
 })();
-// PWA registration (with version bump to bust old caches)
+// PWA registration (deploy-aware cache busting)
+// - The SW imports `sw-build-id.js` (generated during Netlify builds) which changes on every
+//   deploy/re-deploy, forcing a SW update and a fresh cache for ALL app assets.
+// - `updateViaCache: 'none'` and an explicit `update()` help clients pick up new deploys ASAP.
 if ('serviceWorker' in navigator) {
     const swPath = pageType === 'welcome'
-        ? 'service-worker.js?v=20250825104842'
-        : '../service-worker.js?v=20250825104842';
+        ? 'service-worker.js'
+        : '../service-worker.js';
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register(swPath).catch(() => { });
+        navigator.serviceWorker
+            .register(swPath, { updateViaCache: 'none' })
+            .then(reg => { try { reg.update(); } catch (e) { } })
+            .catch(() => { });
     });
 }
 // Hide legend when switching away from Welcome via UI controls

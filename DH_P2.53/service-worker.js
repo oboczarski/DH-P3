@@ -1,4 +1,17 @@
-const CACHE_NAME = 'sleeper-tool-cache-v1.0.0-20260116';
+// Cache versioning (deploy-aware)
+// - Netlify build writes `sw-build-id.js` with a unique deploy id.
+// - Importing it here makes the SW update on every deploy/re-deploy and ensures
+//   we use a new cache name, so ALL cached app assets get invalidated reliably.
+let __dhBuildId = 'local-dev';
+try {
+  importScripts('./sw-build-id.js');
+  if (typeof self.__DH_SW_BUILD_ID === 'string' && self.__DH_SW_BUILD_ID.trim()) {
+    __dhBuildId = self.__DH_SW_BUILD_ID.trim();
+  }
+} catch (e) {
+  // Local/dev fallback: if `sw-build-id.js` is missing, keep the default id.
+}
+const CACHE_NAME = `sleeper-tool-cache-${__dhBuildId}`;
 const IMMUTABLE_ASSETS = [
   '/assets/',
   'fonts.googleapis.com',
