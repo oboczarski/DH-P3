@@ -24,7 +24,7 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-const CACHE_NAME = 'sleeper-tool-cache-v1.2.0-20260207';
+const CACHE_NAME = 'sleeper-tool-cache-v1.2.0-20260208';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install (use absolute paths from origin)
