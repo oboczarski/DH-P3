@@ -289,3 +289,50 @@ DH-P3/DH_P2.53
 - **Ownership**: Internal navigation (`data-nav="ownership"`)
 - **Trophy Room**: External link (`data-url="https://dynastyhub-trophyroom.netlify.app/"`)
 - **Matchups**: External link (`data-url="http://dynastyhub-matchups.netlify.app/"`)
+
+---
+
+## Caching Strategy & Manual Reset Workflow
+
+### Architecture (Multi-Layer)
+The app uses a multi-layer caching strategy:
+
+| Layer | Location | Lifetime | Cleared By |
+|-------|----------|----------|------------|
+| **Service Worker Cache** | Cache Storage API | Until `CACHE_NAME` changes | Bumping `CACHE_NAME` + deploy |
+| **Browser HTTP Cache** | Browser disk | Per `Cache-Control` headers | Hard refresh, cache expiry |
+| **In-Memory JS State** | `state.cache`, etc. | Current page session | Page reload |
+| **LocalStorage** | `sleeper_username` | Indefinite | User clears storage (NOT reset) |
+
+### Manual Reset Workflow (Force Fresh Content)
+To push updated logos, CSVs, JS, or CSS to all users:
+
+1. **Edit** `DH_P2.53/service-worker.js` → Change `CACHE_NAME` to a new unique value
+   - Format: `sleeper-tool-cache-v{major}.{minor}.{patch}-{YYYYMMDD}`
+   - Example: `v1.0.0-20260116` → `v1.1.0-20260204`
+
+2. **Deploy** to Netlify (push to main branch)
+
+3. **User behavior** on next visit/refresh:
+   - Browser detects new SW script (byte diff)
+   - New SW installs, fetches assets with `{cache: 'reload'}` (bypasses HTTP cache)
+   - Old Cache Storage is purged during activate
+   - Users receive fresh content within ~1 hour of revisiting
+
+### HTTP Caching Rules (`netlify.toml`)
+
+| Path | max-age | stale-while-revalidate | Notes |
+|------|---------|------------------------|-------|
+| `/*` (default) | 5 min | — | HTML/JS/CSS revalidate frequently |
+| `/assets/*` | 1 day | 7 days | Images, fonts, logos |
+| `/data/*` | 1 day | 7 days | Static CSVs |
+
+> **Important**: NO `immutable` headers. This allows the SW to force network fetches.
+
+### Google Sheets Caching (Post-Season Status)
+- **DISABLED BY DEFAULT** — Season ended; all player stats come from local CSVs
+- **EXCEPTION**: KTC workbook (`GOOGLE_SHEET_ID` in `app.js`) is still fetched live for VALUE data
+- **Edge proxies** (`/api/sheet/*`, `/api/sleeper/*`) exist but are NOT used by frontend currently
+- **To re-enable Sheets stats**: Use query param `?playerStatsSource=sheets` (testing only)
+
+> ⚠️ **DO NOT** re-enable full Sheets loading without updating this documentation.

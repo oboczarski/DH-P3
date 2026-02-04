@@ -1,5 +1,26 @@
+# =============================================================================
+# NETLIFY CONFIGURATION — Dynasty Hub (DH-P3)
+# =============================================================================
+#
+# CACHING STRATEGY (HTTP Layer)
+# -----------------------------
+# This file controls browser HTTP caching via Cache-Control headers.
+# The Service Worker (service-worker.js) provides an additional caching layer.
+#
+# Key design decision: NO "immutable" headers
+# - We removed "immutable" from /assets/* so that when CACHE_NAME is bumped
+#   in the Service Worker, the SW can fetch fresh versions using {cache: 'reload'}
+# - Files are still cached efficiently (1 day) but can be revalidated
+#
+# See AGENTS.md and .github/copilot-instructions.md for full caching docs.
+# =============================================================================
+
 [build]
   publish = "DH_P2.53"
+
+# =============================================================================
+# REDIRECTS — Clean URLs for SPA-style navigation
+# =============================================================================
 
 [[redirects]]
   from = "/"
@@ -31,20 +52,50 @@
   to = "/stats/stats.html"
   status = 200
 
+# =============================================================================
+# HEADERS — Security & Caching
+# =============================================================================
+
+# Default headers for all paths
 [[headers]]
   for = "/*"
   [headers.values]
+    # Security headers
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
     Content-Security-Policy-Report-Only = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; connect-src 'self' https://docs.google.com https://api.sleeper.app; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+
+    # Default caching: 5 minutes (HTML, JS, CSS)
+    # Short max-age ensures users get fresh code quickly after deploys
     Cache-Control = "public, max-age=300"
 
+# Static assets: logos, images, fonts, icons
+# - 1 day cache for fast repeat visits
+# - 7 day stale-while-revalidate for graceful background updates
+# - NO "immutable" — allows Service Worker to force revalidation with {cache: 'reload'}
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+# Static data files: CSVs for player stats
+# - Same caching rules as /assets/*
+# - These are season snapshots that rarely change, but CAN be updated
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+# =============================================================================
+# EDGE FUNCTIONS — API Proxies (currently unused by frontend)
+# =============================================================================
+# These proxies exist for future use or optional routing of Sleeper/Sheets
+# requests through Netlify's edge network. The frontend currently calls
+# external APIs directly (api.sleeper.app, docs.google.com).
+#
+# To enable: Update fetch URLs in app.js from direct endpoints to /api/...
 
 [[edge_functions]]
   path = "/api/sheet/*"
