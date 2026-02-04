@@ -460,7 +460,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 /* Loading screen keeps the panel background */
 #loading {
-  padding: 4rem 2rem;
+  padding: 4rem 0rem;
   background: rgb(47 29 104 / 10%);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--panel-border-radius);
@@ -11750,7 +11750,7 @@ body[data-page="analyzer"] .app-header {
 
 #loading {
   /* Loader sizing: much wider on desktop, while still fitting mobile. */
-  max-width: 1400px;
+  max-width: 1200px;
 }
 
 #loading .loading-overlay {
@@ -11762,7 +11762,7 @@ body[data-page="analyzer"] .app-header {
   text-align: center;
   color: var(--color-text-primary, #EAEBF0);
   /* Default (desktop): wider content area so the panel doesn't look cramped. */
-  width: min(1200px, 90vw);
+  width: min(899px, 77vw);
 }
 
 #loading .loading-spinner {
@@ -11812,7 +11812,7 @@ body[data-page="analyzer"] .app-header {
 @media (max-width: 868px) {
   #loading .loading-overlay {
     /* Mobile: match the Stats loader sizing while guaranteeing the 250px spinner fits. */
-    width: clamp(250px, 74vw, 520px);
+    width: clamp(350px, 92vw, 520px);
   }
 }
 
