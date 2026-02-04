@@ -6,8 +6,8 @@ Always follow prompt instructions. This includes adhering to any specific guidel
 
 ## Initial Review (Important First Step):
 
-Before modifying any code, thoroughly review and analyze the existing structures, functionality, layout, setup, and styles relevant to the task.  
-Analyze the sections related to the prompt to fully understand the current HTML structure, JavaScript rendering logic, data flow, and CSS styling. Develop a deep understanding of how the pages are set up, how components are implemented, and how to alter each component on every page. Always be very thorough, and review all files necessary for context so that you have working knowledge and a full understanding of the project.
+Before modifying any code, thoroughly review all files necessary for context so that you have working knowledge and a full understanding of the project and analyze the existing structures, functionality, layout, setup, and styles relevant to the task.  
+Analyze the sections related to the prompt to fully understand the current HTML structure, JavaScript rendering logic, data flow, and CSS styling. Develop a deep understanding of how the pages are set up, how components are implemented, and how to alter each component on every page. Always be very thorough.
 
 ### Be Proactive About Context
 
@@ -152,6 +152,13 @@ DH-P3/DH_P2.53
     - Section/group ordering is driven by `SZN_STAT_SECTIONS_BY_POS` (see reference doc below).
     - Ranks/colors are reused from the existing rank color logic.
   - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
+    - The Game Logs modal includes a **GL/SZN** switcher:
+      - **GL** = the traditional game logs table.
+      - **SZN** = the single-player season stats list rendered in the same table area.
+    - The SZN view is grouped by **position-based sections** driven by `SZN_STAT_SECTIONS_BY_POS` in `DH_P2.53/scripts/app.js`.
+    - Section configuration (categories, order, and stat lists) is documented in:
+      - `.ReferenceFolder/SZN_STATS_SECTIONS.md`
+---
 
 - **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
   - Builds summary metrics for dashboard cards.
@@ -243,11 +250,6 @@ DH-P3/DH_P2.53
   - Displays multi-league ownership/exposure data per player.
   - **Navigation**: Includes "More" dropdown (Ownership marked active, Trophy Room/Matchups).
 
-- **Shared app logic & other behavior**  
-  - `DH_P2.53/scripts/app.js` is the core engine for navigation, Sleeper integration, dropdown positioning, and shared UI behaviors (legend, game logs, modals, etc.). 
-  - `DH_P2.53/scripts/dh-scramble.js` handles title animation on the welcome/dashboard header.  
-  - `DH_P2.53/service-worker.js` and `DH_P2.53/manifest.webmanifest` implement PWA behavior and app metadata.
-
 ---
 
 ## Data Access, Netlify, and Environment
@@ -270,15 +272,7 @@ DH-P3/DH_P2.53
   - Join key: `SLPR_ID` for players; picks are keyed by `PLAYER NAME` with `POS = RDP`.
   - The legacy `STAT_1QB` / `STAT_SFLX` Google Sheets path is still available behind `?statsTableSource=sheets` for quick rollback/testing.
 
-### Game Logs Modal: GL/SZN
 
-- The Game Logs modal includes a **GL/SZN** switcher:
-  - **GL** = the traditional game logs table.
-  - **SZN** = the single-player season stats list rendered in the same table area.
-- The SZN view is grouped by **position-based sections** driven by `SZN_STAT_SECTIONS_BY_POS` in `DH_P2.53/scripts/app.js`.
-- Section configuration (categories, order, and stat lists) is documented in:
-  - `.ReferenceFolder/SZN_STATS_SECTIONS.md`
----
 
 ## Navigation Architecture
 
