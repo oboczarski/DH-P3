@@ -219,7 +219,7 @@
     background: #009efd00;
     border-color: rgb(157 171 194 / 28%);
     font-weight: 600;
-    box-shadow: inset 0px 9px 12px -8px #fff2, inset 0px 0px 16px -2px #1aa9ff43;
+    box-shadow: inset 0px 9px 12px -8px #fff2, inset 0px 0px 16px -2px #1aa9ff43, 0 0 2px #aaf4;
     color: #7fb5fcf0;
   }
 }
@@ -258,7 +258,7 @@
 
 .stats-tab-heading {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 200;
   color: var(--color-text-primary);
   letter-spacing: 0.05em;
@@ -328,7 +328,7 @@
   justify-content: center;
   gap: 0.35rem;
   padding: 0.3rem 0.45rem;
-  border-radius: 7px;
+  border-radius: 9px;
   border: 1px solid rgba(248, 248, 255, 0.081);
   background: rgb(82 83 120 / 11%);
   color: #82879b;
@@ -447,7 +447,7 @@
 
 .stats-secondary-separator {
   width: 1px;
-  height: 1.9rem;
+  height: 1.8rem;
   background: rgba(128, 138, 189, 0.45);
   flex-shrink: 0;
   align-self: stretch;
@@ -552,8 +552,8 @@
 .stats-filter-separator {
   width: 1px;
   align-self: stretch;
-  background: rgba(128, 138, 189, 0.2);
-  margin: 0.15rem 0;
+  background: rgb(128 138 189 / 10%);
+  margin: 0.15rem 0.2rem;
   flex-shrink: 0;
 }
 
@@ -836,11 +836,11 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    row-gap: 0.25rem;
+    row-gap: 0.15rem;
     column-gap: 0rem;
     width: min(100%, 860px);
     margin: 0 auto;
-    padding: 0.35rem 0.75rem 0.3rem;
+    padding: 0.35rem 0.65rem 0.3rem;
     border-radius: 12px;
     background: rgba(13, 14, 35, 0.22);
     background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
@@ -881,8 +881,9 @@
     order: 3;
     flex: 0 0 auto;
     position: static;
-    margin-left: 0.5rem;
+    margin-left: 0.7rem;
     align-self: center;
+    margin-top: 3px;
   }
 
   /* Search + Rookies row (unchanged styling, moved up) + category pills row */
@@ -914,8 +915,11 @@
   /* FILTERS: Row 4 */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-filter-block {
     order: 7;
-    margin-top: 0.2rem;
+    margin-top: 0.1rem;
     flex: 1 1 100%;
+    border-top: 2px solid #aaaaff0f;
+    padding: 0.4rem 0 0 0;
+    border-radius: 3px;
   }
 
   /* Values row: compact 1QB/SFLX switcher + divider + Pick Values control */
@@ -931,7 +935,7 @@
     justify-content: flex-start;
     gap: 0.4rem;
     /* Force break before Row 3 starts */
-    margin-left: auto;
+    margin-left: 0;
     /* Push to start of line in wrap context? No, wait. */
     /* Since Search and Key are above, we just need to ensure Tabs starts a new line if it doesn't fit? */
     /* Or we can force a break by making Search+Key width 100%. */
@@ -950,19 +954,20 @@
     border: 1px solid #aaf2;
     border-radius: 9px;
     box-shadow: inset 0px 9px 11px -14px rgba(255, 255, 255, 0.2);
+    margin-right: 9px;
+    margin-top: 0.3rem;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button {
     flex: 0 0 auto;
-    width: 3.6rem;
+    width: 4.6rem;
     min-width: 4.4rem;
-    padding: 0.022rem 0rem;
-    font-size: 0.74rem;
-    font-weight: 700;
+    font-size: 0.85rem;
+    font-weight: 400;
     letter-spacing: 0.08em;
     border-radius: 7px;
-    height: 23px;
-    line-height: 1.1;
+    height: 26px;
+    line-height: 1.2;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button::after {
@@ -971,12 +976,10 @@
 
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button-1qb,
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button-sflx {
-    padding: 0.022rem 0rem;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tab-button.active {
-    padding: 0.22rem 0rem;
-    min-width: 4.8rem;
+    min-width: 5rem;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks {
@@ -984,9 +987,9 @@
     flex: 0 1 auto;
     width: auto;
     max-width: none;
-    margin-top: 0;
-    padding-left: 0.4rem;
-    border-left: 1px solid rgba(128, 138, 189, 0.2);
+    margin-top: 0.05rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid rgba(128, 138, 189, 0.1);
     justify-content: flex-start;
     align-items: center;
   }
@@ -1000,16 +1003,17 @@
 
   /* Ensure Title and Search take full rows to force wrapping */
   body[data-page="stats"] .stats-top-panels-row .stats-intro-stack {
-    margin-bottom: 0.2rem;
+    margin-bottom: 0rem;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks .stats-picks-btn {
     width: auto;
     max-width: none;
     padding: 0.35rem 0.55rem;
-    min-height: 1.25rem;
-    font-size: 0.62rem;
+    min-height: 1.55rem;
+    font-size: 0.6rem;
     white-space: nowrap;
+    margin-top: 4px;
   }
 
   /* Footer stays the same, just moved beneath the Values row */
@@ -2054,7 +2058,7 @@ body[data-page="stats"] {
   }
 
   .stats-key-button i {
-    font-size: 0.75rem;
+    font-size: 1rem;
   }
 }
 
@@ -2096,11 +2100,11 @@ body[data-page="stats"] {
     justify-content: center;
     max-width: 100%;
     flex-wrap: nowrap;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.25rem;
   }
 
   .stats-key-button {
-    padding: 0.3rem 0.7rem;
+    padding: 0.4rem 0.8rem;
     right: 5px;
     top: 3px;
   }
@@ -2121,12 +2125,13 @@ body[data-page="stats"] {
   .stats-secondary-row .stats-rookie-btn {
     width: auto;
     min-width: 4rem;
-    min-height: 1.75rem;
+    min-height: 1.6rem;
+    margin-top: 4px;
   }
 
   .stats-filter-btn-secondary.stats-picks-btn {
     min-height: 0.75rem;
-    border-radius: 999px;
+    border-radius: 8px;
   }
 
   .stats-controls-heading {
@@ -2189,6 +2194,7 @@ body[data-page="stats"] {
     padding: 0.38rem 2rem 0.38rem 0.8rem;
     /* restore original padding */
     line-height: 1;
+    height: 31px;
   }
 
   /* Mobile scrollbar styling */
