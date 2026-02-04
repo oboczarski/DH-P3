@@ -367,8 +367,9 @@ main#content {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    gap: 0.65rem;
+    gap: 1rem;
     width: 100%;
+    margin-left: -2px !important;
   }
 }
 
@@ -441,12 +442,13 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 
   .welcome-branding-panel .welcome-logo {
-    --welcome-logo-size: clamp(40px, 15vw, 56px);
+    --welcome-logo-size: clamp(40px, 15.4vw, 59px);
+    height: 58px;
     margin-top: 0px;
   }
 
   .welcome-branding-panel h2 {
-    font-size: clamp(1.2rem, 29vw, 2.2rem);
+    font-size: clamp(1.2rem, 29vw, 2.3rem);
   }
 
   .welcome-info-panel {
@@ -6723,13 +6725,14 @@ body::before {
   box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
 }
 
-@media (max-width: 640px) { 
-  #game-logs-modal .gamelogs-view-switcher{
-  padding: 0.05rem 0.07rem;
-  border-radius: 7px;
-  gap: 0.12rem;
-  } 
+@media (max-width: 640px) {
+  #game-logs-modal .gamelogs-view-switcher {
+    padding: 0.05rem 0.07rem;
+    border-radius: 7px;
+    gap: 0.12rem;
+  }
 }
+
 #game-logs-modal .gamelogs-view-option {
   position: relative;
   z-index: 1;
@@ -6760,6 +6763,7 @@ body::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
+
   #game-logs-modal .gamelogs-season-tab:hover,
   #game-logs-modal .gamelogs-view-option:hover {
     color: var(--color-text-primary);
@@ -6793,8 +6797,9 @@ body::before {
     width: 5.3rem;
     border-radius: 6px;
   }
+
   #game-logs-modal .gamelogs-view-option i {
-    font-size:14px;
+    font-size: 14px;
   }
 }
 
