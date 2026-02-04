@@ -11769,17 +11769,17 @@ body[data-page="analyzer"] .app-header {
   width: 250px;
   height: 250px;
   position: relative;
-  top: -20px;
-  border: 13px solid #f0f4ff00;
+  top: 40px;
+  border: 11px solid #f0f4ff05;
   border-top-color: rgb(182 196 254 / 62%);
   border-radius: 50%;
-  animation: dh-loading-spin 1.05s cubic-bezier(0.56, -0.07, 0.58, 1) infinite;
-  box-shadow: 0 0 23px #aaf, inset 0 0 74px #aaf5, inset 0 0 16px #aaf;
+  animation: dh-loading-spin 1.05s ease-in-out infinite;
+  box-shadow: 0 0 27px #aaf, inset 0 0 86px #AAF6, inset 0 0 18px #aaf;
 }
 
 #loading .loading-body {
   position: relative;
-  top: -257px;
+  top: -198px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11795,12 +11795,11 @@ body[data-page="analyzer"] .app-header {
 
 #loading .loading-message {
   display: inline-block;
-  font-size: 0.82rem;
+  font-size: 1.12rem;
   color: var(--color-text-secondary);
   letter-spacing: 0.05em;
   line-height: 1.25;
-  max-width: 24rem;
-  margin-top: 20px;
+  margin-top: 38px;
 }
 
 @keyframes dh-loading-spin {
