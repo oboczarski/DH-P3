@@ -659,11 +659,11 @@
   position: relative;
   padding: 0.2rem 0.5rem;
   font-size: 0.6rem;
-  font-weight: 300;
+  font-weight: 400;
   border-radius: 8px;
   border: 1px solid rgb(255 255 255 / 9%);
   background: rgb(43 43 59 / 34%);
-  color: #9ca2cc;
+  color: #8487a3e8;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -915,9 +915,9 @@
   /* FILTERS: Row 4 */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-filter-block {
     order: 7;
-    margin-top: 0.1rem;
+    margin-top: 0rem;
     flex: 1 1 100%;
-    border-top: 2px solid #aaaaff0f;
+    border-top: 1px dashed #aaaaff00;
     padding: 0.4rem 0 0 0;
     border-radius: 3px;
   }
@@ -1008,12 +1008,13 @@
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks .stats-picks-btn {
     width: auto;
-    max-width: none;
+    max-width: 4.6rem;
     padding: 0.35rem 0.55rem;
     min-height: 1.55rem;
     font-size: 0.6rem;
     white-space: nowrap;
     margin-top: 4px;
+    min-width: 4.5rem;
   }
 
   /* Footer stays the same, just moved beneath the Values row */
@@ -2124,7 +2125,7 @@ body[data-page="stats"] {
 
   .stats-secondary-row .stats-rookie-btn {
     width: auto;
-    min-width: 4rem;
+    min-width: 4.5rem;
     min-height: 1.6rem;
     margin-top: 4px;
   }
