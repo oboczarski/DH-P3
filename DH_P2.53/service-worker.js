@@ -50,7 +50,7 @@
 // ============================================================================
 // Format: 'sleeper-tool-cache-v{major}.{minor}.{patch}-{YYYYMMDD}'
 // Increment and update the date whenever you need users to get fresh content.
-const CACHE_NAME = 'sleeper-tool-cache-v1.1.0-20260204';
+const CACHE_NAME = 'sleeper-tool-cache-v1.1.0-20260205';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install for offline support
