@@ -6,17 +6,17 @@
  * MANUAL CACHE RESET WORKFLOW
  * ---------------------------
  * To force all users onto fresh content:
- *   1. Change CACHE_NAME below (e.g., v1.1.0-20260205 → v1.2.0-20260206)
+ *   1. Change CACHE_NAME below
  *   2. Deploy to Netlify
- *   3. Users get fresh content on next normal refresh (no hard refresh needed)
+ *   3. Users get fresh content on next normal refresh
  *
  * KEY DESIGN DECISIONS
  * --------------------
- * - ONLY cache same-origin files (our HTML/JS/CSS/assets/data)
- * - NEVER cache third-party requests (Sleeper API, Google Sheets, CDNs, fonts)
- * - Use absolute URLs as cache keys (avoid ./ vs / mismatches)
- * - Fetch with cache-busting headers during install to bypass browser HTTP cache
- * - Force client reload on activate when CACHE_NAME changes
+ * - ONLY cache same-origin files (HTML/JS/CSS/assets/data)
+ * - NEVER cache third-party requests (Sleeper, Google, CDNs, fonts)
+ * - ALL fetches for same-origin files use {cache: 'no-store'} to bypass HTTP cache
+ * - Absolute URLs as cache keys (avoid ./ vs / mismatches)
+ * - Force client reload on activate
  *
  * =============================================================================
  */
@@ -24,12 +24,11 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-const CACHE_NAME = 'sleeper-tool-cache-v1.2.0-30260208';
+const CACHE_NAME = 'sleeper-tool-cache-v1.3.0-20260204';
 
 // ============================================================================
-// CORE ASSETS — Pre-cached during install (use absolute paths from origin)
+// CORE ASSETS — Pre-cached during install
 // ============================================================================
-// These are converted to absolute URLs at runtime to ensure cache key consistency.
 const CORE_ASSET_PATHS = [
   '/',
   '/index.html',
@@ -51,31 +50,26 @@ const CORE_ASSET_PATHS = [
 ];
 
 // ============================================================================
-// HELPER: Check if a URL is same-origin (our site, not third-party)
+// HELPER: Check if URL is same-origin
 // ============================================================================
 function isSameOrigin(url) {
   try {
-    const parsed = new URL(url, self.location.origin);
-    return parsed.origin === self.location.origin;
+    return new URL(url, self.location.origin).origin === self.location.origin;
   } catch {
     return false;
   }
 }
 
 // ============================================================================
-// HELPER: Check if a URL is a cacheable static asset (not an API call)
+// HELPER: Check if URL is a cacheable static asset
 // ============================================================================
 function isCacheableAsset(url) {
-  // Only cache same-origin requests
   if (!isSameOrigin(url)) return false;
 
   const pathname = new URL(url, self.location.origin).pathname;
 
-  // Cache these paths:
-  // - Root HTML pages (/, /index.html, /rosters/rosters.html, etc.)
-  // - Static assets (/assets/*, /data/*, /styles/*, /scripts/*)
-  // - Manifest
-  const cacheablePatterns = [
+  // Cache: HTML, CSS, JS, manifest, /assets/*, /data/*
+  const patterns = [
     /^\/$/,
     /\.html$/,
     /\.css$/,
@@ -85,115 +79,104 @@ function isCacheableAsset(url) {
     /^\/data\//
   ];
 
-  return cacheablePatterns.some(pattern => pattern.test(pathname));
+  return patterns.some(p => p.test(pathname));
 }
 
 // ============================================================================
-// INSTALL — Fetch core assets with cache-busting to bypass HTTP cache
+// HELPER: Fetch with HTTP cache bypass
+// ============================================================================
+// This is the critical function that ensures fresh responses from the network,
+// ignoring whatever the browser has in its HTTP cache.
+async function fetchFresh(url) {
+  return fetch(url, {
+    cache: 'no-store',  // Bypass HTTP cache completely
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache'
+    }
+  });
+}
+
+// ============================================================================
+// INSTALL — Pre-cache core assets with HTTP cache bypass
 // ============================================================================
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
-      // Convert relative paths to absolute URLs for consistent cache keys
-      const absoluteUrls = CORE_ASSET_PATHS.map(
-        path => new URL(path, self.location.origin).href
-      );
+      const urls = CORE_ASSET_PATHS.map(p => new URL(p, self.location.origin).href);
 
-      const fetchPromises = absoluteUrls.map(async absoluteUrl => {
+      await Promise.all(urls.map(async url => {
         try {
-          // Fetch with headers that force revalidation, bypassing browser HTTP cache
-          const response = await fetch(absoluteUrl, {
-            cache: 'no-store',  // Completely bypass HTTP cache
-            headers: {
-              'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
-            }
-          });
-
+          const response = await fetchFresh(url);
           if (response.ok) {
-            // Store with the absolute URL as key
-            await cache.put(absoluteUrl, response);
+            await cache.put(url, response);
           }
         } catch (err) {
-          console.warn(`[SW] Install failed for: ${absoluteUrl}`, err);
+          console.warn('[SW] Install cache failed:', url, err);
         }
-      });
+      }));
 
-      await Promise.all(fetchPromises);
       return self.skipWaiting();
     })
   );
 });
 
 // ============================================================================
-// ACTIVATE — Purge old caches and force reload of all clients
+// ACTIVATE — Purge old caches and force all clients to reload
 // ============================================================================
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(cacheNames => {
-        // Delete all caches that don't match current CACHE_NAME
-        return Promise.all(
-          cacheNames
-            .filter(name => name !== CACHE_NAME)
-            .map(name => {
-              console.log(`[SW] Deleting old cache: ${name}`);
-              return caches.delete(name);
-            })
-        );
-      })
+      .then(names => Promise.all(
+        names.filter(n => n !== CACHE_NAME).map(n => {
+          console.log('[SW] Deleting old cache:', n);
+          return caches.delete(n);
+        })
+      ))
       .then(() => self.clients.claim())
-      .then(() => {
-        // Force all open clients to reload so they get fresh assets immediately
-        return self.clients.matchAll({ type: 'window' }).then(clients => {
-          clients.forEach(client => {
-            // Only reload if the client supports it
-            if (client.url && 'navigate' in client) {
-              client.navigate(client.url);
-            }
-          });
+      .then(() => self.clients.matchAll({ type: 'window' }))
+      .then(clients => {
+        // Force reload all open windows to get fresh content immediately
+        clients.forEach(client => {
+          if (client.url && 'navigate' in client) {
+            client.navigate(client.url);
+          }
         });
       })
   );
 });
 
 // ============================================================================
-// FETCH — Network-First for same-origin assets only
+// FETCH — Network-First with HTTP cache bypass for same-origin assets
 // ============================================================================
-// - Same-origin static files: Network-First, cache for offline
-// - Third-party (APIs, fonts, CDNs): Pass through WITHOUT caching
+// CRITICAL: All same-origin fetches use {cache: 'no-store'} to ensure the
+// browser fetches from the network, not from its stale HTTP cache.
+// This is what makes CACHE_NAME bumps work reliably.
 self.addEventListener('fetch', event => {
   const { request } = event;
 
-  // Only handle GET requests
+  // Only handle GET
   if (request.method !== 'GET') return;
 
-  // Skip non-cacheable requests (third-party APIs, etc.)
-  if (!isCacheableAsset(request.url)) {
-    // Let the browser handle third-party requests normally (no SW caching)
-    return;
-  }
+  // Skip third-party — let browser handle normally (no SW caching)
+  if (!isCacheableAsset(request.url)) return;
 
-  // Network-First for same-origin static assets
   event.respondWith(
-    fetch(request)
+    // CRITICAL: fetchFresh bypasses HTTP cache, ensuring we get the latest from server
+    fetchFresh(request.url)
       .then(networkResponse => {
-        // Cache successful responses for offline use
         if (networkResponse.ok) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseToCache);
-          });
+          // Cache the fresh response for offline use
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(c => c.put(request, clone));
         }
         return networkResponse;
       })
       .catch(() => {
-        // Network failed — serve from cache
-        return caches.match(request).then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // For navigation, fall back to cached index.html
+        // Network failed — serve from SW cache (offline mode)
+        return caches.match(request).then(cached => {
+          if (cached) return cached;
+          // For navigation, fall back to cached index
           if (request.mode === 'navigate') {
             return caches.match(new URL('/', self.location.origin).href);
           }
