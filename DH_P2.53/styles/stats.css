@@ -868,69 +868,77 @@
   }
 
   /* Panel-2 header row replaces the old tab-row position */
+  /* Hide "Stat Categories" label */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-heading {
-    order: 4;
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: flex-start;
-    padding: 0.1rem 0.25rem;
+    display: none;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-controls-header {
-    width: auto;
-    text-align: left;
+    display: none;
   }
 
   body[data-page="stats"] .stats-top-panels-row #statsKeyButton {
-    order: 5;
+    order: 3;
     flex: 0 0 auto;
-    position: relative;
-    top: -3px;
-    right: auto;
+    position: static;
     margin-left: 0.5rem;
     align-self: center;
   }
 
   /* Search + Rookies row (unchanged styling, moved up) + category pills row */
+  /* Flatten stats-controls-body to allow individual reordering of its children */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body {
-    order: 6;
-    flex: 1 1 100%;
-    gap: 0.45rem;
+    display: contents;
   }
 
+  /* Flatten secondary row to allow Search and Rookies to be separated */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-secondary-row {
-    order: 0;
-    margin-top: -4px;
+    display: contents;
   }
 
+  /* SEARCH BAR: Row 2, next to Key Button */
+  body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-search-block {
+    order: 2;
+    flex: 1 1 auto;
+    max-width: none;
+    margin-top: 0.2rem;
+  }
+
+  /* ROOKIE BTN: Row 3, next to Trade Values */
+  body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-rookie-inline {
+    order: 6;
+    flex: 0 1 auto;
+    margin-left: 0.4rem;
+  }
+
+  /* FILTERS: Row 4 */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body .stats-filter-block {
-    order: 1;
+    order: 7;
+    margin-top: 0.2rem;
+    flex: 1 1 100%;
   }
 
   /* Values row: compact 1QB/SFLX switcher + divider + Pick Values control */
   body[data-page="stats"] .stats-top-panels-row .stats-tabs {
-    order: 2;
-    flex: 1 1 auto;
+    order: 4;
+    flex: 0 1 auto;
     width: auto;
     max-width: none;
-    padding-right: 0.2rem;
+    padding-right: 0rem;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 0.4rem;
+    /* Force break before Row 3 starts */
+    margin-left: auto;
+    /* Push to start of line in wrap context? No, wait. */
+    /* Since Search and Key are above, we just need to ensure Tabs starts a new line if it doesn't fit? */
+    /* Or we can force a break by making Search+Key width 100%. */
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tabs::before {
-    content: 'Trade Value:';
-    display: inline-flex;
-    align-items: center;
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0;
-    text-transform: uppercase;
-    color: var(--color-text-secondary);
-    white-space: nowrap;
+    display: none;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-tabs-buttons {
@@ -972,15 +980,27 @@
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks {
-    order: 3;
-    flex: 1 1 auto;
+    order: 5;
+    flex: 0 1 auto;
     width: auto;
     max-width: none;
     margin-top: 0;
-    padding-left: 0.2rem;
+    padding-left: 0.4rem;
     border-left: 1px solid rgba(128, 138, 189, 0.2);
     justify-content: flex-start;
     align-items: center;
+  }
+
+  /* Force row break after Key Button / Search Bar */
+  body[data-page="stats"] .stats-top-panels-row .stats-search-block {
+    flex-basis: 60% !important;
+  }
+
+
+
+  /* Ensure Title and Search take full rows to force wrapping */
+  body[data-page="stats"] .stats-top-panels-row .stats-intro-stack {
+    margin-bottom: 0.2rem;
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks .stats-picks-btn {
@@ -994,7 +1014,7 @@
 
   /* Footer stays the same, just moved beneath the Values row */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-footer {
-    order: 7;
+    order: 8;
     flex: 1 1 100%;
   }
 
