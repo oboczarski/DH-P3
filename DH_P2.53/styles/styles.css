@@ -11748,6 +11748,11 @@ body[data-page="analyzer"] .app-header {
   display: none;
 }
 
+#loading {
+  /* Loader sizing: much wider on desktop, while still fitting mobile. */
+  max-width: 1400px;
+}
+
 #loading .loading-overlay {
   display: flex;
   flex-direction: column;
@@ -11756,6 +11761,8 @@ body[data-page="analyzer"] .app-header {
   gap: 0.65rem;
   text-align: center;
   color: var(--color-text-primary, #EAEBF0);
+  /* Default (desktop): wider content area so the panel doesn't look cramped. */
+  width: min(1200px, 90vw);
 }
 
 #loading .loading-spinner {
@@ -11799,6 +11806,13 @@ body[data-page="analyzer"] .app-header {
 @keyframes dh-loading-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 868px) {
+  #loading .loading-overlay {
+    /* Mobile: match the Stats loader sizing while guaranteeing the 250px spinner fits. */
+    width: clamp(250px, 74vw, 520px);
   }
 }
 
