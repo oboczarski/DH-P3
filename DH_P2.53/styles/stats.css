@@ -765,7 +765,7 @@
 
   /* Panel-2 header row replaces the old tab-row position */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-heading {
-    order: 2;
+    order: 4;
     flex: 1 1 auto;
     min-width: 0;
     justify-content: flex-start;
@@ -778,7 +778,7 @@
   }
 
   body[data-page="stats"] .stats-top-panels-row #statsKeyButton {
-    order: 3;
+    order: 5;
     flex: 0 0 auto;
     position: relative;
     top: -3px;
@@ -789,7 +789,7 @@
 
   /* Search + Rookies row (unchanged styling, moved up) + category pills row */
   body[data-page="stats"] .stats-top-panels-row .stats-controls-body {
-    order: 4;
+    order: 6;
     flex: 1 1 100%;
     gap: 0.45rem;
   }
@@ -805,14 +805,15 @@
 
   /* Values row: compact 1QB/SFLX switcher + divider + Pick Values control */
   body[data-page="stats"] .stats-top-panels-row .stats-tabs {
-    order: 5;
-    flex: 0 0 auto;
+    order: 2;
+    flex: 1 1 0;
     width: auto;
     max-width: none;
     padding-right: 0.55rem;
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.4rem;
   }
 
@@ -867,8 +868,8 @@
   }
 
   body[data-page="stats"] .stats-top-panels-row .stats-intro-picks {
-    order: 6;
-    flex: 0 0 auto;
+    order: 3;
+    flex: 1 1 0;
     width: auto;
     max-width: none;
     margin-top: 0;
