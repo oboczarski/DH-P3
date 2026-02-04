@@ -5,42 +5,18 @@
  *
  * MANUAL CACHE RESET WORKFLOW
  * ---------------------------
- * To force all users onto fresh content (new logos, JS, CSS, CSVs, etc.):
+ * To force all users onto fresh content:
+ *   1. Change CACHE_NAME below (e.g., v1.1.0-20260205 → v1.2.0-20260206)
+ *   2. Deploy to Netlify
+ *   3. Users get fresh content on next normal refresh (no hard refresh needed)
  *
- *   1. Change CACHE_NAME below to a new unique value
- *      Example: 'sleeper-tool-cache-v1.0.0-20260116' → 'sleeper-tool-cache-v1.0.1-20260204'
- *
- *   2. Deploy to Netlify (push to main branch)
- *
- *   3. User behavior on next visit/refresh:
- *      - Browser detects the new SW script (byte diff)
- *      - New SW installs, fetches CORE_ASSETS with {cache: 'reload'} (bypasses HTTP cache)
- *      - Old Cache Storage is purged during activate
- *      - Users receive fresh content within ~1 hour of revisiting
- *
- * CACHING STRATEGIES
- * ------------------
- * - Install phase: Fetches CORE_ASSETS with {cache: 'reload'} to bypass browser HTTP cache
- * - Activate phase: Deletes ALL old caches (any cache name !== CACHE_NAME)
- * - Fetch phase: Network-First for ALL requests (including /assets/ and /data/)
- *   → Ensures fresh content when online, falls back to cache when offline
- *
- * WHY NETWORK-FIRST FOR EVERYTHING?
- * ----------------------------------
- * Previously, /assets/ used Cache-First ("immutable"). This caused stale logos/images
- * to persist even after CACHE_NAME bumps because:
- *   1. The browser's HTTP cache (separate from SW cache) still held old responses
- *   2. Cache-First served those stale responses without checking the network
- *
- * Now, Network-First ensures:
- *   - Fresh responses are always fetched when online
- *   - The SW cache is updated with each successful fetch
- *   - Offline fallback still works (serves from SW cache if network fails)
- *
- * RELATED FILES
- * -------------
- * - netlify.toml: HTTP caching headers (max-age, stale-while-revalidate)
- * - AGENTS.md & copilot-instructions.md: Full caching strategy documentation
+ * KEY DESIGN DECISIONS
+ * --------------------
+ * - ONLY cache same-origin files (our HTML/JS/CSS/assets/data)
+ * - NEVER cache third-party requests (Sleeper API, Google Sheets, CDNs, fonts)
+ * - Use absolute URLs as cache keys (avoid ./ vs / mismatches)
+ * - Fetch with cache-busting headers during install to bypass browser HTTP cache
+ * - Force client reload on activate when CACHE_NAME changes
  *
  * =============================================================================
  */
@@ -48,135 +24,179 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Format: 'sleeper-tool-cache-v{major}.{minor}.{patch}-{YYYYMMDD}'
-// Increment and update the date whenever you need users to get fresh content.
-const CACHE_NAME = 'sleeper-tool-cache-v1.1.0-20260205';
+const CACHE_NAME = 'sleeper-tool-cache-v1.2.0-20260205';
 
 // ============================================================================
-// CORE ASSETS — Pre-cached during install for offline support
+// CORE ASSETS — Pre-cached during install (use absolute paths from origin)
 // ============================================================================
-// These files are fetched with {cache: 'reload'} during install to ensure
-// the new SW cache is populated with fresh network responses, not stale
-// browser HTTP cache entries.
-const CORE_ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './rosters/rosters.html',
-  './stats/stats.html',
-  './ownership/ownership.html',
-  './analyzer/analyzer.html',
-  './research/research.html',
-  './styles/styles.css',
-  './styles/stats.css',
-  './styles/dashboard.css',
-  './scripts/app.js',
-  './scripts/stats.js',
-  './scripts/analyzer.js',
-  './scripts/dashboard.js',
-  './scripts/syop.js',
-  './scripts/dh-scramble.js'
+// These are converted to absolute URLs at runtime to ensure cache key consistency.
+const CORE_ASSET_PATHS = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/rosters/rosters.html',
+  '/stats/stats.html',
+  '/ownership/ownership.html',
+  '/analyzer/analyzer.html',
+  '/research/research.html',
+  '/styles/styles.css',
+  '/styles/stats.css',
+  '/styles/dashboard.css',
+  '/scripts/app.js',
+  '/scripts/stats.js',
+  '/scripts/analyzer.js',
+  '/scripts/dashboard.js',
+  '/scripts/syop.js',
+  '/scripts/dh-scramble.js'
 ];
 
 // ============================================================================
-// INSTALL — Fetch core assets with {cache: 'reload'} to bypass HTTP cache
+// HELPER: Check if a URL is same-origin (our site, not third-party)
 // ============================================================================
-// Using {cache: 'reload'} forces the browser to fetch from the network,
-// ignoring any cached responses in the HTTP cache. This ensures that when
-// CACHE_NAME is bumped, the new SW cache gets genuinely fresh files.
+function isSameOrigin(url) {
+  try {
+    const parsed = new URL(url, self.location.origin);
+    return parsed.origin === self.location.origin;
+  } catch {
+    return false;
+  }
+}
+
+// ============================================================================
+// HELPER: Check if a URL is a cacheable static asset (not an API call)
+// ============================================================================
+function isCacheableAsset(url) {
+  // Only cache same-origin requests
+  if (!isSameOrigin(url)) return false;
+
+  const pathname = new URL(url, self.location.origin).pathname;
+
+  // Cache these paths:
+  // - Root HTML pages (/, /index.html, /rosters/rosters.html, etc.)
+  // - Static assets (/assets/*, /data/*, /styles/*, /scripts/*)
+  // - Manifest
+  const cacheablePatterns = [
+    /^\/$/,
+    /\.html$/,
+    /\.css$/,
+    /\.js$/,
+    /\.webmanifest$/,
+    /^\/assets\//,
+    /^\/data\//
+  ];
+
+  return cacheablePatterns.some(pattern => pattern.test(pathname));
+}
+
+// ============================================================================
+// INSTALL — Fetch core assets with cache-busting to bypass HTTP cache
+// ============================================================================
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
-      // Fetch each asset with cache: 'reload' to bypass browser HTTP cache
-      const fetchPromises = CORE_ASSETS.map(async url => {
+      // Convert relative paths to absolute URLs for consistent cache keys
+      const absoluteUrls = CORE_ASSET_PATHS.map(
+        path => new URL(path, self.location.origin).href
+      );
+
+      const fetchPromises = absoluteUrls.map(async absoluteUrl => {
         try {
-          const response = await fetch(url, { cache: 'reload' });
+          // Fetch with headers that force revalidation, bypassing browser HTTP cache
+          const response = await fetch(absoluteUrl, {
+            cache: 'no-store',  // Completely bypass HTTP cache
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          });
+
           if (response.ok) {
-            await cache.put(url, response);
+            // Store with the absolute URL as key
+            await cache.put(absoluteUrl, response);
           }
         } catch (err) {
-          // Non-fatal: asset may not exist or network may be down
-          // The app will still work; this asset will be fetched on demand
-          console.warn(`[SW Install] Failed to cache: ${url}`, err);
+          console.warn(`[SW] Install failed for: ${absoluteUrl}`, err);
         }
       });
+
       await Promise.all(fetchPromises);
-      // Skip waiting to activate immediately (don't wait for old SW to stop)
       return self.skipWaiting();
     })
   );
 });
 
 // ============================================================================
-// ACTIVATE — Purge ALL old caches, then claim clients
+// ACTIVATE — Purge old caches and force reload of all clients
 // ============================================================================
-// When a new SW activates, delete every cache that doesn't match the current
-// CACHE_NAME. This ensures old versions are fully removed.
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log(`[SW Activate] Deleting old cache: ${cacheName}`);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      // Claim all open clients so the new SW takes control immediately
-      // (without requiring a page reload)
-      return self.clients.claim();
-    })
+    caches.keys()
+      .then(cacheNames => {
+        // Delete all caches that don't match current CACHE_NAME
+        return Promise.all(
+          cacheNames
+            .filter(name => name !== CACHE_NAME)
+            .map(name => {
+              console.log(`[SW] Deleting old cache: ${name}`);
+              return caches.delete(name);
+            })
+        );
+      })
+      .then(() => self.clients.claim())
+      .then(() => {
+        // Force all open clients to reload so they get fresh assets immediately
+        return self.clients.matchAll({ type: 'window' }).then(clients => {
+          clients.forEach(client => {
+            // Only reload if the client supports it
+            if (client.url && 'navigate' in client) {
+              client.navigate(client.url);
+            }
+          });
+        });
+      })
   );
 });
 
 // ============================================================================
-// FETCH — Network-First for ALL requests
+// FETCH — Network-First for same-origin assets only
 // ============================================================================
-// Strategy: Try network first, update cache on success, fall back to cache on failure.
-//
-// This applies to ALL requests including:
-// - /assets/* (logos, images, fonts)
-// - /data/* (static CSVs)
-// - HTML pages, JS, CSS
-// - External API calls (Sleeper, Google Sheets)
-//
-// Why Network-First everywhere?
-// - Guarantees fresh content when online
-// - Still provides offline support (falls back to cached version)
-// - Works correctly with CACHE_NAME bumps (new SW fetches fresh, old cache is purged)
+// - Same-origin static files: Network-First, cache for offline
+// - Third-party (APIs, fonts, CDNs): Pass through WITHOUT caching
 self.addEventListener('fetch', event => {
+  const { request } = event;
+
   // Only handle GET requests
-  if (event.request.method !== 'GET') return;
+  if (request.method !== 'GET') return;
 
+  // Skip non-cacheable requests (third-party APIs, etc.)
+  if (!isCacheableAsset(request.url)) {
+    // Let the browser handle third-party requests normally (no SW caching)
+    return;
+  }
+
+  // Network-First for same-origin static assets
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then(networkResponse => {
-        // Got a successful network response — cache it for offline use
-        // Clone the response because it can only be consumed once
-        const responseToCache = networkResponse.clone();
-
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseToCache);
-        });
-
+        // Cache successful responses for offline use
+        if (networkResponse.ok) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
+        }
         return networkResponse;
       })
       .catch(() => {
-        // Network failed — try to serve from cache
-        return caches.match(event.request).then(cachedResponse => {
+        // Network failed — serve from cache
+        return caches.match(request).then(cachedResponse => {
           if (cachedResponse) {
             return cachedResponse;
           }
-
-          // For navigation requests (HTML pages), fall back to index.html
-          // This enables SPA-like behavior and offline navigation
-          if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
+          // For navigation, fall back to cached index.html
+          if (request.mode === 'navigate') {
+            return caches.match(new URL('/', self.location.origin).href);
           }
-
-          // No cache available — return undefined (browser shows network error)
           return undefined;
         });
       })

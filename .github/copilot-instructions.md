@@ -295,44 +295,42 @@ DH-P3/DH_P2.53
 ## Caching Strategy & Manual Reset Workflow
 
 ### Architecture (Multi-Layer)
-The app uses a multi-layer caching strategy:
 
-| Layer | Location | Lifetime | Cleared By |
-|-------|----------|----------|------------|
-| **Service Worker Cache** | Cache Storage API | Until `CACHE_NAME` changes | Bumping `CACHE_NAME` + deploy |
-| **Browser HTTP Cache** | Browser disk | Per `Cache-Control` headers | Hard refresh, cache expiry |
-| **In-Memory JS State** | `state.cache`, etc. | Current page session | Page reload |
-| **LocalStorage** | `sleeper_username` | Indefinite | User clears storage (NOT reset) |
+| Layer | What's Cached | Cleared By |
+|-------|---------------|------------|
+| **Service Worker Cache** | Same-origin HTML/JS/CSS/assets/data | Bumping `CACHE_NAME` + deploy |
+| **Browser HTTP Cache** | Per `Cache-Control` headers | Cache expiry or hard refresh |
+| **In-Memory JS State** | `state.cache`, etc. | Page reload |
+| **LocalStorage** | `sleeper_username` only | User clears (NOT touched by resets) |
 
-### Manual Reset Workflow (Force Fresh Content)
-To push updated logos, CSVs, JS, or CSS to all users:
+### Manual Reset Workflow (Bump CACHE_NAME)
+1. **Edit** `DH_P2.53/service-worker.js` → Change `CACHE_NAME`
+2. **Deploy** to Netlify
+3. **User behavior** on next normal refresh:
+   - New SW installs with `cache: 'no-store'` (bypasses HTTP cache entirely)
+   - Old SW cache is purged
+   - All clients auto-reload to get fresh content immediately
 
-1. **Edit** `DH_P2.53/service-worker.js` → Change `CACHE_NAME` to a new unique value
-   - Format: `sleeper-tool-cache-v{major}.{minor}.{patch}-{YYYYMMDD}`
-   - Example: `v1.0.0-20260116` → `v1.1.0-20260204`
-
-2. **Deploy** to Netlify (push to main branch)
-
-3. **User behavior** on next visit/refresh:
-   - Browser detects new SW script (byte diff)
-   - New SW installs, fetches assets with `{cache: 'reload'}` (bypasses HTTP cache)
-   - Old Cache Storage is purged during activate
-   - Users receive fresh content within ~1 hour of revisiting
+### Key SW Design Decisions
+- **Only cache same-origin** — Third-party (Sleeper, Google, CDNs, fonts) never cached by SW
+- **Absolute URL cache keys** — Avoids `./` vs `/` mismatches
+- **`cache: 'no-store'` on install** — Forces network fetch, ignores browser HTTP cache
+- **Force client reload on activate** — Users get new content without manual hard refresh
 
 ### HTTP Caching Rules (`netlify.toml`)
 
-| Path | max-age | stale-while-revalidate | Notes |
-|------|---------|------------------------|-------|
-| `/*` (default) | 5 min | — | HTML/JS/CSS revalidate frequently |
-| `/assets/*` | 1 day | 7 days | Images, fonts, logos |
-| `/data/*` | 1 day | 7 days | Static CSVs |
+| Path | Cache-Control |
+|------|---------------|
+| `/*` (default) | 5 min |
+| `/assets/*` | 1 day + 7d stale-while-revalidate |
+| `/data/*` | 1 day + 7d stale-while-revalidate |
 
-> **Important**: NO `immutable` headers. This allows the SW to force network fetches.
+> **No `immutable` headers** — Allows SW to force fresh fetches.
 
-### Google Sheets Caching (Post-Season Status)
-- **DISABLED BY DEFAULT** — Season ended; all player stats come from local CSVs
-- **EXCEPTION**: KTC workbook (`GOOGLE_SHEET_ID` in `app.js`) is still fetched live for VALUE data
-- **Edge proxies** (`/api/sheet/*`, `/api/sleeper/*`) exist but are NOT used by frontend currently
-- **To re-enable Sheets stats**: Use query param `?playerStatsSource=sheets` (testing only)
+### Google Sheets (Post-Season)
+- **DISABLED** — All player stats come from local CSVs
+- **EXCEPTION**: KTC workbook (`GOOGLE_SHEET_ID`) is still fetched live for VALUE data
+- **Edge proxies** exist but are NOT used by frontend currently
 
-> ⚠️ **DO NOT** re-enable full Sheets loading without updating this documentation.
+> ⚠️ **DO NOT** re-enable full Sheets loading without updating this doc.
+
