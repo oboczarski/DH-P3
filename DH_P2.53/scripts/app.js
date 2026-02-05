@@ -4224,15 +4224,17 @@ function resolveCssColorToRgb(color) {
 function buildSznRankGradient(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.10)`;
-    const mid = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.32)`;
-    const end = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.90)`;
-    return `linear-gradient(90deg, ${start} 0%, ${mid} 45%, ${end} 100%)`;
+    // Solid neon gradient - minimal fade
+    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.7)`;
+    const mid = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.95)`;
+    const end = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1.0)`;
+    return `linear-gradient(90deg, ${start} 0%, ${mid} 60%, ${end} 100%)`;
 }
 function buildSznRankGlow(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    return `0 0 10px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6), 0 0 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
+    // VERY skinny glow (almost just a stroke) to avoid blurriness
+    return `0 0 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`;
 }
 function getGameLogsSeasonDisplayValue({
     key,
