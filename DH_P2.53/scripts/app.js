@@ -4232,7 +4232,7 @@ function buildSznRankGradient(rankColor) {
 function buildSznRankGlow(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    return `0 0 8px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`;
+    return `0 0 10px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.6), 0 0 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4511,7 +4511,7 @@ function renderGameLogsSeasonStatsView({
         if (!statLabels?.[statKey] || statKey === 'proj') return false;
         const labelText = statLabels[statKey];
         const rankValue = getSeasonRankValue(player.id, statKey);
-        const rankColor = getConditionalColorByRank(rankValue, player.pos);
+        const rankColor = getSznStatRankColor(rankValue, player.pos);
         const progressPct = computeSznProgressPercent(rankValue, player.pos);
         const displayValue = getGameLogsSeasonDisplayValue({
             key: statKey,
@@ -7416,25 +7416,60 @@ function getConditionalColorByRank(rank, position) {
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#51CBA5CF' },
-            { v: 24, c: '#34aabfDA' },
-            { v: 36, c: '#4798fcDA' },
-            { v: 48, c: '#957CFFC5' },
-            { v: 60, c: '#FF6FE1A5' },
-            { v: 72, c: '#FF2EB289' },
+            { v: 12, c: '#51CBA5' },
+            { v: 24, c: '#34aabf' },
+            { v: 36, c: '#4798fc' },
+            { v: 48, c: '#957CFF' },
+            { v: 60, c: '#FF6FE1' },
+            { v: 72, c: '#FF2EB9' },
         ]
         : [
-            { v: 8, c: '#51CBA5CF' },
-            { v: 16, c: '#34aabfDA' },
-            { v: 24, c: '#4798fcDA' },
-            { v: 32, c: '#957CFFC5' },
-            { v: 44, c: '#FF6FE1A5' },
-            { v: 60, c: '#FF2EB289' },
+            { v: 8, c: '#51CBA5' },
+            { v: 16, c: '#34aabf' },
+            { v: 24, c: '#4798fc' },
+            { v: 32, c: '#957CFF' },
+            { v: 44, c: '#FF6FE1' },
+            { v: 60, c: '#FF2EB2' },
         ];
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
     return '#767693';
+}
+
+function getSznStatRankColor(rank, position) {
+    if (typeof rank !== 'number' || rank <= 0) return 'inherit';
+    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    
+    /* 
+       Creative/Neon Palette per user request 
+       Best -> Neon Green/Cyan 
+       Mid -> Neon Purple/Pink
+       Worse -> Requested specific colors (#DA285E, #F64B41, #5A00FF)
+    */
+    const thresholds = normalizedPos === 'WR'
+        ? [
+            { v: 12, c: '#00FFC2' }, // Neon Teal
+            { v: 24, c: '#00E0FF' }, // Neon Cyan
+            { v: 36, c: '#bd00ff' }, // Neon Purple
+            { v: 48, c: '#FF00D6' }, // Neon Pink
+            { v: 60, c: '#DA285E' }, // Deep Rose (Requested)
+            { v: 72, c: '#F64B41' }, // Bright Red (Requested)
+        ]
+        : [
+            { v: 8, c: '#00FFC2' },
+            { v: 16, c: '#00E0FF' },
+            { v: 24, c: '#bd00ff' },
+            { v: 32, c: '#FF00D6' },
+            { v: 40, c: '#DA285E' },
+            { v: 50, c: '#F64B41' },
+        ];
+
+    for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.c;
+    }
+    // Worst tier
+    return '#5A00FF'; // Deep Violet (Requested)
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
