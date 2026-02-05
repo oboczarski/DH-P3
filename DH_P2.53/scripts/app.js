@@ -7451,27 +7451,27 @@ function getSznStatRankColor(rank, position) {
     */
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00FFC2' }, // Neon Teal
-            { v: 24, c: '#00E0FF' }, // Neon Cyan
+            { v: 12, c: '#00ffa6' }, // Neon Teal
+            { v: 24, c: '#00fff2' }, // Neon Cyan
             { v: 36, c: '#bd00ff' }, // Neon Purple
-            { v: 48, c: '#FF00D6' }, // Neon Pink
-            { v: 60, c: '#DA285E' }, // Deep Rose (Requested)
-            { v: 72, c: '#F64B41' }, // Bright Red (Requested)
+            { v: 48, c: '#5A00FF' }, // Neon Pink
+            { v: 60, c: '#F64B41' }, // Deep Rose (Requested)
+            { v: 72, c: '#FF00D6' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00FFC2' },
-            { v: 16, c: '#00E0FF' },
+            { v: 8, c: '#00ffa6' },
+            { v: 16, c: '#00fff2' },
             { v: 24, c: '#bd00ff' },
-            { v: 32, c: '#FF00D6' },
-            { v: 40, c: '#DA285E' },
-            { v: 50, c: '#F64B41' },
+            { v: 32, c: '#5A00FF' },
+            { v: 40, c: '#F64B41' },
+            { v: 50, c: '#ff00d6' },
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
     // Worst tier
-    return '#5A00FF'; // Deep Violet (Requested)
+    return '#DA285E'; // Deep Violet (Requested)
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
