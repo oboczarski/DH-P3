@@ -4221,20 +4221,23 @@ function resolveCssColorToRgb(color) {
         return null;
     }
 }
-function buildSznRankGradient(rankColor) {
-    const rgb = resolveCssColorToRgb(rankColor);
+/* Builds a bright-core gradient for the progress bar fill background.
+   Uses the almost-white tinted color to create a hot center neon look. */
+function buildSznRankGradient(brightColor) {
+    const rgb = resolveCssColorToRgb(brightColor);
     if (!rgb) return null;
-    // Solid neon gradient - minimal fade
-    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.7)`;
-    const mid = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.95)`;
+    // Bright neon-core fill — almost-white tint of the rank color
+    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.9)`;
     const end = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1.0)`;
-    return `linear-gradient(90deg, ${start} 0%, ${mid} 60%, ${end} 100%)`;
+    return `linear-gradient(90deg, ${start} 0%, ${end} 100%)`;
 }
+/* Builds an inset glow for the progress bar fill using the saturated neon color.
+   Creates the neon-edge effect that makes the bright center pop. */
 function buildSznRankGlow(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    // VERY skinny glow (almost just a stroke) to avoid blurriness
-    return `0 0 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`;
+    // Inset glow — saturated neon color glows inward from edges, no offset, 2px blur
+    return `inset 0 0 2px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.9)`;
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4542,14 +4545,20 @@ function renderGameLogsSeasonStatsView({
         fill.className = 'gamelogs-szn-bar-fill';
         fill.style.width = `${progressPct}%`;
         if (progressPct > 0) {
-            const gradient = buildSznRankGradient(rankColor);
+            // Bright almost-white tint for the fill background (neon hot-center)
+            const brightColor = getSznStatBrightColor(rankValue, player.pos);
+            const gradient = buildSznRankGradient(brightColor);
             if (gradient) {
                 fill.style.backgroundImage = gradient;
+            } else if (brightColor && brightColor !== 'inherit') {
+                fill.style.backgroundImage = 'none';
+                fill.style.backgroundColor = brightColor;
+            }
+            // Saturated neon color on border + inset glow for the neon-edge effect
+            if (rankColor && rankColor !== 'inherit') {
+                fill.style.border = `1px solid ${rankColor}`;
                 const glow = buildSznRankGlow(rankColor);
                 if (glow) fill.style.boxShadow = glow;
-            } else if (rankColor && rankColor !== 'inherit') {
-                fill.style.backgroundImage = 'none';
-                fill.style.backgroundColor = rankColor;
             }
         }
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
@@ -7472,6 +7481,37 @@ function getSznStatRankColor(rank, position) {
     }
     // Worst tier
     return '#DA285E'; // Deep Violet (Requested)
+}
+
+/* Returns a bright, almost-white tinted version of the neon rank color.
+   Used as the core background fill to create a hot-center neon effect
+   where the border + inset glow carry the saturated color. */
+function getSznStatBrightColor(rank, position) {
+    if (typeof rank !== 'number' || rank <= 0) return 'inherit';
+    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+
+    const thresholds = normalizedPos === 'WR'
+        ? [
+            { v: 12, c: '#e6fff5' }, // Bright Teal-White
+            { v: 24, c: '#e6fffd' }, // Bright Cyan-White
+            { v: 36, c: '#f2e6ff' }, // Bright Purple-White
+            { v: 48, c: '#ede6ff' }, // Bright Violet-White
+            { v: 60, c: '#ffe8e6' }, // Bright Rose-White
+            { v: 72, c: '#ffe6fa' }, // Bright Pink-White
+        ]
+        : [
+            { v: 8, c: '#e6fff5' },
+            { v: 16, c: '#e6fffd' },
+            { v: 24, c: '#f2e6ff' },
+            { v: 32, c: '#ede6ff' },
+            { v: 40, c: '#ffe8e6' },
+            { v: 50, c: '#ffe6fa' },
+        ];
+
+    for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.c;
+    }
+    return '#ffe6ef'; // Bright Rose-White (worst tier)
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
