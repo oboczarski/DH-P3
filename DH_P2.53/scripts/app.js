@@ -7479,18 +7479,18 @@ function getSznStatRankColor(rank, position) {
     */
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ff88' }, // Neon Teal
+            { v: 12, c: '#00ff55' }, // Neon Teal
             { v: 24, c: '#00ccff' }, // Neon Cyan
             { v: 36, c: '#007bff' }, // Neon Purple
-            { v: 48, c: '#5f00FF' }, // Neon Pink
+            { v: 48, c: '#4c00ff' }, // Neon Pink
             { v: 60, c: '#F64B41' }, // Deep Rose (Requested)
             { v: 72, c: '#FF00D6' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00ff88' },
+            { v: 8, c: '#00ff55' },
             { v: 16, c: '#00ccff' },
             { v: 24, c: '#007bff' },
-            { v: 32, c: '#5f00FF' },
+            { v: 32, c: '#4c00ff' },
             { v: 40, c: '#F64B41' },
             { v: 50, c: '#FF00D6' },
         ];
