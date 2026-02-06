@@ -4201,63 +4201,45 @@ function computeSznProgressPercent(rank, position) {
     }
     return 0;
 }
-function resolveCssColorToRgb(color) {
-    if (!color || typeof document === 'undefined') return null;
-    try {
-        const probe = document.createElement('span');
-        probe.style.position = 'absolute';
-        probe.style.left = '-9999px';
-        probe.style.top = '-9999px';
-        probe.style.opacity = '0';
-        probe.style.pointerEvents = 'none';
-        probe.style.color = color;
-        document.body.appendChild(probe);
-        const computed = getComputedStyle(probe).color || '';
-        probe.remove();
-        const match = computed.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-        if (!match) return null;
-        return { r: Number(match[1]), g: Number(match[2]), b: Number(match[3]) };
-    } catch (e) {
-        return null;
-    }
-}
-function mixRgbWithWhite(rgb, mixRatio = 0) {
-    if (!rgb) return null;
-    const ratio = Math.max(0, Math.min(1, Number(mixRatio)));
-    return {
-        r: Math.round(rgb.r + ((255 - rgb.r) * ratio)),
-        g: Math.round(rgb.g + ((255 - rgb.g) * ratio)),
-        b: Math.round(rgb.b + ((255 - rgb.b) * ratio))
-    };
-}
-function buildSznRankGradient(rankColor) {
-    const rgb = resolveCssColorToRgb(rankColor);
-    if (!rgb) return null;
+function buildSznFillCoreGradient(fillCoreColor) {
+    if (!fillCoreColor || fillCoreColor === 'inherit') return null;
 
-    // Game Logs modal (SZN view) progress bars:
-    // Build a brighter, near-white neon core while preserving the rank hue.
-    const edge = mixRgbWithWhite(rgb, 0.56);
-    const mid = mixRgbWithWhite(rgb, 0.73);
-    const center = mixRgbWithWhite(rgb, 0.84);
+    // Game Logs modal (SZN view): keep a bright/near-white neon center line
+    // while allowing each tier hue to be edited directly in the threshold map.
     return `linear-gradient(90deg,
-        rgba(${edge.r}, ${edge.g}, ${edge.b}, 0.88) 0%,
-        rgba(${mid.r}, ${mid.g}, ${mid.b}, 0.95) 42%,
-        rgba(${center.r}, ${center.g}, ${center.b}, 1) 50%,
-        rgba(${mid.r}, ${mid.g}, ${mid.b}, 0.95) 58%,
-        rgba(${edge.r}, ${edge.g}, ${edge.b}, 0.88) 100%)`;
+        ${fillCoreColor} 0%,
+        #f6fbff 50%,
+        ${fillCoreColor} 100%)`;
 }
-function buildSznRankGlow(rankColor) {
-    const rgb = resolveCssColorToRgb(rankColor);
-    if (!rgb) return null;
+function getSznStatFillCoreColor(rank, position) {
+    if (typeof rank !== 'number' || rank <= 0) return 'inherit';
+    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
 
-    // Keep the original conditional rank color on the edge treatment only.
-    // Note: 0 offset + 4px blur + inset matches the requested neon inner glow.
-    return `inset 0 0 4px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.95)`;
-}
-function buildSznRankBorderColor(rankColor) {
-    const rgb = resolveCssColorToRgb(rankColor);
-    if (!rgb) return null;
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.98)`;
+    // Game Logs modal (SZN view) progress fill colors:
+    // This palette controls only the core background hue of each bar.
+    // Border + inset glow still use the regular conditional rank color.
+    const thresholds = normalizedPos === 'WR'
+        ? [
+            { v: 12, c: '#00ff55' },
+            { v: 24, c: '#00ccff' },
+            { v: 36, c: '#007bff' },
+            { v: 48, c: '#4c00ff' },
+            { v: 60, c: '#F64B41' },
+            { v: 72, c: '#FF00D6' },
+        ]
+        : [
+            { v: 8, c: '#00ff55' },
+            { v: 16, c: '#00ccff' },
+            { v: 24, c: '#007bff' },
+            { v: 32, c: '#4c00ff' },
+            { v: 40, c: '#F64B41' },
+            { v: 50, c: '#FF00D6' },
+        ];
+
+    for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.c;
+    }
+    return '#FF4DAF';
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4537,6 +4519,7 @@ function renderGameLogsSeasonStatsView({
         const labelText = statLabels[statKey];
         const rankValue = getSeasonRankValue(player.id, statKey);
         const rankColor = getSznStatRankColor(rankValue, player.pos);
+        const fillCoreColor = getSznStatFillCoreColor(rankValue, player.pos);
         const progressPct = computeSznProgressPercent(rankValue, player.pos);
         const displayValue = getGameLogsSeasonDisplayValue({
             key: statKey,
@@ -4565,17 +4548,21 @@ function renderGameLogsSeasonStatsView({
         fill.className = 'gamelogs-szn-bar-fill';
         fill.style.width = `${progressPct}%`;
         if (progressPct > 0) {
-            const gradient = buildSznRankGradient(rankColor);
-            const borderColor = buildSznRankBorderColor(rankColor);
-            const insetGlow = buildSznRankGlow(rankColor);
+            const gradient = buildSznFillCoreGradient(fillCoreColor);
             if (gradient) {
                 fill.style.backgroundImage = gradient;
                 fill.style.backgroundColor = 'transparent';
-                if (borderColor) fill.style.borderColor = borderColor;
-                if (insetGlow) fill.style.boxShadow = insetGlow;
+                if (rankColor && rankColor !== 'inherit') {
+                    // Game Logs modal (SZN view) neon treatment:
+                    // use existing conditional rank color on edge only.
+                    fill.style.borderColor = rankColor;
+                    fill.style.boxShadow = `inset 0 0 4px ${rankColor}`;
+                }
             } else if (rankColor && rankColor !== 'inherit') {
                 fill.style.backgroundImage = 'none';
-                fill.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
+                fill.style.backgroundColor = fillCoreColor && fillCoreColor !== 'inherit'
+                    ? fillCoreColor
+                    : 'rgba(255, 255, 255, 0.92)';
                 fill.style.borderColor = rankColor;
                 fill.style.boxShadow = `inset 0 0 4px ${rankColor}`;
             }
