@@ -4221,20 +4221,43 @@ function resolveCssColorToRgb(color) {
         return null;
     }
 }
+function mixRgbWithWhite(rgb, mixRatio = 0) {
+    if (!rgb) return null;
+    const ratio = Math.max(0, Math.min(1, Number(mixRatio)));
+    return {
+        r: Math.round(rgb.r + ((255 - rgb.r) * ratio)),
+        g: Math.round(rgb.g + ((255 - rgb.g) * ratio)),
+        b: Math.round(rgb.b + ((255 - rgb.b) * ratio))
+    };
+}
 function buildSznRankGradient(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    // Solid neon gradient - minimal fade
-    const start = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.7)`;
-    const mid = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.95)`;
-    const end = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1.0)`;
-    return `linear-gradient(90deg, ${start} 0%, ${mid} 60%, ${end} 100%)`;
+
+    // Game Logs modal (SZN view) progress bars:
+    // Build a brighter, near-white neon core while preserving the rank hue.
+    const edge = mixRgbWithWhite(rgb, 0.56);
+    const mid = mixRgbWithWhite(rgb, 0.73);
+    const center = mixRgbWithWhite(rgb, 0.84);
+    return `linear-gradient(90deg,
+        rgba(${edge.r}, ${edge.g}, ${edge.b}, 0.88) 0%,
+        rgba(${mid.r}, ${mid.g}, ${mid.b}, 0.95) 42%,
+        rgba(${center.r}, ${center.g}, ${center.b}, 1) 50%,
+        rgba(${mid.r}, ${mid.g}, ${mid.b}, 0.95) 58%,
+        rgba(${edge.r}, ${edge.g}, ${edge.b}, 0.88) 100%)`;
 }
 function buildSznRankGlow(rankColor) {
     const rgb = resolveCssColorToRgb(rankColor);
     if (!rgb) return null;
-    // VERY skinny glow (almost just a stroke) to avoid blurriness
-    return `0 0 3px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.8)`;
+
+    // Keep the original conditional rank color on the edge treatment only.
+    // Note: 0 offset + 4px blur + inset matches the requested neon inner glow.
+    return `inset 0 0 4px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.95)`;
+}
+function buildSznRankBorderColor(rankColor) {
+    const rgb = resolveCssColorToRgb(rankColor);
+    if (!rgb) return null;
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.98)`;
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4543,13 +4566,18 @@ function renderGameLogsSeasonStatsView({
         fill.style.width = `${progressPct}%`;
         if (progressPct > 0) {
             const gradient = buildSznRankGradient(rankColor);
+            const borderColor = buildSznRankBorderColor(rankColor);
+            const insetGlow = buildSznRankGlow(rankColor);
             if (gradient) {
                 fill.style.backgroundImage = gradient;
-                const glow = buildSznRankGlow(rankColor);
-                if (glow) fill.style.boxShadow = glow;
+                fill.style.backgroundColor = 'transparent';
+                if (borderColor) fill.style.borderColor = borderColor;
+                if (insetGlow) fill.style.boxShadow = insetGlow;
             } else if (rankColor && rankColor !== 'inherit') {
                 fill.style.backgroundImage = 'none';
-                fill.style.backgroundColor = rankColor;
+                fill.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
+                fill.style.borderColor = rankColor;
+                fill.style.boxShadow = `inset 0 0 4px ${rankColor}`;
             }
         }
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
@@ -7451,20 +7479,20 @@ function getSznStatRankColor(rank, position) {
     */
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ffa6' }, // Neon Teal
-            { v: 24, c: '#00fff2' }, // Neon Cyan
-            { v: 36, c: '#bd00ff' }, // Neon Purple
-            { v: 48, c: '#5A00FF' }, // Neon Pink
+            { v: 12, c: '#00ff88' }, // Neon Teal
+            { v: 24, c: '#00ccff' }, // Neon Cyan
+            { v: 36, c: '#007bff' }, // Neon Purple
+            { v: 48, c: '#5f00FF' }, // Neon Pink
             { v: 60, c: '#F64B41' }, // Deep Rose (Requested)
             { v: 72, c: '#FF00D6' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00ffa6' },
-            { v: 16, c: '#00fff2' },
-            { v: 24, c: '#bd00ff' },
-            { v: 32, c: '#5A00FF' },
+            { v: 8, c: '#00ff88' },
+            { v: 16, c: '#00ccff' },
+            { v: 24, c: '#007bff' },
+            { v: 32, c: '#5f00FF' },
             { v: 40, c: '#F64B41' },
-            { v: 50, c: '#ff00d6' },
+            { v: 50, c: '#FF00D6' },
         ];
 
     for (const threshold of thresholds) {
