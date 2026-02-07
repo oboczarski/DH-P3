@@ -4217,6 +4217,7 @@ function getSznStatFillCoreColor(rank, position) {
     // Game Logs modal (SZN view) progress fill colors:
     // This palette controls only the core background hue of each bar.
     // Border + inset glow still use the regular conditional rank color.
+    // Also See Bookmarks Right Below
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, c: '#84ffac' },
@@ -4247,6 +4248,7 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
 
     // Game Logs modal (SZN view) neon treatment:
     // per-rank tier shadow presets, so each tier can be tuned independently.
+    // Also See Bookmarks Right Above
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, s: `inset 0 0 0px 1px ${rankColor}, 0 0 4px ${rankColor}` },
@@ -7489,12 +7491,10 @@ function getSznStatRankColor(rank, position) {
     if (typeof rank !== 'number' || rank <= 0) return 'inherit';
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
     
-    /* 
-       Creative/Neon Palette per user request 
-       Best -> Neon Green/Cyan 
-       Mid -> Neon Purple/Pink
-       Worse -> Requested specific colors (#DA285E, #F64B41, #5A00FF)
-    */
+     
+    // Creative/Neon Palette per user request 
+    // WRs & Non-WRs have different thresholds but same colors.
+    
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, c: '#00ff7b' }, // Neon Teal
