@@ -6179,7 +6179,7 @@ body::before {
   /* Game Logs SZN neon fill: JS sets rank color on border + inset glow, while fill stays brightened. */
   height: 100%;
   border-radius: 3px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   box-sizing: border-box;
   background: linear-gradient(90deg, rgba(154, 153, 242, 0.10), rgba(154, 153, 242, 0.65));
   transition: width 0.18s ease;
@@ -6320,7 +6320,7 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-szn-bar {
-    height: 13px;
+    height: 12px;
     margin-left: -9px;
     margin-right: -8px !important;
   }
@@ -12552,4 +12552,3 @@ body[data-page="research"] #secondary-header-row {
     margin-left: 19px;
   }
 }
-s

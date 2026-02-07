@@ -4208,9 +4208,6 @@ function buildSznFillCoreGradient(fillCoreColor) {
     // while allowing each tier hue to be edited directly in the threshold map.
        return `linear-gradient(90deg,
         ${fillCoreColor} 0%,
-        ${fillCoreColor} 35%,
-        #f6fbff55 50%,
-        ${fillCoreColor} 65%,
         ${fillCoreColor} 100%)`;
 }
 function getSznStatFillCoreColor(rank, position) {
@@ -4222,26 +4219,26 @@ function getSznStatFillCoreColor(rank, position) {
     // Border + inset glow still use the regular conditional rank color.
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#9bffbca1' },
-            { v: 24, c: '#b4f0ff' },
+            { v: 12, c: '#84ffac' },
+            { v: 24, c: '#94eaff' },
             { v: 36, c: '#88c1ff' },
             { v: 48, c: '#ae95ff' },
             { v: 60, c: '#ffa19c' },
             { v: 72, c: '#ffb1f2' },
         ]
         : [
-            { v: 8, c: '#00ff55' },
-            { v: 16, c: '#00ccff' },
-            { v: 24, c: '#007bff' },
-            { v: 32, c: '#4c00ff' },
-            { v: 40, c: '#F64B41' },
-            { v: 50, c: '#FF00D6' },
+            { v: 8, c: '#84ffac' },
+            { v: 16, c: '#94eaff' },
+            { v: 24, c: '#88c1ff' },
+            { v: 32, c: '#ae96ff' },
+            { v: 40, c: '#ffa19c' },
+            { v: 50, c: '#ffb1f2' },
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
-    return '#FF4DAF';
+    return '#ff91ce';
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4557,16 +4554,16 @@ function renderGameLogsSeasonStatsView({
                 if (rankColor && rankColor !== 'inherit') {
                     // Game Logs modal (SZN view) neon treatment:
                     // use existing conditional rank color on edge only.
-                    fill.style.borderColor = rankColor;
-                    fill.style.boxShadow = `inset 0 0 4px ${rankColor}`;
+                    fill.style.border = `2px solid ${rankColor}`;
+                    fill.style.boxShadow = `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}`;
                 }
             } else if (rankColor && rankColor !== 'inherit') {
                 fill.style.backgroundImage = 'none';
                 fill.style.backgroundColor = fillCoreColor && fillCoreColor !== 'inherit'
                     ? fillCoreColor
                     : 'rgba(255, 255, 255, 0.92)';
-                fill.style.borderColor = rankColor;
-                fill.style.boxShadow = `inset 0 0 4px 1px ${rankColor}`, `0 0 3px 1px ${rankColor}`;
+                fill.style.border = `1px solid ${rankColor}`;
+                fill.style.boxShadow = `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}`;
             }
         }
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
@@ -7468,7 +7465,7 @@ function getSznStatRankColor(rank, position) {
     */
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ff55' }, // Neon Teal
+            { v: 12, c: '#00ff7b' }, // Neon Teal
             { v: 24, c: '#00ccff' }, // Neon Cyan
             { v: 36, c: '#007bff' }, // Neon Purple
             { v: 48, c: '#4c00ff' }, // Neon Pink
@@ -7476,7 +7473,7 @@ function getSznStatRankColor(rank, position) {
             { v: 72, c: '#FF00D6' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00ff55' },
+            { v: 8, c: '#00ff7b' },
             { v: 16, c: '#00ccff' },
             { v: 24, c: '#007bff' },
             { v: 32, c: '#4c00ff' },
