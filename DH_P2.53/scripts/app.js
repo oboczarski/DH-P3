@@ -4206,9 +4206,11 @@ function buildSznFillCoreGradient(fillCoreColor) {
 
     // Game Logs modal (SZN view): keep a bright/near-white neon center line
     // while allowing each tier hue to be edited directly in the threshold map.
-    return `linear-gradient(90deg,
+       return `linear-gradient(90deg,
         ${fillCoreColor} 0%,
-        #f6fbff 50%,
+        ${fillCoreColor} 35%,
+        #f6fbff55 50%,
+        ${fillCoreColor} 65%,
         ${fillCoreColor} 100%)`;
 }
 function getSznStatFillCoreColor(rank, position) {
@@ -4220,12 +4222,12 @@ function getSznStatFillCoreColor(rank, position) {
     // Border + inset glow still use the regular conditional rank color.
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ff55' },
-            { v: 24, c: '#00ccff' },
-            { v: 36, c: '#007bff' },
-            { v: 48, c: '#4c00ff' },
-            { v: 60, c: '#F64B41' },
-            { v: 72, c: '#FF00D6' },
+            { v: 12, c: '#9bffbca1' },
+            { v: 24, c: '#b4f0ff' },
+            { v: 36, c: '#88c1ff' },
+            { v: 48, c: '#ae95ff' },
+            { v: 60, c: '#ffa19c' },
+            { v: 72, c: '#ffb1f2' },
         ]
         : [
             { v: 8, c: '#00ff55' },
@@ -4564,7 +4566,7 @@ function renderGameLogsSeasonStatsView({
                     ? fillCoreColor
                     : 'rgba(255, 255, 255, 0.92)';
                 fill.style.borderColor = rankColor;
-                fill.style.boxShadow = `inset 0 0 4px ${rankColor}`;
+                fill.style.boxShadow = `inset 0 0 4px 1px ${rankColor}`, `0 0 3px 1px ${rankColor}`;
             }
         }
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });

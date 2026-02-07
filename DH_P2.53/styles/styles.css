@@ -6320,7 +6320,7 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-szn-bar {
-    height: 10px;
+    height: 13px;
     margin-left: -9px;
     margin-right: -8px !important;
   }
@@ -12552,3 +12552,4 @@ body[data-page="research"] #secondary-header-row {
     margin-left: 19px;
   }
 }
+s
