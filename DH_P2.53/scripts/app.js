@@ -4240,6 +4240,36 @@ function getSznStatFillCoreColor(rank, position) {
     }
     return '#ff91ce';
 }
+function getSznStatRankBoxShadow(rank, position, rankColor) {
+    if (typeof rank !== 'number' || rank <= 0) return 'none';
+    if (!rankColor || rankColor === 'inherit') return 'none';
+    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+
+    // Game Logs modal (SZN view) neon treatment:
+    // per-rank tier shadow presets, so each tier can be tuned independently.
+    const thresholds = normalizedPos === 'WR'
+        ? [
+            { v: 12, s: `inset 0 0 0px 1px ${rankColor}, 0 0 4px ${rankColor}` },
+            { v: 24, s: `inset 0 0 10px 2px ${rankColor}, 0 0 4px ${rankColor}` },
+            { v: 36, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            { v: 48, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            { v: 60, s: `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}` },
+            { v: 72, s: `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+        ]
+        : [
+            { v: 8, s: `inset 0 0 0px 1px ${rankColor}, 0 0 4px ${rankColor}` },
+            { v: 16, s: `inset 0 0 10px 2px ${rankColor}, 0 0 4px ${rankColor}` },
+            { v: 24, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            { v: 32, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            { v: 40, s: `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}` },
+            { v: 50, s: `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+        ];
+
+    for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.s;
+    }
+    return `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}`;
+}
 function getGameLogsSeasonDisplayValue({
     key,
     seasonTotals,
@@ -4519,6 +4549,7 @@ function renderGameLogsSeasonStatsView({
         const rankValue = getSeasonRankValue(player.id, statKey);
         const rankColor = getSznStatRankColor(rankValue, player.pos);
         const fillCoreColor = getSznStatFillCoreColor(rankValue, player.pos);
+        const rankBoxShadow = getSznStatRankBoxShadow(rankValue, player.pos, rankColor);
         const progressPct = computeSznProgressPercent(rankValue, player.pos);
         const displayValue = getGameLogsSeasonDisplayValue({
             key: statKey,
@@ -4553,9 +4584,10 @@ function renderGameLogsSeasonStatsView({
                 fill.style.backgroundColor = 'transparent';
                 if (rankColor && rankColor !== 'inherit') {
                     // Game Logs modal (SZN view) neon treatment:
-                    // use existing conditional rank color on edge only.
+                    // use existing conditional rank color on edge only,
+                    // while selecting a per-rank shadow preset.
                     fill.style.border = `2px solid ${rankColor}`;
-                    fill.style.boxShadow = `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}`;
+                    fill.style.boxShadow = rankBoxShadow;
                 }
             } else if (rankColor && rankColor !== 'inherit') {
                 fill.style.backgroundImage = 'none';
@@ -4563,7 +4595,7 @@ function renderGameLogsSeasonStatsView({
                     ? fillCoreColor
                     : 'rgba(255, 255, 255, 0.92)';
                 fill.style.border = `1px solid ${rankColor}`;
-                fill.style.boxShadow = `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}`;
+                fill.style.boxShadow = rankBoxShadow;
             }
         }
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
