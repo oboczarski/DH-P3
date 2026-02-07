@@ -4222,18 +4222,18 @@ function getSznStatFillCoreColor(rank, position) {
         ? [
             { v: 12, c: '#84ffac' },
             { v: 24, c: '#94eaff' },
-            { v: 36, c: '#88c1ff' },
-            { v: 48, c: '#ae95ff' },
-            { v: 60, c: '#ffa19c' },
-            { v: 72, c: '#ffb1f2' },
+            { v: 36, c: '#a395ff' },
+            { v: 48, c: '#ffa19c' },
+            { v: 60, c: '#ffb1f2' },
+            { v: 72, c: '#ff91ce' },
         ]
         : [
             { v: 8, c: '#84ffac' },
             { v: 16, c: '#94eaff' },
-            { v: 24, c: '#88c1ff' },
-            { v: 32, c: '#ae96ff' },
-            { v: 40, c: '#ffa19c' },
-            { v: 50, c: '#ffb1f2' },
+            { v: 24, c: '#a395ff' },
+            { v: 32, c: '#ffa19c' },
+            { v: 40, c: '#ffb1f2' },
+            { v: 50, c: '#ff91ce' },
         ];
 
     for (const threshold of thresholds) {
@@ -4250,21 +4250,21 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
     // per-rank tier shadow presets, so each tier can be tuned independently.
     // Also See Bookmarks Right Above
     const thresholds = normalizedPos === 'WR'
-        ? [
-            { v: 12, s: `inset 0 0 0px 1px ${rankColor}, 0 0 4px ${rankColor}` },
-            { v: 24, s: `inset 0 0 10px 2px ${rankColor}, 0 0 4px ${rankColor}` },
-            { v: 36, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
-            { v: 48, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
-            { v: 60, s: `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}` },
-            { v: 72, s: `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            ? [
+            { v: 12, s: `inset 0 0 0px 1px ${rankColor}` },
+            { v: 24, s: `inset 0 0 5px 1px ${rankColor}` }, 
+            { v: 36, s: `inset 0 0 10px 1px ${rankColor}` }, 
+            { v: 48, s: `inset 0 0 10px 1px ${rankColor}` },
+            { v: 60, s: `inset 0 0 8px 1px ${rankColor}` },
+            { v: 72, s: `inset 0 0 9px 1px ${rankColor}` },
         ]
         : [
-            { v: 8, s: `inset 0 0 0px 1px ${rankColor}, 0 0 4px ${rankColor}` },
-            { v: 16, s: `inset 0 0 10px 2px ${rankColor}, 0 0 4px ${rankColor}` },
-            { v: 24, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
-            { v: 32, s: `inset 0 0 10px 1px ${rankColor}, 0 0 3px ${rankColor}` },
-            { v: 40, s: `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}` },
-            { v: 50, s: `inset 0 0 9px 1px ${rankColor}, 0 0 3px ${rankColor}` },
+            { v: 8, s: `inset 0 0 0px 1px ${rankColor}` },
+            { v: 16, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 24, s: `inset 0 0 10px 1px ${rankColor}` },
+            { v: 32, s: `inset 0 0 10px 1px ${rankColor}` },
+            { v: 40, s: `inset 0 0 8px 1px ${rankColor}` },
+            { v: 50, s: `inset 0 0 9px 1px ${rankColor}` },
         ];
 
     for (const threshold of thresholds) {
@@ -4588,7 +4588,7 @@ function renderGameLogsSeasonStatsView({
                     // Game Logs modal (SZN view) neon treatment:
                     // use existing conditional rank color on edge only,
                     // while selecting a per-rank shadow preset.
-                    fill.style.border = `2px solid ${rankColor}`;
+                    fill.style.border = `1px solid ${rankColor}`;
                     fill.style.boxShadow = rankBoxShadow;
                 }
             } else if (rankColor && rankColor !== 'inherit') {
@@ -7497,27 +7497,27 @@ function getSznStatRankColor(rank, position) {
     
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ff7b' }, // Neon Teal
-            { v: 24, c: '#00ccff' }, // Neon Cyan
-            { v: 36, c: '#007bff' }, // Neon Purple
-            { v: 48, c: '#4c00ff' }, // Neon Pink
-            { v: 60, c: '#F64B41' }, // Deep Rose (Requested)
-            { v: 72, c: '#FF00D6' }, // Bright Red (Requested)
+            { v: 12, c: '#00FF7B' }, // Neon Teal
+            { v: 24, c: '#00AAFF' }, // Neon Cyan
+            { v: 36, c: '#3700ff' }, // Neon Purple
+            { v: 48, c: '#F65846' }, // Neon Pink
+            { v: 60, c: '#FF00D6' }, // Deep Rose (Requested)
+            { v: 72, c: '#DA285E' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00ff7b' },
-            { v: 16, c: '#00ccff' },
-            { v: 24, c: '#007bff' },
-            { v: 32, c: '#4c00ff' },
-            { v: 40, c: '#F64B41' },
-            { v: 50, c: '#FF00D6' },
+            { v: 8, c: '#00FF7B' },
+            { v: 16, c: '#00AAFF' },
+            { v: 24, c: '#3700ff' },
+            { v: 32, c: '#F65846' },
+            { v: 40, c: '#FF00D6' },
+            { v: 50, c: '#DA285E' },
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
     // Worst tier
-    return '#DA285E'; // Deep Violet (Requested)
+    return '#63616c'; // Deep Violet (Requested)
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
