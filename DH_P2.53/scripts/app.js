@@ -4253,18 +4253,18 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
             ? [
             { v: 12, s: `inset 0 0 0px 1px ${rankColor}` },
             { v: 24, s: `inset 0 0 5px 1px ${rankColor}` }, 
-            { v: 36, s: `inset 0 0 10px 1px ${rankColor}` }, 
-            { v: 48, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 60, s: `inset 0 0 8px 1px ${rankColor}` },
-            { v: 72, s: `inset 0 0 9px 1px ${rankColor}` },
+            { v: 36, s: `inset 0 0 5px 1px ${rankColor}` }, 
+            { v: 48, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 60, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 72, s: `inset 0 0 5px 1px ${rankColor}` },
         ]
         : [
             { v: 8, s: `inset 0 0 0px 1px ${rankColor}` },
             { v: 16, s: `inset 0 0 5px 1px ${rankColor}` },
             { v: 24, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 32, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 40, s: `inset 0 0 8px 1px ${rankColor}` },
-            { v: 50, s: `inset 0 0 9px 1px ${rankColor}` },
+            { v: 32, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 40, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 50, s: `inset 0 0 5px 1px ${rankColor}` },
         ];
 
     for (const threshold of thresholds) {
