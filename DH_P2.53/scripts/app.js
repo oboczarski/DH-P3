@@ -2028,10 +2028,14 @@ function escapeHtml(unsafe) {
 }
 
 function parsePosRankNumber(posRankText) {
-    if (!posRankText || typeof posRankText !== 'string') return null;
-    const parts = posRankText.split('·');
-    if (parts.length < 2) return null;
-    const num = Number.parseInt(parts[1], 10);
+    // Ownership table/modal receives pRK values from multiple sheet formats
+    // (e.g. `RB·5`, `RB 5`, or mixed strings). Extract first rank integer robustly.
+    if (!posRankText) return null;
+    const normalized = String(posRankText).trim();
+    if (!normalized) return null;
+    const match = normalized.match(/(\d+)/);
+    if (!match) return null;
+    const num = Number.parseInt(match[1], 10);
     return Number.isFinite(num) && num > 0 ? num : null;
 }
 
@@ -2244,14 +2248,15 @@ function sortOwnershipValueRows(rows) {
 
 function buildOwnershipValueRows() {
     // Ownership Player Value dataset:
-    // merges Sleeper player index + season CSV stats + both KTC tabs into one sortable table model.
-    const playerEntries = Object.entries(state.players || {});
+    // mirror the Stats page source flow by using season stats rows as the canonical player set,
+    // then enrich each row with KTC (1QB/SFLX) and Sleeper metadata.
     const rows = [];
 
     const allSeasonEntries = Object.entries(state.playerSeasonStats || {})
         .filter(([playerId, stats]) => {
             if (!playerId || !stats) return false;
-            const pos = (state.players?.[playerId]?.position || stats.pos || '').toUpperCase();
+            const sleeperPos = (state.players?.[playerId]?.position || state.players?.[playerId]?.fantasy_positions?.[0] || '').toUpperCase();
+            const pos = (sleeperPos || stats.pos || '').toUpperCase();
             return ['QB', 'RB', 'WR', 'TE'].includes(pos);
         });
 
@@ -2267,14 +2272,15 @@ function buildOwnershipValueRows() {
         fptsRankByPlayerId.set(playerId, idx + 1);
     });
 
-    playerEntries.forEach(([playerId, player]) => {
-        if (!playerId || !player) return;
+    allSeasonEntries.forEach(([playerId, season]) => {
+        if (!playerId || !season) return;
+        const player = state.players?.[playerId] || null;
 
-        const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+        const pos = (player?.position || player?.fantasy_positions?.[0] || season.pos || '').toUpperCase();
         if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return;
 
-        const first = (player.first_name || '').trim();
-        const last = (player.last_name || '').trim();
+        const first = (player?.first_name || '').trim();
+        const last = (player?.last_name || '').trim();
         const fullName = [first, last].filter(Boolean).join(' ').trim() || playerId;
         let displayName = fullName;
         if (first && last) {
@@ -2284,17 +2290,20 @@ function buildOwnershipValueRows() {
             displayName = `${displayName.slice(0, 18)}…`;
         }
 
-        const season = state.playerSeasonStats?.[playerId] || null;
-        const fpts = season && Number.isFinite(Number(season.fpts_ppr)) ? Number(season.fpts_ppr) : 0;
-        const gamesPlayed = season && Number.isFinite(Number(season.games_played)) ? Number(season.games_played) : 0;
-        const ppg = gamesPlayed > 0 ? (fpts / gamesPlayed) : 0;
+        const fpts = Number.isFinite(Number(season.fpts_ppr)) ? Number(season.fpts_ppr) : null;
+        const gamesPlayed = Number.isFinite(Number(season.games_played)) ? Number(season.games_played) : 0;
+        const seasonPpg = Number.isFinite(Number(season.ppg)) ? Number(season.ppg) : null;
+        const ppg = Number.isFinite(seasonPpg)
+            ? seasonPpg
+            : ((Number.isFinite(fpts) && gamesPlayed > 0) ? (fpts / gamesPlayed) : null);
 
         const oneQb = state.oneQbData?.[playerId] || null;
         const sflx = state.sflxData?.[playerId] || null;
         const oneQbPosRankNum = parsePosRankNumber(oneQb?.posRank || '');
         const sflxPosRankNum = parsePosRankNumber(sflx?.posRank || '');
 
-        const ageRaw = oneQb?.age ?? sflx?.age ?? player?.age ?? null;
+        // Prefer KTC age when available (same value context used on Stats), then Sleeper fallback.
+        const ageRaw = sflx?.age ?? oneQb?.age ?? player?.age ?? null;
         const age = Number.isFinite(Number(ageRaw)) ? Number(ageRaw) : null;
 
         rows.push({
@@ -2302,18 +2311,18 @@ function buildOwnershipValueRows() {
             fullName,
             displayName,
             pos,
-            team: (player.team || oneQb?.team || sflx?.team || 'FA').toUpperCase(),
+            team: (player?.team || season.team || oneQb?.team || sflx?.team || 'FA').toUpperCase(),
             age,
             oneQbKtc: Number.isFinite(Number(oneQb?.ktc)) ? Number(oneQb.ktc) : null,
             oneQbPosRank: oneQbPosRankNum,
-            oneQbPosRankText: oneQbPosRankNum ? `${pos}·${oneQbPosRankNum}` : `${pos}·NA`,
+            oneQbPosRankText: Number.isFinite(oneQbPosRankNum) ? `${pos}·${oneQbPosRankNum}` : `${pos}·—`,
             sflxKtc: Number.isFinite(Number(sflx?.ktc)) ? Number(sflx.ktc) : null,
             sflxPosRank: sflxPosRankNum,
-            sflxPosRankText: sflxPosRankNum ? `${pos}·${sflxPosRankNum}` : `${pos}·NA`,
+            sflxPosRankText: Number.isFinite(sflxPosRankNum) ? `${pos}·${sflxPosRankNum}` : `${pos}·—`,
             fpts,
             ppg,
             fptsRank: fptsRankByPlayerId.get(playerId) || null,
-            search: `${fullName} ${pos} ${(player.team || '')}`.toLowerCase()
+            search: `${fullName} ${pos} ${(player?.team || season.team || '')}`.toLowerCase()
         });
     });
 
@@ -2402,8 +2411,8 @@ function renderOwnershipValueTable() {
                 <td><span style="color:${oneQbPrkColor};">${escapeHtml(row.oneQbPosRankText)}</span></td>
                 <td><span style="color:${getKtcColor(row.sflxKtc)};">${Number.isFinite(row.sflxKtc) ? Math.round(row.sflxKtc) : '—'}</span></td>
                 <td><span style="color:${sflxPrkColor};">${escapeHtml(row.sflxPosRankText)}</span></td>
-                <td>${Number.isFinite(row.fpts) ? row.fpts.toFixed(1) : '0.0'}</td>
-                <td>${Number.isFinite(row.ppg) ? row.ppg.toFixed(1) : '0.0'}</td>
+                <td>${Number.isFinite(row.fpts) ? row.fpts.toFixed(1) : '—'}</td>
+                <td>${Number.isFinite(row.ppg) ? row.ppg.toFixed(1) : '—'}</td>
             </tr>
         `;
     }).join('');
@@ -2538,7 +2547,8 @@ function getOwnershipPlayerForModal(playerId) {
     const sleeperPlayer = state.players?.[playerId];
     if (!sleeperPlayer) return null;
 
-    const oneQb = state.oneQbData?.[playerId] || null;
+    // Ownership modal KTC chip uses SFLX-first context, then 1QB fallback.
+    const preferredKtc = state.sflxData?.[playerId] || state.oneQbData?.[playerId] || null;
     const playerRanks = getStatsPagePlayerRanksForOwnership(playerId);
     const fullName = [sleeperPlayer.first_name, sleeperPlayer.last_name].filter(Boolean).join(' ').trim() || playerId;
 
@@ -2547,9 +2557,9 @@ function getOwnershipPlayerForModal(playerId) {
         name: fullName,
         pos: (sleeperPlayer.position || sleeperPlayer.fantasy_positions?.[0] || '').toUpperCase(),
         team: (sleeperPlayer.team || 'FA').toUpperCase(),
-        ktc: Number.isFinite(Number(oneQb?.ktc)) ? Number(oneQb.ktc) : null,
-        posRank: oneQb?.posRank || null,
-        overallRank: Number.isFinite(Number(oneQb?.overallRank)) ? Number(oneQb.overallRank) : null,
+        ktc: Number.isFinite(Number(preferredKtc?.ktc)) ? Number(preferredKtc.ktc) : null,
+        posRank: preferredKtc?.posRank || null,
+        overallRank: Number.isFinite(Number(preferredKtc?.overallRank)) ? Number(preferredKtc.overallRank) : null,
         playerRanks
     };
 }

@@ -361,6 +361,9 @@ body[data-page="ownership"] #ownershipPlayerModal.hidden {
 }
 
 body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-content {
+  /* The shared modal base starts hidden/transparent by default; force visible state for this modal. */
+  opacity: 1;
+  transform: none;
   width: min(94vw, 736px);
   max-height: 90vh;
   border-radius: 16px;
