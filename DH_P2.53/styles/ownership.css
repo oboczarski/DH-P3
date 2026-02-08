@@ -511,7 +511,7 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row {
   padding: 0.52rem 0.62rem;
   border-radius: 12px;
   border: 1px solid rgba(186, 197, 248, 0.2);
-  background: #673dff3b;
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #ee4bff2e);
 }
 
 body[data-page="ownership"] #ownershipPlayerModal .ownership-league-meta {
@@ -546,7 +546,7 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-league-owner {
 
 body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row.owner-you {
   border-color: rgba(101, 236, 191, 0.36);
-  background: linear-gradient(145deg, rgb(61 135 139 / 58%), #6900ff);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #6100ffbf);
 }
 
 body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row.owner-other {
