@@ -533,6 +533,7 @@ if (!state.ownership) {
         valuePosition: 'ALL',
         valueSort: { column: 'FPTS', direction: 2 },
         context: null,
+        seasonRanksByPlayer: null,
         valueRows: [],
         modalPlayerId: null
     };
@@ -2246,6 +2247,31 @@ function sortOwnershipValueRows(rows) {
     return out;
 }
 
+function buildOwnershipSeasonRanksMap() {
+    // Ownership value table rank map:
+    // compute global FPTS rank from the same season totals dataset used by the Stats page,
+    // then cache it per ownership fetch so RK stays stable while filtering.
+    const seasonEntries = Object.entries(state.playerSeasonStats || {})
+        .filter(([playerId, stats]) => {
+            if (!playerId || !stats) return false;
+            const pos = (state.players?.[playerId]?.position || state.players?.[playerId]?.fantasy_positions?.[0] || stats.pos || '').toUpperCase();
+            if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return false;
+            return Number.isFinite(Number(stats.fpts_ppr));
+        })
+        .map(([playerId, stats]) => ({ playerId, fpts: Number(stats.fpts_ppr) }));
+
+    seasonEntries.sort((a, b) => {
+        if (b.fpts !== a.fpts) return b.fpts - a.fpts;
+        return String(a.playerId).localeCompare(String(b.playerId));
+    });
+
+    const rankMap = new Map();
+    seasonEntries.forEach((entry, index) => {
+        rankMap.set(entry.playerId, index + 1);
+    });
+    return rankMap;
+}
+
 function buildOwnershipValueRows() {
     // Ownership Player Value dataset:
     // mirror the Stats page source flow by using season stats rows as the canonical player set,
@@ -2260,17 +2286,8 @@ function buildOwnershipValueRows() {
             return ['QB', 'RB', 'WR', 'TE'].includes(pos);
         });
 
-    allSeasonEntries.sort((a, b) => {
-        const fptsA = Number(a?.[1]?.fpts_ppr || 0);
-        const fptsB = Number(b?.[1]?.fpts_ppr || 0);
-        if (fptsB !== fptsA) return fptsB - fptsA;
-        return String(a[0]).localeCompare(String(b[0]));
-    });
-
-    const fptsRankByPlayerId = new Map();
-    allSeasonEntries.forEach(([playerId], idx) => {
-        fptsRankByPlayerId.set(playerId, idx + 1);
-    });
+    const fptsRankByPlayerId = buildOwnershipSeasonRanksMap();
+    state.ownership.seasonRanksByPlayer = fptsRankByPlayerId;
 
     allSeasonEntries.forEach(([playerId, season]) => {
         if (!playerId || !season) return;
@@ -2321,7 +2338,7 @@ function buildOwnershipValueRows() {
             sflxPosRankText: Number.isFinite(sflxPosRankNum) ? `${pos}·${sflxPosRankNum}` : `${pos}·—`,
             fpts,
             ppg,
-            fptsRank: fptsRankByPlayerId.get(playerId) || null,
+            fptsRank: Number.isFinite(fptsRankByPlayerId.get(playerId)) ? fptsRankByPlayerId.get(playerId) : null,
             search: `${fullName} ${pos} ${(player?.team || season.team || '')}`.toLowerCase()
         });
     });
@@ -2391,6 +2408,7 @@ function renderOwnershipValueTable() {
     }
 
     ownershipValueEmpty?.classList.add('hidden');
+
     tbody.innerHTML = rows.map((row) => {
         const teamStyle = `background-color: ${TEAM_COLORS[row.team] || '#64748b'}; color: #fff;`;
         const ageColor = getAgeColorForRoster(row.pos, row.age) || 'inherit';
@@ -3635,7 +3653,14 @@ function parseSeasonStatsCsv(csvText) {
             const statKey = PLAYER_STAT_HEADER_MAP[header];
             if (statKey) {
                 const parsedValue = parseStatValue(header, value);
-                if (parsedValue !== null) stats[statKey] = parsedValue;
+                if (parsedValue !== null) {
+                    stats[statKey] = parsedValue;
+                    // Season totals need canonical `fpts_ppr` for ranking/sorting across Ownership + modal chips.
+                    // Keep legacy `fpt_ppr` too so existing weekly/game-log logic remains untouched.
+                    if (header === 'FPT_PPR' || header === 'FPTS_PPR') {
+                        stats.fpts_ppr = parsedValue;
+                    }
+                }
                 return;
             }
             const metaKey = SEASON_META_HEADERS[header];
