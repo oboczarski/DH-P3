@@ -50,6 +50,18 @@ const modalPlayerVitals = document.getElementById('modal-player-vitals');
 const modalBody = document.getElementById('modal-body');
 const playerComparisonModal = document.getElementById('player-comparison-modal');
 const comparisonBackgroundOverlay = document.getElementById('comparison-modal-background-overlay');
+// Ownership page specific controls + modal (kept page-scoped so other pages are unaffected).
+const ownershipModeSwitcher = document.getElementById('ownershipModeSwitcher');
+const ownershipModeOwnershipBtn = document.getElementById('ownershipModeOwnershipBtn');
+const ownershipModeValueBtn = document.getElementById('ownershipModeValueBtn');
+const ownershipPlayerModal = document.getElementById('ownership-player-modal');
+const ownershipModalOverlay = ownershipPlayerModal?.querySelector('.modal-overlay');
+const ownershipModalCloseBtn = ownershipPlayerModal?.querySelector('.ownership-modal-close');
+const ownershipModalPlayerName = document.getElementById('ownership-modal-player-name');
+const ownershipModalPlayerVitals = document.getElementById('ownership-modal-player-vitals');
+const ownershipModalSummaryChips = document.getElementById('ownership-modal-summary-chips');
+const ownershipModalBody = document.getElementById('ownership-modal-body');
+const ownershipModalHeaderLeft = document.getElementById('ownership-modal-left');
 let gameLogsModalRequestSeq = 0;
 const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
@@ -504,7 +516,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx' };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -934,6 +946,25 @@ if (pageType === 'stats' && gameLogsModal) {
         gameLogsModalContent.addEventListener('touchcancel', endSznTouchScroll, { passive: true });
     }
 }
+
+// Ownership-only UI wiring: mode switcher + ownership detail modal interactions.
+if (pageType === 'ownership') {
+    ownershipModeSwitcher?.addEventListener('click', (event) => {
+        const modeBtn = event.target.closest('.ownership-mode-btn[data-ownership-mode]');
+        if (!modeBtn) return;
+        const nextMode = modeBtn.dataset.ownershipMode;
+        setOwnershipMode(nextMode);
+    });
+
+    ownershipModalCloseBtn?.addEventListener('click', () => closeOwnershipPlayerModal());
+    ownershipModalOverlay?.addEventListener('click', () => closeOwnershipPlayerModal());
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && ownershipPlayerModal && !ownershipPlayerModal.classList.contains('hidden')) {
+            closeOwnershipPlayerModal();
+        }
+    });
+}
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     if (pageType === 'analyzer') return;
@@ -1257,7 +1288,11 @@ async function handleFetchOwnership() {
         await fetchAndSetUser(username);
         rosterView.classList.add('hidden');
         playerListView.classList.remove('hidden');
-        await renderPlayerList();
+        // Ownership page: load cross-league context once, then render the active ownership mode.
+        await loadOwnershipContextForUser();
+        buildOwnershipRowsFromContext();
+        buildOwnershipValueRows();
+        setOwnershipMode(state.ownershipMode || 'ownership');
     } catch (error) {
         handleError(error, username);
     } finally {
@@ -1837,6 +1872,15 @@ document.addEventListener('keydown', (e) => {
         closeCompareSearch();
     }
 });
+// Ownership page: Enter on username input fetches and renders ownership views (mode switch + table/list).
+if (pageType === 'ownership') {
+    usernameInput?.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        await handleFetchOwnership();
+        try { usernameInput.blur(); } catch (err) { }
+    });
+}
 compareSearchInput?.addEventListener('input', (e) => {
     const val = e.target.value;
     clearTimeout(searchDebounce);
@@ -7032,124 +7076,619 @@ function renderTradeBlock() {
     });
     mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
 }
-// --- Player List (Ownership) Functions ---
-async function renderPlayerList() {
-    hideLegend();
-    playerListView.innerHTML = '<p class="text-center p-4">Fetching user leagues and rosters...</p>';
+// --- Ownership page module ---
+// This module is intentionally scoped to the Ownership page so no other page behavior changes.
+async function loadOwnershipContextForUser() {
+    if (pageType !== 'ownership') return null;
+    const cacheKey = `${state.userId || ''}`;
+    if (state.ownershipContext?.cacheKey === cacheKey && Array.isArray(state.ownershipContext.leagues) && state.ownershipContext.leagues.length) {
+        return state.ownershipContext;
+    }
+
+    // Ownership context loads all relevant league/roster/user data once per user for fast toggles and modal lookups.
+    const userLeagues = await fetchUserLeagues(state.userId);
+    const sortedLeagues = [...userLeagues].sort((a, b) => a.name.localeCompare(b.name));
+    const leaguePayloads = await Promise.allSettled(sortedLeagues.map(async (league) => {
+        const [rosters, users] = await Promise.all([
+            fetchWithCache(`${API_BASE}/league/${league.league_id}/rosters`),
+            fetchWithCache(`${API_BASE}/league/${league.league_id}/users`)
+        ]);
+        return { league, rosters, users };
+    }));
+
+    const leagues = [];
+    const failures = [];
+    leaguePayloads.forEach((result, idx) => {
+        if (result.status === 'fulfilled') {
+            leagues.push(result.value);
+        } else {
+            failures.push(sortedLeagues[idx]?.name || sortedLeagues[idx]?.league_id || `League ${idx + 1}`);
+        }
+    });
+
+    // Keep league color assignment deterministic for both ownership list and modal detail rows.
     assignedLeagueColors.clear();
     nextColorIndex = 0;
     assignedRyColors.clear();
     nextRyColorIndex = 0;
-    const userLeagues = await fetchUserLeagues(state.userId);
-    const rostersByLeague = await Promise.all(userLeagues.map(l => fetchWithCache(`${API_BASE}/league/${l.league_id}/rosters`)));
+
+    const context = { cacheKey, leagues, failures };
+    state.ownershipContext = context;
+    state.leagues = sortedLeagues;
+    return context;
+}
+
+function buildOwnershipRowsFromContext() {
+    if (pageType !== 'ownership') return [];
+    const context = state.ownershipContext;
+    if (!context?.leagues?.length) {
+        state.ownershipRows = [];
+        return state.ownershipRows;
+    }
+
     const agg = new Map();
-    rostersByLeague.forEach((rosters, idx) => {
-        const leagueName = userLeagues[idx].name;
-        const leagueAbbr = getLeagueAbbr(leagueName);
-        const myRoster = rosters.find(r => r.owner_id === state.userId || (Array.isArray(r.co_owners) && r.co_owners.includes(state.userId)));
+    const totalLeagues = context.leagues.length;
+
+    context.leagues.forEach(({ league, rosters }) => {
+        const leagueAbbr = getLeagueAbbr(league?.name || 'League');
+        const myRoster = (rosters || []).find(r => r.owner_id === state.userId || (Array.isArray(r.co_owners) && r.co_owners.includes(state.userId)));
         if (!myRoster) return;
+
         const pids = new Set((myRoster.players || []).filter(Boolean));
-        pids.forEach(pid => {
-            if (!agg.has(pid)) agg.set(pid, new Set());
-            agg.get(pid).add(leagueAbbr);
+        pids.forEach((pid) => {
+            const player = state.players?.[pid];
+            if (!player) return;
+            if (!agg.has(pid)) {
+                agg.set(pid, {
+                    pid,
+                    leagueAbbrs: new Set(),
+                    count: 0
+                });
+            }
+            const current = agg.get(pid);
+            current.leagueAbbrs.add(leagueAbbr);
+            current.count = current.leagueAbbrs.size;
         });
     });
-    const section = document.createElement('div');
-    section.className = 'player-list-section';
-    const header = createPlayerListHeader();
-    section.appendChild(header);
-    const rows = Array.from(agg.entries()).map(([pid, leagueSet]) => createPlayerListRow(pid, leagueSet, userLeagues.length)).filter(Boolean);
+
+    const rows = Array.from(agg.values()).map((entry) => {
+        const player = state.players?.[entry.pid];
+        if (!player) return null;
+        const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+        const first = (player.first_name || '').trim();
+        const last = (player.last_name || '').trim();
+        const fullName = `${first} ${last}`.trim() || entry.pid;
+        const displayName = first && last ? `${first.charAt(0)}. ${last}` : fullName;
+        const ktcData = state.ownershipPreferredKtcMode === 'oneqb'
+            ? state.oneQbData?.[entry.pid]
+            : (state.sflxData?.[entry.pid] || state.oneQbData?.[entry.pid]);
+        const ageFromSheet = ktcData?.age;
+        const age = Number.isFinite(ageFromSheet)
+            ? Number(ageFromSheet).toFixed(1)
+            : (Number.isFinite(Number(player.age)) ? Number(player.age).toFixed(1) : '—');
+        const rookieYear = deriveRookieYear(player);
+        const percentage = totalLeagues > 0 ? Math.round((entry.count / totalLeagues) * 100) : 0;
+        const leagueAbbrs = Array.from(entry.leagueAbbrs).sort();
+        return {
+            pid: entry.pid,
+            pos,
+            team: player.team || 'FA',
+            first,
+            last,
+            fullName,
+            displayName: displayName.length > 17 ? `${displayName.slice(0, 17)}…` : displayName,
+            age,
+            rookieYear,
+            count: entry.count,
+            percentage,
+            leagueAbbrs,
+            search: `${first} ${last} ${fullName} ${displayName}`.trim().toLowerCase()
+        };
+    }).filter(Boolean);
+
     rows.sort((a, b) => {
-        const countDiff = Number(b.dataset.count || 0) - Number(a.dataset.count || 0);
+        const countDiff = b.count - a.count;
         if (countDiff !== 0) return countDiff;
-        return a.dataset.search.localeCompare(b.dataset.search);
+        return a.fullName.localeCompare(b.fullName);
     });
-    rows.forEach(r => section.appendChild(r));
-    playerListView.innerHTML = '';
-    const searchInput = document.createElement('input');
-    searchInput.id = 'playerSearch';
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Filter players by name...';
-    playerListView.appendChild(searchInput);
-    playerListView.appendChild(section);
-    searchInput.oninput = () => {
-        const term = searchInput.value.trim().toLowerCase();
-        section.querySelectorAll('.pl-player-row:not(.pl-list-header)').forEach(r => {
-            r.style.display = (r.dataset.search || '').includes(term) ? 'flex' : 'none';
+
+    state.ownershipRows = rows;
+    return rows;
+}
+
+function extractSeasonStatValue(playerId, keys = []) {
+    const seasonStats = state.playerSeasonStats?.[playerId] || {};
+    for (const key of keys) {
+        const value = seasonStats?.[key];
+        if (typeof value === 'number' && Number.isFinite(value)) return value;
+        if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) return Number(value);
+    }
+    return null;
+}
+
+function parsePosRankNumber(posRankText) {
+    if (!posRankText) return null;
+    const match = String(posRankText).match(/(\d+)/);
+    if (!match) return null;
+    const numeric = Number.parseInt(match[1], 10);
+    return Number.isFinite(numeric) ? numeric : null;
+}
+
+function formatPosRankText(pos, sourceText) {
+    const rankNumber = parsePosRankNumber(sourceText);
+    if (!pos) return '—';
+    if (!Number.isFinite(rankNumber) || rankNumber <= 0) return `${pos}·—`;
+    return `${pos}·${rankNumber}`;
+}
+
+function buildOwnershipValueRows() {
+    if (pageType !== 'ownership') return [];
+    const rows = [];
+    const playerEntries = Object.entries(state.players || {});
+
+    playerEntries.forEach(([playerId, player]) => {
+        if (!player) return;
+        const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+        if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return;
+
+        const oneQb = state.oneQbData?.[playerId] || null;
+        const sflx = state.sflxData?.[playerId] || null;
+        const fpts = extractSeasonStatValue(playerId, ['fpts_ppr', 'fpt_ppr']);
+        const ppg = extractSeasonStatValue(playerId, ['ppg']);
+        const ageRaw = (typeof sflx?.age === 'number' ? sflx.age : (typeof oneQb?.age === 'number' ? oneQb.age : null));
+        const age = Number.isFinite(ageRaw)
+            ? Number(ageRaw).toFixed(1)
+            : (Number.isFinite(Number(player.age)) ? Number(player.age).toFixed(1) : '—');
+        const first = (player.first_name || '').trim();
+        const last = (player.last_name || '').trim();
+        const fullName = `${first} ${last}`.trim() || playerId;
+        const displayName = first && last ? `${first.charAt(0)}. ${last}` : fullName;
+
+        rows.push({
+            playerId,
+            fullName,
+            displayName,
+            pos,
+            team: (player.team || 'FA').toUpperCase(),
+            age,
+            oneQbKtc: Number.isFinite(oneQb?.ktc) ? oneQb.ktc : null,
+            oneQbPosRank: formatPosRankText(pos, oneQb?.posRank),
+            sflxKtc: Number.isFinite(sflx?.ktc) ? sflx.ktc : null,
+            sflxPosRank: formatPosRankText(pos, sflx?.posRank),
+            fpts: Number.isFinite(fpts) ? fpts : null,
+            ppg: Number.isFinite(ppg) ? ppg : null,
+            search: `${fullName} ${displayName} ${player.team || ''} ${pos}`.toLowerCase()
         });
+    });
+
+    // Ownership player value table default order: descending FPTS.
+    rows.sort((a, b) => {
+        const aFpts = Number.isFinite(a.fpts) ? a.fpts : -Infinity;
+        const bFpts = Number.isFinite(b.fpts) ? b.fpts : -Infinity;
+        if (bFpts !== aFpts) return bFpts - aFpts;
+        return a.fullName.localeCompare(b.fullName);
+    });
+
+    rows.forEach((row, index) => {
+        row.rk = index + 1;
+    });
+
+    state.ownershipValueRows = rows;
+    return rows;
+}
+
+function setOwnershipMode(mode) {
+    if (pageType !== 'ownership') return;
+    const nextMode = mode === 'value' ? 'value' : 'ownership';
+    state.ownershipMode = nextMode;
+
+    // Keep switcher ARIA and active styling in sync with current ownership view.
+    if (ownershipModeOwnershipBtn && ownershipModeValueBtn) {
+        const ownershipActive = nextMode === 'ownership';
+        ownershipModeOwnershipBtn.classList.toggle('is-active', ownershipActive);
+        ownershipModeOwnershipBtn.setAttribute('aria-pressed', ownershipActive ? 'true' : 'false');
+        ownershipModeValueBtn.classList.toggle('is-active', !ownershipActive);
+        ownershipModeValueBtn.setAttribute('aria-pressed', !ownershipActive ? 'true' : 'false');
+    }
+
+    renderOwnershipMode();
+}
+
+function renderOwnershipMode() {
+    if (pageType !== 'ownership' || !playerListView) return;
+    hideLegend();
+    if (state.ownershipMode === 'value') {
+        renderOwnershipValueView();
+        return;
+    }
+    renderOwnershipPercentView();
+}
+
+function renderOwnershipPercentView() {
+    const rows = Array.isArray(state.ownershipRows) ? state.ownershipRows : [];
+    const searchTerm = (state.ownershipListSearchTerm || '').trim().toLowerCase();
+
+    const shell = document.createElement('section');
+    shell.className = 'ownership-shell ownership-shell--percent';
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'ownership-toolbar';
+    toolbar.innerHTML = `
+        <label class="sr-only" for="ownershipSearchInput">Search owned players</label>
+        <div class="ownership-search-wrap">
+            <input id="ownershipSearchInput" class="ownership-search-input" type="search" placeholder="Search players..." autocomplete="off" value="${state.ownershipListSearchTerm || ''}" />
+            <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+        </div>
+    `;
+
+    const list = document.createElement('div');
+    list.className = 'ownership-list';
+    list.innerHTML = `
+        <div class="ownership-list-header">
+            <span class="ownership-col ownership-col--player">Player</span>
+            <span class="ownership-col ownership-col--owned">Owned</span>
+            <span class="ownership-col ownership-col--pct">%</span>
+            <span class="ownership-col ownership-col--leagues">Leagues</span>
+        </div>
+    `;
+
+    const filteredRows = rows.filter((row) => !searchTerm || row.search.includes(searchTerm));
+    filteredRows.forEach((row) => {
+        const item = document.createElement('article');
+        item.className = 'ownership-list-row';
+        item.dataset.playerId = row.pid;
+        const details = [];
+        if (row.age !== '—') {
+            const ageColor = getAgeColorForRoster(row.pos, parseFloat(row.age)) || 'inherit';
+            details.push(`Age <span style="color:${ageColor}">${row.age}</span>`);
+        }
+        if (row.rookieYear) {
+            const ryAbbr = String(row.rookieYear).slice(-2);
+            details.push(`RY-<span style="color:${getRyColor(row.rookieYear) || 'inherit'}">${ryAbbr}</span>`);
+        }
+
+        const countClass = row.percentage >= 80
+            ? 'pl-count-high'
+            : (row.percentage >= 50 ? 'pl-count-mid' : 'pl-count-low');
+        const pctClass = row.percentage >= 80
+            ? 'pl-pct-high'
+            : (row.percentage >= 50 ? 'pl-pct-mid' : 'pl-pct-low');
+
+        item.innerHTML = `
+            <div class="ownership-list-pos-wrap">
+                <span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span>
+            </div>
+            <div class="ownership-list-player-wrap">
+                <button class="ownership-player-trigger" type="button" data-player-id="${row.pid}">${row.displayName}</button>
+                <span class="team-tag" style="background-color:${TEAM_COLORS[row.team] || '#64748b'};color:white;">${row.team || 'FA'}</span>
+                <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
+            </div>
+            <div class="ownership-list-metric ownership-list-metric--owned ${countClass}">${row.count}</div>
+            <div class="ownership-list-metric ownership-list-metric--pct ${pctClass}">${row.percentage}%</div>
+            <div class="ownership-list-leagues">${row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')}</div>
+        `;
+        list.appendChild(item);
+    });
+
+    if (!filteredRows.length) {
+        const empty = document.createElement('p');
+        empty.className = 'ownership-empty-state';
+        empty.textContent = 'No players match the current search.';
+        list.appendChild(empty);
+    }
+
+    shell.appendChild(toolbar);
+    shell.appendChild(list);
+    playerListView.innerHTML = '';
+    playerListView.appendChild(shell);
+
+    const searchInput = shell.querySelector('#ownershipSearchInput');
+    searchInput?.addEventListener('input', (event) => {
+        state.ownershipListSearchTerm = String(event.target.value || '');
+        renderOwnershipPercentView();
+    });
+
+    list.addEventListener('click', (event) => {
+        const btn = event.target.closest('.ownership-player-trigger');
+        if (!btn) return;
+        const playerId = btn.dataset.playerId;
+        if (!playerId) return;
+        openOwnershipPlayerModal(playerId);
+    });
+}
+
+function formatOwnershipValue(value, decimals = 1) {
+    if (!Number.isFinite(value)) return '—';
+    return Number(value).toFixed(decimals);
+}
+
+function getOwnershipValueRowsFiltered() {
+    const term = (state.ownershipValueSearchTerm || '').trim().toLowerCase();
+    const activePos = (state.ownershipValuePositionFilter || 'ALL').toUpperCase();
+    return (state.ownershipValueRows || []).filter((row) => {
+        if (activePos !== 'ALL' && row.pos !== activePos) return false;
+        if (term && !row.search.includes(term)) return false;
+        return true;
+    });
+}
+
+function renderOwnershipValueView() {
+    const rows = getOwnershipValueRowsFiltered();
+
+    const shell = document.createElement('section');
+    shell.className = 'ownership-shell ownership-shell--value';
+
+    // Player Value controls target table discoverability (search + position filter).
+    shell.innerHTML = `
+        <div class="ownership-value-toolbar">
+            <div class="ownership-search-wrap ownership-search-wrap--value">
+                <label class="sr-only" for="ownershipValueSearchInput">Search value table players</label>
+                <input id="ownershipValueSearchInput" class="ownership-search-input" type="search" placeholder="Search players / team..." autocomplete="off" value="${state.ownershipValueSearchTerm || ''}" />
+                <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+            </div>
+            <div class="ownership-value-position-filter" role="group" aria-label="Filter player value table by position">
+                ${['ALL', 'QB', 'RB', 'WR', 'TE'].map((pos) => {
+                    const active = (state.ownershipValuePositionFilter || 'ALL') === pos;
+                    return `<button class="ownership-value-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
+                }).join('')}
+            </div>
+        </div>
+        <div class="ownership-value-table-wrap">
+            <table class="ownership-value-table" aria-label="Ownership player value table">
+                <thead>
+                    <tr>
+                        <th>RK</th>
+                        <th>Player</th>
+                        <th>POS</th>
+                        <th>TM</th>
+                        <th>AGE</th>
+                        <th>1QB KTC</th>
+                        <th>1QB pRK</th>
+                        <th>SFLX KTC</th>
+                        <th>SFLX pRK</th>
+                        <th>FPTS</th>
+                        <th>PPG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((row) => {
+                        const oneQbKtcDisplay = Number.isFinite(row.oneQbKtc) ? Math.round(row.oneQbKtc) : '—';
+                        const sflxKtcDisplay = Number.isFinite(row.sflxKtc) ? Math.round(row.sflxKtc) : '—';
+                        return `
+                            <tr>
+                                <td class="ownership-value-rk">${row.rk}</td>
+                                <td class="ownership-value-player-cell">
+                                    <button class="ownership-player-trigger ownership-player-trigger--value" type="button" data-player-id="${row.playerId}">${row.displayName}</button>
+                                </td>
+                                <td><span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span></td>
+                                <td>${row.team || 'FA'}</td>
+                                <td>${row.age}</td>
+                                <td><span class="ownership-value-chip">${oneQbKtcDisplay}</span></td>
+                                <td>${row.oneQbPosRank || `${row.pos}·—`}</td>
+                                <td><span class="ownership-value-chip">${sflxKtcDisplay}</span></td>
+                                <td>${row.sflxPosRank || `${row.pos}·—`}</td>
+                                <td>${formatOwnershipValue(row.fpts, 1)}</td>
+                                <td>${formatOwnershipValue(row.ppg, 1)}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    playerListView.innerHTML = '';
+    playerListView.appendChild(shell);
+
+    if (!rows.length) {
+        const empty = document.createElement('p');
+        empty.className = 'ownership-empty-state';
+        empty.textContent = 'No value-table players match current filters.';
+        shell.appendChild(empty);
+    }
+
+    const searchInput = shell.querySelector('#ownershipValueSearchInput');
+    searchInput?.addEventListener('input', (event) => {
+        state.ownershipValueSearchTerm = String(event.target.value || '');
+        renderOwnershipValueView();
+    });
+
+    shell.querySelector('.ownership-value-position-filter')?.addEventListener('click', (event) => {
+        const button = event.target.closest('.ownership-value-filter-btn');
+        if (!button) return;
+        const nextPos = button.dataset.ownershipPos || 'ALL';
+        state.ownershipValuePositionFilter = nextPos;
+        renderOwnershipValueView();
+    });
+
+    shell.querySelector('tbody')?.addEventListener('click', (event) => {
+        const btn = event.target.closest('.ownership-player-trigger--value');
+        if (!btn) return;
+        const playerId = btn.dataset.playerId;
+        if (!playerId) return;
+        openOwnershipPlayerModal(playerId);
+    });
+}
+
+function findOwnershipLeagueOwnerRows(playerId) {
+    const context = state.ownershipContext;
+    if (!context?.leagues?.length) return [];
+
+    return context.leagues.map(({ league, rosters, users }) => {
+        const usersById = new Map((users || []).map((user) => [user.user_id, user]));
+        const rostersWithPlayer = (rosters || []).filter((roster) => (roster.players || []).includes(playerId));
+
+        if (!rostersWithPlayer.length) {
+            return {
+                leagueId: league.league_id,
+                leagueName: league.name || 'League',
+                leagueAbbr: getLeagueAbbr(league.name || 'League'),
+                ownerDisplay: 'Free Agent / Not rostered',
+                ownerTeam: null,
+                missing: true
+            };
+        }
+
+        const roster = rostersWithPlayer[0];
+        const owner = usersById.get(roster.owner_id) || null;
+        const ownerDisplay = owner?.display_name || owner?.username || `Roster ${roster.roster_id}`;
+        const teamName = owner?.metadata?.team_name || null;
+
+        return {
+            leagueId: league.league_id,
+            leagueName: league.name || 'League',
+            leagueAbbr: getLeagueAbbr(league.name || 'League'),
+            ownerDisplay,
+            ownerTeam: teamName,
+            missing: false
+        };
+    });
+}
+
+function getOwnershipModalPlayerSummary(playerId) {
+    const player = state.players?.[playerId];
+    if (!player) return null;
+    const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase() || '—';
+    const team = (player.team || 'FA').toUpperCase();
+    const preferredValueData = state.ownershipPreferredKtcMode === 'oneqb'
+        ? state.oneQbData?.[playerId]
+        : (state.sflxData?.[playerId] || state.oneQbData?.[playerId]);
+    const fallbackValueData = state.oneQbData?.[playerId] || state.sflxData?.[playerId] || null;
+    const valueData = preferredValueData || fallbackValueData;
+
+    const seasonStats = state.playerSeasonStats?.[playerId] || {};
+    const fpts = typeof seasonStats.fpts_ppr === 'number' ? seasonStats.fpts_ppr : null;
+    const ppg = typeof seasonStats.ppg === 'number' ? seasonStats.ppg : null;
+
+    const posRank = typeof seasonStats.pos_rank_ppr === 'number' ? seasonStats.pos_rank_ppr : null;
+    const overallRank = typeof seasonStats.overall_rank_ppr === 'number' ? seasonStats.overall_rank_ppr : null;
+    const ppgPosRank = typeof seasonStats.ppg_pos_rank_ppr === 'number' ? seasonStats.ppg_pos_rank_ppr : null;
+    const ppgOverallRank = typeof seasonStats.ppg_rank_ppr === 'number' ? seasonStats.ppg_rank_ppr : null;
+
+    return {
+        playerId,
+        pos,
+        team,
+        fullName: `${(player.first_name || '').trim()} ${(player.last_name || '').trim()}`.trim() || playerId,
+        fpts,
+        ppg,
+        posRank,
+        overallRank,
+        ppgPosRank,
+        ppgOverallRank,
+        ktc: Number.isFinite(valueData?.ktc) ? valueData.ktc : null,
+        ktcPosRankText: formatPosRankText(pos, valueData?.posRank),
+        ktcPosRank: parsePosRankNumber(valueData?.posRank),
+        ktcOverallRank: Number.isFinite(valueData?.overallRank) ? valueData.overallRank : null
     };
 }
-function createPlayerListHeader() {
-    const header = document.createElement('div');
-    header.className = 'pl-player-row pl-list-header';
-    const tagSpacer = document.createElement('div');
-    tagSpacer.className = 'pl-list-tag-spacer';
-    header.appendChild(tagSpacer);
-    const headerInfo = document.createElement('div');
-    headerInfo.className = 'pl-player-info';
-    headerInfo.innerHTML = '<div class="pl-player-name">Player & Info</div>';
-    header.appendChild(headerInfo);
-    const headerMeta = document.createElement('div');
-    headerMeta.className = 'pl-right-meta';
-    headerMeta.innerHTML = `
-                <span class="pl-col-count">#</span>
-                <span class="pl-col-pct">%</span>
-                <span class="pl-col-lgs">Leagues</span>
-            `;
-    header.appendChild(headerMeta);
-    return header;
+
+function renderOwnershipModalHeaderSummary(playerId) {
+    const summary = getOwnershipModalPlayerSummary(playerId);
+    if (!summary || !ownershipModalPlayerName || !ownershipModalSummaryChips) return;
+
+    ownershipModalPlayerName.textContent = summary.fullName;
+
+    // Modal left tags mirror the game-log modal top-left visual context (POS + team).
+    if (ownershipModalHeaderLeft) {
+        const teamKey = summary.team;
+        const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+        ownershipModalHeaderLeft.innerHTML = `
+            <div class="player-tag modal-pos-tag ${summary.pos}">${summary.pos}</div>
+            <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
+                ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL-Tags_webp/${normalizedKey}.webp" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
+            </div>
+        `;
+    }
+
+    if (ownershipModalPlayerVitals) {
+        ownershipModalPlayerVitals.innerHTML = '';
+        ownershipModalPlayerVitals.appendChild(createPlayerVitalsElement(getPlayerVitals(playerId), { variant: 'modal', pos: summary.pos }));
+    }
+
+    const fptsColor = getConditionalColorByRank(summary.posRank, summary.pos);
+    const ppgColor = getConditionalColorByRank(summary.ppgPosRank, summary.pos);
+    const ktcColor = getKtcColor(summary.ktc);
+
+    ownershipModalSummaryChips.innerHTML = `
+        <div class="gamelogs-summary-chip ownership-summary-chip">
+            <h4><span class="chip-header-value" style="color:${fptsColor}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : '—'}</span><span class="chip-unit"> FPTS</span></h4>
+            <div class="chip-values">
+                <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${fptsColor}">${Number.isFinite(summary.posRank) ? summary.posRank : '—'}</span></span>
+                <span class="chip-separator">•</span>
+                <span style="color:${getRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : '—'}</span>
+            </div>
+        </div>
+        <div class="gamelogs-summary-chip ownership-summary-chip">
+            <h4><span class="chip-header-value" style="color:${ppgColor}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : '—'}</span><span class="chip-unit"> PPG</span></h4>
+            <div class="chip-values">
+                <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${ppgColor}">${Number.isFinite(summary.ppgPosRank) ? summary.ppgPosRank : '—'}</span></span>
+                <span class="chip-separator">•</span>
+                <span style="color:${getRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : '—'}</span>
+            </div>
+        </div>
+        <div class="gamelogs-summary-chip ownership-summary-chip">
+            <h4><span class="chip-header-value" style="color:${ktcColor}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : '—'}</span><span class="chip-unit"> KTC</span></h4>
+            <div class="chip-values">
+                <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${getConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${Number.isFinite(summary.ktcPosRank) ? summary.ktcPosRank : '—'}</span></span>
+                <span class="chip-separator">•</span>
+                <span style="color:${getRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : '—'}</span>
+            </div>
+        </div>
+    `;
 }
-function createPlayerListRow(pid, leagueSet, totalLeagues) {
-    const p = state.players[pid];
-    if (!p) return null;
-    const pos = p.position || (p.fantasy_positions && p.fantasy_positions[0]) || '';
-    const first = (p.first_name || '').trim();
-    const last = (p.last_name || '').trim();
-    let displayName = `${first} ${last}`.trim() || pid;
-    if (first && last) displayName = `${first.charAt(0)}. ${last}`;
-    if (displayName.length > 14) displayName = displayName.substring(0, 14) + '…';
-    const row = document.createElement('div');
-    row.className = 'pl-player-row';
-    row.dataset.search = `${first.toLowerCase()} ${last.toLowerCase()} ${displayName.toLowerCase()}`;
-    row.dataset.count = leagueSet.size;
-    const valueData = state.isSuperflex ? state.sflxData[pid] : state.oneQbData[pid];
-    const ageFromSheet = valueData?.age;
-    const formattedAge = (typeof ageFromSheet === 'number') ? ageFromSheet.toFixed(1) : (p.age ? Number(p.age).toFixed(1) : '?');
-    const detailParts = [];
-    const rookieYear = deriveRookieYear(p);
-    if (formattedAge !== '?') {
-        const ageColor = getAgeColorForRoster(p.position, parseFloat(formattedAge)) || 'inherit';
-        detailParts.push(`Age <span style="color:${ageColor}">${formattedAge}</span>`);
-    }
-    if (rookieYear) {
-        const ryAbbr = String(rookieYear).slice(-2);
-        detailParts.push(`RY-<span style="color:${getRyColor(rookieYear) || 'inherit'}">${ryAbbr}</span>`);
-    }
-    const detailsHTML = detailParts.join('<span class="pl-details-sep"> • </span>');
-    const count = leagueSet.size;
-    const pctVal = Math.round((count / totalLeagues) * 100);
-    let countClass, pctClass;
-    if (pctVal >= 80) { countClass = 'pl-count-high'; pctClass = 'pl-pct-high'; }
-    else if (pctVal >= 50) { countClass = 'pl-count-mid'; pctClass = 'pl-pct-mid'; }
-    else { countClass = 'pl-count-low'; pctClass = 'pl-pct-low'; }
-    const sortedAbbrs = Array.from(leagueSet).sort();
-    const leaguesHTML = sortedAbbrs.map((abbr, index) => `<span style="color: ${getLeagueColor(abbr)}">${abbr}</span>`).join(', ');
-    row.innerHTML = `
-                <div class="pl-list-tag ownership-pos-tag ${pos}">${pos}</div>
-                <div class="pl-player-info">
-                    <div class="pl-player-name">
-                        <span>${displayName}</span>
-                        <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
-                    </div>
-                    <div class="pl-player-details">${detailsHTML}</div>
-                </div>
-                <div class="pl-right-meta">
-                    <span class="pl-col-count ${countClass}">${count}</span>
-                    <span class="pl-col-pct ${pctClass}">${pctVal}%</span>
-                    <span class="pl-col-lgs">${leaguesHTML}</span>
-                </div>
-            `;
-    return row;
+
+function renderOwnershipModalLeagueOwnerList(playerId) {
+    if (!ownershipModalBody) return;
+
+    const rows = findOwnershipLeagueOwnerRows(playerId);
+    const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+
+    ownershipModalBody.innerHTML = `
+        <div class="ownership-modal-section-title">
+            <span>League Ownership</span>
+            <span class="ownership-modal-section-subtitle">Who owns this player across your leagues</span>
+        </div>
+        <div class="ownership-modal-league-list">
+            ${rows.map((row) => {
+                const ownerText = row.missing ? 'Free Agent / Not rostered' : row.ownerDisplay;
+                const teamText = row.ownerTeam ? `<span class="ownership-modal-owner-team">${row.ownerTeam}</span>` : '';
+                return `
+                    <article class="ownership-modal-league-item ${row.missing ? 'is-missing' : ''}">
+                        <div class="ownership-modal-league-head">
+                            <span class="ownership-modal-league-abbr" style="color:${getLeagueColor(row.leagueAbbr)}">${row.leagueAbbr}</span>
+                            <span class="ownership-modal-league-name">${row.leagueName}</span>
+                        </div>
+                        <div class="ownership-modal-owner-row">
+                            <span class="ownership-modal-owner-label">Owner:</span>
+                            <span class="ownership-modal-owner-value">${ownerText}</span>
+                            ${teamText}
+                        </div>
+                    </article>
+                `;
+            }).join('')}
+        </div>
+        ${failures.length ? `<p class="ownership-modal-warning">Some leagues could not be loaded: ${failures.join(', ')}</p>` : ''}
+    `;
+}
+
+function openOwnershipPlayerModal(playerId) {
+    if (pageType !== 'ownership' || !ownershipPlayerModal || !playerId) return;
+    renderOwnershipModalHeaderSummary(playerId);
+    renderOwnershipModalLeagueOwnerList(playerId);
+    ownershipPlayerModal.classList.remove('hidden');
+    ownershipPlayerModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeOwnershipPlayerModal() {
+    if (!ownershipPlayerModal) return;
+    ownershipPlayerModal.classList.add('hidden');
+    ownershipPlayerModal.setAttribute('aria-hidden', 'true');
+    if (ownershipModalSummaryChips) ownershipModalSummaryChips.innerHTML = '';
+    if (ownershipModalBody) ownershipModalBody.innerHTML = '';
+    if (ownershipModalHeaderLeft) ownershipModalHeaderLeft.innerHTML = '';
+    if (ownershipModalPlayerVitals) ownershipModalPlayerVitals.innerHTML = '';
 }
 // --- Formatting Helpers ---
 function deriveRookieYear(player) {
@@ -7758,6 +8297,9 @@ function getLeagueAbbr(name) {
 function getLeagueColor(abbr) { if (!assignedLeagueColors.has(abbr)) { assignedLeagueColors.set(abbr, LEAGUE_COLOR_PALETTE[nextColorIndex % LEAGUE_COLOR_PALETTE.length]); nextColorIndex++; } return assignedLeagueColors.get(abbr); }
 function getRyColor(year) { if (!assignedRyColors.has(year)) { assignedRyColors.set(year, RY_COLOR_PALETTE[nextRyColorIndex % RY_COLOR_PALETTE.length]); nextRyColorIndex++; } return assignedRyColors.get(year); }
 function ordinalSuffix(i) { const j = i % 10, k = i % 100; if (j === 1 && k !== 11) return i + 'st'; if (j === 2 && k !== 12) return i + 'nd'; if (j === 3 && k !== 13) return i + 'rd'; return i + 'th'; }
+if (pageType === 'ownership') {
+    try { window.closeOwnershipPlayerModal = closeOwnershipPlayerModal; } catch (e) { }
+}
 // --- Utility Functions ---
 function adjustStickyHeaders() {
     const headerContainer = document.getElementById('header-container');
@@ -8166,6 +8708,12 @@ if ('serviceWorker' in navigator) {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', hideLegend, { capture: true });
 });
+if (pageType === 'ownership') {
+    const ownershipModeButtons = document.querySelectorAll('#ownershipModeSwitcher .ownership-mode-btn');
+    ownershipModeButtons.forEach((btn) => {
+        btn.addEventListener('click', hideLegend, { capture: true });
+    });
+}
 /* one-shot legend guard */
 document.addEventListener('DOMContentLoaded', function () {
     var legend = document.getElementById('legend-section');
