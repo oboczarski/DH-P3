@@ -406,7 +406,7 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-content {
   max-height: 90vh;
   border-radius: 16px;
   border: 1px solid var(--ownership-glass-border);
-  background: linear-gradient(165deg, rgba(15, 20, 42, 0.9), rgba(7, 10, 22, 0.84));
+  background: linear-gradient(165deg, rgb(71 78 107), rgb(32 34 45 / 57%));
   box-shadow: 0 28px 65px rgba(4, 8, 24, 0.62), inset 0 0 24px rgba(120, 100, 255, 0.07);
   overflow: hidden;
   padding: 0.75rem 0.85rem 0.78rem;
