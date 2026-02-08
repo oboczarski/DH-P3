@@ -582,137 +582,140 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
 
 /* ═══════════════════════════════════════════════════════════════
    PLAYER DETAIL MODAL
-   Opened via player name click in either view.
-   Shows summary chips (FPTS / PPG / KTC) + per-league ownership
-   breakdown with owner names.
+   Reuses game-logs-modal classes for header (pos tag, team logo,
+   close button) so styling matches exactly. Only ownership-specific
+   elements (chips, league rows) need custom CSS.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Overlay ── */
+/* ── Overlay (fixed fullscreen backdrop) ── */
 .ov-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(5, 5, 15, 0.82);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.50);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.2s ease, visibility 0.2s ease;
-  padding: 1rem;
 }
 
 .ov-modal-overlay.open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
-/* ── Modal container ── */
+/* ── Modal container — matches game-logs-modal .modal-content ── */
 .ov-modal {
-  background: linear-gradient(135deg, rgba(20, 22, 45, 0.95), rgba(13, 14, 35, 0.98));
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 16px;
-  width: 100%;
-  max-width: 420px;
-  max-height: 85vh;
+  position: relative;
+  z-index: 1001;
+  padding: 0.65rem 0.85rem 0.85rem 0.85rem;
+  border-radius: var(--panel-border-radius);
+  max-width: 90%;
+  width: 480px;
+  max-height: 90vh;
   overflow-y: auto;
-  box-shadow:
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(100, 100, 255, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
 }
 
-/* ── Modal header ── */
+.ov-modal-overlay.open .ov-modal {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ── Modal header — reuses .modal-header-left-container from styles.css ── */
+/* No position:relative here — .modal-header-left-container is positioned
+   relative to .ov-modal (position:relative), same as the game logs modal
+   where it's positioned relative to .modal-content. */
 .ov-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 1rem 1.1rem 0.6rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
+  min-height: 2.2rem;
+  margin-bottom: 0.15rem;
 }
 
-.ov-modal-header .modal-pos-tag {
-  min-width: 34px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-align: center;
-  color: #fff;
-}
-
-.ov-modal-header .modal-team-logo-chip {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-.ov-modal-header .modal-team-logo-chip img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.ov-modal-player-name {
-  font-size: 1.05rem;
-  font-weight: 700;
+.ov-modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 200;
   color: var(--color-text-primary);
-  flex: 1;
-  min-width: 0;
+  margin-bottom: 0.2rem;
+  text-align: center;
+  margin-left: 15px;
+  display: inline-block;
+  max-width: 18ch;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ov-modal-close {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  line-height: 1;
-  transition: color 0.15s ease;
-  flex-shrink: 0;
-}
-
-.ov-modal-close:hover {
-  color: var(--color-text-primary);
 }
 
 /* ── Vitals row (age/ht/wt/exp) ── */
 .ov-modal-vitals {
-  padding: 0.4rem 1.1rem 0.5rem;
+  padding: 0.15rem 0.25rem 0.35rem;
   flex-shrink: 0;
 }
 
-/* ── Summary chips (FPTS / PPG / KTC) ── */
+/* ── Summary chips (FPTS / PPG / KTC) — match gamelogs-summary-chip ── */
 .ov-modal-chips {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  padding: 0.5rem 1rem 0.65rem;
-  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  margin-bottom: 0.5rem;
+  padding: 0 0.15rem;
 }
 
+/* Each chip mirrors #game-logs-modal .gamelogs-summary-chip */
 .ov-chip {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
-  padding: 0.5rem 0.45rem 0.4rem;
+  flex: 1;
+  padding: 0.25rem 0.7rem;
   text-align: center;
+  white-space: nowrap;
+  min-width: auto;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 13px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+.ov-chip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 13px;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .03),
+    inset 0px 8px 0px -6px rgba(255, 255, 255, .031);
+  opacity: 0.4;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(100%);
+  pointer-events: none;
 }
 
 .ov-chip h4 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  line-height: 1.15;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+  gap: 0.5rem;
+}
+
+.ov-chip .chip-header-value {
+  font-size: 0.8rem;
 }
 
 .ov-chip .chip-unit {
@@ -727,15 +730,17 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  margin-top: 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+  gap: 0.00rem;
+  margin-top: 0.05rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-text-primary);
 }
 
 .ov-chip .chip-separator {
-  color: var(--color-text-secondary);
-  opacity: 0.5;
+  color: var(--color-text-tertiary);
+  font-size: 0.8rem;
+  margin: 0 0.25rem;
 }
 
 .ov-chip .pos-rank-container {
@@ -744,30 +749,32 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
 }
 
 .ov-chip .chip-pos-rank-label {
-  font-weight: 600;
-  opacity: 0.85;
+  font-size: 0.85em;
+  font-weight: 400;
+  margin-top: 0.05rem;
 }
 
-/* Position-specific label colors (match game log modal convention) */
-.ov-chip .chip-pos-rank-label.pos-color-QB { color: #FF3A75; }
-.ov-chip .chip-pos-rank-label.pos-color-RB { color: #00EBC7; }
-.ov-chip .chip-pos-rank-label.pos-color-WR { color: #58A7FF; }
-.ov-chip .chip-pos-rank-label.pos-color-TE { color: #B469FF; }
+/* ── Ownership summary stat below chips ── */
+.ov-modal-ownership-summary {
+  padding: 0.15rem 0.25rem 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.ov-modal-ownership-summary .ov-own-count {
+  font-weight: 700;
+}
 
 /* ── League ownership breakdown section ── */
-.ov-modal-leagues-section {
-  padding: 0.5rem 1rem 1rem;
+.ov-modal-league-breakdown {
+  padding: 0.35rem 0.15rem 0.5rem;
   flex: 1;
   overflow-y: auto;
-}
-
-.ov-modal-leagues-title {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #cdd1ee;
-  margin-bottom: 0.5rem;
 }
 
 /* Individual league row */
@@ -787,49 +794,7 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.ov-league-abbr {
-  font-size: 0.78rem;
-  font-weight: 700;
-  min-width: 40px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.ov-league-name {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ov-league-owner {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Owner label: "You" vs other owners */
-.ov-league-owner.is-you {
-  color: var(--color-accent-trade-win);
-}
-
-/* "Free Agent" label when player is unowned in a league */
-.ov-league-owner.is-free-agent {
-  color: var(--color-text-secondary);
-  opacity: 0.65;
-  font-style: italic;
-}
-
-/* League row status indicator (owned vs not) */
+/* Status dot (owned / not-owned) */
 .ov-league-status {
   width: 6px;
   height: 6px;
@@ -846,19 +811,47 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   background: rgba(255, 255, 255, 0.15);
 }
 
-/* Ownership summary stat below chips */
-.ov-ownership-summary {
-  padding: 0.25rem 1rem 0.35rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+/* League abbreviation (colored) */
+.ov-league-abbr {
   font-size: 0.78rem;
-  color: var(--color-text-secondary);
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
   flex-shrink: 0;
 }
 
-.ov-ownership-summary .ov-own-count {
-  font-weight: 700;
+/* League full name */
+.ov-league-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Owner display name */
+.ov-league-owner {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-league-owner.is-you {
+  color: var(--color-accent-trade-win);
+}
+
+.ov-league-owner.is-free-agent {
+  color: var(--color-text-secondary);
+  opacity: 0.65;
+  font-style: italic;
 }
 
 
@@ -888,26 +881,16 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   }
 
   .ov-modal {
-    max-width: 100%;
-    max-height: 90vh;
-    border-radius: 12px;
-  }
-
-  .ov-modal-header {
-    padding: 0.8rem 0.9rem 0.5rem;
+    max-width: 95%;
+    width: 95%;
   }
 
   .ov-modal-chips {
-    gap: 0.35rem;
-    padding: 0.4rem 0.7rem 0.5rem;
+    gap: 0.65rem;
   }
 
   .ov-chip {
-    padding: 0.4rem 0.3rem 0.35rem;
-  }
-
-  .ov-chip h4 {
-    font-size: 0.9rem;
+    padding: 0.2rem 0.5rem;
   }
 }
 
@@ -923,7 +906,11 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
     font-size: 0.72rem;
   }
 
-  .ov-modal-player-name {
-    font-size: 0.95rem;
+  .ov-modal-header h3 {
+    font-size: 1rem;
+  }
+
+  .ov-modal-chips {
+    gap: 0.45rem;
   }
 }

@@ -7232,10 +7232,10 @@ function initOwnershipViewSwitcher() {
 // --- Ownership modal close/overlay listeners ---
 function initOwnershipModalListeners() {
     if (!ownershipPlayerModal) return;
-    // Close button
-    const closeBtn = ownershipPlayerModal.querySelector('#ovModalCloseBtn');
+    // Close button — uses .modal-close-btn (same class as game logs modal)
+    const closeBtn = ownershipPlayerModal.querySelector('.modal-close-btn');
     closeBtn?.addEventListener('click', () => closeOwnershipModal());
-    // Click overlay to close
+    // Click overlay background to close (only if clicking the overlay itself)
     ownershipPlayerModal.addEventListener('click', (e) => {
         if (e.target === ownershipPlayerModal) closeOwnershipModal();
     });
@@ -7623,22 +7623,37 @@ async function openOwnershipPlayerModal(pid) {
     const fullName = `${first} ${last}`.trim() || pid;
     const team = (p.team || 'FA').toUpperCase();
 
-    // --- Header ---
-    const posTagEl = document.getElementById('ovModalPosTag');
-    if (posTagEl) {
-        const posBgColors = { QB: '#FF3A75', RB: '#00C9A7', WR: '#4A90D9', TE: '#9B59B6' };
-        posTagEl.textContent = pos;
-        posTagEl.style.backgroundColor = posBgColors[pos] || '#64748b';
-    }
+    // --- Header (mirror game logs modal pattern exactly) ---
+    // Build the same modal-header-left-container with pos tag + team logo chip
+    const modalHeader = document.getElementById('ovModalHeader');
+    if (modalHeader) {
+        // Remove any previous header-left container
+        const existingContainer = modalHeader.querySelector('.modal-header-left-container');
+        if (existingContainer) existingContainer.remove();
 
-    const teamLogoEl = document.getElementById('ovModalTeamLogo');
-    if (teamLogoEl) {
+        const headerLeftContainer = document.createElement('div');
+        headerLeftContainer.className = 'modal-header-left-container';
+
+        // Position tag (same classes as game logs)
+        const posTag = document.createElement('div');
+        posTag.className = `player-tag modal-pos-tag ${pos}`;
+        posTag.textContent = pos;
+        headerLeftContainer.appendChild(posTag);
+
+        // Team logo chip (same classes as game logs)
+        const teamKey = team;
         const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-        const normalizedKey = logoKeyMap[team] || team.toLowerCase();
+        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
         const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
-        teamLogoEl.innerHTML = (team && team !== 'FA')
-            ? `<img class="team-logo glow" src="${src}" alt="${team}" width="28" height="28" loading="eager">`
-            : `<span style="color: var(--color-text-secondary);">FA</span>`;
+        const teamLogoChip = document.createElement('div');
+        teamLogoChip.className = 'player-tag modal-team-logo-chip';
+        teamLogoChip.dataset.team = teamKey;
+        teamLogoChip.innerHTML = (team && team !== 'FA')
+            ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="24" height="24" loading="eager">`
+            : `<span>FA</span>`;
+        headerLeftContainer.appendChild(teamLogoChip);
+
+        modalHeader.insertBefore(headerLeftContainer, modalHeader.firstChild);
     }
 
     const nameEl = document.getElementById('ovModalPlayerName');

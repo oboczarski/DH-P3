@@ -136,28 +136,27 @@
 
 </main>
 
-<!-- Player Detail Modal (ownership-specific) -->
+</div>
+
+<!-- Player Detail Modal (ownership-specific) — placed outside content-wrapper for correct stacking -->
 <div class="ov-modal-overlay" id="ownershipPlayerModal" aria-hidden="true">
-  <div class="ov-modal" role="dialog" aria-modal="true" aria-label="Player Details">
-    <!-- Modal header: pos tag + team logo + name -->
-    <div class="ov-modal-header">
-      <span class="ov-modal-pos-tag" id="ovModalPosTag"></span>
-      <span class="ov-modal-team-logo" id="ovModalTeamLogo"></span>
-      <span class="ov-modal-player-name" id="ovModalPlayerName"></span>
-      <button class="ov-modal-close" id="ovModalCloseBtn" aria-label="Close">&times;</button>
+  <div class="ov-modal glass-panel" role="dialog" aria-modal="true" aria-label="Player Details">
+    <button class="modal-close-btn" id="ovModalCloseBtn" aria-label="Close">&times;</button>
+    <div class="ov-modal-header" id="ovModalHeader">
+      <!-- JS inserts .modal-header-left-container here (pos tag + team logo) -->
+      <h3 id="ovModalPlayerName">Player Details</h3>
     </div>
     <!-- Player vitals row (age/height/weight/exp/ry) -->
-    <div class="ov-modal-vitals" id="ovModalVitals"></div>
+    <div id="ovModalVitals" class="ov-modal-vitals"></div>
     <!-- Summary chips: FPTS, PPG, KTC -->
-    <div class="ov-modal-chips" id="ovModalChips"></div>
+    <div id="ovModalChips" class="ov-modal-chips"></div>
     <!-- Ownership summary text -->
-    <div class="ov-modal-ownership-summary" id="ovModalOwnershipSummary"></div>
+    <div id="ovModalOwnershipSummary" class="ov-modal-ownership-summary"></div>
     <!-- Per-league breakdown rows -->
-    <div class="ov-modal-league-breakdown" id="ovModalLeagueRows"></div>
+    <div id="ovModalLeagueRows" class="ov-modal-league-breakdown"></div>
   </div>
 </div>
 
-</div>
 <script defer="True" src="../scripts/app.js?v=20260116"></script>
 </body>
 </html>
