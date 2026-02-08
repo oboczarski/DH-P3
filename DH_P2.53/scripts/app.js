@@ -4220,26 +4220,26 @@ function getSznStatFillCoreColor(rank, position) {
     // Also See Bookmarks Right Below
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#84ffac' },
-            { v: 24, c: '#94eaff' },
-            { v: 36, c: '#a395ff' },
-            { v: 48, c: '#ffa19c' },
-            { v: 60, c: '#ffb1f2' },
-            { v: 72, c: '#ff91ce' },
+            { v: 12, c: '#96fec8' }, // Neon Teal
+            { v: 24, c: '#71f1fc' }, // Neon Cyan
+            { v: 36, c: '#8f70ff' }, // Neon Purple
+            { v: 48, c: '#caaafa' }, // Neon Pink
+            { v: 60, c: '#fdadbd' }, // Deep Rose (Requested)
+            { v: 72, c: '#fc7587' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#84ffac' },
-            { v: 16, c: '#94eaff' },
-            { v: 24, c: '#a395ff' },
-            { v: 32, c: '#ffa19c' },
-            { v: 40, c: '#ffb1f2' },
-            { v: 50, c: '#ff91ce' },
+             { v: 8, c: '#96fec8' },
+            { v: 16, c: '#71f1fc' },
+            { v: 24, c: '#8f70ff' },
+            { v: 32, c: '#caaafa' },
+            { v: 40, c: '#fdadbd' },
+            { v: 50, c: '#fc7587' },
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
-    return '#ff91ce';
+    return '#7f7e99';
 }
 function getSznStatRankBoxShadow(rank, position, rankColor) {
     if (typeof rank !== 'number' || rank <= 0) return 'none';
@@ -7498,19 +7498,19 @@ function getSznStatRankColor(rank, position) {
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, c: '#00FF7B' }, // Neon Teal
-            { v: 24, c: '#00AAFF' }, // Neon Cyan
+            { v: 24, c: '#00edcb' }, // Neon Cyan
             { v: 36, c: '#3700ff' }, // Neon Purple
-            { v: 48, c: '#F65846' }, // Neon Pink
-            { v: 60, c: '#FF00D6' }, // Deep Rose (Requested)
-            { v: 72, c: '#DA285E' }, // Bright Red (Requested)
+            { v: 48, c: '#6700FF' }, // Neon Pink
+            { v: 60, c: '#FC5273' }, // Deep Rose (Requested)
+            { v: 72, c: '#F2344C' }, // Bright Red (Requested)
         ]
         : [
             { v: 8, c: '#00FF7B' },
-            { v: 16, c: '#00AAFF' },
+            { v: 16, c: '#00EDCB' },
             { v: 24, c: '#3700ff' },
-            { v: 32, c: '#F65846' },
-            { v: 40, c: '#FF00D6' },
-            { v: 50, c: '#DA285E' },
+            { v: 32, c: '#6700FF' },
+            { v: 40, c: '#FC5273' },
+            { v: 50, c: '#F2344C' },
         ];
 
     for (const threshold of thresholds) {
