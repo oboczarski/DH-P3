@@ -4221,19 +4221,19 @@ function getSznStatFillCoreColor(rank, position) {
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, c: '#84ffac' },
-            { v: 24, c: '#94eaff' },
-            { v: 36, c: '#a395ff' },
-            { v: 48, c: '#ffa19c' },
-            { v: 60, c: '#ffb1f2' },
-            { v: 72, c: '#ff91ce' },
+            { v: 24, c: '#609af9' },
+            { v: 36, c: '#8f73ff' },
+            { v: 48, c: '#fd8680' },
+            { v: 60, c: '#fe79e8' },
+            { v: 72, c: '#fb70bc' },
         ]
         : [
             { v: 8, c: '#84ffac' },
-            { v: 16, c: '#94eaff' },
-            { v: 24, c: '#a395ff' },
-            { v: 32, c: '#ffa19c' },
-            { v: 40, c: '#ffb1f2' },
-            { v: 50, c: '#ff91ce' },
+            { v: 16, c: '#609af9' },
+            { v: 24, c: '#8f73ff' },
+            { v: 32, c: '#fd8680' },
+            { v: 40, c: '#fe79e8' },
+            { v: 50, c: '#fb70bc' },
         ];
 
     for (const threshold of thresholds) {
@@ -4251,20 +4251,20 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
     // Also See Bookmarks Right Above
     const thresholds = normalizedPos === 'WR'
             ? [
-            { v: 12, s: `inset 0 0 0px 1px ${rankColor}` },
+            { v: 12, s: `inset 0 0 5px 1px ${rankColor}` },
             { v: 24, s: `inset 0 0 5px 1px ${rankColor}` }, 
-            { v: 36, s: `inset 0 0 10px 1px ${rankColor}` }, 
-            { v: 48, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 60, s: `inset 0 0 8px 1px ${rankColor}` },
-            { v: 72, s: `inset 0 0 9px 1px ${rankColor}` },
+            { v: 36, s: `inset 0 0 5px 1px ${rankColor}` }, 
+            { v: 48, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 60, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 72, s: `inset 0 0 5px 1px ${rankColor}` },
         ]
         : [
-            { v: 8, s: `inset 0 0 0px 1px ${rankColor}` },
+            { v: 8, s: `inset 0 0 5px 1px ${rankColor}` },
             { v: 16, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 32, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 40, s: `inset 0 0 8px 1px ${rankColor}` },
-            { v: 50, s: `inset 0 0 9px 1px ${rankColor}` },
+            { v: 24, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 32, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 40, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 50, s: `inset 0 0 5px 1px ${rankColor}` },
         ];
 
     for (const threshold of thresholds) {
@@ -7498,16 +7498,16 @@ function getSznStatRankColor(rank, position) {
     const thresholds = normalizedPos === 'WR'
         ? [
             { v: 12, c: '#00FF7B' }, // Neon Teal
-            { v: 24, c: '#00AAFF' }, // Neon Cyan
-            { v: 36, c: '#3700ff' }, // Neon Purple
+            { v: 24, c: '#0062ff' }, // Neon Cyan
+            { v: 36, c: '#5100ff' }, // Neon Purple
             { v: 48, c: '#F65846' }, // Neon Pink
             { v: 60, c: '#FF00D6' }, // Deep Rose (Requested)
             { v: 72, c: '#DA285E' }, // Bright Red (Requested)
         ]
         : [
             { v: 8, c: '#00FF7B' },
-            { v: 16, c: '#00AAFF' },
-            { v: 24, c: '#3700ff' },
+            { v: 16, c: '#0062ff' },
+            { v: 24, c: '#5100ff' },
             { v: 32, c: '#F65846' },
             { v: 40, c: '#FF00D6' },
             { v: 50, c: '#DA285E' },
