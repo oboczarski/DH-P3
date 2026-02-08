@@ -7,24 +7,22 @@
 
 /* ─── BASE LAYOUT ─── */
 
-/* Ownership page main content wrapper */
+/* Ownership page main content wrapper — no height/overflow
+   constraints so content sizes naturally and isn't clipped */
 #playerListView {
   max-width: 700px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  height: 100%;
 }
 
-/* Player Value table view container */
+/* Player Value table view container — no height/overflow
+   constraints so the table is visible when view is toggled on */
 #playerValueView {
   max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  height: 100%;
 }
 
 /* ─── SEARCH INPUT (shared between views) ─── */
@@ -62,50 +60,48 @@
 }
 
 /* ─── VIEW SWITCHER (Ownership ↔ Player Value toggle) ─── */
+/* Centered glass pill — matches Deep Space aesthetic */
 .ownership-view-switcher {
   display: flex;
-  gap: 4px;
   align-items: center;
   justify-content: center;
-  background: rgba(13, 14, 35, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  margin: 0.75rem auto 0.6rem;
+  width: fit-content;
+  background: rgba(13, 14, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   padding: 3px;
-  flex-shrink: 0;
+  gap: 3px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .ownership-view-switcher button {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
-  border: none;
-  border-radius: 8px;
+  padding: 0.45rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
   background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
   white-space: nowrap;
   font-family: inherit;
+  letter-spacing: 0.3px;
 }
 
 .ownership-view-switcher button:hover {
-  color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .ownership-view-switcher button.active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--color-text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.ownership-view-switcher button i {
-  font-size: 0.75rem;
-  opacity: 0.85;
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  font-weight: 600;
 }
 
 /* ─── PLAYER LIST SECTION (scrollable rows container) ─── */
@@ -610,16 +606,18 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   pointer-events: auto;
 }
 
-/* ── Modal container — matches game-logs-modal .modal-content ── */
+/* ── Modal container — flex column layout so league breakdown
+   scrolls independently while header/chips/summary stay fixed ── */
 .ov-modal {
   position: relative;
   z-index: 1001;
+  display: flex;
+  flex-direction: column;
   padding: 0.65rem 0.85rem 0.85rem 0.85rem;
   border-radius: var(--panel-border-radius);
   max-width: 90%;
   width: 480px;
   max-height: 90vh;
-  overflow-y: auto;
   transform: scale(0.95);
   opacity: 0;
   transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
@@ -630,13 +628,22 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   opacity: 1;
 }
 
+/* Close button: ensure it's always on top and clickable,
+   positioned absolute relative to .ov-modal */
+.ov-modal .modal-close-btn {
+  z-index: 10;
+}
+
 /* ── Modal header — reuses .modal-header-left-container from styles.css ── */
-/* No position:relative here — .modal-header-left-container is positioned
-   relative to .ov-modal (position:relative), same as the game logs modal
-   where it's positioned relative to .modal-content. */
+/* text-align: center centers the inline-block h3 away from the left
+   container (pos tag + logo), matching #modal-header { text-align: center }
+   in the game logs modal. .modal-header-left-container positions relative
+   to .ov-modal (same as .modal-content in the game logs modal). */
 .ov-modal-header {
+  text-align: center;
   min-height: 2.2rem;
   margin-bottom: 0.15rem;
+  flex-shrink: 0;
 }
 
 .ov-modal-header h3 {
@@ -647,7 +654,7 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   text-align: center;
   margin-left: 15px;
   display: inline-block;
-  max-width: 18ch;
+  max-width: 15ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -667,6 +674,7 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   flex-wrap: nowrap;
   margin-bottom: 0.5rem;
   padding: 0 0.15rem;
+  flex-shrink: 0;
 }
 
 /* Each chip mirrors #game-logs-modal .gamelogs-summary-chip */
@@ -770,11 +778,12 @@ body[data-page="ownership"] .ownership-pos-tag.TE {
   font-weight: 700;
 }
 
-/* ── League ownership breakdown section ── */
+/* ── League ownership breakdown section (scrolls independently) ── */
 .ov-modal-league-breakdown {
   padding: 0.35rem 0.15rem 0.5rem;
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 /* Individual league row */

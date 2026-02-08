@@ -7232,10 +7232,16 @@ function initOwnershipViewSwitcher() {
 // --- Ownership modal close/overlay listeners ---
 function initOwnershipModalListeners() {
     if (!ownershipPlayerModal) return;
-    // Close button — uses .modal-close-btn (same class as game logs modal)
-    const closeBtn = ownershipPlayerModal.querySelector('.modal-close-btn');
-    closeBtn?.addEventListener('click', () => closeOwnershipModal());
-    // Click overlay background to close (only if clicking the overlay itself)
+    // Close button — use getElementById directly for reliability
+    const closeBtn = document.getElementById('ovModalCloseBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            closeOwnershipModal();
+        });
+    }
+    // Click overlay background to close (only if clicking the overlay itself, not modal content)
     ownershipPlayerModal.addEventListener('click', (e) => {
         if (e.target === ownershipPlayerModal) closeOwnershipModal();
     });
