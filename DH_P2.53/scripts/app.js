@@ -4220,20 +4220,20 @@ function getSznStatFillCoreColor(rank, position) {
     // Also See Bookmarks Right Below
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#51d390ee' }, // Neon Teal
-            { v: 24, c: '#5ab3dd' }, // Neon Cyan
-            { v: 36, c: '#4d4dff' }, // Neon Purple
-            { v: 48, c: '#7b5cf8' }, // Neon Pink
-            { v: 60, c: '#e5657f' }, // Deep Rose (Requested)
-            { v: 72, c: '#ec4258' }, // Bright Red (Requested)
+            { v: 12, c: '#00ffffe8' }, // Neon Teal
+            { v: 24, c: '#0063edec' }, // Neon Cyan
+            { v: 36, c: '#3300ff' }, // Neon Purple
+            { v: 48, c: '#5700FF' }, // Neon Pink
+            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
+            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
         ]
         : [
-             { v: 8, c: '#51d390ee' },
-            { v: 16, c: '#5ab3dd' },
-            { v: 24, c: '#4d4dff' },
-            { v: 32, c: '#7b5cf8' },
-            { v: 40, c: '#e5657f' },
-            { v: 50, c: '#ec4258' },
+             { v: 8, c: '#00ffffe8' },
+            { v: 16, c: '#0063edec' },
+            { v: 24, c: '#3300ff' },
+            { v: 32, c: '#5700FF' },
+            { v: 40, c: '#8732ff' },
+            { v: 50, c: '#ea08ff' },
         ];
 
     for (const threshold of thresholds) {
@@ -7497,20 +7497,20 @@ function getSznStatRankColor(rank, position) {
     
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ff7be8' }, // Neon Teal
-            { v: 24, c: '#009aedec' }, // Neon Cyan
+            { v: 12, c: '#00ffffe8' }, // Neon Teal
+            { v: 24, c: '#0063edec' }, // Neon Cyan
             { v: 36, c: '#3300ff' }, // Neon Purple
             { v: 48, c: '#5700FF' }, // Neon Pink
-            { v: 60, c: '#FC5273' }, // Deep Rose (Requested)
-            { v: 72, c: '#F2344C' }, // Bright Red (Requested)
+            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
+            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00ff7be8' },
-            { v: 16, c: '#009aedec' },
+            { v: 8, c: '#00ffffe8' },
+            { v: 16, c: '#0063edec' },
             { v: 24, c: '#3300ff' },
             { v: 32, c: '#5700FF' },
-            { v: 40, c: '#FC5273' },
-            { v: 50, c: '#F2344C' },
+            { v: 40, c: '#8732ff' },
+            { v: 50, c: '#ea08ff' },
         ];
 
     for (const threshold of thresholds) {
