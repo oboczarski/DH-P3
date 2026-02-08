@@ -4220,20 +4220,20 @@ function getSznStatFillCoreColor(rank, position) {
     // Also See Bookmarks Right Below
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#96fec8' }, // Neon Teal
-            { v: 24, c: '#71f1fc' }, // Neon Cyan
-            { v: 36, c: '#8f70ff' }, // Neon Purple
-            { v: 48, c: '#caaafa' }, // Neon Pink
-            { v: 60, c: '#fdadbd' }, // Deep Rose (Requested)
-            { v: 72, c: '#fc7587' }, // Bright Red (Requested)
+            { v: 12, c: '#51d390ee' }, // Neon Teal
+            { v: 24, c: '#5ab3dd' }, // Neon Cyan
+            { v: 36, c: '#4d4dff' }, // Neon Purple
+            { v: 48, c: '#7b5cf8' }, // Neon Pink
+            { v: 60, c: '#e5657f' }, // Deep Rose (Requested)
+            { v: 72, c: '#ec4258' }, // Bright Red (Requested)
         ]
         : [
-             { v: 8, c: '#96fec8' },
-            { v: 16, c: '#71f1fc' },
-            { v: 24, c: '#8f70ff' },
-            { v: 32, c: '#caaafa' },
-            { v: 40, c: '#fdadbd' },
-            { v: 50, c: '#fc7587' },
+             { v: 8, c: '#51d390ee' },
+            { v: 16, c: '#5ab3dd' },
+            { v: 24, c: '#4d4dff' },
+            { v: 32, c: '#7b5cf8' },
+            { v: 40, c: '#e5657f' },
+            { v: 50, c: '#ec4258' },
         ];
 
     for (const threshold of thresholds) {
@@ -4251,20 +4251,20 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
     // Also See Bookmarks Right Above
     const thresholds = normalizedPos === 'WR'
             ? [
-            { v: 12, s: `inset 0 0 0px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 5px 1px ${rankColor}` }, 
-            { v: 36, s: `inset 0 0 5px 1px ${rankColor}` }, 
-            { v: 48, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 60, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 72, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 12, s: `inset 0 0 7px 1px ${rankColor}` },
+            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` }, 
+            { v: 36, s: `inset 0 0 7px 1px ${rankColor}` }, 
+            { v: 48, s: `inset 0 0 7px 1px ${rankColor}` },
+            { v: 60, s: `inset 0 0 7px 1px ${rankColor}` },
+            { v: 72, s: `inset 0 0 7px 1px ${rankColor}` },
         ]
         : [
-            { v: 8, s: `inset 0 0 0px 1px ${rankColor}` },
-            { v: 16, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 10px 1px ${rankColor}` },
-            { v: 32, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 40, s: `inset 0 0 5px 1px ${rankColor}` },
-            { v: 50, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 8, s: `inset 0 0 7px 1px ${rankColor}` },
+            { v: 16, s: `inset 0 0 7px 1px ${rankColor}` },
+            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` },
+            { v: 32, s: `inset 0 0 7px 2px ${rankColor}` },
+            { v: 40, s: `inset 0 0 7px 2px ${rankColor}` },
+            { v: 50, s: `inset 0 0 7px 1px ${rankColor}` },
         ];
 
     for (const threshold of thresholds) {
@@ -7497,18 +7497,18 @@ function getSznStatRankColor(rank, position) {
     
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00FF7B' }, // Neon Teal
-            { v: 24, c: '#00edcb' }, // Neon Cyan
-            { v: 36, c: '#3700ff' }, // Neon Purple
-            { v: 48, c: '#6700FF' }, // Neon Pink
+            { v: 12, c: '#00ff7be8' }, // Neon Teal
+            { v: 24, c: '#009aedec' }, // Neon Cyan
+            { v: 36, c: '#3300ff' }, // Neon Purple
+            { v: 48, c: '#5700FF' }, // Neon Pink
             { v: 60, c: '#FC5273' }, // Deep Rose (Requested)
             { v: 72, c: '#F2344C' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00FF7B' },
-            { v: 16, c: '#00EDCB' },
-            { v: 24, c: '#3700ff' },
-            { v: 32, c: '#6700FF' },
+            { v: 8, c: '#00ff7be8' },
+            { v: 16, c: '#009aedec' },
+            { v: 24, c: '#3300ff' },
+            { v: 32, c: '#5700FF' },
             { v: 40, c: '#FC5273' },
             { v: 50, c: '#F2344C' },
         ];
