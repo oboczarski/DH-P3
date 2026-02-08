@@ -14,6 +14,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
 <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+<link rel="stylesheet" href="../styles/ownership.css"/>
 </head>
 <body data-page="ownership" class="p-2 sm:p-4">
 <!-- Replaced Background: Starfield -->
@@ -76,38 +77,17 @@
             <div class="username-area">
                 <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle"/>
             </div>
-            <div class="custom-select-wrapper">
-                <select disabled="" id="leagueSelect">
-                    <option>Select a league...</option>
-                </select>
-            </div>
-            <div class="view-switcher secondary-switcher compact-switcher">
-                <button id="positionalViewBtn">
-                    <i class="fa-solid fa-users" aria-hidden="true"></i>
-                    <span class="switcher-label">Positional</span>
-                </button>
-                <button id="lineupViewBtn">
-                    <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                    <span class="switcher-label">Lineup</span>
-                </button>
-            </div>
+
         </div>
         <div class="header-row" id="filters-row">
-            <div class="start-sit-button-slot" id="start-sit-button-slot">
-                <div class="start-sit-button-container">
-                    <button class="menu-button analyzer-button start-sit-button" id="startSitButton" type="button" aria-label="Open Start/Sit recommendations">
-                        <i class="fa-solid fa-elevator analyzer-icon" aria-hidden="true"></i>
-                        <span class="analyzer-label">Start/Sit</span>
-                    </button>
-                </div>
-            </div>
+
             <div class="filters-container">
                 <div id="positional-filters">
                     <button class="filter-btn" data-position="QB">QB</button>
                     <button class="filter-btn" data-position="RB">RB</button>
                     <button class="filter-btn" data-position="WR">WR</button>
                     <button class="filter-btn" data-position="TE">TE</button>
-                    <button class="filter-btn" data-position="FLX">FLX</button>
+
                 </div>
                 <button class="control-button-subtle" id="clearFiltersButton">
                     <span class="clear-filters-stack">
@@ -115,46 +95,13 @@
                         <span class="sr-only">Clear filters</span>
                     </span>
                 </button>
-                <div class="compare-controls">
-                    <button class="control-button hidden" id="compareButton" aria-hidden="true" tabindex="-1" style="display:none;"></button>
-                    <button id="compareSearchToggle" class="control-button-subtle compare-search-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="compareSearchPopover">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <span class="sr-only">Search teams</span>
-                    </button>
-                    <div id="compareSearchPopover" class="compare-search-popover hidden" role="dialog" aria-modal="false">
-                        <button type="button" id="compareSearchClose" class="compare-search-close" aria-label="Close search popover">
-                            <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                        </button>
-                        <label for="compareSearchInput" class="sr-only">Search teams</label>
-                        <input id="compareSearchInput" type="search" placeholder="Search Players…" autocomplete="off" inputmode="search" />
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
 </header>
 </div>
 <main class="container mx-auto" id="content">
-<section aria-label="Player Card Legend" class="hidden legend-section panel" id="legend-section"><h3 class="panel-title">Player Card Legend</h3><div aria-label="Roster Player Card Key" class="player-row legend-card" id="rosterPlayerCardKey" role="region">
-<!-- Top row: Position tag + Player  -->
-<div class="player-main-line legend-main">
-<span class="player-tag legend-pos">POSITION</span>
-<span class="player-name legend-name">PLAYER NAME</span>
-</div>
-<!-- Middle row: Position Rank • Age • Team tag (right aligned) -->
-<div class="player-meta-line legend-meta">
-<span class="player-pos-rank legend-pos-rank">POSITION<br/>RANK (KTC)</span>
-<span class="separator">•</span>
-<span><span class="player-age legend-age">AGE</span></span>
-<span class="separator">•</span>
-<span class="team-tag legend-team">TEAM</span>
-</div>
-<!-- Bottom row: KTC left, ADP right (no chips) -->
-<div class="player-value-line legend-bottom"><div class="legend-bottom-bg">
-<span class="kv-left"><span class="value player-ktc legend-ktc">KTC VALUE</span></span>
-<span class="kv-right"><span class="value player-adp legend-adp">ADP</span></span>
-</div></div>
-</div><div class="legend-footnote" id="rosterCardFootnote">KTC VALUE AND ADP ARE SPECIFIC TO LEAGUE SCORING / FORMAT.</div></section>
 <div id="loading" class="hidden">
   <div class="loading-overlay" role="alert" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
@@ -174,16 +121,42 @@
     </div>
   </div>
 </div>
-<div class="hidden" id="rosterView">
-<div id="rosterContainer">
-<div id="rosterGrid"></div>
+
+<!-- Ownership / Player Value view toggle -->
+<div class="ownership-view-switcher" id="ownership-view-switcher">
+    <button class="ov-switch-btn active" id="ownershipViewBtn" data-view="ownership" aria-pressed="true">Ownership</button>
+    <button class="ov-switch-btn" id="playerValueViewBtn" data-view="playerValue" aria-pressed="false">Player Value</button>
 </div>
-</div>
-<div class="hidden" id="playerListView">
-</div>
+
+<!-- Ownership list view (rendered by app.js) -->
+<div id="playerListView"></div>
+
+<!-- Player Value table view (rendered by app.js) -->
+<div class="hidden" id="playerValueView"></div>
+
 </main>
-<div id="tradeSimulator">
+
+<!-- Player Detail Modal (ownership-specific) -->
+<div class="ov-modal-overlay" id="ownershipPlayerModal" aria-hidden="true">
+  <div class="ov-modal" role="dialog" aria-modal="true" aria-label="Player Details">
+    <!-- Modal header: pos tag + team logo + name -->
+    <div class="ov-modal-header">
+      <span class="ov-modal-pos-tag" id="ovModalPosTag"></span>
+      <span class="ov-modal-team-logo" id="ovModalTeamLogo"></span>
+      <span class="ov-modal-player-name" id="ovModalPlayerName"></span>
+      <button class="ov-modal-close" id="ovModalCloseBtn" aria-label="Close">&times;</button>
+    </div>
+    <!-- Player vitals row (age/height/weight/exp/ry) -->
+    <div class="ov-modal-vitals" id="ovModalVitals"></div>
+    <!-- Summary chips: FPTS, PPG, KTC -->
+    <div class="ov-modal-chips" id="ovModalChips"></div>
+    <!-- Ownership summary text -->
+    <div class="ov-modal-ownership-summary" id="ovModalOwnershipSummary"></div>
+    <!-- Per-league breakdown rows -->
+    <div class="ov-modal-league-breakdown" id="ovModalLeagueRows"></div>
+  </div>
 </div>
+
 </div>
 <script defer="True" src="../scripts/app.js?v=20260116"></script>
 </body>

@@ -1,0 +1,929 @@
+/* ============================================================
+   OWNERSHIP PAGE – Dedicated Stylesheet
+   Dynasty Hub · DH_P2.53
+   Migrated from styles.css + new components for Player Value
+   table view and Player Detail modal.
+   ============================================================ */
+
+/* ─── BASE LAYOUT ─── */
+
+/* Ownership page main content wrapper */
+#playerListView {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Player Value table view container */
+#playerValueView {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* ─── SEARCH INPUT (shared between views) ─── */
+#playerSearch,
+#pvSearch {
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-panel-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-text-primary);
+  padding: 0.50rem 0.75rem;
+  border-radius: var(--panel-border-radius);
+  font-size: 1rem;
+  width: 100%;
+  margin: 0.5rem auto;
+  display: block;
+  transition: all 0.2s ease;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+#playerSearch:focus,
+#pvSearch:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2), 0 0 8px var(--color-accent-primary-glow);
+}
+
+#playerSearch::placeholder,
+#pvSearch::placeholder {
+  color: var(--color-text-secondary);
+  font-weight: 200;
+}
+
+/* ─── VIEW SWITCHER (Ownership ↔ Player Value toggle) ─── */
+.ownership-view-switcher {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 14, 35, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.ownership-view-switcher button {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.ownership-view-switcher button:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ownership-view-switcher button.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ownership-view-switcher button i {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+/* ─── PLAYER LIST SECTION (scrollable rows container) ─── */
+.player-list-section {
+  border-radius: 6px;
+  overflow-y: auto;
+  flex: 1;
+  padding: 0rem 1rem;
+}
+
+/* ─── PLAYER ROW (base) ─── */
+.pl-player-row {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+/* · · ODD = inset glassmorphism · · */
+.player-list-section .pl-player-row:nth-child(odd) {
+  position: relative;
+  background-color: rgba(100, 100, 120, 0.03);
+  backdrop-filter: blur(2px) saturate(1.30) brightness(1.46);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
+}
+
+.player-list-section .pl-player-row:nth-child(odd)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.06;
+  background-color: rgba(13, 14, 35, 0.03);
+  background: repeating-linear-gradient(20deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 1px, rgba(0, 0, 0, 0) 1px, rgba(0, 0, 0, 0) 4px);
+}
+
+/* · · EVEN = deeper glass · · */
+.player-list-section .pl-player-row:nth-child(even) {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(13, 14, 35, 0.03);
+  backdrop-filter: blur(2px) saturate(1.25) brightness(1.46);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: rgba(0, 0, 0, 0.59) 0px 10px 60px 0px;
+}
+
+.player-list-section .pl-player-row:nth-child(even)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-color: rgba(13, 14, 35, 0.03);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, rgba(0, 0, 0, 0) 1px);
+  background-size: 5px 5px;
+}
+
+/* ─── PLAYER INFO (name + details column) ─── */
+.pl-player-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.pl-player-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Clickable player names in ownership view */
+.pl-player-name span[data-pid] {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pl-player-name span[data-pid]:hover {
+  color: var(--color-accent-primary);
+}
+
+.pl-player-details {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── POSITION TAG (glass style) ─── */
+.pl-list-tag {
+  min-width: 24px;
+  height: 22px;
+  line-height: 22px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 5px;
+  color: var(--color-bg);
+  flex-shrink: 0;
+  margin-right: 0.3rem;
+}
+
+/* Ownership page: position tags styled like game logs modal */
+body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: auto;
+  padding: 4px 4px;
+  line-height: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.005);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.12);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
+    inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
+  opacity: 0.34;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+  pointer-events: none;
+}
+
+/* Mobile-specific radius for ownership tags */
+@media (max-width: 640px) {
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+    border-radius: 0.75rem;
+  }
+
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
+    border-radius: 3px;
+  }
+}
+
+/* Position-specific glow colors */
+body[data-page="ownership"] .ownership-pos-tag.QB {
+  color: #FF3A75c0;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #FF3A7513;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.RB {
+  color: #00EBC7c0;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 6px #00EBC715;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.WR {
+  color: #58A7FFca;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #58A7FF25;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.TE {
+  color: #B469FFca;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #B469FF26;
+}
+
+/* Tag spacer (used in header row where no pos tag exists) */
+.pl-list-tag-spacer {
+  width: 24px;
+  height: 1px;
+  flex-shrink: 0;
+  margin-right: 0.3rem;
+}
+
+/* ─── RIGHT META (count / pct / leagues grid) ─── */
+.pl-right-meta {
+  display: grid;
+  grid-template-columns: 35px 45px 1fr;
+  column-gap: 1rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+  width: 170px;
+  text-align: right;
+}
+
+.pl-col-count,
+.pl-col-pct {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "LEAGUES" text in the ownership page header */
+.pl-col-lgs {
+  text-align: left;
+  white-space: normal;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #cdd1ee;
+}
+
+/* ─── LIST HEADER ROW ─── */
+.pl-list-header {
+  background: #1d1f3577 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  margin: 2px 1px 5px 1px;
+  padding: 0.5rem 0.1rem !important;
+}
+
+.pl-list-header::after {
+  background: #1d1f35aa !important;
+  border-radius: 4px;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+/* "PLAYERS & INFO" text in the list header */
+.pl-list-header .pl-player-name {
+  font-size: 0.75rem;
+  color: #cdd1ee;
+}
+
+.pl-list-header .pl-player-info {
+  justify-content: center;
+}
+
+/* "#" and "%" header labels */
+.pl-list-header .pl-right-meta {
+  font-size: 0.85rem;
+  color: #cdd1ee;
+}
+
+.pl-list-header .pl-col-lgs {
+  font-size: 0.65rem;
+  color: #cdd1ee;
+}
+
+.pl-list-header .pl-player-details {
+  display: none;
+}
+
+/* ─── CONDITIONAL COLOR CLASSES ─── */
+.pl-count-high,
+.pl-pct-high {
+  color: var(--color-accent-trade-win);
+}
+
+.pl-count-mid,
+.pl-pct-mid {
+  color: var(--color-accent-secondary);
+}
+
+.pl-count-low,
+.pl-pct-low {
+  color: var(--color-text-secondary);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAYER VALUE TABLE VIEW
+   11-column stats-style table: RK | PLAYER | POS | TM | AGE |
+   1QB KTC | 1QB pRK | SFLX KTC | SFLX pRK | FPTS | PPG
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Container & scroll wrapper ── */
+.pv-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(13, 14, 35, 0.25);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Table base ── */
+.pv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  table-layout: auto;
+  min-width: 680px;
+}
+
+/* ── Header ── */
+.pv-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.pv-table thead th {
+  background: #1d1f35ee;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  color: #cdd1ee;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 0.55rem 0.45rem;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.pv-table thead th:hover {
+  color: var(--color-text-primary);
+}
+
+/* Sortable column indicator */
+.pv-table thead th.pv-sorted-asc::after {
+  content: ' ▲';
+  font-size: 0.55rem;
+  opacity: 0.7;
+}
+
+.pv-table thead th.pv-sorted-desc::after {
+  content: ' ▼';
+  font-size: 0.55rem;
+  opacity: 0.7;
+}
+
+/* Left-align player name column */
+.pv-table th.pv-col-player,
+.pv-table td.pv-col-player {
+  text-align: left;
+  padding-left: 0.6rem;
+}
+
+/* ── Table rows ── */
+.pv-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.12s ease;
+}
+
+.pv-table tbody tr:nth-child(odd) {
+  background: rgba(100, 100, 120, 0.03);
+}
+
+.pv-table tbody tr:nth-child(even) {
+  background: rgba(13, 14, 35, 0.06);
+}
+
+.pv-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pv-table tbody td {
+  padding: 0.45rem 0.45rem;
+  text-align: center;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Row rank column */
+.pv-table td.pv-col-rk {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: 36px;
+}
+
+/* Player name cell: clickable */
+.pv-table td.pv-col-player {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pv-table td.pv-col-player:hover {
+  color: var(--color-accent-primary);
+}
+
+/* Position tag inside table */
+.pv-pos-tag {
+  display: inline-block;
+  min-width: 26px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+}
+
+/* Team column */
+.pv-table td.pv-col-tm {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* KTC value columns */
+.pv-table td.pv-col-ktc {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+/* Rank columns (pRK) */
+.pv-table td.pv-col-prk {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* FPTS / PPG columns */
+.pv-table td.pv-col-fpts,
+.pv-table td.pv-col-ppg {
+  font-weight: 600;
+}
+
+/* Empty / loading state */
+.pv-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── Position filter controls above table ── */
+.pv-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.pv-controls .filter-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.78rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PLAYER DETAIL MODAL
+   Opened via player name click in either view.
+   Shows summary chips (FPTS / PPG / KTC) + per-league ownership
+   breakdown with owner names.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Overlay ── */
+.ov-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(5, 5, 15, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  padding: 1rem;
+}
+
+.ov-modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── Modal container ── */
+.ov-modal {
+  background: linear-gradient(135deg, rgba(20, 22, 45, 0.95), rgba(13, 14, 35, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(100, 100, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Modal header ── */
+.ov-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 1rem 1.1rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.ov-modal-header .modal-pos-tag {
+  min-width: 34px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+}
+
+.ov-modal-header .modal-team-logo-chip {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.ov-modal-header .modal-team-logo-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ov-modal-player-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ov-modal-close:hover {
+  color: var(--color-text-primary);
+}
+
+/* ── Vitals row (age/ht/wt/exp) ── */
+.ov-modal-vitals {
+  padding: 0.4rem 1.1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ── Summary chips (FPTS / PPG / KTC) ── */
+.ov-modal-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 0.65rem;
+  flex-shrink: 0;
+}
+
+.ov-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0.5rem 0.45rem 0.4rem;
+  text-align: center;
+}
+
+.ov-chip h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.ov-chip .chip-unit {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ov-chip .chip-values {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.ov-chip .chip-separator {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+.ov-chip .pos-rank-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ov-chip .chip-pos-rank-label {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* Position-specific label colors (match game log modal convention) */
+.ov-chip .chip-pos-rank-label.pos-color-QB { color: #FF3A75; }
+.ov-chip .chip-pos-rank-label.pos-color-RB { color: #00EBC7; }
+.ov-chip .chip-pos-rank-label.pos-color-WR { color: #58A7FF; }
+.ov-chip .chip-pos-rank-label.pos-color-TE { color: #B469FF; }
+
+/* ── League ownership breakdown section ── */
+.ov-modal-leagues-section {
+  padding: 0.5rem 1rem 1rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ov-modal-leagues-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #cdd1ee;
+  margin-bottom: 0.5rem;
+}
+
+/* Individual league row */
+.ov-league-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 3px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.12s ease;
+}
+
+.ov-league-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ov-league-abbr {
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ov-league-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-league-owner {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Owner label: "You" vs other owners */
+.ov-league-owner.is-you {
+  color: var(--color-accent-trade-win);
+}
+
+/* "Free Agent" label when player is unowned in a league */
+.ov-league-owner.is-free-agent {
+  color: var(--color-text-secondary);
+  opacity: 0.65;
+  font-style: italic;
+}
+
+/* League row status indicator (owned vs not) */
+.ov-league-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ov-league-status.owned {
+  background: var(--color-accent-trade-win);
+  box-shadow: 0 0 6px rgba(0, 235, 199, 0.3);
+}
+
+.ov-league-status.not-owned {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Ownership summary stat below chips */
+.ov-ownership-summary {
+  padding: 0.25rem 1rem 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.ov-ownership-summary .ov-own-count {
+  font-weight: 700;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE OVERRIDES – Ownership page
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Mobile: tighten table for small screens */
+@media (max-width: 768px) {
+  .pv-table {
+    min-width: 600px;
+    font-size: 0.78rem;
+  }
+
+  .pv-table thead th {
+    padding: 0.4rem 0.3rem;
+    font-size: 0.65rem;
+  }
+
+  .pv-table tbody td {
+    padding: 0.35rem 0.3rem;
+  }
+
+  .pv-table td.pv-col-player {
+    max-width: 110px;
+    font-size: 0.8rem;
+  }
+
+  .ov-modal {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+
+  .ov-modal-header {
+    padding: 0.8rem 0.9rem 0.5rem;
+  }
+
+  .ov-modal-chips {
+    gap: 0.35rem;
+    padding: 0.4rem 0.7rem 0.5rem;
+  }
+
+  .ov-chip {
+    padding: 0.4rem 0.3rem 0.35rem;
+  }
+
+  .ov-chip h4 {
+    font-size: 0.9rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+  .pv-table {
+    min-width: 560px;
+    font-size: 0.74rem;
+  }
+
+  .ownership-view-switcher button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .ov-modal-player-name {
+    font-size: 0.95rem;
+  }
+}

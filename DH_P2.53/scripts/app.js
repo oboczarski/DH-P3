@@ -28,6 +28,12 @@ const viewDropdownIcon = document.getElementById('viewDropdownIcon');
 const viewDropdownLabel = document.getElementById('viewDropdownLabel');
 const positionalFiltersContainer = document.getElementById('positional-filters');
 const clearFiltersButton = document.getElementById('clearFiltersButton');
+// --- Ownership page DOM elements ---
+const playerValueView = document.getElementById('playerValueView');
+const ownershipViewSwitcher = document.getElementById('ownership-view-switcher');
+const ownershipViewBtn = document.getElementById('ownershipViewBtn');
+const playerValueViewBtn = document.getElementById('playerValueViewBtn');
+const ownershipPlayerModal = document.getElementById('ownershipPlayerModal');
 const tradeSimulator = document.getElementById('tradeSimulator');
 const mainContent = document.getElementById('content');
 const pageType = document.body.dataset.page || 'welcome';
@@ -504,7 +510,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipView: 'ownership', ownershipAgg: null, ownershipLeagues: null, ownershipRankCache: null };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -688,6 +694,13 @@ if (pageType === 'rosters') {
     positionalFiltersContainer?.addEventListener('click', handlePositionFilter);
     clearFiltersButton?.addEventListener('click', handleClearFilters);
     startSitButton?.addEventListener('click', handleStartSitButtonClick);
+
+    // --- Ownership page: view switcher + modal close listeners ---
+    if (pageType === 'ownership') {
+        initOwnershipViewSwitcher();
+        initOwnershipModalListeners();
+    }
+
     if (gameLogsModal) {
         modalCloseBtn.addEventListener('click', () => closeModal());
         modalOverlay.addEventListener('click', () => closeModal());
@@ -1254,10 +1267,23 @@ async function handleFetchOwnership() {
     if (!username) return;
     setLoading(true, 'Fetching ownership data...');
     try {
+        // Fetch user, KTC values (for both views), and SZN stats in parallel
         await fetchAndSetUser(username);
-        rosterView.classList.add('hidden');
-        playerListView.classList.remove('hidden');
+        await Promise.all([
+            fetchDataFromGoogleSheet(),
+            loadOwnershipSeasonStats()
+        ]);
+        // Show the currently active view
+        if (state.ownershipView === 'playerValue') {
+            playerListView.classList.add('hidden');
+            playerValueView?.classList.remove('hidden');
+        } else {
+            playerValueView?.classList.add('hidden');
+            playerListView.classList.remove('hidden');
+        }
+        // Render both views (ownership list is always built; table is built when data arrives)
         await renderPlayerList();
+        renderPlayerValueTable();
     } catch (error) {
         handleError(error, username);
     } finally {
@@ -1902,6 +1928,12 @@ function handleClearFilters() {
     closeComparisonModal();
     state.activePositions.clear();
     updatePositionFilterButtons();
+    // Ownership page: re-apply position filters to both views
+    if (pageType === 'ownership') {
+        applyOwnershipPositionFilters();
+        clearFiltersButton?.classList.remove('active');
+        return;
+    }
     debouncedRenderAllTeamData(state.currentTeams);
     clearFiltersButton.classList.remove('active');
 }
@@ -1937,6 +1969,12 @@ function handlePositionFilter(e) {
         }
     }
     updatePositionFilterButtons();
+    // Ownership page: filter both views by position instead of re-rendering rosters
+    if (pageType === 'ownership') {
+        applyOwnershipPositionFilters();
+        clearFiltersButton?.classList.toggle('active', state.activePositions.size > 0);
+        return;
+    }
     debouncedRenderAllTeamData(state.currentTeams);
     clearFiltersButton.classList.toggle('active', state.activePositions.size > 0);
 }
@@ -7054,6 +7092,11 @@ async function renderPlayerList() {
             agg.get(pid).add(leagueAbbr);
         });
     });
+    // Store aggregation + league data in state for modal and Player Value table
+    state.ownershipAgg = agg;
+    state.ownershipLeagues = userLeagues;
+    state.ownershipRostersByLeague = rostersByLeague;
+
     const section = document.createElement('div');
     section.className = 'player-list-section';
     const header = createPlayerListHeader();
@@ -7078,6 +7121,11 @@ async function renderPlayerList() {
             r.style.display = (r.dataset.search || '').includes(term) ? 'flex' : 'none';
         });
     };
+    // Delegated click handler: open player detail modal on name click
+    playerListView.addEventListener('click', (e) => {
+        const nameSpan = e.target.closest('[data-pid]');
+        if (nameSpan) openOwnershipPlayerModal(nameSpan.dataset.pid);
+    });
 }
 function createPlayerListHeader() {
     const header = document.createElement('div');
@@ -7138,7 +7186,7 @@ function createPlayerListRow(pid, leagueSet, totalLeagues) {
                 <div class="pl-list-tag ownership-pos-tag ${pos}">${pos}</div>
                 <div class="pl-player-info">
                     <div class="pl-player-name">
-                        <span>${displayName}</span>
+                        <span data-pid="${pid}">${displayName}</span>
                         <div class="team-tag" style="background-color: ${TEAM_COLORS[p.team] || '#64748b'}; color: white;">${p.team || 'FA'}</div>
                     </div>
                     <div class="pl-player-details">${detailsHTML}</div>
@@ -7151,6 +7199,641 @@ function createPlayerListRow(pid, leagueSet, totalLeagues) {
             `;
     return row;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// OWNERSHIP PAGE — View Switcher, Player Value Table, Player Detail Modal
+// Scoped to pageType === 'ownership' only.
+// ═══════════════════════════════════════════════════════════════
+
+// --- Ownership view switcher initialization ---
+// Wires the Ownership ↔ Player Value toggle buttons in the header.
+function initOwnershipViewSwitcher() {
+    if (!ownershipViewSwitcher) return;
+    ownershipViewSwitcher.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-view]');
+        if (!btn) return;
+        const view = btn.dataset.view;
+        if (view === state.ownershipView) return;
+        state.ownershipView = view;
+        // Update button active states
+        ownershipViewSwitcher.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // Toggle view containers
+        if (view === 'playerValue') {
+            playerListView.classList.add('hidden');
+            playerValueView?.classList.remove('hidden');
+        } else {
+            playerValueView?.classList.add('hidden');
+            playerListView.classList.remove('hidden');
+        }
+    });
+}
+
+// --- Ownership modal close/overlay listeners ---
+function initOwnershipModalListeners() {
+    if (!ownershipPlayerModal) return;
+    // Close button
+    const closeBtn = ownershipPlayerModal.querySelector('#ovModalCloseBtn');
+    closeBtn?.addEventListener('click', () => closeOwnershipModal());
+    // Click overlay to close
+    ownershipPlayerModal.addEventListener('click', (e) => {
+        if (e.target === ownershipPlayerModal) closeOwnershipModal();
+    });
+    // ESC key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && ownershipPlayerModal?.classList.contains('open')) {
+            closeOwnershipModal();
+        }
+    });
+}
+
+function closeOwnershipModal() {
+    if (!ownershipPlayerModal) return;
+    ownershipPlayerModal.classList.remove('open');
+    ownershipPlayerModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+// --- Load SZN.csv for ownership page (lightweight, FPTS/PPG only) ---
+// Builds state.ownershipRankCache with FPTS/PPG positional + overall ranks.
+async function loadOwnershipSeasonStats() {
+    try {
+        const csvUrl = buildAppStaticUrl(PLAYER_STATS_CSV_PATHS.season);
+        const csvText = await fetchTextWithCache(csvUrl);
+        const { headers, rows } = parseCsv(csvText);
+        if (!headers.length || !rows.length) return;
+        const normalized = headers.map(normalizeHeader);
+        const idx = (name) => {
+            const upper = name.toUpperCase();
+            return normalized.findIndex(h => h.toUpperCase() === upper);
+        };
+        const iSlprId = idx('SLPR_ID');
+        const iFpts = idx('FPT_PPR');
+        const iGm = idx('GM');
+        const iPos = idx('POS');
+        if (iSlprId < 0 || iFpts < 0) return;
+
+        // Build per-player entries
+        const entries = [];
+        rows.forEach(cols => {
+            const pid = (cols[iSlprId] || '').trim();
+            if (!pid) return;
+            const fpts = parseFloat(cols[iFpts]) || 0;
+            const gm = parseInt(cols[iGm]) || 0;
+            const pos = (cols[iPos] || '').trim().toUpperCase();
+            const ppg = gm > 0 ? fpts / gm : 0;
+            entries.push({ pid, pos, fpts, ppg, gm });
+        });
+
+        // Compute overall FPTS/PPG ranks
+        const withGames = entries.filter(e => e.gm > 0 && e.fpts > 0);
+        withGames.slice().sort((a, b) => b.fpts - a.fpts).forEach((e, i) => { e.overallRank = i + 1; });
+        withGames.slice().sort((a, b) => b.ppg - a.ppg).forEach((e, i) => { e.ppgOverallRank = i + 1; });
+
+        // Compute positional ranks
+        const posGroups = new Map();
+        withGames.forEach(e => {
+            if (!posGroups.has(e.pos)) posGroups.set(e.pos, []);
+            posGroups.get(e.pos).push(e);
+        });
+        posGroups.forEach(group => {
+            group.slice().sort((a, b) => b.fpts - a.fpts).forEach((e, i) => { e.posRank = i + 1; });
+            group.slice().sort((a, b) => b.ppg - a.ppg).forEach((e, i) => { e.ppgPosRank = i + 1; });
+        });
+
+        // Build lookup map
+        const cache = {};
+        entries.forEach(e => {
+            cache[e.pid] = {
+                fpts: e.fpts,
+                ppg: e.ppg,
+                gm: e.gm,
+                overallRank: e.overallRank || null,
+                posRank: e.posRank || null,
+                ppgOverallRank: e.ppgOverallRank || null,
+                ppgPosRank: e.ppgPosRank || null,
+            };
+        });
+        state.ownershipRankCache = cache;
+    } catch (err) {
+        console.warn('Ownership: Failed to load SZN.csv for ranks:', err);
+    }
+}
+
+// --- Player Value Table (11-column KTC table view) ---
+// Renders a stats-style table showing all players with KTC values, FPTS, PPG.
+function renderPlayerValueTable() {
+    if (!playerValueView) return;
+
+    const oneQb = state.oneQbData || {};
+    const sflx = state.sflxData || {};
+    const ranks = state.ownershipRankCache || {};
+
+    // Collect all player IDs from KTC data (union of 1QB and SFLX)
+    const allPids = new Set([...Object.keys(oneQb), ...Object.keys(sflx)]);
+
+    // Build table rows data
+    const tableData = [];
+    allPids.forEach(pid => {
+        // Skip pick entries (POS === 'RDP') by checking if pid is alphanumeric (pick names are strings like "2026 Mid 1st")
+        const oneQbEntry = oneQb[pid];
+        const sflxEntry = sflx[pid];
+        if (oneQbEntry?.pos === 'RDP' || sflxEntry?.pos === 'RDP') return;
+
+        const p = state.players?.[pid];
+        if (!p) return;
+        const pos = (p.position || p.fantasy_positions?.[0] || '').toUpperCase();
+        if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return;
+
+        const first = (p.first_name || '').trim();
+        const last = (p.last_name || '').trim();
+        let displayName = `${first} ${last}`.trim() || pid;
+        if (first && last) displayName = `${first.charAt(0)}. ${last}`;
+        if (displayName.length > 16) displayName = displayName.substring(0, 16) + '…';
+
+        const oneQbKtc = oneQbEntry?.ktc ?? null;
+        const sflxKtc = sflxEntry?.ktc ?? null;
+        const oneQbPosRank = oneQbEntry?.posRank || null;
+        const sflxPosRank = sflxEntry?.posRank || null;
+        const age = oneQbEntry?.age ?? sflxEntry?.age ?? (p.age ? Number(p.age) : null);
+        const team = p.team || 'FA';
+
+        const playerRanks = ranks[pid] || {};
+        const fpts = playerRanks.fpts ?? null;
+        const ppg = playerRanks.ppg ?? null;
+
+        // Sort priority: highest 1QB KTC value descending
+        const sortVal = oneQbKtc ?? sflxKtc ?? 0;
+
+        tableData.push({
+            pid, pos, displayName, team, age,
+            oneQbKtc, sflxKtc, oneQbPosRank, sflxPosRank,
+            fpts, ppg, sortVal,
+            posRank: playerRanks.posRank,
+            overallRank: playerRanks.overallRank,
+            ppgPosRank: playerRanks.ppgPosRank,
+            ppgOverallRank: playerRanks.ppgOverallRank,
+            searchKey: `${first} ${last}`.toLowerCase()
+        });
+    });
+
+    // Default sort: 1QB KTC descending
+    tableData.sort((a, b) => b.sortVal - a.sortVal);
+
+    // Build DOM
+    playerValueView.innerHTML = '';
+
+    // Search input
+    const searchInput = document.createElement('input');
+    searchInput.id = 'pvSearch';
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search players...';
+    playerValueView.appendChild(searchInput);
+
+    // Table wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pv-table-wrapper';
+
+    const table = document.createElement('table');
+    table.className = 'pv-table';
+
+    // Table header
+    const colDefs = [
+        { key: 'rk', label: 'RK', cls: 'pv-col-rk' },
+        { key: 'player', label: 'Player', cls: 'pv-col-player' },
+        { key: 'pos', label: 'Pos', cls: 'pv-col-pos' },
+        { key: 'tm', label: 'TM', cls: 'pv-col-tm' },
+        { key: 'age', label: 'Age', cls: 'pv-col-age' },
+        { key: 'oneQbKtc', label: '1QB KTC', cls: 'pv-col-ktc' },
+        { key: 'oneQbPrk', label: '1QB pRK', cls: 'pv-col-prk' },
+        { key: 'sflxKtc', label: 'SFLX KTC', cls: 'pv-col-ktc' },
+        { key: 'sflxPrk', label: 'SFLX pRK', cls: 'pv-col-prk' },
+        { key: 'fpts', label: 'FPTS', cls: 'pv-col-fpts' },
+        { key: 'ppg', label: 'PPG', cls: 'pv-col-ppg' },
+    ];
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    colDefs.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col.label;
+        th.className = col.cls;
+        th.dataset.sortKey = col.key;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    // Position background colors for the small pos tag in the table
+    const posBgColors = { QB: '#FF3A75', RB: '#00C9A7', WR: '#4A90D9', TE: '#9B59B6' };
+
+    // Render rows
+    function renderRows(data) {
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="${colDefs.length}" class="pv-empty-state">No players found</td>`;
+            tbody.appendChild(tr);
+            return;
+        }
+        data.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            tr.dataset.pid = row.pid;
+            const rankNum = idx + 1;
+
+            // Format positional rank strings (e.g., "QB·3" → "3")
+            const formatPrk = (prk) => {
+                if (!prk) return '—';
+                const parts = String(prk).split('·');
+                return parts.length > 1 ? parts[1] : prk;
+            };
+
+            const ageStr = row.age != null ? row.age.toFixed(1) : '—';
+            const ageColor = row.age != null ? (getAgeColorForRoster(row.pos, row.age) || 'inherit') : 'inherit';
+            const oneQbPrkNum = parseInt(formatPrk(row.oneQbPosRank), 10);
+            const sflxPrkNum = parseInt(formatPrk(row.sflxPosRank), 10);
+
+            tr.innerHTML = `
+                <td class="pv-col-rk">${rankNum}</td>
+                <td class="pv-col-player" data-pid="${row.pid}">${row.displayName}</td>
+                <td class="pv-col-pos"><span class="pv-pos-tag" style="background:${posBgColors[row.pos] || '#64748b'}">${row.pos}</span></td>
+                <td class="pv-col-tm" style="color:${TEAM_COLORS[row.team] || '#cdd1ee'}">${row.team}</td>
+                <td class="pv-col-age" style="color:${ageColor}">${ageStr}</td>
+                <td class="pv-col-ktc" style="color:${getKtcColor(row.oneQbKtc)}">${row.oneQbKtc ?? '—'}</td>
+                <td class="pv-col-prk" style="color:${!isNaN(oneQbPrkNum) ? getConditionalColorByRank(oneQbPrkNum, row.pos) : 'inherit'}">${formatPrk(row.oneQbPosRank)}</td>
+                <td class="pv-col-ktc" style="color:${getKtcColor(row.sflxKtc)}">${row.sflxKtc ?? '—'}</td>
+                <td class="pv-col-prk" style="color:${!isNaN(sflxPrkNum) ? getConditionalColorByRank(sflxPrkNum, row.pos) : 'inherit'}">${formatPrk(row.sflxPosRank)}</td>
+                <td class="pv-col-fpts" style="color:${row.posRank ? getConditionalColorByRank(row.posRank, row.pos) : 'inherit'}">${row.fpts != null ? row.fpts.toFixed(1) : '—'}</td>
+                <td class="pv-col-ppg" style="color:${row.ppgPosRank ? getConditionalColorByRank(row.ppgPosRank, row.pos) : 'inherit'}">${row.ppg != null ? row.ppg.toFixed(1) : '—'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    renderRows(tableData);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+    playerValueView.appendChild(wrapper);
+
+    // --- Search filtering ---
+    searchInput.oninput = () => {
+        const term = searchInput.value.trim().toLowerCase();
+        const filtered = term ? tableData.filter(r => r.searchKey.includes(term)) : tableData;
+        renderRows(filtered);
+    };
+
+    // --- Column sorting ---
+    let currentSort = { key: 'oneQbKtc', dir: 'desc' };
+    thead.addEventListener('click', (e) => {
+        const th = e.target.closest('th');
+        if (!th || !th.dataset.sortKey) return;
+        const key = th.dataset.sortKey;
+        if (key === 'rk') return; // Don't sort by rank column itself
+        // Toggle direction if same column, otherwise default to desc (except player name → asc)
+        let dir;
+        if (currentSort.key === key) {
+            dir = currentSort.dir === 'desc' ? 'asc' : 'desc';
+        } else {
+            dir = (key === 'player') ? 'asc' : 'desc';
+        }
+        currentSort = { key, dir };
+
+        // Clear previous sort indicators
+        thead.querySelectorAll('th').forEach(t => t.classList.remove('pv-sorted-asc', 'pv-sorted-desc'));
+        th.classList.add(dir === 'asc' ? 'pv-sorted-asc' : 'pv-sorted-desc');
+
+        // Sort the data
+        const sortFn = getSortFn(key, dir);
+        tableData.sort(sortFn);
+        const term = searchInput.value.trim().toLowerCase();
+        const filtered = term ? tableData.filter(r => r.searchKey.includes(term)) : tableData;
+        renderRows(filtered);
+    });
+
+    // Apply initial sort indicator
+    const initialTh = thead.querySelector(`th[data-sort-key="oneQbKtc"]`);
+    if (initialTh) initialTh.classList.add('pv-sorted-desc');
+
+    // Delegated click handler: open modal on player name click in table
+    wrapper.addEventListener('click', (e) => {
+        const cell = e.target.closest('.pv-col-player[data-pid]');
+        if (cell) openOwnershipPlayerModal(cell.dataset.pid);
+    });
+
+    // Store table data and render fn on state so the shared position filter fn can access them
+    state._pvTableData = tableData;
+    state._pvRenderRows = renderRows;
+    state._pvSearchInput = searchInput;
+
+    // --- Position filter integration ---
+    // Apply positional filters (in case filters were already active when switching views)
+    applyOwnershipPositionFilters();
+}
+
+// Sort comparator factory for Player Value table columns
+function getSortFn(key, dir) {
+    const mult = dir === 'asc' ? 1 : -1;
+    const numericKeys = { oneQbKtc: 'oneQbKtc', sflxKtc: 'sflxKtc', fpts: 'fpts', ppg: 'ppg', age: 'age' };
+    const prkKeys = { oneQbPrk: 'oneQbPosRank', sflxPrk: 'sflxPosRank' };
+
+    if (numericKeys[key]) {
+        const field = numericKeys[key];
+        return (a, b) => {
+            const av = a[field] ?? -Infinity;
+            const bv = b[field] ?? -Infinity;
+            return (av - bv) * mult;
+        };
+    }
+    if (prkKeys[key]) {
+        const field = prkKeys[key];
+        return (a, b) => {
+            const parse = (v) => { if (!v) return Infinity; const parts = String(v).split('·'); return parseInt(parts.length > 1 ? parts[1] : parts[0], 10) || Infinity; };
+            return (parse(a[field]) - parse(b[field])) * mult;
+        };
+    }
+    if (key === 'player') {
+        return (a, b) => a.displayName.localeCompare(b.displayName) * mult;
+    }
+    if (key === 'pos') {
+        return (a, b) => a.pos.localeCompare(b.pos) * mult;
+    }
+    if (key === 'tm') {
+        return (a, b) => a.team.localeCompare(b.team) * mult;
+    }
+    // Default: no-op
+    return () => 0;
+}
+
+// Apply shared positional filters to BOTH ownership views:
+// 1) Player List View — show/hide .pl-player-row elements by position
+// 2) Player Value Table — re-filter + re-render table rows by position
+// Called from handlePositionFilter() and handleClearFilters() when pageType === 'ownership'.
+function applyOwnershipPositionFilters() {
+    const active = state.activePositions;
+    const hasFilter = active && active.size > 0;
+
+    // --- 1) Player List View: show/hide rows ---
+    if (playerListView) {
+        const rows = playerListView.querySelectorAll('.pl-player-row:not(.pl-list-header)');
+        rows.forEach(row => {
+            if (!hasFilter) {
+                row.style.display = '';
+                return;
+            }
+            // Read position from the pos-tag element inside the row
+            const posTag = row.querySelector('.ownership-pos-tag');
+            const rowPos = posTag ? posTag.textContent.trim().toUpperCase() : '';
+            row.style.display = active.has(rowPos) ? '' : 'none';
+        });
+    }
+
+    // --- 2) Player Value Table: re-filter data and re-render ---
+    const tableData = state._pvTableData;
+    const renderRows = state._pvRenderRows;
+    const searchInput = state._pvSearchInput;
+    if (tableData && renderRows) {
+        // Apply both search and position filters together
+        const term = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        let filtered = tableData;
+        if (hasFilter) {
+            filtered = filtered.filter(r => active.has(r.pos));
+        }
+        if (term) {
+            filtered = filtered.filter(r => r.searchKey.includes(term));
+        }
+        renderRows(filtered);
+    }
+}
+
+// --- Player Detail Modal ---
+// Opens the ownership player detail modal with:
+// - Game-log-modal-style header (pos tag + team logo + name)
+// - Vitals row (age/height/weight/exp/ry)
+// - 3 summary chips (FPTS/PPG/KTC)
+// - Per-league ownership breakdown showing owner names
+async function openOwnershipPlayerModal(pid) {
+    if (!ownershipPlayerModal || !pid) return;
+    const p = state.players?.[pid];
+    if (!p) return;
+
+    const pos = (p.position || p.fantasy_positions?.[0] || '').toUpperCase();
+    const first = (p.first_name || '').trim();
+    const last = (p.last_name || '').trim();
+    const fullName = `${first} ${last}`.trim() || pid;
+    const team = (p.team || 'FA').toUpperCase();
+
+    // --- Header ---
+    const posTagEl = document.getElementById('ovModalPosTag');
+    if (posTagEl) {
+        const posBgColors = { QB: '#FF3A75', RB: '#00C9A7', WR: '#4A90D9', TE: '#9B59B6' };
+        posTagEl.textContent = pos;
+        posTagEl.style.backgroundColor = posBgColors[pos] || '#64748b';
+    }
+
+    const teamLogoEl = document.getElementById('ovModalTeamLogo');
+    if (teamLogoEl) {
+        const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
+        const normalizedKey = logoKeyMap[team] || team.toLowerCase();
+        const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+        teamLogoEl.innerHTML = (team && team !== 'FA')
+            ? `<img class="team-logo glow" src="${src}" alt="${team}" width="28" height="28" loading="eager">`
+            : `<span style="color: var(--color-text-secondary);">FA</span>`;
+    }
+
+    const nameEl = document.getElementById('ovModalPlayerName');
+    if (nameEl) nameEl.textContent = fullName;
+
+    // --- Vitals ---
+    const vitalsEl = document.getElementById('ovModalVitals');
+    if (vitalsEl) {
+        vitalsEl.innerHTML = '';
+        const vitals = getPlayerVitals(pid);
+        vitalsEl.appendChild(createPlayerVitalsElement(vitals, { variant: 'modal', pos }));
+    }
+
+    // --- Summary chips (FPTS / PPG / KTC) ---
+    const chipsEl = document.getElementById('ovModalChips');
+    if (chipsEl) {
+        const ranks = state.ownershipRankCache?.[pid] || {};
+        const oneQbData = state.oneQbData?.[pid];
+        const sflxData = state.sflxData?.[pid];
+        // Use the scoring format's KTC if available
+        const ktcData = state.isSuperflex ? sflxData : oneQbData;
+        const ktcVal = ktcData?.ktc ?? null;
+        const ktcPosRank = ktcData?.posRank;
+        const ktcOverallRank = ktcData?.overallRank;
+
+        const fpts = ranks.fpts != null ? ranks.fpts.toFixed(1) : '—';
+        const ppg = ranks.ppg != null ? ranks.ppg.toFixed(1) : '—';
+        const ktcStr = ktcVal != null ? String(ktcVal) : '—';
+
+        // Parse KTC pos rank (e.g., "QB·3" → 3)
+        const ktcPrkNum = ktcPosRank ? parseInt(String(ktcPosRank).split('·').pop(), 10) : null;
+
+        chipsEl.innerHTML = `
+            <div class="ov-chip">
+                <h4>
+                    <span class="chip-header-value" style="color: ${ranks.posRank ? getConditionalColorByRank(ranks.posRank, pos) : 'inherit'}">${fpts}</span>
+                    <span class="chip-unit"> FPTS</span>
+                </h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container">
+                        <span class="chip-pos-rank-label pos-color-${pos}">${pos}·</span>
+                        <span style="color: ${ranks.posRank ? getConditionalColorByRank(ranks.posRank, pos) : 'inherit'}">${ranks.posRank || '—'}</span>
+                    </span>
+                    <span class="chip-separator">•</span>
+                    <span style="color: ${ranks.overallRank ? getRankColor(ranks.overallRank) : 'inherit'}">${ranks.overallRank ? '#' + ranks.overallRank : '—'}</span>
+                </div>
+            </div>
+            <div class="ov-chip">
+                <h4>
+                    <span class="chip-header-value" style="color: ${ranks.ppgPosRank ? getConditionalColorByRank(ranks.ppgPosRank, pos) : 'inherit'}">${ppg}</span>
+                    <span class="chip-unit"> PPG</span>
+                </h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container">
+                        <span class="chip-pos-rank-label pos-color-${pos}">${pos}·</span>
+                        <span style="color: ${ranks.ppgPosRank ? getConditionalColorByRank(ranks.ppgPosRank, pos) : 'inherit'}">${ranks.ppgPosRank || '—'}</span>
+                    </span>
+                    <span class="chip-separator">•</span>
+                    <span style="color: ${ranks.ppgOverallRank ? getRankColor(ranks.ppgOverallRank) : 'inherit'}">${ranks.ppgOverallRank ? '#' + ranks.ppgOverallRank : '—'}</span>
+                </div>
+            </div>
+            <div class="ov-chip">
+                <h4>
+                    <span class="chip-header-value" style="color: ${getKtcColor(ktcVal)}">${ktcStr}</span>
+                    <span class="chip-unit"> KTC</span>
+                </h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container">
+                        <span class="chip-pos-rank-label pos-color-${pos}">${pos}·</span>
+                        <span style="color: ${ktcPrkNum ? getConditionalColorByRank(ktcPrkNum, pos) : 'inherit'}">${ktcPrkNum || '—'}</span>
+                    </span>
+                    <span class="chip-separator">•</span>
+                    <span style="color: ${ktcOverallRank ? getRankColor(ktcOverallRank) : 'inherit'}">${ktcOverallRank ? '#' + ktcOverallRank : '—'}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- Ownership summary ---
+    const summaryEl = document.getElementById('ovModalOwnershipSummary');
+    const agg = state.ownershipAgg;
+    const leagues = state.ownershipLeagues || [];
+    const ownedLeagues = agg?.get(pid);
+    const ownedCount = ownedLeagues?.size || 0;
+    if (summaryEl) {
+        summaryEl.innerHTML = `Owned in <span class="ov-own-count" style="color: ${ownedCount > 0 ? 'var(--color-accent-trade-win)' : 'var(--color-text-secondary)'}">${ownedCount}</span> of <span class="ov-own-count">${leagues.length}</span> leagues`;
+    }
+
+    // --- Per-league breakdown ---
+    const leagueRowsEl = document.getElementById('ovModalLeagueRows');
+    if (leagueRowsEl && leagues.length > 0) {
+        leagueRowsEl.innerHTML = '';
+        const rostersByLeague = state.ownershipRostersByLeague || [];
+
+        // For each league, determine: is player on it? who owns them?
+        for (let i = 0; i < leagues.length; i++) {
+            const league = leagues[i];
+            const rosters = rostersByLeague[i];
+            const leagueName = league.name || 'Unknown League';
+            const leagueAbbr = getLeagueAbbr(leagueName);
+
+            // Find which roster this player is on
+            let ownerName = null;
+            let isYou = false;
+            if (rosters && Array.isArray(rosters)) {
+                for (const roster of rosters) {
+                    const players = roster.players || [];
+                    if (players.includes(pid)) {
+                        // Determine owner display name
+                        if (roster.owner_id === state.userId || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId))) {
+                            ownerName = 'You';
+                            isYou = true;
+                        } else {
+                            // Try to get display name from roster metadata or fetch user
+                            ownerName = roster.metadata?.team_name || roster.owner_id || 'Unknown';
+                            // Try to resolve the owner's display name from cached user data
+                            if (state.cache[`users_${league.league_id}`]) {
+                                const users = state.cache[`users_${league.league_id}`];
+                                const ownerUser = users?.find(u => u.user_id === roster.owner_id);
+                                if (ownerUser) ownerName = ownerUser.display_name || ownerUser.username || ownerName;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const isOwned = ownerName !== null;
+            const row = document.createElement('div');
+            row.className = 'ov-league-row';
+            row.innerHTML = `
+                <div class="ov-league-status ${isOwned ? 'owned' : 'not-owned'}"></div>
+                <span class="ov-league-abbr" style="color: ${getLeagueColor(leagueAbbr)}">${leagueAbbr}</span>
+                <span class="ov-league-name">${leagueName}</span>
+                <span class="ov-league-owner ${isYou ? 'is-you' : ''} ${!isOwned ? 'is-free-agent' : ''}">${ownerName || 'Free Agent'}</span>
+            `;
+            leagueRowsEl.appendChild(row);
+        }
+
+        // Fetch user data for leagues that need it (resolve owner display names)
+        resolveOwnerNames(pid, leagues, rostersByLeague, leagueRowsEl);
+    }
+
+    // Show modal
+    ownershipPlayerModal.classList.add('open');
+    ownershipPlayerModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+// Resolve owner display names asynchronously for the modal league rows.
+// Fetches /users endpoint per league if not already cached.
+async function resolveOwnerNames(pid, leagues, rostersByLeague, container) {
+    const fetchPromises = leagues.map(async (league, i) => {
+        const cacheKey = `users_${league.league_id}`;
+        if (state.cache[cacheKey]) return; // Already cached
+        try {
+            const users = await fetchWithCache(`${API_BASE}/league/${league.league_id}/users`);
+            state.cache[cacheKey] = users;
+        } catch (err) {
+            console.warn(`Failed to fetch users for league ${league.league_id}:`, err);
+        }
+    });
+
+    await Promise.allSettled(fetchPromises);
+
+    // Re-render league rows with resolved names
+    const rows = container.querySelectorAll('.ov-league-row');
+    leagues.forEach((league, i) => {
+        const rosters = rostersByLeague[i];
+        if (!rosters || !Array.isArray(rosters)) return;
+        const row = rows[i];
+        if (!row) return;
+
+        for (const roster of rosters) {
+            const players = roster.players || [];
+            if (players.includes(pid)) {
+                if (roster.owner_id === state.userId || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId))) {
+                    break; // Already "You"
+                }
+                const users = state.cache[`users_${league.league_id}`];
+                if (users) {
+                    const ownerUser = users.find(u => u.user_id === roster.owner_id);
+                    if (ownerUser) {
+                        const ownerEl = row.querySelector('.ov-league-owner');
+                        if (ownerEl) {
+                            ownerEl.textContent = ownerUser.display_name || ownerUser.username || roster.owner_id;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    });
+}
+
 // --- Formatting Helpers ---
 function deriveRookieYear(player) {
     if (!player) return null;
