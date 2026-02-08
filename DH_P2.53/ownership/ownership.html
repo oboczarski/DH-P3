@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700" rel="stylesheet"/>
-<link href="../manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest"/><link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" /><meta content="#0D0E1B" name="theme-color"/><link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script>  <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
+<link href="../manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest"/><link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" /><meta content="#0D0E1B" name="theme-color"/><link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/><link href="../styles/ownership.css?v=20260208" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script>  <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
 <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
@@ -76,19 +76,14 @@
             <div class="username-area">
                 <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle"/>
             </div>
-            <div class="custom-select-wrapper">
-                <select disabled="" id="leagueSelect">
-                    <option>Select a league...</option>
-                </select>
-            </div>
-            <div class="view-switcher secondary-switcher compact-switcher">
-                <button id="positionalViewBtn">
-                    <i class="fa-solid fa-users" aria-hidden="true"></i>
-                    <span class="switcher-label">Positional</span>
+            <div class="ownership-view-switcher secondary-switcher compact-switcher" role="group" aria-label="Ownership view toggle">
+                <button id="ownershipPercentViewBtn" type="button" aria-pressed="true">
+                    <i class="fa-solid fa-percent" aria-hidden="true"></i>
+                    <span class="switcher-label">Ownership%</span>
                 </button>
-                <button id="lineupViewBtn">
-                    <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                    <span class="switcher-label">Lineup</span>
+                <button id="ownershipPlayerValueViewBtn" type="button" aria-pressed="false">
+                    <i class="fa-solid fa-coins" aria-hidden="true"></i>
+                    <span class="switcher-label">Player Value:</span>
                 </button>
             </div>
         </div>
@@ -181,8 +176,65 @@
 </div>
 <div class="hidden" id="playerListView">
 </div>
+<div class="hidden ownership-value-view" id="ownershipValueView">
+<div class="ownership-value-controls glass-panel" aria-label="Player value filters">
+<div class="ownership-value-search-wrap">
+<label class="sr-only" for="ownershipValueSearch">Search players</label>
+<input id="ownershipValueSearch" type="search" placeholder="Search players..." autocomplete="off" inputmode="search"/>
+</div>
+<div class="ownership-value-pos-filters" id="ownershipValuePosFilters" role="group" aria-label="Position filters">
+<button class="ownership-pos-filter active" data-pos="ALL" type="button" aria-pressed="true">ALL</button>
+<button class="ownership-pos-filter" data-pos="QB" type="button" aria-pressed="false">QB</button>
+<button class="ownership-pos-filter" data-pos="RB" type="button" aria-pressed="false">RB</button>
+<button class="ownership-pos-filter" data-pos="WR" type="button" aria-pressed="false">WR</button>
+<button class="ownership-pos-filter" data-pos="TE" type="button" aria-pressed="false">TE</button>
+</div>
+</div>
+<div class="ownership-value-table-shell glass-panel">
+<div class="ownership-value-table-wrap">
+<table class="ownership-value-table" id="ownershipValueTable">
+<caption class="sr-only">Ownership player value table</caption>
+<thead>
+<tr>
+<th data-column="RK" scope="col">RK</th>
+<th data-column="PLAYER" scope="col">Player</th>
+<th data-column="POS" scope="col">POS</th>
+<th data-column="TM" scope="col">TM</th>
+<th data-column="AGE" scope="col">AGE</th>
+<th data-column="ONE_QB_KTC" scope="col">1QB KTC</th>
+<th data-column="ONE_QB_PRK" scope="col">1QB pRK</th>
+<th data-column="SFLX_KTC" scope="col">SFLX KTC</th>
+<th data-column="SFLX_PRK" scope="col">SFLX pRK</th>
+<th data-column="FPTS" scope="col">FPTS</th>
+<th data-column="PPG" scope="col">PPG</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<div class="ownership-value-empty hidden" id="ownershipValueEmpty">
+<p>No players match the current filters.</p>
+</div>
+</div>
+</div>
 </main>
 <div id="tradeSimulator">
+</div>
+</div>
+<div id="ownershipPlayerModal" class="hidden" aria-hidden="true">
+<div class="modal-overlay"></div>
+<div class="modal-content glass-panel ownership-modal-content">
+<button class="modal-close-btn ownership-modal-close" type="button" aria-label="Close player ownership details">&times;</button>
+<div class="ownership-modal-header" id="ownershipModalHeader">
+<h3 id="ownershipModalPlayerName">Player Ownership</h3>
+<div id="ownershipModalPlayerVitals"></div>
+<div id="ownershipModalSummaryRow">
+<div id="ownershipModalSummaryChips"></div>
+</div>
+</div>
+<div class="ownership-modal-body" id="ownershipModalBody">
+<div class="ownership-modal-league-list" id="ownershipModalLeagues"></div>
+</div>
 </div>
 </div>
 <script defer="True" src="../scripts/app.js?v=20260116"></script>

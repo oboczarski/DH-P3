@@ -1,0 +1,532 @@
+/* Ownership page visual system:
+   - fully scoped to ownership page only
+   - preserves global components on all other pages
+   - supports both Ownership% list and Player Value table/modal workflows */
+
+body[data-page="ownership"] {
+  --ownership-glass-bg: linear-gradient(150deg, rgba(20, 24, 46, 0.82), rgba(10, 12, 26, 0.72));
+  --ownership-glass-border: rgba(154, 170, 255, 0.28);
+  --ownership-soft-border: rgba(197, 206, 255, 0.18);
+  --ownership-shadow: 0 18px 45px rgba(6, 10, 28, 0.42);
+  --ownership-shadow-soft: 0 12px 28px rgba(4, 8, 26, 0.28);
+  --ownership-highlight: rgba(156, 124, 255, 0.34);
+  --ownership-highlight-2: rgba(72, 166, 255, 0.28);
+  --ownership-chip-bg: rgba(15, 19, 39, 0.58);
+}
+
+/* Header controls */
+body[data-page="ownership"] #secondary-header-row {
+  gap: 0.55rem;
+}
+
+body[data-page="ownership"] .ownership-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.24rem;
+  border-radius: 12px;
+  border: 1px solid var(--ownership-soft-border);
+  background: rgba(11, 15, 34, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), var(--ownership-shadow-soft);
+}
+
+body[data-page="ownership"] .ownership-view-switcher > button {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  padding: 0.42rem 0.62rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s ease;
+}
+
+body[data-page="ownership"] .ownership-view-switcher > button .switcher-label {
+  font-size: 0.74rem;
+}
+
+body[data-page="ownership"] .ownership-view-switcher > button i {
+  font-size: 0.68rem;
+}
+
+body[data-page="ownership"] .ownership-view-switcher > button.active,
+body[data-page="ownership"] .ownership-view-switcher > button[aria-pressed="true"] {
+  color: #dce4ff;
+  border-color: rgba(155, 125, 255, 0.4);
+  background: linear-gradient(145deg, rgba(114, 109, 255, 0.26), rgba(71, 127, 255, 0.24));
+  box-shadow: 0 0 16px rgba(116, 108, 255, 0.22), inset 0 0 10px rgba(160, 148, 255, 0.08);
+}
+
+body[data-page="ownership"] .ownership-view-switcher > button:hover {
+  color: #f4f7ff;
+  border-color: rgba(213, 220, 255, 0.26);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Cleanly remove rosters-specific controls from ownership page */
+body[data-page="ownership"] #filters-row,
+body[data-page="ownership"] #start-sit-button-slot,
+body[data-page="ownership"] #positional-filters,
+body[data-page="ownership"] #clearFiltersButton,
+body[data-page="ownership"] .compare-controls {
+  display: none !important;
+}
+
+/* Ownership list panel */
+body[data-page="ownership"] #playerListView {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  margin-top: 0.58rem;
+}
+
+body[data-page="ownership"] #playerListView.hidden {
+  display: none !important;
+}
+
+body[data-page="ownership"] #playerSearch {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--ownership-soft-border);
+  background: var(--ownership-glass-bg);
+  color: var(--color-text-primary);
+  padding: 0.7rem 0.9rem;
+  box-shadow: var(--ownership-shadow-soft);
+  outline: none;
+}
+
+body[data-page="ownership"] #playerSearch::placeholder {
+  color: rgba(199, 206, 236, 0.74);
+}
+
+body[data-page="ownership"] #playerSearch:focus,
+body[data-page="ownership"] #playerSearch:focus-visible {
+  border-color: var(--ownership-highlight);
+  box-shadow: 0 0 0 2px rgba(155, 123, 255, 0.2), var(--ownership-shadow-soft);
+}
+
+body[data-page="ownership"] .ownership-list-section {
+  border: 1px solid var(--ownership-glass-border);
+  border-radius: 16px;
+  background: var(--ownership-glass-bg);
+  box-shadow: var(--ownership-shadow);
+  padding: 0.45rem 0.5rem 0.2rem;
+}
+
+body[data-page="ownership"] .ownership-list-section .pl-player-row {
+  border-bottom: 1px solid rgba(176, 188, 246, 0.14);
+  padding: 0.58rem 0.15rem;
+}
+
+body[data-page="ownership"] .ownership-list-section .pl-player-row:last-child {
+  border-bottom: none;
+}
+
+body[data-page="ownership"] .ownership-list-section .pl-player-name {
+  align-items: center;
+  gap: 0.42rem;
+}
+
+body[data-page="ownership"] .ownership-list-section .pl-list-header {
+  border-bottom: 1px solid rgba(196, 207, 255, 0.24);
+  padding-top: 0.35rem;
+  padding-bottom: 0.42rem;
+}
+
+body[data-page="ownership"] .ownership-player-link {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-weight: 640;
+  letter-spacing: 0.01em;
+  text-align: left;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.14s ease, text-shadow 0.14s ease;
+}
+
+body[data-page="ownership"] .ownership-player-link:hover {
+  color: #f7f9ff;
+  text-shadow: 0 0 10px rgba(138, 182, 255, 0.35);
+}
+
+body[data-page="ownership"] .ownership-player-link:focus,
+body[data-page="ownership"] .ownership-player-link:focus-visible {
+  outline: none;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(118, 108, 255, 0.45);
+}
+
+/* Player value view */
+body[data-page="ownership"] .ownership-value-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  margin-top: 0.58rem;
+}
+
+body[data-page="ownership"] .ownership-value-view.hidden {
+  display: none !important;
+}
+
+body[data-page="ownership"] .ownership-value-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.62rem;
+  border-radius: 16px;
+  border: 1px solid var(--ownership-glass-border);
+  background: var(--ownership-glass-bg);
+  box-shadow: var(--ownership-shadow);
+}
+
+body[data-page="ownership"] .ownership-value-search-wrap input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--ownership-soft-border);
+  background: rgba(7, 12, 27, 0.72);
+  color: var(--color-text-primary);
+  padding: 0.68rem 0.88rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  outline: none;
+}
+
+body[data-page="ownership"] .ownership-value-search-wrap input::placeholder {
+  color: rgba(194, 202, 234, 0.72);
+}
+
+body[data-page="ownership"] .ownership-value-search-wrap input:focus,
+body[data-page="ownership"] .ownership-value-search-wrap input:focus-visible {
+  border-color: var(--ownership-highlight);
+  box-shadow: 0 0 0 2px rgba(155, 123, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+body[data-page="ownership"] .ownership-value-pos-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.44rem;
+}
+
+body[data-page="ownership"] .ownership-pos-filter {
+  border: 1px solid rgba(190, 203, 254, 0.26);
+  background: rgba(11, 16, 34, 0.58);
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  padding: 0.34rem 0.72rem;
+  font-size: 0.71rem;
+  font-weight: 680;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+body[data-page="ownership"] .ownership-pos-filter.active,
+body[data-page="ownership"] .ownership-pos-filter[aria-pressed="true"] {
+  color: #e9f1ff;
+  border-color: rgba(108, 179, 255, 0.48);
+  background: linear-gradient(138deg, rgba(74, 138, 255, 0.3), rgba(120, 103, 255, 0.26));
+  box-shadow: 0 0 14px rgba(94, 154, 255, 0.2);
+}
+
+body[data-page="ownership"] .ownership-value-table-shell {
+  border-radius: 16px;
+  border: 1px solid var(--ownership-glass-border);
+  background: var(--ownership-glass-bg);
+  box-shadow: var(--ownership-shadow);
+  overflow: hidden;
+}
+
+body[data-page="ownership"] .ownership-value-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+body[data-page="ownership"] .ownership-value-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.73rem;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(15, 20, 40, 0.92);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid rgba(176, 188, 246, 0.26);
+  padding: 0.56rem 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.62rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-sortable {
+  cursor: pointer;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-sortable::after {
+  content: '↕';
+  display: inline-block;
+  margin-left: 0.32rem;
+  opacity: 0.42;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-active::after {
+  opacity: 0.95;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-active.is-desc::after {
+  content: '↓';
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-active.is-asc::after {
+  content: '↑';
+}
+
+body[data-page="ownership"] .ownership-value-table tbody td {
+  border-bottom: 1px solid rgba(173, 186, 246, 0.13);
+  padding: 0.52rem 0.48rem;
+  color: #d7dff8;
+  white-space: nowrap;
+  text-align: center;
+}
+
+body[data-page="ownership"] .ownership-value-table tbody tr:hover {
+  background: rgba(110, 126, 220, 0.12);
+}
+
+body[data-page="ownership"] .ownership-value-table tbody td:nth-child(2) {
+  text-align: left;
+}
+
+body[data-page="ownership"] .ownership-value-pos-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.05rem;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 230, 255, 0.2);
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.18rem 0.42rem;
+  color: #edf1ff;
+  background: rgba(20, 26, 54, 0.72);
+}
+
+body[data-page="ownership"] .ownership-value-pos-tag.QB {
+  box-shadow: inset 0 0 10px rgba(255, 178, 216, 0.16);
+}
+
+body[data-page="ownership"] .ownership-value-pos-tag.RB {
+  box-shadow: inset 0 0 10px rgba(169, 247, 209, 0.16);
+}
+
+body[data-page="ownership"] .ownership-value-pos-tag.WR {
+  box-shadow: inset 0 0 10px rgba(160, 194, 247, 0.16);
+}
+
+body[data-page="ownership"] .ownership-value-pos-tag.TE {
+  box-shadow: inset 0 0 10px rgba(255, 199, 138, 0.16);
+}
+
+body[data-page="ownership"] .ownership-value-empty {
+  padding: 0.95rem 1rem 1.05rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  font-size: 0.74rem;
+}
+
+/* Ownership player modal */
+body[data-page="ownership"] #ownershipPlayerModal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal.hidden {
+  display: none;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-content {
+  width: min(94vw, 736px);
+  max-height: 90vh;
+  border-radius: 16px;
+  border: 1px solid var(--ownership-glass-border);
+  background: linear-gradient(165deg, rgba(15, 20, 42, 0.9), rgba(7, 10, 22, 0.84));
+  box-shadow: 0 28px 65px rgba(4, 8, 24, 0.62), inset 0 0 24px rgba(120, 100, 255, 0.07);
+  overflow: hidden;
+  padding: 0.75rem 0.85rem 0.78rem;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-close {
+  top: 0.02rem;
+  right: 0.5rem;
+  font-size: 2rem;
+  color: rgba(232, 238, 255, 0.84);
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-header {
+  text-align: center;
+  padding-top: 0.12rem;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal #ownershipModalPlayerName {
+  margin: 0 0 0.14rem;
+  font-size: 1.07rem;
+  letter-spacing: 0.02em;
+  color: #eef3ff;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal #ownershipModalPlayerVitals {
+  display: flex;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal #ownershipModalSummaryRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.45rem;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal #ownershipModalSummaryChips {
+  display: flex;
+  gap: 0.78rem;
+  width: 100%;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .gamelogs-summary-chip {
+  flex: 1;
+  min-width: 0;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-body {
+  border-top: 1px solid rgba(183, 194, 246, 0.22);
+  padding-top: 0.55rem;
+  max-height: calc(90vh - 220px);
+  overflow-y: auto;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-league-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.52rem 0.62rem;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 197, 248, 0.2);
+  background: rgba(11, 16, 35, 0.62);
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-abbr {
+  font-size: 0.73rem;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-name {
+  color: #d2dbfb;
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 48vw;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-owner {
+  font-size: 0.76rem;
+  font-weight: 670;
+  color: #eef2ff;
+  text-align: right;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row.owner-you {
+  border-color: rgba(101, 236, 191, 0.36);
+  background: linear-gradient(145deg, rgba(21, 52, 54, 0.58), rgba(11, 29, 31, 0.56));
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row.owner-other {
+  border-color: rgba(147, 161, 239, 0.32);
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-league-row.owner-none {
+  border-color: rgba(189, 197, 238, 0.2);
+  background: rgba(20, 24, 42, 0.52);
+  opacity: 0.92;
+}
+
+body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  padding: 0.7rem 0;
+}
+
+@media (max-width: 900px) {
+  body[data-page="ownership"] .ownership-view-switcher > button {
+    padding: 0.38rem 0.52rem;
+  }
+
+  body[data-page="ownership"] .ownership-view-switcher > button .switcher-label {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 680px) {
+  body[data-page="ownership"] .ownership-value-table {
+    min-width: 760px;
+    font-size: 0.68rem;
+  }
+
+  body[data-page="ownership"] .ownership-value-table thead th {
+    font-size: 0.56rem;
+    padding: 0.5rem 0.42rem;
+  }
+
+  body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-content {
+    width: min(96vw, 640px);
+    padding: 0.68rem 0.62rem 0.68rem;
+  }
+
+  body[data-page="ownership"] #ownershipPlayerModal #ownershipModalSummaryChips {
+    gap: 0.4rem;
+  }
+
+  body[data-page="ownership"] #ownershipPlayerModal .gamelogs-summary-chip {
+    padding: 0.23rem 0.5rem;
+  }
+
+  body[data-page="ownership"] #ownershipPlayerModal .ownership-league-name {
+    max-width: 39vw;
+  }
+
+  body[data-page="ownership"] #ownershipPlayerModal .ownership-league-owner {
+    font-size: 0.71rem;
+  }
+}
