@@ -214,12 +214,15 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-value-table thead th {
-    font-size: 0.58rem;
-    padding: 0.52rem 0.44rem;
+    font-size: 0.68rem;
+    padding: 0.4rem 0.44rem;
   }
 
   body[data-page="ownership"] .ownership-value-table tbody td {
-    padding: 0.5rem 0.42rem;
+    padding: 0rem 0.42rem;
+    height: 27px;
+    min-height: 32px !important;
+    max-height: 30px;
   }
 
   body[data-page="ownership"] .ownership-value-table .ownership-player-link {

@@ -3492,8 +3492,8 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
   min-width: 38px;
   height: auto;
   padding: 4px 4px;
-  line-height: 0.95rem;
-  font-size: 0.65rem;
+  line-height: 1;
+  font-size: 0.6rem;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.005);
   backdrop-filter: blur(1px) saturate(180%);
@@ -3524,10 +3524,10 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
 /* Mobile-specific radius for ownership tags */
 @media (max-width: 640px) {
   body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
-    border-radius: 0.55rem;
-    min-width: 31px;
-    width: 31px;
-    height: 23px !important;
+    border-radius: 0.4rem;
+    min-width: 25px;
+    width: 9px !important;
+    height: 17px !important;
   }
 
   body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
@@ -12046,7 +12046,8 @@ body[data-page="ownership"] .ownership-player-trigger {
   line-height: 1.2;
   text-align: left;
   cursor: pointer;
-  border-bottom: 1px solid rgba(167, 177, 236, 0.35);
+  text-decoration: underline;
+  text-decoration-color: #ccf5;
 }
 
 body[data-page="ownership"] .ownership-player-trigger:hover,
@@ -12166,7 +12167,8 @@ body[data-page="ownership"] .ownership-value-table {
    - Keeps numeric columns consistent and aligned like the Stats table */
 body[data-page="ownership"] .ownership-value-table th:nth-child(1),
 body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
-  width: 46px;
+  width: 28px;
+  height: 14px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(2),
@@ -12176,38 +12178,38 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(3),
 body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
-  width: 58px;
+  width: 33px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(4),
 body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
-  width: 50px;
+  width: 29px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(5),
 body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
-  width: 58px;
+  width: 38px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(6),
 body[data-page="ownership"] .ownership-value-table td:nth-child(6),
 body[data-page="ownership"] .ownership-value-table th:nth-child(8),
 body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
-  width: 80px;
+  width: 46px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(7),
 body[data-page="ownership"] .ownership-value-table td:nth-child(7),
 body[data-page="ownership"] .ownership-value-table th:nth-child(9),
 body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
-  width: 74px;
+  width: 64px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(10),
 body[data-page="ownership"] .ownership-value-table td:nth-child(10),
 body[data-page="ownership"] .ownership-value-table th:nth-child(11),
 body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
-  width: 66px;
+  width: 56px;
 }
 
 body[data-page="ownership"] .ownership-value-table thead th {
@@ -12275,7 +12277,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell 
 body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
   width: 100%;
   display: inline-block;
-  font-size: 0.76rem;
+  font-size: 0.65rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12303,6 +12305,7 @@ body[data-page="ownership"] .ownership-value-chip {
   width: 2.4rem;
   height: 1.2rem;
   min-height: 1.2rem;
+  max-height: 1.2rem;
   border-radius: 6px;
   padding: 0.05rem 0.24rem;
   font-size: 0.71rem;
@@ -12624,7 +12627,7 @@ body[data-page="ownership"] .ownership-modal-warning {
 
   body[data-page="ownership"] .ownership-value-table th:nth-child(2),
   body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
-    width: 112px;
+    width: 46px;
   }
 
   body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
