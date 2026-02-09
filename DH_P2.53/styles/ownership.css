@@ -1,0 +1,218 @@
+/* Ownership page modal override system (PF-38_via33):
+   - Targets only Ownership page modal UI
+   - Forces modal content visible (fixes overlay-only issue from shared modal base animation)
+   - Mirrors the PF-39A modal look without changing other pages/components */
+
+body[data-page="ownership"] {
+  --ownership-modal-border: rgba(154, 170, 255, 0.28);
+  --ownership-modal-soft-border: rgba(197, 206, 255, 0.18);
+  --ownership-modal-shadow: 0 28px 65px rgba(4, 8, 24, 0.62), inset 0 0 24px rgba(120, 100, 255, 0.07);
+}
+
+/* Ownership player modal container: independent layer for this page only. */
+body[data-page="ownership"] #ownership-player-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownership-player-modal.hidden {
+  display: none;
+}
+
+/* Critical visibility fix:
+   Shared `.modal-content` defaults to opacity:0/scale(.95). This override ensures
+   the ownership modal content is rendered and visible when opened. */
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-content {
+  opacity: 1;
+  transform: none;
+  width: min(94vw, 736px);
+  max-height: 90vh;
+  border-radius: 16px;
+  border: 1px solid var(--ownership-modal-border);
+  background: linear-gradient(165deg, rgb(77 86 120 / 82%), rgb(63 67 88 / 29%));
+  box-shadow: var(--ownership-modal-shadow);
+  overflow: hidden;
+  padding: 0.75rem 0.85rem 0.78rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-close {
+  top: 0.02rem;
+  right: 0.5rem;
+  font-size: 2rem;
+  color: rgba(232, 238, 255, 0.84);
+}
+
+/* Modal header section (PF-39A style family) */
+body[data-page="ownership"] #ownership-modal-header {
+  text-align: center;
+  padding-top: 0.12rem;
+}
+
+body[data-page="ownership"] #ownership-modal-player-name {
+  margin: 0 0 0.14rem;
+  font-size: 1.07rem;
+  letter-spacing: 0.02em;
+  color: #eef3ff;
+}
+
+body[data-page="ownership"] #ownership-modal-player-vitals {
+  display: flex;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownership-modal-summary-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.45rem;
+}
+
+body[data-page="ownership"] #ownership-modal-summary-chips {
+  display: flex;
+  gap: 0.78rem;
+  width: 100%;
+}
+
+/* Summary chips: same visual family as PF-39A modal chips. */
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 13px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-values {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+/* Modal lower section: league owner rows in PF-39A glass style. */
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-body {
+  border-top: 1px solid rgba(183, 194, 246, 0.22);
+  padding-top: 0.55rem;
+  max-height: calc(90vh - 220px);
+  overflow-y: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-section-title {
+  margin-bottom: 0.45rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+}
+
+/* Ownership-specific league rows: visually aligned with PF-39A modal cards. */
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.52rem 0.62rem;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 197, 248, 0.2);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #ee4bff2e);
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-item.is-missing {
+  border-color: rgba(189, 197, 238, 0.2);
+  background: rgba(20, 24, 42, 0.52);
+  opacity: 0.92;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-abbr {
+  font-size: 0.73rem;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-name {
+  color: #d2dbfb;
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 48vw;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-value {
+  font-size: 0.76rem;
+  font-weight: 670;
+  color: #eef2ff;
+  text-align: right;
+}
+
+@media (max-width: 680px) {
+  body[data-page="ownership"] #ownership-player-modal .ownership-modal-content {
+    width: min(96vw, 640px);
+    padding: 0.68rem 0.62rem 0.68rem;
+  }
+
+  body[data-page="ownership"] #ownership-player-modal #ownership-modal-summary-chips {
+    gap: 0.4rem;
+  }
+
+  body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip {
+    padding: 0.23rem 0.5rem;
+  }
+
+  body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-name {
+    max-width: 39vw;
+  }
+
+  body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-value {
+    font-size: 0.71rem;
+  }
+}
