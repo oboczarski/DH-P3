@@ -682,12 +682,12 @@ body[data-page="ownership"] {
   --ownership-exp-t1-pct: #626982;
   --ownership-exp-t2-count: #8791af;
   --ownership-exp-t2-pct: #6c7594;
-  --ownership-exp-t3-count: #90a0c7;
-  --ownership-exp-t3-pct: #7483aa;
-  --ownership-exp-t4-count: #8ca9da;
-  --ownership-exp-t4-pct: #6e8bb9;
-  --ownership-exp-t5-count: #93b7f0;
-  --ownership-exp-t5-pct: #7398cf;
+  --ownership-exp-t3-count: #ff3c8d;
+  --ownership-exp-t3-pct: #f94d95c0;
+  --ownership-exp-t4-count: #ff4837;
+  --ownership-exp-t4-pct: #ff6b6bd2;
+  --ownership-exp-t5-count: #a434f9;
+  --ownership-exp-t5-pct: #a434f9aa;
   --ownership-exp-t6-count: #98c8ff;
   --ownership-exp-t6-pct: #75a6db;
   --ownership-exp-t7-count: #7de7da;
@@ -765,7 +765,7 @@ body[data-page="ownership"] .ownership-list-row {
 
 body[data-page="ownership"] .ownership-col--player,
 body[data-page="ownership"] .ownership-list-player-wrap {
-  justify-self: start;
+  justify-self: center;
 }
 
 body[data-page="ownership"] .ownership-list-player-wrap {
@@ -1066,7 +1066,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 
   body[data-page="ownership"] .ownership-list-player-wrap {
     column-gap: 0.34rem !important;
-    margin-left: 0 !important;
+    margin-left: 5px !important;
+    justify-self: flex-start;
   }
 
   body[data-page="ownership"] .ownership-list-leagues {
