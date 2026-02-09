@@ -873,6 +873,40 @@ body[data-page="ownership"] .ownership-value-filter-btn:disabled {
   cursor: not-allowed;
 }
 
+/* Ownership value-table performance layer:
+   reduces repaint cost and scroll jank by simplifying expensive effects within
+   the scroll container and enabling mobile momentum scrolling. */
+body[data-page="ownership"] .ownership-value-table-wrap {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  contain: layout paint style;
+  will-change: scroll-position;
+}
+
+body[data-page="ownership"] .ownership-value-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body[data-page="ownership"] .ownership-value-table tbody td {
+  text-shadow: none;
+  box-shadow: none;
+}
+
+body[data-page="ownership"] .ownership-value-table .ownership-value-chip {
+  box-shadow: none;
+}
+
+body[data-page="ownership"] .ownership-value-table .pl-list-tag.ownership-pos-tag {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.09em;
+}
+
 @media (max-width: 900px) {
   body[data-page="ownership"] #secondary-header-row #usernameInput {
     padding-right: 3.18rem;
@@ -923,6 +957,10 @@ body[data-page="ownership"] .ownership-value-filter-btn:disabled {
   body[data-page="ownership"] .ownership-value-filter-btn {
     min-height: 1.9rem;
     font-size: 0.61rem;
+  }
+
+  body[data-page="ownership"] .ownership-value-table-wrap {
+    max-height: min(68vh, 700px);
   }
 }
 

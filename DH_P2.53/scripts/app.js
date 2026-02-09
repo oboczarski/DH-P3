@@ -7543,6 +7543,25 @@ function sortOwnershipValueRows(rows) {
     });
 }
 
+// Ownership Player Value view performance controls:
+// - Debounces search-triggered renders so each keystroke does not re-build the full view.
+// - Batches row rendering to keep scrolling and interactions responsive on large datasets.
+const OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS = 120;
+const OWNERSHIP_VALUE_BATCH_SIZE = 120;
+let ownershipValueSearchDebounceTimer = null;
+let ownershipValueRenderRaf = null;
+
+function scheduleOwnershipValueRender() {
+    if (pageType !== 'ownership' || state.ownershipMode !== 'value') return;
+    if (ownershipValueRenderRaf) {
+        cancelAnimationFrame(ownershipValueRenderRaf);
+    }
+    ownershipValueRenderRaf = requestAnimationFrame(() => {
+        ownershipValueRenderRaf = null;
+        renderOwnershipValueView();
+    });
+}
+
 function setOwnershipValueSort(column) {
     if (!column) return;
     const textColumns = new Set(['player', 'pos', 'team']);
@@ -7552,7 +7571,7 @@ function setOwnershipValueSort(column) {
         state.ownershipValueSortColumn = column;
         state.ownershipValueSortDirection = textColumns.has(column) ? 'asc' : 'desc';
     }
-    renderOwnershipValueView();
+    scheduleOwnershipValueRender();
 }
 
 function getOwnershipSortClass(column) {
@@ -7568,6 +7587,33 @@ function getOwnershipValueRowsFiltered() {
         if (term && !row.search.includes(term)) return false;
         return true;
     });
+}
+
+function buildOwnershipValueTableRowMarkup(row) {
+    const ageColor = getAgeColorForRoster(row.pos, row.ageNumber) || 'inherit';
+    const oneQbKtcColor = getKtcColor(row.oneQbKtc);
+    const sflxKtcColor = getKtcColor(row.sflxKtc);
+    const oneQbPrkColor = getConditionalColorByRank(row.oneQbPosRankNumber, row.pos);
+    const sflxPrkColor = getConditionalColorByRank(row.sflxPosRankNumber, row.pos);
+    const oneQbKtcDisplay = Number.isFinite(row.oneQbKtc) ? Math.round(row.oneQbKtc) : '—';
+    const sflxKtcDisplay = Number.isFinite(row.sflxKtc) ? Math.round(row.sflxKtc) : '—';
+    return `
+        <tr>
+            <td class="ownership-value-rk">${row.rk}</td>
+            <td class="ownership-value-player-cell">
+                <button class="ownership-player-trigger ownership-player-trigger--value" type="button" data-player-id="${escapeHtml(row.playerId)}">${escapeHtml(row.displayName)}</button>
+            </td>
+            <td><span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span></td>
+            <td class="ownership-value-team-cell">${getOwnershipTableTeamMarkup(row.team)}</td>
+            <td><span style="color:${ageColor};">${row.age}</span></td>
+            <td><span class="stats-value-chip ownership-value-chip" style="color:${oneQbKtcColor};">${oneQbKtcDisplay}</span></td>
+            <td><span style="color:${oneQbPrkColor};">${row.oneQbPosRank || `${row.pos}·—`}</span></td>
+            <td><span class="stats-value-chip ownership-value-chip" style="color:${sflxKtcColor};">${sflxKtcDisplay}</span></td>
+            <td><span style="color:${sflxPrkColor};">${row.sflxPosRank || `${row.pos}·—`}</span></td>
+            <td>${formatOwnershipValue(row.fpts, 1)}</td>
+            <td>${formatOwnershipValue(row.ppg, 1)}</td>
+        </tr>
+    `;
 }
 
 function renderOwnershipValueView() {
@@ -7620,40 +7666,47 @@ function renderOwnershipValueView() {
                         }).join('')}
                     </tr>
                 </thead>
-                <tbody>
-                    ${rows.map((row) => {
-                        const ageColor = getAgeColorForRoster(row.pos, row.ageNumber) || 'inherit';
-                        const oneQbKtcColor = getKtcColor(row.oneQbKtc);
-                        const sflxKtcColor = getKtcColor(row.sflxKtc);
-                        const oneQbPrkColor = getConditionalColorByRank(row.oneQbPosRankNumber, row.pos);
-                        const sflxPrkColor = getConditionalColorByRank(row.sflxPosRankNumber, row.pos);
-                        const oneQbKtcDisplay = Number.isFinite(row.oneQbKtc) ? Math.round(row.oneQbKtc) : '—';
-                        const sflxKtcDisplay = Number.isFinite(row.sflxKtc) ? Math.round(row.sflxKtc) : '—';
-                        return `
-                            <tr>
-                                <td class="ownership-value-rk">${row.rk}</td>
-                                <td class="ownership-value-player-cell">
-                                    <button class="ownership-player-trigger ownership-player-trigger--value" type="button" data-player-id="${escapeHtml(row.playerId)}">${escapeHtml(row.displayName)}</button>
-                                </td>
-                                <td><span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span></td>
-                                <td class="ownership-value-team-cell">${getOwnershipTableTeamMarkup(row.team)}</td>
-                                <td><span style="color:${ageColor};">${row.age}</span></td>
-                                <td><span class="stats-value-chip ownership-value-chip" style="color:${oneQbKtcColor};">${oneQbKtcDisplay}</span></td>
-                                <td><span style="color:${oneQbPrkColor};">${row.oneQbPosRank || `${row.pos}·—`}</span></td>
-                                <td><span class="stats-value-chip ownership-value-chip" style="color:${sflxKtcColor};">${sflxKtcDisplay}</span></td>
-                                <td><span style="color:${sflxPrkColor};">${row.sflxPosRank || `${row.pos}·—`}</span></td>
-                                <td>${formatOwnershipValue(row.fpts, 1)}</td>
-                                <td>${formatOwnershipValue(row.ppg, 1)}</td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
     `;
 
     playerListView.innerHTML = '';
     playerListView.appendChild(shell);
+
+    const tableWrap = shell.querySelector('.ownership-value-table-wrap');
+    const tableBody = shell.querySelector('.ownership-value-table tbody');
+    // Ownership value table batching:
+    // progressively hydrates rows so the view remains smooth while scrolling large player sets.
+    let renderedCount = 0;
+    const appendNextBatch = () => {
+        if (!tableBody || renderedCount >= rows.length) return false;
+        const nextRows = rows.slice(renderedCount, renderedCount + OWNERSHIP_VALUE_BATCH_SIZE);
+        if (!nextRows.length) return false;
+        tableBody.insertAdjacentHTML('beforeend', nextRows.map(buildOwnershipValueTableRowMarkup).join(''));
+        renderedCount += nextRows.length;
+        return renderedCount < rows.length;
+    };
+    const fillViewport = () => {
+        while (tableWrap && tableWrap.scrollHeight <= tableWrap.clientHeight + 8) {
+            if (!appendNextBatch()) break;
+        }
+    };
+
+    appendNextBatch();
+    fillViewport();
+
+    if (rows.length > renderedCount && tableWrap) {
+        const loadMoreOnScroll = () => {
+            const nearBottom = tableWrap.scrollTop + tableWrap.clientHeight >= tableWrap.scrollHeight - 220;
+            if (!nearBottom) return;
+            const hasMore = appendNextBatch();
+            if (!hasMore) {
+                tableWrap.removeEventListener('scroll', loadMoreOnScroll);
+            }
+        };
+        tableWrap.addEventListener('scroll', loadMoreOnScroll, { passive: true });
+    }
 
     if (!rows.length) {
         const empty = document.createElement('p');
@@ -7665,7 +7718,11 @@ function renderOwnershipValueView() {
     const searchInput = shell.querySelector('#ownershipValueSearchInput');
     searchInput?.addEventListener('input', (event) => {
         state.ownershipValueSearchTerm = String(event.target.value || '');
-        renderOwnershipValueView();
+        // Ownership value search debounce keeps typing responsive on larger data sets.
+        clearTimeout(ownershipValueSearchDebounceTimer);
+        ownershipValueSearchDebounceTimer = setTimeout(() => {
+            scheduleOwnershipValueRender();
+        }, OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS);
     });
 
     shell.querySelector('.ownership-value-position-filter')?.addEventListener('click', (event) => {
@@ -7673,7 +7730,7 @@ function renderOwnershipValueView() {
         if (!button) return;
         const nextPos = button.dataset.ownershipPos || 'ALL';
         state.ownershipValuePositionFilter = nextPos;
-        renderOwnershipValueView();
+        scheduleOwnershipValueRender();
     });
 
     shell.querySelector('.ownership-value-table')?.addEventListener('click', (event) => {
@@ -8541,9 +8598,13 @@ function syncRosterHeaderPosition() {
     const dx = rosterHeaderBaseLeft - rect.left;
     header.style.transform = Math.abs(dx) > 0.5 ? `translateX(${Math.round(dx)}px)` : '';
 }
-window.addEventListener('scroll', syncRosterHeaderPosition, { passive: true });
-window.addEventListener('resize', syncRosterHeaderPosition);
-syncRosterHeaderPosition();
+// Roster header horizontal-sync listeners are only needed on rosters page.
+// Keeping them page-scoped avoids extra scroll work on stats/ownership/research pages.
+if (pageType === 'rosters') {
+    window.addEventListener('scroll', syncRosterHeaderPosition, { passive: true });
+    window.addEventListener('resize', syncRosterHeaderPosition);
+    syncRosterHeaderPosition();
+}
 function showTemporaryTooltip(element, message) {
     const anchor = element || document.body;
     document.querySelectorAll('.custom-tooltip').forEach(node => node.remove());
