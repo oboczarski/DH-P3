@@ -54,6 +54,7 @@ const comparisonBackgroundOverlay = document.getElementById('comparison-modal-ba
 const ownershipModeSwitcher = document.getElementById('ownershipModeSwitcher');
 const ownershipModeOwnershipBtn = document.getElementById('ownershipModeOwnershipBtn');
 const ownershipModeValueBtn = document.getElementById('ownershipModeValueBtn');
+const ownershipUsernameSubmitButton = document.getElementById('ownershipUsernameSubmitButton');
 // Ownership player modal element IDs support both legacy kebab-case and reference camelCase markup.
 const ownershipPlayerModal = document.getElementById('ownershipPlayerModal') || document.getElementById('ownership-player-modal');
 const ownershipModalOverlay = ownershipPlayerModal?.querySelector('.modal-overlay');
@@ -1893,6 +1894,13 @@ document.addEventListener('keydown', (e) => {
 });
 // Ownership page: Enter on username input fetches and renders ownership views (mode switch + table/list).
 if (pageType === 'ownership') {
+    // Ownership username submit button uses the same fetch flow as pressing Enter.
+    ownershipUsernameSubmitButton?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        await handleFetchOwnership();
+        try { usernameInput.blur(); } catch (err) { }
+    });
+
     usernameInput?.addEventListener('keydown', async (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault();
@@ -7376,8 +7384,7 @@ function renderOwnershipPercentView() {
     list.innerHTML = `
         <div class="ownership-list-header">
             <span class="ownership-col ownership-col--player">Player</span>
-            <span class="ownership-col ownership-col--owned">Owned</span>
-            <span class="ownership-col ownership-col--pct">%</span>
+            <span class="ownership-col ownership-col--exposure">Exposure</span>
             <span class="ownership-col ownership-col--leagues">Leagues</span>
         </div>
     `;
@@ -7400,22 +7407,24 @@ function renderOwnershipPercentView() {
         const countClass = row.percentage >= 80
             ? 'pl-count-high'
             : (row.percentage >= 50 ? 'pl-count-mid' : 'pl-count-low');
-        const pctClass = row.percentage >= 80
-            ? 'pl-pct-high'
-            : (row.percentage >= 50 ? 'pl-pct-mid' : 'pl-pct-low');
+        const exposureDisplay = `${row.count}(${row.percentage}%)`;
+        const leagueList = Array.isArray(row.leagueAbbrs)
+            ? row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')
+            : '—';
 
         item.innerHTML = `
-            <div class="ownership-list-pos-wrap">
-                <span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span>
-            </div>
             <div class="ownership-list-player-wrap">
-                <button class="ownership-player-trigger" type="button" data-player-id="${row.pid}">${row.displayName}</button>
-                <span class="team-tag" style="background-color:${TEAM_COLORS[row.team] || '#64748b'};color:white;">${row.team || 'FA'}</span>
-                <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
+                <span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span>
+                <div class="ownership-list-player-main">
+                    <div class="ownership-list-player-top">
+                        <button class="ownership-player-trigger" type="button" data-player-id="${row.pid}">${row.displayName}</button>
+                        <span class="team-tag" style="background-color:${TEAM_COLORS[row.team] || '#64748b'};color:white;">${row.team || 'FA'}</span>
+                    </div>
+                    <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
+                </div>
             </div>
-            <div class="ownership-list-metric ownership-list-metric--owned ${countClass}">${row.count}</div>
-            <div class="ownership-list-metric ownership-list-metric--pct ${pctClass}">${row.percentage}%</div>
-            <div class="ownership-list-leagues">${row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')}</div>
+            <div class="ownership-list-metric ownership-list-exposure ${countClass}">${exposureDisplay}</div>
+            <div class="ownership-list-leagues">${leagueList || '—'}</div>
         `;
         list.appendChild(item);
     });

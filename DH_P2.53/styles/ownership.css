@@ -7,6 +7,278 @@ body[data-page="ownership"] {
   --ownership-glass-border: rgba(154, 170, 255, 0.28);
 }
 
+/* Ownership header username control enhancement:
+   - adds a dedicated glass submit button next to username input
+   - keeps alignment tight for desktop and mobile */
+body[data-page="ownership"] #secondary-header-row .username-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.34rem;
+  overflow: visible;
+  padding: 0.14rem;
+  border-radius: 12px;
+}
+
+body[data-page="ownership"] #secondary-header-row .username-area::before {
+  display: none;
+}
+
+body[data-page="ownership"] #secondary-header-row #usernameInput {
+  min-width: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(156, 170, 242, 0.28);
+  background: rgba(13, 17, 36, 0.66);
+  color: #dce4ff;
+  font-weight: 520;
+  padding: 0.52rem 0.72rem;
+}
+
+body[data-page="ownership"] #secondary-header-row #usernameInput::placeholder {
+  color: rgba(164, 177, 233, 0.8);
+}
+
+body[data-page="ownership"] .ownership-username-submit {
+  border: 1px solid rgba(178, 191, 255, 0.34);
+  border-radius: 11px;
+  background: linear-gradient(155deg, rgba(120, 134, 214, 0.34), rgba(55, 63, 111, 0.26));
+  color: #eaf0ff;
+  min-width: 2.78rem;
+  padding: 0 0.62rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 10px 22px rgba(20, 24, 46, 0.35);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+body[data-page="ownership"] .ownership-username-submit:hover,
+body[data-page="ownership"] .ownership-username-submit:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: rgba(203, 213, 255, 0.7);
+  background: linear-gradient(155deg, rgba(141, 157, 246, 0.46), rgba(75, 87, 151, 0.34));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 0 0 2px rgba(157, 171, 249, 0.24), 0 14px 24px rgba(14, 21, 44, 0.45);
+}
+
+body[data-page="ownership"] .ownership-username-submit i {
+  font-size: 0.74rem;
+}
+
+body[data-page="ownership"] .ownership-username-submit-label {
+  white-space: nowrap;
+}
+
+/* Ownership default list alignment:
+   - column model is PLAYER | EXPOSURE | LEAGUES
+   - exposure combines count + percent into a single aligned value */
+body[data-page="ownership"] .ownership-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+body[data-page="ownership"] .ownership-list-header,
+body[data-page="ownership"] .ownership-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(84px, 0.46fr) minmax(0, 1.08fr);
+  align-items: center;
+  gap: 0.56rem;
+}
+
+body[data-page="ownership"] .ownership-list-header {
+  border-radius: 10px;
+  border: 1px solid rgba(128, 138, 189, 0.23);
+  background: rgba(31, 35, 63, 0.72);
+  padding: 0.42rem 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.61rem;
+  font-weight: 700;
+  color: #aeb5e4;
+}
+
+body[data-page="ownership"] .ownership-col {
+  min-width: 0;
+}
+
+body[data-page="ownership"] .ownership-col--exposure,
+body[data-page="ownership"] .ownership-list-exposure {
+  justify-self: center;
+  text-align: center;
+}
+
+body[data-page="ownership"] .ownership-col--leagues,
+body[data-page="ownership"] .ownership-list-leagues {
+  justify-self: stretch;
+  text-align: left;
+}
+
+body[data-page="ownership"] .ownership-list-row {
+  border-radius: 12px;
+  border: 1px solid rgba(128, 138, 189, 0.17);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.16));
+  padding: 0.34rem 0.5rem;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.19);
+}
+
+body[data-page="ownership"] .ownership-list-player-wrap {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.42rem;
+}
+
+body[data-page="ownership"] .ownership-list-player-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+body[data-page="ownership"] .ownership-list-player-top {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.34rem;
+}
+
+body[data-page="ownership"] .ownership-list-player-wrap .team-tag {
+  margin-left: 0;
+  font-size: 0.62rem;
+  padding: 1px 7px;
+  flex: 0 0 auto;
+}
+
+body[data-page="ownership"] .ownership-player-trigger {
+  border: none;
+  background: transparent;
+  color: #dce1ff;
+  font-size: 0.87rem;
+  font-weight: 700;
+  padding: 0;
+  line-height: 1.18;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #ccf5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+body[data-page="ownership"] .ownership-player-trigger:hover,
+body[data-page="ownership"] .ownership-player-trigger:focus-visible {
+  color: #ffffff;
+  text-decoration-color: rgba(219, 224, 255, 0.85);
+}
+
+body[data-page="ownership"] .ownership-player-meta {
+  margin-top: 0;
+  color: #9ca4d4;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-page="ownership"] .ownership-list-exposure {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.84rem;
+  letter-spacing: 0.01em;
+  padding: 0 0.08rem;
+}
+
+body[data-page="ownership"] .ownership-list-leagues {
+  font-size: 0.66rem;
+  line-height: 1.24;
+  color: #bac2ee;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Player value position filters:
+   - keep grouped control look
+   - dim inactive position chips and boost active glow to match position-tag aesthetic */
+body[data-page="ownership"] .ownership-value-position-filter {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid rgba(162, 172, 223, 0.32);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(13, 16, 32, 0.1);
+  padding: 1px;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn {
+  border: 1px solid rgba(168, 180, 238, 0.34);
+  border-radius: 8px;
+  min-width: 0;
+  width: 100%;
+  min-height: 2.02rem;
+  font-size: 0.66rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:not(.is-active) {
+  opacity: 0.72;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn[data-ownership-pos="ALL"] {
+  background: linear-gradient(165deg, rgba(110, 120, 173, 0.26), rgba(56, 65, 112, 0.2));
+  color: #bbc3f1;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn[data-ownership-pos="QB"] {
+  background: linear-gradient(165deg, rgba(255, 58, 117, 0.2), rgba(101, 33, 63, 0.18));
+  color: rgba(255, 147, 182, 0.84);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn[data-ownership-pos="RB"] {
+  background: linear-gradient(165deg, rgba(0, 235, 199, 0.2), rgba(23, 96, 86, 0.18));
+  color: rgba(141, 252, 232, 0.84);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn[data-ownership-pos="WR"] {
+  background: linear-gradient(165deg, rgba(88, 167, 255, 0.2), rgba(39, 85, 135, 0.18));
+  color: rgba(165, 207, 255, 0.84);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn[data-ownership-pos="TE"] {
+  background: linear-gradient(165deg, rgba(180, 105, 255, 0.2), rgba(82, 48, 120, 0.18));
+  color: rgba(221, 189, 255, 0.84);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn.is-active {
+  opacity: 1;
+  transform: translateY(-1px);
+  color: #f5f7ff;
+  border-color: rgba(218, 224, 255, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(175, 186, 252, 0.22), 0 0 20px rgba(143, 160, 255, 0.34), 0 10px 20px rgba(10, 14, 33, 0.5);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(233, 239, 255, 0.72), 0 0 0 2px rgba(144, 158, 238, 0.32);
+}
+
 /* Ownership player modal */
 body[data-page="ownership"] #ownershipPlayerModal {
   position: fixed;
@@ -198,6 +470,26 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 900px) {
+  body[data-page="ownership"] .ownership-username-submit {
+    min-width: 2.4rem;
+    padding: 0 0.5rem;
+  }
+
+  body[data-page="ownership"] .ownership-username-submit-label {
+    display: none;
+  }
+
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    grid-template-columns: minmax(0, 1.36fr) minmax(76px, 0.48fr) minmax(0, 0.94fr);
+    gap: 0.42rem;
+  }
+
+  body[data-page="ownership"] .ownership-player-meta,
+  body[data-page="ownership"] .ownership-list-leagues {
+    font-size: 0.6rem;
+  }
+
   body[data-page="ownership"] .ownership-view-switcher > button {
     padding: 0.38rem 0.52rem;
   }
@@ -208,6 +500,73 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 680px) {
+  body[data-page="ownership"] #secondary-header-row .username-area {
+    gap: 0.26rem;
+    padding: 0.12rem;
+    border-radius: 14px;
+  }
+
+  body[data-page="ownership"] #secondary-header-row #usernameInput {
+    padding: 0.4rem 0.58rem;
+    font-size: 0.76rem;
+  }
+
+  body[data-page="ownership"] .ownership-username-submit {
+    min-width: 2.12rem;
+    border-radius: 10px;
+  }
+
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    grid-template-columns: minmax(0, 1.2fr) minmax(68px, 0.52fr) minmax(0, 0.8fr);
+    gap: 0.34rem;
+    padding-left: 0.34rem;
+    padding-right: 0.34rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-header {
+    font-size: 0.52rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-player-wrap {
+    column-gap: 0.3rem;
+  }
+
+  body[data-page="ownership"] .ownership-player-trigger {
+    font-size: 0.72rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-player-wrap .team-tag {
+    font-size: 0.56rem;
+    padding: 1px 5px;
+  }
+
+  body[data-page="ownership"] .ownership-player-meta {
+    font-size: 0.54rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-exposure {
+    font-size: 0.7rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-leagues {
+    font-size: 0.52rem;
+    line-height: 1.14;
+  }
+
+  body[data-page="ownership"] .ownership-value-position-filter {
+    gap: 0.18rem;
+    padding: 0.14rem;
+    border-radius: 10px;
+  }
+
+  body[data-page="ownership"] .ownership-value-filter-btn {
+    min-height: 1.9rem;
+    font-size: 0.62rem;
+    border-radius: 8px;
+    letter-spacing: 0.05em;
+  }
+
   body[data-page="ownership"] .ownership-value-table {
     min-width: 860px;
     font-size: 0.7rem;
@@ -253,5 +612,30 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 
   body[data-page="ownership"] #ownershipPlayerModal .ownership-league-owner {
     font-size: 0.71rem;
+  }
+}
+
+@media (max-width: 540px) {
+  /* Ownership list mobile guard:
+     overrides legacy global row spacing so Player/Exposure/Leagues columns stay aligned. */
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    display: grid !important;
+    align-items: center !important;
+    gap: 0.28rem !important;
+    padding-top: 0.36rem !important;
+    padding-bottom: 0.36rem !important;
+  }
+
+  body[data-page="ownership"] .ownership-list-player-wrap {
+    column-gap: 0.22rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-row .pl-list-tag.ownership-pos-tag {
+    margin-right: 0 !important;
+  }
+
+  body[data-page="ownership"] .ownership-list-leagues {
+    line-height: 1.12;
   }
 }
