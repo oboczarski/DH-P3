@@ -11938,6 +11938,7 @@ body[data-page="ownership"] .ownership-shell {
   -webkit-backdrop-filter: blur(7px) saturate(120%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px rgba(0, 0, 0, 0.26);
   padding: 0.7rem 0.65rem;
+  font-family: var(--font-sans);
 }
 
 body[data-page="ownership"] .ownership-toolbar,
@@ -11962,6 +11963,7 @@ body[data-page="ownership"] .ownership-search-input {
   background: rgba(8, 10, 24, 0.45);
   color: #d8ddff;
   font-size: 0.86rem;
+  font-family: var(--font-sans);
   padding: 0.45rem 2rem 0.45rem 0.72rem;
   transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
@@ -12081,30 +12083,58 @@ body[data-page="ownership"] .ownership-empty-state {
   border-radius: 10px;
 }
 
+/* Ownership value view: connected position filter bar
+   - Targets the value table filter controls only
+   - Makes buttons connected, equal-width, and full panel width
+   - Keeps behavior isolated to Ownership page via data-page scoping */
+body[data-page="ownership"] .ownership-value-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
 body[data-page="ownership"] .ownership-value-position-filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.24rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid rgba(128, 138, 189, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(13, 16, 32, 0.7);
 }
 
 body[data-page="ownership"] .ownership-value-filter-btn {
-  border: 1px solid rgba(128, 138, 189, 0.26);
-  background: rgba(19, 22, 43, 0.62);
+  border: 0;
+  border-right: 1px solid rgba(128, 138, 189, 0.22);
+  background: rgba(19, 22, 43, 0.82);
   color: #95a0d2;
-  min-width: 2.3rem;
-  min-height: 2rem;
-  border-radius: 8px;
+  min-width: 0;
+  width: 100%;
+  min-height: 2.02rem;
+  border-radius: 0;
   font-size: 0.66rem;
+  font-family: var(--font-sans);
   font-weight: 700;
   letter-spacing: 0.06em;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:last-child {
+  border-right: 0;
 }
 
 body[data-page="ownership"] .ownership-value-filter-btn.is-active {
-  border-color: rgba(118, 109, 255, 0.46);
   color: #d8ddff;
-  background: rgba(118, 109, 255, 0.13);
-  box-shadow: inset 0 0 12px rgba(118, 109, 255, 0.15), 0 0 10px rgba(118, 109, 255, 0.18);
+  background: rgba(118, 109, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(118, 109, 255, 0.56), inset 0 0 12px rgba(118, 109, 255, 0.22);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:focus-visible {
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 0 1px rgba(212, 218, 255, 0.72);
 }
 
 body[data-page="ownership"] .ownership-value-table-wrap {
@@ -12117,9 +12147,59 @@ body[data-page="ownership"] .ownership-value-table-wrap {
 
 body[data-page="ownership"] .ownership-value-table {
   width: 100%;
-  min-width: 1040px;
+  min-width: 910px;
   border-collapse: collapse;
   table-layout: fixed;
+  font-family: var(--font-sans);
+}
+
+/* Ownership value table column sizing:
+   - Reduces player column width significantly for denser mobile layouts
+   - Keeps numeric columns consistent and aligned like the Stats table */
+body[data-page="ownership"] .ownership-value-table th:nth-child(1),
+body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
+  width: 46px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(2),
+body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
+  width: 132px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(3),
+body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
+  width: 58px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(4),
+body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
+  width: 50px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(5),
+body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
+  width: 58px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(6),
+body[data-page="ownership"] .ownership-value-table td:nth-child(6),
+body[data-page="ownership"] .ownership-value-table th:nth-child(8),
+body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
+  width: 80px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(7),
+body[data-page="ownership"] .ownership-value-table td:nth-child(7),
+body[data-page="ownership"] .ownership-value-table th:nth-child(9),
+body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
+  width: 74px;
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(10),
+body[data-page="ownership"] .ownership-value-table td:nth-child(10),
+body[data-page="ownership"] .ownership-value-table th:nth-child(11),
+body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
+  width: 66px;
 }
 
 body[data-page="ownership"] .ownership-value-table thead th {
@@ -12134,6 +12214,32 @@ body[data-page="ownership"] .ownership-value-table thead th {
   font-weight: 700;
   padding: 0.43rem 0.3rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.22);
+  font-family: var(--font-sans);
+  user-select: none;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-sortable {
+  cursor: pointer;
+}
+
+/* Ownership value table sort icon parity with Stats page */
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-asc::after,
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-desc::after {
+  display: inline-block;
+  margin-left: 0.2rem;
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.55rem;
+  opacity: 0.6;
+  vertical-align: middle;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-asc::after {
+  content: "\f885";
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-desc::after {
+  content: "\f160";
 }
 
 body[data-page="ownership"] .ownership-value-table td {
@@ -12143,6 +12249,8 @@ body[data-page="ownership"] .ownership-value-table td {
   padding: 0.42rem 0.28rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.11);
   white-space: nowrap;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 
 body[data-page="ownership"] .ownership-value-table tbody tr:nth-child(even) {
@@ -12151,12 +12259,28 @@ body[data-page="ownership"] .ownership-value-table tbody tr:nth-child(even) {
 
 body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
   text-align: left;
-  padding-left: 0.55rem;
+  padding-left: 0.44rem;
+  max-width: 132px;
+  overflow: hidden;
 }
 
 body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
-  font-size: 0.79rem;
+  width: 100%;
+  display: inline-block;
+  font-size: 0.76rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="ownership"] .ownership-value-team-cell {
+  text-align: center;
+}
+
+body[data-page="ownership"] .ownership-value-team-cell img.team-logo {
+  width: 20px;
+  height: 20px;
 }
 
 body[data-page="ownership"] .ownership-value-rk {
@@ -12168,13 +12292,16 @@ body[data-page="ownership"] .ownership-value-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.7rem;
-  border-radius: 8px;
-  padding: 0.08rem 0.35rem;
-  font-size: 0.72rem;
+  width: 2.4rem;
+  height: 1.2rem;
+  min-height: 1.2rem;
+  border-radius: 6px;
+  padding: 0.05rem 0.24rem;
+  font-size: 0.71rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
   border: 1px solid rgba(128, 138, 189, 0.24);
-  background: rgba(19, 24, 48, 0.72);
+  background: rgba(13, 17, 35, 0.88);
 }
 
 body[data-page="ownership"] #ownership-player-modal {
@@ -12231,10 +12358,75 @@ body[data-page="ownership"] #ownership-modal-summary-chips {
   gap: 0.58rem;
   width: 100%;
   justify-content: center;
+  align-items: stretch;
 }
 
 body[data-page="ownership"] .ownership-summary-chip {
   min-width: 0;
+  flex: 1;
+}
+
+/* Ownership modal top summary chips mirror Stats game-log chip styling.
+   This only affects the Ownership player-detail modal header region. */
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip {
+  flex: 1;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  min-width: auto;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 13px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 13px;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .03), inset 0px 8px 0px -6px rgba(255, 255, 255, .031);
+  opacity: 0.4;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(100%);
+  pointer-events: none;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+  gap: 0.5rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-values {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-unit {
+  color: var(--color-text-secondary);
 }
 
 body[data-page="ownership"] .ownership-modal-body {
@@ -12383,12 +12575,11 @@ body[data-page="ownership"] .ownership-modal-warning {
   }
 
   body[data-page="ownership"] .ownership-value-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 0.44rem;
   }
 
   body[data-page="ownership"] .ownership-value-position-filter {
-    justify-content: center;
+    width: 100%;
   }
 
   body[data-page="ownership"] .ownership-modal-content {
@@ -12412,9 +12603,28 @@ body[data-page="ownership"] .ownership-modal-warning {
   }
 
   body[data-page="ownership"] .ownership-value-filter-btn {
-    min-height: 1.8rem;
-    min-width: 2.1rem;
-    font-size: 0.6rem;
+    min-height: 1.82rem;
+    font-size: 0.61rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="ownership"] .ownership-value-table {
+    min-width: 860px;
+  }
+
+  body[data-page="ownership"] .ownership-value-table th:nth-child(2),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
+    width: 112px;
+  }
+
+  body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
+    max-width: 112px;
+  }
+
+  body[data-page="ownership"] .ownership-value-table thead th,
+  body[data-page="ownership"] .ownership-value-table td {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
   }
 
   body[data-page="ownership"] .ownership-list-header,
