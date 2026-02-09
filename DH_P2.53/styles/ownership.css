@@ -28,7 +28,7 @@ body[data-page="ownership"] #secondary-header-row #usernameInput {
   min-width: 0;
   border-radius: 12px;
   border: 1px solid rgba(156, 170, 242, 0.28);
-  background: rgba(13, 17, 36, 0.66);
+  background: rgb(47 49 64 / 45%);
   color: #dce4ff;
   font-weight: 520;
   padding: 0.52rem 0.72rem;
