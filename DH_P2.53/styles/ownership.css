@@ -22,11 +22,11 @@ body[data-page="ownership"] #secondary-header-row {
 body[data-page="ownership"] .ownership-view-switcher {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.24rem;
+  gap: 0.05rem;
+  padding: 0.05rem;
   border-radius: 12px;
   border: 1px solid var(--ownership-soft-border);
-  background: rgba(11, 15, 34, 0.68);
+  background: rgb(11 15 34 / 29%);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), var(--ownership-shadow-soft);
 }
 
@@ -41,7 +41,7 @@ body[data-page="ownership"] .ownership-view-switcher > button {
   padding: 0.42rem 0.62rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.1rem;
   transition: all 0.18s ease;
 }
 
@@ -63,8 +63,9 @@ body[data-page="ownership"] .ownership-view-switcher > button[aria-pressed="true
 
 body[data-page="ownership"] .ownership-view-switcher > button:hover {
   color: #f4f7ff;
-  border-color: rgba(213, 220, 255, 0.26);
+  border: 1px solid rgba(213, 220, 255, 0.26);
   background: rgba(255, 255, 255, 0.05);
+  min-height: 10px !important;
 }
 
 /* Cleanly remove rosters-specific controls from ownership page */
