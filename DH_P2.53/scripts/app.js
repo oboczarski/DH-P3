@@ -54,14 +54,15 @@ const comparisonBackgroundOverlay = document.getElementById('comparison-modal-ba
 const ownershipModeSwitcher = document.getElementById('ownershipModeSwitcher');
 const ownershipModeOwnershipBtn = document.getElementById('ownershipModeOwnershipBtn');
 const ownershipModeValueBtn = document.getElementById('ownershipModeValueBtn');
-const ownershipPlayerModal = document.getElementById('ownership-player-modal');
+// Ownership player modal element IDs support both legacy kebab-case and reference camelCase markup.
+const ownershipPlayerModal = document.getElementById('ownershipPlayerModal') || document.getElementById('ownership-player-modal');
 const ownershipModalOverlay = ownershipPlayerModal?.querySelector('.modal-overlay');
 const ownershipModalCloseBtn = ownershipPlayerModal?.querySelector('.ownership-modal-close');
-const ownershipModalPlayerName = document.getElementById('ownership-modal-player-name');
-const ownershipModalPlayerVitals = document.getElementById('ownership-modal-player-vitals');
-const ownershipModalSummaryChips = document.getElementById('ownership-modal-summary-chips');
-const ownershipModalBody = document.getElementById('ownership-modal-body');
-const ownershipModalHeaderLeft = document.getElementById('ownership-modal-left');
+const ownershipModalPlayerName = document.getElementById('ownershipModalPlayerName') || document.getElementById('ownership-modal-player-name');
+const ownershipModalPlayerVitals = document.getElementById('ownershipModalPlayerVitals') || document.getElementById('ownership-modal-player-vitals');
+const ownershipModalSummaryChips = document.getElementById('ownershipModalSummaryChips') || document.getElementById('ownership-modal-summary-chips');
+const ownershipModalBody = document.getElementById('ownershipModalBody') || document.getElementById('ownership-modal-body');
+const ownershipModalHeaderLeft = document.getElementById('ownershipModalLeft') || document.getElementById('ownership-modal-left');
 let gameLogsModalRequestSeq = 0;
 const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
@@ -956,15 +957,24 @@ if (pageType === 'ownership') {
         setOwnershipMode(nextMode);
     });
 
-    ownershipModalCloseBtn?.addEventListener('click', () => closeOwnershipPlayerModal());
-    ownershipModalCloseBtn?.addEventListener('touchend', () => closeOwnershipPlayerModal(), { passive: true });
+    // Ownership modal close controls:
+    // supports click/tap/pointer interactions so close works reliably on mobile and desktop.
+    const handleOwnershipModalCloseClick = (event) => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        closeOwnershipPlayerModal();
+    };
+
+    ownershipModalCloseBtn?.addEventListener('click', handleOwnershipModalCloseClick);
+    ownershipModalCloseBtn?.addEventListener('pointerup', handleOwnershipModalCloseClick);
+    ownershipModalCloseBtn?.addEventListener('touchend', handleOwnershipModalCloseClick, { passive: false });
     ownershipModalOverlay?.addEventListener('click', () => closeOwnershipPlayerModal());
 
     // Ownership modal close fallback:
     // if any click/tap bubbles from a close control inside the modal, close reliably.
     ownershipPlayerModal?.addEventListener('click', (event) => {
         if (event.target?.closest?.('.ownership-modal-close')) {
-            closeOwnershipPlayerModal();
+            handleOwnershipModalCloseClick(event);
         }
     });
 
