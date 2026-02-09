@@ -7404,10 +7404,17 @@ function renderOwnershipPercentView() {
             details.push(`RY-<span style="color:${getRyColor(row.rookieYear) || 'inherit'}">${ryAbbr}</span>`);
         }
 
-        const countClass = row.percentage >= 80
-            ? 'pl-count-high'
-            : (row.percentage >= 50 ? 'pl-count-mid' : 'pl-count-low');
-        const exposureDisplay = `${row.count}(${row.percentage}%)`;
+        // Ownership Exposure column conditional-format class mapping.
+        // Adjust threshold ranges here if Exposure color-banding needs to change.
+        const exposureClass = row.percentage >= 85
+            ? 'ownership-exposure--elite'
+            : row.percentage >= 65
+                ? 'ownership-exposure--strong'
+                : row.percentage >= 40
+                    ? 'ownership-exposure--moderate'
+                    : 'ownership-exposure--light';
+        const exposureCount = Number.isFinite(row.count) ? row.count : 0;
+        const exposurePct = Number.isFinite(row.percentage) ? row.percentage : 0;
         const leagueList = Array.isArray(row.leagueAbbrs)
             ? row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')
             : '—';
@@ -7423,7 +7430,11 @@ function renderOwnershipPercentView() {
                     <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
                 </div>
             </div>
-            <div class="ownership-list-metric ownership-list-exposure ${countClass}">${exposureDisplay}</div>
+            <div class="ownership-list-metric ownership-list-exposure ${exposureClass}">
+                <span class="ownership-exposure-count">${exposureCount}</span>
+                <span class="ownership-exposure-sep" aria-hidden="true">⏐</span>
+                <span class="ownership-exposure-pct">${exposurePct}%</span>
+            </div>
             <div class="ownership-list-leagues">${leagueList || '—'}</div>
         `;
         list.appendChild(item);
