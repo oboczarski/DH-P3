@@ -7,44 +7,50 @@ body[data-page="ownership"] {
   --ownership-glass-border: rgba(154, 170, 255, 0.28);
 }
 
-/* Ownership header username control enhancement:
-   - adds a dedicated glass submit button next to username input
-   - keeps alignment tight for desktop and mobile */
-body[data-page="ownership"] #secondary-header-row .username-area {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+/* Ownership header username bar: Enter button inset into the input pill
+   - single rounded glass pill containing both input and submit button
+   - submit button sits flush inside the right edge */
+body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+  display: flex;
   align-items: stretch;
-  gap: 0.34rem;
-  overflow: visible;
-  padding: 0.14rem;
-  border-radius: 12px;
-}
-
-body[data-page="ownership"] #secondary-header-row .username-area::before {
-  display: none;
-}
-
-body[data-page="ownership"] #secondary-header-row #usernameInput {
-  min-width: 0;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
   border-radius: 12px;
   border: 1px solid rgba(156, 170, 242, 0.28);
   background: rgb(47 49 64 / 45%);
+  position: relative;
+}
+
+body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar::before {
+  display: none;
+}
+
+body[data-page="ownership"] .ownership-username-bar #usernameInput {
+  min-width: 0;
+  flex: 1;
+  border: none;
+  border-radius: 12px 0 0 12px;
+  background: transparent;
   color: #dce4ff;
   font-weight: 520;
   padding: 0.52rem 0.72rem;
+  outline: none;
 }
 
-body[data-page="ownership"] #secondary-header-row #usernameInput::placeholder {
+body[data-page="ownership"] .ownership-username-bar #usernameInput::placeholder {
   color: rgba(164, 177, 233, 0.8);
 }
 
-body[data-page="ownership"] .ownership-username-submit {
-  border: 1px solid rgba(178, 191, 255, 0.34);
-  border-radius: 11px;
+/* Inset Enter button: sits inside the pill on the right */
+body[data-page="ownership"] .ownership-username-submit--inset {
+  border: none;
+  border-left: 1px solid rgba(156, 170, 242, 0.22);
+  border-radius: 0 11px 11px 0;
   background: linear-gradient(155deg, rgba(120, 134, 214, 0.34), rgba(55, 63, 111, 0.26));
   color: #eaf0ff;
-  min-width: 2.78rem;
-  padding: 0 0.62rem;
+  min-width: 2.6rem;
+  padding: 0 0.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -52,24 +58,23 @@ body[data-page="ownership"] .ownership-username-submit {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 10px 22px rgba(20, 24, 46, 0.35);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-body[data-page="ownership"] .ownership-username-submit:hover,
-body[data-page="ownership"] .ownership-username-submit:focus-visible {
+body[data-page="ownership"] .ownership-username-submit--inset:hover,
+body[data-page="ownership"] .ownership-username-submit--inset:focus-visible {
   outline: none;
-  transform: translateY(-1px);
-  border-color: rgba(203, 213, 255, 0.7);
-  background: linear-gradient(155deg, rgba(141, 157, 246, 0.46), rgba(75, 87, 151, 0.34));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 0 0 2px rgba(157, 171, 249, 0.24), 0 14px 24px rgba(14, 21, 44, 0.45);
+  background: linear-gradient(155deg, rgba(141, 157, 246, 0.5), rgba(85, 97, 171, 0.38));
+  color: #fff;
+  border-left-color: rgba(183, 194, 255, 0.4);
 }
 
-body[data-page="ownership"] .ownership-username-submit i {
+body[data-page="ownership"] .ownership-username-submit--inset i {
   font-size: 0.74rem;
 }
 
-body[data-page="ownership"] .ownership-username-submit-label {
+body[data-page="ownership"] .ownership-username-submit--inset .ownership-username-submit-label {
   white-space: nowrap;
 }
 
@@ -475,12 +480,12 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 900px) {
-  body[data-page="ownership"] .ownership-username-submit {
-    min-width: 2.4rem;
-    padding: 0 0.5rem;
+  body[data-page="ownership"] .ownership-username-submit--inset {
+    min-width: 2.2rem;
+    padding: 0 0.42rem;
   }
 
-  body[data-page="ownership"] .ownership-username-submit-label {
+  body[data-page="ownership"] .ownership-username-submit--inset .ownership-username-submit-label {
     display: none;
   }
 
@@ -505,20 +510,19 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 680px) {
-  body[data-page="ownership"] #secondary-header-row .username-area {
-    gap: 0.26rem;
-    padding: 0.12rem;
-    border-radius: 14px;
+  body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+    border-radius: 10px;
   }
 
-  body[data-page="ownership"] #secondary-header-row #usernameInput {
+  body[data-page="ownership"] .ownership-username-bar #usernameInput {
     padding: 0.4rem 0.58rem;
     font-size: 0.76rem;
+    border-radius: 10px 0 0 10px;
   }
 
-  body[data-page="ownership"] .ownership-username-submit {
-    min-width: 2.12rem;
-    border-radius: 10px;
+  body[data-page="ownership"] .ownership-username-submit--inset {
+    min-width: 2rem;
+    border-radius: 0 9px 9px 0;
   }
 
   body[data-page="ownership"] .ownership-list-header,
@@ -669,39 +673,58 @@ body[data-page="ownership"] {
   --ownership-exp-light-pct: #c89b5c;
 }
 
-/* Ownership username bar:
-   keeps Enter action inside the right side of the same glass input control. */
-body[data-page="ownership"] #secondary-header-row .username-area {
+/* Ownership username bar parity layer:
+   re-applies the inset Enter button model so this later quality-pass block
+   stays aligned with the dedicated ownership username styling above. */
+body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(156, 170, 242, 0.28);
+  background: rgb(47 49 64 / 45%);
   position: relative;
-  display: block;
-  padding: 0.12rem;
-  border-radius: 13px;
 }
 
-body[data-page="ownership"] #secondary-header-row #usernameInput {
-  width: 100%;
-  min-height: 2.22rem;
-  padding: 0.5rem 4.78rem 0.5rem 0.74rem;
-  border-radius: 11px;
+body[data-page="ownership"] .ownership-username-bar #usernameInput {
+  min-width: 0;
+  flex: 1;
+  border: none;
+  border-radius: 12px 0 0 12px;
+  background: transparent;
+  color: #dce4ff;
+  font-weight: 520;
+  padding: 0.52rem 0.72rem;
+  outline: none;
 }
 
-body[data-page="ownership"] .ownership-username-submit {
-  position: absolute;
-  top: 50%;
-  right: 0.28rem;
-  transform: translateY(-50%);
-  z-index: 2;
-  height: calc(100% - 0.48rem);
-  min-width: 4.18rem;
-  padding: 0 0.62rem;
-  border-radius: 10px;
-  backdrop-filter: blur(4px) saturate(125%);
-  -webkit-backdrop-filter: blur(4px) saturate(125%);
+body[data-page="ownership"] .ownership-username-submit--inset {
+  border: none;
+  border-left: 1px solid rgba(156, 170, 242, 0.22);
+  border-radius: 0 11px 11px 0;
+  background: linear-gradient(155deg, rgba(120, 134, 214, 0.34), rgba(55, 63, 111, 0.26));
+  color: #eaf0ff;
+  min-width: 2.6rem;
+  padding: 0 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-body[data-page="ownership"] .ownership-username-submit:hover,
-body[data-page="ownership"] .ownership-username-submit:focus-visible {
-  transform: translateY(calc(-50% - 1px));
+body[data-page="ownership"] .ownership-username-submit--inset:hover,
+body[data-page="ownership"] .ownership-username-submit--inset:focus-visible {
+  outline: none;
+  background: linear-gradient(155deg, rgba(141, 157, 246, 0.5), rgba(85, 97, 171, 0.38));
+  color: #fff;
+  border-left-color: rgba(183, 194, 255, 0.4);
 }
 
 /* Ownership default list:
@@ -907,16 +930,12 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 }
 
 @media (max-width: 900px) {
-  body[data-page="ownership"] #secondary-header-row #usernameInput {
-    padding-right: 3.18rem;
+  body[data-page="ownership"] .ownership-username-submit--inset {
+    min-width: 2.2rem;
+    padding: 0 0.42rem;
   }
 
-  body[data-page="ownership"] .ownership-username-submit {
-    min-width: 2.28rem;
-    padding: 0 0.54rem;
-  }
-
-  body[data-page="ownership"] .ownership-username-submit-label {
+  body[data-page="ownership"] .ownership-username-submit--inset .ownership-username-submit-label {
     display: none;
   }
 
