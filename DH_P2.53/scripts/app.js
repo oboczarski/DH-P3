@@ -7271,9 +7271,60 @@ function formatPosRankText(pos, sourceText) {
 function buildOwnershipValueRows() {
     if (pageType !== 'ownership') return [];
     const rows = [];
-    const playerEntries = Object.entries(state.players || {});
+    const OWNERSHIP_VALUE_MAX_PLAYERS = 500;
 
-    playerEntries.forEach(([playerId, player]) => {
+    // Ownership Player Value table source guard:
+    // - targets the Ownership page value-table dataset
+    // - limits candidates to players that exist in SLP.TL KTC sheets (1QB/SFLX)
+    // - excludes non-player rows (RDP picks) and hard-caps list to 500 for expected scope/perf
+    const sheetCandidateMap = new Map();
+    const registerSheetCandidate = (playerId, sheetRow) => {
+        if (!playerId || !sheetRow || sheetRow.pos === 'RDP') return;
+        const player = state.players?.[playerId];
+        if (!player) return;
+        const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+        if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return;
+
+        const overallRank = Number.isFinite(sheetRow.overallRank) && sheetRow.overallRank > 0
+            ? sheetRow.overallRank
+            : Number.POSITIVE_INFINITY;
+        const ktcValue = Number.isFinite(sheetRow.ktc) ? sheetRow.ktc : Number.NEGATIVE_INFINITY;
+        const existing = sheetCandidateMap.get(playerId);
+
+        if (!existing) {
+            sheetCandidateMap.set(playerId, {
+                overallRank,
+                ktcValue
+            });
+            return;
+        }
+
+        existing.overallRank = Math.min(existing.overallRank, overallRank);
+        existing.ktcValue = Math.max(existing.ktcValue, ktcValue);
+    };
+
+    Object.entries(state.oneQbData || {}).forEach(([playerId, sheetRow]) => {
+        registerSheetCandidate(playerId, sheetRow);
+    });
+    Object.entries(state.sflxData || {}).forEach(([playerId, sheetRow]) => {
+        registerSheetCandidate(playerId, sheetRow);
+    });
+
+    const candidatePlayerIds = [...sheetCandidateMap.entries()]
+        .sort((a, b) => {
+            const rankDiff = a[1].overallRank - b[1].overallRank;
+            if (Number.isFinite(rankDiff) && rankDiff !== 0) return rankDiff;
+
+            const ktcDiff = b[1].ktcValue - a[1].ktcValue;
+            if (Number.isFinite(ktcDiff) && ktcDiff !== 0) return ktcDiff;
+
+            return a[0].localeCompare(b[0]);
+        })
+        .slice(0, OWNERSHIP_VALUE_MAX_PLAYERS)
+        .map(([playerId]) => playerId);
+
+    candidatePlayerIds.forEach((playerId) => {
+        const player = state.players?.[playerId];
         if (!player) return;
         const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
         if (!['QB', 'RB', 'WR', 'TE'].includes(pos)) return;
