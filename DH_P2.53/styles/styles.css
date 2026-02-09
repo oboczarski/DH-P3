@@ -3493,7 +3493,7 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
   height: auto;
   padding: 4px 4px;
   line-height: 0.95rem;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.005);
   backdrop-filter: blur(1px) saturate(180%);
@@ -3527,7 +3527,7 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
     border-radius: 0.55rem;
     min-width: 31px;
     width: 31px;
-    height: 24px !important;
+    height: 23px !important;
   }
 
   body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
@@ -12103,10 +12103,13 @@ body[data-page="ownership"] .ownership-value-position-filter {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: stretch;
   width: 100%;
-  border: 1px solid rgba(128, 138, 189, 0.3);
+  border: 1px solid rgb(162 172 223 / 32%);
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(13, 16, 32, 0.7);
+  background: rgb(13 16 32 / 0%);
+  padding: 1px;
+  gap: 2px;
+  margin-bottom: 10px;
 }
 
 body[data-page="ownership"] .ownership-value-filter-btn {
@@ -12608,9 +12611,11 @@ body[data-page="ownership"] .ownership-modal-warning {
   }
 
   body[data-page="ownership"] .ownership-value-filter-btn {
-    min-height: 1.82rem;
-    font-size: 0.61rem;
+    min-height: 2.02rem;
+    font-size: 0.81rem;
     letter-spacing: 0.05em;
+    border: 1px solid #fff3;
+    border-radius: 7px;
   }
 
   body[data-page="ownership"] .ownership-value-table {
