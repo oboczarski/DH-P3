@@ -668,14 +668,15 @@ body[data-page="ownership"] {
      - Does NOT affect global .pl-count-* / .pl-pct-* styles.
 
      How tiers map:
-     - Tier classes are assigned in scripts/app.js via OWNERSHIP_EXPOSURE_CF_TIERS.
-     - T1 = 0-9%, T2 = 10-19%, ... , T10 = 90-100% (default decile map).
+     - Tier classes are assigned in scripts/app.js via OWNERSHIP_EXPOSURE_CF_COUNT_TIERS.
+     - COUNT-based only: T1 = count 1, T2 = count 2, ... , T10 = count 10+.
+     - Percentage never picks its own tier; it always matches COUNT tier hue.
 
      How to customize:
-     1) Change percentage breakpoints in app.js helper map.
+     1) Change count thresholds in app.js helper map.
      2) Change colors below for each tier:
         - --ownership-exp-tX-count = brighter count color
-        - --ownership-exp-tX-pct = dimmer percent color (same hue family)
+        - --ownership-exp-tX-pct = dimmer percent color (must stay same hue family)
      ===================================================================== */
   --ownership-exp-t1-count: #7e8599;
   --ownership-exp-t1-pct: #626982;
@@ -817,7 +818,7 @@ body[data-page="ownership"] .ownership-exposure-pct {
 }
 
 /* Ownership Exposure CF class map (10 tiers):
-   - classes come from app.js getOwnershipExposureTierClass()
+   - classes come from app.js getOwnershipExposureTierClassByCount()
    - each tier keeps same hue for count/% with different brightness values */
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-count {
   color: var(--ownership-exp-t1-count);
