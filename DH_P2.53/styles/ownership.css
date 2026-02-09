@@ -93,29 +93,34 @@ body[data-page="ownership"] .ownership-list-row {
 body[data-page="ownership"] .ownership-list-header {
   border-radius: 10px;
   border: 1px solid rgba(128, 138, 189, 0.23);
-  background: rgba(31, 35, 63, 0.72);
+  background: rgb(162 166 193 / 4%);
   padding: 0.42rem 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.61rem;
   font-weight: 700;
   color: #aeb5e4;
+  text-shadow: 0px 0px 1px #73ff;
+  box-shadow: 0px 0px 8px -5px #fff, inset 6px 8px 7px 4px #ffffff0a;
+  margin-bottom: 4px;
+  filter: brightness(1.5);
 }
 
 body[data-page="ownership"] .ownership-col {
   min-width: 0;
+  justify-self: center;
 }
 
 body[data-page="ownership"] .ownership-col--exposure,
 body[data-page="ownership"] .ownership-list-exposure {
   justify-self: center;
   text-align: center;
+  margin-right: 5px;
 }
 
 body[data-page="ownership"] .ownership-col--leagues,
 body[data-page="ownership"] .ownership-list-leagues {
-  justify-self: stretch;
-  text-align: left;
+  justify-self: center;
 }
 
 body[data-page="ownership"] .ownership-list-row {
@@ -518,14 +523,16 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 
   body[data-page="ownership"] .ownership-list-header,
   body[data-page="ownership"] .ownership-list-row {
-    grid-template-columns: minmax(0, 1.2fr) minmax(68px, 0.52fr) minmax(0, 0.8fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(47px, 0.82fr) minmax(0, 0.8fr);
     gap: 0.34rem;
-    padding-left: 0.34rem;
-    padding-right: 0.34rem;
+    padding-left: 0.04rem;
+    padding-right: 0.14rem;
   }
 
   body[data-page="ownership"] .ownership-list-header {
-    font-size: 0.52rem;
+    font-weight: 300;
+    font-size: 0.82rem;
+    color: #aaf;
   }
 
   body[data-page="ownership"] .ownership-list-player-wrap {
@@ -550,7 +557,7 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-list-leagues {
-    font-size: 0.52rem;
+    font-size: 0.62rem;
     line-height: 1.14;
   }
 
@@ -622,13 +629,14 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   body[data-page="ownership"] .ownership-list-row {
     display: grid !important;
     align-items: center !important;
-    gap: 0.28rem !important;
-    padding-top: 0.36rem !important;
-    padding-bottom: 0.36rem !important;
+    gap: 0rem !important;
+    padding-top: 0.26rem !important;
+    padding-bottom: 0.26rem !important;
   }
 
   body[data-page="ownership"] .ownership-list-player-wrap {
-    column-gap: 0.22rem;
+    column-gap: 0.55rem;
+    margin-left: 4px;
   }
 
   body[data-page="ownership"] .ownership-list-row .pl-list-tag.ownership-pos-tag {

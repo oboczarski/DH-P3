@@ -11963,7 +11963,7 @@ body[data-page="ownership"] .ownership-search-input {
   min-height: 2.18rem;
   border-radius: 10px;
   border: 1px solid rgba(128, 138, 189, 0.3);
-  background: rgba(8, 10, 24, 0.45);
+  background: rgb(47 49 64 / 45%);
   color: #d8ddff;
   font-size: 0.86rem;
   font-family: var(--font-sans);
