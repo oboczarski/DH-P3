@@ -7404,10 +7404,19 @@ function renderOwnershipPercentView() {
             details.push(`RY-<span style="color:${getRyColor(row.rookieYear) || 'inherit'}">${ryAbbr}</span>`);
         }
 
-        const countClass = row.percentage >= 80
-            ? 'pl-count-high'
-            : (row.percentage >= 50 ? 'pl-count-mid' : 'pl-count-low');
-        const exposureDisplay = `${row.count}(${row.percentage}%)`;
+        /* ── Ownership Exposure Column: Conditional Formatting ──
+           Uses 5 tiers based on ownership %.
+           Count gets the brighter variant, % gets the dimmer variant.
+           ─── ADJUST EXPOSURE CF COLORS IN ownership.css ───
+           Classes: .oe-cf-t1 … .oe-cf-t5 (count) and .oe-cf-pct-t1 … .oe-cf-pct-t5 (percent) */
+        const cfTier = row.percentage >= 80 ? 't1'
+            : row.percentage >= 60 ? 't2'
+            : row.percentage >= 40 ? 't3'
+            : row.percentage >= 20 ? 't4'
+            : 't5';
+        const exposureDisplay = `<span class="oe-count oe-cf-${cfTier}">${row.count}</span>`
+            + `<span class="oe-sep"> ⏐ </span>`
+            + `<span class="oe-pct oe-cf-pct-${cfTier}">${row.percentage}%</span>`;
         const leagueList = Array.isArray(row.leagueAbbrs)
             ? row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')
             : '—';
@@ -7423,7 +7432,7 @@ function renderOwnershipPercentView() {
                     <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
                 </div>
             </div>
-            <div class="ownership-list-metric ownership-list-exposure ${countClass}">${exposureDisplay}</div>
+            <div class="ownership-list-metric ownership-list-exposure">${exposureDisplay}</div>
             <div class="ownership-list-leagues">${leagueList || '—'}</div>
         `;
         list.appendChild(item);

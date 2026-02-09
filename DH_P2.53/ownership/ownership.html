@@ -75,9 +75,10 @@
         <div class="header-row" id="secondary-header-row">
             <!-- Ownership username controls:
                  keeps direct username edits accessible with both keyboard Enter and click submit. -->
-            <div class="username-area">
+            <!-- Ownership username bar: input + Enter button live inside the same glass pill -->
+            <div class="username-area ownership-username-bar">
                 <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle"/>
-                <button id="ownershipUsernameSubmitButton" class="ownership-username-submit" type="button" aria-label="Apply username and refresh ownership data">
+                <button id="ownershipUsernameSubmitButton" class="ownership-username-submit ownership-username-submit--inset" type="button" aria-label="Apply username and refresh ownership data">
                     <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
                     <span class="ownership-username-submit-label">Enter</span>
                 </button>

@@ -7,44 +7,50 @@ body[data-page="ownership"] {
   --ownership-glass-border: rgba(154, 170, 255, 0.28);
 }
 
-/* Ownership header username control enhancement:
-   - adds a dedicated glass submit button next to username input
-   - keeps alignment tight for desktop and mobile */
-body[data-page="ownership"] #secondary-header-row .username-area {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+/* Ownership header username bar: Enter button inset into the input pill
+   - single rounded glass pill containing both input and submit button
+   - submit button sits flush inside the right edge */
+body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+  display: flex;
   align-items: stretch;
-  gap: 0.34rem;
-  overflow: visible;
-  padding: 0.14rem;
-  border-radius: 12px;
-}
-
-body[data-page="ownership"] #secondary-header-row .username-area::before {
-  display: none;
-}
-
-body[data-page="ownership"] #secondary-header-row #usernameInput {
-  min-width: 0;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
   border-radius: 12px;
   border: 1px solid rgba(156, 170, 242, 0.28);
   background: rgb(47 49 64 / 45%);
+  position: relative;
+}
+
+body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar::before {
+  display: none;
+}
+
+body[data-page="ownership"] .ownership-username-bar #usernameInput {
+  min-width: 0;
+  flex: 1;
+  border: none;
+  border-radius: 12px 0 0 12px;
+  background: transparent;
   color: #dce4ff;
   font-weight: 520;
   padding: 0.52rem 0.72rem;
+  outline: none;
 }
 
-body[data-page="ownership"] #secondary-header-row #usernameInput::placeholder {
+body[data-page="ownership"] .ownership-username-bar #usernameInput::placeholder {
   color: rgba(164, 177, 233, 0.8);
 }
 
-body[data-page="ownership"] .ownership-username-submit {
-  border: 1px solid rgba(178, 191, 255, 0.34);
-  border-radius: 11px;
+/* Inset Enter button: sits inside the pill on the right */
+body[data-page="ownership"] .ownership-username-submit--inset {
+  border: none;
+  border-left: 1px solid rgba(156, 170, 242, 0.22);
+  border-radius: 0 11px 11px 0;
   background: linear-gradient(155deg, rgba(120, 134, 214, 0.34), rgba(55, 63, 111, 0.26));
   color: #eaf0ff;
-  min-width: 2.78rem;
-  padding: 0 0.62rem;
+  min-width: 2.6rem;
+  padding: 0 0.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -52,24 +58,23 @@ body[data-page="ownership"] .ownership-username-submit {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 10px 22px rgba(20, 24, 46, 0.35);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-body[data-page="ownership"] .ownership-username-submit:hover,
-body[data-page="ownership"] .ownership-username-submit:focus-visible {
+body[data-page="ownership"] .ownership-username-submit--inset:hover,
+body[data-page="ownership"] .ownership-username-submit--inset:focus-visible {
   outline: none;
-  transform: translateY(-1px);
-  border-color: rgba(203, 213, 255, 0.7);
-  background: linear-gradient(155deg, rgba(141, 157, 246, 0.46), rgba(75, 87, 151, 0.34));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 0 0 2px rgba(157, 171, 249, 0.24), 0 14px 24px rgba(14, 21, 44, 0.45);
+  background: linear-gradient(155deg, rgba(141, 157, 246, 0.5), rgba(85, 97, 171, 0.38));
+  color: #fff;
+  border-left-color: rgba(183, 194, 255, 0.4);
 }
 
-body[data-page="ownership"] .ownership-username-submit i {
+body[data-page="ownership"] .ownership-username-submit--inset i {
   font-size: 0.74rem;
 }
 
-body[data-page="ownership"] .ownership-username-submit-label {
+body[data-page="ownership"] .ownership-username-submit--inset .ownership-username-submit-label {
   white-space: nowrap;
 }
 
@@ -199,6 +204,92 @@ body[data-page="ownership"] .ownership-list-exposure {
   font-size: 0.84rem;
   letter-spacing: 0.01em;
   padding: 0 0.08rem;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  white-space: nowrap;
+}
+
+/* ====================================================================
+   OWNERSHIP EXPOSURE COLUMN — CONDITIONAL FORMATTING (CF) COLORS
+   ====================================================================
+   5-tier system based on ownership %.  Two classes per tier:
+   .oe-cf-t1 … t5  →  COUNT value (brighter / slightly desaturated)
+   .oe-cf-pct-t1 … t5  →  PERCENT value (dimmer, more saturated)
+
+   ╔══════╦══════════╦══════════════════════════════════════╗
+   ║ Tier ║ % Range  ║ Purpose                              ║
+   ╠══════╬══════════╬══════════════════════════════════════╣
+   ║  t1  ║ 80-100%  ║ Highest — bright gold / amber        ║
+   ║  t2  ║ 60-79%   ║ High — warm teal / cyan              ║
+   ║  t3  ║ 40-59%   ║ Mid  — cool lavender / periwinkle    ║
+   ║  t4  ║ 20-39%   ║ Low  — slate blue                    ║
+   ║  t5  ║  0-19%   ║ Lowest — muted grey-blue             ║
+   ╚══════╩══════════╩══════════════════════════════════════╝
+
+   TO ADJUST COLORS: edit these values below. Each tier has a bright
+   variant (count) and a dim variant (percent).  The separator inherits
+   color from the row and stays neutral.
+   ==================================================================== */
+
+/* — Count spans: slightly larger font, lighter weight, brighter hue — */
+body[data-page="ownership"] .oe-count {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* — Percent spans: slightly smaller font, heavier weight, dimmer hue — */
+body[data-page="ownership"] .oe-pct {
+  font-size: 0.72rem;
+  font-weight: 780;
+}
+
+/* — Separator: neutral dim color — */
+body[data-page="ownership"] .oe-sep {
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: rgba(160, 170, 220, 0.45);
+  margin: 0 0.04rem;
+}
+
+/* ---------- Tier 1 (80-100%): Gold / Amber ---------- */
+body[data-page="ownership"] .oe-cf-t1 {
+  color: #ffd866;                      /* ← ADJUST: Count bright gold */
+}
+body[data-page="ownership"] .oe-cf-pct-t1 {
+  color: #c9a84dcc;                    /* ← ADJUST: Percent dim amber */
+}
+
+/* ---------- Tier 2 (60-79%): Teal / Cyan ---------- */
+body[data-page="ownership"] .oe-cf-t2 {
+  color: #5eecd5;                      /* ← ADJUST: Count bright teal */
+}
+body[data-page="ownership"] .oe-cf-pct-t2 {
+  color: #47b8a5cc;                    /* ← ADJUST: Percent dim teal */
+}
+
+/* ---------- Tier 3 (40-59%): Lavender / Periwinkle ---------- */
+body[data-page="ownership"] .oe-cf-t3 {
+  color: #a8b8ff;                      /* ← ADJUST: Count lavender */
+}
+body[data-page="ownership"] .oe-cf-pct-t3 {
+  color: #8696d6cc;                    /* ← ADJUST: Percent dim periwinkle */
+}
+
+/* ---------- Tier 4 (20-39%): Slate Blue ---------- */
+body[data-page="ownership"] .oe-cf-t4 {
+  color: #8892c2;                      /* ← ADJUST: Count slate blue */
+}
+body[data-page="ownership"] .oe-cf-pct-t4 {
+  color: #6e78a8cc;                    /* ← ADJUST: Percent dim slate */
+}
+
+/* ---------- Tier 5 (0-19%): Muted Grey-Blue ---------- */
+body[data-page="ownership"] .oe-cf-t5 {
+  color: #6b7199;                      /* ← ADJUST: Count muted grey */
+}
+body[data-page="ownership"] .oe-cf-pct-t5 {
+  color: #575d82cc;                    /* ← ADJUST: Percent dim grey */
 }
 
 body[data-page="ownership"] .ownership-list-leagues {
@@ -475,12 +566,12 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 900px) {
-  body[data-page="ownership"] .ownership-username-submit {
-    min-width: 2.4rem;
-    padding: 0 0.5rem;
+  body[data-page="ownership"] .ownership-username-submit--inset {
+    min-width: 2.2rem;
+    padding: 0 0.42rem;
   }
 
-  body[data-page="ownership"] .ownership-username-submit-label {
+  body[data-page="ownership"] .ownership-username-submit--inset .ownership-username-submit-label {
     display: none;
   }
 
@@ -505,20 +596,19 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 }
 
 @media (max-width: 680px) {
-  body[data-page="ownership"] #secondary-header-row .username-area {
-    gap: 0.26rem;
-    padding: 0.12rem;
-    border-radius: 14px;
+  body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+    border-radius: 10px;
   }
 
-  body[data-page="ownership"] #secondary-header-row #usernameInput {
+  body[data-page="ownership"] .ownership-username-bar #usernameInput {
     padding: 0.4rem 0.58rem;
     font-size: 0.76rem;
+    border-radius: 10px 0 0 10px;
   }
 
-  body[data-page="ownership"] .ownership-username-submit {
-    min-width: 2.12rem;
-    border-radius: 10px;
+  body[data-page="ownership"] .ownership-username-submit--inset {
+    min-width: 2rem;
+    border-radius: 0 9px 9px 0;
   }
 
   body[data-page="ownership"] .ownership-list-header,
@@ -646,4 +736,160 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   body[data-page="ownership"] .ownership-list-leagues {
     line-height: 1.12;
   }
+}
+
+/* ====================================================================
+   OWNERSHIP PAGE POSITION FILTER BUTTONS — POS-TAG COLOR SYSTEM
+   ====================================================================
+   Base state:  dimmed glass pill with position hue visible but muted.
+   Active state: full position color with strong outer glow.
+   Mirrors the .ownership-pos-tag / .pl-list-tag color palette.
+   Scoped exclusively to the ownership page's header filter row.
+   ==================================================================== */
+
+/* --- Base: glass-like dimmed pill with subtle position tint --- */
+body[data-page="ownership"] #positional-filters .filter-btn {
+  position: relative;
+  min-width: 42px;
+  min-height: 30px;
+  padding: 0.15rem 0.52rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(160, 172, 230, 0.18);
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(1px) saturate(140%);
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease,
+              background 0.2s ease, text-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+/* --- Inactive per-position colors (dimmed) --- */
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="QB"] {
+  color: rgba(255, 58, 117, 0.45);
+  border-color: rgba(255, 58, 117, 0.14);
+  box-shadow: inset 0 0 6px rgba(255, 58, 117, 0.06);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="RB"] {
+  color: rgba(0, 235, 199, 0.45);
+  border-color: rgba(0, 235, 199, 0.14);
+  box-shadow: inset 0 0 6px rgba(0, 235, 199, 0.06);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="WR"] {
+  color: rgba(88, 167, 255, 0.48);
+  border-color: rgba(88, 167, 255, 0.14);
+  box-shadow: inset 0 0 6px rgba(88, 167, 255, 0.06);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="TE"] {
+  color: rgba(180, 105, 255, 0.48);
+  border-color: rgba(180, 105, 255, 0.14);
+  box-shadow: inset 0 0 6px rgba(180, 105, 255, 0.06);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="FLX"] {
+  color: rgba(170, 176, 210, 0.45);
+  border-color: rgba(170, 176, 210, 0.14);
+  box-shadow: inset 0 0 6px rgba(170, 176, 210, 0.06);
+}
+
+/* --- Hover: slightly reveal the position color --- */
+body[data-page="ownership"] #positional-filters .filter-btn:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="QB"]:hover {
+  color: rgba(255, 58, 117, 0.68);
+  border-color: rgba(255, 58, 117, 0.26);
+}
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="RB"]:hover {
+  color: rgba(0, 235, 199, 0.68);
+  border-color: rgba(0, 235, 199, 0.26);
+}
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="WR"]:hover {
+  color: rgba(88, 167, 255, 0.7);
+  border-color: rgba(88, 167, 255, 0.26);
+}
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="TE"]:hover {
+  color: rgba(180, 105, 255, 0.7);
+  border-color: rgba(180, 105, 255, 0.26);
+}
+body[data-page="ownership"] #positional-filters .filter-btn[data-position="FLX"]:hover {
+  color: rgba(170, 176, 210, 0.68);
+  border-color: rgba(170, 176, 210, 0.26);
+}
+
+/* --- Active: full-brightness position color + strong glow --- */
+body[data-page="ownership"] #positional-filters .filter-btn.active {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(2px) saturate(200%);
+  border: 1px solid rgba(250, 250, 250, 0.12);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn.active[data-position="QB"] {
+  color: #ff5a90;
+  border-color: rgba(255, 58, 117, 0.52);
+  text-shadow: 0 0 10px rgba(255, 58, 117, 0.6);
+  box-shadow:
+    inset 0 0 10px rgba(255, 58, 117, 0.15),
+    0 0 14px rgba(255, 58, 117, 0.28),
+    0 0 32px rgba(255, 58, 117, 0.12);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn.active[data-position="RB"] {
+  color: #3aecd2;
+  border-color: rgba(0, 235, 199, 0.52);
+  text-shadow: 0 0 10px rgba(0, 235, 199, 0.6);
+  box-shadow:
+    inset 0 0 10px rgba(0, 235, 199, 0.15),
+    0 0 14px rgba(0, 235, 199, 0.28),
+    0 0 32px rgba(0, 235, 199, 0.12);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn.active[data-position="WR"] {
+  color: #72b8ff;
+  border-color: rgba(88, 167, 255, 0.52);
+  text-shadow: 0 0 10px rgba(88, 167, 255, 0.6);
+  box-shadow:
+    inset 0 0 10px rgba(88, 167, 255, 0.15),
+    0 0 14px rgba(88, 167, 255, 0.28),
+    0 0 32px rgba(88, 167, 255, 0.12);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn.active[data-position="TE"] {
+  color: #c48aff;
+  border-color: rgba(180, 105, 255, 0.52);
+  text-shadow: 0 0 10px rgba(180, 105, 255, 0.6);
+  box-shadow:
+    inset 0 0 10px rgba(180, 105, 255, 0.15),
+    0 0 14px rgba(180, 105, 255, 0.28),
+    0 0 32px rgba(180, 105, 255, 0.12);
+}
+
+body[data-page="ownership"] #positional-filters .filter-btn.active[data-position="FLX"] {
+  color: #b5bae0;
+  border-color: rgba(170, 176, 210, 0.46);
+  text-shadow: 0 0 8px rgba(170, 176, 210, 0.5);
+  box-shadow:
+    inset 0 0 8px rgba(170, 176, 210, 0.12),
+    0 0 12px rgba(170, 176, 210, 0.2),
+    0 0 28px rgba(170, 176, 210, 0.08);
+}
+
+/* Active pseudo-element glow overlay */
+body[data-page="ownership"] #positional-filters .filter-btn.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.015);
+  backdrop-filter: blur(1px);
+  box-shadow: inset 5px 6px 0px -4px rgba(255, 255, 255, 0.07),
+              inset 0px 4px 0px -3px rgba(255, 255, 255, 0.07);
+  opacity: 0.5;
+  z-index: -1;
+  pointer-events: none;
 }
