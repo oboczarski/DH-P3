@@ -957,7 +957,16 @@ if (pageType === 'ownership') {
     });
 
     ownershipModalCloseBtn?.addEventListener('click', () => closeOwnershipPlayerModal());
+    ownershipModalCloseBtn?.addEventListener('touchend', () => closeOwnershipPlayerModal(), { passive: true });
     ownershipModalOverlay?.addEventListener('click', () => closeOwnershipPlayerModal());
+
+    // Ownership modal close fallback:
+    // if any click/tap bubbles from a close control inside the modal, close reliably.
+    ownershipPlayerModal?.addEventListener('click', (event) => {
+        if (event.target?.closest?.('.ownership-modal-close')) {
+            closeOwnershipPlayerModal();
+        }
+    });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && ownershipPlayerModal && !ownershipPlayerModal.classList.contains('hidden')) {
@@ -7675,6 +7684,10 @@ function findOwnershipLeagueOwnerRows(playerId) {
         const owner = usersById.get(roster.owner_id) || null;
         const ownerDisplay = owner?.display_name || owner?.username || `Roster ${roster.roster_id}`;
         const teamName = owner?.metadata?.team_name || null;
+        const isUserOwner = Boolean(
+            roster.owner_id === state.userId
+            || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId))
+        );
 
         return {
             leagueId: league.league_id,
@@ -7682,6 +7695,7 @@ function findOwnershipLeagueOwnerRows(playerId) {
             leagueAbbr: getLeagueAbbr(league.name || 'League'),
             ownerDisplay,
             ownerTeam: teamName,
+            isUser: isUserOwner,
             missing: false
         };
     });
@@ -7793,25 +7807,22 @@ function renderOwnershipModalLeagueOwnerList(playerId) {
     const rows = findOwnershipLeagueOwnerRows(playerId);
     const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
 
+    // Ownership modal body rows mirror the reference branch style:
+    // league meta on the left + concise owner value on the right (`You` when owned by current user).
     ownershipModalBody.innerHTML = `
-        <div class="ownership-modal-section-title">
-            <span>League Ownership</span>
-            <span class="ownership-modal-section-subtitle">Who owns this player across your leagues</span>
-        </div>
         <div class="ownership-modal-league-list">
             ${rows.map((row) => {
-                const ownerText = row.missing ? 'Free Agent / Not rostered' : row.ownerDisplay;
-                const teamText = row.ownerTeam ? `<span class="ownership-modal-owner-team">${row.ownerTeam}</span>` : '';
+                const ownerText = row.missing ? 'Unrostered' : (row.isUser ? 'You' : row.ownerDisplay);
+                const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
+                const abbrColor = getLeagueColor(row.leagueAbbr);
                 return `
-                    <article class="ownership-modal-league-item ${row.missing ? 'is-missing' : ''}">
-                        <div class="ownership-modal-league-head">
-                            <span class="ownership-modal-league-abbr" style="color:${getLeagueColor(row.leagueAbbr)}">${row.leagueAbbr}</span>
-                            <span class="ownership-modal-league-name">${row.leagueName}</span>
+                    <article class="ownership-league-row ${ownerClass}">
+                        <div class="ownership-league-meta">
+                            <span class="ownership-league-abbr" style="color:${abbrColor}">${escapeHtml(row.leagueAbbr)}</span>
+                            <span class="ownership-league-name">${escapeHtml(row.leagueName)}</span>
                         </div>
-                        <div class="ownership-modal-owner-row">
-                            <span class="ownership-modal-owner-label">Owner:</span>
-                            <span class="ownership-modal-owner-value">${ownerText}</span>
-                            ${teamText}
+                        <div class="ownership-league-owner">
+                            ${escapeHtml(ownerText)}
                         </div>
                     </article>
                 `;

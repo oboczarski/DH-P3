@@ -40,10 +40,31 @@ body[data-page="ownership"] #ownership-player-modal .ownership-modal-content {
 }
 
 body[data-page="ownership"] #ownership-player-modal .ownership-modal-close {
+  position: absolute;
   top: 0.02rem;
   right: 0.5rem;
-  font-size: 2rem;
-  color: rgba(232, 238, 255, 0.84);
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12;
+  background: none;
+  border: none;
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-close:hover,
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-close:focus-visible {
+  color: var(--color-text-primary);
+  outline: none;
 }
 
 /* Modal header section (PF-39A style family) */
@@ -53,10 +74,28 @@ body[data-page="ownership"] #ownership-modal-header {
 }
 
 body[data-page="ownership"] #ownership-modal-player-name {
-  margin: 0 0 0.14rem;
-  font-size: 1.07rem;
-  letter-spacing: 0.02em;
-  color: #eef3ff;
+  display: inline-block;
+  max-width: 15ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 0.2rem;
+  margin-left: 15px;
+  font-size: 1.15rem;
+  font-weight: 200;
+  color: var(--color-text-primary);
+  letter-spacing: 0.01em;
+}
+
+/* Ownership modal header-left tags must sit in the same location/style family
+   as the reference game-log modal header tags. */
+body[data-page="ownership"] #ownership-modal-left.modal-header-left-container {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 body[data-page="ownership"] #ownership-modal-player-vitals {
@@ -140,38 +179,49 @@ body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-list
 }
 
 /* Ownership-specific league rows: visually aligned with PF-39A modal cards. */
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-item {
+body[data-page="ownership"] #ownership-player-modal .ownership-league-row {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
   padding: 0.52rem 0.62rem;
   border-radius: 12px;
-  border: 1px solid rgba(186, 197, 248, 0.2);
-  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #ee4bff2e);
+  border: 1px solid rgba(98, 194, 255, 0.58);
+  background: linear-gradient(145deg, rgba(67, 83, 150, 0.62), rgba(106, 54, 194, 0.46));
+  box-shadow: inset 0 0 0 1px rgba(168, 198, 255, 0.08);
 }
 
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-item.is-missing {
-  border-color: rgba(189, 197, 238, 0.2);
-  background: rgba(20, 24, 42, 0.52);
+body[data-page="ownership"] #ownership-player-modal .ownership-league-row.owner-you {
+  border-color: rgba(108, 209, 255, 0.76);
+  background: linear-gradient(145deg, rgba(65, 111, 199, 0.7), rgba(104, 40, 248, 0.72));
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-league-row.owner-other {
+  border-color: rgba(128, 177, 248, 0.6);
+  background: linear-gradient(145deg, rgba(66, 84, 154, 0.66), rgba(114, 69, 182, 0.5));
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-league-row.owner-none {
+  border-color: rgba(171, 186, 237, 0.34);
+  background: rgba(31, 37, 72, 0.64);
   opacity: 0.92;
 }
 
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-head {
+body[data-page="ownership"] #ownership-player-modal .ownership-league-meta {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: 0.4rem;
   min-width: 0;
-  margin: 0;
 }
 
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-abbr {
+body[data-page="ownership"] #ownership-player-modal .ownership-league-abbr {
   font-size: 0.73rem;
   font-weight: 720;
   letter-spacing: 0.05em;
 }
 
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-name {
+body[data-page="ownership"] #ownership-player-modal .ownership-league-name {
   color: #d2dbfb;
   font-size: 0.74rem;
   overflow: hidden;
@@ -180,18 +230,25 @@ body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-name
   max-width: 48vw;
 }
 
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-
-body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-value {
+body[data-page="ownership"] #ownership-player-modal .ownership-league-owner {
   font-size: 0.76rem;
   font-weight: 670;
   color: #eef2ff;
   text-align: right;
+  white-space: nowrap;
+}
+
+/* Keep legacy ownership row fragments hidden so only reference-style rows render. */
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-label,
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-team {
+  display: none !important;
+}
+
+body[data-page="ownership"] #ownership-player-modal .ownership-modal-warning {
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
+  color: #f8bd8e;
+  text-align: center;
 }
 
 @media (max-width: 680px) {
@@ -208,11 +265,19 @@ body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-value
     padding: 0.23rem 0.5rem;
   }
 
-  body[data-page="ownership"] #ownership-player-modal .ownership-modal-league-name {
+  body[data-page="ownership"] #ownership-player-modal .ownership-modal-close {
+    top: 0.16rem;
+    right: 0.35rem;
+    min-width: 1.9rem;
+    min-height: 1.9rem;
+    font-size: 2rem;
+  }
+
+  body[data-page="ownership"] #ownership-player-modal .ownership-league-name {
     max-width: 39vw;
   }
 
-  body[data-page="ownership"] #ownership-player-modal .ownership-modal-owner-value {
+  body[data-page="ownership"] #ownership-player-modal .ownership-league-owner {
     font-size: 0.71rem;
   }
 }
