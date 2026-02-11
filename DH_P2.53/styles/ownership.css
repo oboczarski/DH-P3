@@ -561,7 +561,7 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-list-leagues {
-    font-size: 0.67rem;
+    font-size: 0.65rem;
     line-height: 1.14;
     font-weight: 600;
   }
@@ -1128,7 +1128,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
      keeps headers and data in the same grid while overriding legacy mobile rules. */
   body[data-page="ownership"] .ownership-list-header,
   body[data-page="ownership"] .ownership-list-row {
-    grid-template-columns: minmax(0, 1.2fr) minmax(92px, 0.76fr) minmax(0, 0.82fr) !important;
+    grid-template-columns: minmax(0, 1.2fr) minmax(78px, 0.76fr) minmax(0, 1fr) !important;
     gap: 0.34rem !important;
     padding-top: 0.3rem !important;
     padding-bottom: 0.3rem !important;
