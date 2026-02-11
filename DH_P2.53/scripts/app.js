@@ -7636,6 +7636,50 @@ const OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS = 120;
 const OWNERSHIP_VALUE_BATCH_SIZE = 120;
 let ownershipValueSearchDebounceTimer = null;
 let ownershipValueRenderRaf = null;
+let ownershipValueStickyResizeObserver = null;
+
+/* Ownership value table frozen-column offset sync:
+   - targets Ownership Player Value table only
+   - measures real rendered header left offsets so sticky columns align exactly
+     with the browser's final layout (no width guessing / no seam drift)
+   - prevents visual width/position drift when freezing first 3 columns */
+function syncOwnershipValueFrozenColumnOffsets(table) {
+    if (!table) return;
+    const headerCells = table.querySelectorAll('thead th');
+    if (!headerCells || headerCells.length < 3) return;
+
+    const left2 = Number(headerCells[1].offsetLeft);
+    const left3 = Number(headerCells[2].offsetLeft);
+    if (!Number.isFinite(left2) || !Number.isFinite(left3) || left2 < 0 || left3 <= left2) return;
+
+    table.style.setProperty('--ownership-value-sticky-left-2', `${Math.round(left2)}px`);
+    table.style.setProperty('--ownership-value-sticky-left-3', `${Math.round(left3)}px`);
+    table.classList.add('ownership-value-table--freeze-ready');
+}
+
+/* Ownership value frozen-column lifecycle:
+   - keeps sticky offsets synced on resize/reflow while value table is mounted
+   - disconnects prior observer before attaching a new one on re-render */
+function setupOwnershipValueFrozenColumns(table) {
+    if (!table) return;
+
+    if (ownershipValueStickyResizeObserver) {
+        ownershipValueStickyResizeObserver.disconnect();
+        ownershipValueStickyResizeObserver = null;
+    }
+
+    syncOwnershipValueFrozenColumnOffsets(table);
+    requestAnimationFrame(() => syncOwnershipValueFrozenColumnOffsets(table));
+
+    if (typeof ResizeObserver === 'function') {
+        ownershipValueStickyResizeObserver = new ResizeObserver(() => {
+            syncOwnershipValueFrozenColumnOffsets(table);
+        });
+        ownershipValueStickyResizeObserver.observe(table);
+        const headerRow = table.querySelector('thead tr');
+        if (headerRow) ownershipValueStickyResizeObserver.observe(headerRow);
+    }
+}
 
 function scheduleOwnershipValueRender() {
     if (pageType !== 'ownership' || state.ownershipMode !== 'value') return;
@@ -7759,6 +7803,9 @@ function renderOwnershipValueView() {
 
     playerListView.innerHTML = '';
     playerListView.appendChild(shell);
+
+    const valueTable = shell.querySelector('.ownership-value-table');
+    setupOwnershipValueFrozenColumns(valueTable);
 
     const tableWrap = shell.querySelector('.ownership-value-table-wrap');
     const tableBody = shell.querySelector('.ownership-value-table tbody');

@@ -12212,6 +12212,48 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
   width: 56px;
 }
 
+/* Ownership player-value frozen columns:
+   - targets the ownership value table only
+   - freezes first three columns (RK, Player, POS) during horizontal scroll
+   - preserves existing table sizing by waiting for JS-measured offsets */
+body[data-page="ownership"] .ownership-value-table {
+  --ownership-value-sticky-left-2: 22px;
+  --ownership-value-sticky-left-3: 154px;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(-n+3),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(-n+3) {
+  position: sticky;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(1),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(1) {
+  left: 0;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(2),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(2) {
+  left: var(--ownership-value-sticky-left-2);
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(3),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(3) {
+  left: var(--ownership-value-sticky-left-3);
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(-n+3) {
+  z-index: 3;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(-n+3) {
+  z-index: 1;
+  background: #111422;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody tr:nth-child(even) td:nth-child(-n+3) {
+  background: #181a2b;
+}
+
 body[data-page="ownership"] .ownership-value-table thead th {
   position: sticky;
   top: 0;
