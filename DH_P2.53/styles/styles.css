@@ -12628,11 +12628,6 @@ body[data-page="ownership"] .ownership-modal-warning {
     max-width: 100%;
   }
     
-  @media (min-width: 820px) {
-  body[data-page="ownership"] #secondary-header-row .username-area {
-      height: 47px;
-    }
-  }
 
   body[data-page="ownership"] .ownership-list-header,
   body[data-page="ownership"] .ownership-list-row {
@@ -12674,7 +12669,11 @@ body[data-page="ownership"] .ownership-modal-warning {
     gap: 0.28rem;
   }
 }
-
+  @media (min-width: 820px) {
+  body[data-page="ownership"] #secondary-header-row .username-area {
+      height: 47px;
+    }
+  }
 @media (max-width: 640px) {
   body[data-page="ownership"] .ownership-shell {
     padding: 0.54rem 0.45rem;
