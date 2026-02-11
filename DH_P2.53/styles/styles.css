@@ -12450,6 +12450,10 @@ body[data-page="ownership"] .ownership-value-table thead th {
   border-bottom: 1px solid rgba(128, 138, 189, 0.22);
   font-family: var(--font-sans);
   user-select: none;
+  /* Keep sort-label + icon on one line (no icon wrap under header text). */
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 body[data-page="ownership"] .ownership-value-table thead th.is-sortable {
@@ -12466,6 +12470,7 @@ body[data-page="ownership"] .ownership-value-table thead th.stats-sort-desc::aft
   font-size: 0.55rem;
   opacity: 0.6;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 body[data-page="ownership"] .ownership-value-table thead th.stats-sort-asc::after {

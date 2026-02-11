@@ -518,7 +518,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: 'fpts', ownershipValueSortDirection: 'desc' };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -7628,8 +7628,7 @@ function compareOwnershipSortValues(a, b, column, direction) {
 }
 
 function sortOwnershipValueRows(rows) {
-    const sortColumn = state.ownershipValueSortColumn || 'fpts';
-    const sortDirection = state.ownershipValueSortDirection === 'asc' ? 'asc' : 'desc';
+    const { column: sortColumn, direction: sortDirection } = getOwnershipValueActiveSort();
     return [...rows].sort((a, b) => {
         const primary = compareOwnershipSortValues(a, b, sortColumn, sortDirection);
         if (primary !== 0) return primary;
@@ -7644,6 +7643,21 @@ function sortOwnershipValueRows(rows) {
 const OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS = 120;
 const OWNERSHIP_VALUE_BATCH_SIZE = 120;
 const OWNERSHIP_VALUE_MOBILE_BREAKPOINT_PX = 819;
+const OWNERSHIP_VALUE_DEFAULT_SORT_COLUMN = 'fpts';
+const OWNERSHIP_VALUE_DEFAULT_SORT_DIRECTION = 'desc';
+const OWNERSHIP_VALUE_FIRST_DIRECTION_BY_COLUMN = Object.freeze({
+    rk: 'asc',
+    oneQbPosRank: 'asc',
+    sflxPosRank: 'asc',
+    age: 'asc',
+    fpts: 'desc',
+    ppg: 'desc',
+    sflxKtc: 'desc',
+    oneQbKtc: 'desc',
+    player: 'asc',
+    pos: 'asc',
+    team: 'asc'
+});
 let ownershipValueSearchDebounceTimer = null;
 let ownershipValueRenderRaf = null;
 let ownershipValueStickyResizeObserver = null;
@@ -7651,6 +7665,21 @@ let ownershipValueTableRefreshRaf = null;
 let ownershipValueRenderContext = null;
 let ownershipValueViewportResizeHandler = null;
 let ownershipValueForceTopOnNextRender = false;
+
+function getOwnershipValueActiveSort() {
+    if (!state.ownershipValueSortColumn) {
+        return {
+            column: OWNERSHIP_VALUE_DEFAULT_SORT_COLUMN,
+            direction: OWNERSHIP_VALUE_DEFAULT_SORT_DIRECTION,
+            isDefault: true
+        };
+    }
+    return {
+        column: state.ownershipValueSortColumn,
+        direction: state.ownershipValueSortDirection === 'asc' ? 'asc' : 'desc',
+        isDefault: false
+    };
+}
 
 function isOwnershipValueMobileViewport() {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -7702,24 +7731,25 @@ function syncOwnershipValueFrozenColumnOffsets(table) {
     const headerCells = table.querySelectorAll('thead th');
     if (!headerCells || headerCells.length < 3) return;
 
-    const firstColWidth = Number(headerCells[0].offsetWidth || headerCells[0].getBoundingClientRect().width || 0);
-    const secondColWidth = Number(headerCells[1].offsetWidth || headerCells[1].getBoundingClientRect().width || 0);
+    const tableStyles = getComputedStyle(table);
+    const cssFirstColWidth = Number(parseFloat(tableStyles.getPropertyValue('--ov-col-1-rk')) || 0);
+    const cssSecondColWidth = Number(parseFloat(tableStyles.getPropertyValue('--ov-col-2-player')) || 0);
+    const measuredFirstColWidth = Number(headerCells[0].getBoundingClientRect().width || headerCells[0].offsetWidth || 0);
+    const measuredSecondColWidth = Number(headerCells[1].getBoundingClientRect().width || headerCells[1].offsetWidth || 0);
+    const firstColWidth = cssFirstColWidth > 0 ? cssFirstColWidth : measuredFirstColWidth;
+    const secondColWidth = cssSecondColWidth > 0 ? cssSecondColWidth : measuredSecondColWidth;
 
-    let left2 = Number(headerCells[1].offsetLeft);
-    let left3 = Number(headerCells[2].offsetLeft);
+    // Ownership sticky-column guard:
+    // derive offsets strictly from measured frozen-column widths so repeat sorts cannot compound offsets
+    // from sticky-positioned header cells and push Player/POS to the right.
+    if (!Number.isFinite(firstColWidth) || !Number.isFinite(secondColWidth) || firstColWidth <= 0 || secondColWidth <= 0) return;
+    const left2 = Math.round(firstColWidth);
+    const left3 = Math.round(left2 + secondColWidth);
+    const maxReasonableLeft = Math.max(table.clientWidth, table.scrollWidth, 0) + 4;
+    if (!Number.isFinite(left3) || left3 <= 0 || left3 > maxReasonableLeft) return;
 
-    // Ownership frozen-column fallback:
-    // if offsetLeft is transient/invalid during first paint, derive sticky offsets from measured column widths.
-    if (!Number.isFinite(left2) || left2 < 0) {
-        left2 = Math.max(0, Math.round(firstColWidth));
-    }
-    if (!Number.isFinite(left3) || left3 <= left2) {
-        left3 = Math.round(left2 + Math.max(1, secondColWidth));
-    }
-    if (!Number.isFinite(left2) || !Number.isFinite(left3) || left3 <= left2) return;
-
-    table.style.setProperty('--ownership-value-sticky-left-2', `${Math.round(left2)}px`);
-    table.style.setProperty('--ownership-value-sticky-left-3', `${Math.round(left3)}px`);
+    table.style.setProperty('--ownership-value-sticky-left-2', `${left2}px`);
+    table.style.setProperty('--ownership-value-sticky-left-3', `${left3}px`);
     table.classList.add('ownership-value-table--freeze-ready');
 }
 
@@ -7822,18 +7852,36 @@ function scheduleOwnershipValueTableRefresh({ preserveScroll = false } = {}) {
 function setOwnershipValueSort(column) {
     if (!column) return;
     const textColumns = new Set(['player', 'pos', 'team']);
-    if (state.ownershipValueSortColumn === column) {
+    const defaultDesktopDirection = textColumns.has(column) ? 'asc' : 'desc';
+
+    // MOBILE ONLY sort cycle:
+    // tap 1 => column-specific preferred direction
+    // tap 2 => opposite direction
+    // tap 3 => reset to default table order (FPTS desc)
+    if (isOwnershipValueMobileViewport()) {
+        const mobileFirstDirection = OWNERSHIP_VALUE_FIRST_DIRECTION_BY_COLUMN[column] || defaultDesktopDirection;
+        if (state.ownershipValueSortColumn !== column) {
+            state.ownershipValueSortColumn = column;
+            state.ownershipValueSortDirection = mobileFirstDirection;
+        } else if (state.ownershipValueSortDirection === mobileFirstDirection) {
+            state.ownershipValueSortDirection = mobileFirstDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.ownershipValueSortColumn = null;
+            state.ownershipValueSortDirection = null;
+        }
+    } else if (state.ownershipValueSortColumn === column) {
+        // Desktop retains the existing two-state toggle behavior.
         state.ownershipValueSortDirection = state.ownershipValueSortDirection === 'desc' ? 'asc' : 'desc';
     } else {
         state.ownershipValueSortColumn = column;
-        state.ownershipValueSortDirection = textColumns.has(column) ? 'asc' : 'desc';
+        state.ownershipValueSortDirection = defaultDesktopDirection;
     }
     // Sorting in place preserves the live search field and avoids mobile keyboard dismissals.
     scheduleOwnershipValueTableRefresh({ preserveScroll: false });
 }
 
 function getOwnershipSortClass(column) {
-    if ((state.ownershipValueSortColumn || 'fpts') !== column) return '';
+    if (state.ownershipValueSortColumn !== column) return '';
     return (state.ownershipValueSortDirection === 'asc') ? 'stats-sort-asc' : 'stats-sort-desc';
 }
 
@@ -7851,7 +7899,7 @@ function updateOwnershipValueSortHeaders(valueTable) {
     if (!valueTable) return;
     valueTable.querySelectorAll('th[data-sort-key]').forEach((headerCell) => {
         const key = headerCell.dataset.sortKey;
-        const activeSort = (state.ownershipValueSortColumn || 'fpts') === key;
+        const activeSort = state.ownershipValueSortColumn === key;
         const sortClass = getOwnershipSortClass(key);
         headerCell.classList.remove('stats-sort-asc', 'stats-sort-desc');
         if (sortClass) headerCell.classList.add(sortClass);
@@ -7890,6 +7938,11 @@ function renderOwnershipValueRowsInPlace(context, { preserveScroll = false } = {
     const { shell, tableWrap, tableBody, valueTable } = context;
     const rows = sortOwnershipValueRows(getOwnershipValueRowsFiltered());
     const emptyState = context.emptyState || shell.querySelector('.ownership-empty-state--value');
+
+    // Ownership frozen-column stability guard:
+    // temporarily disable sticky columns while tbody is rebuilt so rapid sort/filter updates
+    // cannot leave stale sticky offsets applied to Player/POS cells.
+    valueTable.classList.remove('ownership-value-table--freeze-ready');
 
     updateOwnershipValueSortHeaders(valueTable);
     updateOwnershipValuePositionFilterButtons(shell);
@@ -8036,7 +8089,7 @@ function renderOwnershipValueView() {
                 <thead>
                     <tr>
                         ${columns.map((column) => {
-                            const activeSort = (state.ownershipValueSortColumn || 'fpts') === column.key;
+                            const activeSort = state.ownershipValueSortColumn === column.key;
                             const sortClass = getOwnershipSortClass(column.key);
                             const ariaSort = activeSort
                                 ? ((state.ownershipValueSortDirection === 'asc') ? 'ascending' : 'descending')
