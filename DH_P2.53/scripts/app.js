@@ -7936,6 +7936,7 @@ function renderOwnershipValueRowsInPlace(context, { preserveScroll = false } = {
     if (!context?.tableWrap || !context?.tableBody || !context?.valueTable) return;
 
     const { shell, tableWrap, tableBody, valueTable } = context;
+    const ownedExposureCountByPid = context.ownedExposureCountByPid || null;
     const rows = sortOwnershipValueRows(getOwnershipValueRowsFiltered());
     const emptyState = context.emptyState || shell.querySelector('.ownership-empty-state--value');
 
@@ -7975,7 +7976,7 @@ function renderOwnershipValueRowsInPlace(context, { preserveScroll = false } = {
         if (renderedCount >= rows.length) return false;
         const nextRows = rows.slice(renderedCount, renderedCount + OWNERSHIP_VALUE_BATCH_SIZE);
         if (!nextRows.length) return false;
-        tableBody.insertAdjacentHTML('beforeend', nextRows.map(buildOwnershipValueTableRowMarkup).join(''));
+        tableBody.insertAdjacentHTML('beforeend', nextRows.map((row) => buildOwnershipValueTableRowMarkup(row, ownedExposureCountByPid)).join(''));
         renderedCount += nextRows.length;
         return renderedCount < rows.length;
     };
@@ -8018,7 +8019,17 @@ function renderOwnershipValueRowsInPlace(context, { preserveScroll = false } = {
     requestAnimationFrame(() => syncOwnershipValueMobileTableHeight(tableWrap));
 }
 
-function buildOwnershipValueTableRowMarkup(row) {
+function buildOwnershipValueTableRowMarkup(row, ownedExposureCountByPid = null) {
+    // Ownership Player Value owned-row highlight contract:
+    // - reuse the exact Exposure conditional-format tier logic (count -> tier class)
+    // - apply tier class to the entire <tr> so CSS can tint all cells (including sticky/frozen columns)
+    const ownedCountRaw = ownedExposureCountByPid?.get?.(row.playerId);
+    const ownedCount = Number.isFinite(ownedCountRaw)
+        ? Math.max(0, Math.round(ownedCountRaw))
+        : 0;
+    const ownedTierClass = ownedCount > 0 ? getOwnershipExposureTierClassByCount(ownedCount) : '';
+    const ownedRowClass = ownedTierClass ? `ownership-value-row--owned ${ownedTierClass}` : '';
+    const trClassAttr = ownedRowClass ? ` class="${ownedRowClass}"` : '';
     const ageColor = getAgeColorForRoster(row.pos, row.ageNumber) || 'inherit';
     const oneQbKtcColor = getKtcColor(row.oneQbKtc);
     const sflxKtcColor = getKtcColor(row.sflxKtc);
@@ -8027,7 +8038,7 @@ function buildOwnershipValueTableRowMarkup(row) {
     const oneQbKtcDisplay = Number.isFinite(row.oneQbKtc) ? Math.round(row.oneQbKtc) : '—';
     const sflxKtcDisplay = Number.isFinite(row.sflxKtc) ? Math.round(row.sflxKtc) : '—';
     return `
-        <tr>
+        <tr${trClassAttr}>
             <td class="ownership-value-rk">${row.rk}</td>
             <td class="ownership-value-player-cell">
                 <button class="ownership-player-trigger ownership-player-trigger--value" type="button" data-player-id="${escapeHtml(row.playerId)}">${escapeHtml(row.displayName)}</button>
@@ -8114,6 +8125,17 @@ function renderOwnershipValueView() {
     const searchInput = shell.querySelector('#ownershipValueSearchInput');
     const searchClearButton = shell.querySelector('#ownershipValueSearchClear');
 
+    // Ownership Player Value owned-row highlight lookup:
+    // build a fast (playerId -> owned league count) map from the already-loaded Ownership% rows.
+    // This reuses the same roster/co-owner aggregation as the Ownership% Exposure column.
+    const ownedExposureCountByPid = new Map();
+    (Array.isArray(state.ownershipRows) ? state.ownershipRows : []).forEach((row) => {
+        if (!row?.pid) return;
+        const count = Number.isFinite(row.count) ? Math.max(0, Math.round(row.count)) : 0;
+        if (count <= 0) return;
+        ownedExposureCountByPid.set(row.pid, count);
+    });
+
     ownershipValueRenderContext = {
         shell,
         valueTable,
@@ -8122,6 +8144,7 @@ function renderOwnershipValueView() {
         searchInput,
         searchClearButton,
         emptyState,
+        ownedExposureCountByPid,
         loadMoreOnScroll: null
     };
 

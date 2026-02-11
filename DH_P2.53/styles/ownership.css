@@ -689,41 +689,57 @@ body[data-page="ownership"] {
      ===================================================================== */
   --ownership-exp-c01-count: #0099ffe0;
   --ownership-exp-c01-pct: #0099ff87;
+  /* Owned-row tint (Player Value table): same hue as tier count color, forced alpha = 0x77. */
+  --ownership-exp-c01-row: #0099ff77;
 
   --ownership-exp-c02-count: #45fd88;
   --ownership-exp-c02-pct: #45fd8898;
+  --ownership-exp-c02-row: #45fd8877;
   --ownership-exp-c03-count: #45f7fd;
   --ownership-exp-c03-pct: #45f7fd9a;
+  --ownership-exp-c03-row: #45f7fd77;
 
   --ownership-exp-c04-count: #5441ff;
   --ownership-exp-c04-pct: #7061facf;
+  --ownership-exp-c04-row: #5441ff77;
   --ownership-exp-c05-count: #a434f9;
   --ownership-exp-c05-pct: #a434f9aa;
+  --ownership-exp-c05-row: #a434f977;
 
   --ownership-exp-c06-count: #fd7f60;
   --ownership-exp-c06-pct: #fd7f609A;
+  --ownership-exp-c06-row: #fd7f6077;
   --ownership-exp-c07-count: #ff81f2;
   --ownership-exp-c07-pct: #ff81f29a;
+  --ownership-exp-c07-row: #ff81f277;
 
   --ownership-exp-c08-count: #ff4837;
   --ownership-exp-c08-pct: #ff6b6bd2;
+  --ownership-exp-c08-row: #ff483777;
   --ownership-exp-c09-count: #d93223;
   --ownership-exp-c09-pct: #d93223aa;
+  --ownership-exp-c09-row: #d9322377;
 
   --ownership-exp-c10-count: #ff3c8d;
   --ownership-exp-c10-pct: #f94d95c0;
+  --ownership-exp-c10-row: #ff3c8d77;
   --ownership-exp-c11-count: #b8004d;
   --ownership-exp-c11-pct: #b8004d99;
+  --ownership-exp-c11-row: #b8004d77;
 
   --ownership-exp-c12-count: #ff00f7;
   --ownership-exp-c12-pct: #ff00f7a8;
+  --ownership-exp-c12-row: #ff00f777;
   --ownership-exp-c13-count: #c000dd;
   --ownership-exp-c13-pct: #c000dda8;
+  --ownership-exp-c13-row: #c000dd77;
 
   --ownership-exp-c14-count: #ff006f;
   --ownership-exp-c14-pct: #ff006f99;
+  --ownership-exp-c14-row: #ff006f77;
   --ownership-exp-c15-count: #ff0000;
   --ownership-exp-c15-pct: #ff0000a8;
+  --ownership-exp-c15-row: #ff000077;
 }
 
 /* Ownership username bar parity layer:
@@ -948,6 +964,65 @@ body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-15
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-pct {
   color: var(--ownership-exp-c15-pct);
+}
+
+/* Ownership Player Value owned-row highlighting:
+   - targets ONLY the Ownership page Player Value table (ownership-shell--value)
+   - reuses Exposure tier classes from app.js (ownership-exposure--tier-*)
+   - applies the tier hue as a row tint with fixed alpha = 0x77 across ALL cells
+     (including sticky/frozen columns) */
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned {
+  --ownership-owned-row-bg: transparent;
+}
+
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned td {
+  background: var(--ownership-owned-row-bg);
+}
+
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-1 {
+  --ownership-owned-row-bg: var(--ownership-exp-c01-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-2 {
+  --ownership-owned-row-bg: var(--ownership-exp-c02-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-3 {
+  --ownership-owned-row-bg: var(--ownership-exp-c03-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-4 {
+  --ownership-owned-row-bg: var(--ownership-exp-c04-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-5 {
+  --ownership-owned-row-bg: var(--ownership-exp-c05-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-6 {
+  --ownership-owned-row-bg: var(--ownership-exp-c06-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-7 {
+  --ownership-owned-row-bg: var(--ownership-exp-c07-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-8 {
+  --ownership-owned-row-bg: var(--ownership-exp-c08-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-9 {
+  --ownership-owned-row-bg: var(--ownership-exp-c09-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-10 {
+  --ownership-owned-row-bg: var(--ownership-exp-c10-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-11 {
+  --ownership-owned-row-bg: var(--ownership-exp-c11-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-12 {
+  --ownership-owned-row-bg: var(--ownership-exp-c12-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-13 {
+  --ownership-owned-row-bg: var(--ownership-exp-c13-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-14 {
+  --ownership-owned-row-bg: var(--ownership-exp-c14-row);
+}
+body[data-page="ownership"] .ownership-shell--value .ownership-value-table tbody tr.ownership-value-row--owned.ownership-exposure--tier-15 {
+  --ownership-owned-row-bg: var(--ownership-exp-c15-row);
 }
 
 /* Ownership Player Value filter controls:
