@@ -1125,7 +1125,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   body[data-page="ownership"] .ownership-value-position-filter {
     gap: 0.15rem;
     padding: 0.051rem;
-    margin-bottom: 6px;
+    margin-bottom: 0px;
   }
 
   body[data-page="ownership"] .ownership-value-filter-btn {
@@ -1142,6 +1142,10 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 @media (max-width: 819px) {
   body[data-page="ownership"] .ownership-value-sort-note {
     display: block;
+  }
+  p.ownership-value-sort-note::before {
+    content: "✦ ";
+    color: lightcoral;
   }
 }
 

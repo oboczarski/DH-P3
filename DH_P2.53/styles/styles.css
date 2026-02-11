@@ -11996,7 +11996,7 @@ body[data-page="ownership"] .ownership-value-toolbar {
   align-items: center;
   justify-content: space-between;
   gap: 0.58rem;
-  margin-bottom: 0.62rem;
+  margin-bottom: 0.32rem;
 }
 
 body[data-page="ownership"] .ownership-search-wrap {
@@ -12498,7 +12498,7 @@ body[data-page="ownership"] .ownership-value-table tbody tr:nth-child(even) {
 
 body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
   text-align: left;
-  padding-left: 0.44rem;
+  padding-left: 0.34rem;
   max-width: 132px;
   overflow: hidden;
 }
