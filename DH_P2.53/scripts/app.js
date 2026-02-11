@@ -7415,43 +7415,38 @@ function renderOwnershipMode() {
 
 /* Ownership page Exposure column conditional-format tier map:
    - targets ONLY the Exposure column in default Ownership% view
-   - tier selection is based ONLY on ownership percentage
-   - tiers change every 5% (0-4, 5-9, ... , 95-100)
+   - tier selection is based ONLY on ownership count
+   - supports 15 tiers: count 1..15 (15+ stays in tier-15)
    - count and percent always share the same tier hue (percent is dimmer in CSS)
-   IMPORTANT: keep this list sorted high -> low by minPct.
-   To change percentage cutoffs, edit minPct values below. */
-const OWNERSHIP_EXPOSURE_CF_PERCENT_TIERS = [
-    { minPct: 95, className: 'ownership-exposure--tier-20' },
-    { minPct: 90, className: 'ownership-exposure--tier-19' },
-    { minPct: 85, className: 'ownership-exposure--tier-18' },
-    { minPct: 80, className: 'ownership-exposure--tier-17' },
-    { minPct: 75, className: 'ownership-exposure--tier-16' },
-    { minPct: 70, className: 'ownership-exposure--tier-15' },
-    { minPct: 65, className: 'ownership-exposure--tier-14' },
-    { minPct: 60, className: 'ownership-exposure--tier-13' },
-    { minPct: 55, className: 'ownership-exposure--tier-12' },
-    { minPct: 50, className: 'ownership-exposure--tier-11' },
-    { minPct: 45, className: 'ownership-exposure--tier-10' },
-    { minPct: 40, className: 'ownership-exposure--tier-9' },
-    { minPct: 35, className: 'ownership-exposure--tier-8' },
-    { minPct: 30, className: 'ownership-exposure--tier-7' },
-    { minPct: 25, className: 'ownership-exposure--tier-6' },
-    { minPct: 20, className: 'ownership-exposure--tier-5' },
-    { minPct: 15, className: 'ownership-exposure--tier-4' },
-    { minPct: 10, className: 'ownership-exposure--tier-3' },
-    { minPct: 5, className: 'ownership-exposure--tier-2' },
-    { minPct: 0, className: 'ownership-exposure--tier-1' }
+   IMPORTANT: keep this list sorted high -> low by minCount.
+   To change count cutoffs, edit minCount values below. */
+const OWNERSHIP_EXPOSURE_CF_COUNT_TIERS = [
+    { minCount: 15, className: 'ownership-exposure--tier-15' },
+    { minCount: 14, className: 'ownership-exposure--tier-14' },
+    { minCount: 13, className: 'ownership-exposure--tier-13' },
+    { minCount: 12, className: 'ownership-exposure--tier-12' },
+    { minCount: 11, className: 'ownership-exposure--tier-11' },
+    { minCount: 10, className: 'ownership-exposure--tier-10' },
+    { minCount: 9, className: 'ownership-exposure--tier-9' },
+    { minCount: 8, className: 'ownership-exposure--tier-8' },
+    { minCount: 7, className: 'ownership-exposure--tier-7' },
+    { minCount: 6, className: 'ownership-exposure--tier-6' },
+    { minCount: 5, className: 'ownership-exposure--tier-5' },
+    { minCount: 4, className: 'ownership-exposure--tier-4' },
+    { minCount: 3, className: 'ownership-exposure--tier-3' },
+    { minCount: 2, className: 'ownership-exposure--tier-2' },
+    { minCount: 1, className: 'ownership-exposure--tier-1' }
 ];
 
 /* Ownership Exposure helper:
-   - normalizes incoming percentage (0..100)
+   - normalizes incoming ownership count (integer >= 0)
    - returns the CSS class that drives ownership-only Exposure colors
-   - applies 5% banding: 0-4 => tier-1 ... 95-100 => tier-20 */
-function getOwnershipExposureTierClassByPercent(percentage) {
-    const safePct = Number.isFinite(percentage)
-        ? Math.max(0, Math.min(100, Math.round(percentage)))
+   - applies count banding: 1 => tier-1 ... 15+ => tier-15 */
+function getOwnershipExposureTierClassByCount(count) {
+    const safeCount = Number.isFinite(count)
+        ? Math.max(0, Math.round(count))
         : 0;
-    const tierConfig = OWNERSHIP_EXPOSURE_CF_PERCENT_TIERS.find((tier) => safePct >= tier.minPct);
+    const tierConfig = OWNERSHIP_EXPOSURE_CF_COUNT_TIERS.find((tier) => safeCount >= tier.minCount);
     return tierConfig?.className || 'ownership-exposure--tier-1';
 }
 
@@ -7503,9 +7498,9 @@ function renderOwnershipPercentView() {
         const exposurePct = Number.isFinite(row.percentage)
             ? Math.max(0, Math.min(100, Math.round(row.percentage)))
             : 0;
-        // Ownership Exposure class by PERCENT only:
-        // count and percentage share the same hue tier for each 5% band.
-        const exposureClass = getOwnershipExposureTierClassByPercent(exposurePct);
+        // Ownership Exposure class by COUNT only:
+        // count and percentage share the same hue tier from the count bucket.
+        const exposureClass = getOwnershipExposureTierClassByCount(exposureCount);
         const leagueList = Array.isArray(row.leagueAbbrs)
             ? row.leagueAbbrs.map((abbr) => `<span style="color:${getLeagueColor(abbr)}">${abbr}</span>`).join(', ')
             : '—';
