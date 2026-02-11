@@ -113,7 +113,7 @@ body[data-page="ownership"] .ownership-list-header {
 
 body[data-page="ownership"] .ownership-col {
   min-width: 0;
-  justify-self: center;
+  justify-self: center !important;
 }
 
 body[data-page="ownership"] .ownership-col--exposure,
@@ -786,7 +786,7 @@ body[data-page="ownership"] .ownership-list-row {
 
 body[data-page="ownership"] .ownership-col--player,
 body[data-page="ownership"] .ownership-list-player-wrap {
-  justify-self: center;
+  justify-self: flex-start;
 }
 
 body[data-page="ownership"] .ownership-list-player-wrap {

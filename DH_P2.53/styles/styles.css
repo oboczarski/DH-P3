@@ -11731,7 +11731,7 @@ body[data-page="analyzer"] .app-header {
   }
 
  body[data-page="ownership"] #secondary-header-row {
-  padding: 0.8rem 0.3rem 0rem;
+  padding: 0.8rem 0.3rem 0rem !important;
  }
 
   body[data-page="ownership"] #secondary-header-row .username-area,
@@ -11912,7 +11912,7 @@ body[data-page="ownership"] #ownershipModeSwitcher {
      targets the real mode button class and the ownership-specific username bar
      so desktop sizing applies without leaking to other pages. */
   body[data-page="ownership"] #ownershipModeSwitcher {
-    height: 47px;
+    height: 46px;
     padding: 0.1rem;
   }
 
@@ -11922,7 +11922,7 @@ body[data-page="ownership"] #ownershipModeSwitcher {
   }
 
   body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
-    height: 47px;
+    height: 46px;
   }
 }
 body[data-page="ownership"] .ownership-mode-btn {
