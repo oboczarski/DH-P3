@@ -1051,6 +1051,21 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   text-underline-offset: 0.09em;
 }
 
+@media (min-width: 820px) {
+  /* Ownership desktop list layout tuning:
+     targets the default ownership list columns/player spacing only on desktop,
+     while mobile keeps its dedicated max-width overrides below. */
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    grid-template-columns: minmax(0, 1.28fr) minmax(126px, 0.72fr) minmax(0, 1.14fr);
+  }
+
+  body[data-page="ownership"] .ownership-list-player-wrap {
+    margin-left: 26px;
+    column-gap: 1.62rem;
+  }
+}
+
 @media (max-width: 900px) {
   body[data-page="ownership"] .ownership-username-submit--inset {
     min-width: 2.2rem;

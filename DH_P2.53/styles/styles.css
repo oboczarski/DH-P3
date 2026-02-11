@@ -3503,6 +3503,17 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
   color: var(--color-text-primary);
 }
 
+@media (min-width: 820px) {
+  /* Ownership desktop position-tag sizing:
+     adjusts only ownership list tags on desktop to the requested footprint,
+     leaving mobile and non-ownership pages unchanged. */
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+    min-width: 32px;
+    padding: 6px 3px;
+    font-size: 0.7rem;
+  }
+}
+
 body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
   content: '';
   position: absolute;
