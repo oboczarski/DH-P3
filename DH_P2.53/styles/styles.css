@@ -12627,7 +12627,7 @@ body[data-page="ownership"] .ownership-modal-warning {
 
   body[data-page="ownership"] .ownership-value-table th:nth-child(2),
   body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
-    width: 46px;
+    width: 42px;
   }
 
   body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
