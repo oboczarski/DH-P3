@@ -12167,7 +12167,7 @@ body[data-page="ownership"] .ownership-value-table {
    - Keeps numeric columns consistent and aligned like the Stats table */
 body[data-page="ownership"] .ownership-value-table th:nth-child(1),
 body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
-  width: 28px;
+  width: 22px;
   height: 14px;
 }
 
