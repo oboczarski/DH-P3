@@ -561,8 +561,9 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-list-leagues {
-    font-size: 0.62rem;
+    font-size: 0.67rem;
     line-height: 1.14;
+    font-weight: 600;
   }
 
   body[data-page="ownership"] .ownership-value-position-filter {
@@ -678,10 +679,10 @@ body[data-page="ownership"] {
         - --ownership-exp-tX-count = brighter count color
         - --ownership-exp-tX-pct = dimmer percent color (must stay same hue family)
      ===================================================================== */
-  --ownership-exp-t1-count: #7e8599;
-  --ownership-exp-t1-pct: #626982;
-  --ownership-exp-t2-count: #8791af;
-  --ownership-exp-t2-pct: #6c7594;
+  --ownership-exp-t1-count: #77f5b9;
+  --ownership-exp-t1-pct: #54ca96;
+  --ownership-exp-t2-count: #98c8ff;
+  --ownership-exp-t2-pct: #75a6db;
   --ownership-exp-t3-count: #ff3c8d;
   --ownership-exp-t3-pct: #f94d95c0;
   --ownership-exp-t4-count: #ff4837;
@@ -781,8 +782,8 @@ body[data-page="ownership"] .ownership-list-exposure {
 
 body[data-page="ownership"] .ownership-col--leagues,
 body[data-page="ownership"] .ownership-list-leagues {
-  justify-self: start;
-  text-align: left;
+  justify-self: center;
+  text-align: center;
 }
 
 /* Exposure cell formatting:
@@ -794,13 +795,12 @@ body[data-page="ownership"] .ownership-list-exposure {
   gap: 0;
   min-width: 100%;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: unset;
 }
 
 body[data-page="ownership"] .ownership-exposure-count {
   font-size: 0.92rem;
   font-weight: 560;
-  letter-spacing: 0.01em;
   text-shadow: 0 0 10px rgba(120, 140, 230, 0.2);
 }
 
@@ -814,7 +814,6 @@ body[data-page="ownership"] .ownership-exposure-sep {
 body[data-page="ownership"] .ownership-exposure-pct {
   font-size: 0.72rem;
   font-weight: 790;
-  letter-spacing: 0.02em;
 }
 
 /* Ownership Exposure CF class map (10 tiers):
@@ -1035,7 +1034,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   }
 
   body[data-page="ownership"] .ownership-exposure-pct {
-    font-size: 0.66rem;
+    font-size: 0.7rem;
   }
 
   body[data-page="ownership"] .ownership-value-position-filter {
@@ -1072,5 +1071,6 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 
   body[data-page="ownership"] .ownership-list-leagues {
     line-height: 1.16;
+    justify-self: flex-start;
   }
 }
