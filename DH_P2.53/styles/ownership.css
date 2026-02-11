@@ -676,49 +676,49 @@ body[data-page="ownership"] {
      How to customize:
      1) Change count thresholds in app.js helper map.
      2) Change colors below for each count tier:
-        - --ownership-exp-*-count = brighter count color
-        - --ownership-exp-*-pct = dimmer percent color (same hue family)
+        - --ownership-exp-cXX-count = brighter count color
+        - --ownership-exp-cXX-pct = dimmer percent color (same hue family)
 
      NOTE:
-     - Variable names below keep your provided color-group labels.
+     - c01..c15 correspond to count tiers 1..15+.
      ===================================================================== */
-  --ownership-exp-p25to29-count: #0099ffe0;
-  --ownership-exp-p25to29-pct: #0099ff87;
+  --ownership-exp-c01-count: #0099ffe0;
+  --ownership-exp-c01-pct: #0099ff87;
 
-  --ownership-exp-p30to34-count: #45fd88;
-  --ownership-exp-p30to34-pct: #45fd8898;
-  --ownership-exp-p35to39-count: #45f7fd;
-  --ownership-exp-p35to39-pct: #45f7fd9a;
+  --ownership-exp-c02-count: #45fd88;
+  --ownership-exp-c02-pct: #45fd8898;
+  --ownership-exp-c03-count: #45f7fd;
+  --ownership-exp-c03-pct: #45f7fd9a;
 
-  --ownership-exp-p40to44-count: #09bdff;
-  --ownership-exp-p40to44-pct: #09bdffb9;
-  --ownership-exp-p45to49-count: #5441ff;
-  --ownership-exp-p45to49-pct: #7061facf;
+  --ownership-exp-c04-count: #09bdff;
+  --ownership-exp-c04-pct: #09bdffb9;
+  --ownership-exp-c05-count: #5441ff;
+  --ownership-exp-c05-pct: #7061facf;
 
-  --ownership-exp-p50to54-count: #a434f9;
-  --ownership-exp-p50to54-pct: #a434f9aa;
-  --ownership-exp-p55to59-count: #a434f9;
-  --ownership-exp-p55to59-pct: #a434f9aa;
+  --ownership-exp-c06-count: #a434f9;
+  --ownership-exp-c06-pct: #a434f9aa;
+  --ownership-exp-c07-count: #a434f9;
+  --ownership-exp-c07-pct: #a434f9aa;
 
-  --ownership-exp-p60to64-count: #ff4837;
-  --ownership-exp-p60to64-pct: #ff6b6bd2;
-  --ownership-exp-p65to69-count: #d93223;
-  --ownership-exp-p65to69-pct: #d93223aa;
+  --ownership-exp-c08-count: #ff4837;
+  --ownership-exp-c08-pct: #ff6b6bd2;
+  --ownership-exp-c09-count: #d93223;
+  --ownership-exp-c09-pct: #d93223aa;
 
-  --ownership-exp-p70to74-count: #ff3c8d;
-  --ownership-exp-p70to74-pct: #f94d95c0;
-  --ownership-exp-p75to79-count: #b8004d;
-  --ownership-exp-p75to79-pct: #b8004d99;
+  --ownership-exp-c10-count: #ff3c8d;
+  --ownership-exp-c10-pct: #f94d95c0;
+  --ownership-exp-c11-count: #b8004d;
+  --ownership-exp-c11-pct: #b8004d99;
 
-  --ownership-exp-p80to84-count: #ff00f7;
-  --ownership-exp-p80to84-pct: #ff00f7a8;
-  --ownership-exp-p85to89-count: #c000dd;
-  --ownership-exp-p85to89-pct: #c000dda8;
+  --ownership-exp-c12-count: #ff00f7;
+  --ownership-exp-c12-pct: #ff00f7a8;
+  --ownership-exp-c13-count: #c000dd;
+  --ownership-exp-c13-pct: #c000dda8;
 
-  --ownership-exp-p90to94-count: #ff006f;
-  --ownership-exp-p90to94-pct: #ff006f99;
-  --ownership-exp-p95to100-count: #ff0000;
-  --ownership-exp-p95to100-pct: #ff0000a8;
+  --ownership-exp-c14-count: #ff006f;
+  --ownership-exp-c14-pct: #ff006f99;
+  --ownership-exp-c15-count: #ff0000;
+  --ownership-exp-c15-pct: #ff0000a8;
 }
 
 /* Ownership username bar parity layer:
@@ -841,108 +841,108 @@ body[data-page="ownership"] .ownership-exposure-pct {
    - each tier keeps same hue for count/% with different brightness values
    - tier classes are tier-1..tier-15 using your 15 provided color groups */
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-count {
-  color: var(--ownership-exp-p25to29-count);
+  color: var(--ownership-exp-c01-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-pct {
-  color: var(--ownership-exp-p25to29-pct);
+  color: var(--ownership-exp-c01-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-2 .ownership-exposure-count {
-  color: var(--ownership-exp-p30to34-count);
+  color: var(--ownership-exp-c02-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-2 .ownership-exposure-pct {
-  color: var(--ownership-exp-p30to34-pct);
+  color: var(--ownership-exp-c02-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-3 .ownership-exposure-count {
-  color: var(--ownership-exp-p35to39-count);
+  color: var(--ownership-exp-c03-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-3 .ownership-exposure-pct {
-  color: var(--ownership-exp-p35to39-pct);
+  color: var(--ownership-exp-c03-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-4 .ownership-exposure-count {
-  color: var(--ownership-exp-p40to44-count);
+  color: var(--ownership-exp-c04-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-4 .ownership-exposure-pct {
-  color: var(--ownership-exp-p40to44-pct);
+  color: var(--ownership-exp-c04-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-5 .ownership-exposure-count {
-  color: var(--ownership-exp-p45to49-count);
+  color: var(--ownership-exp-c05-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-5 .ownership-exposure-pct {
-  color: var(--ownership-exp-p45to49-pct);
+  color: var(--ownership-exp-c05-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-6 .ownership-exposure-count {
-  color: var(--ownership-exp-p50to54-count);
+  color: var(--ownership-exp-c06-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-6 .ownership-exposure-pct {
-  color: var(--ownership-exp-p50to54-pct);
+  color: var(--ownership-exp-c06-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-7 .ownership-exposure-count {
-  color: var(--ownership-exp-p55to59-count);
+  color: var(--ownership-exp-c07-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-7 .ownership-exposure-pct {
-  color: var(--ownership-exp-p55to59-pct);
+  color: var(--ownership-exp-c07-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-8 .ownership-exposure-count {
-  color: var(--ownership-exp-p60to64-count);
+  color: var(--ownership-exp-c08-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-8 .ownership-exposure-pct {
-  color: var(--ownership-exp-p60to64-pct);
+  color: var(--ownership-exp-c08-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-9 .ownership-exposure-count {
-  color: var(--ownership-exp-p65to69-count);
+  color: var(--ownership-exp-c09-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-9 .ownership-exposure-pct {
-  color: var(--ownership-exp-p65to69-pct);
+  color: var(--ownership-exp-c09-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-10 .ownership-exposure-count {
-  color: var(--ownership-exp-p70to74-count);
+  color: var(--ownership-exp-c10-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-10 .ownership-exposure-pct {
-  color: var(--ownership-exp-p70to74-pct);
+  color: var(--ownership-exp-c10-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-11 .ownership-exposure-count {
-  color: var(--ownership-exp-p75to79-count);
+  color: var(--ownership-exp-c11-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-11 .ownership-exposure-pct {
-  color: var(--ownership-exp-p75to79-pct);
+  color: var(--ownership-exp-c11-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-12 .ownership-exposure-count {
-  color: var(--ownership-exp-p80to84-count);
+  color: var(--ownership-exp-c12-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-12 .ownership-exposure-pct {
-  color: var(--ownership-exp-p80to84-pct);
+  color: var(--ownership-exp-c12-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-13 .ownership-exposure-count {
-  color: var(--ownership-exp-p85to89-count);
+  color: var(--ownership-exp-c13-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-13 .ownership-exposure-pct {
-  color: var(--ownership-exp-p85to89-pct);
+  color: var(--ownership-exp-c13-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-14 .ownership-exposure-count {
-  color: var(--ownership-exp-p90to94-count);
+  color: var(--ownership-exp-c14-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-14 .ownership-exposure-pct {
-  color: var(--ownership-exp-p90to94-pct);
+  color: var(--ownership-exp-c14-pct);
 }
 
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-count {
-  color: var(--ownership-exp-p95to100-count);
+  color: var(--ownership-exp-c15-count);
 }
 body[data-page="ownership"] .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-pct {
-  color: var(--ownership-exp-p95to100-pct);
+  color: var(--ownership-exp-c15-pct);
 }
 
 /* Ownership Player Value filter controls:
