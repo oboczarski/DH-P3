@@ -11908,13 +11908,21 @@ body[data-page="ownership"] #ownershipModeSwitcher {
 }
 
 @media (min-width: 820px) {
+  /* Ownership desktop header controls:
+     targets the real mode button class and the ownership-specific username bar
+     so desktop sizing applies without leaking to other pages. */
   body[data-page="ownership"] #ownershipModeSwitcher {
-  height: 47px;  
-  padding: 0.1rem;
+    height: 47px;
+    padding: 0.1rem;
   }
-  body[data-page="ownership"] #ownership-mode-btn {
- height:42px;
- border-radius:12px;
+
+  body[data-page="ownership"] #ownershipModeSwitcher .ownership-mode-btn {
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+    height: 47px;
   }
 }
 body[data-page="ownership"] .ownership-mode-btn {
@@ -12669,11 +12677,6 @@ body[data-page="ownership"] .ownership-modal-warning {
     gap: 0.28rem;
   }
 }
-  @media (min-width: 820px) {
-  body[data-page="ownership"] #secondary-header-row .username-area {
-      height: 47px;
-    }
-  }
 @media (max-width: 640px) {
   body[data-page="ownership"] .ownership-shell {
     padding: 0.54rem 0.45rem;
