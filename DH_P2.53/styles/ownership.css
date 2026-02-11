@@ -580,7 +580,6 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-value-table {
-    min-width: 860px;
     font-size: 0.7rem;
   }
 
@@ -624,6 +623,12 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
 
   body[data-page="ownership"] #ownershipPlayerModal .ownership-league-owner {
     font-size: 0.71rem;
+  }
+}
+
+@media (max-width: 819px) {
+  body[data-page="ownership"] .ownership-value-table-wrap {
+    max-height: min(var(--ownership-value-mobile-max-height, 66vh), 700px);
   }
 }
 
@@ -1027,6 +1032,15 @@ body[data-page="ownership"] .ownership-value-table-wrap {
   will-change: scroll-position;
 }
 
+body[data-page="ownership"] .ownership-value-sort-note {
+  display: none;
+  margin: 0.02rem 0 0;
+  text-align: center;
+  color: #9aa5da;
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+}
+
 body[data-page="ownership"] .ownership-value-table {
   border-collapse: separate;
   border-spacing: 0;
@@ -1121,7 +1135,13 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   }
 
   body[data-page="ownership"] .ownership-value-table-wrap {
-    max-height: min(68vh, 700px);
+    max-height: min(var(--ownership-value-mobile-max-height, 66vh), 700px);
+  }
+}
+
+@media (max-width: 819px) {
+  body[data-page="ownership"] .ownership-value-sort-note {
+    display: block;
   }
 }
 
@@ -1147,4 +1167,3 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     justify-self: flex-start;
   }
 }
-

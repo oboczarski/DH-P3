@@ -7388,6 +7388,7 @@ function buildOwnershipValueRows() {
 
 function setOwnershipMode(mode) {
     if (pageType !== 'ownership') return;
+    const previousMode = state.ownershipMode;
     const nextMode = mode === 'value' ? 'value' : 'ownership';
     state.ownershipMode = nextMode;
 
@@ -7400,6 +7401,13 @@ function setOwnershipMode(mode) {
         ownershipModeValueBtn.setAttribute('aria-pressed', !ownershipActive ? 'true' : 'false');
     }
 
+    // Ownership Player Value mobile tab reset:
+    // keeps tab switches from inheriting page scroll so only the table body remains the active scroller.
+    if (nextMode === 'value' && previousMode !== 'value' && isOwnershipValueMobileViewport()) {
+        ownershipValueForceTopOnNextRender = true;
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (error) { window.scrollTo(0, 0); }
+    }
+
     renderOwnershipMode();
 }
 
@@ -7410,6 +7418,7 @@ function renderOwnershipMode() {
         renderOwnershipValueView();
         return;
     }
+    teardownOwnershipValueRuntime();
     renderOwnershipPercentView();
 }
 
@@ -7634,9 +7643,54 @@ function sortOwnershipValueRows(rows) {
 // - Batches row rendering to keep scrolling and interactions responsive on large datasets.
 const OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS = 120;
 const OWNERSHIP_VALUE_BATCH_SIZE = 120;
+const OWNERSHIP_VALUE_MOBILE_BREAKPOINT_PX = 819;
 let ownershipValueSearchDebounceTimer = null;
 let ownershipValueRenderRaf = null;
 let ownershipValueStickyResizeObserver = null;
+let ownershipValueTableRefreshRaf = null;
+let ownershipValueRenderContext = null;
+let ownershipValueViewportResizeHandler = null;
+let ownershipValueForceTopOnNextRender = false;
+
+function isOwnershipValueMobileViewport() {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+    return window.matchMedia(`(max-width: ${OWNERSHIP_VALUE_MOBILE_BREAKPOINT_PX}px)`).matches;
+}
+
+function teardownOwnershipValueViewportListeners() {
+    if (!ownershipValueViewportResizeHandler || typeof window === 'undefined') return;
+    window.removeEventListener('resize', ownershipValueViewportResizeHandler);
+    window.removeEventListener('orientationchange', ownershipValueViewportResizeHandler);
+    if (window.visualViewport && typeof window.visualViewport.removeEventListener === 'function') {
+        window.visualViewport.removeEventListener('resize', ownershipValueViewportResizeHandler);
+        window.visualViewport.removeEventListener('scroll', ownershipValueViewportResizeHandler);
+    }
+    ownershipValueViewportResizeHandler = null;
+}
+
+function teardownOwnershipValueRuntime() {
+    if (ownershipValueSearchDebounceTimer) {
+        clearTimeout(ownershipValueSearchDebounceTimer);
+        ownershipValueSearchDebounceTimer = null;
+    }
+    if (ownershipValueRenderRaf) {
+        cancelAnimationFrame(ownershipValueRenderRaf);
+        ownershipValueRenderRaf = null;
+    }
+    if (ownershipValueTableRefreshRaf) {
+        cancelAnimationFrame(ownershipValueTableRefreshRaf);
+        ownershipValueTableRefreshRaf = null;
+    }
+    teardownOwnershipValueViewportListeners();
+    if (ownershipValueStickyResizeObserver) {
+        ownershipValueStickyResizeObserver.disconnect();
+        ownershipValueStickyResizeObserver = null;
+    }
+    if (ownershipValueRenderContext?.tableWrap && ownershipValueRenderContext.loadMoreOnScroll) {
+        ownershipValueRenderContext.tableWrap.removeEventListener('scroll', ownershipValueRenderContext.loadMoreOnScroll);
+    }
+    ownershipValueRenderContext = null;
+}
 
 /* Ownership value table frozen-column offset sync:
    - targets Ownership Player Value table only
@@ -7648,9 +7702,21 @@ function syncOwnershipValueFrozenColumnOffsets(table) {
     const headerCells = table.querySelectorAll('thead th');
     if (!headerCells || headerCells.length < 3) return;
 
-    const left2 = Number(headerCells[1].offsetLeft);
-    const left3 = Number(headerCells[2].offsetLeft);
-    if (!Number.isFinite(left2) || !Number.isFinite(left3) || left2 < 0 || left3 <= left2) return;
+    const firstColWidth = Number(headerCells[0].offsetWidth || headerCells[0].getBoundingClientRect().width || 0);
+    const secondColWidth = Number(headerCells[1].offsetWidth || headerCells[1].getBoundingClientRect().width || 0);
+
+    let left2 = Number(headerCells[1].offsetLeft);
+    let left3 = Number(headerCells[2].offsetLeft);
+
+    // Ownership frozen-column fallback:
+    // if offsetLeft is transient/invalid during first paint, derive sticky offsets from measured column widths.
+    if (!Number.isFinite(left2) || left2 < 0) {
+        left2 = Math.max(0, Math.round(firstColWidth));
+    }
+    if (!Number.isFinite(left3) || left3 <= left2) {
+        left3 = Math.round(left2 + Math.max(1, secondColWidth));
+    }
+    if (!Number.isFinite(left2) || !Number.isFinite(left3) || left3 <= left2) return;
 
     table.style.setProperty('--ownership-value-sticky-left-2', `${Math.round(left2)}px`);
     table.style.setProperty('--ownership-value-sticky-left-3', `${Math.round(left3)}px`);
@@ -7681,6 +7747,51 @@ function setupOwnershipValueFrozenColumns(table) {
     }
 }
 
+function getOwnershipValueViewportHeight() {
+    if (typeof window === 'undefined') return 0;
+    if (window.visualViewport && typeof window.visualViewport.height === 'number') {
+        return window.visualViewport.height;
+    }
+    return window.innerHeight || document.documentElement.clientHeight || 0;
+}
+
+/* Ownership value mobile height sync:
+   - targets only Ownership Player Value table scroll container
+   - computes available viewport space so the table body is the only vertical scroller on mobile
+   - runtime CSS var keeps behavior robust across iOS browser chrome / orientation changes */
+function syncOwnershipValueMobileTableHeight(tableWrap) {
+    if (!tableWrap) return;
+    if (!isOwnershipValueMobileViewport()) {
+        tableWrap.style.removeProperty('--ownership-value-mobile-max-height');
+        return;
+    }
+    const viewportHeight = getOwnershipValueViewportHeight();
+    const top = Number(tableWrap.getBoundingClientRect().top || 0);
+    const bottomGutter = 12;
+    const available = Math.max(220, Math.floor(viewportHeight - top - bottomGutter));
+    tableWrap.style.setProperty('--ownership-value-mobile-max-height', `${available}px`);
+}
+
+function setupOwnershipValueMobileHeightSync(tableWrap) {
+    teardownOwnershipValueViewportListeners();
+    if (!tableWrap || typeof window === 'undefined') return;
+
+    ownershipValueViewportResizeHandler = () => {
+        if (!ownershipValueRenderContext?.tableWrap || !document.body.contains(ownershipValueRenderContext.tableWrap)) return;
+        syncOwnershipValueMobileTableHeight(ownershipValueRenderContext.tableWrap);
+    };
+
+    window.addEventListener('resize', ownershipValueViewportResizeHandler, { passive: true });
+    window.addEventListener('orientationchange', ownershipValueViewportResizeHandler, { passive: true });
+    if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
+        window.visualViewport.addEventListener('resize', ownershipValueViewportResizeHandler, { passive: true });
+        window.visualViewport.addEventListener('scroll', ownershipValueViewportResizeHandler, { passive: true });
+    }
+
+    ownershipValueViewportResizeHandler();
+    requestAnimationFrame(() => ownershipValueViewportResizeHandler && ownershipValueViewportResizeHandler());
+}
+
 function scheduleOwnershipValueRender() {
     if (pageType !== 'ownership' || state.ownershipMode !== 'value') return;
     if (ownershipValueRenderRaf) {
@@ -7689,6 +7800,22 @@ function scheduleOwnershipValueRender() {
     ownershipValueRenderRaf = requestAnimationFrame(() => {
         ownershipValueRenderRaf = null;
         renderOwnershipValueView();
+    });
+}
+
+function scheduleOwnershipValueTableRefresh({ preserveScroll = false } = {}) {
+    if (pageType !== 'ownership' || state.ownershipMode !== 'value') return;
+    const context = ownershipValueRenderContext;
+    if (!context?.tableWrap || !context?.tableBody || !context?.valueTable || !document.body.contains(context.tableWrap)) {
+        scheduleOwnershipValueRender();
+        return;
+    }
+    if (ownershipValueTableRefreshRaf) {
+        cancelAnimationFrame(ownershipValueTableRefreshRaf);
+    }
+    ownershipValueTableRefreshRaf = requestAnimationFrame(() => {
+        ownershipValueTableRefreshRaf = null;
+        renderOwnershipValueRowsInPlace(context, { preserveScroll });
     });
 }
 
@@ -7701,7 +7828,8 @@ function setOwnershipValueSort(column) {
         state.ownershipValueSortColumn = column;
         state.ownershipValueSortDirection = textColumns.has(column) ? 'asc' : 'desc';
     }
-    scheduleOwnershipValueRender();
+    // Sorting in place preserves the live search field and avoids mobile keyboard dismissals.
+    scheduleOwnershipValueTableRefresh({ preserveScroll: false });
 }
 
 function getOwnershipSortClass(column) {
@@ -7717,6 +7845,124 @@ function getOwnershipValueRowsFiltered() {
         if (term && !row.search.includes(term)) return false;
         return true;
     });
+}
+
+function updateOwnershipValueSortHeaders(valueTable) {
+    if (!valueTable) return;
+    valueTable.querySelectorAll('th[data-sort-key]').forEach((headerCell) => {
+        const key = headerCell.dataset.sortKey;
+        const activeSort = (state.ownershipValueSortColumn || 'fpts') === key;
+        const sortClass = getOwnershipSortClass(key);
+        headerCell.classList.remove('stats-sort-asc', 'stats-sort-desc');
+        if (sortClass) headerCell.classList.add(sortClass);
+        headerCell.setAttribute('aria-sort', activeSort
+            ? ((state.ownershipValueSortDirection === 'asc') ? 'ascending' : 'descending')
+            : 'none');
+    });
+}
+
+function updateOwnershipValuePositionFilterButtons(shell) {
+    if (!shell) return;
+    const activePos = (state.ownershipValuePositionFilter || 'ALL').toUpperCase();
+    shell.querySelectorAll('.ownership-value-filter-btn[data-ownership-pos]').forEach((button) => {
+        const buttonPos = (button.dataset.ownershipPos || 'ALL').toUpperCase();
+        const isActive = buttonPos === activePos;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
+function syncOwnershipValueSearchClearButton(searchInput, clearButton) {
+    if (!searchInput || !clearButton) return;
+    const hasValue = String(searchInput.value || '').length > 0;
+    const isFocused = document.activeElement === searchInput;
+    clearButton.classList.toggle('is-visible', hasValue || isFocused);
+    clearButton.setAttribute('aria-hidden', clearButton.classList.contains('is-visible') ? 'false' : 'true');
+}
+
+/* Ownership value table in-place refresh:
+   - rebuilds tbody only (not the toolbar shell)
+   - keeps search focus/cursor stable while filtering/sorting
+   - reuses batching + infinite scroll to preserve performance characteristics */
+function renderOwnershipValueRowsInPlace(context, { preserveScroll = false } = {}) {
+    if (!context?.tableWrap || !context?.tableBody || !context?.valueTable) return;
+
+    const { shell, tableWrap, tableBody, valueTable } = context;
+    const rows = sortOwnershipValueRows(getOwnershipValueRowsFiltered());
+    const emptyState = context.emptyState || shell.querySelector('.ownership-empty-state--value');
+
+    updateOwnershipValueSortHeaders(valueTable);
+    updateOwnershipValuePositionFilterButtons(shell);
+
+    if (context.loadMoreOnScroll) {
+        tableWrap.removeEventListener('scroll', context.loadMoreOnScroll);
+        context.loadMoreOnScroll = null;
+    }
+
+    const previousScrollTop = preserveScroll ? tableWrap.scrollTop : 0;
+    tableBody.innerHTML = '';
+
+    if (!rows.length) {
+        if (emptyState) {
+            emptyState.textContent = 'No value-table players match current filters.';
+            emptyState.classList.remove('hidden');
+        }
+        tableWrap.scrollTop = 0;
+        syncOwnershipValueFrozenColumnOffsets(valueTable);
+        syncOwnershipValueMobileTableHeight(tableWrap);
+        return;
+    }
+
+    if (emptyState) {
+        emptyState.classList.add('hidden');
+    }
+
+    let renderedCount = 0;
+    const appendNextBatch = () => {
+        if (renderedCount >= rows.length) return false;
+        const nextRows = rows.slice(renderedCount, renderedCount + OWNERSHIP_VALUE_BATCH_SIZE);
+        if (!nextRows.length) return false;
+        tableBody.insertAdjacentHTML('beforeend', nextRows.map(buildOwnershipValueTableRowMarkup).join(''));
+        renderedCount += nextRows.length;
+        return renderedCount < rows.length;
+    };
+    const fillViewport = () => {
+        while (tableWrap.scrollHeight <= tableWrap.clientHeight + 8) {
+            if (!appendNextBatch()) break;
+        }
+    };
+
+    appendNextBatch();
+    fillViewport();
+
+    if (rows.length > renderedCount) {
+        context.loadMoreOnScroll = () => {
+            const nearBottom = tableWrap.scrollTop + tableWrap.clientHeight >= tableWrap.scrollHeight - 220;
+            if (!nearBottom) return;
+            const hasMore = appendNextBatch();
+            if (!hasMore && context.loadMoreOnScroll) {
+                tableWrap.removeEventListener('scroll', context.loadMoreOnScroll);
+                context.loadMoreOnScroll = null;
+            }
+        };
+        tableWrap.addEventListener('scroll', context.loadMoreOnScroll, { passive: true });
+    }
+
+    if (ownershipValueForceTopOnNextRender && isOwnershipValueMobileViewport()) {
+        ownershipValueForceTopOnNextRender = false;
+        tableWrap.scrollTop = 0;
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); } catch (error) { window.scrollTo(0, 0); }
+    } else if (preserveScroll) {
+        tableWrap.scrollTop = Math.max(0, Math.min(previousScrollTop, tableWrap.scrollHeight - tableWrap.clientHeight));
+    } else {
+        tableWrap.scrollTop = 0;
+    }
+
+    // Re-sync freeze offsets after body rows mount so sticky columns stay exact on first paint.
+    syncOwnershipValueFrozenColumnOffsets(valueTable);
+    requestAnimationFrame(() => syncOwnershipValueFrozenColumnOffsets(valueTable));
+    syncOwnershipValueMobileTableHeight(tableWrap);
+    requestAnimationFrame(() => syncOwnershipValueMobileTableHeight(tableWrap));
 }
 
 function buildOwnershipValueTableRowMarkup(row) {
@@ -7747,8 +7993,7 @@ function buildOwnershipValueTableRowMarkup(row) {
 }
 
 function renderOwnershipValueView() {
-    const filteredRows = getOwnershipValueRowsFiltered();
-    const rows = sortOwnershipValueRows(filteredRows);
+    teardownOwnershipValueRuntime();
 
     const shell = document.createElement('section');
     shell.className = 'ownership-shell ownership-shell--value';
@@ -7773,6 +8018,9 @@ function renderOwnershipValueView() {
             <div class="ownership-search-wrap ownership-search-wrap--value">
                 <label class="sr-only" for="ownershipValueSearchInput">Search value table players</label>
                 <input id="ownershipValueSearchInput" class="ownership-search-input" type="search" placeholder="Search players / team..." autocomplete="off" value="${state.ownershipValueSearchTerm || ''}" />
+                <button class="ownership-search-clear ${(state.ownershipValueSearchTerm || '') ? 'is-visible' : ''}" id="ownershipValueSearchClear" type="button" aria-label="Clear player value search" aria-hidden="${(state.ownershipValueSearchTerm || '') ? 'false' : 'true'}">
+                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                </button>
                 <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
             </div>
             <div class="ownership-value-position-filter" role="group" aria-label="Filter player value table by position">
@@ -7781,6 +8029,7 @@ function renderOwnershipValueView() {
                     return `<button class="ownership-value-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
                 }).join('')}
             </div>
+            <p class="ownership-value-sort-note">Tap a column header to sort</p>
         </div>
         <div class="ownership-value-table-wrap">
             <table class="ownership-value-table" aria-label="Ownership player value table">
@@ -7799,63 +8048,74 @@ function renderOwnershipValueView() {
                 <tbody></tbody>
             </table>
         </div>
+        <p class="ownership-empty-state ownership-empty-state--value hidden"></p>
     `;
 
     playerListView.innerHTML = '';
     playerListView.appendChild(shell);
 
     const valueTable = shell.querySelector('.ownership-value-table');
-    setupOwnershipValueFrozenColumns(valueTable);
-
     const tableWrap = shell.querySelector('.ownership-value-table-wrap');
     const tableBody = shell.querySelector('.ownership-value-table tbody');
-    // Ownership value table batching:
-    // progressively hydrates rows so the view remains smooth while scrolling large player sets.
-    let renderedCount = 0;
-    const appendNextBatch = () => {
-        if (!tableBody || renderedCount >= rows.length) return false;
-        const nextRows = rows.slice(renderedCount, renderedCount + OWNERSHIP_VALUE_BATCH_SIZE);
-        if (!nextRows.length) return false;
-        tableBody.insertAdjacentHTML('beforeend', nextRows.map(buildOwnershipValueTableRowMarkup).join(''));
-        renderedCount += nextRows.length;
-        return renderedCount < rows.length;
-    };
-    const fillViewport = () => {
-        while (tableWrap && tableWrap.scrollHeight <= tableWrap.clientHeight + 8) {
-            if (!appendNextBatch()) break;
-        }
-    };
-
-    appendNextBatch();
-    fillViewport();
-
-    if (rows.length > renderedCount && tableWrap) {
-        const loadMoreOnScroll = () => {
-            const nearBottom = tableWrap.scrollTop + tableWrap.clientHeight >= tableWrap.scrollHeight - 220;
-            if (!nearBottom) return;
-            const hasMore = appendNextBatch();
-            if (!hasMore) {
-                tableWrap.removeEventListener('scroll', loadMoreOnScroll);
-            }
-        };
-        tableWrap.addEventListener('scroll', loadMoreOnScroll, { passive: true });
-    }
-
-    if (!rows.length) {
-        const empty = document.createElement('p');
-        empty.className = 'ownership-empty-state';
-        empty.textContent = 'No value-table players match current filters.';
-        shell.appendChild(empty);
-    }
-
+    const emptyState = shell.querySelector('.ownership-empty-state--value');
     const searchInput = shell.querySelector('#ownershipValueSearchInput');
+    const searchClearButton = shell.querySelector('#ownershipValueSearchClear');
+
+    ownershipValueRenderContext = {
+        shell,
+        valueTable,
+        tableWrap,
+        tableBody,
+        searchInput,
+        searchClearButton,
+        emptyState,
+        loadMoreOnScroll: null
+    };
+
+    setupOwnershipValueFrozenColumns(valueTable);
+    setupOwnershipValueMobileHeightSync(tableWrap);
+    renderOwnershipValueRowsInPlace(ownershipValueRenderContext, { preserveScroll: false });
+    syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
     searchInput?.addEventListener('input', (event) => {
         state.ownershipValueSearchTerm = String(event.target.value || '');
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
         // Ownership value search debounce keeps typing responsive on larger data sets.
         clearTimeout(ownershipValueSearchDebounceTimer);
         ownershipValueSearchDebounceTimer = setTimeout(() => {
-            scheduleOwnershipValueRender();
+            scheduleOwnershipValueTableRefresh({ preserveScroll: false });
         }, OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS);
+    });
+
+    searchInput?.addEventListener('focus', () => {
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+    });
+
+    searchInput?.addEventListener('blur', () => {
+        requestAnimationFrame(() => syncOwnershipValueSearchClearButton(searchInput, searchClearButton));
+    });
+
+    // Ownership value search clear contract:
+    // first press clears text and keeps typing focus; pressing again when empty exits the field.
+    searchClearButton?.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+    });
+    searchClearButton?.addEventListener('click', () => {
+        if (!searchInput) return;
+        const hasText = String(searchInput.value || '').length > 0;
+        if (hasText) {
+            searchInput.value = '';
+            state.ownershipValueSearchTerm = '';
+            syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+            scheduleOwnershipValueTableRefresh({ preserveScroll: false });
+            try {
+                searchInput.focus({ preventScroll: true });
+            } catch (error) {
+                searchInput.focus();
+            }
+            return;
+        }
+        searchInput.blur();
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
     });
 
     shell.querySelector('.ownership-value-position-filter')?.addEventListener('click', (event) => {
@@ -7863,7 +8123,7 @@ function renderOwnershipValueView() {
         if (!button) return;
         const nextPos = button.dataset.ownershipPos || 'ALL';
         state.ownershipValuePositionFilter = nextPos;
-        scheduleOwnershipValueRender();
+        scheduleOwnershipValueTableRefresh({ preserveScroll: false });
     });
 
     shell.querySelector('.ownership-value-table')?.addEventListener('click', (event) => {

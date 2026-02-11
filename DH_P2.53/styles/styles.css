@@ -12013,7 +12013,7 @@ body[data-page="ownership"] .ownership-search-input {
   color: #d8ddff99;
   font-size: 16px;
   font-weight: 300;
-  padding: 0.45rem 2rem 0.45rem 0.72rem;
+  padding: 0.45rem 3.6rem 0.45rem 0.72rem;
   transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -12034,6 +12034,35 @@ body[data-page="ownership"] .ownership-search-icon {
   transform: translateY(-50%);
   color: #8e95c3;
   font-size: 0.76rem;
+}
+
+body[data-page="ownership"] .ownership-search-clear {
+  position: absolute;
+  right: 1.84rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #aab2de;
+  font-size: 0.84rem;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+body[data-page="ownership"] .ownership-search-clear.is-visible {
+  opacity: 0.82;
+  pointer-events: auto;
+}
+
+body[data-page="ownership"] .ownership-search-clear:hover,
+body[data-page="ownership"] .ownership-search-clear:focus-visible {
+  color: #f1f4ff;
 }
 
 body[data-page="ownership"] .ownership-list {
@@ -12193,6 +12222,9 @@ body[data-page="ownership"] .ownership-value-filter-btn:focus-visible {
 }
 
 body[data-page="ownership"] .ownership-value-table-wrap {
+  /* Ownership value table viewport behavior:
+     desktop keeps the existing cap while mobile receives runtime-fit height from app.js
+     so only this container scrolls in the Player Value tab. */
   border-radius: 12px;
   border: 1px solid rgba(128, 138, 189, 0.23);
   background: rgba(12, 15, 30, 0.5);
@@ -12201,125 +12233,132 @@ body[data-page="ownership"] .ownership-value-table-wrap {
 }
 
 body[data-page="ownership"] .ownership-value-table {
-  width: 100%;
-  min-width: 910px;
+  /* Ownership Player Value width model (single source of truth):
+     edit the --ov-col-* vars below to tune columns without causing sticky/frozen drift. */
+  --ov-col-1-rk: 33px;
+  --ov-col-2-player: 84px;
+  --ov-col-3-pos: 51px;
+  --ov-col-4-tm: 46px;
+  --ov-col-5-age: 50px;
+  --ov-col-6-1qb-ktc: 75px;
+  --ov-col-7-1qb-prk: 75px;
+  --ov-col-8-sflx-ktc: 75px;
+  --ov-col-9-sflx-prk: 77px;
+  --ov-col-10-fpts: 71px;
+  --ov-col-11-ppg: 71px;
+  --ov-table-min-width:
+    calc(
+      var(--ov-col-1-rk) +
+      var(--ov-col-2-player) +
+      var(--ov-col-3-pos) +
+      var(--ov-col-4-tm) +
+      var(--ov-col-5-age) +
+      var(--ov-col-6-1qb-ktc) +
+      var(--ov-col-7-1qb-prk) +
+      var(--ov-col-8-sflx-ktc) +
+      var(--ov-col-9-sflx-prk) +
+      var(--ov-col-10-fpts) +
+      var(--ov-col-11-ppg)
+    );
+  width: max(100%, var(--ov-table-min-width));
+  min-width: var(--ov-table-min-width);
   border-collapse: collapse;
   table-layout: fixed;
   font-family: var(--font-sans);
 }
 
-/* =========================================
-   Ownership Player Value Tab — Column Widths
-   Mobile (default) and Desktop (≥869px) are separated so
-   each breakpoint can be tuned independently.
-   Column order: 1=RK  2=Player  3=POS  4=TM  5=AGE
-                 6=1QB KTC  7=1QB pRK  8=SFLX KTC  9=SFLX pRK
-                 10=FPTS  11=PPG
-   ========================================= */
-
-/* --- Mobile Column Widths (default) --- */
 body[data-page="ownership"] .ownership-value-table th:nth-child(1),
 body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
-  width: 22px;
-  height: 14px;
+  width: var(--ov-col-1-rk);
+  min-width: var(--ov-col-1-rk);
+  max-width: var(--ov-col-1-rk);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(2),
 body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
-  width: 132px;
+  width: var(--ov-col-2-player);
+  min-width: var(--ov-col-2-player);
+  max-width: var(--ov-col-2-player);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(3),
 body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
-  width: 23px;
+  width: var(--ov-col-3-pos);
+  min-width: var(--ov-col-3-pos);
+  max-width: var(--ov-col-3-pos);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(4),
 body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
-  width: 29px;
+  width: var(--ov-col-4-tm);
+  min-width: var(--ov-col-4-tm);
+  max-width: var(--ov-col-4-tm);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(5),
 body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
-  width: 38px;
+  width: var(--ov-col-5-age);
+  min-width: var(--ov-col-5-age);
+  max-width: var(--ov-col-5-age);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(6),
-body[data-page="ownership"] .ownership-value-table td:nth-child(6),
-body[data-page="ownership"] .ownership-value-table th:nth-child(8),
-body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
-  width: 46px;
+body[data-page="ownership"] .ownership-value-table td:nth-child(6) {
+  width: var(--ov-col-6-1qb-ktc);
+  min-width: var(--ov-col-6-1qb-ktc);
+  max-width: var(--ov-col-6-1qb-ktc);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(7),
-body[data-page="ownership"] .ownership-value-table td:nth-child(7),
+body[data-page="ownership"] .ownership-value-table td:nth-child(7) {
+  width: var(--ov-col-7-1qb-prk);
+  min-width: var(--ov-col-7-1qb-prk);
+  max-width: var(--ov-col-7-1qb-prk);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(8),
+body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
+  width: var(--ov-col-8-sflx-ktc);
+  min-width: var(--ov-col-8-sflx-ktc);
+  max-width: var(--ov-col-8-sflx-ktc);
+}
+
 body[data-page="ownership"] .ownership-value-table th:nth-child(9),
 body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
-  width: 64px;
+  width: var(--ov-col-9-sflx-prk);
+  min-width: var(--ov-col-9-sflx-prk);
+  max-width: var(--ov-col-9-sflx-prk);
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(10),
-body[data-page="ownership"] .ownership-value-table td:nth-child(10),
+body[data-page="ownership"] .ownership-value-table td:nth-child(10) {
+  width: var(--ov-col-10-fpts);
+  min-width: var(--ov-col-10-fpts);
+  max-width: var(--ov-col-10-fpts);
+}
+
 body[data-page="ownership"] .ownership-value-table th:nth-child(11),
 body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
-  width: 56px;
+  width: var(--ov-col-11-ppg);
+  min-width: var(--ov-col-11-ppg);
+  max-width: var(--ov-col-11-ppg);
 }
 
 /* --- Desktop Column Widths (≥869px) ---
    Edit these to change desktop column sizing without affecting mobile. */
 @media (min-width: 869px) {
-  /* 1 = RK */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(1),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
-    width: 36px;
-  }
-
-  /* 2 = Player */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(2),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
-    width: 200px;
-  }
-
-  /* 3 = POS */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(3),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
-    width: 40px;
-  }
-
-  /* 4 = TM */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(4),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
-    width: 44px;
-  }
-
-  /* 5 = AGE */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(5),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
-    width: 46px;
-  }
-
-  /* 6 = 1QB KTC, 8 = SFLX KTC */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(6),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(6),
-  body[data-page="ownership"] .ownership-value-table th:nth-child(8),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
-    width: 72px;
-  }
-
-  /* 7 = 1QB pRK, 9 = SFLX pRK */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(7),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(7),
-  body[data-page="ownership"] .ownership-value-table th:nth-child(9),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
-    width: 80px;
-  }
-
-  /* 10 = FPTS, 11 = PPG */
-  body[data-page="ownership"] .ownership-value-table th:nth-child(10),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(10),
-  body[data-page="ownership"] .ownership-value-table th:nth-child(11),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
-    width: 70px;
+  body[data-page="ownership"] .ownership-value-table {
+    --ov-col-1-rk: 43px;
+    --ov-col-2-player: 72px;
+    --ov-col-3-pos: 50px;
+    --ov-col-4-tm: 50px;
+    --ov-col-5-age: 52px;
+    --ov-col-6-1qb-ktc: 67px;
+    --ov-col-7-1qb-prk: 80px;
+    --ov-col-8-sflx-ktc: 72px;
+    --ov-col-9-sflx-prk: 80px;
+    --ov-col-10-fpts: 70px;
+    --ov-col-11-ppg: 70px;
   }
 
   /* Desktop: Search bar + Position filter buttons side-by-side */
@@ -12348,8 +12387,8 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
    - freezes first three columns (RK, Player, POS) during horizontal scroll
    - preserves existing table sizing by waiting for JS-measured offsets */
 body[data-page="ownership"] .ownership-value-table {
-  --ownership-value-sticky-left-2: 22px;
-  --ownership-value-sticky-left-3: 154px;
+  --ownership-value-sticky-left-2: var(--ov-col-1-rk);
+  --ownership-value-sticky-left-3: calc(var(--ov-col-1-rk) + var(--ov-col-2-player));
 }
 
 body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(-n+3),
@@ -12382,7 +12421,19 @@ body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze
 }
 
 body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody tr:nth-child(even) td:nth-child(-n+3) {
-  background: #181a2b;
+  background: #161827;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(1) {
+  z-index: 6;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(2) {
+  z-index: 5;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(3) {
+  z-index: 4;
 }
 
 body[data-page="ownership"] .ownership-value-table thead th {
@@ -12430,7 +12481,7 @@ body[data-page="ownership"] .ownership-value-table td {
   font-size: 0.75rem;
   color: #cbd2f7;
   padding: 0.42rem 0.28rem;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.11);
+  border-bottom: 1px solid rgba(128, 138, 189, 0.2);
   white-space: nowrap;
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
@@ -12450,13 +12501,23 @@ body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell 
 body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
   width: 100%;
   display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 300;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
+@media (max-width: 819px) {
+body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
+  width: 100%;
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  }
+}
 body[data-page="ownership"] .ownership-value-team-cell {
   text-align: center;
 }
@@ -12793,15 +12854,6 @@ body[data-page="ownership"] .ownership-modal-warning {
     letter-spacing: 0.05em;
     border: 1px solid #fff3;
     border-radius: 7px;
-  }
-
-  body[data-page="ownership"] .ownership-value-table {
-    min-width: 860px;
-  }
-
-  body[data-page="ownership"] .ownership-value-table th:nth-child(2),
-  body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
-    width: 42px;
   }
 
   body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
