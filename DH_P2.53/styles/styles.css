@@ -11978,6 +11978,7 @@ body[data-page="ownership"] #playerListView {
 
 body[data-page="ownership"] .ownership-shell {
   width: 100%;
+  max-width: 1000px;
   border-radius: 16px;
   border: 1px solid rgba(128, 138, 189, 0.21);
   background: linear-gradient(180deg, rgba(22, 25, 47, 0.6), rgba(12, 14, 28, 0.43));
@@ -11986,6 +11987,7 @@ body[data-page="ownership"] .ownership-shell {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px rgba(0, 0, 0, 0.26);
   padding: 0.7rem 0.65rem;
   font-family: var(--font-sans);
+  align-self: center;
 }
 
 body[data-page="ownership"] .ownership-toolbar,
