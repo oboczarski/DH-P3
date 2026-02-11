@@ -12208,9 +12208,16 @@ body[data-page="ownership"] .ownership-value-table {
   font-family: var(--font-sans);
 }
 
-/* Ownership value table column sizing:
-   - Reduces player column width significantly for denser mobile layouts
-   - Keeps numeric columns consistent and aligned like the Stats table */
+/* =========================================
+   Ownership Player Value Tab — Column Widths
+   Mobile (default) and Desktop (≥869px) are separated so
+   each breakpoint can be tuned independently.
+   Column order: 1=RK  2=Player  3=POS  4=TM  5=AGE
+                 6=1QB KTC  7=1QB pRK  8=SFLX KTC  9=SFLX pRK
+                 10=FPTS  11=PPG
+   ========================================= */
+
+/* --- Mobile Column Widths (default) --- */
 body[data-page="ownership"] .ownership-value-table th:nth-child(1),
 body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
   width: 22px;
@@ -12256,6 +12263,84 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(10),
 body[data-page="ownership"] .ownership-value-table th:nth-child(11),
 body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
   width: 56px;
+}
+
+/* --- Desktop Column Widths (≥869px) ---
+   Edit these to change desktop column sizing without affecting mobile. */
+@media (min-width: 869px) {
+  /* 1 = RK */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(1),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
+    width: 36px;
+  }
+
+  /* 2 = Player */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(2),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
+    width: 200px;
+  }
+
+  /* 3 = POS */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(3),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
+    width: 40px;
+  }
+
+  /* 4 = TM */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(4),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
+    width: 44px;
+  }
+
+  /* 5 = AGE */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(5),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
+    width: 46px;
+  }
+
+  /* 6 = 1QB KTC, 8 = SFLX KTC */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(6),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(6),
+  body[data-page="ownership"] .ownership-value-table th:nth-child(8),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
+    width: 72px;
+  }
+
+  /* 7 = 1QB pRK, 9 = SFLX pRK */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(7),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(7),
+  body[data-page="ownership"] .ownership-value-table th:nth-child(9),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
+    width: 80px;
+  }
+
+  /* 10 = FPTS, 11 = PPG */
+  body[data-page="ownership"] .ownership-value-table th:nth-child(10),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(10),
+  body[data-page="ownership"] .ownership-value-table th:nth-child(11),
+  body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
+    width: 70px;
+  }
+
+  /* Desktop: Search bar + Position filter buttons side-by-side */
+  body[data-page="ownership"] .ownership-value-toolbar {
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    margin: 0rem 2rem 0.62rem;
+  }
+
+  body[data-page="ownership"] .ownership-search-wrap--value {
+    max-width: 678px;
+    min-width: 398px;
+  }
+
+  body[data-page="ownership"] .ownership-value-position-filter {
+    justify-content: center;
+    width: auto;
+    gap: 3px;
+    padding: 3px;
+  }
 }
 
 /* Ownership player-value frozen columns:

@@ -7754,17 +7754,17 @@ function renderOwnershipValueView() {
     shell.className = 'ownership-shell ownership-shell--value';
 
     const columns = [
-        { label: 'RK', key: 'rk', className: 'ownership-col-rk' },
-        { label: 'Player', key: 'player', className: 'ownership-col-player' },
-        { label: 'POS', key: 'pos', className: 'ownership-col-pos' },
-        { label: 'TM', key: 'team', className: 'ownership-col-team' },
-        { label: 'AGE', key: 'age', className: 'ownership-col-age' },
-        { label: '1QB KTC', key: 'oneQbKtc', className: 'ownership-col-1qb-ktc' },
-        { label: '1QB pRK', key: 'oneQbPosRank', className: 'ownership-col-1qb-prk' },
-        { label: 'SFLX KTC', key: 'sflxKtc', className: 'ownership-col-sflx-ktc' },
-        { label: 'SFLX pRK', key: 'sflxPosRank', className: 'ownership-col-sflx-prk' },
-        { label: 'FPTS', key: 'fpts', className: 'ownership-col-fpts' },
-        { label: 'PPG', key: 'ppg', className: 'ownership-col-ppg' }
+        { label: 'RK', key: 'rk' },
+        { label: 'Player', key: 'player', className: 'ownership-value-col-player' },
+        { label: 'POS', key: 'pos' },
+        { label: 'TM', key: 'team' },
+        { label: 'AGE', key: 'age' },
+        { label: '1QB KTC', key: 'oneQbKtc' },
+        { label: '1QB pRK', key: 'oneQbPosRank' },
+        { label: 'SFLX KTC', key: 'sflxKtc' },
+        { label: 'SFLX pRK', key: 'sflxPosRank' },
+        { label: 'FPTS', key: 'fpts' },
+        { label: 'PPG', key: 'ppg' }
     ];
 
     // Player Value controls target table discoverability (search + position filter).
