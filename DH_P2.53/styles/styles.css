@@ -12178,7 +12178,7 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(3),
 body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
-  width: 33px;
+  width: 23px;
 }
 
 body[data-page="ownership"] .ownership-value-table th:nth-child(4),
