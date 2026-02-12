@@ -12947,9 +12947,10 @@ body[data-page="ownership"] .ownership-modal-warning {
   }
 }
 
-/* ⬇︎ MOBILE LEAGUE NAVIGATION PANEL ⬇︎ */
-/* Only show on mobile for rosters page */
-#mobile-league-nav {
+/* ⬇︎ BOTTOM MENU PANEL (LEAGUE NAV + WATCHLIST) ⬇︎ */
+/* Fixed bottom panel wrapping league navigation and watchlist button.
+   Shows on both mobile and desktop for the Rosters page. */
+#bottom-menu-panel {
   display: none;
   position: fixed;
   bottom: 4px;
@@ -12957,14 +12958,50 @@ body[data-page="ownership"] .ownership-modal-warning {
   right: 0;
   z-index: 100;
   padding: 0.9rem 1rem;
-  padding-left: 2rem;
-  padding-right: 2rem;
   pointer-events: none;
 }
 
-@media (max-width: 819px) {
-  body[data-page="rosters"] #mobile-league-nav {
-    display: block;
+/* Show on rosters page (both mobile and desktop) */
+body[data-page="rosters"] #bottom-menu-panel {
+  display: block;
+}
+
+/* Hidden state for compare / start-sit / trade modes */
+#bottom-menu-panel.hidden {
+  display: none !important;
+}
+
+/* Inner flex row: league nav + watchlist button side by side */
+.bottom-menu-panel-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* Dimmed state when scrolling */
+#bottom-menu-panel.scrolling .bottom-menu-panel-inner {
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+#bottom-menu-panel .bottom-menu-panel-inner {
+  transition: opacity 0.3s ease;
+}
+
+/* League nav: now a static child inside the bottom panel (no longer fixed) */
+#mobile-league-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+  pointer-events: auto;
+}
+
+/* Desktop: hide league nav portion (since desktop uses the header dropdown) */
+@media (min-width: 820px) {
+  #mobile-league-nav {
+    display: none;
   }
 }
 
@@ -12974,8 +13011,7 @@ body[data-page="ownership"] .ownership-modal-warning {
   justify-content: space-between;
   height: 3rem;
   width: 100%;
-  max-width: 365px;
-  margin: 0 auto;
+  max-width: 320px;
   overflow: hidden;
   border-radius: 0.7rem;
   pointer-events: auto;
@@ -12987,13 +13023,61 @@ body[data-page="ownership"] .ownership-modal-warning {
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
-/* Dimmed state when scrolling */
-#mobile-league-nav.scrolling .mobile-league-nav-panel {
-  opacity: 0.5;
+/* ---- Watchlist Panel Button ---- */
+/* Compact pill button matching the league nav glass aesthetic */
+.watchlist-panel-btn {
+  position: relative;
+  flex: 0 0 auto;
+  height: 3rem;
+  width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.7rem;
+  cursor: pointer;
+  pointer-events: auto;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgb(119 109 144 / 35%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Hidden state for start/sit and trade preview modes */
-#mobile-league-nav.hidden {
+.watchlist-panel-btn:active {
+  transform: scale(0.93);
+  background: rgba(118, 109, 255, 0.25);
+}
+
+.watchlist-panel-btn:hover {
+  background: rgba(118, 109, 255, 0.18);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 30px #7c6cff30;
+}
+
+/* Watchlist count badge: small accent circle on top-right corner */
+.watchlist-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: var(--color-accent-primary, #766DFF);
+  box-shadow: 0 1px 5px rgba(118, 109, 255, 0.5);
+  pointer-events: none;
+}
+
+.watchlist-badge.hidden {
   display: none;
 }
 
@@ -13634,4 +13718,589 @@ body[data-page="ownership"] .ownership-modal-warning {
     min-width: 85px;
     margin-left: 19px;
   }
+}
+
+/* ============================================================================
+   WATCHLIST TOGGLE (inside Game Logs modal header)
+   Small button positioned to the left of the modal close button.
+   Toggles add/remove player from the watchlist.
+   ============================================================================ */
+#watchlist-modal-toggle {
+  position: absolute;
+  top: 0.3rem;
+  right: 2.4rem;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 0.45rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  /* Untoggled / dimmed glass look */
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+#watchlist-modal-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Toggled / active state (player IS watchlisted) */
+#watchlist-modal-toggle.is-watchlisted {
+  background: rgba(118, 109, 255, 0.22);
+  color: #a5b4fc;
+  box-shadow: 0 0 8px rgba(118, 109, 255, 0.25);
+}
+
+#watchlist-modal-toggle.is-watchlisted:hover {
+  background: rgba(118, 109, 255, 0.32);
+  color: #c4b5fd;
+}
+
+/* Watchlist toggle pulse animation for visual feedback on tap */
+@keyframes wlTogglePulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+#watchlist-modal-toggle.wl-toggle-pulse {
+  animation: wlTogglePulse 0.35s ease;
+}
+
+/* ============================================================================
+   WATCHLIST MODAL
+   ============================================================================ */
+#watchlist-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#watchlist-modal.hidden {
+  display: none;
+}
+
+#watchlist-modal > .modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.watchlist-modal-content {
+  position: relative;
+  z-index: 101;
+  width: 94%;
+  max-width: 580px;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--panel-border-radius, 12px);
+  overflow: hidden;
+}
+
+/* Watchlist modal header: title + position filter chips + count */
+#watchlist-modal-header {
+  padding: 1rem 1rem 0.65rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.watchlist-modal-title {
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: var(--color-text-primary, #EAEBF0);
+  margin-bottom: 0.55rem;
+  letter-spacing: 0.02em;
+}
+
+.watchlist-modal-title i {
+  color: var(--color-accent-primary, #766DFF);
+  margin-right: 0.35rem;
+  font-size: 0.95rem;
+}
+
+/* Controls row: position filters + count badge */
+.watchlist-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.watchlist-position-filters {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.watchlist-filter-btn {
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.watchlist-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.watchlist-filter-btn.is-active {
+  background: rgba(118, 109, 255, 0.18);
+  border-color: rgba(118, 109, 255, 0.45);
+  color: #c4b5fd;
+  box-shadow: 0 0 6px rgba(118, 109, 255, 0.15);
+}
+
+/* Position-specific active tints */
+.watchlist-filter-btn.is-active[data-watchlist-pos="QB"] { background: rgba(255, 178, 216, 0.13); border-color: rgba(255, 178, 216, 0.4); color: #FFB2D8; }
+.watchlist-filter-btn.is-active[data-watchlist-pos="RB"] { background: rgba(187, 247, 224, 0.1); border-color: rgba(187, 247, 224, 0.4); color: #bbf7e0; }
+.watchlist-filter-btn.is-active[data-watchlist-pos="WR"] { background: rgba(160, 194, 247, 0.12); border-color: rgba(160, 194, 247, 0.4); color: #A0C2F7; }
+.watchlist-filter-btn.is-active[data-watchlist-pos="TE"] { background: rgba(255, 199, 138, 0.12); border-color: rgba(255, 199, 138, 0.4); color: #FFC78A; }
+
+.watchlist-count {
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+}
+
+/* Scrollable card body */
+.watchlist-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.75rem;
+}
+
+/* ---- Watchlist card grid: 2 columns ---- */
+.watchlist-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+@media (max-width: 400px) {
+  .watchlist-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Individual watchlist card ----
+   Reuses the player-row visual identity but adapted for the modal grid. */
+.watchlist-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--card-border-radius, 8px);
+  padding: 0.55rem 0.6rem 0.4rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.watchlist-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Remove button: top-right corner of card */
+.watchlist-card-remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.3rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.watchlist-card-remove:hover {
+  background: rgba(217, 61, 118, 0.25);
+  color: #f9a8c9;
+}
+
+/* Card content rows: mimic .player-row structure */
+.watchlist-card .wl-main-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.2rem;
+  padding-right: 1.2rem; /* space for remove button */
+}
+
+.watchlist-card .wl-pos-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.1rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  border-radius: 0.2rem;
+  padding: 0 0.25rem;
+  flex-shrink: 0;
+}
+
+.watchlist-card .wl-player-name {
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #EAEBF0);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.watchlist-card .wl-player-name:hover {
+  color: var(--color-accent-secondary, #42C2FF);
+}
+
+.watchlist-card .wl-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  color: var(--color-text-secondary, #9096C0);
+  margin-bottom: 0.25rem;
+}
+
+.watchlist-card .wl-meta-line .separator {
+  opacity: 0.35;
+}
+
+.watchlist-card .wl-meta-line .team-logo {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.watchlist-card .wl-value-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  color: var(--color-text-tertiary, #5F6795);
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 0.3rem;
+}
+
+.watchlist-card .wl-value-line .value {
+  color: var(--color-text-secondary, #9096C0);
+  font-weight: 600;
+}
+
+/* Action buttons row beneath each card */
+.watchlist-card-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.watchlist-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.watchlist-action-btn i {
+  font-size: 0.6rem;
+}
+
+.watchlist-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Filter action accent (crosshairs icon) */
+.watchlist-action-btn--filter:hover {
+  background: rgba(66, 194, 255, 0.1);
+  border-color: rgba(66, 194, 255, 0.35);
+  color: #42C2FF;
+}
+
+/* Ownership action accent */
+.watchlist-action-btn--ownership:hover {
+  background: rgba(118, 109, 255, 0.1);
+  border-color: rgba(118, 109, 255, 0.35);
+  color: #a5b4fc;
+}
+
+/* Ownership action: loading spinner when lazy-loading context */
+.watchlist-action-btn--ownership.is-loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.watchlist-action-btn--ownership.is-loading i {
+  animation: watchlistSpin 0.8s linear infinite;
+}
+
+@keyframes watchlistSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty state when watchlist has no players */
+.watchlist-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.watchlist-empty i {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.12);
+}
+
+.watchlist-empty p {
+  font-family: var(--font-display, 'Quicksand', sans-serif);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.5;
+}
+
+.watchlist-empty .watchlist-empty-hint {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================================
+   WATCHLIST FILTER/LOCATE HIGHLIGHT
+   Pulsing glow applied to a player-row when located from the watchlist.
+   ============================================================================ */
+@keyframes watchlistHighlightPulse {
+  0% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45); }
+  50% { box-shadow: 0 0 14px 4px rgba(118, 109, 255, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0); }
+}
+
+.watchlist-highlight {
+  animation: watchlistHighlightPulse 1.5s ease-out;
+  border-radius: var(--card-border-radius, 8px);
+}
+
+/* ============================================================================
+   OWNERSHIP MODAL ON ROSTERS PAGE
+   The ownership modal HTML is duplicated on rosters.html for the watchlist flow.
+   ownership.css scopes to body[data-page="ownership"], so we add rosters-page
+   overrides here for the modal-specific styles only.
+   ============================================================================ */
+body[data-page="rosters"] #ownershipPlayerModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal.hidden {
+  display: none;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal > .modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-content {
+  position: relative;
+  z-index: 1101;
+  width: 92%;
+  max-width: 520px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--panel-border-radius, 12px);
+  overflow: hidden;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-header {
+  padding: 1rem 1rem 0.5rem;
+  text-align: center;
+  position: relative;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .modal-header-left-container {
+  position: absolute;
+  top: 0.70rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalPlayerName {
+  font-size: 1.1rem;
+  font-weight: 200;
+  color: var(--color-text-primary, #EAEBF0);
+  margin-bottom: 0.15rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 0.75rem 1rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.45rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+  min-width: 4rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip h4 {
+  font-size: 0.78rem;
+  font-weight: 300;
+  margin: 0 0 0.15rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-values {
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryChips {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-league-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.45rem;
+  transition: background 0.15s ease;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-abbr {
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-name {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-owner {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-you .ownership-league-owner {
+  color: #a5b4fc;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-none {
+  opacity: 0.45;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-warning {
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
 }

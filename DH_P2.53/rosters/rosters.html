@@ -20,6 +20,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
   <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
+  <link rel="stylesheet" href="../styles/ownership.css?v=20260211" />
  </head>
 <body data-page="rosters" class="p-2 sm:p-4">
 <!-- Replaced Background: Starfield -->
@@ -218,39 +220,50 @@
 </div>
 </div>
 
-<!-- Mobile League Navigation Panel (only visible on mobile) -->
-<div id="mobile-league-nav" class="hidden">
-  <div class="mobile-league-nav-panel glass-panel">
-    <button class="league-nav-arrow league-nav-prev" aria-label="Previous League">
-      <i class="fa-solid fa-chevron-left"></i>
-    </button>
-    <div class="league-nav-divider"></div>
-    <button class="league-nav-selector">
-      <div class="league-nav-content">
-        <div class="league-nav-name-wrapper">
-          <p class="league-nav-name">League Name</p>
-          <i class="fa-solid fa-caret-down league-nav-dropdown-icon"></i>
+<!-- Bottom Menu Panel: wraps league nav + watchlist button (visible on mobile & desktop) -->
+<div id="bottom-menu-panel" class="hidden">
+  <div class="bottom-menu-panel-inner">
+    <!-- Mobile League Navigation (existing, slightly narrower inside the panel) -->
+    <div id="mobile-league-nav">
+      <div class="mobile-league-nav-panel glass-panel">
+        <button class="league-nav-arrow league-nav-prev" aria-label="Previous League">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="league-nav-divider"></div>
+        <button class="league-nav-selector">
+          <div class="league-nav-content">
+            <div class="league-nav-name-wrapper">
+              <p class="league-nav-name">League Name</p>
+              <i class="fa-solid fa-caret-down league-nav-dropdown-icon"></i>
+            </div>
+            <p class="league-nav-subtitle">Change League</p>
+          </div>
+        </button>
+        <div class="league-nav-divider"></div>
+        <button class="league-nav-arrow league-nav-next" aria-label="Next League">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      <!-- League Selection Popup -->
+      <div id="league-selection-popup" class="hidden">
+        <div class="league-popup-overlay"></div>
+        <div class="league-popup-content glass-panel">
+          <div class="league-popup-header">
+            <h3>Select League</h3>
+            <button class="league-popup-close">&times;</button>
+          </div>
+          <div class="league-popup-list">
+            <!-- League options will be rendered here -->
+          </div>
         </div>
-        <p class="league-nav-subtitle">Change League</p>
-      </div>
-    </button>
-    <div class="league-nav-divider"></div>
-    <button class="league-nav-arrow league-nav-next" aria-label="Next League">
-      <i class="fa-solid fa-chevron-right"></i>
-    </button>
-  </div>
-  <!-- League Selection Popup -->
-  <div id="league-selection-popup" class="hidden">
-    <div class="league-popup-overlay"></div>
-    <div class="league-popup-content glass-panel">
-      <div class="league-popup-header">
-        <h3>Select League</h3>
-        <button class="league-popup-close">&times;</button>
-      </div>
-      <div class="league-popup-list">
-        <!-- League options will be rendered here -->
       </div>
     </div>
+
+    <!-- Player Watchlist button -->
+    <button id="watchlist-button" class="watchlist-panel-btn" aria-label="Open Player Watchlist">
+      <i class="fa-solid fa-user-check" aria-hidden="true"></i>
+      <span class="watchlist-badge hidden" id="watchlistBadge">0</span>
+    </button>
   </div>
 </div>
 
@@ -258,6 +271,10 @@
 <div id="game-logs-modal" class="hidden">
   <div class="modal-overlay"></div>
   <div class="modal-content glass-panel">
+    <!-- Watchlist add/remove toggle (positioned to the left of close button) -->
+    <button id="watchlist-modal-toggle" class="watchlist-toggle-btn" aria-label="Add to watchlist" data-player-id="">
+      <i class="fa-solid fa-user-plus"></i>
+    </button>
     <button class="modal-close-btn">&times;</button>
     <div id="modal-header">
       <h3 id="modal-player-name">Player Game Logs</h3>
@@ -467,6 +484,47 @@
   </div>
 </div>
 </div>
+</div>
+
+<!-- Player Watchlist Modal -->
+<div id="watchlist-modal" class="hidden">
+  <div class="modal-overlay"></div>
+  <div class="modal-content glass-panel watchlist-modal-content">
+    <button class="modal-close-btn watchlist-modal-close">&times;</button>
+    <div id="watchlist-modal-header">
+      <h3 class="watchlist-modal-title"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Player Watchlist</h3>
+      <div class="watchlist-controls">
+        <div class="watchlist-position-filters" role="group" aria-label="Filter by position">
+          <button class="watchlist-filter-btn is-active" data-watchlist-pos="ALL">ALL</button>
+          <button class="watchlist-filter-btn" data-watchlist-pos="QB">QB</button>
+          <button class="watchlist-filter-btn" data-watchlist-pos="RB">RB</button>
+          <button class="watchlist-filter-btn" data-watchlist-pos="WR">WR</button>
+          <button class="watchlist-filter-btn" data-watchlist-pos="TE">TE</button>
+        </div>
+        <span class="watchlist-count" id="watchlistCount">0 players</span>
+      </div>
+    </div>
+    <div id="watchlist-modal-body" class="modal-body watchlist-modal-body">
+      <!-- Watchlist player cards rendered here -->
+    </div>
+  </div>
+</div>
+
+<!-- Ownership Player Modal (re-used from ownership page for watchlist → ownership flow) -->
+<div id="ownershipPlayerModal" class="hidden" aria-hidden="true">
+  <div class="modal-overlay"></div>
+  <div class="modal-content glass-panel ownership-modal-content" role="dialog" aria-modal="true" aria-labelledby="ownershipModalPlayerName">
+    <button class="modal-close-btn ownership-modal-close" type="button" aria-label="Close player ownership details">&times;</button>
+    <div id="ownershipModalHeader" class="ownership-modal-header">
+      <div id="ownershipModalLeft" class="modal-header-left-container"></div>
+      <h3 id="ownershipModalPlayerName">Player Ownership Details</h3>
+      <div id="ownershipModalPlayerVitals"></div>
+      <div id="ownershipModalSummaryRow">
+        <div id="ownershipModalSummaryChips"></div>
+      </div>
+    </div>
+    <div id="ownershipModalBody" class="ownership-modal-body"></div>
+  </div>
 </div>
 
 <div id="player-comparison-modal" class="hidden">
