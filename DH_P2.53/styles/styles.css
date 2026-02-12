@@ -5637,6 +5637,15 @@ body::before {
   height: 638px;
 }
 
+/* Ensure additional modals using the shared `.modal-content` baseline
+   are actually visible when opened (their own size rules remain page-specific). */
+#watchlist-modal:not(.hidden) .modal-content,
+#ownershipPlayerModal:not(.hidden) .modal-content,
+#ownership-player-modal:not(.hidden) .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
 .modal-close-btn {
   position: absolute;
   top: 0rem;
