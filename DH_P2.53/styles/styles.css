@@ -13387,7 +13387,7 @@ body[data-page="rosters"] #watchlistModal .watchlist-card {
   border-radius: 12px;
   background: linear-gradient(160deg, rgba(58, 67, 102, 0.24), rgba(11, 15, 30, 0.36));
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
-  padding: 0.28rem;
+  padding: 0.32rem 0.28rem;
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
