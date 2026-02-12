@@ -48,6 +48,17 @@ const modalOverlay = document.querySelector('.modal-overlay');
 const modalPlayerName = document.getElementById('modal-player-name');
 const modalPlayerVitals = document.getElementById('modal-player-vitals');
 const modalBody = document.getElementById('modal-body');
+// Rosters watchlist controls are page-scoped to prevent behavior leakage into stats/ownership.
+const modalWatchlistToggle = document.getElementById('modalWatchlistToggle');
+const watchlistOpenButton = document.getElementById('watchlistOpenButton');
+const watchlistCountBadge = document.getElementById('watchlistCountBadge');
+const watchlistModal = document.getElementById('watchlistModal');
+const watchlistModalClose = document.getElementById('watchlistModalClose');
+const watchlistModalSubtitle = document.getElementById('watchlistModalSubtitle');
+const watchlistSearchInput = document.getElementById('watchlistSearchInput');
+const watchlistGrid = document.getElementById('watchlistGrid');
+const watchlistResetViewButton = document.getElementById('watchlistResetViewButton');
+const watchlistClearAllButton = document.getElementById('watchlistClearAllButton');
 const playerComparisonModal = document.getElementById('player-comparison-modal');
 const comparisonBackgroundOverlay = document.getElementById('comparison-modal-background-overlay');
 // Ownership page specific controls + modal (kept page-scoped so other pages are unaffected).
@@ -518,7 +529,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlistPlayerIds: new Set(), watchlistUsername: '', watchlistSearchTerm: '', watchlistPositionFilter: 'ALL', currentGameLogsPlayerId: null, watchlistIsolatePlayerId: null };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -530,6 +541,7 @@ const assignedRyColors = new Map();
 let nextRyColorIndex = 0;
 // --- Constants ---
 const API_BASE = 'https://api.sleeper.app/v1';
+const WATCHLIST_STORAGE_PREFIX = 'dh_player_watchlist_v1';
 const GOOGLE_SHEET_ID = '1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0';
 const PLAYER_STATS_SHEET_ID = '1i-cKqSfYw0iFiV9S-wBw8lwZePwXZ7kcaWMdnaMTHDs';
 // Expose for dashboard / shared loaders
@@ -551,6 +563,434 @@ const PLAYER_STATS_CSV_PATHS = {
 const PLAYER_STATS_SOURCE_QUERY_PARAM = 'playerStatsSource';
 // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
 const MAX_DISPLAY_WEEKS = 18;
+
+// === Rosters Player Watchlist helpers ===
+// Targets: Rosters page game-log modal + mobile bottom rail + watchlist modal interactions.
+// Behavior: persists watchlisted Sleeper player IDs per normalized username in localStorage.
+// Notes: all helpers are page-guarded to avoid any behavior leakage into stats/ownership pages.
+function getNormalizedActiveUsername() {
+    const inputValue = typeof usernameInput?.value === 'string' ? usernameInput.value.trim().toLowerCase() : '';
+    if (inputValue) return inputValue;
+    try {
+        return (localStorage.getItem('sleeper_username') || '').trim().toLowerCase();
+    } catch (error) {
+        return '';
+    }
+}
+
+function getWatchlistStorageKey(rawUsername) {
+    const normalizedUsername = typeof rawUsername === 'string' ? rawUsername.trim().toLowerCase() : '';
+    if (!normalizedUsername) return null;
+    return `${WATCHLIST_STORAGE_PREFIX}::${normalizedUsername}`;
+}
+
+function normalizeWatchlistPlayerIds(rawValue) {
+    const source = Array.isArray(rawValue) ? rawValue : [];
+    const sanitized = [];
+    const seen = new Set();
+    source.forEach((item) => {
+        const playerId = String(item || '').trim();
+        if (!playerId || seen.has(playerId)) return;
+        seen.add(playerId);
+        sanitized.push(playerId);
+    });
+    return sanitized;
+}
+
+function ensureWatchlistContextForActiveUsername() {
+    const normalizedUsername = getNormalizedActiveUsername();
+    if (!normalizedUsername) return '';
+    if (state.watchlistUsername !== normalizedUsername) {
+        loadWatchlistForUsername(normalizedUsername);
+    }
+    return normalizedUsername;
+}
+
+function loadWatchlistForUsername(rawUsername) {
+    if (pageType !== 'rosters') return;
+
+    const normalizedUsername = typeof rawUsername === 'string'
+        ? rawUsername.trim().toLowerCase()
+        : getNormalizedActiveUsername();
+
+    state.watchlistUsername = normalizedUsername || '';
+    state.watchlistSearchTerm = '';
+    state.watchlistPositionFilter = 'ALL';
+
+    if (watchlistSearchInput) {
+        watchlistSearchInput.value = '';
+    }
+
+    if (!normalizedUsername) {
+        state.watchlistPlayerIds = new Set();
+        updateWatchlistButtonState();
+        syncGameLogsWatchlistToggle(state.currentGameLogsPlayerId);
+        if (watchlistModal && !watchlistModal.classList.contains('hidden')) {
+            renderWatchlistModal();
+        }
+        return;
+    }
+
+    const storageKey = getWatchlistStorageKey(normalizedUsername);
+    let parsed = [];
+    if (storageKey) {
+        try {
+            const storedRaw = localStorage.getItem(storageKey);
+            parsed = normalizeWatchlistPlayerIds(storedRaw ? JSON.parse(storedRaw) : []);
+        } catch (error) {
+            parsed = [];
+        }
+    }
+
+    state.watchlistPlayerIds = new Set(parsed);
+    updateWatchlistButtonState();
+    syncGameLogsWatchlistToggle(state.currentGameLogsPlayerId);
+    if (watchlistModal && !watchlistModal.classList.contains('hidden')) {
+        renderWatchlistModal();
+    }
+}
+
+function persistWatchlistForUsername(rawUsername = state.watchlistUsername) {
+    if (pageType !== 'rosters') return;
+    const normalizedUsername = typeof rawUsername === 'string'
+        ? rawUsername.trim().toLowerCase()
+        : getNormalizedActiveUsername();
+    if (!normalizedUsername) return;
+
+    const storageKey = getWatchlistStorageKey(normalizedUsername);
+    if (!storageKey) return;
+
+    const payload = normalizeWatchlistPlayerIds(Array.from(state.watchlistPlayerIds || []));
+    state.watchlistPlayerIds = new Set(payload);
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(payload));
+    } catch (error) {
+        console.warn('Watchlist persistence failed:', error);
+    }
+}
+
+function isWatchlistedPlayer(playerId) {
+    if (!playerId || !state.watchlistPlayerIds) return false;
+    return state.watchlistPlayerIds.has(String(playerId));
+}
+
+function updateWatchlistButtonState() {
+    if (pageType !== 'rosters' || !watchlistOpenButton) return;
+
+    const count = state.watchlistPlayerIds?.size || 0;
+    const countLabel = `${count} ${count === 1 ? 'player' : 'players'}`;
+
+    if (watchlistCountBadge) {
+        watchlistCountBadge.textContent = String(count);
+        watchlistCountBadge.classList.toggle('hidden', count === 0);
+    }
+
+    watchlistOpenButton.setAttribute('aria-label', `Open player watchlist (${countLabel})`);
+    watchlistOpenButton.classList.toggle('has-watchlist-items', count > 0);
+
+    if (watchlistModalSubtitle) {
+        const username = state.watchlistUsername || getNormalizedActiveUsername();
+        const audienceLabel = username ? `for @${username}` : 'for this profile';
+        watchlistModalSubtitle.textContent = count > 0
+            ? `${countLabel} tracked ${audienceLabel}.`
+            : `No players tracked yet ${audienceLabel}.`;
+    }
+}
+
+function syncGameLogsWatchlistToggle(playerId = state.currentGameLogsPlayerId) {
+    if (pageType !== 'rosters' || !modalWatchlistToggle) return;
+
+    const normalizedPlayerId = playerId ? String(playerId) : '';
+    const icon = modalWatchlistToggle.querySelector('i');
+    const srText = modalWatchlistToggle.querySelector('.sr-only');
+    const isActive = normalizedPlayerId ? isWatchlistedPlayer(normalizedPlayerId) : false;
+
+    modalWatchlistToggle.disabled = !normalizedPlayerId;
+    modalWatchlistToggle.classList.toggle('is-active', isActive);
+    modalWatchlistToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+    const nextLabel = isActive
+        ? 'Remove player from watchlist'
+        : 'Add player to watchlist';
+    modalWatchlistToggle.setAttribute('aria-label', nextLabel);
+    modalWatchlistToggle.setAttribute('title', nextLabel);
+
+    if (srText) srText.textContent = nextLabel;
+    if (icon) {
+        icon.classList.remove('fa-user-plus', 'fa-user-check');
+        icon.classList.add(isActive ? 'fa-user-check' : 'fa-user-plus');
+    }
+}
+
+function clearWatchlistIsolateView() {
+    if (pageType !== 'rosters' || !rosterGrid) {
+        state.watchlistIsolatePlayerId = null;
+        return;
+    }
+    rosterGrid.querySelectorAll('.watchlist-filter-hidden').forEach((node) => {
+        node.classList.remove('watchlist-filter-hidden');
+    });
+    rosterGrid.querySelectorAll('.watchlist-locate-target').forEach((node) => {
+        node.classList.remove('watchlist-locate-target');
+    });
+    state.watchlistIsolatePlayerId = null;
+}
+
+function buildWatchlistRenderableRows() {
+    const staleIds = [];
+    const rows = [];
+    const positionOrder = { QB: 0, RB: 1, WR: 2, TE: 3 };
+
+    (state.watchlistPlayerIds || new Set()).forEach((watchlistedId) => {
+        const playerId = String(watchlistedId || '').trim();
+        if (!playerId) return;
+
+        const sleeperPlayer = state.players?.[playerId];
+        if (!sleeperPlayer) {
+            staleIds.push(playerId);
+            return;
+        }
+
+        const firstName = (sleeperPlayer.first_name || '').trim();
+        const lastName = (sleeperPlayer.last_name || '').trim();
+        const fullName = `${firstName} ${lastName}`.trim() || playerId;
+        const basePos = (sleeperPlayer.position || '').toUpperCase() || '?';
+        const rosterPlayer = getPlayerData(playerId, basePos);
+
+        rows.push({
+            id: playerId,
+            pos: basePos,
+            sortWeight: Number.isFinite(positionOrder[basePos]) ? positionOrder[basePos] : 99,
+            sortName: fullName,
+            search: `${fullName} ${rosterPlayer.name || ''} ${sleeperPlayer.team || ''} ${basePos}`.toLowerCase(),
+            rosterPlayer: {
+                ...rosterPlayer,
+                id: playerId,
+                pos: rosterPlayer.pos || basePos,
+                team: rosterPlayer.team || sleeperPlayer.team || 'FA',
+                first_name: sleeperPlayer.first_name || '',
+                last_name: sleeperPlayer.last_name || '',
+                full_name: fullName
+            }
+        });
+    });
+
+    if (staleIds.length) {
+        staleIds.forEach((playerId) => state.watchlistPlayerIds.delete(playerId));
+        persistWatchlistForUsername();
+        updateWatchlistButtonState();
+    }
+
+    return rows
+        .sort((a, b) => {
+            if (a.sortWeight !== b.sortWeight) return a.sortWeight - b.sortWeight;
+            return a.sortName.localeCompare(b.sortName);
+        });
+}
+
+function renderWatchlistModal() {
+    if (pageType !== 'rosters' || !watchlistGrid) return;
+
+    const allRows = buildWatchlistRenderableRows();
+    const normalizedSearch = String(state.watchlistSearchTerm || '').trim().toLowerCase();
+    const posFilter = state.watchlistPositionFilter || 'ALL';
+
+    watchlistModal?.querySelectorAll('.watchlist-pos-btn').forEach((button) => {
+        const isActive = button.dataset.watchlistPos === posFilter;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    const filteredRows = allRows.filter((row) => {
+        const matchesSearch = !normalizedSearch || row.search.includes(normalizedSearch);
+        const matchesPosition = posFilter === 'ALL' || row.pos === posFilter;
+        return matchesSearch && matchesPosition;
+    });
+
+    watchlistGrid.innerHTML = '';
+
+    if (watchlistModalSubtitle) {
+        const total = allRows.length;
+        const shown = filteredRows.length;
+        const username = state.watchlistUsername || getNormalizedActiveUsername();
+        const usernameLabel = username ? `@${username}` : 'active user';
+        watchlistModalSubtitle.textContent = total === 0
+            ? `No players tracked yet for ${usernameLabel}. Add players from Game Logs.`
+            : `Showing ${shown} of ${total} watchlisted players for ${usernameLabel}.`;
+    }
+
+    if (!filteredRows.length) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'watchlist-empty-state';
+        const hasFilters = Boolean(normalizedSearch) || posFilter !== 'ALL';
+        emptyState.innerHTML = hasFilters
+            ? '<strong>No watchlist matches</strong><br/>Adjust search or position filters.'
+            : '<strong>Your watchlist is empty</strong><br/>Open a player game log and tap the + icon to track them.';
+        watchlistGrid.appendChild(emptyState);
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    filteredRows.forEach((rowData) => {
+        const card = document.createElement('article');
+        card.className = 'watchlist-card';
+
+        // Reuse Rosters card row renderer so watchlist cards keep the same player identity styling.
+        const playerRow = createPlayerRow(rowData.rosterPlayer, '__watchlist__');
+        const originalNameNode = playerRow.querySelector('.player-name-clickable');
+        if (originalNameNode) {
+            const nameNode = originalNameNode.cloneNode(true);
+            nameNode.style.cursor = 'pointer';
+            originalNameNode.replaceWith(nameNode);
+            nameNode.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                closeWatchlistModal();
+                handlePlayerNameClick(rowData.rosterPlayer);
+            });
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'watchlist-card-actions';
+
+        const filterButton = document.createElement('button');
+        filterButton.type = 'button';
+        filterButton.className = 'watchlist-action-btn watchlist-filter-btn';
+        filterButton.dataset.playerId = rowData.id;
+        filterButton.innerHTML = '<i class="fa-solid fa-crosshairs" aria-hidden="true"></i><span>Filter</span>';
+
+        const ownershipButton = document.createElement('button');
+        ownershipButton.type = 'button';
+        ownershipButton.className = 'watchlist-action-btn watchlist-ownership-btn';
+        ownershipButton.dataset.playerId = rowData.id;
+        ownershipButton.innerHTML = '<i class="fa-solid fa-percent" aria-hidden="true"></i><span>Ownership</span>';
+
+        actions.appendChild(filterButton);
+        actions.appendChild(ownershipButton);
+        card.appendChild(playerRow);
+        card.appendChild(actions);
+        fragment.appendChild(card);
+    });
+
+    watchlistGrid.appendChild(fragment);
+}
+
+function openWatchlistModal() {
+    if (pageType !== 'rosters' || !watchlistModal) return;
+
+    const username = ensureWatchlistContextForActiveUsername();
+    if (!username) {
+        showTemporaryTooltip(watchlistOpenButton || document.body, 'Enter a Sleeper username to use watchlist.');
+        return;
+    }
+
+    watchlistModal.classList.remove('hidden');
+    watchlistModal.setAttribute('aria-hidden', 'false');
+    renderWatchlistModal();
+
+    window.requestAnimationFrame(() => {
+        try {
+            watchlistSearchInput?.focus({ preventScroll: true });
+        } catch (error) {
+            watchlistSearchInput?.focus();
+        }
+    });
+}
+
+function closeWatchlistModal() {
+    if (pageType !== 'rosters' || !watchlistModal) return;
+    watchlistModal.classList.add('hidden');
+    watchlistModal.setAttribute('aria-hidden', 'true');
+}
+
+function toggleWatchlistPlayer(playerId) {
+    if (pageType !== 'rosters') return false;
+
+    const normalizedPlayerId = String(playerId || '').trim();
+    if (!normalizedPlayerId) return false;
+
+    const username = ensureWatchlistContextForActiveUsername();
+    if (!username) {
+        showTemporaryTooltip(modalWatchlistToggle || watchlistOpenButton || document.body, 'Enter a Sleeper username to save watchlist.');
+        return false;
+    }
+
+    if (state.watchlistPlayerIds.has(normalizedPlayerId)) {
+        state.watchlistPlayerIds.delete(normalizedPlayerId);
+    } else {
+        state.watchlistPlayerIds.add(normalizedPlayerId);
+    }
+
+    persistWatchlistForUsername(username);
+    updateWatchlistButtonState();
+    syncGameLogsWatchlistToggle(normalizedPlayerId);
+
+    if (watchlistModal && !watchlistModal.classList.contains('hidden')) {
+        renderWatchlistModal();
+    }
+
+    return state.watchlistPlayerIds.has(normalizedPlayerId);
+}
+
+function isolateAndLocatePlayerInRoster(playerId, options = {}) {
+    if (pageType !== 'rosters' || !rosterGrid) return false;
+
+    const normalizedPlayerId = String(playerId || '').trim();
+    if (!normalizedPlayerId) return false;
+
+    const tooltipAnchor = options.tooltipAnchor || watchlistOpenButton || document.body;
+    const hasPlayerInCurrentLeague = Array.isArray(state.currentTeams)
+        && state.currentTeams.some((team) => Array.isArray(team.allPlayers)
+            && team.allPlayers.some((player) => String(player?.id || '') === normalizedPlayerId));
+
+    if (!hasPlayerInCurrentLeague) {
+        showTemporaryTooltip(tooltipAnchor, 'Player is not rostered in this league.');
+        return false;
+    }
+
+    // Watchlist isolate targets roster rows only, so conflicting compare/search/start-sit filters are reset first.
+    if (state.isStartSitMode) exitStartSitMode();
+    if (state.isCompareMode) handleClearCompare();
+    if (state.activePositions.size > 0) handleClearFilters();
+    if (compareSearchInput?.value) {
+        compareSearchInput.value = '';
+        filterTeamsByQuery('');
+        closeCompareSearch();
+    }
+
+    clearWatchlistIsolateView();
+
+    const playerRows = Array.from(rosterGrid.querySelectorAll('.player-row'));
+    const matchingRows = playerRows.filter((row) => String(row.dataset.assetId || '') === normalizedPlayerId);
+    if (!matchingRows.length) {
+        showTemporaryTooltip(tooltipAnchor, 'Unable to locate player in this view.');
+        return false;
+    }
+
+    const matchingSet = new Set(matchingRows);
+    playerRows.forEach((row) => {
+        row.classList.toggle('watchlist-filter-hidden', !matchingSet.has(row));
+    });
+    rosterGrid.querySelectorAll('.pick-row').forEach((row) => {
+        row.classList.add('watchlist-filter-hidden');
+    });
+    rosterGrid.querySelectorAll('.roster-section').forEach((section) => {
+        const hasVisiblePlayer = section.querySelector('.player-row:not(.watchlist-filter-hidden)');
+        section.classList.toggle('watchlist-filter-hidden', !hasVisiblePlayer);
+    });
+    rosterGrid.querySelectorAll('.roster-column').forEach((column) => {
+        const hasVisiblePlayer = column.querySelector('.player-row:not(.watchlist-filter-hidden)');
+        column.classList.toggle('watchlist-filter-hidden', !hasVisiblePlayer);
+    });
+
+    const targetRow = matchingRows[0];
+    targetRow.classList.add('watchlist-locate-target');
+    state.watchlistIsolatePlayerId = normalizedPlayerId;
+    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    return true;
+}
+
 const TAG_COLORS = { QB: "var(--pos-qb)", RB: "var(--pos-rb)", WR: "var(--pos-wr)", TE: "var(--pos-te)", BN: "var(--pos-bn)", TX: "var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
 const INJURY_DESIGNATION_COLORS = {
     'IR': '#d93d76',
@@ -702,9 +1142,82 @@ if (pageType === 'rosters') {
     positionalFiltersContainer?.addEventListener('click', handlePositionFilter);
     clearFiltersButton?.addEventListener('click', handleClearFilters);
     startSitButton?.addEventListener('click', handleStartSitButtonClick);
+
+    // Rosters watchlist controls:
+    // opens/closes modal, updates search/filter state, and wires per-card Filter/Ownership actions.
+    watchlistOpenButton?.addEventListener('click', () => {
+        openWatchlistModal();
+    });
+    watchlistModalClose?.addEventListener('click', () => {
+        closeWatchlistModal();
+    });
+    watchlistModal?.querySelector('.modal-overlay')?.addEventListener('click', () => {
+        closeWatchlistModal();
+    });
+    watchlistSearchInput?.addEventListener('input', (event) => {
+        state.watchlistSearchTerm = String(event.target?.value || '');
+        renderWatchlistModal();
+    });
+    watchlistModal?.querySelector('.watchlist-pos-filter')?.addEventListener('click', (event) => {
+        const posButton = event.target.closest('.watchlist-pos-btn[data-watchlist-pos]');
+        if (!posButton) return;
+        state.watchlistPositionFilter = posButton.dataset.watchlistPos || 'ALL';
+        renderWatchlistModal();
+    });
+    watchlistResetViewButton?.addEventListener('click', () => {
+        clearWatchlistIsolateView();
+    });
+    watchlistClearAllButton?.addEventListener('click', () => {
+        if (!state.watchlistPlayerIds?.size) return;
+        state.watchlistPlayerIds.clear();
+        persistWatchlistForUsername();
+        updateWatchlistButtonState();
+        syncGameLogsWatchlistToggle(state.currentGameLogsPlayerId);
+        renderWatchlistModal();
+    });
+    watchlistGrid?.addEventListener('click', async (event) => {
+        const actionButton = event.target.closest('.watchlist-action-btn[data-player-id]');
+        if (!actionButton) return;
+        const playerId = String(actionButton.dataset.playerId || '').trim();
+        if (!playerId) return;
+
+        if (actionButton.classList.contains('watchlist-filter-btn')) {
+            const didLocate = isolateAndLocatePlayerInRoster(playerId, { tooltipAnchor: actionButton });
+            if (didLocate) {
+                closeWatchlistModal();
+            }
+            return;
+        }
+
+        if (actionButton.classList.contains('watchlist-ownership-btn')) {
+            closeWatchlistModal();
+            await openOwnershipPlayerModal(playerId);
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && watchlistModal && !watchlistModal.classList.contains('hidden')) {
+            closeWatchlistModal();
+        }
+    });
+
+    updateWatchlistButtonState();
+    syncGameLogsWatchlistToggle(null);
+
     if (gameLogsModal) {
         modalCloseBtn.addEventListener('click', () => closeModal());
         modalOverlay.addEventListener('click', () => closeModal());
+
+        // Game logs watchlist toggle:
+        // lets users add/remove the currently opened player from username-scoped watchlist.
+        modalWatchlistToggle?.addEventListener('click', () => {
+            if (!state.currentGameLogsPlayerId) return;
+            const isNowWatchlisted = toggleWatchlistPlayer(state.currentGameLogsPlayerId);
+            showTemporaryTooltip(
+                modalWatchlistToggle,
+                isNowWatchlisted ? 'Added to watchlist.' : 'Removed from watchlist.'
+            );
+        });
 
         // GL/SZN view switcher (SZN replaces game logs table in-place)
         const viewSwitcher = gameLogsModal.querySelector('.gamelogs-view-switcher');
@@ -949,14 +1462,17 @@ if (pageType === 'stats' && gameLogsModal) {
     }
 }
 
-// Ownership-only UI wiring: mode switcher + ownership detail modal interactions.
-if (pageType === 'ownership') {
-    ownershipModeSwitcher?.addEventListener('click', (event) => {
-        const modeBtn = event.target.closest('.ownership-mode-btn[data-ownership-mode]');
-        if (!modeBtn) return;
-        const nextMode = modeBtn.dataset.ownershipMode;
-        setOwnershipMode(nextMode);
-    });
+// Ownership modal UI wiring:
+// close interactions are enabled on both Ownership and Rosters pages because watchlist cards can open this modal.
+if (pageType === 'ownership' || pageType === 'rosters') {
+    if (pageType === 'ownership') {
+        ownershipModeSwitcher?.addEventListener('click', (event) => {
+            const modeBtn = event.target.closest('.ownership-mode-btn[data-ownership-mode]');
+            if (!modeBtn) return;
+            const nextMode = modeBtn.dataset.ownershipMode;
+            setOwnershipMode(nextMode);
+        });
+    }
 
     // Ownership modal close controls:
     // supports click/tap/pointer interactions so close works reliably on mobile and desktop.
@@ -1265,6 +1781,9 @@ async function handleFetchRosters() {
     setLoading(true, 'Fetching user leagues...');
     try {
         await fetchAndSetUser(username);
+        // Watchlist persistence is username-scoped, so reload as soon as the active user resolves.
+        loadWatchlistForUsername(username);
+        clearWatchlistIsolateView();
         const leagues = await fetchUserLeagues(state.userId);
         state.leagues = leagues.sort((a, b) => a.name.localeCompare(b.name));
         adjustStickyHeaders(); // Recalculate header height for correct padding
@@ -1370,6 +1889,7 @@ async function handleLeagueSelect() {
     state.matchupDataLoaded = false; // Reset matchup data state
     state.draftOrderBySeason = {}; // Reset draft order map for pick labels/values
     handleClearCompare();
+    clearWatchlistIsolateView();
     const leagueInfo = state.leagues.find(l => l.league_id === leagueId);
     const leagueName = leagueInfo?.name || 'league';
     setLoading(true, `Loading ${leagueName}...`);
@@ -1905,6 +2425,18 @@ if (pageType === 'ownership') {
         if (e.key !== 'Enter') return;
         e.preventDefault();
         await handleFetchOwnership();
+        try { usernameInput.blur(); } catch (err) { }
+    });
+}
+
+// Rosters page username submit:
+// reloads leagues for the active username and refreshes username-scoped watchlist state.
+if (pageType === 'rosters') {
+    usernameInput?.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        clearWatchlistIsolateView();
+        await handleFetchRosters();
         try { usernameInput.blur(); } catch (err) { }
     });
 }
@@ -3963,6 +4495,12 @@ function getPickData(pick, leagueInfo) {
 // --- UI Rendering ---
 async function handlePlayerNameClick(player) {
     const requestSeq = ++gameLogsModalRequestSeq;
+    const normalizedPlayerId = String(player?.id || '').trim();
+    if (pageType === 'rosters') {
+        ensureWatchlistContextForActiveUsername();
+        state.currentGameLogsPlayerId = normalizedPlayerId || null;
+        syncGameLogsWatchlistToggle(state.currentGameLogsPlayerId);
+    }
     state.currentGameLogsPlayer = null;
     state.currentGameLogsPlayerRanks = null;
     state.currentGameLogsSummary = null;
@@ -4031,6 +4569,9 @@ async function handlePlayerNameClick(player) {
         : calculatePlayerStatsAndRanks(player.id);
     if (isStaleRequest()) return;
     await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
+    if (pageType === 'rosters') {
+        syncGameLogsWatchlistToggle(normalizedPlayerId);
+    }
 }
 function getOpponentRankColor(rank) {
     const numericRank = typeof rank === 'number' ? rank : parseFloat(rank);
@@ -7112,10 +7653,10 @@ function renderTradeBlock() {
     });
     mainContent.style.paddingBottom = `${tradeSimulator.offsetHeight + 20}px`;
 }
-// --- Ownership page module ---
-// This module is intentionally scoped to the Ownership page so no other page behavior changes.
+// --- Ownership data module ---
+// Ownership context powers both the Ownership page and Rosters watchlist ownership modal without affecting other pages.
 async function loadOwnershipContextForUser() {
-    if (pageType !== 'ownership') return null;
+    if (pageType !== 'ownership' && pageType !== 'rosters') return null;
     const cacheKey = `${state.userId || ''}`;
     if (state.ownershipContext?.cacheKey === cacheKey && Array.isArray(state.ownershipContext.leagues) && state.ownershipContext.leagues.length) {
         return state.ownershipContext;
@@ -8365,12 +8906,53 @@ function renderOwnershipModalLeagueOwnerList(playerId) {
     `;
 }
 
-function openOwnershipPlayerModal(playerId) {
-    if (pageType !== 'ownership' || !ownershipPlayerModal || !playerId) return;
-    renderOwnershipModalHeaderSummary(playerId);
-    renderOwnershipModalLeagueOwnerList(playerId);
+async function openOwnershipPlayerModal(playerId) {
+    if ((pageType !== 'ownership' && pageType !== 'rosters') || !ownershipPlayerModal || !playerId) return;
+
+    const normalizedPlayerId = String(playerId || '').trim();
+    if (!normalizedPlayerId) return;
+
+    const sleeperPlayer = state.players?.[normalizedPlayerId];
+    const fallbackName = sleeperPlayer
+        ? `${(sleeperPlayer.first_name || '').trim()} ${(sleeperPlayer.last_name || '').trim()}`.trim()
+        : 'Player Ownership Details';
+
     ownershipPlayerModal.classList.remove('hidden');
     ownershipPlayerModal.setAttribute('aria-hidden', 'false');
+
+    if (ownershipModalPlayerName) {
+        ownershipModalPlayerName.textContent = fallbackName || 'Player Ownership Details';
+    }
+    if (ownershipModalHeaderLeft) ownershipModalHeaderLeft.innerHTML = '';
+    if (ownershipModalPlayerVitals) ownershipModalPlayerVitals.innerHTML = '';
+    if (ownershipModalSummaryChips) ownershipModalSummaryChips.innerHTML = '';
+    if (ownershipModalBody) {
+        ownershipModalBody.innerHTML = '<p class="ownership-modal-empty">Loading ownership data...</p>';
+    }
+
+    try {
+        if (!state.userId) {
+            throw new Error('A valid user must be loaded before opening ownership modal.');
+        }
+
+        await loadOwnershipContextForUser();
+
+        if (!state.ownershipContext?.leagues?.length) {
+            if (ownershipModalBody) {
+                ownershipModalBody.innerHTML = '<p class="ownership-modal-empty">No ownership leagues available for this user.</p>';
+            }
+            renderOwnershipModalHeaderSummary(normalizedPlayerId);
+            return;
+        }
+
+        renderOwnershipModalHeaderSummary(normalizedPlayerId);
+        renderOwnershipModalLeagueOwnerList(normalizedPlayerId);
+    } catch (error) {
+        console.warn('Failed to open ownership modal:', error);
+        if (ownershipModalBody) {
+            ownershipModalBody.innerHTML = '<p class="ownership-modal-warning">Unable to load ownership data right now.</p>';
+        }
+    }
 }
 
 function closeOwnershipPlayerModal() {
@@ -8989,7 +9571,7 @@ function getLeagueAbbr(name) {
 function getLeagueColor(abbr) { if (!assignedLeagueColors.has(abbr)) { assignedLeagueColors.set(abbr, LEAGUE_COLOR_PALETTE[nextColorIndex % LEAGUE_COLOR_PALETTE.length]); nextColorIndex++; } return assignedLeagueColors.get(abbr); }
 function getRyColor(year) { if (!assignedRyColors.has(year)) { assignedRyColors.set(year, RY_COLOR_PALETTE[nextRyColorIndex % RY_COLOR_PALETTE.length]); nextRyColorIndex++; } return assignedRyColors.get(year); }
 function ordinalSuffix(i) { const j = i % 10, k = i % 100; if (j === 1 && k !== 11) return i + 'st'; if (j === 2 && k !== 12) return i + 'nd'; if (j === 3 && k !== 13) return i + 'rd'; return i + 'th'; }
-if (pageType === 'ownership') {
+if (pageType === 'ownership' || pageType === 'rosters') {
     try { window.closeOwnershipPlayerModal = closeOwnershipPlayerModal; } catch (e) { }
 }
 // --- Utility Functions ---
@@ -9164,6 +9746,10 @@ function closeModal() {
     state.currentGameLogsPlayer = null;
     state.currentGameLogsPlayerRanks = null;
     state.currentGameLogsSummary = null;
+    state.currentGameLogsPlayerId = null;
+    if (pageType === 'rosters') {
+        syncGameLogsWatchlistToggle(null);
+    }
 
     if (!state.isGameLogModalOpenFromComparison) {
         closeComparisonModal();
