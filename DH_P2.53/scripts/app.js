@@ -1119,9 +1119,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         usernameInput.value = uname;
         if (pageType === 'rosters') {
             await handleFetchRosters();
-            // Load watchlist from localStorage after rosters are initialized
-            loadWatchlist();
-            updateWatchlistBadge();
         } else if (pageType === 'ownership') {
             await handleFetchOwnership();
         }
@@ -9497,7 +9494,7 @@ if (pageType === 'rosters') {
             closeWatchlistModal();
             // Brief delay to let modal close animation finish
             setTimeout(() => {
-                const playerRow = document.querySelector(`.player-row[data-player-id="${pid}"], .player-card[data-player-id="${pid}"]`);
+                const playerRow = document.querySelector(`.player-row[data-asset-id="${pid}"], .player-card[data-asset-id="${pid}"], .player-row[data-player-id="${pid}"], .player-card[data-player-id="${pid}"]`);
                 if (playerRow) {
                     playerRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Add highlight pulse
@@ -9516,6 +9513,7 @@ if (pageType === 'rosters') {
             // Show loading state on button
             const btn = target;
             const originalHTML = btn.innerHTML;
+            btn.classList.add('is-loading');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading…';
             btn.disabled = true;
 
@@ -9530,6 +9528,7 @@ if (pageType === 'rosters') {
             } catch (err) {
                 showTemporaryTooltip(btn, 'Failed to load ownership data');
             } finally {
+                btn.classList.remove('is-loading');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }

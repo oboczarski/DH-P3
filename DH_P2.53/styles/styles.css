@@ -13978,6 +13978,15 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex-shrink: 0;
 }
 
+.watchlist-card .wl-pos-tag.QB { background: rgba(255, 178, 216, 0.92); color: #1e1b2e; }
+.watchlist-card .wl-pos-tag.RB { background: rgba(187, 247, 224, 0.92); color: #10271f; }
+.watchlist-card .wl-pos-tag.WR { background: rgba(160, 194, 247, 0.92); color: #13233f; }
+.watchlist-card .wl-pos-tag.TE { background: rgba(255, 199, 138, 0.92); color: #3b2b12; }
+.watchlist-card .wl-pos-tag:not(.QB):not(.RB):not(.WR):not(.TE) {
+  background: rgba(148, 163, 184, 0.9);
+  color: #0f172a;
+}
+
 .watchlist-card .wl-player-name {
   font-family: var(--font-display, 'Quicksand', sans-serif);
   font-size: 0.82rem;
@@ -14013,6 +14022,33 @@ body[data-page="rosters"] #bottom-menu-panel {
   vertical-align: middle;
 }
 
+.watchlist-card .wl-fa-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 0.28rem;
+  border-radius: 0.22rem;
+  background: rgba(100, 116, 139, 0.35);
+  color: rgba(226, 232, 240, 0.95);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.watchlist-card .wl-team-abbr {
+  font-weight: 600;
+  color: rgba(234, 235, 240, 0.72);
+}
+
+.watchlist-card .wl-pos-rank {
+  margin-left: auto;
+  color: rgba(144, 150, 192, 0.88);
+  font-weight: 600;
+  font-size: 0.63rem;
+}
+
 .watchlist-card .wl-value-line {
   display: flex;
   align-items: center;
@@ -14022,6 +14058,26 @@ body[data-page="rosters"] #bottom-menu-panel {
   padding-top: 0.2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   margin-bottom: 0.3rem;
+}
+
+.watchlist-card .wl-value-line .wl-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  color: rgba(234, 235, 240, 0.8);
+}
+
+.watchlist-card .wl-value-line .wl-stat strong {
+  color: rgba(234, 235, 240, 0.92);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.watchlist-card .wl-value-line .wl-stat small {
+  color: rgba(144, 150, 192, 0.72);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .watchlist-card .wl-value-line .value {
