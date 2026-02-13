@@ -13819,6 +13819,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex-direction: column;
   border-radius: var(--panel-border-radius, 12px);
   overflow: hidden;
+  padding: 0.65rem 0.25rem 0.25rem 0.25rem;
 }
 
 /* Watchlist modal header: title + position filter chips + count */
@@ -14128,8 +14129,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0;
+  gap: 0.2rem;
+  padding: 0.25rem 0.1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0.35rem;
   background: rgba(255, 255, 255, 0.03);
@@ -14137,7 +14138,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   font-family: var(--font-display, 'Quicksand', sans-serif);
   font-size: 0.62rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0rem;
   cursor: pointer;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
