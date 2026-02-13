@@ -13407,17 +13407,18 @@ body[data-page="rosters"] #watchlistModal .watchlist-action-btn {
   min-height: 1.82rem;
   border-radius: 9px;
   border: 1px solid rgba(177, 188, 244, 0.26);
-  background: rgba(19, 23, 43, 0.5);
+  background: rgb(128 136 175 / 14%);
   color: rgba(199, 208, 243, 0.95);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
   transition: filter 0.16s ease, border-color 0.16s ease, box-shadow 0.2s ease;
+  box-shadow: inset 1px 9px 9px -4px #aaf3;
 }
 
 body[data-page="rosters"] #watchlistModal .watchlist-filter-btn {
