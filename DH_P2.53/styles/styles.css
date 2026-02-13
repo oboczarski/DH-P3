@@ -13736,8 +13736,8 @@ body[data-page="rosters"] #bottom-menu-panel {
    ============================================================================ */
 #watchlist-modal-toggle {
   position: absolute;
-  top: 0.3rem;
-  right: 2.4rem;
+  top: 0.6rem;
+  right: 2.9rem;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -13914,9 +13914,10 @@ body[data-page="rosters"] #bottom-menu-panel {
   gap: 0.65rem;
 }
 
+/* Always 2 columns even on narrow screens — cards shrink rather than stack */
 @media (max-width: 400px) {
   .watchlist-card-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -13972,39 +13973,39 @@ body[data-page="rosters"] #bottom-menu-panel {
   padding-right: 1.2rem; /* space for remove button */
 }
 
+/* Position tag: matches the rosters page .player-tag styling (TAG_COLORS via CSS vars, dark text) */
 .watchlist-card .wl-pos-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.6rem;
-  height: 1.1rem;
   font-size: 0.55rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #fff;
-  border-radius: 0.2rem;
-  padding: 0 0.25rem;
+  padding: 1px 3px;
+  border-radius: 4px;
+  color: var(--color-bg, #0f0f1a);
+  line-height: 1;
   flex-shrink: 0;
 }
 
-.watchlist-card .wl-pos-tag.QB { background: rgba(255, 178, 216, 0.92); color: #1e1b2e; }
-.watchlist-card .wl-pos-tag.RB { background: rgba(187, 247, 224, 0.92); color: #10271f; }
-.watchlist-card .wl-pos-tag.WR { background: rgba(160, 194, 247, 0.92); color: #13233f; }
-.watchlist-card .wl-pos-tag.TE { background: rgba(255, 199, 138, 0.92); color: #3b2b12; }
+/* Position colors match rosters TAG_COLORS (CSS variables) */
+.watchlist-card .wl-pos-tag.QB { background-color: var(--pos-qb); }
+.watchlist-card .wl-pos-tag.RB { background-color: var(--pos-rb); }
+.watchlist-card .wl-pos-tag.WR { background-color: var(--pos-wr); }
+.watchlist-card .wl-pos-tag.TE { background-color: var(--pos-te); }
 .watchlist-card .wl-pos-tag:not(.QB):not(.RB):not(.WR):not(.TE) {
-  background: rgba(148, 163, 184, 0.9);
-  color: #0f172a;
+  background-color: var(--pos-bn, rgba(148, 163, 184, 0.9));
 }
 
+/* Player name: reduced font size (0.72rem) to prevent horizontal scroll on narrow screens */
 .watchlist-card .wl-player-name {
   font-family: var(--font-display, 'Quicksand', sans-serif);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 500;
   color: var(--color-text-primary, #EAEBF0);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   transition: color 0.15s ease;
 }
 
@@ -14092,6 +14093,28 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-card .wl-value-line .value {
   color: var(--color-text-secondary, #9096C0);
   font-weight: 600;
+}
+
+/* KTC rank display: ordinal rank + parenthesised value (mimics rosters page default layout) */
+.watchlist-card .wl-ktc-rank {
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.watchlist-card .wl-ktc-rank-suffix {
+  font-size: 0.5rem;
+  font-weight: 600;
+}
+
+.watchlist-card .wl-ktc-val-parens {
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
+/* Age in meta line: color set inline by getAgeColorForRoster */
+.watchlist-card .wl-age {
+  font-weight: 600;
+  font-size: 0.66rem;
 }
 
 /* Action buttons row beneath each card */
@@ -14190,6 +14213,7 @@ body[data-page="rosters"] #bottom-menu-panel {
    WATCHLIST FILTER/LOCATE HIGHLIGHT
    Pulsing glow applied to a player-row when located from the watchlist.
    ============================================================================ */
+/* Highlight pulse: plays 3 iterations (total ~4.5s) for longer visibility after Find */
 @keyframes watchlistHighlightPulse {
   0% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45); }
   50% { box-shadow: 0 0 14px 4px rgba(118, 109, 255, 0.35); }
@@ -14197,15 +14221,14 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 .watchlist-highlight {
-  animation: watchlistHighlightPulse 1.5s ease-out;
+  animation: watchlistHighlightPulse 1.5s ease-out 3;
   border-radius: var(--card-border-radius, 8px);
 }
 
 /* ============================================================================
-   OWNERSHIP MODAL ON ROSTERS PAGE
-   The ownership modal HTML is duplicated on rosters.html for the watchlist flow.
-   ownership.css scopes to body[data-page="ownership"], so we add rosters-page
-   overrides here for the modal-specific styles only.
+   OWNERSHIP MODAL ON ROSTERS PAGE (watchlist flow)
+   Mirrors the ownership page (.ownership.css) modal styling so both modals
+   look identical regardless of which page the user is on.
    ============================================================================ */
 body[data-page="rosters"] #ownershipPlayerModal {
   position: fixed;
@@ -14231,21 +14254,26 @@ body[data-page="rosters"] #ownershipPlayerModal > .modal-overlay {
   -webkit-backdrop-filter: blur(6px);
 }
 
+/* Modal content: match ownership page gradient + border + box-shadow */
 body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-content {
   position: relative;
   z-index: 1101;
-  width: 92%;
-  max-width: 520px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--panel-border-radius, 12px);
+  opacity: 1;
+  transform: none;
+  width: min(94vw, 500px);
+  max-height: 90vh;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid var(--ownership-glass-border, rgba(183, 194, 246, 0.18));
+  background: linear-gradient(165deg, rgb(77 86 120 / 82%), rgb(63 67 88 / 29%));
+  box-shadow: 0 28px 65px rgba(4, 8, 24, 0.62), inset 0 0 24px rgba(120, 100, 255, 0.07);
   overflow: hidden;
+  padding: 0.75rem 0.85rem 0.78rem;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-header {
-  padding: 1rem 1rem 0.5rem;
   text-align: center;
+  padding-top: 0.12rem;
   position: relative;
 }
 
@@ -14259,108 +14287,162 @@ body[data-page="rosters"] #ownershipPlayerModal .modal-header-left-container {
 }
 
 body[data-page="rosters"] #ownershipPlayerModal #ownershipModalPlayerName {
-  font-size: 1.1rem;
+  margin: 0 0 0.14rem;
+  font-size: 1.07rem;
   font-weight: 200;
-  color: var(--color-text-primary, #EAEBF0);
-  margin-bottom: 0.15rem;
+  letter-spacing: 0.02em;
+  color: #eef3ff;
 }
 
-body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0.5rem 0.75rem 1rem;
-}
-
-body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-close {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.45rem;
-}
-
-body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.55rem;
-  text-align: center;
-  min-width: 4rem;
-}
-
-body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip h4 {
-  font-size: 0.78rem;
-  font-weight: 300;
-  margin: 0 0 0.15rem;
-}
-
-body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-values {
-  font-size: 0.65rem;
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalPlayerVitals {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.45rem;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryChips {
   display: flex;
+  gap: 0.78rem;
+  width: 100%;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 13px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-values {
+  display: flex;
   justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.35rem;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-body {
+  border-top: 1px solid rgba(183, 194, 246, 0.22);
+  padding-top: 0.55rem;
+  max-height: calc(90vh - 220px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-close {
+  position: absolute;
+  top: 0.02rem;
+  right: 0.5rem;
+  font-size: 2rem;
+  color: rgba(232, 238, 255, 0.84);
+  z-index: 3;
+  pointer-events: auto;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-league-list {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.48rem;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.45rem 0.65rem;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0.45rem;
-  transition: background 0.15s ease;
+  gap: 0.7rem;
+  padding: 0.52rem 0.62rem;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 197, 248, 0.2);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #ee4bff2e);
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-meta {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   min-width: 0;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-abbr {
-  font-weight: 700;
-  font-size: 0.8rem;
-  flex-shrink: 0;
+  font-size: 0.73rem;
+  font-weight: 720;
+  letter-spacing: 0.05em;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-name {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.6);
-  white-space: nowrap;
+  color: #d2dbfb;
+  font-size: 0.74rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  white-space: nowrap;
+  max-width: 48vw;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-owner {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-weight: 670;
+  color: #eef2ff;
+  text-align: right;
 }
 
-body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-you .ownership-league-owner {
-  color: #a5b4fc;
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-you {
+  border-color: rgba(101, 236, 191, 0.36);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #6100ffbf);
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-other {
+  border-color: rgba(147, 161, 239, 0.32);
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-none {
-  opacity: 0.45;
+  border-color: rgba(189, 197, 238, 0.2);
+  background: rgba(20, 24, 42, 0.52);
+  opacity: 0.92;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  padding: 0.7rem 0;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-warning {
@@ -14368,4 +14450,28 @@ body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-warning {
   font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.35);
   text-align: center;
+}
+
+/* Responsive: narrow screens reduce spacing/padding in ownership modal on rosters */
+@media (max-width: 680px) {
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-content {
+    width: min(96vw, 640px);
+    padding: 0.68rem 0.62rem 0.68rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryChips {
+    gap: 0.4rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
+    padding: 0.23rem 0.5rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-league-name {
+    max-width: 39vw;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-league-owner {
+    font-size: 0.71rem;
+  }
 }

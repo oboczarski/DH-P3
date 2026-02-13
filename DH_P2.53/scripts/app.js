@@ -4072,14 +4072,15 @@ async function handlePlayerNameClick(player) {
     if (existingHeaderContainer) existingHeaderContainer.remove();
 
     // === Watchlist toggle (Rosters page): update icon/state for the current player ===
+    // Default (not watchlisted): user-plus icon | Toggled (watchlisted): user-check icon
     if (watchlistModalToggle && pageType === 'rosters') {
         const pid = String(player.id);
         watchlistModalToggle.dataset.playerId = pid;
         const onList = isInWatchlist(pid);
         watchlistModalToggle.classList.toggle('is-watchlisted', onList);
         watchlistModalToggle.innerHTML = onList
-            ? '<i class="fa-solid fa-bookmark"></i>'
-            : '<i class="fa-regular fa-bookmark"></i>';
+            ? '<i class="fa-solid fa-user-check"></i>'
+            : '<i class="fa-solid fa-user-plus"></i>';
         watchlistModalToggle.title = onList ? 'Remove from Watchlist' : 'Add to Watchlist';
         watchlistModalToggle.classList.remove('hidden');
     }
@@ -9282,7 +9283,8 @@ function closeModal() {
 }
 
 // === Watchlist Toggle Handler (inside game-logs modal) ===
-// Toggles the current player on/off the watchlist when the bookmark icon is tapped.
+// Toggles the current player on/off the watchlist.
+// Default (not watchlisted): user-plus icon | Toggled (watchlisted): user-check icon
 if (watchlistModalToggle) {
     watchlistModalToggle.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -9296,12 +9298,12 @@ if (watchlistModalToggle) {
             addToWatchlist(pid);
         }
 
-        // Update toggle appearance
+        // Update toggle appearance with user-plus / user-check icons
         const nowOnList = !wasOnList;
         watchlistModalToggle.classList.toggle('is-watchlisted', nowOnList);
         watchlistModalToggle.innerHTML = nowOnList
-            ? '<i class="fa-solid fa-bookmark"></i>'
-            : '<i class="fa-regular fa-bookmark"></i>';
+            ? '<i class="fa-solid fa-user-check"></i>'
+            : '<i class="fa-solid fa-user-plus"></i>';
         watchlistModalToggle.title = nowOnList ? 'Remove from Watchlist' : 'Add to Watchlist';
 
         // Brief pulse animation for visual feedback
@@ -9347,7 +9349,7 @@ function renderWatchlistCards(posFilter) {
             <div class="watchlist-empty">
                 <i class="fa-regular fa-bookmark"></i>
                 <p>No players on your watchlist yet.</p>
-                <span>Tap the <i class="fa-regular fa-bookmark"></i> icon in any player's Game Logs to add them.</span>
+                <span>Tap the <i class="fa-solid fa-user-plus"></i> icon in any player's Game Logs to add them.</span>
             </div>`;
         return;
     }
@@ -9362,6 +9364,9 @@ function renderWatchlistCards(posFilter) {
         const last = (player.last_name || '').trim();
         const fullName = `${first} ${last}`.trim() || pid;
 
+        // Truncate name after 14 characters with ".." (no ellipsis)
+        const truncatedName = fullName.length > 14 ? fullName.slice(0, 14) + '..' : fullName;
+
         // Value data (superflex preference follows page setting)
         const valueData = state.isSuperflex
             ? (state.sflxData?.[pid] || state.oneQbData?.[pid])
@@ -9369,15 +9374,27 @@ function renderWatchlistCards(posFilter) {
         const ktc = Number.isFinite(valueData?.ktc) ? Math.round(valueData.ktc) : null;
         const posRankText = valueData?.posRank || null;
 
+        // KTC positional rank number (for rank display like rosters page)
+        const ktcPosRankMatch = typeof posRankText === 'string' ? posRankText.match(/(\d+)/) : null;
+        const ktcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
+
         // Season stats
         const seasonStats = state.playerSeasonStats?.[pid] || {};
         const ppg = Number.isFinite(Number(seasonStats.ppg)) ? Number(seasonStats.ppg) : null;
+
+        // Age: prefer KTC sheet age, fall back to Sleeper player.age
+        const sflxAge = state.sflxData?.[pid]?.age;
+        const oneQbAge = state.oneQbData?.[pid]?.age;
+        const ageRaw = typeof sflxAge === 'number' ? sflxAge : (typeof oneQbAge === 'number' ? oneQbAge : null);
+        const fallbackAge = Number(player.age);
+        const ageNumber = Number.isFinite(ageRaw) ? ageRaw : (Number.isFinite(fallbackAge) ? fallbackAge : null);
+        const age = Number.isFinite(ageNumber) ? ageNumber.toFixed(1) : null;
 
         // Team logo
         const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
         const normalizedKey = logoKeyMap[team] || team.toLowerCase();
 
-        return { pid, pos, team, fullName, ktc, posRankText, ppg, normalizedKey };
+        return { pid, pos, team, fullName, truncatedName, ktc, posRankText, ktcPosRankNumber, ppg, age, ageNumber, normalizedKey };
     }).filter(Boolean);
 
     // Apply position filter
@@ -9401,10 +9418,37 @@ function renderWatchlistCards(posFilter) {
         return (b.ktc ?? 0) - (a.ktc ?? 0);
     });
 
+    // Helper: ordinal suffix for rank display (matches rosters page logic)
+    const ordSuffix = (n) => {
+        const num = Math.abs(Number(n));
+        if (!Number.isFinite(num) || Math.floor(num) !== num) return '';
+        const tens = num % 100;
+        if (tens >= 11 && tens <= 13) return 'th';
+        const ones = num % 10;
+        if (ones === 1) return 'st';
+        if (ones === 2) return 'nd';
+        if (ones === 3) return 'rd';
+        return 'th';
+    };
+
     watchlistModalBody.innerHTML = `<div class="watchlist-card-grid">${filtered.map(c => {
         const ktcDisplay = c.ktc !== null ? c.ktc : '—';
         const ppgDisplay = c.ppg !== null ? c.ppg.toFixed(1) : '—';
         const posRankDisplay = c.posRankText || '';
+
+        // KTC rank + value display matching rosters default layout: "KTC: rank(value)"
+        const ktcRankNum = Number.isFinite(c.ktcPosRankNumber) && c.ktcPosRankNumber > 0 ? c.ktcPosRankNumber : null;
+        const ktcColor = c.ktc !== null ? getKtcColor(c.ktc) : '';
+        const ktcRankHtml = ktcRankNum !== null
+            ? `<span class="wl-ktc-rank" style="color:${ktcColor}">${ktcRankNum}</span><span class="wl-ktc-rank-suffix" style="color:${ktcColor}">${ordSuffix(ktcRankNum)}</span> <span class="wl-ktc-val-parens" style="color:${ktcColor}">(${ktcDisplay})</span>`
+            : `<strong style="color:${ktcColor}">${ktcDisplay}</strong>`;
+
+        // Age display with color matching rosters getAgeColorForRoster
+        const ageColor = c.ageNumber ? getAgeColorForRoster(c.pos, c.ageNumber) : '';
+        const ageHtml = c.age !== null
+            ? `<span class="wl-age" style="color:${ageColor}">${c.age}</span> <small>y.o.</small>`
+            : '';
+
         const teamLogo = c.team !== 'FA'
             ? `<img class="team-logo glow" src="../assets/NFL-Tags_webp/${c.normalizedKey}.webp" alt="${c.team}" width="20" height="20" loading="lazy">`
             : '<span class="wl-fa-badge">FA</span>';
@@ -9415,15 +9459,16 @@ function renderWatchlistCards(posFilter) {
             </button>
             <div class="wl-main-line">
                 <span class="wl-pos-tag ${c.pos}">${c.pos}</span>
-                <span class="wl-player-name" data-pid="${c.pid}">${escapeHtml(c.fullName)}</span>
+                <span class="wl-player-name" data-pid="${c.pid}" title="${escapeHtml(c.fullName)}">${escapeHtml(c.truncatedName)}</span>
             </div>
             <div class="wl-meta-line">
                 ${teamLogo}
                 <span class="wl-team-abbr">${c.team}</span>
+                ${ageHtml ? `<span class="separator">•</span> ${ageHtml}` : ''}
                 ${posRankDisplay ? `<span class="wl-pos-rank">${posRankDisplay}</span>` : ''}
             </div>
             <div class="wl-value-line">
-                <span class="wl-stat"><strong>${ktcDisplay}</strong> <small>KTC</small></span>
+                <span class="wl-stat">${ktcRankHtml} <small>KTC</small></span>
                 <span class="wl-stat"><strong>${ppgDisplay}</strong> <small>PPG</small></span>
             </div>
             <div class="watchlist-card-actions">
@@ -9467,12 +9512,11 @@ if (pageType === 'rosters') {
 
     // Delegated click handlers for card interactions (name, remove, filter, ownership)
     watchlistModalBody?.addEventListener('click', async (e) => {
-        const target = e.target.closest('[data-pid]');
-        if (!target) return;
-        const pid = target.dataset.pid;
-
-        // --- Remove button (×) ---
-        if (target.classList.contains('watchlist-card-remove')) {
+        // --- Remove button (×): use closest() for robust delegation ---
+        const removeBtn = e.target.closest('.watchlist-card-remove');
+        if (removeBtn) {
+            const pid = removeBtn.dataset.pid;
+            if (!pid) return;
             removeFromWatchlist(pid);
             // Re-render with current filter
             const activeChip = watchlistModal.querySelector('.watchlist-filter-btn[data-watchlist-pos].is-active');
@@ -9481,7 +9525,10 @@ if (pageType === 'rosters') {
         }
 
         // --- Player name tap → open game logs ---
-        if (target.classList.contains('wl-player-name')) {
+        const nameEl = e.target.closest('.wl-player-name');
+        if (nameEl) {
+            const pid = nameEl.dataset.pid;
+            if (!pid) return;
             const player = state.players?.[pid];
             if (!player) return;
             closeWatchlistModal();
@@ -9489,17 +9536,21 @@ if (pageType === 'rosters') {
             return;
         }
 
-        // --- Filter/Locate button → scroll to player row on roster ---
-        if (target.classList.contains('watchlist-find-btn')) {
+        // --- Find/Locate button → scroll to player row on roster (center both axes) ---
+        const findBtn = e.target.closest('.watchlist-find-btn');
+        if (findBtn) {
+            const pid = findBtn.dataset.pid;
+            if (!pid) return;
             closeWatchlistModal();
             // Brief delay to let modal close animation finish
             setTimeout(() => {
                 const playerRow = document.querySelector(`.player-row[data-asset-id="${pid}"], .player-card[data-asset-id="${pid}"], .player-row[data-player-id="${pid}"], .player-card[data-player-id="${pid}"]`);
                 if (playerRow) {
-                    playerRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Add highlight pulse
+                    // Center both vertically and horizontally
+                    playerRow.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    // Add highlight pulse (3 iterations × 1.5s = 4.5s)
                     playerRow.classList.add('watchlist-highlight');
-                    setTimeout(() => playerRow.classList.remove('watchlist-highlight'), 2200);
+                    setTimeout(() => playerRow.classList.remove('watchlist-highlight'), 5000);
                 } else {
                     // Player not found on current roster view — show toast
                     showTemporaryTooltip(watchlistButton || document.body, 'Player not found on this roster');
@@ -9509,13 +9560,15 @@ if (pageType === 'rosters') {
         }
 
         // --- Ownership button → lazy-load ownership context, then open ownership modal ---
-        if (target.classList.contains('watchlist-ownership-btn')) {
+        const ownershipBtn = e.target.closest('.watchlist-ownership-btn');
+        if (ownershipBtn) {
+            const pid = ownershipBtn.dataset.pid;
+            if (!pid) return;
             // Show loading state on button
-            const btn = target;
-            const originalHTML = btn.innerHTML;
-            btn.classList.add('is-loading');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading…';
-            btn.disabled = true;
+            const originalHTML = ownershipBtn.innerHTML;
+            ownershipBtn.classList.add('is-loading');
+            ownershipBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading…';
+            ownershipBtn.disabled = true;
 
             try {
                 // Lazy-load ownership context if not already loaded
@@ -9526,11 +9579,11 @@ if (pageType === 'rosters') {
                 closeWatchlistModal();
                 openOwnershipPlayerModal(pid);
             } catch (err) {
-                showTemporaryTooltip(btn, 'Failed to load ownership data');
+                showTemporaryTooltip(ownershipBtn, 'Failed to load ownership data');
             } finally {
-                btn.classList.remove('is-loading');
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
+                ownershipBtn.classList.remove('is-loading');
+                ownershipBtn.innerHTML = originalHTML;
+                ownershipBtn.disabled = false;
             }
             return;
         }
