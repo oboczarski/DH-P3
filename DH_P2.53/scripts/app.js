@@ -9440,7 +9440,7 @@ function renderWatchlistCards(posFilter) {
         const ktcRankNum = Number.isFinite(c.ktcPosRankNumber) && c.ktcPosRankNumber > 0 ? c.ktcPosRankNumber : null;
         const ktcColor = c.ktc !== null ? getKtcColor(c.ktc) : '';
         const ktcRankHtml = ktcRankNum !== null
-            ? `<span class="wl-ktc-rank" style="color:${ktcColor}">${ktcRankNum}</span><span class="wl-ktc-rank-suffix" style="color:${ktcColor}">${ordSuffix(ktcRankNum)}</span> <span class="wl-ktc-val-parens" style="color:${ktcColor}">(${ktcDisplay})</span>`
+            ? `<span class="wl-ktc-rank-group" style="color:${ktcColor}"><span class="wl-ktc-rank">${ktcRankNum}</span><span class="wl-ktc-rank-suffix">${ordSuffix(ktcRankNum)}</span></span><span class="wl-ktc-val-parens" style="color:${ktcColor}"> (${ktcDisplay})</span>`
             : `<strong style="color:${ktcColor}">${ktcDisplay}</strong>`;
 
         // Age display with color matching rosters getAgeColorForRoster
@@ -9455,17 +9455,16 @@ function renderWatchlistCards(posFilter) {
         return `
         <div class="watchlist-card" data-pid="${c.pid}" data-pos="${c.pos}">
             <button class="watchlist-card-remove" data-pid="${c.pid}" title="Remove from Watchlist" aria-label="Remove ${c.fullName} from Watchlist">
-                <i class="fa-solid fa-xmark"></i>
+                <i class="fa-solid fa-circle-xmark"></i>
             </button>
             <div class="wl-main-line">
                 <span class="wl-pos-tag ${c.pos}">${c.pos}</span>
                 <span class="wl-player-name" data-pid="${c.pid}" title="${escapeHtml(c.fullName)}">${escapeHtml(c.truncatedName)}</span>
             </div>
             <div class="wl-meta-line">
-                ${teamLogo}
-                <span class="wl-team-abbr">${c.team}</span>
-                ${ageHtml ? `<span class="separator">•</span> ${ageHtml}` : ''}
-                ${posRankDisplay ? `<span class="wl-pos-rank">${posRankDisplay}</span>` : ''}
+                ${posRankDisplay ? `<span class="wl-pos-rank">${posRankDisplay}</span>` : '<span></span>'}
+                ${ageHtml ? `<span class="wl-age-group">${ageHtml}</span>` : '<span></span>'}
+                <span class="wl-meta-team">${teamLogo} <span class="wl-team-abbr">${c.team}</span></span>
             </div>
             <div class="wl-value-line">
                 <span class="wl-stat">${ktcRankHtml} <small>KTC</small></span>

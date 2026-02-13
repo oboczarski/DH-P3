@@ -13824,7 +13824,7 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 /* Watchlist modal header: title + position filter chips + count */
 #watchlist-modal-header {
-  padding: 1rem 1rem 0.65rem;
+  padding: 0.45rem 1rem 0.65rem;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
@@ -13845,13 +13845,12 @@ body[data-page="rosters"] #bottom-menu-panel {
   font-size: 0.95rem;
 }
 
-/* Controls row: position filters + count badge */
+/* Controls row: position filters centered, count overlaid so it doesn't shift filters */
 .watchlist-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  position: relative;
 }
 
 .watchlist-position-filters {
@@ -13892,7 +13891,10 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-filter-btn.is-active[data-watchlist-pos="WR"] { background: rgba(160, 194, 247, 0.12); border-color: rgba(160, 194, 247, 0.4); color: #A0C2F7; }
 .watchlist-filter-btn.is-active[data-watchlist-pos="TE"] { background: rgba(255, 199, 138, 0.12); border-color: rgba(255, 199, 138, 0.4); color: #FFC78A; }
 
+/* Count badge: absolutely positioned so it doesn't push the centered filters off-center */
 .watchlist-count {
+  position: absolute;
+  right: 0;
   font-family: var(--font-display, 'Quicksand', sans-serif);
   font-size: 0.7rem;
   font-weight: 500;
@@ -13941,27 +13943,28 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 /* Remove button: top-right corner of card */
+/* Remove button: circle-xmark icon, top-right corner */
 .watchlist-card-remove {
   position: absolute;
-  top: 0.25rem;
-  right: 0.3rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.65rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
+  padding: 0;
 }
 
 .watchlist-card-remove:hover {
-  background: rgba(217, 61, 118, 0.25);
   color: #f9a8c9;
 }
 
@@ -14019,7 +14022,7 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-card .wl-meta-line {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  justify-content: space-between;
   font-size: 0.68rem;
   color: var(--color-text-secondary, #9096C0);
   margin-bottom: 0.25rem;
@@ -14050,13 +14053,20 @@ body[data-page="rosters"] #bottom-menu-panel {
   letter-spacing: 0.03em;
 }
 
+/* Team section in meta line: group logo + abbreviation flush-right */
+.watchlist-card .wl-meta-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .watchlist-card .wl-team-abbr {
   font-weight: 600;
   color: rgba(234, 235, 240, 0.72);
 }
 
+/* Pos rank: no auto-margin since it's now on the left side of the meta line */
 .watchlist-card .wl-pos-rank {
-  margin-left: auto;
   color: rgba(144, 150, 192, 0.88);
   font-weight: 600;
   font-size: 0.63rem;
@@ -14098,12 +14108,19 @@ body[data-page="rosters"] #bottom-menu-panel {
   font-weight: 600;
 }
 
+/* KTC rank+suffix wrapper: keeps rank number and ordinal suffix flush together */
+.watchlist-card .wl-ktc-rank-group {
+  display: inline;
+  white-space: nowrap;
+}
+
 /* KTC rank display: ordinal rank + parenthesised value (mimics rosters page default layout) */
 .watchlist-card .wl-ktc-rank {
   font-size: 0.69rem;
   font-weight: 700;
 }
 
+/* Suffix sits flush against the rank number with no gap */
 .watchlist-card .wl-ktc-rank-suffix {
   font-size: 0.5rem;
   font-weight: 600;
@@ -14118,6 +14135,13 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-card .wl-age {
   font-weight: 600;
   font-size: 0.66rem;
+}
+
+/* Age group wrapper: keeps age + suffix together in the center of the meta line */
+.watchlist-card .wl-age-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
 }
 
 /* Action buttons row beneath each card */
