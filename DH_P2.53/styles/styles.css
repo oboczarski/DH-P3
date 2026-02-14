@@ -14004,15 +14004,16 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 /* Player name: reduced font size (0.72rem) to prevent horizontal scroll on narrow screens */
 .watchlist-card .wl-player-name {
-  font-family: var(--font-display, 'Quicksand', sans-serif);
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-family: 'Product Sans';
+  font-size: 0.8rem;
+  font-weight: 400;
   color: var(--color-text-primary, #EAEBF0);
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
   transition: color 0.15s ease;
+  margin-left: 2px;
 }
 
 .watchlist-card .wl-player-name:hover {
@@ -14157,9 +14158,9 @@ body[data-page="rosters"] #bottom-menu-panel {
   justify-content: center;
   gap: 0.2rem;
   padding: 0.25rem 0.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #aeaeb838;
   border-radius: 0.35rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(59 61 94 / 0%);
   color: rgba(255, 255, 255, 0.5);
   font-family: var(--font-display, 'Quicksand', sans-serif);
   font-size: 0.62rem;
@@ -14168,6 +14169,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   cursor: pointer;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: inset 1px 11px 11px -3px #aaf2;
 }
 
 .watchlist-action-btn i {
