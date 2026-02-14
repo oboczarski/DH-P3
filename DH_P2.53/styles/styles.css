@@ -6317,8 +6317,11 @@ body::before {
   }
 
   #game-logs-modal .gamelogs-szn-title-games {
-    right: 0.15rem;
-    font-size: 0.72rem;
+    right: 0.05rem;
+    font-size: 0.82rem;
+    padding: 2px 4px;
+    border: 1px solid #cdf1;
+    border-radius: 8px;
   }
 
   #game-logs-modal .gamelogs-szn-section-header {
