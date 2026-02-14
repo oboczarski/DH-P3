@@ -12965,7 +12965,7 @@ body[data-page="ownership"] .ownership-modal-warning {
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0.9rem 1rem;
+  padding: 0.9rem 0rem;
   pointer-events: none;
 }
 
@@ -12985,8 +12985,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  max-width: 339px;
-  margin: 0 auto;
+  max-width: 325px;
+  margin: 0rem 0rem 0rem 3.7rem;
 }
 
 /* Dimmed state when scrolling */
