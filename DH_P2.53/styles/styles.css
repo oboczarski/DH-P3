@@ -13160,7 +13160,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.125rem;
+  gap: 0rem;
   width: 100%;
   min-width: 0;
 }
@@ -13174,8 +13174,7 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 .league-nav-name {
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-size: 0.94rem;
   font-weight: 600;
   color: rgb(229 235 255);
   white-space: nowrap;
@@ -13183,6 +13182,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   text-overflow: ellipsis;
   max-width: 160px;
   letter-spacing: 0.01em;
+  text-shadow: 1px 1px 0px #0004;
 }
 
 .league-nav-dropdown-icon {
@@ -13192,10 +13192,11 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 .league-nav-subtitle {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.65);
   letter-spacing: 0.02em;
+  text-shadow: 1px 1px 0px #0004;
 }
 
 /* League Selection Popup */
