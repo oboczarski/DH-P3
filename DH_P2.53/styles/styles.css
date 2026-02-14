@@ -12961,11 +12961,11 @@ body[data-page="ownership"] .ownership-modal-warning {
 #bottom-menu-panel {
   display: none;
   position: fixed;
-  bottom: 14px;
+  bottom: 4px;
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 0.9rem 0.4rem;
+  padding: 0.9rem 1rem;
   pointer-events: none;
 }
 
@@ -12984,9 +12984,20 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.9rem;
-  max-width: 359px;
-  margin: 0rem 0rem 0rem 3.5rem;
+  gap: 0.5rem;
+  max-width: 350px;
+  width: 100%;
+  margin: 0 auto;
+  
+  /* Shared glass panel styling (Dock container) */
+  padding: 0.4rem;
+  border-radius: 0.9rem;
+  pointer-events: auto;
+  background: rgb(68 68 81 / 91%);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
 /* Dimmed state when scrolling */
@@ -13004,6 +13015,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex: 1 1 auto;
   min-width: 0;
   pointer-events: auto;
+  height: 100%;
 }
 
 /* Desktop: hide league nav portion (since desktop uses the header dropdown) */
@@ -13011,24 +13023,28 @@ body[data-page="rosters"] #bottom-menu-panel {
   #mobile-league-nav {
     display: none;
   }
+  .bottom-menu-panel-inner {
+    width: fit-content;
+  }
 }
 
 .mobile-league-nav-panel {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  height: 3.2rem;
+  height: 3rem;
   width: 100%;
-  max-width: 314px;
+  max-width: 320px;
   overflow: hidden;
-  border-radius: 0.7rem;
+  border-radius: 0.6rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  background: rgb(119 109 144 / 35%);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
+  
+  /* Inner button styling creates separation */
+  background: #c6d0eb5c;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
 
 /* ---- Watchlist Panel Button ---- */
@@ -13036,23 +13052,22 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-panel-btn {
   position: relative;
   flex: 0 0 auto;
-  height: 3.2rem;
-  width: 3.2rem;
+  height: 3rem;
+  width: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 0.7rem;
+  /* Inner button styling creates separation */
+  border-radius: 0.6rem;
+  background: #c6d0eb5c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
   cursor: pointer;
   pointer-events: auto;
-  font-size: 1.35rem;
-  padding-left: 3px;
+  font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.88);
-  background: rgb(119 109 144 / 35%);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -13161,7 +13176,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: rgb(198 204 224 / 95%);
+  color: rgb(229 235 255);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
