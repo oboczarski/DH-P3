@@ -12985,8 +12985,19 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  max-width: 339px;
+  max-width: 350px;
+  width: 100%;
   margin: 0 auto;
+  
+  /* Shared glass panel styling (Dock container) */
+  padding: 0.35rem;
+  border-radius: 0.9rem;
+  pointer-events: auto;
+  background: rgb(119 109 144 / 35%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
 /* Dimmed state when scrolling */
@@ -13004,12 +13015,16 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex: 1 1 auto;
   min-width: 0;
   pointer-events: auto;
+  height: 100%;
 }
 
 /* Desktop: hide league nav portion (since desktop uses the header dropdown) */
 @media (min-width: 820px) {
   #mobile-league-nav {
     display: none;
+  }
+  .bottom-menu-panel-inner {
+    width: fit-content;
   }
 }
 
@@ -13021,14 +13036,16 @@ body[data-page="rosters"] #bottom-menu-panel {
   width: 100%;
   max-width: 320px;
   overflow: hidden;
-  border-radius: 0.7rem;
+  border-radius: 0.6rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  background: rgb(119 109 144 / 35%);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
+  
+  /* Inner button styling creates separation */
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
 }
 
 /* ---- Watchlist Panel Button ---- */
@@ -13041,17 +13058,18 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 0.7rem;
+  /* Inner button styling creates separation */
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+  
   cursor: pointer;
   pointer-events: auto;
   font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.88);
-  background: rgb(119 109 144 / 35%);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
