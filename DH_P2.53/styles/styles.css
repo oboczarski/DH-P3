@@ -12962,7 +12962,7 @@ body[data-page="ownership"] .ownership-modal-warning {
   display: none;
   position: fixed;
   bottom: 4px;
-  left: 0;
+  left: 3px;
   right: 0;
   z-index: 100;
   padding: 0.9rem 1rem;
@@ -12994,8 +12994,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   border-radius: 0.9rem;
   pointer-events: auto;
   background: linear-gradient(130deg, rgb(113 114 136 / 63%), rgb(132 131 168 / 60%));
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
@@ -13041,7 +13041,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   transition: opacity 0.3s ease, transform 0.3s ease;
   
   /* Inner button styling creates separation */
-  background: #7b85a0b8;
+  background: #6a7592ba;
   -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
@@ -13059,7 +13059,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   justify-content: center;
   /* Inner button styling creates separation */
   border-radius: 0.6rem;
-  background: #7b85a0b8;
+  background: #6a7592ba;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
   cursor: pointer;
