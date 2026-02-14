@@ -14251,7 +14251,7 @@ body[data-page="rosters"] #bottom-menu-panel {
 /* Highlight pulse: faster flicker (0.6s/cycle × 7 = ~4.2s total) for snappier visual feedback */
 @keyframes watchlistHighlightPulse {
   0% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45); }
-  50% { box-shadow: 0 0 6px 2px #F74B56; }
+  50% { box-shadow: 0 0 6px -1px #00edcb; }
   100% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0); }
 }
 
