@@ -13041,8 +13041,9 @@ body[data-page="rosters"] #bottom-menu-panel {
   transition: opacity 0.3s ease, transform 0.3s ease;
   
   /* Inner button styling creates separation */
-  background: #6a7592ba;
-  -webkit-backdrop-filter: none;
+  background: #6c789652;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
 }
@@ -13059,7 +13060,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   justify-content: center;
   /* Inner button styling creates separation */
   border-radius: 0.6rem;
-  background: #6a7592ba;
+  background: #6c789652;
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
   cursor: pointer;
@@ -13067,8 +13068,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   font-size: 1.4rem;
   padding-left: 6px;
   color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
