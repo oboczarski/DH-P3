@@ -6549,7 +6549,7 @@ body::before {
 .player-vitals__label {
   font-size: 0.45rem;
   letter-spacing: 0.07em;
-  color: var(--color-text-tertiary);
+  color: #7b81a5;
   text-transform: uppercase;
   line-height: 1;
 }
@@ -6573,7 +6573,7 @@ body::before {
   background: rgba(0, 0, 0, 0.02);
   backdrop-filter: blur(1px) saturate(180%);
   border: 1px solid rgba(250, 250, 250, 0.1);
-  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 6px 7px 13px -5px rgba(255, 255, 255, 0.035);
 }
 
 .player-vitals--modal::after {
@@ -14354,10 +14354,10 @@ body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
   white-space: nowrap;
   position: relative;
   background: rgba(0, 0, 0, 0.02);
-  backdrop-filter: blur(1px) saturate(180%);
+  backdrop-filter: blur(1px) saturate(170%);
   border: 1px solid rgba(250, 250, 250, 0.1);
-  border-radius: 13px;
-  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+  border-radius: 11px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013), inset 9px 13px 12px -7px #abc2;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip h4 {
@@ -14425,7 +14425,8 @@ body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row {
   padding: 0.52rem 0.62rem;
   border-radius: 12px;
   border: 1px solid rgba(186, 197, 248, 0.2);
-  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #ee4bff2e);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #687b972e);
+  box-shadow: inset 0px 11px 13px -8px #cdf3;
 }
 
 body[data-page="rosters"] #ownershipPlayerModal .ownership-league-meta {
