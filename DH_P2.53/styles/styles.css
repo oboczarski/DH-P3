@@ -12985,7 +12985,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  max-width: 440px;
+  max-width: 339px;
   margin: 0 auto;
 }
 
@@ -13090,8 +13090,8 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 .league-nav-arrow {
-  flex: 0 0 3.5rem;
-  width: 3.5rem;
+  flex: 0 0 3rem;
+  width: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
