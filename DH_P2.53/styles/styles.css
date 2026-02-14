@@ -14244,15 +14244,15 @@ body[data-page="rosters"] #bottom-menu-panel {
    WATCHLIST FILTER/LOCATE HIGHLIGHT
    Pulsing glow applied to a player-row when located from the watchlist.
    ============================================================================ */
-/* Highlight pulse: plays 3 iterations (total ~4.5s) for longer visibility after Find */
+/* Highlight pulse: faster flicker (0.6s/cycle × 7 = ~4.2s total) for snappier visual feedback */
 @keyframes watchlistHighlightPulse {
   0% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45); }
-  50% { box-shadow: 0 0 14px 4px rgba(118, 109, 255, 0.35); }
+  50% { box-shadow: 0 0 6px 2px #F74B56; }
   100% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0); }
 }
 
 .watchlist-highlight {
-  animation: watchlistHighlightPulse 1.5s ease-out 3;
+  animation: watchlistHighlightPulse 0.6s ease-out 7;
   border-radius: var(--card-border-radius, 8px);
 }
 
