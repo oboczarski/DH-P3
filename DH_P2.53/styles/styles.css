@@ -13948,8 +13948,8 @@ body[data-page="rosters"] #bottom-menu-panel {
 /* Remove button: circle-xmark icon, top-right corner */
 .watchlist-card-remove {
   position: absolute;
-  top: 0.2rem;
-  right: 0.2rem;
+  top: 0.1rem;
+  right: 0.1rem;
   width: 1.2rem;
   height: 1.2rem;
   display: flex;
@@ -14119,13 +14119,13 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 /* KTC rank display: ordinal rank + parenthesised value (mimics rosters page default layout) */
 .watchlist-card .wl-ktc-rank {
-  font-size: 0.79rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 /* Suffix sits flush against the rank number with no gap */
 .watchlist-card .wl-ktc-rank-suffix {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   font-weight: 400;
 }
 
