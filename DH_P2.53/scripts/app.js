@@ -9524,14 +9524,40 @@ if (pageType === 'rosters') {
         }
 
         // --- Player name tap → open game logs ---
+        // Build an enriched player object (pos, team, ktc, posRank, overallRank, age)
+        // so renderGameLogs can display header chips, pos tag, and team logo correctly.
         const nameEl = e.target.closest('.wl-player-name');
         if (nameEl) {
             const pid = nameEl.dataset.pid;
             if (!pid) return;
             const player = state.players?.[pid];
             if (!player) return;
+
+            // Enrich with value data (same source as renderWatchlistCards)
+            const valueData = state.isSuperflex
+                ? (state.sflxData?.[pid] || state.oneQbData?.[pid])
+                : (state.oneQbData?.[pid] || state.sflxData?.[pid]);
+            const pos = (player.position || player.fantasy_positions?.[0] || '').toUpperCase();
+            const team = (player.team || 'FA').toUpperCase();
+            const ktc = Number.isFinite(valueData?.ktc) ? Math.round(valueData.ktc) : null;
+            const posRank = valueData?.posRank || null;
+            const overallRank = Number.isFinite(valueData?.overallRank) ? valueData.overallRank : null;
+            const sflxAge = state.sflxData?.[pid]?.age;
+            const oneQbAge = state.oneQbData?.[pid]?.age;
+            const age = typeof sflxAge === 'number' ? sflxAge
+                : (typeof oneQbAge === 'number' ? oneQbAge : (Number(player.age) || null));
+
             closeWatchlistModal();
-            await handlePlayerNameClick({ id: pid, name: `${player.first_name} ${player.last_name}` });
+            await handlePlayerNameClick({
+                id: pid,
+                name: `${player.first_name} ${player.last_name}`,
+                pos,
+                team,
+                ktc,
+                posRank,
+                overallRank,
+                age
+            });
             return;
         }
 
