@@ -12962,7 +12962,7 @@ body[data-page="ownership"] .ownership-modal-warning {
   display: none;
   position: fixed;
   bottom: 4px;
-  left: 3px;
+  left: 0;
   right: 0;
   z-index: 100;
   padding: 0.9rem 1rem;
@@ -12985,19 +12985,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  max-width: 354px;
-  width: 100%;
+  max-width: 339px;
   margin: 0 auto;
-  
-  /* Shared glass panel styling (Dock container) */
-  padding: 0.45rem;
-  border-radius: 0.9rem;
-  pointer-events: auto;
-  background: linear-gradient(130deg, rgb(113 114 136 / 63%), rgb(132 131 168 / 60%));
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
 /* Dimmed state when scrolling */
@@ -13015,7 +13004,6 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex: 1 1 auto;
   min-width: 0;
   pointer-events: auto;
-  height: 100%;
 }
 
 /* Desktop: hide league nav portion (since desktop uses the header dropdown) */
@@ -13023,29 +13011,24 @@ body[data-page="rosters"] #bottom-menu-panel {
   #mobile-league-nav {
     display: none;
   }
-  .bottom-menu-panel-inner {
-    width: fit-content;
-  }
 }
 
 .mobile-league-nav-panel {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  height: 3.1rem;
+  height: 3rem;
   width: 100%;
   max-width: 320px;
   overflow: hidden;
-  border-radius: 0.6rem;
+  border-radius: 0.7rem;
   pointer-events: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  
-  /* Inner button styling creates separation */
-  background: #6c789652;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
+  background: rgb(119 109 144 / 35%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
 
 /* ---- Watchlist Panel Button ---- */
@@ -13053,23 +13036,22 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-panel-btn {
   position: relative;
   flex: 0 0 auto;
-  height: 3.1rem;
-  width: 3.1rem;
+  height: 3rem;
+  width: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Inner button styling creates separation */
-  border-radius: 0.6rem;
-  background: #6c789652;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
+  border: none;
+  border-radius: 0.7rem;
   cursor: pointer;
   pointer-events: auto;
-  font-size: 1.4rem;
-  padding-left: 6px;
+  font-size: 1.15rem;
   color: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgb(119 109 144 / 35%);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
   transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -13161,7 +13143,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0rem;
+  gap: 0.125rem;
   width: 100%;
   min-width: 0;
 }
@@ -13175,15 +13157,15 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 .league-nav-name {
-  font-size: 0.94rem;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
   font-weight: 600;
-  color: rgb(229 235 255);
+  color: rgb(198 204 224 / 95%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 160px;
   letter-spacing: 0.01em;
-  text-shadow: 1px 1px 0px #0004;
 }
 
 .league-nav-dropdown-icon {
@@ -13193,11 +13175,10 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 .league-nav-subtitle {
   font-family: var(--font-display);
-  font-size: 0.72rem;
+  font-size: 0.6875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.02em;
-  text-shadow: 1px 1px 0px #0004;
 }
 
 /* League Selection Popup */
