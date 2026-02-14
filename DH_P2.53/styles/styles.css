@@ -12984,9 +12984,9 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  max-width: 325px;
-  margin: 0rem 0rem 0rem 3.7rem;
+  gap: 0.7rem;
+  max-width: 342px;
+  margin: 0rem 0rem 0rem 2.8rem;
 }
 
 /* Dimmed state when scrolling */
