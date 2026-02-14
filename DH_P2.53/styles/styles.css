@@ -12985,17 +12985,17 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  max-width: 350px;
+  max-width: 354px;
   width: 100%;
   margin: 0 auto;
   
   /* Shared glass panel styling (Dock container) */
-  padding: 0.4rem;
+  padding: 0.45rem;
   border-radius: 0.9rem;
   pointer-events: auto;
-  background: rgb(68 68 81 / 91%);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
+  background: linear-gradient(130deg, rgb(113 114 136 / 63%), rgb(132 131 168 / 60%));
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3), inset 0 0 25px #6000ff25;
 }
@@ -13032,7 +13032,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  height: 3rem;
+  height: 3.1rem;
   width: 100%;
   max-width: 320px;
   overflow: hidden;
@@ -13041,10 +13041,10 @@ body[data-page="rosters"] #bottom-menu-panel {
   transition: opacity 0.3s ease, transform 0.3s ease;
   
   /* Inner button styling creates separation */
-  background: #c6d0eb5c;
+  background: #7b85a0b8;
   -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
 }
 
 /* ---- Watchlist Panel Button ---- */
@@ -13052,19 +13052,20 @@ body[data-page="rosters"] #bottom-menu-panel {
 .watchlist-panel-btn {
   position: relative;
   flex: 0 0 auto;
-  height: 3rem;
-  width: 3rem;
+  height: 3.1rem;
+  width: 3.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   /* Inner button styling creates separation */
   border-radius: 0.6rem;
-  background: #c6d0eb5c;
+  background: #7b85a0b8;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0px 0px 7px #0003;
   cursor: pointer;
   pointer-events: auto;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
+  padding-left: 6px;
   color: rgba(255, 255, 255, 0.88);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
