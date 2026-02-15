@@ -10683,7 +10683,8 @@ function renderPoints(data) {
         label.classList.add(`weekly-point-label--${bucket.name}`);
         const suffix = document.createElement('span');
         suffix.className = 'weekly-point-label__suffix';
-        suffix.textContent = 'fpts';
+        // Show the week number (e.g. "wk2", "wk11") instead of generic "fpts"
+        suffix.textContent = `wk${entry.week}`;
         const valueSpan = document.createElement('span');
         valueSpan.className = 'weekly-point-label__value';
         const valueNumber = document.createElement('span');

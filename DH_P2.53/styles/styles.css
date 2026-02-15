@@ -8094,7 +8094,7 @@ body::before {
   font-weight: 600;
   color: #f8faff;
   order: 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .weekly-curve-layer {
@@ -8284,7 +8284,7 @@ body::before {
     font-size: 0.34rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   .weekly-point-label__value {
