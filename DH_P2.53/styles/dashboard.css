@@ -226,7 +226,7 @@
 .fc-card__subtitle {
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   color: var(--text-secondary);
   margin: 0;
 }
@@ -262,7 +262,7 @@
 .fc-card-tag--mini {
   font-size: 1em;
   margin-left: 0;
-  margin-right: 0.15em;
+  margin-right: 0em;
 }
 .fc-card-tag--emerald {color: var(--color-emerald-light);} 
 
@@ -369,7 +369,7 @@
 
 /* Charts */
 .fc-chart-panel {
-  min-height: 32em;
+  min-height: 62em;
   display: flex;
   flex-direction: column;
 }
@@ -661,7 +661,7 @@
     padding: 0em 0.855em;
     font-size: 1.1em;
     min-width: 0;
-    line-height: 1.2;
+    line-height: 1.1;
   }
   .fc-filter-group {
     gap: 0.35em;
@@ -931,7 +931,7 @@
   .fc-summary-card {padding: 0.8em 0.5em 0.3em 0.5em;}
   .fc-summary-card .fc-card__header {margin-bottom: 0.25em;}
   .fc-summary-card .fc-card__title {font-size: 1.8em;margin-left: 4px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.45em;}
+  .fc-summary-card .fc-card__subtitle {font-size: 1.55em;text-wrap-mode: nowrap;}
   .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.35em;}
   .fc-summary-card .fc-metric-value { font-size: 2.75em; }
   .fc-summary-card .fc-metric-sub {margin-bottom: 0em;font-size: 1.5em;}
@@ -973,8 +973,8 @@
 
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
-  .fc-chart-panel {padding: 1.15em 1.15em 0.75em 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 1.8em;}
+  .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
+  .fc-chart-panel .fc-card__title {font-size: 2.1em;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1.85em !important;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
@@ -989,7 +989,7 @@
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.2em;}
-  .fc-chart-header-top .fc-custom-select {min-width: 17em;}
+  .fc-chart-header-top .fc-custom-select {min-width: 19em;}
   /* PPG bar panel header: stack filter buttons below title on mobile */
   .fc-chart-header-top--bar {
     flex-direction: column;
@@ -1002,7 +1002,7 @@
 
   /* Grid ratio: give radar panel more horizontal space, shrink bar panel */
   .fc-grid-charts {
-    grid-template-columns: 1.55fr 0.95fr;
+    grid-template-columns: 1.25fr 0.95fr;
   }
 
   /* Radar panel: taller container to match wider panel */
@@ -1046,8 +1046,8 @@
     margin-right: -6px;
   }
   .fc-bar-panel .filter-btn {
-    padding: 0.1em 0.55em !important;
-    font-size: 2.2em !important;
+    padding: 0.22em 0.55em !important;
+    font-size: 2.4em !important;
     height: auto !important;
     min-height: 0 !important;
     border-radius: 0.45em;
@@ -1074,7 +1074,7 @@
 
   .fc-chart-helper {font-size: 1.25em;}
   .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
-  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.35em 0 0.45em;margin-top: 1.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffdd;color: #ff7b46;}
+  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.15em 0 0.45em;margin-top: 0.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffdd;color: #ff7b46;}
   .fc-scatter-subline {gap: 0;}
 
   /* Scatter Data Labels: Smaller */
@@ -1253,7 +1253,7 @@
   
   .fc-select-trigger {
     padding: 0.05rem 0.4em 0.05rem;
-    font-size: 1.8em;
+    font-size: 2.2em;
   }
 
   .fc-search-icon {
