@@ -3908,7 +3908,8 @@ function drawBarChart(containerId, data) {
   feMerge.append('feMergeNode').attr('in', 'coloredBlur');
   feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-  const x = d3.scaleBand().range([0, innerWidth]).domain(data.map(d => d.label)).paddingInner(0.6).paddingOuter(0.05);
+  // Mobile: tighter bar gap to fit narrower panel; Desktop: original spacing
+  const x = d3.scaleBand().range([0, innerWidth]).domain(data.map(d => d.label)).paddingInner(isMobile ? 0.5 : 0.6).paddingOuter(0.05);
   const maxValue = d3.max(data, d => d.value) || 0;
   // Reduced headroom above bars (1.02 instead of 1.05)
   const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.02]);
@@ -3927,9 +3928,9 @@ function drawBarChart(containerId, data) {
   const radius = barWidth / 2;
   const strokeMain = Math.max(1, width * 0.008);
   const strokeGlow = Math.max(2, width * 0.015);
-  // Font sizes - increased axis font size
-  const fontSizeVal = isMobile ? Math.max(6, width * 0.016) : Math.max(14, width * 0.024);
-  const fontSizeAxis = isMobile ? Math.max(6, width * 0.016) : Math.max(11, width * 0.02);
+  // Font sizes — mobile: slightly larger data labels & player names
+  const fontSizeVal = isMobile ? Math.max(8.5, width * 0.022) : Math.max(14, width * 0.024);
+  const fontSizeAxis = isMobile ? Math.max(7, width * 0.021) : Math.max(11, width * 0.02);
   
   // Helper to format player name: First initial + truncated last name (max 9 chars)
   function formatBarLabel(fullName) {
