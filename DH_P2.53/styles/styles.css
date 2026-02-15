@@ -8206,18 +8206,20 @@ body::before {
   .weekly-chart-x-axis {
     background: #3462;
     border-radius: 0 0 4px 4px;
-    left: 0.02rem;
-    right: 0.02rem;
+    left: -0.1rem;
+    right: -0.1rem;
     font-size: 0.45rem;
     padding: 0.08rem 0.18rem 0.12rem;
     min-height: 1.3rem;
+    font-weight: 800;
   }
 
   /* Mobile-only: make the "WK" prefix slightly smaller than the week number */
   .weekly-chart-x-axis .axis-week-prefix {
-    font-size: 0.8em;
+    font-size: 0.75em;
     letter-spacing: 0em;
-    opacity: 0.92;
+    opacity: 11;
+    font-weight: 500;
   }
 
   .weekly-zone-summary {
