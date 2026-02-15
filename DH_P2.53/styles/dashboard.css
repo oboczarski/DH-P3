@@ -1060,8 +1060,8 @@
 
   /* Radar Legend: Bigger & Abbreviated */
   .fc-legend {
-    font-size: 1.5em;
-    gap: 0.7em;
+    font-size: 1.8em;
+    gap: 0.6em;
     margin: 1px 2px 1px 4px;
   }
   .fc-legend-full { display: none; }
@@ -1074,7 +1074,7 @@
 
   .fc-chart-helper {font-size: 1.25em;}
   .fc-chart-helper--scatter {white-space: normal;line-height: 1.35;align-self: end;color: #abd;font-weight: 400;font-style: italic;font-size: 1.35em;}
-  .fc-chart-helper--radar {font-size: 1.6em;margin: 0.15em 0 0.45em;margin-top: 0.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffdd;color: #ff7b46;}
+  .fc-chart-helper--radar {font-size: 1.8em;margin: 0.15em 0 0.45em;margin-top: 0.5em;font-weight: 400;font-style: italic;text-shadow: 0 0 4px #7310ffdd;color: #ff4b4b;}
   .fc-scatter-subline {gap: 0;}
 
   /* Scatter Data Labels: Smaller */
