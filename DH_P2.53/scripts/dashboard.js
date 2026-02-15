@@ -3440,11 +3440,13 @@ function buildRadarDataset(player) {
 
 // Charts data builders
 function ppgBarData(filter) {
+  // Mobile: top 5 leaders to save space; Desktop: top 8
+  const count = window.innerWidth < 768 ? 5 : 8;
   return [...players]
     .filter(p => Number.isFinite(p.stats?.ppg) && p.stats.ppg > 0)
     .filter(p => filter === 'all' || p.position === filter)
     .sort((a, b) => b.stats.ppg - a.stats.ppg)
-    .slice(0, 8)
+    .slice(0, count)
     .map(p => ({ label: p.name, value: p.stats.ppg }));
 }
 

@@ -990,18 +990,43 @@
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.2em;}
   .fc-chart-header-top .fc-custom-select {min-width: 17em;}
+  /* PPG bar panel header: stack filter buttons below title on mobile */
   .fc-chart-header-top--bar {
-    flex-wrap: nowrap;
-    gap: 0.15em;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3em;
     margin-left: -3px;
   }
-  .fc-radar-panel .fc-chart-container { min-height: 32em; }
+  /* Hide the PPG subtitle on mobile to save vertical space */
+  .fc-subtitle-bar { display: none !important; }
+
+  /* Grid ratio: give radar panel more horizontal space, shrink bar panel */
+  .fc-grid-charts {
+    grid-template-columns: 1.55fr 0.95fr;
+  }
+
+  /* Radar panel: taller container to match wider panel */
+  .fc-radar-panel .fc-chart-container { min-height: 38em; }
+  .fc-radar-container { min-height: 38em; }
   .fc-bar-panel .fc-chart-container { min-height: 28em; }
 
   .fc-chart-panel.fc-radar-panel {
     padding: 1.05em 0.45em 0.75em;
-}
+  }
 
+  /* Radar center content: proportionally larger to match bigger chart */
+  .fc-radar-label {
+    font-size: 2.1em;
+  }
+  .fc-radar-score {
+    font-size: 3.1em;
+  }
+  .fc-radar-suffix {
+    font-size: 0.6em;
+  }
+  .fc-radar-meta {
+    font-size: 1.55em;
+  }
 
   .fc-bar-panel .fc-chart-header {
     flex-direction: column;
