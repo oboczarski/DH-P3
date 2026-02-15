@@ -13937,12 +13937,35 @@ body[data-page="rosters"] #bottom-menu-panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgb(146 152 198 / 4%);
   border: 1px solid rgb(213 218 241 / 19%);
   border-radius: 10px;
   padding: 0.3rem 0.4rem 0.3rem;
   transition: border-color 0.2s ease, background 0.2s ease;
   box-shadow: inset 2px 53px 30px -7px #a0c0f015, inset 8px 10px 10px -14px #def4, 1px 2px 8px #0002;
+  overflow: hidden; /* clip the watermark to card bounds */
+}
+
+/* Team logo watermark: large, faded logo centered behind card content */
+.watchlist-card .wl-card-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  filter: grayscale(0.8);
+  transition: opacity 0.2s ease;
+}
+
+/* Slightly brighten the watermark on card hover */
+.watchlist-card:hover .wl-card-watermark {
+  opacity: 0.11;
 }
 
 .watchlist-card:hover {

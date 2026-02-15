@@ -9452,8 +9452,13 @@ function renderWatchlistCards(posFilter) {
         const teamLogo = c.team !== 'FA'
             ? `<img class="team-logo glow" src="../assets/NFL-Tags_webp/${c.normalizedKey}.webp" alt="${c.team}" width="20" height="20" loading="lazy">`
             : '<span class="wl-fa-badge">FA</span>';
+        // Team logo watermark: subtle background image behind card content
+        const watermarkHtml = c.team !== 'FA'
+            ? `<img class="wl-card-watermark" src="../assets/NFL-Tags_webp/${c.normalizedKey}.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+            : '';
         return `
         <div class="watchlist-card" data-pid="${c.pid}" data-pos="${c.pos}">
+            ${watermarkHtml}
             <button class="watchlist-card-remove" data-pid="${c.pid}" title="Remove from Watchlist" aria-label="Remove ${c.fullName} from Watchlist">
                 <i class="fa-solid fa-circle-xmark"></i>
             </button>
