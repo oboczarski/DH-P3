@@ -4899,6 +4899,21 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         : `<span>FA</span>`;
     modalHeaderLeftContainer.appendChild(teamLogoChip);
     modalHeader.insertBefore(modalHeaderLeftContainer, modalHeader.firstChild);
+
+    // Team logo watermark: subtle background image in top-right of modal
+    const glModalContent = gameLogsModal.querySelector('.modal-content');
+    const existingWatermark = glModalContent?.querySelector('.gl-modal-watermark');
+    if (existingWatermark) existingWatermark.remove();
+    if (glModalContent && player.team && player.team !== 'FA') {
+        const wmImg = document.createElement('img');
+        wmImg.className = 'gl-modal-watermark';
+        wmImg.src = src; // reuse the same team logo path built above
+        wmImg.alt = '';
+        wmImg.setAttribute('aria-hidden', 'true');
+        wmImg.loading = 'eager';
+        wmImg.decoding = 'async';
+        glModalContent.appendChild(wmImg);
+    }
     if (modalPlayerVitals) {
         modalPlayerVitals.innerHTML = '';
         const vitals = getPlayerVitals(player.id);

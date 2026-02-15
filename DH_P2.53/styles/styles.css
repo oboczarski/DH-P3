@@ -9404,9 +9404,25 @@ img.team-logo.glow[alt="WAS"] {
   font-family: 'Product Sans', sans-serif;
 }
 
+/* Team logo watermark: faded logo in the top-right corner of the game logs modal */
+#game-logs-modal .gl-modal-watermark {
+  position: absolute;
+  top: -30px;
+  left: 41px;
+  width: 255px;
+  height: 255px;
+  object-fit: contain;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  filter: grayscale(1) contrast(500%) brightness(200%);
+}
+
 /* === Game Logs Loading Animation === */
 #game-logs-modal .modal-content {
   position: relative;
+  overflow: hidden; /* clip watermark to modal bounds */
 }
 
 .game-logs-loading-container {
