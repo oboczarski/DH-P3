@@ -974,7 +974,7 @@
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 2.1em;}
+  .fc-chart-panel .fc-card__title {font-size: 2.1em;align-self: center;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1.85em !important;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
@@ -1033,6 +1033,7 @@
     align-items: flex-start;
     gap: 0.3em;
     width: 100%;
+    margin-top: -4px;
   }
   .fc-bar-panel .fc-filter-group {
     width: auto;
