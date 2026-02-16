@@ -4890,7 +4890,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-    const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+    const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
     const teamLogoChip = document.createElement('div');
     teamLogoChip.className = 'player-tag modal-team-logo-chip';
     teamLogoChip.dataset.team = teamKey;
@@ -5908,7 +5908,7 @@ function renderPlayerComparison(players) {
         const teamKey = (player.team || fullPlayer?.team || 'FA').toUpperCase();
         const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
         const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-        const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+        const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
         const teamLogoChip = document.createElement('div');
         teamLogoChip.className = 'player-tag modal-team-logo-chip';
         if (teamKey && teamKey !== 'FA') {
@@ -6697,7 +6697,7 @@ function createPlayerRow(player, teamName) {
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-    const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+    const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
     const teamTagHTML = (player.team && player.team !== 'FA')
         ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="19" height="19" loading="eager" decoding="async">`
         : `<div class="team-tag" style="background-color: #64748b; color: white;">FA</div>`;
@@ -7680,7 +7680,7 @@ function getOwnershipTableTeamMarkup(teamRaw) {
     const teamStyle = `background-color: ${TEAM_COLORS[teamKey] || '#64748b'}; color: #fff;`;
     const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-    const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+    const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
     return (teamKey && teamKey !== 'FA')
         ? `<img class="team-logo glow" src="${src}" alt="${escapeHtml(teamKey)}" width="20" height="20" loading="lazy" decoding="async">`
         : `<span class="stats-team-chip" style="${teamStyle}">${escapeHtml(teamKey)}</span>`;
@@ -8400,7 +8400,7 @@ function renderOwnershipModalHeaderSummary(playerId) {
         ownershipModalHeaderLeft.innerHTML = `
             <div class="player-tag modal-pos-tag ${summary.pos}">${summary.pos}</div>
             <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
-                ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL-Tags_webp/${normalizedKey}.webp" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
+                ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
             </div>
         `;
     }
@@ -9450,11 +9450,11 @@ function renderWatchlistCards(posFilter) {
             : '';
 
         const teamLogo = c.team !== 'FA'
-            ? `<img class="team-logo glow" src="../assets/NFL-Tags_webp/${c.normalizedKey}.webp" alt="${c.team}" width="20" height="20" loading="lazy">`
+            ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${c.normalizedKey}.svg" alt="${c.team}" width="20" height="20" loading="lazy">`
             : '<span class="wl-fa-badge">FA</span>';
         // Team logo watermark: subtle background image behind card content
         const watermarkHtml = c.team !== 'FA'
-            ? `<img class="wl-card-watermark" src="../assets/NFL-Tags_webp/${c.normalizedKey}.webp" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+            ? `<img class="wl-card-watermark" src="../assets/NFL_logos_svg/${c.normalizedKey}.svg" alt="" aria-hidden="true" loading="lazy" decoding="async">`
             : '';
         return `
         <div class="watchlist-card" data-pid="${c.pid}" data-pos="${c.pos}">

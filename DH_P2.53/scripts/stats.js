@@ -479,7 +479,7 @@
     const upper = (teamKey || '').toString().trim().toUpperCase();
     if (!upper || upper === 'FA' || upper === 'RDP') return null;
     const normalizedKey = TEAM_LOGO_KEY_MAP[upper] || upper.toLowerCase();
-    return `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+    return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
   }
 
   function preloadTeamLogosFromDatasets() {
@@ -1405,7 +1405,7 @@
                 const teamKey = (textValue || 'FA').toUpperCase();
                 const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
                 const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-                const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+                const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
@@ -1659,7 +1659,7 @@
                 const teamKey = (textValue || 'FA').toUpperCase();
                 const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
                 const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-                const src = `../assets/NFL-Tags_webp/${normalizedKey}.webp`;
+                const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
                   : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
