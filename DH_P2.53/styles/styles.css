@@ -13959,7 +13959,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   pointer-events: none;
   z-index: 0;
   user-select: none;
-  filter: grayscale(0.8);
+  filter: grayscale(110%);
   transition: opacity 0.2s ease;
 }
 
