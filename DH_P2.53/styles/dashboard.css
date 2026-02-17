@@ -426,6 +426,19 @@
   gap: 0.75em;
 }
 
+/* Performance Map header: keep title + subtitle on one line in radar panel */
+.fc-radar-panel .fc-radar-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.fc-radar-panel .fc-radar-title-line .fc-card__title,
+.fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
+  white-space: nowrap;
+}
+
 .fc-chart-subtitle {
   margin: 0.41em 0.61em;
   text-align: center;
