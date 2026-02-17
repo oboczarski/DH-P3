@@ -2685,9 +2685,7 @@ body[data-page="welcome"] .enter-label {
 }
 
 /* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
-.player-row .roster-card-watermark[alt="CHI"],
-.player-row .roster-card-watermark[alt="CAR"],
-.player-row .roster-card-watermark[alt="NYG"] {
+.player-row .roster-card-watermark[alt="CAR"] {
   opacity: 0.09;
   filter: grayscale(100%);
 }
@@ -2696,12 +2694,11 @@ body[data-page="welcome"] .enter-label {
 .player-row .roster-card-watermark[alt="NYJ"] {
   opacity: 0.14;
   filter: grayscale(100%) brightness(1.6);
-  top: 38%;
+  top: 37%;
 }
 .player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
   top: 35%;
 }
-
 
 /* Condensed roster view trims padding/gaps without changing type scale */
 #rosterGrid.condensed-mode {
@@ -8994,14 +8991,24 @@ img.team-logo {
    - --glow-r3   : radius controlling how far the glow extends
    ====================================================================== */
 img.team-logo.glow {
-  width: 22px;
+  width: 24px;
   height: 22px;
-  object-fit: contain;
+  object-fit: fill;
   vertical-align: middle;
   /* Reduced glow defaults for cleaner SVG rendering */
   --team-glow: rgba(0, 0, 0, 0.55);
   --glow-r3: 2.0px;
   filter: drop-shadow(0 0 var(--glow-r3) var(--team-glow));
+}
+
+/* NYJ logo: 1.5x larger + minimal glow for better visibility */
+img.team-logo.glow[alt="NYJ"] {
+  width: 31px;
+  height: 22px;
+}
+.player-header-tags .modal-team-logo-chip img.team-logo.glow[alt="NYJ"] {
+  width: 28px;
+  height: 28px;
 }
 
 /* Per-team glow overrides (color + tweaked radius; single layer) */
