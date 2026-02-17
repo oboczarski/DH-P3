@@ -2686,18 +2686,21 @@ body[data-page="welcome"] .enter-label {
 
 /* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
 .player-row .roster-card-watermark[alt="CHI"],
-.player-row .roster-card-watermark[alt="ARI"],
 .player-row .roster-card-watermark[alt="CAR"] {
   opacity: 0.09 !important;
   filter: grayscale(110%) ;
 }
 
 /* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
-.player-row .roster-card-watermark[alt="NYJ"],
-.player-row .roster-card-watermark[alt="NYG"] {
-  opacity: 0.13 !important;
+.player-row .roster-card-watermark[alt="NYJ"]{
+  opacity: 0.14 !important;
   filter: grayscale(110%) ;
 }
+.player-row .roster-card-watermark[alt="NYG"] {
+  opacity: 0.04 !important;
+  filter: grayscale(110%) ;
+}
+
 
 /* Condensed roster view trims padding/gaps without changing type scale */
 #rosterGrid.condensed-mode {
@@ -13998,11 +14001,9 @@ body[data-page="rosters"] #bottom-menu-panel {
 /* Per-team watermark opacity boosts for darker/less-visible logos (watchlist cards) */
 .watchlist-card .wl-card-watermark[alt="NYJ"],
 .watchlist-card .wl-card-watermark[alt="CHI"],
-.watchlist-card .wl-card-watermark[alt="ARI"],
-.watchlist-card .wl-card-watermark[alt="CAR"],
-.watchlist-card .wl-card-watermark[alt="NYG"] {
-  opacity: 0.14;
-  filter: grayscale(60%);
+.watchlist-card .wl-card-watermark[alt="CAR"]{
+  opacity: 0.12;
+  filter: grayscale(100%);
 }
 
 .watchlist-card:hover {
