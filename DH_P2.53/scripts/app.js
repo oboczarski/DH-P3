@@ -4202,8 +4202,9 @@ const RADAR_STATS_CONFIG = {
         maxRank: 36
     },
     RB: {
-        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'rec_tgt', 'mtf_per_att', 'yco_per_att'],
-        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TGT', 'MTF/A', 'YCO/A'],
+        // Performance radar (Game Logs modal): use TS% for RB receiving share instead of raw target volume.
+        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'ts_per_rr', 'mtf_per_att', 'yco_per_att'],
+        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TS%', 'MTF/A', 'YCO/A'],
         maxRank: 48
     },
     WR: {
