@@ -2669,7 +2669,7 @@ body[data-page="welcome"] .enter-label {
   width: 62px;
   height: 62px;
   object-fit: contain;
-  opacity: 0.045;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
   user-select: none;
@@ -8288,7 +8288,7 @@ body::before {
     backdrop-filter: blur(10px);
     align-items: center;
     justify-content: center;
-    gap: 0.06rem;
+    gap: 0rem;
     flex-direction: column;
   }
 
@@ -8315,7 +8315,7 @@ body::before {
 
   .weekly-point-label__value {
     order: 1;
-    font-size: 0.54rem;
+    font-size: 0.5rem;
     font-weight: 700;
     border-radius: 4px;
     padding: 0;
