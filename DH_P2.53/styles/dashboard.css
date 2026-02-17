@@ -433,6 +433,8 @@
   gap: 0.45em;
   flex-wrap: nowrap;
   white-space: nowrap;
+  margin-bottom: -1px;
+  margin-left: 4px;
 }
 .fc-radar-panel .fc-radar-title-line .fc-card__title,
 .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
@@ -989,7 +991,7 @@
   .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 2.1em;align-self: center;}
   .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1.85em !important;}
+  .fc-subtitle-radar {font-size: 1.85em !important;margin-top: 2px;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
@@ -1024,7 +1026,7 @@
   .fc-bar-panel .fc-chart-container { min-height: 28em; }
 
   .fc-chart-panel.fc-radar-panel {
-    padding: 1.05em 0.45em 0.75em;
+    padding: 0.05em 0.45em 0.75em;
   }
 
   /* Radar center content: proportionally larger to match bigger chart */
@@ -1254,8 +1256,9 @@
 /* Mobile Adjustments for Dropdown */
 @media (max-width: 768px) {
   .fc-custom-select {
-    width: auto; /* Let it shrink/grow */
-    min-width: 10em;
+    width: 37em; /* Let it shrink/grow */
+    min-width: 2em;
+    align-self: center;
   }
   
   .fc-select-dropdown {
@@ -1266,8 +1269,9 @@
   }
   
   .fc-select-trigger {
-    padding: 0.05rem 0.4em 0.05rem;
-    font-size: 2.2em;
+    padding: 0.15rem 0.4em 0.05rem;
+    font-size: 2.4em;
+    margin-bottom: 6px;
   }
 
   .fc-search-icon {
