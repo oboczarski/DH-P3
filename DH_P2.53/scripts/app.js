@@ -6753,7 +6753,12 @@ function createPlayerRow(player, teamName) {
                     <span class="separator">•</span>
                     ${teamTagHTML}
                 </div>`;
+    // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
+    const rosterWatermarkHtml = (player.team && player.team !== 'FA')
+        ? `<img class="roster-card-watermark" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+        : '';
     row.innerHTML = `
+                ${rosterWatermarkHtml}
                 ${mainLineHtml}
                 ${metaLineHtml}
                 <div class="player-value-line">

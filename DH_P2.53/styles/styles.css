@@ -2644,6 +2644,7 @@ body[data-page="welcome"] .enter-label {
 /* ⬇︎ PLAYER & PICK CARD STYLES ⬇︎ */
 .player-row,
 .pick-row {
+  position: relative;
   background: var(--color-panel-bg);
   border: 1px solid var(--color-panel-border);
   border-radius: var(--card-border-radius);
@@ -2656,6 +2657,31 @@ body[data-page="welcome"] .enter-label {
   backdrop-filter: blur(var(--roster-card-blur));
   -webkit-backdrop-filter: blur(var(--roster-card-blur));
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* clip the watermark to card bounds */
+}
+
+/* Team logo watermark: large, faded logo positioned behind player card content */
+.player-row .roster-card-watermark {
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%);
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  filter: grayscale(100%);
+  transition: opacity 0.2s ease;
+}
+
+/* Condensed view: smaller watermark to match compact card size */
+.player-row.player-row-condensed .roster-card-watermark {
+  width: 36px;
+  height: 36px;
+  right: -4px;
 }
 
 /* Condensed roster view trims padding/gaps without changing type scale */
