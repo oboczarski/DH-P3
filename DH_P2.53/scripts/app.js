@@ -6755,7 +6755,7 @@ function createPlayerRow(player, teamName) {
                 </div>`;
     // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
     const rosterWatermarkHtml = (player.team && player.team !== 'FA')
-        ? `<img class="roster-card-watermark" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+        ? `<img class="roster-card-watermark" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" aria-hidden="true" loading="lazy" decoding="async">`
         : '';
     row.innerHTML = `
                 ${rosterWatermarkHtml}
@@ -9459,7 +9459,7 @@ function renderWatchlistCards(posFilter) {
             : '<span class="wl-fa-badge">FA</span>';
         // Team logo watermark: subtle background image behind card content
         const watermarkHtml = c.team !== 'FA'
-            ? `<img class="wl-card-watermark" src="../assets/NFL_logos_svg/${c.normalizedKey}.svg" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+            ? `<img class="wl-card-watermark" src="../assets/NFL_logos_svg/${c.normalizedKey}.svg" alt="${c.team}" aria-hidden="true" loading="lazy" decoding="async">`
             : '';
         return `
         <div class="watchlist-card" data-pid="${c.pid}" data-pos="${c.pos}">

@@ -2684,6 +2684,21 @@ body[data-page="welcome"] .enter-label {
   right: -4px;
 }
 
+/* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
+.player-row .roster-card-watermark[alt="CHI"],
+.player-row .roster-card-watermark[alt="ARI"],
+.player-row .roster-card-watermark[alt="CAR"] {
+  opacity: 0.09 !important;
+  filter: grayscale(110%) ;
+}
+
+/* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
+.player-row .roster-card-watermark[alt="NYJ"],
+.player-row .roster-card-watermark[alt="NYG"] {
+  opacity: 0.13 !important;
+  filter: grayscale(110%) ;
+}
+
 /* Condensed roster view trims padding/gaps without changing type scale */
 #rosterGrid.condensed-mode {
   gap: 0px;
@@ -8960,28 +8975,14 @@ body::before {
 }
 
 /* · · Team Logo Glow · · */
-/* === Team Logo (20px tag) === */
-img.team-logo {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  vertical-align: middle;
-  object-fit: contain;
-  image-rendering: auto;
-  border-radius: 3px;
-  /* subtle smoothing inside cards */
-}
-
-/* === Team Logo (20px tag) === */
+/* === Team Logo (inline tag) === */
 img.team-logo {
   width: 19px;
   height: 19px;
   display: inline-block;
   vertical-align: middle;
   object-fit: contain;
-  image-rendering: auto;
-  border-radius: 3px;
-  /* subtle smoothing inside cards */
+  /* SVGs scale cleanly — no border-radius or image-rendering needed */
 }
 
 /* === Team Logo Glow (single-layer; relies on --glow-r3 & --team-glow) === */
@@ -13992,6 +13993,16 @@ body[data-page="rosters"] #bottom-menu-panel {
 /* Slightly brighten the watermark on card hover */
 .watchlist-card:hover .wl-card-watermark {
   opacity: 0.11;
+}
+
+/* Per-team watermark opacity boosts for darker/less-visible logos (watchlist cards) */
+.watchlist-card .wl-card-watermark[alt="NYJ"],
+.watchlist-card .wl-card-watermark[alt="CHI"],
+.watchlist-card .wl-card-watermark[alt="ARI"],
+.watchlist-card .wl-card-watermark[alt="CAR"],
+.watchlist-card .wl-card-watermark[alt="NYG"] {
+  opacity: 0.14;
+  filter: grayscale(60%);
 }
 
 .watchlist-card:hover {
