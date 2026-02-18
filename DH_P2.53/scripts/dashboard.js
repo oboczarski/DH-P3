@@ -3892,6 +3892,8 @@ function drawBarChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
+  // PPG Leaders bar chart palette: match provided neon gradient stops
+  const barPalette = ['#13dcff', '#2077ed', '#4d39fc', '#701fe3', '#a633f7'];
   // Reduced top margin to move bars up, increased bottom for angled labels on mobile
   const margin = { top: height * 0.06, right: width * 0.03, bottom: isMobile ? height * 0.15 : height * 0.10, left: width * 0.03 };
   const innerWidth = width - margin.left - margin.right;
@@ -3913,14 +3915,16 @@ function drawBarChart(containerId, data) {
   const maxValue = d3.max(data, d => d.value) || 0;
   // Reduced headroom above bars (1.02 instead of 1.05)
   const y = d3.scaleLinear().range([innerHeight, 0]).domain([0, maxValue * 1.02]);
-  const colorScale = d3.scaleLinear().domain([0, data.length - 1]).range(['#06b6d4', '#a855f7']).interpolate(d3.interpolateRgb);
+  const colorScale = d3.scaleOrdinal()
+    .domain(data.map((_, i) => i))
+    .range(barPalette);
   const uid = Date.now();
   data.forEach((d, i) => {
     const color = colorScale(i);
     const gradId = `bar-grad-${uid}-${i}`;
     const grad = defs.append('linearGradient').attr('id', gradId).attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.5);
-    grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.1);
+    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.4);
+    grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.07);
     grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0);
   });
   const barGroups = g.selectAll('.bar-group').data(data).enter().append('g').attr('class', 'bar-group');

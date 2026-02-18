@@ -453,6 +453,10 @@
 .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
   white-space: nowrap;
 }
+.fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
+  /* PPG Leaders inline subtitle: remove block margins so it stays aligned */
+  margin: 0;
+}
 
 .fc-chart-subtitle {
   margin: 0.31em 0.61em;
@@ -1025,8 +1029,8 @@
     gap: 0.3em;
     margin-left: 0px;
   }
-  /* Hide the PPG subtitle on mobile to save vertical space */
-  .fc-subtitle-bar { display: none !important; }
+  /* PPG Leaders inline subtitle: keep visible on mobile (no wrapping handled above) */
+  .fc-subtitle-bar { display: inline; }
 
   /* Grid ratio: give radar panel more horizontal space, shrink bar panel */
   .fc-grid-charts {
