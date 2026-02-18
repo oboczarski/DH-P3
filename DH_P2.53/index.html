@@ -298,7 +298,10 @@
           <div class="fc-card fc-glass fc-chart-panel fc-bar-panel">
             <div class="fc-chart-header fc-chart-header--bar">
               <div class="fc-chart-header-top fc-chart-header-top--bar">
-                <h3 class="fc-card__title">PPG Leaders</h3>
+                <div class="fc-bar-title-line">
+                  <h3 class="fc-card__title">PPG Leaders &#8211;</h3>
+                  <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Top 5 by POS</p>
+                </div>
                 <div class="fc-filter-group" id="filter-buttons">
                   <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
                   <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
@@ -307,8 +310,7 @@
                   <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
                 </div>
               </div>
-              <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Efficiency Index — Positional Leaders
-                (Top 8)</p>
+              <!-- PPG Leaders subtitle moved inline with title per header layout update -->
             </div>
             <div class="fc-chart-container">
               <div id="bar-chart" class="fc-chart-canvas"></div>

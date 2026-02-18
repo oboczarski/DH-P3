@@ -3835,16 +3835,16 @@ body[data-page="welcome"] .app-header {
 }
 
 .welcome-subtitle-row h3 {
-  font-size: 1.1rem;
-  color: #ddd7ff;
+  font-size: 1.15rem;
+  color: #ced8ebcc;
   /* Dimmer, soft purple-white */
-  font-weight: 200;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   margin: 0;
   text-align: center;
   /* Nice glow effect */
-  text-shadow: 0 0 12px #766dff69, 0 0 10px #4e09ff87;
+  text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43;
+  text-wrap-mode: nowrap;
 }
 
 /* tighter grid: menu - username - enter */
