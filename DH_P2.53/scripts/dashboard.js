@@ -3923,9 +3923,9 @@ function drawBarChart(containerId, data) {
     const color = colorScale(i);
     const gradId = `bar-grad-${uid}-${i}`;
     const grad = defs.append('linearGradient').attr('id', gradId).attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.4);
+    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.44);
     grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.07);
-    grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0);
+    grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0.015);
   });
   const barGroups = g.selectAll('.bar-group').data(data).enter().append('g').attr('class', 'bar-group');
   const barWidth = x.bandwidth();
