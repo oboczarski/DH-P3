@@ -3892,8 +3892,24 @@ function drawBarChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
-  // PPG Leaders bar chart palette: match provided neon gradient stops
-  const barPalette = ['#13dcff', '#2077ed', '#4d39fc', '#701fe3', '#a633f7'];
+  // PPG Leaders bar chart palette:
+  // Mobile (5 bars): original neon gradient stops — untouched
+  // Desktop (8 bars): use the QB radial ring colors (QB_CUSTOM_RING_MIDS) so each bar
+  //   matches the corresponding ring color from the QB Performance Map radar chart.
+  //   Each mid color is used for the stroke/label; fill gradient uses the same
+  //   start/end derivation as buildPaletteFromMids (mixHex white 35% / black 28%).
+  const barPaletteMobile = ['#13dcff', '#2077ed', '#4d39fc', '#701fe3', '#a633f7'];
+  // QB ring mid colors (inner → outer), matching QB_CUSTOM_RING_MIDS exactly
+  // (trailing 'ff' alpha stripped to 6-char hex so mixHex parses correctly)
+  const barPaletteDesktopMids = ['#ff0aa5', '#fe26f7', '#d747ff', '#a74eff', '#7866FF', '#4D79FF', '#00a9f1', '#00DDFA'];
+  // Build per-bar gradient stop objects the same way buildPaletteFromMids does,
+  // so the fill gradient mirrors the radar ring gradient appearance
+  const barPaletteDesktop = barPaletteDesktopMids.map(mid => ({
+    mid,
+    start: mixHex(mid, '#FFFFFF', 0.35), // 35% lighter — tops of bars
+    end: mixHex(mid, '#000000', 0.28)    // 28% darker  — bottoms of bars
+  }));
+  const barPalette = isMobile ? barPaletteMobile : barPaletteDesktopMids;
   // Reduced top margin to move bars up, increased bottom for angled labels on mobile
   const margin = { top: height * 0.06, right: width * 0.03, bottom: isMobile ? height * 0.15 : height * 0.10, left: width * 0.03 };
   const innerWidth = width - margin.left - margin.right;
@@ -3920,12 +3936,21 @@ function drawBarChart(containerId, data) {
     .range(barPalette);
   const uid = Date.now();
   data.forEach((d, i) => {
-    const color = colorScale(i);
     const gradId = `bar-grad-${uid}-${i}`;
     const grad = defs.append('linearGradient').attr('id', gradId).attr('x1', '0%').attr('y1', '0%').attr('x2', '0%').attr('y2', '100%');
-    grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.44);
-    grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.07);
-    grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0.015);
+    if (isMobile) {
+      // Mobile: original flat-color gradient (unchanged)
+      const color = barPalette[i % barPalette.length];
+      grad.append('stop').attr('offset', '0%').attr('stop-color', color).attr('stop-opacity', 0.44);
+      grad.append('stop').attr('offset', '70%').attr('stop-color', color).attr('stop-opacity', 0.07);
+      grad.append('stop').attr('offset', '100%').attr('stop-color', color).attr('stop-opacity', 0.015);
+    } else {
+      // Desktop: use TE ring gradient stops (start → mid → end) matching radar ring appearance
+      const { start, mid, end } = barPaletteDesktop[i % barPaletteDesktop.length];
+      grad.append('stop').attr('offset', '0%').attr('stop-color', start).attr('stop-opacity', 0.52);
+      grad.append('stop').attr('offset', '55%').attr('stop-color', mid).attr('stop-opacity', 0.18);
+      grad.append('stop').attr('offset', '100%').attr('stop-color', end).attr('stop-opacity', 0.06);
+    }
   });
   const barGroups = g.selectAll('.bar-group').data(data).enter().append('g').attr('class', 'bar-group');
   const barWidth = x.bandwidth();
