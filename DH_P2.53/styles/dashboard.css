@@ -972,7 +972,7 @@
 
 /* --- CHART PANELS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-chart-panel {padding: 1em 1.25em;}
+  .fc-chart-panel {padding: 1em 1.25em;min-height: 43em;}
   .fc-chart-panel .fc-card__title {font-size: 1.5em;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1.2em;}
