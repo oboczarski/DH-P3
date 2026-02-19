@@ -3899,9 +3899,9 @@ function drawBarChart(containerId, data) {
   //   Each mid color is used for the stroke/label; fill gradient uses the same
   //   start/end derivation as buildPaletteFromMids (mixHex white 35% / black 28%).
   const barPaletteMobile = ['#13dcff', '#2077ed', '#4d39fc', '#701fe3', '#a633f7'];
-  // QB ring mid colors (inner → outer), matching QB_CUSTOM_RING_MIDS exactly
+  // QB ring mid colors (outer → inner, reversed from QB_CUSTOM_RING_MIDS) — cyan end first
   // (trailing 'ff' alpha stripped to 6-char hex so mixHex parses correctly)
-  const barPaletteDesktopMids = ['#ff0aa5', '#fe26f7', '#d747ff', '#a74eff', '#7866FF', '#4D79FF', '#00a9f1', '#00DDFA'];
+  const barPaletteDesktopMids = ['#00DDFA', '#00a9f1', '#4D79FF', '#7866FF', '#a74eff', '#d747ff', '#fe26f7', '#ff0aa5'];
   // Build per-bar gradient stop objects the same way buildPaletteFromMids does,
   // so the fill gradient mirrors the radar ring gradient appearance
   const barPaletteDesktop = barPaletteDesktopMids.map(mid => ({
@@ -3921,7 +3921,7 @@ function drawBarChart(containerId, data) {
     .attr('class', 'scatter-svg');
   const defs = svg.append('defs');
   const filter = defs.append('filter').attr('id', 'neon-glow').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
-  filter.append('feGaussianBlur').attr('stdDeviation', '3').attr('result', 'coloredBlur');
+  filter.append('feGaussianBlur').attr('stdDeviation', '1.5').attr('result', 'coloredBlur'); // Reduced from 3 — tighter, less diffuse glow on bar outlines
   const feMerge = filter.append('feMerge');
   feMerge.append('feMergeNode').attr('in', 'coloredBlur');
   feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
@@ -3974,7 +3974,7 @@ function drawBarChart(containerId, data) {
   }
   
   // Outer glow rect
-  barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeGlow).attr('stroke-opacity', 0.3).style('filter', 'url(#neon-glow)').transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
+  barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', 'none').attr('stroke', (d, i) => colorScale(i)).attr('stroke-width', strokeGlow).attr('stroke-opacity', 0.18).style('filter', 'url(#neon-glow)') // opacity reduced from 0.3 for tighter outline.transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
   // Gradient fill rect
   barGroups.append('rect').attr('x', d => x(d.label)).attr('y', innerHeight).attr('width', barWidth).attr('height', 0).attr('rx', radius).attr('ry', radius).attr('fill', (d, i) => `url(#bar-grad-${uid}-${i})`).transition().duration(1000).delay((d, i) => i * 50).ease(d3.easeCubicOut).attr('y', d => y(d.value)).attr('height', d => innerHeight - y(d.value));
   // Main stroke rect
