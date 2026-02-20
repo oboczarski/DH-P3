@@ -440,14 +440,13 @@
 .fc-radar-panel .fc-radar-title-line .fc-card__title,
 .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
   white-space: nowrap;
-  font-size: 1.4em;
 }
 
 /* PPG Leaders header: keep title + subtitle on one line in bar panel */
 .fc-bar-panel .fc-bar-title-line {
   display: flex;
   align-items: baseline;
-  gap: 0.45em;
+  gap: 0.25em;
   flex-wrap: nowrap;
   white-space: nowrap;
 }
@@ -458,7 +457,7 @@
 .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
   /* PPG Leaders inline subtitle: remove block margins so it stays aligned */
   margin: 0;
-  margin-top: 2px;
+  margin-top: 0px;
 }
 
 .fc-chart-subtitle {
@@ -1012,7 +1011,7 @@
   .fc-chart-panel .fc-card__title {font-size: 2em;align-self: center;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1.75em !important;margin-top: 4px;}
-  .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
+  .fc-subtitle-bar {font-size: 1.85em !important;padding: 1px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
   /* Radial dropdown sizing */
