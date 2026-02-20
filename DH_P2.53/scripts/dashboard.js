@@ -4042,8 +4042,8 @@ function drawScatterChart(containerId, data) {
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [17, 44];
-  // Scatter x-axis now uses 50%..100% in 10-point steps for consistency labels.
-  const xDomain = [50, 100];
+  // Scatter plot domain stays unchanged; only the visible x-axis labels are constrained to 50%..100%.
+  const xDomain = [45, 104];
   const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);

@@ -1354,11 +1354,14 @@
 }
 #player-select-options .fc-option-rank {
   text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: #b7c2d3;
-  opacity: 0.9;
+  /* Keep rank text visually neutral (no special numeric/opacity styling). */
+  font-variant-numeric: normal;
+  color: inherit;
+  opacity: 1;
 }
 #player-select-options .fc-option-name {
+  /* Player name column should anchor left while rank/team retain their column alignment. */
+  text-align: left;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
