@@ -430,7 +430,7 @@
 .fc-radar-panel .fc-radar-title-line {
   display: flex;
   align-items: baseline;
-  gap: 0.45em;
+  gap: 0em;
   flex-wrap: nowrap;
   white-space: nowrap;
   margin-bottom: -1px;
@@ -439,6 +439,7 @@
 .fc-radar-panel .fc-radar-title-line .fc-card__title,
 .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
   white-space: nowrap;
+  font-size: 2em;
 }
 
 /* PPG Leaders header: keep title + subtitle on one line in bar panel */
@@ -456,10 +457,11 @@
 .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
   /* PPG Leaders inline subtitle: remove block margins so it stays aligned */
   margin: 0;
+  margin-top: 2px;
 }
 
 .fc-chart-subtitle {
-  margin: 0.31em 0.61em;
+  margin: 0.31em 0.31em;
   text-align: center;
 }
 
@@ -1006,9 +1008,9 @@
 /* --- CHART PANELS (Mobile) --- */
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
-  .fc-chart-panel .fc-card__title {font-size: 2.1em;align-self: center;}
+  .fc-chart-panel .fc-card__title {font-size: 2em;align-self: center;}
   .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1.85em !important;margin-top: 2px;}
+  .fc-subtitle-radar {font-size: 1.75em !important;margin-top: 4px;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 0px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
@@ -1025,7 +1027,7 @@
   /* PPG bar panel header: stack filter buttons below title on mobile */
   .fc-chart-header-top--bar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.3em;
     margin-left: 0px;
   }
@@ -1034,7 +1036,7 @@
 
   /* Grid ratio: give radar panel more horizontal space, shrink bar panel */
   .fc-grid-charts {
-    grid-template-columns: 1.15fr 0.95fr;
+    grid-template-columns: 1.45fr 0.95fr;
   }
 
   /* Radar panel: taller container to match wider panel */
@@ -1076,7 +1078,7 @@
     border: 1px solid #ffffff05;
     border-radius: 1.2em;
     padding: 0.01em 0.01em;
-    margin-right: -6px;
+    margin-right: 1px;
   }
   .fc-bar-panel .filter-btn {
     padding: 0.22em 0.55em !important;
@@ -1289,6 +1291,8 @@
     padding: 0.15rem 0.4em 0.05rem;
     font-size: 2.4em;
     margin-bottom: 6px;
+    margin-left: 8px;
+    margin-right: 7px;
   }
 
   .fc-search-icon {
