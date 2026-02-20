@@ -1353,7 +1353,8 @@
   align-items: center;
 }
 #player-select-options .fc-option-rank {
-  text-align: right;
+  /* Keep rank numerals centered within the dedicated rank column. */
+  text-align: center;
   /* Keep rank text visually neutral (no special numeric/opacity styling). */
   font-variant-numeric: normal;
   color: inherit;

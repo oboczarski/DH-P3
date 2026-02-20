@@ -3520,7 +3520,9 @@ function setupCustomSelect() {
     if (container.classList.contains('is-open')) {
       searchInput.value = '';
       searchInput.focus();
-      optionsContainer.querySelectorAll('.fc-option').forEach(opt => opt.style.display = 'flex');
+      // Performance Map custom select options use a 3-column grid (rank, name, team),
+      // so re-show rows as grid to preserve left-aligned name layout.
+      optionsContainer.querySelectorAll('.fc-option').forEach(opt => opt.style.display = 'grid');
     }
   });
 
@@ -3531,7 +3533,8 @@ function setupCustomSelect() {
   searchInput.addEventListener('input', (e) => {
     const term = e.target.value.toLowerCase();
     optionsContainer.querySelectorAll('.fc-option').forEach(opt => {
-      opt.style.display = opt.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
+      // Keep visible matches in grid mode so column alignment remains consistent.
+      opt.style.display = opt.textContent.toLowerCase().includes(term) ? 'grid' : 'none';
     });
   });
 
