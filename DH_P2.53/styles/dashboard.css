@@ -603,7 +603,7 @@
   text-align: center;
   flex-shrink: 0;
   z-index: 1;
-  justify-items: start;
+  justify-items: center;
 }
 
 .fc-legend-item {
@@ -1028,14 +1028,14 @@
     margin-bottom: 0;
   }
   .fc-radar-panel #player-select-container {
-    width: 15.5em;
+    width: 14.5em;
     flex: 0 0 auto;
     align-self: flex-end;
     margin: 0;
   }
   .fc-radar-panel #player-select-trigger {
-    font-size: 1.24em;
-    padding: 0.52em 0.78em;
+    font-size: 1.14em;
+    padding: 0.32em 0.78em;
   }
   .fc-radar-panel #player-select-dropdown {
     width: 22.5em;
@@ -1077,7 +1077,7 @@
   .fc-radar-panel .fc-radar-title-line {
     align-items: flex-end;
     gap: 0.2em;
-    margin-bottom: 0;
+    margin: 6px 0px 3px 0px;
   }
   .fc-radar-panel .fc-radar-title-line .fc-card__title,
   .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
@@ -1091,6 +1091,7 @@
   .fc-bar-panel .fc-bar-title-line {
     align-items: flex-end;
     gap: 0.2em;
+    margin: 5px 0px 2px 0px;
   }
   .fc-bar-panel .fc-bar-title-line .fc-card__title,
   .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
@@ -1116,7 +1117,7 @@
   #player-select-dropdown { width: 98vw; max-width: 38em; }
 
   /* Keep dropdown to the right of the title on mobile */
-  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.2em;}
+  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: center;gap: 0.2em;}
   .fc-chart-header-top .fc-custom-select {min-width: 19em;}
   /* PPG bar panel header: stack filter buttons below title on mobile */
   .fc-chart-header-top--bar {
