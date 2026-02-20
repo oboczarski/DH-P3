@@ -943,6 +943,14 @@
   /* .fc-title removed */
 }
 
+/* Desktop-only dashboard scale-down on the home page to match the requested 90% zoom-out. */
+@media (min-width: 769px) {
+  .fc-dashboard { font-size: calc(12.81px * 0.9); }
+}
+@media (min-width: 769px) and (max-width: 1114px) {
+  .fc-dashboard { font-size: calc(1.15vw * 0.9); }
+}
+
 /* --- SUMMARY CARDS (Desktop) --- */
 @media (min-width: 769px) {
   .fc-summary-card {padding: 0.51em 1.25em 0.3em;backdrop-filter: blur(0px);}
@@ -1000,9 +1008,59 @@
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
   .fc-legend-inline { font-size: 1.2em; }
+
+  /* Performance Map desktop header: keep selector inline to the right of title/subtitle. */
+  .fc-radar-panel .fc-chart-header--radar {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.8em;
+    flex-wrap: nowrap;
+  }
+  .fc-radar-panel .fc-chart-header-top {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
+  }
+  .fc-radar-panel .fc-radar-title-line {
+    align-items: flex-end;
+    gap: 0.2em;
+    margin-bottom: 0;
+  }
+  .fc-radar-panel #player-select-container {
+    width: 15.5em;
+    flex: 0 0 auto;
+    align-self: flex-end;
+    margin: 0;
+  }
+  .fc-radar-panel #player-select-trigger {
+    font-size: 1.24em;
+    padding: 0.52em 0.78em;
+  }
+  .fc-radar-panel #player-select-dropdown {
+    width: 22.5em;
+  }
+
+  /* Desktop-only dropdown legibility + uniform option spacing. */
+  .fc-radar-panel #player-select-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    padding: 0.3em;
+  }
+  .fc-radar-panel #player-select-options .fc-option {
+    font-size: 1em;
+    margin: 0;
+    padding: 0.42em 0.6em;
+  }
+  .fc-radar-panel #player-select-options .fc-option-team {
+    font-size: 0.98em;
+  }
   
   /* Scatter Panel */
   .fc-scatter-panel {min-height: 45em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+  /* Desktop-only scatter label bump for readability. */
+  .fc-scatter-panel .scatter-label { font-size: 12.5px; }
 }
 
 /* --- CHART PANELS (Mobile) --- */
@@ -1014,12 +1072,48 @@
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 1px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
+  /* Mobile-only panel subtitle alignment:
+     lock subtitle bottoms to title bottoms in radar and bar headers. */
+  .fc-radar-panel .fc-radar-title-line {
+    align-items: flex-end;
+    gap: 0.2em;
+    margin-bottom: 0;
+  }
+  .fc-radar-panel .fc-radar-title-line .fc-card__title,
+  .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
+    line-height: 1;
+    margin: 0;
+    align-self: auto;
+  }
+  .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
+    margin-bottom: 0.05em;
+  }
+  .fc-bar-panel .fc-bar-title-line {
+    align-items: flex-end;
+    gap: 0.2em;
+  }
+  .fc-bar-panel .fc-bar-title-line .fc-card__title,
+  .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
+    line-height: 1;
+    align-self: auto;
+  }
+  .fc-bar-panel .fc-bar-title-line .fc-card__title {
+    margin: 0;
+  }
+  .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
+    margin: 0 0 0.05em 0 !important;
+    padding: 0 !important;
+  }
+
   /* Radial dropdown sizing */
   .fc-custom-select { width: 14em; }
   .fc-select-dropdown { width: 90vw; max-width: 22em; }
   .fc-search-wrapper { padding: 1em; }
   .fc-search-icon { width: 1.1em; height: 1.1em; left: 1em; }
   .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
+  /* Radar selector width increase on mobile for rank + name + team columns. */
+  #player-select-container { width: 39em; }
+  #player-select-dropdown { width: 98vw; max-width: 38em; }
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-between;gap: 0.2em;}
@@ -1126,7 +1220,7 @@
 /* Custom Select Styles */
 .fc-custom-select {
   position: relative;
-  width: 13em; /* Default width */
+  width: 14.5em; /* Slightly wider to support rank + player + team columns */
   font-family: var(--font-family);
   align-self: center;
 }
@@ -1160,7 +1254,7 @@
   position: absolute;
   top: calc(100% + 0.5em);
   right: 0; /* Align right to prevent overflow on mobile */
-  width: 18em; /* Wider than trigger for better search experience */
+  width: 21.5em; /* Widened for rank, player, and team info */
   background: #3b3d5a; /* Solid background to cover content */
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5em;
@@ -1247,6 +1341,31 @@
   justify-content: space-between;
   background: #abc2;
   margin: 1px;
+}
+
+/* Performance Map option row structure:
+   rank (left), player name (middle), position/team (right). */
+#player-select-options .fc-option {
+  display: grid;
+  grid-template-columns: 2.35em minmax(0, 1fr) auto;
+  column-gap: 0.55em;
+  align-items: center;
+}
+#player-select-options .fc-option-rank {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #b7c2d3;
+  opacity: 0.9;
+}
+#player-select-options .fc-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#player-select-options .fc-option-team {
+  margin-left: 0;
+  white-space: nowrap;
 }
 
 .fc-option:hover, .fc-option.is-focused {

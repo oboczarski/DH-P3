@@ -3487,11 +3487,15 @@ function renderCustomSelect() {
   if (!optionsContainer) return;
   const optionsList = players.slice(0, 100);
   optionsContainer.innerHTML = optionsList
-    .map(p => {
+    // Performance Map selector options are rendered in descending FPTS order,
+    // so the rank column is a simple 1..100 index tied to this existing order.
+    .map((p, index) => {
       const posClass = `fc-option-pos fc-option-pos-${p.position.toLowerCase()}`;
+      const rank = index + 1;
       return `
       <li class="fc-option ${p.id === dashState.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
-        <span>${p.name}</span>
+        <span class="fc-option-rank">${rank}</span>
+        <span class="fc-option-name">${p.name}</span>
         <span class="fc-option-team"><span class="${posClass}">${p.position}</span> • ${p.team}</span>
       </li>
     `;
@@ -4038,8 +4042,9 @@ function drawScatterChart(containerId, data) {
   tooltip.style.display = 'none';
   document.body.appendChild(tooltip);
   const yDomain = [17, 44];
-  const xDomain = [45, 104];
-  const xTicks = [45, 55, 65, 75, 85, 95, 100];
+  // Scatter x-axis now uses 50%..100% in 10-point steps for consistency labels.
+  const xDomain = [50, 100];
+  const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
   const xAxisGrid = d3.axisBottom(x).tickValues([60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
@@ -4102,8 +4107,8 @@ function drawScatterChart(containerId, data) {
     .attr('letter-spacing', '0.1em')
     .text('CEILING (CL)');
   
-  // Calculate offsets for overlapping/nearby dots
-  const dotRadius = isMobile ? 4.8 : 7;
+  // Desktop dots are intentionally a bit larger for readability.
+  const dotRadius = isMobile ? 4.8 : 7.6;
   // Minimum distance between dot centers to avoid overlap (slightly stronger than before)
   const minDistance = dotRadius * 3;
   
