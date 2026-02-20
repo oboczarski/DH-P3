@@ -440,7 +440,7 @@
 .fc-radar-panel .fc-radar-title-line .fc-card__title,
 .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
   white-space: nowrap;
-  font-size: 2em;
+  font-size: 1.4em;
 }
 
 /* PPG Leaders header: keep title + subtitle on one line in bar panel */
@@ -946,14 +946,14 @@
 
 /* --- SUMMARY CARDS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-summary-card {padding: 0.71em 1.25em 0.6em;backdrop-filter: blur(0px);}
-  .fc-summary-card .fc-card__header {margin-bottom: 0.6em;}
-  .fc-summary-card .fc-card__title {font-size: 1.45em;margin-left: 4px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 0.95em;}
-  .fc-summary-card .fc-badge {padding: 0.25em 0.5em;font-size: 0.85em;}
-  .fc-summary-card .fc-metric-value { font-size: 2.25em; }
+  .fc-summary-card {padding: 0.51em 1.25em 0.3em;backdrop-filter: blur(0px);}
+  .fc-summary-card .fc-card__header {margin-bottom: 0em;}
+  .fc-summary-card .fc-card__title {font-size: 1.55em;margin-left: 4px;}
+  .fc-summary-card .fc-card__subtitle {font-size: 1.25em;}
+  .fc-summary-card .fc-badge {padding: 0.25em 0.5em;font-size: 1.05em;}
+  .fc-summary-card .fc-metric-value {font-size: 2.25em;margin-left: 30px;}
   .fc-summary-card .fc-metric-sub {margin-bottom: 0.025em;font-size: 1.2em;}
-  .fc-summary-card .fc-card__footer {margin-top: 1em;font-size: 1.15em;}
+  .fc-summary-card .fc-card__footer {margin-top: 0.1em;font-size: 1.55em;}
 
   .fc-chart-helper { font-size: 0.95em; }
   .fc-chart-helper--scatter {font-size: 1em;align-self: end;font-weight: 400;font-style: italic;}
@@ -975,10 +975,10 @@
 
 /* --- CHART PANELS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-chart-panel {padding: 1em 1.25em;min-height: 43em;}
+  .fc-chart-panel {padding: 1em 0.65em;min-height: 43em;}
   .fc-chart-panel .fc-card__title {font-size: 1.5em;}
   .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1.2em;}
+  .fc-subtitle-radar {font-size: 1.2em !important;}
   .fc-subtitle-bar {font-size: 1.2em;}
   .fc-subtitle-scatter {font-size: 1.2em;}
 
@@ -1127,8 +1127,9 @@
 /* Custom Select Styles */
 .fc-custom-select {
   position: relative;
-  width: 12em; /* Default width */
+  width: 14em; /* Default width */
   font-family: var(--font-family);
+  align-self: center;
 }
 
 .fc-select-trigger {
@@ -1140,7 +1141,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.5em;
   padding: 0.5em 0.75em;
-  font-size: 1em;
+  font-size: 1.2em;
   cursor: pointer;
   transition: all 0.2s;
   user-select: none;
