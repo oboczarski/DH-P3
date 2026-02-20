@@ -342,11 +342,11 @@
   margin-top: 0.6em;
   text-align: center;
 }
-.fc-footer-name { font-weight: 600; }
+.fc-footer-name {font-weight: 500;}
 
 .fc-progress-accent {
   width: 100%;
-  height: 0.56em;
+  height: 0.46em;
   border-radius: var(--radius-full);
   margin-top: 0.9em;
   margin-bottom: 0em;
@@ -363,9 +363,9 @@
   background-image: linear-gradient(90deg, rgba(16,185,129,0.22), rgba(16,185,116,0.03));
 }
 
-.fc-icon-value {width: 1.5em;height: 1.5em;}
-.fc-icon-consistency {width: 1.75em;height: 1.35em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
-.fc-icon-target {width: 1.6em;height: 1.15em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.3em;}
+.fc-icon-value {width: 1.7em;height: 1.8em;}
+.fc-icon-consistency {width: 1.75em;height: 1.5em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.1em;}
+.fc-icon-target {width: 1.8em;height: 1.45em;display: inline-flex;align-items: center;justify-content: center;font-size: 1.3em;}
 .fc-metric-sub {display: flex;align-items: center;gap: 0.35em;}
 
 /* Charts */
@@ -969,7 +969,7 @@
   .fc-summary-card .fc-card__subtitle {font-size: 1.65em;text-wrap-mode: nowrap;margin-bottom: -1px;}
   .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.45em;}
   .fc-summary-card .fc-metric-value {font-size: 2.85em;}
-  .fc-summary-card .fc-metric-sub {margin-bottom: 0em;font-size: 1.5em;}
+  .fc-summary-card .fc-metric-sub {margin-bottom: -0.1em;font-size: 1.6em;}
   .fc-summary-card .fc-card__footer {margin-top: 0.17em;font-size: 1.7em;}
 }
 
