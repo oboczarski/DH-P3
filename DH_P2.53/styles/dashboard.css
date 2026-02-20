@@ -56,6 +56,12 @@
   font-size: 12.81px;
 }
 
+@media (min-width: 1115px) {
+  .fc-dashboard {
+    font-size: 11.53px; /* 90% of 12.81px */
+  }
+}
+
 /* Reset & Base within Dashboard */
 .fc-dashboard *, .fc-dashboard *::before, .fc-dashboard *::after {
   box-sizing: border-box;
@@ -407,6 +413,15 @@
   gap: 0.15em;
 }
 
+@media (min-width: 769px) {
+  .fc-chart-header--radar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1em;
+  }
+}
+
 .fc-chart-header--scatter {
   flex-direction: column;
   align-items: stretch;
@@ -423,7 +438,7 @@
 .fc-chart-header-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.75em;
 }
 
@@ -1224,6 +1239,14 @@
   padding: 0.25em 0.05em 0.25em 0.5em;
 }
 
+@media (min-width: 769px) {
+  .fc-select-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
 /* Custom Scrollbar for options */
 .fc-select-options::-webkit-scrollbar {
   width: 4px;
@@ -1250,6 +1273,14 @@
   margin: 1px;
 }
 
+@media (min-width: 769px) {
+  .fc-option {
+    font-size: 1.1em;
+    margin: 0;
+    padding: 0.6em 0.85em;
+  }
+}
+
 .fc-option:hover, .fc-option.is-focused {
   background: rgba(255, 255, 255, 0.05);
   color: white;
@@ -1265,6 +1296,19 @@
   font-size: 1em;
   color: var(--text-muted);
   margin-left: 0.5em;
+}
+
+.fc-option-rank {
+  font-weight: 600;
+  color: var(--color-cyan-light);
+  margin-right: 0.5em;
+  min-width: 2em;
+  text-align: right;
+}
+
+.fc-option-name {
+  flex-grow: 1;
+  text-align: left;
 }
 
 /* Position accent colors for custom select */

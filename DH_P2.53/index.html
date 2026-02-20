@@ -66,7 +66,11 @@
               <h3 class="welcome-header-title">Welcome! Enter Sleeper Username to Sync Your Leagues, and Get Started
               </h3>
               <div class="header-row" id="primary-header-row">
-                <!-- Menu toggle on the left for mobile/compact navigation -->
+                <!-- Username input -->
+                <div class="username-area">
+                  <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
+                    inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
+                </div>
                 <div class="home-menu-slot">
                   <button id="homeMenuToggle" class="menu-toggle" aria-expanded="false" aria-haspopup="true"
                     aria-label="Open menu">
@@ -92,12 +96,6 @@
                       data-url="http://dynastyhub-matchups.netlify.app/"><i
                         class="fa-solid fa-table-columns"></i><span>Matchups</span></button>
                   </div>
-                </div>
-
-                <!-- Username input -->
-                <div class="username-area">
-                  <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
-                    inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
                 </div>
 
                 <!-- Single enter button on the right (reuses rostersButton id so existing JS still works) -->

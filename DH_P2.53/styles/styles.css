@@ -373,6 +373,21 @@ main#content {
   }
 }
 
+@media (max-width: 819px) {
+  body[data-page="welcome"] .branding-top-row {
+    position: relative;
+  }
+  body[data-page="welcome"] .home-menu-slot {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  body[data-page="welcome"] .username-area {
+    flex-grow: 1;
+  }
+}
+
 /* Subtle glow effect matching cards */
 .welcome-branding-panel::before {
   content: "";
@@ -4010,7 +4025,7 @@ body[data-page="welcome"] .app-header {
 @media (max-width: 819px) {
   body[data-page="welcome"] #primary-header-row {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 0.5rem;
     align-items: center;
     width: 100%;
@@ -4201,6 +4216,26 @@ body[data-page="welcome"] .menu-toggle i {
   font-size: 1.45rem;
 }
 
+@media (max-width: 819px) {
+  body[data-page="welcome"] .home-menu-slot {
+    position: absolute;
+    top: 2.25rem;
+    right: 2.2rem;
+    z-index: 1001;
+  }
+  body[data-page="welcome"] .home-menu {
+    right: 0;
+    left: auto;
+  }
+  body[data-page="welcome"] .username-area {
+    flex-grow: 1;
+    max-width: none;
+  }
+  body[data-page="welcome"] #usernameInput {
+    width: 100%;
+  }
+}
+
 /* Desktop ownership row tuning (desktop only) */
 @media (min-width: 820px) {
   body[data-page="ownership"] .player-list-section .pl-player-row {
@@ -4273,7 +4308,7 @@ body[data-page="welcome"] .menu-toggle i {
 /* Mobile tweaks: keep button compact and inline */
 @media (max-width: 520px) {
   body[data-page="welcome"] #primary-header-row {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 0.4rem;
     padding-left: 8px;
     padding-right: 8px;

@@ -3487,11 +3487,12 @@ function renderCustomSelect() {
   if (!optionsContainer) return;
   const optionsList = players.slice(0, 100);
   optionsContainer.innerHTML = optionsList
-    .map(p => {
+    .map((p, index) => {
       const posClass = `fc-option-pos fc-option-pos-${p.position.toLowerCase()}`;
       return `
       <li class="fc-option ${p.id === dashState.selectedPlayerId ? 'is-selected' : ''}" data-value="${p.id}">
-        <span>${p.name}</span>
+        <span class="fc-option-rank">#${index + 1}</span>
+        <span class="fc-option-name">${p.name}</span>
         <span class="fc-option-team"><span class="${posClass}">${p.position}</span> • ${p.team}</span>
       </li>
     `;
@@ -4039,10 +4040,10 @@ function drawScatterChart(containerId, data) {
   document.body.appendChild(tooltip);
   const yDomain = [17, 44];
   const xDomain = [45, 104];
-  const xTicks = [45, 55, 65, 75, 85, 95, 100];
+  const xTicks = [50, 60, 70, 80, 90, 100];
   const x = d3.scaleLinear().domain(xDomain).range([0, innerWidth]);
   const y = d3.scaleLinear().domain(yDomain).range([innerHeight, 0]);
-  const xAxisGrid = d3.axisBottom(x).tickValues([60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
+  const xAxisGrid = d3.axisBottom(x).tickValues([50,60,70,80,90,100]).tickSize(-innerHeight).tickFormat('');
   const yAxisGrid = d3.axisLeft(y).tickValues([20, 25, 30, 35, 40]).tickSize(-innerWidth).tickFormat('');
  // g.append('g')
   // .attr('class', 'scatter-grid')
@@ -4103,7 +4104,7 @@ function drawScatterChart(containerId, data) {
     .text('CEILING (CL)');
   
   // Calculate offsets for overlapping/nearby dots
-  const dotRadius = isMobile ? 4.8 : 7;
+  const dotRadius = isMobile ? 4.8 : 8.5;
   // Minimum distance between dot centers to avoid overlap (slightly stronger than before)
   const minDistance = dotRadius * 3;
   
@@ -4242,6 +4243,7 @@ function drawScatterChart(containerId, data) {
     .attr('text-anchor', 'start')
     .attr('x', (d, i) => dotPositions[i].cx + labelDx)
     .attr('y', (d, i) => dotPositions[i].cy + labelDy)
+    .style('font-size', isMobile ? '10px' : '14px')
     .text(d => {
     const parts = d.name.split(' ');
     const firstInitial = parts[0]?.[0] ? `${parts[0][0]}.` : '';
@@ -4351,6 +4353,25 @@ window.initFantasyDashboard = function() {
   renderScatter();
   updateFilterButtons();
   wireEvents();
+  
+  // Move home menu on mobile
+  const adjustMenuPosition = () => {
+    const menuSlot = document.querySelector('.home-menu-slot');
+    if (!menuSlot) return;
+    if (window.innerWidth <= 819) {
+      const brandingRow = document.querySelector('.branding-top-row');
+      if (menuSlot.parentElement !== brandingRow) {
+        brandingRow.appendChild(menuSlot);
+      }
+    } else {
+      const primaryHeaderRow = document.getElementById('primary-header-row');
+      if (menuSlot.parentElement !== primaryHeaderRow) {
+        primaryHeaderRow.appendChild(menuSlot);
+      }
+    }
+  };
+  window.addEventListener('resize', adjustMenuPosition);
+  adjustMenuPosition();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
