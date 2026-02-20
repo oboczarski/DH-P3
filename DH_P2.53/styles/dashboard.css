@@ -356,11 +356,11 @@
 }
 .fc-progress-accent--pink {
   box-shadow: 0 0 8px rgba(236,72,153,0.22);
-  background-image: linear-gradient(90deg, rgba(236,72,153,0.32), rgba(236,72,153,0.06));
+  background-image: linear-gradient(90deg, rgba(236,72,153,0.22), rgba(236,72,153,0.03));
 }
 .fc-progress-accent--emerald {
   box-shadow: 0 0 8px rgba(16,185,129,0.2);
-  background-image: linear-gradient(90deg, rgba(16,185,129,0.32), rgba(16,185,129,0.06));
+  background-image: linear-gradient(90deg, rgba(16,185,129,0.22), rgba(16,185,116,0.03));
 }
 
 .fc-icon-value {width: 1.5em;height: 1.5em;}
@@ -965,7 +965,7 @@
 @media (max-width: 768px) {
   .fc-summary-card {padding: 0.4em 0.5em 0.1em 0.5em;}
   .fc-summary-card .fc-card__header {margin-bottom: 0.25em;}
-  .fc-summary-card .fc-card__title {font-size: 1.9em;margin-left: 4px;}
+  .fc-summary-card .fc-card__title {font-size: 2em;margin-left: 4px;}
   .fc-summary-card .fc-card__subtitle {font-size: 1.65em;text-wrap-mode: nowrap;margin-bottom: -1px;}
   .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.45em;}
   .fc-summary-card .fc-metric-value {font-size: 2.85em;}
