@@ -708,6 +708,9 @@
     if (!isEfficiencyColumn(column)) return false;
     const snap = getNumericSortValue(entry, 'SNP%');
     const games = getNumericSortValue(entry, 'G');
+    // Stats table cell annotation for active efficiency sorts:
+    // show an asterisk when a row is below the stronger "confidence" bar
+    // (different from the eligibility filter cutoffs used for sorting).
     return (Number.isFinite(snap) && snap < 45) || (Number.isFinite(games) && games < 7);
   }
 
@@ -1101,6 +1104,8 @@
         if (isEfficiencyColumn(column)) {
           const snapPct = getNumericSortValue(entry, 'SNP%');
           const games = getNumericSortValue(entry, 'G');
+          // Keep overview rank-color eligibility aligned with efficiency sort eligibility.
+          // If these cutoffs change in `passesFilters`, update this block too.
           if (!Number.isFinite(snapPct) || snapPct < 40) return false;
           if (!Number.isFinite(games) || games < 4) return false;
         }
