@@ -1418,6 +1418,46 @@ body[data-page="stats"] #header-container {
 
 body[data-page="stats"] {
   --stats-loading-top: 0px;
+  /* Stats page shell lock (all breakpoints):
+     keep the page itself fixed to the viewport so content cannot scroll behind
+     the sticky header; scrolling remains inside the table's own containers. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Stats page shell sizing:
+   constrain shared layout wrappers so only the stats table region can consume
+   remaining space under the header/top controls. */
+body[data-page="stats"] .content-wrapper {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body[data-page="stats"] main#content.stats-page-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body[data-page="stats"] .stats-top-panels-row {
+  flex: 0 0 auto;
+}
+
+body[data-page="stats"] .stats-table-region {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body[data-page="stats"] .stats-table-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 @media (max-width: 868px) {
@@ -1439,45 +1479,10 @@ body[data-page="stats"] {
      - leaves table scrolling behavior untouched (vertical/horizontal scroll stays in table internals) */
   body[data-page="stats"] {
     box-sizing: border-box;
-    min-height: 100vh;
-    min-height: 100dvh;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  /* Keep the shared content wrapper constrained to the mobile viewport on stats page only. */
-  body[data-page="stats"] .content-wrapper {
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  /* The stats page content becomes a non-scrolling shell with a single flexible table region. */
-  body[data-page="stats"] main#content.stats-page-content {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* Header/control panel remains fixed in place; table region takes the remaining viewport space. */
-  body[data-page="stats"] .stats-top-panels-row {
-    flex: 0 0 auto;
-  }
-
-  /* Table region is the only flexible area below the top panels on mobile. */
-  body[data-page="stats"] .stats-table-region {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
   }
 
   /* Fill the remaining space instead of fixed 70dvh so the table stops at the screen bottom. */
   body[data-page="stats"] .stats-table-wrapper {
-    flex: 1 1 auto;
-    min-height: 0;
     height: 100%;
     max-height: none;
   }
