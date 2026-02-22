@@ -2657,7 +2657,8 @@ body[data-page="welcome"] .enter-label {
   backdrop-filter: blur(var(--roster-card-blur));
   -webkit-backdrop-filter: blur(var(--roster-card-blur));
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden; /* clip the watermark to card bounds */
+  overflow: hidden;
+  /* clip the watermark to card bounds */
 }
 
 /* Team logo watermark: large, faded logo positioned behind player card content */
@@ -2696,6 +2697,7 @@ body[data-page="welcome"] .enter-label {
   filter: grayscale(100%) brightness(1.6);
   top: 37%;
 }
+
 .player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
   top: 35%;
 }
@@ -3546,6 +3548,7 @@ body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
 }
 
 @media (min-width: 820px) {
+
   /* Ownership desktop position-tag sizing:
      adjusts only ownership list tags on desktop to the requested footprint,
      leaving mobile and non-ownership pages unchanged. */
@@ -9006,6 +9009,7 @@ img.team-logo.glow[alt="NYJ"] {
   width: 31px;
   height: 22px;
 }
+
 .player-header-tags .modal-team-logo-chip img.team-logo.glow[alt="NYJ"] {
   width: 28px;
   height: 28px;
@@ -11259,6 +11263,7 @@ body[data-page="analyzer"] .analyzer-main {
   flex-direction: column;
   gap: 1.5rem;
   padding-bottom: 3rem;
+  max-width: 1200px;
 }
 
 body[data-page="analyzer"] .analyzer-hero {
@@ -11640,7 +11645,7 @@ body[data-page="analyzer"] .analyzer-leaderboard table td:nth-child(6) {
 }
 
 body[data-page="analyzer"] .analyzer-leaderboard .owner-cell {
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -11664,7 +11669,7 @@ body[data-page="analyzer"] .app-header {
 
   body[data-page="analyzer"] .analyzer-table th,
   body[data-page="analyzer"] .analyzer-table td {
-    padding: 0.35rem 0.45rem;
+    padding: 0.35rem 0.3rem;
   }
 
   body[data-page="analyzer"] .analyzer-panel {
@@ -11728,7 +11733,7 @@ body[data-page="analyzer"] .app-header {
     border-radius: 24px;
   }
 
-  
+
   body[data-page="ownership"] #primary-header-row,
   body[data-page="analyzer"] #primary-header-row {
     width: 100%;
@@ -11792,9 +11797,9 @@ body[data-page="analyzer"] .app-header {
     align-items: stretch;
   }
 
- body[data-page="ownership"] #secondary-header-row {
-  padding: 0.8rem 0.3rem 0rem !important;
- }
+  body[data-page="ownership"] #secondary-header-row {
+    padding: 0.8rem 0.3rem 0rem !important;
+  }
 
   body[data-page="ownership"] #secondary-header-row .username-area,
   body[data-page="ownership"] #secondary-header-row .custom-select-wrapper,
@@ -11970,6 +11975,7 @@ body[data-page="ownership"] #ownershipModeSwitcher {
 }
 
 @media (min-width: 820px) {
+
   /* Ownership desktop header controls:
      targets the real mode button class and the ownership-specific username bar
      so desktop sizing applies without leaking to other pages. */
@@ -11987,6 +11993,7 @@ body[data-page="ownership"] #ownershipModeSwitcher {
     height: 46px;
   }
 }
+
 body[data-page="ownership"] .ownership-mode-btn {
   flex: 1 1 0;
   min-height: 2.1rem;
@@ -12298,19 +12305,7 @@ body[data-page="ownership"] .ownership-value-table {
   --ov-col-10-fpts: 71px;
   --ov-col-11-ppg: 71px;
   --ov-table-min-width:
-    calc(
-      var(--ov-col-1-rk) +
-      var(--ov-col-2-player) +
-      var(--ov-col-3-pos) +
-      var(--ov-col-4-tm) +
-      var(--ov-col-5-age) +
-      var(--ov-col-6-1qb-ktc) +
-      var(--ov-col-7-1qb-prk) +
-      var(--ov-col-8-sflx-ktc) +
-      var(--ov-col-9-sflx-prk) +
-      var(--ov-col-10-fpts) +
-      var(--ov-col-11-ppg)
-    );
+    calc(var(--ov-col-1-rk) + var(--ov-col-2-player) + var(--ov-col-3-pos) + var(--ov-col-4-tm) + var(--ov-col-5-age) + var(--ov-col-6-1qb-ktc) + var(--ov-col-7-1qb-prk) + var(--ov-col-8-sflx-ktc) + var(--ov-col-9-sflx-prk) + var(--ov-col-10-fpts) + var(--ov-col-11-ppg));
   width: max(100%, var(--ov-table-min-width));
   min-width: var(--ov-table-min-width);
   border-collapse: collapse;
@@ -12563,17 +12558,19 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 @media (max-width: 819px) {
-body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
-  width: 100%;
-  display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
+    width: 100%;
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
+
 body[data-page="ownership"] .ownership-value-team-cell {
   text-align: center;
 }
@@ -12850,7 +12847,7 @@ body[data-page="ownership"] .ownership-modal-warning {
     min-width: 100%;
     max-width: 100%;
   }
-    
+
 
   body[data-page="ownership"] .ownership-list-header,
   body[data-page="ownership"] .ownership-list-row {
@@ -12892,6 +12889,7 @@ body[data-page="ownership"] .ownership-modal-warning {
     gap: 0.28rem;
   }
 }
+
 @media (max-width: 640px) {
   body[data-page="ownership"] .ownership-shell {
     padding: 0.54rem 0.45rem;
@@ -13817,10 +13815,19 @@ body[data-page="rosters"] #bottom-menu-panel {
 
 /* Watchlist toggle pulse animation for visual feedback on tap */
 @keyframes wlTogglePulse {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.25);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
+
 #watchlist-modal-toggle.wl-toggle-pulse {
   animation: wlTogglePulse 0.35s ease;
 }
@@ -13844,7 +13851,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   display: none;
 }
 
-#watchlist-modal > .modal-overlay {
+#watchlist-modal>.modal-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -13931,10 +13938,29 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 /* Position-specific active tints */
-.watchlist-filter-btn.is-active[data-watchlist-pos="QB"] { background: rgba(255, 178, 216, 0.13); border-color: rgba(255, 178, 216, 0.4); color: #FFB2D8; }
-.watchlist-filter-btn.is-active[data-watchlist-pos="RB"] { background: rgba(187, 247, 224, 0.1); border-color: rgba(187, 247, 224, 0.4); color: #bbf7e0; }
-.watchlist-filter-btn.is-active[data-watchlist-pos="WR"] { background: rgba(160, 194, 247, 0.12); border-color: rgba(160, 194, 247, 0.4); color: #A0C2F7; }
-.watchlist-filter-btn.is-active[data-watchlist-pos="TE"] { background: rgba(255, 199, 138, 0.12); border-color: rgba(255, 199, 138, 0.4); color: #FFC78A; }
+.watchlist-filter-btn.is-active[data-watchlist-pos="QB"] {
+  background: rgba(255, 178, 216, 0.13);
+  border-color: rgba(255, 178, 216, 0.4);
+  color: #FFB2D8;
+}
+
+.watchlist-filter-btn.is-active[data-watchlist-pos="RB"] {
+  background: rgba(187, 247, 224, 0.1);
+  border-color: rgba(187, 247, 224, 0.4);
+  color: #bbf7e0;
+}
+
+.watchlist-filter-btn.is-active[data-watchlist-pos="WR"] {
+  background: rgba(160, 194, 247, 0.12);
+  border-color: rgba(160, 194, 247, 0.4);
+  color: #A0C2F7;
+}
+
+.watchlist-filter-btn.is-active[data-watchlist-pos="TE"] {
+  background: rgba(255, 199, 138, 0.12);
+  border-color: rgba(255, 199, 138, 0.4);
+  color: #FFC78A;
+}
 
 /* Count badge: absolutely positioned so it doesn't push the centered filters off-center */
 .watchlist-count {
@@ -13981,7 +14007,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   padding: 0.3rem 0.4rem 0.3rem;
   transition: border-color 0.2s ease, background 0.2s ease;
   box-shadow: inset 2px 53px 30px -7px #a0c0f015, inset 8px 10px 10px -14px #def4, 1px 2px 8px #0002;
-  overflow: hidden; /* clip the watermark to card bounds */
+  overflow: hidden;
+  /* clip the watermark to card bounds */
 }
 
 /* Team logo watermark: large, faded logo centered behind card content */
@@ -14058,7 +14085,8 @@ body[data-page="rosters"] #bottom-menu-panel {
   align-items: center;
   gap: 0.35rem;
   margin-bottom: 0rem;
-  padding-right: 1.2rem; /* space for remove button */
+  padding-right: 1.2rem;
+  /* space for remove button */
 }
 
 /* Position tag: matches the rosters page .player-tag styling (TAG_COLORS via CSS vars, dark text) */
@@ -14078,10 +14106,22 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 /* Position colors match rosters TAG_COLORS (CSS variables) */
-.watchlist-card .wl-pos-tag.QB { background-color: var(--pos-qb); }
-.watchlist-card .wl-pos-tag.RB { background-color: var(--pos-rb); }
-.watchlist-card .wl-pos-tag.WR { background-color: var(--pos-wr); }
-.watchlist-card .wl-pos-tag.TE { background-color: var(--pos-te); }
+.watchlist-card .wl-pos-tag.QB {
+  background-color: var(--pos-qb);
+}
+
+.watchlist-card .wl-pos-tag.RB {
+  background-color: var(--pos-rb);
+}
+
+.watchlist-card .wl-pos-tag.WR {
+  background-color: var(--pos-wr);
+}
+
+.watchlist-card .wl-pos-tag.TE {
+  background-color: var(--pos-te);
+}
+
 .watchlist-card .wl-pos-tag:not(.QB):not(.RB):not(.WR):not(.TE) {
   background-color: var(--pos-bn, rgba(148, 163, 184, 0.9));
 }
@@ -14291,7 +14331,9 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 @keyframes watchlistSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty state when watchlist has no players */
@@ -14328,9 +14370,17 @@ body[data-page="rosters"] #bottom-menu-panel {
    ============================================================================ */
 /* Highlight pulse: faster flicker (0.6s/cycle × 7 = ~4.2s total) for snappier visual feedback */
 @keyframes watchlistHighlightPulse {
-  0% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45); }
-  50% { box-shadow: 0 0 6px -1px #00edcb; }
-  100% { box-shadow: 0 0 0 0 rgba(118, 109, 255, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(118, 109, 255, 0.45);
+  }
+
+  50% {
+    box-shadow: 0 0 6px -1px #00edcb;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(118, 109, 255, 0);
+  }
 }
 
 .watchlist-highlight {
@@ -14359,7 +14409,7 @@ body[data-page="rosters"] #ownershipPlayerModal.hidden {
   display: none;
 }
 
-body[data-page="rosters"] #ownershipPlayerModal > .modal-overlay {
+body[data-page="rosters"] #ownershipPlayerModal>.modal-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
