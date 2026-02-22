@@ -11274,7 +11274,7 @@ body[data-page="analyzer"] .analyzer-hero {
   border-radius: var(--panel-border-radius);
   background: rgba(13, 15, 35, 0.35);
   border: 1px solid rgba(128, 138, 189, 0.25);
-  margin-top: 6px;
+  margin-top: 0.55rem;
 }
 
 body[data-page="analyzer"] .analyzer-hero-intro {
