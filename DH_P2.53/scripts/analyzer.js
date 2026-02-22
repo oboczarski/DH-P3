@@ -1845,51 +1845,74 @@
       });
     }
 
+    /* Rank-based color scale for FPTS / PPG (mirrors Stats page OVERVIEW_RANK_COLOR_SCALE) */
+    const LEADERBOARD_RANK_COLORS = [
+      { rank: 12, color: '#00ffc4ba' },
+      { rank: 24, color: '#85fff3ba' },
+      { rank: 36, color: '#7dd1ffba' },
+      { rank: 48, color: '#48a6ffba' },
+      { rank: 60, color: '#957cffba' },
+      { rank: 72, color: '#a642ffba' },
+      { rank: 84, color: '#cf60ffba' },
+      { rank: 96, color: '#ff6fe1ba' },
+      { rank: Infinity, color: '#ff0080ba' },
+    ];
+
+    function getLeaderboardRankColor(rank) {
+      if (!Number.isFinite(rank) || rank <= 0) return null;
+      for (const tier of LEADERBOARD_RANK_COLORS) {
+        if (rank <= tier.rank) return tier.color;
+      }
+      return LEADERBOARD_RANK_COLORS[LEADERBOARD_RANK_COLORS.length - 1]?.color || null;
+    }
+
+    const LOGO_KEY_MAP = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+
+    function renderTeamCell(teamAbbr) {
+      const key = (teamAbbr || 'FA').toUpperCase();
+      if (!key || key === 'FA' || key === '--') {
+        return `<span class="al-team-chip">${key === '--' ? 'FA' : key}</span>`;
+      }
+      const normalized = LOGO_KEY_MAP[key] || key.toLowerCase();
+      return `<img class="al-team-logo" src="../assets/NFL_logos_svg/${normalized}.svg" alt="${key}" width="20" height="20">`;
+    }
+
     function renderLeagueLeaders() {
       const position = state.activeLeaderboard;
       const leaders = state.leaderboards[position] || [];
-      const showPosColumn = position === 'ALL';
-      const colCount = showPosColumn ? 7 : 6;
       if (!leaders.length) {
-        elements.leaderboardBody.innerHTML = `<tr><td colspan="${colCount}" class="empty-row">No scoring data available.</td></tr>`;
+        elements.leaderboardBody.innerHTML = '<tr><td colspan="7" class="empty-row">No scoring data available.</td></tr>';
         return;
       }
 
-      // Update the thead to include/exclude the Pos column
-      const thead = elements.leaderboardBody.closest('table')?.querySelector('thead tr');
-      if (thead) {
-        const posThId = 'leaderboard-pos-th';
-        const existingPosTh = thead.querySelector(`#${posThId}`);
-        if (showPosColumn && !existingPosTh) {
-          const posTh = document.createElement('th');
-          posTh.id = posThId;
-          posTh.setAttribute('scope', 'col');
-          posTh.classList.add('w-12');
-          posTh.textContent = 'Pos';
-          // insert after Player column (2nd th)
-          const playerTh = thead.children[1];
-          if (playerTh && playerTh.nextSibling) {
-            thead.insertBefore(posTh, playerTh.nextSibling);
-          } else {
-            thead.appendChild(posTh);
-          }
-        } else if (!showPosColumn && existingPosTh) {
-          existingPosTh.remove();
-        }
-      }
+      // Build rank maps for FPTS and PPG conditional formatting
+      // Sort all current leaders by FPTS descending to assign color ranks
+      const byFpts = [...leaders].sort((a, b) => b.total - a.total);
+      const byPpg = [...leaders].sort((a, b) => b.ppg - a.ppg);
+      const fptsRankMap = new Map();
+      const ppgRankMap = new Map();
+      byFpts.forEach((entry, i) => { fptsRankMap.set(entry.playerId, i + 1); });
+      byPpg.forEach((entry, i) => { ppgRankMap.set(entry.playerId, i + 1); });
 
       elements.leaderboardBody.innerHTML = leaders
-        .map((entry, index) => `
+        .map((entry, index) => {
+          const pos = (entry.pos || '').toUpperCase();
+          const fptsColor = getLeaderboardRankColor(fptsRankMap.get(entry.playerId));
+          const ppgColor = getLeaderboardRankColor(ppgRankMap.get(entry.playerId));
+          const fptsStyle = fptsColor ? ` style="color:${fptsColor}"` : '';
+          const ppgStyle = ppgColor ? ` style="color:${ppgColor}"` : '';
+
+          return `
           <tr>
             <td>${index + 1}</td>
-            <td>${abbreviateFirstName(entry.name) || '—'}</td>
-            ${showPosColumn ? `<td class="pos-cell">${entry.pos || '—'}</td>` : ''}
-            <td>${entry.nflTeam}</td>
-            <td class="owner-cell">${truncateLabel(entry.owner, 11) || '—'}</td>
-            <td>${entry.total.toFixed(1)}</td>
-            <td>${entry.ppg.toFixed(1)}</td>
-          </tr>
-        `)
+            <td class="al-cell-player">${abbreviateFirstName(entry.name) || '—'}</td>
+            <td><span class="al-pos-tag ${pos}">${pos || '—'}</span></td>
+            <td>${renderTeamCell(entry.nflTeam)}</td>
+            <td class="al-cell-owner">${truncateLabel(entry.owner, 11) || '—'}</td>
+            <td class="al-fpts-cell"${fptsStyle}>${entry.total.toFixed(1)}</td>
+            <td class="al-ppg-cell"${ppgStyle}>${entry.ppg.toFixed(1)}</td>
+          </tr>`;
+        })
         .join('');
     }
 
