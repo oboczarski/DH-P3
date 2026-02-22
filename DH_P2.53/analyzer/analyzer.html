@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>League Analyzer • Dynasty Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&display=swap"
+    rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700" rel="stylesheet" />
   <link href="../manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
@@ -17,9 +20,11 @@
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
   <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body data-page="analyzer" class="p-2 sm:p-4">
   <div aria-hidden="true" id="starfield">
     <div id="stars"></div>
@@ -31,111 +36,117 @@
   <div class="relative z-10 content-wrapper">
     <div id="header-container">
       <header class="app-header glass-panel">
-    <div class="header-row" id="primary-header-row">
-    <div class="nav-buttons-container">
-      <button class="nav-button" id="homeButton" data-nav="home">
-  <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true" />
-        <span class="nav-label">Home</span>
-      </button>
-            <button class="nav-button" id="rostersButton" data-nav="rosters">
-                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-                <span class="nav-label">Rosters</span>
+        <div class="header-row" id="primary-header-row">
+          <div class="nav-buttons-container">
+            <button class="nav-button" id="homeButton" data-nav="home">
+              <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true" />
+              <span class="nav-label">Home</span>
             </button>
-      <button class="nav-button" id="statsButton" data-nav="stats">
-        <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
-        <span class="nav-label">Stats</span>
-      </button>
+            <button class="nav-button" id="rostersButton" data-nav="rosters">
+              <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+              <span class="nav-label">Rosters</span>
+            </button>
+            <button class="nav-button" id="statsButton" data-nav="stats">
+              <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+              <span class="nav-label">Stats</span>
+            </button>
             <button class="nav-button active" id="analyzerButton" data-nav="analyzer">
-                <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
-                <span class="nav-label">L.Analyze</span>
+              <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
+              <span class="nav-label">L.Analyze</span>
             </button>
             <button class="nav-button" id="researchButton" data-nav="research">
-                <i class="fa-solid fa-flask" aria-hidden="true"></i>
-                <span class="nav-label">Research</span>
+              <i class="fa-solid fa-flask" aria-hidden="true"></i>
+              <span class="nav-label">Research</span>
             </button>
-      <button class="nav-button nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
-        <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
-        <span class="nav-label">More</span>
-        <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
-      </button>
-      <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
-        <button class="nav-more-item" data-nav="ownership" role="menuitem">
-          <i class="fa-solid fa-percent" aria-hidden="true"></i>
-          <span class="nav-label">Ownership</span>
-        </button>
-        <button class="nav-more-item" data-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
-          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-          <span class="nav-label">Trophy Room</span>
-        </button>
-        <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
-          <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-          <span class="nav-label">Matchups</span>
-        </button>
-      </div>
+            <button class="nav-button nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
+              <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+              <span class="nav-label">More</span>
+              <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
+            </button>
+            <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
+              <button class="nav-more-item" data-nav="ownership" role="menuitem">
+                <i class="fa-solid fa-percent" aria-hidden="true"></i>
+                <span class="nav-label">Ownership</span>
+              </button>
+              <button class="nav-more-item" data-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+                <span class="nav-label">Trophy Room</span>
+              </button>
+              <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
+                <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+                <span class="nav-label">Matchups</span>
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
-    <div id="contextual-controls">
-        <div class="header-row" id="secondary-header-row">
+        <div id="contextual-controls">
+          <div class="header-row" id="secondary-header-row">
             <div class="username-area">
-                <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle"/>
+              <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text"
+                name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
             </div>
             <div class="custom-select-wrapper">
-                <select disabled="" id="leagueSelect">
-                    <option>Select a league...</option>
-                </select>
+              <select disabled="" id="leagueSelect">
+                <option>Select a league...</option>
+              </select>
             </div>
             <div class="view-switcher secondary-switcher compact-switcher">
-                <button id="positionalViewBtn">
-                    <i class="fa-solid fa-users" aria-hidden="true"></i>
-                    <span class="switcher-label">Positional</span>
-                </button>
-                <button id="lineupViewBtn">
-                    <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                    <span class="switcher-label">Lineup</span>
-                </button>
+              <button id="positionalViewBtn">
+                <i class="fa-solid fa-users" aria-hidden="true"></i>
+                <span class="switcher-label">Positional</span>
+              </button>
+              <button id="lineupViewBtn">
+                <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
+                <span class="switcher-label">Lineup</span>
+              </button>
             </div>
-        </div>
-        <div class="header-row" id="filters-row">
+          </div>
+          <div class="header-row" id="filters-row">
             <div class="start-sit-button-slot" id="start-sit-button-slot">
-                <div class="start-sit-button-container">
-                    <button class="menu-button analyzer-button start-sit-button" id="startSitButton" type="button" aria-label="Open Start/Sit recommendations">
-                        <i class="fa-solid fa-elevator analyzer-icon" aria-hidden="true"></i>
-                        <span class="analyzer-label">Start/Sit</span>
-                    </button>
-                </div>
+              <div class="start-sit-button-container">
+                <button class="menu-button analyzer-button start-sit-button" id="startSitButton" type="button"
+                  aria-label="Open Start/Sit recommendations">
+                  <i class="fa-solid fa-elevator analyzer-icon" aria-hidden="true"></i>
+                  <span class="analyzer-label">Start/Sit</span>
+                </button>
+              </div>
             </div>
             <div class="filters-container">
-                <div id="positional-filters">
-                    <button class="filter-btn" data-position="QB">QB</button>
-                    <button class="filter-btn" data-position="RB">RB</button>
-                    <button class="filter-btn" data-position="WR">WR</button>
-                    <button class="filter-btn" data-position="TE">TE</button>
-                    <button class="filter-btn" data-position="FLX">FLX</button>
-                </div>
-                <button class="control-button-subtle" id="clearFiltersButton">
-                    <span class="clear-filters-stack">
-                        <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
-                        <span class="sr-only">Clear filters</span>
-                    </span>
+              <div id="positional-filters">
+                <button class="filter-btn" data-position="QB">QB</button>
+                <button class="filter-btn" data-position="RB">RB</button>
+                <button class="filter-btn" data-position="WR">WR</button>
+                <button class="filter-btn" data-position="TE">TE</button>
+                <button class="filter-btn" data-position="FLX">FLX</button>
+              </div>
+              <button class="control-button-subtle" id="clearFiltersButton">
+                <span class="clear-filters-stack">
+                  <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
+                  <span class="sr-only">Clear filters</span>
+                </span>
+              </button>
+              <div class="compare-controls">
+                <button class="control-button hidden" id="compareButton" aria-hidden="true" tabindex="-1"
+                  style="display:none;"></button>
+                <button id="compareSearchToggle" class="control-button-subtle compare-search-toggle"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="compareSearchPopover">
+                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                  <span class="sr-only">Search teams</span>
                 </button>
-                <div class="compare-controls">
-                    <button class="control-button hidden" id="compareButton" aria-hidden="true" tabindex="-1" style="display:none;"></button>
-                    <button id="compareSearchToggle" class="control-button-subtle compare-search-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="compareSearchPopover">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <span class="sr-only">Search teams</span>
-                    </button>
-                    <div id="compareSearchPopover" class="compare-search-popover hidden" role="dialog" aria-modal="false">
-                        <button type="button" id="compareSearchClose" class="compare-search-close" aria-label="Close search popover">
-                            <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                        </button>
-                        <label for="compareSearchInput" class="sr-only">Search teams</label>
-                        <input id="compareSearchInput" type="search" placeholder="Search Players…" autocomplete="off" inputmode="search" />
-                    </div>
+                <div id="compareSearchPopover" class="compare-search-popover hidden" role="dialog" aria-modal="false">
+                  <button type="button" id="compareSearchClose" class="compare-search-close"
+                    aria-label="Close search popover">
+                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                  </button>
+                  <label for="compareSearchInput" class="sr-only">Search teams</label>
+                  <input id="compareSearchInput" type="search" placeholder="Search Players…" autocomplete="off"
+                    inputmode="search" />
                 </div>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</header>
+      </header>
     </div>
     <main class="container mx-auto analyzer-main" id="content">
       <section class="analyzer-hero glass-panel" aria-labelledby="analyzer-hero-heading">
@@ -147,26 +158,20 @@
       </section>
 
       <div id="loading" class="hidden">
-  <div class="loading-overlay" role="alert" aria-live="polite">
-    <div class="loading-spinner" aria-hidden="true"></div>
-    <div class="loading-body">
-      <img
-        src="../assets/welcome/welcome-logo-256.png"
-        alt="Dynasty Hub"
-        width="216"
-        height="216"
-        decoding="async"
-        loading="eager"
-        class="loading-logo"
-      />
-      <div class="loading-text">
-        <span class="loading-message">Loading…</span>
+        <div class="loading-overlay" role="alert" aria-live="polite">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <div class="loading-body">
+            <img src="../assets/welcome/welcome-logo-256.png" alt="Dynasty Hub" width="216" height="216"
+              decoding="async" loading="eager" class="loading-logo" />
+            <div class="loading-text">
+              <span class="loading-message">Loading…</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
 
-      <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary"></section>
+      <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
+      </section>
 
       <section id="infographicContent" class="analyzer-content hidden">
         <div class="analyzer-panels-grid">
@@ -177,7 +182,8 @@
                 <p>Toggle between market value and combined starter production.</p>
               </div>
               <div class="analyzer-toggle" role="group" aria-label="Lineup metric">
-                <button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Value</button>
+                <button type="button" class="toggle-option active" data-metric="value"
+                  aria-pressed="true">Value</button>
                 <button type="button" class="toggle-option" data-metric="ppg" aria-pressed="false">PPG</button>
               </div>
             </header>
@@ -240,10 +246,12 @@
           <header class="analyzer-panel-header">
             <div>
               <h2>League Leaders</h2>
-              <p>Top 10 total fantasy scorers by position with team ownership.</p>
+              <p>Top 100 total fantasy scorers by position with team ownership.</p>
             </div>
             <div class="analyzer-filter-group" role="tablist" aria-label="Position filters">
-              <button type="button" class="filter-chip active" data-pos="QB" role="tab" aria-selected="true">QB</button>
+              <button type="button" class="filter-chip active" data-pos="ALL" role="tab"
+                aria-selected="true">ALL</button>
+              <button type="button" class="filter-chip" data-pos="QB" role="tab" aria-selected="false">QB</button>
               <button type="button" class="filter-chip" data-pos="RB" role="tab" aria-selected="false">RB</button>
               <button type="button" class="filter-chip" data-pos="WR" role="tab" aria-selected="false">WR</button>
               <button type="button" class="filter-chip" data-pos="TE" role="tab" aria-selected="false">TE</button>
@@ -274,4 +282,5 @@
   <script src="../scripts/analyzer.js"></script>
   <script defer src="../scripts/app.js?v=20260116"></script>
 </body>
+
 </html>

@@ -406,6 +406,7 @@
       ktcSflx: {},
       playerStats: {},
       playerStatsSeason: null,
+      leaguePlayerStats: {},
       currentLeagueId: null,
       currentLineupMetric: 'value',
       isSuperflex: false,
@@ -417,8 +418,8 @@
       },
       lineupData: null,
       teams: [],
-      leaderboards: { QB: [], RB: [], WR: [], TE: [] },
-      activeLeaderboard: 'QB',
+      leaderboards: { ALL: [], QB: [], RB: [], WR: [], TE: [] },
+      activeLeaderboard: 'ALL',
       radarSlots: [],
     };
 
@@ -466,7 +467,7 @@
     if (initialUsername) {
       elements.usernameInput.value = initialUsername;
       // If arriving via nav with username in query, blur to avoid mobile keyboard
-      setTimeout(() => { try { elements.usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) {} }, 50);
+      setTimeout(() => { try { elements.usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { } }, 50);
       handleFetchData(initialLeagueId);
     }
 
@@ -636,7 +637,7 @@
       }
       state.userId = user.user_id;
 
-      const currentYear = new Date().getFullYear();
+      const currentYear = 2025;
       const leagues = await fetchWithCache(`https://api.sleeper.app/v1/user/${state.userId}/leagues/nfl/${currentYear}`);
       if (!Array.isArray(leagues) || leagues.length === 0) {
         throw new Error('No active leagues found for this user in the current season.');
@@ -654,6 +655,59 @@
       const rawStats = await fetchWithCache(url);
       state.playerStats = transformSeasonStats(rawStats);
       state.playerStatsSeason = season;
+    }
+
+    /**
+     * Fetch league-specific FPTS & PPG by aggregating per-player points
+     * from every regular-season matchup week (1–18).
+     * Each matchup entry contains a `players_points` object keyed by
+     * player ID with the fantasy points scored under that league's
+     * scoring settings.
+     */
+    async function fetchLeaguePlayerStats(leagueId) {
+      const TOTAL_WEEKS = 18;
+      const weekPromises = [];
+      for (let week = 1; week <= TOTAL_WEEKS; week += 1) {
+        weekPromises.push(
+          fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`)
+            .catch(() => null),
+        );
+      }
+      const allWeeks = await Promise.all(weekPromises);
+
+      const aggregated = {}; // playerId -> { total, games }
+
+      allWeeks.forEach((weekMatchups) => {
+        if (!Array.isArray(weekMatchups)) return;
+        weekMatchups.forEach((entry) => {
+          const pointsMap = entry.players_points;
+          if (!pointsMap || typeof pointsMap !== 'object') return;
+          Object.entries(pointsMap).forEach(([playerId, pts]) => {
+            const points = toNumber(pts);
+            if (!aggregated[playerId]) {
+              aggregated[playerId] = { total: 0, games: 0 };
+            }
+            aggregated[playerId].total += points;
+            // Count a game played if the player scored any non-zero points
+            if (points !== 0) {
+              aggregated[playerId].games += 1;
+            }
+          });
+        });
+      });
+
+      // Compute PPG
+      const result = {};
+      Object.entries(aggregated).forEach(([playerId, data]) => {
+        const ppg = data.games > 0 ? data.total / data.games : 0;
+        result[playerId] = {
+          total: data.total,
+          games: data.games,
+          ppg,
+        };
+      });
+
+      state.leaguePlayerStats = result;
     }
 
     function transformSeasonStats(rawStats) {
@@ -705,7 +759,8 @@
         const superflexSlots = leagueInfo.roster_positions.filter((slot) => slot === 'SUPER_FLEX').length;
         state.isSuperflex = qbSlots > 1 || superflexSlots > 0;
 
-        await ensurePlayerStats(leagueInfo.season ?? new Date().getFullYear());
+        await ensurePlayerStats(leagueInfo.season ?? 2025);
+        await fetchLeaguePlayerStats(leagueId);
 
         const [rosters, users, tradedPicks] = await Promise.all([
           fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/rosters`),
@@ -744,12 +799,12 @@
     function processLeagueData(rosters, users, tradedPicks, leagueInfo, radarSlots = []) {
       const userMap = Array.isArray(users)
         ? users.reduce((acc, user) => {
-            acc[user.user_id] = user;
-            return acc;
-          }, {})
+          acc[user.user_id] = user;
+          return acc;
+        }, {})
         : {};
 
-      const leaderboards = { QB: [], RB: [], WR: [], TE: [] };
+      const leaderboards = { ALL: [], QB: [], RB: [], WR: [], TE: [] };
       const globalTotals = [];
       const slotSequence = Array.isArray(radarSlots) && radarSlots.length
         ? radarSlots
@@ -778,9 +833,10 @@
           }
 
           const playerInfo = state.players[playerId];
+          const leagueStats = state.leaguePlayerStats[playerId] || {};
           const playerStats = state.playerStats[playerId] || {};
           const ktc = getKtcValue(playerId);
-          const ppg = playerStats.ppg ?? 0;
+          const ppg = leagueStats.ppg ?? playerStats.ppg ?? 0;
 
           startersBySlot[slot].value += ktc;
           startersBySlot[slot].ppg += ppg;
@@ -798,10 +854,11 @@
         const allPlayers = (roster.players || [])
           .map((playerId) => {
             const playerInfo = state.players[playerId];
+            const leagueStats = state.leaguePlayerStats[playerId] || {};
             const stats = state.playerStats[playerId] || {};
             const ktc = getKtcValue(playerId);
             const pos = playerInfo?.position;
-            const ppg = stats.ppg ?? (stats.games ? stats.total / stats.games : 0);
+            const ppg = leagueStats.ppg ?? stats.ppg ?? (stats.games ? stats.total / stats.games : 0);
             if (pos && overallPositional[pos] !== undefined) {
               overallPositional[pos] += ktc;
             }
@@ -839,9 +896,10 @@
           if (!playerInfo) return;
           const pos = playerInfo.position;
           if (!leaderboards[pos]) return;
+          const leagueStats = state.leaguePlayerStats[playerId] || {};
           const stats = state.playerStats[playerId] || {};
-          const total = stats.total ?? 0;
-          const ppg = stats.ppg ?? (stats.games ? stats.total / stats.games : 0);
+          const total = leagueStats.total ?? stats.total ?? 0;
+          const ppg = leagueStats.ppg ?? stats.ppg ?? (stats.games ? stats.total / stats.games : 0);
           if (total <= 0) return;
           if (!topScorer || total > topScorer.total) {
             topScorer = {
@@ -852,14 +910,17 @@
             };
           }
           globalTotals.push({ playerId, total });
-          leaderboards[pos].push({
+          const entry = {
             playerId,
             name: formatPlayerName(playerInfo),
+            pos,
             owner: teamName,
             nflTeam: playerInfo.team || '--',
             total,
             ppg,
-          });
+          };
+          leaderboards[pos].push(entry);
+          leaderboards.ALL.push(entry);
         });
 
         return {
@@ -911,7 +972,7 @@
             if (b.ppg !== a.ppg) return b.ppg - a.ppg;
             return a.name.localeCompare(b.name);
           })
-          .slice(0, 10);
+          .slice(0, 100);
       });
 
       teams.sort((a, b) => b.totalValue - a.totalValue);
@@ -1057,11 +1118,11 @@
           value: score,
           player: selected
             ? {
-                id: selected.id,
-                name: selected.name,
-                ppg: Number(selected.ppg) || 0,
-                score,
-              }
+              id: selected.id,
+              name: selected.name,
+              ppg: Number(selected.ppg) || 0,
+              score,
+            }
             : null,
         };
       });
@@ -1189,11 +1250,11 @@
       const topScorer = userTeam.topScorer;
       const topScorerMeta = topScorer?.total
         ? [
-            topScorer.rank ? `Rank ${topScorer.rank}` : 'Rank NA',
-            `${topScorer.total.toFixed(1)} FPTS`,
-          ]
-            .filter(Boolean)
-            .join(' • ')
+          topScorer.rank ? `Rank ${topScorer.rank}` : 'Rank NA',
+          `${topScorer.total.toFixed(1)} FPTS`,
+        ]
+          .filter(Boolean)
+          .join(' • ')
         : 'No scoring data';
 
       const chips = [
@@ -1787,9 +1848,34 @@
     function renderLeagueLeaders() {
       const position = state.activeLeaderboard;
       const leaders = state.leaderboards[position] || [];
+      const showPosColumn = position === 'ALL';
+      const colCount = showPosColumn ? 7 : 6;
       if (!leaders.length) {
-        elements.leaderboardBody.innerHTML = '<tr><td colspan="6" class="empty-row">No scoring data available.</td></tr>';
+        elements.leaderboardBody.innerHTML = `<tr><td colspan="${colCount}" class="empty-row">No scoring data available.</td></tr>`;
         return;
+      }
+
+      // Update the thead to include/exclude the Pos column
+      const thead = elements.leaderboardBody.closest('table')?.querySelector('thead tr');
+      if (thead) {
+        const posThId = 'leaderboard-pos-th';
+        const existingPosTh = thead.querySelector(`#${posThId}`);
+        if (showPosColumn && !existingPosTh) {
+          const posTh = document.createElement('th');
+          posTh.id = posThId;
+          posTh.setAttribute('scope', 'col');
+          posTh.classList.add('w-12');
+          posTh.textContent = 'Pos';
+          // insert after Player column (2nd th)
+          const playerTh = thead.children[1];
+          if (playerTh && playerTh.nextSibling) {
+            thead.insertBefore(posTh, playerTh.nextSibling);
+          } else {
+            thead.appendChild(posTh);
+          }
+        } else if (!showPosColumn && existingPosTh) {
+          existingPosTh.remove();
+        }
       }
 
       elements.leaderboardBody.innerHTML = leaders
@@ -1797,6 +1883,7 @@
           <tr>
             <td>${index + 1}</td>
             <td>${abbreviateFirstName(entry.name) || '—'}</td>
+            ${showPosColumn ? `<td class="pos-cell">${entry.pos || '—'}</td>` : ''}
             <td>${entry.nflTeam}</td>
             <td class="owner-cell">${truncateLabel(entry.owner, 11) || '—'}</td>
             <td>${entry.total.toFixed(1)}</td>
