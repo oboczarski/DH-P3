@@ -11442,7 +11442,7 @@ body[data-page="analyzer"] .analyzer-panel-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 body[data-page="analyzer"] .analyzer-panel-header h2 {
@@ -11454,6 +11454,7 @@ body[data-page="analyzer"] .analyzer-panel-header p {
   margin: 0.2rem 0 0;
   color: var(--color-text-secondary);
   font-size: 0.85rem;
+  text-wrap-mode: nowrap;
 }
 
 body[data-page="analyzer"] .analyzer-panel-body {
