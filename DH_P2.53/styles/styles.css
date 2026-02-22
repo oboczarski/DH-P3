@@ -11989,6 +11989,18 @@ body[data-page="analyzer"] .app-header {
     padding: 0.95rem;
   }
 
+  body[data-page="analyzer"] .analyzer-hero h1 {
+    font-size: 1.75rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-pill {
+    margin: 0 3.1rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-hero-intro {
+    gap: 0.55rem;
+  }
+
   body[data-page="ownership"] #header-container .app-header {
     flex-direction: column;
     align-items: stretch;
