@@ -11295,6 +11295,7 @@ body[data-page="analyzer"] .analyzer-pill {
   border: 1px solid rgba(118, 109, 255, 0.4);
   border-radius: 999px;
   padding: 0.35rem 0.9rem;
+  justify-content: center;
 }
 
 body[data-page="analyzer"] .analyzer-hero h1 {
