@@ -11869,7 +11869,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   body[data-page="analyzer"] .analyzer-leaderboard-table thead tr {
-    font-size: 0.58rem;
+    font-size: 0.78rem;
+    height: 2rem;
   }
 
   body[data-page="analyzer"] .analyzer-leaderboard-table th,
