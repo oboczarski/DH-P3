@@ -1,0 +1,1610 @@
+/* Research page layout & visuals (extracted from styles.css) */
+
+/* ========================= SYOP PAGE LAYOUT & VISUALS ========================= */
+body[data-page="research"] {
+  background-color: #0a0f1e;
+}
+
+body[data-page="research"] .research-header-shell {
+  padding: 0.24rem 0.4rem;
+  gap: 0.18rem;
+}
+
+body[data-page="research"] .research-nav-hidden-inputs {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  border: 0;
+  padding: 0;
+  clip-path: inset(50%);
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .app-header {
+  margin-bottom: 1.05rem;
+}
+
+@media (min-width: 869px) {
+  body[data-page="research"] {
+    --research-desktop-content-max: 1100px;
+    --research-desktop-panel-width: min(calc(100vw - 3.5rem), var(--research-desktop-content-max));
+    --research-desktop-shell-width: min(calc(100vw - 3rem), var(--research-desktop-content-max));
+    --research-desktop-nav-button-width: clamp(4.2rem, 4.5vw, 4.85rem);
+  }
+
+  body[data-page="research"] #header-container {
+    display: flex;
+    justify-content: center;
+    padding: 0rem 0 0.25rem;
+  }
+
+  body[data-page="research"] #header-container .app-header {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: fit-content;
+    padding: 0.65rem 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  body[data-page="research"] #header-container .app-header .header-row {
+    width: auto;
+    display: flex;
+    justify-content: center;
+    gap: clamp(0.55rem, 1.4vw, 0.85rem);
+    padding: 0;
+  }
+
+  body[data-page="research"] #header-container .app-header>.header-row:first-of-type {
+    grid-template-columns: none;
+  }
+
+  body[data-page="research"] #header-container .nav-buttons-container {
+    flex: none;
+    width: max-content;
+    justify-content: center;
+    gap: clamp(0.55rem, 1.4vw, 0.85rem);
+  }
+
+  body[data-page="research"] #header-container .nav-button {
+    flex: 1 1 0;
+    width: 6.5rem;
+    max-width: none;
+    min-height: 2.7rem;
+    max-height: 2.7rem;
+    height: 2.7rem;
+  }
+
+  body[data-page="research"] .syop-main {
+    width: min(100%, var(--research-desktop-content-max));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  body[data-page="research"] .syop-tabs,
+  body[data-page="research"] .syop-tab-panels,
+  body[data-page="research"] .syop-tab-panel,
+  body[data-page="research"] .syop-section,
+  body[data-page="research"] .syop-hero,
+  body[data-page="research"] .syop-panels-grid {
+    width: 100%;
+    max-width: var(--research-desktop-content-max);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  body[data-page="research"] .syop-tab {
+    font-size: 1.1rem;
+  }
+
+  body[data-page="research"] .syop-draft-hero h2 {
+    align-self: center;
+    font-size: clamp(1.15rem, 1.5rem + 0.95vw, 2.42rem);
+  }
+
+  body[data-page="research"] .syop-draft-hero .syop-hero-intro .syop-pill {
+    align-self: center;
+  }
+
+  body[data-page="research"] .syop-draft-hero p {
+    align-self: center;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+}
+
+.syop-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-bottom: 1.5rem;
+}
+
+.syop-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  padding: 0.5rem 0.9rem 0.18rem;
+  background: radial-gradient(circle at 20% 18%, rgba(96, 165, 250, 0.18), transparent 58%), radial-gradient(circle at 82% 56%, rgba(192, 132, 252, 0.2), transparent 68%), rgb(18 21 38 / 0%);
+  border: 1px solid rgba(132, 146, 255, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(7, 10, 20, 0.5);
+  filter: saturate(1.1);
+}
+
+.syop-hero-intro {
+  flex: 1 1 260px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.syop-hero-summary {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: stretch;
+}
+
+.syop-hero h1 {
+  font-size: clamp(1.45rem, 1.18rem + 0.85vw, 1.9rem);
+  margin: 0.0rem 0 0.0rem;
+  letter-spacing: -0.02em;
+  font-weight: 200;
+}
+
+.syop-hero p {
+  max-width: 42ch;
+  color: rgba(233, 236, 249, 0.84);
+  font-size: 1rem;
+}
+
+.syop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 18, 32, 0.6);
+  letter-spacing: 0.18em;
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  color: rgba(182, 185, 214, 0.85);
+  align-self: center;
+}
+
+.syop-key-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.syop-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+  padding: 0.62rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(16, 20, 34, 0.32);
+  border: 1px solid rgba(132, 146, 255, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 14px 28px rgba(5, 8, 22, 0.28);
+}
+
+.syop-hero-card .label {
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(182, 185, 214, 0.8);
+}
+
+.syop-hero-card .value {
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.28;
+  color: rgba(232, 235, 255, 0.94);
+}
+
+.syop-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0;
+  width: 100%;
+}
+
+.syop-hero-meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.16rem 0.55rem;
+  min-height: 11px;
+  border-radius: 999px;
+  background: rgba(16, 20, 34, 0.32);
+  border: 1px solid rgba(132, 146, 255, 0.22);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: center;
+  width: 100%;
+  max-width: 520px;
+}
+
+.syop-hero-meta-item .meta-label {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.61rem;
+  color: rgba(182, 185, 214, 0.8);
+  font-weight: 500;
+}
+
+.syop-hero-meta-item .meta-value {
+  font-weight: 300;
+  font-size: 0.72rem;
+  line-height: 1.24;
+}
+
+.syop-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: stretch;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.18rem;
+  border-radius: 12px;
+  background: rgb(12 15 28 / 10%);
+  border: 1px solid rgba(132, 146, 255, 0.16);
+  box-shadow: 0 10px 18px rgba(5, 8, 16, 0.36);
+}
+
+.syop-tab {
+  flex: 1 1 200px;
+  border: none;
+  border-radius: 10px;
+  padding: 0.42rem 0.6rem;
+  background: transparent;
+  color: rgba(182, 185, 214, 0.85);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+.syop-tab:hover,
+.syop-tab:focus {
+  color: #f5f7ff;
+}
+
+.syop-tab:focus-visible {
+  outline: 2px solid rgba(70, 231, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.syop-tab.active {
+  background: linear-gradient(120deg, rgba(70, 231, 255, 0.25), rgba(255, 65, 225, 0.22));
+  color: #f5f7ff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.syop-tab-panels {
+  width: 100%;
+}
+
+.syop-tab-panel {
+  display: none;
+  width: 100%;
+}
+
+.syop-tab-panel.active {
+  display: flex;
+}
+
+.syop-tab-panel[hidden] {
+  display: none !important;
+}
+
+.syop-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.syop-section-heading h2 {
+  font-size: clamp(1.6rem, 1.3rem + 1vw, 2.1rem);
+  margin: 0;
+}
+
+.syop-section-heading p {
+  margin: 0.35rem 0 0;
+  color: rgba(182, 185, 214, 0.85);
+  max-width: 60ch;
+}
+
+.syop-panels-grid {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-auto-flow: row;
+}
+
+.syop-panel {
+  position: relative;
+  padding: 0.6rem 0.85rem;
+  border-radius: 16px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.syop-panel.glass-panel {
+  border-radius: 16px;
+  --outerA: 0.32;
+}
+
+.syop-panel header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #f4f5fb;
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.syop-panel header h3 {
+  font-size: 1rem;
+  margin: 0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f4f5fb;
+}
+
+.syop-panel header h2 {
+  font-size: 0.81rem;
+  margin: -1px 0px 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5F6795;
+  border: 1px solid #5F6795;
+  padding: 3px 9px;
+  border-radius: 8px;
+}
+
+.syop-panel header p {
+  margin: 0.1rem 0 0.2rem;
+  color: rgba(182, 185, 214, 0.78);
+  font-size: 1.06rem;
+  text-align: center;
+}
+
+/* Specific margin for Overall Hit Probability panel in NFL Draft tab */
+#draft-overall-panel header p {
+  margin: 0.4rem 0 -1.1rem;
+}
+
+.syop-panel-subhead {
+  margin: 0.5rem 0 -1rem;
+  color: rgba(182, 185, 214, 0.78);
+  font-size: 0.86rem;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.1rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.syop-panel-subhead .syop-line-legend {
+  margin: 0;
+  gap: 0.75rem;
+}
+
+.syop-panel-subhead .legend-item {
+  font-size: 0.8rem;
+  color: rgba(226, 231, 255, 0.92);
+}
+
+.syop-draft-hero {
+  margin-bottom: 0.65rem;
+  gap: 0.9rem 1.45rem;
+  padding: 0.9rem 1.2rem 1.05rem;
+  background: radial-gradient(circle at 24% 18%, rgba(96, 165, 250, 0.22), transparent 62%),
+    radial-gradient(circle at 86% 58%, rgba(192, 132, 252, 0.24), transparent 70%),
+    rgba(18, 21, 38, 0.78);
+  border: 1px solid rgba(132, 146, 255, 0.18);
+  box-shadow: 0 18px 34px rgba(7, 10, 20, 0.55);
+}
+
+.syop-draft-hero .syop-hero-intro {
+  flex: 1 1 280px;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.1rem;
+}
+
+.syop-draft-hero .syop-hero-intro .syop-pill {
+  align-self: flex-start;
+}
+
+.syop-draft-hero .syop-hero-summary {
+  flex: 1 1 320px;
+  display: flex;
+  align-items: stretch;
+}
+
+.syop-draft-hero .syop-hero-summary .syop-hero-meta {
+  width: 100%;
+}
+
+.syop-draft-hero h2 {
+  margin: 0.18rem 0 0.12rem;
+  font-size: clamp(1.15rem, 1.1rem + 0.85vw, 1.92rem);
+  letter-spacing: -0.015em;
+  color: rgba(245, 247, 255, 0.96);
+  font-weight: 300 !important;
+}
+
+.syop-draft-hero p {
+  margin: 0;
+  color: rgba(186, 194, 230, 0.88);
+  font-size: 0.8rem;
+  max-width: 46ch;
+}
+
+.syop-draft-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.1rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.syop-draft-meta .syop-hero-meta-item {
+  background: rgba(18, 22, 38, 0.52);
+  border: 1px solid rgba(132, 146, 255, 0.18);
+  border-radius: 26px;
+  padding: 0.45rem 0.8rem;
+  backdrop-filter: blur(8px);
+}
+
+.syop-draft-meta .syop-hero-meta-item .meta-label {
+  color: rgba(190, 198, 236, 0.82);
+}
+
+.syop-draft-meta .syop-hero-meta-item .meta-value {
+  color: rgba(235, 238, 255, 0.92);
+}
+
+#syop-sunburst-panel,
+#syop-gauges,
+.syop-panel-wide {
+  grid-column: 1 / -1;
+}
+
+#syop-bar-panel {
+  justify-self: center;
+  max-width: 720px;
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  #syop-bar-panel {
+    max-width: 660px;
+  }
+}
+
+.syop-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.syop-gauges {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0rem 0.05rem 0rem;
+  background: transparent;
+  border-radius: 16px;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+@media (min-width: 869px) {
+  .syop-gauges {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2.2vw, 1.75rem);
+    row-gap: 0.75rem;
+    max-width: none;
+    margin-inline: 0;
+    margin-top: -14px;
+  }
+
+  .syop-panels-grid>.syop-key-legend {
+    grid-column: 1 / -1;
+    align-self: stretch;
+  }
+}
+
+.syop-gauges.glass-panel {
+  border-radius: 16px;
+  --outerA: 0.32;
+}
+
+.syop-gauge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0em;
+  padding: 0.1rem 0.35rem 0.6rem;
+}
+
+.syop-gauge-svg {
+  width: 100%;
+  height: auto;
+  max-width: 260px;
+}
+
+.syop-gauge-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0rem;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.64rem;
+  margin-top: -18px;
+}
+
+.syop-gauge-label .gauge-value {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.syop-gauge-label .gauge-title {
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
+}
+
+.syop-heatmap-row.syop-heatmap-header .position-header {
+  color: rgba(244, 246, 255, 0.82);
+}
+
+.syop-heatmap-row.syop-heatmap-header .position-header::after {
+  content: '';
+  display: block;
+  margin-top: 0.35rem;
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), var(--header-accent));
+}
+
+.syop-heatmap-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.55rem;
+  border-radius: 12px;
+  background: rgba(12, 15, 28, 0.72);
+  border: 1px solid rgba(132, 146, 255, 0.12);
+  min-height: 46px;
+}
+
+.syop-heatmap-cell.bucket-cell {
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(182, 185, 214, 0.85);
+  background: rgba(10, 13, 24, 0.82);
+}
+
+.syop-heatmap-cell.value-cell {
+  color: #f5f7ff;
+  font-weight: 600;
+  font-size: 0.84rem;
+  border: 1px solid rgba(132, 146, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.syop-heatmap-bar {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 8px;
+  opacity: 0.9;
+}
+
+.syop-heatmap-value {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 6px rgba(11, 14, 22, 0.6);
+}
+
+.syop-chart {
+  width: 100%;
+  min-height: 240px;
+  position: relative;
+}
+
+.syop-chart svg {
+  width: 100%;
+  height: auto;
+}
+
+.syop-chart svg text,
+.syop-sunburst-svg text {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.syop-sunburst-svg {
+  width: 100%;
+  height: auto;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.syop-empty-state {
+  margin: 2rem auto;
+  text-align: center;
+  color: rgba(233, 236, 249, 0.8);
+}
+
+.syop-highlight-list,
+.syop-qa-list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.syop-highlight-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: baseline;
+  color: rgba(233, 236, 249, 0.82);
+  font-size: 0.95rem;
+}
+
+.syop-highlight-list .highlight-label {
+  font-weight: 600;
+}
+
+.syop-qa-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.syop-qa-list .qa-name {
+  font-weight: 600;
+}
+
+.syop-qa-list .qa-status {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.syop-qa-list .qa-pass {
+  background: rgba(16, 94, 72, 0.35);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: rgba(212, 255, 230, 0.92);
+}
+
+.syop-qa-list .qa-fail {
+  background: rgba(127, 29, 29, 0.35);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  color: rgba(255, 228, 230, 0.9);
+}
+
+.syop-footnote {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(182, 185, 214, 0.72);
+  text-align: center;
+}
+
+.syop-key-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  background: radial-gradient(circle at 18% 18%, rgba(96, 165, 250, 0.18), transparent 60%),
+    radial-gradient(circle at 82% 62%, rgba(192, 132, 252, 0.22), transparent 70%),
+    rgba(13, 16, 32, 0.46);
+  border: 1px solid rgba(138, 152, 255, 0.28);
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 22px 36px rgba(6, 9, 24, 0.52);
+  backdrop-filter: blur(0px) saturate(120%);
+}
+
+.syop-key-legend .syop-key-grid {
+  gap: 0.5rem;
+}
+
+.syop-key-legend .syop-hero-card {
+  background: rgba(16, 20, 36, 0.42);
+  border-color: rgba(148, 162, 255, 0.32);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 22px rgba(6, 9, 24, 0.42);
+  backdrop-filter: blur(0px) saturate(120%);
+  align-items: center;
+  text-align: center;
+}
+
+.syop-key-legend .syop-hero-card .label {
+  color: rgba(188, 194, 236, 0.84);
+}
+
+.syop-key-legend .syop-hero-card .value {
+  color: rgba(232, 235, 255, 0.95);
+}
+
+.syop-key-legend .syop-hero-card .value-mobile {
+  display: none;
+}
+
+.syop-line-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: rgba(233, 236, 249, 0.85);
+}
+
+.legend-swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+}
+
+.draft-round-chip-container {
+  margin-top: 0.01rem;
+}
+
+.draft-round-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--round-count), minmax(0, 1fr));
+  gap: 3rem;
+}
+
+.draft-round-chip-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.draft-round-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(17, 20, 35, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 16px rgba(6, 9, 24, 0.32);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.draft-round-chip-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.draft-round-chip-value {
+  color: var(--chip-accent, rgba(232, 235, 255, 0.88));
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.draft-round-chip-col .draft-round-chip:not(:last-child) {
+  margin-bottom: 0.15rem;
+}
+
+.draft-round-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(87px, 1fr));
+  gap: 0.1rem;
+  margin-top: 0.35rem;
+}
+
+.draft-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.3rem;
+  border-radius: 16px;
+  background: rgba(17, 20, 35, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8rem
+}
+
+.draft-tile-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 27px;
+  min-height: 27px;
+  padding: 0 0.25rem;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  background: rgba(9, 11, 24, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.draft-tile-value {
+  font-weight: 600;
+  color: #e9ecf9;
+}
+
+.syop-chart-footnote {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(182, 185, 214, 0.78);
+}
+
+.draft-pill {
+  align-self: center;
+  padding: 0.55rem 1.6rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(70, 231, 255, 0.24), rgba(255, 65, 225, 0.24));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  letter-spacing: 0.22em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: rgba(233, 236, 249, 0.92);
+  text-align: center;
+  white-space: nowrap;
+  margin-top: 0.7rem;
+
+}
+
+@media (min-width: 768px) {
+  .syop-hero-intro {
+    align-items: flex-start;
+  }
+
+  .syop-pill {
+    align-self: flex-start;
+  }
+
+  .syop-hero-meta {
+    align-items: flex-start;
+  }
+
+  .syop-hero-meta-item {
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* Responsive refinements */
+@media (min-width: 869px) {
+  .syop-panel-wide {
+    grid-column: 1 / -1;
+  }
+
+  .syop-lower-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .syop-draft-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .syop-hero h1 {
+    font-size: clamp(2.95rem, 1.18rem + 0.85vw, 1.9rem);
+    margin: 0.0rem 0 0.0rem;
+    letter-spacing: -0.02em;
+    font-weight: 200;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .syop-hero {
+    padding: 0.6rem 0.75rem 0.66rem;
+    gap: 0.08rem;
+  }
+
+  .syop-hero-intro {
+    align-items: center;
+  }
+
+  .syop-hero h1 {
+    text-align: center;
+  }
+
+  .syop-pill {
+    align-self: center;
+  }
+
+  .syop-hero-summary {
+    align-items: center;
+  }
+
+  .syop-hero-card {
+    padding: 0.56rem 0.72rem;
+  }
+
+  .syop-hero-card .value {
+    font-size: 0.86rem;
+  }
+
+  .syop-hero-meta {
+    gap: 0.28rem;
+    align-items: center;
+  }
+
+  .syop-hero-meta-item {
+    min-height: 42px;
+  }
+
+  .syop-tabs {
+    padding: 0.14rem;
+    margin-top: -15px;
+  }
+
+  .syop-tab {
+    flex: 1 1 150px;
+    padding: 0.36rem 0.48rem;
+    font-size: 0.8rem;
+  }
+
+  .syop-panel,
+  .syop-gauges {
+    padding: 0.85rem;
+  }
+
+  .syop-gauges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .syop-heatmap {
+    padding: 0.48rem;
+    gap: 0.28rem;
+  }
+
+  .syop-heatmap-row {
+    grid-template-columns: minmax(42px, 0.75fr) repeat(4, minmax(0, 1fr));
+  }
+
+  .syop-heatmap-cell {
+    min-height: 42px;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .syop-heatmap-cell.value-cell {
+    font-size: 0.8rem;
+  }
+
+  .syop-key-legend {
+    padding: 0.65rem 0.75rem;
+  }
+}
+
+@media (max-width: 540px) {
+  .syop-hero {
+    padding: 0.24rem 0.65rem 0.3rem;
+  }
+
+  .syop-hero h1 {
+    font-size: clamp(1.3rem, 3.6vw, 1.18rem);
+    white-space: nowrap;
+    text-align: center;
+    letter-spacing: -0.018em;
+    padding: 1px;
+  }
+
+  .syop-hero-summary {
+    gap: 0.45rem;
+  }
+
+  .syop-hero-card {
+    padding: 0.52rem 0.68rem;
+  }
+
+  .syop-hero-card .label {
+    font-size: 0.56rem;
+    letter-spacing: 0.15em;
+  }
+
+  .syop-hero-card .value {
+    font-size: 0.78rem;
+  }
+
+  .syop-hero-meta {
+    gap: 0.04rem;
+  }
+
+  .syop-hero-meta-item {
+    padding: 0.25rem 0.52rem;
+    font-size: 0.7rem;
+    min-height: 24px;
+  }
+
+  .syop-hero-meta-item .meta-label {
+    font-size: 0.54rem;
+  }
+
+  .syop-tab {
+    flex: 1 1 130px;
+    padding: 0.32rem 0.44rem;
+    font-size: 0.76rem;
+    filter: saturate(1.4) opacity(0.9);
+  }
+
+  .syop-panel,
+  .syop-gauges {
+    padding: 0.52rem 0.52rem 0rem;
+  }
+
+  .syop-gauges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.15rem;
+  }
+
+  .syop-section-heading p {
+    font-size: 0.86rem;
+  }
+
+  .syop-heatmap {
+    padding: 0.42rem;
+  }
+
+  .syop-heatmap-row {
+    grid-template-columns: minmax(38px, 0.7fr) repeat(4, minmax(0, 1fr));
+  }
+
+  .syop-heatmap-cell {
+    min-height: 40px;
+    padding: 0.42rem 0.46rem;
+  }
+
+  .syop-heatmap-cell.bucket-cell {
+    font-size: 0.7rem;
+  }
+
+  .syop-heatmap-cell.value-cell {
+    font-size: 0.76rem;
+  }
+
+  .syop-key-legend {
+    padding: 0.58rem 0.65rem;
+  }
+
+  .syop-key-legend .syop-key-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  .syop-key-legend .syop-hero-card {
+    padding: 0.2rem 0.2rem;
+    min-width: 140px;
+    flex: 0 1 calc(50% - 0.3rem);
+    align-items: center;
+    text-align: center;
+  }
+
+  .syop-key-legend .syop-hero-card .value-desktop {
+    display: none;
+  }
+
+  .syop-key-legend .syop-hero-card .value-mobile {
+    display: block;
+    font-size: 0.78rem;
+    line-height: 1.28;
+    color: rgba(232, 235, 255, 0.95);
+  }
+
+  /* Mobile-only adjustments for Positional Hit Rate Trends by Round chart */
+  #draft-positional-panel .syop-panel-subhead {
+    margin: 0.22rem 0 -2rem;
+    justify-content: center;
+  }
+
+  #draft-positional-panel header h3 {
+    margin: 1rem 0rem 0rem;
+  }
+
+  /* Mobile-only adjustments for draft round chips */
+  .draft-round-chip-container {
+    margin-top: 0rem;
+  }
+
+  .draft-round-chip {
+    padding: 0.18rem 0.45rem;
+    background: rgb(31 34 48 / 72%);
+    max-width: 2.8rem;
+    min-width: 2.8rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .syop-gauges {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .syop-gauge-label .gauge-value {
+    font-size: 1rem;
+  }
+
+  .syop-gauge-label .gauge-title {
+    letter-spacing: 0.28em;
+  }
+
+  .syop-heatmap-row {
+    grid-template-columns: minmax(34px, 0.65fr) repeat(4, minmax(0, 1fr));
+  }
+
+  .syop-heatmap-cell {
+    padding: 0.38rem 0.42rem;
+    min-height: 38px;
+  }
+
+  .syop-heatmap-cell.value-cell {
+    font-size: 0.72rem;
+  }
+}
+
+.syop-bar-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.syop-filter-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(182, 185, 214, 0.78);
+}
+
+.syop-position-legend {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.65rem;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.syop-position-legend::-webkit-scrollbar {
+  height: 4px;
+}
+
+.syop-position-legend::-webkit-scrollbar-thumb {
+  background: rgba(120, 130, 190, 0.45);
+  border-radius: 999px;
+}
+
+.syop-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 16px;
+  border: 1px solid rgba(132, 146, 255, 0.22);
+  background: linear-gradient(135deg, rgba(16, 19, 36, 0.78), rgba(10, 13, 24, 0.6));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 10px 24px rgba(10, 16, 38, 0.38);
+  cursor: pointer;
+  color: rgba(235, 238, 255, 0.92);
+  backdrop-filter: blur(12px);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  text-align: center;
+}
+
+.syop-legend-chip .chip-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(244, 246, 255, 0.92);
+}
+
+.syop-legend-chip:hover,
+.syop-legend-chip:focus-visible {
+  border-color: rgba(132, 146, 255, 0.45);
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 26px rgba(12, 18, 44, 0.45);
+  outline: none;
+}
+
+.syop-legend-chip.active {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.16), rgba(20, 25, 44, 0.82));
+  box-shadow: 0 18px 32px rgba(14, 22, 48, 0.58);
+}
+
+.syop-legend-chip.active .chip-label {
+  color: var(--chip-accent, #7c83ff);
+}
+
+.syop-view-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 255, 0.28);
+  background: rgba(20, 24, 42, 0.72);
+  color: rgba(232, 236, 255, 0.94);
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.syop-view-toggle:hover,
+.syop-view-toggle:focus-visible {
+  border-color: rgba(132, 146, 255, 0.6);
+  background: rgba(24, 30, 54, 0.9);
+  outline: none;
+}
+
+.syop-bar-wrapper {
+  position: relative;
+}
+
+/* · · background of SYOP BAR CHARTS · · */
+.syop-violin-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 0.85rem 1rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(118, 132, 255, 0.1), transparent 55%),
+    radial-gradient(circle at 78% 88%, rgba(66, 194, 255, 0.1), transparent 62%),
+    linear-gradient(135deg, rgba(12, 17, 34, 0.32), rgba(9, 12, 26, 0.18));
+  border: 1px solid rgba(148, 163, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 42px rgba(6, 10, 26, 0.35);
+  backdrop-filter: blur(0px) saturate(110%);
+  -webkit-backdrop-filter: blur(0px) saturate(110%);
+  overflow: hidden;
+  width: min(100%, 580px);
+  margin: 0 auto;
+}
+
+.syop-violin-panel::before,
+.syop-violin-panel::after {
+  content: '';
+  position: absolute;
+  inset: -20% -26%;
+  pointer-events: none;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  filter: blur(1px);
+}
+
+.syop-violin-panel::before {
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), transparent 58%);
+}
+
+.syop-violin-panel::after {
+  background: radial-gradient(circle at 70% 70%, rgba(82, 196, 255, 0.12), transparent 62%);
+  opacity: 0.1;
+}
+
+.syop-violin-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.syop-violin-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.syop-violin-title {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 247, 255, 0.96);
+}
+
+.syop-violin-meta {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: rgba(177, 185, 225, 0.82);
+  letter-spacing: 0.04em;
+}
+
+.syop-violin-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.12rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 14px;
+  background: rgba(26, 30, 53, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.05), 0 12px 20px rgba(12, 16, 34, 0.45);
+  color: rgba(235, 238, 255, 0.92);
+  backdrop-filter: blur(5px);
+}
+
+.syop-violin-chip .chip-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(190, 198, 236, 0.86);
+}
+
+.syop-violin-chip .chip-value {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--chip-accent, #7c83ff);
+}
+
+.syop-bar-plot {
+  width: 100%;
+  min-height: 220px;
+  position: relative;
+}
+
+.syop-bar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.syop-bar-area {
+  fill: rgba(8, 12, 24, 0.08);
+  stroke: rgba(148, 162, 255, 0.1);
+  stroke-width: 1px;
+}
+
+.syop-bar-grid {
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1;
+}
+
+.syop-bar-axis {
+  stroke: rgba(140, 154, 255, 0.26);
+  stroke-width: 1.4;
+}
+
+.syop-bar-tick-label {
+  font-size: 0.7rem;
+  fill: rgba(186, 194, 230, 0.86);
+  letter-spacing: 0.05em;
+  text-anchor: end;
+}
+
+.syop-bar-axis-title {
+  font-size: 0.62rem;
+  fill: rgba(176, 186, 226, 0.82);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-anchor: middle;
+}
+
+.syop-bar-axis-title-y {
+  text-anchor: middle;
+}
+
+.syop-bar-axis-title-x {
+  text-anchor: middle;
+  font-size: 0.72rem;
+  font-weight: 700 !important;
+}
+
+.syop-bar-x-label {
+  font-size: 0.74rem;
+  fill: rgba(186, 194, 230, 0.88);
+  letter-spacing: 0.06em;
+  text-anchor: middle;
+}
+
+.syop-bar-rect {
+  fill: var(--bar-fill, rgba(124, 131, 255, 0.28));
+  stroke: var(--bar-stroke, rgba(124, 131, 255, 0.6));
+  stroke-width: 1.6;
+  cursor: pointer;
+  opacity: 0.88;
+  transition: transform 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+  filter: drop-shadow(0 12px 18px rgba(5, 9, 24, 0.32));
+}
+
+.syop-bar-rect:hover,
+.syop-bar-rect:focus-visible,
+.syop-bar-rect.active {
+  transform: translateY(-4px);
+  stroke-width: 2.2;
+  outline: none;
+  opacity: 1;
+}
+
+.syop-bar-tooltip {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 12px));
+  background: rgba(14, 18, 34, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 0.55rem 0.75rem;
+  min-width: 160px;
+  max-width: 220px;
+  box-shadow: 0 18px 28px rgba(10, 14, 32, 0.58), 0 0 0 1px var(--tooltip-accent, rgba(124, 131, 255, 0.5));
+  backdrop-filter: blur(14px);
+  transition: opacity 0.15s ease;
+  color: rgba(238, 240, 255, 0.95);
+}
+
+.syop-bar-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 7px 0 7px;
+  border-style: solid;
+  border-color: rgba(14, 18, 34, 0.92) transparent transparent transparent;
+}
+
+.syop-bar-tooltip.visible {
+  opacity: 1;
+}
+
+.syop-bar-tooltip .tooltip-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(248, 250, 255, 0.96);
+}
+
+.syop-bar-tooltip .tooltip-meta {
+  font-size: 0.75rem;
+  color: rgba(177, 185, 214, 0.86);
+  letter-spacing: 0.04em;
+  margin-top: 0.15rem;
+}
+
+.syop-violin-empty {
+  padding: 1.2rem;
+  text-align: center;
+  color: rgba(182, 190, 228, 0.84);
+  letter-spacing: 0.04em;
+}
+
+.syop-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(132, 146, 255, 0.24);
+  background: linear-gradient(150deg, rgba(16, 20, 36, 0.52), rgba(8, 11, 22, 0.34));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 34px rgba(10, 14, 32, 0.5);
+  backdrop-filter: blur(1px);
+}
+
+.syop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  color: rgba(232, 236, 255, 0.92);
+}
+
+.syop-table caption {
+  caption-side: top;
+  text-align: center;
+  padding: 0.9rem 1.1rem 0.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(190, 198, 236, 0.9);
+}
+
+.syop-table th,
+.syop-table td {
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid rgba(148, 163, 255, 0.16);
+  text-align: center;
+}
+
+.syop-table th {
+  font-weight: 600;
+  color: rgba(214, 220, 255, 0.9);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.syop-table tbody tr:last-child th,
+.syop-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.syop-table tbody tr:hover {
+  background: rgba(20, 24, 44, 0.55);
+}
+
+@media (max-width: 920px) {
+  .syop-violin-panel {
+    padding: 0.8rem 0.85rem 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .syop-bar-controls {
+    gap: 0.7rem;
+    margin-top: 0.4rem;
+  }
+
+  .syop-view-toggle {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .syop-legend-chip {
+    min-width: 0;
+  }
+}
+
+
+/* Hide filters/view-switcher on Research page (header rules) */
+body[data-page="research"] #filters-row,
+body[data-page="research"] #secondary-header-row .view-switcher {
+  display: none !important;
+}
+
+body[data-page="research"] #secondary-header-row {
+  justify-content: center;
+  gap: 0.75rem;
+}

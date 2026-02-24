@@ -1,0 +1,922 @@
+/* Rosters page styles (extracted from styles.css) */
+
+/* Base fixed header + content padding */
+body[data-page="rosters"] #header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  max-width: none;
+  will-change: auto;
+}
+
+body[data-page="rosters"] #header-container .app-header {
+  width: 100%;
+  max-width: none;
+}
+
+body[data-page="rosters"] main#content {
+  padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
+}
+
+/* Rosters: nav-more-dropdown mobile transform */
+@media (max-width: 640px) {
+  body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
+    transform: translateX(5px);
+  }
+}
+
+/* Rosters: Desktop header grid layout (min-width: 869px) */
+@media (min-width: 869px) {
+  body[data-page="rosters"] #header-container {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 0.9rem;
+  }
+
+  body[data-page="rosters"] #header-container .app-header {
+    --roster-desktop-gap: 0.75rem;
+    --roster-desktop-field-width: 200px;
+    --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
+    display: grid;
+    grid-template-columns: var(--roster-desktop-field-width) repeat(5, auto);
+    grid-template-rows: auto auto;
+    column-gap: var(--roster-desktop-gap);
+    row-gap: 0.85rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.15rem 1rem;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: var(--roster-desktop-max);
+  }
+
+  body[data-page="rosters"] #primary-header-row,
+  body[data-page="rosters"] #contextual-controls,
+  body[data-page="rosters"] #secondary-header-row,
+  body[data-page="rosters"] #filters-row,
+  body[data-page="rosters"] .filters-container {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] #contextual-controls .header-row {
+    border-top: 0;
+    padding: 0;
+  }
+
+  body[data-page="rosters"] .username-area {
+    grid-column: 1;
+    grid-row: 1;
+    width: var(--roster-desktop-field-width);
+    max-width: var(--roster-desktop-field-width);
+  }
+
+  body[data-page="rosters"] .nav-buttons-container {
+    grid-column: 2 / span 5;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  body[data-page="rosters"] .nav-buttons-container .nav-button {
+    flex: 0 0 auto;
+    width: 77px;
+  }
+
+  body[data-page="rosters"] .custom-select-wrapper {
+    grid-column: 1;
+    grid-row: 2;
+    width: var(--roster-desktop-field-width);
+    max-width: var(--roster-desktop-field-width);
+  }
+
+  body[data-page="rosters"] .view-switcher {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: flex-start;
+  }
+
+  body[data-page="rosters"] .start-sit-button-slot {
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: flex-start;
+  }
+
+  body[data-page="rosters"] #positional-filters {
+    grid-column: 4;
+    grid-row: 2;
+    justify-content: flex-start;
+    margin-left: 3px;
+  }
+
+  body[data-page="rosters"] #clearFiltersButton {
+    grid-column: 5;
+    grid-row: 2;
+    margin: 0;
+  }
+
+  body[data-page="rosters"] .compare-controls {
+    grid-column: 6;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    justify-self: flex-start;
+    position: static;
+  }
+
+  body[data-page="rosters"] .compare-controls .compare-search-toggle {
+    margin: 0;
+  }
+
+  body[data-page="rosters"] #header-container {
+    position: fixed;
+    top: 0;
+    top: 7px;
+    left: 0;
+    right: 0;
+    width: 100vw;
+  }
+}
+
+/* Rosters: desktop homeButton margin */
+@media (min-width: 869px) {
+  body[data-page="rosters"] #homeButton {
+    margin-left: 20px;
+  }
+}
+
+/* Rosters: Preview-active header states (desktop) */
+@media (min-width: 869px) {
+  body[data-page="rosters"] #header-container .app-header.preview-active {
+    --roster-desktop-gap: 0.6rem;
+    --roster-desktop-field-width: 113px;
+    --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
+    --roster-preview-gap: clamp(0.4rem, 1.2vw, 0.7rem);
+    display: grid;
+    grid-template-columns: var(--roster-desktop-field-width) repeat(5, auto);
+    grid-template-rows: auto auto;
+    column-gap: var(--roster-desktop-gap);
+    row-gap: 0.85rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.15rem 0.21rem;
+    margin: 0 auto;
+    width: fit-content;
+    max-width: var(--roster-desktop-max);
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #primary-header-row {
+    display: none !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #contextual-controls {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #contextual-controls .header-row {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #secondary-header-row {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #filters-row {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #secondary-header-row .username-area,
+  body[data-page="rosters"] .app-header.preview-active #secondary-header-row .custom-select-wrapper {
+    display: none !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .view-switcher {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: flex-start;
+    margin-left: 0;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .secondary-switcher {
+    margin-left: 0;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button-slot {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: flex-start;
+    margin: 0;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button-container {
+    flex: 0 0 auto !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .filters-container {
+    grid-column: 3;
+    grid-row: 1;
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #positional-filters {
+    grid-column: 3;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #clearFiltersButton {
+    grid-column: 4;
+    grid-row: 1;
+    margin: 0;
+    justify-self: flex-start;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compare-controls {
+    grid-column: 5;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    position: static;
+    margin-left: 0;
+    justify-self: flex-end;
+  }
+}
+
+/* Rosters: allow horizontal scroll */
+body[data-page="rosters"] {
+  overflow-x: auto !important;
+}
+
+/* Rosters: Analyze League button styling */
+/* · · Anlz.Lg button · · */
+body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton {
+  padding: 0;
+  border: none;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.glow-on-select,
+body[data-page="rosters"] #secondary-header-row #analyzeLeagueButton.active {
+  box-shadow: none;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+}
+
+/* Rosters: show bottom menu panel */
+/* Show on rosters page (both mobile and desktop) */
+body[data-page="rosters"] #bottom-menu-panel {
+  display: block;
+}
+
+/* ⬇︎ MOBILE-ONLY ROSTERS PAGE HEADER LAYOUT ⬇︎ */
+@media (max-width: 819px) {
+
+  /* Hide username and league select on rosters page mobile */
+  body[data-page="rosters"] .username-area,
+  body[data-page="rosters"] .custom-select-wrapper {
+    display: none !important;
+  }
+
+  /* Hide clear filters button on mobile */
+  body[data-page="rosters"] #clearFiltersButton {
+    display: none !important;
+  }
+
+  /* Reorganize header to 2 rows */
+  body[data-page="rosters"] #header-container .app-header {
+    display: flex;
+    flex-direction: column;
+    padding: 0.4rem 0.15rem 0.45rem;
+    gap: 0.35rem;
+  }
+
+  /* First row: Navigation buttons */
+  body[data-page="rosters"] #primary-header-row {
+    display: flex;
+    width: 100%;
+  }
+
+  body[data-page="rosters"] .nav-buttons-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.25rem;
+  }
+
+  /* Second row: View switcher + Start/Sit + Filters + Compare */
+  body[data-page="rosters"] #contextual-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  body[data-page="rosters"] #secondary-header-row {
+    display: none !important;
+  }
+
+  body[data-page="rosters"] #filters-row {
+    display: flex;
+    align-items: stretch;
+    /* Changed from center to stretch for uniform height */
+    justify-content: flex-start;
+    gap: 0.25rem;
+    width: 100%;
+    padding: 0;
+    border-top: none;
+    flex-wrap: nowrap;
+  }
+
+  /* Start/Sit button - MOVED TO FIRST POSITION */
+  body[data-page="rosters"] .start-sit-button-slot {
+    order: 1;
+    flex: 0 0 auto !important;
+    display: flex;
+    align-items: stretch;
+  }
+
+  body[data-page="rosters"] .start-sit-button {
+    padding: 0.25rem 0.38rem !important;
+    gap: 0.1rem !important;
+    min-width: 3.3rem !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    margin-bottom: -2px;
+  }
+
+  body[data-page="rosters"] .start-sit-button .analyzer-icon {
+    font-size: 0.95rem !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button .analyzer-label {
+    font-size: 0.6rem !important;
+    margin-top: 0.04rem !important;
+    line-height: 1.05 !important;
+    font-weight: 700;
+    font-family: 'Google Sans';
+  }
+
+  /* Prevent alignment shifts on Start/Sit button - NO transform or outline */
+  body[data-page="rosters"] .start-sit-button:hover,
+  body[data-page="rosters"] .start-sit-button:active,
+  body[data-page="rosters"] .start-sit-button:focus,
+  body[data-page="rosters"] .start-sit-button:focus-visible {
+    transform: none !important;
+    outline: none !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button.active:hover,
+  body[data-page="rosters"] .start-sit-button.active:active,
+  body[data-page="rosters"] .start-sit-button.active:focus {
+    transform: none !important;
+  }
+
+  /* View switcher - MOVED TO SECOND POSITION */
+  body[data-page="rosters"] .view-switcher {
+    order: 2;
+    flex: 0 0 auto;
+    padding: 0.08rem 0.08rem;
+    gap: 0;
+    margin-right: -2px;
+  }
+
+  body[data-page="rosters"] .view-switcher button {
+    padding: 0.3rem 0.4rem !important;
+    min-height: 1.5rem;
+    font-size: 0.6rem !important;
+    gap: 0.04rem;
+  }
+
+  body[data-page="rosters"] .view-switcher button i {
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+  body[data-page="rosters"] .view-switcher .switcher-label {
+    font-size: 0.36rem;
+    line-height: 1;
+  }
+
+  /* View dropdown - MOBILE ONLY - replaces switcher */
+  body[data-page="rosters"] .view-switcher-dropdown {
+    order: 2;
+    flex: 0 0 auto !important;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.1rem !important;
+    padding: 0.32rem 0.35rem !important;
+    min-height: auto !important;
+    height: auto !important;
+    min-width: 3.45rem;
+    background: rgba(13, 14, 35, 0.05);
+    border: 1px solid rgba(128, 138, 189, 0.2);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 2px rgba(255, 255, 255, 0.06);
+    position: relative;
+  }
+
+  /* Light glow when View: POS is active (default) */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-users) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 2px rgba(255, 255, 255, 0.06),
+      0 0 8px rgba(66, 194, 255, 0.25),
+      inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
+    border-color: rgba(66, 194, 255, 0.3);
+  }
+
+  /* Condensed icon glow */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-compress) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 2px rgba(255, 255, 255, 0.06),
+      0 0 8px rgba(255, 158, 89, 0.25),
+      inset 0 0 18px 9px rgba(255, 158, 89, 0.065);
+    border-color: rgba(255, 158, 89, 0.32);
+  }
+
+  /* Different colored glow when View: Lineup is active */
+  body[data-page="rosters"] .view-dropdown-toggle:has(.fa-list-ol) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
+      inset 0 1px 2px rgba(255, 255, 255, 0.06),
+      0 0 8px rgba(118, 109, 255, 0.25),
+      inset 0 0 18px 9px rgba(118, 109, 255, 0.065);
+    border-color: rgba(118, 109, 255, 0.3);
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle i:first-child {
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle .switcher-label {
+    font-size: 0.57rem !important;
+    line-height: 1.05 !important;
+    font-weight: 700;
+    font-family: 'Google Sans';
+  }
+
+  /* Prevent alignment shifts on View dropdown - NO transform or outline */
+  body[data-page="rosters"] .view-dropdown-toggle:hover,
+  body[data-page="rosters"] .view-dropdown-toggle:active,
+  body[data-page="rosters"] .view-dropdown-toggle:focus,
+  body[data-page="rosters"] .view-dropdown-toggle:focus-visible {
+    transform: none !important;
+    outline: none !important;
+  }
+
+  body[data-page="rosters"] .view-dropdown-arrow {
+    position: absolute;
+    top: 10px;
+    right: 3px;
+    font-size: 0.6rem !important;
+    opacity: 0.7;
+    text-shadow: 0 0 3px #5300ffaa, 0 0 5px #5300ff;
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+    min-width: 100%;
+    background: rgba(18, 22, 40, 0.95);
+    border: 1px solid rgba(169, 178, 227, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(20px);
+    z-index: 200;
+    overflow: hidden;
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu.hidden {
+    display: none;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.5rem;
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    border-radius: 4px;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option i {
+    font-size: 0.8rem;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option.active {
+    color: #afb3d4;
+    background: rgba(128, 138, 189, 0.08);
+    border-color: rgba(128, 138, 189, 0.2);
+    box-shadow: 0 0 3px rgba(128, 138, 189, 0.15);
+  }
+
+  /* Hide old switcher on mobile */
+  body[data-page="rosters"] .view-switcher {
+    display: none;
+  }
+
+  /* Filters - positioned after view switcher */
+  body[data-page="rosters"] .filters-container {
+    order: 3;
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    gap: 0.32rem;
+    overflow: visible;
+  }
+
+  body[data-page="rosters"] #positional-filters {
+    display: flex;
+    gap: 0rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  body[data-page="rosters"] .filter-btn {
+    padding: 0.32rem 0.35rem !important;
+    font-size: 0.8rem !important;
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    font-weight: 500;
+    font-family: 'Product Sans';
+  }
+
+  body[data-page="rosters"] .filter-btn:not(.active):hover {
+    /* Disable hover effect on inactive buttons only to prevent tap persistence */
+    color: var(--color-text-secondary) !important;
+    background: transparent !important;
+  }
+
+  body[data-page="rosters"] .filter-btn i {
+    font-size: 0.72rem;
+  }
+
+  /* Compare controls - REDUCED: smaller padding, smaller icon */
+  body[data-page="rosters"] .compare-controls {
+    order: 4;
+    flex: 0 0 auto;
+  }
+
+  body[data-page="rosters"] .compare-search-toggle {
+    padding: 0.32rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  /* Search popover mobile positioning - span full width leaving only start/sit visible */
+  body[data-page="rosters"] .compare-search-popover {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(0rem);
+    width: auto;
+    max-width: none;
+    z-index: 100;
+  }
+
+  body[data-page="rosters"] .compare-search-popover:not(.hidden) {
+    transform: translateY(0);
+  }
+
+  body[data-page="rosters"] .compare-controls {
+    position: static;
+  }
+
+  body[data-page="rosters"] .filters-row {
+    position: relative;
+  }
+
+  /* Make start/sit and view-switcher expand on wider mobile screens */
+  @media (min-width: 500px) and (max-width: 819px) {
+    body[data-page="rosters"] .start-sit-button-slot {
+      flex: 0 1 auto;
+    }
+
+    body[data-page="rosters"] .start-sit-button {
+      min-width: 4.5rem;
+    }
+
+
+    body[data-page="rosters"] .view-switcher {
+      flex: 0 1 auto;
+    }
+  }
+}
+
+/* Desktop rosters - extend search popover to cover filters */
+@media (min-width: 820px) {
+  body[data-page="rosters"] .compare-search-popover {
+    right: 0;
+    left: auto;
+    width: 400px;
+  }
+
+  /* Desktop: Hide dropdown, show old switcher */
+  body[data-page="rosters"] .view-switcher-dropdown {
+    display: none;
+  }
+
+  body[data-page="rosters"] .view-switcher {
+    display: flex !important;
+    min-width: 85px;
+    margin-left: 19px;
+  }
+}
+
+/* ============================================================================
+   OWNERSHIP MODAL ON ROSTERS PAGE (watchlist flow)
+   Mirrors the ownership page (.ownership.css) modal styling so both modals
+   look identical regardless of which page the user is on.
+   ============================================================================ */
+body[data-page="rosters"] #ownershipPlayerModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal.hidden {
+  display: none;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal>.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Modal content: match ownership page gradient + border + box-shadow */
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-content {
+  position: relative;
+  z-index: 1101;
+  opacity: 1;
+  transform: none;
+  width: min(94vw, 500px);
+  max-height: 90vh;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid var(--ownership-glass-border, rgba(183, 194, 246, 0.18));
+  background: linear-gradient(165deg, rgb(77 86 120 / 82%), rgb(63 67 88 / 29%));
+  box-shadow: 0 28px 65px rgba(4, 8, 24, 0.62), inset 0 0 24px rgba(120, 100, 255, 0.07);
+  overflow: hidden;
+  padding: 0.75rem 0.85rem 0.78rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-header {
+  text-align: center;
+  padding-top: 0.12rem;
+  position: relative;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .modal-header-left-container {
+  position: absolute;
+  top: 0.70rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalPlayerName {
+  margin: 0 0 0.14rem;
+  font-size: 1.07rem;
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  color: #eef3ff;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalPlayerVitals {
+  display: flex;
+  justify-content: center;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.45rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryChips {
+  display: flex;
+  gap: 0.78rem;
+  width: 100%;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(170%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 11px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013), inset 9px 13px 12px -7px #abc2;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-values {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-body {
+  border-top: 1px solid rgba(183, 194, 246, 0.22);
+  padding-top: 0.55rem;
+  max-height: calc(90vh - 220px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-close {
+  position: absolute;
+  top: 0.02rem;
+  right: 0.5rem;
+  font-size: 2rem;
+  color: rgba(232, 238, 255, 0.84);
+  z-index: 3;
+  pointer-events: auto;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-league-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.48rem;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.52rem 0.62rem;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 197, 248, 0.2);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #687b972e);
+  box-shadow: inset 0px 11px 13px -8px #cdf3;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-abbr {
+  font-size: 0.73rem;
+  font-weight: 720;
+  letter-spacing: 0.05em;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-name {
+  color: #d2dbfb;
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 48vw;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-owner {
+  font-size: 0.76rem;
+  font-weight: 670;
+  color: #eef2ff;
+  text-align: right;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-you {
+  border-color: rgba(101, 236, 191, 0.36);
+  background: linear-gradient(145deg, rgb(61 76 139 / 58%), #6100ffbf);
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-other {
+  border-color: rgba(147, 161, 239, 0.32);
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-league-row.owner-none {
+  border-color: rgba(189, 197, 238, 0.2);
+  background: rgba(20, 24, 42, 0.52);
+  opacity: 0.92;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  padding: 0.7rem 0;
+}
+
+body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-warning {
+  margin-top: 0.75rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
+/* Responsive: narrow screens reduce spacing/padding in ownership modal on rosters */
+@media (max-width: 680px) {
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-modal-content {
+    width: min(96vw, 640px);
+    padding: 0.68rem 0.62rem 0.68rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal #ownershipModalSummaryChips {
+    gap: 0.4rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .gamelogs-summary-chip {
+    padding: 0.23rem 0.5rem;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-league-name {
+    max-width: 39vw;
+  }
+
+  body[data-page="rosters"] #ownershipPlayerModal .ownership-league-owner {
+    font-size: 0.71rem;
+  }
+}

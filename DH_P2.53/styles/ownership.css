@@ -1,3 +1,1325 @@
+/* Ownership page position tags & row tuning (extracted from styles.css) */
+
+/* Ownership page: position tags styled like game logs modal */
+body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: auto;
+  padding: 4px 4px;
+  line-height: 1;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.005);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid #CCF3;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 820px) {
+
+  /* Ownership desktop position-tag sizing:
+     adjusts only ownership list tags on desktop to the requested footprint,
+     leaving mobile and non-ownership pages unchanged. */
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+    min-width: 32px;
+    padding: 6px 3px;
+    font-size: 0.7rem;
+  }
+}
+
+body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 11px 8px 0px -10px rgba(255, 255, 255, .1),
+    inset 0px 8px 0px -5px rgba(255, 255, 255, .1);
+  opacity: 0.34;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+  pointer-events: none;
+}
+
+/* Mobile-specific radius for ownership tags */
+@media (max-width: 640px) {
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag {
+    border-radius: 0.4rem;
+    min-width: 25px;
+    width: 9px !important;
+    height: 19px !important;
+  }
+
+  body[data-page="ownership"] .pl-list-tag.ownership-pos-tag::after {
+    border-radius: 10px;
+  }
+}
+
+body[data-page="ownership"] .ownership-pos-tag.QB {
+  color: #FF3A75c0;
+  /* QB color */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #FF3A7513;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.RB {
+  color: #00EBC7c0;
+  /* RB color */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 6px #00EBC715;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.WR {
+  color: #58A7FFca;
+  /* WR color */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #58A7FF25;
+}
+
+body[data-page="ownership"] .ownership-pos-tag.TE {
+  color: #B469FFca;
+  /* TE color */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05), inset 0 0 10px #B469FF26;
+}
+
+/* Desktop ownership row tuning (desktop only) */
+@media (min-width: 820px) {
+  body[data-page="ownership"] .player-list-section .pl-player-row {
+    padding: 0.22rem 0.9rem;
+    gap: 1.2rem;
+    align-items: center;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-name {
+    font-size: 0.96rem;
+    gap: 1.25rem;
+    line-height: 1.16;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .team-tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    min-height: 18px;
+    max-width: 32px;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-details {
+    font-size: 0.83rem;
+    letter-spacing: 0.012em;
+    margin-top: 2px;
+    word-spacing: 0.26rem;
+    /* open space around the dot separator */
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-player-details .pl-details-sep {
+    margin: 0 0.45rem;
+    /* extra space around • on desktop only */
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-info {
+    flex: 0 1 52%;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-right-meta {
+    width: 235px;
+    column-gap: 1.4rem;
+    font-size: 0.86rem;
+    grid-template-columns: 34px 52px 1fr;
+    text-align: left;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-col-count,
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-col-pct {
+    font-weight: 700;
+    text-align: center;
+  }
+
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-col-lgs {
+    font-size: 0.72rem;
+    line-height: 1.18;
+  }
+
+  body[data-page="ownership"] .pl-list-header .pl-right-meta {
+    width: 235px;
+    grid-template-columns: 34px 52px 1fr;
+    column-gap: 1.4rem;
+  }
+
+  body[data-page="ownership"] .pl-list-header .pl-player-info {
+    flex: 0 1 52%;
+  }
+}
+
+/* Ownership mobile position-tag override (extracted from styles.css @media max-width:540px) */
+@media (max-width: 540px) {
+  body[data-page="ownership"] .player-list-section .pl-player-row .pl-list-tag.ownership-pos-tag {
+    min-width: 29px !important;
+    height: auto !important;
+    padding: 4px 6px !important;
+    line-height: 0.9rem !important;
+    font-size: 0.68rem !important;
+    border-radius: 6px !important;
+    max-width: 29px;
+  }
+}
+
+/* === Ownership page revamp: view switcher, list/table, and player-detail modal === */
+/* All selectors are scoped to ownership so no styles leak to other pages. */
+body[data-page="ownership"] #secondary-header-row {
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* Ownership row-2 keeps username input + segmented mode switcher only. */
+body[data-page="ownership"] #secondary-header-row .username-area {
+  flex: 1 1 44%;
+  min-width: min(230px, 48vw);
+  max-width: 460px;
+}
+
+/* Ownership no longer renders a league dropdown in row-2; explicitly hide any shared wrapper artifacts. */
+body[data-page="ownership"] #secondary-header-row .custom-select-wrapper {
+  display: none !important;
+}
+
+body[data-page="ownership"] #ownershipModeSwitcher {
+  flex: 1 1 56%;
+  min-width: min(240px, 48vw);
+  max-width: 520px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  padding: 0.2rem;
+  border-radius: 14px;
+  border: 1px solid rgba(128, 138, 189, 0.25);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(10, 12, 28, 0.2));
+  backdrop-filter: blur(8px) saturate(125%);
+  -webkit-backdrop-filter: blur(8px) saturate(125%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 28px rgba(0, 0, 0, 0.23);
+}
+
+@media (min-width: 820px) {
+
+  /* Ownership desktop header controls:
+     targets the real mode button class and the ownership-specific username bar
+     so desktop sizing applies without leaking to other pages. */
+  body[data-page="ownership"] #ownershipModeSwitcher {
+    height: 46px;
+    padding: 0.1rem;
+  }
+
+  body[data-page="ownership"] #ownershipModeSwitcher .ownership-mode-btn {
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  body[data-page="ownership"] #secondary-header-row .username-area.ownership-username-bar {
+    height: 46px;
+  }
+}
+
+body[data-page="ownership"] .ownership-mode-btn {
+  flex: 1 1 0;
+  min-height: 2.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.36rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #8f97c8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: all 0.18s ease;
+}
+
+body[data-page="ownership"] .ownership-mode-btn i {
+  font-size: 0.8rem;
+}
+
+body[data-page="ownership"] .ownership-mode-btn.is-active {
+  color: #d7dbff;
+  border-color: rgba(118, 109, 255, 0.44);
+  background: rgba(118, 109, 255, 0.14);
+  box-shadow: 0 0 15px rgba(118, 109, 255, 0.24), inset 0 0 14px rgba(118, 109, 255, 0.14);
+}
+
+body[data-page="ownership"] .ownership-mode-btn:focus-visible {
+  outline: 2px solid rgba(193, 198, 255, 0.44);
+  outline-offset: 2px;
+}
+
+body[data-page="ownership"] #playerListView {
+  width: min(100%, 1180px) !important;
+  max-width: min(100%, 1180px) !important;
+  padding-left: 0.2rem !important;
+  padding-right: 0.2rem !important;
+}
+
+body[data-page="ownership"] .ownership-shell {
+  width: 100%;
+  max-width: 1000px;
+  border-radius: 16px;
+  border: 1px solid rgba(128, 138, 189, 0.21);
+  background: linear-gradient(180deg, rgba(22, 25, 47, 0.6), rgba(12, 14, 28, 0.43));
+  backdrop-filter: blur(7px) saturate(120%);
+  -webkit-backdrop-filter: blur(7px) saturate(120%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px rgba(0, 0, 0, 0.26);
+  padding: 0.7rem 0.65rem;
+  font-family: var(--font-sans);
+  align-self: center;
+}
+
+body[data-page="ownership"] .ownership-toolbar,
+body[data-page="ownership"] .ownership-value-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.58rem;
+  margin-bottom: 0.32rem;
+}
+
+body[data-page="ownership"] .ownership-search-wrap {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+body[data-page="ownership"] .ownership-search-input {
+  width: 100%;
+  min-height: 2.68rem;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 138, 189, 0.3);
+  background: rgb(47 49 64 / 45%);
+  color: #d8ddff99;
+  font-size: 16px;
+  font-weight: 300;
+  padding: 0.45rem 3.6rem 0.45rem 0.72rem;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+body[data-page="ownership"] .ownership-search-input::placeholder {
+  color: #9099cf;
+}
+
+body[data-page="ownership"] .ownership-search-input:focus {
+  outline: none;
+  border-color: rgba(118, 109, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(118, 109, 255, 0.18);
+}
+
+body[data-page="ownership"] .ownership-search-icon {
+  position: absolute;
+  right: 0.66rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8e95c3;
+  font-size: 0.76rem;
+}
+
+body[data-page="ownership"] .ownership-search-clear {
+  position: absolute;
+  right: 1.84rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #aab2de;
+  font-size: 0.84rem;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+body[data-page="ownership"] .ownership-search-clear.is-visible {
+  opacity: 0.82;
+  pointer-events: auto;
+}
+
+body[data-page="ownership"] .ownership-search-clear:hover,
+body[data-page="ownership"] .ownership-search-clear:focus-visible {
+  color: #f1f4ff;
+}
+
+body[data-page="ownership"] .ownership-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+body[data-page="ownership"] .ownership-list-header,
+body[data-page="ownership"] .ownership-list-row {
+  display: grid;
+  grid-template-columns: 38px minmax(180px, 1fr) 52px 60px minmax(82px, 1fr);
+  align-items: center;
+  gap: 0.52rem;
+}
+
+body[data-page="ownership"] .ownership-list-header {
+  border-radius: 10px;
+  border: 1px solid rgba(128, 138, 189, 0.23);
+  background: rgba(31, 35, 63, 0.72);
+  padding: 0.42rem 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.61rem;
+  font-weight: 700;
+  color: #aeb5e4;
+}
+
+body[data-page="ownership"] .ownership-list-row {
+  border-radius: 12px;
+  border: 1px solid rgba(128, 138, 189, 0.17);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.16));
+  padding: 0rem 0.5rem 0.2rem;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.19);
+}
+
+body[data-page="ownership"] .ownership-list-player-wrap {
+  min-width: 0;
+  margin-left: 10px;
+  text-wrap-mode: nowrap;
+}
+
+body[data-page="ownership"] .ownership-list-player-wrap .team-tag {
+  margin-left: 0.4rem;
+  font-size: 0.62rem;
+  padding: 1px 7px;
+}
+
+body[data-page="ownership"] .ownership-player-trigger {
+  border: none;
+  background: transparent;
+  color: #dce1ff;
+  font-size: 0.87rem;
+  font-weight: 700;
+  padding: 0;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: #ccf5;
+}
+
+body[data-page="ownership"] .ownership-player-trigger:hover,
+body[data-page="ownership"] .ownership-player-trigger:focus-visible {
+  color: #ffffff;
+  border-bottom-color: rgba(219, 224, 255, 0.85);
+}
+
+body[data-page="ownership"] .ownership-player-meta {
+  margin-top: 0.15rem;
+  color: #9ca4d4;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-page="ownership"] .ownership-list-metric {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+body[data-page="ownership"] .ownership-list-leagues {
+  text-align: left;
+  font-size: 0.66rem;
+  line-height: 1.25;
+  color: #bac2ee;
+}
+
+body[data-page="ownership"] .ownership-empty-state {
+  margin: 0.45rem 0.1rem 0.1rem;
+  text-align: center;
+  color: #9099c8;
+  font-size: 0.82rem;
+  padding: 0.6rem;
+  border: 1px dashed rgba(128, 138, 189, 0.35);
+  border-radius: 10px;
+}
+
+/* Ownership value view: connected position filter bar
+   - Targets the value table filter controls only
+   - Makes buttons connected, equal-width, and full panel width
+   - Keeps behavior isolated to Ownership page via data-page scoping */
+body[data-page="ownership"] .ownership-value-toolbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4rem;
+}
+
+body[data-page="ownership"] .ownership-value-position-filter {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid rgb(162 172 223 / 32%);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgb(13 16 32 / 0%);
+  padding: 1px;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn {
+  border: 0;
+  border-right: 1px solid rgba(128, 138, 189, 0.22);
+  background: rgba(19, 22, 43, 0.82);
+  color: #95a0d2;
+  min-width: 0;
+  width: 100%;
+  min-height: 2.02rem;
+  border-radius: 0;
+  font-size: 0.66rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:last-child {
+  border-right: 0;
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn.is-active {
+  color: #d8ddff;
+  background: rgba(118, 109, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(118, 109, 255, 0.56), inset 0 0 12px rgba(118, 109, 255, 0.22);
+}
+
+body[data-page="ownership"] .ownership-value-filter-btn:focus-visible {
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 0 1px rgba(212, 218, 255, 0.72);
+}
+
+body[data-page="ownership"] .ownership-value-table-wrap {
+  /* Ownership value table viewport behavior:
+     desktop keeps the existing cap while mobile receives runtime-fit height from app.js
+     so only this container scrolls in the Player Value tab. */
+  border-radius: 12px;
+  border: 1px solid rgba(128, 138, 189, 0.23);
+  background: rgba(12, 15, 30, 0.5);
+  overflow: auto;
+  max-height: min(71vh, 760px);
+}
+
+body[data-page="ownership"] .ownership-value-table {
+  /* Ownership Player Value width model (single source of truth):
+     edit the --ov-col-* vars below to tune columns without causing sticky/frozen drift. */
+  --ov-col-1-rk: 33px;
+  --ov-col-2-player: 84px;
+  --ov-col-3-pos: 51px;
+  --ov-col-4-tm: 46px;
+  --ov-col-5-age: 50px;
+  --ov-col-6-1qb-ktc: 75px;
+  --ov-col-7-1qb-prk: 75px;
+  --ov-col-8-sflx-ktc: 75px;
+  --ov-col-9-sflx-prk: 77px;
+  --ov-col-10-fpts: 71px;
+  --ov-col-11-ppg: 71px;
+  --ov-table-min-width:
+    calc(var(--ov-col-1-rk) + var(--ov-col-2-player) + var(--ov-col-3-pos) + var(--ov-col-4-tm) + var(--ov-col-5-age) + var(--ov-col-6-1qb-ktc) + var(--ov-col-7-1qb-prk) + var(--ov-col-8-sflx-ktc) + var(--ov-col-9-sflx-prk) + var(--ov-col-10-fpts) + var(--ov-col-11-ppg));
+  width: max(100%, var(--ov-table-min-width));
+  min-width: var(--ov-table-min-width);
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: var(--font-sans);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(1),
+body[data-page="ownership"] .ownership-value-table td:nth-child(1) {
+  width: var(--ov-col-1-rk);
+  min-width: var(--ov-col-1-rk);
+  max-width: var(--ov-col-1-rk);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(2),
+body[data-page="ownership"] .ownership-value-table td:nth-child(2) {
+  width: var(--ov-col-2-player);
+  min-width: var(--ov-col-2-player);
+  max-width: var(--ov-col-2-player);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(3),
+body[data-page="ownership"] .ownership-value-table td:nth-child(3) {
+  width: var(--ov-col-3-pos);
+  min-width: var(--ov-col-3-pos);
+  max-width: var(--ov-col-3-pos);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(4),
+body[data-page="ownership"] .ownership-value-table td:nth-child(4) {
+  width: var(--ov-col-4-tm);
+  min-width: var(--ov-col-4-tm);
+  max-width: var(--ov-col-4-tm);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(5),
+body[data-page="ownership"] .ownership-value-table td:nth-child(5) {
+  width: var(--ov-col-5-age);
+  min-width: var(--ov-col-5-age);
+  max-width: var(--ov-col-5-age);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(6),
+body[data-page="ownership"] .ownership-value-table td:nth-child(6) {
+  width: var(--ov-col-6-1qb-ktc);
+  min-width: var(--ov-col-6-1qb-ktc);
+  max-width: var(--ov-col-6-1qb-ktc);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(7),
+body[data-page="ownership"] .ownership-value-table td:nth-child(7) {
+  width: var(--ov-col-7-1qb-prk);
+  min-width: var(--ov-col-7-1qb-prk);
+  max-width: var(--ov-col-7-1qb-prk);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(8),
+body[data-page="ownership"] .ownership-value-table td:nth-child(8) {
+  width: var(--ov-col-8-sflx-ktc);
+  min-width: var(--ov-col-8-sflx-ktc);
+  max-width: var(--ov-col-8-sflx-ktc);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(9),
+body[data-page="ownership"] .ownership-value-table td:nth-child(9) {
+  width: var(--ov-col-9-sflx-prk);
+  min-width: var(--ov-col-9-sflx-prk);
+  max-width: var(--ov-col-9-sflx-prk);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(10),
+body[data-page="ownership"] .ownership-value-table td:nth-child(10) {
+  width: var(--ov-col-10-fpts);
+  min-width: var(--ov-col-10-fpts);
+  max-width: var(--ov-col-10-fpts);
+}
+
+body[data-page="ownership"] .ownership-value-table th:nth-child(11),
+body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
+  width: var(--ov-col-11-ppg);
+  min-width: var(--ov-col-11-ppg);
+  max-width: var(--ov-col-11-ppg);
+}
+
+/* --- Desktop Column Widths (≥869px) ---
+   Edit these to change desktop column sizing without affecting mobile. */
+@media (min-width: 869px) {
+  body[data-page="ownership"] .ownership-value-table {
+    --ov-col-1-rk: 43px;
+    --ov-col-2-player: 72px;
+    --ov-col-3-pos: 50px;
+    --ov-col-4-tm: 50px;
+    --ov-col-5-age: 52px;
+    --ov-col-6-1qb-ktc: 67px;
+    --ov-col-7-1qb-prk: 80px;
+    --ov-col-8-sflx-ktc: 72px;
+    --ov-col-9-sflx-prk: 80px;
+    --ov-col-10-fpts: 70px;
+    --ov-col-11-ppg: 70px;
+  }
+
+  /* Desktop: Search bar + Position filter buttons side-by-side */
+  body[data-page="ownership"] .ownership-value-toolbar {
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    margin: 0rem 2rem 0.62rem;
+  }
+
+  body[data-page="ownership"] .ownership-search-wrap--value {
+    max-width: 678px;
+    min-width: 398px;
+  }
+
+  body[data-page="ownership"] .ownership-value-position-filter {
+    justify-content: center;
+    width: auto;
+    gap: 3px;
+    padding: 3px;
+  }
+}
+
+/* Ownership player-value frozen columns:
+   - targets the ownership value table only
+   - freezes first three columns (RK, Player, POS) during horizontal scroll
+   - preserves existing table sizing by waiting for JS-measured offsets */
+body[data-page="ownership"] .ownership-value-table {
+  --ownership-value-sticky-left-2: var(--ov-col-1-rk);
+  --ownership-value-sticky-left-3: calc(var(--ov-col-1-rk) + var(--ov-col-2-player));
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(-n+3),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(-n+3) {
+  position: sticky;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(1),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(1) {
+  left: 0;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(2),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(2) {
+  left: var(--ownership-value-sticky-left-2);
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(3),
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(3) {
+  left: var(--ownership-value-sticky-left-3);
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(-n+3) {
+  z-index: 3;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(-n+3) {
+  z-index: 1;
+  background: #111422;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody tr:nth-child(even) td:nth-child(-n+3) {
+  background: #161827;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(1) {
+  z-index: 6;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(2) {
+  z-index: 5;
+}
+
+body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(3) {
+  z-index: 4;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(34, 39, 69, 0.94);
+  color: #b8c0ef;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.43rem 0.3rem;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.22);
+  font-family: var(--font-sans);
+  user-select: none;
+  /* Keep sort-label + icon on one line (no icon wrap under header text). */
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.is-sortable {
+  cursor: pointer;
+}
+
+/* Ownership value table sort icon parity with Stats page */
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-asc::after,
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-desc::after {
+  display: inline-block;
+  margin-left: 0.2rem;
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.55rem;
+  opacity: 0.6;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-asc::after {
+  content: "\f885";
+}
+
+body[data-page="ownership"] .ownership-value-table thead th.stats-sort-desc::after {
+  content: "\f160";
+}
+
+body[data-page="ownership"] .ownership-value-table td {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #cbd2f7;
+  padding: 0.42rem 0.28rem;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.2);
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+body[data-page="ownership"] .ownership-value-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
+  text-align: left;
+  padding-left: 0.34rem;
+  max-width: 132px;
+  overflow: hidden;
+}
+
+body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
+  width: 100%;
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 300;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 819px) {
+  body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--value {
+    width: 100%;
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+body[data-page="ownership"] .ownership-value-team-cell {
+  text-align: center;
+}
+
+body[data-page="ownership"] .ownership-value-team-cell img.team-logo {
+  width: 20px;
+  height: 20px;
+}
+
+body[data-page="ownership"] .ownership-value-rk {
+  color: #95a1d6;
+  font-weight: 700;
+}
+
+body[data-page="ownership"] .ownership-value-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 1.2rem;
+  min-height: 1.2rem;
+  max-height: 1.2rem;
+  border-radius: 6px;
+  padding: 0.05rem 0.24rem;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(128, 138, 189, 0.24);
+  background: rgba(13, 17, 35, 0.88);
+}
+
+body[data-page="ownership"] #ownership-player-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownership-player-modal.hidden {
+  display: none;
+}
+
+body[data-page="ownership"] .ownership-modal-content {
+  width: min(94vw, 760px);
+  max-height: 88vh;
+  border-radius: 14px;
+  padding: 0.72rem 0.76rem 0.62rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-page="ownership"] #ownership-modal-header {
+  position: relative;
+  text-align: center;
+}
+
+body[data-page="ownership"] #ownership-modal-left {
+  position: absolute;
+  left: 0.4rem;
+  top: 0.1rem;
+}
+
+body[data-page="ownership"] #ownership-modal-player-name {
+  margin: 0 1.9rem 0.18rem;
+}
+
+body[data-page="ownership"] #ownership-modal-player-vitals {
+  display: flex;
+  justify-content: center;
+}
+
+body[data-page="ownership"] #ownership-modal-summary-row {
+  display: flex;
+  justify-content: center;
+  margin: 0.04rem 0 0.44rem;
+}
+
+body[data-page="ownership"] #ownership-modal-summary-chips {
+  display: flex;
+  gap: 0.58rem;
+  width: 100%;
+  justify-content: center;
+  align-items: stretch;
+}
+
+body[data-page="ownership"] .ownership-summary-chip {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Ownership modal top summary chips mirror Stats game-log chip styling.
+   This only affects the Ownership player-detail modal header region. */
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip {
+  flex: 1;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+  min-width: auto;
+  position: relative;
+  background: rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  border-radius: 13px;
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 13px;
+  backdrop-filter: blur(1px);
+  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .03), inset 0px 8px 0px -6px rgba(255, 255, 255, .031);
+  opacity: 0.4;
+  z-index: -1;
+  filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(100%);
+  pointer-events: none;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip h4 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.1rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-panel-border);
+  padding-bottom: 0.1rem;
+  gap: 0.5rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-values {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+body[data-page="ownership"] #ownership-player-modal .gamelogs-summary-chip .chip-unit {
+  color: var(--color-text-secondary);
+}
+
+body[data-page="ownership"] .ownership-modal-body {
+  overflow: auto;
+  max-height: 100%;
+  border: 1px solid rgba(128, 138, 189, 0.22);
+  border-radius: 12px;
+  background: rgba(8, 12, 24, 0.46);
+  padding: 0.45rem;
+}
+
+body[data-page="ownership"] .ownership-modal-section-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.38rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #d9deff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body[data-page="ownership"] .ownership-modal-section-subtitle {
+  font-size: 0.64rem;
+  color: #98a1cf;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+body[data-page="ownership"] .ownership-modal-league-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.34rem;
+}
+
+body[data-page="ownership"] .ownership-modal-league-item {
+  border-radius: 10px;
+  border: 1px solid rgba(128, 138, 189, 0.2);
+  background: rgba(20, 24, 47, 0.57);
+  padding: 0.4rem 0.48rem;
+}
+
+body[data-page="ownership"] .ownership-modal-league-item.is-missing {
+  border-style: dashed;
+  opacity: 0.82;
+}
+
+body[data-page="ownership"] .ownership-modal-league-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.2rem;
+}
+
+body[data-page="ownership"] .ownership-modal-league-abbr {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  min-width: 2.2rem;
+}
+
+body[data-page="ownership"] .ownership-modal-league-name {
+  color: #cad1fa;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+body[data-page="ownership"] .ownership-modal-owner-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+  color: #afbbe9;
+  font-size: 0.71rem;
+}
+
+body[data-page="ownership"] .ownership-modal-owner-label {
+  color: #97a4d7;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+body[data-page="ownership"] .ownership-modal-owner-value {
+  color: #d9deff;
+  font-weight: 700;
+}
+
+body[data-page="ownership"] .ownership-modal-owner-team {
+  border-radius: 7px;
+  border: 1px solid rgba(128, 138, 189, 0.28);
+  background: rgba(114, 125, 182, 0.16);
+  color: #d1d8ff;
+  font-size: 0.62rem;
+  padding: 0.07rem 0.33rem;
+}
+
+body[data-page="ownership"] .ownership-modal-warning {
+  margin: 0.5rem 0.1rem 0.1rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 9px;
+  border: 1px dashed rgba(255, 166, 94, 0.42);
+  color: #f8bd8e;
+  background: rgba(255, 166, 94, 0.07);
+  font-size: 0.65rem;
+}
+
+@media (max-width: 940px) {
+  body[data-page="ownership"] #secondary-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body[data-page="ownership"] #secondary-header-row .username-area,
+  body[data-page="ownership"] #ownershipModeSwitcher {
+    flex: 1 1 auto;
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    grid-template-columns: 34px minmax(130px, 1fr) 36px 44px minmax(70px, 1fr);
+    gap: 0.36rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-header {
+    font-size: 0.56rem;
+    letter-spacing: 0.04em;
+  }
+
+  body[data-page="ownership"] .ownership-player-trigger {
+    font-size: 0.76rem;
+  }
+
+  body[data-page="ownership"] .ownership-player-meta,
+  body[data-page="ownership"] .ownership-list-leagues {
+    font-size: 0.58rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-metric {
+    font-size: 0.73rem;
+  }
+
+  body[data-page="ownership"] .ownership-value-toolbar {
+    gap: 0.44rem;
+  }
+
+  body[data-page="ownership"] .ownership-value-position-filter {
+    width: 100%;
+  }
+
+  body[data-page="ownership"] .ownership-modal-content {
+    width: min(96vw, 760px);
+  }
+
+  body[data-page="ownership"] #ownership-modal-summary-chips {
+    gap: 0.28rem;
+  }
+}
+
+@media (max-width: 640px) {
+  body[data-page="ownership"] .ownership-shell {
+    padding: 0.54rem 0.45rem;
+    border-radius: 12px;
+  }
+
+  body[data-page="ownership"] .ownership-search-input {
+    min-height: 2.02rem;
+    font-size: 16px;
+    max-height: 2.32rem;
+  }
+
+  body[data-page="ownership"] .ownership-value-filter-btn {
+    min-height: 2.02rem;
+    font-size: 0.81rem;
+    letter-spacing: 0.05em;
+    border: 1px solid #fff3;
+    border-radius: 7px;
+  }
+
+  body[data-page="ownership"] .ownership-value-table .ownership-value-player-cell {
+    max-width: 112px;
+  }
+
+  body[data-page="ownership"] .ownership-value-table thead th,
+  body[data-page="ownership"] .ownership-value-table td {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-header,
+  body[data-page="ownership"] .ownership-list-row {
+    grid-template-columns: 26px minmax(134px, 1fr) 9px 56px minmax(52px, 1fr);
+    gap: 0.18rem;
+    padding-left: 0.28rem;
+    padding-right: 0.3rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-header {
+    font-size: 0.5rem;
+  }
+
+  body[data-page="ownership"] .ownership-player-trigger {
+    font-size: 0.72rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-player-wrap .team-tag {
+    margin-left: 0.25rem;
+    font-size: 0.56rem;
+    padding: 1px 5px;
+  }
+
+  body[data-page="ownership"] .ownership-player-meta {
+    font-size: 0.53rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-metric {
+    font-size: 0.64rem;
+  }
+
+  body[data-page="ownership"] .ownership-list-leagues {
+    font-size: 0.52rem;
+    line-height: 1.1;
+  }
+
+  body[data-page="ownership"] .ownership-modal-content {
+    max-height: 90vh;
+    padding: 0.62rem 0.5rem 0.5rem;
+  }
+
+  body[data-page="ownership"] #ownership-modal-left {
+    position: static;
+    justify-content: center;
+    margin-bottom: 0.2rem;
+  }
+
+  body[data-page="ownership"] #ownership-modal-player-name {
+    margin: 0 1.2rem 0.18rem;
+    font-size: 1rem;
+  }
+
+  body[data-page="ownership"] #ownership-modal-summary-chips {
+    flex-direction: column;
+  }
+
+  body[data-page="ownership"] .ownership-modal-owner-row {
+    align-items: flex-start;
+  }
+
+  body[data-page="ownership"] .ownership-modal-owner-team {
+    margin-left: 0;
+  }
+}
+
+/* Ownership: desktop header layout (min-width: 820px) */
+@media (min-width: 820px) {
+  body[data-page="ownership"] #header-container {
+    display: flex;
+    justify-content: center;
+  }
+  body[data-page="ownership"] #header-container .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.1rem;
+    width: min(100%, 880px);
+    margin: 0 auto;
+    padding: 0.9rem 1.15rem 0.8rem;
+    --header-control-height: 3.4rem;
+    border-radius: 24px;
+  }
+  body[data-page="ownership"] #primary-header-row{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+  }
+  body[data-page="ownership"] #primary-header-row .nav-buttons-container{
+    width: 100%;
+    flex: 0 0 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+    margin: 0 auto;
+  }
+  body[data-page="ownership"] .nav-button{
+    flex: 1 1 0px;
+    min-width: 0;
+    max-width: none;
+    min-height: 3.4rem;
+    padding: 0.95rem 0.4rem 0.82rem;
+    border-radius: 20px;
+    gap: 0.32rem;
+  }
+  body[data-page="ownership"] .nav-button i{
+    font-size: 1.35rem;
+  }
+  body[data-page="ownership"] .nav-label{
+    font-size: 0.72rem;
+    letter-spacing: 0.035em;
+  }
+  body[data-page="ownership"] #primary-header-row .nav-logo{
+    width: 1.4rem;
+    height: 1.34rem;
+  }
+  body[data-page="ownership"] #secondary-header-row{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding: 0.6rem 0.3rem 0rem !important;
+    border-top: 1px solid rgba(123, 110, 255, 0.32);
+    box-shadow: inset 0 1px 0 rgba(173, 156, 255, 0.12);
+    align-items: stretch;
+  }
+  body[data-page="ownership"] #secondary-header-row {
+    padding: 0.8rem 0.3rem 0rem !important;
+  }
+  body[data-page="ownership"] #secondary-header-row .username-area,
+  body[data-page="ownership"] #secondary-header-row .custom-select-wrapper{
+    max-width: none;
+    height: var(--header-control-height);
+  }
+  body[data-page="ownership"] .username-area{
+    border-radius: 18px;
+  }
+  body[data-page="ownership"] #usernameInput{
+    font-size: 1.05rem;
+    padding: 0.6rem 1rem;
+    font-weight: 400;
+  }
+  body[data-page="ownership"] #leagueSelect{
+    font-size: 1.05rem;
+    padding: 0.6rem 1.8rem 0.6rem 1rem;
+    color: #d5d9ff;
+    border-radius: 18px;
+  }
+  body[data-page="ownership"] .custom-select-wrapper::after{
+    right: 1.05rem;
+    font-size: 0.9rem;
+    transform: translateY(-50%) scale(0.95);
+  }
+}
+
+/* Hide filters/view-switcher on Ownership page (header rules) */
+body[data-page="ownership"] #filters-row,
+body[data-page="ownership"] #secondary-header-row .view-switcher {
+  display: none !important;
+}
+
+body[data-page="ownership"] #secondary-header-row {
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 /* Ownership modal reference-parity layer:
    - targets the Ownership page player-detail modal only
    - mirrors the PF-39A reference colors/gradients/layout values
