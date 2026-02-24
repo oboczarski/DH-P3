@@ -199,7 +199,7 @@ body[data-page="analyzer"] .analyzer-panel-header {
 
 body[data-page="analyzer"] .analyzer-panel-header h2 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 body[data-page="analyzer"] .analyzer-panel-header p {
@@ -228,18 +228,18 @@ body[data-page="analyzer"] .analyzer-chart--radar {
 
 body[data-page="analyzer"] .analyzer-radar-section {
   padding-top: 1.25rem;
-  gap: 1rem;
 }
 
 @media (max-width: 640px) {
   body[data-page="analyzer"] .analyzer-radar-section {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+    gap: 0rem !important;
   }
 }
 
 body[data-page="analyzer"] .analyzer-radar-section .analyzer-panel-body--stacked {
-  gap: 1rem;
+  gap: 0.1rem;
 }
 
 body[data-page="analyzer"] .analyzer-panel-body--stacked {
@@ -289,6 +289,7 @@ body[data-page="analyzer"] .analyzer-toggle .toggle-option.active {
   background: linear-gradient(135deg, rgba(118, 109, 255, 0.8), rgba(118, 109, 255, 0.45));
   color: #fff;
   box-shadow: 0 6px 16px rgba(118, 109, 255, 0.35);
+  width: 4rem !important;
 }
 
 body[data-page="analyzer"] .analyzer-toggle .toggle-option:focus-visible {
@@ -726,7 +727,8 @@ body[data-page="analyzer"] .app-header {
   }
 
   body[data-page="analyzer"] .analyzer-panel {
-    padding: 1.25rem 0.5rem;
+    padding: 0.7rem 0.5rem 0.1rem;
+    gap: 0.6rem;
   }
 
   body[data-page="analyzer"] .analyzer-chart {
@@ -752,7 +754,7 @@ body[data-page="analyzer"] .app-header {
     grid-template-areas:
       "title control ."
       "subtitle subtitle subtitle";
-    column-gap: 0.15rem;
+    column-gap: 0rem;
     row-gap: 0;
     align-items: start;
   }
@@ -771,6 +773,7 @@ body[data-page="analyzer"] .app-header {
     min-width: 0;
     align-self: center;
     justify-self: start;
+    text-wrap-mode: nowrap;
   }
 
   /* Subtitle remains directly beneath the title row, preserving existing margin/padding rhythm. */
@@ -778,6 +781,7 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
     grid-area: subtitle;
     min-width: 0;
+    margin-bottom: 0.4rem;
   }
 
   /* Place each control on the title row and pin it to the right edge of its own panel header. */
@@ -792,27 +796,31 @@ body[data-page="analyzer"] .app-header {
   /* Mobile lineup toggle: slightly larger than the ultra-compact pass, but still sized to
      fit beside the long title on common phone widths. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle {
-    gap: 0.12rem;
-    padding: 0.12rem;
+    gap: 0rem;
+    padding: 0.05rem;
+    margin-left: 6px;
   }
 
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
-    font-size: clamp(0.6rem, 1.65vw, 0.66rem);
+    font-size: 0.75rem;
     letter-spacing: 0.04em;
-    padding: 0.3rem clamp(0.38rem, 1.95vw, 0.48rem);
+    padding: 0.3rem 0rem;
+    width: 3.6rem;
   }
 
   /* Mobile leaderboard filters: increase chip footprint so the control group visually fills
      more of the title row without affecting desktop sizing. */
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
     gap: 0.18rem;
-    padding: 0.16rem 0.2rem;
+    padding: 0.1rem 0.1rem;
+    margin-left: 7px;
   }
 
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip {
-    font-size: clamp(0.58rem, 1.8vw, 0.66rem);
+    font-size: 0.7rem;
     letter-spacing: 0.06em;
-    padding: 0.24rem clamp(0.34rem, 2vw, 0.42rem);
+    padding: 0.34rem 0rem;
+    width: 2.3rem;
   }
 }
 
