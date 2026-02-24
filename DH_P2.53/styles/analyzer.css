@@ -750,9 +750,9 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "title control ."
+      "title . control"
       "subtitle subtitle subtitle";
     column-gap: 0rem;
     row-gap: 0;
@@ -788,7 +788,7 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
     grid-area: control;
-    justify-self: start;
+    justify-self: end;
     align-self: center;
     flex-shrink: 0;
   }
@@ -938,6 +938,22 @@ body[data-page="analyzer"] .app-header {
     right: 1.05rem;
     font-size: 0.9rem;
     transform: translateY(-50%) scale(0.95);
+  }
+
+  /* Analyzer desktop panel controls: lightly normalize control widths so the lineup toggle
+     buttons (including the active state) and leaderboard filter chips look more balanced. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active {
+    min-width: 4.1rem;
+    padding-left: 0.82rem;
+    padding-right: 0.82rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip.active {
+    min-width: 2.6rem;
+    padding-left: 0.62rem;
+    padding-right: 0.62rem;
   }
 }
 
