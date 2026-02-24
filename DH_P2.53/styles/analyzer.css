@@ -742,6 +742,75 @@ body[data-page="analyzer"] .app-header {
     font-size: 0.64rem;
     padding: 0.28rem 0.5rem;
   }
+
+  /* Analyzer mobile panel headers: keep the title/subtitle stack intact while placing the
+     metric toggle and leaderboard position filters inline with the panel titles only. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title control"
+      "subtitle subtitle";
+    column-gap: 0.25rem;
+    row-gap: 0;
+    align-items: start;
+  }
+
+  /* Target the title/subtitle wrapper inside those headers so h2 and p can be placed on
+     separate grid rows without changing HTML structure or panel spacing. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header> :first-child,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header> :first-child {
+    display: contents;
+  }
+
+  /* Title row placement for the two mobile analyzer headers. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header h2,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header h2 {
+    grid-area: title;
+    min-width: 0;
+    align-self: center;
+  }
+
+  /* Subtitle remains directly beneath the title row, preserving existing margin/padding rhythm. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header p,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
+    grid-area: subtitle;
+    min-width: 0;
+  }
+
+  /* Place each control on the title row and pin it to the right edge of its own panel header. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
+    grid-area: control;
+    justify-self: end;
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  /* Compact the mobile lineup metric toggle so it fits beside the long title on small screens. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle {
+    gap: 0.1rem;
+    padding: 0.1rem;
+  }
+
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    padding: 0.28rem 0.38rem;
+  }
+
+  /* Compact only the leaderboard header filter group to keep it inline with the title on mobile. */
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
+    gap: 0.16rem;
+    padding: 0.14rem 0.18rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip {
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    padding: 0.22rem 0.34rem;
+  }
 }
 
 
