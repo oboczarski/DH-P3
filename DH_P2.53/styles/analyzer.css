@@ -804,7 +804,7 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
     font-size: 0.75rem;
     letter-spacing: 0.04em;
-    padding: 0.3rem 0rem;
+    padding: 0.4rem 0rem;
     width: 3.6rem;
   }
 
