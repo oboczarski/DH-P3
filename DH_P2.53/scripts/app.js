@@ -3237,13 +3237,13 @@ const playerRadarLabelPlugin = {
             // Base offset with custom spacing adjustments
             let offsetDistance = options.offset || 18;
 
-            // Top 2 data points (1st, 2nd clockwise) - bring labels closer
+            // Top 2 data points (1st, 2nd clockwise) - bring labels slightly closer
             if (index === 0 || index === 1) {
-                offsetDistance -= 3; // Reduce by 3 pixels for top points
+                offsetDistance -= 1.5;
             }
             // Index 7 (top-left, e.g. TS% for RB) - slight extra push outward from data point
             else if (index === 7) {
-                offsetDistance += 2;
+                offsetDistance += 3.5;
             }
             // Index 5 - left-side
             else if (index === 5) {
