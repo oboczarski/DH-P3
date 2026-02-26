@@ -3333,9 +3333,18 @@ const playerRadarAxisLabelsPlugin = {
                 textBaseline = sin < 0 ? 'bottom' : 'top';
             }
 
+            // Always center text horizontally so the stat name and value below it
+            // are visually centered relative to each other regardless of text width.
+            // Previously using left/right align caused short labels (e.g. "PPG", "YPC")
+            // to look misaligned against wider value strings (e.g. "• 18.5 •").
+            const textAlign = 'center';
+
             // Index 0 is FPTS at the top (12-o'clock) — apply extra offset so the
-            // stat name + value have more gap between them and the radar's outer ring
-            const effectiveOffset = index === 0 ? labelOffset + topLabelExtraOffset : labelOffset;
+            // stat name + value have more gap between them and the radar's outer ring.
+            // Index 1 is PPG (top-right diagonal) — small extra offset, was too close.
+            let effectiveOffset = labelOffset;
+            if (index === 0) effectiveOffset = labelOffset + topLabelExtraOffset;
+            else if (index === 1) effectiveOffset = labelOffset + 3;
             const radius = scale.drawingArea + effectiveOffset;
             const x = scale.xCenter + cos * radius;
             const y = scale.yCenter + sin * radius;
