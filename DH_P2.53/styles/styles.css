@@ -8573,7 +8573,7 @@ img.team-logo {
    - --glow-r3   : radius controlling how far the glow extends
    ====================================================================== */
 img.team-logo.glow {
-  width: 24px;
+  width: 22px;
   height: 22px;
   object-fit: fill;
   vertical-align: middle;
