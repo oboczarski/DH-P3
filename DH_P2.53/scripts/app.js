@@ -3303,6 +3303,9 @@ const playerRadarAxisLabelsPlugin = {
         const valueFont = `${valueFontSize}px "Product Sans", "Google Sans", sans-serif`;
         const labelColor = options?.labelColor || '#EAEBF0';
         const labelOffset = options?.labelOffset ?? (isMobile ? 14 : 18);
+        // Extra distance added only for index 0 (FPTS at top/12-o'clock) so it sits
+        // further from the radar ring without affecting left/right label positions
+        const topLabelExtraOffset = options?.topLabelExtraOffset ?? (isMobile ? 10 : 12);
         const valueSpacing = options?.valueSpacing ?? (isMobile ? 3 : 4);
 
         const { ctx } = chart;
@@ -3326,7 +3329,10 @@ const playerRadarAxisLabelsPlugin = {
                 textBaseline = sin < 0 ? 'bottom' : 'top';
             }
 
-            const radius = scale.drawingArea + labelOffset;
+            // Index 0 is FPTS at the top (12-o'clock) — apply extra offset so the
+            // stat name + value have more gap between them and the radar's outer ring
+            const effectiveOffset = index === 0 ? labelOffset + topLabelExtraOffset : labelOffset;
+            const radius = scale.drawingArea + effectiveOffset;
             const x = scale.xCenter + cos * radius;
             const y = scale.yCenter + sin * radius;
 
@@ -3509,12 +3515,18 @@ function renderPlayerRadarChart(playerId, position) {
     // Match analyzer mobile detection
     const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
     const radarLayoutPadding = {
-        top: isMobileRadar ? 30 : 33,
-        bottom: isMobileRadar ? 38 : 52,
-        left: isMobileRadar ? 45 : 14,
-        right: isMobileRadar ? 45 : 14,
+        top: isMobileRadar ? 34 : 38,
+        bottom: isMobileRadar ? 44 : 58,
+        // Left/right unchanged so the radar does not shrink horizontally on mobile;
+        // the reduced labelOffset below (labels closer to radar) compensates for bigger text
+        left: isMobileRadar ? 45 : 18,
+        right: isMobileRadar ? 45 : 18,
     };
-    const radarLabelOffset = isMobileRadar ? 14 : 18;
+    // Axis label offset — how far stat name + value text sits from the radar edge (kept close)
+    const radarLabelOffset = isMobileRadar ? 10 : 14;
+    // Rank number offset — just a small nudge beyond the axis label offset so ordinals
+    // have a touch more air from the data point dots without moving too far
+    const radarRankLabelOffset = isMobileRadar ? 13 : 16;
 
     // Fixed scale max at 100 for all positions
     const scaleMax = 100;
@@ -3578,15 +3590,24 @@ function renderPlayerRadarChart(playerId, position) {
                     ]
                 },
                 playerRadarLabels: {
-                    font: '12px "Product Sans", "Google Sans", sans-serif',
-                    offset: radarLabelOffset
+                    // Rank numbers drawn on data points — increased from 12px → 14px
+                    font: '14px "Product Sans", "Google Sans", sans-serif',
+                    // Uses radarRankLabelOffset (larger than axis label offset) to keep
+                    // rank ordinals clearly separated from the data point dots
+                    offset: radarRankLabelOffset
                 },
                 playerRadarAxisLabels: {
-                    labelFontSize: 12,
-                    labelFontSizeMobile: 11,
-                    valueFontSize: 10,
-                    valueFontSizeMobile: 9,
-                    labelOffset: isMobileRadar ? 14 : 18,
+                    // Stat name labels: increased from 12/11px → 14/13px (desktop/mobile)
+                    labelFontSize: 14,
+                    labelFontSizeMobile: 13,
+                    // Stat value text: increased from 10/9px → 12/11px (desktop/mobile)
+                    valueFontSize: 12,
+                    valueFontSizeMobile: 11,
+                    // labelOffset: base distance from radar edge to stat name/value for all labels
+                    labelOffset: isMobileRadar ? 10 : 14,
+                    // topLabelExtraOffset: additional distance added only for index 0 (FPTS at top)
+                    // so it sits further from the radar ring without affecting left/right labels
+                    topLabelExtraOffset: isMobileRadar ? 10 : 12,
                     valueSpacing: isMobileRadar ? 3 : 4,
                     labelColor: '#EAEBF0'
                 }
@@ -4202,9 +4223,11 @@ const RADAR_STATS_CONFIG = {
         maxRank: 36
     },
     RB: {
-        // Performance radar (Game Logs modal): use TS% for RB receiving share instead of raw target volume.
-        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'ypc', 'ts_per_rr', 'mtf_per_att', 'yco_per_att'],
-        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'YPC', 'TS%', 'MTF/A', 'YCO/A'],
+        // Performance radar (Game Logs modal).
+        // Order (clockwise from top): FPTS, PPG, YDS(t), SNP%, MTF/A, YCO/A, YPC, TS%
+        // MTF/A and YCO/A swapped to positions 4-5; YPC and TS% moved to 6-7
+        stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'mtf_per_att', 'yco_per_att', 'ypc', 'ts_per_rr'],
+        labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'MTF/A', 'YCO/A', 'YPC', 'TS%'],
         maxRank: 48
     },
     WR: {
