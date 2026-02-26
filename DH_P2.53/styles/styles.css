@@ -5852,7 +5852,7 @@ body::before {
   padding: 3px 0px;
   border: 1px solid #fff2;
   border-radius: 6px;
-  background: #6673;
+  background: #9b9bbb4d;
   margin-left: 10px;
   justify-content: center;
   box-shadow: inset 13px 4px 6px -4px #445;
@@ -8573,7 +8573,7 @@ img.team-logo {
    - --glow-r3   : radius controlling how far the glow extends
    ====================================================================== */
 img.team-logo.glow {
-  width: 22px;
+  width: 24px;
   height: 22px;
   object-fit: fill;
   vertical-align: middle;
