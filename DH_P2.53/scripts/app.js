@@ -3322,10 +3322,6 @@ const playerRadarAxisLabelsPlugin = {
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
 
-            let textAlign = 'center';
-            if (Math.abs(cos) > 1e-4) {
-                textAlign = cos < 0 ? 'right' : 'left';
-            }
             let textBaseline;
             if (Math.abs(sin) <= 1e-4) {
                 textBaseline = 'middle';
