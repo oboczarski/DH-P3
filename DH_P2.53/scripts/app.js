@@ -3553,7 +3553,8 @@ function renderPlayerRadarChart(playerId, position) {
 
     // Fixed scale max at 100 for all positions
     const scaleMax = 100;
-
+    
+//✦ Main Radar Chart Formatting Section ↓↓↓
     const chartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -3600,6 +3601,7 @@ function renderPlayerRadarChart(playerId, position) {
                     }
                 }
             },
+            // Radar Chart Hexagon Colors
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false },
