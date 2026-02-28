@@ -3310,6 +3310,17 @@ const playerRadarAxisLabelsPlugin = {
         // Extra distance added only for index 0 (FPTS at top/12-o'clock) so it sits
         // further from the radar ring without affecting left/right label positions
         const topLabelExtraOffset = options?.topLabelExtraOffset ?? (isMobile ? 10 : 12);
+        // Game Logs modal radar (performance tab): fine-tune outward spacing per axis index
+        // so stat label/value groups clear both the radar edge and nearby rank ordinals.
+        // Note: this only changes radial distance; centering of value under label is preserved.
+        const axisLabelExtraOffsetsByIndex = options?.axisLabelExtraOffsetsByIndex ?? {
+            1: 11, // second-most outward (upper-right diagonal)
+            2: 12, // most outward (right side)
+            3: 2, // slight outward (lower-right diagonal)
+            5: 5, // slight outward (lower-left diagonal)
+            6: 15, // most outward (left side)
+            7: 14  // second-most outward (upper-left diagonal)
+        };
         const valueSpacing = options?.valueSpacing ?? (isMobile ? 3 : 4);
 
         const { ctx } = chart;
@@ -3337,10 +3348,13 @@ const playerRadarAxisLabelsPlugin = {
 
             // Index 0 is FPTS at the top (12-o'clock) — apply extra offset so the
             // stat name + value have more gap between them and the radar's outer ring.
-            // Index 1 is PPG (top-right diagonal) — small extra offset, was too close.
+            // Additional per-index offsets are applied below for crowded angles.
             let effectiveOffset = labelOffset;
             if (index === 0) effectiveOffset = labelOffset + topLabelExtraOffset;
-            else if (index === 1) effectiveOffset = labelOffset + 3;
+            const axisExtraOffset = Number(axisLabelExtraOffsetsByIndex[index]);
+            if (Number.isFinite(axisExtraOffset)) {
+                effectiveOffset += axisExtraOffset;
+            }
             const radius = scale.drawingArea + effectiveOffset;
             const x = scale.xCenter + cos * radius;
             const y = scale.yCenter + sin * radius;
@@ -3617,6 +3631,16 @@ function renderPlayerRadarChart(playerId, position) {
                     // topLabelExtraOffset: additional distance added only for index 0 (FPTS at top)
                     // so it sits further from the radar ring without affecting left/right labels
                     topLabelExtraOffset: isMobileRadar ? 10 : 12,
+                    // Performance radar in Game Logs modal: push crowded label/value pairs
+                    // outward by axis index while keeping label/value center alignment intact.
+                    axisLabelExtraOffsetsByIndex: {
+                        1: 11, // 2nd most outward
+                        2: 12, // most outward
+                        3: 2, // slight outward
+                        5: 5, // slight outward
+                        6: 15, // most outward
+                        7: 14  // 2nd most outward
+                    },
                     valueSpacing: isMobileRadar ? 3 : 4,
                     labelColor: '#EAEBF0'
                 }
