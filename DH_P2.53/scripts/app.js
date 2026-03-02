@@ -3068,11 +3068,11 @@ function getPlayerRadarData(playerId, position) {
         ranks: [],
         rawRanks: [],
         statValues: [],
-        statKeys: config.stats, // Include stat keys for formatting
+        statKeys: config.stats, // Keep stat keys so radar values can be formatted later
         maxRank: config.maxRank
     };
 
-    // Use footer stats that were already calculated
+    // Start with season footer numbers already calculated for this modal.
     const footerStats = state.currentGameLogsFooterStats || {};
     const seasonTotals = state.playerSeasonStats?.[playerId] || null;
     const playerRanks = state.currentGameLogsPlayerRanks || null;
@@ -3084,11 +3084,11 @@ function getPlayerRadarData(playerId, position) {
 
         let statValue;
 
-        // PPG must ALWAYS use playerRanks.ppg (same source as summary chips)
+        // Always use playerRanks.ppg for PPG so it matches the summary chips.
         if (statKey === 'ppg') {
             statValue = playerRanks?.ppg;
         } else {
-            // For all other stats, try footerStats first
+            // For all other stats, try the footer value first.
             statValue = footerStats[statKey];
 
             if (statValue === undefined) {
@@ -3143,21 +3143,21 @@ function getPlayerRadarData(playerId, position) {
         }
         radarData.statValues.push(statValue);
 
-        // Scale ranks from 10% to 85% of radar
+        // Convert rank to radar distance on a 10..85 scale.
         // rank 1 -> 85, rank 7 -> ~73, rank maxRank -> 10
         if (rankValue === null || rankValue === undefined || Number.isNaN(rankValue)) {
-            radarData.ranks.push(10); // No data shows at 10%
+            radarData.ranks.push(10); // No rank data stays near the center.
         } else if (rankValue <= 1) {
-            radarData.ranks.push(85); // Rank 1 at 85% of max
+            radarData.ranks.push(85); // Best rank sits near the outer ring.
         } else if (rankValue >= config.maxRank) {
-            radarData.ranks.push(10); // Worst rank at 10%
+            radarData.ranks.push(10); // Worst rank stays close to center.
         } else if (rankValue <= 7) {
-            // Compress ranks 1-7 into the 73-85 range
+            // Keep top-7 ranks tightly grouped near the outer edge.
             // rank 1 = 85, rank 7 = 73
             const scaledValue = 85 - ((rankValue - 1) / 6) * 12;
             radarData.ranks.push(scaledValue);
         } else {
-            // Scale ranks 7-maxRank linearly from 73 to 10
+            // Spread remaining ranks from 73 down to 10.
             const scaledValue = 73 - ((rankValue - 7) / (config.maxRank - 7)) * 63;
             radarData.ranks.push(scaledValue);
         }
@@ -3166,7 +3166,7 @@ function getPlayerRadarData(playerId, position) {
     return radarData;
 }
 
-// Chart.js plugins for player radar chart
+// Custom Chart.js plugins used by the Game Logs performance radar chart.
 const playerRadarBackgroundPlugin = {
     id: 'playerRadarBackground',
     beforeDraw(chart, args, options) {
@@ -3219,7 +3219,7 @@ const playerRadarLabelPlugin = {
         const angleStep = (Math.PI * 2) / chart.data.labels.length;
         const startAngle = -Math.PI / 2;
 
-        // Helper function for ordinal suffix
+        // Returns "st/nd/rd/th" for a rank number.
         const getOrdinalSuffix = (n) => {
             const s = ['th', 'st', 'nd', 'rd'];
             const v = n % 100;
@@ -3234,22 +3234,22 @@ const playerRadarLabelPlugin = {
             const angle = startAngle + angleStep * index;
             const dataPoint = scale.getPointPositionForValue(index, value);
 
-            // Base offset with custom spacing adjustments
+            // Base text distance from each plotted point.
             let offsetDistance = options.offset || 18;
 
-            // Top 2 data points (1st, 2nd clockwise) - bring labels slightly closer
+            // Top and top-right points: pull rank text in a bit.
             if (index === 0 || index === 1) {
                 offsetDistance -= 1.5;
             }
-            // Index 7 (top-left, e.g. TS% for RB) - slight extra push outward from data point
+            // Top-left point: push rank text out slightly.
             else if (index === 7) {
                 offsetDistance += 3.5;
             }
-            // Index 5 - left-side
+            // Left-lower point: push rank text out slightly.
             else if (index === 5) {
                 offsetDistance += 4;
             }
-            // Index 6 (leftmost, e.g. YPC for RB) - slight extra push outward from data point
+            // Leftmost point: push rank text out more to avoid overlap.
             else if (index === 6) {
                 offsetDistance += 7;
             }
@@ -3264,21 +3264,21 @@ const playerRadarLabelPlugin = {
                 const suffix = getOrdinalSuffix(rankNum);
                 label = rankNum.toString();
 
-                // Color based on rank values
+                // Color rank text by rank quality.
                 const rankColor = getConditionalColorByRank(rawRank, dataset.position);
                 ctx.fillStyle = rankColor;
 
-                // Draw the rank number
+                // Draw rank number.
                 ctx.fillText(label, dataPoint.x + offsetX, dataPoint.y + offsetY);
 
-                // Draw the suffix smaller, same baseline, positioned after the number
+                // Draw ordinal suffix smaller, on the same baseline.
                 const metrics = ctx.measureText(label);
                 const suffixFontSize = parseInt(ctx.font) * 0.7; // 70% of original size
                 ctx.font = `${suffixFontSize}px "Product Sans"`;
-                // Position suffix to the right: center + half width of number + small gap
+                // Place suffix to the right of the number.
                 ctx.fillText(suffix, dataPoint.x + offsetX + (metrics.width / 2) + 4, dataPoint.y + offsetY);
 
-                // Reset font for next iteration
+                // Restore font for the next label.
                 ctx.font = options.font || '11px "Product Sans"';
             } else {
                 label = 'NA';
@@ -3307,12 +3307,10 @@ const playerRadarAxisLabelsPlugin = {
         const valueFont = `${valueFontSize}px "Product Sans", "Google Sans", sans-serif`;
         const labelColor = options?.labelColor || '#EAEBF0';
         const labelOffset = options?.labelOffset ?? (isMobile ? 14 : 18);
-        // Extra distance added only for index 0 (FPTS at top/12-o'clock) so it sits
-        // further from the radar ring without affecting left/right label positions
+        // Extra distance only for index 0 (FPTS at top).
         const topLabelExtraOffset = options?.topLabelExtraOffset ?? (isMobile ? 10 : 12);
-        // Game Logs modal radar (performance tab): fine-tune outward spacing per axis index
-        // so stat label/value groups clear both the radar edge and nearby rank ordinals.
-        // Note: this only changes radial distance; centering of value under label is preserved.
+        // Per-axis spacing tweaks for crowded spots in the Game Logs performance radar.
+        // This changes distance only; label/value center alignment is kept.
         const axisLabelExtraOffsetsByIndex = options?.axisLabelExtraOffsetsByIndex ?? {
             1: 11, // second-most outward (upper-right diagonal)
             2: 12, // most outward (right side)
@@ -3340,15 +3338,11 @@ const playerRadarAxisLabelsPlugin = {
                 textBaseline = sin < 0 ? 'bottom' : 'top';
             }
 
-            // Always center text horizontally so the stat name and value below it
-            // are visually centered relative to each other regardless of text width.
-            // Previously using left/right align caused short labels (e.g. "PPG", "YPC")
-            // to look misaligned against wider value strings (e.g. "• 18.5 •").
+            // Keep stat name and value centered with each other.
             const textAlign = 'center';
 
-            // Index 0 is FPTS at the top (12-o'clock) — apply extra offset so the
-            // stat name + value have more gap between them and the radar's outer ring.
-            // Additional per-index offsets are applied below for crowded angles.
+            // Index 0 (FPTS at top) gets extra space from the outer ring.
+            // Per-axis spacing tweaks are added below.
             let effectiveOffset = labelOffset;
             if (index === 0) effectiveOffset = labelOffset + topLabelExtraOffset;
             const axisExtraOffset = Number(axisLabelExtraOffsetsByIndex[index]);
@@ -3535,31 +3529,32 @@ function renderPlayerRadarChart(playerId, position) {
 
     const ctx = canvas.getContext('2d');
 
-    // Match analyzer mobile detection
+    // Use the same mobile breakpoint as the Analyzer radar chart.
     const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
     const radarLayoutPadding = {
         top: isMobileRadar ? 34 : 38,
         bottom: isMobileRadar ? 44 : 58,
-        // Left/right unchanged so the radar does not shrink horizontally on mobile;
-        // the reduced labelOffset below (labels closer to radar) compensates for bigger text
+        // Keep left/right padding as-is so the radar stays wide on mobile.
+        // Label offset below is reduced to make room for larger text.
         left: isMobileRadar ? 45 : 18,
         right: isMobileRadar ? 45 : 18,
     };
-    // Axis label offset — how far stat name + value text sits from the radar edge (kept close)
+    // Base distance from radar edge to the stat label/value text.
     const radarLabelOffset = isMobileRadar ? 10 : 14;
-    // Rank number offset — just a small nudge beyond the axis label offset so ordinals
-    // have a touch more air from the data point dots without moving too far
+    // Rank number distance from each point (slightly farther than axis labels).
     const radarRankLabelOffset = isMobileRadar ? 13 : 16;
 
-    // Fixed scale max at 100 for all positions
+    // Keep the same 0..100 radar scale for every position.
     const scaleMax = 100;
     
-//✦ Main Radar Chart Formatting Section ↓↓↓
+    // Game Logs modal -> Performance tab -> main radar chart setup.
     const chartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
             labels: radarData.labels,
             datasets: [{
+                // Radar chart data point formatting, border formatting, and fallback fill color.
+                // Note: fallback fill is replaced by the radial gradient after first render.
                 label: 'Player Rank',
                 data: radarData.ranks,
                 rawRanks: radarData.rawRanks,
@@ -3601,7 +3596,7 @@ function renderPlayerRadarChart(playerId, position) {
                     }
                 }
             },
-            // Radar Chart Hexagon Colors
+            // Background ring colors for the custom radar grid.
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false },
@@ -3615,26 +3610,23 @@ function renderPlayerRadarChart(playerId, position) {
                     ]
                 },
                 playerRadarLabels: {
-                    // Rank numbers drawn on data points — increased from 12px → 14px
+                    // Rank text drawn near each data point.
                     font: '14px "Product Sans", "Google Sans", sans-serif',
-                    // Uses radarRankLabelOffset (larger than axis label offset) to keep
-                    // rank ordinals clearly separated from the data point dots
+                    // Uses a slightly larger offset so rank text clears the point dots.
                     offset: radarRankLabelOffset
                 },
                 playerRadarAxisLabels: {
-                    // Stat name labels: increased from 12/11px → 14/13px (desktop/mobile)
+                    // Stat name font size (desktop/mobile).
                     labelFontSize: 14,
                     labelFontSizeMobile: 13,
-                    // Stat value text: increased from 10/9px → 12/11px (desktop/mobile)
+                    // Stat value font size (desktop/mobile).
                     valueFontSize: 12,
                     valueFontSizeMobile: 11,
-                    // labelOffset: base distance from radar edge to stat name/value for all labels
+                    // Base distance for all stat label/value pairs from the radar edge.
                     labelOffset: isMobileRadar ? 10 : 14,
-                    // topLabelExtraOffset: additional distance added only for index 0 (FPTS at top)
-                    // so it sits further from the radar ring without affecting left/right labels
+                    // Extra top spacing for index 0 (FPTS at 12 o'clock).
                     topLabelExtraOffset: isMobileRadar ? 10 : 12,
-                    // Performance radar in Game Logs modal: push crowded label/value pairs
-                    // outward by axis index while keeping label/value center alignment intact.
+                    // Per-axis spacing tweaks for crowded label/value spots.
                     axisLabelExtraOffsetsByIndex: {
                         1: 11, // 2nd most outward
                         2: 12, // most outward
@@ -3651,7 +3643,7 @@ function renderPlayerRadarChart(playerId, position) {
         plugins: [playerRadarBackgroundPlugin, playerRadarLabelPlugin, playerRadarAxisLabelsPlugin]
     });
 
-    // Update gradient after chart is rendered using actual scale center
+    // After first draw, build a radial fill using the chart's true center/radius.
     const scale = chartInstance.scales?.r;
     if (scale) {
         const centerX = scale.xCenter;
@@ -3659,16 +3651,16 @@ function renderPlayerRadarChart(playerId, position) {
         const radius = scale.drawingArea;
 
         const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-        gradient.addColorStop(0, 'rgba(121, 0, 245, 0.13)');   // #5300ff at 18% opacity (center)
-        gradient.addColorStop(0.4, 'rgba(92, 0, 255, 0.20)'); // #5700ff at 33% opacity (mid)
-        gradient.addColorStop(0.78, 'rgba(75, 0, 255, 0.34)');   // #6300ff at 55% opacity (outer edge)
+        gradient.addColorStop(0, 'rgba(121, 0, 245, 0.13)'); // inner color stop
+        gradient.addColorStop(0.4, 'rgba(92, 0, 255, 0.20)'); // mid color stop
+        gradient.addColorStop(0.78, 'rgba(75, 0, 255, 0.34)'); // outer color stop
         gradient.addColorStop(1, 'rgba(34, 0, 255, 0.91)');
 
         chartInstance.data.datasets[0].backgroundColor = gradient;
-        chartInstance.update('none'); // Update without animation
+        chartInstance.update('none'); // Refresh once without animation.
     }
 
-    // Store chart instance for cleanup
+    // Save chart instance so closeModal() can destroy it.
     container._chartInstance = Chart.getChart('player-radar-canvas');
 }
 
@@ -4247,20 +4239,18 @@ function ensureTableCoreLoaded() {
     return tableCoreLoaderPromise;
 }
 
-// Configuration for radar chart stats per position
-// Stats use internal stat keys (values from PLAYER_STAT_HEADER_MAP)
-// Labels use exact spreadsheet column headers (keys from PLAYER_STAT_HEADER_MAP)
+// Radar stat setup by position for the Game Logs performance chart.
+// `stats`: internal stat keys used in calculations.
+// `labels`: short text shown around the radar chart.
 const RADAR_STATS_CONFIG = {
     QB: {
-        // QB-only: swap out IMP/G and YDS(t) for new advanced passing metrics
+        // QB radar uses passing-focused advanced metrics.
         stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'cpoe', 'epa_per_db'],
         labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'CPOE', 'EPA/DB'],
         maxRank: 36
     },
     RB: {
-        // Performance radar (Game Logs modal).
-        // Order (clockwise from top): FPTS, PPG, YDS(t), SNP%, MTF/A, YCO/A, YPC, TS%
-        // MTF/A and YCO/A swapped to positions 4-5; YPC and TS% moved to 6-7
+        // Radar label order from top, moving clockwise.
         stats: ['fpts', 'ppg', 'yds_total', 'snp_pct', 'mtf_per_att', 'yco_per_att', 'ypc', 'ts_per_rr'],
         labels: ['FPTS', 'PPG', 'YDS(t)', 'SNP%', 'MTF/A', 'YCO/A', 'YPC', 'TS%'],
         maxRank: 48
@@ -4920,7 +4910,7 @@ function renderGameLogsSeasonStatsView({
 async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
     if (isStaleRequest()) return;
-    // Store current player for modal panel interactions (e.g., radar chart)
+    // Keep current player data so overlay panels (including radar) can re-render.
     state.currentGameLogsPlayer = player;
     state.currentGameLogsPlayerRanks = playerRanks;
     state.currentGameLogsSummary = {
@@ -5665,7 +5655,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         totalTh.style.maxWidth = `${weekColumnSize}px`;
         footerRow.appendChild(totalTh);
 
-        // Store calculated footer stats for radar chart
+        // Build numeric season totals used by the radar chart.
         const footerStatsForRadar = {};
         for (let i = 1; i < tableColumns.length; i++) {
             const column = tableColumns[i];
@@ -5717,8 +5707,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             td.classList.add('has-rank-annotation');
             rankAnnotation.style.color = getConditionalColorByRank(rankValue, player.pos);
 
-            // Store the calculated numeric value for radar chart
-            // Remove formatting to get raw number
+            // Save a raw numeric value for the radar chart (strip display formatting).
             const numericValue = parseFloat(displayValue.replace(/[,%]/g, ''));
             if (!Number.isNaN(numericValue)) {
                 footerStatsForRadar[key] = numericValue;
@@ -5727,7 +5716,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             footerRow.appendChild(td);
         }
 
-        // Calculate and store PPG for radar chart (not in sheets, calculated from FPTS)
+        // PPG is computed here from FPTS and games played.
         if (footerStatsForRadar.fpts !== undefined) {
             const gamesPlayed = gameLogsWithData.length;
             footerStatsForRadar.__gamesPlayed = gamesPlayed;
@@ -5738,7 +5727,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             footerStatsForRadar.__gamesPlayed = gameLogsWithData.length;
         }
 
-        // Store calculated footer stats in state for radar chart
+        // Save these values so renderPlayerRadarChart() can read them.
         state.currentGameLogsFooterStats = footerStatsForRadar;
 
         tableFooterTfoot.appendChild(footerRow);
@@ -8604,7 +8593,7 @@ function formatPercentage(value, decimals = 1) {
     return numericValue.toFixed(decimals) + '%';
 }
 function formatRadarStatValue(statKey, value) {
-    // Reuse preformatted strings (matches summary chip display for league-specific stats)
+    // Keep preformatted strings as-is so radar text matches summary chips.
     if (typeof value === 'string') {
         const trimmed = value.trim();
         if (trimmed) {
@@ -8633,7 +8622,7 @@ function formatRadarStatValue(statKey, value) {
         return numericValue > 0 ? `+${formatted}` : formatted;
     }
 
-    // 1DRR (first_down_rec_rate) - 2 decimals, not a percentage display in radar
+    // 1DRR uses 2 decimals and is shown as a plain number (not %).
     if (statKey === 'first_down_rec_rate') {
         return numericValue.toFixed(2);
     }
@@ -9315,7 +9304,7 @@ function closeModal() {
     const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
     modalInfoBtns.forEach(btn => btn.classList.remove('active'));
 
-    // Destroy radar chart if exists to prevent memory leaks
+    // Destroy radar chart instance on modal close to avoid memory leaks.
     const radarContainer = document.querySelector('#radar-chart-container .radar-chart-content');
     if (radarContainer && radarContainer._chartInstance) {
         radarContainer._chartInstance.destroy();
