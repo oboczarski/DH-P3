@@ -28,8 +28,8 @@ body[data-page="rosters"] .roster-inline-search {
 
 /* === Roster header branding: logo + name (visual styling, visible on desktop only) === */
 body[data-page="rosters"] .roster-brand-logo {
-  width: 44px;
-  height: 44px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
   flex-shrink: 0;
   -webkit-mask-image: radial-gradient(circle at 52% 51%, rgba(0,0,0,0.88) 40%, rgba(0,0,0,0) 99%);
@@ -41,9 +41,9 @@ body[data-page="rosters"] .roster-brand-logo {
 
 body[data-page="rosters"] .roster-brand-name {
   font-size: 1.55rem;
-  font-weight: 200;
-  color: var(--color-text-primary, #e2e8f0);
-  text-shadow: 0 0 7px #5300ff88;
+  font-weight: 300;
+  color: #bbbfd1;
+  text-shadow: 1px 1px 0px #5300ff;
   white-space: nowrap;
   letter-spacing: 0.01em;
   font-family: 'Product Sans', system-ui, sans-serif;
@@ -127,10 +127,10 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     grid-template-columns: auto var(--roster-desktop-field-width) repeat(5, auto);
     grid-template-rows: auto auto;
     column-gap: var(--roster-desktop-gap);
-    row-gap: 0.85rem;
+    row-gap: 0.4rem;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 0.55rem 1rem 1.1rem;
+    padding: 0.5rem 0.45rem 0.75rem 1.1rem;
     margin: 0 auto;
     width: fit-content;
     max-width: var(--roster-desktop-max);
@@ -155,9 +155,10 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     grid-row: 1;
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.2rem;
     min-width: 0;
-    margin-right: 3px;
+    margin-right: 14px;
+    margin-left: -8px;
   }
 
   /* Desktop: league dropdown in Row 1, column 2 (swapped from username) */
