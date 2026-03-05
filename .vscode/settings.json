@@ -193,5 +193,8 @@
   "workbench.browser.enableChatTools": true,
   "workbench.commandPalette.experimental.suggestCommands": true,
   "workbench.activityBar.compact": false,
-  "terminal.integrated.enableImages": true
+  "terminal.integrated.enableImages": true,
+  "workbench.editor.tabSizingFixedMaxWidth": 160,
+  "workbench.editor.tabSizing": "shrink",
+  "workbench.editor.pinnedTabSizing": "normal"
 }
