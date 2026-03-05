@@ -915,7 +915,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .start-sit-button .analyzer-label {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   font-weight: 500;
   line-height: 1;
   margin-top: 0.05rem;
@@ -1072,8 +1072,10 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 
   .compact-switcher button {
-    padding: 0.3rem 0.4rem 0.2rem !important;
+    padding: 0.2rem 0.4rem 0.1rem !important;
     min-width: 38px;
+    width: 60px;
+    gap: 0.1rem;
   }
 
   .compact-switcher button i {
@@ -1081,7 +1083,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 
   .switcher-label {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
   }
 
   .start-sit-button {
@@ -1089,7 +1091,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
     width: 75px;
     margin-left: 2px;
     flex: 0 0 60px !important;
-    min-width: 62px !important;
+    min-width: 70px !important;
     height: 37px;
   }
 
@@ -4972,8 +4974,9 @@ main#content {
 #clearFiltersButton i {
   display: block;
   margin-top: 4px;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1;
+  margin-left: -6px;
 }
 
 .compare-controls .compare-search-toggle i {
