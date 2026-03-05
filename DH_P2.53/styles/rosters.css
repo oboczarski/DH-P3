@@ -337,9 +337,9 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   body[data-page="rosters"] .nav-buttons-container .nav-button {
     width: 105px;
     max-width: 105px;           /* override 6rem (~96px) cap from @700 */
-    min-height: 46px;
-    max-height: none;           /* override 2.5rem cap from @768 */
-    padding: 0.55rem 0.8rem;
+    min-height: 53px;
+    max-height: 53px;           /* override 2.5rem cap from @768 */
+    padding: 0.55rem 0.8rem 0.35rem;
   }
   body[data-page="rosters"] .nav-buttons-container .nav-button i {
     font-size: 1.45rem;
@@ -411,7 +411,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     padding: 0.15rem;
   }
   body[data-page="rosters"] .compact-switcher button {
-    padding: 0.35rem 0.6rem !important;
+    padding: 0.25rem 0.6rem !important;
     width: 78px;
   }
   body[data-page="rosters"] .compact-switcher button i {
