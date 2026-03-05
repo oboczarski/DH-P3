@@ -1052,7 +1052,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 @media (min-width: 700px) {
   .nav-buttons-container {
-    gap: 1rem;
+    gap: 1.2rem;
   }
 
   .nav-button {

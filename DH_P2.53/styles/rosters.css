@@ -130,7 +130,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     row-gap: 0.85rem;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 1.15rem 1rem;
+    padding: 0.9rem 0.55rem 1rem 1.1rem;
     margin: 0 auto;
     width: fit-content;
     max-width: var(--roster-desktop-max);
@@ -249,7 +249,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 /* Rosters: desktop homeButton margin */
 @media (min-width: 869px) {
   body[data-page="rosters"] #homeButton {
-    margin-left: 20px;
+    margin-left: 3px;
   }
 }
 
@@ -769,7 +769,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   body[data-page="rosters"] .view-switcher {
     display: flex !important;
     min-width: 85px;
-    margin-left: 19px;
+    margin-left: 6px;
   }
 }
 
