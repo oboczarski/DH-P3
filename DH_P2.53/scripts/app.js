@@ -3602,8 +3602,8 @@ function renderPlayerRadarChart(playerId, position) {
                 tooltip: { enabled: false },
                 playerRadarBackground: {
                     levels: [
-                        { ratio: 0.95, fill: '#4c547262', stroke: '#525a7739', lineWidth: 1 },
-                        { ratio: 0.75, fill: '#50587653', stroke: '#525a7729', lineWidth: 1 },
+                        { ratio: 0.95, fill: '#2c334f62', stroke: '#525a7739', lineWidth: 1 },
+                        { ratio: 0.75, fill: '#2D345153', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.55, fill: '#2F365250', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.35, fill: '#30375455', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.18, fill: '#31385565', stroke: '#525a7735', lineWidth: 1 }
