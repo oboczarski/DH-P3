@@ -3546,7 +3546,7 @@ function renderPlayerRadarChart(playerId, position) {
 
     // Keep the same 0..100 radar scale for every position.
     const scaleMax = 100;
-    
+//✦ Main Radar Chart Formatting Section ↓↓↓
     // Game Logs modal -> Performance tab -> main radar chart setup.
     const chartInstance = new Chart(ctx, {
         type: 'radar',
@@ -3596,7 +3596,7 @@ function renderPlayerRadarChart(playerId, position) {
                     }
                 }
             },
-            // Background ring colors for the custom radar grid.
+        // Radar Chart Hexagon Colors
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false },
