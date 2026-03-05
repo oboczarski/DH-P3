@@ -3553,14 +3553,14 @@ function renderPlayerRadarChart(playerId, position) {
         data: {
             labels: radarData.labels,
             datasets: [{
-                // Radar chart data point formatting, border formatting, and fallback fill color.
-                // Note: fallback fill is replaced by the radial gradient after first render.
+
                 label: 'Player Rank',
                 data: radarData.ranks,
                 rawRanks: radarData.rawRanks,
                 statValues: radarData.statValues,
                 statKeys: radarData.statKeys,
                 position: position,
+                // Radar Chart Data Point Formatting, Border Formatting, and Fallback BG color for plotted area
                 fill: true,
                 backgroundColor: 'rgba(83, 0, 255, 0.33)', // Fallback color
                 borderColor: '#6700ff',
@@ -3596,14 +3596,14 @@ function renderPlayerRadarChart(playerId, position) {
                     }
                 }
             },
-        // Radar Chart Hexagon Colors
+        // Radar Chart Grid Hexagon Colors
             plugins: {
                 legend: { display: false },
                 tooltip: { enabled: false },
                 playerRadarBackground: {
                     levels: [
-                        { ratio: 0.95, fill: '#2c334f62', stroke: '#525a7739', lineWidth: 1 },
-                        { ratio: 0.75, fill: '#2D345153', stroke: '#525a7729', lineWidth: 1 },
+                        { ratio: 0.95, fill: '#4c547262', stroke: '#525a7739', lineWidth: 1 },
+                        { ratio: 0.75, fill: '#50587653', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.55, fill: '#2F365250', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.35, fill: '#30375455', stroke: '#525a7729', lineWidth: 1 },
                         { ratio: 0.18, fill: '#31385565', stroke: '#525a7735', lineWidth: 1 }
