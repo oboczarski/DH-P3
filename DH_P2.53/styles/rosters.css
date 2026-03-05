@@ -197,6 +197,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     align-items: center;
     width: var(--roster-desktop-field-width);
     max-width: var(--roster-desktop-field-width);
+    height: 37px;
   }
 
   /* Desktop: position filters moved next to search bar (column 3) */
@@ -205,6 +206,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     grid-row: 2;
     justify-content: flex-start;
     margin-left: 3px;
+    height: 37px;
   }
 
   body[data-page="rosters"] #clearFiltersButton {
@@ -770,6 +772,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     display: flex !important;
     min-width: 85px;
     margin-left: 6px;
+    height: 37px;
   }
 }
 

@@ -915,7 +915,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .start-sit-button .analyzer-label {
-  font-size: 0.45rem;
+  font-size: 0.55rem;
   font-weight: 500;
   line-height: 1;
   margin-top: 0.05rem;
@@ -1090,6 +1090,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
     margin-left: 2px;
     flex: 0 0 60px !important;
     min-width: 62px !important;
+    height: 37px;
   }
 
   .start-sit-button .analyzer-icon {
@@ -3438,6 +3439,7 @@ body[data-page="welcome"] .enter-label {
   #secondary-header-row .username-area,
   #secondary-header-row .custom-select-wrapper {
     max-width: 200px;
+    height: 37px;
   }
 
   #filters-row {
