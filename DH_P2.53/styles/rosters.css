@@ -49,51 +49,73 @@ body[data-page="rosters"] .roster-brand-name {
   font-family: 'Product Sans', system-ui, sans-serif;
 }
 
-/* === Roster inline search bar: liquid-glass (visual styling, visible on desktop only) === */
+/* === Roster inline search bar: styled to match .username-area (visible on desktop only) === */
+/* Uses same gradient + border + backdrop as .username-area for visual parity */
 body[data-page="rosters"] .roster-inline-search {
   position: relative;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(128, 138, 189, 0.2);
   border-radius: 8px;
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    inset 0 0 18px rgba(118, 109, 255, 0.035);
-  padding: 0.25rem 0.5rem;
-  gap: 0.4rem;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Pseudo-element background matching .username-area::before */
+body[data-page="rosters"] .roster-inline-search::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  border: 1px solid var(--color-panel-border);
+  -webkit-backdrop-filter: blur(4px) saturate(110%);
+  backdrop-filter: blur(4px) saturate(110%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  pointer-events: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-body[data-page="rosters"] .roster-inline-search:focus-within {
-  border-color: rgba(118, 109, 255, 0.35);
-  box-shadow:
-    0 2px 12px rgba(118, 109, 255, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    inset 0 0 20px rgba(118, 109, 255, 0.05);
+body[data-page="rosters"] .roster-inline-search:focus-within::before {
+  border-color: var(--color-accent-primary);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 0 var(--glow-strength) var(--color-accent-primary-glow);
 }
 
 body[data-page="rosters"] .roster-search-icon {
-  font-size: 0.7rem;
-  color: rgba(148, 163, 184, 0.6);
+  font-size: 0.65rem;
+  color: rgba(148, 163, 184, 0.5);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 body[data-page="rosters"] #rosterSearchInput {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--color-text-primary, #e2e8f0);
-  font-size: 0.78rem;
-  font-family: 'Product Sans', system-ui, sans-serif;
+  color: #c4c8eaba;
+  font-size: 0.7rem;
+  font-weight: 300;
+  font-family: inherit;
   width: 100%;
   min-width: 0;
-  padding: 0.25rem 0;
+  padding: 0.23rem 0.5rem;
+  height: 100%;
+  line-height: 1.25;
+  caret-color: #c4c8ea;
+  position: relative;
+  z-index: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
 }
 
 body[data-page="rosters"] #rosterSearchInput::placeholder {
-  color: rgba(148, 163, 184, 0.45);
+  color: #5F6795aa;
   font-weight: 300;
 }
 
@@ -197,9 +219,12 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     grid-row: 2;
     display: flex;
     align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.45rem;
     width: var(--roster-desktop-field-width);
     max-width: var(--roster-desktop-field-width);
-    height: 37px;
+    height: var(--header-control-height);
+    box-sizing: border-box;
   }
 
   /* Desktop: position filters moved next to search bar (column 3) */
@@ -254,6 +279,169 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 @media (min-width: 869px) {
   body[data-page="rosters"] #homeButton {
     margin-left: 3px;
+  }
+}
+
+/* ── Rosters: Progressive shrink for narrower desktops (869px–1032px) ── */
+/* Smoothly reduce header scale so all elements still fit before the mobile
+   layout kicks in at ≤819 px.  Uses a CSS scale transform on the header
+   itself to keep proportions intact. */
+@media (min-width: 869px) and (max-width: 1032px) {
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
+    /* Scale from ~0.82 at 869px up to 1.0 at 1033px */
+    --_shrink: clamp(0.82, calc(0.82 + (100vw - 869px) * 0.0011), 1);
+    transform: scale(var(--_shrink));
+    transform-origin: top center;
+  }
+}
+
+/* ── Rosters: Enlarged header for wide screens (>1200px) ── */
+/* ALL values must exceed the effective cascade at ≤1200px.                    */
+/* Key inherited caps from styles.css that we must override:                   */
+/*   @768: .nav-button max-height 2.5rem; .nav-label 0.7rem; .nav-button i 1.2rem */
+/*   @700: .nav-button max-width 6rem (~96px)                                 */
+/*   @820: #secondary-header-row .username-area/.custom-select-wrapper         */
+/*         max-width 200px; height 37px                                        */
+/* Row 2: every element at least 46px height.                                  */
+@media (min-width: 1201px) {
+
+  /* ── Grid container ── */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
+    --roster-desktop-gap: 1rem;
+    --roster-desktop-field-width: 250px;
+    --roster-desktop-max: min(calc(100vw - 2rem), 1500px);
+    --header-control-height: 46px;
+    padding: 0.7rem 0.7rem 0.95rem 1.4rem;
+    row-gap: 0.55rem;
+  }
+
+  /* ── Override global max-width / height caps on username & league (from @820) ── */
+  body[data-page="rosters"] #secondary-header-row .username-area,
+  body[data-page="rosters"] #secondary-header-row .custom-select-wrapper {
+    max-width: var(--roster-desktop-field-width);
+    height: 46px;
+  }
+
+  /* ── Branding ── */
+  body[data-page="rosters"] .roster-brand-logo {
+    width: 64px;
+    height: 64px;
+  }
+  body[data-page="rosters"] .roster-brand-name {
+    font-size: 2rem;
+  }
+
+  /* ── Nav buttons ── */
+  /* Effective at ≤1200: pad 0.4rem 0.7rem, min-h 2.5rem, MAX-h 2.5rem,      */
+  /*   max-w 6rem (~96px), i 1.2rem, label 0.7rem                             */
+  body[data-page="rosters"] .nav-buttons-container .nav-button {
+    width: 105px;
+    max-width: 105px;           /* override 6rem (~96px) cap from @700 */
+    min-height: 46px;
+    max-height: none;           /* override 2.5rem cap from @768 */
+    padding: 0.55rem 0.8rem;
+  }
+  body[data-page="rosters"] .nav-buttons-container .nav-button i {
+    font-size: 1.45rem;
+  }
+  body[data-page="rosters"] .nav-buttons-container .nav-label {
+    font-size: 0.85rem;         /* effective base is 0.7rem from @768, NOT 0.45rem */
+  }
+  body[data-page="rosters"] .nav-buttons-container .nav-logo {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  /* ── Username input ── */
+  /* Effective: font 0.7rem, pad 0.23rem 0.5rem */
+  body[data-page="rosters"] #usernameInput {
+    font-size: 0.88rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  /* ── Inline search filter ── */
+  /* Effective: icon 0.65rem, input font 0.7rem */
+  body[data-page="rosters"] .roster-inline-search {
+    padding: 0 0.55rem;
+    gap: 0.4rem;
+    height: 46px;
+  }
+  body[data-page="rosters"] .roster-search-icon {
+    font-size: 0.78rem;
+  }
+  body[data-page="rosters"] #rosterSearchInput {
+    font-size: 0.88rem;
+    padding: 0.35rem 0.55rem;
+  }
+
+  /* ── League select ── */
+  /* Effective: font 14px (~0.875rem) */
+  body[data-page="rosters"] #leagueSelect {
+    font-size: 1rem;
+    padding-top: 0.38rem;
+    padding-bottom: 0.38rem;
+  }
+
+  /* ── Position filter buttons ── */
+  /* Effective: font 0.85rem, min-w 43px, min-h 30px */
+  body[data-page="rosters"] .filter-btn {
+    font-size: 1.05rem;
+    min-width: 54px;
+    min-height: 46px;
+    padding: 0.22rem 0.7rem;
+  }
+
+  /* ── Positional filters container height ── */
+  body[data-page="rosters"] #positional-filters {
+    height: 46px;
+  }
+
+  /* ── View switcher buttons ── */
+  /* Effective at 869px: button pad 0.2rem 0.4rem, w 62px, i 0.75rem, label 0.65rem */
+  body[data-page="rosters"] .compact-switcher {
+    padding: 0.15rem;
+  }
+  body[data-page="rosters"] .compact-switcher button {
+    padding: 0.35rem 0.6rem !important;
+    min-height: 46px;
+    width: 78px;
+  }
+  body[data-page="rosters"] .compact-switcher button i {
+    font-size: 1rem;
+  }
+  body[data-page="rosters"] .compact-switcher .switcher-label {
+    font-size: 0.78rem;
+  }
+
+  /* ── Start/Sit button ── */
+  /* Effective at 869px: w 75px, h 37px, icon 0.951rem, label 0.65rem */
+  body[data-page="rosters"] .start-sit-button {
+    padding: 0.35rem 0.7rem !important;
+    min-width: 90px !important;
+    min-height: 46px;
+    height: 46px;
+  }
+  body[data-page="rosters"] .start-sit-button .analyzer-icon {
+    font-size: 1.2rem;
+  }
+  body[data-page="rosters"] .start-sit-button .analyzer-label {
+    font-size: 0.78rem;
+  }
+
+  /* ── Clear filters icon ── */
+  body[data-page="rosters"] #clearFiltersButton {
+    font-size: 1.25rem;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── Compare controls ── */
+  body[data-page="rosters"] .compare-controls {
+    font-size: 1.25rem;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
   }
 }
 
