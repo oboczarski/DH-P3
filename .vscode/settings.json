@@ -179,5 +179,19 @@
   "github.copilot.chat.codesearch.enabled": true,
   "github.copilot.chat.tools.memory.enabled": true,
   "chat.renderRelatedFiles": true,
-  "github.copilot.chat.newWorkspace.useContext7": true
+  "github.copilot.chat.newWorkspace.useContext7": true,
+  "chat.mcp.gallery.enabled": true,
+  "chat.includeReferencedInstructions": false,
+  "bookmarks.keepBookmarksOnLineDelete": true,
+  "bookmarks.label.suggestion": "useWhenSelected",
+  "window.density.editorTabHeight": "default",
+  "window.zoomLevel": 0,
+  "chat.experimental.useSkillAdherencePrompt": true,
+  "chat.tools.terminal.sandbox.enabled": true,
+  "chat.useNestedAgentsMdFiles": false,
+  "workbench.externalBrowser": "chrome",
+  "workbench.browser.enableChatTools": true,
+  "workbench.commandPalette.experimental.suggestCommands": true,
+  "workbench.activityBar.compact": false,
+  "terminal.integrated.enableImages": true
 }
