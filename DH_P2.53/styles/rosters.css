@@ -403,7 +403,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     display: flex !important;
     min-width: 85px;
     margin-left: 6px;
-    height: 46px;
+    height: 46px !important;
   }
 
   /* Effective at 869px: button pad 0.2rem 0.4rem, w 62px, i 0.75rem, label 0.65rem */
@@ -438,7 +438,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 
   /* ── Clear filters icon ── */
   body[data-page="rosters"] #clearFiltersButton {
-    font-size: 1.25rem;
+    font-size: 1.25rem !important;
     min-height: 46px;
     display: flex;
     align-items: center;
