@@ -1074,7 +1074,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   .compact-switcher button {
     padding: 0.2rem 0.4rem 0.1rem !important;
     min-width: 38px;
-    width: 60px;
+    width: 62px;
     gap: 0.1rem;
   }
 
@@ -3442,6 +3442,7 @@ body[data-page="welcome"] .enter-label {
   #secondary-header-row .custom-select-wrapper {
     max-width: 200px;
     height: 37px;
+    margin-right: 3px;
   }
 
   #filters-row {

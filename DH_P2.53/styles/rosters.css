@@ -157,6 +157,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     align-items: center;
     gap: 0.65rem;
     min-width: 0;
+    margin-right: 3px;
   }
 
   /* Desktop: league dropdown in Row 1, column 2 (swapped from username) */
@@ -178,7 +179,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 
   body[data-page="rosters"] .nav-buttons-container .nav-button {
     flex: 0 0 auto;
-    width: 77px;
+    width: 83.3px;
   }
 
   /* Desktop: username input in Row 2, column 1 (swapped from Row 1) */
