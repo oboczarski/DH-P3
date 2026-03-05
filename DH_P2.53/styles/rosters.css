@@ -397,13 +397,21 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   }
 
   /* ── View switcher buttons ── */
+  /* ── View switcher container ── */
+  /* Base at @820: height 37px, min-width 85px */
+  body[data-page="rosters"] .view-switcher {
+    display: flex !important;
+    min-width: 85px;
+    margin-left: 6px;
+    height: 46px;
+  }
+
   /* Effective at 869px: button pad 0.2rem 0.4rem, w 62px, i 0.75rem, label 0.65rem */
   body[data-page="rosters"] .compact-switcher {
     padding: 0.15rem;
   }
   body[data-page="rosters"] .compact-switcher button {
     padding: 0.35rem 0.6rem !important;
-    min-height: 46px;
     width: 78px;
   }
   body[data-page="rosters"] .compact-switcher button i {
