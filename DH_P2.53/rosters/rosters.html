@@ -39,6 +39,11 @@
 <div id="header-container">
 <header class="app-header glass-panel">
     <div class="header-row" id="primary-header-row">
+    <!-- Desktop-only: Brand logo + app name (hidden on mobile via CSS) -->
+    <div class="roster-branding" id="rosterBranding">
+      <img src="../assets/welcome/welcome-logo-256.png" alt="Dynasty Hub" class="roster-brand-logo" />
+      <span class="roster-brand-name">Dynasty Hub</span>
+    </div>
     <div class="nav-buttons-container">
       <button class="nav-button" id="homeButton" data-nav="home">
   <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true" />
@@ -93,6 +98,12 @@
             </div>
         </div>
         <div class="header-row" id="filters-row">
+            <!-- Desktop-only: Inline player search bar (replaces popover search on desktop) -->
+            <div class="roster-inline-search" id="rosterInlineSearch">
+                <i class="fa-solid fa-magnifying-glass roster-search-icon" aria-hidden="true"></i>
+                <label for="rosterSearchInput" class="sr-only">Search players</label>
+                <input id="rosterSearchInput" type="search" placeholder="Search Players…" autocomplete="off" inputmode="search" />
+            </div>
             <div class="view-switcher secondary-switcher compact-switcher">
                 <button id="positionalViewBtn">
                     <i class="fa-solid fa-users" aria-hidden="true"></i>

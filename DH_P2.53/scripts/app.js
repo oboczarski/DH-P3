@@ -19,6 +19,7 @@ const compareSearchToggle = document.getElementById('compareSearchToggle');
 const compareSearchPopover = document.getElementById('compareSearchPopover');
 const compareSearchInput = document.getElementById('compareSearchInput');
 const compareSearchClose = document.getElementById('compareSearchClose');
+const rosterSearchInput = document.getElementById('rosterSearchInput');
 const positionalViewBtn = document.getElementById('positionalViewBtn');
 const condensedViewBtn = document.getElementById('condensedViewBtn');
 const lineupViewBtn = document.getElementById('lineupViewBtn');
@@ -1915,6 +1916,8 @@ function closeCompareSearch() {
     compareSearchPopover.classList.add('hidden');
     compareSearchToggle.setAttribute('aria-expanded', 'false');
     compareSearchInput.value = '';
+    /* Also clear the desktop inline search bar when the filter is reset */
+    if (rosterSearchInput) rosterSearchInput.value = '';
     filterTeamsByQuery('');
     if (document.activeElement === compareSearchInput) {
         compareSearchToggle.focus();
@@ -2005,6 +2008,20 @@ compareSearchInput?.addEventListener('input', (e) => {
     const val = e.target.value;
     clearTimeout(searchDebounce);
     searchDebounce = setTimeout(() => filterTeamsByQuery(val), 120);
+});
+/* Desktop inline player search bar — reuses filterTeamsByQuery() from the popover search */
+rosterSearchInput?.addEventListener('input', (e) => {
+    const val = e.target.value;
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => filterTeamsByQuery(val), 120);
+});
+/* Escape key clears the inline search and blurs the input */
+rosterSearchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        rosterSearchInput.value = '';
+        filterTeamsByQuery('');
+        rosterSearchInput.blur();
+    }
 });
 compareSearchClose?.addEventListener('click', (e) => {
     e.stopPropagation();
