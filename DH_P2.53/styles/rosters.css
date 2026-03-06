@@ -307,7 +307,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 
   /* ── Grid container ── */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
-    --roster-desktop-gap: 1rem;
+    --roster-desktop-gap: 1.1rem;
     --roster-desktop-field-width: 250px;
     --roster-desktop-max: min(calc(100vw - 2rem), 1500px);
     --header-control-height: 46px;
@@ -402,7 +402,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   body[data-page="rosters"] .view-switcher {
     display: flex !important;
     min-width: 85px;
-    margin-left: 6px;
+    margin-left: -4px !important;
     height: 46px !important;
   }
 
@@ -412,7 +412,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   }
   body[data-page="rosters"] .compact-switcher button {
     padding: 0.25rem 0.6rem !important;
-    width: 78px;
+    width: 82px;
   }
   body[data-page="rosters"] .compact-switcher button i {
     font-size: 1rem;
@@ -425,7 +425,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   /* Effective at 869px: w 75px, h 37px, icon 0.951rem, label 0.65rem */
   body[data-page="rosters"] .start-sit-button {
     padding: 0.35rem 0.7rem !important;
-    min-width: 90px !important;
+    min-width: 91px !important;
     min-height: 46px;
     height: 46px;
   }
@@ -442,6 +442,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     min-height: 46px;
     display: flex;
     align-items: center;
+    margin-left: -5px;
   }
 
   /* ── Compare controls ── */
