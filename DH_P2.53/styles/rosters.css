@@ -303,16 +303,32 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 /*   @820: #secondary-header-row .username-area/.custom-select-wrapper         */
 /*         max-width 200px; height 37px                                        */
 /* Row 2: every element at least 46px height.                                  */
+@media (min-width: 1034px) and (max-width: 1200px) {
+
+  /* Desktop-only roster position filter tuning for midsize desktops.
+     This targets only the STAR button icon and leaves every smaller breakpoint untouched. */
+  body[data-page="rosters"] .filter-btn[data-position="STAR"] i {
+    font-size: 1.05rem;
+  }
+}
+
 @media (min-width: 1201px) {
 
   /* ── Grid container ── */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
     --roster-desktop-gap: 1.1rem;
-    --roster-desktop-field-width: 250px;
+    /* Keep the wide-desktop username, league, and inline search controls visually uniform. */
+    --roster-desktop-field-width: 272px;
     --roster-desktop-max: min(calc(100vw - 2rem), 1500px);
     --header-control-height: 46px;
     padding: 0.7rem 0.7rem 0.95rem 1.4rem;
     row-gap: 0.55rem;
+  }
+
+  /* Wide-desktop roster nav spacing requested for the revamped header only.
+     This keeps the 1.36rem gap scoped to the rosters page above 1200px. */
+  body[data-page="rosters"] .nav-buttons-container {
+    gap: 1.36rem;
   }
 
   /* ── Override global max-width / height caps on username & league (from @820) ── */
@@ -389,6 +405,12 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     min-width: 54px;
     min-height: 46px;
     padding: 0.22rem 0.7rem;
+  }
+
+  /* Wide-desktop roster filter icon sizing.
+     The STAR icon scales separately so only the positional filter symbol changes above 1200px. */
+  body[data-page="rosters"] .filter-btn[data-position="STAR"] i {
+    font-size: 1.2rem;
   }
 
   /* ── Positional filters container height ── */
