@@ -328,7 +328,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   /* Wide-desktop roster nav spacing requested for the revamped header only.
      This keeps the 1.36rem gap scoped to the rosters page above 1200px. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: 1.36rem;
+    gap: 1.45rem;
   }
 
   /* ── Override shared header width caps on the roster username + league controls ── */
@@ -455,6 +455,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     min-width: 91px !important;
     min-height: 46px;
     height: 46px;
+    margin-left: -4px;
   }
   body[data-page="rosters"] .start-sit-button .analyzer-icon {
     font-size: 1.2rem;
