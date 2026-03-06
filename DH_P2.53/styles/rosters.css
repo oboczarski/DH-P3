@@ -86,7 +86,7 @@ body[data-page="rosters"] .roster-inline-search:focus-within::before {
 }
 
 body[data-page="rosters"] .roster-search-icon {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: rgba(148, 163, 184, 0.5);
   flex-shrink: 0;
   position: relative;
@@ -98,7 +98,7 @@ body[data-page="rosters"] #rosterSearchInput {
   border: none;
   outline: none;
   color: #c4c8eaba;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: 300;
   font-family: inherit;
   width: 100%;
