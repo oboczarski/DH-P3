@@ -582,7 +582,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   height: 1.25rem;
   object-fit: contain;
   display: block;
-  filter: opacity(0.5) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12)) brightness(1.5) hue-rotate(42deg);
+  filter: opacity(0.6) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12)) brightness(1.5) hue-rotate(42deg);
 }
 
 /* Reduce vertical spacing specifically for the Home button logo so it matches other nav buttons */
@@ -4974,10 +4974,10 @@ main#content {
 
 #clearFiltersButton i {
   display: block;
-  margin-top: 4px;
-  font-size: 0.9rem;
+  margin-top: 5px;
+  font-size: 1.1rem;
   line-height: 1;
-  margin-left: -6px;
+  margin-left: -7px;
 }
 
 .compare-controls .compare-search-toggle i {

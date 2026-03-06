@@ -348,8 +348,8 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     font-size: 0.85rem;         /* effective base is 0.7rem from @768, NOT 0.45rem */
   }
   body[data-page="rosters"] .nav-buttons-container .nav-logo {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 1.8rem;
+    height: 1.8rem;
   }
 
   /* ── Username input ── */
