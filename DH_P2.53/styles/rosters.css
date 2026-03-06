@@ -177,9 +177,9 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     grid-row: 1;
     display: flex;
     align-items: center;
-    gap: 0.2rem;
+    gap: 0.7rem;
     min-width: 0;
-    margin-right: 14px;
+    margin-right: 43px;
     margin-left: -8px;
   }
 
@@ -316,13 +316,13 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
 
   /* ── Grid container ── */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
-    --roster-desktop-gap: 1.1rem;
+    --roster-desktop-gap: 1.3rem;
     /* Keep the wide-desktop username, league, and inline search controls visually uniform. */
-    --roster-desktop-field-width: 272px;
+    --roster-desktop-field-width: 293px;
     --roster-desktop-max: min(calc(100vw - 2rem), 1500px);
     --header-control-height: 46px;
-    padding: 0.7rem 0.7rem 0.95rem 1.4rem;
-    row-gap: 0.55rem;
+    padding: 0.2rem 0.3rem 1.05rem 1.6rem;
+    row-gap: 0.2rem;
   }
 
   /* Wide-desktop roster nav spacing requested for the revamped header only.
@@ -331,20 +331,25 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     gap: 1.36rem;
   }
 
-  /* ── Override global max-width / height caps on username & league (from @820) ── */
+  /* ── Override shared header width caps on the roster username + league controls ── */
+  /* styles.css sets #secondary-header-row controls to width:auto, so wide-desktop rosters
+     needs explicit width/min-width/max-width here to keep them matched with the search bar. */
   body[data-page="rosters"] #secondary-header-row .username-area,
   body[data-page="rosters"] #secondary-header-row .custom-select-wrapper {
+    width: var(--roster-desktop-field-width);
+    min-width: var(--roster-desktop-field-width);
     max-width: var(--roster-desktop-field-width);
     height: 46px;
   }
 
   /* ── Branding ── */
   body[data-page="rosters"] .roster-brand-logo {
-    width: 64px;
-    height: 64px;
+    width: 82px;
+    height: 82px;
+    filter: drop-shadow(0px 0px 6px #77fe);
   }
   body[data-page="rosters"] .roster-brand-name {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   /* ── Nav buttons ── */
@@ -378,7 +383,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   /* ── Inline search filter ── */
   /* Effective: icon 0.65rem, input font 0.7rem */
   body[data-page="rosters"] .roster-inline-search {
-    padding: 0 0.55rem;
+    padding: 0 0.75rem;
     gap: 0.4rem;
     height: 46px;
   }
