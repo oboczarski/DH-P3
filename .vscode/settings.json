@@ -196,6 +196,5 @@
   "terminal.integrated.enableImages": true,
   "workbench.editor.tabSizingFixedMaxWidth": 160,
   "workbench.editor.tabSizing": "shrink",
-  "workbench.editor.pinnedTabSizing": "normal",
-  "livePreview.autoRefreshPreview": "Never"
+  "workbench.editor.pinnedTabSizing": "normal"
 }
