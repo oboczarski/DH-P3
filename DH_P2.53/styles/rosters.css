@@ -335,8 +335,8 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   /* Effective at ≤1200: pad 0.4rem 0.7rem, min-h 2.5rem, MAX-h 2.5rem,      */
   /*   max-w 6rem (~96px), i 1.2rem, label 0.7rem                             */
   body[data-page="rosters"] .nav-buttons-container .nav-button {
-    width: 105px;
-    max-width: 105px;           /* override 6rem (~96px) cap from @700 */
+    width: 106px;
+    max-width: 106px;           /* override 6rem (~96px) cap from @700 */
     min-height: 53px;
     max-height: 53px;           /* override 2.5rem cap from @768 */
     padding: 0.55rem 0.8rem 0.35rem;
