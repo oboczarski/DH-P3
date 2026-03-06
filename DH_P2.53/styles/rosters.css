@@ -355,7 +355,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   /* ── Username input ── */
   /* Effective: font 0.7rem, pad 0.23rem 0.5rem */
   body[data-page="rosters"] #usernameInput {
-    font-size: 0.88rem;
+    font-size: 1.18rem !important;
     padding: 0.35rem 0.65rem;
   }
 
@@ -367,17 +367,17 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     height: 46px;
   }
   body[data-page="rosters"] .roster-search-icon {
-    font-size: 0.78rem;
+    font-size: 0.98rem;
   }
   body[data-page="rosters"] #rosterSearchInput {
-    font-size: 0.88rem;
+    font-size: 1.08rem;
     padding: 0.35rem 0.55rem;
   }
 
   /* ── League select ── */
   /* Effective: font 14px (~0.875rem) */
   body[data-page="rosters"] #leagueSelect {
-    font-size: 1rem;
+    font-size: 1.1rem;
     padding-top: 0.38rem;
     padding-bottom: 0.38rem;
   }
