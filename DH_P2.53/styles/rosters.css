@@ -319,6 +319,9 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     --roster-desktop-gap: 1.3rem;
     /* Keep the wide-desktop username, league, and inline search controls visually uniform. */
     --roster-desktop-field-width: 293px;
+    /* Track the wide-desktop left inset so divider positioning uses the same header offset
+       as the grid content it is visually separating. */
+    --roster-desktop-pad-left: 1.6rem;
     /* Reserve extra left-stack breathing room so the brand/username group stays separated
        from the league/search group and gives the centered divider a stable slot to live in. */
     --roster-left-stack-gap: 43px;
@@ -327,7 +330,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     --roster-desktop-max: min(calc(100vw - 2rem), 1500px);
     --header-control-height: 46px;
     position: relative;
-    padding: 0.2rem 0.3rem 1.05rem 1.6rem;
+    padding: 0.2rem 0.3rem 1.05rem var(--roster-desktop-pad-left);
     grid-template-columns: var(--roster-left-stack-width) var(--roster-desktop-field-width) repeat(5, auto);
     row-gap: 0.2rem;
   }
@@ -340,7 +343,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     position: absolute;
     top: 0.75rem;
     bottom: 1rem;
-    left: calc(var(--roster-desktop-field-width) + ((var(--roster-left-stack-gap) + var(--roster-desktop-gap)) / 2));
+    left: calc(var(--roster-desktop-pad-left) + var(--roster-desktop-field-width) + ((var(--roster-left-stack-gap) + var(--roster-desktop-gap)) / 2));
     transform: translateX(-50%);
     width: var(--roster-divider-width);
     border-radius: 999px;
