@@ -197,7 +197,7 @@
   "workbench.editor.tabSizingFixedMaxWidth": 160,
   "workbench.editor.tabSizing": "shrink",
   "workbench.editor.pinnedTabSizing": "normal",
-  "livePreview.openPreviewTarget": "Embedded Preview",
+  "livePreview.openPreviewTarget": "External Browser",
   "livePreview.customExternalBrowser": "Chrome",
   "livePreview.autoRefreshPreview": "On Changes to Saved Files",
   "livePreview.showServerStatusNotifications": true,
