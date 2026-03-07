@@ -288,6 +288,14 @@ body[data-page="ownership"] .ownership-value-toolbar {
   margin-bottom: 0.32rem;
 }
 
+/* Ownership% tab position filter bar:
+   - hidden on mobile (desktop-only feature, task requirement)
+   - shown on desktop (≥820px) via media query below
+   - uses the same .ownership-value-filter-btn buttons as the value tab for visual parity */
+body[data-page="ownership"] .ownership-percent-position-filter {
+  display: none;
+}
+
 body[data-page="ownership"] .ownership-search-wrap {
   position: relative;
   flex: 1 1 auto;
@@ -656,6 +664,37 @@ body[data-page="ownership"] .ownership-value-table td:nth-child(11) {
     width: auto;
     gap: 3px;
     padding: 3px;
+  }
+}
+
+/* Ownership% tab desktop: search bar + position filter side-by-side (matches value tab layout).
+   Position filter is desktop-only (hidden on mobile via base rule above).
+   IMPORTANT: do NOT remove the max-width 819px guard — mobile must not be affected. */
+@media (min-width: 820px) {
+  body[data-page="ownership"] .ownership-toolbar {
+    justify-content: center;
+    margin: 0rem 2rem 0.62rem;
+  }
+
+  body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
+    max-width: 678px;
+    min-width: 398px;
+    flex: 1 1 auto;
+  }
+
+  /* Show the percent-tab position filter on desktop — visually identical to value tab filter */
+  body[data-page="ownership"] .ownership-percent-position-filter {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: stretch;
+    width: auto;
+    justify-content: center;
+    gap: 0.34rem;
+    padding: 0.14rem;
+    border-radius: 12px;
+    border: 1px solid rgba(166, 177, 236, 0.14);
+    background: linear-gradient(170deg, rgba(62, 70, 120, 0.28), rgba(16, 22, 44, 0.62));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 30px rgba(8, 10, 24, 0.45);
   }
 }
 
