@@ -13,6 +13,9 @@ const rosterGrid = document.getElementById('rosterGrid');
 const rosterContentVisibilityQuery = (typeof window !== 'undefined' && typeof window.matchMedia === 'function')
     ? window.matchMedia('(max-width: 819px)')
     : null;
+const rosterHeaderDividerQuery = (typeof window !== 'undefined' && typeof window.matchMedia === 'function')
+    ? window.matchMedia('(min-width: 869px)')
+    : null;
 let rosterContentVisibilityEnabled = false;
 const compareButton = document.getElementById('compareButton');
 const compareSearchToggle = document.getElementById('compareSearchToggle');
@@ -1574,6 +1577,7 @@ function updateHeaderPreviewState() {
     if (appHeader) {
         appHeader.classList.toggle('preview-active', state.isCompareMode || state.isStartSitMode);
     }
+    syncRosterHeaderDividerPosition();
 }
 function handleCompareClick() {
     if (state.isStartSitMode) {
@@ -9222,12 +9226,52 @@ function syncRosterHeaderPosition() {
     const dx = rosterHeaderBaseLeft - rect.left;
     header.style.transform = Math.abs(dx) > 0.5 ? `translateX(${Math.round(dx)}px)` : '';
 }
+function syncRosterHeaderDividerPosition() {
+    const isRosterPage = document.body?.dataset?.page === 'rosters';
+    const appHeader = document.querySelector('#header-container .app-header');
+    const desktopUsernameArea = document.querySelector('#secondary-header-row .username-area');
+    const desktopSearchBar = document.getElementById('rosterInlineSearch');
+    if (!isRosterPage || !appHeader) return;
+
+    const shouldShowDivider = Boolean(
+        rosterHeaderDividerQuery?.matches
+        && desktopUsernameArea
+        && desktopSearchBar
+        && !appHeader.classList.contains('preview-active')
+    );
+
+    // Rosters desktop header divider: measure the actual username/search gap so the separator
+    // stays centered even when the desktop header uses different widths above vs. below 1201px.
+    if (!shouldShowDivider) {
+        appHeader.style.setProperty('--roster-divider-opacity', '0');
+        appHeader.style.removeProperty('--roster-divider-x');
+        return;
+    }
+
+    const headerRect = appHeader.getBoundingClientRect();
+    const usernameRect = desktopUsernameArea.getBoundingClientRect();
+    const searchRect = desktopSearchBar.getBoundingClientRect();
+    const dividerX = ((usernameRect.right + searchRect.left) / 2) - headerRect.left;
+    appHeader.style.setProperty('--roster-divider-x', `${dividerX}px`);
+    appHeader.style.setProperty('--roster-divider-opacity', '1');
+}
 // Roster header horizontal-sync listeners are only needed on rosters page.
 // Keeping them page-scoped avoids extra scroll work on stats/ownership/research pages.
 if (pageType === 'rosters') {
     window.addEventListener('scroll', syncRosterHeaderPosition, { passive: true });
+    window.addEventListener('load', syncRosterHeaderDividerPosition);
     window.addEventListener('resize', syncRosterHeaderPosition);
+    window.addEventListener('resize', syncRosterHeaderDividerPosition);
+    if (typeof rosterHeaderDividerQuery?.addEventListener === 'function') {
+        rosterHeaderDividerQuery.addEventListener('change', syncRosterHeaderDividerPosition);
+    } else if (typeof rosterHeaderDividerQuery?.addListener === 'function') {
+        rosterHeaderDividerQuery.addListener(syncRosterHeaderDividerPosition);
+    }
+    try {
+        document.fonts?.ready?.then(() => syncRosterHeaderDividerPosition());
+    } catch (e) { }
     syncRosterHeaderPosition();
+    syncRosterHeaderDividerPosition();
 }
 function showTemporaryTooltip(element, message) {
     const anchor = element || document.body;

@@ -144,6 +144,7 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     --roster-desktop-gap: 0.75rem;
     --roster-desktop-field-width: 200px;
     --roster-desktop-max: min(calc(100vw - 2rem), 1260px);
+    --roster-divider-opacity: 0;
     display: grid;
     /* 7-column grid: branding | username/league | nav + controls */
     grid-template-columns: auto var(--roster-desktop-field-width) repeat(5, auto);
@@ -152,10 +153,46 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     row-gap: 0.4rem;
     align-items: center;
     justify-content: center;
+    position: relative;
     padding: 0.5rem 0.45rem 0.75rem 1.1rem;
     margin: 0 auto;
     width: fit-content;
     max-width: var(--roster-desktop-max);
+  }
+
+  /* Desktop rosters header divider.
+     The x-position is fed from app.js so the line stays centered between the username bar
+     and the inline search bar across both desktop header variants without touching mobile. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active)::after {
+    content: '';
+    position: absolute;
+    top: 0.7rem;
+    bottom: 0.75rem;
+    left: var(--roster-divider-x, -9999px);
+    transform: translateX(-50%);
+    width: 1px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(128, 138, 189, 0.08), rgba(118, 109, 255, 0.52), rgba(66, 194, 255, 0.16));
+    box-shadow: 0 0 12px rgba(118, 109, 255, 0.18);
+    opacity: var(--roster-divider-opacity, 0);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Keep rosters header controls above the divider overlay on desktop so the separator
+     remains decorative and never interferes with the header controls. */
+  body[data-page="rosters"] .roster-branding,
+  body[data-page="rosters"] .custom-select-wrapper,
+  body[data-page="rosters"] .nav-buttons-container,
+  body[data-page="rosters"] .username-area,
+  body[data-page="rosters"] .roster-inline-search,
+  body[data-page="rosters"] #positional-filters,
+  body[data-page="rosters"] #clearFiltersButton,
+  body[data-page="rosters"] .view-switcher,
+  body[data-page="rosters"] .start-sit-button-slot,
+  body[data-page="rosters"] .compare-controls {
+    position: relative;
+    z-index: 1;
   }
 
   body[data-page="rosters"] #primary-header-row,
@@ -336,19 +373,20 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   }
 
   /* Wide-desktop rosters header section divider.
-     The line is positioned from the actual username/search spacing so it stays centered
-     between the left stack and the league/search stack without changing mobile or sub-1200 layouts. */
+     app.js provides the live midpoint, and the calc fallback keeps the divider usable if the
+     measurement code runs later than first paint. */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active)::after {
     content: '';
     position: absolute;
     top: 0.75rem;
     bottom: 1rem;
-    left: calc(var(--roster-desktop-pad-left) + var(--roster-desktop-field-width) + ((var(--roster-left-stack-gap) + var(--roster-desktop-gap)) / 2));
+    left: var(--roster-divider-x, calc(var(--roster-desktop-pad-left) + var(--roster-desktop-field-width) + ((var(--roster-left-stack-gap) + var(--roster-desktop-gap)) / 2)));
     transform: translateX(-50%);
     width: var(--roster-divider-width);
     border-radius: 999px;
     background: linear-gradient(180deg, rgba(128, 138, 189, 0.08), rgba(118, 109, 255, 0.52), rgba(66, 194, 255, 0.16));
     box-shadow: 0 0 12px rgba(118, 109, 255, 0.18);
+    opacity: var(--roster-divider-opacity, 1);
     pointer-events: none;
     z-index: 0;
   }
