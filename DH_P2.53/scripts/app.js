@@ -23,6 +23,7 @@ const compareSearchPopover = document.getElementById('compareSearchPopover');
 const compareSearchInput = document.getElementById('compareSearchInput');
 const compareSearchClose = document.getElementById('compareSearchClose');
 const rosterSearchInput = document.getElementById('rosterSearchInput');
+const rosterUsernameSubmitButton = document.getElementById('rosterUsernameSubmitButton');
 const positionalViewBtn = document.getElementById('positionalViewBtn');
 const condensedViewBtn = document.getElementById('condensedViewBtn');
 const lineupViewBtn = document.getElementById('lineupViewBtn');
@@ -75,6 +76,7 @@ const watchlistModalBody = document.getElementById('watchlist-modal-body');
 const watchlistButton = document.getElementById('watchlist-button');
 const watchlistBadge = document.getElementById('watchlistBadge');
 const bottomMenuPanel = document.getElementById('bottom-menu-panel');
+const HEADER_USERNAME_STORAGE_KEY = 'sleeper_username';
 let gameLogsModalRequestSeq = 0;
 const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
@@ -1992,6 +1994,28 @@ document.addEventListener('keydown', (e) => {
         closeCompareSearch();
     }
 });
+// Shared header username normalization:
+// keeps the rosters/ownership header input value and localStorage entry in sync before
+// desktop submit actions or navigation rely on the stored Sleeper username.
+function persistNormalizedHeaderUsername(options = {}) {
+    if (!usernameInput) return '';
+    const { blurInput = true } = options;
+    const normalizedUsername = (typeof usernameInput.value === 'string' ? usernameInput.value : '').trim().toLowerCase();
+    usernameInput.value = normalizedUsername;
+    try {
+        if (normalizedUsername) localStorage.setItem(HEADER_USERNAME_STORAGE_KEY, normalizedUsername);
+        else localStorage.removeItem(HEADER_USERNAME_STORAGE_KEY);
+    } catch (err) { }
+    if (blurInput) {
+        try { usernameInput.blur(); } catch (err) { }
+    }
+    return normalizedUsername;
+}
+function isRosterDesktopHeaderActive() {
+    // Rosters desktop-only header controls begin at 869px.
+    // The inset Enter button should not change mobile behavior below that breakpoint.
+    return pageType === 'rosters' && Boolean(rosterHeaderDividerQuery?.matches);
+}
 // Ownership page: Enter on username input fetches and renders ownership views (mode switch + table/list).
 if (pageType === 'ownership') {
     // Ownership username submit button uses the same fetch flow as pressing Enter.
@@ -2006,6 +2030,28 @@ if (pageType === 'ownership') {
         e.preventDefault();
         await handleFetchOwnership();
         try { usernameInput.blur(); } catch (err) { }
+    });
+}
+if (pageType === 'rosters') {
+    // Rosters desktop username submit:
+    // reuses the existing roster fetch path, but only activates on desktop so smaller layouts
+    // keep their current hidden-input behavior and do not fetch from a new keyboard shortcut.
+    rosterUsernameSubmitButton?.addEventListener('click', async (event) => {
+        event.preventDefault();
+        if (!isRosterDesktopHeaderActive()) return;
+        const normalizedUsername = persistNormalizedHeaderUsername();
+        if (!normalizedUsername) return;
+        await handleFetchRosters();
+    });
+
+    usernameInput?.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        if (!isRosterDesktopHeaderActive()) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const normalizedUsername = persistNormalizedHeaderUsername();
+        if (!normalizedUsername) return;
+        await handleFetchRosters();
     });
 }
 compareSearchInput?.addEventListener('input', (e) => {
@@ -9845,29 +9891,20 @@ async function fetchWithCache(url) {
     return data;
 }
 (function () {
-    const KEY = 'sleeper_username';
     const input = document.getElementById('usernameInput');
     if (!input) return;
-    const normalize = () => (input.value || '').trim().toLowerCase();
-    function persistNormalized() {
-        const v = normalize();
-        input.value = v;
-        if (v) localStorage.setItem(KEY, v);
-        else localStorage.removeItem(KEY);
-        input.blur();
-    }
     // hydrate
-    const saved = (localStorage.getItem(KEY) || '').trim();
+    const saved = (localStorage.getItem(HEADER_USERNAME_STORAGE_KEY) || '').trim();
     if (saved) input.value = saved; else { input.removeAttribute('value'); input.value = ''; }
     // listeners
-    input.addEventListener('change', persistNormalized);
-    input.addEventListener('blur', () => { persistNormalized(); });
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalized(); } });
+    input.addEventListener('change', () => { persistNormalizedHeaderUsername(); });
+    input.addEventListener('blur', () => { persistNormalizedHeaderUsername({ blurInput: false }); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalizedHeaderUsername(); } });
     // Hook buttons (capture) so normalization executes before fetch handlers.
     ['rostersButton', 'analyzerButton', 'researchButton'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('click', () => { persistNormalized(); }, { capture: true });
+        el.addEventListener('click', () => { persistNormalizedHeaderUsername(); }, { capture: true });
     });
 })();
 // === Mobile pinch-zoom stability guard ===

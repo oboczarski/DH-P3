@@ -88,8 +88,14 @@
     </div>
     <div id="contextual-controls">
         <div class="header-row" id="secondary-header-row">
-            <div class="username-area">
+            <!-- Rosters desktop username bar: keep the Enter action inside the same pill so
+                 desktop users can switch usernames without changing the mobile header markup. -->
+            <div class="username-area roster-username-bar">
                 <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text" name="username" placeholder="SLPR Username..." type="text" value="The_Oracle"/>
+                <button id="rosterUsernameSubmitButton" class="roster-username-submit roster-username-submit--inset" type="button" aria-label="Apply username and refresh roster data">
+                    <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
+                    <span class="roster-username-submit-label">Enter</span>
+                </button>
             </div>
             <div class="custom-select-wrapper">
                 <select disabled="" id="leagueSelect">

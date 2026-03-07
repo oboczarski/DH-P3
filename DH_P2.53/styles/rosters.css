@@ -125,6 +125,17 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   appearance: none;
 }
 
+/* Rosters desktop username submit:
+   keep the markup available to desktop layouts only, while mobile/tablet stays visually
+   identical to the current rosters header. */
+body[data-page="rosters"] .roster-username-submit--inset {
+  display: none;
+}
+
+body[data-page="rosters"] .roster-username-submit-label {
+  white-space: nowrap;
+}
+
 /* Rosters: nav-more-dropdown mobile transform */
 @media (max-width: 640px) {
   body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
@@ -206,6 +217,55 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   body[data-page="rosters"] #contextual-controls .header-row {
     border-top: 0;
     padding: 0;
+  }
+
+  /* Rosters desktop username bar:
+     uses the existing username glass shell and adds an inset Enter action for desktop only. */
+  body[data-page="rosters"] .roster-username-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  body[data-page="rosters"] .roster-username-bar #usernameInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    padding-right: 0.38rem;
+  }
+
+  body[data-page="rosters"] .roster-username-submit--inset {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.24rem;
+    min-width: 50px;
+    padding: 0 0.45rem;
+    border: none;
+    border-left: 1px solid rgba(118, 131, 204, 0.24);
+    border-radius: 0 8px 8px 0;
+    background: linear-gradient(160deg, rgba(72, 84, 154, 0.36), rgba(32, 37, 78, 0.42));
+    color: #e7edff;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+
+  body[data-page="rosters"] .roster-username-submit--inset:hover,
+  body[data-page="rosters"] .roster-username-submit--inset:focus-visible {
+    outline: none;
+    background: linear-gradient(160deg, rgba(101, 115, 209, 0.5), rgba(46, 53, 107, 0.55));
+    color: #fff;
+    border-left-color: rgba(170, 181, 255, 0.42);
+  }
+
+  body[data-page="rosters"] .roster-username-submit--inset i {
+    font-size: 0.74rem;
   }
 
   /* Desktop: show branding block in Row 1, grid column 1 */
@@ -412,8 +472,9 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     justify-self: start;
   }
 
-  /* Wide-desktop roster nav spacing requested for the revamped header only.
-     This keeps the 1.36rem gap scoped to the rosters page above 1200px. */
+  /* Wide-desktop roster nav spacing:
+     preserve the current wide-header baseline above 1522px, then let the dedicated
+     1201–1522px band handle the horizontal compression below that range. */
   body[data-page="rosters"] .nav-buttons-container {
     gap: 1.45rem;
   }
@@ -440,6 +501,12 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
   }
   body[data-page="rosters"] .roster-brand-name {
     font-size: 2.2rem;
+  }
+
+  /* ── Rosters desktop Enter button baseline ── */
+  body[data-page="rosters"] .roster-username-submit--inset {
+    min-width: 60px;
+    padding: 0 0.55rem;
   }
 
   /* ── Nav buttons ── */
@@ -569,6 +636,103 @@ body[data-page="rosters"] #rosterSearchInput::-webkit-search-cancel-button {
     min-height: 46px;
     display: flex;
     align-items: center;
+  }
+}
+
+@media (min-width: 1201px) and (max-width: 1522px) {
+
+  /* Rosters wide-desktop shrink band:
+     the glass panel already narrows with the viewport in this range, so only the horizontal
+     widths/gaps/paddings compress here. Heights and desktop typography stay locked. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
+    --roster-wide-progress: clamp(0px, calc(100vw - 1201px), 321px);
+    --roster-desktop-gap: calc(13.76px + (var(--roster-wide-progress) * 0.0219314642));
+    --roster-desktop-field-width: calc(218.6px + (var(--roster-wide-progress) * 0.2317757009));
+    --roster-desktop-pad-left: calc(19.2px + (var(--roster-wide-progress) * 0.0199376947));
+    --roster-left-stack-gap: calc(8.6px + (var(--roster-wide-progress) * 0.107165109));
+    --header-control-height: 46px;
+    padding-top: 0.2rem;
+    padding-right: 0.3rem;
+    padding-bottom: 1.05rem;
+    padding-left: var(--roster-desktop-pad-left);
+  }
+
+  /* Rosters wide-desktop row widths:
+     keep the page header elements shrinking in step with the glass panel until the
+     existing 1200px desktop layout takes over. */
+  body[data-page="rosters"] .nav-buttons-container {
+    gap: calc(18.208px + (var(--roster-wide-progress) * 0.0155514019));
+  }
+
+  body[data-page="rosters"] .nav-buttons-container .nav-button {
+    width: calc(87.84px + (var(--roster-wide-progress) * 0.0565732087));
+    max-width: calc(87.84px + (var(--roster-wide-progress) * 0.0565732087));
+    min-height: 53px;
+    max-height: 53px;
+    padding: 0.55rem calc(11.52px + (var(--roster-wide-progress) * 0.00398753894)) 0.35rem;
+  }
+
+  body[data-page="rosters"] .roster-brand-logo {
+    width: calc(67.6px + (var(--roster-wide-progress) * 0.0448598131));
+    height: calc(67.6px + (var(--roster-wide-progress) * 0.0448598131));
+  }
+
+  body[data-page="rosters"] .roster-brand-name {
+    font-size: calc(30.52px + (var(--roster-wide-progress) * 0.0145794393));
+  }
+
+  body[data-page="rosters"] .roster-inline-search {
+    gap: calc(5.76px + (var(--roster-wide-progress) * 0.00199376947));
+    padding-left: calc(8.16px + (var(--roster-wide-progress) * 0.0119626168));
+    padding-right: calc(8.16px + (var(--roster-wide-progress) * 0.0119626168));
+  }
+
+  body[data-page="rosters"] .roster-username-submit--inset {
+    min-width: calc(52px + (var(--roster-wide-progress) * 0.0249221184));
+    padding-left: calc(7.52px + (var(--roster-wide-progress) * 0.00398753894));
+    padding-right: calc(7.52px + (var(--roster-wide-progress) * 0.00398753894));
+  }
+
+  body[data-page="rosters"] .filter-btn {
+    min-width: calc(45.2px + (var(--roster-wide-progress) * 0.0274143302));
+    min-height: 46px;
+    padding: 0.22rem calc(8.64px + (var(--roster-wide-progress) * 0.00797507788));
+  }
+
+  body[data-page="rosters"] #positional-filters {
+    height: 46px;
+  }
+
+  body[data-page="rosters"] .view-switcher {
+    min-width: 85px;
+    margin-left: calc(4px - (var(--roster-wide-progress) * 0.0249221184)) !important;
+    height: 46px !important;
+  }
+
+  body[data-page="rosters"] .compact-switcher {
+    padding: 0.15rem;
+  }
+
+  body[data-page="rosters"] .compact-switcher button {
+    width: calc(66px + (var(--roster-wide-progress) * 0.0498442368));
+    padding: 0.25rem calc(7.04px + (var(--roster-wide-progress) * 0.00797507788)) !important;
+  }
+
+  body[data-page="rosters"] .start-sit-button {
+    min-width: calc(74.2px + (var(--roster-wide-progress) * 0.0523364486)) !important;
+    min-height: 46px;
+    height: 46px;
+    padding: 0.35rem calc(9.088px + (var(--roster-wide-progress) * 0.00657943925)) !important;
+    margin-left: calc(0.8px - (var(--roster-wide-progress) * 0.014953271));
+  }
+
+  body[data-page="rosters"] #clearFiltersButton {
+    min-height: 46px;
+    margin-left: calc(-1px - (var(--roster-wide-progress) * 0.0124610592));
+  }
+
+  body[data-page="rosters"] .compare-controls {
+    min-height: 46px;
   }
 }
 
