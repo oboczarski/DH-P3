@@ -531,7 +531,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -7642,6 +7642,11 @@ function setOwnershipMode(mode) {
 function renderOwnershipMode() {
     if (pageType !== 'ownership' || !playerListView) return;
     hideLegend();
+    // Clean up percent-tab search debounce when switching away
+    if (ownershipPercentSearchDebounceTimer) {
+        clearTimeout(ownershipPercentSearchDebounceTimer);
+        ownershipPercentSearchDebounceTimer = null;
+    }
     if (state.ownershipMode === 'value') {
         renderOwnershipValueView();
         return;
@@ -7687,25 +7692,27 @@ function getOwnershipExposureTierClassByCount(count) {
     return tierConfig?.className || 'ownership-exposure--tier-1';
 }
 
-function renderOwnershipPercentView() {
+/* Ownership% list in-place updater:
+   - rebuilds the list rows only (not the toolbar/search/filter bar)
+   - preserves search input focus and cursor position
+   - applies both search term and desktop position filter */
+function renderOwnershipPercentList(shell) {
+    if (!shell) return;
     const rows = Array.isArray(state.ownershipRows) ? state.ownershipRows : [];
     const searchTerm = (state.ownershipListSearchTerm || '').trim().toLowerCase();
+    const activePos = (state.ownershipPercentPositionFilter || 'ALL').toUpperCase();
 
-    const shell = document.createElement('section');
-    shell.className = 'ownership-shell ownership-shell--percent';
+    const list = shell.querySelector('.ownership-list');
+    if (!list) return;
 
-    const toolbar = document.createElement('div');
-    toolbar.className = 'ownership-toolbar';
-    toolbar.innerHTML = `
-        <label class="sr-only" for="ownershipSearchInput">Search owned players</label>
-        <div class="ownership-search-wrap">
-            <input id="ownershipSearchInput" class="ownership-search-input" type="search" placeholder="Search players..." autocomplete="off" value="${state.ownershipListSearchTerm || ''}" />
-            <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
-        </div>
-    `;
+    // Filter rows by search term + position
+    const filteredRows = rows.filter((row) => {
+        if (activePos !== 'ALL' && row.pos !== activePos) return false;
+        if (searchTerm && !row.search.includes(searchTerm)) return false;
+        return true;
+    });
 
-    const list = document.createElement('div');
-    list.className = 'ownership-list';
+    // Rebuild list content (header + rows) without replacing the shell or toolbar
     list.innerHTML = `
         <div class="ownership-list-header">
             <span class="ownership-col ownership-col--player">Player</span>
@@ -7714,7 +7721,6 @@ function renderOwnershipPercentView() {
         </div>
     `;
 
-    const filteredRows = rows.filter((row) => !searchTerm || row.search.includes(searchTerm));
     filteredRows.forEach((row) => {
         const item = document.createElement('article');
         item.className = 'ownership-list-row';
@@ -7770,17 +7776,129 @@ function renderOwnershipPercentView() {
         list.appendChild(empty);
     }
 
+    // Sync position filter button active states (desktop only, no-op if not present)
+    updateOwnershipPercentPositionFilterButtons(shell);
+}
+
+/* Ownership% position filter button ARIA / active-class sync (desktop only).
+   Safe to call even when the filter bar is hidden on mobile. */
+function updateOwnershipPercentPositionFilterButtons(shell) {
+    if (!shell) return;
+    const activePos = (state.ownershipPercentPositionFilter || 'ALL').toUpperCase();
+    shell.querySelectorAll('.ownership-value-filter-btn[data-ownership-percent-pos]').forEach((button) => {
+        const buttonPos = (button.dataset.ownershipPercentPos || 'ALL').toUpperCase();
+        const isActive = buttonPos === activePos;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+}
+
+function renderOwnershipPercentView() {
+    // If the shell already exists in the DOM, just refresh the list content
+    // instead of destroying and recreating the entire view (avoids focus loss on search).
+    const existingShell = playerListView?.querySelector('.ownership-shell--percent');
+    if (existingShell) {
+        renderOwnershipPercentList(existingShell);
+        return;
+    }
+
+    const shell = document.createElement('section');
+    shell.className = 'ownership-shell ownership-shell--percent';
+
+    // Toolbar: search input + clear button + position filter bar (desktop only)
+    const toolbar = document.createElement('div');
+    toolbar.className = 'ownership-toolbar';
+    toolbar.innerHTML = `
+        <label class="sr-only" for="ownershipSearchInput">Search owned players</label>
+        <div class="ownership-search-wrap">
+            <input id="ownershipSearchInput" class="ownership-search-input" type="search" placeholder="Search players..." autocomplete="off" value="${state.ownershipListSearchTerm || ''}" />
+            <button class="ownership-search-clear ${(state.ownershipListSearchTerm || '') ? 'is-visible' : ''}" id="ownershipPercentSearchClear" type="button" aria-label="Clear ownership search" aria-hidden="${(state.ownershipListSearchTerm || '') ? 'false' : 'true'}">
+                <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+            </button>
+            <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+        </div>
+        <div class="ownership-percent-position-filter" role="group" aria-label="Filter ownership by position">
+            ${['ALL', 'QB', 'RB', 'WR', 'TE'].map((pos) => {
+                const active = (state.ownershipPercentPositionFilter || 'ALL') === pos;
+                // Ownership% desktop parity: expose the same data-ownership-pos hook used by the
+                // Player Value tab so both filter bars resolve through the exact same late-stage
+                // ownership.css color/active selectors without affecting mobile visibility.
+                return `<button class="ownership-value-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-percent-pos="${pos}" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
+            }).join('')}
+        </div>
+    `;
+
+    // List container (rows are populated by renderOwnershipPercentList)
+    const list = document.createElement('div');
+    list.className = 'ownership-list';
+
     shell.appendChild(toolbar);
     shell.appendChild(list);
     playerListView.innerHTML = '';
     playerListView.appendChild(shell);
 
+    // Populate list rows
+    renderOwnershipPercentList(shell);
+
+    // --- Event listeners (wired once on initial render) ---
     const searchInput = shell.querySelector('#ownershipSearchInput');
+    const searchClearButton = shell.querySelector('#ownershipPercentSearchClear');
+
+    // Sync clear button visibility on initial render
+    syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+
+    // Debounced search: updates list content only, preserving search input focus
     searchInput?.addEventListener('input', (event) => {
         state.ownershipListSearchTerm = String(event.target.value || '');
-        renderOwnershipPercentView();
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+        clearTimeout(ownershipPercentSearchDebounceTimer);
+        ownershipPercentSearchDebounceTimer = setTimeout(() => {
+            renderOwnershipPercentList(shell);
+        }, OWNERSHIP_VALUE_SEARCH_DEBOUNCE_MS);
     });
 
+    searchInput?.addEventListener('focus', () => {
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+    });
+
+    searchInput?.addEventListener('blur', () => {
+        requestAnimationFrame(() => syncOwnershipValueSearchClearButton(searchInput, searchClearButton));
+    });
+
+    // Clear button: first click clears text and re-focuses; second click (empty) blurs.
+    searchClearButton?.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+    });
+    searchClearButton?.addEventListener('click', () => {
+        if (!searchInput) return;
+        const hasText = String(searchInput.value || '').length > 0;
+        if (hasText) {
+            searchInput.value = '';
+            state.ownershipListSearchTerm = '';
+            syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+            renderOwnershipPercentList(shell);
+            try {
+                searchInput.focus({ preventScroll: true });
+            } catch (error) {
+                searchInput.focus();
+            }
+            return;
+        }
+        searchInput.blur();
+        syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
+    });
+
+    // Desktop-only position filter: click handler for filter buttons
+    shell.querySelector('.ownership-percent-position-filter')?.addEventListener('click', (event) => {
+        const button = event.target.closest('.ownership-value-filter-btn');
+        if (!button) return;
+        const nextPos = button.dataset.ownershipPercentPos || 'ALL';
+        state.ownershipPercentPositionFilter = nextPos;
+        updateOwnershipPercentPositionFilterButtons(shell);
+        renderOwnershipPercentList(shell);
+    });
+
+    // Player name click -> open ownership detail modal
     list.addEventListener('click', (event) => {
         const btn = event.target.closest('.ownership-player-trigger');
         if (!btn) return;
@@ -7887,6 +8005,7 @@ const OWNERSHIP_VALUE_FIRST_DIRECTION_BY_COLUMN = Object.freeze({
     team: 'asc'
 });
 let ownershipValueSearchDebounceTimer = null;
+let ownershipPercentSearchDebounceTimer = null;
 let ownershipValueRenderRaf = null;
 let ownershipValueStickyResizeObserver = null;
 let ownershipValueTableRefreshRaf = null;
