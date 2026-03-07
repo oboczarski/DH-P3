@@ -498,6 +498,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
   body[data-page="rosters"] .roster-branding {
     margin-right: 0;
+    gap: 0.3rem;
   }
   body[data-page="rosters"] .roster-brand-name {
     font-size: 2.2rem;
@@ -655,6 +656,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     padding-right: 0.3rem;
     padding-bottom: 1.05rem;
     padding-left: var(--roster-desktop-pad-left);
+    row-gap: 0.5rem;
   }
 
   /* Rosters wide-desktop row widths:
@@ -678,7 +680,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] .roster-brand-name {
-    font-size: calc(30.52px + (var(--roster-wide-progress) * 0.0145794393));
+    font-size: calc(27.52px + (var(--roster-wide-progress) * 0.0145794393));
   }
 
   body[data-page="rosters"] .roster-inline-search {
