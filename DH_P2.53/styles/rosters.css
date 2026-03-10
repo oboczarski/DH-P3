@@ -341,7 +341,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     grid-column: 3;
     grid-row: 2;
     justify-content: flex-start;
-    margin-left: 3px;
+    margin-left: 2px;
     height: 37px;
   }
 
@@ -404,10 +404,10 @@ body[data-page="rosters"] .roster-username-submit-label {
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
     --roster-compact-progress: clamp(0px, calc(100vw - 820px), 280px);
-    --roster-compact-gap: calc(6px + (var(--roster-compact-progress) * 0.0071428571));
+    --roster-compact-gap: calc(8px + (var(--roster-compact-progress) * 0.0071428571));
     --roster-compact-field-width: calc(206px + (var(--roster-compact-progress) * 0.1392857143));
     --roster-compact-nav-min-width: calc(68px + (var(--roster-compact-progress) * 0.0464285714));
-    --roster-compact-nav-gap: calc(3px + (var(--roster-compact-progress) * 0.0089285714));
+    --roster-compact-nav-gap: calc(9px + (var(--roster-compact-progress) * 0.0089285714));
     --roster-compact-filter-pad-x: calc(5.76px + (var(--roster-compact-progress) * 0.0085714286));
     --roster-compact-filter-gap: calc(2px + (var(--roster-compact-progress) * 0.0017857143));
     --roster-compact-view-pad-x: calc(6.24px + (var(--roster-compact-progress) * 0.0078571429));
@@ -425,7 +425,7 @@ body[data-page="rosters"] .roster-username-submit-label {
       auto;
     grid-template-rows: auto auto;
     column-gap: var(--roster-compact-gap);
-    row-gap: 0.4rem;
+    row-gap: 0.55rem;
     align-items: center;
     justify-content: stretch;
     width: min(calc(100vw - 1rem), 1090px);
@@ -779,8 +779,8 @@ body[data-page="rosters"] .roster-username-submit-label {
   /* Effective: font 0.85rem, min-w 43px, min-h 30px */
   body[data-page="rosters"] .filter-btn {
     font-size: 1.05rem;
-    min-width: 54px;
-    min-height: 46px;
+    min-width: 53px;
+    min-height: 40px;
     padding: 0.22rem 0.7rem;
   }
 
@@ -877,7 +877,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      keep the page header elements shrinking in step with the glass panel until the
      existing 1200px desktop layout takes over. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: calc(11.208px + (var(--roster-wide-progress) * 0.0155514019));
+    gap: calc(9.5px + (var(--roster-wide-progress) * 0.0155514019));
   }
 
   body[data-page="rosters"] .nav-buttons-container .nav-button {
@@ -959,7 +959,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      so let the top-row nav buttons flex across their full grid span to keep the
      More button aligned with the Start/Sit edge as the viewport narrows. */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container {
-    width: 97%;
+    width: 97.4%;
     justify-self: stretch;
     justify-content: flex-start;
   }
