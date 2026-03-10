@@ -20,20 +20,6 @@ body[data-page="rosters"] main#content {
   padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
 }
 
-/* Rosters-only glass panel override:
-   this mirrors the shared glass treatment now so future rosters-specific tuning can happen
-   here without affecting other pages. */
-body[data-page="rosters"] .glass-panel {
-  background-color: rgba(13, 14, 35, 0.21);
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
-  -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
-  backdrop-filter: blur(2px) saturate(120%) brightness(120%);
-  box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.05), inset 0 0 0 3px rgba(200, 200, 200, 0.025), 0 10px 26px rgba(0, 0, 0, var(--outerA, .22));
-  border: 1px solid rgba(128, 138, 189, 0.2);
-  border-radius: 10px;
-  box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
-}
-
 /* Roster branding + inline search: hidden by default (mobile unchanged) */
 body[data-page="rosters"] .roster-branding,
 body[data-page="rosters"] .roster-inline-search {
@@ -162,7 +148,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     display: flex;
     justify-content: center;
-    padding: 0.5rem 0 0.3rem;
+    padding: 0.5rem 0 0.9rem;
   }
 
   body[data-page="rosters"] #header-container .app-header {
@@ -379,7 +365,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     position: fixed;
     top: 0;
-    top: 4px;
+    top: 7px;
     left: 0;
     right: 0;
     width: 100vw;
@@ -401,7 +387,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     display: flex;
     justify-content: center;
-    padding: 0.5rem 0 0.3rem;
+    padding: 0.5rem 0 0.9rem;
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
@@ -692,7 +678,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      preserve the current wide-header baseline above 1522px, then let the dedicated
      1201–1522px band handle the horizontal compression below that range. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   /* ── Override shared header width caps on the roster username + league controls ── */
@@ -730,8 +716,8 @@ body[data-page="rosters"] .roster-username-submit-label {
   /* Effective at ≤1200: pad 0.4rem 0.7rem, min-h 2.5rem, MAX-h 2.5rem,      */
   /*   max-w 6rem (~96px), i 1.2rem, label 0.7rem                             */
   body[data-page="rosters"] .nav-buttons-container .nav-button {
-    width: 112px;
-    max-width: 112px;           /* override 6rem (~96px) cap from @700 */
+    width: 106px;
+    max-width: 106px;           /* override 6rem (~96px) cap from @700 */
     min-height: 53px;
     max-height: 53px;           /* override 2.5rem cap from @768 */
     padding: 0.55rem 0.8rem 0.35rem;
@@ -879,7 +865,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      keep the page header elements shrinking in step with the glass panel until the
      existing 1200px desktop layout takes over. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: calc(11.208px + (var(--roster-wide-progress) * 0.0155514019));
+    gap: calc(18.208px + (var(--roster-wide-progress) * 0.0155514019));
   }
 
   body[data-page="rosters"] .nav-buttons-container .nav-button {
@@ -961,7 +947,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      so let the top-row nav buttons flex across their full grid span to keep the
      More button aligned with the Start/Sit edge as the viewport narrows. */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container {
-    width: 97%;
+    width: 97.3%;
     justify-self: stretch;
     justify-content: flex-start;
   }
