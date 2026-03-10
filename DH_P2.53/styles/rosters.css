@@ -856,9 +856,9 @@ body[data-page="rosters"] .roster-username-submit-label {
     --header-control-height: 46px;
     padding-top: 0.2rem;
     padding-right: 0.3rem;
-    padding-bottom: 1.05rem;
+    padding-bottom: 0.85rem;
     padding-left: var(--roster-desktop-pad-left);
-    row-gap: 0.5rem;
+    row-gap: 0.25rem;
   }
 
   /* Rosters wide-desktop row widths:
