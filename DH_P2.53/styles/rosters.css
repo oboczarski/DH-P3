@@ -165,7 +165,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     align-items: center;
     justify-content: center;
     position: relative;
-    padding: 0.5rem 0.45rem 0.75rem 1.1rem;
+    padding: 0.5rem 0.15rem 0.75rem 1.1rem;
     margin: 0 auto;
     width: fit-content;
     max-width: var(--roster-desktop-max);
@@ -678,7 +678,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      preserve the current wide-header baseline above 1522px, then let the dedicated
      1201–1522px band handle the horizontal compression below that range. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: 1.45rem;
+    gap: 1.5rem;
   }
 
   /* ── Override shared header width caps on the roster username + league controls ── */
@@ -855,7 +855,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     --roster-left-stack-gap: calc(8.6px + (var(--roster-wide-progress) * 0.107165109));
     --header-control-height: 46px;
     padding-top: 0.2rem;
-    padding-right: 0.3rem;
+    padding-right: 0rem;
     padding-bottom: 0.85rem;
     padding-left: var(--roster-desktop-pad-left);
     row-gap: 0.25rem;
@@ -937,6 +937,30 @@ body[data-page="rosters"] .roster-username-submit-label {
 
   body[data-page="rosters"] .compare-controls {
     min-height: 46px;
+  }
+}
+
+@media (min-width: 1101px) and (max-width: 1522px) {
+
+  /* Rosters desktop nav alignment:
+     in the 1101–1522px range the bottom row already reaches the intended right edge,
+     so let the top-row nav buttons flex across their full grid span to keep the
+     More button aligned with the Start/Sit edge as the viewport narrows. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container {
+    width: 97.3%;
+    justify-self: stretch;
+    justify-content: flex-start;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container .nav-button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container .nav-button.nav-more-toggle {
+    flex: 1.04 1 0;
   }
 }
 
