@@ -393,24 +393,23 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
     --roster-compact-progress: clamp(0px, calc(100vw - 820px), 280px);
     --roster-compact-gap: calc(6px + (var(--roster-compact-progress) * 0.0071428571));
-    --roster-compact-field-width: calc(190px + (var(--roster-compact-progress) * 0.1392857143));
-    --roster-compact-nav-min-width: calc(72px + (var(--roster-compact-progress) * 0.05));
-    --roster-compact-nav-gap: calc(4px + (var(--roster-compact-progress) * 0.0107142857));
+    --roster-compact-field-width: calc(206px + (var(--roster-compact-progress) * 0.1392857143));
+    --roster-compact-nav-min-width: calc(68px + (var(--roster-compact-progress) * 0.0464285714));
+    --roster-compact-nav-gap: calc(3px + (var(--roster-compact-progress) * 0.0089285714));
     --roster-compact-filter-pad-x: calc(5.76px + (var(--roster-compact-progress) * 0.0085714286));
     --roster-compact-filter-gap: calc(2px + (var(--roster-compact-progress) * 0.0017857143));
-    --roster-compact-view-pad-x: calc(5.6px + (var(--roster-compact-progress) * 0.0071428571));
-    --roster-compact-start-sit-pad-x: calc(8.4px + (var(--roster-compact-progress) * 0.0064285714));
-    --roster-compact-filter-track: calc(220px + (var(--roster-compact-progress) * 0.1678571429));
-    --roster-compact-view-track: calc(178px + (var(--roster-compact-progress) * 0.0964285714));
-    --roster-compact-start-sit-track: calc(82px + (var(--roster-compact-progress) * 0.0928571429));
+    --roster-compact-view-pad-x: calc(6.24px + (var(--roster-compact-progress) * 0.0078571429));
+    --roster-compact-start-sit-pad-x: calc(7.04px + (var(--roster-compact-progress) * 0.0057142857));
+    --roster-compact-filter-track: calc(208px + (var(--roster-compact-progress) * 0.1178571429));
+    --roster-compact-view-track: calc(224px + (var(--roster-compact-progress) * 0.1071428571));
+    --roster-compact-start-sit-track: calc(60px + (var(--roster-compact-progress) * 0.0428571429));
     --header-control-height: 37px;
     display: grid;
-    grid-template-columns:
-      minmax(var(--roster-compact-field-width), var(--roster-compact-field-width))
-      minmax(var(--roster-compact-filter-track), 1.35fr)
+    grid-template-columns: minmax(var(--roster-compact-field-width), var(--roster-compact-field-width))
+      minmax(var(--roster-compact-filter-track), 1.25fr)
       auto
-      minmax(var(--roster-compact-view-track), 1.05fr)
-      minmax(var(--roster-compact-start-sit-track), 0.68fr)
+      minmax(var(--roster-compact-view-track), 1.2fr)
+      minmax(var(--roster-compact-start-sit-track), 0.52fr)
       auto;
     grid-template-rows: auto auto;
     column-gap: var(--roster-compact-gap);
@@ -475,10 +474,17 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container .nav-button {
-    flex: 1 1 0;
+    flex: 0.9 1 0;
     width: auto;
     min-width: var(--roster-compact-nav-min-width);
     max-width: none;
+  }
+
+  /* Compact desktop nav balance:
+     keep the standard nav buttons a touch tighter while letting the More control
+     absorb a bit more width so the league dropdown can grow without crowding the row. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container .nav-button.nav-more-toggle {
+    flex: 1.12 1 0;
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .roster-inline-search {
@@ -540,6 +546,17 @@ body[data-page="rosters"] .roster-username-submit-label {
     padding: 0.2rem var(--roster-compact-view-pad-x) 0.1rem !important;
   }
 
+  /* Compact desktop switcher sizing:
+     override the shared 869px switcher compression so the roster segmented control
+     keeps readable label sizing when the compact desktop layout is active. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compact-switcher button i {
+    font-size: 0.92rem;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compact-switcher .switcher-label {
+    font-size: 0.74rem !important;
+  }
+
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button-slot {
     grid-column: 5;
     grid-row: 2;
@@ -555,6 +572,10 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button {
+    /* Compact desktop rosters:
+       clear the shared >=869px fixed flex-basis from styles.css so the button can
+       size to this compact-header track without affecting ownership/analyzer. */
+    flex: 0 1 auto !important;
     width: 100%;
     min-width: 0 !important;
     padding: 0.3rem var(--roster-compact-start-sit-pad-x) 0.2rem !important;
