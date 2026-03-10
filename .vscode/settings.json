@@ -202,5 +202,6 @@
   "livePreview.autoRefreshPreview": "On Changes to Saved Files",
   "livePreview.showServerStatusNotifications": true,
   "livePreview.defaultPreviewPath": "DH_P2.53",
-  "editor.accessibilitySupport": "off"
+  "editor.accessibilitySupport": "off",
+  "chat.autopilot.enabled": true
 }

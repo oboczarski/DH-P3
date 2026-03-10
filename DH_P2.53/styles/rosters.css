@@ -899,7 +899,7 @@ body[data-page="rosters"] .roster-username-submit-label {
 
   body[data-page="rosters"] .filter-btn {
     min-width: calc(45.2px + (var(--roster-wide-progress) * 0.0274143302));
-    min-height: 46px;
+    min-height: 40px;
     padding: 0.22rem calc(8.64px + (var(--roster-wide-progress) * 0.00797507788));
   }
 
