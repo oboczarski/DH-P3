@@ -614,7 +614,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   gap: 0.1rem;
   padding: 0.4rem 0.6rem;
   min-height: 2.25rem;
-  background: rgba(13, 14, 35, 0.25);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   backdrop-filter: blur(8px);
   border: 1px solid rgba(128, 138, 189, 0.2);
   border-radius: 8px;
@@ -891,7 +891,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   /* fill its flex cell */
   min-width: 3.5rem;
   /* avoid min-content clamp */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1)) !important;
+  background: linear-gradient(to bottom, rgba(50, 50, 80, 0.1), rgb(66 45 208 / 10%)) !important;
   border: 1px solid rgba(128, 138, 189, 0.2) !important;
   border-radius: 8px;
   color: var(--color-text-secondary);
@@ -1432,8 +1432,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 #leagueSelect {
   appearance: none;
-  /* EDITED: Increased transparency */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   border: 1px solid var(--color-panel-border);
   border-radius: 8px;
   -webkit-backdrop-filter: blur(4px) saturate(110%);
@@ -1495,12 +1494,12 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .secondary-switcher {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 #positional-filters {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(50, 50, 70, 0.1), rgb(106 95 250 / 10%));
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
   padding: 0.1rem 0.02rem !important;
 }
