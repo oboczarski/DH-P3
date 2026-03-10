@@ -43,11 +43,11 @@ body[data-page="rosters"] .nav-button {
   align-items: center;
   justify-content: center;
   gap: 0.1rem;
-  padding: 0.4rem 0.6rem;
+  padding: 0.25rem 0.6rem;
   min-height: 2.25rem;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(128, 138, 189, 0.2);
+  border: 1px solid rgb(128 138 189 / 29%);
   border-radius: 8px;
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -68,7 +68,7 @@ body[data-page="rosters"] #leagueSelect {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 14px 0px #fff1;
   padding: 0.32rem 1.25rem 0.32rem 0.5rem;
   font-size: 14px;
-  color: #c4c8ea7a;
+  color: #c4c8eaba;
   font-weight: 300;
   width: 100%;
   height: 100%;
@@ -840,7 +840,8 @@ body[data-page="rosters"] .roster-username-submit-label {
     height: 46px;
   }
   body[data-page="rosters"] .roster-search-icon {
-    font-size: 0.98rem;
+    font-size: 1.08rem;
+    margin-top: 3px;
   }
   body[data-page="rosters"] #rosterSearchInput {
     font-size: 1.08rem;
@@ -1255,7 +1256,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   body[data-page="rosters"] .start-sit-button {
     padding: 0.25rem 0.38rem !important;
     gap: 0.1rem !important;
-    min-width: 3.3rem !important;
+    min-width: 3.5rem !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1338,7 +1339,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     padding: 0.32rem 0.35rem !important;
     min-height: auto !important;
     height: auto !important;
-    min-width: 3.45rem;
+    min-width: 3.65rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
     border-radius: 8px;
@@ -1357,6 +1358,7 @@ body[data-page="rosters"] #bottom-menu-panel {
       0 0 8px rgba(66, 194, 255, 0.25),
       inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
     border-color: rgba(66, 194, 255, 0.3);
+    background: rgb(109 235 248 / 5%);
   }
 
   /* Condensed icon glow */
@@ -1477,6 +1479,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     justify-content: flex-start;
     flex-wrap: nowrap;
     align-items: stretch;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 12px 0px #fff1;
   }
 
   body[data-page="rosters"] .filter-btn {
