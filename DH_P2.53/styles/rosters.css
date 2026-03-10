@@ -1408,33 +1408,74 @@ body[data-page="rosters"] #bottom-menu-panel {
   @media (min-width: 531px) and (max-width: 819px) {
     body[data-page="rosters"] #filters-row {
       --roster-mobile-control-progress: clamp(0px, calc(100vw - 531px), 288px);
-      gap: calc(0.18rem + (var(--roster-mobile-control-progress) * 0.0001736111));
+      display: grid;
+      grid-template-columns: minmax(86px, 0.94fr) minmax(102px, 1.08fr) minmax(0, 2.48fr) 32px;
+      align-items: stretch;
+      gap: calc(0.16rem + (var(--roster-mobile-control-progress) * 0.0001736111));
     }
 
     /* Wider mobile nav row:
-       keep visible spacing between buttons while still directing most of the
-       extra width into the buttons themselves for the wider mobile slice. */
+       use an explicit six-column roster grid so the buttons have reliable spacing,
+       readable labels, and equal widths throughout the wider mobile range. */
     body[data-page="rosters"] #primary-header-row {
-      gap: calc(0.08rem + (var(--roster-mobile-control-progress) * 0.0001388889));
+      gap: 0;
+      padding: 0 0.18rem;
     }
 
     body[data-page="rosters"] .nav-buttons-container {
+      display: grid !important;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      align-items: stretch;
       justify-content: stretch;
-      gap: calc(0.24rem + (var(--roster-mobile-control-progress) * 0.0003472222));
+      column-gap: calc(0.42rem + (var(--roster-mobile-control-progress) * 0.0003472222)) !important;
+      row-gap: 0 !important;
+      width: 100%;
     }
 
     body[data-page="rosters"] .nav-buttons-container .nav-button {
-      flex: 1 1 0;
-      width: auto;
+      width: 100%;
       min-width: 0;
       max-width: none;
+      flex: 0 0 auto;
+      min-height: 2.2rem;
+      padding: 0.3rem 0.3rem 0.24rem;
+      gap: 0.08rem;
+    }
+
+    body[data-page="rosters"] #homeButton {
+      padding-top: 0.3rem;
+      padding-bottom: 0.24rem;
+    }
+
+    body[data-page="rosters"] .nav-buttons-container .nav-button i {
+      font-size: 1.02rem;
+    }
+
+    body[data-page="rosters"] .nav-buttons-container .nav-logo {
+      width: 1.08rem;
+      height: 1.08rem;
+    }
+
+    body[data-page="rosters"] .nav-buttons-container .nav-label {
+      font-size: 0.68rem !important;
+      font-weight: 600;
+      line-height: 1;
+      margin-top: 0.02rem;
+    }
+
+    body[data-page="rosters"] .nav-buttons-container .nav-button.nav-more-toggle > i.nav-more-caret {
+      font-size: 0.74rem;
     }
 
     /* Wider mobile bottom-row controls:
        give Start/Sit and the view dropdown a little more of the row so the
        positional filter bar does not dominate the layout near the 819px edge. */
     body[data-page="rosters"] .start-sit-button-slot {
-      flex: 0 0 calc(68px + (var(--roster-mobile-control-progress) * 0.0659722222)) !important;
+      grid-column: 1;
+      width: 100%;
+      min-width: 0;
+      flex: none !important;
+      margin: 0;
     }
 
     body[data-page="rosters"] .start-sit-button-container {
@@ -1445,17 +1486,54 @@ body[data-page="rosters"] #bottom-menu-panel {
     body[data-page="rosters"] .start-sit-button {
       width: 100% !important;
       min-width: 0 !important;
+      padding-left: calc(7.4px + (var(--roster-mobile-control-progress) * 0.0076388889)) !important;
+      padding-right: calc(7.4px + (var(--roster-mobile-control-progress) * 0.0076388889)) !important;
     }
 
     body[data-page="rosters"] .view-switcher-dropdown {
-      flex: 0 0 calc(71px + (var(--roster-mobile-control-progress) * 0.0798611111)) !important;
+      grid-column: 2;
+      width: 100%;
+      min-width: 0;
+      flex: none !important;
     }
 
     body[data-page="rosters"] .view-dropdown-toggle {
       width: 100%;
       min-width: 0;
-      padding-left: calc(6.5px + (var(--roster-mobile-control-progress) * 0.0052083333)) !important;
-      padding-right: calc(6.5px + (var(--roster-mobile-control-progress) * 0.0052083333)) !important;
+      padding-left: calc(8px + (var(--roster-mobile-control-progress) * 0.0083333333)) !important;
+      padding-right: calc(8px + (var(--roster-mobile-control-progress) * 0.0083333333)) !important;
+    }
+
+    body[data-page="rosters"] .filters-container {
+      grid-column: 3;
+      flex: none;
+      width: 100%;
+      min-width: 0;
+      gap: 0.22rem;
+    }
+
+    body[data-page="rosters"] #positional-filters {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      flex: none;
+      width: 100%;
+      gap: 0.03rem;
+    }
+
+    body[data-page="rosters"] .filter-btn {
+      width: 100%;
+      min-width: 0;
+      padding-left: 0.2rem !important;
+      padding-right: 0.2rem !important;
+      font-size: 0.74rem !important;
+    }
+
+    body[data-page="rosters"] .compare-controls {
+      grid-column: 4;
+      flex: none;
+      width: 32px;
+      min-width: 32px;
+      justify-self: stretch;
     }
   }
 }
