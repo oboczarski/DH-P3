@@ -162,7 +162,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     display: flex;
     justify-content: center;
-    padding: 0.5rem 0 0.9rem;
+    padding: 0.5rem 0 0.3rem;
   }
 
   body[data-page="rosters"] #header-container .app-header {
@@ -379,7 +379,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     position: fixed;
     top: 0;
-    top: 7px;
+    top: 4px;
     left: 0;
     right: 0;
     width: 100vw;
@@ -401,7 +401,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] #header-container {
     display: flex;
     justify-content: center;
-    padding: 0.5rem 0 0.9rem;
+    padding: 0.5rem 0 0.3rem;
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
@@ -692,7 +692,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      preserve the current wide-header baseline above 1522px, then let the dedicated
      1201–1522px band handle the horizontal compression below that range. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   /* ── Override shared header width caps on the roster username + league controls ── */
@@ -730,8 +730,8 @@ body[data-page="rosters"] .roster-username-submit-label {
   /* Effective at ≤1200: pad 0.4rem 0.7rem, min-h 2.5rem, MAX-h 2.5rem,      */
   /*   max-w 6rem (~96px), i 1.2rem, label 0.7rem                             */
   body[data-page="rosters"] .nav-buttons-container .nav-button {
-    width: 106px;
-    max-width: 106px;           /* override 6rem (~96px) cap from @700 */
+    width: 112px;
+    max-width: 112px;           /* override 6rem (~96px) cap from @700 */
     min-height: 53px;
     max-height: 53px;           /* override 2.5rem cap from @768 */
     padding: 0.55rem 0.8rem 0.35rem;
@@ -879,7 +879,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      keep the page header elements shrinking in step with the glass panel until the
      existing 1200px desktop layout takes over. */
   body[data-page="rosters"] .nav-buttons-container {
-    gap: calc(18.208px + (var(--roster-wide-progress) * 0.0155514019));
+    gap: calc(11.208px + (var(--roster-wide-progress) * 0.0155514019));
   }
 
   body[data-page="rosters"] .nav-buttons-container .nav-button {
@@ -961,7 +961,7 @@ body[data-page="rosters"] .roster-username-submit-label {
      so let the top-row nav buttons flex across their full grid span to keep the
      More button aligned with the Start/Sit edge as the viewport narrows. */
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container {
-    width: 97.3%;
+    width: 97%;
     justify-self: stretch;
     justify-content: flex-start;
   }
