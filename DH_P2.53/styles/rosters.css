@@ -20,98 +20,6 @@ body[data-page="rosters"] main#content {
   padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
 }
 
-/* Rosters-only glass and header control shells.
-   These selectors mirror the shared styles.css rules so roster background tweaks stay
-   isolated here and never leak into the other pages that reuse the same components. */
-body[data-page="rosters"] .glass-panel {
-  background-color: rgba(13, 14, 35, 0.21);
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
-  -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
-  backdrop-filter: blur(6px) saturate(130%) brightness(130%);
-  box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.05), inset 0 0 0 3px rgba(200, 200, 200, 0.025), 0 10px 26px rgba(0, 0, 0, var(--outerA, .22));
-  border: 1px solid rgba(128, 138, 189, 0.2);
-  border-radius: 10px;
-  box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
-}
-
-/* Rosters-only header controls.
-   Keep the selector/declaration parity with the shared rules so the rosters page can
-   diverge visually while preserving the same control sizing and behavior. */
-body[data-page="rosters"] .nav-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.1rem;
-  padding: 0.25rem 0.6rem;
-  min-height: 2.25rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
-  backdrop-filter: blur(8px);
-  border: 1px solid rgb(128 138 189 / 29%);
-  border-radius: 8px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 15px 10px #fff1;
-  flex: 1;
-  max-width: 4.5rem;
-}
-
-body[data-page="rosters"] #leagueSelect {
-  appearance: none;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(116 105 250 / 12%));
-  border: 1px solid var(--color-panel-border);
-  border-radius: 8px;
-  -webkit-backdrop-filter: blur(4px) saturate(110%);
-  backdrop-filter: blur(4px) saturate(110%);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 14px 0px #fff1;
-  padding: 0.32rem 1.25rem 0.32rem 0.5rem;
-  font-size: 14px;
-  color: #c4c8eaba;
-  font-weight: 300;
-  width: 100%;
-  height: 100%;
-  min-width: 100px;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-body[data-page="rosters"] .secondary-switcher {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 14px 11px #fff1;
-}
-
-body[data-page="rosters"] #positional-filters {
-  background: linear-gradient(to bottom, rgba(50, 50, 70, 0.1), rgb(106 95 250 / 10%));
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 16px 12px #fff1;
-  padding: 0.1rem 0.02rem !important;
-}
-
-/* Rosters-only Start/Sit base button shell.
-   This was moved out of styles.css so future background changes can stay page-specific,
-   while the later rosters media queries continue to override sizing as needed. */
-body[data-page="rosters"] .start-sit-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.1rem;
-  padding: 0.22rem 0.535rem !important;
-  flex: 1 1 0 !important;
-  width: 100%;
-  min-width: 3.5rem;
-  background: linear-gradient(to bottom, rgba(50, 50, 80, 0.1), rgb(66 45 208 / 10%)) !important;
-  border: 1px solid rgba(128, 138, 189, 0.2) !important;
-  border-radius: 8px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.06), inset 0 0 13px 9px #fff1 !important;
-}
-
 /* Roster branding + inline search: hidden by default (mobile unchanged) */
 body[data-page="rosters"] .roster-branding,
 body[data-page="rosters"] .roster-inline-search {
@@ -163,11 +71,11 @@ body[data-page="rosters"] .roster-inline-search::before {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(116 105 250 / 12%));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   border: 1px solid var(--color-panel-border);
   -webkit-backdrop-filter: blur(4px) saturate(110%);
   backdrop-filter: blur(4px) saturate(110%);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 14px 0px #fff1;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
   pointer-events: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -840,8 +748,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     height: 46px;
   }
   body[data-page="rosters"] .roster-search-icon {
-    font-size: 1.08rem;
-    margin-top: 3px;
+    font-size: 0.98rem;
   }
   body[data-page="rosters"] #rosterSearchInput {
     font-size: 1.08rem;
@@ -1256,7 +1163,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   body[data-page="rosters"] .start-sit-button {
     padding: 0.25rem 0.38rem !important;
     gap: 0.1rem !important;
-    min-width: 3.5rem !important;
+    min-width: 3.3rem !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1339,7 +1246,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     padding: 0.32rem 0.35rem !important;
     min-height: auto !important;
     height: auto !important;
-    min-width: 3.65rem;
+    min-width: 3.45rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
     border-radius: 8px;
@@ -1358,7 +1265,6 @@ body[data-page="rosters"] #bottom-menu-panel {
       0 0 8px rgba(66, 194, 255, 0.25),
       inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
     border-color: rgba(66, 194, 255, 0.3);
-    background: rgb(109 235 248 / 5%);
   }
 
   /* Condensed icon glow */
@@ -1479,7 +1385,6 @@ body[data-page="rosters"] #bottom-menu-panel {
     justify-content: flex-start;
     flex-wrap: nowrap;
     align-items: stretch;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0 12px 0px #fff1;
   }
 
   body[data-page="rosters"] .filter-btn {
