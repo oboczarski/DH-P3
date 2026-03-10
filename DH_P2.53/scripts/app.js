@@ -9398,15 +9398,27 @@ function syncRosterHeaderDividerPosition() {
     const desktopSearchBar = document.getElementById('rosterInlineSearch');
     if (!isRosterPage || !appHeader) return;
 
+    const usernameVisible = Boolean(
+        desktopUsernameArea
+        && desktopUsernameArea.getClientRects().length
+        && getComputedStyle(desktopUsernameArea).display !== 'none'
+    );
+    const searchVisible = Boolean(
+        desktopSearchBar
+        && desktopSearchBar.getClientRects().length
+        && getComputedStyle(desktopSearchBar).display !== 'none'
+    );
     const shouldShowDivider = Boolean(
         rosterHeaderDividerQuery?.matches
-        && desktopUsernameArea
-        && desktopSearchBar
+        && window.innerWidth > 1100
+        && usernameVisible
+        && searchVisible
         && !appHeader.classList.contains('preview-active')
     );
 
     // Rosters desktop header divider: measure the actual username/search gap so the separator
-    // stays centered even when the desktop header uses different widths above vs. below 1201px.
+    // stays centered when the two-panel desktop header is visible, and turns off once the
+    // compact 820–1100px desktop layout removes the left-hand brand/username section.
     if (!shouldShowDivider) {
         appHeader.style.setProperty('--roster-divider-opacity', '0');
         appHeader.style.removeProperty('--roster-divider-x');

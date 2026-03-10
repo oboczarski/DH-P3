@@ -379,16 +379,197 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 }
 
-/* ── Rosters: Progressive shrink for narrower desktops (869px–1032px) ── */
-/* Smoothly reduce header scale so all elements still fit before the mobile
-   layout kicks in at ≤819 px.  Uses a CSS scale transform on the header
-   itself to keep proportions intact. */
-@media (min-width: 869px) and (max-width: 1032px) {
+/* ── Rosters: Compact desktop header band (820px–1100px) ── */
+/* This roster-only desktop layout removes the left brand/username stack once the
+   viewport tightens to 1100px, then lets the league/search column grow so the rest
+   of the controls can keep fitting cleanly until the mobile header takes over at 819px. */
+@media (min-width: 820px) and (max-width: 1100px) {
+  body[data-page="rosters"] #header-container {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 0.9rem;
+  }
+
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) {
-    /* Scale from ~0.82 at 869px up to 1.0 at 1033px */
-    --_shrink: clamp(0.82, calc(0.82 + (100vw - 869px) * 0.0011), 1);
-    transform: scale(var(--_shrink));
-    transform-origin: top center;
+    --roster-compact-progress: clamp(0px, calc(100vw - 820px), 280px);
+    --roster-compact-gap: calc(6px + (var(--roster-compact-progress) * 0.0071428571));
+    --roster-compact-field-width: calc(190px + (var(--roster-compact-progress) * 0.1392857143));
+    --roster-compact-nav-min-width: calc(72px + (var(--roster-compact-progress) * 0.05));
+    --roster-compact-nav-gap: calc(4px + (var(--roster-compact-progress) * 0.0107142857));
+    --roster-compact-filter-pad-x: calc(5.76px + (var(--roster-compact-progress) * 0.0085714286));
+    --roster-compact-filter-gap: calc(2px + (var(--roster-compact-progress) * 0.0017857143));
+    --roster-compact-view-pad-x: calc(5.6px + (var(--roster-compact-progress) * 0.0071428571));
+    --roster-compact-start-sit-pad-x: calc(8.4px + (var(--roster-compact-progress) * 0.0064285714));
+    --roster-compact-filter-track: calc(220px + (var(--roster-compact-progress) * 0.1678571429));
+    --roster-compact-view-track: calc(178px + (var(--roster-compact-progress) * 0.0964285714));
+    --roster-compact-start-sit-track: calc(82px + (var(--roster-compact-progress) * 0.0928571429));
+    --header-control-height: 37px;
+    display: grid;
+    grid-template-columns:
+      minmax(var(--roster-compact-field-width), var(--roster-compact-field-width))
+      minmax(var(--roster-compact-filter-track), 1.35fr)
+      auto
+      minmax(var(--roster-compact-view-track), 1.05fr)
+      minmax(var(--roster-compact-start-sit-track), 0.68fr)
+      auto;
+    grid-template-rows: auto auto;
+    column-gap: var(--roster-compact-gap);
+    row-gap: 0.4rem;
+    align-items: center;
+    justify-content: stretch;
+    width: min(calc(100vw - 1rem), 1090px);
+    max-width: min(calc(100vw - 1rem), 1090px);
+    margin: 0 auto;
+    padding: 0.5rem 0.55rem 0.75rem;
+    transform: none;
+  }
+
+  /* Compact desktop header reflow:
+     flatten the roster-specific rows back into the grid so the remaining controls can
+     stretch without inheriting the hidden left-hand brand/username stack. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #primary-header-row,
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #contextual-controls,
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #secondary-header-row,
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #filters-row,
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .filters-container {
+    display: contents !important;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #contextual-controls .header-row {
+    border-top: 0;
+    padding: 0;
+  }
+
+  /* Remove the left-of-divider roster stack in this desktop-only band. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .roster-branding,
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #secondary-header-row .username-area {
+    display: none !important;
+  }
+
+  /* With the left stack gone there is no visual split to draw, so keep the header clean. */
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active)::after {
+    opacity: 0;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .custom-select-wrapper {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: var(--header-control-height);
+    min-width: 0;
+    max-width: none;
+    margin-right: 0;
+    justify-self: stretch;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container {
+    grid-column: 2 / span 5;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    justify-content: stretch;
+    gap: var(--roster-compact-nav-gap);
+    min-width: 0;
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .nav-buttons-container .nav-button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: var(--roster-compact-nav-min-width);
+    max-width: none;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .roster-inline-search {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.32rem;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    justify-self: stretch;
+    padding: 0 0.42rem;
+    height: var(--header-control-height);
+    box-sizing: border-box;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #positional-filters {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: var(--roster-compact-filter-gap);
+    margin-left: 0;
+    width: 100%;
+    height: 37px;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .filter-btn {
+    width: 100%;
+    min-width: 0;
+    padding: 0.22rem var(--roster-compact-filter-pad-x);
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) #clearFiltersButton {
+    grid-column: 3;
+    grid-row: 2;
+    margin-left: 0;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .view-switcher {
+    grid-column: 4;
+    grid-row: 2;
+    justify-self: stretch;
+    margin-left: 0 !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compact-switcher {
+    width: 100%;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compact-switcher button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding: 0.2rem var(--roster-compact-view-pad-x) 0.1rem !important;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button-slot {
+    grid-column: 5;
+    grid-row: 2;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button-container {
+    width: 100%;
+    flex: 1 1 auto !important;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button {
+    width: 100%;
+    min-width: 0 !important;
+    padding: 0.3rem var(--roster-compact-start-sit-pad-x) 0.2rem !important;
+    margin-left: 0;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compare-controls {
+    grid-column: 6;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+  }
+
+  body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compare-search-toggle {
+    display: none !important;
   }
 }
 
@@ -1221,19 +1402,60 @@ body[data-page="rosters"] #bottom-menu-panel {
     position: relative;
   }
 
-  /* Make start/sit and view-switcher expand on wider mobile screens */
-  @media (min-width: 500px) and (max-width: 819px) {
+  /* Wider mobile roster controls:
+     between 531px and 819px, let the view dropdown and Start/Sit control claim a bit
+     more horizontal space; at 530px and below, the current tighter mobile sizing remains. */
+  @media (min-width: 531px) and (max-width: 819px) {
+    body[data-page="rosters"] #filters-row {
+      --roster-mobile-control-progress: clamp(0px, calc(100vw - 531px), 288px);
+      gap: calc(0.18rem + (var(--roster-mobile-control-progress) * 0.0001736111));
+    }
+
+    /* Wider mobile nav row:
+       keep visible spacing between buttons while still directing most of the
+       extra width into the buttons themselves for the wider mobile slice. */
+    body[data-page="rosters"] #primary-header-row {
+      gap: calc(0.08rem + (var(--roster-mobile-control-progress) * 0.0001388889));
+    }
+
+    body[data-page="rosters"] .nav-buttons-container {
+      justify-content: stretch;
+      gap: calc(0.24rem + (var(--roster-mobile-control-progress) * 0.0003472222));
+    }
+
+    body[data-page="rosters"] .nav-buttons-container .nav-button {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+      max-width: none;
+    }
+
+    /* Wider mobile bottom-row controls:
+       give Start/Sit and the view dropdown a little more of the row so the
+       positional filter bar does not dominate the layout near the 819px edge. */
     body[data-page="rosters"] .start-sit-button-slot {
-      flex: 0 1 auto;
+      flex: 0 0 calc(68px + (var(--roster-mobile-control-progress) * 0.0659722222)) !important;
+    }
+
+    body[data-page="rosters"] .start-sit-button-container {
+      flex: 1 1 auto !important;
+      width: 100%;
     }
 
     body[data-page="rosters"] .start-sit-button {
-      min-width: 4.5rem;
+      width: 100% !important;
+      min-width: 0 !important;
     }
 
+    body[data-page="rosters"] .view-switcher-dropdown {
+      flex: 0 0 calc(71px + (var(--roster-mobile-control-progress) * 0.0798611111)) !important;
+    }
 
-    body[data-page="rosters"] .view-switcher {
-      flex: 0 1 auto;
+    body[data-page="rosters"] .view-dropdown-toggle {
+      width: 100%;
+      min-width: 0;
+      padding-left: calc(6.5px + (var(--roster-mobile-control-progress) * 0.0052083333)) !important;
+      padding-right: calc(6.5px + (var(--roster-mobile-control-progress) * 0.0052083333)) !important;
     }
   }
 }
