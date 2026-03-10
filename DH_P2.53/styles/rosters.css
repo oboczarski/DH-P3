@@ -1175,7 +1175,7 @@ body[data-page="rosters"] #bottom-menu-panel {
   body[data-page="rosters"] .start-sit-button {
     padding: 0.25rem 0.38rem !important;
     gap: 0.1rem !important;
-    min-width: 3.3rem !important;
+    min-width: 3.5rem !important;
     height: auto !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1258,7 +1258,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     padding: 0.32rem 0.35rem !important;
     min-height: auto !important;
     height: auto !important;
-    min-width: 3.45rem;
+    min-width: 3.65rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
     border-radius: 8px;
