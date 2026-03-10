@@ -20,6 +20,20 @@ body[data-page="rosters"] main#content {
   padding-top: max(calc(var(--roster-header-height, 0px) - var(--roster-header-gap, 0px)), 0px);
 }
 
+/* Rosters-only glass panel override:
+   this mirrors the shared glass treatment now so future rosters-specific tuning can happen
+   here without affecting other pages. */
+body[data-page="rosters"] .glass-panel {
+  background-color: rgba(13, 14, 35, 0.21);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
+  -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+  backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+  box-shadow: inset 0 0 0 0px rgba(255, 255, 255, 0.05), inset 0 0 0 3px rgba(200, 200, 200, 0.025), 0 10px 26px rgba(0, 0, 0, var(--outerA, .22));
+  border: 1px solid rgba(128, 138, 189, 0.2);
+  border-radius: 10px;
+  box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
+}
+
 /* Roster branding + inline search: hidden by default (mobile unchanged) */
 body[data-page="rosters"] .roster-branding,
 body[data-page="rosters"] .roster-inline-search {

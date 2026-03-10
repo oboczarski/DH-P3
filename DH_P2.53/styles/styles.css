@@ -10,7 +10,6 @@
 #game-logs-modal .stat-rank-variant-gamelogs-footer sup.stat-rank-suffix-gamelogs-footer,
 #game-logs-modal tfoot td.has-rank-annotation span.stat-rank-annotation sup {
   top: 0em !important;
-  font-size: 0.5rem !important;
 }
 
 /* Game logs modal: opponent rank suffixes (first column) */
@@ -32,7 +31,6 @@
 }
 
 /* KTC rank in player cards */
-/* KTC rank in player cards */
 .stat-rank-variant-ktc {
   display: inline-flex;
   align-items: center;
@@ -50,10 +48,6 @@
 .player-ppg-wrapper .value {
   margin-left: 0.03rem;
   /* subtle spacing between label and value */
-}
-
-.player-ktc-wrapper .stat-rank-number {
-  color: inherit;
 }
 
 .stat-rank-variant-ktc .stat-rank-number {
@@ -614,7 +608,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   gap: 0.1rem;
   padding: 0.4rem 0.6rem;
   min-height: 2.25rem;
-  background: rgba(13, 14, 35, 0.25);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   backdrop-filter: blur(8px);
   border: 1px solid rgba(128, 138, 189, 0.2);
   border-radius: 8px;
@@ -643,7 +637,6 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .nav-button:hover {
-  color: var(--color-text-primary);
   background: rgba(13, 14, 35, 0.35);
   border-color: rgba(128, 138, 189, 0.35);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25),
@@ -666,6 +659,274 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   To ensure it inherits all existing per-page overrides (e.g. Stats/Rosters desktop),
   the toggle uses the shared `.nav-button` class in HTML.
 */
+.nav-button.nav-more-toggle {
+  position: relative;
+}
+
+.nav-button.nav-more-toggle[aria-expanded="true"] {
+  color: #7360ff;
+  background: rgba(66, 194, 255, 0.07);
+  border-color: #7360ffa5;
+  box-shadow: 0 4px 12px rgba(66, 194, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-more-dropdown {
+  /* Positioned via JS relative to the toggle to avoid needing a wrapper div */
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-width: 67px;
+  width: fit-content;
+  background: linear-gradient(145deg, rgba(47, 46, 72, 0.97), rgba(32, 31, 56, 0.97));
+  backdrop-filter: blur(16px);
+  border: 1px solid #7360ff70;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 35px -5px #5300ff7a;
+  padding: 6px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1200;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.nav-more-dropdown:not(.hidden) {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+  transform: translateX(0px);
+}
+
+
+.nav-more-dropdown.hidden {
+  display: none;
+}
+
+.nav-more-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0.6rem;
+  min-height: 2.25rem;
+  background: rgba(13, 14, 35, 0.3);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(128, 138, 249, 0.35);
+  border-radius: 7px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  text-align: center;
+  width: 100%;
+  max-width: 4.5rem;
+  align-self: center;
+}
+
+.nav-more-item i {
+  font-size: 1.1rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.nav-more-item .nav-label {
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.nav-more-caret {
+  position: absolute;
+  right: 7px;
+  top: 12px;
+  font-size: 0.5rem;
+  line-height: 1;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.nav-more-item:hover {
+  color: var(--color-text-primary);
+  background: rgba(66, 194, 255, 0.06);
+  border-color: rgba(66, 194, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(66, 194, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+.nav-more-item.active {
+  color: var(--color-accent-primary);
+  background: rgba(118, 109, 255, 0.12);
+  border-color: rgba(118, 109, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(118, 109, 255, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav-more-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* === ROW 2: Username, League Select, Compact Toggle === */
+#secondary-header-row {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem !important;
+  border-top: 1px solid var(--color-panel-border);
+  grid-template-columns: none !important;
+}
+
+#secondary-header-row .username-area {
+  width: auto;
+  flex: 1 1 0;
+}
+
+#secondary-header-row .custom-select-wrapper {
+  width: auto;
+  flex: 1 1 0;
+}
+
+.compact-switcher {
+  display: flex;
+  align-items: center;
+  background: rgba(13, 14, 35, 0.25);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(128, 138, 189, 0.2);
+  border-radius: 6px;
+  padding: 0.1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.compact-switcher button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.25rem 0.4rem !important;
+  min-height: 1.8rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.7rem !important;
+}
+
+.compact-switcher button i {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.switcher-label {
+  font-size: 0.4rem;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+}
+
+.compact-switcher button:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.compact-switcher button.active {
+  min-width: 39px;
+  color: var(--color-accent-secondary);
+  background: rgba(66, 194, 255, 0.08);
+  border: 1px solid;
+  box-shadow: 0 1px 3px rgba(66, 194, 255, 0.2);
+}
+
+/* === ROW 3: Start/Sit Button === */
+.start-sit-button-slot {
+  width: auto;
+  height: var(--header-control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  margin: 0px 3px;
+}
+
+.start-sit-button-container {
+  height: var(--header-control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0 !important;
+  min-width: fit-content;
+}
+
+.start-sit-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.22rem 0.535rem !important;
+  flex: 1 1 0 !important;
+  /* take remaining row width */
+  width: 100%;
+  /* fill its flex cell */
+  min-width: 3.5rem;
+  /* avoid min-content clamp */
+  background: linear-gradient(to bottom, rgba(50, 50, 80, 0.1), rgb(66 45 208 / 10%)) !important;
+  border: 1px solid rgba(128, 138, 189, 0.2) !important;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.06) !important;
+}
+
+.start-sit-button.active {
+  color: var(--color-accent-primary);
+  background: rgba(118, 109, 255, 0.1) !important;
+  border-color: rgba(118, 109, 255, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(118, 109, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.start-sit-button .analyzer-icon {
+  font-size: 1rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.start-sit-button .analyzer-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  line-height: 1;
+  margin-top: 0.05rem;
+  color: inherit;
+}
+
+.start-sit-button:hover {
+  color: var(--color-text-secondary);
+  background: rgba(13, 14, 35, 0.35);
+  border-color: rgba(128, 138, 189, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.start-sit-button:focus-visible {
+  outline: 2px solid rgba(118, 109, 255, 0.6);
+  outline-offset: 2px;
+}
+
 .nav-button.nav-more-toggle {
   position: relative;
 }
@@ -1432,8 +1693,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 #leagueSelect {
   appearance: none;
-  /* EDITED: Increased transparency */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   border: 1px solid var(--color-panel-border);
   border-radius: 8px;
   -webkit-backdrop-filter: blur(4px) saturate(110%);
@@ -1495,12 +1755,12 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .secondary-switcher {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 #positional-filters {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.1));
+  background: linear-gradient(to bottom, rgba(50, 50, 70, 0.1), rgb(106 95 250 / 10%));
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
   padding: 0.1rem 0.02rem !important;
 }
@@ -3656,7 +3916,7 @@ body[data-page="welcome"] .app-header {
     /* Original gradient slightly brightened */
     background: linear-gradient(131deg, #caeaff 0%, #ffcbd6 100%);
     -webkit-background-clip: text;
-    /* background-clip: text; */
+    background-clip: text;
     color: transparent;
     /* Matching glow */
     filter: drop-shadow(0 0 8px rgba(112, 26, 255, 0.4));
