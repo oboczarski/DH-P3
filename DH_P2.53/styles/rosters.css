@@ -60,7 +60,7 @@ body[data-page="rosters"] .nav-button {
 
 body[data-page="rosters"] #leagueSelect {
   appearance: none;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(116 105 250 / 12%));
   border: 1px solid var(--color-panel-border);
   border-radius: 8px;
   -webkit-backdrop-filter: blur(4px) saturate(110%);
@@ -163,7 +163,7 @@ body[data-page="rosters"] .roster-inline-search::before {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(116 105 250 / 12%));
   border: 1px solid var(--color-panel-border);
   -webkit-backdrop-filter: blur(4px) saturate(110%);
   backdrop-filter: blur(4px) saturate(110%);
