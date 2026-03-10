@@ -1433,7 +1433,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     }
 
     body[data-page="rosters"] .nav-buttons-container .nav-button {
-      width: 100%;
+      width: 95%;
       min-width: 0;
       max-width: none;
       flex: 0 0 auto;
