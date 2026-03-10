@@ -748,7 +748,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   /* ── Username input ── */
   /* Effective: font 0.7rem, pad 0.23rem 0.5rem */
   body[data-page="rosters"] #usernameInput {
-    font-size: 1.18rem !important;
+    font-size: 1.38rem !important;
     padding: 0.35rem 0.65rem;
   }
 
@@ -868,7 +868,7 @@ body[data-page="rosters"] .roster-username-submit-label {
     --header-control-height: 46px;
     padding-top: 0.2rem;
     padding-right: 0rem;
-    padding-bottom: 0.85rem;
+    padding-bottom: 0.95rem;
     padding-left: var(--roster-desktop-pad-left);
     row-gap: 0.25rem;
   }
@@ -894,7 +894,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] .roster-brand-name {
-    font-size: calc(27.52px + (var(--roster-wide-progress) * 0.0145794393));
+    font-size: calc(28.52px + (var(--roster-wide-progress) * 0.0145794393));
   }
 
   body[data-page="rosters"] .roster-inline-search {
@@ -1277,6 +1277,7 @@ body[data-page="rosters"] #bottom-menu-panel {
       0 0 8px rgba(66, 194, 255, 0.25),
       inset 0 0 18px 9px rgba(66, 194, 255, 0.065);
     border-color: rgba(66, 194, 255, 0.3);
+    background: rgba(66, 194, 255, 0.03);
   }
 
   /* Condensed icon glow */
