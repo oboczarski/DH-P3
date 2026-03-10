@@ -558,7 +558,10 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .start-sit-button-slot {
-    grid-column: 5;
+    /* Compact desktop row alignment:
+       let Start/Sit occupy the last two compact-header tracks so the bottom row
+       reaches the same right edge as the top-row nav span in this band. */
+    grid-column: 5 / span 2;
     grid-row: 2;
     justify-self: stretch;
     width: 100%;
@@ -583,10 +586,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compare-controls {
-    grid-column: 6;
-    grid-row: 2;
-    display: flex;
-    align-items: center;
+    display: none !important;
   }
 
   body[data-page="rosters"] #header-container .app-header:not(.preview-active) .compare-search-toggle {
