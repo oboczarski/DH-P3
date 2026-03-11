@@ -270,7 +270,7 @@ body[data-page="ownership"] .ownership-shell {
   max-width: 1000px;
   border-radius: 16px;
   border: 1px solid rgba(128, 138, 189, 0.21);
-  background: linear-gradient(180deg, rgba(22, 25, 47, 0.6), rgba(12, 14, 28, 0.43));
+  background: linear-gradient(180deg, rgb(61 65 93 / 16%), rgba(12, 14, 28, 0.43));
   backdrop-filter: blur(7px) saturate(120%);
   -webkit-backdrop-filter: blur(7px) saturate(120%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 36px rgba(0, 0, 0, 0.26);
@@ -722,11 +722,11 @@ body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze
 
 body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody td:nth-child(-n+3) {
   z-index: 1;
-  background: #111422;
+  background: #121524;
 }
 
 body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready tbody tr:nth-child(even) td:nth-child(-n+3) {
-  background: #161827;
+  background: #181a29;
 }
 
 body[data-page="ownership"] .ownership-value-table.ownership-value-table--freeze-ready thead th:nth-child(1) {
@@ -1253,7 +1253,7 @@ body[data-page="ownership"] .ownership-modal-warning {
     flex-direction: column;
     align-items: stretch;
     gap: 1.1rem;
-    width: min(100%, 880px);
+    width: min(100%, 983px);
     margin: 0 auto;
     padding: 0.9rem 1.15rem 0.8rem;
     --header-control-height: 3.4rem;
@@ -1448,7 +1448,7 @@ body[data-page="ownership"] .ownership-list-row {
 body[data-page="ownership"] .ownership-list-header {
   border-radius: 10px;
   border: 1px solid rgba(128, 138, 189, 0.23);
-  background: rgb(162 166 193 / 4%);
+  background: rgb(112 126 193 / 5%);
   padding: 0.42rem 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1481,7 +1481,7 @@ body[data-page="ownership"] .ownership-list-leagues {
 body[data-page="ownership"] .ownership-list-row {
   border-radius: 12px;
   border: 1px solid rgba(128, 138, 189, 0.17);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.16));
+  background: linear-gradient(180deg, rgba(155, 155, 255, 0.04), rgba(0, 0, 0, 0.26));
   padding: 0.34rem 0.5rem;
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.19);
 }
