@@ -700,10 +700,10 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
   body[data-page="rosters"] .roster-branding {
     margin-right: 0;
-    gap: 0.3rem;
+    gap: 0.1rem;
   }
   body[data-page="rosters"] .roster-brand-name {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
   }
 
   /* ── Rosters desktop Enter button baseline ── */
@@ -882,7 +882,7 @@ body[data-page="rosters"] .roster-username-submit-label {
   }
 
   body[data-page="rosters"] .roster-brand-name {
-    font-size: calc(28.52px + (var(--roster-wide-progress) * 0.0145794393));
+    font-size: calc(28.52px + (var(--roster-wide-progress) * 0.035794393));
   }
 
   body[data-page="rosters"] .roster-inline-search {
