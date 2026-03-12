@@ -1495,7 +1495,9 @@ async function handleLeagueSelect() {
         // When using previous season, fetch all 18 weeks (full completed season)
         const usePreviousSeason = previousLeagueId && leagueSeason > sheetDataSeason;
         const matchupLeagueId = usePreviousSeason ? previousLeagueId : leagueId;
-        const matchupMaxWeek = usePreviousSeason ? 18 : null; // null uses current week
+        // Always fetch all 18 weeks for completed seasons — prevents offseason
+        // state.currentNflWeek (e.g. week 1 of 2026) from limiting matchup fetching.
+        const matchupMaxWeek = (usePreviousSeason || leagueSeason <= sheetDataSeason) ? 18 : null;
         await fetchLeagueMatchupData(matchupLeagueId, matchupMaxWeek);
 
         // Hydrate draft order (for precise pick labels like 2026 1.02 and KTC early/mid/late buckets)
@@ -5435,11 +5437,14 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                     // Use the FPT_PPR from the weekly sheet - no fallback
                     value = (typeof stats['fpt_ppr'] === 'number') ? stats['fpt_ppr'] : null;
                 } else if (state.matchupDataLoaded && state.leagueMatchupStats[week]?.[player.id] !== undefined) {
-                    // Use league-specific matchup data - no fallback
+                    // Use league-specific matchup data (primary source)
                     value = state.leagueMatchupStats[week][player.id];
                 } else {
-                    // No data available
-                    value = null;
+                    // Fallback: calculate FPTS from CSV stats × league scoring settings.
+                    // Covers players not on any fantasy roster that week (missing from
+                    // Sleeper's players_points), while still being league-specific.
+                    const calculated = calculateFantasyPoints(stats, scoringSettings);
+                    value = (Number.isFinite(calculated) && calculated > 0) ? calculated : null;
                 }
             }
             else if (key === 'ypc') value = (stats['rush_att'] || 0) > 0 ? ((stats['rush_yd'] || 0) / stats['rush_att']) : 0;
