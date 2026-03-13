@@ -6813,14 +6813,15 @@ body::before {
 /* Row-level: no blanket opacity — dimming is per-column */
 /* WK·VS column: moderate dim */
 #modal-body tbody tr.dnp-week-row td.week-cell {
-  opacity: 0.62;
-  filter: saturate(0.45);
+  opacity: 0.6;
+  filter: saturate(0.4) drop-shadow(0px 0px 4px #9af3);
 }
 
 /* Stat columns (excluding PROJ): heavier dim */
 #modal-body tbody tr.dnp-week-row td:not(.week-cell):not(.proj-cell) {
-  opacity: 0.42;
+  opacity: 0.27;
   color: #a3a9cf;
+  transform: skew(-7deg);
 }
 
 /* PROJ column: untouched — keeps its normal styling */
