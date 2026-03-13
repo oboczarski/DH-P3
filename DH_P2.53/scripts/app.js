@@ -640,11 +640,12 @@ const MAX_DISPLAY_WEEKS = 18;
 const TAG_COLORS = { QB: "var(--pos-qb)", RB: "var(--pos-rb)", WR: "var(--pos-wr)", TE: "var(--pos-te)", BN: "var(--pos-bn)", TX: "var(--pos-tx)", FLX: "var(--pos-flx)", SFLX: "var(--pos-sflx)" };
 const INJURY_DESIGNATION_COLORS = {
     'IR': '#d93d76',
+    'SUS': '#d93d76',
     'BYE': '#C3A8FB',
     'Q': '#fd9a3dff',
     'D': '#e780c3ff',
     'PUP': '#D47DC6',
-    'DNP': '#e780c3ff',
+    'DNP': 'rgba(255, 174, 227, 0.47)',
     'OUT': '#D47DC6'
 };
 function parseInjuryDesignation(rawValue) {
