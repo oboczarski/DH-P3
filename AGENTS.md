@@ -33,6 +33,7 @@ DH-P3/DH_P2.53
 │   ├── assets
 │   │   ├── icons/
 │   │   ├── logos/
+│   │   ├── NFL_logos_svg/
 │   │   ├── NFL-Tags_webp/
 │   │   └── welcome/
 │   ├── data
@@ -77,7 +78,11 @@ DH-P3/DH_P2.53
 │   ├── stats
 │   │   └── stats.html
 │   └── styles
+│       ├── analyzer.css
 │       ├── dashboard.css
+│       ├── ownership.css
+│       ├── research.css
+│       ├── rosters.css
 │       ├── stats.css
 │       └── styles.css
 ├── netlify

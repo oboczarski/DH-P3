@@ -57,29 +57,13 @@ DH-P3/DH_P2.53
 │   ├── assets
 │   │   ├── icons/
 │   │   ├── logos/
+│   │   ├── NFL_logos_svg/
 │   │   ├── NFL-Tags_webp/
 │   │   └── welcome/
 │   ├── data
 │   │   └── NFL-2025_Stats
 │   │       ├── Weeks
-│   │       │   ├── WK1.csv
-│   │       │   ├── WK2.csv
-│   │       │   ├── WK3.csv
-│   │       │   ├── WK4.csv
-│   │       │   ├── WK5.csv
-│   │       │   ├── WK6.csv
-│   │       │   ├── WK7.csv
-│   │       │   ├── WK8.csv
-│   │       │   ├── WK9.csv
-│   │       │   ├── WK10.csv
-│   │       │   ├── WK11.csv
-│   │       │   ├── WK12.csv
-│   │       │   ├── WK13.csv
-│   │       │   ├── WK14.csv
-│   │       │   ├── WK15.csv
-│   │       │   ├── WK16.csv
-│   │       │   ├── WK17.csv
-│   │       │   └── WK18.csv
+│   │       │   ├── WK1.csv … WK18.csv
 │   │       ├── SZN_RKS.csv
 │   │       └── SZN.csv
 │   ├── index.html
@@ -101,7 +85,11 @@ DH-P3/DH_P2.53
 │   ├── stats
 │   │   └── stats.html
 │   └── styles
+│       ├── analyzer.css
 │       ├── dashboard.css
+│       ├── ownership.css
+│       ├── research.css
+│       ├── rosters.css
 │       ├── stats.css
 │       └── styles.css
 ├── netlify
@@ -121,10 +109,11 @@ DH-P3/DH_P2.53
 - **/DH_P2.53/assets/**: Contains various static assets:
   - `icons/`: UI/shortcut icons used across pages.
   - `logos/`: App and league branding logos.
+  - `NFL_logos_svg/`: NFL team logos in SVG format.
   - `NFL-Tags_webp/`: Team/position tag images in WebP format.
   - `welcome/`: Assets used on the welcome/home experience.
 
-- **/DH_P2.53/index.html**: Main entry point and **Home / Fantasy Dashboard** page. Hosts the `.fc-dashboard` layout, summary metric cards, player selector, radar/bar/scatter chart containers, and the radar modal. Loads `styles/styles.css`, `styles/dashboard.css`, `scripts/app.js`, `scripts/dashboard.js`, and `scripts/dh-scramble.js`.
+- **/DH_P2.53/index.html**: Main entry point and **Home / Fantasy Dashboard** page. Hosts the `.fc-dashboard` layout, summary metric cards, player selector, radar/bar/scatter chart containers, and the radar modal. Loads `styles/styles.css`, `styles/dashboard.css`, `scripts/dashboard.js`, and `scripts/dh-scramble.js`. **Does NOT load `app.js`** — the dashboard is self-contained.
 
 - **/DH_P2.53/manifest.webmanifest**: Web app manifest defining PWA metadata (name, short name, start URL, theme/background colors, and icons).
 
@@ -152,12 +141,7 @@ DH-P3/DH_P2.53
     - Section/group ordering is driven by `SZN_STAT_SECTIONS_BY_POS` (see reference doc below).
     - Ranks/colors are reused from the existing rank color logic.
   - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
-    - The Game Logs modal includes a **GL/SZN** switcher:
-      - **GL** = the traditional game logs table.
-      - **SZN** = the single-player season stats list rendered in the same table area.
-    - The SZN view is grouped by **position-based sections** driven by `SZN_STAT_SECTIONS_BY_POS` in `DH_P2.53/scripts/app.js`.
-    - Section configuration (categories, order, and stat lists) is documented in:
-      - `.ReferenceFolder/SZN_STATS_SECTIONS.md`
+  - Section configuration (categories, order, and stat lists) is documented in `.ReferenceFolder/SZN_STATS_SECTIONS.md`.
 ---
 
 - **/DH_P2.53/scripts/dashboard.js**: Logic for the **Home / Fantasy Dashboard**. Contains the `HP_DATA` top-player dataset and:
@@ -189,14 +173,28 @@ DH-P3/DH_P2.53
     - Mobile (≤819px): 2-row header, sticky positioning, condensed controls, view-dropdown instead of view-switcher
     - Desktop (≥820px): Grid layout, fixed header, standard controls
   - Media queries at 520px, 768px, 819px, 869px for responsive behavior.
-- **/DH_P2.53/styles/stats.css**: Stats-page-specific styles. Controls:
-  - Stats header shell, intro card, filter/controls panel.
-  - Table layout, sticky headers, column widths, loading/empty states.
-  
+
 - **/DH_P2.53/styles/dashboard.css**: Dashboard-specific styles scoped to `.fc-dashboard`. Defines:
   - Dashboard background orbs, glass cards, and summary-grid layout.
   - Player picker, metric typography, and chart panel styling for radar/bar/scatter.
   - Responsive behavior for locked-desktop layout that scales down on smaller screens.
+
+- **/DH_P2.53/styles/rosters.css**: Rosters-page-specific styles. Controls:
+  - Rosters header (sticky/fixed), roster grid, view controls, comparison modal.
+  - Responsive behavior: 2-row mobile header, grid desktop layout.
+
+- **/DH_P2.53/styles/stats.css**: Stats-page-specific styles. Controls:
+  - Stats header shell, intro card, filter/controls panel.
+  - Table layout, sticky headers, column widths, loading/empty states.
+
+- **/DH_P2.53/styles/analyzer.css**: Analyzer-page-specific styles. Controls:
+  - Analyzer layout, leaderboard table, radar/bar chart containers.
+
+- **/DH_P2.53/styles/research.css**: Research/SYOP-page-specific styles. Controls:
+  - SYOP sunburst, bars, gauges, hit-rate charts, tab layout.
+
+- **/DH_P2.53/styles/ownership.css**: Ownership-page-specific styles. Controls:
+  - Ownership tables (exposure + value views), modal styling.
 
 - **/netlify/edge-functions/sheet-proxy.js**: Netlify Edge Function that proxies Google Sheets requests (`/api/sheet/*`), adds caching headers, and enforces host/URL validation.
 
@@ -208,31 +206,57 @@ DH-P3/DH_P2.53
 
 ---
 
+## Build, Test & Deploy
+
+- **No build step** — This is a static HTML/CSS/JS app. The `DH_P2.53/` folder is published as-is.
+- **No test framework** — No automated tests. Testing is manual via Netlify preview deploys.
+- **No bundler or ES modules** — All JS is vanilla, loaded via `<script>` tags. Page-specific scripts (`stats.js`, `analyzer.js`, `syop.js`) use IIFEs for scope isolation.
+- **Deploy**: Push to GitHub → Netlify auto-deploys from `netlify.toml` (`publish = "DH_P2.53"`).
+
+---
+
+## Page → File Loading Matrix
+
+| Page | HTML | Scripts | Stylesheets |
+|------|------|---------|-------------|
+| **Dashboard** | `index.html` | `dashboard.js`, `dh-scramble.js` (**no** `app.js`) | `styles.css`, `dashboard.css` |
+| **Rosters** | `rosters/rosters.html` | `app.js` | `styles.css`, `rosters.css`, `ownership.css` |
+| **Stats** | `stats/stats.html` | `app.js`, `stats.js` | `styles.css`, `stats.css` |
+| **Analyzer** | `analyzer/analyzer.html` | `analyzer.js` (**no** `app.js`) | `styles.css`, `analyzer.css` |
+| **Research / SYOP** | `research/research.html` | `app.js`, `syop.js` | `styles.css`, `research.css` |
+| **Ownership** | `ownership/ownership.html` | `app.js` | `styles.css`, `ownership.css` |
+
+> **Key pattern**: `app.js` (~8,500 lines) is the shared core for Rosters/Stats/Research/Ownership but is **NOT** loaded on Dashboard or Analyzer (those are self-contained).
+
+---
+
 ## Pages and Scripts
 
 - **Homepage / Fantasy Dashboard**  
-  - `DH_P2.53/index.html` + `DH_P2.53/scripts/dashboard.js` + `DH_P2.53/styles/dashboard.css`.  
+  - `index.html` + `scripts/dashboard.js` + `scripts/dh-scramble.js` + `styles/dashboard.css`.  
+  - **Does NOT load `app.js`** — self-contained page with its own data (`HP_DATA` constant) and Chart.js/D3 charts.
   - Dashboard data comes from the `HP_DATA` constant (manual/top players). Preserve its structure and comments; if you extend it, keep field names consistent.  
   - Keep `.fc-dashboard` styles scoped; don’t leak them into global layout. Maintain the “locked desktop layout + scale down on small screens” behavior while prioritizing mobile usability.
 
-- **Stats page (Sheets-driven advanced stats explorer)**  
-  - `DH_P2.53/stats/stats.html` + `DH_P2.53/scripts/stats.js` + `DH_P2.53/styles/stats.css`.  
+- **Stats page (CSV-driven advanced stats explorer)**  
+  - `stats/stats.html` + `scripts/stats.js` + `scripts/app.js` + `styles/stats.css`.  
   - The table uses a multi-section layout with sticky/frozen columns and scrollable regions, driven by specific wrappers and CSS variables for widths.  
   - When changing columns or layout, keep the containers and scroll behavior intact; update JS and CSS together.
   - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
 
 - **League Analyzer**  
-  - `DH_P2.53/analyzer/analyzer.html` + `DH_P2.53/scripts/analyzer.js`.  
-  - Analyzer fetches Sleeper and KTC data. Prefer routing new Sleeper/Sheets calls through the Netlify proxies (see below) unless matching an existing direct pattern is explicitly required.
+  - `analyzer/analyzer.html` + `scripts/analyzer.js` + `styles/analyzer.css`.  
+  - **Does NOT load `app.js`** — self-contained with its own Sleeper API and KTC data fetching.
+  - Prefer routing new Sleeper/Sheets calls through the Netlify proxies (see below) unless matching an existing direct pattern is explicitly required.
   - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
 
 - **Research / SYOP**  
-  - `DH_P2.53/research/research.html` + `DH_P2.53/scripts/syop.js`.  
+  - `research/research.html` + `scripts/syop.js` + `scripts/app.js` + `styles/research.css`.  
   - SVG-based visualizations with resize-aware rendering. Handles tab switching between SYOP and hit-rate sections.
   - **Navigation**: Includes "More" dropdown with Ownership/Trophy Room/Matchups.
 
 - **Rosters Page (Complex Mobile/Desktop Layout)**  
-  - `DH_P2.53/rosters/rosters.html` + `DH_P2.53/scripts/app.js` + global styles.  
+  - `rosters/rosters.html` + `scripts/app.js` + `styles/rosters.css` + `styles/ownership.css`.  
   - **Mobile (≤819px)**:
     - 2-row header: Nav buttons on row 1, controls on row 2
     - Username/league hidden, controls condensed (Start/Sit, View dropdown, filters, compare)
@@ -246,7 +270,7 @@ DH-P3/DH_P2.53
   - `app.js` coordinates roster rendering, view modes, positional filters, comparison/trade/start-sit tools.
 
 - **Ownership Page**  
-  - `DH_P2.53/ownership/ownership.html` + `DH_P2.53/scripts/app.js` + global styles.  
+  - `ownership/ownership.html` + `scripts/app.js` + `styles/ownership.css`.  
   - Displays multi-league ownership/exposure data per player.
   - **Navigation**: Includes "More" dropdown (Ownership marked active, Trophy Room/Matchups).
 
