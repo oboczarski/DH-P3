@@ -4532,76 +4532,51 @@ function computeSznProgressPercent(rank, position) {
     }
     return 0;
 }
-function buildSznFillCoreGradient(fillCoreColor) {
-    if (!fillCoreColor || fillCoreColor === 'inherit') return null;
+function buildSznFillCoreGradient(rankHex) {
+    if (!rankHex || rankHex === 'inherit') return null;
 
-    // Game Logs modal (SZN view): keep a bright/near-white neon center line
-    // while allowing each tier hue to be edited directly in the threshold map.
-       return `linear-gradient(90deg,
-        ${fillCoreColor} 0%,
-        ${fillCoreColor} 100%)`;
+    let r = 0, g = 0, b = 0;
+    if (rankHex.startsWith('#')) {
+        let hex = rankHex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+        r = parseInt(hex.substring(0, 2), 16) || 0;
+        g = parseInt(hex.substring(2, 4), 16) || 0;
+        b = parseInt(hex.substring(4, 6), 16) || 0;
+    }
+
+    // High-fidelity liquid/plasma glass cylinder:
+    // Sharp specular top highlight, central vibrant body tint, deep structural bottom shadow.
+    return `linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.5) 0%, 
+        rgba(255, 255, 255, 0.1) 15%, 
+        rgba(${r}, ${g}, ${b}, 0.5) 45%, 
+        rgba(${r}, ${g}, ${b}, 0.2) 80%, 
+        rgba(0, 0, 0, 0.5) 100%)`;
 }
 function getSznStatFillCoreColor(rank, position) {
-    if (typeof rank !== 'number' || rank <= 0) return 'inherit';
-    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
-
-    // Game Logs modal (SZN view) progress fill colors:
-    // This palette controls only the core background hue of each bar.
-    // Border + inset glow still use the regular conditional rank color.
-    // Also See Bookmarks Right Below
-    const thresholds = normalizedPos === 'WR'
-        ? [
-            { v: 12, c: '#00ffffe8' }, // Neon Teal
-            { v: 24, c: '#0063edec' }, // Neon Cyan
-            { v: 36, c: '#3300ff' }, // Neon Purple
-            { v: 48, c: '#5700FF' }, // Neon Pink
-            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
-            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
-        ]
-        : [
-             { v: 8, c: '#00ffffe8' },
-            { v: 16, c: '#0063edec' },
-            { v: 24, c: '#3300ff' },
-            { v: 32, c: '#5700FF' },
-            { v: 40, c: '#8732ff' },
-            { v: 50, c: '#ea08ff' },
-        ];
-
-    for (const threshold of thresholds) {
-        if (rank <= threshold.v) return threshold.c;
-    }
-    return '#7f7e99';
+    // Rely on the base rank color for generating physical components dynamically.
+    return getSznStatRankColor(rank, position);
 }
-function getSznStatRankBoxShadow(rank, position, rankColor) {
+function getSznStatRankBoxShadow(rank, position, rankHex) {
     if (typeof rank !== 'number' || rank <= 0) return 'none';
-    if (!rankColor || rankColor === 'inherit') return 'none';
-    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    if (!rankHex || rankHex === 'inherit') return 'none';
 
-    // Game Logs modal (SZN view) neon treatment:
-    // per-rank tier shadow presets, so each tier can be tuned independently.
-    // Also See Bookmarks Right Above
-    const thresholds = normalizedPos === 'WR'
-            ? [
-            { v: 12, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` }, 
-            { v: 36, s: `inset 0 0 7px 1px ${rankColor}` }, 
-            { v: 48, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 60, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 72, s: `inset 0 0 7px 1px ${rankColor}` },
-        ]
-        : [
-            { v: 8, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 16, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` },
-            { v: 32, s: `inset 0 0 7px 2px ${rankColor}` },
-            { v: 40, s: `inset 0 0 7px 2px ${rankColor}` },
-            { v: 50, s: `inset 0 0 7px 1px ${rankColor}` },
-        ];
-
-    for (const threshold of thresholds) {
-        if (rank <= threshold.v) return threshold.s;
+    let r = 0, g = 0, b = 0;
+    if (rankHex.startsWith('#')) {
+        let hex = rankHex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+        r = parseInt(hex.substring(0, 2), 16) || 0;
+        g = parseInt(hex.substring(2, 4), 16) || 0;
+        b = parseInt(hex.substring(4, 6), 16) || 0;
     }
-    return `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}`;
+
+    // Deep structural bevels for the 3D casing, plus an incredibly soft inner colored bloom at the edges.
+    return `
+        inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 
+        inset 0 -1.5px 2px rgba(0, 0, 0, 0.6),
+        inset 0 0 10px 1px rgba(${r}, ${g}, ${b}, 0.4),
+        0 2px 5px rgba(0, 0, 0, 0.5)
+    `;
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -4933,10 +4908,15 @@ function renderGameLogsSeasonStatsView({
                 fill.style.backgroundImage = gradient;
                 fill.style.backgroundColor = 'transparent';
                 if (rankColor && rankColor !== 'inherit') {
-                    // Game Logs modal (SZN view) neon treatment:
-                    // use existing conditional rank color on edge only,
-                    // while selecting a per-rank shadow preset.
-                    fill.style.border = `1px solid ${rankColor}`;
+                    // Extract RGB for sophisticated semi-transparent border rendering
+                    let r = 0, g = 0, b = 0;
+                    let hex = rankColor.replace('#', '');
+                    if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+                    r = parseInt(hex.substring(0, 2), 16) || 0;
+                    g = parseInt(hex.substring(2, 4), 16) || 0;
+                    b = parseInt(hex.substring(4, 6), 16) || 0;
+                    
+                    fill.style.border = `1px solid rgba(${r}, ${g}, ${b}, 0.5)`;
                     fill.style.boxShadow = rankBoxShadow;
                 }
             } else if (rankColor && rankColor !== 'inherit') {
@@ -4951,7 +4931,32 @@ function renderGameLogsSeasonStatsView({
         const rankAnnot = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'szn' });
         rankAnnot.classList.add('gamelogs-szn-bar-rank');
         if (rankColor && rankColor !== 'inherit') {
-            rankAnnot.style.color = rankColor;
+            // Elegant frosted glass pill shape for the ranking tag
+            let r = 0, g = 0, b = 0;
+            let hex = rankColor.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+            r = parseInt(hex.substring(0, 2), 16) || 0;
+            g = parseInt(hex.substring(2, 4), 16) || 0;
+            b = parseInt(hex.substring(4, 6), 16) || 0;
+
+            rankAnnot.style.color = '#ffffff'; 
+            rankAnnot.style.textShadow = `0 0 5px rgba(${r}, ${g}, ${b}, 0.9), 0 0 2px rgba(255,255,255,0.5)`;
+            rankAnnot.style.backgroundColor = `rgba(15, 18, 25, 0.70)`; 
+            rankAnnot.style.border = `1px solid rgba(${r}, ${g}, ${b}, 0.5)`;
+            rankAnnot.style.boxShadow = `0 2px 5px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15), inset 0 0 8px rgba(${r}, ${g}, ${b}, 0.25)`;
+            
+            if (typeof CSS !== 'undefined' && CSS.supports('backdrop-filter', 'blur(4px)')) {
+                rankAnnot.style.backdropFilter = 'blur(6px)';
+            }
+            
+            // Layout reinforcement for pill styling
+            rankAnnot.style.padding = '1px 8px';
+            rankAnnot.style.borderRadius = '12px';
+            rankAnnot.style.fontWeight = '600';
+            rankAnnot.style.letterSpacing = '0.5px';
+            rankAnnot.style.display = 'inline-flex';
+            rankAnnot.style.alignItems = 'center';
+            rankAnnot.style.justifyContent = 'center';
         }
         const rankPos = Math.min(98, Math.max(2, Number.isFinite(progressPct) ? progressPct : 0));
         rankAnnot.style.setProperty('--szn-rank-pos', `${rankPos}%`);
@@ -9149,33 +9154,30 @@ function getSznStatRankColor(rank, position) {
     if (typeof rank !== 'number' || rank <= 0) return 'inherit';
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
     
-     
-    // Creative/Neon Palette per user request 
-    // WRs & Non-WRs have different thresholds but same colors.
-    
+    // "Cyber-Ocean Depth" Palette - Seamlessly transitions from mint to deep metal.
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ffffe8' }, // Neon Teal
-            { v: 24, c: '#0063edec' }, // Neon Cyan
-            { v: 36, c: '#3300ff' }, // Neon Purple
-            { v: 48, c: '#5700FF' }, // Neon Pink
-            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
-            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
+            { v: 12, c: '#00FFA3' }, // Emerald Glass
+            { v: 24, c: '#00D2FF' }, // Bright Cyan
+            { v: 36, c: '#3A7BD5' }, // Deep Azure
+            { v: 48, c: '#6A82FB' }, // Soft Periwinkle
+            { v: 60, c: '#7A8B99' }, // Cool Steel
+            { v: 72, c: '#404654' }, // Slate Glass
         ]
         : [
-            { v: 8, c: '#00ffffe8' },
-            { v: 16, c: '#0063edec' },
-            { v: 24, c: '#3300ff' },
-            { v: 32, c: '#5700FF' },
-            { v: 40, c: '#8732ff' },
-            { v: 50, c: '#ea08ff' },
+            { v: 8, c: '#00FFA3' },
+            { v: 16, c: '#00D2FF' },
+            { v: 24, c: '#3A7BD5' },
+            { v: 32, c: '#6A82FB' },
+            { v: 40, c: '#7A8B99' },
+            { v: 50, c: '#404654' },
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
-    // Worst tier
-    return '#63616c'; // Deep Violet (Requested)
+    // Deepest tier
+    return '#2B2F38';
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
