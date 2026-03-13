@@ -2902,6 +2902,7 @@ const PLAYER_STAT_HEADER_MAP = {
     '1DRR': 'first_down_rec_rate',
     'IMP': 'imp',
     'FUM': 'fum',
+    'SNP': 'snp',
     'SNP%': 'snp_pct',
     'YDS(t)': 'yds_total',
     'FPOE': 'fpoe',
@@ -4613,11 +4614,19 @@ function getGameLogsSeasonDisplayValue({
             const seasonFpts = statsData?.fpts || 0;
             displayValue = seasonFpts.toFixed(1);
         } else {
+            // Phase 6: Footer FPTS aggregation with CSV fallback (mirrors row-level logic)
             const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
                 const weekNum = week.week;
                 const playerId = player.id;
+                const weekStats = week.stats || null;
+                // Skip weeks where player had 0 snaps (DNP)
+                if (typeof weekStats?.snp === 'number' && weekStats.snp === 0) return sum;
                 if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
                     return sum + state.leagueMatchupStats[weekNum][playerId];
+                }
+                // Fallback: use CSV FPT_PPR if player played (SNP > 0)
+                if (typeof weekStats?.snp === 'number' && weekStats.snp > 0 && typeof weekStats?.fpt_ppr === 'number') {
+                    return sum + weekStats.fpt_ppr;
                 }
                 return sum + 0;
             }, 0);
@@ -4633,11 +4642,19 @@ function getGameLogsSeasonDisplayValue({
             const ppg = statsData?.ppg || 0;
             displayValue = ppg.toFixed(1);
         } else {
+            // Phase 6: Footer PPG aggregation with CSV fallback (mirrors row-level logic)
             const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
                 const weekNum = week.week;
                 const playerId = player.id;
+                const weekStats = week.stats || null;
+                // Skip weeks where player had 0 snaps (DNP)
+                if (typeof weekStats?.snp === 'number' && weekStats.snp === 0) return sum;
                 if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
                     return sum + state.leagueMatchupStats[weekNum][playerId];
+                }
+                // Fallback: use CSV FPT_PPR if player played (SNP > 0)
+                if (typeof weekStats?.snp === 'number' && weekStats.snp > 0 && typeof weekStats?.fpt_ppr === 'number') {
+                    return sum + weekStats.fpt_ppr;
                 }
                 return sum + 0;
             }, 0);
@@ -5398,11 +5415,24 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 td.appendChild(weekTag);
             }
         };
+        // SNP-aware designation set for PROJ override logic
+        const KNOWN_DESIGNATIONS = new Set(['BYE', 'OUT', 'IR', 'PUP', 'DNP', 'SUS', 'D', 'Q']);
+        // Track per-row whether FPTS ended up as "-" so we can apply .dnp-week-row dimming
+        let rowFptsDash = false;
         for (const key of orderedStatKeys) {
             if (!statLabels[key]) continue;
             if (isUnplayedWeek) {
                 if (key === 'proj') {
-                    const projValue = getProjectionDisplayValue(stats, player.id, week);
+                    let projValue = getProjectionDisplayValue(stats, player.id, week);
+                    // Phase 4: If SNP = 0 and no existing designation, set PROJ to "DNP"
+                    const weekSnp = stats?.snp;
+                    if (typeof weekSnp === 'number' && weekSnp === 0) {
+                        const upperProj = (projValue || '').trim().toUpperCase();
+                        const firstToken = upperProj.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
+                        if (!KNOWN_DESIGNATIONS.has(firstToken)) {
+                            projValue = 'DNP';
+                        }
+                    }
                     const display = projValue === undefined || projValue === null ? '' : String(projValue);
                     const designationMeta = parseInjuryDesignation(display);
                     rowData[key] = createTextDescriptor(display, { color: designationMeta ? designationMeta.color : '' });
@@ -5420,7 +5450,16 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 continue;
             }
             if (key === 'proj') {
-                const projValue = getProjectionDisplayValue(stats, player.id, week);
+                let projValue = getProjectionDisplayValue(stats, player.id, week);
+                // Phase 4: If SNP = 0 and no existing designation, set PROJ to "DNP"
+                const weekSnp = stats?.snp;
+                if (typeof weekSnp === 'number' && weekSnp === 0) {
+                    const upperProj = (projValue || '').trim().toUpperCase();
+                    const firstToken = upperProj.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
+                    if (!KNOWN_DESIGNATIONS.has(firstToken)) {
+                        projValue = 'DNP';
+                    }
+                }
                 const display = projValue === undefined || projValue === null ? '' : String(projValue);
                 const designationMeta = parseInjuryDesignation(display);
                 rowData[key] = createTextDescriptor(display, { color: designationMeta ? designationMeta.color : '' });
@@ -5433,15 +5472,23 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             } else if (key === 'fpts') {
                 // Stats page uses sheet FPT_PPR, rosters page uses league-specific matchup data
                 if (state.isGameLogFromStatsPage) {
-                    // Use the FPT_PPR from the weekly sheet - no fallback
                     value = (typeof stats['fpt_ppr'] === 'number') ? stats['fpt_ppr'] : null;
                 } else if (state.matchupDataLoaded && state.leagueMatchupStats[week]?.[player.id] !== undefined) {
-                    // Use league-specific matchup data - no fallback
+                    // Use league-specific matchup data from Sleeper
                     value = state.leagueMatchupStats[week][player.id];
+                } else if (typeof stats['snp'] === 'number' && stats['snp'] > 0 && typeof stats['fpt_ppr'] === 'number') {
+                    // Phase 2: Rosters fallback — player played (SNP > 0) but not on any roster
+                    // in this league for this week. Use CSV PPR fantasy points as best-effort.
+                    value = stats['fpt_ppr'];
                 } else {
-                    // No data available
                     value = null;
                 }
+                // Phase 3: If SNP = 0 for this week, force FPTS to show "-"
+                if (typeof stats['snp'] === 'number' && stats['snp'] === 0) {
+                    value = null;
+                }
+                // Track that FPTS is "-" for this row (for .dnp-week-row dimming)
+                if (value === null) rowFptsDash = true;
             }
             else if (key === 'ypc') value = (stats['rush_att'] || 0) > 0 ? ((stats['rush_yd'] || 0) / stats['rush_att']) : 0;
             else if (key === 'yco_per_att') value = (stats['rush_att'] || 0) > 0 ? ((stats['rush_yac'] || 0) / stats['rush_att']) : 0;
@@ -5493,13 +5540,18 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             else if (key === 'ttt') value = typeof stats[key] === 'number' ? stats[key] : 0;
             else value = stats[key] || 0;
             let displayValue;
-            if (value === null || typeof value !== 'number') displayValue = 'N/A';
+            // For FPTS, show "-" instead of "N/A" when value is null (e.g. SNP=0 or no data)
+            if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
             else if (key === 'pass_imp_per_att' || key === 'prs_pct' || key === 'snp_pct' || key === 'ts_per_rr' || key === 'cmp_pct') displayValue = formatPercentage(value);
             else if (key === 'pass_rtg' || key === 'fpts') displayValue = value.toFixed(1);
             else displayValue = Number.isInteger(value) ? String(value) : value.toFixed(2);
             rowData[key] = createTextDescriptor(displayValue);
+        }
+        // Phase 5: Apply .dnp-week-row dimming when FPTS is "-" (but not BYE weeks)
+        if (rowFptsDash && !isByeWeek) {
+            rowMeta.rowClasses.push('dnp-week-row');
         }
         if (!isUnplayedWeek && weekStatsEntry) {
             gameLogsWithData.push(weekStatsEntry);

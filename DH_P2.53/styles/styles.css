@@ -6809,6 +6809,15 @@ body::before {
   color: #a3a9cf;
 }
 
+/* · · DNP / Inactive Week Row Styles (SNP = 0, slightly less dim than BYE) · · */
+#modal-body tbody tr.dnp-week-row {
+  opacity: 0.88;
+}
+
+#modal-body tbody tr.dnp-week-row td {
+  color: #a3a9cf;
+}
+
 /* Footer stat: stack rank annotation directly below value with minimal spacing */
 #game-logs-modal tfoot td.has-rank-annotation {
   vertical-align: bottom;
