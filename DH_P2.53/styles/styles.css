@@ -6809,14 +6809,21 @@ body::before {
   color: #a3a9cf;
 }
 
-/* · · DNP / Inactive Week Row Styles (SNP = 0, slightly less dim than BYE) · · */
-#modal-body tbody tr.dnp-week-row {
-  opacity: 0.88;
+/* · · DNP / Inactive Week Row Styles (SNP = 0, FPTS = "-") · · */
+/* Row-level: no blanket opacity — dimming is per-column */
+/* WK·VS column: moderate dim */
+#modal-body tbody tr.dnp-week-row td.week-cell {
+  opacity: 0.62;
+  filter: saturate(0.45);
 }
 
-#modal-body tbody tr.dnp-week-row td {
+/* Stat columns (excluding PROJ): heavier dim */
+#modal-body tbody tr.dnp-week-row td:not(.week-cell):not(.proj-cell) {
+  opacity: 0.42;
   color: #a3a9cf;
 }
+
+/* PROJ column: untouched — keeps its normal styling */
 
 /* Footer stat: stack rank annotation directly below value with minimal spacing */
 #game-logs-modal tfoot td.has-rank-annotation {
