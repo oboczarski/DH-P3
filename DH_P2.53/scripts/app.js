@@ -3405,12 +3405,12 @@ const playerRadarAxisLabelsPlugin = {
         // Per-axis spacing tweaks for crowded spots in the Game Logs performance radar.
         // This changes distance only; label/value center alignment is kept.
         const axisLabelExtraOffsetsByIndex = options?.axisLabelExtraOffsetsByIndex ?? {
-            1: 11, // second-most outward (upper-right diagonal)
-            2: 12, // most outward (right side)
-            3: 2, // slight outward (lower-right diagonal)
-            5: 5, // slight outward (lower-left diagonal)
-            6: 15, // most outward (left side)
-            7: 14  // second-most outward (upper-left diagonal)
+            1: 17, // upper-right diagonal – pushed further from radar
+            2: 14, // right side – nudged a touch further
+            3: 10, // lower-right diagonal – pushed further from radar
+            5: 13, // lower-left diagonal – pushed further from radar
+            6: 18, // left side – nudged a touch further
+            7: 21  // upper-left diagonal – pushed further from radar
         };
         const valueSpacing = options?.valueSpacing ?? (isMobile ? 3 : 4);
 
@@ -3625,8 +3625,9 @@ function renderPlayerRadarChart(playerId, position) {
     // Use the same mobile breakpoint as the Analyzer radar chart.
     const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
     const radarLayoutPadding = {
-        top: isMobileRadar ? 34 : 38,
-        bottom: isMobileRadar ? 44 : 58,
+        // Desktop: increased top padding to prevent FPTS label clipping and improve vertical centering.
+        top: isMobileRadar ? 34 : 50,
+        bottom: isMobileRadar ? 44 : 52,
         // Keep left/right padding as-is so the radar stays wide on mobile.
         // Label offset below is reduced to make room for larger text.
         left: isMobileRadar ? 45 : 18,
@@ -3721,12 +3722,12 @@ function renderPlayerRadarChart(playerId, position) {
                     topLabelExtraOffset: isMobileRadar ? 10 : 12,
                     // Per-axis spacing tweaks for crowded label/value spots.
                     axisLabelExtraOffsetsByIndex: {
-                        1: 11, // 2nd most outward
-                        2: 12, // most outward
-                        3: 2, // slight outward
-                        5: 5, // slight outward
-                        6: 15, // most outward
-                        7: 14  // 2nd most outward
+                        1: 17, // upper-right diagonal – pushed further from radar
+                        2: 14, // right side – nudged a touch further
+                        3: 10, // lower-right diagonal – pushed further from radar
+                        5: 13, // lower-left diagonal – pushed further from radar
+                        6: 18, // left side – nudged a touch further
+                        7: 21  // upper-left diagonal – pushed further from radar
                     },
                     valueSpacing: isMobileRadar ? 3 : 4,
                     labelColor: '#EAEBF0'
@@ -4338,8 +4339,9 @@ function ensureTableCoreLoaded() {
 const RADAR_STATS_CONFIG = {
     QB: {
         // QB radar uses passing-focused advanced metrics.
-        stats: ['fpts', 'ppg', 'pass_rtg', 'cmp_pct', 'pa_ypg', 'ttt', 'cpoe', 'epa_per_db'],
-        labels: ['FPTS', 'PPG', 'paRTG', 'CMP%', 'paYPG', 'TTT', 'CPOE', 'EPA/DB'],
+        // TTT at index 2 (right side), paRTG at index 5 (lower-left) per layout swap.
+        stats: ['fpts', 'ppg', 'ttt', 'cmp_pct', 'pa_ypg', 'pass_rtg', 'cpoe', 'epa_per_db'],
+        labels: ['FPTS', 'PPG', 'TTT', 'CMP%', 'paYPG', 'paRTG', 'CPOE', 'EPA/DB'],
         maxRank: 36
     },
     RB: {
