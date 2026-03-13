@@ -2283,12 +2283,36 @@ function buildCalculatedRankCache(scoringSettings, leagueId, scoringHash) {
 
     // If matchup data is loaded, use it directly for FPTS/PPG calculation
     if (state.matchupDataLoaded && state.leagueMatchupStats) {
+        // Track which player+week combos are covered by matchup data
+        const matchupCovered = new Set();
         for (const week of Object.keys(state.leagueMatchupStats)) {
             const weekData = state.leagueMatchupStats[week];
             for (const [pId, points] of Object.entries(weekData)) {
                 const playerEntry = playersById[pId];
                 if (!playerEntry) continue;
 
+                matchupCovered.add(`${pId}_${week}`);
+                playerEntry.totalPts += points;
+                if (points > 0) {
+                    playerEntry.gamesPlayed += 1;
+                }
+            }
+        }
+        // Supplement: for players who played (SNP > 0) in weeks NOT covered by
+        // matchup data (e.g. they weren't rostered in this league that week),
+        // compute league-specific FPTS from their CSV stat line + scoring settings.
+        const combinedWeeklyStats = getCombinedWeeklyStats();
+        for (const week of Object.keys(combinedWeeklyStats)) {
+            const weeklyData = combinedWeeklyStats[week];
+            for (const [pId, statLine] of Object.entries(weeklyData)) {
+                if (matchupCovered.has(`${pId}_${week}`)) continue;
+                const playerEntry = playersById[pId];
+                if (!playerEntry) continue;
+                // Only count weeks where the player actually played (SNP > 0)
+                const snp = statLine?.snp;
+                if (typeof snp !== 'number' || snp <= 0) continue;
+
+                const points = calculateFantasyPoints(statLine, scoringSettings);
                 playerEntry.totalPts += points;
                 if (points > 0) {
                     playerEntry.gamesPlayed += 1;
@@ -4614,7 +4638,8 @@ function getGameLogsSeasonDisplayValue({
             const seasonFpts = statsData?.fpts || 0;
             displayValue = seasonFpts.toFixed(1);
         } else {
-            // Phase 6: Footer FPTS aggregation with CSV fallback (mirrors row-level logic)
+            // Footer FPTS aggregation: use league matchup data, supplement with
+            // league-specific scoring for weeks not covered (mirrors buildCalculatedRankCache)
             const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
                 const weekNum = week.week;
                 const playerId = player.id;
@@ -4624,9 +4649,9 @@ function getGameLogsSeasonDisplayValue({
                 if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
                     return sum + state.leagueMatchupStats[weekNum][playerId];
                 }
-                // Fallback: use CSV FPT_PPR if player played (SNP > 0)
-                if (typeof weekStats?.snp === 'number' && weekStats.snp > 0 && typeof weekStats?.fpt_ppr === 'number') {
-                    return sum + weekStats.fpt_ppr;
+                // Supplement: compute league-specific FPTS from CSV stats + scoring settings
+                if (weekStats && typeof weekStats.snp === 'number' && weekStats.snp > 0) {
+                    return sum + calculateFantasyPoints(weekStats, scoringSettings);
                 }
                 return sum + 0;
             }, 0);
@@ -4642,7 +4667,7 @@ function getGameLogsSeasonDisplayValue({
             const ppg = statsData?.ppg || 0;
             displayValue = ppg.toFixed(1);
         } else {
-            // Phase 6: Footer PPG aggregation with CSV fallback (mirrors row-level logic)
+            // Footer PPG aggregation: mirrors FPTS logic above
             const totalPoints = (gameLogsWithData || []).reduce((sum, week) => {
                 const weekNum = week.week;
                 const playerId = player.id;
@@ -4652,9 +4677,9 @@ function getGameLogsSeasonDisplayValue({
                 if (state.matchupDataLoaded && state.leagueMatchupStats[weekNum]?.[playerId] !== undefined) {
                     return sum + state.leagueMatchupStats[weekNum][playerId];
                 }
-                // Fallback: use CSV FPT_PPR if player played (SNP > 0)
-                if (typeof weekStats?.snp === 'number' && weekStats.snp > 0 && typeof weekStats?.fpt_ppr === 'number') {
-                    return sum + weekStats.fpt_ppr;
+                // Supplement: compute league-specific FPTS from CSV stats + scoring settings
+                if (weekStats && typeof weekStats.snp === 'number' && weekStats.snp > 0) {
+                    return sum + calculateFantasyPoints(weekStats, scoringSettings);
                 }
                 return sum + 0;
             }, 0);
@@ -5476,10 +5501,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 } else if (state.matchupDataLoaded && state.leagueMatchupStats[week]?.[player.id] !== undefined) {
                     // Use league-specific matchup data from Sleeper
                     value = state.leagueMatchupStats[week][player.id];
-                } else if (typeof stats['snp'] === 'number' && stats['snp'] > 0 && typeof stats['fpt_ppr'] === 'number') {
-                    // Phase 2: Rosters fallback — player played (SNP > 0) but not on any roster
-                    // in this league for this week. Use CSV PPR fantasy points as best-effort.
-                    value = stats['fpt_ppr'];
+                } else if (typeof stats['snp'] === 'number' && stats['snp'] > 0) {
+                    // Supplement: player played (SNP > 0) but not in matchup data for this week.
+                    // Compute league-specific FPTS from CSV stats + league scoring settings.
+                    value = calculateFantasyPoints(stats, scoringSettings);
                 } else {
                     value = null;
                 }
