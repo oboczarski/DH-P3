@@ -4535,73 +4535,96 @@ function computeSznProgressPercent(rank, position) {
 function buildSznFillCoreGradient(fillCoreColor) {
     if (!fillCoreColor || fillCoreColor === 'inherit') return null;
 
-    // Game Logs modal (SZN view): keep a bright/near-white neon center line
-    // while allowing each tier hue to be edited directly in the threshold map.
-       return `linear-gradient(90deg,
-        ${fillCoreColor} 0%,
-        ${fillCoreColor} 100%)`;
+    // Game Logs modal (SZN view) — Frosted Crystalline glass-rod gradient.
+    // Derives a lighter "highlight" variant by mixing the core hex toward white (~40%).
+    // Multi-stop gradient creates a frosted glass refraction effect:
+    //   transparent fade-in → core build → bright highlight sweep → core → subtle fade-out.
+    const hex = fillCoreColor.replace('#', '').slice(0, 6);
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    // Mix toward white at 40% for frosted highlight strip
+    const hR = Math.round(r + (255 - r) * 0.4);
+    const hG = Math.round(g + (255 - g) * 0.4);
+    const hB = Math.round(b + (255 - b) * 0.4);
+    const highlight = `rgb(${hR}, ${hG}, ${hB})`;
+    const core = `rgba(${r}, ${g}, ${b}, 0.85)`;
+    const coreStrong = `rgba(${r}, ${g}, ${b}, 0.92)`;
+    const coreFade = `rgba(${r}, ${g}, ${b}, 0.35)`;
+    const transparent = `rgba(${r}, ${g}, ${b}, 0.08)`;
+
+    return `linear-gradient(90deg,
+        ${transparent} 0%,
+        ${coreFade} 6%,
+        ${core} 18%,
+        ${highlight} 30%,
+        ${coreStrong} 50%,
+        ${highlight} 72%,
+        ${core} 88%,
+        ${coreFade} 94%,
+        ${transparent} 100%)`;
 }
 function getSznStatFillCoreColor(rank, position) {
     if (typeof rank !== 'number' || rank <= 0) return 'inherit';
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
 
-    // Game Logs modal (SZN view) progress fill colors:
-    // This palette controls only the core background hue of each bar.
-    // Border + inset glow still use the regular conditional rank color.
-    // Also See Bookmarks Right Below
+    // Game Logs modal (SZN view) — Cool Spectrum fill core colors.
+    // Each tier shifts through cool hues (aqua → blue → indigo → violet → orchid).
+    // The gradient builder (buildSznFillCoreGradient) derives highlights from these.
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ffffe8' }, // Neon Teal
-            { v: 24, c: '#0063edec' }, // Neon Cyan
-            { v: 36, c: '#3300ff' }, // Neon Purple
-            { v: 48, c: '#5700FF' }, // Neon Pink
-            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
-            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
+            { v: 12, c: '#00C8AA' }, // Bright Aqua — Elite
+            { v: 24, c: '#2E9CD8' }, // Sky Blue — Premium
+            { v: 36, c: '#4270E0' }, // Cobalt — Solid
+            { v: 48, c: '#5E54C8' }, // Indigo — Average
+            { v: 60, c: '#8040B0' }, // Violet — Below Avg
+            { v: 72, c: '#983C90' }, // Orchid — Poor
         ]
         : [
-             { v: 8, c: '#00ffffe8' },
-            { v: 16, c: '#0063edec' },
-            { v: 24, c: '#3300ff' },
-            { v: 32, c: '#5700FF' },
-            { v: 40, c: '#8732ff' },
-            { v: 50, c: '#ea08ff' },
+            { v: 8,  c: '#00C8AA' }, // Bright Aqua
+            { v: 16, c: '#2E9CD8' }, // Sky Blue
+            { v: 24, c: '#4270E0' }, // Cobalt
+            { v: 32, c: '#5E54C8' }, // Indigo
+            { v: 40, c: '#8040B0' }, // Violet
+            { v: 50, c: '#983C90' }, // Orchid
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
-    return '#7f7e99';
+    return '#404860'; // Cool Slate — Worst tier
 }
 function getSznStatRankBoxShadow(rank, position, rankColor) {
     if (typeof rank !== 'number' || rank <= 0) return 'none';
     if (!rankColor || rankColor === 'inherit') return 'none';
+
+    // Game Logs modal (SZN view) — Frosted Crystalline glass-bevel shadow.
+    // Composites three layers to simulate a glass rod sitting on a dark surface:
+    //   1) Bright white inner highlight along the top edge (light hitting glass)
+    //   2) Darker inner shadow along the bottom edge (glass depth/refraction)
+    //   3) Soft outer glow in the tier's hue (light emission onto surface)
+    // Parse the rankColor hex to derive a darkened variant for the bottom shadow.
+    const hex = (rankColor || '').replace('#', '').slice(0, 6);
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    const darkR = Math.round(r * 0.35);
+    const darkG = Math.round(g * 0.35);
+    const darkB = Math.round(b * 0.35);
+    const darkerColor = `rgba(${darkR}, ${darkG}, ${darkB}, 0.55)`;
+
+    // Elite tier (rank ≤ 12 for WR, ≤ 8 for non-WR) gets a stronger outer glow.
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    const eliteThreshold = normalizedPos === 'WR' ? 12 : 8;
+    const outerGlowStrength = rank <= eliteThreshold ? 0.25 : 0.12;
+    const outerGlow = `rgba(${r}, ${g}, ${b}, ${outerGlowStrength})`;
+    const outerBlur = rank <= eliteThreshold ? '7px' : '5px';
 
-    // Game Logs modal (SZN view) neon treatment:
-    // per-rank tier shadow presets, so each tier can be tuned independently.
-    // Also See Bookmarks Right Above
-    const thresholds = normalizedPos === 'WR'
-            ? [
-            { v: 12, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` }, 
-            { v: 36, s: `inset 0 0 7px 1px ${rankColor}` }, 
-            { v: 48, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 60, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 72, s: `inset 0 0 7px 1px ${rankColor}` },
-        ]
-        : [
-            { v: 8, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 16, s: `inset 0 0 7px 1px ${rankColor}` },
-            { v: 24, s: `inset 0 0 6px 2px ${rankColor}` },
-            { v: 32, s: `inset 0 0 7px 2px ${rankColor}` },
-            { v: 40, s: `inset 0 0 7px 2px ${rankColor}` },
-            { v: 50, s: `inset 0 0 7px 1px ${rankColor}` },
-        ];
-
-    for (const threshold of thresholds) {
-        if (rank <= threshold.v) return threshold.s;
-    }
-    return `inset 0 0 8px 1px ${rankColor}, 0 0 2px ${rankColor}`;
+    return [
+        'inset 0 1px 1px 0 rgba(255, 255, 255, 0.14)',
+        `inset 0 -1px 2px 0 ${darkerColor}`,
+        `0 0 ${outerBlur} 0 ${outerGlow}`
+    ].join(', ');
 }
 function getGameLogsSeasonDisplayValue({
     key,
@@ -9148,34 +9171,32 @@ function getConditionalColorByRank(rank, position) {
 function getSznStatRankColor(rank, position) {
     if (typeof rank !== 'number' || rank <= 0) return 'inherit';
     const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
-    
-     
-    // Creative/Neon Palette per user request 
-    // WRs & Non-WRs have different thresholds but same colors.
-    
+
+    // Game Logs modal (SZN view) — Cool Spectrum rank-text colors.
+    // Brighter/lighter variants of each tier's fill core color,
+    // ensuring rank annotations remain readable against the glass-rod bars.
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00ffffe8' }, // Neon Teal
-            { v: 24, c: '#0063edec' }, // Neon Cyan
-            { v: 36, c: '#3300ff' }, // Neon Purple
-            { v: 48, c: '#5700FF' }, // Neon Pink
-            { v: 60, c: '#8732ff' }, // Deep Rose (Requested)
-            { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
+            { v: 12, c: '#60F0D8' }, // Bright Aqua — Elite (lighter)
+            { v: 24, c: '#6CC4F0' }, // Sky Blue — Premium (lighter)
+            { v: 36, c: '#7498F0' }, // Cobalt — Solid (lighter)
+            { v: 48, c: '#8878E8' }, // Indigo — Average (lighter)
+            { v: 60, c: '#A86CD8' }, // Violet — Below Avg (lighter)
+            { v: 72, c: '#C068B8' }, // Orchid — Poor (lighter)
         ]
         : [
-            { v: 8, c: '#00ffffe8' },
-            { v: 16, c: '#0063edec' },
-            { v: 24, c: '#3300ff' },
-            { v: 32, c: '#5700FF' },
-            { v: 40, c: '#8732ff' },
-            { v: 50, c: '#ea08ff' },
+            { v: 8,  c: '#60F0D8' }, // Bright Aqua (lighter)
+            { v: 16, c: '#6CC4F0' }, // Sky Blue (lighter)
+            { v: 24, c: '#7498F0' }, // Cobalt (lighter)
+            { v: 32, c: '#8878E8' }, // Indigo (lighter)
+            { v: 40, c: '#A86CD8' }, // Violet (lighter)
+            { v: 50, c: '#C068B8' }, // Orchid (lighter)
         ];
 
     for (const threshold of thresholds) {
         if (rank <= threshold.v) return threshold.c;
     }
-    // Worst tier
-    return '#63616c'; // Deep Violet (Requested)
+    return '#606880'; // Cool Slate — Worst tier (lighter)
 }
 const __projectionRankCache = new Map();
 function getProjectionRankForValue(position, projectionValue) {
