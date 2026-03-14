@@ -4582,7 +4582,7 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
     // Also See Bookmarks Right Above
     const thresholds = normalizedPos === 'WR'
             ? [
-            { v: 12, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 12, s: `inset 0 0 4px 1px ${rankColor}` },
             { v: 24, s: `inset 0 0 5px 1px ${rankColor}` }, 
             { v: 36, s: `inset 0 0 5px 1px ${rankColor}` }, 
             { v: 48, s: `inset 0 0 5px 1px ${rankColor}` },
@@ -4590,7 +4590,7 @@ function getSznStatRankBoxShadow(rank, position, rankColor) {
             { v: 72, s: `inset 0 0 5px 1px ${rankColor}` },
         ]
         : [
-            { v: 8, s: `inset 0 0 5px 1px ${rankColor}` },
+            { v: 8, s: `inset 0 0 4px 1px ${rankColor}` },
             { v: 16, s: `inset 0 0 5px 1px ${rankColor}` },
             { v: 24, s: `inset 0 0 5px 1px ${rankColor}` },
             { v: 32, s: `inset 0 0 5px 1px ${rankColor}` },
@@ -9155,7 +9155,7 @@ function getSznStatRankColor(rank, position) {
     
     const thresholds = normalizedPos === 'WR'
         ? [
-            { v: 12, c: '#00e1ff' }, // Neon Teal
+            { v: 12, c: '#00FFFFB5' }, // Neon Teal
             { v: 24, c: '#1b7affec' }, // Neon Cyan
             { v: 36, c: '#3300ff' }, // Neon Purple
             { v: 48, c: '#5700FF' }, // Neon Pink
@@ -9163,7 +9163,7 @@ function getSznStatRankColor(rank, position) {
             { v: 72, c: '#ea08ff' }, // Bright Red (Requested)
         ]
         : [
-            { v: 8, c: '#00e1ff' },
+            { v: 8, c: '#00FFFFB5' },
             { v: 16, c: '#1b7affec' },
             { v: 24, c: '#3300ff' },
             { v: 32, c: '#5700FF' },
