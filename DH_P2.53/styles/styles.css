@@ -5835,7 +5835,7 @@ body::before {
   box-sizing: border-box;
   background: linear-gradient(90deg, rgba(254, 153, 242, 0.6), rgba(154, 153, 242, 0.5), rgba(154, 153, 242, 0.965)) !important;
   transition: width 0.18s ease;
-  filter: opacity(0.6) brightness(0.8) saturate(1.7) drop-shadow(0px 0px 4px #0009);
+  filter: opacity(0.7) brightness(0.8) saturate(1.2) drop-shadow(0px 0px 4px #0009);
 }
 
 #game-logs-modal .gamelogs-szn-bar-rank {
