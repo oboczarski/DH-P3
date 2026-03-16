@@ -469,7 +469,7 @@
     consistencyPanel: document.getElementById('consistency-container')
   };
   if (dom.leagueChip) {
-    dom.leagueChip.textContent = 'DH DATA HUB';
+    dom.leagueChip.textContent = 'DH DATA HUB \u2013 ADVANCED ANALYTICS';
   }
   const TEAM_TAG_STYLES = (() => {
     // fallback palette similar to reference
@@ -2558,9 +2558,17 @@
       const startDir = ASCENDING_FIRST_COLUMNS.has(column) ? 1 : 2;
       statsState.sort = { column, direction: startDir };
     } else {
-      // Cycle: 2 (desc) -> 1 (asc) -> 0 (none)  /  1 (asc) -> 2 (desc) -> 0 (none)
+      // Cycle: start -> opposite -> reset (always 3rd click = reset).
+      // Normal columns: desc(2) -> asc(1) -> reset(0)
+      // ADP columns:    asc(1) -> desc(2) -> reset(0)
       if (statsState.sort.direction === 2) {
-        statsState.sort.direction = 1;
+        if (ASCENDING_FIRST_COLUMNS.has(column)) {
+          // ADP: 2nd click was desc, 3rd = reset
+          statsState.sort.direction = 0;
+          statsState.sort.column = null;
+        } else {
+          statsState.sort.direction = 1;
+        }
       } else if (statsState.sort.direction === 1) {
         if (ASCENDING_FIRST_COLUMNS.has(column)) {
           statsState.sort.direction = 2;
