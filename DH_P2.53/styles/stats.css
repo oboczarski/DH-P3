@@ -1951,6 +1951,36 @@ body[data-page="stats"] .stats-table-wrapper {
   font-weight: 700;
 }
 
+/* Task 3: Stats table font-weight overrides — header row bolder (800), data cells semi-bold (600).
+   Exemptions: PLAYER / POS / VALUE child elements already carry their own font-weight;
+   AGE and G columns explicitly keep their current (normal) weight. */
+.stats-table thead th {
+  font-weight: 800;
+}
+.stats-table tbody td {
+  font-weight: 600;
+}
+/* Keep exempt columns at their current (inherited / normal) body weight. */
+.stats-table tbody td[data-col="AGE"],
+.stats-table tbody td[data-col="G"] {
+  font-weight: normal;
+}
+
+/* Task 3: Stats table font-weight overrides — header row bolder (800), data cells semi-bold (600).
+   Exemptions: PLAYER / POS / VALUE child elements already carry their own font-weight;
+   AGE and G columns explicitly keep their current (normal) weight. */
+.stats-table thead th {
+  font-weight: 800;
+}
+.stats-table tbody td {
+  font-weight: 600;
+}
+/* Keep exempt columns at their current (inherited / normal) body weight. */
+.stats-table tbody td[data-col="AGE"],
+.stats-table tbody td[data-col="G"] {
+  font-weight: normal;
+}
+
 .stats-table thead th.stats-header-all {
   color: #ADA2FF;
   padding: 0.4rem 0.26rem;

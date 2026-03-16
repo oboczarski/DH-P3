@@ -33,17 +33,19 @@
     ['IMP/OPP', 'IMP/OPP']
   ]);
   const COLUMN_SETS = {
-    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'FPTS', 'PPG', 'VALUE', 'G', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
-    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'paYDS', 'paTD', 'CMP%', 'paATT', 'paRTG', 'EPA/DB', 'CPOE', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
-    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'RYOE', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
-    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
-    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
+    default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'G', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
+    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'paYDS', 'paTD', 'CMP%', 'paATT', 'paRTG', 'EPA/DB', 'CPOE', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'RYOE', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
+    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
     RDP: ['RK', 'YEAR', 'RANGE', 'ROUND', 'VALUE', 'POS', 'AGE', 'TM', 'G', 'FPTS', 'PPG']
   };
   const COLUMN_CATEGORY = {
     'FPTS': 'all',
     'PPG': 'all',
     'VALUE': 'all',
+    'ADP': 'all',
+    'POS·ADP': 'all',
     'YDS(t)': 'all',
     'YPG(t)': 'all',
     'OPP': 'all',
@@ -127,7 +129,9 @@
     ['paRTG', 1],
     ['EPA/DB', 2],
     ['1DRR', 2],
-    ['CL', 1]
+    ['CL', 1],
+    ['ADP', 1],
+    ['POS·ADP', 1]
   ]);
   const PERCENT_PRECISION = new Map([
     ['SNP%', 1],
@@ -219,6 +223,9 @@
     { value: Infinity, color: '#ff0080ba' }
   ];
 
+  // FPTS and PPG should always receive rank-based coloring, even outside the overview/ALL filter.
+  const ALWAYS_RANKED_COLUMNS = new Set(['FPTS', 'PPG']);
+
   const AGE_CONDITIONAL_COLOR_SCALES = {
     wrTe: [
       { value: 22.5, color: '#00ffc4' }, { value: 25, color: '#85fff3' },
@@ -253,6 +260,8 @@
     'FPTS': 66,
     'PPG': 50,
     'VALUE': 76,
+    'ADP': 64,
+    'POS·ADP': 64,
     'SNP%': 76,
     'CAR': 64,
     'ruYDS': 76,
@@ -312,7 +321,7 @@
   const DEFAULT_COLUMN_WIDTH = 76;
   // Columns we want to always treat as numeric for sorting
   const NUMERIC_SORT_COLUMNS = new Set([
-    'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP',
+    'RK', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'YDS(t)', 'YPG(t)', 'IMP', 'IMP/OPP',
     'paRTG', 'paYDS', 'paTD', 'CMP%', 'paATT', 'CMP', 'paYPG', 'ruYDS', 'ruTD',
     'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE',
     'SNP%', 'REC', 'TGT', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'ru1D', 'recTD', 'rec1D',
@@ -811,6 +820,8 @@
     // Stats page uses season totals (SZN.csv) for stats + computes PPG (no league-specific calculations).
     const fpts = toNumber(row.FPTS);
     const ppg = toNumber(row.PPG);
+    const adp = toNumber(row.ADP);
+    const posAdp = toNumber(row['POS·ADP']);
     const fptsPosRank = null; // Not used on stats page
     const ppgPosRank = null; // Not used on stats page
     // Cache style calculations
@@ -843,6 +854,8 @@
         value,
         fpts,
         ppg,
+        adp,
+        posAdp,
         fptsPosRank,
         ppgPosRank,
         posRankText,
@@ -1151,8 +1164,25 @@
       return color ? { color } : null;
     }
 
+    // ADP column — uses RK_COLOR_SCALE directly against the ADP numeric value (lower = better = green).
+    if (column === 'ADP') {
+      const adp = entry.meta.adp;
+      if (!Number.isFinite(adp) || adp <= 0) return null;
+      const color = getRankColorValue(adp);
+      return color ? { color } : null;
+    }
+
+    // POS·ADP column — uses OVERVIEW_RANK_COLOR_SCALE directly against the positional ADP value (lower = better).
+    if (column === 'POS·ADP') {
+      const posAdp = entry.meta.posAdp;
+      if (!Number.isFinite(posAdp) || posAdp <= 0) return null;
+      const color = getOverviewRankColorValue(posAdp);
+      return color ? { color } : null;
+    }
+
+    // Overview rank-based coloring for stat columns (ALL filter view).
     const isOverview = !statsState.activePosition || statsState.activePosition === 'ALL';
-    if (isOverview && overviewRankColors && OVERVIEW_RANKED_STAT_COLUMN_SET.has(column)) {
+    if (overviewRankColors && (isOverview ? OVERVIEW_RANKED_STAT_COLUMN_SET.has(column) : ALWAYS_RANKED_COLUMNS.has(column))) {
       const playerId = entry.meta.playerId;
       const color = playerId ? overviewRankColors.get(column)?.get(playerId) : null;
       return color ? { color } : null;
@@ -1177,6 +1207,15 @@
     if (column === 'PPG') {
       if (meta.ppg === null || Number.isNaN(meta.ppg)) return 'NA';
       return meta.ppg.toFixed(1);
+    }
+    // ADP columns — show one decimal, blank when absent.
+    if (column === 'ADP') {
+      if (meta.adp === null || !Number.isFinite(meta.adp)) return '';
+      return meta.adp.toFixed(1);
+    }
+    if (column === 'POS·ADP') {
+      if (meta.posAdp === null || !Number.isFinite(meta.posAdp)) return '';
+      return meta.posAdp.toFixed(1);
     }
     if (column === 'VALUE') {
       const rawValue = row[column];
@@ -1329,9 +1368,10 @@
 	      }
 	    });
 
+	    // Always include FPTS/PPG for rank-based coloring, even in position-specific filter views.
 	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
 	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : [];
+	      : columnSet.filter((col) => ALWAYS_RANKED_COLUMNS.has(col));
 	    const overviewRankColors = overviewRankColumns.length
 	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
 	      : null;
@@ -1446,6 +1486,7 @@
         const tr = document.createElement('tr');
         cols.forEach((col) => {
           const td = document.createElement('td');
+          td.dataset.col = col;
           const descriptor = rowData[col];
           applyCellDescriptor(td, descriptor);
           tr.appendChild(td);
@@ -1582,9 +1623,10 @@
 	      }
 	    });
 
+	    // Always include FPTS/PPG for rank-based coloring, even in position-specific filter views.
 	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
 	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : [];
+	      : columnSet.filter((col) => ALWAYS_RANKED_COLUMNS.has(col));
 	    const overviewRankColors = overviewRankColumns.length
 	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
 	      : null;
@@ -1851,6 +1893,7 @@
         const tr = document.createElement('tr');
         cols.forEach((col, cIdx) => {
           const td = document.createElement('td');
+          td.dataset.col = col;
           // Get the descriptor for this column from the full row data
           const descriptor = rowData[col];
           // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
@@ -2720,6 +2763,48 @@
     return seasonBasePromise;
   }
 
+  // --- ADP data from the ADP_2026 tab in the same KTC workbook ---
+  // Fetched once, stored in a module-scoped cache keyed by SLPR_ID.
+  // Each entry: { sflxAdp, pprAdp, posAdp, posSfAdp }
+  let adpDataCache = null;
+  let adpFetchPromise = null;
+
+  async function fetchAdpData() {
+    if (adpDataCache) return adpDataCache;
+    if (adpFetchPromise) return adpFetchPromise;
+    adpFetchPromise = (async () => {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('ADP_2026')}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`ADP_2026 fetch failed: ${res.status}`);
+        const csv = await res.text();
+        const { headers, rows } = parseCsv(csv);
+        const idx = (name) => headers.indexOf(name);
+        const map = {};
+        rows.forEach((cols) => {
+          const id = (cols[idx('SLPR_ID')] || '').trim();
+          if (!id) return;
+          const toF = (v) => { const n = parseFloat(v); return Number.isNaN(n) ? null : n; };
+          map[id] = {
+            sflxAdp: toF(cols[idx('SFLX_ADP')]),
+            pprAdp: toF(cols[idx('PPR_ADP')]),
+            posAdp: toF(cols[idx('POS_ADP')]),
+            posSfAdp: toF(cols[idx('POS_SF-ADP')])
+          };
+        });
+        adpDataCache = map;
+        return map;
+      } catch (e) {
+        console.error('Failed to fetch ADP_2026 data:', e);
+        adpDataCache = {};
+        return adpDataCache;
+      } finally {
+        adpFetchPromise = null;
+      }
+    })();
+    return adpFetchPromise;
+  }
+
   function computePpg({ fpts, games }) {
     if (!Number.isFinite(fpts)) return null;
     if (!Number.isFinite(games) || games <= 0) return null;
@@ -2770,9 +2855,12 @@
       const { headers, parsedRows, headerDisplay } = await loadSeasonBase();
       const available = new Set(headers);
       // Computed / externally-sourced columns that the table expects.
-      ['RK', 'VALUE', 'PPG'].forEach((col) => available.add(col));
+      ['RK', 'VALUE', 'PPG', 'ADP', 'POS·ADP'].forEach((col) => available.add(col));
       // RDP view columns are derived from the pick name, but keep them as "available" for clarity.
       ['YEAR', 'RANGE', 'ROUND'].forEach((col) => available.add(col));
+
+      // ADP data from ADP_2026 sheet (tab-aware mapping).
+      const adpMap = adpDataCache || {};
 
       const augmentedRows = parsedRows.map((row) => {
         const nextRow = { ...row };
@@ -2793,6 +2881,16 @@
           if (nextRow.RK === undefined) nextRow.RK = '';
         }
 
+        // ADP values from ADP_2026 sheet (tab-aware: 1QB uses PPR_ADP / POS_ADP, SFLX uses SFLX_ADP / POS_SF-ADP).
+        const adpEntry = playerId ? adpMap[playerId] : null;
+        if (adpEntry) {
+          nextRow.ADP = tabKey === 'sflx' ? adpEntry.sflxAdp : adpEntry.pprAdp;
+          nextRow['POS\u00b7ADP'] = tabKey === 'sflx' ? adpEntry.posSfAdp : adpEntry.posAdp;
+        } else {
+          nextRow.ADP = null;
+          nextRow['POS\u00b7ADP'] = null;
+        }
+
         // PPG is not present in SZN.csv; compute it from FPTS and G.
         const fpts = toNumber(nextRow.FPTS);
         const games = toNumber(nextRow.G, { allowFloat: false });
@@ -2810,6 +2908,9 @@
       ['RK', 'VALUE', 'PPG', 'G', 'FPTS', 'PLAYER'].forEach((col) => {
         if (!labels.has(col)) labels.set(col, col);
       });
+      // ADP column labels
+      labels.set('ADP', 'ADP');
+      labels.set('POS·ADP', 'POS·ADP');
 
       statsState.datasets.set(tabKey, enriched);
       statsState.headerLabels.set(tabKey, labels);
@@ -2845,6 +2946,8 @@
       if (typeof fetchDataFromGoogleSheet === 'function') {
         await fetchDataFromGoogleSheet();
       }
+      // Fetch ADP data from ADP_2026 tab (same workbook as KTC values).
+      await fetchAdpData();
       // Don't await - weekly stats now load in background after page renders
       await loadAllTabs();
       scheduleTeamLogoPreload();
