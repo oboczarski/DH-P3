@@ -336,6 +336,9 @@
     'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE', 'EPA/DB'
   ]);
   
+  // Columns where lower values are better (ADP) — sort ascending on first click instead of descending.
+  const ASCENDING_FIRST_COLUMNS = new Set(['ADP', 'POS·ADP']);
+
   const MOBILE_BREAKPOINT = 600;
   const MOBILE_WIDTH_SCALE_BASE = 0.75; // keep existing sizing for key columns on mobile
   const MOBILE_WIDTH_SCALE_REDUCED = 0.7; // slightly tighter for most columns on mobile
@@ -2551,17 +2554,23 @@
     const columnSet = getColumnSet();
     if (!columnSet.includes(column)) return;
     if (statsState.sort.column !== column) {
-      statsState.sort = { column, direction: 2 }; // Start with descending
+      // ADP columns sort ascending first (lower = better); everything else starts descending.
+      const startDir = ASCENDING_FIRST_COLUMNS.has(column) ? 1 : 2;
+      statsState.sort = { column, direction: startDir };
     } else {
-      // Cycle: 2 (desc) -> 1 (asc) -> 0 (none)
+      // Cycle: 2 (desc) -> 1 (asc) -> 0 (none)  /  1 (asc) -> 2 (desc) -> 0 (none)
       if (statsState.sort.direction === 2) {
         statsState.sort.direction = 1;
       } else if (statsState.sort.direction === 1) {
+        if (ASCENDING_FIRST_COLUMNS.has(column)) {
+          statsState.sort.direction = 2;
+        } else {
+          statsState.sort.direction = 0;
+          statsState.sort.column = null;
+        }
+      } else {
         statsState.sort.direction = 0;
         statsState.sort.column = null;
-      } else {
-        // This case should ideally not be hit if starting from a sorted state, but as a fallback:
-        statsState.sort.direction = 2;
       }
     }
     // Use fast row update instead of full re-render
