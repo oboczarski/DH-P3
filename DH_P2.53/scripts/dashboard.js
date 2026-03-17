@@ -4290,7 +4290,10 @@ function stabilizeDashboardBrandLogo() {
   const brandLogo = document.getElementById('dashboardBrandLogo');
   if (!(brandLogo instanceof HTMLImageElement)) return;
 
-  const baseLogoUrl = new URL('/assets/welcome/welcome-logo-256.png', window.location.origin).href;
+  // Dashboard header branding: resolve the retry URL from the same app-relative path
+  // used in the markup so the logo still loads when this app is served from a subfolder.
+  const configuredLogoPath = brandLogo.dataset.logoSrc || brandLogo.getAttribute('src') || 'assets/welcome/welcome-logo-256.png';
+  const baseLogoUrl = new URL(configuredLogoPath, document.baseURI).href;
   let recoveryAttempted = false;
 
   const markLogoReady = () => {
