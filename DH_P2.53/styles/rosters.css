@@ -751,15 +751,15 @@ body[data-page="rosters"] .roster-username-submit-label {
     font-size: 0.98rem;
   }
   body[data-page="rosters"] #rosterSearchInput {
-    font-size: 1.08rem;
+    font-size: 1.2rem;
     padding: 0.35rem 0.55rem;
   }
 
   /* ── League select ── */
   /* Effective: font 14px (~0.875rem) */
   body[data-page="rosters"] #leagueSelect {
-    font-size: 1.1rem;
-    padding-top: 0.38rem;
+    font-size: 1.2rem;
+    padding-top: 0.58rem;
     padding-bottom: 0.38rem;
   }
 
