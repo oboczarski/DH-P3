@@ -24,7 +24,7 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-const CACHE_NAME = 'DH2.23';
+const CACHE_NAME = 'DH2.24'; // bumped: added page-specific background images
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
