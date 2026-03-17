@@ -357,6 +357,7 @@ main#content {
 .branding-top-row {
   display: flex;
   flex-direction: row;
+  align-items: center;
   justify-content: center;
   gap: 1.25rem;
   width: 100%;
@@ -3687,16 +3688,46 @@ body[data-page="welcome"] .app-header {
   }
 }
 
-/* For narrow viewports, keep a compact grid to allow wrapping */
+/* For narrow viewports, keep a compact grid to allow wrapping.
+   Hamburger is JS-moved to branding panel on mobile, so grid is now 2-col: [username] [enter]. */
 @media (max-width: 819px) {
   body[data-page="welcome"] #primary-header-row {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 0.5rem;
     align-items: center;
     width: 100%;
     padding-left: 8px;
     padding-right: 8px;
+  }
+
+  /* --- Hamburger in branding panel (mobile only) --- */
+  /* Push button to the far right without inflating the gap between logo+title */
+  body[data-page="welcome"] .branding-top-row .home-menu-slot {
+    margin-left: auto;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Size the hamburger button proportionally to the branding panel */
+  body[data-page="welcome"] .branding-top-row .menu-toggle {
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+  }
+
+  /* Slightly larger icon to match panel scale */
+  body[data-page="welcome"] .branding-top-row .menu-toggle i {
+    font-size: 1.5rem;
+  }
+
+  /* Keep dropdown anchored below the button in its new panel */
+  body[data-page="welcome"] .branding-top-row .home-menu {
+    left: auto;
+    right: 0;
   }
 }
 
@@ -3883,10 +3914,11 @@ body[data-page="welcome"] .menu-toggle i {
 }
 
 
-/* Mobile tweaks: keep button compact and inline */
+/* Mobile tweaks: keep button compact and inline.
+   Hamburger moved to branding panel, so grid is 2-col: [username] [enter]. */
 @media (max-width: 520px) {
   body[data-page="welcome"] #primary-header-row {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto;
     gap: 0.4rem;
     padding-left: 8px;
     padding-right: 8px;

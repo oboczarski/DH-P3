@@ -326,6 +326,28 @@ researchButton?.addEventListener('click', async () => {
 });
 // --- Home page menu wiring (only when on welcome page) ---
 if (pageType === 'welcome') {
+    // --- Mobile-only: move hamburger menu from header row into branding panel ---
+    // On mobile (≤819px) the hamburger button moves to the right side of the
+    // branding panel so the username input can stretch wider.  On desktop (≥820px)
+    // it stays in the primary-header-row exactly as before.
+    const _homeMenuSlot = document.querySelector('.home-menu-slot');
+    const _brandingRow = document.querySelector('.branding-top-row');
+    const _primaryRow  = document.getElementById('primary-header-row');
+    if (_homeMenuSlot && _brandingRow && _primaryRow) {
+        const mobileMenuMQ = window.matchMedia('(max-width: 819px)');
+        function _syncMenuSlotPosition(e) {
+            if (e.matches) {
+                // Mobile: append to branding panel (after logo + title)
+                _brandingRow.appendChild(_homeMenuSlot);
+            } else {
+                // Desktop: return to header row as the first child (before username)
+                _primaryRow.insertBefore(_homeMenuSlot, _primaryRow.firstChild);
+            }
+        }
+        _syncMenuSlotPosition(mobileMenuMQ);          // initial placement
+        mobileMenuMQ.addEventListener('change', _syncMenuSlotPosition); // resize
+    }
+
     const homeMenuToggle = document.getElementById('homeMenuToggle');
     const homeMenu = document.getElementById('homeMenu');
     if (homeMenuToggle && homeMenu) {
