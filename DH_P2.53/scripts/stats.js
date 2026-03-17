@@ -2806,7 +2806,7 @@
             sflxAdp: toF(cols[idx('SFLX_ADP')]),
             pprAdp: toF(cols[idx('PPR_ADP')]),
             posAdp: toF(cols[idx('POS_ADP')]),
-            posSfAdp: toF(cols[idx('POS_SF-ADP')])
+            posSfAdp: toF(cols[idx('P-SF_ADP')])
           };
         });
         adpDataCache = map;
