@@ -203,5 +203,8 @@
   "livePreview.showServerStatusNotifications": true,
   "livePreview.defaultPreviewPath": "DH_P2.53",
   "editor.accessibilitySupport": "off",
-  "chat.autopilot.enabled": true
+  "chat.autopilot.enabled": true,
+  "files.refactoring.autoSave": false,
+  "python.testing.autoTestDiscoverOnSaveEnabled": false,
+  "claudeCode.autosave": false
 }
