@@ -4283,6 +4283,73 @@ function drawScatterChart(containerId, data) {
     .attr('opacity', 1);
 }
 
+// Dashboard header branding: keep the home-page logo visible when the app is opened
+// from a sister app or restored from a mobile webview/pageshow state. The helper
+// validates the header logo image and re-requests it once if the first paint stalls.
+function stabilizeDashboardBrandLogo() {
+  const brandLogo = document.getElementById('dashboardBrandLogo');
+  if (!(brandLogo instanceof HTMLImageElement)) return;
+
+  const baseLogoUrl = new URL('/assets/welcome/welcome-logo-256.png', window.location.origin).href;
+  let recoveryAttempted = false;
+
+  const markLogoReady = () => {
+    if (brandLogo.naturalWidth > 0) {
+      brandLogo.removeAttribute('data-logo-recovering');
+    }
+  };
+
+  const recoverBrandLogo = () => {
+    if (recoveryAttempted || brandLogo.naturalWidth > 0) return;
+    recoveryAttempted = true;
+    brandLogo.setAttribute('data-logo-recovering', 'true');
+    brandLogo.src = `${baseLogoUrl}?v=${Date.now()}`;
+  };
+
+  const validateBrandLogo = () => {
+    if (brandLogo.complete && brandLogo.naturalWidth > 0) {
+      markLogoReady();
+      return;
+    }
+    window.setTimeout(() => {
+      if (brandLogo.complete && brandLogo.naturalWidth > 0) {
+        markLogoReady();
+        return;
+      }
+      recoverBrandLogo();
+    }, 180);
+  };
+
+  brandLogo.loading = 'eager';
+  brandLogo.decoding = 'async';
+  try {
+    brandLogo.fetchPriority = 'high';
+  } catch (e) {
+    // Ignore browsers that do not expose fetchPriority as a writable property.
+  }
+
+  if (!brandLogo.getAttribute('src')) {
+    brandLogo.src = baseLogoUrl;
+  }
+
+  brandLogo.addEventListener('load', markLogoReady);
+  brandLogo.addEventListener('error', recoverBrandLogo);
+  window.addEventListener('pageshow', validateBrandLogo);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      validateBrandLogo();
+    }
+  });
+
+  if (typeof brandLogo.decode === 'function') {
+    brandLogo.decode().then(markLogoReady).catch(() => {
+      validateBrandLogo();
+    });
+  } else {
+    validateBrandLogo();
+  }
+}
+
 // Home menu: support external destinations (Trophy Room / Matchups) without impacting shared app.js navigation.
 // This file loads before deferred `app.js`, so we can intercept clicks and stop the default handler for these items.
 (() => {
@@ -4362,6 +4429,7 @@ window.initFantasyDashboard = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  stabilizeDashboardBrandLogo();
   window.initFantasyDashboard();
 });
 })();

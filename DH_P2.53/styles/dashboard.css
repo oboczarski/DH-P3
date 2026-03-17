@@ -91,6 +91,24 @@
   }
 }
 
+/* Dashboard welcome header branding: keep the logo paint path simple and page-scoped.
+   The home dashboard is the only page that shows this logo in the hero header, and
+   removing the inline mask here avoids the intermittent blank-logo render seen after
+   sister-app link handoffs in mobile webviews. */
+.fc-dashboard .welcome-branding-panel {
+  position: relative;
+}
+
+.fc-dashboard .dashboard-brand-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0 0 16px #7300ff48);
+}
+
 /* Background Blobs */
 .fc-blob {
   position: absolute;
