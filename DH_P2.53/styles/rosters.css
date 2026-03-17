@@ -751,15 +751,15 @@ body[data-page="rosters"] .roster-username-submit-label {
     font-size: 0.98rem;
   }
   body[data-page="rosters"] #rosterSearchInput {
-    font-size: 1.2rem;
+    font-size: 1.08rem;
     padding: 0.35rem 0.55rem;
   }
 
   /* ── League select ── */
   /* Effective: font 14px (~0.875rem) */
   body[data-page="rosters"] #leagueSelect {
-    font-size: 1.2rem;
-    padding-top: 0.58rem;
+    font-size: 1.1rem;
+    padding-top: 0.38rem;
     padding-bottom: 0.38rem;
   }
 
@@ -967,21 +967,21 @@ body[data-page="rosters"] .roster-username-submit-label {
 /* Rosters: Preview-active header states (desktop) */
 @media (min-width: 869px) {
   body[data-page="rosters"] #header-container .app-header.preview-active {
-    --roster-desktop-gap: 0.6rem;
-    --roster-desktop-field-width: 113px;
-    --roster-desktop-max: min(calc(100vw - 3rem), 1060px);
-    --roster-preview-gap: clamp(0.4rem, 1.2vw, 0.7rem);
+    /* Desktop roster preview header:
+       keep the preview-only controls on one clean desktop row while letting the
+       compact and wide roster desktop bands size them independently. */
     display: grid;
-    grid-template-columns: var(--roster-desktop-field-width) repeat(5, auto);
-    grid-template-rows: auto auto;
+    grid-template-columns: var(--roster-preview-switcher-track) var(--roster-preview-start-sit-track) var(--roster-preview-filters-track) max-content;
+    grid-template-rows: auto;
     column-gap: var(--roster-desktop-gap);
-    row-gap: 0.85rem;
+    row-gap: 0;
     align-items: center;
     justify-content: center;
-    padding: 0.9rem 1.15rem 0.21rem;
+    padding: var(--roster-preview-pad-top) var(--roster-preview-pad-x) var(--roster-preview-pad-bottom);
     margin: 0 auto;
     width: fit-content;
-    max-width: var(--roster-desktop-max);
+    max-width: calc(100vw - 1rem);
+    box-sizing: border-box;
   }
 
   body[data-page="rosters"] .app-header.preview-active #primary-header-row {
@@ -1012,23 +1012,53 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] .app-header.preview-active .view-switcher {
     grid-column: 1;
     grid-row: 1;
-    justify-self: flex-start;
-    margin-left: 0;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    margin-left: 0 !important;
   }
 
   body[data-page="rosters"] .app-header.preview-active .secondary-switcher {
     margin-left: 0;
   }
 
+  /* Preview controls row:
+     keep the preview controls matched to the dedicated preview tracks so the
+     segmented control and Start/Sit button stay proportional in each desktop band. */
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher {
+    width: 100%;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button.active {
+    min-width: 0;
+  }
+
   body[data-page="rosters"] .app-header.preview-active .start-sit-button-slot {
     grid-column: 2;
     grid-row: 1;
-    justify-self: flex-start;
+    justify-self: stretch;
+    width: 100%;
     margin: 0;
   }
 
   body[data-page="rosters"] .app-header.preview-active .start-sit-button-container {
-    flex: 0 0 auto !important;
+    flex: 1 1 auto !important;
+    display: flex;
+    width: 100%;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button {
+    width: 100%;
+    min-width: 0 !important;
+    margin-left: 0;
+    box-sizing: border-box;
   }
 
   body[data-page="rosters"] .app-header.preview-active .filters-container {
@@ -1040,19 +1070,31 @@ body[data-page="rosters"] .roster-username-submit-label {
   body[data-page="rosters"] .app-header.preview-active #positional-filters {
     grid-column: 3;
     grid-row: 1;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--roster-preview-filter-gap);
+    margin: 0;
+    width: 100%;
+    min-width: 0;
+    justify-content: stretch;
+    box-sizing: border-box;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .filter-btn {
+    width: 100%;
+    min-width: 0;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    margin: 0;
-    justify-content: flex-start;
-    min-width: 0;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   body[data-page="rosters"] .app-header.preview-active #clearFiltersButton {
     grid-column: 4;
     grid-row: 1;
     margin: 0;
-    justify-self: flex-start;
+    justify-self: end;
   }
 
   /* Desktop preview-active: compare-controls hidden (search toggle replaced by inline search) */
@@ -1063,6 +1105,131 @@ body[data-page="rosters"] .roster-username-submit-label {
   /* Desktop preview-active: inline search hidden in compact mode */
   body[data-page="rosters"] .app-header.preview-active .roster-inline-search {
     display: none !important;
+  }
+}
+
+@media (min-width: 869px) and (max-width: 1200px) {
+  body[data-page="rosters"] #header-container .app-header.preview-active {
+    /* Compact desktop preview header:
+       mirror the compact roster desktop band so preview mode tightens cleanly
+       as the viewport shrinks, without falling back to the old cramped layout. */
+    --roster-preview-compact-progress: clamp(0px, calc(100vw - 869px), 331px);
+    --roster-desktop-gap: calc(10px + (var(--roster-preview-compact-progress) * 0.0090634441));
+    --roster-preview-switcher-track: calc(228px + (var(--roster-preview-compact-progress) * 0.084592145));
+    --roster-preview-start-sit-track: calc(104px + (var(--roster-preview-compact-progress) * 0.0422960725));
+    --roster-preview-filters-track: calc(314px + (var(--roster-preview-compact-progress) * 0.1148036254));
+    --roster-preview-filter-gap: calc(2px + (var(--roster-preview-compact-progress) * 0.003021148));
+    --roster-preview-view-pad-x: calc(7px + (var(--roster-preview-compact-progress) * 0.0054380665));
+    --roster-preview-start-sit-pad-x: calc(10px + (var(--roster-preview-compact-progress) * 0.0060422961));
+    --roster-preview-filter-pad-x: calc(5.8px + (var(--roster-preview-compact-progress) * 0.0066465257));
+    --roster-preview-pad-top: 0.52rem;
+    --roster-preview-pad-x: 0.65rem;
+    --roster-preview-pad-bottom: 0.42rem;
+    --header-control-height: 37px;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher {
+    padding: 0.12rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button {
+    padding: 0.2rem var(--roster-preview-view-pad-x) 0.12rem !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button i {
+    font-size: 0.92rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher .switcher-label {
+    font-size: 0.74rem !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button {
+    min-height: 37px;
+    height: 37px;
+    padding: 0.3rem var(--roster-preview-start-sit-pad-x) 0.2rem !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button .analyzer-icon {
+    font-size: 0.95rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button .analyzer-label {
+    font-size: 0.68rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .filter-btn {
+    padding: 0.22rem var(--roster-preview-filter-pad-x);
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #clearFiltersButton {
+    min-height: 37px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+@media (min-width: 1201px) {
+  body[data-page="rosters"] #header-container .app-header.preview-active {
+    /* Wide desktop preview header:
+       keep the preview row aligned with the wide roster desktop scale while
+       avoiding the oversized filter rail and undersized Start/Sit control. */
+    --roster-preview-wide-progress: clamp(0px, calc(100vw - 1201px), 321px);
+    --roster-desktop-gap: calc(12px + (var(--roster-preview-wide-progress) * 0.0062305296));
+    --roster-preview-switcher-track: calc(246px + (var(--roster-preview-wide-progress) * 0.0498442368));
+    --roster-preview-start-sit-track: calc(112px + (var(--roster-preview-wide-progress) * 0.0373831776));
+    --roster-preview-filters-track: calc(338px + (var(--roster-preview-wide-progress) * 0.0747663551));
+    --roster-preview-filter-gap: calc(3px + (var(--roster-preview-wide-progress) * 0.0031152648));
+    --roster-preview-view-pad-x: calc(8.2px + (var(--roster-preview-wide-progress) * 0.0049844237));
+    --roster-preview-start-sit-pad-x: calc(10.5px + (var(--roster-preview-wide-progress) * 0.0056074766));
+    --roster-preview-filter-pad-x: calc(8.5px + (var(--roster-preview-wide-progress) * 0.0046728972));
+    --roster-preview-pad-top: 0.6rem;
+    --roster-preview-pad-x: calc(15px + (var(--roster-preview-wide-progress) * 0.0031152648));
+    --roster-preview-pad-bottom: 0.42rem;
+    --header-control-height: 46px;
+    max-width: calc(100vw - 2rem);
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher {
+    padding: 0.15rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button {
+    padding: 0.25rem var(--roster-preview-view-pad-x) 0.2rem !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher button i {
+    font-size: 1rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .compact-switcher .switcher-label {
+    font-size: 0.78rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button {
+    min-height: 46px;
+    height: 46px;
+    padding: 0.35rem var(--roster-preview-start-sit-pad-x) !important;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button .analyzer-icon {
+    font-size: 1.2rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .start-sit-button .analyzer-label {
+    font-size: 0.78rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active .filter-btn {
+    min-height: 40px;
+    padding: 0.22rem var(--roster-preview-filter-pad-x);
+    font-size: 1.05rem;
+  }
+
+  body[data-page="rosters"] .app-header.preview-active #clearFiltersButton {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
   }
 }
 
