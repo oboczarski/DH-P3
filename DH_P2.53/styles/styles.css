@@ -3724,10 +3724,16 @@ body[data-page="welcome"] .app-header {
     font-size: 1.5rem;
   }
 
-  /* Keep dropdown anchored below the button in its new panel */
-  body[data-page="welcome"] .branding-top-row .home-menu {
-    left: auto;
-    right: 0;
+  /* Home dropdown is portaled to <body> on mobile (JS) to escape the branding
+     panel's stacking context.  These styles target the portaled state to ensure
+     it renders above all page content with position: fixed (set by JS). */
+  body[data-page="welcome"] > #homeMenu {
+    position: fixed;
+    z-index: 9999;
+    background: rgb(30 29 52 / 98%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(128, 138, 189, 0.18);
   }
 }
 

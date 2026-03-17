@@ -330,18 +330,35 @@ if (pageType === 'welcome') {
     // On mobile (≤819px) the hamburger button moves to the right side of the
     // branding panel so the username input can stretch wider.  On desktop (≥820px)
     // it stays in the primary-header-row exactly as before.
+    // The dropdown menu itself is portaled to <body> on mobile so it escapes
+    // the branding panel's stacking context (backdrop-filter creates one in WebKit).
     const _homeMenuSlot = document.querySelector('.home-menu-slot');
     const _brandingRow = document.querySelector('.branding-top-row');
     const _primaryRow  = document.getElementById('primary-header-row');
+    const _homeMenuEl  = document.getElementById('homeMenu');
     if (_homeMenuSlot && _brandingRow && _primaryRow) {
         const mobileMenuMQ = window.matchMedia('(max-width: 819px)');
         function _syncMenuSlotPosition(e) {
             if (e.matches) {
-                // Mobile: append to branding panel (after logo + title)
+                // Mobile: move button slot to branding panel
                 _brandingRow.appendChild(_homeMenuSlot);
+                // Portal dropdown to <body> to escape the stacking context
+                if (_homeMenuEl && _homeMenuEl.parentElement !== document.body) {
+                    document.body.appendChild(_homeMenuEl);
+                }
             } else {
-                // Desktop: return to header row as the first child (before username)
+                // Desktop: return button slot to header row
                 _primaryRow.insertBefore(_homeMenuSlot, _primaryRow.firstChild);
+                // Return dropdown to its slot for natural absolute positioning
+                if (_homeMenuEl && _homeMenuEl.parentElement !== _homeMenuSlot) {
+                    _homeMenuSlot.appendChild(_homeMenuEl);
+                    // Clear any inline fixed-positioning left over from mobile
+                    _homeMenuEl.style.position = '';
+                    _homeMenuEl.style.left = '';
+                    _homeMenuEl.style.top = '';
+                    _homeMenuEl.style.right = '';
+                    _homeMenuEl.style.bottom = '';
+                }
             }
         }
         _syncMenuSlotPosition(mobileMenuMQ);          // initial placement
@@ -351,11 +368,59 @@ if (pageType === 'welcome') {
     const homeMenuToggle = document.getElementById('homeMenuToggle');
     const homeMenu = document.getElementById('homeMenu');
     if (homeMenuToggle && homeMenu) {
+        // Position the dropdown relative to the toggle button when portaled to <body>.
+        // Uses position: fixed so that z-index applies at the top of the stacking order.
+        function _positionHomeMenu() {
+            if (homeMenu.parentElement !== document.body) return; // only when portaled
+            const rect = homeMenuToggle.getBoundingClientRect();
+            const gap = 4;
+            const margin = 6;
+            const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+            // Temporarily show for measurement
+            const wasHidden = homeMenu.classList.contains('hidden');
+            if (wasHidden) {
+                homeMenu.classList.remove('hidden');
+                homeMenu.style.visibility = 'hidden';
+            }
+
+            const menuWidth = homeMenu.offsetWidth || 0;
+            // Align right edge of menu with right edge of button
+            let left = rect.right - menuWidth;
+            // Clamp to viewport edges
+            left = Math.max(margin, Math.min(left, viewportWidth - margin - menuWidth));
+
+            homeMenu.style.position = 'fixed';
+            homeMenu.style.left   = Math.round(left) + 'px';
+            homeMenu.style.top    = Math.round(rect.bottom + gap) + 'px';
+            homeMenu.style.right  = 'auto';
+            homeMenu.style.bottom = 'auto';
+
+            if (wasHidden) {
+                homeMenu.classList.add('hidden');
+                homeMenu.style.visibility = '';
+            }
+        }
+
         homeMenuToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isOpen = homeMenu.classList.toggle('hidden') ? true : !homeMenu.classList.contains('hidden');
-            homeMenuToggle.setAttribute('aria-expanded', String(!homeMenu.classList.contains('hidden')));
-            homeMenu.setAttribute('aria-hidden', String(homeMenu.classList.contains('hidden')));
+            const willOpen = homeMenu.classList.contains('hidden');
+            if (willOpen) {
+                // Position before showing to prevent first-frame jump
+                homeMenu.classList.remove('hidden');
+                homeMenu.style.visibility = 'hidden';
+                _positionHomeMenu();
+                requestAnimationFrame(() => {
+                    _positionHomeMenu();
+                    homeMenu.style.visibility = '';
+                });
+                homeMenuToggle.setAttribute('aria-expanded', 'true');
+                homeMenu.setAttribute('aria-hidden', 'false');
+            } else {
+                homeMenu.classList.add('hidden');
+                homeMenuToggle.setAttribute('aria-expanded', 'false');
+                homeMenu.setAttribute('aria-hidden', 'true');
+            }
         });
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
@@ -366,6 +431,13 @@ if (pageType === 'welcome') {
                     homeMenu.setAttribute('aria-hidden', 'true');
                 }
             }
+        });
+        // Keep dropdown positioned on scroll/resize when open and portaled
+        window.addEventListener('scroll', () => {
+            if (!homeMenu.classList.contains('hidden')) _positionHomeMenu();
+        }, { passive: true });
+        window.addEventListener('resize', () => {
+            if (!homeMenu.classList.contains('hidden')) _positionHomeMenu();
         });
         // Wire menu items
         homeMenu.querySelectorAll('.home-menu-item').forEach(btn => {
