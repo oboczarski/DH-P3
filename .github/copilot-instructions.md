@@ -367,3 +367,26 @@ DH-P3/DH_P2.53
 
 > ⚠️ **DO NOT** re-enable full Sheets loading without updating this doc.
 
+## UI Glass Revamp Rules
+
+### Scope
+- This revamp is for containerized UI only.
+- Start with one page only.
+- Do not make global app-wide design changes on the first pass.
+
+### Non-Negotiable Rules
+- The app is vanilla HTML/CSS/JS. Do not use React components or React patterns.
+- Use the CSS-only glass-refraction design approach only as visual inspiration/patterning for container styling.
+- Keep all sizing exactly the same unless the prompt explicitly allows a size change.
+- Keep all functionality exactly the same.
+- Do not break layout flow, spacing behavior, sticky/fixed behavior, table behavior, scroll behavior, or modal behavior.
+- Do not change non-containerized elements.
+- Non-containerized elements inside containers must keep their current styles unless a change is absolutely required for the new container treatment.
+- Preserve important inset box shadows and similar existing effects for position tags, filters, and controls.
+- Ignore any repeating animation from the reference resources. Do not use it.
+- Prefer separate page-specific and component-specific selectors over broad shared selectors when implementing the new glass styles.
+- Before editing, identify the exact files loaded by the target page and review them fully.
+- Before editing, list the containerized elements that will change.
+- Before editing, list any shared selectors or cross-page risks.
+- After editing, verify mobile and desktop behavior.
+- If there is any conflict between visual overhaul and preserving layout/functionality, preserve layout/functionality.
