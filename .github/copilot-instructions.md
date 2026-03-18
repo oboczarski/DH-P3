@@ -141,6 +141,7 @@ DH-P3/DH_P2.53
     - Section/group ordering is driven by `SZN_STAT_SECTIONS_BY_POS` (see reference doc below).
     - Ranks/colors are reused from the existing rank color logic.
   - Shared utilities (value display, rank suffixes, team/position colors, modal wiring, layout guards).
+  - **Page type detection**: `const pageType = document.body.dataset.page || 'welcome'` — each HTML page sets `data-page` on `<body>` to scope page-specific logic (e.g. `data-page="rosters"`, `data-page="stats"`).
   - Section configuration (categories, order, and stat lists) is documented in `.ReferenceFolder/SZN_STATS_SECTIONS.md`.
 ---
 
@@ -148,6 +149,8 @@ DH-P3/DH_P2.53
   - Builds summary metrics for dashboard cards.
   - Renders radar, bar, and consistency-vs-ceiling scatter charts using Chart.js (and D3 where applicable).
   - Manages player selection, position filters, and radar modal behavior.
+
+- **/DH_P2.53/scripts/dh-scramble.js**: Letter-scramble animation for the **Dynasty Hub** title on the Dashboard. Runs as a self-contained IIFE on page load; targets the `#dh-scramble` element and animates each character of "Dynasty Hub" locking in with random-order, slow-flicker scramble using a Fisher-Yates-shuffled lock sequence. Only loaded on `index.html`.
 
 - **/DH_P2.53/scripts/analyzer.js**: Logic specific to the **League Analyzer** page. Handles:
   - Fetching players and league data (Sleeper + KTC/value from Google Sheets, partly via proxies).
@@ -200,9 +203,17 @@ DH-P3/DH_P2.53
 
 - **/netlify/edge-functions/sleeper-proxy.js**: Netlify Edge Function that proxies Sleeper API requests (`/api/sleeper/*`), applies environment-aware caching (live-ish windows vs off-hours), and adds diagnostic headers.
 
-- **/netlify.toml**: Netlify configuration file specifying build settings, redirects, headers, and routing of `/api/sheet/*` and `/api/sleeper/*` to the appropriate edge functions.
+- **/netlify.toml**: Netlify configuration file specifying build settings, redirects, HTTP headers, and edge function routing:
+  - **Publish dir**: `DH_P2.53`
+  - **Clean URL redirects** (SPA-style, status 200): `/` → `index.html`, `/rosters` → `rosters/rosters.html`, `/stats` → `stats/stats.html`, `/ownership` → `ownership/ownership.html`, `/analyzer` → `analyzer/analyzer.html`, `/research` → `research/research.html`
+  - **Edge functions**: `/api/sheet/*` → `sheet-proxy`, `/api/sleeper/*` → `sleeper-proxy`
+  - **HTTP headers**: Default 5-min cache; `/assets/*` and `/data/*` get 1 day + 7d stale-while-revalidate; security headers (X-Frame-Options, X-Content-Type-Options, CSP-Report-Only) applied globally.
 
-- **/.ReferenceFolder**: Holds reference documentation for user.  
+- **/.ReferenceFolder**: Holds developer reference documentation. Key files:
+  - `SZN_STATS_SECTIONS.md`: Documents the `SZN_STAT_SECTIONS_BY_POS` constant in `app.js` — the single source of truth for which stat sections appear in the Game Logs SZN view per position (QB/RB/WR/TE), their order, and the stats within each section.
+  - `BigHeadingCSS.md`: CSS reference for rank suffix styling variants across contexts (player comparison modal, game logs modal, KTC rank in player cards).
+  - `OldFileOverview.md`, `old-inst.md`: Legacy/outdated docs, kept for historical reference.
+  - `Copilot-Logs/`: Debug and session logs directory.
 
 ---
 

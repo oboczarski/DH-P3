@@ -21,6 +21,11 @@ When you update code and make changes to the app, add comments that explain:
 - Primary stats data source for both **Rosters** and **Stats** pages is the **CSV files**.
 - For now, the only data that should be pulled from **Google Sheets** is **KTC values**.
 
+## Key patterns (do not break)
+- **Page type detection**: each HTML page sets `data-page` on `<body>`; `app.js` reads `document.body.dataset.page` to scope logic per page.
+- **Dashboard is self-contained**: `index.html` does NOT load `app.js`. It loads `dashboard.js` + `dh-scramble.js` only.
+- **Netlify clean URL redirects**: `/rosters` → `rosters/rosters.html`, `/stats` → `stats/stats.html`, `/ownership` → `ownership/ownership.html`, `/analyzer` → `analyzer/analyzer.html`, `/research` → `research/research.html`. Never break these routes.
+
 ## Full repo map (as of current structure)
 DH-P3/DH_P2.53
 ├── .github
@@ -91,6 +96,11 @@ DH-P3/DH_P2.53
 │       └── sleeper-proxy.js
 ├── netlify.toml
 └── .ReferenceFolder
+    ├── SZN_STATS_SECTIONS.md  ← Game Logs SZN view config (SZN_STAT_SECTIONS_BY_POS)
+    ├── BigHeadingCSS.md        ← Rank suffix CSS variants across modal/card contexts
+    ├── OldFileOverview.md      ← Legacy (outdated, keep for history)
+    ├── old-inst.md             ← Legacy instructions (outdated)
+    └── Copilot-Logs/           ← Debug/session logs
 
 
 ## Navigation: sister apps rule (do not break)
