@@ -1725,3 +1725,522 @@
     color: #B469FFca;
     box-shadow: inset 0 0 10px #B469FF26;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RELOCATED FROM styles.css — Dashboard-only rules scoped by
+   body[data-page="welcome"].  Moved here so they only load on the Dashboard,
+   which is the only page that includes dashboard.css.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- Block A: Welcome page uniform control heights & tighter mobile spacing --- */
+
+/* Welcome page: enforce uniform control heights and tighter mobile spacing */
+body[data-page="welcome"] {
+  /* single source of truth for header control sizing on the welcome page */
+  --welcome-header-control-height: 36px;
+  /* slightly smaller for a tighter header */
+}
+
+/* Make menu slot, username area and enter control share a single height */
+body[data-page="welcome"] #primary-header-row .menu-container,
+body[data-page="welcome"] .username-area,
+body[data-page="welcome"] .enter-button,
+body[data-page="welcome"] .menu-button,
+body[data-page="welcome"] .home-menu-slot {
+  height: var(--welcome-header-control-height) !important;
+  min-height: var(--welcome-header-control-height) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Ensure the input fills the shared height and has balanced paddings */
+body[data-page="welcome"] #usernameInput {
+  padding-top: 0.18rem !important;
+  padding-bottom: 0.18rem !important;
+  padding-left: 0.6rem !important;
+  padding-right: 0.6rem !important;
+  font-size: 17px !important;
+  line-height: calc(var(--welcome-header-control-height) - 0.36rem);
+}
+
+/* Keep the enter button vertically centered and same height */
+body[data-page="welcome"] .enter-button {
+  height: var(--welcome-header-control-height) !important;
+  min-height: var(--welcome-header-control-height) !important;
+  align-items: center;
+}
+
+/* Reduce vertical gap on small screens so elements sit closer */
+@media (max-width: 520px) {
+  body[data-page="welcome"] #primary-header-row {
+    gap: 0.65rem !important;
+  }
+
+  body[data-page="welcome"] .nav-buttons-container {
+    gap: 0.25rem !important;
+  }
+}
+
+/* Small tweak: ensure the hamburger/menu button matches sizing */
+body[data-page="welcome"] .menu-button,
+body[data-page="welcome"] #homeMenuToggle {
+  height: 108% !important;
+  width: 44px !important;
+  /* fixed square for consistent visual */
+  min-width: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Make the enter label a touch-friendly height on mobile while keeping it short */
+body[data-page="welcome"] .enter-label {
+  line-height: 1;
+}
+
+/* --- Block B: Mobile Sticky Header Fix --- */
+
+body[data-page="welcome"] #header-container {
+  padding: 0.1rem 0rem 0.1rem 0rem;
+  position: sticky;
+  /* Ensure sticky on mobile */
+  top: 0;
+  z-index: 1000;
+}
+
+body[data-page="welcome"] .app-header.glass-panel {
+  -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
+  backdrop-filter: blur(1px) saturate(112%) brightness(110%);
+}
+
+body[data-page="welcome"] .app-header {
+  display: flex !important;
+  flex-direction: column;
+  /* Stack title and controls */
+  align-items: center;
+  justify-content: center;
+  /* center header on desktop */
+  padding: 0.3rem 0.15rem;
+  gap: 0.2rem;
+}
+
+/* --- Block C (welcome-only portion): Desktop ≥820px welcome-scoped rules --- */
+
+@media (min-width: 820px) {
+
+  /* Adjust Branding Panel on Desktop */
+  body[data-page="welcome"] .welcome-branding-panel {
+    flex: 1;
+    /* Take up equal space */
+    width: auto;
+    margin: 0;
+    padding: 0 1rem;
+    /* Reduced padding */
+    max-width: none;
+    /* Remove max-width restriction */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Scale down branding content */
+  body[data-page="welcome"] .welcome-logo img {
+    height: 5rem;
+    width: 5.6rem;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 3.2rem;
+  }
+
+  /* Adjust Header Container on Desktop */
+  body[data-page="welcome"] #header-container {
+    flex: 1;
+    /* Take up equal space */
+    width: auto;
+    position: static;
+    /* Unfreeze on desktop */
+    padding: 0;
+    background: none;
+    max-width: none;
+    /* Remove max-width restriction */
+    display: flex;
+    align-items: center;
+    /* Center content vertically */
+  }
+
+  body[data-page="welcome"] .app-header {
+    width: 100%;
+    /* Fill the container */
+    margin: 0;
+    height: 100%;
+    /* Match container height */
+    padding: 0.3rem 0.5rem;
+    /* Reduced vertical padding further */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.5em;
+    /* Match branding panel radius */
+    gap: 0.2rem;
+    /* Tighter gap */
+  }
+
+  /* Scale up header content */
+  body[data-page="welcome"] .menu-toggle {
+    height: 48px;
+    font-size: 1.2rem;
+  }
+
+  body[data-page="welcome"] .enter-button {
+    height: 44px;
+  }
+
+  body[data-page="welcome"] #usernameInput {
+    font-size: 1.1rem;
+    padding: 0.5rem 0.8rem;
+    width: 100%;
+  }
+
+  body[data-page="welcome"] .username-area {
+    flex-grow: 1;
+    max-width: none;
+    width: auto;
+  }
+
+  body[data-page="welcome"] .welcome-header-title {
+    font-size: 0.7rem;
+    margin-bottom: 0;
+    font-weight: 300;
+    /* Lighter weight */
+  }
+
+  body[data-page="welcome"] .welcome-header-footer {
+    font-size: 0.55rem;
+    margin-top: 0;
+  }
+
+  body[data-page="welcome"] #primary-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* keep the group centered */
+    gap: 1.2rem;
+    /* small gap between controls */
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  /* Reduce gaps on desktop for welcome page */
+  body[data-page="welcome"] #welcome-screen {
+    gap: 0.5rem;
+  }
+
+  body[data-page="welcome"] .fc-grid-metrics {
+    gap: 0.75rem;
+  }
+
+  body[data-page="welcome"] .fc-grid-charts {
+    gap: 0.75rem;
+  }
+}
+
+/* --- Block D: Mobile ≤819px hamburger / branding panel layout --- */
+
+/* For narrow viewports, keep a compact grid to allow wrapping.
+   Hamburger is JS-moved to branding panel on mobile, so grid is now 2-col: [username] [enter]. */
+@media (max-width: 819px) {
+  body[data-page="welcome"] #primary-header-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  /* --- Hamburger in branding panel (mobile only) --- */
+  /* Push button to the far right without inflating the gap between logo+title */
+  body[data-page="welcome"] .branding-top-row .home-menu-slot {
+    margin-left: auto;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  /* Size the hamburger button proportionally to the branding panel */
+  body[data-page="welcome"] .branding-top-row .menu-toggle {
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+  }
+
+  /* Slightly larger icon to match panel scale */
+  body[data-page="welcome"] .branding-top-row .menu-toggle i {
+    font-size: 1.5rem;
+  }
+
+  /* Home dropdown is portaled to <body> on mobile (JS) to escape the branding
+     panel's stacking context.  These styles target the portaled state to ensure
+     it renders above all page content with position: fixed (set by JS). */
+  body[data-page="welcome"] > #homeMenu {
+    position: fixed;
+    z-index: 9999;
+    background: rgb(30 29 52 / 98%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(128, 138, 189, 0.18);
+  }
+}
+
+/* --- Block E: Home-page header, controls, enter button, menu --- */
+
+/* make sure only for home: hide any leftover contextual controls */
+body[data-page="welcome"] #contextual-controls {
+  display: none !important;
+}
+
+/* Username field sizing for home */
+body[data-page="welcome"] .username-area {
+  min-width: 0;
+  max-width: 520px;
+  width: 100%;
+}
+
+body[data-page="welcome"] #usernameInput {
+  font-size: 0.96rem;
+  padding: 0.36rem 0.65rem;
+}
+
+/* Enter button styling — styled to match the other nav buttons with a circular icon inside */
+body[data-page="welcome"] .home-enter-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="welcome"] .enter-button {
+  display: inline-flex;
+  flex-direction: row;
+  /* label left of icon */
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  /* larger gap so label and circle don't butt up against each other */
+  padding: 0 9px;
+  /* more horizontal breathing room */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  color: var(--color-text-secondary);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: transform 110ms ease, box-shadow 110ms ease, background 110ms ease;
+  align-self: center;
+  height: 40px;
+  /* uniform control height */
+  min-width: 78px;
+  /* ensure the control doesn't shrink too small */
+  white-space: nowrap;
+  /* prevent enter label wrapping */
+}
+
+body[data-page="welcome"] .enter-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: var(--color-text-primary);
+  background: rgba(13, 14, 35, 0.32);
+}
+
+/* Circular icon inside the button — keep perfectly round */
+body[data-page="welcome"] .enter-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px !important;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(125deg, rgba(118, 109, 255, .14), rgba(118, 109, 255, 0.07));
+  font-size: 0.88rem;
+  box-shadow: 0 3px 6px rgba(91, 76, 255, 0.08);
+}
+
+/* allow the Font Awesome rotation class to apply; keep inline-block for sizing */
+body[data-page="welcome"] .enter-circle i {
+  display: inline-block;
+  line-height: 1;
+  text-shadow: 2px 1px 1px #5800ff;
+  font-size: 0.85rem !important;
+}
+
+body[data-page="welcome"] .enter-label {
+  font-size: 0.95rem;
+  /* larger label font */
+  color: #cfc7ffdb;
+  text-transform: none;
+  margin: 0;
+  line-height: 1;
+  font-weight: 400;
+  order: 0;
+  /* ensure label is left of icon */
+}
+
+body[data-page="welcome"] .enter-circle {
+  order: 1;
+}
+
+/* Home menu dropdown */
+body[data-page="welcome"] .home-menu-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  margin-right: 4px;
+}
+
+body[data-page="welcome"] .menu-toggle {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  border: 1px solid rgba(128, 138, 189, 0.22);
+  color: var(--color-text-secondary);
+  padding: 0 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  height: 44px;
+  /* match control height */
+}
+
+body[data-page="welcome"] .menu-toggle:hover {
+  color: var(--color-text-primary);
+  border-color: rgba(128, 138, 189, 0.24);
+}
+
+body[data-page="welcome"] .home-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 144px;
+  /* Increased slightly */
+  width: max-content;
+  /* Ensure it expands to fit text */
+  background: rgb(47 46 72 / 94%);
+  border: 1px solid rgba(128, 138, 189, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  padding: 4px 3px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 1200;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+body[data-page="welcome"] .home-menu.hidden {
+  display: none !important;
+}
+
+body[data-page="welcome"] .home-menu-item {
+  background: #85a2cf1f;
+  color: var(--color-text-secondary);
+  border: none;
+  text-align: left;
+  padding: 4px 12px;
+  /* Increased padding for better touch targets */
+  display: flex;
+  gap: 9px;
+  /* Increased gap */
+  align-items: center;
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+  /* Prevent text wrapping */
+  font-size: 0.95rem;
+  /* Ensure readable font size */
+  width: 100%;
+}
+
+body[data-page="welcome"] .home-menu-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-primary);
+}
+
+body[data-page="welcome"] .home-menu-item i {
+  width: 16px;
+  text-align: center;
+  color: #99a3e5;
+}
+
+/* Fix for tiny hamburger icon */
+body[data-page="welcome"] .menu-toggle i {
+  font-size: 1.45rem;
+}
+
+/* --- Block F: Mobile ≤520px enter button tweaks --- */
+
+/* Mobile tweaks: keep button compact and inline.
+   Hamburger moved to branding panel, so grid is 2-col: [username] [enter]. */
+@media (max-width: 520px) {
+  body[data-page="welcome"] #primary-header-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  body[data-page="welcome"] .enter-button {
+    min-width: 104px;
+    height: 38px;
+    padding: 0.2rem 0.85rem;
+    gap: 0.6rem;
+  }
+
+  body[data-page="welcome"] .enter-label {
+    font-size: 0.95rem;
+  }
+
+  body[data-page="welcome"] .enter-circle {
+    width: 25px !important;
+    height: 24px;
+    font-size: 0.92rem;
+  }
+
+  body[data-page="welcome"] #usernameInput {
+    font-size: 0.94rem;
+    padding: 0.34rem 0.5rem;
+  }
+}
+
+/* --- Block G: Home-page-only header rules (hiding filters, secondary header) --- */
+
+/* --- HOME-PAGE ONLY HEADER RULES --- */
+body[data-page="welcome"] #filters-row,
+body[data-page="welcome"] #secondary-header-row .view-switcher {
+  display: none !important;
+}
+
+body[data-page="welcome"] #secondary-header-row {
+  justify-content: center;
+  /* Center the remaining items */
+  gap: 0.75rem;
+  /* Add some space between them */
+}
+
+/* Make the inputs take up more space on mobile */
+@media (max-width: 520px) {
+
+  body[data-page="welcome"] #secondary-header-row .username-area,
+  body[data-page="welcome"] #secondary-header-row .custom-select-wrapper {
+    flex: 1;
+    /* Allow them to grow equally */
+    max-width: 50%;
+    /* Each takes up half the space */
+  }
+}
