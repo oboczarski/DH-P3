@@ -508,6 +508,9 @@
   z-index: 3;
 }
 
+
+
+
 /* Dense glass chromatic dispersion: radial color fringing along edges */
 .fc-chart-panel::after {
   content: '';
