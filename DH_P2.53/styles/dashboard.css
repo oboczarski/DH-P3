@@ -25,7 +25,47 @@
   --color-yellow: #eab308;
   --color-violet: #8b5cf6;
 
-  /* Glassmorphism */
+  /* ── Glass-Refraction Design System (dashboard-scoped) ──
+     Three tiers: dense (.fc-glass--dense), card (.fc-glass), pill (.fc-glass--pill).
+     Namespaced --fc-gr-* to avoid collision with any future global glass vars. */
+
+  /* Blur / Saturation per tier */
+  --fc-gr-blur: 16px;
+  --fc-gr-blur-card: 10px;
+  --fc-gr-blur-pill: 4px;
+  --fc-gr-saturation: 1.5;
+  --fc-gr-saturation-card: 1.3;
+  --fc-gr-saturation-pill: 1.1;
+
+  /* Border radius per tier */
+  --fc-gr-radius: 18px;
+  --fc-gr-radius-card: 14px;
+  --fc-gr-radius-pill: 10px;
+
+  /* Translucent base colors */
+  --fc-gr-bg-start: rgba(18, 22, 35, 0.48);
+  --fc-gr-bg-end: rgba(12, 16, 28, 0.42);
+
+  /* Chromatic dispersion colors */
+  --fc-gr-chromatic-blue: rgba(0, 180, 255, 0.045);
+  --fc-gr-chromatic-violet: rgba(120, 80, 255, 0.04);
+  --fc-gr-chromatic-pink: rgba(255, 100, 200, 0.035);
+  --fc-gr-chromatic-green: rgba(100, 255, 180, 0.025);
+
+  /* Specular highlight config — diagonal linear-gradient approach.
+     The 165deg angle produces highlights along top-left and bottom-right edges. */
+  --fc-gr-specular-opacity: 0.72;
+  --fc-gr-specular-opacity-card: 0.54;
+  --fc-gr-specular-opacity-pill: 0.46;
+  --fc-gr-specular-soft-bloom: 0.18;
+  --fc-gr-specular-ring-width: 1.5px;
+  --fc-gr-specular-ring-width-card: 1.5px;
+  --fc-gr-specular-ring-width-pill: 1px;
+
+  /* Animation timing */
+  --fc-gr-specular-duration: 5s;
+
+  /* Legacy glass vars (kept for any remaining references) */
   --glass-bg: rgb(166 189 245 / 3%);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -138,6 +178,12 @@
   50% { opacity: 0.25; }
 }
 
+/* Glass-refraction specular breathe animation (dense tier only) */
+@keyframes fc-specular-breathe {
+  0%, 100% { opacity: 0.78; }
+  50%      { opacity: 1; }
+}
+
 /* Header Styles Removed */
 
 .fc-avatar-sm {
@@ -170,7 +216,7 @@
   gap: 1.25em;
 }
 
-/* Cards & Glassmorphism */
+/* Cards — base structural class (layout only, no visual glass treatment) */
 .fc-card {
   position: relative;
   border-radius: var(--radius-lg);
@@ -179,29 +225,420 @@
   overflow: hidden;
 }
 
+/* Cards & Glassmorphism — Tier 2 Glass Card (glass-refraction system)
+   Applies to: summary cards, chart panels, modal content, dropdowns.
+   Uses backdrop-filter blur + saturate, dual-gradient translucent base,
+   ring-border + inset highlight + depth shadow stack. */
 .fc-glass {
-  background: rgb(65 67 110 / 10%);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.52) 100%);
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  border: none;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3);
+  transition:
+    transform 0.35s cubic-bezier(0.4,0,0.2,1),
+    box-shadow 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* Glass card specular rim highlight — diagonal linear-gradient masked to border ring.
+   165deg produces highlights along the top edge (offset left) and bottom edge
+   (offset right), matching a natural light-from-above-left specular pattern.
+   Content-box XOR mask clips rendering to the perimeter ring only. */
+.fc-dashboard .fc-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: var(--fc-gr-specular-ring-width-card);
+  background:
+    linear-gradient(
+      165deg,
+      /* Top highlight — upper edge, offset slightly left */
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.06) 8%,
+      rgba(255,255,255,0.55) 15%,
+      rgba(255,255,255,0.06) 22%,
+      rgba(255,255,255,0) 30%,
+      /* Dark middle — sides stay invisible */
+      transparent 42%,
+      transparent 58%,
+      /* Bottom highlight — lower edge, offset slightly right */
+      rgba(255,255,255,0) 70%,
+      rgba(255,255,255,0.06) 78%,
+      rgba(255,255,255,0.55) 85%,
+      rgba(255,255,255,0.06) 92%,
+      rgba(255,255,255,0) 100%
+    );
+  opacity: var(--fc-gr-specular-opacity-card);
+  z-index: 3;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Glass card chromatic edges — subtle color-shifted inset shadows,
+   visible on hover for a prismatic refraction effect. */
+.fc-dashboard .fc-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset  1px  0 0 0 rgba(0,180,255,0.05),
+    inset -1px  0 0 0 rgba(255,100,200,0.05),
+    inset  0  1px 0 0 rgba(100,255,180,0.03),
+    inset  0 -1px 0 0 rgba(255,200,50,0.03);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Hover: show chromatic edges */
+.fc-dashboard .fc-glass:hover::after {
+  opacity: 1;
+}
+
+/* Hover: lift + enhanced shadow (summary cards only — chart panels opt out below) */
 .fc-card--hover,
 .fc-card--hover:hover,
 .fc-card--hover:focus,
 .fc-card--hover:active {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0.85em rgba(56, 189, 248, 0.1);
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 8px 32px -8px rgba(0,0,0,0.45);
 }
 
-/* Soft base glow per badge color */
-.fc-summary-card.fc-card--cyan { box-shadow: 0 0 1em rgba(6, 182, 212, 0.26); }
-.fc-summary-card.fc-card--pink { box-shadow: 0 0 1em rgba(236, 72, 153, 0.26); }
-.fc-summary-card.fc-card--purple { box-shadow: 0 0 1em rgba(168, 85, 247, 0.26); }
-.fc-summary-card.fc-card--emerald { box-shadow: 0 0 1em rgba(16, 185, 129, 0.26); }
+/* Chart panels: no hover lift/glow (they're static containers) */
+.fc-dashboard .fc-chart-panel {
+  transition: none;
+}
+.fc-dashboard .fc-chart-panel:hover {
+  transform: none;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3);
+}
+.fc-dashboard .fc-chart-panel:hover::after {
+  opacity: 0;
+}
+
+/* Ensure card content renders above glass pseudo-element layers
+   (::before at z:3, ::after at z:2 → content needs z:4+).
+   Exclude .fc-card__glow which must remain position:absolute. */
+.fc-dashboard .fc-glass > *:not(.fc-card__glow) {
+  position: relative;
+  z-index: 4;
+}
+
+/* ── Tier 1 — Dense Glass (.fc-glass--dense) ──
+   Used for: dashboard header (.app-header), branding panel (.welcome-branding-panel).
+   Strongest blur/saturation/brightness of the three tiers, with animated specular highlight
+   and always-visible chromatic dispersion. */
+
+.fc-dashboard .fc-glass--dense {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
+    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  border: none;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 4px 24px -4px rgba(0,0,0,0.30);
+}
+
+/* Dense specular rim — animated breathe cycle for living glass effect.
+   Diagonal linear-gradient masked to perimeter ring (content-box XOR).
+   Stronger peak brightness (0.75) than card tier. */
+.fc-dashboard .fc-glass--dense::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: var(--fc-gr-specular-ring-width);
+  background:
+    linear-gradient(
+      165deg,
+      /* Top highlight — upper edge, offset slightly left */
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.08) 7%,
+      rgba(255,255,255,0.75) 14%,
+      rgba(255,255,255,0.08) 22%,
+      rgba(255,255,255,0) 30%,
+      /* Dark middle — sides stay invisible */
+      transparent 42%,
+      transparent 58%,
+      /* Bottom highlight — lower edge, offset slightly right */
+      rgba(255,255,255,0) 70%,
+      rgba(255,255,255,0.08) 78%,
+      rgba(255,255,255,0.75) 86%,
+      rgba(255,255,255,0.08) 93%,
+      rgba(255,255,255,0) 100%
+    );
+  opacity: var(--fc-gr-specular-opacity);
+  animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
+  z-index: 3;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Dense chromatic dispersion — always visible (not hover-gated).
+   Four cardinal radial gradients simulate prismatic light splitting. */
+.fc-dashboard .fc-glass--dense::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 55% 50% at 12% 50%, var(--fc-gr-chromatic-blue) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 55% at 50% 12%, var(--fc-gr-chromatic-violet) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 88% 50%, var(--fc-gr-chromatic-pink) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 55% at 50% 88%, var(--fc-gr-chromatic-green) 0%, transparent 70%);
+  box-shadow:
+    inset  1px  0 0 0 rgba(0,180,255,0.07),
+    inset -1px  0 0 0 rgba(255,100,200,0.07),
+    inset  0  1px 0 0 rgba(100,255,180,0.05),
+    inset  0 -1px 0 0 rgba(255,200,50,0.05);
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Dense glass content z-index lift */
+.fc-dashboard .fc-glass--dense > * {
+  position: relative;
+  z-index: 4;
+}
+
+/* Override the welcome branding panel's purple glow ::before from styles.css.
+   Replaced by the dense specular rim highlight above. */
+.fc-dashboard .welcome-branding-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: none;
+  filter: none;
+  opacity: var(--fc-gr-specular-opacity);
+}
+
+/* Override the shared .glass-panel treatment on the dashboard header.
+   The .glass-panel class in styles.css is shared across all pages, so we
+   override it here via scoped selector instead of modifying the global rule. */
+.fc-dashboard .app-header.glass-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
+    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  border: none;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 4px 24px -4px rgba(0,0,0,0.30);
+}
+
+/* ── Tier 3 — Glass Pill (.fc-glass--pill) ──
+   Used for: badges, filter buttons, select trigger, position tags, menu items,
+   enter button, scatter legend items. Lightest blur/saturation of the three tiers. */
+
+.fc-dashboard .fc-glass--pill {
+  position: relative;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
+    rgba(255,255,255,0.05);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.25s ease;
+}
+
+/* Pill specular rim — restrained, lower opacity, no animation.
+   Same diagonal pattern as card/dense but softer peaks. */
+.fc-dashboard .fc-glass--pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: var(--fc-gr-specular-ring-width-pill);
+  background:
+    linear-gradient(
+      165deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.04) 9%,
+      rgba(255,255,255,0.40) 16%,
+      rgba(255,255,255,0.04) 23%,
+      rgba(255,255,255,0) 32%,
+      transparent 44%,
+      transparent 56%,
+      rgba(255,255,255,0) 68%,
+      rgba(255,255,255,0.04) 77%,
+      rgba(255,255,255,0.40) 84%,
+      rgba(255,255,255,0.04) 91%,
+      rgba(255,255,255,0) 100%
+    );
+  opacity: var(--fc-gr-specular-opacity-pill);
+  z-index: 2;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Pill hover — slightly brighter surface + rim */
+.fc-dashboard .fc-glass--pill:hover {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.028) 42%, transparent 70%),
+    rgba(255,255,255,0.09);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+/* ── Pill treatment applied to dashboard controls via CSS selectors ──
+   (No HTML class additions needed — applied by descendant selectors) */
+
+/* Badges: glass-pill surface + preserve accent text colors */
+.fc-dashboard .fc-badge {
+  position: relative;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
+    rgba(255,255,255,0.05);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  border: none;
+}
+/* Preserve badge accent text colors over glass-pill background */
+.fc-dashboard .fc-badge--cyan { color: var(--color-cyan-light); }
+.fc-dashboard .fc-badge--purple { color: var(--color-purple-light); }
+.fc-dashboard .fc-badge--pink { color: var(--color-pink-light); }
+.fc-dashboard .fc-badge--emerald { color: var(--color-emerald-light); }
+
+/* Bar chart filter buttons: glass-pill surface treatment.
+   Preserves existing .filter-btn.active::after overlay (no conflict — pill uses only ::before). */
+.fc-dashboard .filter-btn {
+  position: relative;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 40%, transparent 68%),
+    rgba(255,255,255,0.03);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  border: 1px solid transparent;
+}
+.fc-dashboard .filter-btn:hover {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 42%, transparent 70%),
+    rgba(255,255,255,0.07);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.10);
+}
+
+/* Player select trigger: glass-pill surface */
+.fc-dashboard .fc-select-trigger {
+  position: relative;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
+    rgba(255,255,255,0.05);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.fc-dashboard .fc-select-trigger:hover {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.028) 42%, transparent 70%),
+    rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Scatter legend filter items: glass-pill surface */
+.fc-dashboard .fc-scatter-legend .fc-legend-item {
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  border-radius: var(--fc-gr-radius-pill);
+}
+
+/* Summary card color glows — additive on top of glass-card shadow stack.
+   Each card gets its accent color glow as an outer spread shadow. */
+.fc-summary-card.fc-card--cyan {
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3),
+    0 0 1em rgba(6, 182, 212, 0.26);
+}
+.fc-summary-card.fc-card--pink {
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3),
+    0 0 1em rgba(236, 72, 153, 0.26);
+}
+.fc-summary-card.fc-card--purple {
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3),
+    0 0 1em rgba(168, 85, 247, 0.26);
+}
+.fc-summary-card.fc-card--emerald {
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3),
+    0 0 1em rgba(16, 185, 129, 0.26);
+}
 
 /* Card Glow Effects */
 .fc-card__glow {
@@ -931,18 +1368,26 @@
 .scatter-dot-wr { fill: var(--color-cyan-light); }
 .scatter-dot-te { fill: var(--color-orange); }
 
+/* Scatter tooltip: glass-pill surface for a cohesive look with the design system */
 .scatter-tooltip {
   position: fixed;
   pointer-events: none;
-  background: linear-gradient(145deg, #346e, #457e, #567e);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
+    linear-gradient(145deg, rgba(40,55,80,0.92), rgba(50,65,90,0.88));
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   color: #e5e7eb;
   padding: 6px 8px;
-  border: 1px solid #4b5563;
-  border-radius: 6px;
+  border: none;
+  border-radius: var(--fc-gr-radius-pill);
   font-size: 12px;
   line-height: 1.4;
   z-index: 9999;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 8px 20px rgba(0,0,0,0.35);
 }
 
 .scatter-tooltip-label { font-weight: 800; letter-spacing: 0.03em; }
@@ -976,7 +1421,7 @@
 
 /* --- SUMMARY CARDS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-summary-card {padding: 0.51em 1.25em 0.3em;backdrop-filter: blur(0px);}
+  .fc-summary-card {padding: 0.51em 1.25em 0.3em;}
   .fc-summary-card .fc-card__header {margin-bottom: 0em;}
   .fc-summary-card .fc-card__title {font-size: 1.55em;margin-left: 4px;}
   .fc-summary-card .fc-card__subtitle {font-size: 1.25em;}
@@ -1274,15 +1719,25 @@
   box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
 }
 
+/* Player select dropdown: glass-card treatment with stronger backdrop
+   for legibility when overlaying chart content. */
 .fc-select-dropdown {
   position: absolute;
   top: calc(100% + 0.5em);
-  right: 0; /* Align right to prevent overflow on mobile */
-  width: 21.5em; /* Widened for rank, player, and team info */
-  background: #3b3d5a; /* Solid background to cover content */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5em;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  right: 0;
+  width: 21.5em;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(30,32,55,0.92) 0%, rgba(15,18,30,0.88) 100%);
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  border: none;
+  border-radius: var(--fc-gr-radius-card);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 10px 25px -5px rgba(0,0,0,0.5),
+    0 8px 10px -6px rgba(0,0,0,0.5);
   z-index: 100;
   opacity: 0;
   visibility: hidden;
@@ -1489,15 +1944,26 @@
   display: none;  /* No overlay needed for inline modal */
 }
 
+/* Radar modal: glass-card treatment with higher opacity base for
+   text readability over chart content. Inherits .fc-glass class. */
 .fc-modal-content {
   position: relative;
+  isolation: isolate;
   width: auto;
   max-width: 400px;
-  background: rgb(57 66 86 / 95%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(45,52,72,0.94) 0%, rgba(20,25,40,0.90) 100%);
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation));
+  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation));
+  border: none;
   border-radius: 1.5em;
   padding: 1em 1.5em 0.8em;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 20px 25px -5px rgba(0,0,0,0.5),
+    0 8px 10px -6px rgba(0,0,0,0.5);
   transform: scale(0.95);
   transition: transform 0.3s ease;
 }
