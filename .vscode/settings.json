@@ -206,5 +206,6 @@
   "chat.autopilot.enabled": true,
   "files.refactoring.autoSave": false,
   "python.testing.autoTestDiscoverOnSaveEnabled": false,
-  "claudeCode.autosave": false
+  "claudeCode.autosave": false,
+  "imageCarousel.explorerContextMenu.enabled": true
 }
