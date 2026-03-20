@@ -336,22 +336,32 @@ main#content {
   gap: 0.75rem;
 }
 
-/* Branding Panel: Logo + App Name side by side, centered - matches fc-card fc-glass styling */
+/* Branding Panel: Logo + App Name side by side, centered
+   Glass-refraction Tier 1 (dense) surface — same visual language as chart panels.
+   Hidden on non-welcome pages via display:none !important (line 433). */
 .welcome-branding-panel {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  /* Match fc-glass card styles */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.5em;
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
   width: 100%;
   margin: 0.5rem 0 0;
+  /* Dense frosted glass surface */
+  position: relative;
+  isolation: isolate;
+  border-radius: 20px;
+  background:
+    linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.04) 50%, transparent 60%),
+    linear-gradient(135deg, rgba(18, 22, 35, 0.48), rgba(12, 16, 28, 0.42));
+  background-size: 200% 100%, 100% 100%;
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) url(#glass-refract-strong);
+  backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) url(#glass-refract-strong);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 4px 24px -4px rgba(0,0,0,0.30),
+    0 0 0.85em rgba(168, 85, 247, 0.12);
 }
 
 .branding-top-row {
@@ -374,19 +384,21 @@ main#content {
   }
 }
 
-/* Subtle glow effect matching cards */
+/* Specular highlight for branding panel — overhead glow + top-edge line */
 .welcome-branding-panel::before {
-  content: "";
+  content: '';
   position: absolute;
-  top: -1.5em;
-  right: -1.5em;
-  width: 6em;
-  height: 6em;
-  border-radius: 50%;
-  background-color: #a855f7;
-  filter: blur(2.5em);
-  opacity: 0.2;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 45%),
+    linear-gradient(90deg, transparent 8%, rgba(255,255,255,0.55) 50%, transparent 92%);
+  background-size: 100% 100%, 100% 1px;
+  background-position: 0 0, 0 0;
+  background-repeat: no-repeat;
+  opacity: 0.7;
   pointer-events: none;
+  z-index: 3;
 }
 
 .welcome-branding-panel .welcome-logo {
@@ -410,16 +422,21 @@ main#content {
   white-space: nowrap;
 }
 
-/* Info Panel: Instructions + Install */
+/* Info Panel: Glass-card surface treatment (medium density) */
 .welcome-info-panel {
   padding: 1.25rem 1.5rem;
-  background: rgb(47 29 104 / 10%);
-  border: 1px solid var(--color-panel-border);
-  border-radius: var(--panel-border-radius);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
   text-align: center;
+  /* Glass-card surface */
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.52) 100%);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) url(#glass-refract);
+  backdrop-filter: blur(20px) saturate(1.5) url(#glass-refract);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3);
 }
 
 .welcome-info-panel>p {
@@ -461,15 +478,19 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 }
 
-/* Loading screen keeps the panel background */
+/* Loading screen: glass-card surface treatment */
 #loading {
   padding: 4rem 0rem;
-  background: rgb(47 29 104 / 10%);
-  border: 1px solid var(--color-panel-border);
-  border-radius: var(--panel-border-radius);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  isolation: isolate;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.52) 100%);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 2px 12px -4px rgba(0,0,0,0.3);
 }
 
 #welcome-screen h2 {
@@ -547,6 +568,10 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 
 /* ⬇︎ UTILITY CLASSES ⬇︎ */
+/* Glass-panel: shared header/container surface used across all pages.
+   IMPORTANT: Do NOT change these base values — they are relied on by
+   rosters, stats, analyzer, ownership, and research pages.
+   The Dashboard (welcome) page overrides this below. */
 .glass-panel {
   background-color: rgba(13, 14, 35, 0.21);
   background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
@@ -557,6 +582,25 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   border: 1px solid rgba(128, 138, 189, 0.2);
   border-radius: 10px;
   box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
+}
+
+/* Dashboard-only: Dense glass-refraction surface for the app-header on the welcome page */
+body[data-page="welcome"] .glass-panel {
+  position: relative;
+  isolation: isolate;
+  border-radius: 16px;
+  border: none;
+  /* Dense frosted glass surface */
+  background:
+    linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.04) 50%, transparent 60%),
+    linear-gradient(135deg, rgba(18, 22, 35, 0.48), rgba(12, 16, 28, 0.42));
+  background-size: 200% 100%, 100% 100%;
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) url(#glass-refract-strong);
+  backdrop-filter: blur(26px) saturate(1.7) brightness(1.08) url(#glass-refract-strong);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 4px 24px -4px rgba(0,0,0,0.30);
 }
 
 /* ⬇︎ NEW REDESIGNED HEADER LAYOUT ⬇︎ */
@@ -3467,9 +3511,11 @@ body[data-page="welcome"] #header-container {
   z-index: 1000;
 }
 
+/* Dashboard app-header: inherits Dense glass from the scoped .glass-panel override;
+   ensure backdrop-filter uses the glass-refraction values for a consistent frosted surface. */
 body[data-page="welcome"] .app-header.glass-panel {
-  -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
-  backdrop-filter: blur(1px) saturate(112%) brightness(110%);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) brightness(1.08);
+  backdrop-filter: blur(26px) saturate(1.7) brightness(1.08);
 }
 
 body[data-page="welcome"] .app-header {
