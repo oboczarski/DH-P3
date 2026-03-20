@@ -1,4 +1,592 @@
 /* Scoped Dashboard Styles */
+/* Dashboard home page header + hero controls: keep the welcome-page branding,
+   compact header controls, and responsive subtitle layout in dashboard.css so
+   these selectors stay local to the Dashboard experience. */
+body[data-page="welcome"] .welcome-branding-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5em;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 0.85em rgba(168, 85, 247, 0.15);
+  width: 100%;
+  margin: 0.5rem 0 0;
+}
+
+body[data-page="welcome"] .branding-top-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+body[data-page="welcome"] .welcome-branding-panel::before {
+  content: "";
+  position: absolute;
+  top: -1.5em;
+  right: -1.5em;
+  width: 6em;
+  height: 6em;
+  border-radius: 50%;
+  background-color: #a855f7;
+  filter: blur(2.5em);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+body[data-page="welcome"] .welcome-branding-panel .welcome-logo {
+  --welcome-logo-size: clamp(48px, 14vw, 79px);
+  display: block;
+  width: var(--welcome-logo-size);
+  height: auto;
+  margin: 0;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+body[data-page="welcome"] .welcome-branding-panel h2 {
+  font-size: clamp(1.4rem, 5vw, 3.1rem);
+  font-weight: 200;
+  color: var(--color-text-primary);
+  text-shadow: 0 0 9px #5300ffaa;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+body[data-page="welcome"] .welcome-branding-panel h2 {
+  margin-right: 71px;
+  margin-left: 4px !important;
+}
+
+/* Dashboard welcome header controls: preserve the tighter shared sizing that
+   the home page uses for the menu, username field, and enter button. */
+body[data-page="welcome"] {
+  --welcome-header-control-height: 36px;
+}
+
+body[data-page="welcome"] #primary-header-row .menu-container,
+body[data-page="welcome"] .username-area,
+body[data-page="welcome"] .enter-button,
+body[data-page="welcome"] .menu-button,
+body[data-page="welcome"] .home-menu-slot {
+  height: var(--welcome-header-control-height) !important;
+  min-height: var(--welcome-header-control-height) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+body[data-page="welcome"] #usernameInput {
+  padding-top: 0.18rem !important;
+  padding-bottom: 0.18rem !important;
+  padding-left: 0.6rem !important;
+  padding-right: 0.6rem !important;
+  font-size: 17px !important;
+  line-height: calc(var(--welcome-header-control-height) - 0.36rem);
+}
+
+body[data-page="welcome"] .enter-button {
+  height: var(--welcome-header-control-height) !important;
+  min-height: var(--welcome-header-control-height) !important;
+  align-items: center;
+}
+
+body[data-page="welcome"] .menu-button,
+body[data-page="welcome"] #homeMenuToggle {
+  height: 108% !important;
+  width: 44px !important;
+  min-width: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body[data-page="welcome"] .enter-label {
+  line-height: 1;
+}
+
+/* Dashboard hero shell: keep the home-page header stack, subtitle row, and
+   menu/enter button presentation scoped to the welcome page only. */
+body[data-page="welcome"] .welcome-header-group {
+  display: contents;
+}
+
+body[data-page="welcome"] #header-container {
+  padding: 0.1rem 0rem 0.1rem 0rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+body[data-page="welcome"] .app-header.glass-panel {
+  -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
+  backdrop-filter: blur(1px) saturate(112%) brightness(110%);
+}
+
+body[data-page="welcome"] .app-header {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.15rem;
+  gap: 0.2rem;
+}
+
+body[data-page="welcome"] .welcome-header-title {
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: 0 0.5rem;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+body[data-page="welcome"] .welcome-header-footer {
+  font-size: 0.55rem;
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+  margin: 0.2rem 0 0 0;
+  text-align: center;
+  line-height: 1.2;
+  font-style: italic;
+}
+
+body[data-page="welcome"] .welcome-subtitle-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.2rem 0;
+  width: 100%;
+  margin-bottom: -5px !important;
+  margin-top: -3px !important;
+}
+
+body[data-page="welcome"] .welcome-subtitle-row h3 {
+  font-size: 1.15rem;
+  color: #ced8ebcc;
+  font-weight: 400;
+  text-transform: uppercase;
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43;
+  text-wrap-mode: nowrap;
+}
+
+body[data-page="welcome"] #contextual-controls {
+  display: none !important;
+}
+
+body[data-page="welcome"] .username-area {
+  min-width: 0;
+  max-width: 520px;
+  width: 100%;
+}
+
+body[data-page="welcome"] #usernameInput {
+  font-size: 0.96rem;
+  padding: 0.36rem 0.65rem;
+}
+
+body[data-page="welcome"] .home-enter-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="welcome"] .enter-button {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 9px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  color: var(--color-text-secondary);
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: transform 110ms ease, box-shadow 110ms ease, background 110ms ease;
+  align-self: center;
+  height: 40px;
+  min-width: 78px;
+  white-space: nowrap;
+}
+
+body[data-page="welcome"] .enter-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: var(--color-text-primary);
+  background: rgba(13, 14, 35, 0.32);
+}
+
+body[data-page="welcome"] .enter-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px !important;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(125deg, rgba(118, 109, 255, .14), rgba(118, 109, 255, 0.07));
+  font-size: 0.88rem;
+  box-shadow: 0 3px 6px rgba(91, 76, 255, 0.08);
+}
+
+body[data-page="welcome"] .enter-circle i {
+  display: inline-block;
+  line-height: 1;
+  text-shadow: 2px 1px 1px #5800ff;
+  font-size: 0.85rem !important;
+}
+
+body[data-page="welcome"] .enter-label {
+  font-size: 0.95rem;
+  color: #cfc7ffdb;
+  text-transform: none;
+  margin: 0;
+  line-height: 1;
+  font-weight: 400;
+  order: 0;
+}
+
+body[data-page="welcome"] .enter-circle {
+  order: 1;
+}
+
+body[data-page="welcome"] .home-menu-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  margin-right: 4px;
+}
+
+body[data-page="welcome"] .menu-toggle {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  border: 1px solid rgba(128, 138, 189, 0.22);
+  color: var(--color-text-secondary);
+  padding: 0 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  height: 44px;
+}
+
+body[data-page="welcome"] .menu-toggle:hover {
+  color: var(--color-text-primary);
+  border-color: rgba(128, 138, 189, 0.24);
+}
+
+body[data-page="welcome"] .home-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 144px;
+  width: max-content;
+  background: rgb(47 46 72 / 94%);
+  border: 1px solid rgba(128, 138, 189, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  padding: 4px 3px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 1200;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+body[data-page="welcome"] .home-menu.hidden {
+  display: none !important;
+}
+
+body[data-page="welcome"] .home-menu-item {
+  background: #85a2cf1f;
+  color: var(--color-text-secondary);
+  border: none;
+  text-align: left;
+  padding: 4px 12px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+body[data-page="welcome"] .home-menu-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-primary);
+}
+
+body[data-page="welcome"] .home-menu-item i {
+  width: 16px;
+  text-align: center;
+  color: #99a3e5;
+}
+
+body[data-page="welcome"] .menu-toggle i {
+  font-size: 1.45rem;
+}
+
+body[data-page="welcome"] #filters-row,
+body[data-page="welcome"] #secondary-header-row .view-switcher {
+  display: none !important;
+}
+
+body[data-page="welcome"] #secondary-header-row {
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  body[data-page="welcome"] .branding-top-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.8rem;
+    width: 100%;
+    margin: 3px 11px 3px 4px !important;
+  }
+
+  body[data-page="welcome"] #primary-header-row {
+    gap: 0.65rem !important;
+  }
+
+  body[data-page="welcome"] .nav-buttons-container {
+    gap: 0.25rem !important;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel {
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel .welcome-logo {
+    --welcome-logo-size: clamp(40px, 15.4vw, 59px);
+    height: 58px;
+    margin-top: 0px;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: clamp(1.2rem, 29vw, 2.3rem);
+    margin-right: 15px !important;
+  }
+
+  body[data-page="welcome"] #primary-header-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  body[data-page="welcome"] .enter-button {
+    min-width: 104px;
+    height: 38px;
+    padding: 0.2rem 0.85rem;
+    gap: 0.6rem;
+  }
+
+  body[data-page="welcome"] .enter-label {
+    font-size: 0.95rem;
+  }
+
+  body[data-page="welcome"] .enter-circle {
+    width: 25px !important;
+    height: 24px;
+    font-size: 0.92rem;
+  }
+
+  body[data-page="welcome"] #usernameInput {
+    font-size: 0.94rem;
+    padding: 0.34rem 0.5rem;
+  }
+
+  body[data-page="welcome"] #secondary-header-row .username-area,
+  body[data-page="welcome"] #secondary-header-row .custom-select-wrapper {
+    flex: 1;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 820px) {
+  body[data-page="welcome"] .welcome-header-group {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 1em;
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel {
+    flex: 1;
+    width: auto;
+    margin: 0;
+    padding: 0 1rem;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body[data-page="welcome"] .welcome-logo img {
+    height: 5rem;
+    width: 5.6rem;
+  }
+
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 3.2rem;
+  }
+
+  body[data-page="welcome"] #header-container {
+    flex: 1;
+    width: auto;
+    position: static;
+    padding: 0;
+    background: none;
+    max-width: none;
+    display: flex;
+    align-items: center;
+  }
+
+  body[data-page="welcome"] .app-header {
+    width: 100%;
+    margin: 0;
+    height: 100%;
+    padding: 0.3rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1.5em;
+    gap: 0.2rem;
+  }
+
+  body[data-page="welcome"] .menu-toggle {
+    height: 48px;
+    font-size: 1.2rem;
+  }
+
+  body[data-page="welcome"] .enter-button {
+    height: 44px;
+  }
+
+  body[data-page="welcome"] #usernameInput {
+    font-size: 1.1rem;
+    padding: 0.5rem 0.8rem;
+    width: 100%;
+  }
+
+  body[data-page="welcome"] .username-area {
+    flex-grow: 1;
+    max-width: none;
+    width: auto;
+  }
+
+  body[data-page="welcome"] .welcome-header-title {
+    font-size: 0.7rem;
+    margin-bottom: 0;
+    font-weight: 300;
+  }
+
+  body[data-page="welcome"] .welcome-header-footer {
+    font-size: 0.55rem;
+    margin-top: 0;
+  }
+
+  body[data-page="welcome"] .welcome-subtitle-row {
+    padding: 0.1rem 0 0.4rem 0;
+    margin-bottom: -9px !important;
+    margin-top: 1px !important;
+  }
+
+  body[data-page="welcome"] .welcome-subtitle-row h3 {
+    font-size: 2.35rem;
+    font-weight: 200;
+    background: linear-gradient(131deg, #caeaff 0%, #ffcbd6 100%);
+    -webkit-background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 8px rgba(112, 26, 255, 0.4));
+  }
+
+  body[data-page="welcome"] #primary-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  body[data-page="welcome"] #welcome-screen {
+    gap: 0.5rem;
+  }
+
+  body[data-page="welcome"] .fc-grid-metrics {
+    gap: 0.75rem;
+  }
+
+  body[data-page="welcome"] .fc-grid-charts {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 819px) {
+  body[data-page="welcome"] #primary-header-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  body[data-page="welcome"] .branding-top-row .home-menu-slot {
+    margin-left: auto;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  body[data-page="welcome"] .branding-top-row .menu-toggle {
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+  }
+
+  body[data-page="welcome"] .branding-top-row .menu-toggle i {
+    font-size: 1.5rem;
+  }
+
+  body[data-page="welcome"] > #homeMenu {
+    position: fixed;
+    z-index: 9999;
+    background: rgb(30 29 52 / 98%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(128, 138, 189, 0.18);
+  }
+}
+
 .fc-dashboard {
   /* Colors */
   --bg-deep: #0f172a;
