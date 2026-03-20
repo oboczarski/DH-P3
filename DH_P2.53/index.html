@@ -427,6 +427,28 @@
         </defs>
       </svg>
 
+      <!-- Glass-refraction SVG filters: feTurbulence + feDisplacementMap for subtle
+           light-bending effect applied to glass surfaces via CSS filter: url(#...).
+           Two tiers: subtle (scale 8) for cards, strong (scale 16) for dense panels. -->
+      <svg width="0" height="0" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
+        <defs>
+          <!-- Subtle refraction: light displacement for glass-card surfaces -->
+          <filter id="glass-refract" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012"
+              numOctaves="2" seed="42" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise"
+              scale="8" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <!-- Strong refraction: heavier displacement for dense glass panels -->
+          <filter id="glass-refract-strong" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012"
+              numOctaves="2" seed="42" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise"
+              scale="16" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+
       <!-- External footnote (below card) -->
     </div>
     <section aria-label="Player Card Legend" class="hidden legend-section panel" id="legend-section">
