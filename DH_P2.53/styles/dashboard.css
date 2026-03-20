@@ -28,16 +28,16 @@
   /* ── Glass-Refraction Design System ── */
   /* Three-tier glass: dense (.glass-surface), medium (.glass-card-surface), light (.glass-pill-surface) */
   /* Blur & Saturation per tier */
-  --gr-blur: 26px;
-  --gr-blur-card: 20px;
-  --gr-blur-pill: 8px;
-  --gr-saturation: 1.7;
-  --gr-saturation-card: 1.5;
-  --gr-saturation-pill: 1.3;
+  --gr-blur: 4px;
+  --gr-blur-card: 4px;
+  --gr-blur-pill: 4px;
+  --gr-saturation: 1.5;
+  --gr-saturation-card: 1.3;
+  --gr-saturation-pill: 1.1;
   /* Border radius (per tier; layout-specific radii still use --radius-*) */
   --gr-radius: 20px;
-  --gr-radius-card: 16px;
-  --gr-radius-pill: 9999px;
+  --gr-radius-card: 7px;
+  --gr-radius-pill: 10px;
   /* Base translucent colors */
   --gr-bg-start: rgba(18, 22, 35, 0.48);
   --gr-bg-end: rgba(12, 16, 28, 0.42);
