@@ -1,70 +1,50 @@
-# glass-refraction — CSS-Only Reference for Implementation
+# glass-refraction — CSS-Only Implementation Reference (Project-Adapted)
 
-This version of the README is written specifically for **CSS-only / vanilla HTML/CSS/JS usage**.
+This document is the **implementation reference** for using the glass system in a **vanilla HTML/CSS/JS app**.
 
-It is intended as the implementation reference for integrating the glass system into an existing app without React components.
-
----
-
-## Overview
-
-`glass-refraction` is a liquid-glass design system built around three layers:
-
-1. **glass surface** — translucent fill + blur/saturation
-2. **specular highlight** — bright reflective highlight on the glass surface
-3. **chromatic / edge treatment** — subtle color separation and edge tinting
-
-The three base tiers are:
-
-| Class | Use case | Effect |
-|---|---|---|
-| `.glass` | dense shell surfaces such as navbars, footers, hero overlays | denser frosted glass, stronger depth, rim/perimeter specular highlight, chromatic edge treatment |
-| `.glass-card` | cards, panels, content containers | medium-density glass, rim/perimeter specular highlight, chromatic edge treatment |
-| `.glass-pill` | pills, chips, tags, inline controls | lightweight glass, smaller rim/perimeter highlight |
+It is **not** a verbatim restatement of the upstream README.
+It is the corrected guide the coding agent should follow for this project.
 
 ---
 
-## Important implementation notes
+## 1) Scope of this document
 
-### 1) This CSS-only setup does **not** use React components
+Use this document as the source of truth for:
+- CSS-only usage
+- SVG refraction setup in plain HTML/CSS
+- glass layer architecture for panels/cards/containers
+- the **correct specular-highlight target** for this project
 
-Ignore the React component usage when implementing into a vanilla app.
-
-The relevant parts for CSS-only usage are:
-- importing or copying the CSS
-- adding the glass classes in HTML
-- optionally injecting the hidden SVG filter defs in HTML once
-- optionally applying the SVG refraction through CSS on the glass surface layer
-
-### 2) SVG refraction is **optional**
-
-The base classes (`.glass`, `.glass-card`, `.glass-pill`) can still look correct **without** SVG refraction.
-
-The SVG filter layer is an enhancement used when you want extra refractive distortion.
-
-### 3) Do **not** apply the SVG refraction with plain `filter` on the content-bearing card/container if you want text and content to remain crisp
-
-For UI components such as cards and panels, the safer architecture is:
-
-- **main element** = structure, layout, content
-- **`::before` glass layer** = translucent fill + `backdrop-filter`
-- **content** = above the glass layer
-
-If you apply plain `filter: url(#glass-refract)` directly to the same element that contains text/content, the element’s rendered output can be affected as a whole.
-
-For real UI glass, the preferred pattern is to keep the refraction in the **glass surface layer**, typically with `backdrop-filter: url(#glass-refract) ...` on a dedicated pseudo-element or dedicated inner layer.
-
-### 4) Browser caveat
-
-Using **SVG filters inside `backdrop-filter`** is a Chromium/Chrome-oriented technique. The kube.io research explicitly calls out that this is currently Chrome-only for the full effect.
-
-That means:
-- **best visual path**: `backdrop-filter: url(#glass-refract) blur(...) saturate(...)`
-- **safe fallback**: regular `backdrop-filter: blur(...) saturate(...)` without the SVG `url(...)`
+Do **not** use React patterns from the upstream package for this project.
 
 ---
 
-## CSS-only usage
+## 2) Base concept
+
+The glass system is made of separate visual layers:
+
+1. **Glass surface layer**
+   - translucent fill
+   - blur / saturation
+   - optional SVG refraction
+
+2. **Specular highlight layer**
+   - reflective highlight on the glass perimeter
+   - separate from the chromatic edge layer
+
+3. **Chromatic / edge treatment layer**
+   - subtle edge tinting / color separation
+   - separate from specular highlight
+
+4. **Content layer**
+   - text, icons, charts, controls
+   - must remain crisp and readable
+
+This separation is important.
+
+---
+
+## 3) CSS-only usage
 
 Import the stylesheet and use the classes directly:
 
@@ -72,7 +52,7 @@ Import the stylesheet and use the classes directly:
 @import 'glass-refraction/css';
 ```
 
-Or in JavaScript/TypeScript:
+Or in JavaScript:
 
 ```js
 import 'glass-refraction/css';
@@ -88,15 +68,45 @@ Basic HTML:
 
 ---
 
-## CSS-only SVG refraction setup
+## 4) Tier intent
 
-### Why this exists
+| Class | Intended use | Visual density |
+|---|---|---|
+| `.glass` | heavy shell surfaces: navs, headers, bars, hero overlays, major shells | strongest |
+| `.glass-card` | panels, cards, chart containers, modals, drawers, grouped surfaces | medium |
+| `.glass-pill` | pills, chips, tags, inline controls | lightest |
 
-The original docs expose SVG filter defs through the React `<GlassFilters />` helper.
+---
 
-For CSS-only apps, the equivalent is: **inject the hidden SVG defs once in your HTML** and then reference them from CSS.
+## 5) SVG refraction in CSS-only apps
 
-### Place this once near the root of the page
+### 5.1 Why this is needed
+
+The upstream docs show SVG filter defs through the React `<GlassFilters />` helper.
+
+In a CSS-only app, the equivalent is:
+- place the hidden SVG `<defs>` in the HTML once
+- reference the filter IDs from CSS
+
+### 5.2 Important implementation rule
+
+For **real UI cards/panels**, do **not** treat SVG refraction as a generic `filter` on the content-bearing container.
+
+If plain `filter: url(#glass-refract)` is applied directly to the card itself, the card’s rendered output can be affected as a whole.
+
+For UI glass, the preferred pattern is:
+- keep the **content layer separate**
+- apply the refraction as part of the **glass surface layer**, typically through `backdrop-filter` on a dedicated pseudo-element or dedicated inner FX layer
+
+### 5.3 Browser caveat
+
+The kube research explicitly notes that using **SVG filters inside `backdrop-filter`** is currently a Chromium/Chrome-oriented technique.
+
+So the practical implementation model is:
+- **best path**: `backdrop-filter: url(#glass-refract) blur(...) saturate(...)`
+- **fallback**: `backdrop-filter: blur(...) saturate(...)` without the SVG `url(...)`
+
+### 5.4 Place this once in the HTML
 
 ```html
 <svg
@@ -145,9 +155,7 @@ For CSS-only apps, the equivalent is: **inject the hidden SVG defs once in your 
 </svg>
 ```
 
-### Matching defaults
-
-These defaults align with the original GlassFilters API shape:
+### 5.5 Matching defaults
 
 | Parameter | Default |
 |---|---|
@@ -157,7 +165,12 @@ These defaults align with the original GlassFilters API shape:
 | numOctaves | `2` |
 | seed | `42` |
 
-### Helper classes
+### 5.6 Helper classes
+
+These helper classes are acceptable for:
+- experiments
+- demos
+- isolated decorative layers
 
 ```css
 .glass-svg-defs {
@@ -176,29 +189,11 @@ These defaults align with the original GlassFilters API shape:
 }
 ```
 
-### Important usage note
+### 5.7 Important warning about those helper classes
 
-The `.refracted` / `.refracted-strong` helper classes are fine for:
-- demos
-- decorative graphics
-- isolated visual layers
+The `.refracted` / `.refracted-strong` helpers are **not** the preferred production pattern for real content panels.
 
-For **real glass UI panels/cards**, prefer applying the SVG refraction in the **glass layer’s `backdrop-filter` stack**, not as plain `filter` on the content container.
-
----
-
-## Recommended UI architecture for real glass panels/cards
-
-For polished UI components, use this structure:
-
-- **main element** = layout, radius, content wrapper
-- **`::before`** = glass surface layer
-  - translucent background/tint
-  - `backdrop-filter: url(#glass-refract) blur(...) saturate(...)`
-- **`::after`** = chromatic edge treatment / color fringe / edge tinting
-- **content** = above both pseudo-elements
-
-Example shape:
+For panels/cards/containers, prefer this architecture instead:
 
 ```css
 .glass-card {
@@ -234,86 +229,131 @@ Example shape:
 }
 ```
 
-If SVG-in-`backdrop-filter` is not supported in the target environment, drop the `url(#glass-refract)` part and keep the blur/saturate fallback.
+If SVG-in-`backdrop-filter` is unavailable in the target environment, remove the `url(#glass-refract)` and keep the blur/saturate fallback.
 
 ---
 
-## Updated specular highlight model
+## 6) Correct specular-highlight target for this project
 
-### Original version
+This section is the most important correction.
 
-The original CSS used:
-- a **left-to-right shimmer sweep** on `.glass`
-- a **top-line highlight** on `.glass-card`
+### 6.1 What the project does **not** want
 
-That is not the target implementation for this version.
+Do **not** implement the specular highlight as:
+- an obvious continuous sheen sweeping left-to-right
+- a single top-edge line
+- a one-sided hotspot around the border
+- a single conic-gradient hotspot that only lights one quadrant
 
-### Updated target version
+Those approaches do **not** match the target look.
 
-The target specular highlight should be:
+### 6.2 What the project **does** want
 
-- a **rim / perimeter highlight**, not just a top line
-- based on a **fixed light direction**, with a default of **`118deg`**
-- implemented as a dedicated pseudo-element highlight layer
-- kept separate from the chromatic edge treatment layer
+The target specular highlight is:
+- **not a full evenly-lit border**
+- **not a top-only line**
+- **not a one-angle hotspot**
 
-### Animation guidance
+It should be built as **two long asymmetric border arcs** clipped to the perimeter ring:
 
-- **Do not use** the obvious continuously sweeping sheen animation
-- A **subtle `specular-breathe` pulse** is acceptable for the denser `.glass` tier if desired
-- Cards and pills do **not** need a tacky sweeping sheen
+1. **Top arc**
+   - spans most of the top border
+   - starts a bit in from the left side
+   - fades out before the far right corner
+   - visually biased a little left
 
-### Why this model
+2. **Bottom arc**
+   - spans most of the bottom border
+   - starts later / more to the right than the top arc
+   - fades out before the far left corner
+   - visually biased a little right
 
-The kube.io research describes the specular highlight as a **simple rim light effect** whose intensity varies relative to a fixed light direction. A fixed `118deg` default is the best CSS-only starting point.
+3. **Side borders**
+   - should remain mostly dark / low-emphasis
 
-### Recommended specular variables
+4. **Corners**
+   - should only pick up the specular where the top/bottom arcs naturally roll into the rounded corners
 
-```css
-:root {
-  --gr-specular-angle: 118deg;
-  --gr-specular-opacity: 0.72;
-  --gr-specular-opacity-card: 0.54;
-  --gr-specular-opacity-pill: 0.46;
-  --gr-specular-arc: 34deg;
-  --gr-specular-soft-bloom: 0.18;
-  --gr-specular-ring-width: 1px;
-  --gr-specular-ring-width-card: 1px;
-  --gr-specular-ring-width-pill: 1px;
-  --gr-specular-duration: 5s;
-}
-```
+This is the visual target the agent should follow.
 
-### Recommended CSS pattern
+### 6.3 Relationship to the kube article
 
-Use a masked perimeter ring plus an angled conic highlight hotspot:
+The kube article describes the specular highlight conceptually as a simple rim-light effect influenced by surface normal and light direction.
+
+For this project, that article is **inspiration**, not the literal final geometry.
+
+The actual target for this implementation is the **dual asymmetric top/bottom arc look** described above, because that matches the chosen visual reference more accurately than a generic angle-driven perimeter hotspot.
+
+### 6.4 Animation guidance
+
+- Do **not** use the obvious tacky sweeping sheen animation.
+- A subtle `specular-breathe` pulse is acceptable on the heavy `.glass` tier **only if desired**.
+- Cards and pills should generally remain static unless there is a deliberate reason to animate them.
+
+### 6.5 Correct implementation pattern
+
+The specular highlight should live on its own dedicated pseudo-element layer and be clipped to a thin border ring.
+
+The preferred construction is:
+- masked perimeter ring
+- two independent horizontal arc gradients
+  - one aligned to the top half
+  - one aligned to the bottom half
+- each arc should have soft fades at both ends
+- top and bottom arc offsets should **not** be identical
+
+### 6.6 Correct mental model
+
+Think of it as:
+- **two opposing reflective edge sweeps**
+- not a full-ring glow
+- not a single directional hotspot
+
+### 6.7 Recommended CSS pattern
 
 ```css
 .glass-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: var(--gr-specular-ring-width-card);
-  background:
-    conic-gradient(
-      from calc(var(--gr-specular-angle) - var(--gr-specular-arc)),
-      transparent 0deg,
-      rgba(255,255,255,0) calc(var(--gr-specular-arc) * 0.20),
-      rgba(255,255,255,0.12) calc(var(--gr-specular-arc) * 0.48),
-      rgba(255,255,255,0.82) calc(var(--gr-specular-arc) * 0.84),
-      rgba(255,255,255,0.22) calc(var(--gr-specular-arc) * 1.10),
-      rgba(255,255,255,0) calc(var(--gr-specular-arc) * 1.55),
-      transparent 360deg
-    );
-  opacity: var(--gr-specular-opacity-card);
+  padding: var(--gr-specular-ring-width-card, 1px);
   pointer-events: none;
   z-index: 3;
+  opacity: var(--gr-specular-opacity-card, 0.58);
+
+  background:
+    /* Top arc — slightly left-biased */
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 6%,
+      rgba(255,255,255,0.18) 12%,
+      rgba(255,255,255,0.92) 24%,
+      rgba(255,255,255,0.95) 68%,
+      rgba(255,255,255,0.20) 82%,
+      transparent 92%,
+      transparent 100%
+    ) top / 100% 50% no-repeat,
+
+    /* Bottom arc — slightly right-biased */
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 10%,
+      rgba(255,255,255,0.14) 22%,
+      rgba(255,255,255,0.82) 38%,
+      rgba(255,255,255,0.92) 78%,
+      rgba(255,255,255,0.18) 90%,
+      transparent 97%,
+      transparent 100%
+    ) bottom / 100% 50% no-repeat;
 
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
+
   mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -321,41 +361,27 @@ Use a masked perimeter ring plus an angled conic highlight hotspot:
 }
 ```
 
-This gives a perimeter-focused highlight instead of a single top line.
+### 6.8 Why this pattern is correct
+
+This pattern gives:
+- highlight across most of the top
+- highlight across most of the bottom
+- different offsets on top and bottom
+- minimal side emphasis
+- natural pickup in rounded corners
+- no isolated right-side hotspot
+- no top-only line
+- no tacky sweeping sheen
+
+### 6.9 Do not use `118deg` as the main construction method for this version
+
+A fixed angle like `118deg` is acceptable as inspiration or future tuning logic, but it is **not** the main construction method for this project’s target look.
+
+For this project, the specular should be documented and implemented as **dual asymmetric top/bottom arcs**, because that is the actual desired geometry.
 
 ---
 
-## Tiers
-
-### `.glass`
-Use for dense shell surfaces such as navbars, toolbars, floating shells, and hero overlays.
-
-Characteristics:
-- strongest blur / saturation / depth
-- may keep a subtle `specular-breathe`
-- chromatic edge treatment can stay more visible here than on cards
-
-### `.glass-card`
-Use for panels, cards, modals, chart containers, drawers, and grouped content surfaces.
-
-Characteristics:
-- medium blur / saturation
-- perimeter specular highlight, not top-line gloss
-- should prioritize clarity and clean layering over heavy animation
-
-### `.glass-pill`
-Use for chips, tags, inline pills, and smaller controls.
-
-Characteristics:
-- lightest blur / saturation
-- very restrained rim highlight
-- smaller chromatic edge treatment
-
----
-
-## Theming
-
-Override CSS custom properties to theme the system:
+## 7) Theming variables
 
 ```css
 :root {
@@ -384,45 +410,50 @@ Override CSS custom properties to theme the system:
   --gr-chromatic-pink: rgba(255, 100, 200, 0.035);
   --gr-chromatic-green: rgba(100, 255, 180, 0.025);
 
-  /* Specular highlight */
-  --gr-specular-angle: 118deg;
-  --gr-specular-opacity: 0.72;
-  --gr-specular-opacity-card: 0.54;
-  --gr-specular-opacity-pill: 0.46;
-  --gr-specular-arc: 34deg;
-  --gr-specular-soft-bloom: 0.18;
+  /* Specular ring */
+  --gr-specular-opacity: 0.78;
+  --gr-specular-opacity-card: 0.58;
+  --gr-specular-opacity-pill: 0.48;
   --gr-specular-ring-width: 1px;
   --gr-specular-ring-width-card: 1px;
   --gr-specular-ring-width-pill: 1px;
+
+  /* Optional subtle pulse for the heavy .glass tier only */
   --gr-specular-duration: 5s;
 }
 ```
 
 ---
 
-## Implementation guidance for an AI coding agent
+## 8) Guidance for the coding agent
 
 When applying this system to an existing app:
 
-1. **Treat the glass style as a layered system**, not just a background color swap.
-2. **Preserve layout and sizing.**
-3. **Keep content crisp.** Avoid applying plain `filter` directly to content-bearing panels.
-4. **Prefer a dedicated glass layer (`::before`)** for the backdrop/refraction stack.
-5. **Keep chromatic edge treatment separate** from the specular highlight layer.
-6. **Use rim/perimeter specular highlights**, not top-line gloss.
-7. **Do not use the tacky continuous shimmer sweep**.
-8. **Use `118deg` as the default specular angle** unless a different angle is deliberately chosen.
-9. **Scope selectors carefully** when integrating into a real codebase.
-10. **Fallback gracefully** when SVG-in-`backdrop-filter` support is unavailable.
+1. Treat the glass design as a **layered system**, not a simple background swap.
+2. Preserve layout, sizing, and functionality.
+3. Keep content crisp.
+4. Use a dedicated **glass FX layer** for backdrop blur / saturation / optional SVG refraction.
+5. Keep the **specular layer separate** from the chromatic edge layer.
+6. Implement specular as **dual asymmetric top/bottom border arcs**.
+7. Do **not** implement specular as a single top line.
+8. Do **not** implement specular as a one-sided conic hotspot.
+9. Do **not** use the obvious sweeping sheen animation.
+10. Use page- or component-scoped selectors when integrating into a real codebase.
+11. Prefer a graceful fallback when SVG-in-`backdrop-filter` is unsupported.
 
 ---
 
-## Summary
+## 9) Summary
 
-For CSS-only usage, the correct mental model is:
+For this project, the correct implementation model is:
 
-- base glass classes provide the main visual structure
-- SVG refraction is optional and should be injected in HTML once
-- for UI panels/cards, SVG refraction should live in the **glass surface layer** via `backdrop-filter` when possible
-- specular highlight should be a **rim/perimeter highlight** with a fixed **`118deg`** default, not a top-line-only sheen
-- chromatic edges remain a separate layer
+- CSS-only / vanilla app
+- hidden SVG defs injected once in HTML
+- optional SVG refraction used through the **glass surface layer** when possible
+- content kept separate and crisp
+- specular highlight implemented as **two asymmetric perimeter arcs**
+  - top mostly lit, offset a bit left
+  - bottom mostly lit, offset a bit right
+- no tacky sweep
+- no top-only line
+- no one-sided hotspot
