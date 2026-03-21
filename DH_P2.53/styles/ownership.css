@@ -2528,3 +2528,112 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     justify-self: flex-start;
   }
 }
+
+/* ============================================================================
+   Ownership mobile frozen-header layout (≤ 819px)
+   ─────────────────────────────────────────────────────────────────────────────
+   Targets: Ownership% list and Player Value table on mobile.
+
+   What this does:
+   - Locks the outer page from scrolling (body fills exactly 100dvh).
+   - The app header stays visible at top; nothing scrolls past it.
+   - Search bar (.ownership-toolbar / .ownership-value-toolbar) is frozen at
+     the top of the shell as a flex-shrink-0 item — it never disappears.
+   - Ownership% tab: .ownership-list becomes the scroll container; the
+     .ownership-list-header is sticky at top: 0 inside it so column labels
+     stay visible while row data scrolls.
+   - Player Value tab: .ownership-value-table-wrap flex-fills remaining height
+     and is the sole scroll container; the existing <thead> with
+     position: sticky; top: 0 freezes column headers inside the wrap.
+   - Horizontal scroll is disabled (overflow-x: hidden) on both scroll
+     containers — mobile only needs vertical scrolling.
+
+   All selectors are scoped to body[data-page="ownership"] to prevent leakage.
+   ============================================================================ */
+@media (max-width: 819px) {
+  /* Constrain viewport: body is exactly the visible screen; no outer scroll. */
+  body[data-page="ownership"] {
+    height: 100vh;     /* fallback for browsers without dvh */
+    height: 100dvh;    /* preferred: accounts for collapsing browser chrome */
+    overflow: hidden;
+  }
+
+  /* content-wrapper fills the body content area as a vertical flex stack. */
+  body[data-page="ownership"] .content-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* header-container: rigid — must not shrink to compress content below. */
+  body[data-page="ownership"] #header-container {
+    flex-shrink: 0;
+  }
+
+  /* main content area: fills all remaining space below the header. */
+  body[data-page="ownership"] #content {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* playerListView: fills #content; next layer in the flex-column chain. */
+  body[data-page="ownership"] #playerListView {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Shell: fills playerListView; establishes the frozen-header scroll layout. */
+  body[data-page="ownership"] .ownership-shell {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Search / filter toolbar: frozen at the top of the shell.
+     flex-shrink: 0 ensures it is never compressed when data rows are tall. */
+  body[data-page="ownership"] .ownership-value-toolbar,
+  body[data-page="ownership"] .ownership-toolbar {
+    flex-shrink: 0;
+  }
+
+  /* === Player Value tab: table-wrap is the sole vertical scroll container ===
+     Override the JS-computed max-height; flex handles sizing directly.
+     The existing thead position: sticky; top: 0 keeps column headers frozen. */
+  body[data-page="ownership"] .ownership-value-table-wrap {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none !important;
+    overflow-x: hidden;   /* no horizontal scroll on mobile */
+    overflow-y: auto;
+  }
+
+  /* === Ownership% tab: list is the sole vertical scroll container === */
+  body[data-page="ownership"] .ownership-list {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ownership% column-header: frozen at the top of the list scroll container.
+     Opaque background prevents data rows from bleeding through on scroll. */
+  body[data-page="ownership"] .ownership-list-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(24, 27, 50, 0.98);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
