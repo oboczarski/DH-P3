@@ -30,9 +30,9 @@
      Namespaced --fc-gr-* to avoid collision with any future global glass vars. */
 
   /* Blur / Saturation per tier */
-  --fc-gr-blur: 16px;
-  --fc-gr-blur-card: 10px;
-  --fc-gr-blur-pill: 4px;
+  --fc-gr-blur: 6px;
+  --fc-gr-blur-card: 4px;
+  --fc-gr-blur-pill: 2px;
   --fc-gr-saturation: 1.5;
   --fc-gr-saturation-card: 1.3;
   --fc-gr-saturation-pill: 1.1;
@@ -55,8 +55,8 @@
   /* Specular highlight config — diagonal linear-gradient (158deg).
      Two non-connecting arcs: top-left and bottom-right, with dark gaps between.
      Ring width controls the visible border thickness via content-box XOR mask. */
-  --fc-gr-specular-ring-width: 1px;
-  --fc-gr-specular-ring-width-card: 1px;
+  --fc-gr-specular-ring-width: 0.75px;
+  --fc-gr-specular-ring-width-card: 0.75px;
   --fc-gr-specular-ring-width-pill: 0.75px;
 
   /* Animation timing */
@@ -232,7 +232,7 @@
   border-radius: var(--radius-lg);
   background:
     linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.52) 100%);
+    linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.22) 100%);
   -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   border: none;
@@ -257,16 +257,16 @@
   padding: var(--fc-gr-specular-ring-width-card);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.55) 4%,
-    rgba(255,255,255,0.65) 12%,
-    rgba(255,255,255,0.55) 20%,
-    rgba(255,255,255,0) 28%,
-    rgba(255,255,255,0) 72%,
-    rgba(255,255,255,0.55) 80%,
-    rgba(255,255,255,0.65) 88%,
-    rgba(255,255,255,0.55) 96%,
-    rgba(255,255,255,0.0) 100%
+    rgba(255,255,255,0.01) 0%,
+    rgba(255,255,255,0.15) 4%,
+    rgba(255,255,255,0.35) 12%,
+    rgba(255,255,255,0.15) 24%,
+    rgba(255,255,255,0.01) 28%,
+    rgba(255,255,255,0.01) 72%,
+    rgba(255,255,255,0.15) 80%,
+    rgba(255,255,255,0.35) 88%,
+    rgba(255,255,255,0.15) 96%,
+    rgba(255,255,255,0.01) 100%
   );
   z-index: 3;
   -webkit-mask:
