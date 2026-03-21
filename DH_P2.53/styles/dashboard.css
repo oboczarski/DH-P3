@@ -329,6 +329,28 @@
   opacity: 0;
 }
 
+/* Chart panel specular override — MOBILE ONLY.
+   Chart containers are tall/narrow on mobile, so the base .fc-glass::before
+   arcs (4%→28% / 72%→96%) stretch too far along the long edges.
+   Tighten to very short corner accents (3%→12% / 88%→97%). */
+@media (max-width: 819px) {
+  .fc-dashboard .fc-chart-panel.fc-glass::before {
+    background: linear-gradient(
+      158deg,
+      rgba(255,255,255,0.0) 0%,
+      rgba(255,255,255,0.5) 3%,
+      rgba(255,255,255,0.6) 7%,
+      rgba(255,255,255,0.5) 12%,
+      rgba(255,255,255,0) 17%,
+      rgba(255,255,255,0) 83%,
+      rgba(255,255,255,0.5) 88%,
+      rgba(255,255,255,0.6) 93%,
+      rgba(255,255,255,0.5) 97%,
+      rgba(255,255,255,0.0) 100%
+    );
+  }
+}
+
 /* Ensure card content renders above glass pseudo-element layers
    (::before at z:3, ::after at z:2 → content needs z:4+).
    Exclude .fc-card__glow which must remain position:absolute. */
