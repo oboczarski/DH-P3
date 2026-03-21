@@ -56,7 +56,7 @@
      Two non-connecting arcs: top-left and bottom-right, with dark gaps between.
      Ring width controls the visible border thickness via content-box XOR mask. */
   --fc-gr-specular-ring-width: 0.75px;
-  --fc-gr-specular-ring-width-card: 0.75px;
+  --fc-gr-specular-ring-width-card: 1px;
   --fc-gr-specular-ring-width-pill: 0.75px;
 
   /* Animation timing */
@@ -259,12 +259,12 @@
     158deg,
     rgba(255,255,255,0.01) 0%,
     rgba(255,255,255,0.15) 4%,
-    rgba(255,255,255,0.35) 12%,
+    rgba(255,255,255,0.25) 12%,
     rgba(255,255,255,0.15) 24%,
     rgba(255,255,255,0.01) 28%,
     rgba(255,255,255,0.01) 72%,
     rgba(255,255,255,0.15) 80%,
-    rgba(255,255,255,0.35) 88%,
+    rgba(255,255,255,0.25) 88%,
     rgba(255,255,255,0.15) 96%,
     rgba(255,255,255,0.01) 100%
   );
@@ -337,16 +337,16 @@
   .fc-dashboard .fc-chart-panel.fc-glass::before {
     background: linear-gradient(
       158deg,
-      rgba(255,255,255,0.0) 0%,
-      rgba(255,255,255,0.5) 3%,
-      rgba(255,255,255,0.6) 7%,
-      rgba(255,255,255,0.5) 12%,
-      rgba(255,255,255,0) 17%,
-      rgba(255,255,255,0) 83%,
-      rgba(255,255,255,0.5) 88%,
-      rgba(255,255,255,0.6) 93%,
-      rgba(255,255,255,0.5) 97%,
-      rgba(255,255,255,0.0) 100%
+      rgba(255,255,255,0.01) 0%,
+      rgba(255,255,255,0.15) 3%,
+      rgba(255,255,255,0.25) 7%,
+      rgba(255,255,255,0.15) 12%,
+      rgba(255,255,255,0.01) 17%,
+      rgba(255,255,255,0.01) 83%,
+      rgba(255,255,255,0.15) 88%,
+      rgba(255,255,255,0.25) 93%,
+      rgba(255,255,255,0.15) 97%,
+      rgba(255,255,255,0.01) 100%
     );
   }
 }
