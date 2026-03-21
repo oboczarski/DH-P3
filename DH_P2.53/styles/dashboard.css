@@ -32,9 +32,11 @@
   /* Blur / Saturation per tier */
   --fc-gr-blur: 6px;
   --fc-gr-blur-card: 4px;
+  --fc-gr-blur-chart: 3px;
   --fc-gr-blur-pill: 2px;
   --fc-gr-saturation: 1.5;
   --fc-gr-saturation-card: 1.3;
+  --fc-gr-saturation-chart: 1.2;
   --fc-gr-saturation-pill: 1.1;
 
   /* Border radius per tier */
@@ -57,6 +59,7 @@
      Ring width controls the visible border thickness via content-box XOR mask. */
   --fc-gr-specular-ring-width: 0.75px;
   --fc-gr-specular-ring-width-card: 1px;
+  --fc-gr-specular-ring-width-chart: 0.75px;
   --fc-gr-specular-ring-width-pill: 0.75px;
 
   /* Animation timing */
@@ -314,25 +317,61 @@
     0 8px 32px -8px rgba(0,0,0,0.45);
 }
 
-/* Chart panels: no hover lift/glow (they're static containers) */
+/* ── Chart Panel Glass — Fully Independent from Summary Cards ──
+   Chart panels (.fc-chart-panel) get their own glass surface, specular,
+   and chromatic settings. They do NOT inherit from .fc-glass for these
+   visual properties — only structural (position, isolation, border-radius). */
+
+/* Chart panel glass surface — independent background, blur, shadow */
 .fc-dashboard .fc-chart-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
+  -webkit-backdrop-filter: blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 2px 12px -4px rgba(0,0,0,0.3);
   transition: none;
 }
-.fc-dashboard .fc-chart-panel:hover {
-  transform: none;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 2px 12px -4px rgba(0,0,0,0.3);
+
+/* Chart panel specular — independent ring width and gradient.
+   Desktop defaults; mobile override below tightens arcs further. */
+.fc-dashboard .fc-chart-panel.fc-glass::before {
+  padding: var(--fc-gr-specular-ring-width-chart);
+  background: linear-gradient(
+    158deg,
+    rgba(255,255,255,0.01) 0%,
+    rgba(255,255,255,0.15) 4%,
+    rgba(255,255,255,0.25) 12%,
+    rgba(255,255,255,0.15) 24%,
+    rgba(255,255,255,0.01) 28%,
+    rgba(255,255,255,0.01) 72%,
+    rgba(255,255,255,0.15) 80%,
+    rgba(255,255,255,0.25) 88%,
+    rgba(255,255,255,0.15) 96%,
+    rgba(255,255,255,0.01) 100%
+  );
 }
-.fc-dashboard .fc-chart-panel:hover::after {
+
+/* Chart panel chromatic edges — permanently hidden (static containers) */
+.fc-dashboard .fc-chart-panel.fc-glass::after {
   opacity: 0;
 }
 
+/* Chart panel hover — no lift, no glow, no chromatic */
+.fc-dashboard .fc-chart-panel:hover {
+  transform: none;
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 2px 12px -4px rgba(0,0,0,0.3);
+}
+
 /* Chart panel specular override — MOBILE ONLY.
-   Chart containers are tall/narrow on mobile, so the base .fc-glass::before
-   arcs (4%→28% / 72%→96%) stretch too far along the long edges.
-   Tighten to very short corner accents (3%→12% / 88%→97%). */
+   Chart containers are tall/narrow on mobile, so desktop arcs (4%→28%)
+   stretch too far along the long edges. Tighten to short corner accents. */
 @media (max-width: 819px) {
   .fc-dashboard .fc-chart-panel.fc-glass::before {
     background: linear-gradient(
@@ -381,13 +420,19 @@
 
 /* Dense specular edge lighting — two non-connecting arcs.
    Slightly brighter peaks for the heavier glass surface.
-   Subtle breathe animation on the heavy tier only. */
+   Subtle breathe animation on the heavy tier only.
+   width/height/filter reset: neutralize the styles.css purple glow ::before
+   which sets width:6em, height:6em, filter:blur(2.5em) at lower specificity —
+   those properties leak through because the dense rule didn't originally set them. */
 .fc-dashboard .fc-glass--dense::before {
   content: '';
   position: absolute;
   inset: 0;
+  width: auto;
+  height: auto;
   border-radius: inherit;
   pointer-events: none;
+  filter: none;
   padding: var(--fc-gr-specular-ring-width);
   background: linear-gradient(
     158deg,
@@ -442,17 +487,10 @@
   z-index: 4;
 }
 
-/* Override the welcome branding panel's purple glow ::before from styles.css.
-   Replaced by the dense specular rim highlight above. */
-.fc-dashboard .welcome-branding-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: none;
-  filter: none;
-  opacity: var(--fc-gr-specular-opacity);
-}
+/* The styles.css purple glow on .welcome-branding-panel::before is overridden by
+   .fc-dashboard .fc-glass--dense::before (higher specificity). The dense rule explicitly
+   resets width/height/filter to neutralize properties the purple glow sets that
+   would otherwise leak through (width:6em, height:6em, filter:blur(2.5em)). */
 
 /* Override the shared .glass-panel treatment on the dashboard header.
    The .glass-panel class in styles.css is shared across all pages, so we
