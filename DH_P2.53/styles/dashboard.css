@@ -53,11 +53,11 @@
   --fc-gr-chromatic-green: rgba(100, 255, 180, 0.025);
 
   /* Specular highlight config — diagonal linear-gradient (158deg).
-     Bright at top-left and bottom-right corners, transparent through middle.
+     Two non-connecting arcs: top-left and bottom-right, with dark gaps between.
      Ring width controls the visible border thickness via content-box XOR mask. */
-  --fc-gr-specular-ring-width: 2.5px;
-  --fc-gr-specular-ring-width-card: 2.5px;
-  --fc-gr-specular-ring-width-pill: 1.5px;
+  --fc-gr-specular-ring-width: 1px;
+  --fc-gr-specular-ring-width-card: 1px;
+  --fc-gr-specular-ring-width-pill: 0.75px;
 
   /* Animation timing */
   --fc-gr-specular-duration: 5s;
@@ -245,9 +245,9 @@
     box-shadow 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Glass card specular edge lighting — diagonal gradient (158deg).
-   Bright at top-left (0%) and bottom-right (100%), transparent through
-   the middle. Masked to a thin perimeter ring via content-box XOR. */
+/* Glass card specular edge lighting — two non-connecting arcs.
+   Top-left arc and bottom-right arc with wide dark gaps between.
+   Thin 1px ring, crisp bright peaks. */
 .fc-dashboard .fc-glass::before {
   content: '';
   position: absolute;
@@ -257,10 +257,16 @@
   padding: var(--fc-gr-specular-ring-width-card);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.44) 0%,
-    rgba(255,255,255,0) 39%,
-    rgba(255,255,255,0) 69%,
-    rgba(255,255,255,0.44) 100%
+    rgba(255,255,255,0.0) 0%,
+    rgba(255,255,255,0.55) 4%,
+    rgba(255,255,255,0.65) 12%,
+    rgba(255,255,255,0.55) 20%,
+    rgba(255,255,255,0) 28%,
+    rgba(255,255,255,0) 72%,
+    rgba(255,255,255,0.55) 80%,
+    rgba(255,255,255,0.65) 88%,
+    rgba(255,255,255,0.55) 96%,
+    rgba(255,255,255,0.0) 100%
   );
   z-index: 3;
   -webkit-mask:
@@ -351,8 +357,8 @@
     0 4px 24px -4px rgba(0,0,0,0.30);
 }
 
-/* Dense specular edge lighting — same 158deg diagonal as card tier,
-   slightly stronger alpha (0.52) for the heavier glass surface.
+/* Dense specular edge lighting — two non-connecting arcs.
+   Slightly brighter peaks for the heavier glass surface.
    Subtle breathe animation on the heavy tier only. */
 .fc-dashboard .fc-glass--dense::before {
   content: '';
@@ -363,10 +369,16 @@
   padding: var(--fc-gr-specular-ring-width);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.52) 0%,
-    rgba(255,255,255,0) 39%,
-    rgba(255,255,255,0) 69%,
-    rgba(255,255,255,0.52) 100%
+    rgba(255,255,255,0.0) 0%,
+    rgba(255,255,255,0.6) 3%,
+    rgba(255,255,255,0.75) 10%,
+    rgba(255,255,255,0.6) 18%,
+    rgba(255,255,255,0) 26%,
+    rgba(255,255,255,0) 74%,
+    rgba(255,255,255,0.6) 82%,
+    rgba(255,255,255,0.75) 90%,
+    rgba(255,255,255,0.6) 97%,
+    rgba(255,255,255,0.0) 100%
   );
   animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
   z-index: 3;
@@ -457,8 +469,8 @@
     opacity 0.25s ease;
 }
 
-/* Pill specular edge lighting — same 158deg diagonal, softer alpha
-   (0.32) for the lightest glass tier. No animation. */
+/* Pill specular edge lighting — two non-connecting arcs.
+   Shorter arcs for smaller containers, no animation. */
 .fc-dashboard .fc-glass--pill::before {
   content: '';
   position: absolute;
@@ -468,10 +480,16 @@
   padding: var(--fc-gr-specular-ring-width-pill);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.32) 0%,
-    rgba(255,255,255,0) 39%,
-    rgba(255,255,255,0) 69%,
-    rgba(255,255,255,0.32) 100%
+    rgba(255,255,255,0.0) 0%,
+    rgba(255,255,255,0.45) 5%,
+    rgba(255,255,255,0.55) 13%,
+    rgba(255,255,255,0.45) 21%,
+    rgba(255,255,255,0) 30%,
+    rgba(255,255,255,0) 70%,
+    rgba(255,255,255,0.45) 79%,
+    rgba(255,255,255,0.55) 87%,
+    rgba(255,255,255,0.45) 95%,
+    rgba(255,255,255,0.0) 100%
   );
   z-index: 2;
   -webkit-mask:
