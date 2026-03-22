@@ -3030,6 +3030,7 @@ const PLAYER_STAT_HEADER_MAP = {
     'paYPG': 'pa_ypg',
     'ruYPG': 'ru_ypg',
     'recYPG': 'rec_ypg',
+    'AY%': 'ay_pct',
     'PROJ': 'proj',
     'FPT_PPR': 'fpt_ppr',
     'FPTS_PPR': 'fpt_ppr'
@@ -4567,7 +4568,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency',
             label: 'RECEIVING EFFICIENCY',
             tone: 'receiving',
-            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg', 'ay_pct']
         },
         { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
             stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td', 'fum'] },
@@ -4589,7 +4590,7 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-efficiency',
             label: 'RECEIVING EFFICIENCY',
             tone: 'receiving',
-            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg']
+            stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg', 'ay_pct']
         },
         { id: 'general-production', label: 'GENERAL PRODUCTION', tone: 'all', 
             stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
@@ -5300,7 +5301,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
-        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rec_ypg'
+        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rec_ypg', 'ay_pct'
     ]);
     let orderedStatKeys;
     if (player.pos === 'QB') orderedStatKeys = qbStatOrder;
