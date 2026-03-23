@@ -149,12 +149,10 @@
   filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0 0 16px #7300ff48);
 }
 
-/* Dashboard home background source: store the supplied SVG only on the welcome page
-   so the effect stays exclusive to the dashboard and does not leak into shared pages. */
+/* Dashboard home background noise texture: small fractal-noise SVG used as a
+   repeating tile in the starfield base layer (gradient + noise). */
 body[data-page="welcome"] {
-  --dashboard-home-svg-background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='0' x2='0' y1='0' y2='100%25' gradientTransform='rotate(309,867,463)'%3E%3Cstop offset='0' stop-color='%23002864'/%3E%3Cstop offset='1' stop-color='%236C014E'/%3E%3C/linearGradient%3E%3Cpattern patternUnits='userSpaceOnUse' id='b' width='540' height='450' x='0' y='0' viewBox='0 0 1080 900'%3E%3Cg fill-opacity='0.2'%3E%3Cpolygon fill='%23444' points='90 150 0 300 180 300'/%3E%3Cpolygon points='90 150 180 0 0 0'/%3E%3Cpolygon fill='%23AAA' points='270 150 360 0 180 0'/%3E%3Cpolygon fill='%23DDD' points='450 150 360 300 540 300'/%3E%3Cpolygon fill='%23999' points='450 150 540 0 360 0'/%3E%3Cpolygon points='630 150 540 300 720 300'/%3E%3Cpolygon fill='%23DDD' points='630 150 720 0 540 0'/%3E%3Cpolygon fill='%23444' points='810 150 720 300 900 300'/%3E%3Cpolygon fill='%23FFF' points='810 150 900 0 720 0'/%3E%3Cpolygon fill='%23DDD' points='990 150 900 300 1080 300'/%3E%3Cpolygon fill='%23444' points='990 150 1080 0 900 0'/%3E%3Cpolygon fill='%23DDD' points='90 450 0 600 180 600'/%3E%3Cpolygon points='90 450 180 300 0 300'/%3E%3Cpolygon fill='%23666' points='270 450 180 600 360 600'/%3E%3Cpolygon fill='%23AAA' points='270 450 360 300 180 300'/%3E%3Cpolygon fill='%23DDD' points='450 450 360 600 540 600'/%3E%3Cpolygon fill='%23999' points='450 450 540 300 360 300'/%3E%3Cpolygon fill='%23999' points='630 450 540 600 720 600'/%3E%3Cpolygon fill='%23FFF' points='630 450 720 300 540 300'/%3E%3Cpolygon points='810 450 720 600 900 600'/%3E%3Cpolygon fill='%23DDD' points='810 450 900 300 720 300'/%3E%3Cpolygon fill='%23AAA' points='990 450 900 600 1080 600'/%3E%3Cpolygon fill='%23444' points='990 450 1080 300 900 300'/%3E%3Cpolygon fill='%23222' points='90 750 0 900 180 900'/%3E%3Cpolygon points='270 750 180 900 360 900'/%3E%3Cpolygon fill='%23DDD' points='270 750 360 600 180 600'/%3E%3Cpolygon points='450 750 540 600 360 600'/%3E%3Cpolygon points='630 750 540 900 720 900'/%3E%3Cpolygon fill='%23444' points='630 750 720 600 540 600'/%3E%3Cpolygon fill='%23AAA' points='810 750 720 900 900 900'/%3E%3Cpolygon fill='%23666' points='810 750 900 600 720 600'/%3E%3Cpolygon fill='%23999' points='990 750 900 900 1080 900'/%3E%3Cpolygon fill='%23999' points='180 0 90 150 270 150'/%3E%3Cpolygon fill='%23444' points='360 0 270 150 450 150'/%3E%3Cpolygon fill='%23FFF' points='540 0 450 150 630 150'/%3E%3Cpolygon points='900 0 810 150 990 150'/%3E%3Cpolygon fill='%23222' points='0 300 -90 450 90 450'/%3E%3Cpolygon fill='%23FFF' points='0 300 90 150 -90 150'/%3E%3Cpolygon fill='%23FFF' points='180 300 90 450 270 450'/%3E%3Cpolygon fill='%23666' points='180 300 270 150 90 150'/%3E%3Cpolygon fill='%23222' points='360 300 270 450 450 450'/%3E%3Cpolygon fill='%23FFF' points='360 300 450 150 270 150'/%3E%3Cpolygon fill='%23444' points='540 300 450 450 630 450'/%3E%3Cpolygon fill='%23222' points='540 300 630 150 450 150'/%3E%3Cpolygon fill='%23AAA' points='720 300 630 450 810 450'/%3E%3Cpolygon fill='%23666' points='720 300 810 150 630 150'/%3E%3Cpolygon fill='%23FFF' points='900 300 810 450 990 450'/%3E%3Cpolygon fill='%23999' points='900 300 990 150 810 150'/%3E%3Cpolygon points='0 600 -90 750 90 750'/%3E%3Cpolygon fill='%23666' points='0 600 90 450 -90 450'/%3E%3Cpolygon fill='%23AAA' points='180 600 90 750 270 750'/%3E%3Cpolygon fill='%23444' points='180 600 270 450 90 450'/%3E%3Cpolygon fill='%23444' points='360 600 270 750 450 750'/%3E%3Cpolygon fill='%23999' points='360 600 450 450 270 450'/%3E%3Cpolygon fill='%23666' points='540 600 630 450 450 450'/%3E%3Cpolygon fill='%23222' points='720 600 630 750 810 750'/%3E%3Cpolygon fill='%23FFF' points='900 600 810 750 990 750'/%3E%3Cpolygon fill='%23222' points='900 600 990 450 810 450'/%3E%3Cpolygon fill='%23DDD' points='0 900 90 750 -90 750'/%3E%3Cpolygon fill='%23444' points='180 900 270 750 90 750'/%3E%3Cpolygon fill='%23FFF' points='360 900 450 750 270 750'/%3E%3Cpolygon fill='%23AAA' points='540 900 630 750 450 750'/%3E%3Cpolygon fill='%23FFF' points='720 900 810 750 630 750'/%3E%3Cpolygon fill='%23222' points='900 900 990 750 810 750'/%3E%3Cpolygon fill='%23222' points='1080 300 990 450 1170 450'/%3E%3Cpolygon fill='%23FFF' points='1080 300 1170 150 990 150'/%3E%3Cpolygon points='1080 600 990 750 1170 750'/%3E%3Cpolygon fill='%23666' points='1080 600 1170 450 990 450'/%3E%3Cpolygon fill='%23DDD' points='1080 900 1170 750 990 750'/%3E%3C/g%3E%3C/pattern%3E%3C/defs%3E%3Crect x='0' y='0' fill='url(%23a)' width='100%25' height='100%25'/%3E%3Crect x='0' y='0' fill='url(%23b)' width='100%25' height='100%25'/%3E%3C/svg%3E");
-background-attachment: fixed;
-background-size: cover;
+  --dashboard-home-noise-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.26 0.48'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.92'/%3E%3C/svg%3E");
 }
 
 
@@ -166,23 +164,40 @@ body[data-page="welcome"] #starfield {
 }
 
 
-/* Dashboard SVG base layer: sits behind the glow gradients and star particles.
-   Using the fixed starfield host instead of background-attachment keeps mobile rendering stable. */
+/* Dashboard base layer: gradient stack + subtle fractal noise.
+   Layered as: highlight sheen → radial purple glow → core gradient → tiled noise.
+   Sits behind the glow overlay and star particles. */
 body[data-page="welcome"] #starfield::before {
   content: '';
   position: absolute;
-  inset: -6%;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: #007b916e;
-  background-image: var(--dashboard-home-svg-background);
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  opacity: 1;
-  transform: scale(1.04);
-  transform-origin: center;
-  filter: saturate(1.7) brightness(1.08) contrast(1.08);
+  background:
+    linear-gradient(150deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.06) 16%,
+      rgba(255, 255, 255, 0) 36%,
+      rgba(255, 255, 255, 0) 68%,
+      rgba(255, 255, 255, 0.03) 100%),
+    radial-gradient(118% 72% at 8% 0%,
+      rgba(196, 144, 255, 0.76) 0%,
+      rgba(158, 90, 255, 0.42) 24%,
+      rgba(125, 42, 255, 0.08) 44%,
+      rgba(125, 42, 255, 0) 60%),
+    linear-gradient(157deg,
+      #7c31ff 0%,
+      #771bff 18%,
+      #7100f0 40%,
+      #8900dd 61%,
+      #b700aa 80%,
+      #dd0056 100%),
+    var(--dashboard-home-noise-svg);
+  background-position: center center, left top, center center, center center;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: cover, cover, cover, 220px 220px;
+  background-blend-mode: screen, screen, normal, soft-light;
+  opacity: 0.25;
 }
 
 /* Dashboard glow overlay: reuses the existing welcome-page top glows and a softened
@@ -212,16 +227,9 @@ body[data-page="welcome"] #stars3 {
   z-index: 2;
 }
 
-/* Dashboard mobile background tuning: slightly enlarge and soften the SVG on narrower
-   screens so the pattern reads cleanly without overwhelming the header/cards. */
+/* Dashboard mobile background tuning: tighter radial glow and slightly
+   stronger vignette overlay to keep the gradient/noise balanced on small screens. */
 @media (max-width: 819px) {
-  body[data-page="welcome"] #starfield::before {
-    inset: -10%;
-    opacity: 0.94;
-    transform: scale(1.1);
-    filter: saturate(1.5) brightness(1.03) contrast(1.06);
-  }
-
   body[data-page="welcome"] #starfield::after {
     background:
       radial-gradient(540px 540px at 18% -18%,
