@@ -439,6 +439,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   .welcome-branding-panel {
     gap: 0.5rem;
     padding: 0.75rem 1rem;
+    border-radius: 3em;
   }
 
   .welcome-branding-panel .welcome-logo {

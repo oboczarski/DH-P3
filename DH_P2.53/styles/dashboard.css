@@ -59,7 +59,7 @@
      Ring width controls the visible border thickness via content-box XOR mask. */
   --fc-gr-specular-ring-width: 0.75px;
   --fc-gr-specular-ring-width-card: 1px;
-  --fc-gr-specular-ring-width-chart: 0.75px;
+  --fc-gr-specular-ring-width-chart: 1.25px;
   --fc-gr-specular-ring-width-pill: 0.75px;
 
   /* Animation timing */
@@ -72,7 +72,7 @@
   --glass-blur: 2px;
 
   /* Spacing & Sizing */
-  --radius-lg: 1.5em;
+  --radius-lg: 2.5em;
   --radius-md: 0.75em;
   --radius-sm: 0.5em;
   --radius-full: 9999px;
@@ -152,7 +152,9 @@
 /* Dashboard home background source: store the supplied SVG only on the welcome page
    so the effect stays exclusive to the dashboard and does not leak into shared pages. */
 body[data-page="welcome"] {
-  --dashboard-home-svg-background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 1500'%3E%3Cdefs%3E%3Cpath fill='none' stroke-width='1' stroke-opacity='0.24' id='a' d='M0.74-509.63l485.39 352.65l-185.4 570.61h-599.97l-185.4-570.61L0.74-509.63 M0.74-510.87l-486.56 353.51l185.85 571.99h601.42L487.3-157.36L0.74-510.87L0.74-510.87z'/%3E%3C/defs%3E%3Cg transform='scale(0.712)' style='transform-origin:center'%3E%3Cg transform='rotate(72 0 0)' style='transform-origin:center'%3E%3Cg transform='rotate(-160 0 0)' style='transform-origin:center'%3E%3Cg transform='translate(1000 750)'%3E%3Cuse stroke='%2300FF8E' href='%23a' transform='rotate(10 0 0) scale(1.1)'/%3E%3Cuse stroke='%2300fda7' href='%23a' transform='rotate(20 0 0) scale(1.2)'/%3E%3Cuse stroke='%2300f9c3' href='%23a' transform='rotate(30 0 0) scale(1.3)'/%3E%3Cuse stroke='%2300f5e0' href='%23a' transform='rotate(40 0 0) scale(1.4)'/%3E%3Cuse stroke='%2300f0fe' href='%23a' transform='rotate(50 0 0) scale(1.5)'/%3E%3Cuse stroke='%2300eaff' href='%23a' transform='rotate(60 0 0) scale(1.6)'/%3E%3Cuse stroke='%2300e3ff' href='%23a' transform='rotate(70 0 0) scale(1.7)'/%3E%3Cuse stroke='%2300dbff' href='%23a' transform='rotate(80 0 0) scale(1.8)'/%3E%3Cuse stroke='%2300d1ff' href='%23a' transform='rotate(90 0 0) scale(1.9)'/%3E%3Cuse stroke='%2300c6ff' href='%23a' transform='rotate(100 0 0) scale(2)'/%3E%3Cuse stroke='%2300b8ff' href='%23a' transform='rotate(110 0 0) scale(2.1)'/%3E%3Cuse stroke='%2300a6ff' href='%23a' transform='rotate(120 0 0) scale(2.2)'/%3E%3Cuse stroke='%230f91ff' href='%23a' transform='rotate(130 0 0) scale(2.3)'/%3E%3Cuse stroke='%239b76ff' href='%23a' transform='rotate(140 0 0) scale(2.4)'/%3E%3Cuse stroke='%23d453ff' href='%23a' transform='rotate(150 0 0) scale(2.5)'/%3E%3Cuse stroke='%23FB00FF' href='%23a' transform='rotate(160 0 0) scale(2.6)'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --dashboard-home-svg-background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' gradientUnits='userSpaceOnUse' x1='0' x2='0' y1='0' y2='100%25' gradientTransform='rotate(309,867,463)'%3E%3Cstop offset='0' stop-color='%23002864'/%3E%3Cstop offset='1' stop-color='%236C014E'/%3E%3C/linearGradient%3E%3Cpattern patternUnits='userSpaceOnUse' id='b' width='540' height='450' x='0' y='0' viewBox='0 0 1080 900'%3E%3Cg fill-opacity='0.36'%3E%3Cpolygon fill='%23444' points='90 150 0 300 180 300'/%3E%3Cpolygon points='90 150 180 0 0 0'/%3E%3Cpolygon fill='%23AAA' points='270 150 360 0 180 0'/%3E%3Cpolygon fill='%23DDD' points='450 150 360 300 540 300'/%3E%3Cpolygon fill='%23999' points='450 150 540 0 360 0'/%3E%3Cpolygon points='630 150 540 300 720 300'/%3E%3Cpolygon fill='%23DDD' points='630 150 720 0 540 0'/%3E%3Cpolygon fill='%23444' points='810 150 720 300 900 300'/%3E%3Cpolygon fill='%23FFF' points='810 150 900 0 720 0'/%3E%3Cpolygon fill='%23DDD' points='990 150 900 300 1080 300'/%3E%3Cpolygon fill='%23444' points='990 150 1080 0 900 0'/%3E%3Cpolygon fill='%23DDD' points='90 450 0 600 180 600'/%3E%3Cpolygon points='90 450 180 300 0 300'/%3E%3Cpolygon fill='%23666' points='270 450 180 600 360 600'/%3E%3Cpolygon fill='%23AAA' points='270 450 360 300 180 300'/%3E%3Cpolygon fill='%23DDD' points='450 450 360 600 540 600'/%3E%3Cpolygon fill='%23999' points='450 450 540 300 360 300'/%3E%3Cpolygon fill='%23999' points='630 450 540 600 720 600'/%3E%3Cpolygon fill='%23FFF' points='630 450 720 300 540 300'/%3E%3Cpolygon points='810 450 720 600 900 600'/%3E%3Cpolygon fill='%23DDD' points='810 450 900 300 720 300'/%3E%3Cpolygon fill='%23AAA' points='990 450 900 600 1080 600'/%3E%3Cpolygon fill='%23444' points='990 450 1080 300 900 300'/%3E%3Cpolygon fill='%23222' points='90 750 0 900 180 900'/%3E%3Cpolygon points='270 750 180 900 360 900'/%3E%3Cpolygon fill='%23DDD' points='270 750 360 600 180 600'/%3E%3Cpolygon points='450 750 540 600 360 600'/%3E%3Cpolygon points='630 750 540 900 720 900'/%3E%3Cpolygon fill='%23444' points='630 750 720 600 540 600'/%3E%3Cpolygon fill='%23AAA' points='810 750 720 900 900 900'/%3E%3Cpolygon fill='%23666' points='810 750 900 600 720 600'/%3E%3Cpolygon fill='%23999' points='990 750 900 900 1080 900'/%3E%3Cpolygon fill='%23999' points='180 0 90 150 270 150'/%3E%3Cpolygon fill='%23444' points='360 0 270 150 450 150'/%3E%3Cpolygon fill='%23FFF' points='540 0 450 150 630 150'/%3E%3Cpolygon points='900 0 810 150 990 150'/%3E%3Cpolygon fill='%23222' points='0 300 -90 450 90 450'/%3E%3Cpolygon fill='%23FFF' points='0 300 90 150 -90 150'/%3E%3Cpolygon fill='%23FFF' points='180 300 90 450 270 450'/%3E%3Cpolygon fill='%23666' points='180 300 270 150 90 150'/%3E%3Cpolygon fill='%23222' points='360 300 270 450 450 450'/%3E%3Cpolygon fill='%23FFF' points='360 300 450 150 270 150'/%3E%3Cpolygon fill='%23444' points='540 300 450 450 630 450'/%3E%3Cpolygon fill='%23222' points='540 300 630 150 450 150'/%3E%3Cpolygon fill='%23AAA' points='720 300 630 450 810 450'/%3E%3Cpolygon fill='%23666' points='720 300 810 150 630 150'/%3E%3Cpolygon fill='%23FFF' points='900 300 810 450 990 450'/%3E%3Cpolygon fill='%23999' points='900 300 990 150 810 150'/%3E%3Cpolygon points='0 600 -90 750 90 750'/%3E%3Cpolygon fill='%23666' points='0 600 90 450 -90 450'/%3E%3Cpolygon fill='%23AAA' points='180 600 90 750 270 750'/%3E%3Cpolygon fill='%23444' points='180 600 270 450 90 450'/%3E%3Cpolygon fill='%23444' points='360 600 270 750 450 750'/%3E%3Cpolygon fill='%23999' points='360 600 450 450 270 450'/%3E%3Cpolygon fill='%23666' points='540 600 630 450 450 450'/%3E%3Cpolygon fill='%23222' points='720 600 630 750 810 750'/%3E%3Cpolygon fill='%23FFF' points='900 600 810 750 990 750'/%3E%3Cpolygon fill='%23222' points='900 600 990 450 810 450'/%3E%3Cpolygon fill='%23DDD' points='0 900 90 750 -90 750'/%3E%3Cpolygon fill='%23444' points='180 900 270 750 90 750'/%3E%3Cpolygon fill='%23FFF' points='360 900 450 750 270 750'/%3E%3Cpolygon fill='%23AAA' points='540 900 630 750 450 750'/%3E%3Cpolygon fill='%23FFF' points='720 900 810 750 630 750'/%3E%3Cpolygon fill='%23222' points='900 900 990 750 810 750'/%3E%3Cpolygon fill='%23222' points='1080 300 990 450 1170 450'/%3E%3Cpolygon fill='%23FFF' points='1080 300 1170 150 990 150'/%3E%3Cpolygon points='1080 600 990 750 1170 750'/%3E%3Cpolygon fill='%23666' points='1080 600 1170 450 990 450'/%3E%3Cpolygon fill='%23DDD' points='1080 900 1170 750 990 750'/%3E%3C/g%3E%3C/pattern%3E%3C/defs%3E%3Crect x='0' y='0' fill='url(%23a)' width='100%25' height='100%25'/%3E%3Crect x='0' y='0' fill='url(%23b)' width='100%25' height='100%25'/%3E%3C/svg%3E");
+background-attachment: fixed;
+background-size: cover;
 }
 
 /* Dashboard starfield host: split the fixed background into a new SVG base layer and
@@ -170,7 +172,7 @@ body[data-page="welcome"] #starfield::before {
   inset: -6%;
   z-index: 0;
   pointer-events: none;
-  background-color: #000000;
+  background: #007b916e;
   background-image: var(--dashboard-home-svg-background);
   background-position: center center;
   background-repeat: no-repeat;
@@ -340,16 +342,16 @@ body[data-page="welcome"] #stars3 {
   padding: var(--fc-gr-specular-ring-width-card);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.01) 0%,
-    rgba(255,255,255,0.15) 4%,
-    rgba(255,255,255,0.25) 12%,
+    rgba(255,255,255,0.61) 0%,
+    rgba(255,255,255,0.45) 7%,
+    rgba(255,255,255,0.45) 12%,
     rgba(255,255,255,0.15) 24%,
-    rgba(255,255,255,0.01) 28%,
-    rgba(255,255,255,0.01) 72%,
-    rgba(255,255,255,0.15) 80%,
-    rgba(255,255,255,0.25) 88%,
-    rgba(255,255,255,0.15) 96%,
-    rgba(255,255,255,0.01) 100%
+    rgba(255,255,255,0.0) 28%,
+    rgba(255,255,255,0.0) 72%,
+    rgba(255,255,255,0.1) 80%,
+    rgba(255,255,255,0.15) 88%,
+    rgba(255,255,255,0.25) 93%,
+    rgba(255,255,255,0.61) 100%
   );
   z-index: 3;
   -webkit-mask:
@@ -456,16 +458,16 @@ body[data-page="welcome"] #stars3 {
   .fc-dashboard .fc-chart-panel.fc-glass::before {
     background: linear-gradient(
       158deg,
-      rgba(255,255,255,0.01) 0%,
-      rgba(255,255,255,0.15) 3%,
-      rgba(255,255,255,0.25) 7%,
-      rgba(255,255,255,0.15) 12%,
-      rgba(255,255,255,0.01) 17%,
-      rgba(255,255,255,0.01) 83%,
-      rgba(255,255,255,0.15) 88%,
-      rgba(255,255,255,0.25) 93%,
-      rgba(255,255,255,0.15) 97%,
-      rgba(255,255,255,0.01) 100%
+      rgba(255,255,255,0.45) 0%,
+      rgba(255,255,255,0.25) 3%,
+      rgba(255,255,255,0.15) 7%,
+      rgba(255,255,255,0.1) 12%,
+      rgba(255,255,255,0.0) 17%,
+      rgba(255,255,255,0.1) 73%,
+      rgba(255,255,255,0.1) 88%,
+      rgba(255,255,255,0.15) 93%,
+      rgba(255,255,255,0.25) 97%,
+      rgba(255,255,255,0.45) 100%
     );
   }
 }
@@ -492,10 +494,9 @@ body[data-page="welcome"] #stars3 {
   -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   border: none;
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.10),
+  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.20),
     inset 0 1px 0 rgba(255,255,255,0.12),
-    0 4px 24px -4px rgba(0,0,0,0.30);
+    0 4px 24px -4px rgba(0,0,0,0.50);
 }
 
 /* Dense specular edge lighting — two non-connecting arcs.
@@ -516,16 +517,16 @@ body[data-page="welcome"] #stars3 {
   padding: var(--fc-gr-specular-ring-width);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.6) 3%,
-    rgba(255,255,255,0.75) 10%,
-    rgba(255,255,255,0.6) 18%,
-    rgba(255,255,255,0) 26%,
-    rgba(255,255,255,0) 74%,
-    rgba(255,255,255,0.6) 82%,
-    rgba(255,255,255,0.75) 90%,
-    rgba(255,255,255,0.6) 97%,
-    rgba(255,255,255,0.0) 100%
+    rgba(255,255,255,0.6) 0%,
+    rgba(255,255,255,0.35) 8%,
+    rgba(255,255,255,0.2) 14%,
+    rgba(255,255,255,0.15) 24%,
+    rgba(255,255,255,0) 36%,
+    rgba(255,255,255,0) 64%,
+    rgba(255,255,255,0.15) 74%,
+    rgba(255,255,255,0.2) 84%,
+    rgba(255,255,255,0.35) 92%,
+    rgba(255,255,255,0.6) 100%
   );
   animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
   z-index: 3;
@@ -576,9 +577,7 @@ body[data-page="welcome"] #stars3 {
    The .glass-panel class in styles.css is shared across all pages, so we
    override it here via scoped selector instead of modifying the global rule. */
 .fc-dashboard .app-header.glass-panel {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
-    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
   -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   border: none;
@@ -2394,8 +2393,11 @@ body[data-page="welcome"] #header-container {
 }
 
 body[data-page="welcome"] .app-header.glass-panel {
-  -webkit-backdrop-filter: blur(0px) saturate(120%) brightness(120%);
-  backdrop-filter: blur(1px) saturate(112%) brightness(110%);
+  -webkit-backdrop-filter: blur(14px) saturate(100%) brightness(100%);
+  backdrop-filter: blur(14px) saturate(100%) brightness(100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end))linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
+    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
+  border-radius: 16px;
 }
 
 body[data-page="welcome"] .app-header {
@@ -2595,6 +2597,7 @@ body[data-page="welcome"] .username-area {
   min-width: 0;
   max-width: 520px;
   width: 100%;
+  border-radius: 11px;
 }
 
 body[data-page="welcome"] #usernameInput {
@@ -2619,9 +2622,9 @@ body[data-page="welcome"] .enter-button {
   /* larger gap so label and circle don't butt up against each other */
   padding: 0 9px;
   /* more horizontal breathing room */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.01), rgb(66 45 208 / 10%));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.15), rgb(66 75 128 / 32%));
   color: var(--color-text-secondary);
-  border-radius: 10px;
+  border-radius: 11px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.02);
   cursor: pointer;
   transition: transform 110ms ease, box-shadow 110ms ease, background 110ms ease;
