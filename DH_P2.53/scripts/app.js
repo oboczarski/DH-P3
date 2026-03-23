@@ -3005,6 +3005,8 @@ const PLAYER_STAT_HEADER_MAP = {
     'RYOE': 'ryoe',
     'YCO': 'rush_yac',
     'YCO/A': 'yco_per_att',
+    // SZN view bridge: explosive rush rate from the CSV uses a dedicated rushing percentage key.
+    'ExplRu%': 'expl_ru_pct',
     'MTF/A': 'mtf_per_att',
     'TGT': 'rec_tgt',
     'REC': 'rec',
@@ -3065,7 +3067,8 @@ const NO_FALLBACK_KEYS = new Set([
     'snp_pct',
     'prs_pct',
     'ypr',
-    'first_down_rec_rate'
+    'first_down_rec_rate',
+    'expl_ru_pct'
 ]);
 const SEASON_META_HEADERS = {
     'POS': 'pos',
@@ -4536,7 +4539,8 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'rushing-efficiency',
             label: 'RUSHING EFFICIENCY',
             tone: 'rushing',
-            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'ryoe', 'ru_ypg']
+            // RB SZN view: keep explosive rush rate after YCO/A in the rushing efficiency stack.
+            stats: ['ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'expl_ru_pct', 'ryoe', 'ru_ypg']
         },
         {
             id: 'receiving-production',
@@ -4718,7 +4722,10 @@ function getGameLogsSeasonDisplayValue({
 		const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
 		if (raw === null) {
 			displayValue = 'N/A';
-		} else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
+        } else if (key === 'expl_ru_pct') {
+            const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
+            displayValue = formatPercentage(normalized);
+        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
 			displayValue = formatPercentage(raw);
 		} else if (key === 'cpoe') {
 			const formatted = formatPercentage(raw, 1);
@@ -5301,7 +5308,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
-        'yco_per_att', 'mtf', 'rush_yac', 'ryoe', 'ru_ypg'
+        'yco_per_att', 'expl_ru_pct', 'mtf', 'rush_yac', 'ryoe', 'ru_ypg'
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
