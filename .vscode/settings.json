@@ -208,5 +208,6 @@
   "python.testing.autoTestDiscoverOnSaveEnabled": false,
   "claudeCode.autosave": false,
   "imageCarousel.explorerContextMenu.enabled": true,
-  "github.copilot.chat.agentDebugLog.enabled": true
+  "github.copilot.chat.agentDebugLog.enabled": true,
+  "github.copilot.chat.agentDebugLog.fileLogging.enabled": true
 }
