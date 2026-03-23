@@ -261,7 +261,6 @@
   font-size: 1.3rem;
   font-weight: 200;
   color: var(--color-text-primary);
-  letter-spacing: 0.05em;
 }
 
 .stats-tab-heading b,

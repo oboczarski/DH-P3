@@ -144,33 +144,61 @@ Pattern:  Add 'DISPLAY_ABBR' to the Set
 
 ---
 
-### 2G. Decimal Precision (conditional)
+### 2G. Integer Column Registration (conditional)
+
+**File**: `stats.js` — `INTEGER_COLUMNS` Set  
+**Line ref**: ~Line 107  
+**What**: If the stat is a whole-number counting/volume stat, add it here so values display without decimals.
+
+```
+Pattern:  Add 'DISPLAY_ABBR' to the Set
+```
+
+> Examples of integer stats: `ruYDS`, `CAR`, `TGT`, `REC`, `paYDS`, `FUM`, `YAC`, `MTF`.  
+> Do NOT add rate/efficiency/percentage stats here (those use 2H or 2I instead).
+
+---
+
+### 2H. Decimal Precision (conditional)
 
 **File**: `stats.js` — `DECIMAL_PRECISION` Map  
-**Line ref**: ~Line 110  
+**Line ref**: ~Line 113  
 **What**: If the stat needs specific decimal places beyond the default, add it.
 
 ```
 Pattern:  ['DISPLAY_ABBR', 2]    // 2 decimal places
 ```
 
-> Only needed if the stat requires explicit precision different from the default integer display.
+> Use for non-percentage decimal stats like `YPC` (2 decimals), `AGE` (1 decimal), `FPOE` (1 decimal).
 
 ---
 
-### 2H. Percent Precision (conditional)
+### 2I. Percent Precision (conditional)
 
 **File**: `stats.js` — `PERCENT_PRECISION` Map  
-**Line ref**: ~Line 136  
+**Line ref**: ~Line 139  
 **What**: If the stat is a percentage displayed with format like `68.5%`, register it here.
 
 ```
 Pattern:  ['DISPLAY_ABBR', 1]    // 1 decimal place with % suffix
 ```
 
+> Use for stats whose display name ends in `%` (e.g., `CMP%`, `SNP%`, `TS%`, `AY%`, `CSTY%`).
+
 ---
 
-### 2I. Stats Key Popup (conditional)
+### Formatting Decision Tree (2G / 2H / 2I are mutually exclusive)
+
+```
+Is the stat a percentage (name ends in %)? → 2I (PERCENT_PRECISION)
+Is the stat a whole-number counting stat?  → 2G (INTEGER_COLUMNS)
+Is the stat a non-% decimal/rate stat?     → 2H (DECIMAL_PRECISION)
+None of the above (shows raw CSV value)?   → Skip all three
+```
+
+---
+
+### 2J. Stats Key Popup (conditional)
 
 **File**: `stats.html` — Key popup body  
 **Line ref**: ~Line 209 area  
@@ -195,11 +223,12 @@ Pattern:  ['DISPLAY_ABBR', 1]    // 1 decimal place with % suffix
 | 2B | `COLUMN_CATEGORY` | stats.js ~L43 | **YES** (defaults to `all` if missing) |
 | 2C | `COLUMN_SETS` | stats.js ~L31 | **YES** — determines visibility & order |
 | 2D | `STATS_COLUMN_WIDTHS` | stats.js ~L266 | Recommended (defaults to 76px) |
-| 2E | `NUMERIC_SORT_COLUMNS` | stats.js ~L323 | **YES** for all numeric stats |
-| 2F | `EFFICIENCY_COLUMNS` | stats.js ~L333 | Only for rate/efficiency stats |
-| 2G | `DECIMAL_PRECISION` | stats.js ~L110 | Only if non-integer display needed |
-| 2H | `PERCENT_PRECISION` | stats.js ~L136 | Only for percentage stats |
-| 2I | Key popup HTML | stats.html ~L209 | Recommended |
+| 2E | `NUMERIC_SORT_COLUMNS` | stats.js ~L326 | **YES** for all numeric stats |
+| 2F | `EFFICIENCY_COLUMNS` | stats.js ~L336 | Only for rate/efficiency stats |
+| 2G | `INTEGER_COLUMNS` | stats.js ~L107 | Only for whole-number counting stats |
+| 2H | `DECIMAL_PRECISION` | stats.js ~L113 | Only for non-% decimal stats |
+| 2I | `PERCENT_PRECISION` | stats.js ~L139 | Only for percentage stats |
+| 2J | Key popup HTML | stats.html ~L209 | Recommended |
 
 ---
 
@@ -322,6 +351,12 @@ Pattern:  internal_key: 40
 
 The SZN view replaces the weekly table in-place. It shows season totals organized into labeled sections, each stat as a row with a progress bar, rank, and value.
 
+> **IMPORTANT — Shared Prerequisites**: Even if Surface 2 (Game Logs Weekly Table) is NOT being requested, **Steps 3A and 3B are still required** for the SZN view to work:
+> - **3A** (`PLAYER_STAT_HEADER_MAP`): The SZN view relies on `buildStatLabels()` (which inverts this map) to generate display labels for each stat row. Without this entry, the stat row will have no label.
+> - **3B** (`statGroupByKey`): The SZN view reads this map (Step 4C below) to color each stat row's label. Without this entry, the stat row will have no label color.
+>
+> If the agent is only implementing Surface 3, it must still perform Steps 3A and 3B from the Surface 2 section above.
+
 ### THE KEY CONCEPT: Two Independent Color Systems
 
 In the SZN view, there are **two separate** color systems working simultaneously:
@@ -362,14 +397,14 @@ SZN_STAT_SECTIONS_BY_POS = {
   WR: [
     { id: 'fantasy',              label: 'FANTASY',              tone: 'all',       stats: ['fpts', 'ppg', 'fpoe'] },
     { id: 'receiving-production', label: 'RECEIVING PRODUCTION', tone: 'receiving', stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr'] },
-    { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg'] },
+    { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg', 'ay_pct'] },
     { id: 'general-production',   label: 'GENERAL PRODUCTION',   tone: 'all',       stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td', 'fum'] },
     { id: 'general-efficiency',   label: 'GENERAL EFFICIENCY',   tone: 'all',       stats: ['snp_pct', 'imp_per_g'] }
   ],
   TE: [
     { id: 'fantasy',              label: 'FANTASY',              tone: 'all',       stats: ['fpts', 'ppg', 'fpoe'] },
     { id: 'receiving-production', label: 'RECEIVING PRODUCTION', tone: 'receiving', stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr'] },
-    { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg'] },
+    { id: 'receiving-efficiency', label: 'RECEIVING EFFICIENCY', tone: 'receiving', stats: ['ts_per_rr', 'yprr', 'first_down_rec_rate', 'ypr', 'rec_ypg', 'ay_pct'] },
     { id: 'general-production',   label: 'GENERAL PRODUCTION',   tone: 'all',       stats: ['yds_total', 'rush_att', 'rush_yd', 'rush_td'] },
     { id: 'general-efficiency',   label: 'GENERAL EFFICIENCY',   tone: 'all',       stats: ['snp_pct', 'fum', 'imp_per_g'] }
   ]
@@ -540,9 +575,10 @@ Additional Notes: "Place column to the right of YPC in QB and RB column sets"
 | 2B | Add `'ruBTKL': 'rushing'` to `COLUMN_CATEGORY` | stats.js | ~L43 |
 | 2C | Insert `'ruBTKL'` after `'YPC'` in `COLUMN_SETS.QB` and `COLUMN_SETS.RB` | stats.js | ~L31 |
 | 2D | Add `'ruBTKL': 64` to `STATS_COLUMN_WIDTHS` | stats.js | ~L266 |
-| 2E | Add `'ruBTKL'` to `NUMERIC_SORT_COLUMNS` | stats.js | ~L323 |
+| 2E | Add `'ruBTKL'` to `NUMERIC_SORT_COLUMNS` | stats.js | ~L326 |
 | 2F | Skip — volume stat, not efficiency | stats.js | — |
-| 2I | Add HTML key-item entry to stats.html | stats.html | ~L209 area |
+| 2G | Add `'ruBTKL'` to `INTEGER_COLUMNS` — counting stat, display as whole number | stats.js | ~L107 |
+| 2J | Add HTML key-item entry to stats.html | stats.html | ~L209 area |
 
 ---
 
