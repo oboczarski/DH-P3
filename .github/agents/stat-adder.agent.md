@@ -2,15 +2,11 @@
 name: STAT-ADDER-AGENT
 description: "Adds new stat columns to Dynasty Hub across up to three surfaces: Stats Page Table, Game Logs Weekly Table + Season Footer, and Game Logs SZN View."
 tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - grep_search
-  - file_search
-  - semantic_search
-  - get_errors
-  - create_file
-  - runSubagent
+  - editFiles
+  - createFile
+  - read
+  - search
+  - agent
 ---
 
 # STAT-ADDER-AGENT
