@@ -55,6 +55,140 @@ const modalPlayerVitals = document.getElementById('modal-player-vitals');
 const modalBody = document.getElementById('modal-body');
 const playerComparisonModal = document.getElementById('player-comparison-modal');
 const comparisonBackgroundOverlay = document.getElementById('comparison-modal-background-overlay');
+// Shared key metadata: keeps the stats popup, game logs key, and comparison key in sync.
+// Categories follow the same Fantasy → Passing → Rushing → Receiving → General flow used by the SZN view.
+const SHARED_STATS_KEY_SECTIONS = [
+    {
+        id: 'fantasy',
+        label: 'Fantasy',
+        tone: 'all',
+        items: [
+            { abbr: 'FPOE', desc: 'Fantasy Points Over Expected' },
+            { abbr: 'FPTS', desc: 'Fantasy Points (PPR)' },
+            { abbr: 'PPG', desc: 'Points Per Game' }
+        ]
+    },
+    {
+        id: 'passing',
+        label: 'Passing',
+        tone: 'passing',
+        items: [
+            { abbr: 'CMP', desc: 'Completions' },
+            { abbr: 'CMP%', desc: 'Completion Percentage' },
+            { abbr: 'CPOE', desc: 'Completion Percentage Over Expected' },
+            { abbr: 'EPA/DB', desc: 'Expected Points Added per dropback' },
+            { abbr: 'INT', desc: 'Interceptions' },
+            { abbr: 'pa1D', desc: 'Passing First Downs' },
+            { abbr: 'paATT', desc: 'Passing Attempts' },
+            { abbr: 'paRTG', desc: 'Passer Rating' },
+            { abbr: 'paTD', desc: 'Passing Touchdowns' },
+            { abbr: 'paYDS', desc: 'Passing Yards' },
+            { abbr: 'pIMP', desc: 'Passing Impact Plays' },
+            { abbr: 'pIMP/A', desc: 'Passing Impact per Attempt' },
+            { abbr: 'PRS%', desc: 'Pressure Rate' },
+            { abbr: 'SAC', desc: 'Sacks Taken' },
+            { abbr: 'TTT', desc: 'Time to Throw' }
+        ]
+    },
+    {
+        id: 'rushing',
+        label: 'Rushing',
+        tone: 'rushing',
+        items: [
+            { abbr: 'CAR', desc: 'Carries' },
+            { abbr: 'ELU', desc: 'Elusiveness Rating' },
+            { abbr: 'ExplRu%', desc: 'Explosive Rush Rate [% CAR of 10+ YDS]' },
+            { abbr: 'MTF', desc: 'Missed Tackles Forced' },
+            { abbr: 'MTF/A', desc: 'Missed Tackles per Attempt' },
+            { abbr: 'ru1D', desc: 'Rushing First Downs' },
+            { abbr: 'ruTD', desc: 'Rushing Touchdowns' },
+            { abbr: 'ruYDS', desc: 'Rushing Yards' },
+            { abbr: 'YCO', desc: 'Yards After Contact' },
+            { abbr: 'YCO/A', desc: 'Yards After Contact per Attempt' },
+            { abbr: 'YPC', desc: 'Yards per Carry' }
+        ]
+    },
+    {
+        id: 'receiving',
+        label: 'Receiving',
+        tone: 'receiving',
+        items: [
+            { abbr: '1DRR', desc: 'First Downs per Route Run' },
+            { abbr: 'AY%', desc: 'Air Yards Share' },
+            { abbr: 'REC', desc: 'Receptions' },
+            { abbr: 'rec1D', desc: 'Receiving First Downs' },
+            { abbr: 'recTD', desc: 'Receiving Touchdowns' },
+            { abbr: 'recYDS', desc: 'Receiving Yards' },
+            { abbr: 'RR', desc: 'Routes Run' },
+            { abbr: 'RZ Tgt', desc: 'Red Zone Targets' },
+            { abbr: 'TGT', desc: 'Targets' },
+            { abbr: 'TS%', desc: 'Target Share' },
+            { abbr: 'YAC', desc: 'Yards After Catch' },
+            { abbr: 'YPR', desc: 'Yards per Reception' },
+            { abbr: 'YPRR', desc: 'Yards per Route Run' }
+        ]
+    },
+    {
+        id: 'general',
+        label: 'General',
+        tone: 'all',
+        items: [
+            { abbr: 'ADP', desc: 'Average Draft Position' },
+            { abbr: 'AGE', desc: 'Player Age' },
+            { abbr: 'CL', desc: 'Ceiling' },
+            { abbr: 'CSTY%', desc: 'Consistency Percentage' },
+            { abbr: 'FUM', desc: 'Fumbles Lost' },
+            { abbr: 'G', desc: 'Games Played' },
+            { abbr: 'IMP', desc: 'Impact Plays (1D + TD)' },
+            { abbr: 'IMP/G', desc: 'Impact Plays per Game' },
+            { abbr: 'IMP/OPP', desc: 'Impact per Opportunity' },
+            { abbr: 'POS', desc: 'Position' },
+            { abbr: 'POS·ADP', desc: 'Positional ADP' },
+            { abbr: 'RK', desc: 'Overall Rank' },
+            { abbr: 'SNP%', desc: 'Snap Share' },
+            { abbr: 'TM', desc: 'Team' },
+            { abbr: 'VALUE', desc: 'Trade Value' },
+            { abbr: 'YDS(t)', desc: 'Total Yards' },
+            { abbr: 'YPG(t)', desc: 'Yards per Game (Total)' }
+        ]
+    }
+];
+function getSortedSharedStatsKeySections() {
+    return SHARED_STATS_KEY_SECTIONS.map((section) => ({
+        ...section,
+        items: [...section.items].sort((a, b) => a.abbr.localeCompare(b.abbr, undefined, { numeric: true, sensitivity: 'base' }))
+    }));
+}
+function buildSharedStatsKeyMarkup() {
+    const sections = getSortedSharedStatsKeySections();
+    return `
+        <div class="stats-key-sections">
+            ${sections.map((section) => `
+                <section class="stats-key-section stats-key-section--${section.tone}">
+                    <div class="stats-key-section-header stats-key-section-header--${section.tone}">${section.label}</div>
+                    <div class="stats-key-section-body">
+                        ${section.items.map((item) => `
+                            <div class="stats-key-item">
+                                <span class="stats-key-abbr">${item.abbr}</span>
+                                <span class="stats-key-desc">${item.desc}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `).join('')}
+        </div>
+    `;
+}
+function renderSharedStatsKeyMarkup(container) {
+    if (!container) return;
+    container.innerHTML = buildSharedStatsKeyMarkup();
+}
+function initializeSharedStatsKeyMarkup() {
+    document.querySelectorAll('.stats-key-shared-body').forEach((container) => {
+        renderSharedStatsKeyMarkup(container);
+    });
+}
+initializeSharedStatsKeyMarkup();
 // Ownership page specific controls + modal (kept page-scoped so other pages are unaffected).
 const ownershipModeSwitcher = document.getElementById('ownershipModeSwitcher');
 const ownershipModeOwnershipBtn = document.getElementById('ownershipModeOwnershipBtn');
@@ -6654,20 +6788,9 @@ function renderPlayerComparison(players) {
                         <span>Key</span>
                     </div>
                 `;
-        const statDescriptions = {
-            'fpts': 'Fantasy Points', 'pass_att': 'Passing Attempts', 'pass_cmp': 'Completions', 'pass_yd': 'Passing Yards', 'pass_td': 'Passing Touchdowns', 'pass_fd': 'Passing First Downs', 'imp_per_g': 'Impact per Game', 'pass_rtg': 'Passer Rating', 'pass_imp': 'Passing Impact', 'pass_imp_per_att': 'Passing Impact per Attempt', 'pass_int': 'Interceptions', 'pass_sack': 'Sacks Taken', 'rush_att': 'Carries', 'rush_yd': 'Rushing Yards', 'ypc': 'Yards Per Carry', 'rush_td': 'Rushing Touchdowns', 'rush_fd': 'Rushing First Downs', 'ttt': 'Average Time to Throw', 'prs_pct': 'Pressure Rate', 'mtf': 'Missed Tackles Forced', 'mtf_per_att': 'Missed Tackles Forced per Attempt', 'elu': 'Elusiveness Rating', 'rush_yac': 'Yards After Contact', 'yco_per_att': 'Yards After Contact per Attempt', 'rec_tgt': 'Targets', 'rec': 'Receptions', 'rec_yd': 'Receiving Yards', 'rec_td': 'Receiving Touchdowns', 'rec_fd': 'Receiving First Downs', 'rec_yar': 'Yards After Catch', 'yprr': 'Yards per Route Run', 'first_down_rec_rate': 'First Down Reception Rate', 'ts_per_rr': 'Targets per Route Run', 'rr': 'Routes Run', 'ypr': 'Yards per Reception', 'fum': 'Fumbles Lost', 'snp_pct': 'Snap Percentage', 'yds_total': 'Total Yards (sheet provided)', 'fpoe': 'Fantasy Points Over Expected',
-            'csty_pct': 'Consistency percentage', 'ceiling': 'Ceiling score',
-            'epa_per_db': 'EPA per Dropback', 'cpoe': 'Completion % Over Expected',
-            'pa_ypg': 'Passing Yards per Game', 'ru_ypg': 'Rushing Yards per Game', 'rec_ypg': 'Receiving Yards per Game'
-        };
-        let listHtml = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><ul>';
-        for (const key in statLabels) {
-            if (statDescriptions[key]) {
-                listHtml += `<li><strong>${statLabels[key]}:</strong> ${statDescriptions[key]}</li>`;
-            }
-        }
-        listHtml += '</ul>';
-        keyContainer.innerHTML = listHtml;
+        // Comparison modal key uses the same categorized stat map as the other key surfaces.
+        keyContainer.innerHTML = '<h4>Player Comparison Stats Key<i class="fa-solid fa-square-xmark" id="close-comparison-key"></i></h4><div class="stats-key-shared-body stats-key-shared-body--comparison"></div>';
+        renderSharedStatsKeyMarkup(keyContainer.querySelector('.stats-key-shared-body'));
         const keyBtn = footer.querySelector('.modal-info-btn');
         if (keyBtn) {
             keyBtn.addEventListener('click', () => keyContainer.classList.toggle('hidden'));
