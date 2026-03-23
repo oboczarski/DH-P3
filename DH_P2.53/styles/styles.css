@@ -10542,15 +10542,36 @@ body[data-page="welcome"] #secondary-header-row {
    ========================================================================== */
 
 /* ── Dashboard (welcome) ── */
-/* Mobile: dark liquid droplets portrait */
+/* Mobile dashboard background: replace the portrait droplets image with a
+   purple-magenta grain treatment based on the supplied reference image while
+   keeping the animated star layers above the page-specific background. */
 @media (max-width: 819px) {
   body[data-page="welcome"] #starfield {
     background:
-      radial-gradient(660px 660px at 20% -20%,
-        rgba(52, 11, 113, 0.05) 1%, rgba(150, 0, 120, 0.05) 42%, rgba(115, 48, 250, 0.10) 62%, rgba(187, 0, 148, 0.05) 82%, rgba(255, 255, 255, 0) 100%),
-      radial-gradient(460px 460px at 90% 10%,
-        rgba(52, 11, 113, 0.20) 1%, rgba(20, 48, 50, 0.15) 32%, rgba(50, 0, 20, 0.08) 62%, rgba(87, 0, 48, 0.08) 82%, rgba(255, 255, 255, 0) 100%),
-      url('../assets/BG/mBG_DropletsOffDarkFlow.png') center / cover no-repeat;
+      linear-gradient(150deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.06) 16%,
+        rgba(255, 255, 255, 0) 36%,
+        rgba(255, 255, 255, 0) 68%,
+        rgba(255, 255, 255, 0.03) 100%),
+      radial-gradient(118% 72% at 8% 0%,
+        rgba(196, 144, 255, 0.76) 0%,
+        rgba(158, 90, 255, 0.42) 24%,
+        rgba(125, 42, 255, 0.08) 44%,
+        rgba(125, 42, 255, 0) 60%),
+      linear-gradient(157deg,
+        #7c31ff 0%,
+        #771bff 18%,
+        #7100f0 40%,
+        #8900dd 61%,
+        #b700aa 80%,
+        #dd0056 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.26 0.48'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.92'/%3E%3C/svg%3E");
+    background-position: center center, left top, center center, center center;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    background-size: cover, cover, cover, 220px 220px;
+    background-blend-mode: screen, screen, normal, soft-light;
+    filter:opacity(40%);
   }
 }
 /* Desktop: dark liquid droplets landscape */
