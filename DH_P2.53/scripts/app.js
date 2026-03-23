@@ -3014,6 +3014,8 @@ const PLAYER_STAT_HEADER_MAP = {
     'YAC': 'rec_yar',
     'YPR': 'ypr',
     'RR': 'rr',
+    // Game Logs SZN view: map red-zone targets from CSV to the shared receiving stat key.
+    'RZ Tgt': 'rz_tgt',
     'TS%': 'ts_per_rr',
     'CSTY%': 'csty_pct',
     'YPRR': 'yprr',
@@ -4562,7 +4564,8 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
             tone: 'receiving',
-            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr']
+            // Receiving production keeps red-zone targets after routes run, per modal season-view request.
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt']
         },
         {
             id: 'receiving-efficiency',
@@ -4584,7 +4587,8 @@ const SZN_STAT_SECTIONS_BY_POS = {
             id: 'receiving-production',
             label: 'RECEIVING PRODUCTION',
             tone: 'receiving',
-            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr']
+            // Receiving production keeps red-zone targets after routes run, per modal season-view request.
+            stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt']
         },
         {
             id: 'receiving-efficiency',
@@ -5301,7 +5305,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
-        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rec_ypg', 'ay_pct'
+        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct'
     ]);
     let orderedStatKeys;
     if (player.pos === 'QB') orderedStatKeys = qbStatOrder;
