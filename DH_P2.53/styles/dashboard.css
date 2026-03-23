@@ -185,19 +185,20 @@ body[data-page="welcome"] #starfield::before {
       rgba(158, 90, 255, 0.42) 24%,
       rgba(125, 42, 255, 0.08) 44%,
       rgba(125, 42, 255, 0) 60%),
-    linear-gradient(157deg,
-      #7c31ff 0%,
-      #771bff 18%,
-      #7100f0 40%,
+    linear-gradient(105deg,
+    #1f80ff 0%,  
+    #5c31ff 16%,
+      #6931ff 26%,
+      #771bff 38%,
       #8900dd 61%,
       #b700aa 80%,
-      #dd0056 100%),
+      #dd0085 100%),
     var(--dashboard-home-noise-svg);
   background-position: center center, left top, center center, center center;
   background-repeat: no-repeat, no-repeat, no-repeat, repeat;
   background-size: cover, cover, cover, 220px 220px;
   background-blend-mode: screen, screen, normal, soft-light;
-  opacity: 0.25;
+  opacity: 39%;
 }
 
 /* Dashboard glow overlay: reuses the existing welcome-page top glows and a softened
