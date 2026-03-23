@@ -248,7 +248,7 @@ The game logs modal shows a weekly table (one row per game) and a footer row wit
 Pattern:  'CSV_HEADER': 'internal_key'
 ```
 
-**Naming convention for internal keys**: lowercase, snake_case, position prefix where ambiguous.
+**Naming convention for internal keys**: Reference the existing `PLAYER_STAT_HEADER_MAP` entries to match the pattern. General rules: lowercase, snake_case, position prefix where ambiguous.
 - Rushing: `rush_` prefix (e.g., `rush_yd`, `rush_td`, `rush_att`, `rush_fd`)
 - Passing: `pass_` prefix (e.g., `pass_yd`, `pass_td`, `pass_att`)
 - Receiving: `rec_` prefix (e.g., `rec_yd`, `rec_td`, `rec_tgt`)
@@ -412,6 +412,8 @@ SZN_STAT_SECTIONS_BY_POS = {
 ```
 
 **Insertion rule**: Add the internal key to the `stats` array at the desired position within the desired section. The array order = the display order of stat rows within that section.
+
+> **Default placement**: If the prompt's Additional Notes do not indicate specific placement for the stat relative to its location, append to the end of the section's `stats` array.
 
 ### 4B. Section Header Color (tone)
 
