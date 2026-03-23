@@ -26,7 +26,6 @@ The glass system is made of separate visual layers:
 1. **Glass surface layer**
    - translucent fill
    - blur / saturation
-   - optional SVG refraction
 
 2. **Specular highlight layer**
    - reflective highlight on the glass perimeter
