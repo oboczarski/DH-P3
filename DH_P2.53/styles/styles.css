@@ -10571,7 +10571,7 @@ body[data-page="welcome"] #secondary-header-row {
     background-repeat: no-repeat, no-repeat, no-repeat, repeat;
     background-size: cover, cover, cover, 220px 220px;
     background-blend-mode: screen, screen, normal, soft-light;
-    filter:opacity(40%);
+    filter:opacity(25%);
   }
 }
 /* Desktop: dark liquid droplets landscape */

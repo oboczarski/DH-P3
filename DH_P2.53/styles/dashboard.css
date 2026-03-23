@@ -36,7 +36,7 @@
   --gr-saturation-pill: 1.1;
   /* Border radius (per tier; layout-specific radii still use --radius-*) */
   --gr-radius: 20px;
-  --gr-radius-card: 16px;
+  --gr-radius-card: 10px;
   --gr-radius-pill: 10px;
   /* Base translucent colors */
   --gr-bg-start: rgba(18, 22, 35, 0.48);
@@ -228,11 +228,7 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px; /* Ultra-thin profile (1px) */
-  background:
-    /* Primary Glint (Top-Left): Sharp, high-contrast white */
-    radial-gradient(circle 120px at 0% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 40%, transparent 80%),
-    /* Secondary Glow (Bottom-Right): Softer rim light */
-    radial-gradient(circle 120px at 100% 100%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 80%);
+  background: /* Primary Glint (Top-Left): Sharp, high-contrast white */    radial-gradient(circle 70px at 30% 0%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.2) 40%, transparent 60%),    /* Secondary Glow (Bottom-Right): Softer rim light */    radial-gradient(circle 100px at 60% 100%, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.31) 40%, transparent 80%);
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -1428,7 +1424,7 @@
   cursor: pointer;
   user-select: none;
   /* Glass-card surface */
-  background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.52) 100%);
+  background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(115,118,190,0.05) 100%);
   -webkit-backdrop-filter: blur(var(--gr-blur-card)) saturate(var(--gr-saturation-card));
   backdrop-filter: blur(var(--gr-blur-card)) saturate(var(--gr-saturation-card));
   box-shadow:
