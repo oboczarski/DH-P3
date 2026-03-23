@@ -320,8 +320,8 @@ body[data-page="welcome"] #stars3 {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.22) 100%);
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   border: none;
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.06),
@@ -411,8 +411,8 @@ body[data-page="welcome"] #stars3 {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
     inset 0 1px 0 rgba(255,255,255,0.06),
@@ -493,8 +493,8 @@ body[data-page="welcome"] #stars3 {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
     linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  -webkit-backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   border: none;
   box-shadow: 0 0 0 0.5px rgba(255,255,255,0.20),
     inset 0 1px 0 rgba(255,255,255,0.12),
@@ -580,13 +580,21 @@ body[data-page="welcome"] #stars3 {
    override it here via scoped selector instead of modifying the global rule. */
 .fc-dashboard .app-header.glass-panel {
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  backdrop-filter: blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  -webkit-backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
   border: none;
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.10),
     inset 0 1px 0 rgba(255,255,255,0.12),
     0 4px 24px -4px rgba(0,0,0,0.30);
+}
+
+/* Dashboard username-area::before — darker gradient and extra inset glow
+   compared to the shared rule in styles.css (which uses much lighter values).
+   Scoped so other pages keep their original treatment. */
+body[data-page="welcome"] .username-area::before {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.14), rgb(66 75 128 / 32%));
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), inset 0 0px 1px rgba(255, 255, 255, 0.1);
 }
 
 /* ── Tier 3 — Glass Pill (.fc-glass--pill) ──
@@ -596,8 +604,8 @@ body[data-page="welcome"] #stars3 {
 .fc-dashboard .fc-glass--pill {
   position: relative;
   isolation: isolate;
-  -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
+  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
   background:
     linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
     rgba(255,255,255,0.05);
