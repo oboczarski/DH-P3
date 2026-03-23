@@ -36,7 +36,7 @@
   --gr-saturation-pill: 1.1;
   /* Border radius (per tier; layout-specific radii still use --radius-*) */
   --gr-radius: 20px;
-  --gr-radius-card: 7px;
+  --gr-radius-card: 16px;
   --gr-radius-pill: 10px;
   /* Base translucent colors */
   --gr-bg-start: rgba(18, 22, 35, 0.48);
@@ -221,15 +221,23 @@
     box-shadow 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Glass-card specular line — subtle top-edge highlight */
+/* Liquid Glass Specular Highlight Implementation */
 .fc-glass::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 14%;
-  right: 14%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.30) 50%, transparent);
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* Ultra-thin profile (1px) */
+  background:
+    /* Primary Glint (Top-Left): Sharp, high-contrast white */
+    radial-gradient(circle 120px at 0% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.25) 40%, transparent 80%),
+    /* Secondary Glow (Bottom-Right): Softer rim light */
+    radial-gradient(circle 120px at 100% 100%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 80%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   pointer-events: none;
   z-index: 3;
 }
@@ -491,25 +499,26 @@
     0 4px 24px -4px rgba(0,0,0,0.30);
 }
 
-/* Dense glass specular: soft overhead glow + sharp top-edge line */
+/* Dense glass specular: Liquid Glass highlight scaled for larger panels */
 .fc-chart-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
+  padding: 1px; /* Ultra-thin profile (1px) */
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 45%),
-    linear-gradient(90deg, transparent 8%, rgba(255,255,255,0.55) 50%, transparent 92%);
-  background-size: 100% 100%, 100% 1px;
-  background-position: 0 0, 0 0;
-  background-repeat: no-repeat;
-  opacity: 0.7;
+    /* Primary Glint (Top-Left): Sharp, high-contrast white */
+    radial-gradient(circle 250px at 0% 0%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.25) 40%, transparent 80%),
+    /* Secondary Glow (Bottom-Right): Softer rim light */
+    radial-gradient(circle 250px at 100% 100%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 80%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   pointer-events: none;
   z-index: 3;
 }
-
-
-
 
 /* Dense glass chromatic dispersion: radial color fringing along edges */
 .fc-chart-panel::after {
