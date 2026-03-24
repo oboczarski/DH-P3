@@ -877,7 +877,7 @@ body[data-page="contact"] select {
 }
 
 @media (min-width: 869px) {
-  /* Desktop header sizing: follows the Research page's centered, fit-content header treatment. */
+  /* Desktop header sizing: keep the original Contact desktop header treatment unchanged. */
   body[data-page="contact"] {
     --contact-desktop-content-max: 1120px;
   }
@@ -974,29 +974,191 @@ body[data-page="contact"] select {
   }
 }
 
-@media (max-width: 560px) {
-  .contact-nav-buttons-container {
-    gap: 0.32rem;
+@media (max-width: 868px) {
+  /* Mobile header/nav ownership: keep the shared dense-glass shell and flatten inactive buttons into one liquid-glass rail. */
+  #header-container {
+    padding: 0.08rem 0 0.56rem;
+    border-radius: 24px;
+    overflow: clip;
+    background: linear-gradient(180deg, rgba(4, 8, 18, 0.48) 0%, rgba(4, 8, 18, 0.16) 58%, transparent 100%);
   }
 
-  .contact-nav-button {
+  #header-container .contact-header-shell {
+    padding: 0.12rem 0.18rem;
+    gap: 0;
+  }
+
+  #header-container .contact-header-row {
+    width: 100%;
+    justify-content: center;
+    gap: 0;
+  }
+
+  /* Mobile nav row: remove dead space and let the tap targets fill the shared shell instead of drawing their own boxes. */
+  #header-container .contact-nav-buttons-container {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    width: 100%;
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
+  #header-container .contact-nav-button {
     max-width: none;
-    min-height: 2.24rem;
-    padding: 0.38rem 0.2rem;
-    border-radius: 11px;
+    min-height: 2.68rem;
+    padding: 0.5rem 0.24rem 0.44rem;
+    border: 0;
+    border-radius: 0;
+    color: rgba(224, 231, 255, 0.8);
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
   }
 
-  .contact-nav-button i {
-    font-size: 0.94rem;
+  #header-container .contact-nav-button:hover,
+  #header-container .contact-nav-button:focus-visible {
+    color: var(--contact-text-primary);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
   }
 
-  .contact-nav-label {
+  #header-container .contact-nav-button.active {
+    color: rgba(232, 238, 255, 0.88);
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #header-container .contact-nav-button i {
+    font-size: 1.05rem;
+  }
+
+  #header-container .contact-nav-label {
+    font-size: 0.44rem;
+    letter-spacing: 0.01em;
+  }
+
+  #header-container .contact-nav-logo {
+    width: 1.24rem;
+    height: 1.18rem;
+    filter: opacity(0.78) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18)) brightness(1.35) hue-rotate(34deg);
+  }
+
+  /* Active More segment: keep a single highlighted control so Contact still reads as living under More. */
+  #header-container .contact-nav-more-toggle {
+    padding: 0.5rem 0.7rem 0.44rem 0.42rem;
+    border-radius: 1.18rem;
+  }
+
+  #header-container .contact-nav-more-toggle.active {
+    color: var(--contact-accent-cyan);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 45%, transparent 100%),
+      rgba(43, 49, 87, 0.26);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 12px 24px rgba(6, 10, 24, 0.24),
+      0 0 0 0.5px rgba(99, 213, 255, 0.1);
+  }
+
+  #header-container .contact-nav-more-caret {
+    position: absolute;
+    right: 0.34rem;
+    top: 0.54rem;
     font-size: 0.42rem;
   }
 
-  .contact-nav-logo {
+  /* Mobile dropdown stays on the current JS hooks, but gets its own breakpoint-owned sizing so desktop work can diverge later. */
+  .contact-nav-more-dropdown {
+    gap: 0.34rem;
+    min-width: 5.7rem;
+    padding: 0.4rem;
+    border-radius: 15px;
+    background:
+      linear-gradient(145deg, rgba(34, 36, 58, 0.96), rgba(18, 22, 38, 0.96));
+    -webkit-backdrop-filter: url(#glass-refract-strong) blur(14px) saturate(1.24);
+    backdrop-filter: url(#glass-refract-strong) blur(14px) saturate(1.24);
+    border: 1px solid rgba(142, 157, 255, 0.28);
+    box-shadow:
+      0 24px 54px rgba(0, 0, 0, 0.48),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 0 34px -12px rgba(83, 0, 255, 0.24);
+    transform: translateY(-6px);
+  }
+
+  .contact-nav-more-item {
+    min-height: 2.9rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.44rem 0.56rem;
+    border: 1px solid rgba(146, 158, 255, 0.24);
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.018) 40%, transparent 72%),
+      rgba(14, 18, 31, 0.4);
+    color: rgba(220, 228, 255, 0.8);
+  }
+
+  .contact-nav-more-item:hover,
+  .contact-nav-more-item:focus-visible {
+    color: var(--contact-text-primary);
+    border-color: rgba(176, 192, 255, 0.32);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.024) 40%, transparent 72%),
+      rgba(17, 23, 40, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .contact-nav-more-item.active {
+    color: var(--contact-accent-cyan);
+    border-color: rgba(99, 213, 255, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(99, 213, 255, 0.08);
+  }
+
+  .contact-nav-more-item .contact-nav-label {
+    font-size: 0.6rem;
+    line-height: 1.1;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 560px) {
+  #header-container .contact-header-shell {
+    padding: 0.12rem 0.14rem;
+  }
+
+  #header-container .contact-nav-button {
+    min-height: 2.54rem;
+    padding: 0.46rem 0.16rem 0.4rem;
+  }
+
+  #header-container .contact-nav-button i {
+    font-size: 0.98rem;
+  }
+
+  #header-container .contact-nav-label {
+    font-size: 0.42rem;
+  }
+
+  #header-container .contact-nav-logo {
     width: 1.18rem;
     height: 1.12rem;
+  }
+
+  #header-container .contact-nav-more-toggle {
+    padding: 0.46rem 0.58rem 0.4rem 0.38rem;
+    border-radius: 1.08rem;
+  }
+
+  #header-container .contact-nav-more-caret {
+    right: 0.3rem;
+    top: 0.5rem;
   }
 
   .contact-nav-more-item {
