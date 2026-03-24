@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Contact • Dynasty Hub</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&amp;display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700" rel="stylesheet" />
+  <link href="../manifest.webmanifest?v=20260323" rel="manifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
+  <meta content="#0D0E1B" name="theme-color" />
+  <link href="../styles/contact.css?v=20260323" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
+  <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Contact page analytics: kept deferred so the standalone page matches the rest of the app without delaying first paint. -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
+</head>
+<body data-page="contact">
+  <!-- Contact page glass filter defs: local copy of the dashboard refraction filters so this page stays visually self-contained. -->
+  <svg class="contact-glass-defs" aria-hidden="true" width="0" height="0" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glass-refract" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="2" seed="42" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="glass-refract-strong" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="2" seed="42" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="contact-page-shell">
+    <div id="header-container">
+      <!-- Contact page header: mirrors the Research page's single-row navigation shell while using local glass treatment. -->
+      <header class="contact-app-header contact-glass--dense contact-header-shell">
+        <div class="contact-header-row" id="primary-header-row">
+          <div class="contact-nav-buttons-container">
+            <button class="contact-nav-button" id="homeButton" data-nav="home" type="button">
+              <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="contact-nav-logo" aria-hidden="true" />
+              <span class="contact-nav-label">Home</span>
+            </button>
+            <button class="contact-nav-button" id="rostersButton" data-nav="rosters" type="button">
+              <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+              <span class="contact-nav-label">Rosters</span>
+            </button>
+            <button class="contact-nav-button" id="statsButton" data-nav="stats" type="button">
+              <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+              <span class="contact-nav-label">Stats</span>
+            </button>
+            <button class="contact-nav-button" id="analyzerButton" data-nav="analyzer" type="button">
+              <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
+              <span class="contact-nav-label">L.Analyze</span>
+            </button>
+            <button class="contact-nav-button" id="researchButton" data-nav="research" type="button">
+              <i class="fa-solid fa-flask" aria-hidden="true"></i>
+              <span class="contact-nav-label">Research</span>
+            </button>
+            <button class="contact-nav-button contact-nav-more-toggle active" id="moreButton" type="button" aria-haspopup="true" aria-expanded="false">
+              <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+              <span class="contact-nav-label">More</span>
+              <i class="fa-solid fa-caret-down contact-nav-more-caret" aria-hidden="true"></i>
+            </button>
+            <div class="contact-nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
+              <button class="contact-nav-more-item" data-nav="ownership" role="menuitem" type="button">
+                <i class="fa-solid fa-percent" aria-hidden="true"></i>
+                <span class="contact-nav-label">Ownership</span>
+              </button>
+              <button class="contact-nav-more-item active" data-nav="contact" role="menuitem" type="button">
+                <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                <span class="contact-nav-label">Contact</span>
+              </button>
+              <button class="contact-nav-more-item" data-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem" type="button">
+                <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+                <span class="contact-nav-label">Trophy Room</span>
+              </button>
+              <button class="contact-nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem" type="button">
+                <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+                <span class="contact-nav-label">Matchups</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Contact page hidden navigation fields: preserve username and league context for page-to-page routing without rendering the research header inputs. -->
+        <div class="contact-nav-hidden-inputs">
+          <label class="sr-only" for="usernameInput">SLPR Username</label>
+          <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" name="username" placeholder="SLPR Username" type="text" />
+          <select id="leagueSelect" hidden>
+            <option>Select a league...</option>
+          </select>
+        </div>
+      </header>
+    </div>
+
+    <main class="contact-main" id="content">
+      <!-- Contact hero: sets the page identity and carries the main communication copy in a dashboard-style dense glass shell. -->
+      <section class="contact-hero contact-glass--dense">
+        <div class="contact-hero-copy">
+          <div class="contact-kicker-row">
+            <span class="contact-kicker contact-glass-pill">Dynasty Hub • Contact</span>
+            <span class="contact-status-pill contact-glass-pill">
+              <i class="fa-solid fa-signal" aria-hidden="true"></i>
+              Updates, feedback, and improvements
+            </span>
+          </div>
+          <h1>Stay connected to every update and improvement.</h1>
+          <p class="contact-hero-lead">Follow on X for updates, new content, feature announcements, and ongoing improvements.</p>
+          <p class="contact-hero-support">If you notice any bugs or issues, have feedback, or have any feature requests, feel free to reach out by email. All input is appreciated and helps guide future improvements.</p>
+          <div class="contact-action-row">
+            <a class="contact-primary-action contact-glass-pill" href="mailto:dynastyhub.app@gmail.com">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+              Email Dynasty Hub
+            </a>
+            <a class="contact-secondary-action contact-glass-pill" href="https://twitter.com/DynastyHubFF" target="_blank" rel="noopener noreferrer">
+              <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+              Open X Profile
+            </a>
+          </div>
+        </div>
+
+        <!-- Contact hero rail: quick signal categories frame what this page is for without turning it into a generic placeholder. -->
+        <aside class="contact-hero-rail contact-glass">
+          <div class="contact-rail-header">
+            <span class="contact-section-pill">Communication Channels</span>
+            <h2>Best reasons to reach out</h2>
+          </div>
+          <div class="contact-signal-list">
+            <article class="contact-signal-item">
+              <div class="contact-signal-icon contact-signal-icon--updates">
+                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+              </div>
+              <div class="contact-signal-copy">
+                <h3>Updates & announcements</h3>
+                <p>Release notes, new tools, fresh content drops, and ongoing polish all land here first.</p>
+              </div>
+            </article>
+            <article class="contact-signal-item">
+              <div class="contact-signal-icon contact-signal-icon--feedback">
+                <i class="fa-solid fa-bug" aria-hidden="true"></i>
+              </div>
+              <div class="contact-signal-copy">
+                <h3>Bugs & issues</h3>
+                <p>Unexpected behavior, layout problems, or data mismatches are easiest to track by email.</p>
+              </div>
+            </article>
+            <article class="contact-signal-item">
+              <div class="contact-signal-icon contact-signal-icon--ideas">
+                <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+              </div>
+              <div class="contact-signal-copy">
+                <h3>Feedback & feature ideas</h3>
+                <p>Feature requests and workflow suggestions directly influence what gets refined next.</p>
+              </div>
+            </article>
+          </div>
+        </aside>
+      </section>
+
+      <section class="contact-grid" aria-label="Contact options">
+        <!-- X follow card: houses the embedded follow button inside a local glass card so the social CTA feels native to the app. -->
+        <article class="contact-card contact-glass contact-card--social">
+          <div class="contact-card-header">
+            <div>
+              <span class="contact-section-pill">Follow</span>
+              <h2>Follow on X</h2>
+            </div>
+            <div class="contact-card-icon">
+              <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p>Follow along for updates, new content, feature announcements, and the ongoing improvements landing across Dynasty Hub.</p>
+          <div class="contact-social-embed-shell">
+            <div class="contact-social-copy">
+              <span class="contact-social-caption">Live follow widget</span>
+              <p>The embedded follow button stays in-page, while the direct profile link remains available if you prefer the full X app or site.</p>
+            </div>
+            <div class="contact-social-widget" aria-label="X follow button">
+              <a href="https://twitter.com/DynastyHubFF?ref_src=twsrc%5Etfw" class="twitter-follow-button" data-show-count="false">Follow @DynastyHubFF</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Email contact card: keeps the main support address prominent and easy to act on across desktop and mobile. -->
+        <article class="contact-card contact-glass contact-card--email">
+          <div class="contact-card-header">
+            <div>
+              <span class="contact-section-pill">Email</span>
+              <h2>Reach out directly</h2>
+            </div>
+            <div class="contact-card-icon contact-card-icon--accent">
+              <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            </div>
+          </div>
+          <p>If you notice any bugs or issues, have feedback, or have feature requests, email is the best way to send it through.</p>
+          <a class="contact-email-address" href="mailto:dynastyhub.app@gmail.com">dynastyhub.app@gmail.com</a>
+          <div class="contact-chip-row" aria-label="Best uses for email">
+            <span class="contact-chip contact-glass-pill">Bug reports</span>
+            <span class="contact-chip contact-glass-pill">Feedback</span>
+            <span class="contact-chip contact-glass-pill">Feature requests</span>
+            <span class="contact-chip contact-glass-pill">General questions</span>
+          </div>
+          <a class="contact-email-cta contact-glass-pill" href="mailto:dynastyhub.app@gmail.com">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Compose email
+          </a>
+        </article>
+      </section>
+
+      <section class="contact-lower-grid" aria-label="Contact guidance">
+        <!-- Contact detail card: gives users useful context to include when reporting issues or sharing ideas. -->
+        <article class="contact-card contact-glass">
+          <div class="contact-card-header">
+            <div>
+              <span class="contact-section-pill">Helpful context</span>
+              <h2>What helps most</h2>
+            </div>
+          </div>
+          <ul class="contact-detail-list">
+            <li>What page or feature you were using when the issue happened.</li>
+            <li>The device, browser, or view size if the problem appears layout-specific.</li>
+            <li>What you expected to happen versus what actually happened.</li>
+            <li>Screenshots, league context, or reproduction steps when they are easy to share.</li>
+          </ul>
+        </article>
+
+        <!-- Contact appreciation card: reinforces that inbound feedback directly informs the roadmap and improvements. -->
+        <article class="contact-card contact-glass contact-card--spotlight">
+          <div class="contact-card-header">
+            <div>
+              <span class="contact-section-pill">Roadmap signal</span>
+              <h2>Every note helps shape what comes next</h2>
+            </div>
+          </div>
+          <p>Dynasty Hub is actively improving, and the strongest product decisions usually come from real usage patterns, edge cases, and direct requests from the people using it most.</p>
+          <p>That includes small polish issues, navigation friction, mobile layout problems, stat-view ideas, and workflow improvements that make the app cleaner and faster to use week to week.</p>
+        </article>
+      </section>
+
+      <footer class="contact-footer">
+        <p>Dynasty Hub Contact • Built as a standalone page with page-scoped styling to keep the rest of the app untouched.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Contact page behavior: local nav and dropdown wiring only, keeping the rest of app.js off this standalone route. -->
+  <script defer src="../scripts/contact.js?v=20260323"></script>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>

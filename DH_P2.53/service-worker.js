@@ -38,6 +38,7 @@ const CORE_ASSET_PATHS = [
   '/ownership/ownership.html',
   '/analyzer/analyzer.html',
   '/research/research.html',
+  '/contact/contact.html',
   '/styles/styles.css',
   '/styles/stats.css',
   '/styles/dashboard.css',
@@ -45,12 +46,14 @@ const CORE_ASSET_PATHS = [
   '/styles/analyzer.css',
   '/styles/research.css',
   '/styles/ownership.css',
+  '/styles/contact.css',
   '/scripts/app.js',
   '/scripts/stats.js',
   '/scripts/analyzer.js',
   '/scripts/dashboard.js',
   '/scripts/syop.js',
-  '/scripts/dh-scramble.js'
+  '/scripts/dh-scramble.js',
+  '/scripts/contact.js'
 ];
 
 // ============================================================================
