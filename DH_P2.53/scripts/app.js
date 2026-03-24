@@ -374,6 +374,9 @@ const getPageUrl = (page) => {
         case 'research':
             url = `${base}research/research.html`;
             break;
+        case 'contact':
+            url = `${base}contact/contact.html`;
+            break;
     }
     if (username && page !== 'home') {
         url += `?username=${encodeURIComponent(username)}`;
