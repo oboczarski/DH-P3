@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" fill="none">
+  <defs>
+    <linearGradient id="hexGradA" x1="0" y1="0" x2="500" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="rgba(3,48,93,0.58)" />
+      <stop offset="1" stop-color="rgba(204,5,189,0.64)" />
+    </linearGradient>
+    <linearGradient id="hexGradB" x1="0" y1="0" x2="500" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="rgba(29,32,71,0.52)" />
+      <stop offset="1" stop-color="rgba(120,5,255,0.73)" />
+    </linearGradient>
+
+    <!-- Dashboard mobile hex pattern: sparse honeycomb cell with visible vertex dots. -->
+    <g id="hexPrimary">
+      <polygon points="25 0 50 14.5 50 43.5 25 58 0 43.5 0 14.5" stroke="url(#hexGradA)" stroke-width="2" />
+      <circle cx="25" cy="0" r="2.4" fill="#78b8ff" fill-opacity="0.8" />
+      <circle cx="50" cy="14.5" r="2.4" fill="#bb61ff" fill-opacity="0.82" />
+      <circle cx="50" cy="43.5" r="2.4" fill="#ff63c8" fill-opacity="0.84" />
+      <circle cx="25" cy="58" r="2.4" fill="#ff63c8" fill-opacity="0.84" />
+      <circle cx="0" cy="43.5" r="2.4" fill="#8b7cff" fill-opacity="0.76" />
+      <circle cx="0" cy="14.5" r="2.4" fill="#78b8ff" fill-opacity="0.8" />
+    </g>
+
+    <g id="hexSecondary">
+      <polygon points="25 0 50 14.5 50 43.5 25 58 0 43.5 0 14.5" stroke="url(#hexGradB)" stroke-width="2" />
+      <circle cx="25" cy="0" r="2.2" fill="#5d78ff" fill-opacity="0.62" />
+      <circle cx="50" cy="14.5" r="2.2" fill="#834fff" fill-opacity="0.68" />
+      <circle cx="50" cy="43.5" r="2.2" fill="#a53fff" fill-opacity="0.72" />
+      <circle cx="25" cy="58" r="2.2" fill="#a53fff" fill-opacity="0.72" />
+      <circle cx="0" cy="43.5" r="2.2" fill="#6c74ff" fill-opacity="0.64" />
+      <circle cx="0" cy="14.5" r="2.2" fill="#5d78ff" fill-opacity="0.62" />
+    </g>
+  </defs>
+
+  <!-- Primary layer: follows the brighter blue→magenta honeycomb the user provided. -->
+  <g opacity="1">
+    <use href="#hexPrimary" x="24" y="18" />
+    <use href="#hexPrimary" x="24" y="106" />
+    <use href="#hexPrimary" x="24" y="370" />
+    <use href="#hexPrimary" x="24" y="546" />
+    <use href="#hexPrimary" x="24" y="634" />
+    <use href="#hexPrimary" x="72" y="-26" />
+    <use href="#hexPrimary" x="72" y="194" />
+    <use href="#hexPrimary" x="72" y="282" />
+    <use href="#hexPrimary" x="72" y="634" />
+    <use href="#hexPrimary" x="120" y="62" />
+    <use href="#hexPrimary" x="120" y="150" />
+    <use href="#hexPrimary" x="120" y="414" />
+    <use href="#hexPrimary" x="120" y="590" />
+    <use href="#hexPrimary" x="168" y="458" />
+    <use href="#hexPrimary" x="168" y="546" />
+    <use href="#hexPrimary" x="216" y="106" />
+    <use href="#hexPrimary" x="216" y="194" />
+    <use href="#hexPrimary" x="264" y="-26" />
+    <use href="#hexPrimary" x="264" y="194" />
+    <use href="#hexPrimary" x="264" y="282" />
+    <use href="#hexPrimary" x="264" y="634" />
+    <use href="#hexPrimary" x="312" y="282" />
+    <use href="#hexPrimary" x="312" y="370" />
+    <use href="#hexPrimary" x="360" y="-26" />
+    <use href="#hexPrimary" x="360" y="194" />
+    <use href="#hexPrimary" x="360" y="458" />
+    <use href="#hexPrimary" x="408" y="18" />
+    <use href="#hexPrimary" x="408" y="370" />
+    <use href="#hexPrimary" x="408" y="722" />
+    <use href="#hexPrimary" x="456" y="106" />
+    <use href="#hexPrimary" x="456" y="282" />
+    <use href="#hexPrimary" x="456" y="546" />
+  </g>
+
+  <!-- Secondary layer: offset darker cells to create the sparse dual-tone honeycomb feel. -->
+  <g opacity="1">
+    <use href="#hexSecondary" x="0" y="-12" />
+    <use href="#hexSecondary" x="0" y="252" />
+    <use href="#hexSecondary" x="0" y="516" />
+    <use href="#hexSecondary" x="48" y="152" />
+    <use href="#hexSecondary" x="48" y="252" />
+    <use href="#hexSecondary" x="48" y="450" />
+    <use href="#hexSecondary" x="96" y="20" />
+    <use href="#hexSecondary" x="96" y="284" />
+    <use href="#hexSecondary" x="96" y="680" />
+    <use href="#hexSecondary" x="144" y="152" />
+    <use href="#hexSecondary" x="144" y="416" />
+    <use href="#hexSecondary" x="192" y="20" />
+    <use href="#hexSecondary" x="192" y="680" />
+    <use href="#hexSecondary" x="240" y="86" />
+    <use href="#hexSecondary" x="240" y="350" />
+    <use href="#hexSecondary" x="288" y="20" />
+    <use href="#hexSecondary" x="288" y="152" />
+    <use href="#hexSecondary" x="288" y="548" />
+    <use href="#hexSecondary" x="336" y="284" />
+    <use href="#hexSecondary" x="336" y="680" />
+    <use href="#hexSecondary" x="384" y="86" />
+    <use href="#hexSecondary" x="384" y="416" />
+    <use href="#hexSecondary" x="432" y="152" />
+    <use href="#hexSecondary" x="432" y="548" />
+    <use href="#hexSecondary" x="480" y="20" />
+    <use href="#hexSecondary" x="480" y="284" />
+  </g>
+</svg>

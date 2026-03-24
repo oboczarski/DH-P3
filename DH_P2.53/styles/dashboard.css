@@ -201,7 +201,7 @@ body[data-page="welcome"] #starfield::before {
   background-repeat: no-repeat, no-repeat, no-repeat, repeat;
   background-size: cover, cover, cover, 220px 220px;
   background-blend-mode: screen, screen, normal, soft-light;
-  opacity: 39%;
+  opacity: 35%;
 }
 
 /* Dashboard glow overlay: reuses the existing welcome-page top glows and a softened
