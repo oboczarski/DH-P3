@@ -174,9 +174,9 @@ body[data-page="welcome"] #starfield::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at top left, rgba(88, 130, 214, 0.22), transparent 28%),
-    radial-gradient(circle at top right, rgba(208, 180, 114, 0.16), transparent 24%),
-    radial-gradient(circle at 70% 30%, rgba(255, 10, 165, 0.12), transparent 24%),
+    radial-gradient(circle at top left, rgba(88, 130, 214, 0.29), transparent 28%),
+    radial-gradient(circle at top right, rgba(208, 180, 114, 0.26), transparent 24%),
+    radial-gradient(circle at 70% 30%, rgba(255, 10, 165, 0.20), transparent 24%),
     linear-gradient(180deg, #07111f 0%, #081525 38%, #07101a 100%);
   background-repeat: no-repeat;
 }
@@ -191,8 +191,8 @@ body[data-page="welcome"] #starfield::after {
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.10), transparent 18%),
     radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 20%);
   background-size: 32px 32px, 32px 32px, cover, cover;
