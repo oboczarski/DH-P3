@@ -149,27 +149,24 @@
   filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0 0 16px #7300ff48);
 }
 
-/* Dashboard home background noise texture: small fractal-noise SVG used as a
-   repeating tile in the starfield base layer (gradient + noise). */
-/* Dashboard home hex-grid pattern: dedicated 500×800 SVG asset so mobile browsers
-   do not need to parse a giant inline data URI before painting the background. */
+/* Dashboard home background: the welcome page now mirrors the RB ranks infographic
+   backdrop. The body fallback keeps the same navy foundation visible while the
+   fixed starfield host and its pseudo-elements finish painting. */
 body[data-page="welcome"] {
-  --dashboard-home-noise-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.26 0.48'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.92'/%3E%3C/svg%3E");
-  --dashboard-home-hex-pattern: url("../assets/welcome/dashboard-hex-pattern.svg");
+  background-color: #07111f;
 }
 
-
-/* Dashboard starfield host: split the fixed background into a new SVG base layer and
-   a preserved glow/vignette overlay so the existing animated stars keep their behavior. */
+/* Dashboard starfield host: keep the fixed full-viewport background container in place,
+   but swap its old hex/noise art for the reference infographic composition. The stars
+   remain separate DOM layers above this backdrop so their animation logic is untouched. */
 body[data-page="welcome"] #starfield {
   isolation: isolate;
-  background: none;
+  background: #07111f;
 }
 
-
-/* Dashboard base layer: gradient stack + subtle fractal noise.
-   Layered as: highlight sheen → radial purple glow → core gradient → tiled noise.
-   Sits behind the glow overlay and star particles. */
+/* Dashboard base layer: ports the infographic's exact core background to the welcome
+   dashboard. This paints the deep vertical navy gradient plus the same blue, gold,
+   and magenta ambient radial accents behind every dashboard card and star layer. */
 body[data-page="welcome"] #starfield::before {
   content: '';
   position: absolute;
@@ -177,26 +174,16 @@ body[data-page="welcome"] #starfield::before {
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.16) 0%,
-      rgba(255, 255, 255, 0.06) 16%,
-      rgba(255, 255, 255, 0) 36%,
-      rgba(255, 255, 255, 0) 68%,
-      rgba(255, 255, 255, 0.03) 100%),
-    radial-gradient(118% 72% at 8% 0%,
-      rgba(196, 144, 255, 0.76) 0%,
-      rgba(158, 90, 255, 0.42) 24%,
-      rgba(125, 42, 255, 0.08) 44%,
-      rgba(125, 42, 255, 0) 60%);
-  background-position: center center, left top, center center, center center;
-  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
-  background-size: cover, cover, cover, 220px 220px;
-  background-blend-mode: screen, screen, normal, soft-light;
-  opacity: 35%;
+    radial-gradient(circle at top left, rgba(88, 130, 214, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(208, 180, 114, 0.16), transparent 24%),
+    radial-gradient(circle at 70% 30%, rgba(255, 10, 165, 0.12), transparent 24%),
+    linear-gradient(180deg, #07111f 0%, #081525 38%, #07101a 100%);
+  background-repeat: no-repeat;
 }
 
-/* Dashboard glow overlay: reuses the existing welcome-page top glows and a softened
-   dark vignette so the new SVG remains visible without changing the star animation layer. */
+/* Dashboard overlay layer: recreates the infographic's subtle square grid and white
+   highlight blooms above the base gradient. The grid alpha is baked into the line color
+   so it stays faint while the star particle layers remain fully visible above it. */
 body[data-page="welcome"] #starfield::after {
   content: '';
   position: absolute;
@@ -204,53 +191,29 @@ body[data-page="welcome"] #starfield::after {
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(660px 660px at 20% -20%,
-      rgba(52, 11, 113, 0.08) 1%, rgba(150, 0, 120, 0.08) 42%, rgba(115, 48, 250, 0.15) 62%, rgba(187, 0, 148, 0.06) 82%, rgba(255, 255, 255, 0) 100%),
-    radial-gradient(460px 460px at 90% 10%,
-      rgba(52, 11, 113, 0.14) 1%, rgba(20, 48, 50, 0.1) 32%, rgba(50, 0, 20, 0.04) 62%, rgba(87, 0, 48, 0.04) 82%, rgba(255, 255, 255, 0) 100%),
-    radial-gradient(ellipse at 50% 100%,
-      rgba(27, 39, 53, 0.4) 0%, rgba(9, 10, 15, 0.56) 100%);
-  background-repeat: no-repeat;
+    linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.10), transparent 18%),
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 20%);
+  background-size: 32px 32px, 32px 32px, cover, cover;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
 }
 
-/* Dashboard hex-grid overlay: rendered on #stars2::before so it gets its own opacity
-   control independent of the gradient base layer.  A radial mask fades it toward
-   the edges so it's "barely visible, just in some areas" as requested. */
-body[data-page="welcome"] #stars2::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image: var(--dashboard-home-hex-pattern);
-  background-size: 500px 800px;
-  background-position: center top;
-  background-repeat: repeat;
-  opacity: 0.34;
-  filter: saturate(1.12) brightness(1.08);
-  -webkit-mask-image:
-    radial-gradient(ellipse 70% 60% at 30% 25%, rgba(0,0,0,0.7) 0%, transparent 100%),
-    radial-gradient(ellipse 50% 45% at 75% 70%, rgba(0,0,0,0.5) 0%, transparent 100%);
-  mask-image:
-    radial-gradient(ellipse 70% 60% at 30% 25%, rgba(0,0,0,0.7) 0%, transparent 100%),
-    radial-gradient(ellipse 50% 45% at 75% 70%, rgba(0,0,0,0.5) 0%, transparent 100%);
-  -webkit-mask-composite: source-over;
-  mask-composite: add;
+/* Dashboard welcome background cleanup: disable the shared noise film on the home page
+   because the reference infographic does not use it and the new grid overlay replaces
+   the old texture treatment. */
+body[data-page="welcome"] #noise-overlay {
+  display: none;
 }
 
-/* Dashboard animated star particles: keep the existing DOM-based star layers above the
-   new SVG and glow overlay so only the backdrop changes on the home page.
-   Brightness + saturation boost makes stars pop on the dashboard gradient.
-   NOTE: #stars2 is excluded from filter because CSS filter creates a containing
-   block that breaks position:fixed on #stars2::before (the hex-grid overlay). */
+/* Dashboard animated star particles: keep every existing DOM star layer above the new
+   infographic-style backdrop so the home page still has the same motion and density. */
 body[data-page="welcome"] #stars,
 body[data-page="welcome"] #stars1,
+body[data-page="welcome"] #stars2,
 body[data-page="welcome"] #stars3 {
   z-index: 2;
   filter: brightness(1.6) saturate(1.2);
-}
-body[data-page="welcome"] #stars2 {
-  z-index: 2;
 }
 
 /* Dashboard extra small stars: additional 1 px white/accent stars layered via ::after
@@ -334,32 +297,6 @@ body[data-page="welcome"] #stars1::after {
     412px 1823px #008CD1, 823px 1912px #FF4089, 1234px 1867px #6300FF,
     1645px 1934px #00DFFF, 1978px 1878px #ee22ff, 78px 1956px #FF4089;
   animation: animStar 75s linear infinite;
-}
-
-/* Dashboard mobile background tuning: tighter radial glow and slightly
-   stronger vignette overlay to keep the gradient/noise balanced on small screens. */
-@media (max-width: 819px) {
-  /* Mobile-only dashboard hex overlay: phones need a stronger, denser treatment
-     than desktop. Remove the soft mask, shrink the tile so multiple cells are
-     visible immediately, and raise opacity so the honeycomb reads at a glance. */
-  body[data-page="welcome"] #stars2::before {
-    background-size: 300px auto;
-    background-position: center -24px;
-    opacity: 0.62;
-    filter: saturate(1.18) brightness(1.12);
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-
-  body[data-page="welcome"] #starfield::after {
-    background:
-      radial-gradient(540px 540px at 18% -18%,
-        rgba(52, 11, 113, 0.09) 1%, rgba(150, 0, 120, 0.08) 42%, rgba(115, 48, 250, 0.15) 62%, rgba(187, 0, 148, 0.06) 82%, rgba(255, 255, 255, 0) 100%),
-      radial-gradient(360px 360px at 90% 10%,
-        rgba(52, 11, 113, 0.12) 1%, rgba(20, 48, 50, 0.08) 32%, rgba(50, 0, 20, 0.03) 62%, rgba(87, 0, 48, 0.03) 82%, rgba(255, 255, 255, 0) 100%),
-      radial-gradient(ellipse at 50% 100%,
-        rgba(27, 39, 53, 0.42) 0%, rgba(9, 10, 15, 0.6) 100%);
-  }
 }
 
 /* Background Blobs */

@@ -19,7 +19,9 @@ body[data-page="contact"] {
   --contact-accent-violet: #9070ff;
   --contact-accent-pink: #ff6ca8;
   --contact-accent-emerald: #4fe3b5;
-  --contact-hex-pattern: url("../assets/welcome/dashboard-hex-pattern.svg");
+  /* Contact page backdrop: keep the contact-only honeycomb asset after the dashboard
+     removed the old shared hex file from the welcome-page background stack. */
+  --contact-hex-pattern: url("../assets/welcome/contact-hex-pattern.svg");
   --contact-noise-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.16 0.34'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.88'/%3E%3C/svg%3E");
   margin: 0;
   min-height: 100vh;

@@ -9,7 +9,9 @@
       <stop offset="1" stop-color="rgba(120,5,255,0.73)" />
     </linearGradient>
 
-    <!-- Dashboard mobile hex pattern: sparse honeycomb cell with visible vertex dots. -->
+    <!-- Contact page honeycomb pattern: preserved from the old shared asset so the
+         Contact page keeps the same sparse dual-tone hex treatment after dashboard
+         moved to the RB infographic background. -->
     <g id="hexPrimary">
       <polygon points="25 0 50 14.5 50 43.5 25 58 0 43.5 0 14.5" stroke="url(#hexGradA)" stroke-width="2" />
       <circle cx="25" cy="0" r="2.4" fill="#78b8ff" fill-opacity="0.8" />
@@ -31,7 +33,6 @@
     </g>
   </defs>
 
-  <!-- Primary layer: follows the brighter blue→magenta honeycomb the user provided. -->
   <g opacity="1">
     <use href="#hexPrimary" x="24" y="18" />
     <use href="#hexPrimary" x="24" y="106" />
@@ -67,7 +68,6 @@
     <use href="#hexPrimary" x="456" y="546" />
   </g>
 
-  <!-- Secondary layer: offset darker cells to create the sparse dual-tone honeycomb feel. -->
   <g opacity="1">
     <use href="#hexSecondary" x="0" y="-12" />
     <use href="#hexSecondary" x="0" y="252" />
