@@ -382,7 +382,7 @@ body[data-page="welcome"] #stars1::after {
 .fc-glass {
   position: relative;
   isolation: isolate;
-  border-radius: var(--radius-lg);
+  border-radius: 2.1em;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.22) 100%);
@@ -410,16 +410,16 @@ body[data-page="welcome"] #stars1::after {
   padding: var(--fc-gr-specular-ring-width-card);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.61) 0%,
-    rgba(255,255,255,0.45) 7%,
-    rgba(255,255,255,0.45) 12%,
-    rgba(255,255,255,0.15) 24%,
+    rgba(246, 242, 218, 0.45) 0%,
+    rgba(246, 236, 191, 0.25) 7%,
+    rgba(255,255,255,0.15) 12%,
+    rgba(255,255,255,0.05) 24%,
     rgba(255,255,255,0.0) 28%,
     rgba(255,255,255,0.0) 72%,
-    rgba(255,255,255,0.1) 80%,
-    rgba(255,255,255,0.15) 88%,
-    rgba(255,255,255,0.25) 93%,
-    rgba(255,255,255,0.61) 100%
+    rgba(255,255,255,0.05) 76%,
+    rgba(255,255,255,0.10) 88%,
+    rgba(255,255,255,0.15) 93%,
+    rgba(255, 249, 223, 0.2) 100%
   );
   z-index: 3;
   -webkit-mask:
@@ -1644,11 +1644,11 @@ body[data-page="welcome"] .username-area::before {
   .fc-summary-card {padding: 0.4em 0.5em 0.1em 0.5em;}
   .fc-summary-card .fc-card__header {margin-bottom: 0.25em;}
   .fc-summary-card .fc-card__title {font-size: 2em;margin-left: 4px;}
-  .fc-summary-card .fc-card__subtitle {font-size: 1.65em;text-wrap-mode: nowrap;margin-bottom: -1px;}
+  .fc-summary-card .fc-card__subtitle {font-size: 1.55em;text-wrap-mode: nowrap;margin-bottom: -1px;margin-top: 2px;}
   .fc-summary-card .fc-badge {padding: 0.3em 0.5em;font-size: 1.45em;}
   .fc-summary-card .fc-metric-value {font-size: 2.85em;}
   .fc-summary-card .fc-metric-sub {margin-bottom: -0.1em;font-size: 1.6em;}
-  .fc-summary-card .fc-card__footer {margin-top: 0.17em;font-size: 1.7em;}
+  .fc-summary-card .fc-card__footer {margin-top: 0.17em;font-size: 1.6em;}
 }
 
 /* --- CHART PANELS (Desktop) --- */
