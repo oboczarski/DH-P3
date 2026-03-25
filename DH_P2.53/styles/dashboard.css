@@ -780,18 +780,12 @@ body[data-page="welcome"] .username-area::before {
   isolation: isolate;
   -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
   backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 40%, transparent 68%),
-    rgba(255,255,255,0.05);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(to bottom, rgb(9 10 15 / 24%), rgb(50 57 102 / 32%));
+  box-shadow: inset 0 0px 1px rgba(255, 255, 255, 0.15), inset 0 0px 1px rgba(255, 255, 255, 0.1);
+  border: 0px solid rgba(255, 255, 255, 0.05);
 }
 .fc-dashboard .fc-select-trigger:hover {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.028) 42%, transparent 70%),
-    rgba(255,255,255,0.09);
+  background: linear-gradient(180deg, rgb(158 163 214 / 8%) 0%, rgba(255, 255, 255, 0.028) 42%, transparent 70%), rgb(43 53 77 / 10%);
   border-color: rgba(255,255,255,0.12);
 }
 
@@ -1914,7 +1908,7 @@ body[data-page="welcome"] .username-area::before {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5em;
+  border-radius: 0.6em;
   padding: 0.5em 0.75em;
   font-size: 1.1em;
   cursor: pointer;
@@ -2103,7 +2097,7 @@ body[data-page="welcome"] .username-area::before {
   }
   
   .fc-select-trigger {
-    padding: 0.15rem 0.4em 0.05rem;
+    padding: 0.2rem 0.4em 0.05rem;
     font-size: 2.4em;
     margin-bottom: 6px;
     margin-left: 8px;
