@@ -1795,7 +1795,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-select-search { font-size: 16px; padding: 0.8em 0.8em 0.8em 2.7em; }
   /* Radar selector width increase on mobile for rank + name + team columns. */
   #player-select-container { width: 39em; }
-  #player-select-dropdown { width: 98vw; max-width: 38em; }
+  #player-select-dropdown {width: 98vw;max-width: 38em;padding: 0px;}
 
   /* Keep dropdown to the right of the title on mobile */
   .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: center;gap: 0.2em;}
@@ -1939,9 +1939,8 @@ body[data-page="welcome"] .username-area::before {
   top: calc(100% + 0.5em);
   right: 0;
   width: 21.5em;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
-    linear-gradient(160deg, rgba(30,32,55,0.92) 0%, rgba(15,18,30,0.88) 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.155) 0%, rgba(255,255,255,0.048) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(30,32,55,0.99) 0%, rgba(15,18,30,0.98) 100%);
   -webkit-backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   backdrop-filter: blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
   border: none;
@@ -1988,8 +1987,8 @@ body[data-page="welcome"] .username-area::before {
   width: 100%;
   background: rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.25em;
-  padding: 0.05em 0.5em 0.05em 1.5em; /* Space for icon */
+  border-radius: 0.45em;
+  padding: 0.05em 0.5em 0.05em 1.9em; /* Space for icon */
   color: white;
   font-size: 16px;
   font-weight: 200;
@@ -2099,8 +2098,8 @@ body[data-page="welcome"] .username-area::before {
   .fc-select-dropdown {
     width: 97vw; /* Wide on mobile */
     max-width: 35em;
-    right: -6px; /* Align with right edge */
-    border-radius: 4px;
+    right: -1px; /* Align with right edge */
+    border-radius: 10px;
   }
   
   .fc-select-trigger {
@@ -2122,11 +2121,11 @@ body[data-page="welcome"] .username-area::before {
 
   .fc-search-icon {
     position: absolute;
-    left: 0.5em;
+    left: 0.6em;
     color: var(--text-muted);
     pointer-events: none;
-    font-size: 3em;
-    padding-bottom: 1px;
+    font-size: 3.5em;
+    padding-bottom: 2px;
   }
   
   .fc-option {
