@@ -1188,6 +1188,26 @@ body[data-page="welcome"] .username-area::before {
 /* Radar Specifics */
 .fc-radar-panel {
   position: relative;
+  /* Performance Map panel only: allow the player picker dropdown to extend past the
+     panel body instead of getting clipped by the shared card overflow treatment. */
+  overflow: visible;
+}
+
+/* Performance Map selector layering: keep the player picker header/select stack above
+   the radar chart content. The shared glass child z-index rule applies to every direct
+   child inside the panel, so this direct-child override must out-specific it to keep
+   both the dropdown visuals and click targets above the radial chart only here. */
+.fc-dashboard .fc-radar-panel.fc-glass > .fc-chart-header--radar {
+  position: relative;
+  z-index: 12;
+}
+
+.fc-radar-panel #player-select-container {
+  z-index: 13;
+}
+
+.fc-radar-panel #player-select-dropdown {
+  z-index: 14;
 }
 
 .fc-radar-container {
