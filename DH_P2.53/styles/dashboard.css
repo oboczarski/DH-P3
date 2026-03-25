@@ -756,14 +756,10 @@ body[data-page="welcome"] .username-area::before {
   position: relative;
   isolation: isolate;
   -webkit-backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 40%, transparent 68%),
-    rgba(255,255,255,0.03);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.06);
-  border: 1px solid transparent;
+  backdrop-filter: none;
+  background: none;
+  box-shadow: none;
+  border: 0px solid transparent;
 }
 .fc-dashboard .filter-btn:hover {
   background:
@@ -1844,18 +1840,20 @@ body[data-page="welcome"] .username-area::before {
     flex-wrap: wrap;
     gap: 0.05em;
     flex: 0 0 auto;
-    background: #dddded05;
-    border: 1px solid #ffffff05;
-    border-radius: 1.2em;
-    padding: 0.01em 0.01em;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.14), rgb(66 75 128 / 32%));
+    border: 1px solid #ffffff00;
+    border-radius: 2.2em;
+    padding: 0.1em 0.2em;
     margin-right: 1px;
+    box-shadow: inset 0 0px 0px 0px rgba(255,255,255,0.1);
+    backdrop-filter: blur(var(--fc-gr-blur-pill)) saturate(var(--fc-gr-saturation-pill));
   }
   .fc-bar-panel .filter-btn {
-    padding: 0.22em 0.55em !important;
+    padding: 0.45em 0.65em !important;
     font-size: 2.4em !important;
     height: auto !important;
     min-height: 0 !important;
-    border-radius: 0.45em;
+    border-radius: 11px;
     font-weight: 600;
   }
 
