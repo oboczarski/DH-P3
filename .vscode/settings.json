@@ -43,11 +43,11 @@
 
   "workbench.colorCustomizations": {
     "[Dracula Theme]": {
-      "editor.selectionBackground": "#0c78fd3a",
+      "editor.selectionBackground": "#0c78fd5a",
       "editor.inactiveSelectionBackground": "#8102ff42",
-      "editor.wordHighlightBackground": "#b801fa29",
+      "editor.wordHighlightBackground": "#b801fa09",
       "editor.hoverHighlightBackground": "#ff810309",
-      "editor.selectionHighlightBackground": "#baff952c"
+      "editor.selectionHighlightBackground": "#baff950c"
       
     }
   },
@@ -104,6 +104,7 @@
   },
 
   /* ---------- TODO Highlight (Markdown-only, no yellow background) ---------- */
+  "color-highlight.markerType":"underline",
   "todohighlight.include": ["**/*.md"],
   "todohighlight.isCaseSensitive": true,
   "todohighlight.defaultStyle": {
