@@ -7720,6 +7720,16 @@ async function loadOwnershipContextForUser() {
     const context = { cacheKey, leagues, failures };
     state.ownershipContext = context;
     state.leagues = sortedLeagues;
+
+    // Re-render Game Logs Ownership Pane if it is currently waiting
+    const pid = state.currentGameLogsPlayer?.id;
+    const owPane = document.getElementById('gamelogs-ownership-pane');
+    if (pid && owPane && !owPane.classList.contains('hidden')) {
+        if (typeof renderOwnershipInGameLogsPane === 'function') {
+            renderOwnershipInGameLogsPane(pid);
+        }
+    }
+
     return context;
 }
 
