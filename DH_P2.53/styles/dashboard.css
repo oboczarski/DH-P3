@@ -585,16 +585,16 @@ body[data-page="welcome"] #stars1::after {
   padding: var(--fc-gr-specular-ring-width);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.6) 0%,
-    rgba(255,255,255,0.35) 8%,
-    rgba(255,255,255,0.2) 14%,
+    rgba(255,255,255,0.4) 0%,
+    rgba(255,255,255,0.3) 8%,
+    rgba(255,255,255,0.15) 14%,
     rgba(255,255,255,0.15) 24%,
     rgba(255,255,255,0) 36%,
     rgba(255,255,255,0) 64%,
-    rgba(255,255,255,0.15) 74%,
-    rgba(255,255,255,0.2) 84%,
-    rgba(255,255,255,0.35) 92%,
-    rgba(255,255,255,0.6) 100%
+    rgba(255,255,255,0.05) 74%,
+    rgba(255,255,255,0.15) 84%,
+    rgba(255,255,255,0.25) 92%,
+    rgba(255,255,255,0.35) 100%
   );
   animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
   z-index: 3;
