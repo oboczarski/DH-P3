@@ -1021,7 +1021,12 @@ if (pageType === 'rosters') {
     clearFiltersButton?.addEventListener('click', handleClearFilters);
     startSitButton?.addEventListener('click', handleStartSitButtonClick);
     if (gameLogsModal) {
-        modalCloseBtn.addEventListener('click', () => closeModal());
+        // Use event delegation for close buttons (handles both game logs & ownership panes)
+        gameLogsModal.addEventListener('click', (e) => {
+            if (e.target.closest('.modal-close-btn')) {
+                closeModal();
+            }
+        });
         modalOverlay.addEventListener('click', () => closeModal());
 
         // GL/SZN view switcher (SZN replaces game logs table in-place)
@@ -1361,6 +1366,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             await handleFetchOwnership();
         }
     }
+});
+
+// === Deferred ownership context preload ===
+// Loads ownership league/roster data in the background AFTER the page has finished
+// loading its critical data (players + KTC values + rosters). This ensures the
+// Ownership tab inside the Game Logs modal opens instantly without adding to initial
+// page load time. Uses requestIdleCallback when available; falls back to setTimeout.
+document.addEventListener('DOMContentLoaded', () => {
+    if (pageType !== 'rosters' && pageType !== 'stats') return;
+    const schedulePreload = typeof requestIdleCallback === 'function'
+        ? (cb) => requestIdleCallback(cb, { timeout: 8000 })
+        : (cb) => setTimeout(cb, 3000);
+    // Wait for user data to be available (URL params must have username).
+    // The ownership context needs state.userId which is set during handleFetchRosters / ensureLeagueContext.
+    const checkAndLoad = () => {
+        if (!state.userId) return; // Not logged in yet; nothing to preload
+        loadOwnershipContextForUser().catch(() => {});
+    };
+    // Run after a generous idle delay so it never competes with the initial render pipeline.
+    schedulePreload(checkAndLoad);
+    // Also re-check after 6s in case the idle callback fired before the user was hydrated.
+    setTimeout(checkAndLoad, 6000);
 });
 
 // --- Mobile League Navigation (Rosters Page Only) ---
@@ -4441,6 +4468,8 @@ async function handlePlayerNameClick(player) {
     const isStaleRequest = () => requestSeq !== gameLogsModalRequestSeq;
 
     const fullPlayer = state.players[player.id];
+    state.currentGameLogsPlayer = fullPlayer || player;
+    
     const playerName = fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : player.name;
     modalPlayerName.textContent = `${playerName}`;
     if (modalPlayerVitals) {
@@ -7655,7 +7684,7 @@ function renderTradeBlock() {
 // Shared by Ownership page and Rosters watchlist ownership button.
 // Previously page-gated; now accessible from rosters for lazy-loaded ownership context.
 async function loadOwnershipContextForUser() {
-    if (pageType !== 'ownership' && pageType !== 'rosters') return null;
+    if (pageType !== 'ownership' && pageType !== 'rosters' && pageType !== 'stats') return null;
     const cacheKey = `${state.userId || ''}`;
     if (state.ownershipContext?.cacheKey === cacheKey && Array.isArray(state.ownershipContext.leagues) && state.ownershipContext.leagues.length) {
         return state.ownershipContext;
@@ -7695,7 +7724,7 @@ async function loadOwnershipContextForUser() {
 }
 
 function buildOwnershipRowsFromContext() {
-    if (pageType !== 'ownership' && pageType !== 'rosters') return [];
+    if (pageType !== 'ownership' && pageType !== 'rosters' && pageType !== 'stats') return [];
     const context = state.ownershipContext;
     if (!context?.leagues?.length) {
         state.ownershipRows = [];
@@ -9025,7 +9054,7 @@ function renderOwnershipModalLeagueOwnerList(playerId) {
 }
 
 function openOwnershipPlayerModal(playerId) {
-    if ((pageType !== 'ownership' && pageType !== 'rosters') || !ownershipPlayerModal || !playerId) return;
+    if ((pageType !== 'ownership' && pageType !== 'rosters' && pageType !== 'stats') || !ownershipPlayerModal || !playerId) return;
     renderOwnershipModalHeaderSummary(playerId);
     renderOwnershipModalLeagueOwnerList(playerId);
     ownershipPlayerModal.classList.remove('hidden');
@@ -9041,6 +9070,174 @@ function closeOwnershipPlayerModal() {
     if (ownershipModalHeaderLeft) ownershipModalHeaderLeft.innerHTML = '';
     if (ownershipModalPlayerVitals) ownershipModalPlayerVitals.innerHTML = '';
 }
+
+// === Inline Ownership rendering for Game Logs modal tab ===
+// Renders ownership header + league list into the #gamelogs-ownership-pane sub-containers.
+// This mirrors openOwnershipPlayerModal but writes to the inline pane, not the standalone modal.
+function renderOwnershipInGameLogsPane(playerId) {
+    const pane = document.getElementById('gamelogs-ownership-pane');
+    if (!pane || !playerId) return;
+
+    const nameEl = document.getElementById('glOwnershipPlayerName');
+    const leftEl = document.getElementById('glOwnershipLeft');
+    const vitalsEl = document.getElementById('glOwnershipPlayerVitals');
+    const chipsEl = document.getElementById('glOwnershipSummaryChips');
+    const bodyEl = document.getElementById('glOwnershipBody');
+
+    // Render header summary (reuse existing data helper)
+    const summary = getOwnershipModalPlayerSummary(playerId);
+    if (!summary) {
+        if (bodyEl) bodyEl.innerHTML = '<div class="ownership-modal-empty">Player data unavailable.</div>';
+        return;
+    }
+
+    if (nameEl) nameEl.textContent = summary.fullName;
+
+    // Left tags: POS + team logo
+    if (leftEl) {
+        const teamKey = summary.team;
+        const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+        const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+        leftEl.innerHTML = `
+            <div class="player-tag modal-pos-tag ${summary.pos}">${summary.pos}</div>
+            <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
+                ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
+            </div>
+        `;
+    }
+
+    // Vitals row
+    if (vitalsEl) {
+        vitalsEl.innerHTML = '';
+        if (typeof createPlayerVitalsElement === 'function' && typeof getPlayerVitals === 'function') {
+            vitalsEl.appendChild(createPlayerVitalsElement(getPlayerVitals(playerId), { variant: 'modal', pos: summary.pos }));
+        }
+    }
+
+    // Summary chips: FPTS, PPG, KTC
+    if (chipsEl) {
+        const fptsColor = getConditionalColorByRank(summary.posRank, summary.pos);
+        const ppgColor = getConditionalColorByRank(summary.ppgPosRank, summary.pos);
+        const ktcColor = getKtcColor(summary.ktc);
+
+        chipsEl.innerHTML = `
+            <div class="gamelogs-summary-chip ownership-summary-chip">
+                <h4><span class="chip-header-value" style="color:${fptsColor}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : '—'}</span><span class="chip-unit"> FPTS</span></h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${fptsColor}">${Number.isFinite(summary.posRank) ? summary.posRank : '—'}</span></span>
+                    <span class="chip-separator">•</span>
+                    <span style="color:${getRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : '—'}</span>
+                </div>
+            </div>
+            <div class="gamelogs-summary-chip ownership-summary-chip">
+                <h4><span class="chip-header-value" style="color:${ppgColor}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : '—'}</span><span class="chip-unit"> PPG</span></h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${ppgColor}">${Number.isFinite(summary.ppgPosRank) ? summary.ppgPosRank : '—'}</span></span>
+                    <span class="chip-separator">•</span>
+                    <span style="color:${getRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : '—'}</span>
+                </div>
+            </div>
+            <div class="gamelogs-summary-chip ownership-summary-chip">
+                <h4><span class="chip-header-value" style="color:${ktcColor}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : '—'}</span><span class="chip-unit"> KTC</span></h4>
+                <div class="chip-values">
+                    <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${summary.pos}">${summary.pos}·</span><span style="color:${getConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${Number.isFinite(summary.ktcPosRank) ? summary.ktcPosRank : '—'}</span></span>
+                    <span class="chip-separator">•</span>
+                    <span style="color:${getRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : '—'}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // League owner list
+    if (bodyEl) {
+        if (!state.ownershipContext?.leagues?.length) {
+            bodyEl.innerHTML = '<div class="ownership-modal-empty">Ownership data is loading…</div>';
+            return;
+        }
+        const rows = findOwnershipLeagueOwnerRows(playerId);
+        const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+        bodyEl.innerHTML = `
+            <div class="ownership-modal-section-title">
+                League Ownership
+                <span class="ownership-modal-section-subtitle">${rows.length} league${rows.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="ownership-modal-league-list">
+                ${rows.map((row) => {
+                    const ownerText = row.missing ? 'Unrostered' : (row.isUser ? 'You' : row.ownerDisplay);
+                    const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
+                    const abbrColor = typeof getLeagueColor === 'function' ? getLeagueColor(row.leagueAbbr) : '#cad1fa';
+                    return `
+                        <article class="ownership-league-row ${ownerClass}">
+                            <div class="ownership-league-meta">
+                                <span class="ownership-league-abbr" style="color:${abbrColor}">${typeof escapeHtml === 'function' ? escapeHtml(row.leagueAbbr) : row.leagueAbbr}</span>
+                                <span class="ownership-league-name">${typeof escapeHtml === 'function' ? escapeHtml(row.leagueName) : row.leagueName}</span>
+                            </div>
+                            <div class="ownership-league-owner">
+                                ${typeof escapeHtml === 'function' ? escapeHtml(ownerText) : ownerText}
+                            </div>
+                        </article>
+                    `;
+                }).join('')}
+            </div>
+            ${failures.length ? `<p class="ownership-modal-warning">Some leagues could not be loaded: ${failures.join(', ')}</p>` : ''}
+        `;
+    }
+}
+
+// === Game Logs Modal Tab Switching ===
+// Switches between the Game Logs pane and inline Ownership pane inside #game-logs-modal.
+function switchGameLogsModalTab(tabKey) {
+    // Block Ownership tab access if no user context exists
+    if (tabKey === 'ownership' && !state.userId) {
+        const owTabBtn = gameLogsModal?.querySelector('.gamelogs-modal-tab[data-modal-tab="ownership"]');
+        if (typeof showTemporaryTooltip === 'function') {
+            showTemporaryTooltip(owTabBtn || document.body, 'Please enter a Sleeper username to view Ownership data.');
+        } else {
+            alert('Please enter a Sleeper username to view Ownership data.');
+        }
+        return;
+    }
+
+    const glPane = document.getElementById('gamelogs-tab-pane');
+    const owPane = document.getElementById('gamelogs-ownership-pane');
+    const tabBtns = gameLogsModal?.querySelectorAll('.gamelogs-modal-tab');
+    if (!glPane || !owPane || !tabBtns) return;
+
+    tabBtns.forEach(btn => {
+        const isActive = btn.dataset.modalTab === tabKey;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (tabKey === 'ownership') {
+        // Hide game-logs pane, show ownership pane
+        glPane.classList.add('hidden');
+        owPane.classList.remove('hidden');
+
+        // Render ownership content for the currently open player
+        const pid = state.currentGameLogsPlayer?.id || null;
+        if (pid) {
+            renderOwnershipInGameLogsPane(pid);
+        }
+    } else {
+        // Show game-logs pane, hide ownership pane
+        glPane.classList.remove('hidden');
+        owPane.classList.add('hidden');
+    }
+}
+
+// Wire tab click listeners once DOM is ready
+(function wireGameLogsModalTabs() {
+    if (!gameLogsModal) return;
+    const tabs = gameLogsModal.querySelectorAll('.gamelogs-modal-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const key = tab.dataset.modalTab;
+            if (key) switchGameLogsModalTab(key);
+        });
+    });
+})();
+
 // --- Formatting Helpers ---
 function deriveRookieYear(player) {
     if (!player) return null;
@@ -9827,6 +10024,9 @@ function openModal() {
     if (consistencyContainer) consistencyContainer.classList.add('hidden');
     setGameLogsModalView('gl');
 
+    // Always reset to Game Logs tab when opening the modal
+    switchGameLogsModalTab('gamelogs');
+
     // Reset all buttons to inactive, then activate game-logs button
     const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
     modalInfoBtns.forEach(btn => {
@@ -9883,6 +10083,16 @@ function closeModal() {
     }
     // Reset the flag
     state.isGameLogModalOpenFromComparison = false;
+
+    // Clear inline ownership pane content (tab system cleanup)
+    const glOwnershipBody = document.getElementById('glOwnershipBody');
+    const glOwnershipChips = document.getElementById('glOwnershipSummaryChips');
+    const glOwnershipLeft = document.getElementById('glOwnershipLeft');
+    const glOwnershipVitals = document.getElementById('glOwnershipPlayerVitals');
+    if (glOwnershipBody) glOwnershipBody.innerHTML = '';
+    if (glOwnershipChips) glOwnershipChips.innerHTML = '';
+    if (glOwnershipLeft) glOwnershipLeft.innerHTML = '';
+    if (glOwnershipVitals) glOwnershipVitals.innerHTML = '';
 }
 
 // === Watchlist Toggle Handler (inside game-logs modal) ===
