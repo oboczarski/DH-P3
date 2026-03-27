@@ -492,16 +492,16 @@ body[data-page="welcome"] #stars1::after {
   padding: var(--fc-gr-specular-ring-width-chart);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.01) 0%,
-    rgba(255,255,255,0.15) 4%,
-    rgba(255,255,255,0.25) 12%,
-    rgba(255,255,255,0.15) 24%,
-    rgba(255,255,255,0.01) 28%,
-    rgba(255,255,255,0.01) 72%,
-    rgba(255,255,255,0.15) 80%,
-    rgba(255,255,255,0.25) 88%,
-    rgba(255,255,255,0.15) 96%,
-    rgba(255,255,255,0.01) 100%
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,0.15) 2%,
+    rgba(255,255,255,0.10) 12%,
+    rgba(255,255,255,0.05) 24%,
+    rgba(255,255,255,0.0) 28%,
+    rgba(255,255,255,0.0) 72%,
+    rgba(255,255,255,0.03) 80%,
+    rgba(255,255,255,0.08) 90%,
+    rgba(255,255,255,0.12) 98%,
+    rgba(255,255,255,0.50) 100%
   );
 }
 
@@ -526,16 +526,16 @@ body[data-page="welcome"] #stars1::after {
   .fc-dashboard .fc-chart-panel.fc-glass::before {
     background: linear-gradient(
       158deg,
-      rgba(251, 237, 188, 0.35) 0%,
-      rgba(255,255,255,0.2) 8%,
-      rgba(255,255,255,0.1) 16%,
+      rgba(251, 237, 188, 0.25) 0%,
+      rgba(255,255,255,0.2) 4%,
+      rgba(255,255,255,0.1) 14%,
       rgba(255,255,255,0.05) 20%,
       rgba(255,255,255,0.0) 30%,
       rgba(255,255,255,0.0) 73%,
       rgba(255,255,255,0.05) 80%,
       rgba(255,255,255,0.1) 88%,
-      rgba(255,255,255,0.2) 93%,
-      rgba(255,255,255,0.35) 100%
+      rgba(255,255,255,0.2) 96%,
+      rgba(255,255,255,0.20) 100%
     );
   }
 }
@@ -585,16 +585,16 @@ body[data-page="welcome"] #stars1::after {
   padding: var(--fc-gr-specular-ring-width);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.4) 0%,
-    rgba(255,255,255,0.3) 8%,
+    rgba(255,255,255,0.3) 0%,
+    rgba(255,255,255,0.2) 8%,
     rgba(255,255,255,0.15) 14%,
-    rgba(255,255,255,0.15) 24%,
+    rgba(255,255,255,0.1) 24%,
     rgba(255,255,255,0) 36%,
     rgba(255,255,255,0) 64%,
     rgba(255,255,255,0.05) 74%,
     rgba(255,255,255,0.15) 84%,
-    rgba(255,255,255,0.25) 92%,
-    rgba(255,255,255,0.35) 100%
+    rgba(255,255,255,0.2) 92%,
+    rgba(255,255,255,0.25) 100%
   );
   animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
   z-index: 3;
@@ -1182,7 +1182,11 @@ body[data-page="welcome"] .username-area::before {
      panel body instead of getting clipped by the shared card overflow treatment. */
   overflow: visible;
 }
-
+@media (min-width: 769px) {
+  .fc-radar-panel {
+    padding: 1em 1.89em 1em 1.39em !important;
+  }
+}
 /* Performance Map selector layering: keep the player picker header/select stack above
    the radar chart content. The shared glass child z-index rule applies to every direct
    child inside the panel, so this direct-child override must out-specific it to keep
@@ -1653,7 +1657,7 @@ body[data-page="welcome"] .username-area::before {
 
 /* --- CHART PANELS (Desktop) --- */
 @media (min-width: 769px) {
-  .fc-chart-panel {padding: 1em 0.65em;min-height: 43em;}
+  .fc-chart-panel {padding: 1em 1.65em;min-height: 43em;}
   .fc-chart-panel .fc-card__title {font-size: 1.2em;}
   .fc-chart-panel .fc-card__subtitle-text {}
   .fc-subtitle-radar {font-size: 1em !important;}

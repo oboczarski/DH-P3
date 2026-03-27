@@ -43,7 +43,7 @@
 
   "workbench.colorCustomizations": {
     "[Dracula Theme]": {
-      "editor.selectionBackground": "#0c78fd5a",
+      "editor.selectionBackground": "#fd0d7d97",
       "editor.inactiveSelectionBackground": "#8102ff42",
       "editor.wordHighlightBackground": "#b801fa09",
       "editor.hoverHighlightBackground": "#ff810309",
