@@ -763,6 +763,10 @@ if (pageType !== 'welcome') {
 
 // --- State ---
 let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+// Tracks the in-flight ownership context request used by the Ownership tab inside
+// the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
+let ownershipContextLoadPromise = null;
+let ownershipContextLoadCacheKey = '';
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -1369,26 +1373,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // === Deferred ownership context preload ===
-// Loads ownership league/roster data in the background AFTER the page has finished
-// loading its critical data (players + KTC values + rosters). This ensures the
-// Ownership tab inside the Game Logs modal opens instantly without adding to initial
-// page load time. Uses requestIdleCallback when available; falls back to setTimeout.
-document.addEventListener('DOMContentLoaded', () => {
+// Defers the optional ownership warm-up for the Game Logs modal until AFTER the
+// full window `load` event fires, so it never competes with the critical first
+// page render on rosters/stats. If the user opens Ownership before this warm-up
+// runs, the on-demand tab fetch still loads the data immediately.
+(function scheduleOwnershipContextPreloadAfterFullPageLoad() {
     if (pageType !== 'rosters' && pageType !== 'stats') return;
-    const schedulePreload = typeof requestIdleCallback === 'function'
-        ? (cb) => requestIdleCallback(cb, { timeout: 8000 })
-        : (cb) => setTimeout(cb, 3000);
-    // Wait for user data to be available (URL params must have username).
-    // The ownership context needs state.userId which is set during handleFetchRosters / ensureLeagueContext.
-    const checkAndLoad = () => {
-        if (!state.userId) return; // Not logged in yet; nothing to preload
-        loadOwnershipContextForUser().catch(() => {});
+
+    const schedulePreload = () => {
+        const runWhenIdle = typeof requestIdleCallback === 'function'
+            ? (cb) => requestIdleCallback(cb, { timeout: 8000 })
+            : (cb) => setTimeout(cb, 3000);
+
+        // Background preload targets the shared ownership context used by the
+        // Game Logs modal, but only once the page has fully loaded and user
+        // identity is available from the current roster/stats session.
+        const checkAndLoad = () => {
+            if (!state.userId) return;
+            loadOwnershipContextForUser().catch(() => { });
+        };
+
+        // Run after a post-load idle window so the preload stays off the critical path.
+        runWhenIdle(checkAndLoad);
+        // Re-check later in case user hydration finishes after the first idle slot.
+        setTimeout(checkAndLoad, 6000);
     };
-    // Run after a generous idle delay so it never competes with the initial render pipeline.
-    schedulePreload(checkAndLoad);
-    // Also re-check after 6s in case the idle callback fired before the user was hydrated.
-    setTimeout(checkAndLoad, 6000);
-});
+
+    if (document.readyState === 'complete') {
+        schedulePreload();
+    } else {
+        window.addEventListener('load', schedulePreload, { once: true });
+    }
+})();
 
 // --- Mobile League Navigation (Rosters Page Only) ---
 if (pageType === 'rosters') {
@@ -7686,51 +7702,77 @@ function renderTradeBlock() {
 async function loadOwnershipContextForUser() {
     if (pageType !== 'ownership' && pageType !== 'rosters' && pageType !== 'stats') return null;
     const cacheKey = `${state.userId || ''}`;
-    if (state.ownershipContext?.cacheKey === cacheKey && Array.isArray(state.ownershipContext.leagues) && state.ownershipContext.leagues.length) {
+    if (!cacheKey) return null;
+    if (hasOwnershipContextLoaded(cacheKey)) {
         return state.ownershipContext;
     }
-
-    // Ownership context loads all relevant league/roster/user data once per user for fast toggles and modal lookups.
-    const userLeagues = await fetchUserLeagues(state.userId);
-    const sortedLeagues = [...userLeagues].sort((a, b) => a.name.localeCompare(b.name));
-    const leaguePayloads = await Promise.allSettled(sortedLeagues.map(async (league) => {
-        const [rosters, users] = await Promise.all([
-            fetchWithCache(`${API_BASE}/league/${league.league_id}/rosters`),
-            fetchWithCache(`${API_BASE}/league/${league.league_id}/users`)
-        ]);
-        return { league, rosters, users };
-    }));
-
-    const leagues = [];
-    const failures = [];
-    leaguePayloads.forEach((result, idx) => {
-        if (result.status === 'fulfilled') {
-            leagues.push(result.value);
-        } else {
-            failures.push(sortedLeagues[idx]?.name || sortedLeagues[idx]?.league_id || `League ${idx + 1}`);
-        }
-    });
-
-    // Keep league color assignment deterministic for both ownership list and modal detail rows.
-    assignedLeagueColors.clear();
-    nextColorIndex = 0;
-    assignedRyColors.clear();
-    nextRyColorIndex = 0;
-
-    const context = { cacheKey, leagues, failures };
-    state.ownershipContext = context;
-    state.leagues = sortedLeagues;
-
-    // Re-render Game Logs Ownership Pane if it is currently waiting
-    const pid = state.currentGameLogsPlayer?.id;
-    const owPane = document.getElementById('gamelogs-ownership-pane');
-    if (pid && owPane && !owPane.classList.contains('hidden')) {
-        if (typeof renderOwnershipInGameLogsPane === 'function') {
-            renderOwnershipInGameLogsPane(pid);
-        }
+    if (ownershipContextLoadPromise && ownershipContextLoadCacheKey === cacheKey) {
+        return ownershipContextLoadPromise;
     }
 
-    return context;
+    ownershipContextLoadCacheKey = cacheKey;
+    ownershipContextLoadPromise = (async () => {
+        // Ownership context loads all relevant league/roster/user data once per user for
+        // fast toggles and modal lookups across the Ownership page and Game Logs modal.
+        const userLeagues = await fetchUserLeagues(state.userId);
+        const sortedLeagues = [...userLeagues].sort((a, b) => a.name.localeCompare(b.name));
+        const leaguePayloads = await Promise.allSettled(sortedLeagues.map(async (league) => {
+            const [rosters, users] = await Promise.all([
+                fetchWithCache(`${API_BASE}/league/${league.league_id}/rosters`),
+                fetchWithCache(`${API_BASE}/league/${league.league_id}/users`)
+            ]);
+            return { league, rosters, users };
+        }));
+
+        const leagues = [];
+        const failures = [];
+        leaguePayloads.forEach((result, idx) => {
+            if (result.status === 'fulfilled') {
+                leagues.push(result.value);
+            } else {
+                failures.push(sortedLeagues[idx]?.name || sortedLeagues[idx]?.league_id || `League ${idx + 1}`);
+            }
+        });
+
+        // Keep league color assignment deterministic for both ownership list and modal detail rows.
+        assignedLeagueColors.clear();
+        nextColorIndex = 0;
+        assignedRyColors.clear();
+        nextRyColorIndex = 0;
+
+        const context = { cacheKey, leagues, failures };
+        state.ownershipContext = context;
+        state.leagues = sortedLeagues;
+
+        // If the Game Logs modal ownership tab is already open, refresh it as soon as the
+        // shared ownership data finishes loading so the inline modal stops showing a loader.
+        const pid = state.currentGameLogsPlayer?.id;
+        const owPane = document.getElementById('gamelogs-ownership-pane');
+        if (pid && owPane && !owPane.classList.contains('hidden')) {
+            if (typeof renderOwnershipInGameLogsPane === 'function') {
+                renderOwnershipInGameLogsPane(pid);
+            }
+        }
+
+        return context;
+    })();
+
+    try {
+        return await ownershipContextLoadPromise;
+    } finally {
+        if (ownershipContextLoadCacheKey === cacheKey) {
+            ownershipContextLoadPromise = null;
+            ownershipContextLoadCacheKey = '';
+        }
+    }
+}
+
+function hasOwnershipContextLoaded(cacheKey = `${state.userId || ''}`) {
+    return Boolean(
+        cacheKey
+        && state.ownershipContext?.cacheKey === cacheKey
+        && Array.isArray(state.ownershipContext.leagues)
+    );
 }
 
 function buildOwnershipRowsFromContext() {
@@ -9160,7 +9202,7 @@ function renderOwnershipInGameLogsPane(playerId) {
 
     // League owner list
     if (bodyEl) {
-        if (!state.ownershipContext?.leagues?.length) {
+        if (!hasOwnershipContextLoaded()) {
             bodyEl.innerHTML = '<div class="ownership-modal-empty">Ownership data is loading…</div>';
             return;
         }
@@ -9228,6 +9270,17 @@ function switchGameLogsModalTab(tabKey) {
         const pid = state.currentGameLogsPlayer?.id || null;
         if (pid) {
             renderOwnershipInGameLogsPane(pid);
+
+            // Game Logs ownership tab: actively load shared ownership data on demand if the
+            // background preload has not completed yet, so the tab is reliable on rosters/stats.
+            if (!hasOwnershipContextLoaded()) {
+                loadOwnershipContextForUser().catch(() => {
+                    const activePid = state.currentGameLogsPlayer?.id || null;
+                    const bodyEl = document.getElementById('glOwnershipBody');
+                    if (!bodyEl || activePid !== pid || owPane.classList.contains('hidden')) return;
+                    bodyEl.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
+                });
+            }
         }
     } else {
         // Show game-logs pane, hide ownership pane
@@ -10425,7 +10478,7 @@ if (pageType === 'rosters') {
 
             try {
                 // Lazy-load ownership context if not already loaded
-                if (!state.ownershipContext?.leagues?.length) {
+                if (!hasOwnershipContextLoaded()) {
                     await loadOwnershipContextForUser();
                     buildOwnershipRowsFromContext();
                 }

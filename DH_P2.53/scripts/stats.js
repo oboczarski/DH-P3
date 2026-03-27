@@ -471,7 +471,6 @@
     : [];
   const gameLogDom = {
     modal: document.getElementById('game-logs-modal'),
-    closeBtn: document.querySelector('#game-logs-modal .modal-close-btn'),
     overlay: document.querySelector('#game-logs-modal .modal-overlay'),
     infoBtn: document.querySelector('#game-logs-modal .modal-info-btn'),
     keyPanel: document.getElementById('stats-key-container'),
@@ -2421,7 +2420,13 @@
     if (!gameLogDom.modal) return;
     
     if (!gameLogDom.modal.dataset.statsWired) {
-      gameLogDom.closeBtn?.addEventListener('click', performModalClose);
+      // Stats page Game Logs modal: delegate close clicks so the same close handler
+      // works for both the default Game Logs pane and the inline Ownership pane.
+      gameLogDom.modal.addEventListener('click', (event) => {
+        if (event.target?.closest?.('.modal-close-btn')) {
+          performModalClose();
+        }
+      });
       gameLogDom.overlay?.addEventListener('click', performModalClose);
       
       // Panel toggle buttons with tab-like behavior
