@@ -167,6 +167,46 @@ body[data-page="welcome"] #starfield {
 /* Dashboard base layer: ports the infographic's exact core background to the welcome
    dashboard. This paints the deep vertical navy gradient plus the same blue, gold,
    and magenta ambient radial accents behind every dashboard card and star layer. */
+@media (min-width: 769px) {
+   body[data-page="welcome"] #starfield::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+ background:
+  radial-gradient(circle at 88% 62%, rgba(0, 150, 255, 0.18), transparent 40%),
+  radial-gradient(circle at 82% 8%, rgba(255, 255, 255, 0.07), transparent 24%),
+  radial-gradient(circle at 50% 100%, rgba(205, 225, 255, 0.07), transparent 30%),
+  linear-gradient(135deg, rgba(115, 0, 255, 0.2) 0%, transparent 38%, rgba(255, 255, 255, 0.025) 50%, transparent 68%, rgba(255, 255, 255, 0.03) 100%);
+background-size: cover, cover, cover, cover;
+background-repeat: no-repeat;
+}
+
+/* Dashboard overlay layer: recreates the infographic's subtle square grid and white
+   highlight blooms above the base gradient. The grid alpha is baked into the line color
+   so it stays faint while the star particle layers remain fully visible above it. */
+body[data-page="welcome"] #starfield::after {
+content: '';
+position: absolute;
+inset: 0;
+z-index: 1;
+pointer-events: none;
+background:
+  radial-gradient(1000px 1220px at 44% 40%, rgba(0, 150, 255, 0.1), transparent 35%),
+  radial-gradient(980px 620px at 86% 10%, rgba(168, 85, 247, 0.05), transparent 40%),
+  radial-gradient(760px 520px at 94% 34%, rgba(236, 72, 153, 0.1), transparent 74%),
+  radial-gradient(620px 420px at 20% 78%, rgba(45, 212, 191, 0.08), transparent 42%),
+  linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.035) 16%, rgba(255, 255, 255, 0) 34%),
+  linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 26%, rgba(255, 255, 255, 0.03) 54%, rgba(255, 255, 255, 0.021) 72%),
+  linear-gradient(180deg, rgba(8, 12, 24, 0.10) 0%, rgba(3, 6, 16, 0.24) 100%);
+background-repeat: no-repeat;
+opacity: 0.95;
+  }
+}
+
+@media (max-width: 768px) {
+/* ↓  ↓ MOBILE ↓  ↓  */
 body[data-page="welcome"] #starfield::before {
   content: '';
   position: absolute;
@@ -174,30 +214,38 @@ body[data-page="welcome"] #starfield::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at top left, rgba(88, 130, 214, 0.29), transparent 28%),
-    radial-gradient(circle at top right, rgba(208, 180, 114, 0.26), transparent 24%),
-    radial-gradient(circle at 70% 30%, rgba(255, 10, 165, 0.20), transparent 24%),
-    linear-gradient(180deg, #07111f 0%, #081525 38%, #07101a 100%);
+    radial-gradient(600px 560px at 12% 8%, rgba(90, 160, 255, 0.1), transparent 42%),
+    radial-gradient(980px 680px at 88% 10%, rgba(70, 190, 255, 0.12), transparent 38%),
+    radial-gradient(800px 320px at 99% 52%, rgba(250, 60, 38, 0.07), transparent 36%),
+    radial-gradient(900px 620px at 96% 28%, rgba(170, 0, 255, 0.13), transparent 34%),
+    radial-gradient(1160px 1140px at 92% 80%, rgba(255, 20, 140, 0.1), transparent 30%),
+     radial-gradient(980px 800px at 25% 52%, rgba(90, 0, 250, 0.13), transparent 29%),
+    radial-gradient(980px 800px at 1% 88%, rgba(00, 220, 220, 0.06), transparent 28%),
+    linear-gradient(180deg, #abf2 0%, #091625 36%, #07111b 68%, #050c14 100%);
   background-repeat: no-repeat;
 }
-
-/* Dashboard overlay layer: recreates the infographic's subtle square grid and white
-   highlight blooms above the base gradient. The grid alpha is baked into the line color
-   so it stays faint while the star particle layers remain fully visible above it. */
+/* • • MOBILE cont • • */
 body[data-page="welcome"] #starfield::after {
   content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.10), transparent 18%),
-    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.05), transparent 20%);
-  background-size: 32px 32px, 32px 32px, cover, cover;
-  background-repeat: repeat, repeat, no-repeat, no-repeat;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      repeating-radial-gradient(
+        circle at 16% 10%,
+        rgba(175, 90, 255, 0.06) 0 1px,
+        rgba(255, 255, 255, 0.01) 1px 2px,
+        rgba(255, 40, 125, 0.01) 1px 1px,
+        rgba(255, 255, 255, 0.021) 42px 83px
+      );
+    background-size:
+      auto;
+    background-repeat:no-repeat;
+    opacity: 0.95;
+  }
 }
+/* ↑ MOBILE-END ↑  */
 
 /* Dashboard welcome background cleanup: disable the shared noise film on the home page
    because the reference infographic does not use it and the new grid overlay replaces
@@ -478,7 +526,7 @@ body[data-page="welcome"] #stars1::after {
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
   -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
     inset 0 1px 0 rgba(255,255,255,0.06),

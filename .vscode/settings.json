@@ -148,6 +148,12 @@
     { "text": ".", "color": "#C999FF", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "//", "color": "#C999FF", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "*",  "color": "#FF7099", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "↑",  "color": "#00FFCA", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "↓",  "color": "#00FFCA", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "MOBILE-END",  "color": "#FF6B6B", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "MOBILE",  "color": "#ffa000", "backgroundColor": "#00000000", "isWholeLine": false },
+    { "text": "✦",  "color": "#00FFBA", "backgroundColor": "#00000000", "isWholeLine": false },
+    
     { "text": "#",  "color": "#77DD99", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "—",  "color": "#93C5FD", "backgroundColor": "#00000000", "isWholeLine": false },
     { "text": "-",  "color": "#93C5FD", "backgroundColor": "#00000000", "isWholeLine": false },
