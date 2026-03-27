@@ -4360,6 +4360,191 @@ function stabilizeDashboardBrandLogo() {
   }
 }
 
+function setupMobileChartGlassFallback() {
+  const dashboardRoot = document.getElementById('fc-dashboard-root');
+  const welcomeBody = document.body;
+  if (!dashboardRoot || !welcomeBody || welcomeBody.dataset.page !== 'welcome') {
+    return () => {};
+  }
+
+  const chartPanels = Array.from(dashboardRoot.querySelectorAll('.fc-chart-panel'));
+  if (!chartPanels.length || typeof window.matchMedia !== 'function') {
+    return () => {};
+  }
+
+  const starfield = document.getElementById('starfield');
+  const stars = document.getElementById('stars');
+  const stars1 = document.getElementById('stars1');
+  const stars2 = document.getElementById('stars2');
+  const stars3 = document.getElementById('stars3');
+  if (!starfield || !stars || !stars1 || !stars2 || !stars3) {
+    return () => {};
+  }
+
+  // Mobile chart glass fallback:
+  // targets the welcome dashboard chart panels only, building a mirrored copy of the
+  // live welcome-page backdrop inside each panel and keeping that viewport slice aligned
+  // during scroll, resize, and iOS browser chrome changes. Desktop keeps the native
+  // backdrop-filter path.
+  const mobileChartGlassQuery = window.matchMedia('(max-width: 819px)');
+  let syncFrame = 0;
+  let mirrorsReady = false;
+
+  const mirroredLayerSpecs = [
+    { key: 'starfield-base', source: starfield, pseudo: null, full: true },
+    { key: 'starfield-before', source: starfield, pseudo: '::before', full: true },
+    { key: 'starfield-after', source: starfield, pseudo: '::after', full: true },
+    { key: 'stars-base', source: stars, pseudo: null },
+    { key: 'stars-after', source: stars, pseudo: '::after' },
+    { key: 'stars1-base', source: stars1, pseudo: null },
+    { key: 'stars1-after', source: stars1, pseudo: '::after' },
+    { key: 'stars2-base', source: stars2, pseudo: null },
+    { key: 'stars2-after', source: stars2, pseudo: '::after' },
+    { key: 'stars3-base', source: stars3, pseudo: null },
+    { key: 'stars3-after', source: stars3, pseudo: '::after' }
+  ];
+
+  const mirrorLayerProperties = [
+    'top',
+    'left',
+    'right',
+    'bottom',
+    'width',
+    'height',
+    'background',
+    'background-size',
+    'background-repeat',
+    'background-position',
+    'box-shadow',
+    'border-radius',
+    'opacity',
+    'filter',
+    'animation'
+  ];
+
+  const applyMirroredLayerStyles = (target, source, pseudo = null, isFullLayer = false) => {
+    const computed = window.getComputedStyle(source, pseudo);
+    if (isFullLayer) {
+      target.style.top = '0px';
+      target.style.left = '0px';
+      target.style.right = '0px';
+      target.style.bottom = '0px';
+      target.style.width = 'auto';
+      target.style.height = 'auto';
+    }
+
+    mirrorLayerProperties.forEach((propertyName) => {
+      const propertyValue = computed.getPropertyValue(propertyName);
+      if (!propertyValue) return;
+      if (isFullLayer && (propertyName === 'top' || propertyName === 'left' || propertyName === 'right' || propertyName === 'bottom' || propertyName === 'width' || propertyName === 'height')) {
+        return;
+      }
+      target.style.setProperty(propertyName, propertyValue);
+    });
+
+    if (pseudo) {
+      const sourceFilter = window.getComputedStyle(source).getPropertyValue('filter');
+      if (sourceFilter && sourceFilter !== 'none' && (!target.style.filter || target.style.filter === 'none')) {
+        target.style.filter = sourceFilter;
+      }
+    }
+  };
+
+  const ensurePanelMirrors = () => {
+    if (mirrorsReady) return;
+
+    chartPanels.forEach((panel) => {
+      let mirrorHost = panel.querySelector('.fc-chart-panel__faux-backdrop');
+      let mirrorViewport = mirrorHost?.querySelector('.fc-chart-panel__faux-viewport');
+
+      if (!mirrorHost || !mirrorViewport) {
+        mirrorHost = document.createElement('div');
+        mirrorHost.className = 'fc-chart-panel__faux-backdrop';
+        mirrorViewport = document.createElement('div');
+        mirrorViewport.className = 'fc-chart-panel__faux-viewport';
+        mirrorHost.appendChild(mirrorViewport);
+        panel.insertBefore(mirrorHost, panel.firstChild);
+      }
+
+      mirroredLayerSpecs.forEach((spec) => {
+        let mirrorLayer = mirrorViewport.querySelector(`[data-mirror-key="${spec.key}"]`);
+        if (!mirrorLayer) {
+          mirrorLayer = document.createElement('div');
+          mirrorLayer.className = `fc-chart-panel__faux-layer${spec.full ? ' fc-chart-panel__faux-layer--full' : ''}`;
+          mirrorLayer.dataset.mirrorKey = spec.key;
+          mirrorViewport.appendChild(mirrorLayer);
+        }
+        applyMirroredLayerStyles(mirrorLayer, spec.source, spec.pseudo, Boolean(spec.full));
+      });
+    });
+
+    mirrorsReady = true;
+  };
+
+  const clearPanelBackdropVars = () => {
+    chartPanels.forEach((panel) => {
+      panel.style.removeProperty('--fc-panel-bg-width');
+      panel.style.removeProperty('--fc-panel-bg-height');
+      panel.style.removeProperty('--fc-panel-bg-pos-x');
+      panel.style.removeProperty('--fc-panel-bg-pos-y');
+    });
+  };
+
+  const syncPanelBackdropVars = () => {
+    syncFrame = 0;
+
+    if (!mobileChartGlassQuery.matches) {
+      welcomeBody.classList.remove('fc-mobile-chart-glass-fallback');
+      clearPanelBackdropVars();
+      return;
+    }
+
+    ensurePanelMirrors();
+    const viewportWidth = `${window.innerWidth}px`;
+    const viewportHeight = `${window.innerHeight}px`;
+    welcomeBody.classList.add('fc-mobile-chart-glass-fallback');
+
+    chartPanels.forEach((panel) => {
+      const rect = panel.getBoundingClientRect();
+      panel.style.setProperty('--fc-panel-bg-width', viewportWidth);
+      panel.style.setProperty('--fc-panel-bg-height', viewportHeight);
+      panel.style.setProperty('--fc-panel-bg-pos-x', `${-rect.left}px`);
+      panel.style.setProperty('--fc-panel-bg-pos-y', `${-rect.top}px`);
+    });
+  };
+
+  const requestBackdropSync = () => {
+    if (syncFrame) return;
+    syncFrame = window.requestAnimationFrame(syncPanelBackdropVars);
+  };
+
+  if (typeof ResizeObserver === 'function') {
+    const panelResizeObserver = new ResizeObserver(requestBackdropSync);
+    chartPanels.forEach((panel) => {
+      panelResizeObserver.observe(panel);
+    });
+  }
+
+  window.addEventListener('resize', requestBackdropSync, { passive: true });
+  window.addEventListener('scroll', requestBackdropSync, { passive: true });
+  document.addEventListener('scroll', requestBackdropSync, { passive: true, capture: true });
+  window.addEventListener('orientationchange', requestBackdropSync);
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', requestBackdropSync, { passive: true });
+    window.visualViewport.addEventListener('scroll', requestBackdropSync, { passive: true });
+  }
+
+  if (typeof mobileChartGlassQuery.addEventListener === 'function') {
+    mobileChartGlassQuery.addEventListener('change', requestBackdropSync);
+  } else if (typeof mobileChartGlassQuery.addListener === 'function') {
+    mobileChartGlassQuery.addListener(requestBackdropSync);
+  }
+
+  requestBackdropSync();
+  return requestBackdropSync;
+}
+
 // Home menu: support external destinations (Trophy Room / Matchups) without impacting shared app.js navigation.
 // This file loads before deferred `app.js`, so we can intercept clicks and stop the default handler for these items.
 (() => {
@@ -4420,6 +4605,8 @@ function stabilizeDashboardBrandLogo() {
 })();
 
 // Initialize
+let syncMobileChartGlassFallbackLayer = () => {};
+
 window.initFantasyDashboard = function() {
   players = HP_DATA.map(normalizePlayer);
   // Ensure FPTS order from source stays dominant
@@ -4436,10 +4623,12 @@ window.initFantasyDashboard = function() {
   renderScatter();
   updateFilterButtons();
   wireEvents();
+  syncMobileChartGlassFallbackLayer();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   stabilizeDashboardBrandLogo();
+  syncMobileChartGlassFallbackLayer = setupMobileChartGlassFallback();
   window.initFantasyDashboard();
 });
 })();
