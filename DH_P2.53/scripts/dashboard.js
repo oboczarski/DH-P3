@@ -4011,13 +4011,13 @@ function drawScatterChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
-  // Dashboard scatter plot bottom-axis spacing:
-  // keep mobile untouched, but on desktop reserve a bit more bottom room so the
-  // x-axis labels/title sit farther from the plotted points without shrinking the chart.
+  // Dashboard scatter plot layout:
+  // keep the original bottom-axis spacing on desktop and mobile, while letting the
+  // desktop chart become taller through CSS-driven chart-host sizing only.
   const margin = {
     top: isMobile ? 10 : height * 0.02,
     right: width * 0.02,
-    bottom: isMobile ? 30 : Math.max(52, height * 0.11),
+    bottom: isMobile ? 30 : height * 0.085,
     left: isMobile ? 30 : width * 0.055
   };
   const innerWidth = width - margin.left - margin.right;
@@ -4071,7 +4071,7 @@ function drawScatterChart(containerId, data) {
     .tickValues(xTicks)
     .tickFormat(d => `${d}%`)
     .tickSize(0)
-    .tickPadding(isMobile ? 6 : 10);
+    .tickPadding(isMobile ? 6 : 8);
   const yAxis = d3.axisLeft(y)
     .tickValues([20, 25, 30, 35, 40])
     .tickSize(0)

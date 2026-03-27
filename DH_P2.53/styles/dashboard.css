@@ -1736,8 +1736,8 @@ body[data-page="welcome"] .username-area::before {
      - targets the home-page scatter panel only
      - increases the actual chart host height, not just the outer card shell
      - leaves mobile behavior untouched */
-  .fc-scatter-panel {min-height: 48em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
-  .fc-scatter-panel .fc-chart-container { min-height: 32em; }
+  .fc-scatter-panel {min-height: 51em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+  .fc-scatter-panel .fc-chart-container { min-height: 35em; }
   /* Desktop-only scatter label bump for readability. */
   .fc-scatter-panel .scatter-label { font-size: 12.5px; }
 }
