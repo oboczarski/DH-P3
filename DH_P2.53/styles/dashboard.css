@@ -525,7 +525,7 @@ body[data-page="welcome"] #stars1::after {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-chart)) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
   backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
@@ -2011,7 +2011,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-bar-panel .fc-chart-container { min-height: 28em; }
 
   .fc-chart-panel.fc-radar-panel {
-    padding: 0.05em 0.45em 0.75em;
+    padding: 0.05em 0.65em 0.75em 0.4em;
   }
 
   /* Radar center content: proportionally larger to match bigger chart */
