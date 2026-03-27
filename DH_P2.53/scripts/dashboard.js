@@ -4011,8 +4011,15 @@ function drawScatterChart(containerId, data) {
   const width = rect.width || 640;
   const height = rect.height || 360;
   const isMobile = window.innerWidth < 768;
-  // Tightened margins to reclaim space from removed tick marks (mobile-first)
-  const margin = { top: isMobile ? 10 : height * 0.02, right: width * 0.02, bottom: isMobile ? 30 : height * 0.085, left: isMobile ? 30 : width * 0.055 };
+  // Dashboard scatter plot bottom-axis spacing:
+  // keep mobile untouched, but on desktop reserve a bit more bottom room so the
+  // x-axis labels/title sit farther from the plotted points without shrinking the chart.
+  const margin = {
+    top: isMobile ? 10 : height * 0.02,
+    right: width * 0.02,
+    bottom: isMobile ? 30 : Math.max(52, height * 0.11),
+    left: isMobile ? 30 : width * 0.055
+  };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
@@ -4064,7 +4071,7 @@ function drawScatterChart(containerId, data) {
     .tickValues(xTicks)
     .tickFormat(d => `${d}%`)
     .tickSize(0)
-    .tickPadding(isMobile ? 6 : 8);
+    .tickPadding(isMobile ? 6 : 10);
   const yAxis = d3.axisLeft(y)
     .tickValues([20, 25, 30, 35, 40])
     .tickSize(0)

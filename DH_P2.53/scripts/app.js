@@ -5340,14 +5340,18 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     posTag.className = `player-tag modal-pos-tag ${player.pos}`;
     posTag.textContent = player.pos;
     modalHeaderLeftContainer.appendChild(posTag);
-    const teamKey = (player.team || 'FA').toUpperCase();
+    // Stats page modal header team source:
+    // when the modal is opened from the Stats page, prefer the cached `SZN.csv` team
+    // so the logo/tag ignores any external player-team fallbacks.
+    const statsPageTeam = state.isGameLogFromStatsPage ? state.statsPagePlayerData?.team : null;
+    const teamKey = (statsPageTeam || player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
     const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
     const teamLogoChip = document.createElement('div');
     teamLogoChip.className = 'player-tag modal-team-logo-chip';
     teamLogoChip.dataset.team = teamKey;
-    teamLogoChip.innerHTML = (player.team && player.team !== 'FA')
+    teamLogoChip.innerHTML = (teamKey && teamKey !== 'FA')
         ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="24" height="24" loading="eager">`
         : `<span>FA</span>`;
     modalHeaderLeftContainer.appendChild(teamLogoChip);

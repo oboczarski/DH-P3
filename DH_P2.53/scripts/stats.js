@@ -818,7 +818,10 @@
     const playerId = row.SLPR_ID || row.slpr_id || '';
     const name = row.PLAYER || row['PLAYER NAME'] || '';
     const pos = (row.POS || '').toUpperCase();
-    const team = (row.TM || '').toUpperCase() || (state.players?.[playerId]?.team || 'FA');
+    // Stats page team source of truth:
+    // keep table rows aligned to the `SZN.csv` team value instead of falling back to
+    // other player sources that can drift from the shipped season totals file.
+    const team = (row.TM || '').toUpperCase() || 'FA';
     const rank = toNumber(row.RK, { allowFloat: false });
     const age = toNumber(row.AGE) ?? 0;
     const gmPlayed = toNumber(row.G, { allowFloat: false });
@@ -2364,6 +2367,10 @@
         fpts: meta.fpts,
         ppg: meta.ppg,
         gamesPlayed: meta.gmPlayed,
+        // Stats page game logs modal source of truth:
+        // preserve the `SZN.csv` team/position so app.js can ignore external team fallbacks.
+        team: meta.team,
+        pos: meta.pos,
         posRank: ranks.posRank || null,
         overallRank: ranks.overallRank || null,
         ppgPosRank: ranks.ppgPosRank || null,

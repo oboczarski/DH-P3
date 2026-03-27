@@ -531,10 +531,10 @@ body[data-page="welcome"] #stars1::after {
       rgba(255,255,255,0.1) 14%,
       rgba(255,255,255,0.05) 20%,
       rgba(255,255,255,0.0) 30%,
-      rgba(255,255,255,0.0) 73%,
-      rgba(255,255,255,0.05) 80%,
-      rgba(255,255,255,0.1) 88%,
-      rgba(255,255,255,0.2) 96%,
+      rgba(255,255,255,0.0) 63%,
+      rgba(255,255,255,0.05) 70%,
+      rgba(255,255,255,0.1) 84%,
+      rgba(255,255,255,0.15) 96%,
       rgba(255,255,255,0.20) 100%
     );
   }
@@ -592,9 +592,9 @@ body[data-page="welcome"] #stars1::after {
     rgba(255,255,255,0) 36%,
     rgba(255,255,255,0) 64%,
     rgba(255,255,255,0.05) 74%,
-    rgba(255,255,255,0.15) 84%,
-    rgba(255,255,255,0.2) 92%,
-    rgba(255,255,255,0.25) 100%
+    rgba(255,255,255,0.10) 84%,
+    rgba(255,255,255,0.15) 92%,
+    rgba(255,255,255,0.20) 100%
   );
   animation: fc-specular-breathe var(--fc-gr-specular-duration) ease-in-out infinite;
   z-index: 3;
@@ -1732,8 +1732,12 @@ body[data-page="welcome"] .username-area::before {
     font-size: 0.98em;
   }
   
-  /* Scatter Panel */
-  .fc-scatter-panel {min-height: 45em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+  /* Dashboard scatter plot desktop-only sizing:
+     - targets the home-page scatter panel only
+     - increases the actual chart host height, not just the outer card shell
+     - leaves mobile behavior untouched */
+  .fc-scatter-panel {min-height: 48em;backdrop-filter: blur(3px);-webkit-backdrop-filter: blur(3px);}
+  .fc-scatter-panel .fc-chart-container { min-height: 32em; }
   /* Desktop-only scatter label bump for readability. */
   .fc-scatter-panel .scatter-label { font-size: 12.5px; }
 }

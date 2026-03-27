@@ -1942,6 +1942,27 @@ body[data-page="stats"] .stats-table-wrapper {
   letter-spacing: 0.05em;
 }
 
+/* Stats page team-logo rendering:
+   - targets only the Stats table and the Stats-page modal team chips
+   - removes the shared glow blur that softens small inline SVG logos here
+   - leaves logo treatment on other pages unchanged */
+body[data-page="stats"] .stats-table img.team-logo,
+body[data-page="stats"] .modal-team-logo-chip img.team-logo {
+  object-fit: contain;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+body[data-page="stats"] .stats-table img.team-logo.glow,
+body[data-page="stats"] .modal-team-logo-chip img.team-logo.glow {
+  filter: none;
+}
+
+body[data-page="stats"] .stats-table img.team-logo.glow {
+  width: 20px;
+  height: 20px;
+}
+
 .stats-table .stats-rank-cell {
   font-weight: 700;
   letter-spacing: 0.08em;
