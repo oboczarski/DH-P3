@@ -757,25 +757,69 @@ body[data-page="welcome"] .username-area::before {
    desktop- and mobile-specific sizing lives in the media query blocks.
    ══════════════════════════════════════════════════════════════════════ */
 
-/* --- Segmented container: dark rounded pill track --- */
+/* --- Segmented container: liquid-glass translucent pill track ---
+   Uses backdrop-filter blur + saturate for true frosted glass where
+   the background shows through, tinted with a subtle gradient overlay.
+   Matches the dashboard's glass-refraction system at a fainter tier. */
 .fc-dashboard .fc-filter-group {
   display: flex;
   align-items: center;
   gap: 3px;
   padding: 3px;
   border-radius: 10px;
-  background: rgb(53 52 77 / 6%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  /* Translucent glass fill — lets the backdrop blur show through */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 65%),
+    linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(10,12,24,0.30) 100%);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.10);
   box-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.04);
+    0 0 0 0.5px rgba(255,255,255,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    0 2px 8px -2px rgba(0,0,0,0.30);
   flex-wrap: nowrap;
   flex-shrink: 0;
 }
 
+/* --- Segmented container specular edge ring ---
+   Thin bright arcs along top-left and bottom-right corners, mimicking
+   the .fc-glass::before system but much fainter for a pill-size element. */
+.fc-dashboard .fc-filter-group::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  padding: 1px;
+  background: linear-gradient(
+    155deg,
+    rgba(255,255,255,0.40) 0%,
+    rgba(255,255,255,0.12) 6%,
+    rgba(255,255,255,0.04) 15%,
+    transparent 25%,
+    transparent 75%,
+    rgba(255,255,255,0.03) 85%,
+    rgba(255,255,255,0.08) 94%,
+    rgba(255,255,255,0.22) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
 /* --- Segment button base: reset all styles.css .filter-btn inheritance --- */
 .fc-dashboard .fc-filter-group .filter-btn {
-  all: unset;                             /* nuke inherited .filter-btn styles from styles.css */
+  all: unset;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -783,7 +827,7 @@ body[data-page="welcome"] .username-area::before {
   cursor: pointer;
   font-family: var(--font-family);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.50);
   border-radius: 8px;
   padding: 5px 12px;
   font-size: 0.82rem;
@@ -812,63 +856,57 @@ body[data-page="welcome"] .username-area::before {
 
 /* --- Hover: subtle brighten for inactive segments --- */
 .fc-dashboard .fc-filter-group .filter-btn:not(.active):hover {
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* --- Active segment: floating capsule indicator (iOS style) --- */
+/* --- Active segment: darker floating capsule within the glass ---
+   iOS uses a darker, more opaque element that "sinks" into the glass
+   rather than floating above it. Subtle inner-top specular highlight. */
 .fc-dashboard .fc-filter-group .filter-btn.active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.11);
-  border-radius: 17px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 50%),
+    rgba(40, 40, 55, 0.55);
   border: none;
   box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.09),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
+    0 0.5px 2px rgba(0, 0, 0, 0.35),
+    0 0 0 0.5px rgba(255,255,255,0.07),
+    inset 0 0.5px 0 rgba(255,255,255,0.12);
+  -webkit-backdrop-filter: blur(6px) saturate(1.3);
+  backdrop-filter: blur(6px) saturate(1.3);
   position: relative;
 }
 
-/* --- Active segment position-specific text colors + very slight tint ---
+/* --- Active segment position-specific text colors + very slight glass tint ---
    Each position gets its signature color on the label, plus a barely-
-   perceptible tinted background on the capsule itself. */
+   perceptible tinted glass background. Box-shadow stays neutral. */
 .fc-dashboard .fc-filter-group .filter-btn.active[data-position="ALL"] {
   color: rgba(255, 255, 255, 0.95);
 }
 .fc-dashboard .fc-filter-group .filter-btn.active[data-position="QB"] {
   color: #FF3A75da;
-  background: rgba(255, 58, 117, 0.08);
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 58, 117, 0.12),
-    inset 0 1px 0 rgba(255, 58, 117, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255,58,117,0.06) 0%, transparent 50%),
+    rgba(40, 40, 55, 0.55);
 }
 .fc-dashboard .fc-filter-group .filter-btn.active[data-position="RB"] {
   color: #00EBC7da;
-  background: rgba(0, 235, 199, 0.07);
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(0, 235, 199, 0.12),
-    inset 0 1px 0 rgba(0, 235, 199, 0.08);
+  background:
+    linear-gradient(180deg, rgba(0,235,199,0.05) 0%, transparent 50%),
+    rgba(40, 40, 55, 0.55);
 }
 .fc-dashboard .fc-filter-group .filter-btn.active[data-position="WR"] {
   color: #58A7FF;
-  background: rgba(88, 167, 255, 0.07);
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(88, 167, 255, 0.12),
-    inset 0 1px 0 rgba(88, 167, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(88,167,255,0.05) 0%, transparent 50%),
+    rgba(40, 40, 55, 0.55);
 }
 .fc-dashboard .fc-filter-group .filter-btn.active[data-position="TE"] {
   color: #B469FF;
-  background: rgba(180, 105, 255, 0.07);
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(180, 105, 255, 0.12),
-    inset 0 1px 0 rgba(180, 105, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(180,105,255,0.05) 0%, transparent 50%),
+    rgba(40, 40, 55, 0.55);
 }
 
 /* Player select trigger: glass-pill surface */
@@ -1444,12 +1482,12 @@ body[data-page="welcome"] .username-area::before {
   .fc-dashboard .fc-filter-group {
     gap: 3px;
     padding: 3px;
-    border-radius: 18px;
+    border-radius: 12px;
   }
   .fc-dashboard .fc-filter-group .filter-btn {
     padding: 4px 12px;
     font-size: 0.82rem;
-    border-radius: 8px;
+    border-radius: 9px;
   }
 }
 
@@ -1461,7 +1499,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-dashboard .fc-filter-group {
     gap: 2px;
     padding: 2px 2px;
-    border-radius: 21px;
+    border-radius: 12px;
   }
   .fc-dashboard .fc-filter-group .filter-btn {
     padding: 4px 6px;
