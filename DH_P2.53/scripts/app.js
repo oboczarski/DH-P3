@@ -9274,12 +9274,27 @@ function switchGameLogsModalTab(tabKey) {
             // Game Logs ownership tab: actively load shared ownership data on demand if the
             // background preload has not completed yet, so the tab is reliable on rosters/stats.
             if (!hasOwnershipContextLoaded()) {
-                loadOwnershipContextForUser().catch(() => {
-                    const activePid = state.currentGameLogsPlayer?.id || null;
-                    const bodyEl = document.getElementById('glOwnershipBody');
-                    if (!bodyEl || activePid !== pid || owPane.classList.contains('hidden')) return;
-                    bodyEl.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
-                });
+                const bodyEl = document.getElementById('glOwnershipBody');
+
+                // Ownership tab loading state:
+                // when the user opens the inline ownership pane before shared ownership
+                // league data is ready, show a visible loader immediately and then swap
+                // in the fully rendered ownership rows as soon as the async load resolves.
+                if (bodyEl) {
+                    bodyEl.innerHTML = '<div class="ownership-modal-empty">Ownership data is loading…</div>';
+                }
+
+                loadOwnershipContextForUser()
+                    .then(() => {
+                        const activePid = state.currentGameLogsPlayer?.id || null;
+                        if (activePid !== pid || owPane.classList.contains('hidden')) return;
+                        renderOwnershipInGameLogsPane(pid);
+                    })
+                    .catch(() => {
+                        const activePid = state.currentGameLogsPlayer?.id || null;
+                        if (!bodyEl || activePid !== pid || owPane.classList.contains('hidden')) return;
+                        bodyEl.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
+                    });
             }
         }
     } else {
