@@ -4375,9 +4375,7 @@ function setupMobileChartGlassFallback() {
   const starfield = document.getElementById('starfield');
   const stars = document.getElementById('stars');
   const stars1 = document.getElementById('stars1');
-  const stars2 = document.getElementById('stars2');
-  const stars3 = document.getElementById('stars3');
-  if (!starfield || !stars || !stars1 || !stars2 || !stars3) {
+  if (!starfield || !stars || !stars1) {
     return () => {};
   }
 
@@ -4397,11 +4395,7 @@ function setupMobileChartGlassFallback() {
     { key: 'stars-base', source: stars, pseudo: null },
     { key: 'stars-after', source: stars, pseudo: '::after' },
     { key: 'stars1-base', source: stars1, pseudo: null },
-    { key: 'stars1-after', source: stars1, pseudo: '::after' },
-    { key: 'stars2-base', source: stars2, pseudo: null },
-    { key: 'stars2-after', source: stars2, pseudo: '::after' },
-    { key: 'stars3-base', source: stars3, pseudo: null },
-    { key: 'stars3-after', source: stars3, pseudo: '::after' }
+    { key: 'stars1-after', source: stars1, pseudo: '::after' }
   ];
 
   const mirrorLayerProperties = [
@@ -4485,8 +4479,6 @@ function setupMobileChartGlassFallback() {
     chartPanels.forEach((panel) => {
       panel.style.removeProperty('--fc-panel-bg-width');
       panel.style.removeProperty('--fc-panel-bg-height');
-      panel.style.removeProperty('--fc-panel-bg-pos-x');
-      panel.style.removeProperty('--fc-panel-bg-pos-y');
     });
   };
 
@@ -4505,11 +4497,8 @@ function setupMobileChartGlassFallback() {
     welcomeBody.classList.add('fc-mobile-chart-glass-fallback');
 
     chartPanels.forEach((panel) => {
-      const rect = panel.getBoundingClientRect();
       panel.style.setProperty('--fc-panel-bg-width', viewportWidth);
       panel.style.setProperty('--fc-panel-bg-height', viewportHeight);
-      panel.style.setProperty('--fc-panel-bg-pos-x', `${-rect.left}px`);
-      panel.style.setProperty('--fc-panel-bg-pos-y', `${-rect.top}px`);
     });
   };
 
@@ -4526,13 +4515,10 @@ function setupMobileChartGlassFallback() {
   }
 
   window.addEventListener('resize', requestBackdropSync, { passive: true });
-  window.addEventListener('scroll', requestBackdropSync, { passive: true });
-  document.addEventListener('scroll', requestBackdropSync, { passive: true, capture: true });
   window.addEventListener('orientationchange', requestBackdropSync);
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', requestBackdropSync, { passive: true });
-    window.visualViewport.addEventListener('scroll', requestBackdropSync, { passive: true });
   }
 
   if (typeof mobileChartGlassQuery.addEventListener === 'function') {

@@ -583,19 +583,16 @@ body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart
   overflow: hidden;
   border-radius: inherit;
   z-index: 1;
-  opacity: 0.96;
+  opacity: 0.84;
   pointer-events: none;
 }
 
 body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-viewport {
-  position: absolute;
-  left: 0;
-  top: 0;
+  position: fixed;
+  inset: 0;
   width: var(--fc-panel-bg-width, 100vw);
   height: var(--fc-panel-bg-height, 100vh);
-  transform: translate3d(var(--fc-panel-bg-pos-x, 0px), var(--fc-panel-bg-pos-y, 0px), 0);
-  transform-origin: top left;
-  filter: url(#glass-refract-extrastrong) saturate(1.06) brightness(1.04);
+  filter: url(#glass-refract-strong) saturate(1.04) brightness(1.03);
 }
 
 body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-layer {
