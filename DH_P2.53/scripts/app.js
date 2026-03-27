@@ -97,7 +97,7 @@ const SHARED_STATS_KEY_SECTIONS = [
         items: [
             { abbr: 'CAR', desc: 'Carries' },
             { abbr: 'ELU', desc: 'Elusiveness Rating' },
-            { abbr: 'ExplRu%', desc: 'Explosive Rush Rate [% CAR of 10+ YDS]' },
+            { abbr: 'EXPLSV%', desc: 'Explosive Rush Rate [% CAR of 10+ YDS]' },
             { abbr: 'MTF', desc: 'Missed Tackles Forced' },
             { abbr: 'MTF/A', desc: 'Missed Tackles per Attempt' },
             { abbr: 'ru1D', desc: 'Rushing First Downs' },
@@ -3185,8 +3185,10 @@ const PLAYER_STAT_HEADER_MAP = {
     'RYOE': 'ryoe',
     'YCO': 'rush_yac',
     'YCO/A': 'yco_per_att',
-    // SZN view bridge: explosive rush rate from the CSV uses a dedicated rushing percentage key.
+    // Game Logs modal + shared stat labels: accept both legacy `ExplRu%` and new `EXPLSV%`
+    // season/rank CSV headers while keeping one internal rushing-percentage key.
     'ExplRu%': 'expl_ru_pct',
+    'EXPLSV%': 'expl_ru_pct',
     'MTF/A': 'mtf_per_att',
     'TGT': 'rec_tgt',
     'REC': 'rec',
@@ -3235,6 +3237,8 @@ function buildStatLabels() {
     labels['ppg'] = 'PPG';   // keep if used elsewhere
     labels['ts_per_rr'] = 'TS%';
     labels['fpoe'] = 'FPOE';
+    // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
+    labels['expl_ru_pct'] = 'EXPLSV%';
     return labels;
 }
 // Stats that must not use code-derived fallbacks; sheet is source of truth
