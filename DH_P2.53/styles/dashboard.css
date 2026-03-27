@@ -1035,8 +1035,8 @@ body[data-page="welcome"] .username-area::before {
 .fc-chart-header-top--bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75em;
+  justify-content: space-around !important;
+  gap: 2.75em !important;
   width: 100%;
 }
 
@@ -1059,8 +1059,9 @@ body[data-page="welcome"] .username-area::before {
 .fc-chart-header-top--scatter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   gap: 0.75em;
+  font-size: 1.1em;
 }
 
 .fc-chart-header-top {
@@ -1124,7 +1125,7 @@ body[data-page="welcome"] .username-area::before {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35em;
-  margin-top: 0.1em;
+  margin-top: 0.3em;
 }
 
 .fc-chart-helper--scatter {
@@ -1237,7 +1238,7 @@ body[data-page="welcome"] .username-area::before {
 }
 
 .fc-radar-score {
-  font-size: 2.35em;
+  font-size: 2.75em;
   font-weight: 900;
   color: white;
   line-height: 1;
@@ -1638,7 +1639,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-summary-card .fc-card__footer {margin-top: 0.1em;font-size: 1.55em;}
 
   .fc-chart-helper { font-size: 0.95em; }
-  .fc-chart-helper--scatter {font-size: 1em;align-self: end;font-weight: 400;font-style: italic;}
+  .fc-chart-helper--scatter {font-size: 1em;align-self: end;font-weight: 400;font-style: italic;margin-right: 3em;}
   .fc-chart-helper--radar {font-size: 0.92em;font-style: italic;text-shadow: 0 0 6px #7310ff;}
   .fc-scatter-subline {gap: 0em;}
 }
@@ -1658,14 +1659,14 @@ body[data-page="welcome"] .username-area::before {
 /* --- CHART PANELS (Desktop) --- */
 @media (min-width: 769px) {
   .fc-chart-panel {padding: 1em 1.65em;min-height: 43em;}
-  .fc-chart-panel .fc-card__title {font-size: 1.2em;}
+  .fc-chart-panel .fc-card__title {font-size: 1.4em;}
   .fc-chart-panel .fc-card__subtitle-text {}
-  .fc-subtitle-radar {font-size: 1em !important;}
-  .fc-subtitle-bar {font-size: 1em;}
+  .fc-subtitle-radar {font-size: 1.1em !important;}
+  .fc-subtitle-bar {font-size: 1.2em;}
   .fc-subtitle-scatter {font-size: 1.2em;}
 
   .fc-radar-label {
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: 700;
     color: #fe9d9d;
     text-transform: uppercase;
@@ -1673,7 +1674,7 @@ body[data-page="welcome"] .username-area::before {
     margin-bottom: -0.15em;
   }
   .fc-radar-meta {
-    font-size: 0.8em;
+    font-size: 1em;
     color: var(--text-secondary);
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -1682,7 +1683,7 @@ body[data-page="welcome"] .username-area::before {
 
   /* Legends */
   .fc-legend { font-size: 0.9em; gap: 0.5em; }
-  .fc-legend-inline { font-size: 1.2em; }
+  .fc-legend-inline {font-size: 1.22em;margin-right: 2.4em;}
 
   /* Performance Map desktop header: keep selector inline to the right of title/subtitle. */
   .fc-radar-panel .fc-chart-header--radar {
@@ -1746,7 +1747,9 @@ body[data-page="welcome"] .username-area::before {
 @media (max-width: 768px) {
   .fc-chart-panel {padding: 1.15em 1.15em 0.05em 1.15em;}
   .fc-chart-panel .fc-card__title {font-size: 2em;align-self: center;}
-  .fc-chart-panel .fc-card__subtitle-text {}
+  .fc-chart-panel .fc-card__subtitle-text {
+    margin-left: 9px;
+}
   .fc-subtitle-radar {font-size: 1.75em !important;margin-top: 4px;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 1px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
@@ -1774,14 +1777,14 @@ body[data-page="welcome"] .username-area::before {
   }
   .fc-bar-panel .fc-bar-title-line .fc-card__title,
   .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-    line-height: 1;
+    line-height: 1.1;
     align-self: auto;
   }
   .fc-bar-panel .fc-bar-title-line .fc-card__title {
     margin: 0;
   }
   .fc-bar-panel .fc-bar-title-line .fc-subtitle-bar {
-    margin: 0 0 0.05em 0 !important;
+    margin: 0em !important;
     padding: 0 !important;
   }
 
@@ -1796,13 +1799,13 @@ body[data-page="welcome"] .username-area::before {
   #player-select-dropdown {width: 98vw;max-width: 38em;padding: 0px;}
 
   /* Keep dropdown to the right of the title on mobile */
-  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: center;gap: 0.2em;}
+  .fc-chart-header-top {flex-direction: row;align-items: center;justify-content: space-around;gap: 3.75em;}
   .fc-chart-header-top .fc-custom-select {min-width: 19em;}
   /* PPG bar panel header: stack filter buttons below title on mobile */
   .fc-chart-header-top--bar {
     flex-direction: column;
     align-items: center;
-    gap: 0.3em;
+    gap: 0.75em !important;
     margin-left: 0px;
   }
   /* PPG Leaders inline subtitle: keep visible on mobile (no wrapping handled above) */
@@ -1880,7 +1883,7 @@ body[data-page="welcome"] .username-area::before {
 
   /* Scatter Legend: Bigger */
   .fc-legend-inline {
-    font-size: 1.9em;
+    font-size: 1.8em;
   }
 
   .fc-chart-helper {font-size: 1.25em;}
