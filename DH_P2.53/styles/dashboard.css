@@ -525,8 +525,8 @@ body[data-page="welcome"] #stars1::after {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-soft-bloom) blur(0px) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-soft-bloom) blur(0px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
     inset 0 1px 0 rgba(255,255,255,0.06),
@@ -552,56 +552,18 @@ body[data-page="welcome"] #stars1::after {
     rgba(255,255,255,0.50) 100%
   );
 }
+.fc-dashboard .fc-chart-panel::before {
+    content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
+  opacity: 0.8;
+}
 
 /* Chart panel chromatic edges — permanently hidden (static containers) */
 .fc-dashboard .fc-chart-panel.fc-glass::after {
   opacity: 0;
-}
-
-/* Mobile chart glass fallback — targets the home dashboard chart panels only.
-   Mobile WebKit does not reliably run SVG url() filters inside backdrop-filter, so
-   JS mirrors the real welcome-page background layers inside each chart panel and
-   this CSS filters that mirrored stack. The goal is to preserve the desktop glass
-   look on mobile without leaking into other pages or touching desktop behavior. */
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel.fc-glass::after {
-  opacity: 0;
-}
-
-.fc-chart-panel__faux-backdrop {
-  display: none;
-}
-
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-backdrop {
-  display: block;
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  z-index: 1;
-  opacity: 0.84;
-  pointer-events: none;
-}
-
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-viewport {
-  position: fixed;
-  inset: 0;
-  width: var(--fc-panel-bg-width, 100vw);
-  height: var(--fc-panel-bg-height, 100vh);
-  filter: url(#glass-refract-strong) saturate(1.04) brightness(1.03);
-}
-
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-layer {
-  position: absolute;
-  pointer-events: none;
-}
-
-body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart-panel .fc-chart-panel__faux-layer--full {
-  inset: 0;
 }
 
 /* Chart panel hover — no lift, no glow, no chromatic */
@@ -636,8 +598,8 @@ body[data-page="welcome"].fc-mobile-chart-glass-fallback .fc-dashboard .fc-chart
 
 /* Ensure card content renders above glass pseudo-element layers
    (::before at z:3, ::after at z:2 → content needs z:4+).
-   Exclude the chart faux-backdrop and .fc-card__glow so both stay behind content. */
-.fc-dashboard .fc-glass > *:not(.fc-card__glow):not(.fc-chart-panel__faux-backdrop) {
+   Exclude .fc-card__glow which must remain position:absolute. */
+.fc-dashboard .fc-glass > *:not(.fc-card__glow) {
   position: relative;
   z-index: 4;
 }
