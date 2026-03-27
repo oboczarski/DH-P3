@@ -540,25 +540,17 @@ body[data-page="welcome"] #stars1::after {
   padding: var(--fc-gr-specular-ring-width-chart);
   background: linear-gradient(
     158deg,
-    rgba(255,255,255,0.95) 0%,
-    rgba(255,255,255,0.15) 2%,
-    rgba(255,255,255,0.10) 12%,
+    rgba(255,255,255,0.4) 0%,
+    rgba(255,255,255,0.15) 10%,
+    rgba(255,255,255,0.10) 16%,
     rgba(255,255,255,0.05) 24%,
     rgba(255,255,255,0.0) 28%,
     rgba(255,255,255,0.0) 72%,
-    rgba(255,255,255,0.03) 80%,
-    rgba(255,255,255,0.08) 90%,
-    rgba(255,255,255,0.12) 98%,
-    rgba(255,255,255,0.50) 100%
+    rgba(255,255,255,0.03) 78%,
+    rgba(255,255,255,0.08) 84%,
+    rgba(255,255,255,0.12) 90%,
+    rgba(255,255,255,0.4) 100%
   );
-}
-.fc-dashboard .fc-chart-panel::before {
-    content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
-  opacity: 0.8;
 }
 
 /* Chart panel chromatic edges — permanently hidden (static containers) */
