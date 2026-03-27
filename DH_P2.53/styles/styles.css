@@ -1608,23 +1608,22 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 /* · · Filter Buttons · · */
 .filter-btn.active[data-position="QB"] {
   color: #FF3A75da;
-  box-shadow: inset 0 0 5px #FF3A7517 !important;
+  box-shadow: inset 0 0 7px #FF3A7527;
 }
 
 .filter-btn.active[data-position="RB"] {
   color: #00EBC7da;
-  box-shadow: inset 0 0px 1px 0px rgba(255,255,255,0.33), inset 0 1px 0px rgba(255,255,255,0.05),inset 0 0 10px #00EBC707 !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.025) 102%, transparent 70%),    rgba(255,255,255,0.07) !important;
+  box-shadow: inset 0 0 7px #00EBC727;
 }
 
 .filter-btn.active[data-position="WR"] {
   color: #58A7FF;
-  box-shadow: inset 0 0px 1px 0px rgba(255,255,255,0.2), inset 1px 1px 0px rgba(255,255,255,0.1), inset 0 0 5px #58A7FF25 !important;
+  box-shadow: inset 0 0 7px #58A7FF35;
 }
 
 .filter-btn.active[data-position="TE"] {
   color: #B469FF;
-  box-shadow: inset 0 0px 1px 0px rgba(255,255,255,0.3), inset 0 1px 0px rgba(255,255,255,0.09), inset 0 0 5px #B469FF25 !important;
+  box-shadow: inset 0 0 7px #B469FF35;
 }
 
 .filter-btn.active[data-position="FLX"] {
@@ -1634,9 +1633,9 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 .filter-btn.active {
   position: relative;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(155,165,205,0.03) 40%, transparent 68%),    rgba(155,165,185,0.015) !important;
+  background: rgba(0, 0, 0, 0.02);
   backdrop-filter: blur(1px) saturate(180%);
-  border: 0px solid rgba(250, 250, 250, 0.09);
+  border: 1px solid rgba(250, 250, 250, 0.09);
   border-radius: 7px;
   box-shadow: 0 1px 5px rgba(31, 38, 105, 0.01), inset 0 3px 10px rgba(255, 255, 255, 0.013);
 }
