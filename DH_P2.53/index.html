@@ -274,118 +274,124 @@
         <!-- Charts Section -->
         <div class="fc-grid-charts">
           <!-- Radar Chart -->
-          <div class="fc-card fc-glass fc-chart-panel fc-radar-panel">
-            <div class="fc-chart-header fc-chart-header--radar">
-              <div class="fc-chart-header-top">
-                <div class="fc-radar-title-line">
-                  <h3 class="fc-card__title">Performance Map &#8211;</h3>
-                  <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-radar">Stat Snapshot (Top 100)</p>
-                </div>
-              </div>
-              <!-- Performance Map player selector: moved below title/subtitle row per dashboard header layout update -->
-              <div class="fc-custom-select" id="player-select-container">
-                <div class="fc-select-trigger" id="player-select-trigger">
-                  <span id="player-select-label">Select Player</span>
-                  <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-                <div class="fc-select-dropdown" id="player-select-dropdown">
-                  <div class="fc-search-wrapper">
-                    <svg class="fc-icon-xs fc-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" class="fc-select-search" id="player-select-search" placeholder="Search..."
-                      autocomplete="off">
+          <div class="fc-card fc-glass fc-chart-panel fc-radar-panel fc-liquid-pane" data-liquid-pane="chart">
+            <div class="fc-liquid-pane__content">
+              <div class="fc-chart-header fc-chart-header--radar">
+                <div class="fc-chart-header-top">
+                  <div class="fc-radar-title-line">
+                    <h3 class="fc-card__title">Performance Map &#8211;</h3>
+                    <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-radar">Stat Snapshot (Top 100)</p>
                   </div>
-                  <ul class="fc-select-options" id="player-select-options">
-                    <!-- Options injected via JS -->
-                  </ul>
+                </div>
+                <!-- Performance Map player selector: moved below title/subtitle row per dashboard header layout update -->
+                <div class="fc-custom-select" id="player-select-container">
+                  <div class="fc-select-trigger" id="player-select-trigger">
+                    <span id="player-select-label">Select Player</span>
+                    <svg class="fc-icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  <div class="fc-select-dropdown" id="player-select-dropdown">
+                    <div class="fc-search-wrapper">
+                      <svg class="fc-icon-xs fc-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                      </svg>
+                      <input type="text" class="fc-select-search" id="player-select-search" placeholder="Search..."
+                        autocomplete="off">
+                    </div>
+                    <ul class="fc-select-options" id="player-select-options">
+                      <!-- Options injected via JS -->
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="fc-chart-container fc-radar-container">
-              <div id="radar-chart" class="fc-chart-canvas"></div>
-              <div class="fc-radar-center">
-                <div id="rating-label-top" class="fc-radar-label">POS RK</div>
-                <div id="rating-value" class="fc-radar-score">0</div>
-                <div id="rating-meta" class="fc-radar-meta"></div>
+              <div class="fc-chart-container fc-radar-container">
+                <div id="radar-chart" class="fc-chart-canvas"></div>
+                <div class="fc-radar-center">
+                  <div id="rating-label-top" class="fc-radar-label">POS RK</div>
+                  <div id="rating-value" class="fc-radar-score">0</div>
+                  <div id="rating-meta" class="fc-radar-meta"></div>
+                </div>
               </div>
-            </div>
 
-            <p class="fc-chart-helper fc-chart-helper--radar">✦ Tap Center for Stat Values &amp; Pos. Rankings</p>
+              <p class="fc-chart-helper fc-chart-helper--radar">✦ Tap Center for Stat Values &amp; Pos. Rankings</p>
 
-            <div class="fc-legend">
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-red"></span><span
-                  class="fc-legend-full">FPTS</span><span class="fc-legend-abbr">FPTS</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-orange"></span><span
-                  class="fc-legend-full">PPG</span><span class="fc-legend-abbr">PPG</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-yellow"></span><span
-                  class="fc-legend-full">REC</span><span class="fc-legend-abbr">REC</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-cyan"></span><span
-                  class="fc-legend-full">recYPG</span><span class="fc-legend-abbr">rYPG</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-violet"></span><span class="fc-legend-full">TS
-                  %</span><span class="fc-legend-abbr">TS%</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-emerald"></span><span
-                  class="fc-legend-full">YPRR</span><span class="fc-legend-abbr">YPRR</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-pink"></span><span
-                  class="fc-legend-full">1DRR</span><span class="fc-legend-abbr">1DRR</span></div>
-              <div class="fc-legend-item"><span class="fc-dot fc-bg-purple"></span><span
-                  class="fc-legend-full">IMP/G</span><span class="fc-legend-abbr">IMP</span></div>
+              <div class="fc-legend">
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-red"></span><span
+                    class="fc-legend-full">FPTS</span><span class="fc-legend-abbr">FPTS</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-orange"></span><span
+                    class="fc-legend-full">PPG</span><span class="fc-legend-abbr">PPG</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-yellow"></span><span
+                    class="fc-legend-full">REC</span><span class="fc-legend-abbr">REC</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-cyan"></span><span
+                    class="fc-legend-full">recYPG</span><span class="fc-legend-abbr">rYPG</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-violet"></span><span class="fc-legend-full">TS
+                    %</span><span class="fc-legend-abbr">TS%</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-emerald"></span><span
+                    class="fc-legend-full">YPRR</span><span class="fc-legend-abbr">YPRR</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-pink"></span><span
+                    class="fc-legend-full">1DRR</span><span class="fc-legend-abbr">1DRR</span></div>
+                <div class="fc-legend-item"><span class="fc-dot fc-bg-purple"></span><span
+                    class="fc-legend-full">IMP/G</span><span class="fc-legend-abbr">IMP</span></div>
+              </div>
             </div>
           </div>
 
           <!-- Bar Chart -->
-          <div class="fc-card fc-glass fc-chart-panel fc-bar-panel">
-            <div class="fc-chart-header fc-chart-header--bar">
-              <div class="fc-chart-header-top fc-chart-header-top--bar">
-                <div class="fc-bar-title-line">
-                  <h3 class="fc-card__title">PPG Leaders &#8211;</h3>
-                  <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Positional Leaders (Top 8)</p>
+          <div class="fc-card fc-glass fc-chart-panel fc-bar-panel fc-liquid-pane" data-liquid-pane="chart">
+            <div class="fc-liquid-pane__content">
+              <div class="fc-chart-header fc-chart-header--bar">
+                <div class="fc-chart-header-top fc-chart-header-top--bar">
+                  <div class="fc-bar-title-line">
+                    <h3 class="fc-card__title">PPG Leaders &#8211;</h3>
+                    <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Positional Leaders (Top 8)</p>
+                  </div>
+                  <div class="fc-filter-group" id="filter-buttons">
+                    <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
+                    <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
+                    <button data-filter="RB" data-position="RB" class="filter-btn">RB</button>
+                    <button data-filter="WR" data-position="WR" class="filter-btn">WR</button>
+                    <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
+                  </div>
                 </div>
-                <div class="fc-filter-group" id="filter-buttons">
-                  <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
-                  <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
-                  <button data-filter="RB" data-position="RB" class="filter-btn">RB</button>
-                  <button data-filter="WR" data-position="WR" class="filter-btn">WR</button>
-                  <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
-                </div>
+                <!-- PPG Leaders subtitle moved inline with title per header layout update -->
               </div>
-              <!-- PPG Leaders subtitle moved inline with title per header layout update -->
-            </div>
-            <div class="fc-chart-container">
-              <div id="bar-chart" class="fc-chart-canvas"></div>
+              <div class="fc-chart-container">
+                <div id="bar-chart" class="fc-chart-canvas"></div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Scatter Plot Section (Replaces Leaderboard) -->
-        <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel">
-          <div class="fc-chart-header fc-chart-header--scatter">
-            <div class="fc-chart-header-top fc-chart-header-top--scatter">
-              <h3 class="fc-card__title">Consistency Rate vs. Ceiling Grid</h3>
-              <div class="fc-legend-inline fc-scatter-legend" role="group" aria-label="Scatter position filter">
-                <button class="fc-legend-item" type="button" data-pos="QB"><span
-                    class="fc-dot fc-pos-qb-dot"></span>QB</button>
-                <button class="fc-legend-item" type="button" data-pos="RB"><span
-                    class="fc-dot fc-pos-rb-dot"></span>RB</button>
-                <button class="fc-legend-item" type="button" data-pos="WR"><span
-                    class="fc-dot fc-pos-wr-dot"></span>WR</button>
-                <button class="fc-legend-item" type="button" data-pos="TE"><span
-                    class="fc-dot fc-pos-te-dot"></span>TE</button>
+        <div class="fc-card fc-glass fc-chart-panel fc-scatter-panel fc-liquid-pane" data-liquid-pane="chart">
+          <div class="fc-liquid-pane__content">
+            <div class="fc-chart-header fc-chart-header--scatter">
+              <div class="fc-chart-header-top fc-chart-header-top--scatter">
+                <h3 class="fc-card__title">Consistency Rate vs. Ceiling Grid</h3>
+                <div class="fc-legend-inline fc-scatter-legend" role="group" aria-label="Scatter position filter">
+                  <button class="fc-legend-item" type="button" data-pos="QB"><span
+                      class="fc-dot fc-pos-qb-dot"></span>QB</button>
+                  <button class="fc-legend-item" type="button" data-pos="RB"><span
+                      class="fc-dot fc-pos-rb-dot"></span>RB</button>
+                  <button class="fc-legend-item" type="button" data-pos="WR"><span
+                      class="fc-dot fc-pos-wr-dot"></span>WR</button>
+                  <button class="fc-legend-item" type="button" data-pos="TE"><span
+                      class="fc-dot fc-pos-te-dot"></span>TE</button>
+                </div>
+              </div>
+              <div class="fc-scatter-subline">
+                <p class="fc-card__subtitle-text fc-subtitle-scatter">CSTY % vs. CL — Landscape across Top 8 in PPG at
+                  each position</p>
+                <span class="fc-chart-helper fc-chart-helper--scatter">✦ Tap Data Points for Values &amp; Pos.
+                  Rankings</span>
               </div>
             </div>
-            <div class="fc-scatter-subline">
-              <p class="fc-card__subtitle-text fc-subtitle-scatter">CSTY % vs. CL — Landscape across Top 8 in PPG at
-                each position</p>
-              <span class="fc-chart-helper fc-chart-helper--scatter">✦ Tap Data Points for Values &amp; Pos.
-                Rankings</span>
+            <div class="fc-chart-container">
+              <div id="scatter-chart" class="fc-chart-canvas"></div>
             </div>
-          </div>
-          <div class="fc-chart-container">
-            <div id="scatter-chart" class="fc-chart-canvas"></div>
           </div>
         </div>
       </main>
@@ -530,11 +536,11 @@
   </div>
 
   <script defer src="scripts/app.js?v=20260116"></script>
+  <script src="scripts/vendor/html2canvas.min.js"></script>
+  <script src="scripts/vendor/liquidGL.js"></script>
   <script src="scripts/dh-scramble.js"></script>
   <script src="scripts/dashboard.js"></script>
-  <!-- Welcome dashboard mobile glass renderer: rebuilds the chart-panel refraction on iOS/WebKit
-       with a single fixed WebGL layer, while desktop keeps the existing CSS/SVG path. -->
-  <script src="scripts/dashboard-glass-renderer.js"></script>
+  <script src="scripts/dashboard-liquid-glass.js"></script>
 </body>
 
 </html>

@@ -3563,18 +3563,28 @@ function renderSelectedDetails() {
   setText('rating-meta', 'POS•RK');
 }
 
+// Welcome dashboard liquid glass: keep the chart-panel lens geometry in sync with
+// the page layout without rebuilding the shared renderer on every chart redraw.
+function syncDashboardLiquidGlass(options = {}) {
+  if (typeof window.refreshDashboardLiquidGlass === 'function') {
+    window.refreshDashboardLiquidGlass(options);
+  }
+}
+
 function renderRadar() {
   const player = getSelected();
   const data = buildRadarDataset(player);
   setRadarPalette(player.position);
   updateLegendForPosition(player.position);
   drawRadarChart('radar-chart', data);
+  syncDashboardLiquidGlass();
 }
 
 function renderBar() {
   const data = ppgBarData(dashState.filter);
   if (!data.length) return;
   drawBarChart('bar-chart', data);
+  syncDashboardLiquidGlass();
 }
 
 // Update legend labels to match selected position's radar rings
@@ -3614,6 +3624,7 @@ function applyScatterFilter(pos) {
   const filtered = selected === 'ALL' ? scatterAll : scatterAll.filter(p => p.position === selected);
   drawScatterChart('scatter-chart', filtered);
   updateScatterLegend(selected);
+  syncDashboardLiquidGlass();
 }
 
 // Event wiring
@@ -3656,6 +3667,7 @@ function wireEvents() {
     renderRadar();
     renderBar();
     renderScatter();
+    syncDashboardLiquidGlass({ capture: true });
   }, 200));
 
   wireScatterLegend();
@@ -4421,12 +4433,6 @@ function stabilizeDashboardBrandLogo() {
 
 // Initialize
 window.initFantasyDashboard = function() {
-  // Welcome dashboard glass renderer:
-  // keep desktop on the existing CSS/SVG path, but let the mobile renderer rebuild
-  // itself after the charts finish rendering so panel sizes and clipping bounds are final.
-  if (typeof window.destroyDashboardGlassRenderer === 'function') {
-    window.destroyDashboardGlassRenderer();
-  }
   players = HP_DATA.map(normalizePlayer);
   // Ensure FPTS order from source stays dominant
   players.sort((a,b) => b.stats.fpts - a.stats.fpts);
@@ -4442,8 +4448,10 @@ window.initFantasyDashboard = function() {
   renderScatter();
   updateFilterButtons();
   wireEvents();
-  if (typeof window.initDashboardGlassRenderer === 'function') {
-    window.initDashboardGlassRenderer();
+  // Welcome dashboard liquid glass: initialize once after the chart panels are
+  // rendered so the vendor lens system can capture the final panel geometry.
+  if (typeof window.initDashboardLiquidGlass === 'function') {
+    window.initDashboardLiquidGlass();
   }
 };
 

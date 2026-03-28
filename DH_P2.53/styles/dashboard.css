@@ -254,25 +254,6 @@ body[data-page="welcome"] #noise-overlay {
   display: none;
 }
 
-/* Welcome dashboard mobile glass renderer host:
-   fixed full-viewport WebGL canvas that paints only inside the three chart panels,
-   above the welcome starfield and below all dashboard content/interactions. */
-body[data-page="welcome"] #fc-dashboard-glass-renderer {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 5;
-  display: block;
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-body[data-page="welcome"].fc-dashboard-glass-renderer-active #fc-dashboard-glass-renderer {
-  opacity: 1;
-}
-
 /* Dashboard animated star particles: keep every existing DOM star layer above the new
    infographic-style backdrop so the home page still has the same motion and density. */
 body[data-page="welcome"] #stars,
@@ -586,29 +567,35 @@ body[data-page="welcome"] #stars1::after {
     0 2px 12px -4px rgba(0,0,0,0.3);
 }
 
-/* Mobile welcome chart glass renderer integration:
-   when the fixed WebGL layer is active, the three dashboard chart panels stop using
-   mobile backdrop-filter so Safari/WebKit does not drop or override the custom pass. */
-@media (max-width: 768px) {
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-scatter-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-scatter-panel {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
+/* Welcome dashboard liquid glass: when the vendor lens is active, the chart shells
+   become transparent targets so the shared WebGL canvas owns the glass rendering. */
+body[data-page="welcome"].fc-liquid-glass-active .fc-dashboard .fc-liquid-pane {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  z-index: 20;
+}
 
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.042) 0%, rgba(255,255,255,0.014) 36%, transparent 58%),
-      linear-gradient(160deg, rgba(255,255,255,0.045) 0%, rgba(15,18,30,0.24) 100%);
-  }
+body[data-page="welcome"].fc-liquid-glass-active .fc-dashboard .fc-liquid-pane::before,
+body[data-page="welcome"].fc-liquid-glass-active .fc-dashboard .fc-liquid-pane::after {
+  content: none;
+}
 
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.026) 36%, transparent 58%),
-      linear-gradient(160deg, rgba(255,255,255,0.075) 0%, rgba(12,16,28,0.34) 100%);
-  }
+/* Welcome dashboard liquid glass content wrapper: the vendor target shell disables
+   pointer events, so this inner wrapper restores interaction for charts and controls. */
+.fc-dashboard .fc-liquid-pane__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 100%;
+  pointer-events: auto;
+  position: relative;
+  z-index: 4;
+}
+
+.fc-dashboard .fc-liquid-pane__content > * {
+  pointer-events: auto;
 }
 
 /* Chart panel specular override — MOBILE ONLY.
