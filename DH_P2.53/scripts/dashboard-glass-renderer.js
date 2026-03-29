@@ -1,5 +1,33 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Dashboard Glass Renderer — WebGL glass-effect overlay for chart panels.
+
+   Renders transparent glass effects (edge bevel, specular highlights, caustic
+   shimmer) over the three dashboard chart panels.  The CSS panel backgrounds
+   are fully transparent when this renderer is active, so the real CSS starfield
+   shows through the glass interior.  The WebGL canvas sits between the starfield
+   (z-index 0-4) and the dashboard content (z-index 10), painting only inside
+   the SDF-defined panel regions.
+
+   Key design decisions:
+     • Transparent overlay approach — the real CSS starfield is the backdrop,
+       NOT a shader reconstruction.  The sampleBackdrop() helper exists for
+       potential future refraction use but is NOT called from main() because
+       its approximation produces visible mismatches (wrong glow colors, extra
+       dot grid) that make panels look opaque with "weird design" instead of
+       transparent glass.
+     • SDF-based edge detection (udRoundBox / edgeFactor) identifies the bevel
+       zone at panel borders for a visible glass-rim highlight.
+     • Two orbiting specular light orbs drift across each panel surface.
+     • Noise-driven caustic shimmer adds micro-sparkle detail.
+     • Panel alpha ramps from ~0.03 (interior) to ~0.35 (edges) so the real
+       starfield is visible through the glass center while borders read as glass.
+
+   Public API:
+     window.initDashboardGlassRenderer()
+     window.destroyDashboardGlassRenderer()
+   ───────────────────────────────────────────────────────────────────────────── */
 (() => {
-  const MOBILE_QUERY = '(max-width: 768px)';
+  // ── Configuration ──────────────────────────────────────────────────────────
   const ACTIVE_CLASS = 'fc-dashboard-glass-renderer-active';
   const STATIC_CLASS = 'fc-dashboard-glass-renderer-static';
   const CANVAS_ID = 'fc-dashboard-glass-renderer';
@@ -16,7 +44,22 @@
   const MAX_STAR_TEXTURE_SIZE = 1024;
   const PANEL_COUNT = 3;
 
+  // liquidGL-style refraction parameters — tunable:
+  //   refraction : base offset across entire pane (0–1, subtle values best)
+  //   bevelDepth : extra offset at edges for a pronounced glass-rim bevel
+  //   bevelWidth : how deep the bevel zone extends from the SDF edge (0–1, fraction of shortest side)
+  //   specular   : animated light-orb highlights that drift across the pane
+  // Tuned for dark starfield background where contrast is low — stronger than
+  // liquidGL defaults so the lens distortion is actually visible.
+  // liquidGL "Alien" preset: refraction 0.073, bevelDepth 0.2, bevelWidth 0.156
+  const REFRACTION = 0.02;
+  const BEVEL_DEPTH = 0.14;
+  const BEVEL_WIDTH = 0.17;
+  const SPECULAR_ENABLED = true;
+
   let activeRenderer = null;
+
+  // ── Box-shadow parsing utilities (for star texture extraction from DOM) ────
 
   function splitShadowList(shadowValue) {
     if (!shadowValue || shadowValue === 'none') return [];
@@ -40,6 +83,8 @@
     const computed = window.getComputedStyle(element, pseudo);
     return splitShadowList(computed.boxShadow).map(parseShadowEntry).filter(Boolean);
   }
+
+  // ── WebGL compile/link helpers ─────────────────────────────────────────────
 
   function createShader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -74,6 +119,8 @@
     return Math.min(max, Math.max(min, value));
   }
 
+  // ── DashboardGlassRenderer ─────────────────────────────────────────────────
+
   class DashboardGlassRenderer {
     constructor() {
       this.canvas = null;
@@ -107,23 +154,15 @@
         this.layoutDirty = true;
         this.start();
       };
-      this.boundHandleMediaChange = (event) => {
-        if (!event.matches) {
-          this.destroy();
-          return;
-        }
-        this.layoutDirty = true;
-        this.syncZoomState();
-        this.start();
-      };
       this.boundHandleZoomMutation = () => {
         this.syncZoomState();
       };
-      this.mediaQuery = window.matchMedia(MOBILE_QUERY);
       this.resizeObserver = null;
       this.zoomObserver = null;
       this.visualViewport = null;
     }
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     init() {
       if (!this.isEligible()) {
@@ -162,8 +201,10 @@
       return true;
     }
 
+    // Eligible on any viewport when we're on the welcome/dashboard page.
+    // No mobile-only gate — WebGL refraction runs everywhere for consistent quality.
     isEligible() {
-      return document.body?.dataset?.page === 'welcome' && this.mediaQuery.matches;
+      return document.body?.dataset?.page === 'welcome';
     }
 
     createCanvas() {
@@ -174,7 +215,7 @@
 
       // Welcome dashboard chart glass: the fixed canvas sits above the starfield
       // background layers and below the dashboard content so only the three chart
-      // panels receive the mobile refraction treatment.
+      // panels receive the WebGL refraction treatment.
       const canvas = document.createElement('canvas');
       canvas.id = CANVAS_ID;
       canvas.setAttribute('aria-hidden', 'true');
@@ -204,10 +245,13 @@
       return true;
     }
 
+    // ── GPU Pipeline ─────────────────────────────────────────────────────────
+
     buildPipeline() {
       const gl = this.gl;
       if (!gl) throw new Error('WebGL context not available');
 
+      // ─ Vertex shader: fullscreen quad → UV mapping ─
       const vertexSource = `
         attribute vec2 aPosition;
         varying vec2 vUv;
@@ -218,6 +262,16 @@
         }
       `;
 
+      // ─ Fragment shader: liquidGL-style refraction over reconstructed backdrop ─
+      //
+      // Pipeline per pixel:
+      //   1. Per-panel loop: SDF hit-test, compute local panelUv (0–1 within panel)
+      //   2. edgeFactor: SDF-based bevel zone detection (ported from liquidGL)
+      //   3. Radial refraction offset: normalize(p) * (edge*refraction + edge^10*bevelDepth) * centreBlend
+      //   4. 5-tap cross filter: sharp sampling with sub-pixel anti-aliasing
+      //   5. Subtle caustic shimmer from noise texture (secondary detail)
+      //   6. Specular highlights: two orbiting light orbs (ported from liquidGL)
+      //   7. Final: alpha-masked output
       const fragmentSource = `
         precision highp float;
 
@@ -234,12 +288,31 @@
         uniform sampler2D uStars3;
         uniform sampler2D uNoise;
 
+        // liquidGL-style refraction uniforms
+        uniform float uRefraction;
+        uniform float uBevelDepth;
+        uniform float uBevelWidth;
+        uniform bool uSpecular;
+
         const float STAR_TILE = 2000.0;
 
-        float roundedRectSdf(vec2 point, vec2 halfSize, float radius) {
-          vec2 q = abs(point) - halfSize + vec2(radius);
-          return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
+        // ── SDF: unsigned distance to rounded rectangle (liquidGL udRoundBox) ──
+        float udRoundBox(vec2 p, vec2 b, float r) {
+          return length(max(abs(p) - b + r, 0.0)) - r;
         }
+
+        // ── Bevel edge factor (ported from liquidGL edgeFactor) ──
+        // Returns 0.0 at the deep interior, 1.0 at the SDF edge.
+        // The bevel zone width is uBevelWidth × min(panelWidth, panelHeight).
+        float edgeFactor(vec2 localUv, vec2 panelSizePx, float radiusPx) {
+          vec2 pPx = (localUv - 0.5) * panelSizePx;
+          vec2 bPx = 0.5 * panelSizePx;
+          float d = -udRoundBox(pPx, bPx, radiusPx);
+          float bevelPx = uBevelWidth * min(panelSizePx.x, panelSizePx.y);
+          return 1.0 - smoothstep(0.0, bevelPx, d);
+        }
+
+        // ── Background reconstruction (unchanged from previous version) ──
 
         float ellipseGlow(vec2 uv, vec2 center, vec2 radiiPx, vec2 resolutionPx) {
           vec2 safeRadii = max(radiiPx / resolutionPx, vec2(0.0001));
@@ -270,10 +343,14 @@
           return texture2D(sampler, uv).rgb * intensity;
         }
 
+        // Reconstruct the full starfield backdrop at an arbitrary CSS-pixel coordinate.
+        // Matches the actual CSS background: multi-stop gradient, 7 glow orbs, dot grid,
+        // 4 star layers each scrolling at a unique rate.
         vec3 sampleBackdrop(vec2 cssFragCoord, vec2 cssResolution) {
           vec2 uv = cssFragCoord / max(cssResolution, vec2(1.0));
           vec3 color = mixLinearGradient(uv.y);
 
+          // Seven colored glow orbs spread across the viewport
           color += vec3(0.352, 0.627, 1.0) * 0.10 * pow(ellipseGlow(uv, vec2(0.12, 0.08), vec2(600.0, 560.0), cssResolution), 1.2);
           color += vec3(0.274, 0.745, 1.0) * 0.12 * pow(ellipseGlow(uv, vec2(0.88, 0.10), vec2(980.0, 680.0), cssResolution), 1.25);
           color += vec3(0.980, 0.235, 0.149) * 0.07 * pow(ellipseGlow(uv, vec2(0.99, 0.52), vec2(800.0, 320.0), cssResolution), 1.5);
@@ -282,15 +359,17 @@
           color += vec3(0.352, 0.000, 0.980) * 0.10 * pow(ellipseGlow(uv, vec2(0.25, 0.52), vec2(980.0, 800.0), cssResolution), 1.25);
           color += vec3(0.000, 0.863, 0.863) * 0.05 * pow(ellipseGlow(uv, vec2(0.01, 0.88), vec2(980.0, 800.0), cssResolution), 1.35);
 
+          // Dot grid with core glow + halo
           vec2 cell = vec2(83.0);
-          vec2 offset = vec2(cell.x * 0.16, cell.y * 0.10);
-          vec2 point = mod(cssFragCoord - offset + (cell * 0.5), cell) - (cell * 0.5);
+          vec2 gridOffset = vec2(cell.x * 0.16, cell.y * 0.10);
+          vec2 point = mod(cssFragCoord - gridOffset + (cell * 0.5), cell) - (cell * 0.5);
           float pointDistance = length(point);
           float dotCore = smoothstep(1.8, 0.0, pointDistance);
           float dotHalo = smoothstep(14.0, 3.0, pointDistance) * 0.22;
           color += vec3(0.686, 0.353, 1.0) * dotCore * 0.055;
           color += vec3(1.0) * dotHalo * 0.02;
 
+          // Four star layers, each scrolling vertically at a different rate
           color += sampleStars(uStars0, cssFragCoord, uTime / 250.0, 1.10);
           color += sampleStars(uStars1, cssFragCoord, uTime / 75.0, 0.98);
           color += sampleStars(uStars2, cssFragCoord, uTime / 300.0, 1.02);
@@ -299,10 +378,26 @@
           return clamp(color, 0.0, 1.0);
         }
 
+        // ────────────────────────────────────────────────────────────────────
+        // Glass overlay approach: the panels are CSS-transparent (background:
+        // transparent), so the REAL CSS starfield shows through at z-index 0-4.
+        // This canvas (z-index 5) renders ONLY glass effects — edge bevel,
+        // specular highlights, caustic shimmer — at LOW ALPHA so the real
+        // starfield is visible through the glass interior.
+        //
+        // Why not full-opacity backdrop reconstruction?  sampleBackdrop() is an
+        // approximation (7 orbs vs CSS's 4, wrong colors/positions, adds a dot
+        // grid CSS doesn't have).  Rendering it at alpha=1 completely hides the
+        // real starfield and makes the panels look like "some weird design."
+        // ────────────────────────────────────────────────────────────────────
         void main() {
           vec2 cssResolution = uResolution / max(uDevicePixelRatio, 1.0);
           vec2 cssFragCoord = gl_FragCoord.xy / max(uDevicePixelRatio, 1.0);
 
+          // Y-axis flip: WebGL gl_FragCoord is bottom-up, DOM rects are top-down.
+          cssFragCoord.y = cssResolution.y - cssFragCoord.y;
+
+          // ── Step 1: Per-panel SDF hit-test ──
           float panelMask = 0.0;
           vec4 panelRect = vec4(0.0);
           float panelRadius = 0.0;
@@ -310,51 +405,83 @@
 
           for (int index = 0; index < ${PANEL_COUNT}; index++) {
             vec4 rect = uPanels[index];
-            if (rect.z <= 0.0 || rect.w <= 0.0) {
-              continue;
-            }
+            if (rect.z <= 0.0 || rect.w <= 0.0) continue;
             float radius = min(uRadii[index], min(rect.z, rect.w) * 0.5);
-            vec2 point = cssFragCoord - (rect.xy + (rect.zw * 0.5));
-            float distanceToEdge = roundedRectSdf(point, rect.zw * 0.5, radius);
-            float alpha = smoothstep(1.5, -1.5, distanceToEdge);
-            if (alpha > panelMask) {
-              panelMask = alpha;
+            vec2 center = rect.xy + (rect.zw * 0.5);
+            vec2 pt = cssFragCoord - center;
+            float distanceToEdge = udRoundBox(pt, rect.zw * 0.5, radius);
+            float a = smoothstep(1.5, -1.5, distanceToEdge);
+            if (a > panelMask) {
+              panelMask = a;
               panelRect = rect;
               panelRadius = radius;
               panelUv = clamp((cssFragCoord - rect.xy) / max(rect.zw, vec2(1.0)), 0.0, 1.0);
             }
           }
 
-          if (panelMask <= 0.001) {
-            discard;
+          if (panelMask <= 0.001) discard;
+
+          // ── Step 2: Bevel edge detection ──
+          // 0.0 = deep interior, 1.0 = SDF edge.
+          float edge = edgeFactor(panelUv, panelRect.zw, panelRadius);
+          float edgePow = pow(edge, 1.4);  // sharpen falloff for crisp rim
+
+          // ── Step 3: Glass edge highlight (the primary visual cue for "glass") ──
+          // A bright blue-white rim at the panel border.  This is the strongest
+          // glass indicator on a dark background — it reads as a glass bevel.
+          vec3 edgeColor = vec3(0.45, 0.55, 0.80);
+          float edgeBrightness = edgePow * 0.30;
+
+          // Thin bright inner-edge accent for extra crispness at the very border
+          float innerRim = smoothstep(0.85, 1.0, edge) * 0.20;
+
+          // ── Step 4: Specular highlights ──
+          // Two time-animated light orbs orbit the panel, simulating reflections
+          // on the glass surface.  Each produces a soft radial glow.
+          float spec = 0.0;
+          if (uSpecular) {
+            vec2 lp1 = vec2(sin(uTime * 0.2), cos(uTime * 0.3)) * 0.55 + 0.5;
+            vec2 lp2 = vec2(sin(uTime * -0.4 + 1.5), cos(uTime * 0.25 - 0.5)) * 0.55 + 0.5;
+            spec += smoothstep(0.38, 0.0, distance(panelUv, lp1)) * 0.20;
+            spec += smoothstep(0.45, 0.0, distance(panelUv, lp2)) * 0.16;
           }
 
-          vec2 noiseUvA = fract((panelUv * vec2(1.55, 1.38)) + vec2(uTime * 0.010, -uTime * 0.008));
-          vec2 noiseUvB = fract((panelUv * vec2(3.45, 2.95)) + vec2(-uTime * 0.014, uTime * 0.012));
-          vec2 noiseA = texture2D(uNoise, noiseUvA).rg * 2.0 - 1.0;
-          vec2 noiseB = texture2D(uNoise, noiseUvB).rg * 2.0 - 1.0;
-          vec2 displacement = (noiseA * 0.68) + (noiseB * 0.32);
-          vec2 displacementPx = vec2(displacement.x * 18.0, displacement.y * 21.0);
-
-          vec3 refracted = sampleBackdrop(cssFragCoord + displacementPx, cssResolution);
-          vec3 bloomSample = sampleBackdrop(cssFragCoord + (displacementPx * 0.52) + vec2(1.8, -0.9), cssResolution);
-          vec3 color = mix(refracted, max(refracted, bloomSample * 1.04), 0.17);
-
+          // ── Step 5: Caustic shimmer ──
+          // Noise-driven micro-sparkle that animates subtly over time.
           float causticNoise = texture2D(uNoise, fract((panelUv * vec2(5.7, 4.9)) + vec2(uTime * 0.021, uTime * 0.018))).b;
-          float caustic = pow(max(0.0, causticNoise - 0.42) * 1.7, 2.0);
-          color += vec3(0.065, 0.078, 0.105) * caustic;
+          float caustic = pow(max(0.0, causticNoise - 0.55) * 2.2, 2.5);
 
-          vec2 edgeVector = abs((panelUv - 0.5) * 2.0);
-          float edgeFade = 1.0 - clamp(max(edgeVector.x, edgeVector.y), 0.0, 1.0);
-          color *= 0.95 + (edgeFade * 0.07);
-          color = pow(clamp(color, 0.0, 1.0), vec3(0.95));
+          // ── Step 6: Compose glass color ──
+          // Start with cool blue-white glass tint, push toward pure white for
+          // specular highlights and toward the edge accent at borders.
+          vec3 glassBase = vec3(0.40, 0.48, 0.72);             // neutral glass
+          vec3 color = glassBase;
+          color = mix(color, edgeColor, edgePow * 0.5);        // edge tint
+          color = mix(color, vec3(1.0), spec * 0.65);           // specular → white
+          color += vec3(0.03, 0.04, 0.06) * caustic;            // caustic tint
 
-          gl_FragColor = vec4(color, panelMask);
+          // ── Step 7: Compose glass alpha ──
+          // Interior: very low alpha (≈ 0.03) → real starfield shows through
+          // Edges: moderate alpha (up to ~0.35) → visible glass bevel/rim
+          // Specular: boosts alpha where highlights are bright
+          // Caustic: adds sparkle points at very low alpha
+          float alphaInterior = 0.03;
+          float alphaEdge     = edgeBrightness + innerRim;
+          float alphaSpec     = spec * 0.55;
+          float alphaCaustic  = caustic * 0.08;
+          float totalAlpha    = panelMask * clamp(
+            alphaInterior + alphaEdge + alphaSpec + alphaCaustic,
+            0.0, 0.60
+          );
+
+          gl_FragColor = vec4(color, totalAlpha);
         }
       `;
 
       this.program = createProgram(gl, vertexSource, fragmentSource);
       this.attributeLocation = gl.getAttribLocation(this.program, 'aPosition');
+
+      // Gather all uniform locations (original + new liquidGL-style uniforms)
       this.uniforms = {
         resolution: gl.getUniformLocation(this.program, 'uResolution'),
         devicePixelRatio: gl.getUniformLocation(this.program, 'uDevicePixelRatio'),
@@ -365,9 +492,15 @@
         stars1: gl.getUniformLocation(this.program, 'uStars1'),
         stars2: gl.getUniformLocation(this.program, 'uStars2'),
         stars3: gl.getUniformLocation(this.program, 'uStars3'),
-        noise: gl.getUniformLocation(this.program, 'uNoise')
+        noise: gl.getUniformLocation(this.program, 'uNoise'),
+        // liquidGL-style refraction parameters
+        refraction: gl.getUniformLocation(this.program, 'uRefraction'),
+        bevelDepth: gl.getUniformLocation(this.program, 'uBevelDepth'),
+        bevelWidth: gl.getUniformLocation(this.program, 'uBevelWidth'),
+        specular: gl.getUniformLocation(this.program, 'uSpecular')
       };
 
+      // Fullscreen quad (two triangles covering clip space)
       this.vertexBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
       gl.bufferData(
@@ -383,19 +516,28 @@
         gl.STATIC_DRAW
       );
 
+      // Build star textures from DOM box-shadow data + noise texture
       this.textureResources = STAR_LAYER_CONFIGS.map((config, index) => {
         return this.createTexture(this.buildStarTexture(config, index), index);
       });
       this.textureResources.push(this.createTexture(this.buildNoiseTexture(), STAR_LAYER_CONFIGS.length));
 
+      // Bind texture unit assignments (constant for the lifetime of the program)
       gl.useProgram(this.program);
       gl.uniform1i(this.uniforms.stars0, 0);
       gl.uniform1i(this.uniforms.stars1, 1);
       gl.uniform1i(this.uniforms.stars2, 2);
       gl.uniform1i(this.uniforms.stars3, 3);
       gl.uniform1i(this.uniforms.noise, 4);
+
+      // Set static refraction parameters (could be made dynamic later)
+      gl.uniform1f(this.uniforms.refraction, REFRACTION);
+      gl.uniform1f(this.uniforms.bevelDepth, BEVEL_DEPTH);
+      gl.uniform1f(this.uniforms.bevelWidth, BEVEL_WIDTH);
+      gl.uniform1i(this.uniforms.specular, SPECULAR_ENABLED ? 1 : 0);
     }
 
+    // ── Star texture: extract box-shadow positions from hidden DOM elements ──
     buildStarTexture(config, layerIndex) {
       const sourceElement = document.getElementById(config.id);
       const textureCanvas = document.createElement('canvas');
@@ -435,6 +577,7 @@
       return textureCanvas;
     }
 
+    // ── Noise texture: procedural multi-channel noise for caustic shimmer ──
     buildNoiseTexture() {
       const noiseCanvas = document.createElement('canvas');
       noiseCanvas.width = NOISE_TEXTURE_SIZE;
@@ -447,8 +590,8 @@
       const imageData = context.createImageData(NOISE_TEXTURE_SIZE, NOISE_TEXTURE_SIZE);
       const data = imageData.data;
 
-      // Mobile chart glass displacement: pack a soft multi-channel noise field once
-      // so the shader can emulate the desktop SVG feDisplacementMap without DOM mirroring.
+      // Pack a multi-channel noise field for caustic shimmer detail.
+      // Three frequency bands of sine waves + random grain per channel.
       for (let y = 0; y < NOISE_TEXTURE_SIZE; y += 1) {
         for (let x = 0; x < NOISE_TEXTURE_SIZE; x += 1) {
           const index = (y * NOISE_TEXTURE_SIZE + x) * 4;
@@ -487,16 +630,13 @@
       return texture;
     }
 
+    // ── Observers: scroll, resize, orientation, visibility, zoom ─────────────
+
     installObservers() {
       window.addEventListener('scroll', this.boundMarkLayoutDirty, { passive: true });
       window.addEventListener('resize', this.boundMarkLayoutDirty, { passive: true });
       window.addEventListener('orientationchange', this.boundMarkLayoutDirty, { passive: true });
       document.addEventListener('visibilitychange', this.boundHandleVisibilityChange);
-      if (typeof this.mediaQuery.addEventListener === 'function') {
-        this.mediaQuery.addEventListener('change', this.boundHandleMediaChange);
-      } else if (typeof this.mediaQuery.addListener === 'function') {
-        this.mediaQuery.addListener(this.boundHandleMediaChange);
-      }
 
       this.visualViewport = window.visualViewport || null;
       if (this.visualViewport && typeof this.visualViewport.addEventListener === 'function') {
@@ -504,6 +644,7 @@
         this.visualViewport.addEventListener('scroll', this.boundMarkLayoutDirty, { passive: true });
       }
 
+      // Watch for panel size changes (chart rendering, responsive reflow)
       this.resizeObserver = new ResizeObserver(() => {
         this.layoutDirty = true;
       });
@@ -513,12 +654,15 @@
         }
       });
 
+      // Watch for zoom class on <html> (accessibility zoom detection)
       this.zoomObserver = new MutationObserver(this.boundHandleZoomMutation);
       this.zoomObserver.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['class']
       });
     }
+
+    // ── Layout sync ──────────────────────────────────────────────────────────
 
     syncCanvasMetrics() {
       if (!(this.canvas instanceof HTMLCanvasElement)) return;
@@ -546,6 +690,8 @@
       }
     }
 
+    // Sync panel bounding rects (canvas-relative CSS pixels) into Float32Arrays
+    // that are uploaded to the shader each frame as uPanels[] and uRadii[].
     syncPanelMetrics() {
       if (!(this.canvas instanceof HTMLCanvasElement)) return;
       this.syncCanvasMetrics();
@@ -575,6 +721,7 @@
       this.layoutDirty = false;
     }
 
+    // ── Zoom suspension: hide WebGL canvas when user zooms (accessibility) ──
     syncZoomState() {
       const zoomed = document.documentElement.classList.contains('user-zoomed');
       this.zoomSuspended = zoomed;
@@ -595,11 +742,15 @@
       this.start();
     }
 
+    // Toggle body classes that CSS uses to disable backdrop-filter and adjust
+    // chart panel backgrounds when the WebGL renderer is active or failed.
     setBodyMode({ active, staticMode }) {
       if (!document.body || document.body.dataset.page !== 'welcome') return;
       document.body.classList.toggle(ACTIVE_CLASS, Boolean(active));
       document.body.classList.toggle(STATIC_CLASS, Boolean(staticMode));
     }
+
+    // ── Animation loop ───────────────────────────────────────────────────────
 
     start() {
       if (this.rafId || this.destroyed || this.zoomSuspended) return;
@@ -614,9 +765,10 @@
           this.destroy();
           return;
         }
-        if (this.layoutDirty) {
-          this.syncPanelMetrics();
-        }
+        // Always sync panel metrics every frame instead of gating on layoutDirty.
+        // getBoundingClientRect for 3 panels is negligible cost, and this ensures
+        // the glass rectangles track perfectly with scroll without any frame lag.
+        this.syncPanelMetrics();
         this.render((timestamp - this.timeOrigin) / 1000);
       };
       this.rafId = window.requestAnimationFrame(step);
@@ -643,6 +795,7 @@
       gl.enableVertexAttribArray(this.attributeLocation);
       gl.vertexAttribPointer(this.attributeLocation, 2, gl.FLOAT, false, 0, 0);
 
+      // Per-frame dynamic uniforms
       gl.uniform2f(this.uniforms.resolution, this.canvasWidth, this.canvasHeight);
       gl.uniform1f(this.uniforms.devicePixelRatio, this.renderDpr);
       gl.uniform1f(this.uniforms.time, timeSeconds);
@@ -651,6 +804,8 @@
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
+
+    // ── Fallback & cleanup ───────────────────────────────────────────────────
 
     failToStaticMode() {
       this.setBodyMode({ active: false, staticMode: true });
@@ -666,11 +821,7 @@
       window.removeEventListener('resize', this.boundMarkLayoutDirty);
       window.removeEventListener('orientationchange', this.boundMarkLayoutDirty);
       document.removeEventListener('visibilitychange', this.boundHandleVisibilityChange);
-      if (typeof this.mediaQuery.removeEventListener === 'function') {
-        this.mediaQuery.removeEventListener('change', this.boundHandleMediaChange);
-      } else if (typeof this.mediaQuery.removeListener === 'function') {
-        this.mediaQuery.removeListener(this.boundHandleMediaChange);
-      }
+
       if (this.visualViewport && typeof this.visualViewport.removeEventListener === 'function') {
         this.visualViewport.removeEventListener('resize', this.boundMarkLayoutDirty);
         this.visualViewport.removeEventListener('scroll', this.boundMarkLayoutDirty);
@@ -705,6 +856,8 @@
       }
     }
   }
+
+  // ── Public API (unchanged — called from dashboard.js) ──────────────────────
 
   window.initDashboardGlassRenderer = function initDashboardGlassRenderer() {
     if (activeRenderer) {

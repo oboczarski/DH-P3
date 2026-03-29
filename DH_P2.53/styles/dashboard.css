@@ -254,9 +254,9 @@ body[data-page="welcome"] #noise-overlay {
   display: none;
 }
 
-/* Welcome dashboard mobile glass renderer host:
-   fixed full-viewport WebGL canvas that paints only inside the three chart panels,
-   above the welcome starfield and below all dashboard content/interactions. */
+/* Welcome dashboard glass renderer host (all viewports):
+   fixed full-viewport WebGL canvas that paints liquidGL-style refraction only
+   inside the three chart panels, above the starfield and below dashboard content. */
 body[data-page="welcome"] #fc-dashboard-glass-renderer {
   position: fixed;
   inset: 0;
@@ -586,29 +586,39 @@ body[data-page="welcome"] #stars1::after {
     0 2px 12px -4px rgba(0,0,0,0.3);
 }
 
-/* Mobile welcome chart glass renderer integration:
-   when the fixed WebGL layer is active, the three dashboard chart panels stop using
-   mobile backdrop-filter so Safari/WebKit does not drop or override the custom pass. */
-@media (max-width: 768px) {
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-scatter-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel,
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-scatter-panel {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
+/* Welcome chart glass renderer integration (ALL viewports):
+   When the WebGL layer is active, the chart panels become FULLY transparent layout
+   containers. All visual treatment (refraction, highlights, edge glow) comes from
+   the WebGL canvas at z-index 5 which sits below .fc-main at z-index 10.
+   The panel CSS provides only the container layout — the WebGL provides the look.
+   On static fallback (WebGL failed), backdrop-filter is also disabled and heavier
+   CSS backgrounds provide visual depth without the SVG displacement filters. */
+body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel,
+body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-scatter-panel {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel,
+body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-scatter-panel {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
 
-  body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.042) 0%, rgba(255,255,255,0.014) 36%, transparent 58%),
-      linear-gradient(160deg, rgba(255,255,255,0.045) 0%, rgba(15,18,30,0.24) 100%);
-  }
+/* Static fallback: heavier gradients for visual depth when WebGL cannot render */
+body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.026) 36%, transparent 58%),
+    linear-gradient(160deg, rgba(255,255,255,0.075) 0%, rgba(12,16,28,0.34) 100%);
+}
 
-  body[data-page="welcome"].fc-dashboard-glass-renderer-static .fc-dashboard .fc-chart-panel {
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.026) 36%, transparent 58%),
-      linear-gradient(160deg, rgba(255,255,255,0.075) 0%, rgba(12,16,28,0.34) 100%);
-  }
+/* When WebGL glass is active, hide CSS pseudo-element overlays on chart panels.
+   The WebGL shader provides its own specular highlights and edge glow — having
+   CSS ::before / ::after on top would add opaque visual noise over the glass. */
+body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel.fc-glass::before,
+body[data-page="welcome"].fc-dashboard-glass-renderer-active .fc-dashboard .fc-chart-panel.fc-glass::after {
+  display: none !important;
 }
 
 /* Chart panel specular override — MOBILE ONLY.
