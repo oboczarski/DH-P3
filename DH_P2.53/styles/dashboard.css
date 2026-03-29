@@ -2827,6 +2827,7 @@ body[data-page="welcome"] .app-header {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
     gap: 0.5rem;
     width: 100%;
     margin: 3px 11px 3px 4px !important;
@@ -2848,6 +2849,7 @@ body[data-page="welcome"] .app-header {
     height: 44px;
     padding: 0 12px;
     border-radius: 10px;
+    margin-top: -1px;
   }
 
   /* Slightly larger icon to match panel scale */
