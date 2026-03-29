@@ -393,8 +393,8 @@ body[data-page="welcome"] #stars1::after {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.018) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(15,18,30,0.22) 100%);
-  -webkit-backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
-  backdrop-filter: url(#glass-refract) blur(var(--fc-gr-blur-card)) saturate(var(--fc-gr-saturation-card));
+  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
   border: none;
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.06),
@@ -484,7 +484,7 @@ body[data-page="welcome"] #stars1::after {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
   backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
@@ -567,7 +567,7 @@ body[data-page="welcome"] #stars1::after {
     linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
     linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
   -webkit-backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
-  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.08);
+  backdrop-filter: url(#glass-refract-strong) blur(var(--fc-gr-blur)) saturate(var(--fc-gr-saturation)) brightness(1.18);
   border: none;
   box-shadow: 0 0 0 0.5px rgba(255,255,255,0.20),
     inset 0 1px 0 rgba(255,255,255,0.12),
@@ -2629,7 +2629,7 @@ body[data-page="welcome"] #header-container {
 
 body[data-page="welcome"] .app-header.glass-panel {
   -webkit-backdrop-filter: blur(14px) saturate(100%) brightness(100%);
-  backdrop-filter: blur(3px) saturate(100%) brightness(100%);
+  backdrop-filter: blur(3px) saturate(115%) brightness(115%);
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end))linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
     linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
   border-radius: 18px;
