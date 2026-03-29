@@ -3877,6 +3877,77 @@ body {
   background-repeat: no-repeat;
 }
 
+/* Shared app background: apply the dashboard/home gradient pattern to every shared
+   page that uses the common starfield host. Contact stays excluded because it has
+   its own self-contained visual system and does not use styles.css. */
+body:not([data-page="contact"]) {
+  background-color: #07111f;
+}
+
+/* Shared starfield surface: replace the legacy base art with the same navy canvas
+   used on the dashboard/home page so rosters, stats, research, analyzer, and
+   ownership all start from the same backdrop. */
+body:not([data-page="contact"]) #starfield {
+  isolation: isolate;
+  background: #07111f;
+}
+
+/* Shared home-style gradient layer: mirrors the dashboard/mobile background design
+   across the app while leaving page-specific cards, tables, and headers untouched. */
+body:not([data-page="contact"]) #starfield::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 560px at 12% 8%, rgba(90, 160, 255, 0.1), transparent 42%),
+    radial-gradient(980px 680px at 88% 10%, rgba(70, 190, 255, 0.12), transparent 38%),
+    radial-gradient(800px 320px at 99% 52%, rgba(250, 60, 38, 0.07), transparent 36%),
+    radial-gradient(900px 620px at 96% 28%, rgba(170, 0, 255, 0.13), transparent 34%),
+    radial-gradient(1160px 1140px at 92% 80%, rgba(255, 20, 140, 0.1), transparent 30%),
+    radial-gradient(980px 800px at 25% 52%, rgba(90, 0, 250, 0.13), transparent 29%),
+    radial-gradient(980px 800px at 1% 88%, rgba(0, 220, 220, 0.06), transparent 28%),
+    linear-gradient(180deg, #abf2 0%, #091625 36%, #07111b 68%, #050c14 100%);
+  background-repeat: no-repeat;
+}
+
+/* Shared home-style pattern layer: keeps the dashboard's repeating accent texture
+   on every non-contact page so desktop and mobile match the home page treatment. */
+body:not([data-page="contact"]) #starfield::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(
+      circle at 16% 10%,
+      rgba(175, 90, 255, 0.06) 0 1px,
+      rgba(255, 255, 255, 0.01) 1px 2px,
+      rgba(255, 40, 125, 0.01) 1px 1px,
+      rgba(255, 255, 255, 0.021) 42px 83px
+    );
+  background-size: auto;
+  background-repeat: no-repeat;
+  opacity: 0.95;
+}
+
+/* Shared backdrop cleanup: the dashboard/home background does not use the legacy
+   noise film, so hide that layer everywhere this shared backdrop is active. */
+body:not([data-page="contact"]) #noise-overlay {
+  display: none;
+}
+
+/* Shared star layer ordering: keep the animated star DOM layers above the new
+   dashboard-style pattern overlay so every page preserves the visible starfield. */
+body:not([data-page="contact"]) #stars,
+body:not([data-page="contact"]) #stars1,
+body:not([data-page="contact"]) #stars2,
+body:not([data-page="contact"]) #stars3 {
+  z-index: 2;
+}
+
 /* · · Layers · · */
 #stars,
 #stars1,

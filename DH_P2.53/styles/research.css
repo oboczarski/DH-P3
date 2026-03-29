@@ -1,8 +1,10 @@
 /* Research page layout & visuals (extracted from styles.css) */
 
 /* ========================= SYOP PAGE LAYOUT & VISUALS ========================= */
+/* Research page fallback surface: match the shared dashboard/home backdrop so the
+   page keeps the same navy base color before the fixed starfield fully paints. */
 body[data-page="research"] {
-  background-color: #0a0f1e;
+  background-color: #07111f;
 }
 
 body[data-page="research"] .research-header-shell {
