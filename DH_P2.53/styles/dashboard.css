@@ -785,10 +785,7 @@ body[data-page="welcome"] .username-area::before {
     linear-gradient(135deg, rgba(28, 32, 56, 0.2), rgba(0, 10, 24, 0.2));
   -webkit-backdrop-filter: url(#glass-refract-strong) blur(12px) saturate(1.34) brightness(1.04);
   backdrop-filter: url(#glass-refract-strong) blur(12px) saturate(1.34) brightness(1.04);
-  box-shadow:
-    0 0 0 0.5px rgba(255, 255, 255, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 18px 36px rgba(3, 7, 20, 0.22);
+  box-shadow: 1px 1px 14px 2px rgba(3, 7, 20, 0.1);
 }
 
 .fc-dashboard .fc-bar-panel .fc-filter-group::before {
@@ -807,8 +804,8 @@ body[data-page="welcome"] .username-area::before {
     rgba(255, 255, 255, 0.01) 26%,
     rgba(255, 255, 255, 0) 32%,
     rgba(255, 255, 255, 0) 64%,
-    rgba(255, 255, 255, 0.01) 74%,
-    rgba(255, 255, 255, 0.05) 84%,
+    rgba(255, 255, 255, 0.05) 74%,
+    rgba(255, 255, 255, 0.06) 84%,
     rgba(255, 255, 255, 0.10) 92%,
     rgba(255, 255, 255, 0.18) 100%
   );
@@ -1528,7 +1525,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-dashboard .fc-bar-panel .fc-filter-group {
     gap: 0px;
     width: 100%;
-    padding: 0.11rem;
+    padding: 0.11rem 0.11rem 0.15rem;
     border-radius: 12px;
   }
   .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
