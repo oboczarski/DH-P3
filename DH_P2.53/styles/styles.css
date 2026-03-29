@@ -363,17 +363,6 @@ main#content {
   width: 100%;
 }
 
-@media (max-width: 520px) {
-  .branding-top-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    gap: 0.8rem;
-    width: 100%;
-    margin: 3px 11px 3px 4px !important;
-  }
-}
-
 /* Subtle glow effect matching cards */
 .welcome-branding-panel::before {
   content: "";

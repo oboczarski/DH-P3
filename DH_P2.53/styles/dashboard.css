@@ -2814,6 +2814,14 @@ body[data-page="welcome"] .app-header {
     padding-left: 8px;
     padding-right: 8px;
   }
+  .branding-top-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin: 3px 11px 3px 4px !important;
+}
 
   /* --- Hamburger in branding panel (mobile only) --- */
   /* Push button to the far right without inflating the gap between logo+title */
