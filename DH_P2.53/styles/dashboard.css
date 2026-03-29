@@ -2629,7 +2629,7 @@ body[data-page="welcome"] #header-container {
 
 body[data-page="welcome"] .app-header.glass-panel {
   -webkit-backdrop-filter: blur(14px) saturate(100%) brightness(100%);
-  backdrop-filter: blur(3px) saturate(100%) brightness(100%);
+  backdrop-filter: blur(4px) saturate(100%) brightness(100%);
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end))linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
     linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
   border-radius: 18px;
