@@ -978,16 +978,22 @@ body[data-page="welcome"] .username-area::before {
     0 0 1em rgba(16, 185, 129, 0.26);
 }
 
-/* Card Glow Effects */
+/* Summary card accent glow:
+   - targets the decorative top-right orb inside the dashboard summary cards,
+   - keeps the glow source truly circular so mobile/WebKit does not reveal a sharp
+     source-box corner when the blur spills against the rounded glass shell,
+   - and promotes the orb to its own layer so the highlight stays soft. */
 .fc-card__glow {
   position: absolute;
   top: -1.5em;
   right: -1.5em;
   width: 6em;
   height: 6em;
-  border-radius: 2.3em;
+  border-radius: 999px;
   filter: blur(2.5em);
   opacity: 0.24;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
 }
 
 .fc-card--cyan .fc-card__glow { background-color: var(--color-cyan); }
@@ -1817,6 +1823,17 @@ body[data-page="welcome"] .username-area::before {
   .fc-summary-card .fc-metric-value {font-size: 2.85em;}
   .fc-summary-card .fc-metric-sub {margin-bottom: -0.1em;font-size: 1.6em;}
   .fc-summary-card .fc-card__footer {margin-top: 0.17em;font-size: 1.6em;}
+  /* Mobile summary-card glow cleanup:
+     tighten the decorative orb slightly so the accent still blooms, but does not
+     read as a squared-off patch at the upper-right corner on mobile screens. */
+  .fc-summary-card .fc-card__glow {
+    top: -1.25em;
+    right: -1.25em;
+    width: 5.4em;
+    height: 5.4em;
+    filter: blur(2.2em);
+    opacity: 0.21;
+  }
 }
 
 /* --- CHART PANELS (Desktop) --- */
