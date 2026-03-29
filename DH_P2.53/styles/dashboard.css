@@ -1508,9 +1508,9 @@ body[data-page="welcome"] .username-area::before {
     border-radius: 1.45rem;
   }
   .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
-    padding: 0.52rem 0.92rem 0.46rem;
+    padding: 0.62rem 0.92rem 0.56rem;
     font-size: 0.84rem;
-    min-height: 2.42rem;
+    min-height: 1.42rem;
   }
   .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active {
     border-radius: 1.12rem;
@@ -1879,6 +1879,7 @@ body[data-page="welcome"] .username-area::before {
     flex: 1 1 auto;
     min-width: 0;
     justify-content: flex-start;
+    margin-bottom: 3px;
   }
   .fc-radar-panel .fc-radar-title-line {
     align-items: flex-end;
@@ -1892,8 +1893,8 @@ body[data-page="welcome"] .username-area::before {
     margin: 0;
   }
   .fc-radar-panel #player-select-trigger {
-    font-size: 1.14em;
-    padding: 0.32em 0.78em;
+    font-size: 1.2em;
+    padding: 0.5em 0.58em;
   }
   .fc-radar-panel #player-select-dropdown {
     width: 22.5em;
@@ -2086,7 +2087,7 @@ body[data-page="welcome"] .username-area::before {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.6em;
+  border-radius: 1.5em;
   padding: 0.5em 0.75em;
   font-size: 1.1em;
   cursor: pointer;
