@@ -412,7 +412,7 @@ body[data-page="welcome"] #stars1::after {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+  border-radius: 2.3em;
   pointer-events: none;
   padding: var(--fc-gr-specular-ring-width-card);
   background: linear-gradient(
@@ -985,7 +985,7 @@ body[data-page="welcome"] .username-area::before {
   right: -1.5em;
   width: 6em;
   height: 6em;
-  border-radius: 50%;
+  border-radius: 2.3em;
   filter: blur(2.5em);
   opacity: 0.24;
 }
