@@ -798,16 +798,16 @@ body[data-page="welcome"] .username-area::before {
   padding: 1px;
   background: linear-gradient(
     158deg,
-    rgba(255, 255, 255, 0.62) 0%,
-    rgba(255, 255, 255, 0.34) 8%,
-    rgba(255, 255, 255, 0.16) 18%,
-    rgba(255, 255, 255, 0.08) 28%,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.14) 8%,
+    rgba(255, 255, 255, 0.10) 18%,
+    rgba(255, 255, 255, 0.04) 28%,
     rgba(255, 255, 255, 0) 38%,
     rgba(255, 255, 255, 0) 62%,
-    rgba(255, 255, 255, 0.12) 74%,
-    rgba(255, 255, 255, 0.2) 84%,
-    rgba(255, 255, 255, 0.36) 92%,
-    rgba(255, 255, 255, 0.58) 100%
+    rgba(255, 255, 255, 0.04) 74%,
+    rgba(255, 255, 255, 0.05) 84%,
+    rgba(255, 255, 255, 0.12) 92%,
+    rgba(255, 255, 255, 0.28) 100%
   );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -1519,18 +1519,18 @@ body[data-page="welcome"] .username-area::before {
   .fc-dashboard .fc-bar-panel .fc-filter-group {
     gap: 0px;
     width: 100%;
-    padding: 0.08rem;
-    border-radius: 1.5rem;
+    padding: 0.1rem;
+    border-radius: 12px;
   }
   .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn {
     flex: 1 1 0;
-    padding: 0.5rem 0.24rem 0.44rem;
+    padding: 0.4rem 0.24rem;
     font-size: 0.67rem;
     font-weight: 500;
-    min-height: 2.68rem;
+    min-height: 1.2rem;
   }
   .fc-dashboard .fc-bar-panel .fc-filter-group .filter-btn.active {
-    border-radius: 1.18rem;
+    border-radius: 11px;
   }
 }
 
