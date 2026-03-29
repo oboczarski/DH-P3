@@ -11,14 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const moreDropdown = document.getElementById('moreDropdown');
   const params = new URLSearchParams(window.location.search);
 
+  // Contact page route map:
+  // - targets the header nav buttons and More dropdown destinations,
+  // - resolves every page relative to the current Contact route,
+  // - and keeps navigation working in both Netlify clean URLs and local/dev nested paths.
   const pageMap = {
-    home: '/index.html',
-    rosters: '/rosters/rosters.html',
-    stats: '/stats/stats.html',
-    analyzer: '/analyzer/analyzer.html',
-    research: '/research/research.html',
-    ownership: '/ownership/ownership.html',
-    contact: '/contact/contact.html'
+    home: '../index.html',
+    rosters: '../rosters/rosters.html',
+    stats: '../stats/stats.html',
+    analyzer: '../analyzer/analyzer.html',
+    research: '../research/research.html',
+    ownership: '../ownership/ownership.html',
+    contact: '../contact/contact.html'
   };
 
   const pagesWithLeagueContext = new Set(['rosters', 'stats', 'analyzer']);
@@ -124,26 +128,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function buildPageUrl(page) {
-    const baseUrl = pageMap[page] || pageMap.home;
+    const targetUrl = new URL(pageMap[page] || pageMap.home, window.location.href);
 
     if (page === 'home') {
-      return baseUrl;
+      return targetUrl.toString();
     }
 
-    const nextParams = new URLSearchParams();
     const activeUsername = (usernameInput?.value || '').trim();
     const activeLeagueId = (leagueSelect?.value || '').trim();
 
     if (activeUsername) {
-      nextParams.set('username', activeUsername);
+      targetUrl.searchParams.set('username', activeUsername);
     }
 
     if (pagesWithLeagueContext.has(page) && activeLeagueId && activeLeagueId !== 'Select a league...') {
-      nextParams.set('leagueId', activeLeagueId);
+      targetUrl.searchParams.set('leagueId', activeLeagueId);
     }
 
-    const query = nextParams.toString();
-    return query ? `${baseUrl}?${query}` : baseUrl;
+    return targetUrl.toString();
   }
 
   function navigateTo(page) {
