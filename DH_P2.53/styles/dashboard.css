@@ -30,7 +30,7 @@
      Namespaced --fc-gr-* to avoid collision with any future global glass vars. */
 
   /* Blur / Saturation per tier */
-  --fc-gr-blur: 6px;
+  --fc-gr-blur: 0px;
   --fc-gr-blur-card: 4px;
   --fc-gr-blur-chart: 3px;
   --fc-gr-blur-pill: 2px;
@@ -49,10 +49,10 @@
   --fc-gr-bg-end: rgba(12, 16, 28, 0.42);
 
   /* Chromatic dispersion colors */
-  --fc-gr-chromatic-blue: rgba(0, 180, 255, 0.045);
-  --fc-gr-chromatic-violet: rgba(120, 80, 255, 0.04);
-  --fc-gr-chromatic-pink: rgba(255, 100, 200, 0.035);
-  --fc-gr-chromatic-green: rgba(100, 255, 180, 0.025);
+  --fc-gr-chromatic-blue: rgba(0, 180, 255, 0.04);
+  --fc-gr-chromatic-violet: rgba(120, 80, 255, 0.1);
+  --fc-gr-chromatic-pink: rgba(255, 100, 200, 0.04);
+  --fc-gr-chromatic-green: rgba(100, 255, 180, 0.041);
 
   /* Specular highlight config — diagonal linear-gradient (158deg).
      Two non-connecting arcs: top-left and bottom-right, with dark gaps between.
@@ -485,7 +485,7 @@ body[data-page="welcome"] #stars1::after {
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
   -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(0px) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
     inset 0 1px 0 rgba(255,255,255,0.06),
@@ -2624,14 +2624,15 @@ body[data-page="welcome"] #header-container {
   /* Ensure sticky on mobile */
   top: 0;
   z-index: 1000;
+  border-radius: 18px;
 }
 
 body[data-page="welcome"] .app-header.glass-panel {
   -webkit-backdrop-filter: blur(14px) saturate(100%) brightness(100%);
-  backdrop-filter: blur(14px) saturate(100%) brightness(100%);
+  backdrop-filter: blur(3px) saturate(100%) brightness(100%);
   background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),    linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end))linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.015) 34%, transparent 52%),
     linear-gradient(135deg, var(--fc-gr-bg-start), var(--fc-gr-bg-end));
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 body[data-page="welcome"] .app-header {
