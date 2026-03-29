@@ -1208,7 +1208,7 @@ body[data-page="welcome"] .username-area::before {
 .fc-chart-header--radar {
   flex-direction: column;
   align-items: stretch;
-  gap: 0.15em;
+  gap: 0.05em;
 }
 
 .fc-chart-header--scatter {
@@ -1931,7 +1931,7 @@ body[data-page="welcome"] .username-area::before {
   .fc-chart-panel .fc-card__subtitle-text {
     margin-left: 9px;
 }
-  .fc-subtitle-radar {font-size: 1.75em !important;margin-top: 4px;}
+  .fc-subtitle-radar {font-size: 1.85em !important;margin-top: 4px;}
   .fc-subtitle-bar {font-size: 1.85em !important;padding: 1px !important;margin: 0px -2px -2px -2px;}
   .fc-subtitle-scatter {font-size: 1.65em;}
 
@@ -1944,12 +1944,12 @@ body[data-page="welcome"] .username-area::before {
   }
   .fc-radar-panel .fc-radar-title-line .fc-card__title,
   .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
-    line-height: 1;
+    line-height: 1.1;
     margin: 0;
     align-self: auto;
   }
   .fc-radar-panel .fc-radar-title-line .fc-subtitle-radar {
-    margin-bottom: 0.05em;
+    margin-bottom: 0em;
   }
   .fc-bar-panel .fc-bar-title-line {
     align-items: flex-end;
@@ -2274,9 +2274,9 @@ body[data-page="welcome"] .username-area::before {
   }
   
   .fc-select-trigger {
-    padding: 0.2rem 0.4em 0.05rem;
-    font-size: 2.4em;
-    margin-bottom: 6px;
+    padding: 0.25rem 0.4em 0.2rem;
+    font-size: 2.5em;
+    margin-bottom: 3px;
     margin-left: 8px;
     margin-right: 7px;
   }
