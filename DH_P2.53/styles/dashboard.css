@@ -30,7 +30,7 @@
      Namespaced --fc-gr-* to avoid collision with any future global glass vars. */
 
   /* Blur / Saturation per tier */
-  --fc-gr-blur: 0px;
+  --fc-gr-blur: 1px;
   --fc-gr-blur-card: 4px;
   --fc-gr-blur-chart: 3px;
   --fc-gr-blur-pill: 2px;
