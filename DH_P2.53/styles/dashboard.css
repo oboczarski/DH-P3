@@ -2274,11 +2274,12 @@ body[data-page="welcome"] .username-area::before {
   }
   
   .fc-select-trigger {
-    padding: 0.25rem 0.4em 0.2rem;
+    padding: 0.25rem 0.84em 0.2rem;
     font-size: 2.5em;
     margin-bottom: 3px;
     margin-left: 8px;
     margin-right: 7px;
+    border-radius: 1rem;
   }
 
   .fc-search-icon {
