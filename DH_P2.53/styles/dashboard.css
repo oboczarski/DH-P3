@@ -484,8 +484,8 @@ body[data-page="welcome"] #stars1::after {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 36%, transparent 58%),
     linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(15,18,30,0.28) 100%);
-  -webkit-backdrop-filter:  url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(1px) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
   box-shadow:
     0 0 0 0.5px rgba(255,255,255,0.05),
     inset 0 1px 0 rgba(255,255,255,0.06),
