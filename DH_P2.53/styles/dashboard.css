@@ -2696,6 +2696,15 @@ body[data-page="welcome"] .app-header {
     justify-content: center;
   }
 
+  .branding-top-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
   /* Scale down branding content */
   body[data-page="welcome"] .welcome-logo img {
     height: 5rem;
