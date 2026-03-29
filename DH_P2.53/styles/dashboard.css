@@ -531,8 +531,8 @@ body[data-page="welcome"] #stars1::after {
    stretch too far along the long edges. Tighten to short corner accents. */
 @media (max-width: 819px) {
   .fc-dashboard .fc-chart-panel {
-  -webkit-backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
-  backdrop-filter: url(#glass-refract-extrastrong) url(#glass-rim-light) blur(2px) saturate(var(--fc-gr-saturation-chart));
+  -webkit-backdrop-filter: blur(2px) saturate(var(--fc-gr-saturation-chart));
+  backdrop-filter: blur(2px) saturate(var(--fc-gr-saturation-chart));
   }
   .fc-dashboard .fc-chart-panel.fc-glass::before {
     background: linear-gradient(
