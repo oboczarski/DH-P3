@@ -3799,10 +3799,15 @@ function closeRadarModal() {
 }
 
 function updateFilterButtons() {
+  // Dashboard PPG leaders filter rail:
+  // - targets the bar-chart position pills only,
+  // - keeps the seeded "All" default and the live filter selection in sync,
+  // - and mirrors the active state into aria-pressed for the dashboard-only glass buttons.
   document.querySelectorAll('#filter-buttons button').forEach(btn => {
     const active = btn.dataset.filter === dashState.filter;
     btn.classList.toggle('active', active);
     btn.classList.toggle('fc-filter-btn--active', active);
+    btn.setAttribute('aria-pressed', String(active));
   });
 }
 

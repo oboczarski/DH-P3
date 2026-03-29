@@ -345,12 +345,15 @@
                   <h3 class="fc-card__title">PPG Leaders &#8211;</h3>
                   <p class="fc-card__subtitle-text fc-chart-subtitle fc-subtitle-bar">Positional Leaders (Top 8)</p>
                 </div>
-                <div class="fc-filter-group" id="filter-buttons">
-                  <button data-filter="all" data-position="ALL" class="filter-btn">All</button>
-                  <button data-filter="QB" data-position="QB" class="filter-btn">QB</button>
-                  <button data-filter="RB" data-position="RB" class="filter-btn">RB</button>
-                  <button data-filter="WR" data-position="WR" class="filter-btn">WR</button>
-                  <button data-filter="TE" data-position="TE" class="filter-btn">TE</button>
+                <!-- Dashboard PPG Leaders filters: seed the contact-inspired glass rail with
+                     the All button active by default so the mobile header-style treatment
+                     renders correctly before dashboard.js reapplies the live filter state. -->
+                <div class="fc-filter-group" id="filter-buttons" role="group" aria-label="PPG leader position filters">
+                  <button type="button" data-filter="all" data-position="ALL" class="filter-btn active fc-filter-btn--active" aria-pressed="true">All</button>
+                  <button type="button" data-filter="QB" data-position="QB" class="filter-btn" aria-pressed="false">QB</button>
+                  <button type="button" data-filter="RB" data-position="RB" class="filter-btn" aria-pressed="false">RB</button>
+                  <button type="button" data-filter="WR" data-position="WR" class="filter-btn" aria-pressed="false">WR</button>
+                  <button type="button" data-filter="TE" data-position="TE" class="filter-btn" aria-pressed="false">TE</button>
                 </div>
               </div>
               <!-- PPG Leaders subtitle moved inline with title per header layout update -->
