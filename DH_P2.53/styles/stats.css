@@ -7,6 +7,8 @@
   --stats-row-border-color: #0f1737;
   --stats-header-border-color: rgba(128, 138, 189, 0.22);
   --stats-header-mask-height: 2.25rem;
+  --stats-frozen-divider-color: rgba(170, 187, 204, 0.18);
+  --stats-frozen-divider-glow: rgba(255, 255, 255, 0.04);
 }
 
 .stats-header-shell {
@@ -1541,8 +1543,20 @@ body[data-page="stats"] .stats-table-wrapper {
   overflow: hidden;
 }
 
-.stats-frozen-corner table {
-  border-right: 1px solid #abc1;
+/* Stats table frozen-pane divider:
+   draw the split on the frozen wrappers instead of the inner tables so the
+   header/body separator stays aligned on real mobile Safari as well as desktop. */
+.stats-frozen-corner::after,
+.stats-frozen-body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--stats-frozen-divider-color);
+  box-shadow: 1px 0 0 var(--stats-frozen-divider-glow);
+  pointer-events: none;
 }
 
 /* Horizontal scroll container (scrollable header + body) */
@@ -1638,7 +1652,6 @@ body[data-page="stats"] .stats-table-wrapper {
   left: 0;
   z-index: 5;
   background: transparent;
-  border-right: 1px solid #fafbff02;
   pointer-events: auto;
   overflow: hidden;
 }
@@ -1646,7 +1659,6 @@ body[data-page="stats"] .stats-table-wrapper {
 .stats-frozen-body table {
   border-collapse: collapse;
   background: transparent;
-  border-right: 1px solid #abd1;
 }
 
 .stats-frozen-body tbody tr {
@@ -2306,7 +2318,6 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
     height: 1.7rem;
     min-height: 1.7rem;
     max-height: 1.7rem;
-    border-right: 1px solid #abc1;
   }
 
   /* Prevent iOS zoom by ensuring input font-size >= 16px */
