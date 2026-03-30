@@ -1544,6 +1544,7 @@ body[data-page="stats"] .stats-table-wrapper {
 
 .stats-frozen-corner table {
   border-collapse: collapse;
+  border-right: 1px solid #abc2;
 }
 
 /* Horizontal scroll container (scrollable header + body) */
@@ -1776,7 +1777,7 @@ body[data-page="stats"] .stats-table-wrapper {
   max-height: 2.5rem;
   vertical-align: middle;
   line-height: 1.5rem;
-  border-right: 1px solid #3c47580d;
+  border-bottom: 1px solid #aabbdd10;
 }
 
 .stats-table thead th {
@@ -2294,6 +2295,7 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
     height: 1.7rem;
     min-height: 1.7rem;
     max-height: 1.7rem;
+    border-right: 1px solid #abc2;
   }
 
   /* Prevent iOS zoom by ensuring input font-size >= 16px */
