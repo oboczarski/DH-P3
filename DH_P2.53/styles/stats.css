@@ -1539,12 +1539,11 @@ body[data-page="stats"] .stats-table-wrapper {
   z-index: 10;
   background: rgb(30 34 51 / 17%);
   overflow: hidden;
-  border-right: 1px solid #fafbff02;
 }
 
 .stats-frozen-corner table {
   border-collapse: collapse;
-  border-right: 1px solid #abc2;
+  border-right: 1px solid #abc1;
 }
 
 /* Horizontal scroll container (scrollable header + body) */
@@ -1777,7 +1776,7 @@ body[data-page="stats"] .stats-table-wrapper {
   max-height: 2.5rem;
   vertical-align: middle;
   line-height: 1.5rem;
-  border-bottom: 1px solid #aabbdd10;
+  border-bottom: 1px solid #aabbdd0a;
 }
 
 .stats-table thead th {
@@ -2295,7 +2294,7 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
     height: 1.7rem;
     min-height: 1.7rem;
     max-height: 1.7rem;
-    border-right: 1px solid #abc2;
+    border-right: 1px solid #abc1;
   }
 
   /* Prevent iOS zoom by ensuring input font-size >= 16px */
@@ -2388,10 +2387,10 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
 
   /* Header category padding */
   .stats-table thead th.stats-header-all {
-    padding: 0.4rem 0.195rem;
+    padding: 0.45rem 0.195rem 0.3rem;
     /* 0.4rem * 0.75, 0.26rem * 0.75 */
     text-align: center;
-    border-bottom: 2px solid #abd5;
+    border-bottom: 1px solid #abd2;
   }
 }
 
