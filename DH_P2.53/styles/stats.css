@@ -2391,6 +2391,7 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
     padding: 0.4rem 0.195rem;
     /* 0.4rem * 0.75, 0.26rem * 0.75 */
     text-align: center;
+    border-bottom: 2px solid #abd5;
   }
 }
 
