@@ -2386,7 +2386,7 @@ body[data-page="stats"] .stats-table img.team-logo.glow {
 
   /* Header category padding */
   .stats-table thead th.stats-header-all {
-    padding: 0.3rem 0.195rem;
+    padding: 0.4rem 0.195rem;
     /* 0.4rem * 0.75, 0.26rem * 0.75 */
     text-align: center;
   }
