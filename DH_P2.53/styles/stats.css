@@ -1647,6 +1647,7 @@ body[data-page="stats"] .stats-table-wrapper {
 .stats-frozen-body table {
   border-collapse: collapse;
   background: transparent;
+  border-right: 1px solid #abd1;
 }
 
 .stats-frozen-body tbody tr {
