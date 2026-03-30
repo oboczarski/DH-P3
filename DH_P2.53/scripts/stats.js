@@ -357,14 +357,23 @@
   const MOBILE_WIDTH_SCALE_REDUCED = 0.7; // slightly tighter for most columns on mobile
   const DESKTOP_WIDTH_SCALE_REDUCED = 0.92; // slightly tighter for most columns on desktop
   const NO_WIDTH_REDUCTION_COLUMNS = new Set(['RK', 'PLAYER', 'POS', 'TM', 'AGE']);
+  // Stats table frozen columns: give PLAYER and POS a little more desktop room
+  // without changing the tighter mobile widths used on phones.
+  const DESKTOP_COLUMN_WIDTH_OVERRIDES = new Map([
+    ['PLAYER', 122],
+    ['POS', 56]
+  ]);
 
   function getColumnWidth(columnKey) {
     const baseWidth = STATS_COLUMN_WIDTHS[columnKey] || DEFAULT_COLUMN_WIDTH;
     const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+    const desktopBaseWidth = isMobile
+      ? baseWidth
+      : (DESKTOP_COLUMN_WIDTH_OVERRIDES.get(columnKey) ?? baseWidth);
 
     // Keep Pick Values (RDP) column widths exactly as-is.
     if (statsState.activePosition === 'RDP') {
-      return isMobile ? Math.round(baseWidth * MOBILE_WIDTH_SCALE_BASE) : baseWidth;
+      return isMobile ? Math.round(baseWidth * MOBILE_WIDTH_SCALE_BASE) : desktopBaseWidth;
     }
 
     if (isMobile) {
@@ -374,8 +383,8 @@
       return Math.round(baseWidth * scale);
     }
 
-    if (NO_WIDTH_REDUCTION_COLUMNS.has(columnKey)) return baseWidth;
-    return Math.round(baseWidth * DESKTOP_WIDTH_SCALE_REDUCED);
+    if (NO_WIDTH_REDUCTION_COLUMNS.has(columnKey)) return desktopBaseWidth;
+    return Math.round(desktopBaseWidth * DESKTOP_WIDTH_SCALE_REDUCED);
   }
   
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
@@ -1214,7 +1223,14 @@
       if (statsState.activePosition === 'RDP' || meta.pos === 'RDP') {
         return meta.fullName || meta.name || '';
       }
-      return meta.displayName || row[column] || meta.name || '';
+      // Stats table player-name label:
+      // use the full player name on desktop where the frozen column has room,
+      // but keep the abbreviated display name on mobile to protect narrow layouts.
+      const useDesktopFullName = typeof window !== 'undefined' && window.innerWidth > MOBILE_BREAKPOINT;
+      if (useDesktopFullName && meta.fullName) {
+        return meta.fullName;
+      }
+      return meta.displayName || meta.fullName || row[column] || meta.name || '';
     }
     if (column === 'POS') return row[column] || meta.pos || '';
     if (column === 'TM') return row[column] || meta.team || 'FA';
