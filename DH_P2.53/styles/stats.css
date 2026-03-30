@@ -7,7 +7,7 @@
   --stats-row-border-color: #0f1737;
   --stats-header-border-color: rgba(128, 138, 189, 0.22);
   --stats-header-mask-height: 2.25rem;
-  --stats-frozen-divider-color: rgba(170, 187, 204, 0.18);
+  --stats-frozen-divider-color: rgba(170, 187, 204, 0.1);
   --stats-frozen-divider-glow: rgba(255, 255, 255, 0.04);
 }
 
