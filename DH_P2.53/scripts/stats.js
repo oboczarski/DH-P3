@@ -348,8 +348,9 @@
     'YPG', 'YPG(t)', 'TS%', 'YPRR', '1DRR', 'YPR', 'YAC', 'CPOE', 'EPA/DB', 'AY%', 'EXPLSV%'
   ]);
   
-  // Columns where lower values are better (ADP) — sort ascending on first click instead of descending.
-  const ASCENDING_FIRST_COLUMNS = new Set(['ADP', 'POS·ADP']);
+  // Stats table sort semantics: these columns treat lower values as better, so the
+  // first tap sorts low-to-high and the header swaps to the low-better icon pair.
+  const LOWER_IS_BETTER_COLUMNS = new Set(['ADP', 'POS·ADP', 'AGE', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM']);
 
   const MOBILE_BREAKPOINT = 600;
   const MOBILE_WIDTH_SCALE_BASE = 0.75; // keep existing sizing for key columns on mobile
@@ -1268,9 +1269,14 @@
   }
   function applySortIndicator(target) {
     if (!target) return;
-    target.classList.remove('stats-sort-asc', 'stats-sort-desc');
+    target.classList.remove('stats-sort-asc', 'stats-sort-desc', 'stats-sort-low-better');
     // Clean up any previously injected icons from older builds.
     target.querySelector('.stats-sort-icon')?.remove();
+
+    // Stats table header icons need to distinguish high-better columns from
+    // low-better columns like AGE/ADP so the active cue matches the sort intent.
+    const usesLowBetterIcons = !!statsState.sort.column && LOWER_IS_BETTER_COLUMNS.has(statsState.sort.column);
+    target.classList.toggle('stats-sort-low-better', usesLowBetterIcons);
 
     if (statsState.sort.direction === 1) {
       target.classList.add('stats-sort-asc');
@@ -1526,7 +1532,7 @@
     // Update sort indicators in headers
     const allHeaders = statsState.currentContainer.querySelectorAll('th[data-column-key]');
     allHeaders.forEach(th => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc');
+      th.classList.remove('stats-sort-asc', 'stats-sort-desc', 'stats-sort-low-better');
       if (th.dataset.columnKey === statsState.sort.column) {
         applySortIndicator(th);
       }
@@ -2578,23 +2584,24 @@
     const columnSet = getColumnSet();
     if (!columnSet.includes(column)) return;
     if (statsState.sort.column !== column) {
-      // ADP columns sort ascending first (lower = better); everything else starts descending.
-      const startDir = ASCENDING_FIRST_COLUMNS.has(column) ? 1 : 2;
+      // Lower-is-better columns sort ascending first; every other column keeps the
+      // existing descending-first behavior where larger numbers are treated as better.
+      const startDir = LOWER_IS_BETTER_COLUMNS.has(column) ? 1 : 2;
       statsState.sort = { column, direction: startDir };
     } else {
       // Cycle: start -> opposite -> reset (always 3rd click = reset).
       // Normal columns: desc(2) -> asc(1) -> reset(0)
-      // ADP columns:    asc(1) -> desc(2) -> reset(0)
+      // Lower-is-better columns: asc(1) -> desc(2) -> reset(0)
       if (statsState.sort.direction === 2) {
-        if (ASCENDING_FIRST_COLUMNS.has(column)) {
-          // ADP: 2nd click was desc, 3rd = reset
+        if (LOWER_IS_BETTER_COLUMNS.has(column)) {
+          // Lower-is-better columns reset on the 3rd tap after showing both directions.
           statsState.sort.direction = 0;
           statsState.sort.column = null;
         } else {
           statsState.sort.direction = 1;
         }
       } else if (statsState.sort.direction === 1) {
-        if (ASCENDING_FIRST_COLUMNS.has(column)) {
+        if (LOWER_IS_BETTER_COLUMNS.has(column)) {
           statsState.sort.direction = 2;
         } else {
           statsState.sort.direction = 0;

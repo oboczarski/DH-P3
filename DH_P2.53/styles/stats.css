@@ -1822,7 +1822,9 @@ body[data-page="stats"] .stats-table-wrapper {
   max-width: 80px;
 }
 
-/* Sort indicators */
+/* Stats table sort indicators:
+   - default pair = high-to-low first for high-is-better columns
+   - `.stats-sort-low-better` swaps in the low-is-better icon pair for AGE/ADP/etc. */
 .stats-table thead th.stats-sort-asc::after,
 .stats-table thead th.stats-sort-desc::after {
   display: inline-block;
@@ -1842,6 +1844,16 @@ body[data-page="stats"] .stats-table-wrapper {
 /* fa-arrow-down-wide-short */
 .stats-table thead th.stats-sort-desc::after {
   content: "\f160";
+}
+
+/* fa-arrow-down-short-wide */
+.stats-table thead th.stats-sort-asc.stats-sort-low-better::after {
+  content: "\f884";
+}
+
+/* fa-arrow-up-wide-short */
+.stats-table thead th.stats-sort-desc.stats-sort-low-better::after {
+  content: "\f161";
 }
 
 .stats-table td.stats-player-cell {
