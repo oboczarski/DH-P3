@@ -486,7 +486,7 @@
         await fetchUserAndLeagues(username);
 
         if (state.leagues.length === 0) {
-          throw new Error('No active leagues found for this user in the current season.');
+          throw new Error('No active dynasty leagues found for this user in the current season.');
         }
 
         if (targetLeagueId) {
@@ -643,7 +643,19 @@
         throw new Error('No active leagues found for this user in the current season.');
       }
 
-      state.leagues = leagues.sort((a, b) => a.name.localeCompare(b.name));
+      // Analyzer league source:
+      // targets the analyzer dropdown and every chart/table driven by the selected league.
+      // Reuse the shared dynasty-only filter from `app.js` when available so analyzer stays
+      // in sync with Rosters, Ownership, and the Stats modal; fall back to the same Sleeper
+      // `settings.type = 2` rule if the shared helper is unavailable.
+      const dynastyOnlyLeagues = (typeof window !== 'undefined' && typeof window.filterDynastyLeagues === 'function')
+        ? window.filterDynastyLeagues(leagues)
+        : leagues.filter((league) => Number.parseInt(league?.settings?.type, 10) === 2);
+      if (dynastyOnlyLeagues.length === 0) {
+        throw new Error('No active dynasty leagues found for this user in the current season.');
+      }
+
+      state.leagues = dynastyOnlyLeagues.sort((a, b) => a.name.localeCompare(b.name));
       populateLeagueSelect(state.leagues);
     }
 

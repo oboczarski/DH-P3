@@ -2459,11 +2459,32 @@ async function fetchAndSetUser(username) {
     if (!userRes || !userRes.user_id) throw new Error('User not found.');
     state.userId = userRes.user_id;
 }
+const SLEEPER_DYNASTY_LEAGUE_TYPE = 2;
+// Dynasty-only league filtering:
+// targets every Sleeper league list used by Rosters, Ownership, and the Stats/Game Logs ownership views.
+// Sleeper marks dynasty leagues with `settings.type = 2`, so centralizing that rule here keeps
+// dropdowns, ownership counts, percentages, and league-detail modals aligned to dynasty leagues only.
+function getSleeperLeagueType(league) {
+    const parsedType = Number.parseInt(league?.settings?.type, 10);
+    return Number.isFinite(parsedType) ? parsedType : null;
+}
+function isDynastyLeague(league) {
+    return getSleeperLeagueType(league) === SLEEPER_DYNASTY_LEAGUE_TYPE;
+}
+function filterDynastyLeagues(leagues) {
+    return Array.isArray(leagues) ? leagues.filter(isDynastyLeague) : [];
+}
+if (typeof window !== 'undefined') {
+    window.isDynastyLeague = isDynastyLeague;
+    window.filterDynastyLeagues = filterDynastyLeagues;
+}
 async function fetchUserLeagues(userId) {
     const currentYear = new Date().getFullYear();
     const leaguesRes = await fetchWithCache(`${API_BASE}/user/${userId}/leagues/nfl/${currentYear}`);
-    if (!leaguesRes || leaguesRes.length === 0) throw new Error(`No leagues found for this user for ${currentYear}.`);
-    return leaguesRes;
+    if (!Array.isArray(leaguesRes) || leaguesRes.length === 0) throw new Error(`No leagues found for this user for ${currentYear}.`);
+    const dynastyLeagues = filterDynastyLeagues(leaguesRes);
+    if (dynastyLeagues.length === 0) throw new Error(`No dynasty leagues found for this user for ${currentYear}.`);
+    return dynastyLeagues;
 }
 
 // === Sleeper player index (global) ===
