@@ -301,7 +301,7 @@ body[data-page="analyzer"] .analyzer-chart {
 }
 
 body[data-page="analyzer"] .analyzer-chart--radar {
-  min-height: 380px;
+  min-height: 336px;
   padding: 0;
 }
 
