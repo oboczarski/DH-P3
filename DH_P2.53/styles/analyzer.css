@@ -339,6 +339,7 @@ body[data-page="analyzer"] .analyzer-panel-body--stacked {
 
   body[data-page="analyzer"] .analyzer-chart--radar {
     height: auto;
+    padding: 0px 14px 0px 9px;
   }
 }
 
@@ -393,27 +394,28 @@ body[data-page="analyzer"] .analyzer-standings {
 
 body[data-page="analyzer"] .analyzer-standings-header h3 {
   margin-left: 10px;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
 }
 
 /* Analyzer league table groups:
    styles the season/career header bands locally so the standings card can expose
    grouped columns without changing shared table styling elsewhere. */
 body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
-  font-size: 0.81rem;
+  font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   word-spacing: 0.14em;
   color: rgba(222, 226, 238, 0.74);
-  padding-top: 0.4rem;
-  padding-bottom: 0.35rem;
+  padding-top: 0.45rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.15);
   text-align: center;
+  background: #abc1;
 }
 
 body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr th {
-  padding-top: 0.32rem;
-  padding-bottom: 0.32em;
+  padding-top: 0.45rem;
+  padding-bottom: 0.35em;
   text-align: center;
   background: #6791;
 }
@@ -440,12 +442,12 @@ body[data-page="analyzer"] .analyzer-table thead tr {
   text-transform: uppercase;
   letter-spacing: -0.02em;
   color: var(--color-text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 body[data-page="analyzer"] .analyzer-table th,
 body[data-page="analyzer"] .analyzer-table td {
-  padding: 0.5rem 0.6rem;
+  padding: 0.6rem 0.6rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.18);
   text-align: left;
   white-space: nowrap;
@@ -837,7 +839,7 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
-    font-size: 0.86rem;
+    font-size: 0.9rem;
     letter-spacing: -0.04em;
     word-spacing: 0.24em;
     background: #abc1;
@@ -969,6 +971,8 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] .analyzer-table th,
   body[data-page="analyzer"] .analyzer-table td {
     padding: 0.55rem 0.3rem 0.3rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.45rem;
   }
 
   body[data-page="analyzer"] .analyzer-panel {
@@ -1107,6 +1111,8 @@ body[data-page="analyzer"] .app-header {
     max-width: 580px;
     margin-left: auto;
     margin-right: auto;
+    min-height: 620px;
+    margin-top: -25px;
   }
 
   body[data-page="analyzer"] #header-container {
