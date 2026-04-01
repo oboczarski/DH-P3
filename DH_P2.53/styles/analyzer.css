@@ -857,8 +857,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="analyzer"] .analyzer-standings-col-career-champ,
   body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
-    width: 4.05rem;
-    min-width: 4.05rem;
+    max-width: 8.75rem;
+    min-width: 4.85rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-team-name {
