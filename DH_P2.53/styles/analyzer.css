@@ -284,7 +284,7 @@ body[data-page="analyzer"] .analyzer-info:focus-within .analyzer-info-tooltip {
 body[data-page="analyzer"] .analyzer-panel-header p {
   margin: 0.2rem 0 0;
   color: var(--color-text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.82rem;
 }
 
 body[data-page="analyzer"] .analyzer-panel-body {
