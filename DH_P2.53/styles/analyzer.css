@@ -388,7 +388,7 @@ body[data-page="analyzer"] .analyzer-standings {
   background: rgba(15, 17, 38, 0.55);
   border: 1px solid rgba(118, 109, 255, 0.18);
   border-radius: 16px;
-  padding: 1.1rem 1.25rem;
+  padding: 0.4rem 1.25rem;
 }
 
 body[data-page="analyzer"] .analyzer-standings-header h3 {
