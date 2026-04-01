@@ -186,7 +186,7 @@ body[data-page="analyzer"] .analyzer-panel {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 0.5rem;
   border-radius: 22px;
   background: rgba(13, 15, 35, 0.42);
   border: 1px solid rgba(128, 138, 189, 0.25);
@@ -385,10 +385,10 @@ body[data-page="analyzer"] .analyzer-standings {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  background: rgba(15, 17, 38, 0.55);
-  border: 1px solid rgba(118, 109, 255, 0.18);
+  background: rgb(15 17 38 / 0%);
+  border: none;
   border-radius: 16px;
-  padding: 0.4rem 1.25rem;
+  padding: 0.4rem 0rem 0.6rem;
 }
 
 body[data-page="analyzer"] .analyzer-standings-header h3 {
@@ -400,16 +400,21 @@ body[data-page="analyzer"] .analyzer-standings-header h3 {
    styles the season/career header bands locally so the standings card can expose
    grouped columns without changing shared table styling elsewhere. */
 body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
-  font-size: 0.61rem;
-  letter-spacing: 0.16em;
+  font-size: 0.81rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  word-spacing: 0.14em;
   color: rgba(222, 226, 238, 0.74);
   padding-top: 0.38rem;
   padding-bottom: 0.22rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.15);
+  text-align: center;
 }
 
 body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr th {
-  padding-top: 0.42rem;
+  padding-top: 0.32rem;
+  padding-bottom: 0.32em;
+  text-align: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-header p {
@@ -420,6 +425,8 @@ body[data-page="analyzer"] .analyzer-standings-header p {
 
 body[data-page="analyzer"] .analyzer-standings-table-wrapper {
   overflow-x: auto;
+  border: 1px solid #abd2;
+  border-radius: 11px;
 }
 
 body[data-page="analyzer"] .analyzer-table {
@@ -430,9 +437,9 @@ body[data-page="analyzer"] .analyzer-table {
 
 body[data-page="analyzer"] .analyzer-table thead tr {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: -0.02em;
   color: var(--color-text-secondary);
-  font-size: 0.7rem;
+  font-size: 0.8rem;
 }
 
 body[data-page="analyzer"] .analyzer-table th,
@@ -455,12 +462,14 @@ body[data-page="analyzer"] .analyzer-standings-rank {
   text-align: center;
   padding-left: 0.22rem;
   padding-right: 0.22rem;
+  text-align-last: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-col-rec,
 body[data-page="analyzer"] .analyzer-standings-rec {
-  width: 3.9rem;
-  min-width: 3.9rem;
+  width: 3.4rem;
+  min-width: 3.4rem;
+  text-align-last: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-col-career-rec,
@@ -468,18 +477,21 @@ body[data-page="analyzer"] .analyzer-standings-career-start {
   width: 4.2rem;
   min-width: 4.2rem;
   border-left: 1px solid rgba(128, 138, 189, 0.28);
+  text-align-last: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-col-career-pct,
 body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
-  width: 4.75rem;
-  min-width: 4.75rem;
+  width: 4.05rem;
+  min-width: 4.05rem;
+  text-align-last: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-col-career-champ,
 body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
   width: 5rem;
   min-width: 5rem;
+  text-align-last: center;
 }
 
 body[data-page="analyzer"] .analyzer-standings-team {
@@ -769,7 +781,7 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
      keeps the frozen sections from covering panel content on desktop only.
      Mobile is intentionally untouched. */
   body[data-page="analyzer"] .analyzer-panel-body {
-    max-height: 560px;
+    max-height: 600px;
   }
 
   body[data-page="analyzer"] .analyzer-leaderboard-scroll {
@@ -824,26 +836,27 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
-    font-size: 0.56rem;
-    letter-spacing: 0.12em;
+    font-size: 0.86rem;
+    letter-spacing: -0.04em;
+    word-spacing: 0.24em;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-rec,
   body[data-page="analyzer"] .analyzer-standings-career-start {
-    width: 3.9rem;
-    min-width: 3.9rem;
+    width: 3.3rem;
+    min-width: 3.3rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-pct,
   body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
-    width: 4.4rem;
-    min-width: 4.4rem;
+    width: 3.1rem;
+    min-width: 3.1rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-champ,
   body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
-    width: 4.25rem;
-    min-width: 4.25rem;
+    width: 4.05rem;
+    min-width: 4.05rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-team-name {
@@ -953,7 +966,7 @@ body[data-page="analyzer"] .app-header {
 
   body[data-page="analyzer"] .analyzer-table th,
   body[data-page="analyzer"] .analyzer-table td {
-    padding: 0.35rem 0.3rem;
+    padding: 0.55rem 0.3rem 0.3rem;
   }
 
   body[data-page="analyzer"] .analyzer-panel {
@@ -1088,8 +1101,8 @@ body[data-page="analyzer"] .app-header {
      desktop has room to keep the standings card compact without changing the
      mobile/tablet full-width scrolling behavior. */
   body[data-page="analyzer"] .analyzer-standings {
-    width: min(100%, 700px);
-    max-width: 700px;
+    width: min(100%, 610px);
+    max-width: 580px;
     margin-left: auto;
     margin-right: auto;
   }
