@@ -252,27 +252,44 @@
             <div class="analyzer-standings" aria-live="polite">
               <div class="analyzer-standings-header">
                 <h3>League Table</h3>
+                <span class="analyzer-standings-subtitle">Season &amp; Career Overview</span>
               </div>
               <div class="analyzer-standings-table-wrapper">
-                <table class="analyzer-table" aria-describedby="analyzer-standings">
+                <table id="analyzerStandingsTable" class="analyzer-table" aria-describedby="analyzer-standings">
                   <thead>
                     <!-- Analyzer league table groups:
                          keeps season standings on the left and adds a separate career-stats
                          section on the right for linked league-history totals. -->
                     <tr class="analyzer-table-group-row">
-                      <th scope="colgroup" colspan="2">SZN Standings</th>
-                      <th scope="colgroup" colspan="3">SZN TM Stats</th>
-                      <th scope="colgroup" colspan="3" class="analyzer-standings-career-group">Career Stats</th>
+                      <th scope="colgroup" colspan="2" class="analyzer-standings-section-divider-right">SZN Standings</th>
+                      <th scope="colgroup" colspan="3">SZN Results</th>
+                      <th scope="colgroup" colspan="3" class="analyzer-standings-career-group">Career Summary</th>
                     </tr>
                     <tr>
-                      <th scope="col" class="analyzer-standings-col-rank">RK</th>
-                      <th scope="col">Team</th>
-                      <th scope="col" class="analyzer-standings-col-rec">REC</th>
-                      <th scope="col">PF</th>
-                      <th scope="col">PA</th>
-                      <th scope="col" class="analyzer-standings-col-career-rec analyzer-standings-career-start">REC</th>
-                      <th scope="col" class="analyzer-standings-col-career-pct">WIN %</th>
-                      <th scope="col" class="analyzer-standings-col-career-champ">CHAMP</th>
+                      <th scope="col" class="analyzer-standings-col-rank" data-sort-key="rank" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="rank">RK</button>
+                      </th>
+                      <th scope="col" class="analyzer-standings-section-divider-right" data-sort-key="teamName" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="teamName">Team</button>
+                      </th>
+                      <th scope="col" class="analyzer-standings-col-rec" data-sort-key="seasonRecord" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="seasonRecord">REC</button>
+                      </th>
+                      <th scope="col" data-sort-key="pf" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="pf">PF</button>
+                      </th>
+                      <th scope="col" data-sort-key="pa" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="pa">PA</button>
+                      </th>
+                      <th scope="col" class="analyzer-standings-col-career-rec analyzer-standings-career-start" data-sort-key="careerRecord" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="careerRecord">REC</button>
+                      </th>
+                      <th scope="col" class="analyzer-standings-col-career-pct" data-sort-key="careerWinPct" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="careerWinPct">WIN %</button>
+                      </th>
+                      <th scope="col" class="analyzer-standings-col-career-champ" data-sort-key="championships" aria-sort="none">
+                        <button type="button" class="analyzer-standings-sort" data-sort-key="championships">CHAMP</button>
+                      </th>
                     </tr>
                   </thead>
                   <tbody id="standingsTableBody"></tbody>

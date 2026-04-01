@@ -19,6 +19,7 @@
       startersCanvas: document.getElementById('startersValueChart'),
       overallCanvas: document.getElementById('overallValueChart'),
       radarCanvas: document.getElementById('radarChart'),
+      standingsTable: document.getElementById('analyzerStandingsTable'),
       standingsBody: document.getElementById('standingsTableBody'),
       leaderboardBody: document.getElementById('leaderboardTableBody'),
       leaderboardFilters: document.querySelectorAll('.analyzer-filter-group .filter-chip'),
@@ -425,6 +426,10 @@
       lineupData: null,
       teams: [],
       standingsTeams: [],
+      standingsSort: {
+        key: null,
+        direction: null,
+      },
       leaderboards: { ALL: [], QB: [], RB: [], WR: [], TE: [] },
       activeLeaderboard: 'ALL',
       radarSlots: [],
@@ -483,6 +488,33 @@
         });
         renderLeagueLeaders();
       });
+    });
+
+    // Analyzer league table sorting:
+    // cycles each sortable header through high-to-low, low-to-high, then reset
+    // without changing the underlying season-standings source data.
+    elements.standingsTable?.addEventListener('click', (event) => {
+      const sortButton = event.target.closest('.analyzer-standings-sort');
+      if (!sortButton) return;
+
+      const sortKey = sortButton.dataset.sortKey;
+      if (!sortKey) return;
+
+      const nextSort = { ...state.standingsSort };
+      if (nextSort.key !== sortKey) {
+        nextSort.key = sortKey;
+        nextSort.direction = 'desc';
+      } else if (nextSort.direction === 'desc') {
+        nextSort.direction = 'asc';
+      } else if (nextSort.direction === 'asc') {
+        nextSort.key = null;
+        nextSort.direction = null;
+      } else {
+        nextSort.direction = 'desc';
+      }
+
+      state.standingsSort = nextSort;
+      renderStandings(state.standingsTeams);
     });
 
     if (initialUsername) {
@@ -785,6 +817,101 @@
 
     function formatWinPctDisplay(wins, losses, ties) {
       return `${(computeWinPct(wins, losses, ties) * 100).toFixed(1)}%`;
+    }
+
+    function compareOptionalNumbers(a, b, direction = 'desc') {
+      const aValid = Number.isFinite(a);
+      const bValid = Number.isFinite(b);
+      if (!aValid && !bValid) return 0;
+      if (!aValid) return 1;
+      if (!bValid) return -1;
+      return direction === 'asc' ? a - b : b - a;
+    }
+
+    function compareTextValues(a, b, direction = 'desc') {
+      const left = String(a || '');
+      const right = String(b || '');
+      return direction === 'asc' ? left.localeCompare(right) : right.localeCompare(left);
+    }
+
+    function compareRecordFields(a, b, direction, prefix) {
+      const prefixKey = prefix || 'season';
+      const pctResult = compareOptionalNumbers(a[`${prefixKey}WinPctValue`], b[`${prefixKey}WinPctValue`], direction);
+      if (pctResult !== 0) return pctResult;
+
+      const winsResult = compareOptionalNumbers(a[`${prefixKey}Wins`], b[`${prefixKey}Wins`], direction);
+      if (winsResult !== 0) return winsResult;
+
+      const lossesResult = compareOptionalNumbers(a[`${prefixKey}Losses`], b[`${prefixKey}Losses`], direction === 'asc' ? 'desc' : 'asc');
+      if (lossesResult !== 0) return lossesResult;
+
+      return compareOptionalNumbers(a[`${prefixKey}Ties`], b[`${prefixKey}Ties`], direction);
+    }
+
+    // Analyzer league table sorting helpers:
+    // apply client-side ordering to the rendered standings rows while preserving each
+    // row's original season rank value for the RK column.
+    function sortRenderedStandingsRows(rows = []) {
+      const sortKey = state.standingsSort?.key || null;
+      const sortDirection = state.standingsSort?.direction || null;
+      if (!sortKey || !sortDirection) return rows;
+
+      return [...rows].sort((a, b) => {
+        let result = 0;
+
+        switch (sortKey) {
+          case 'rank':
+            result = compareOptionalNumbers(a.seasonRank, b.seasonRank, sortDirection);
+            break;
+          case 'teamName':
+            result = compareTextValues(a.teamName, b.teamName, sortDirection);
+            break;
+          case 'seasonRecord':
+            result = compareRecordFields(a, b, sortDirection, 'season');
+            break;
+          case 'pf':
+            result = compareOptionalNumbers(a.pf, b.pf, sortDirection);
+            break;
+          case 'pa':
+            result = compareOptionalNumbers(a.pa, b.pa, sortDirection);
+            break;
+          case 'careerRecord':
+            result = compareRecordFields(a, b, sortDirection, 'career');
+            break;
+          case 'careerWinPct':
+            result = compareOptionalNumbers(a.careerWinPctValue, b.careerWinPctValue, sortDirection);
+            break;
+          case 'championships':
+            result = compareOptionalNumbers(a.championships, b.championships, sortDirection);
+            break;
+          default:
+            result = 0;
+        }
+
+        if (result !== 0) return result;
+        return a.seasonRank - b.seasonRank;
+      });
+    }
+
+    function syncStandingsSortHeaders() {
+      if (!elements.standingsTable) return;
+      const activeKey = state.standingsSort?.key || null;
+      const activeDirection = state.standingsSort?.direction || null;
+
+      elements.standingsTable.querySelectorAll('th[data-sort-key]').forEach((headerCell) => {
+        const headerKey = headerCell.dataset.sortKey || null;
+        const isActive = activeKey && activeKey === headerKey;
+        const ariaSort = isActive
+          ? (activeDirection === 'asc' ? 'ascending' : 'descending')
+          : 'none';
+        headerCell.setAttribute('aria-sort', ariaSort);
+
+        const button = headerCell.querySelector('.analyzer-standings-sort');
+        if (!button) return;
+
+        button.classList.toggle('is-active', Boolean(isActive));
+        button.dataset.sortDirection = isActive ? activeDirection : 'none';
+      });
     }
 
     function resolveWinnerRosterId(winnersBracket) {
@@ -2266,15 +2393,32 @@
 
     function renderStandings(teams) {
       const careerStatsByOwner = state.careerStatsByOwner || {};
-      const standings = sortTeamsByStandings(teams).map((team, index) => ({
-        rank: index + 1,
-        teamName: team.teamName,
-        record: team.record || '—',
-        pf: Number(team.totalFpts) || 0,
-        pa: Number(team.pointsAgainst) || 0,
-        isChamp: Boolean(team.isChamp),
-        ownerId: team.roster?.owner_id || null,
-      }));
+      const standings = sortTeamsByStandings(teams).map((team, index) => {
+        const careerStats = team.roster?.owner_id ? careerStatsByOwner[team.roster.owner_id] : null;
+        const careerWins = careerStats?.hasData ? careerStats.wins : null;
+        const careerLosses = careerStats?.hasData ? careerStats.losses : null;
+        const careerTies = careerStats?.hasData ? careerStats.ties : null;
+
+        return {
+          seasonRank: index + 1,
+          teamName: team.teamName,
+          record: team.record || '—',
+          seasonWins: Number(team.wins) || 0,
+          seasonLosses: Number(team.losses) || 0,
+          seasonTies: Number(team.ties) || 0,
+          seasonWinPctValue: computeWinPct(Number(team.wins) || 0, Number(team.losses) || 0, Number(team.ties) || 0),
+          pf: Number(team.totalFpts) || 0,
+          pa: Number(team.pointsAgainst) || 0,
+          isChamp: Boolean(team.isChamp),
+          ownerId: team.roster?.owner_id || null,
+          careerStats,
+          careerWins,
+          careerLosses,
+          careerTies,
+          careerWinPctValue: careerStats?.hasData ? computeWinPct(careerWins, careerLosses, careerTies) : null,
+          championships: careerStats?.hasData ? careerStats.championships : null,
+        };
+      });
 
       // Analyzer standings team cell:
       // keeps the champion crown self-contained in analyzer rendering rather than
@@ -2295,7 +2439,17 @@
 
       const renderCareerChampionships = (careerStats) => {
         if (!careerStats?.hasData) return '—';
-        if (!careerStats.championships) return '0';
+        if (!careerStats.championships) {
+          return `
+            <span
+              class="analyzer-standings-no-champ"
+              title="0 Championships"
+              aria-label="0 Championships"
+            >
+              <i class="fa-solid fa-border-none" aria-hidden="true"></i>
+            </span>
+          `;
+        }
 
         const trophyMarkup = Array.from({ length: careerStats.championships }, () => (
           '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>'
@@ -2312,9 +2466,11 @@
         `;
       };
 
-      elements.standingsBody.innerHTML = standings
+      const sortedStandings = sortRenderedStandingsRows(standings);
+
+      elements.standingsBody.innerHTML = sortedStandings
         .map((team) => {
-          const careerStats = team.ownerId ? careerStatsByOwner[team.ownerId] : null;
+          const careerStats = team.careerStats;
           const careerRecord = careerStats?.hasData
             ? formatRecordLine(careerStats.wins, careerStats.losses, careerStats.ties)
             : '—';
@@ -2324,8 +2480,8 @@
 
           return `
             <tr>
-              <td data-label="RK" class="analyzer-standings-rank">${team.rank}</td>
-              <td data-label="Team">${renderStandingsTeamCell(team)}</td>
+              <td data-label="RK" class="analyzer-standings-rank">${team.seasonRank}</td>
+              <td data-label="Team" class="analyzer-standings-section-divider-right">${renderStandingsTeamCell(team)}</td>
               <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
               <td data-label="PF">${team.pf.toFixed(1)}</td>
               <td data-label="PA">${team.pa.toFixed(1)}</td>
@@ -2336,6 +2492,8 @@
           `;
         })
         .join('');
+
+      syncStandingsSortHeaders();
     }
 
     function computeWinPct(wins, losses, ties) {

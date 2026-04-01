@@ -393,8 +393,23 @@ body[data-page="analyzer"] .analyzer-standings {
 }
 
 body[data-page="analyzer"] .analyzer-standings-header h3 {
-  margin-left: 10px;
+  margin: 0;
   font-size: 1.2rem;
+}
+
+body[data-page="analyzer"] .analyzer-standings-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-left: 10px;
+}
+
+body[data-page="analyzer"] .analyzer-standings-subtitle {
+  color: rgba(222, 226, 238, 0.64);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Analyzer league table groups:
@@ -411,6 +426,10 @@ body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
   border-bottom: 1px solid rgba(128, 138, 189, 0.15);
   text-align: center;
   background: #abc1;
+}
+
+body[data-page="analyzer"] .analyzer-standings-section-divider-right {
+  border-right: 1px solid rgba(128, 138, 189, 0.28);
 }
 
 body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr th {
@@ -451,6 +470,10 @@ body[data-page="analyzer"] .analyzer-table td {
   border-bottom: 1px solid rgba(128, 138, 189, 0.18);
   text-align: left;
   white-space: nowrap;
+}
+
+body[data-page="analyzer"] .analyzer-table tbody tr:nth-child(even) td {
+  background: #6791;
 }
 
 body[data-page="analyzer"] .analyzer-table tbody tr:last-child th,
@@ -512,6 +535,46 @@ body[data-page="analyzer"] .analyzer-standings-career-group {
   border-left: 1px solid rgba(128, 138, 189, 0.28);
 }
 
+body[data-page="analyzer"] .analyzer-standings-sort {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0;
+  cursor: pointer;
+}
+
+body[data-page="analyzer"] .analyzer-standings-sort:focus-visible {
+  outline: 2px solid rgba(118, 109, 255, 0.55);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+body[data-page="analyzer"] .analyzer-standings-sort::after {
+  content: '↕';
+  font-size: 0.72em;
+  opacity: 0.22;
+  line-height: 1;
+}
+
+body[data-page="analyzer"] th[aria-sort="descending"] .analyzer-standings-sort::after {
+  content: '↓';
+  opacity: 0.72;
+}
+
+body[data-page="analyzer"] th[aria-sort="ascending"] .analyzer-standings-sort::after {
+  content: '↑';
+  opacity: 0.72;
+}
+
 body[data-page="analyzer"] .analyzer-standings-trophies {
   display: inline-flex;
   align-items: center;
@@ -524,8 +587,19 @@ body[data-page="analyzer"] .analyzer-standings-trophies {
    from the existing champion crown used beside the team name. */
 body[data-page="analyzer"] .analyzer-standings-trophy {
   color: rgb(215, 222, 233);
-  font-size: 0.76rem;
-  filter: drop-shadow(0 0 4px rgba(215, 222, 233, 0.18));
+  font-size: 0.78rem;
+  filter: drop-shadow(0px 0px 4px rgba(215, 222, 233, 0.22)) drop-shadow(0px 0px 8px rgba(215, 222, 233, 0.3)) saturate(0.82);
+  text-shadow: 0px -2px 1px #0006, 0px 0px 2px #0009;
+}
+
+body[data-page="analyzer"] .analyzer-standings-no-champ {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(215, 222, 233);
+  font-size: 0.78rem;
+  opacity: 0.78;
+  filter: drop-shadow(0px 0px 4px rgba(215, 222, 233, 0.12));
 }
 
 /* Analyzer standings champion marker:
@@ -826,6 +900,15 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 }
 
 @media (max-width: 640px) {
+  body[data-page="analyzer"] .analyzer-standings-header {
+    gap: 0.35rem;
+    margin-left: 6px;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-subtitle {
+    font-size: 0.66rem;
+  }
+
   body[data-page="analyzer"] .analyzer-standings-col-rank,
   body[data-page="analyzer"] .analyzer-standings-rank {
     width: 1.7rem;
@@ -843,6 +926,10 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
     letter-spacing: -0.04em;
     word-spacing: 0.24em;
     background: #abc1;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-sort::after {
+    font-size: 0.66em;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-rec,
