@@ -2470,7 +2470,7 @@
               title="0 Championships"
               aria-label="0 Championships"
             >
-              <i class="fa-solid fa-spinner" aria-hidden="true"></i>
+              <i class="fa-regular fa-circle" aria-hidden="true"></i>
             </span>
           `;
         }
