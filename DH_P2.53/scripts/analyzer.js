@@ -1899,7 +1899,7 @@
       const leagueAverages = leagueAverageDetails.map((detail) => detail.metricAverage);
 
       const maxValue = Math.max(0, ...userData, ...leagueAverages);
-      const fixedValueRadarMax = 11000;
+      const fixedValueRadarMax = 11500;
       const scaleMax = radarMetric === 'value'
         ? fixedValueRadarMax
         : (maxValue > 0 ? roundUpTo(maxValue * 1.05, 5) : 10);
