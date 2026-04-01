@@ -1859,6 +1859,12 @@
       const radarMetric = state.currentRadarMetric === 'value' ? 'value' : 'ppg';
       const radarMetricLabel = radarMetric === 'value' ? 'Value' : 'PPG';
       const radarValueFormatter = radarMetric === 'value' ? formatNumber : formatPpg;
+      const radarDataLabelFormatter = radarMetric === 'value'
+        ? (value) => formatNumber(value).replace(/k$/, 'K')
+        : (value) => `${formatPpg(value)} PPG`;
+      const radarDataLabelFont = radarMetric === 'value'
+        ? '700 10px "Product Sans", "Google Sans", sans-serif'
+        : '10px "Product Sans", "Google Sans", sans-serif';
       const comparisonTeams = teams.filter((team) => !team.isUserTeam);
       const leagueAverageTeams = comparisonTeams.length ? comparisonTeams : teams;
       const usingRestOfLeague = comparisonTeams.length > 0;
@@ -1981,7 +1987,8 @@
               pointHoverRadius: 6,
               analyzerLabels: true,
               labelColors,
-              labelFormatter: (value) => `${radarValueFormatter(value)} ${radarMetricLabel}`,
+              labelFont: radarDataLabelFont,
+              labelFormatter: radarDataLabelFormatter,
               analyzerPointDetails: userPointDetails,
               order: 2,
             },
