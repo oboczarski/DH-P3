@@ -888,6 +888,15 @@
           overallPositional.Picks += getKtcValue(pick.label);
         });
 
+        // Analyzer lineup derivation:
+        // rebuilds the lineup charts from league starter settings instead of Sleeper's
+        // manual starter slots. FLEX pulls from leftover RB/WR/TE options, while
+        // SUPER_FLEX only consumes the next remaining QB for the selected metric.
+        const derivedLineups = {
+          value: buildDerivedLineup(allPlayers, leagueInfo?.roster_positions || [], slotSequence, 'value'),
+          ppg: buildDerivedLineup(allPlayers, leagueInfo?.roster_positions || [], slotSequence, 'ppg'),
+        };
+
         const totalValue = Object.values(overallPositional).reduce((sum, value) => sum + value, 0);
         const startersValueTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.value ?? 0), 0);
         const starterPpgTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.ppg ?? 0), 0);
@@ -942,6 +951,7 @@
           startersBySlot,
           startersValueByPos,
           allPlayers,
+          derivedLineups,
           totalValue,
           startersValueTotal,
           starterPpgTotal,
@@ -955,10 +965,6 @@
           isUserTeam: roster.owner_id === state.userId,
           topScorer,
         };
-      });
-
-      teams.forEach((team) => {
-        team.radarAssignments = assignRadarSlots(team.allPlayers, slotSequence);
       });
 
       const rankMap = {};
@@ -1046,22 +1052,51 @@
       }
     }
 
-    function assignRadarSlots(players = [], slotSequence = []) {
-      const assignments = slotSequence.map((slot) => ({ ...slot, value: 0, player: null }));
-      if (!slotSequence.length) return assignments;
+    function createDerivedSlotTotals() {
+      const slotTotals = {};
+      SLOT_ORDER.forEach((slot) => {
+        slotTotals[slot] = { value: 0, ppg: 0, players: [] };
+      });
+      return slotTotals;
+    }
 
-      const availableByPos = {};
+    function compareDerivedCandidates(a, b, metricKey) {
+      const primaryDiff = (Number(b?.[metricKey]) || 0) - (Number(a?.[metricKey]) || 0);
+      if (primaryDiff !== 0) return primaryDiff;
+
+      const secondaryKey = metricKey === 'ppg' ? 'ktc' : 'ppg';
+      const secondaryDiff = (Number(b?.[secondaryKey]) || 0) - (Number(a?.[secondaryKey]) || 0);
+      if (secondaryDiff !== 0) return secondaryDiff;
+
+      return (a?.name || '').localeCompare(b?.name || '');
+    }
+
+    function buildDerivedLineup(players = [], rosterPositions = [], slotSequence = [], metric = 'value') {
+      const orderedSlots = Array.isArray(slotSequence) && slotSequence.length
+        ? slotSequence
+        : buildRadarSlots(rosterPositions || []);
+      const startersBySlot = createDerivedSlotTotals();
+      const assignments = orderedSlots.map((slot) => ({ ...slot, score: 0, player: null }));
+      const totals = { value: 0, ppg: 0 };
+
+      if (!orderedSlots.length) {
+        return { startersBySlot, assignments, totals };
+      }
+
+      const metricKey = metric === 'ppg' ? 'ppg' : 'ktc';
+      const availableByPos = { QB: [], RB: [], WR: [], TE: [] };
+
       (players || []).forEach((player) => {
-        if (!player?.pos) return;
-        if (!availableByPos[player.pos]) {
-          availableByPos[player.pos] = [];
-        }
-        const value = Number(player.ktc) || 0;
-        availableByPos[player.pos].push({ ...player, ktc: value });
+        if (!player?.pos || !availableByPos[player.pos]) return;
+        availableByPos[player.pos].push({
+          ...player,
+          ktc: Number(player.ktc) || 0,
+          ppg: Number(player.ppg) || 0,
+        });
       });
 
       Object.keys(availableByPos).forEach((pos) => {
-        availableByPos[pos].sort((a, b) => (b.ktc || 0) - (a.ktc || 0));
+        availableByPos[pos].sort((a, b) => compareDerivedCandidates(a, b, metricKey));
       });
 
       const used = new Set();
@@ -1070,18 +1105,19 @@
       const takeAt = (pos, forcedIndex) => {
         const list = availableByPos[pos] || [];
         if (!list.length) return null;
+
         let idx = forcedIndex ?? indices[pos] ?? 0;
         while (idx < list.length && used.has(list[idx]?.id)) {
           idx += 1;
         }
+
         if (idx >= list.length) return null;
         indices[pos] = idx + 1;
+
         const player = list[idx];
         used.add(player.id);
         return player;
       };
-
-      const takeFromPos = (pos) => takeAt(pos);
 
       const peekNext = (pos) => {
         const list = availableByPos[pos] || [];
@@ -1093,53 +1129,75 @@
       };
 
       const takeBestFlex = () => {
-        let best = null;
+        let bestPlayer = null;
         let bestPos = null;
         let bestIndex = null;
+
         RADAR_FLEX_ELIGIBLE.forEach((pos) => {
           const { player, index } = peekNext(pos);
-          if (player && (!best || (player.ktc || 0) > (best.ktc || 0))) {
-            best = player;
+          if (!player) return;
+          if (!bestPlayer || compareDerivedCandidates(player, bestPlayer, metricKey) < 0) {
+            bestPlayer = player;
             bestPos = pos;
             bestIndex = index;
           }
         });
-        if (best && bestPos) {
-          return takeAt(bestPos, bestIndex);
-        }
-        return null;
+
+        if (!bestPlayer || !bestPos) return null;
+        return takeAt(bestPos, bestIndex);
       };
 
-      slotSequence.forEach((slot, idx) => {
-        let selected = null;
-        if (slot.type === 'FLEX') {
-          selected = takeBestFlex();
-        } else if (slot.type === 'SUPER_FLEX') {
-          selected = takeFromPos('QB');
-          if (!selected) {
-            selected = takeBestFlex();
-          }
-        } else {
-          selected = takeFromPos(slot.type);
-        }
+      const applySelection = (slot, idx, selected) => {
+        const playerValue = Number(selected.ktc) || 0;
+        const playerPpg = Number(selected.ppg) || 0;
+        const score = metric === 'ppg' ? playerPpg : playerValue;
 
-        const score = selected ? Number(selected.ppg) || 0 : 0;
+        startersBySlot[slot.type].value += playerValue;
+        startersBySlot[slot.type].ppg += playerPpg;
+        startersBySlot[slot.type].players.push({
+          name: selected.name,
+          value: playerValue,
+          ppg: playerPpg,
+        });
+
+        totals.value += playerValue;
+        totals.ppg += playerPpg;
 
         assignments[idx] = {
           ...slot,
-          value: score,
-          player: selected
-            ? {
-              id: selected.id,
-              name: selected.name,
-              ppg: Number(selected.ppg) || 0,
-              score,
-            }
-            : null,
+          score,
+          player: {
+            id: selected.id,
+            name: selected.name,
+            value: playerValue,
+            ppg: playerPpg,
+            score,
+          },
         };
-      });
+      };
 
-      return assignments;
+      // Analyzer lineup slot filling:
+      // exact position requirements are always filled before FLEX leftovers, so the chart
+      // follows league starter counts even if Sleeper's slot array order varies.
+      const fillSlots = (slotMatcher, takePlayer) => {
+        orderedSlots.forEach((slot, idx) => {
+          if (!slotMatcher(slot)) return;
+
+          const selected = takePlayer(slot);
+          if (!selected) {
+            assignments[idx] = { ...slot, score: 0, player: null };
+            return;
+          }
+
+          applySelection(slot, idx, selected);
+        });
+      };
+
+      fillSlots((slot) => POSITION_ORDER.includes(slot.type), (slot) => takeAt(slot.type));
+      fillSlots((slot) => slot.type === 'FLEX', () => takeBestFlex());
+      fillSlots((slot) => slot.type === 'SUPER_FLEX', () => takeAt('QB'));
+
+      return { startersBySlot, assignments, totals };
     }
 
     function formatPlayerName(playerInfo) {
@@ -1356,7 +1414,7 @@
       const createDatasetForMetric = (metric) => {
         const datasets = [];
         SLOT_ORDER.forEach((slot) => {
-          const values = teams.map((team) => team.startersBySlot[slot]?.[metric] ?? 0);
+          const values = teams.map((team) => team.derivedLineups?.[metric]?.startersBySlot?.[slot]?.[metric] ?? 0);
           if (!values.some((value) => value > 0)) return;
           const colorSource = metric === 'value' ? LINEUP_VALUE_COLORS : LINEUP_PPG_COLORS;
           const hex = colorSource[slot] || colorSource.FLEX || '#37ebb5';
@@ -1377,7 +1435,7 @@
 
         const maxValue = Math.max(
           0,
-          ...teams.map((team) => (metric === 'value' ? team.startersValueTotal : team.starterPpgTotal)),
+          ...teams.map((team) => team.derivedLineups?.[metric]?.totals?.[metric] ?? 0),
         );
 
         return { datasets, max: maxValue };
@@ -1491,7 +1549,7 @@
                 const teamIndex = tooltipItems[0].dataIndex;
                 const slotKey = tooltipItems[0].dataset.slotKey;
                 const team = teams[teamIndex];
-                const players = team?.startersBySlot?.[slotKey]?.players || [];
+                const players = team?.derivedLineups?.[metric]?.startersBySlot?.[slotKey]?.players || [];
                 const valueKey = metric === 'value' ? 'value' : 'ppg';
                 return players
                   .slice()
@@ -1706,12 +1764,15 @@
       const slots = Array.isArray(radarSlots) && radarSlots.length ? radarSlots : buildRadarSlots();
       const labels = slots.map((slot) => slot.label);
 
-      const userAssignments = userTeam.radarAssignments || [];
-      const userData = slots.map((slot, index) => userAssignments[index]?.value ?? 0);
+      // Analyzer positional strength radar:
+      // reuses the PPG-derived lineup selections so the radar and lineup chart evaluate
+      // the same starters at each required slot.
+      const userAssignments = userTeam.derivedLineups?.ppg?.assignments || [];
+      const userData = slots.map((slot, index) => userAssignments[index]?.score ?? 0);
 
       const leagueAverages = slots.map((slot, index) => {
         const total = teams.reduce(
-          (sum, team) => sum + (team.radarAssignments?.[index]?.value ?? 0),
+          (sum, team) => sum + (team.derivedLineups?.ppg?.assignments?.[index]?.score ?? 0),
           0,
         );
         return teams.length ? total / teams.length : 0;

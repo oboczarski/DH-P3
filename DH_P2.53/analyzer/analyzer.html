@@ -186,7 +186,20 @@
           <article class="analyzer-panel glass-panel" id="lineup-panel">
             <header class="analyzer-panel-header">
               <div>
-                <h2>Starting Lineup Overview</h2>
+                <h2 class="analyzer-heading-with-info">
+                  <span class="analyzer-heading-text">Starting Lineup Overview</span>
+                  <!-- Analyzer lineup header help: explains that this chart auto-builds starters from league slot rules, including FLEX leftovers and SUPER_FLEX QB handling. -->
+                  <span class="analyzer-info">
+                    <button type="button" class="analyzer-info-trigger"
+                      aria-label="Explain how the starting lineup is determined"
+                      aria-describedby="startingLineupInfoTooltip">
+                      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    </button>
+                    <span class="analyzer-info-tooltip" id="startingLineupInfoTooltip" role="tooltip">
+                      Lineups are auto-built from league starter settings. Value uses the best KTC players by slot, PPG uses the best PPG players by slot, FLEX uses the best remaining RB/WR/TE, and SFLX uses the next-best QB.
+                    </span>
+                  </span>
+                </h2>
                 <p>Toggle between market value and combined starter production.</p>
               </div>
               <div class="analyzer-toggle" role="group" aria-label="Lineup metric">

@@ -207,6 +207,79 @@ body[data-page="analyzer"] .analyzer-panel-header h2 {
   font-size: 1.2rem;
 }
 
+/* Analyzer lineup header tooltip: keeps the new info icon and help text scoped to the
+   lineup panel title so hover/focus guidance does not affect other page headers. */
+body[data-page="analyzer"] .analyzer-heading-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+body[data-page="analyzer"] .analyzer-heading-with-info .analyzer-heading-text {
+  min-width: 0;
+}
+
+body[data-page="analyzer"] .analyzer-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+body[data-page="analyzer"] .analyzer-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(188, 210, 255, 0.82);
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+body[data-page="analyzer"] .analyzer-info-trigger:hover,
+body[data-page="analyzer"] .analyzer-info-trigger:focus-visible {
+  color: #ffffff;
+  background: rgba(103, 0, 255, 0.18);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+body[data-page="analyzer"] .analyzer-info-tooltip {
+  position: absolute;
+  top: calc(100% + 0.58rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: min(320px, calc(100vw - 2.25rem));
+  padding: 0.7rem 0.82rem;
+  border-radius: 14px;
+  border: 1px solid rgba(118, 109, 255, 0.32);
+  background: rgba(13, 14, 35, 0.96);
+  box-shadow: 0 14px 30px rgba(4, 6, 15, 0.42);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+body[data-page="analyzer"] .analyzer-info:hover .analyzer-info-tooltip,
+body[data-page="analyzer"] .analyzer-info:focus-within .analyzer-info-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
 body[data-page="analyzer"] .analyzer-panel-header p {
   margin: 0.2rem 0 0;
   color: var(--color-text-secondary);
@@ -783,6 +856,26 @@ body[data-page="analyzer"] .app-header {
     align-self: center;
     justify-self: start;
     text-wrap-mode: nowrap;
+  }
+
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-heading-with-info {
+    gap: 0.35rem;
+  }
+
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info-trigger {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info-tooltip {
+    left: 0;
+    transform: translateX(0) translateY(4px);
+    width: min(280px, calc(100vw - 1.5rem));
+  }
+
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info:hover .analyzer-info-tooltip,
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info:focus-within .analyzer-info-tooltip {
+    transform: translateX(0) translateY(0);
   }
 
   /* Subtitle remains directly beneath the title row, preserving existing margin/padding rhythm. */
