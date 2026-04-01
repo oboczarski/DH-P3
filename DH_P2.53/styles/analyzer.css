@@ -912,7 +912,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   body[data-page="analyzer"] .analyzer-standings-subtitle {
-    font-size: 0.66rem;
+    font-size: 0.86rem;
+    margin-left: 7px;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-rank,
@@ -1075,6 +1076,7 @@ body[data-page="analyzer"] .app-header {
 
   body[data-page="analyzer"] .analyzer-chart {
     height: 320px;
+    padding: 2px 5px 0px 0px;
   }
 
   body[data-page="analyzer"] .analyzer-filter-group {
@@ -1147,7 +1149,8 @@ body[data-page="analyzer"] .app-header {
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
     grid-area: subtitle;
     min-width: 0;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0rem;
+    font-size: 0.82rem;
   }
 
   /* Place each control on the title row and pin it to the right edge of its own panel header. */
