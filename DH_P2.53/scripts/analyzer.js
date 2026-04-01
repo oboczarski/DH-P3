@@ -413,6 +413,7 @@
       currentRadarMetric: 'ppg',
       isSuperflex: false,
       cache: {},
+      championCache: {},
       charts: {
         lineup: null,
         overall: null,
@@ -774,6 +775,75 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function resolveChampionSourceLeagueId(leagueInfo) {
+      const season = Number.parseInt(leagueInfo?.season, 10);
+      if (season === 2025) {
+        return leagueInfo?.league_id || null;
+      }
+      return leagueInfo?.previous_league_id || null;
+    }
+
+    // Analyzer champion lookup:
+    // mirrors the rosters bracket winner lookup but stays self-contained so the
+    // standings crown does not rely on app.js or shared roster rendering state.
+    async function fetchAnalyzerChampionData(leagueInfo) {
+      const sourceLeagueId = resolveChampionSourceLeagueId(leagueInfo);
+      if (!sourceLeagueId) return null;
+
+      if (state.championCache[sourceLeagueId]) {
+        return state.championCache[sourceLeagueId];
+      }
+
+      try {
+        const [rosters, winnersBracket] = await Promise.all([
+          fetchWithCache(`https://api.sleeper.app/v1/league/${sourceLeagueId}/rosters`),
+          fetchWithCache(`https://api.sleeper.app/v1/league/${sourceLeagueId}/winners_bracket`),
+        ]);
+
+        let winnerRosterId = null;
+        if (Array.isArray(winnersBracket) && winnersBracket.length) {
+          const maxRound = Math.max(...winnersBracket.map((match) => Number(match?.r) || 0));
+          const finals = winnersBracket.filter((match) => (Number(match?.r) || 0) === maxRound);
+          const champMatch = finals.find((match) => Number(match?.p) === 1);
+          if (champMatch?.w) {
+            winnerRosterId = champMatch.w;
+          } else if (finals.length === 1 && finals[0]?.w) {
+            winnerRosterId = finals[0].w;
+          }
+        }
+
+        const rostersByOwner = {};
+        (Array.isArray(rosters) ? rosters : []).forEach((roster) => {
+          if (!roster?.owner_id) return;
+          rostersByOwner[roster.owner_id] = roster;
+        });
+
+        const result = { sourceLeagueId, rostersByOwner, winnerRosterId };
+        state.championCache[sourceLeagueId] = result;
+        return result;
+      } catch (error) {
+        console.warn('Analyzer champion lookup failed:', error);
+        const fallback = { sourceLeagueId, rostersByOwner: {}, winnerRosterId: null };
+        state.championCache[sourceLeagueId] = fallback;
+        return fallback;
+      }
+    }
+
+    function applyChampionFlags(teams, championData) {
+      return (teams || []).map((team) => {
+        const previousRoster = championData?.rostersByOwner?.[team?.roster?.owner_id];
+        const isChamp = Boolean(
+          previousRoster
+          && championData?.winnerRosterId
+          && championData.winnerRosterId === previousRoster.roster_id,
+        );
+        return {
+          ...team,
+          isChamp,
+        };
+      });
+    }
+
     async function analyzeLeague(leagueId) {
       try {
         setLoading(true);
@@ -790,16 +860,18 @@
         await ensurePlayerStats(leagueInfo.season ?? 2025);
         await fetchLeaguePlayerStats(leagueId);
 
-        const [rosters, users, tradedPicks] = await Promise.all([
+        const [rosters, users, tradedPicks, championData] = await Promise.all([
           fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/rosters`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/users`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/traded_picks`),
+          fetchAnalyzerChampionData(leagueInfo),
         ]);
 
         const radarSlots = buildRadarSlots(leagueInfo.roster_positions || []);
         const processed = processLeagueData(rosters, users, tradedPicks, leagueInfo, radarSlots);
+        const teamsWithChampionFlags = applyChampionFlags(processed.teams, championData);
 
-        state.teams = processed.teams;
+        state.teams = teamsWithChampionFlags;
         state.leaderboards = processed.leaderboards;
         state.radarSlots = processed.radarSlots;
 
@@ -1787,45 +1859,49 @@
       const radarMetric = state.currentRadarMetric === 'value' ? 'value' : 'ppg';
       const radarMetricLabel = radarMetric === 'value' ? 'Value' : 'PPG';
       const radarValueFormatter = radarMetric === 'value' ? formatNumber : formatPpg;
-      const radarScaleStep = radarMetric === 'value' ? 5000 : 5;
-      const radarDefaultMax = radarMetric === 'value' ? 5000 : 10;
+      const comparisonTeams = teams.filter((team) => !team.isUserTeam);
+      const leagueAverageTeams = comparisonTeams.length ? comparisonTeams : teams;
+      const usingRestOfLeague = comparisonTeams.length > 0;
 
       // Analyzer positional strength radar:
-      // reuses the shared derived lineup selections for both Value and PPG so the radar
-      // always mirrors the same slot-filling rules as the Starting Lineup chart.
+      // reuses the shared derived lineup selections for both Value and PPG, and averages
+      // each slot against the rest of the league so position-by-position comparisons stay aligned.
       const userAssignments = userTeam.derivedLineups?.[radarMetric]?.assignments || [];
       const userData = slots.map((slot, index) => userAssignments[index]?.score ?? 0);
 
       const leagueAverageDetails = slots.map((slot, index) => {
-        const totalMetric = teams.reduce(
+        const totalMetric = leagueAverageTeams.reduce(
           (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.score ?? 0),
           0,
         );
-        const totalValue = teams.reduce(
+        const totalValue = leagueAverageTeams.reduce(
           (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player?.value ?? 0),
           0,
         );
-        const totalPpg = teams.reduce(
+        const totalPpg = leagueAverageTeams.reduce(
           (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player?.ppg ?? 0),
           0,
         );
-        const populatedCount = teams.reduce(
+        const populatedCount = leagueAverageTeams.reduce(
           (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player ? 1 : 0),
           0,
         );
-        const teamCount = teams.length;
+        const teamCount = leagueAverageTeams.length;
         return {
           metricAverage: teamCount ? totalMetric / teamCount : 0,
           valueAverage: teamCount ? totalValue / teamCount : 0,
           ppgAverage: teamCount ? totalPpg / teamCount : 0,
           teamCount,
           populatedCount,
+          comparisonLabel: usingRestOfLeague ? `Across ${teamCount} other teams` : `Across ${teamCount} teams`,
         };
       });
       const leagueAverages = leagueAverageDetails.map((detail) => detail.metricAverage);
 
       const maxValue = Math.max(0, ...userData, ...leagueAverages);
-      const scaleMax = maxValue > 0 ? roundUpTo(maxValue * 1.05, radarScaleStep) : radarDefaultMax;
+      const scaleMax = radarMetric === 'value'
+        ? 10000
+        : (maxValue > 0 ? roundUpTo(maxValue * 1.05, 5) : 10);
       const labelColors = userData.map((value, index) =>
         getRadarLabelColor(value, leagueAverages[index]),
       );
@@ -1861,12 +1937,12 @@
 
       const leagueAveragePointDetails = leagueAverageDetails.map((detail) => {
         if (!detail.populatedCount) {
-          return ['No eligible starters for this slot across the league.'];
+          return [usingRestOfLeague ? 'No eligible starters for this slot across the rest of the league.' : 'No eligible starters for this slot across the league.'];
         }
         return [
           `Avg Value: ${formatNumber(detail.valueAverage)}`,
           `Avg PPG: ${formatPpg(detail.ppgAverage)}`,
-          `Across ${detail.teamCount} teams`,
+          detail.comparisonLabel,
         ];
       });
 
@@ -1980,19 +2056,48 @@
       });
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function renderStandings(teams) {
-      const standings = sortTeamsByStandings(teams).map((team) => ({
+      const standings = sortTeamsByStandings(teams).map((team, index) => ({
+        rank: index + 1,
         teamName: team.teamName,
         record: team.record || '—',
         pf: Number(team.totalFpts) || 0,
         pa: Number(team.pointsAgainst) || 0,
+        isChamp: Boolean(team.isChamp),
       }));
+
+      // Analyzer standings team cell:
+      // keeps the champion crown self-contained in analyzer rendering rather than
+      // depending on the roster page header implementation in app.js.
+      const renderStandingsTeamCell = (team) => {
+        const safeTeamName = escapeHtml(team.teamName);
+        const championTitle = escapeHtml(team.isChamp ? `${team.teamName} - Previous Champion` : team.teamName);
+        const crownHtml = team.isChamp
+          ? '<i class="fa-solid fa-crown team-record-champ" aria-hidden="true" title="Previous Champion"></i>'
+          : '';
+        return `
+          <span class="analyzer-standings-team" title="${championTitle}">
+            <span class="analyzer-standings-team-name">${safeTeamName}</span>
+            ${crownHtml}
+          </span>
+        `;
+      };
 
       elements.standingsBody.innerHTML = standings
         .map((team) => `
           <tr>
-            <td data-label="Team">${team.teamName}</td>
-            <td data-label="Record">${team.record}</td>
+            <td data-label="RK" class="analyzer-standings-rank">${team.rank}</td>
+            <td data-label="Team">${renderStandingsTeamCell(team)}</td>
+            <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
             <td data-label="PF">${team.pf.toFixed(1)}</td>
             <td data-label="PA">${team.pa.toFixed(1)}</td>
           </tr>

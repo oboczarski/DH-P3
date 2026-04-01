@@ -432,6 +432,43 @@ body[data-page="analyzer"] .analyzer-table tbody tr:last-child td {
   border-bottom: none;
 }
 
+body[data-page="analyzer"] .analyzer-standings-col-rank,
+body[data-page="analyzer"] .analyzer-standings-rank {
+  width: 2.1rem;
+  min-width: 2.1rem;
+  text-align: center;
+  padding-left: 0.22rem;
+  padding-right: 0.22rem;
+}
+
+body[data-page="analyzer"] .analyzer-standings-col-rec,
+body[data-page="analyzer"] .analyzer-standings-rec {
+  width: 3.9rem;
+  min-width: 3.9rem;
+}
+
+body[data-page="analyzer"] .analyzer-standings-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+body[data-page="analyzer"] .analyzer-standings-team-name {
+  min-width: 0;
+}
+
+/* Analyzer standings champion marker:
+   mirrors the rosters crown look but stays fully local to analyzer.css so the
+   standings crown does not depend on shared global styles. */
+body[data-page="analyzer"] .team-record-champ {
+  color: #c7b792c7;
+  margin-left: 0;
+  font-size: 0.85rem;
+  filter: drop-shadow(0px 0px 4px rgba(208, 180, 114, 0.31)) drop-shadow(0px 0px 8px rgba(208, 180, 114, 0.61)) saturate(0.75);
+  text-shadow: 0px -2px 1px #0006, 0px 0px 2px #0009;
+}
+
 body[data-page="analyzer"] .analyzer-filter-group {
   display: inline-flex;
   gap: 0rem;
@@ -673,6 +710,13 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 
 /* ---- Desktop enhancements ---- */
 @media (min-width: 641px) {
+  /* Analyzer desktop panel height guard:
+     keeps the frozen sections from covering panel content on desktop only.
+     Mobile is intentionally untouched. */
+  body[data-page="analyzer"] .analyzer-panel-body {
+    max-height: 560px;
+  }
+
   body[data-page="analyzer"] .analyzer-leaderboard-scroll {
     max-height: 620px;
   }
@@ -712,6 +756,26 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 }
 
 @media (max-width: 640px) {
+  body[data-page="analyzer"] .analyzer-standings-col-rank,
+  body[data-page="analyzer"] .analyzer-standings-rank {
+    width: 1.7rem;
+    min-width: 1.7rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-col-rec,
+  body[data-page="analyzer"] .analyzer-standings-rec {
+    width: 3.35rem;
+    min-width: 3.35rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-team-name {
+    display: inline-block;
+    max-width: 7.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+  }
+
   body[data-page="analyzer"] .analyzer-leaderboard-scroll {
     max-height: 420px;
   }

@@ -255,9 +255,13 @@
               <div class="analyzer-standings-table-wrapper">
                 <table class="analyzer-table" aria-describedby="analyzer-standings">
                   <thead>
+                    <!-- Analyzer standings columns:
+                         adds a narrow rank column and shorter REC label so the analyzer-only
+                         champion crown can fit without forcing unnecessary horizontal scroll. -->
                     <tr>
+                      <th scope="col" class="analyzer-standings-col-rank">RK</th>
                       <th scope="col">Team</th>
-                      <th scope="col">Record</th>
+                      <th scope="col" class="analyzer-standings-col-rec">REC</th>
                       <th scope="col">PF</th>
                       <th scope="col">PA</th>
                     </tr>
