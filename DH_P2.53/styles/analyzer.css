@@ -407,9 +407,10 @@ body[data-page="analyzer"] .analyzer-standings-header {
 
 body[data-page="analyzer"] .analyzer-standings-subtitle {
   color: rgba(222, 226, 238, 0.64);
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-size: 0.96rem;
+  font-weight: 400;
   letter-spacing: 0.02em;
+  margin-left: 3px;
 }
 
 /* Analyzer league table groups:
