@@ -565,7 +565,7 @@ body[data-page="analyzer"] .analyzer-standings-sort:focus-visible {
 }
 
 body[data-page="analyzer"] .analyzer-standings-sort::after {
-  content: '↕';
+  content: '⬍';
   font-size: 0.72em;
   opacity: 0.22;
   line-height: 1;
