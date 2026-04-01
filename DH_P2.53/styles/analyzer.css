@@ -907,6 +907,16 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 }
 
 @media (max-width: 640px) {
+  /* Analyzer mobile standings widths:
+     narrows the career REC/WIN% columns slightly while giving PF/PA a bit more room. */
+  body[data-page="analyzer"] #analyzerStandingsTable thead tr:last-child th:nth-child(4),
+  body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(4),
+  body[data-page="analyzer"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
+  body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(5) {
+    width: 3.4rem;
+    min-width: 3.4rem;
+  }
+
   body[data-page="analyzer"] .analyzer-standings-header {
     gap: 0.35rem;
     margin-left: 6px;
@@ -942,14 +952,14 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="analyzer"] .analyzer-standings-col-career-rec,
   body[data-page="analyzer"] .analyzer-standings-career-start {
-    width: 3.3rem;
-    min-width: 3.3rem;
+    width: 3.05rem;
+    min-width: 3.05rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-pct,
   body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
-    width: 3.1rem;
-    min-width: 3.1rem;
+    width: 2.85rem;
+    min-width: 2.85rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-champ,

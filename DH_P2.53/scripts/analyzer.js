@@ -142,8 +142,12 @@
           meta.data.forEach((point, index) => {
             const value = dataset.data?.[index];
             if (!Number.isFinite(value)) return;
-            const label = formatter(value, index, dataset, chart.data.labels?.[index]);
-            if (!label) return;
+            const rawLabel = formatter(value, index, dataset, chart.data.labels?.[index]);
+            if (!rawLabel) return;
+            const lines = Array.isArray(rawLabel)
+              ? rawLabel.map((line) => String(line ?? '')).filter(Boolean)
+              : String(rawLabel).split('\n').map((line) => line.trim()).filter(Boolean);
+            if (!lines.length) return;
 
             const { x, y } = point.tooltipPosition();
             const angle = Math.atan2(y - scale.yCenter, x - scale.xCenter);
@@ -159,7 +163,15 @@
             ctx.fillStyle = color;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(label, x + offsetX, y + offsetY);
+            const fontMatch = font.match(/(\d+(?:\.\d+)?)px/);
+            const fontSize = fontMatch ? parseFloat(fontMatch[1]) : 11;
+            const lineHeightSetting = dataset.labelLineHeight ?? options?.lineHeight ?? 1.1;
+            const lineHeight = lineHeightSetting > 4 ? lineHeightSetting : fontSize * lineHeightSetting;
+            const startY = (y + offsetY) - ((lines.length - 1) * lineHeight) / 2;
+
+            lines.forEach((line, lineIndex) => {
+              ctx.fillText(line, x + offsetX, startY + lineIndex * lineHeight);
+            });
             ctx.restore();
           });
         });
@@ -2175,14 +2187,24 @@
       const slots = Array.isArray(radarSlots) && radarSlots.length ? radarSlots : buildRadarSlots();
       const labels = slots.map((slot) => slot.label);
       const radarMetric = state.currentRadarMetric === 'value' ? 'value' : 'ppg';
+      const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
       const radarMetricLabel = radarMetric === 'value' ? 'Value' : 'PPG';
       const radarValueFormatter = radarMetric === 'value' ? formatNumber : formatPpg;
+
+      // Analyzer radar data labels:
+      // desktop uses a larger label size for both metrics, while mobile PPG stacks
+      // the unit beneath the value so labels fit without pushing wider.
       const radarDataLabelFormatter = radarMetric === 'value'
         ? (value) => formatNumber(value).replace(/k$/, 'K')
-        : (value) => `${formatPpg(value)} PPG`;
+        : (value) => (isMobileRadar ? [formatPpg(value), 'PPG'] : `${formatPpg(value)} PPG`);
       const radarDataLabelFont = radarMetric === 'value'
-        ? '700 10px "Product Sans", "Google Sans", sans-serif'
-        : '10px "Product Sans", "Google Sans", sans-serif';
+        ? (isMobileRadar
+          ? '700 10px "Product Sans", "Google Sans", sans-serif'
+          : '700 13px "Product Sans", "Google Sans", sans-serif')
+        : (isMobileRadar
+          ? '700 10px "Product Sans", "Google Sans", sans-serif'
+          : '700 13px "Product Sans", "Google Sans", sans-serif');
+      const radarDataLabelLineHeight = isMobileRadar && radarMetric === 'ppg' ? 0.98 : 1.1;
       const comparisonTeams = teams.filter((team) => !team.isUserTeam);
       const leagueAverageTeams = comparisonTeams.length ? comparisonTeams : teams;
       const usingRestOfLeague = comparisonTeams.length > 0;
@@ -2231,7 +2253,6 @@
         getRadarLabelColor(value, leagueAverages[index]),
       );
 
-      const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
       const radarLayoutPadding = {
         top: isMobileRadar ? 2 : 4,
         bottom: isMobileRadar ? 4 : 4,
@@ -2239,7 +2260,9 @@
         right: isMobileRadar ? 0 : 4,
       };
       const radarPointLabelPadding = isMobileRadar ? 4 : 6;
-      const radarLabelOffset = isMobileRadar ? 14 : 18;
+      const radarLabelOffset = isMobileRadar
+        ? (radarMetric === 'ppg' ? 15 : 14)
+        : 22;
 
       if (state.charts.radar) {
         state.charts.radar.destroy();
@@ -2306,6 +2329,7 @@
               analyzerLabels: true,
               labelColors,
               labelFont: radarDataLabelFont,
+              labelLineHeight: radarDataLabelLineHeight,
               labelFormatter: radarDataLabelFormatter,
               analyzerPointDetails: userPointDetails,
               order: 2,
@@ -2446,7 +2470,7 @@
               title="0 Championships"
               aria-label="0 Championships"
             >
-              <i class="fa-solid fa-border-none" aria-hidden="true"></i>
+              <i class="fa-solid fa-spinner" aria-hidden="true"></i>
             </span>
           `;
         }
