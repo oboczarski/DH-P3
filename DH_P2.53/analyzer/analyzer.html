@@ -196,7 +196,11 @@
                       <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                     </button>
                     <span class="analyzer-info-tooltip" id="startingLineupInfoTooltip" role="tooltip">
-                      Lineups are auto-built from league starter settings. Value uses the best KTC players by slot, PPG uses the best PPG players by slot, FLEX uses the best remaining RB/WR/TE, and SFLX uses the next-best QB.
+                        Lineup parameters are pulled from league settings, and each team’s “Starting Lineup” is built
+                        from the best available player options at each position for the selected metric. For FLEX, it
+                        uses the best remaining RB/WR/TE after the main positional slots are filled.
+
+                        Value uses the highest KTC-value players by position, while PPG uses the highest-PPG players.
                     </span>
                   </span>
                 </h2>
