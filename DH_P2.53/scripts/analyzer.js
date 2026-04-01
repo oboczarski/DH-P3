@@ -414,6 +414,9 @@
       isSuperflex: false,
       cache: {},
       championCache: {},
+      leagueHistoryCache: {},
+      careerStatsCache: {},
+      careerStatsByOwner: {},
       charts: {
         lineup: null,
         overall: null,
@@ -776,6 +779,24 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function formatRecordLine(wins, losses, ties) {
+      return ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
+    }
+
+    function formatWinPctDisplay(wins, losses, ties) {
+      return `${(computeWinPct(wins, losses, ties) * 100).toFixed(1)}%`;
+    }
+
+    function resolveWinnerRosterId(winnersBracket) {
+      if (!Array.isArray(winnersBracket) || !winnersBracket.length) return null;
+      const maxRound = Math.max(...winnersBracket.map((match) => Number(match?.r) || 0));
+      const finals = winnersBracket.filter((match) => (Number(match?.r) || 0) === maxRound);
+      const champMatch = finals.find((match) => Number(match?.p) === 1);
+      if (champMatch?.w) return champMatch.w;
+      if (finals.length === 1 && finals[0]?.w) return finals[0].w;
+      return null;
+    }
+
     // Analyzer data-source routing:
     // keeps current rosters/current ownership for roster-based visuals, while preserving
     // the completed-season source for standings plus 2025 scoring data in offseason leagues.
@@ -799,6 +820,108 @@
       return resolveAnalyzerSources(leagueInfo).standingsLeagueId;
     }
 
+    // Analyzer league history lookup:
+    // walks the selected league's previous_league_id chain so the standings card can
+    // aggregate career totals without relying on shared app.js history helpers.
+    async function fetchAnalyzerLeagueHistory(leagueInfo) {
+      const rootLeagueId = leagueInfo?.league_id;
+      if (!rootLeagueId) return [];
+
+      if (state.leagueHistoryCache[rootLeagueId]) {
+        return state.leagueHistoryCache[rootLeagueId];
+      }
+
+      const history = [];
+      const visitedLeagueIds = new Set();
+      let currentLeague = leagueInfo;
+
+      while (currentLeague?.league_id && !visitedLeagueIds.has(currentLeague.league_id)) {
+        history.push(currentLeague);
+        visitedLeagueIds.add(currentLeague.league_id);
+
+        if (!currentLeague.previous_league_id) break;
+
+        try {
+          currentLeague = await fetchWithCache(`https://api.sleeper.app/v1/league/${currentLeague.previous_league_id}`);
+        } catch (error) {
+          console.warn('Analyzer league history lookup failed:', error);
+          break;
+        }
+      }
+
+      state.leagueHistoryCache[rootLeagueId] = history;
+      return history;
+    }
+
+    // Analyzer career stats aggregation:
+    // sums all-time record and titles across the selected league's linked history chain,
+    // keyed to the standings rows by owner_id so the new career section can render inline.
+    async function fetchAnalyzerCareerStats(leagueInfo) {
+      const rootLeagueId = leagueInfo?.league_id;
+      if (!rootLeagueId) return {};
+
+      if (state.careerStatsCache[rootLeagueId]) {
+        return state.careerStatsCache[rootLeagueId];
+      }
+
+      const leagueHistory = await fetchAnalyzerLeagueHistory(leagueInfo);
+      const seasonResults = await Promise.all(
+        leagueHistory.map(async (historyLeague) => {
+          try {
+            const [rosters, winnersBracket] = await Promise.all([
+              fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/rosters`),
+              fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/winners_bracket`)
+                .catch(() => []),
+            ]);
+
+            return {
+              rosters: Array.isArray(rosters) ? rosters : [],
+              winnerRosterId: resolveWinnerRosterId(winnersBracket),
+            };
+          } catch (error) {
+            console.warn(`Analyzer career stats failed for league ${historyLeague?.league_id}:`, error);
+            return null;
+          }
+        }),
+      );
+
+      const careerStatsByOwner = {};
+      seasonResults.forEach((seasonResult) => {
+        if (!seasonResult) return;
+
+        seasonResult.rosters.forEach((roster) => {
+          const ownerId = roster?.owner_id;
+          if (!ownerId) return;
+
+          const settings = roster.settings || {};
+          const wins = toNumber(settings.wins);
+          const losses = toNumber(settings.losses);
+          const ties = toNumber(settings.ties);
+          const existing = careerStatsByOwner[ownerId] || {
+            wins: 0,
+            losses: 0,
+            ties: 0,
+            championships: 0,
+            hasData: false,
+          };
+
+          existing.wins += wins;
+          existing.losses += losses;
+          existing.ties += ties;
+          existing.hasData = true;
+
+          if (seasonResult.winnerRosterId && seasonResult.winnerRosterId === roster.roster_id) {
+            existing.championships += 1;
+          }
+
+          careerStatsByOwner[ownerId] = existing;
+        });
+      });
+
+      state.careerStatsCache[rootLeagueId] = careerStatsByOwner;
+      return careerStatsByOwner;
+    }
+
     // Analyzer champion lookup:
     // mirrors the rosters bracket winner lookup but stays self-contained so the
     // standings crown does not rely on app.js or shared roster rendering state.
@@ -816,17 +939,7 @@
           fetchWithCache(`https://api.sleeper.app/v1/league/${sourceLeagueId}/winners_bracket`),
         ]);
 
-        let winnerRosterId = null;
-        if (Array.isArray(winnersBracket) && winnersBracket.length) {
-          const maxRound = Math.max(...winnersBracket.map((match) => Number(match?.r) || 0));
-          const finals = winnersBracket.filter((match) => (Number(match?.r) || 0) === maxRound);
-          const champMatch = finals.find((match) => Number(match?.p) === 1);
-          if (champMatch?.w) {
-            winnerRosterId = champMatch.w;
-          } else if (finals.length === 1 && finals[0]?.w) {
-            winnerRosterId = finals[0].w;
-          }
-        }
+        const winnerRosterId = resolveWinnerRosterId(winnersBracket);
 
         const rostersByOwner = {};
         (Array.isArray(rosters) ? rosters : []).forEach((roster) => {
@@ -887,12 +1000,13 @@
             fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.standingsLeagueId}/users`),
           ]);
 
-        const [rosters, users, tradedPicks, championData, standingsData] = await Promise.all([
+        const [rosters, users, tradedPicks, championData, standingsData, careerStatsByOwner] = await Promise.all([
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/users`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/traded_picks`),
           fetchAnalyzerChampionData(leagueInfo),
           standingsDataPromise,
+          fetchAnalyzerCareerStats(leagueInfo),
         ]);
 
         const radarSlots = buildRadarSlots(leagueInfo.roster_positions || []);
@@ -908,6 +1022,7 @@
 
         state.teams = processed.teams;
         state.standingsTeams = standingsTeams;
+        state.careerStatsByOwner = careerStatsByOwner;
         state.leaderboards = processed.leaderboards;
         state.radarSlots = processed.radarSlots;
 
@@ -1141,7 +1256,7 @@
         const ties = toNumber(settings.ties);
         const pf = combineScore(settings.fpts, settings.fpts_decimal);
         const pa = combineScore(settings.fpts_against, settings.fpts_against_decimal);
-        const record = ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
+        const record = formatRecordLine(wins, losses, ties);
 
         return {
           teamName,
@@ -2150,6 +2265,7 @@
     }
 
     function renderStandings(teams) {
+      const careerStatsByOwner = state.careerStatsByOwner || {};
       const standings = sortTeamsByStandings(teams).map((team, index) => ({
         rank: index + 1,
         teamName: team.teamName,
@@ -2157,6 +2273,7 @@
         pf: Number(team.totalFpts) || 0,
         pa: Number(team.pointsAgainst) || 0,
         isChamp: Boolean(team.isChamp),
+        ownerId: team.roster?.owner_id || null,
       }));
 
       // Analyzer standings team cell:
@@ -2176,16 +2293,48 @@
         `;
       };
 
+      const renderCareerChampionships = (careerStats) => {
+        if (!careerStats?.hasData) return '—';
+        if (!careerStats.championships) return '0';
+
+        const trophyMarkup = Array.from({ length: careerStats.championships }, () => (
+          '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>'
+        )).join('');
+
+        return `
+          <span
+            class="analyzer-standings-trophies"
+            title="${careerStats.championships} Championship${careerStats.championships === 1 ? '' : 's'}"
+            aria-label="${careerStats.championships} Championship${careerStats.championships === 1 ? '' : 's'}"
+          >
+            ${trophyMarkup}
+          </span>
+        `;
+      };
+
       elements.standingsBody.innerHTML = standings
-        .map((team) => `
-          <tr>
-            <td data-label="RK" class="analyzer-standings-rank">${team.rank}</td>
-            <td data-label="Team">${renderStandingsTeamCell(team)}</td>
-            <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
-            <td data-label="PF">${team.pf.toFixed(1)}</td>
-            <td data-label="PA">${team.pa.toFixed(1)}</td>
-          </tr>
-        `)
+        .map((team) => {
+          const careerStats = team.ownerId ? careerStatsByOwner[team.ownerId] : null;
+          const careerRecord = careerStats?.hasData
+            ? formatRecordLine(careerStats.wins, careerStats.losses, careerStats.ties)
+            : '—';
+          const careerWinPct = careerStats?.hasData
+            ? formatWinPctDisplay(careerStats.wins, careerStats.losses, careerStats.ties)
+            : '—';
+
+          return `
+            <tr>
+              <td data-label="RK" class="analyzer-standings-rank">${team.rank}</td>
+              <td data-label="Team">${renderStandingsTeamCell(team)}</td>
+              <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
+              <td data-label="PF">${team.pf.toFixed(1)}</td>
+              <td data-label="PA">${team.pa.toFixed(1)}</td>
+              <td data-label="Career REC" class="analyzer-standings-career-start">${careerRecord}</td>
+              <td data-label="Career WIN %" class="analyzer-standings-career-pct-cell">${careerWinPct}</td>
+              <td data-label="Champ" class="analyzer-standings-career-champ-cell">${renderCareerChampionships(careerStats)}</td>
+            </tr>
+          `;
+        })
         .join('');
     }
 

@@ -396,6 +396,22 @@ body[data-page="analyzer"] .analyzer-standings-header h3 {
   font-size: 1.05rem;
 }
 
+/* Analyzer league table groups:
+   styles the season/career header bands locally so the standings card can expose
+   grouped columns without changing shared table styling elsewhere. */
+body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
+  font-size: 0.61rem;
+  letter-spacing: 0.16em;
+  color: rgba(222, 226, 238, 0.74);
+  padding-top: 0.38rem;
+  padding-bottom: 0.22rem;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.15);
+}
+
+body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr th {
+  padding-top: 0.42rem;
+}
+
 body[data-page="analyzer"] .analyzer-standings-header p {
   margin: 0.3rem 0 0;
   color: var(--color-text-secondary);
@@ -447,6 +463,25 @@ body[data-page="analyzer"] .analyzer-standings-rec {
   min-width: 3.9rem;
 }
 
+body[data-page="analyzer"] .analyzer-standings-col-career-rec,
+body[data-page="analyzer"] .analyzer-standings-career-start {
+  width: 4.2rem;
+  min-width: 4.2rem;
+  border-left: 1px solid rgba(128, 138, 189, 0.28);
+}
+
+body[data-page="analyzer"] .analyzer-standings-col-career-pct,
+body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
+  width: 4.75rem;
+  min-width: 4.75rem;
+}
+
+body[data-page="analyzer"] .analyzer-standings-col-career-champ,
+body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
+  width: 5rem;
+  min-width: 5rem;
+}
+
 body[data-page="analyzer"] .analyzer-standings-team {
   display: inline-flex;
   align-items: center;
@@ -456,6 +491,26 @@ body[data-page="analyzer"] .analyzer-standings-team {
 
 body[data-page="analyzer"] .analyzer-standings-team-name {
   min-width: 0;
+}
+
+body[data-page="analyzer"] .analyzer-standings-career-group {
+  border-left: 1px solid rgba(128, 138, 189, 0.28);
+}
+
+body[data-page="analyzer"] .analyzer-standings-trophies {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  white-space: nowrap;
+}
+
+/* Analyzer career trophy marker:
+   keeps the requested all-time title icons local to analyzer.css and visually distinct
+   from the existing champion crown used beside the team name. */
+body[data-page="analyzer"] .analyzer-standings-trophy {
+  color: rgb(215, 222, 233);
+  font-size: 0.76rem;
+  filter: drop-shadow(0 0 4px rgba(215, 222, 233, 0.18));
 }
 
 /* Analyzer standings champion marker:
@@ -768,6 +823,29 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
     min-width: 3.35rem;
   }
 
+  body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-col-career-rec,
+  body[data-page="analyzer"] .analyzer-standings-career-start {
+    width: 3.9rem;
+    min-width: 3.9rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-col-career-pct,
+  body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
+    width: 4.4rem;
+    min-width: 4.4rem;
+  }
+
+  body[data-page="analyzer"] .analyzer-standings-col-career-champ,
+  body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
+    width: 4.25rem;
+    min-width: 4.25rem;
+  }
+
   body[data-page="analyzer"] .analyzer-standings-team-name {
     display: inline-block;
     max-width: 7.25rem;
@@ -1006,6 +1084,16 @@ body[data-page="analyzer"] .app-header {
 
 /* Analyzer: desktop header layout (min-width: 820px) */
 @media (min-width: 820px) {
+  /* Analyzer league table width cap:
+     desktop has room to keep the standings card compact without changing the
+     mobile/tablet full-width scrolling behavior. */
+  body[data-page="analyzer"] .analyzer-standings {
+    width: min(100%, 700px);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   body[data-page="analyzer"] #header-container {
     display: flex;
     flex-direction: row;

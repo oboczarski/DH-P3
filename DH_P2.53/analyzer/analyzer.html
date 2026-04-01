@@ -251,21 +251,28 @@
             </div>
             <div class="analyzer-standings" aria-live="polite">
               <div class="analyzer-standings-header">
-                <h3>League Standings</h3>
-                <p>Wins, losses, and fantasy points scored.</p>
+                <h3>League Table</h3>
               </div>
               <div class="analyzer-standings-table-wrapper">
                 <table class="analyzer-table" aria-describedby="analyzer-standings">
                   <thead>
-                    <!-- Analyzer standings columns:
-                         adds a narrow rank column and shorter REC label so the analyzer-only
-                         champion crown can fit without forcing unnecessary horizontal scroll. -->
+                    <!-- Analyzer league table groups:
+                         keeps season standings on the left and adds a separate career-stats
+                         section on the right for linked league-history totals. -->
+                    <tr class="analyzer-table-group-row">
+                      <th scope="colgroup" colspan="2">SZN Standings</th>
+                      <th scope="colgroup" colspan="3">SZN TM Stats</th>
+                      <th scope="colgroup" colspan="3" class="analyzer-standings-career-group">Career Stats</th>
+                    </tr>
                     <tr>
                       <th scope="col" class="analyzer-standings-col-rank">RK</th>
                       <th scope="col">Team</th>
                       <th scope="col" class="analyzer-standings-col-rec">REC</th>
                       <th scope="col">PF</th>
                       <th scope="col">PA</th>
+                      <th scope="col" class="analyzer-standings-col-career-rec analyzer-standings-career-start">REC</th>
+                      <th scope="col" class="analyzer-standings-col-career-pct">WIN %</th>
+                      <th scope="col" class="analyzer-standings-col-career-champ">CHAMP</th>
                     </tr>
                   </thead>
                   <tbody id="standingsTableBody"></tbody>
