@@ -490,7 +490,7 @@ body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
 
 body[data-page="analyzer"] .analyzer-standings-col-career-champ,
 body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
-  width: 5rem;
+  max-width: 9rem;
   min-width: 5rem;
   text-align-last: center;
 }
