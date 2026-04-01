@@ -230,11 +230,17 @@
           </article>
         </div>
 
-        <section class="analyzer-panel glass-panel analyzer-radar-section">
+        <section class="analyzer-panel glass-panel analyzer-radar-section" id="radar-panel">
           <header class="analyzer-panel-header">
             <div>
               <h2>Positional Strength</h2>
               <p>See how your best starters at every required slot stack up against the league.</p>
+            </div>
+            <!-- Analyzer radar metric toggle: keeps the Positional Strength panel on an
+                 independent Value/PPG switch so the radar can compare either metric. -->
+            <div class="analyzer-toggle" role="group" aria-label="Radar metric">
+              <button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Value</button>
+              <button type="button" class="toggle-option active" data-metric="ppg" aria-pressed="true">PPG</button>
             </div>
           </header>
           <div class="analyzer-panel-body analyzer-panel-body--stacked">

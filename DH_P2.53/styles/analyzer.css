@@ -375,6 +375,12 @@ body[data-page="analyzer"] .analyzer-toggle .toggle-option:focus-visible {
   outline: 2px solid rgba(118, 109, 255, 0.65);
 }
 
+/* Analyzer radar toggle: reuses the shared pill toggle styling while keeping the
+   radar header alignment isolated to the Positional Strength panel. */
+body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
+  margin-left: auto;
+}
+
 body[data-page="analyzer"] .analyzer-standings {
   display: flex;
   flex-direction: column;
@@ -830,6 +836,7 @@ body[data-page="analyzer"] .app-header {
   /* Analyzer mobile panel headers: keep the title/subtitle stack intact while placing the
      metric toggle and leaderboard position filters inline with the panel titles only. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -844,12 +851,14 @@ body[data-page="analyzer"] .app-header {
   /* Target the title/subtitle wrapper inside those headers so h2 and p can be placed on
      separate grid rows without changing HTML structure or panel spacing. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header> :first-child,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header> :first-child,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header> :first-child {
     display: contents;
   }
 
-  /* Title row placement for the two mobile analyzer headers. */
+  /* Title row placement for the mobile analyzer headers that carry inline controls. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header h2,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header h2,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header h2 {
     grid-area: title;
     min-width: 0;
@@ -880,6 +889,7 @@ body[data-page="analyzer"] .app-header {
 
   /* Subtitle remains directly beneath the title row, preserving existing margin/padding rhythm. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header p,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header p,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
     grid-area: subtitle;
     min-width: 0;
@@ -888,6 +898,7 @@ body[data-page="analyzer"] .app-header {
 
   /* Place each control on the title row and pin it to the right edge of its own panel header. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle,
   body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
     grid-area: control;
     justify-self: end;
@@ -895,15 +906,17 @@ body[data-page="analyzer"] .app-header {
     flex-shrink: 0;
   }
 
-  /* Mobile lineup toggle: slightly larger than the ultra-compact pass, but still sized to
-     fit beside the long title on common phone widths. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle {
+  /* Mobile lineup/radar toggles: slightly larger than the ultra-compact pass, but still
+     sized to fit beside the long panel titles on common phone widths. */
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
     gap: 0rem;
     padding: 0.05rem;
     margin-left: 6px;
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
     font-size: 0.75rem;
     letter-spacing: 0.04em;
     padding: 0.4rem 0rem;
@@ -1060,7 +1073,9 @@ body[data-page="analyzer"] .app-header {
   /* Analyzer desktop panel controls: lightly normalize control widths so the lineup toggle
      buttons (including the active state) and leaderboard filter chips look more balanced. */
   body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active {
+  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active {
     min-width: 4.1rem;
     padding-left: 0.32rem;
     padding-right: 0.32rem;

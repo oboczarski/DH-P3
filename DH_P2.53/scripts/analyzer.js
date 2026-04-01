@@ -15,6 +15,7 @@
       summaryStats: document.getElementById('summaryStats'),
       content: document.getElementById('infographicContent'),
       lineupToggle: document.querySelectorAll('#lineup-panel .toggle-option'),
+      radarToggle: document.querySelectorAll('#radar-panel .toggle-option'),
       startersCanvas: document.getElementById('startersValueChart'),
       overallCanvas: document.getElementById('overallValueChart'),
       radarCanvas: document.getElementById('radarChart'),
@@ -409,6 +410,7 @@
       leaguePlayerStats: {},
       currentLeagueId: null,
       currentLineupMetric: 'value',
+      currentRadarMetric: 'ppg',
       isSuperflex: false,
       cache: {},
       charts: {
@@ -447,6 +449,20 @@
           btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
         updateLineupChart();
+      });
+    });
+
+    elements.radarToggle.forEach((button) => {
+      button.addEventListener('click', () => {
+        const metric = button.dataset.metric;
+        if (!metric || metric === state.currentRadarMetric) return;
+        state.currentRadarMetric = metric;
+        elements.radarToggle.forEach((btn) => {
+          const isActive = btn.dataset.metric === metric;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+        updateRadarChart();
       });
     });
 
@@ -1410,6 +1426,11 @@
       state.charts.lineup.update();
     }
 
+    function updateRadarChart() {
+      if (!state.teams?.length) return;
+      renderRadarChart(state.teams, state.radarSlots);
+    }
+
     function buildLineupDatasets(teams) {
       const createDatasetForMetric = (metric) => {
         const datasets = [];
@@ -1763,25 +1784,50 @@
 
       const slots = Array.isArray(radarSlots) && radarSlots.length ? radarSlots : buildRadarSlots();
       const labels = slots.map((slot) => slot.label);
+      const radarMetric = state.currentRadarMetric === 'value' ? 'value' : 'ppg';
+      const radarMetricLabel = radarMetric === 'value' ? 'Value' : 'PPG';
+      const radarValueFormatter = radarMetric === 'value' ? formatNumber : formatPpg;
+      const radarScaleStep = radarMetric === 'value' ? 5000 : 5;
+      const radarDefaultMax = radarMetric === 'value' ? 5000 : 10;
 
       // Analyzer positional strength radar:
-      // reuses the PPG-derived lineup selections so the radar and lineup chart evaluate
-      // the same starters at each required slot.
-      const userAssignments = userTeam.derivedLineups?.ppg?.assignments || [];
+      // reuses the shared derived lineup selections for both Value and PPG so the radar
+      // always mirrors the same slot-filling rules as the Starting Lineup chart.
+      const userAssignments = userTeam.derivedLineups?.[radarMetric]?.assignments || [];
       const userData = slots.map((slot, index) => userAssignments[index]?.score ?? 0);
 
-      const leagueAverages = slots.map((slot, index) => {
-        const total = teams.reduce(
-          (sum, team) => sum + (team.derivedLineups?.ppg?.assignments?.[index]?.score ?? 0),
+      const leagueAverageDetails = slots.map((slot, index) => {
+        const totalMetric = teams.reduce(
+          (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.score ?? 0),
           0,
         );
-        return teams.length ? total / teams.length : 0;
+        const totalValue = teams.reduce(
+          (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player?.value ?? 0),
+          0,
+        );
+        const totalPpg = teams.reduce(
+          (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player?.ppg ?? 0),
+          0,
+        );
+        const populatedCount = teams.reduce(
+          (sum, team) => sum + (team.derivedLineups?.[radarMetric]?.assignments?.[index]?.player ? 1 : 0),
+          0,
+        );
+        const teamCount = teams.length;
+        return {
+          metricAverage: teamCount ? totalMetric / teamCount : 0,
+          valueAverage: teamCount ? totalValue / teamCount : 0,
+          ppgAverage: teamCount ? totalPpg / teamCount : 0,
+          teamCount,
+          populatedCount,
+        };
       });
+      const leagueAverages = leagueAverageDetails.map((detail) => detail.metricAverage);
 
       const maxValue = Math.max(0, ...userData, ...leagueAverages);
-      const scaleMax = maxValue > 0 ? roundUpTo(maxValue * 1.05, 5) : 10;
+      const scaleMax = maxValue > 0 ? roundUpTo(maxValue * 1.05, radarScaleStep) : radarDefaultMax;
       const labelColors = userData.map((value, index) =>
-        getPpgLabelColor(value, leagueAverages[index]),
+        getRadarLabelColor(value, leagueAverages[index]),
       );
 
       const isMobileRadar = window.matchMedia('(max-width: 640px)').matches;
@@ -1798,6 +1844,32 @@
         state.charts.radar.destroy();
       }
 
+      // Analyzer radar hover details:
+      // each point carries its own derived lineup context so Chart.js tooltips can explain
+      // either the selected team starter or the league-average slot aggregate.
+      const userPointDetails = slots.map((slot, index) => {
+        const assignment = userAssignments[index];
+        if (!assignment?.player) {
+          return ['No eligible player for this slot.'];
+        }
+        return [
+          assignment.player.name,
+          `Value: ${formatNumber(assignment.player.value)}`,
+          `PPG: ${formatPpg(assignment.player.ppg)}`,
+        ];
+      });
+
+      const leagueAveragePointDetails = leagueAverageDetails.map((detail) => {
+        if (!detail.populatedCount) {
+          return ['No eligible starters for this slot across the league.'];
+        }
+        return [
+          `Avg Value: ${formatNumber(detail.valueAverage)}`,
+          `Avg PPG: ${formatPpg(detail.ppgAverage)}`,
+          `Across ${detail.teamCount} teams`,
+        ];
+      });
+
       state.charts.radar = new Chart(elements.radarCanvas, {
         type: 'radar',
         data: {
@@ -1813,6 +1885,9 @@
               pointBackgroundColor: 'rgba(188, 210, 255, 0.85)',
               pointBorderColor: '#0D0E1B',
               pointRadius: 3,
+              pointHitRadius: 14,
+              pointHoverRadius: 5,
+              analyzerPointDetails: leagueAveragePointDetails,
               order: 1,
             },
             {
@@ -1825,9 +1900,12 @@
               pointBackgroundColor: '#6300ff',
               pointBorderColor: '#0D0E1B',
               pointRadius: 4.5,
+              pointHitRadius: 16,
+              pointHoverRadius: 6,
               analyzerLabels: true,
               labelColors,
-              labelFormatter: (value) => `${formatPpg(value)} PPG`,
+              labelFormatter: (value) => `${radarValueFormatter(value)} ${radarMetricLabel}`,
+              analyzerPointDetails: userPointDetails,
               order: 2,
             },
           ],
@@ -1835,7 +1913,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          events: [],
+          interaction: {
+            mode: 'nearest',
+            intersect: true,
+          },
           layout: {
             padding: radarLayoutPadding,
           },
@@ -1860,7 +1941,27 @@
           },
           plugins: {
             legend: { display: false },
-            tooltip: { enabled: false },
+            tooltip: {
+              enabled: true,
+              backgroundColor: 'rgba(13, 14, 35, 0.94)',
+              borderColor: 'rgba(118, 109, 255, 0.5)',
+              borderWidth: 1,
+              callbacks: {
+                title: (items) => {
+                  if (!items?.length) return '';
+                  return labels[items[0].dataIndex] || '';
+                },
+                label: (context) => {
+                  const value = context.raw ?? 0;
+                  return `${context.dataset.label}: ${radarValueFormatter(value)} ${radarMetricLabel}`;
+                },
+                footer: (items) => {
+                  if (!items?.length) return '';
+                  const pointDetails = items[0].dataset?.analyzerPointDetails?.[items[0].dataIndex];
+                  return Array.isArray(pointDetails) ? pointDetails : '';
+                },
+              },
+            },
             analyzerRadarBackground: {
               levels: [
                 { ratio: 0.95, fill: '#2c334f62', stroke: '#525a7739', lineWidth: 1 },
@@ -2065,7 +2166,7 @@
       return `${trimmed.slice(0, limit - 1)}…`;
     }
 
-    function getPpgLabelColor(value, average) {
+    function getRadarLabelColor(value, average) {
       if (!Number.isFinite(value)) return '#bcd2ff';
       if (!Number.isFinite(average) || average === 0) {
         return value > 0 ? '#00ffaf' : '#bcd2ff';
