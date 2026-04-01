@@ -421,6 +421,7 @@
       },
       lineupData: null,
       teams: [],
+      standingsTeams: [],
       leaderboards: { ALL: [], QB: [], RB: [], WR: [], TE: [] },
       activeLeaderboard: 'ALL',
       radarSlots: [],
@@ -654,7 +655,7 @@
       }
       state.userId = user.user_id;
 
-      const currentYear = 2025;
+      const currentYear = new Date().getFullYear();
       const leagues = await fetchWithCache(`https://api.sleeper.app/v1/user/${state.userId}/leagues/nfl/${currentYear}`);
       if (!Array.isArray(leagues) || leagues.length === 0) {
         throw new Error('No active leagues found for this user in the current season.');
@@ -775,12 +776,27 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
-    function resolveChampionSourceLeagueId(leagueInfo) {
+    // Analyzer data-source routing:
+    // keeps current rosters/current ownership for roster-based visuals, while preserving
+    // the completed-season source for standings plus 2025 scoring data in offseason leagues.
+    function resolveAnalyzerSources(leagueInfo) {
+      const rosterLeagueId = leagueInfo?.league_id || null;
       const season = Number.parseInt(leagueInfo?.season, 10);
-      if (season === 2025) {
-        return leagueInfo?.league_id || null;
-      }
-      return leagueInfo?.previous_league_id || null;
+      const previousLeagueId = leagueInfo?.previous_league_id || null;
+      const statsSeason = Number.isFinite(season) && season <= 2025 ? season : 2025;
+      const usePreviousSeason = Boolean(previousLeagueId && Number.isFinite(season) && season > statsSeason);
+      const completedSeasonLeagueId = usePreviousSeason ? previousLeagueId : rosterLeagueId;
+
+      return {
+        rosterLeagueId,
+        ppgLeagueId: completedSeasonLeagueId,
+        standingsLeagueId: completedSeasonLeagueId,
+        statsSeason,
+      };
+    }
+
+    function resolveChampionSourceLeagueId(leagueInfo) {
+      return resolveAnalyzerSources(leagueInfo).standingsLeagueId;
     }
 
     // Analyzer champion lookup:
@@ -851,35 +867,55 @@
 
         const leagueInfo = state.leagues.find((league) => league.league_id === leagueId);
         if (!leagueInfo) throw new Error('League not found.');
+        const analyzerSources = resolveAnalyzerSources(leagueInfo);
 
         state.currentLeagueId = leagueId;
         const qbSlots = leagueInfo.roster_positions.filter((slot) => slot === 'QB').length;
         const superflexSlots = leagueInfo.roster_positions.filter((slot) => slot === 'SUPER_FLEX').length;
         state.isSuperflex = qbSlots > 1 || superflexSlots > 0;
 
-        await ensurePlayerStats(leagueInfo.season ?? 2025);
-        await fetchLeaguePlayerStats(leagueId);
+        await ensurePlayerStats(analyzerSources.statsSeason);
+        await fetchLeaguePlayerStats(analyzerSources.ppgLeagueId);
 
-        const [rosters, users, tradedPicks, championData] = await Promise.all([
-          fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/rosters`),
-          fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/users`),
-          fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/traded_picks`),
+        // Analyzer league fetch split:
+        // current-season rosters drive ownership, values, and lineup construction, while the
+        // completed-season source preserves standings plus 2025 PPG/FPTS context.
+        const standingsDataPromise = analyzerSources.standingsLeagueId === analyzerSources.rosterLeagueId
+          ? Promise.resolve([null, null])
+          : Promise.all([
+            fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.standingsLeagueId}/rosters`),
+            fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.standingsLeagueId}/users`),
+          ]);
+
+        const [rosters, users, tradedPicks, championData, standingsData] = await Promise.all([
+          fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`),
+          fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/users`),
+          fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/traded_picks`),
           fetchAnalyzerChampionData(leagueInfo),
+          standingsDataPromise,
         ]);
 
         const radarSlots = buildRadarSlots(leagueInfo.roster_positions || []);
         const processed = processLeagueData(rosters, users, tradedPicks, leagueInfo, radarSlots);
-        const teamsWithChampionFlags = applyChampionFlags(processed.teams, championData);
+        const [standingsRosters, standingsUsers] = standingsData;
+        const standingsTeams = applyChampionFlags(
+          processStandingsData(
+            standingsRosters || rosters,
+            standingsUsers || users,
+          ),
+          championData,
+        );
 
-        state.teams = teamsWithChampionFlags;
+        state.teams = processed.teams;
+        state.standingsTeams = standingsTeams;
         state.leaderboards = processed.leaderboards;
         state.radarSlots = processed.radarSlots;
 
-        renderSummaryStats(state.teams);
+        renderSummaryStats(state.teams, state.standingsTeams);
         renderLineupChart(state.teams);
         renderOverallChart(state.teams);
         renderRadarChart(state.teams, state.radarSlots);
-        renderStandings(state.teams);
+        renderStandings(state.standingsTeams);
         renderLeagueLeaders();
 
         elements.content.classList.remove('hidden');
@@ -1083,6 +1119,42 @@
 
       teams.sort((a, b) => b.totalValue - a.totalValue);
       return { teams, leaderboards, radarSlots: slotSequence };
+    }
+
+    // Analyzer standings processing:
+    // builds the standings-only dataset from the completed season so the standings table
+    // and standings-based summary chips stay unchanged while roster ownership updates elsewhere.
+    function processStandingsData(rosters, users) {
+      const userMap = Array.isArray(users)
+        ? users.reduce((acc, user) => {
+          acc[user.user_id] = user;
+          return acc;
+        }, {})
+        : {};
+
+      return (Array.isArray(rosters) ? rosters : []).map((roster) => {
+        const owner = userMap[roster.owner_id] || userMap[roster.co_owner_id];
+        const teamName = roster.metadata?.team_name || owner?.display_name || `Team ${roster.roster_id}`;
+        const settings = roster.settings || {};
+        const wins = toNumber(settings.wins);
+        const losses = toNumber(settings.losses);
+        const ties = toNumber(settings.ties);
+        const pf = combineScore(settings.fpts, settings.fpts_decimal);
+        const pa = combineScore(settings.fpts_against, settings.fpts_against_decimal);
+        const record = ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
+
+        return {
+          teamName,
+          roster,
+          wins,
+          losses,
+          ties,
+          record,
+          totalFpts: pf,
+          pointsAgainst: pa,
+          isUserTeam: roster.owner_id === state.userId,
+        };
+      });
     }
 
     function normalizeSlot(slot) {
@@ -1368,15 +1440,19 @@
       return remainder ? `${initial} ${remainder}`.trim() : initial;
     }
 
-    function renderSummaryStats(teams) {
+    // Analyzer summary chips:
+    // combine current-roster analysis with preserved standings context so ownership/value
+    // reflects the current league, while ranking and total FPTS remain tied to the completed season.
+    function renderSummaryStats(teams, standingsTeams = teams) {
       const userTeam = teams.find((team) => team.isUserTeam);
-      if (!userTeam) {
+      const standingsUserTeam = standingsTeams.find((team) => team.isUserTeam) || userTeam;
+      if (!userTeam || !standingsUserTeam) {
         elements.summaryStats.classList.add('hidden');
         return;
       }
 
-      const totalTeams = teams.length;
-      const standingsOrder = sortTeamsByStandings(teams);
+      const totalTeams = standingsTeams.length || teams.length;
+      const standingsOrder = sortTeamsByStandings(standingsTeams);
       const overallRank = computeRank(standingsOrder, (team) => team.isUserTeam);
 
       const starterValueRank = computeRank(
@@ -1390,7 +1466,7 @@
       );
 
       const fptsRank = computeRank(
-        [...teams].sort((a, b) => b.totalFpts - a.totalFpts),
+        [...standingsTeams].sort((a, b) => b.totalFpts - a.totalFpts),
         (team) => team.isUserTeam,
       );
 
@@ -1401,7 +1477,7 @@
 
       const rankingValue = overallRank ? `#${overallRank}` : '—';
       const rankingMetaParts = [];
-      if (userTeam.record) rankingMetaParts.push(userTeam.record);
+      if (standingsUserTeam.record) rankingMetaParts.push(standingsUserTeam.record);
       if (totalTeams) rankingMetaParts.push(`${totalTeams} Teams`);
       const rankingMeta = rankingMetaParts.length ? rankingMetaParts.join(' • ') : '—';
 
@@ -1436,7 +1512,7 @@
         },
         {
           label: 'Total FPTS',
-          value: userTeam.totalFpts.toFixed(1),
+          value: standingsUserTeam.totalFpts.toFixed(1),
           meta: fptsRank ? `Rank ${fptsRank}/${totalTeams}` : 'Rank NA',
           accent: fptsRank ? getRankColor(fptsRank, totalTeams) : undefined,
         },
