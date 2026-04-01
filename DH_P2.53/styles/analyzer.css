@@ -22,6 +22,9 @@ body[data-page="analyzer"] .analyzer-hero {
   background: rgba(13, 15, 35, 0.35);
   border: 1px solid rgba(128, 138, 189, 0.25);
   margin-top: 0.55rem;
+  -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+  backdrop-filter: blur(5px) saturate(120%) brightness(120%);
+  box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
 }
 
 body[data-page="analyzer"] .analyzer-hero-intro {
@@ -867,7 +870,7 @@ body[data-page="analyzer"] .app-header {
     --header-switcher-width: 12.25rem;
     box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
     border: 1px solid rgba(128, 138, 189, 0.2);
-    background-color: rgba(13, 14, 35, 0.21);
+    background-color: rgba(13, 14, 35, 0.321);
     background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
   }
   body[data-page="analyzer"] #header-container .analyzer-hero {
