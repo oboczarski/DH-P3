@@ -1899,8 +1899,9 @@
       const leagueAverages = leagueAverageDetails.map((detail) => detail.metricAverage);
 
       const maxValue = Math.max(0, ...userData, ...leagueAverages);
+      const fixedValueRadarMax = 11000;
       const scaleMax = radarMetric === 'value'
-        ? 10000
+        ? fixedValueRadarMax
         : (maxValue > 0 ? roundUpTo(maxValue * 1.05, 5) : 10);
       const labelColors = userData.map((value, index) =>
         getRadarLabelColor(value, leagueAverages[index]),
