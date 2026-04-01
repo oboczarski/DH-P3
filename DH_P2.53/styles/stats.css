@@ -2432,6 +2432,21 @@ body[data-page="stats"] .glass-panel {
   box-shadow: rgba(255, 255, 255, 0.05) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 10px 26px 0px;
 }
 
+/* Stats page panel blur tuning:
+   - Targets the top header/control panels and the table panel only on the Stats page.
+   - Keeps the top panels at 1px blur while increasing the table panel to 3px.
+   - Notes: mobile uses the merged `.stats-top-panels-row` wrapper, so it needs its own override in addition to the desktop panel selectors. */
+body[data-page="stats"] .stats-page-intro,
+body[data-page="stats"] .stats-controls-panel {
+  -webkit-backdrop-filter: blur(1px) saturate(106%) brightness(112%);
+  backdrop-filter: blur(1px) saturate(106%) brightness(114%);
+}
+
+body[data-page="stats"] .stats-table-region {
+  -webkit-backdrop-filter: blur(3px) saturate(106%) brightness(112%);
+  backdrop-filter: blur(3px) saturate(106%) brightness(114%);
+}
+
 /* ============================================ */
 /* STATS PAGE GAME LOGS MODAL OVERLAY          */
 /* Separate rules for desktop and mobile       */
@@ -2448,6 +2463,15 @@ body[data-page="stats"] .glass-panel {
 
 /* MOBILE ONLY: Stats page game logs modal overlay */
 @media (max-width: 868px) {
+  /* Stats mobile merged header panel:
+     - Targets the single wrapper that combines the intro and controls on mobile.
+     - Matches the requested 1px top-panel blur without changing the table blur below.
+     - Notes: the inner desktop panels become `display: contents` on mobile, so the wrapper carries the blur. */
+  body[data-page="stats"] .stats-top-panels-row {
+    -webkit-backdrop-filter: blur(1px) saturate(120%) brightness(120%);
+    backdrop-filter: blur(1px) saturate(120%) brightness(120%);
+  }
+
   body[data-page="stats"] #game-logs-modal .modal-overlay {
     background-color: rgb(0 0 0 / 50%);
     backdrop-filter: blur(5px);
