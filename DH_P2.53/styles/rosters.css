@@ -1056,7 +1056,7 @@ body[data-page="rosters"] .roster-username-submit-label {
 
   body[data-page="rosters"] .app-header.preview-active .start-sit-button {
     width: 100%;
-    min-width: 0 !important;
+    min-width: 118px !important;
     margin-left: 0;
     box-sizing: border-box;
   }
