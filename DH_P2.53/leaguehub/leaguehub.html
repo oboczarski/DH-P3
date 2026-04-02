@@ -158,12 +158,26 @@
       </header>
       <section class="analyzer-hero glass-panel" aria-labelledby="analyzer-hero-heading">
         <div class="analyzer-hero-intro">
-          <div class="analyzer-pill">Dynasty Hub • League Analyzer</div>
+          <div class="analyzer-pill" id="heroPill">Dynasty Hub • League Analyzer</div>
           <h1 id="analyzer-hero-heading">League Value &amp; Production Overview</h1>
-          <p>Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.</p>
+          <p id="heroSubtitle">Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.</p>
         </div>
       </section>
     </div>
+
+    <!-- LeagueHub page-level tab switcher: toggles between LEAGUE ANALYSIS (existing) and LEAGUE TRADES (new) views.
+         Placed between the header-container and main content so both tabs share the same header/username/league controls. -->
+    <nav class="lh-tab-bar" role="tablist" aria-label="LeagueHub view">
+      <button class="lh-tab active" id="analysisTabBtn" role="tab" aria-selected="true" aria-controls="analysisTab" data-tab="analysis">
+        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+        <span>League Analysis</span>
+      </button>
+      <button class="lh-tab" id="tradesTabBtn" role="tab" aria-selected="false" aria-controls="tradesTab" data-tab="trades">
+        <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+        <span>League Trades</span>
+      </button>
+    </nav>
+
     <main class="container mx-auto analyzer-main" id="content">
       <div id="loading" class="hidden">
         <div class="loading-overlay" role="alert" aria-live="polite">
@@ -178,10 +192,12 @@
         </div>
       </div>
 
-      <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
-      </section>
+      <!-- ═══ LEAGUE ANALYSIS TAB (existing content wrapper) ═══ -->
+      <div id="analysisTab" role="tabpanel" aria-labelledby="analysisTabBtn">
+        <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
+        </section>
 
-      <section id="infographicContent" class="analyzer-content hidden">
+        <section id="infographicContent" class="analyzer-content hidden">
         <div class="analyzer-panels-grid">
           <article class="analyzer-panel glass-panel" id="lineup-panel">
             <header class="analyzer-panel-header">
@@ -334,6 +350,66 @@
           </div>
         </section>
       </section>
+      </div><!-- /#analysisTab -->
+
+      <!-- ═══ LEAGUE TRADES TAB (new — hidden by default) ═══ -->
+      <div id="tradesTab" class="trades-tab hidden" role="tabpanel" aria-labelledby="tradesTabBtn">
+
+        <!-- Trades controls bar: team dropdown + player search -->
+        <div class="trades-controls">
+          <div class="trades-control-group">
+            <label for="tradeTeamFilter" class="trades-control-label">
+              <i class="fa-solid fa-users" aria-hidden="true"></i> Team
+            </label>
+            <div class="trades-select-wrapper">
+              <select id="tradeTeamFilter">
+                <option value="ALL">All Teams</option>
+              </select>
+            </div>
+          </div>
+          <div class="trades-control-group trades-search-group">
+            <label for="tradePlayerSearch" class="trades-control-label">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Player
+            </label>
+            <input id="tradePlayerSearch" type="search" placeholder="Search by player name…" autocomplete="off" />
+          </div>
+        </div>
+
+        <!-- Trade activity stats / analytics table -->
+        <section class="trades-stats-section" id="tradeStatsSection">
+          <header class="trades-stats-header">
+            <h2 id="tradeStatsTitle">Trade Activity Overview</h2>
+            <p id="tradeStatsSubtitle">All-time trade frequency and partner analysis across the league.</p>
+          </header>
+          <!-- User summary cards: shown only when a specific user is selected -->
+          <div class="trades-user-cards hidden" id="tradeUserCards"></div>
+          <div class="trades-stats-table-wrapper">
+            <table class="trades-stats-table" id="tradeStatsTable">
+              <thead id="tradeStatsHead"></thead>
+              <tbody id="tradeStatsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Main trade list / cards -->
+        <section class="trades-list-section" id="tradeListSection">
+          <header class="trades-list-header">
+            <h2>Trade History</h2>
+            <span class="trades-count-badge" id="tradeCountBadge">0 trades</span>
+          </header>
+          <div class="trades-list" id="tradeList"></div>
+
+          <!-- Load More Trades trigger -->
+          <div class="trades-load-more-wrapper" id="loadMoreWrapper">
+            <button class="trades-load-more-btn" id="loadMoreTrades" type="button">
+              <i class="fa-solid fa-angles-down" aria-hidden="true"></i>
+              <span>Load More Trades</span>
+            </button>
+          </div>
+        </section>
+
+      </div><!-- /#tradesTab -->
+
     </main>
   </div>
 

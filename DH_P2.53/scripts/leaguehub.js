@@ -23,6 +23,27 @@
       standingsBody: document.getElementById('standingsTableBody'),
       leaderboardBody: document.getElementById('leaderboardTableBody'),
       leaderboardFilters: document.querySelectorAll('.analyzer-filter-group .filter-chip'),
+      // Tab switching elements
+      analysisTabBtn: document.getElementById('analysisTabBtn'),
+      tradesTabBtn: document.getElementById('tradesTabBtn'),
+      analysisTab: document.getElementById('analysisTab'),
+      tradesTab: document.getElementById('tradesTab'),
+      heroPill: document.getElementById('heroPill'),
+      heroHeading: document.getElementById('analyzer-hero-heading'),
+      heroSubtitle: document.getElementById('heroSubtitle'),
+      // Trades tab elements
+      tradeTeamFilter: document.getElementById('tradeTeamFilter'),
+      tradePlayerSearch: document.getElementById('tradePlayerSearch'),
+      tradeStatsSection: document.getElementById('tradeStatsSection'),
+      tradeStatsTitle: document.getElementById('tradeStatsTitle'),
+      tradeStatsSubtitle: document.getElementById('tradeStatsSubtitle'),
+      tradeUserCards: document.getElementById('tradeUserCards'),
+      tradeStatsHead: document.getElementById('tradeStatsHead'),
+      tradeStatsBody: document.getElementById('tradeStatsBody'),
+      tradeList: document.getElementById('tradeList'),
+      tradeCountBadge: document.getElementById('tradeCountBadge'),
+      loadMoreWrapper: document.getElementById('loadMoreWrapper'),
+      loadMoreTrades: document.getElementById('loadMoreTrades'),
     };
 
     const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
@@ -445,6 +466,17 @@
       leaderboards: { ALL: [], QB: [], RB: [], WR: [], TE: [] },
       activeLeaderboard: 'ALL',
       radarSlots: [],
+      // ── Trades tab state ──
+      activeTab: 'analysis',
+      tradesLoaded: false,          // Whether trades data has been fetched at least once
+      tradesLoadedSeasons: 0,       // How many seasons of trades have been loaded so far
+      allLeagueHistory: [],         // Full league chain from fetchAnalyzerLeagueHistory
+      allTrades: [],                // All fetched trades (processed), newest first
+      tradeAnalytics: null,         // Per-user aggregated trade stats
+      tradeUserMap: {},             // roster_id → { display_name, user_id, avatar } per league
+      tradeGlobalUserMap: {},       // owner_id → display_name (stable across seasons)
+      selectedTradeUser: 'ALL',     // Current team/user filter selection
+      tradeSearchQuery: '',         // Current player search query
     };
 
     elements.usernameInput?.addEventListener('keydown', (event) => {
@@ -2718,6 +2750,616 @@
     document.addEventListener('click', (e) => {
       if (e.target.nodeName !== 'CANVAS') {
         hideAllActiveTooltips();
+      }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // ▸ LEAGUE TRADES TAB — Tab switching, data fetch, processing, rendering
+    // ════════════════════════════════════════════════════════════════════════════
+
+    // ── Hero text per tab ──
+    const HERO_TEXT = {
+      analysis: {
+        pill: 'Dynasty Hub • League Analyzer',
+        heading: 'League Value & Production Overview',
+        subtitle: 'Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.',
+      },
+      trades: {
+        pill: 'Dynasty Hub • League Trades',
+        heading: 'All-Time Trade History & Insights',
+        subtitle: 'Explore every trade across the league\u2019s history \u2014 player values, deal flow, and trade tendencies.',
+      },
+    };
+
+    // ── Tab switching ──
+    function switchTab(tabName) {
+      if (state.activeTab === tabName) return;
+      state.activeTab = tabName;
+
+      const isAnalysis = tabName === 'analysis';
+      elements.analysisTabBtn.classList.toggle('active', isAnalysis);
+      elements.analysisTabBtn.setAttribute('aria-selected', isAnalysis ? 'true' : 'false');
+      elements.tradesTabBtn.classList.toggle('active', !isAnalysis);
+      elements.tradesTabBtn.setAttribute('aria-selected', !isAnalysis ? 'true' : 'false');
+
+      elements.analysisTab.classList.toggle('hidden', !isAnalysis);
+      elements.tradesTab.classList.toggle('hidden', isAnalysis);
+
+      // Update hero text to match active tab
+      const hero = HERO_TEXT[tabName];
+      if (hero) {
+        if (elements.heroPill) elements.heroPill.textContent = hero.pill;
+        if (elements.heroHeading) elements.heroHeading.textContent = hero.heading;
+        if (elements.heroSubtitle) elements.heroSubtitle.textContent = hero.subtitle;
+      }
+
+      // Lazy-load trades on first switch
+      if (tabName === 'trades' && !state.tradesLoaded && state.currentLeagueId) {
+        loadInitialTrades();
+      }
+    }
+
+    elements.analysisTabBtn?.addEventListener('click', () => switchTab('analysis'));
+    elements.tradesTabBtn?.addEventListener('click', () => switchTab('trades'));
+
+    // ── Trades: data fetching ──
+    // Fetch all trade transactions for a single league season.
+    // Polls rounds 0–18 (offseason + regular season) to capture every trade.
+    async function fetchTradesForLeague(leagueId) {
+      const MAX_ROUND = 18;
+      const roundPromises = [];
+      for (let r = 0; r <= MAX_ROUND; r++) {
+        roundPromises.push(
+          fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${r}`)
+            .catch(() => [])
+        );
+      }
+      const allRounds = await Promise.all(roundPromises);
+      const trades = [];
+      const seen = new Set();
+      allRounds.forEach((round) => {
+        if (!Array.isArray(round)) return;
+        round.forEach((tx) => {
+          if (tx.type !== 'trade' || tx.status !== 'complete') return;
+          if (seen.has(tx.transaction_id)) return;
+          seen.add(tx.transaction_id);
+          trades.push(tx);
+        });
+      });
+      return trades;
+    }
+
+    // Build roster_id → display_name map for a given league.
+    async function buildUserMapForLeague(leagueId) {
+      const [rosters, users] = await Promise.all([
+        fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/rosters`),
+        fetchWithCache(`https://api.sleeper.app/v1/league/${leagueId}/users`),
+      ]);
+      const userMap = {};
+      const userById = {};
+      (users || []).forEach((u) => { userById[u.user_id] = u; });
+      (rosters || []).forEach((r) => {
+        const owner = userById[r.owner_id] || userById[r.co_owner_id];
+        userMap[r.roster_id] = {
+          display_name: r.metadata?.team_name || owner?.display_name || `Team ${r.roster_id}`,
+          user_id: r.owner_id || r.co_owner_id || null,
+          avatar: owner?.avatar || null,
+          roster_id: r.roster_id,
+        };
+      });
+      return userMap;
+    }
+
+    // Load initial 3 seasons of trades (or however many exist).
+    async function loadInitialTrades() {
+      if (!state.currentLeagueId) return;
+      setLoading(true);
+      try {
+        const leagueInfo = state.leagues.find((l) => l.league_id === state.currentLeagueId);
+        if (!leagueInfo) return;
+        state.allLeagueHistory = await fetchAnalyzerLeagueHistory(leagueInfo);
+        state.tradesLoadedSeasons = 0;
+        state.allTrades = [];
+        state.tradeGlobalUserMap = {};
+        await loadMoreSeasons(3);
+        state.tradesLoaded = true;
+        populateTradeTeamFilter();
+        applyTradeFilters();
+      } catch (err) {
+        console.error('Failed to load trades:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Load the next `count` seasons from the league history chain.
+    async function loadMoreSeasons(count = 3) {
+      const history = state.allLeagueHistory;
+      const start = state.tradesLoadedSeasons;
+      const end = Math.min(start + count, history.length);
+      if (start >= history.length) return;
+
+      const batchPromises = [];
+      for (let i = start; i < end; i++) {
+        const league = history[i];
+        batchPromises.push(
+          (async () => {
+            const [trades, userMap] = await Promise.all([
+              fetchTradesForLeague(league.league_id),
+              buildUserMapForLeague(league.league_id),
+            ]);
+            return { league, trades, userMap };
+          })()
+        );
+      }
+
+      const results = await Promise.all(batchPromises);
+      results.forEach(({ league, trades, userMap }) => {
+        // Build per-trade processed objects
+        trades.forEach((tx) => {
+          state.allTrades.push(processSingleTrade(tx, league, userMap));
+        });
+        // Merge userMap into global map (keyed by user_id for cross-season stability)
+        Object.values(userMap).forEach((u) => {
+          if (u.user_id) {
+            state.tradeGlobalUserMap[u.user_id] = u;
+          }
+          state.tradeGlobalUserMap[`r_${u.roster_id}_${league.league_id}`] = u;
+        });
+        // Store per-league roster map for roster_id lookups
+        state.tradeUserMap[league.league_id] = userMap;
+      });
+
+      // Sort all trades newest first
+      state.allTrades.sort((a, b) => b.created - a.created);
+      state.tradesLoadedSeasons = end;
+    }
+
+    // Process a single Sleeper trade transaction into a display-ready object.
+    function processSingleTrade(tx, league, userMap) {
+      const sides = {};
+      (tx.roster_ids || []).forEach((rid) => {
+        const owner = userMap[rid] || { display_name: `Team ${rid}`, user_id: null, roster_id: rid };
+        sides[rid] = {
+          roster_id: rid,
+          display_name: owner.display_name,
+          user_id: owner.user_id,
+          players_received: [],
+          picks_received: [],
+          total_ktc: 0,
+        };
+      });
+
+      // Resolve player adds (player_id → roster_id that received them)
+      if (tx.adds && typeof tx.adds === 'object') {
+        Object.entries(tx.adds).forEach(([playerId, receivingRid]) => {
+          const side = sides[receivingRid];
+          if (!side) return;
+          const info = state.players[playerId] || {};
+          const ktc = getKtcValue(playerId);
+          const stats = state.leaguePlayerStats[playerId] || state.playerStats[playerId] || {};
+          const ppg = stats.ppg ?? (stats.games ? stats.total / stats.games : 0);
+          const fpts = stats.total ?? 0;
+          side.players_received.push({
+            id: playerId,
+            name: info.full_name || `${info.first_name || ''} ${info.last_name || ''}`.trim() || playerId,
+            pos: info.position || '??',
+            team: info.team || 'FA',
+            ktc,
+            ppg: Math.round(ppg * 100) / 100,
+            fpts: Math.round(fpts * 10) / 10,
+          });
+          side.total_ktc += ktc;
+        });
+      }
+
+      // Resolve draft picks
+      if (Array.isArray(tx.draft_picks)) {
+        tx.draft_picks.forEach((pick) => {
+          const receivingRid = pick.owner_id;
+          const side = sides[receivingRid];
+          if (!side) return;
+          const label = `${pick.season} ${ordinal(pick.round)}`;
+          const ktc = getKtcValue(`${pick.season} Mid ${ordinal(pick.round)}`);
+          side.picks_received.push({ label, season: pick.season, round: pick.round, ktc });
+          side.total_ktc += ktc;
+        });
+      }
+
+      const sideList = Object.values(sides);
+      const totalKtc = sideList.reduce((s, side) => s + side.total_ktc, 0);
+
+      return {
+        id: tx.transaction_id,
+        created: tx.created,
+        season: league.season || '??',
+        league_id: league.league_id,
+        week: tx.leg || 0,
+        sides: sideList,
+        totalKtc,
+        // Keep reference to all involved user_ids for filtering
+        involvedUserIds: sideList.map((s) => s.user_id).filter(Boolean),
+        involvedRosterIds: sideList.map((s) => s.roster_id),
+      };
+    }
+
+    // ── Trades: analytics / stats computation ──
+    function computeTradeAnalytics() {
+      const trades = state.allTrades;
+      const totalTrades = trades.length;
+      // Per-user stats: keyed by user_id
+      const userStats = {};
+
+      trades.forEach((trade) => {
+        const userIds = trade.involvedUserIds;
+        // For each participant in this trade
+        userIds.forEach((uid) => {
+          if (!userStats[uid]) {
+            userStats[uid] = {
+              userId: uid,
+              displayName: state.tradeGlobalUserMap[uid]?.display_name || uid,
+              totalTrades: 0,
+              partners: {},       // partnerId → count
+              positionsAcquired: {},
+              playersAcquired: 0,
+              playersSent: 0,
+              totalValueAcquired: 0,
+              mostExpensiveAcquisition: null,
+            };
+          }
+          const us = userStats[uid];
+          us.totalTrades++;
+
+          // Count partners
+          userIds.forEach((otherId) => {
+            if (otherId === uid) return;
+            us.partners[otherId] = (us.partners[otherId] || 0) + 1;
+          });
+
+          // Find this user's received side
+          const mySide = trade.sides.find((s) => s.user_id === uid);
+          const otherSide = trade.sides.find((s) => s.user_id !== uid);
+          if (mySide) {
+            mySide.players_received.forEach((p) => {
+              us.playersAcquired++;
+              us.totalValueAcquired += p.ktc;
+              us.positionsAcquired[p.pos] = (us.positionsAcquired[p.pos] || 0) + 1;
+              if (!us.mostExpensiveAcquisition || p.ktc > us.mostExpensiveAcquisition.ktc) {
+                us.mostExpensiveAcquisition = { name: p.name, pos: p.pos, ktc: p.ktc };
+              }
+            });
+          }
+          if (otherSide) {
+            us.playersSent += otherSide.players_received.filter((p) => true).length;
+            // Actually we need to count what THIS user sent — that's what the OTHER side received
+            // if the other side received players, those came from this user
+          }
+        });
+      });
+
+      // Fix playersSent: for each trade, what each user sent is what the other side(s) received
+      trades.forEach((trade) => {
+        trade.sides.forEach((side) => {
+          if (!side.user_id || !userStats[side.user_id]) return;
+          // Players this side received were SENT by the other side(s) — skip
+        });
+      });
+      // Recalculate playersSent properly:
+      Object.values(userStats).forEach((us) => { us.playersSent = 0; });
+      trades.forEach((trade) => {
+        trade.sides.forEach((side) => {
+          // The players this side received were sent by the OTHER team(s)
+          const otherUserIds = trade.involvedUserIds.filter((uid) => uid !== side.user_id);
+          otherUserIds.forEach((senderId) => {
+            if (userStats[senderId]) {
+              userStats[senderId].playersSent += side.players_received.length;
+            }
+          });
+        });
+      });
+
+      // Compute derived fields
+      Object.values(userStats).forEach((us) => {
+        const partnerEntries = Object.entries(us.partners);
+        us.uniquePartners = partnerEntries.length;
+        us.pctOfTotal = totalTrades > 0 ? Math.round((us.totalTrades / totalTrades) * 1000) / 10 : 0;
+        us.avgTradeValue = us.totalTrades > 0 ? Math.round(us.totalValueAcquired / us.totalTrades) : 0;
+        // Most frequent partner
+        if (partnerEntries.length) {
+          const [topPartnerId, topCount] = partnerEntries.sort((a, b) => b[1] - a[1])[0];
+          us.mostFrequentPartner = state.tradeGlobalUserMap[topPartnerId]?.display_name || topPartnerId;
+          us.mostFrequentPartnerCount = topCount;
+        } else {
+          us.mostFrequentPartner = '—';
+          us.mostFrequentPartnerCount = 0;
+        }
+        // Most traded-for position
+        const posEntries = Object.entries(us.positionsAcquired);
+        if (posEntries.length) {
+          us.topPosition = posEntries.sort((a, b) => b[1] - a[1])[0][0];
+        } else {
+          us.topPosition = '—';
+        }
+      });
+
+      // Sort by totalTrades descending
+      const ranked = Object.values(userStats).sort((a, b) => b.totalTrades - a.totalTrades);
+      ranked.forEach((us, i) => { us.rank = i + 1; });
+
+      state.tradeAnalytics = { totalTrades, ranked, byUser: userStats };
+    }
+
+    // ── Trades: populate team dropdown ──
+    function populateTradeTeamFilter() {
+      if (!elements.tradeTeamFilter) return;
+      const options = ['<option value="ALL">All Teams</option>'];
+      // Use the current league's user map for the dropdown
+      const currentMap = state.tradeUserMap[state.currentLeagueId] || {};
+      const sorted = Object.values(currentMap).sort((a, b) => (a.display_name || '').localeCompare(b.display_name || ''));
+      sorted.forEach((u) => {
+        if (!u.user_id) return;
+        options.push(`<option value="${escapeHtml(u.user_id)}">${escapeHtml(u.display_name)}</option>`);
+      });
+      elements.tradeTeamFilter.innerHTML = options.join('');
+    }
+
+    // ── Trades: filter + re-render pipeline ──
+    function applyTradeFilters() {
+      computeTradeAnalytics();
+      const userId = state.selectedTradeUser;
+      const query = state.tradeSearchQuery.toLowerCase().trim();
+
+      // Filter trades
+      let filtered = state.allTrades;
+      if (userId !== 'ALL') {
+        filtered = filtered.filter((t) => t.involvedUserIds.includes(userId));
+      }
+      if (query) {
+        filtered = filtered.filter((t) =>
+          t.sides.some((s) =>
+            s.players_received.some((p) => p.name.toLowerCase().includes(query))
+          )
+        );
+      }
+
+      // Render everything
+      renderTradeStatsTable(userId);
+      renderUserSummaryCards(userId);
+      renderTradeCards(filtered);
+      updateTradeCountBadge(filtered.length);
+      updateLoadMoreVisibility();
+    }
+
+    // ── Trades: event listeners for filters ──
+    elements.tradeTeamFilter?.addEventListener('change', () => {
+      state.selectedTradeUser = elements.tradeTeamFilter.value;
+      applyTradeFilters();
+    });
+
+    let tradeSearchDebounce = null;
+    elements.tradePlayerSearch?.addEventListener('input', () => {
+      clearTimeout(tradeSearchDebounce);
+      tradeSearchDebounce = setTimeout(() => {
+        state.tradeSearchQuery = elements.tradePlayerSearch.value;
+        applyTradeFilters();
+      }, 250);
+    });
+
+    elements.loadMoreTrades?.addEventListener('click', async () => {
+      if (state.tradesLoadedSeasons >= state.allLeagueHistory.length) return;
+      elements.loadMoreTrades.disabled = true;
+      elements.loadMoreTrades.querySelector('span').textContent = 'Loading…';
+      try {
+        await loadMoreSeasons(3);
+        applyTradeFilters();
+      } finally {
+        elements.loadMoreTrades.disabled = false;
+        elements.loadMoreTrades.querySelector('span').textContent = 'Load More Trades';
+      }
+    });
+
+    function updateLoadMoreVisibility() {
+      if (!elements.loadMoreWrapper) return;
+      const hasMore = state.tradesLoadedSeasons < state.allLeagueHistory.length;
+      elements.loadMoreWrapper.classList.toggle('hidden', !hasMore || state.allTrades.length === 0);
+    }
+
+    function updateTradeCountBadge(count) {
+      if (!elements.tradeCountBadge) return;
+      elements.tradeCountBadge.textContent = `${count} trade${count !== 1 ? 's' : ''}`;
+    }
+
+    // ── Trades: render stats table ──
+    function renderTradeStatsTable(selectedUserId) {
+      if (!state.tradeAnalytics || !elements.tradeStatsHead || !elements.tradeStatsBody) return;
+      const { ranked, byUser, totalTrades } = state.tradeAnalytics;
+
+      if (selectedUserId === 'ALL') {
+        // ALL mode: one row per league member, ranked by total trades
+        elements.tradeStatsTitle.textContent = 'Trade Activity Overview';
+        elements.tradeStatsSubtitle.textContent = 'All-time trade frequency and partner analysis across the league.';
+        elements.tradeStatsHead.innerHTML = `<tr>
+          <th>RK</th><th class="tst-col-team">Team</th><th>Trades</th><th>% Total</th>
+          <th class="tst-col-partner">Top Partner</th><th>Partners</th><th>Avg Value</th><th>Top Pos</th>
+        </tr>`;
+        elements.tradeStatsBody.innerHTML = ranked.map((us) => `<tr>
+          <td class="tst-rank">${us.rank}</td>
+          <td class="tst-team">${escapeHtml(us.displayName)}</td>
+          <td class="tst-num">${us.totalTrades}</td>
+          <td class="tst-num">${us.pctOfTotal}%</td>
+          <td class="tst-partner">${escapeHtml(us.mostFrequentPartner)} <span class="tst-partner-count">(${us.mostFrequentPartnerCount})</span></td>
+          <td class="tst-num">${us.uniquePartners}</td>
+          <td class="tst-value">${formatNumber(us.avgTradeValue)}</td>
+          <td class="tst-pos"><span class="trade-pos-tag ${us.topPosition}">${us.topPosition}</span></td>
+        </tr>`).join('');
+      } else {
+        // User-specific mode: partner breakdown
+        const us = byUser[selectedUserId];
+        if (!us) return;
+        elements.tradeStatsTitle.textContent = `${us.displayName}'s Trade Partners`;
+        elements.tradeStatsSubtitle.textContent = `Relationship breakdown across ${us.totalTrades} all-time trades.`;
+        elements.tradeStatsHead.innerHTML = `<tr>
+          <th>RK</th><th class="tst-col-team">Partner</th><th>Trades</th><th>% of Trades</th>
+          <th>Last Trade</th>
+        </tr>`;
+        // Build partner rows sorted by count
+        const partnerRows = Object.entries(us.partners)
+          .map(([pid, count]) => {
+            const partnerName = state.tradeGlobalUserMap[pid]?.display_name || pid;
+            // Find last trade date with this partner
+            const lastTrade = state.allTrades
+              .find((t) => t.involvedUserIds.includes(selectedUserId) && t.involvedUserIds.includes(pid));
+            const lastDate = lastTrade ? new Date(lastTrade.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—';
+            const pct = Math.round((count / us.totalTrades) * 1000) / 10;
+            return { partnerName, count, pct, lastDate };
+          })
+          .sort((a, b) => b.count - a.count);
+
+        elements.tradeStatsBody.innerHTML = partnerRows.map((r, i) => `<tr>
+          <td class="tst-rank">${i + 1}</td>
+          <td class="tst-team">${escapeHtml(r.partnerName)}</td>
+          <td class="tst-num">${r.count}</td>
+          <td class="tst-num">${r.pct}%</td>
+          <td class="tst-date">${r.lastDate}</td>
+        </tr>`).join('');
+      }
+    }
+
+    // ── Trades: render user summary cards ──
+    function renderUserSummaryCards(selectedUserId) {
+      if (!elements.tradeUserCards) return;
+      if (selectedUserId === 'ALL' || !state.tradeAnalytics?.byUser[selectedUserId]) {
+        elements.tradeUserCards.classList.add('hidden');
+        elements.tradeUserCards.innerHTML = '';
+        return;
+      }
+      const us = state.tradeAnalytics.byUser[selectedUserId];
+      const expAcq = us.mostExpensiveAcquisition;
+      const cards = [
+        { icon: 'fa-handshake', label: 'Total Trades', value: us.totalTrades, accent: '' },
+        { icon: 'fa-arrow-down', label: 'Players Acquired', value: us.playersAcquired, accent: 'card-acquired' },
+        { icon: 'fa-arrow-up', label: 'Players Sent', value: us.playersSent, accent: 'card-sent' },
+        { icon: 'fa-bullseye', label: 'Top Position', value: us.topPosition, accent: `card-pos-${us.topPosition}` },
+        { icon: 'fa-gem', label: 'Biggest Acquisition', value: expAcq ? `${abbreviateFirstName(expAcq.name)}` : '—', sub: expAcq ? `${formatNumber(expAcq.ktc)} KTC` : '', accent: 'card-gem' },
+        { icon: 'fa-scale-balanced', label: 'Avg Deal Value', value: formatNumber(us.avgTradeValue), accent: '' },
+      ];
+      elements.tradeUserCards.innerHTML = cards.map((c) => `
+        <div class="trade-user-card ${c.accent}">
+          <div class="trade-user-card-icon"><i class="fa-solid ${c.icon}" aria-hidden="true"></i></div>
+          <div class="trade-user-card-body">
+            <span class="trade-user-card-label">${c.label}</span>
+            <span class="trade-user-card-value">${c.value}</span>
+            ${c.sub ? `<span class="trade-user-card-sub">${c.sub}</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+      elements.tradeUserCards.classList.remove('hidden');
+    }
+
+    // ── Trades: render trade cards ──
+    function renderTradeCards(trades) {
+      if (!elements.tradeList) return;
+      if (!trades.length) {
+        elements.tradeList.innerHTML = '<div class="trades-empty">No trades found.</div>';
+        return;
+      }
+      elements.tradeList.innerHTML = trades.map(renderSingleTradeCard).join('');
+    }
+
+    // Render a single premium trade card.
+    function renderSingleTradeCard(trade) {
+      const date = new Date(trade.created);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const weekLabel = trade.week > 0 ? `WK ${trade.week}` : 'Offseason';
+
+      // Build both sides HTML
+      const sidesHtml = trade.sides.map((side, idx) => {
+        const sideClass = idx === 0 ? 'trade-side-a' : 'trade-side-b';
+        const dirLabel = 'receives';
+
+        // Player assets
+        const playersHtml = side.players_received.map((p) => {
+          const logoKey = LOGO_KEY_MAP[(p.team || '').toUpperCase()] || (p.team || 'fa').toLowerCase();
+          const logoSrc = (p.team && p.team !== 'FA') ? `../assets/NFL_logos_svg/${logoKey}.svg` : '';
+          return `<div class="trade-asset trade-asset-player">
+            <span class="trade-pos-tag ${p.pos}">${p.pos}</span>
+            ${logoSrc ? `<img class="trade-team-logo" src="${logoSrc}" alt="${p.team}" width="18" height="18">` : ''}
+            <span class="trade-player-name">${escapeHtml(abbreviateFirstName(p.name))}</span>
+            <span class="trade-ktc-chip">${formatNumber(p.ktc)}</span>
+            <span class="trade-stat-chip">${p.ppg.toFixed(1)} <small>PPG</small></span>
+            <span class="trade-stat-chip">${formatNumber(p.fpts)} <small>FPTS</small></span>
+          </div>`;
+        }).join('');
+
+        // Pick assets
+        const picksHtml = side.picks_received.map((pk) => `
+          <div class="trade-asset trade-asset-pick">
+            <span class="trade-pick-badge"><i class="fa-solid fa-ticket" aria-hidden="true"></i> ${escapeHtml(pk.label)}</span>
+            <span class="trade-ktc-chip">${formatNumber(pk.ktc)}</span>
+          </div>
+        `).join('');
+
+        const hasAssets = side.players_received.length > 0 || side.picks_received.length > 0;
+        const assetsHtml = hasAssets ? (playersHtml + picksHtml) : '<div class="trade-asset trade-no-assets">No assets</div>';
+
+        return `<div class="trade-side ${sideClass}">
+          <div class="trade-side-header">
+            <span class="trade-side-name">${escapeHtml(side.display_name)}</span>
+            <span class="trade-side-label">${dirLabel}</span>
+          </div>
+          <div class="trade-side-assets">${assetsHtml}</div>
+          <div class="trade-side-total">
+            <span class="trade-side-total-label">Side Total</span>
+            <span class="trade-side-total-value">${formatNumber(side.total_ktc)}</span>
+          </div>
+        </div>`;
+      }).join('<div class="trade-divider"><i class="fa-solid fa-right-left" aria-hidden="true"></i></div>');
+
+      // Card metadata
+      const teamNames = trade.sides.map((s) => s.display_name).join(' ⟷ ');
+
+      return `<article class="trade-card">
+        <div class="trade-card-header">
+          <div class="trade-card-meta">
+            <span class="trade-meta-date">${dateStr}</span>
+            <span class="trade-meta-season">${trade.season}</span>
+            <span class="trade-meta-week">${weekLabel}</span>
+          </div>
+          <div class="trade-card-total">
+            <span class="trade-total-label">Total Deal Value</span>
+            <span class="trade-total-value">${formatNumber(trade.totalKtc)}</span>
+          </div>
+        </div>
+        <div class="trade-card-teams">${escapeHtml(teamNames)}</div>
+        <div class="trade-card-body">${sidesHtml}</div>
+      </article>`;
+    }
+
+    // ── Reset trades state when league changes ──
+    // When the user switches leagues in the dropdown, the analysis tab re-fetches automatically.
+    // We also need to reset trades state so the trades tab re-fetches for the new league.
+    const _origAnalyzeLeague = analyzeLeague;
+    // Monkey-patch not needed — listen to league select change instead.
+    elements.leagueSelect?.addEventListener('change', () => {
+      // Reset trades state so next tab switch triggers a fresh load
+      state.tradesLoaded = false;
+      state.allTrades = [];
+      state.tradeAnalytics = null;
+      state.tradesLoadedSeasons = 0;
+      state.allLeagueHistory = [];
+      state.tradeGlobalUserMap = {};
+      state.tradeUserMap = {};
+      state.selectedTradeUser = 'ALL';
+      state.tradeSearchQuery = '';
+      if (elements.tradeTeamFilter) elements.tradeTeamFilter.value = 'ALL';
+      if (elements.tradePlayerSearch) elements.tradePlayerSearch.value = '';
+      if (elements.tradeList) elements.tradeList.innerHTML = '';
+      if (elements.tradeStatsBody) elements.tradeStatsBody.innerHTML = '';
+      if (elements.tradeUserCards) { elements.tradeUserCards.innerHTML = ''; elements.tradeUserCards.classList.add('hidden'); }
+      // If on trades tab, load trades for new league after analysis finishes
+      if (state.activeTab === 'trades') {
+        // Small delay to let analyzeLeague finish first (it's triggered by the same event)
+        setTimeout(() => { if (state.currentLeagueId) loadInitialTrades(); }, 100);
       }
     });
   });
