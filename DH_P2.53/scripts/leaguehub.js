@@ -1,6 +1,6 @@
 (function () {
   document.addEventListener('DOMContentLoaded', () => {
-    if (document.body.dataset.page !== 'analyzer') {
+    if (document.body.dataset.page !== 'leaguehub') {
       return;
     }
 

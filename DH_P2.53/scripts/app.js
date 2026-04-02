@@ -40,7 +40,7 @@ const pageType = document.body.dataset.page || 'welcome';
 const homeButton = document.getElementById('homeButton');
 const rostersButton = document.getElementById('rostersButton');
 const statsButton = document.getElementById('statsButton');
-const analyzerButton = document.getElementById('analyzerButton');
+const leagueHubButton = document.getElementById('leagueHubButton');
 const researchButton = document.getElementById('researchButton');
 const startSitButton = document.getElementById('startSitButton');
 const gameLogsModal = document.getElementById('game-logs-modal');
@@ -368,8 +368,8 @@ const getPageUrl = (page) => {
         case 'stats':
             url = `${base}stats/stats.html`;
             break;
-        case 'analyzer':
-            url = `${base}analyzer/analyzer.html`;
+        case 'leaguehub':
+            url = `${base}leaguehub/leaguehub.html`;
             break;
         case 'research':
             url = `${base}research/research.html`;
@@ -380,7 +380,7 @@ const getPageUrl = (page) => {
     }
     if (username && page !== 'home') {
         url += `?username=${encodeURIComponent(username)}`;
-        if (page === 'rosters' || page === 'analyzer' || page === 'stats') {
+        if (page === 'rosters' || page === 'leaguehub' || page === 'stats') {
             const selected = leagueSelect?.value;
             if (selected && selected !== 'Select a league...') {
                 url += `&leagueId=${selected}`;
@@ -410,7 +410,7 @@ async function ensureNavigate(page) {
         return;
     }
     const username = usernameInput?.value?.trim() || '';
-    const pagesRequiringUsername = new Set(['rosters', 'ownership', 'analyzer']);
+    const pagesRequiringUsername = new Set(['rosters', 'ownership', 'leaguehub']);
     const needsValidation = pagesRequiringUsername.has(page);
     if (needsValidation && !username) {
         showTemporaryTooltip(usernameInput || document.body, 'League-Connected Content Requires a Valid Username Input via the Home Page');
@@ -440,16 +440,16 @@ statsButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
     await ensureNavigate('stats');
 });
-analyzerButton?.addEventListener('click', async () => {
+leagueHubButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
-    await ensureNavigate('analyzer');
+    await ensureNavigate('leaguehub');
 });
 researchButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
     await ensureNavigate('research');
 });
 // Add pointer/touch guards so quick taps on mobile also blur the input before navigation fires
-['homeButton', 'rostersButton', 'statsButton', 'analyzerButton', 'researchButton'].forEach(id => {
+['homeButton', 'rostersButton', 'statsButton', 'leagueHubButton', 'researchButton'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const handler = () => { try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { } };
@@ -1316,7 +1316,7 @@ if (pageType === 'ownership' || pageType === 'rosters') {
 }
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
-    if (pageType === 'analyzer') return;
+    if (pageType === 'leaguehub') return;
     if (pageType === 'research') {
         const params = new URLSearchParams(window.location.search);
         const uname = params.get('username');
@@ -10661,10 +10661,7 @@ async function fetchWithCache(url) {
     input.addEventListener('blur', () => { persistNormalizedHeaderUsername({ blurInput: false }); });
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { persistNormalizedHeaderUsername(); } });
     // Hook buttons (capture) so normalization executes before fetch handlers.
-    ['rostersButton', 'analyzerButton', 'researchButton'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('click', () => { persistNormalizedHeaderUsername(); }, { capture: true });
+    ['rostersButton', 'leagueHubButton', 'researchButton'].forEach(id => {
     });
 })();
 // === Mobile pinch-zoom stability guard ===
@@ -10758,7 +10755,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 // Hide legend when switching away from Welcome via UI controls
-['rostersButton', 'analyzerButton', 'researchButton', 'leagueSelect', 'positionalViewBtn', 'lineupViewBtn'].forEach(id => {
+['rostersButton', 'leagueHubButton', 'researchButton', 'leagueSelect', 'positionalViewBtn', 'lineupViewBtn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', hideLegend, { capture: true });
 });

@@ -19,13 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
     home: '../index.html',
     rosters: '../rosters/rosters.html',
     stats: '../stats/stats.html',
-    analyzer: '../analyzer/analyzer.html',
+    leaguehub: '../leaguehub/leaguehub.html',
     research: '../research/research.html',
     ownership: '../ownership/ownership.html',
     contact: '../contact/contact.html'
   };
 
-  const pagesWithLeagueContext = new Set(['rosters', 'stats', 'analyzer']);
+  const pagesWithLeagueContext = new Set(['rosters', 'stats', 'leaguehub']);
   const resolvedUsername = (params.get('username') || readStoredUsername() || '').trim();
   const resolvedLeagueId = (params.get('leagueId') || '').trim();
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     leagueSelect.appendChild(option);
   }
 
-  ['homeButton', 'rostersButton', 'statsButton', 'analyzerButton', 'researchButton'].forEach((id) => {
+  ['homeButton', 'rostersButton', 'statsButton', 'leagueHubButton', 'researchButton'].forEach((id) => {
     const button = document.getElementById(id);
     if (!button) return;
     button.addEventListener('click', () => {

@@ -1044,6 +1044,11 @@ body[data-page="contact"] select {
     letter-spacing: 0.01em;
   }
 
+  /* LeagueHub nav button: tightened letter-spacing on mobile to fit the longer label */
+  #leagueHubButton .contact-nav-label {
+    letter-spacing: -0.06em;
+  }
+
   #header-container .contact-nav-logo {
     width: 1.24rem;
     height: 1.18rem;

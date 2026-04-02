@@ -38,8 +38,8 @@
   status = 200
 
 [[redirects]]
-  from = "/analyzer"
-  to = "/analyzer/analyzer.html"
+  from = "/leaguehub"
+  to = "/leaguehub/leaguehub.html"
   status = 200
 
 [[redirects]]

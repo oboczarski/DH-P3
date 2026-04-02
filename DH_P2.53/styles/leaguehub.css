@@ -1,11 +1,11 @@
-/* League Analyzer page styles (extracted from styles.css) */
+/* LeagueHub page styles (extracted from styles.css) */
 
-/* === League Analyzer Refresh === */
-body[data-page="analyzer"] {
+/* === LeagueHub Refresh === */
+body[data-page="leaguehub"] {
   --analyzer-rank-glyph-font: 12px "Product Sans", "Google Sans", sans-serif;
 }
 
-body[data-page="analyzer"] .analyzer-main {
+body[data-page="leaguehub"] .analyzer-main {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -13,7 +13,7 @@ body[data-page="analyzer"] .analyzer-main {
   max-width: 1200px;
 }
 
-body[data-page="analyzer"] .analyzer-hero {
+body[data-page="leaguehub"] .analyzer-hero {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -27,14 +27,14 @@ body[data-page="analyzer"] .analyzer-hero {
   box-shadow: rgba(255, 255, 255, 0.005) 0px 0px 0px 0px inset, rgba(200, 200, 200, 0.0025) 0px 0px 0px 3px inset, rgba(0, 0, 0, 0.22) 0px 0px 0px 0px;
 }
 
-body[data-page="analyzer"] .analyzer-hero-intro {
+body[data-page="leaguehub"] .analyzer-hero-intro {
   max-width: 680px;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
 }
 
-body[data-page="analyzer"] .analyzer-pill {
+body[data-page="leaguehub"] .analyzer-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -50,7 +50,7 @@ body[data-page="analyzer"] .analyzer-pill {
   margin: 0 0.8rem;
 }
 
-body[data-page="analyzer"] .analyzer-hero h1 {
+body[data-page="leaguehub"] .analyzer-hero h1 {
   font-size: 1.35rem;
   line-height: 1.2;
   margin: 0;
@@ -58,14 +58,14 @@ body[data-page="analyzer"] .analyzer-hero h1 {
   align-self: center;
 }
 
-body[data-page="analyzer"] .analyzer-hero p {
+body[data-page="leaguehub"] .analyzer-hero p {
   color: var(--color-text-secondary);
   max-width: 620px;
   font-size: 0.85rem;
   line-height: 1.6;
 }
 
-body[data-page="analyzer"] .analyzer-loading {
+body[data-page="leaguehub"] .analyzer-loading {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,13 +74,13 @@ body[data-page="analyzer"] .analyzer-loading {
   color: var(--color-text-secondary);
 }
 
-body[data-page="analyzer"] .loading-indicator {
+body[data-page="leaguehub"] .loading-indicator {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-body[data-page="analyzer"] .loading-indicator::before {
+body[data-page="leaguehub"] .loading-indicator::before {
   content: '';
   height: 0.9rem;
   width: 0.9rem;
@@ -100,13 +100,13 @@ body[data-page="analyzer"] .loading-indicator::before {
   }
 }
 
-body[data-page="analyzer"] .analyzer-summary-grid {
+body[data-page="leaguehub"] .analyzer-summary-grid {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
 }
 
-body[data-page="analyzer"] .analyzer-chip {
+body[data-page="leaguehub"] .analyzer-chip {
   position: relative;
   padding: 0.85rem 0.95rem;
   border-radius: 22px;
@@ -119,7 +119,7 @@ body[data-page="analyzer"] .analyzer-chip {
   min-height: 96px;
 }
 
-body[data-page="analyzer"] .analyzer-chip::after {
+body[data-page="leaguehub"] .analyzer-chip::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -128,61 +128,61 @@ body[data-page="analyzer"] .analyzer-chip::after {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%);
 }
 
-body[data-page="analyzer"] .analyzer-chip .chip-label {
+body[data-page="leaguehub"] .analyzer-chip .chip-label {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--color-text-secondary);
 }
 
-body[data-page="analyzer"] .analyzer-chip .chip-value {
+body[data-page="leaguehub"] .analyzer-chip .chip-value {
   font-size: 1.22rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
-body[data-page="analyzer"] .analyzer-chip .chip-meta {
+body[data-page="leaguehub"] .analyzer-chip .chip-meta {
   font-size: 0.78rem;
   color: var(--color-text-secondary);
   line-height: 1.35;
   margin-top: auto;
 }
 
-body[data-page="analyzer"] .analyzer-chip--top-scorer .chip-value {
+body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-value {
   font-size: 0.96rem;
   line-height: 1.2;
   white-space: nowrap;
 }
 
-body[data-page="analyzer"] .analyzer-chip--top-scorer .chip-meta {
+body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-meta {
   font-size: 0.72rem;
 }
 
 @media (max-width: 640px) {
-  body[data-page="analyzer"] .analyzer-summary-grid {
+  body[data-page="leaguehub"] .analyzer-summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-body[data-page="analyzer"] .analyzer-content {
+body[data-page="leaguehub"] .analyzer-content {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
 }
 
-body[data-page="analyzer"] .analyzer-panels-grid {
+body[data-page="leaguehub"] .analyzer-panels-grid {
   display: grid;
   gap: 0.8rem;
   grid-template-columns: 1fr;
 }
 
 @media (min-width: 869px) {
-  body[data-page="analyzer"] .analyzer-panels-grid {
+  body[data-page="leaguehub"] .analyzer-panels-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-body[data-page="analyzer"] .analyzer-panel {
+body[data-page="leaguehub"] .analyzer-panel {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -195,38 +195,38 @@ body[data-page="analyzer"] .analyzer-panel {
   -webkit-backdrop-filter: blur(1px) saturate(120%) brightness(120%);
 }
 
-body[data-page="analyzer"] .analyzer-panel-header {
+body[data-page="leaguehub"] .analyzer-panel-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
 }
 
-body[data-page="analyzer"] .analyzer-panel-header h2 {
+body[data-page="leaguehub"] .analyzer-panel-header h2 {
   margin: 0;
   font-size: 1.2rem;
 }
 
 /* Analyzer lineup header tooltip: keeps the new info icon and help text scoped to the
    lineup panel title so hover/focus guidance does not affect other page headers. */
-body[data-page="analyzer"] .analyzer-heading-with-info {
+body[data-page="leaguehub"] .analyzer-heading-with-info {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
 }
 
-body[data-page="analyzer"] .analyzer-heading-with-info .analyzer-heading-text {
+body[data-page="leaguehub"] .analyzer-heading-with-info .analyzer-heading-text {
   min-width: 0;
   font-size: 17px;
 }
 
-body[data-page="analyzer"] .analyzer-info {
+body[data-page="leaguehub"] .analyzer-info {
   position: relative;
   display: inline-flex;
   align-items: center;
 }
 
-body[data-page="analyzer"] .analyzer-info-trigger {
+body[data-page="leaguehub"] .analyzer-info-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -241,15 +241,15 @@ body[data-page="analyzer"] .analyzer-info-trigger {
   transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
-body[data-page="analyzer"] .analyzer-info-trigger:hover,
-body[data-page="analyzer"] .analyzer-info-trigger:focus-visible {
+body[data-page="leaguehub"] .analyzer-info-trigger:hover,
+body[data-page="leaguehub"] .analyzer-info-trigger:focus-visible {
   color: #ffffff;
   background: rgba(103, 0, 255, 0.18);
   transform: translateY(-1px);
   outline: none;
 }
 
-body[data-page="analyzer"] .analyzer-info-tooltip {
+body[data-page="leaguehub"] .analyzer-info-tooltip {
   position: absolute;
   top: calc(100% + 0.58rem);
   left: 50%;
@@ -274,76 +274,76 @@ body[data-page="analyzer"] .analyzer-info-tooltip {
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
 }
 
-body[data-page="analyzer"] .analyzer-info:hover .analyzer-info-tooltip,
-body[data-page="analyzer"] .analyzer-info:focus-within .analyzer-info-tooltip {
+body[data-page="leaguehub"] .analyzer-info:hover .analyzer-info-tooltip,
+body[data-page="leaguehub"] .analyzer-info:focus-within .analyzer-info-tooltip {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
 }
 
-body[data-page="analyzer"] .analyzer-panel-header p {
+body[data-page="leaguehub"] .analyzer-panel-header p {
   margin: 0.2rem 0 0;
   color: var(--color-text-secondary);
   font-size: 0.82rem;
 }
 
-body[data-page="analyzer"] .analyzer-panel-body {
+body[data-page="leaguehub"] .analyzer-panel-body {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-body[data-page="analyzer"] .analyzer-chart {
+body[data-page="leaguehub"] .analyzer-chart {
   position: relative;
   width: 100%;
   height: 400px;
 }
 
-body[data-page="analyzer"] .analyzer-chart--radar {
+body[data-page="leaguehub"] .analyzer-chart--radar {
   min-height: 336px;
   padding: 0;
 }
 
-body[data-page="analyzer"] .analyzer-radar-section {
+body[data-page="leaguehub"] .analyzer-radar-section {
   padding-top: 1.25rem;
 }
 
 @media (max-width: 640px) {
-  body[data-page="analyzer"] .analyzer-radar-section {
+  body[data-page="leaguehub"] .analyzer-radar-section {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
     gap: 0rem !important;
   }
 }
 
-body[data-page="analyzer"] .analyzer-radar-section .analyzer-panel-body--stacked {
+body[data-page="leaguehub"] .analyzer-radar-section .analyzer-panel-body--stacked {
   gap: 0.1rem;
 }
 
-body[data-page="analyzer"] .analyzer-panel-body--stacked {
+body[data-page="leaguehub"] .analyzer-panel-body--stacked {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
 @media (min-width: 869px) {
-  body[data-page="analyzer"] .analyzer-panel-body--stacked {
+  body[data-page="leaguehub"] .analyzer-panel-body--stacked {
     flex-direction: row;
     align-items: stretch;
   }
 
-  body[data-page="analyzer"] .analyzer-panel-body--stacked>* {
+  body[data-page="leaguehub"] .analyzer-panel-body--stacked>* {
     flex: 1 1 0%;
   }
 
-  body[data-page="analyzer"] .analyzer-chart--radar {
+  body[data-page="leaguehub"] .analyzer-chart--radar {
     height: auto;
     padding: 0px 14px 0px 9px;
   }
 }
 
-body[data-page="analyzer"] .analyzer-toggle {
+body[data-page="leaguehub"] .analyzer-toggle {
   display: inline-flex;
   background: rgba(19, 21, 38, 0.75);
   border: 1px solid rgba(118, 109, 255, 0.25);
@@ -352,7 +352,7 @@ body[data-page="analyzer"] .analyzer-toggle {
   gap: 0.05rem;
 }
 
-body[data-page="analyzer"] .analyzer-toggle .toggle-option {
+body[data-page="leaguehub"] .analyzer-toggle .toggle-option {
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
@@ -365,24 +365,24 @@ body[data-page="analyzer"] .analyzer-toggle .toggle-option {
   transition: all 0.2s ease;
 }
 
-body[data-page="analyzer"] .analyzer-toggle .toggle-option.active {
+body[data-page="leaguehub"] .analyzer-toggle .toggle-option.active {
   background: linear-gradient(135deg, rgba(118, 109, 255, 0.8), rgba(118, 109, 255, 0.45));
   color: #fff;
   box-shadow: 0 6px 16px rgba(118, 109, 255, 0.35);
   width: 4rem !important;
 }
 
-body[data-page="analyzer"] .analyzer-toggle .toggle-option:focus-visible {
+body[data-page="leaguehub"] .analyzer-toggle .toggle-option:focus-visible {
   outline: 2px solid rgba(118, 109, 255, 0.65);
 }
 
 /* Analyzer radar toggle: reuses the shared pill toggle styling while keeping the
    radar header alignment isolated to the Positional Strength panel. */
-body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
+body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
   margin-left: auto;
 }
 
-body[data-page="analyzer"] .analyzer-standings {
+body[data-page="leaguehub"] .analyzer-standings {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -392,12 +392,12 @@ body[data-page="analyzer"] .analyzer-standings {
   padding: 0.4rem 0rem 0.6rem;
 }
 
-body[data-page="analyzer"] .analyzer-standings-header h3 {
+body[data-page="leaguehub"] .analyzer-standings-header h3 {
   margin: 0;
   font-size: 1.2rem;
 }
 
-body[data-page="analyzer"] .analyzer-standings-header {
+body[data-page="leaguehub"] .analyzer-standings-header {
   display: flex;
   align-items: baseline;
   gap: 0.55rem;
@@ -405,7 +405,7 @@ body[data-page="analyzer"] .analyzer-standings-header {
   margin-left: 10px;
 }
 
-body[data-page="analyzer"] .analyzer-standings-subtitle {
+body[data-page="leaguehub"] .analyzer-standings-subtitle {
   color: rgba(222, 226, 238, 0.64);
   font-size: 0.96rem;
   font-weight: 400;
@@ -416,7 +416,7 @@ body[data-page="analyzer"] .analyzer-standings-subtitle {
 /* Analyzer league table groups:
    styles the season/career header bands locally so the standings card can expose
    grouped columns without changing shared table styling elsewhere. */
-body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
+body[data-page="leaguehub"] .analyzer-table thead .analyzer-table-group-row th {
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.04em;
@@ -430,11 +430,11 @@ body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
   border-top: 0px solid #0000;
 }
 
-body[data-page="analyzer"] .analyzer-standings-section-divider-right {
+body[data-page="leaguehub"] .analyzer-standings-section-divider-right {
   border-right: 1px solid rgb(101 111 164 / 20%);
 }
 
-body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr th {
+body[data-page="leaguehub"] .analyzer-table thead .analyzer-table-group-row + tr th {
   padding-top: 0.45rem;
   padding-bottom: 0.35em;
   text-align: center;
@@ -443,25 +443,25 @@ body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row + tr 
   font-weight: 500;
 }
 
-body[data-page="analyzer"] .analyzer-standings-header p {
+body[data-page="leaguehub"] .analyzer-standings-header p {
   margin: 0.3rem 0 0;
   color: var(--color-text-secondary);
   font-size: 0.8rem;
 }
 
-body[data-page="analyzer"] .analyzer-standings-table-wrapper {
+body[data-page="leaguehub"] .analyzer-standings-table-wrapper {
   overflow-x: auto;
   border: 1px solid #abd2;
   border-radius: 11px;
 }
 
-body[data-page="analyzer"] .analyzer-table {
+body[data-page="leaguehub"] .analyzer-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
 }
 
-body[data-page="analyzer"] .analyzer-table thead tr {
+body[data-page="leaguehub"] .analyzer-table thead tr {
   text-transform: uppercase;
   letter-spacing: -0.02em;
   color: var(--color-text-secondary);
@@ -469,8 +469,8 @@ body[data-page="analyzer"] .analyzer-table thead tr {
   border-radius: 36px;
 }
 
-body[data-page="analyzer"] .analyzer-table th,
-body[data-page="analyzer"] .analyzer-table td {
+body[data-page="leaguehub"] .analyzer-table th,
+body[data-page="leaguehub"] .analyzer-table td {
   padding: 0.6rem 0.6rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.08);
   text-align: left;
@@ -478,18 +478,18 @@ body[data-page="analyzer"] .analyzer-table td {
   border-collapse: collapse;
 }
 
-body[data-page="analyzer"] .analyzer-table tbody tr:nth-child(even) td {
+body[data-page="leaguehub"] .analyzer-table tbody tr:nth-child(even) td {
   background: #66779906;
   padding: 0.55rem;
 }
 
-body[data-page="analyzer"] .analyzer-table tbody tr:last-child th,
-body[data-page="analyzer"] .analyzer-table tbody tr:last-child td {
+body[data-page="leaguehub"] .analyzer-table tbody tr:last-child th,
+body[data-page="leaguehub"] .analyzer-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-body[data-page="analyzer"] .analyzer-standings-col-rank,
-body[data-page="analyzer"] .analyzer-standings-rank {
+body[data-page="leaguehub"] .analyzer-standings-col-rank,
+body[data-page="leaguehub"] .analyzer-standings-rank {
   width: 2.1rem;
   min-width: 2.1rem;
   text-align: center;
@@ -498,51 +498,51 @@ body[data-page="analyzer"] .analyzer-standings-rank {
   text-align-last: center;
 }
 
-body[data-page="analyzer"] .analyzer-standings-col-rec,
-body[data-page="analyzer"] .analyzer-standings-rec {
+body[data-page="leaguehub"] .analyzer-standings-col-rec,
+body[data-page="leaguehub"] .analyzer-standings-rec {
   width: 3.4rem;
   min-width: 3.4rem;
   text-align-last: center;
 }
 
-body[data-page="analyzer"] .analyzer-standings-col-career-rec,
-body[data-page="analyzer"] .analyzer-standings-career-start {
+body[data-page="leaguehub"] .analyzer-standings-col-career-rec,
+body[data-page="leaguehub"] .analyzer-standings-career-start {
   width: 4.2rem;
   min-width: 4.2rem;
   border-left: 1px solid rgb(101 111 164 / 20%);
   text-align-last: center;
 }
 
-body[data-page="analyzer"] .analyzer-standings-col-career-pct,
-body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
+body[data-page="leaguehub"] .analyzer-standings-col-career-pct,
+body[data-page="leaguehub"] .analyzer-standings-career-pct-cell {
   width: 4.05rem;
   min-width: 4.05rem;
   text-align-last: center;
 }
 
-body[data-page="analyzer"] .analyzer-standings-col-career-champ,
-body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
+body[data-page="leaguehub"] .analyzer-standings-col-career-champ,
+body[data-page="leaguehub"] .analyzer-standings-career-champ-cell {
   max-width: 9rem;
   min-width: 5rem;
   text-align-last: center;
 }
 
-body[data-page="analyzer"] .analyzer-standings-team {
+body[data-page="leaguehub"] .analyzer-standings-team {
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
   min-width: 0;
 }
 
-body[data-page="analyzer"] .analyzer-standings-team-name {
+body[data-page="leaguehub"] .analyzer-standings-team-name {
   min-width: 0;
 }
 
-body[data-page="analyzer"] .analyzer-standings-career-group {
+body[data-page="leaguehub"] .analyzer-standings-career-group {
   border-left: 1px solid rgb(101 111 164 / 20%);
 }
 
-body[data-page="analyzer"] .analyzer-standings-sort {
+body[data-page="leaguehub"] .analyzer-standings-sort {
   appearance: none;
   border: none;
   background: transparent;
@@ -559,30 +559,30 @@ body[data-page="analyzer"] .analyzer-standings-sort {
   cursor: pointer;
 }
 
-body[data-page="analyzer"] .analyzer-standings-sort:focus-visible {
+body[data-page="leaguehub"] .analyzer-standings-sort:focus-visible {
   outline: 2px solid rgba(118, 109, 255, 0.55);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-body[data-page="analyzer"] .analyzer-standings-sort::after {
+body[data-page="leaguehub"] .analyzer-standings-sort::after {
   content: '⋮';
   font-size: 0.72em;
   opacity: 0.522;
   line-height: 1;
 }
 
-body[data-page="analyzer"] th[aria-sort="descending"] .analyzer-standings-sort::after {
+body[data-page="leaguehub"] th[aria-sort="descending"] .analyzer-standings-sort::after {
   content: '↓';
   opacity: 0.72;
 }
 
-body[data-page="analyzer"] th[aria-sort="ascending"] .analyzer-standings-sort::after {
+body[data-page="leaguehub"] th[aria-sort="ascending"] .analyzer-standings-sort::after {
   content: '↑';
   opacity: 0.72;
 }
 
-body[data-page="analyzer"] .analyzer-standings-trophies {
+body[data-page="leaguehub"] .analyzer-standings-trophies {
   display: inline-flex;
   align-items: center;
   gap: 0.18rem;
@@ -592,14 +592,14 @@ body[data-page="analyzer"] .analyzer-standings-trophies {
 /* Analyzer career trophy marker:
    keeps the requested all-time title icons local to analyzer.css and visually distinct
    from the existing champion crown used beside the team name. */
-body[data-page="analyzer"] .analyzer-standings-trophy {
+body[data-page="leaguehub"] .analyzer-standings-trophy {
   color: #ccb681;
   font-size: 0.78rem;
   filter: drop-shadow(0px 0px 4px rgba(215, 222, 233, 0.20)) drop-shadow(0px 0px 8px rgba(215, 222, 233, 0.23)) saturate(0.82);
   text-shadow: 0px -2px 1px #0006, 0px 0px 2px #0009;
 }
 
-body[data-page="analyzer"] .analyzer-standings-no-champ {
+body[data-page="leaguehub"] .analyzer-standings-no-champ {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -612,7 +612,7 @@ body[data-page="analyzer"] .analyzer-standings-no-champ {
 /* Analyzer standings champion marker:
    mirrors the rosters crown look but stays fully local to analyzer.css so the
    standings crown does not depend on shared global styles. */
-body[data-page="analyzer"] .team-record-champ {
+body[data-page="leaguehub"] .team-record-champ {
   color: #c7b792c7;
   margin-left: 0;
   font-size: 0.8rem;
@@ -620,7 +620,7 @@ body[data-page="analyzer"] .team-record-champ {
   text-shadow: 0px -2px 1px #0006, 0px 0px 2px #0009;
 }
 
-body[data-page="analyzer"] .analyzer-filter-group {
+body[data-page="leaguehub"] .analyzer-filter-group {
   display: inline-flex;
   gap: 0rem;
   background: rgba(18, 20, 40, 0.75);
@@ -630,7 +630,7 @@ body[data-page="analyzer"] .analyzer-filter-group {
   max-height: 41px;
 }
 
-body[data-page="analyzer"] .analyzer-filter-group .filter-chip {
+body[data-page="leaguehub"] .analyzer-filter-group .filter-chip {
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
@@ -643,13 +643,13 @@ body[data-page="analyzer"] .analyzer-filter-group .filter-chip {
   transition: all 0.2s ease;
 }
 
-body[data-page="analyzer"] .analyzer-filter-group .filter-chip.active {
+body[data-page="leaguehub"] .analyzer-filter-group .filter-chip.active {
   background: linear-gradient(135deg, rgba(118, 109, 255, 0.85), rgba(118, 109, 255, 0.45));
   color: #fff;
   box-shadow: 0 6px 16px rgba(118, 109, 255, 0.3);
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-scroll {
+body[data-page="leaguehub"] .analyzer-leaderboard-scroll {
   max-height: 520px;
   overflow-y: auto;
   overflow-x: auto;
@@ -659,37 +659,37 @@ body[data-page="analyzer"] .analyzer-leaderboard-scroll {
   scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-scroll::-webkit-scrollbar {
+body[data-page="leaguehub"] .analyzer-leaderboard-scroll::-webkit-scrollbar {
   width: 6px;
   height: 6px;
   background: transparent;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-scroll::-webkit-scrollbar-thumb {
+body[data-page="leaguehub"] .analyzer-leaderboard-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.06);
   border-radius: 4px;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-scroll::-webkit-scrollbar-thumb:hover {
+body[data-page="leaguehub"] .analyzer-leaderboard-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ---- Leaderboard table ---- */
-body[data-page="analyzer"] .analyzer-leaderboard-table {
+body[data-page="leaguehub"] .analyzer-leaderboard-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
   table-layout: fixed;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table thead {
+body[data-page="leaguehub"] .analyzer-leaderboard-table thead {
   position: sticky;
   top: 0;
   z-index: 2;
   background: rgb(34 43 64);
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table thead tr {
+body[data-page="leaguehub"] .analyzer-leaderboard-table thead tr {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-text-secondary);
@@ -697,8 +697,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table thead tr {
   height: 2.3rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table th,
-body[data-page="analyzer"] .analyzer-leaderboard-table td {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th,
+body[data-page="leaguehub"] .analyzer-leaderboard-table td {
   padding: 0.5rem 0.6rem;
   border-bottom: 1px solid rgba(128, 138, 189, 0.18);
   text-align: center;
@@ -707,71 +707,71 @@ body[data-page="analyzer"] .analyzer-leaderboard-table td {
 }
 
 /* Player and Owner: cell content left-aligned, headers stay centered */
-body[data-page="analyzer"] .analyzer-leaderboard-table td.al-cell-player,
-body[data-page="analyzer"] .analyzer-leaderboard-table td.al-cell-owner {
+body[data-page="leaguehub"] .analyzer-leaderboard-table td.al-cell-player,
+body[data-page="leaguehub"] .analyzer-leaderboard-table td.al-cell-owner {
   text-align: left;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table tbody tr:last-child th,
-body[data-page="analyzer"] .analyzer-leaderboard-table tbody tr:last-child td {
+body[data-page="leaguehub"] .analyzer-leaderboard-table tbody tr:last-child th,
+body[data-page="leaguehub"] .analyzer-leaderboard-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table tbody tr:nth-child(even) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table tbody tr:nth-child(even) {
   background: rgba(40, 44, 69, 0.15);
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table .empty-row {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .empty-row {
   text-align: center;
   padding: 1.5rem 0;
   color: var(--color-text-secondary);
 }
 
 /* Column widths */
-body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(1),
-body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(1) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(1),
+body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(1) {
   width: 5rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-col-player {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-col-player {
   width: 7rem;
   min-width: 6.5rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(3),
-body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(3) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(3),
+body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(3) {
   width: 3rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(4),
-body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(4) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(4),
+body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(4) {
   width: 6rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-col-owner {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-col-owner {
   width: 7rem;
   min-width: 5rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(6),
-body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(6) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(6),
+body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(6) {
   width: 5rem;
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(7),
-body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(7) {
+body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(7),
+body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(7) {
   width: 6rem;
 }
 
 /* Owner cell: secondary text */
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-cell-owner {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-cell-owner {
   font-size: 0.98rem;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 /* ---- POS tags (mirrors Stats page .player-tag.modal-pos-tag) ---- */
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-pos-tag {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-pos-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -792,7 +792,7 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-pos-tag {
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-pos-tag::after {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-pos-tag::after {
   content: '';
   position: absolute;
   top: 0;
@@ -810,28 +810,28 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-pos-tag::after {
   pointer-events: none;
 }
 
-body[data-page="analyzer"] .al-pos-tag.QB {
+body[data-page="leaguehub"] .al-pos-tag.QB {
   color: #FF3A75c0;
   box-shadow: inset 0 0 10px #FF3A7513, 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
-body[data-page="analyzer"] .al-pos-tag.RB {
+body[data-page="leaguehub"] .al-pos-tag.RB {
   color: #00EBC7c0;
   box-shadow: inset 0 0 6px #00EBC715, 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
-body[data-page="analyzer"] .al-pos-tag.WR {
+body[data-page="leaguehub"] .al-pos-tag.WR {
   color: #58A7FFca;
   box-shadow: inset 0 0 10px #58A7FF25, 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
-body[data-page="analyzer"] .al-pos-tag.TE {
+body[data-page="leaguehub"] .al-pos-tag.TE {
   color: #B469FFca;
   box-shadow: inset 0 0 10px #B469FF25, 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
 /* ---- Team logos (mirrors Stats page .team-logo.glow) ---- */
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-logo {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-team-logo {
   width: 31px;
   height: 19px;
   display: inline-block;
@@ -839,7 +839,7 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-logo {
   filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.15));
 }
 
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-chip {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-team-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -854,8 +854,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-chip {
 }
 
 /* ---- FPTS / PPG conditional formatting ---- */
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-fpts-cell,
-body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-fpts-cell,
+body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
   font-weight: 700;
 }
 
@@ -864,36 +864,36 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   /* Analyzer desktop panel height guard:
      keeps the frozen sections from covering panel content on desktop only.
      Mobile is intentionally untouched. */
-  body[data-page="analyzer"] .analyzer-panel-body {
+  body[data-page="leaguehub"] .analyzer-panel-body {
     max-height: 600px;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-scroll {
+  body[data-page="leaguehub"] .analyzer-leaderboard-scroll {
     max-height: 620px;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table {
     font-size: 0.92rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table thead tr {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table thead tr {
     font-size: 0.94rem;
     font-weight: 200 !important;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th,
-  body[data-page="analyzer"] .analyzer-leaderboard-table td {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th,
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td {
     padding: 0.2rem 0.7rem 0.3rem;
   }
 }
 
 /* ---- Mobile refinements ---- */
 @media (max-width: 819px) {
-  body[data-page="analyzer"] #header-container {
+  body[data-page="leaguehub"] #header-container {
     display: contents;
   }
 
-  body[data-page="analyzer"] .app-header {
+  body[data-page="leaguehub"] .app-header {
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -901,7 +901,7 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
     backdrop-filter: blur(3px) saturate(120%) brightness(120%);
   }
 
-  body[data-page="analyzer"] .analyzer-hero {
+  body[data-page="leaguehub"] .analyzer-hero {
     margin: 0.75rem 0rem;
   }
 }
@@ -909,66 +909,66 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 @media (max-width: 640px) {
   /* Analyzer mobile standings widths:
      narrows the career REC/WIN% columns slightly while giving PF/PA a bit more room. */
-  body[data-page="analyzer"] #analyzerStandingsTable thead tr:last-child th:nth-child(4),
-  body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(4),
-  body[data-page="analyzer"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
-  body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(5) {
+  body[data-page="leaguehub"] #analyzerStandingsTable thead tr:last-child th:nth-child(4),
+  body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(4),
+  body[data-page="leaguehub"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
+  body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(5) {
     width: 3rem;
     min-width: 3rem;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-header {
+  body[data-page="leaguehub"] .analyzer-standings-header {
     gap: 0.35rem;
     margin-left: 6px;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-subtitle {
+  body[data-page="leaguehub"] .analyzer-standings-subtitle {
     font-size: 0.86rem;
     margin-left: 7px;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-col-rank,
-  body[data-page="analyzer"] .analyzer-standings-rank {
+  body[data-page="leaguehub"] .analyzer-standings-col-rank,
+  body[data-page="leaguehub"] .analyzer-standings-rank {
     width: 1.7rem;
     min-width: 1.7rem;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-col-rec,
-  body[data-page="analyzer"] .analyzer-standings-rec {
+  body[data-page="leaguehub"] .analyzer-standings-col-rec,
+  body[data-page="leaguehub"] .analyzer-standings-rec {
     width: 2.75rem;
     min-width: 2.75rem;
   }
 
-  body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
+  body[data-page="leaguehub"] .analyzer-table thead .analyzer-table-group-row th {
     font-size: 0.9rem;
     letter-spacing: -0.04em;
     word-spacing: 0.24em;
     background: #abc1;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-sort::after {
+  body[data-page="leaguehub"] .analyzer-standings-sort::after {
     font-size: 0.76em;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-col-career-rec,
-  body[data-page="analyzer"] .analyzer-standings-career-start {
+  body[data-page="leaguehub"] .analyzer-standings-col-career-rec,
+  body[data-page="leaguehub"] .analyzer-standings-career-start {
     width: 2.85rem;
     min-width: 2.75rem;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-col-career-pct,
-  body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
+  body[data-page="leaguehub"] .analyzer-standings-col-career-pct,
+  body[data-page="leaguehub"] .analyzer-standings-career-pct-cell {
     width: 2.45rem;
     min-width: 2.45rem;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-col-career-champ,
-  body[data-page="analyzer"] .analyzer-standings-career-champ-cell {
+  body[data-page="leaguehub"] .analyzer-standings-col-career-champ,
+  body[data-page="leaguehub"] .analyzer-standings-career-champ-cell {
     max-width: 8.75rem;
     min-width: 4.85rem;
   }
 
-  body[data-page="analyzer"] .analyzer-standings-team-name {
+  body[data-page="leaguehub"] .analyzer-standings-team-name {
     display: inline-block;
     max-width: 7.25rem;
     overflow: hidden;
@@ -976,61 +976,61 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
     vertical-align: bottom;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-scroll {
+  body[data-page="leaguehub"] .analyzer-leaderboard-scroll {
     max-height: 420px;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table {
     font-size: 0.7rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table thead tr {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table thead tr {
     font-size: 0.7rem;
     height: 1.8rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th,
-  body[data-page="analyzer"] .analyzer-leaderboard-table td {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th,
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td {
     padding: 0.3rem 0.25rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(1),
-  body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(1) {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(1),
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(1) {
     width: 1.9rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-col-player {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-col-player {
     width: 5rem;
     min-width: 4.5rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(3),
-  body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(3) {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(3),
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(3) {
     width: 2.3rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(4),
-  body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(4) {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(4),
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(4) {
     width: 2.1rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-col-owner {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-col-owner {
     width: 4.7rem;
     min-width: 3.5rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(6),
-  body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(6) {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(6),
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(6) {
     width: 3rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table th:nth-child(7),
-  body[data-page="analyzer"] .analyzer-leaderboard-table td:nth-child(7) {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table th:nth-child(7),
+  body[data-page="leaguehub"] .analyzer-leaderboard-table td:nth-child(7) {
     width: 2.7rem;
   }
 
   /* POS tag: 75% scale like Stats page mobile */
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-pos-tag {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-pos-tag {
     width: 1.425rem;
     height: 0.99rem;
     min-height: 0.99rem;
@@ -1041,12 +1041,12 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   /* Team logo: smaller on mobile */
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-logo {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-team-logo {
     width: 21px;
     height: 16px;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-team-chip {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-team-chip {
     width: 20.25px;
     height: 9.75px;
     border-radius: 4.5px;
@@ -1054,57 +1054,57 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
     letter-spacing: 0.0375em;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-table .al-cell-owner {
+  body[data-page="leaguehub"] .analyzer-leaderboard-table .al-cell-owner {
     font-size: 0.65rem;
     font-weight: 500;
   }
 }
 
-body[data-page="analyzer"] .app-header {
+body[data-page="leaguehub"] .app-header {
   --header-field-max-width: 140px;
 }
 
 @media (max-width: 640px) {
-  body[data-page="analyzer"] .analyzer-chip {
+  body[data-page="leaguehub"] .analyzer-chip {
     min-height: 110px;
   }
 
-  body[data-page="analyzer"] .analyzer-table {
+  body[data-page="leaguehub"] .analyzer-table {
     font-size: 0.74rem;
   }
 
-  body[data-page="analyzer"] .analyzer-table th,
-  body[data-page="analyzer"] .analyzer-table td {
+  body[data-page="leaguehub"] .analyzer-table th,
+  body[data-page="leaguehub"] .analyzer-table td {
     padding: 0.55rem 0.2rem 0.3rem;
     padding-top: 0.5rem !important;
     padding-bottom: 0.45rem !important;
   }
 
-  body[data-page="analyzer"] .analyzer-panel {
+  body[data-page="leaguehub"] .analyzer-panel {
     padding: 0.7rem 0.5rem 0.1rem;
     gap: 0.2rem;
   }
 
-  body[data-page="analyzer"] .analyzer-chart {
+  body[data-page="leaguehub"] .analyzer-chart {
     height: 320px;
     padding: 2px 5px 0px 0px;
   }
 
-  body[data-page="analyzer"] .analyzer-filter-group {
+  body[data-page="leaguehub"] .analyzer-filter-group {
     gap: 0.3rem;
     padding: 0.18rem 0.28rem;
   }
 
-  body[data-page="analyzer"] .analyzer-filter-group .filter-chip {
+  body[data-page="leaguehub"] .analyzer-filter-group .filter-chip {
     font-size: 0.64rem;
     padding: 0.28rem 0.5rem;
   }
 
   /* Analyzer mobile panel headers: keep the title/subtitle stack intact while placing the
      metric toggle and leaderboard position filters inline with the panel titles only. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
@@ -1117,16 +1117,16 @@ body[data-page="analyzer"] .app-header {
 
   /* Target the title/subtitle wrapper inside those headers so h2 and p can be placed on
      separate grid rows without changing HTML structure or panel spacing. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header> :first-child,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header> :first-child,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header> :first-child {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header> :first-child,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header> :first-child,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header> :first-child {
     display: contents;
   }
 
   /* Title row placement for the mobile analyzer headers that carry inline controls. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header h2,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header h2,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header h2 {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header h2,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header h2,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header h2 {
     grid-area: title;
     min-width: 0;
     align-self: center;
@@ -1134,30 +1134,30 @@ body[data-page="analyzer"] .app-header {
     text-wrap-mode: nowrap;
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-heading-with-info {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-heading-with-info {
     gap: 0.65rem;
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info-trigger {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-info-trigger {
     width: 1.05rem;
     height: 1.05rem;
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info-tooltip {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-info-tooltip {
     left: -110px;
     transform: translateX(0) translateY(4px);
     width: min(280px, calc(100vw - 1.5rem));
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info:hover .analyzer-info-tooltip,
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-info:focus-within .analyzer-info-tooltip {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-info:hover .analyzer-info-tooltip,
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-info:focus-within .analyzer-info-tooltip {
     transform: translateX(0) translateY(0);
   }
 
   /* Subtitle remains directly beneath the title row, preserving existing margin/padding rhythm. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header p,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header p,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header p,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header p,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header p {
     grid-area: subtitle;
     min-width: 0;
     margin-bottom: 0rem;
@@ -1165,9 +1165,9 @@ body[data-page="analyzer"] .app-header {
   }
 
   /* Place each control on the title row and pin it to the right edge of its own panel header. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
     grid-area: control;
     justify-self: end;
     align-self: center;
@@ -1176,15 +1176,15 @@ body[data-page="analyzer"] .app-header {
 
   /* Mobile lineup/radar toggles: slightly larger than the ultra-compact pass, but still
      sized to fit beside the long panel titles on common phone widths. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-toggle,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle {
     gap: 0rem;
     padding: 0.05rem;
     margin-left: 6px;
   }
 
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option {
     font-size: 0.75rem;
     letter-spacing: 0.04em;
     padding: 0.4rem 0rem;
@@ -1193,13 +1193,13 @@ body[data-page="analyzer"] .app-header {
 
   /* Mobile leaderboard filters: increase chip footprint so the control group visually fills
      more of the title row without affecting desktop sizing. */
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group {
     gap: 0.18rem;
     padding: 0.1rem 0.1rem;
     margin-left: 7px;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip {
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip {
     font-size: 0.7rem;
     letter-spacing: 0.06em;
     padding: 0.34rem 0rem;
@@ -1213,7 +1213,7 @@ body[data-page="analyzer"] .app-header {
   /* Analyzer league table width cap:
      desktop has room to keep the standings card compact without changing the
      mobile/tablet full-width scrolling behavior. */
-  body[data-page="analyzer"] .analyzer-standings {
+  body[data-page="leaguehub"] .analyzer-standings {
     width: min(100%, 610px);
     max-width: 580px;
     margin-left: auto;
@@ -1222,7 +1222,7 @@ body[data-page="analyzer"] .app-header {
     margin-top: -25px;
   }
 
-  body[data-page="analyzer"] #header-container {
+  body[data-page="leaguehub"] #header-container {
     display: flex;
     flex-direction: row;
     gap: 0.85rem;
@@ -1238,7 +1238,7 @@ body[data-page="analyzer"] .app-header {
     top: 0;
     z-index: 1000;
   }
-  body[data-page="analyzer"] #header-container .app-header {
+  body[data-page="leaguehub"] #header-container .app-header {
     flex: 0 0 58%;
     display: flex;
     flex-direction: column;
@@ -1259,24 +1259,24 @@ body[data-page="analyzer"] .app-header {
     background-color: rgba(13, 14, 35, 0.321);
     background-image: linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03));
   }
-  body[data-page="analyzer"] #header-container .analyzer-hero {
+  body[data-page="leaguehub"] #header-container .analyzer-hero {
     flex: 1 1 auto;
     margin: 0;
     justify-content: center;
     /* Center content vertically if the header is taller */
     padding: 0.95rem;
   }
-  body[data-page="analyzer"] .analyzer-hero h1 {
+  body[data-page="leaguehub"] .analyzer-hero h1 {
     font-size: 1.75rem;
   }
-  body[data-page="analyzer"] .analyzer-pill {
+  body[data-page="leaguehub"] .analyzer-pill {
     margin: 0 3.1rem;
     padding: 0.35rem 0.9rem;
   }
-  body[data-page="analyzer"] .analyzer-hero-intro {
+  body[data-page="leaguehub"] .analyzer-hero-intro {
     gap: 0.55rem;
   }
-  body[data-page="analyzer"] #primary-header-row {
+  body[data-page="leaguehub"] #primary-header-row {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -1284,7 +1284,7 @@ body[data-page="analyzer"] .app-header {
     padding: 0;
     margin: 0;
   }
-  body[data-page="analyzer"] #primary-header-row .nav-buttons-container {
+  body[data-page="leaguehub"] #primary-header-row .nav-buttons-container {
     width: 100%;
     flex: 0 0 100%;
     display: flex;
@@ -1295,7 +1295,7 @@ body[data-page="analyzer"] .app-header {
     flex-wrap: nowrap;
     margin: 0 auto;
   }
-  body[data-page="analyzer"] .nav-button {
+  body[data-page="leaguehub"] .nav-button {
     flex: 1 1 0px;
     min-width: 0;
     max-width: none;
@@ -1304,18 +1304,18 @@ body[data-page="analyzer"] .app-header {
     border-radius: 20px;
     gap: 0.32rem;
   }
-  body[data-page="analyzer"] .nav-button i {
+  body[data-page="leaguehub"] .nav-button i {
     font-size: 1.35rem;
   }
-  body[data-page="analyzer"] .nav-label {
+  body[data-page="leaguehub"] .nav-label {
     font-size: 0.72rem;
     letter-spacing: 0.035em;
   }
-  body[data-page="analyzer"] #primary-header-row .nav-logo {
+  body[data-page="leaguehub"] #primary-header-row .nav-logo {
     width: 1.4rem;
     height: 1.34rem;
   }
-  body[data-page="analyzer"] #secondary-header-row {
+  body[data-page="leaguehub"] #secondary-header-row {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1325,26 +1325,26 @@ body[data-page="analyzer"] .app-header {
     box-shadow: inset 0 1px 0 rgba(173, 156, 255, 0.12);
     align-items: stretch;
   }
-  body[data-page="analyzer"] #secondary-header-row .username-area,
-  body[data-page="analyzer"] #secondary-header-row .custom-select-wrapper {
+  body[data-page="leaguehub"] #secondary-header-row .username-area,
+  body[data-page="leaguehub"] #secondary-header-row .custom-select-wrapper {
     max-width: none;
     height: var(--header-control-height);
   }
-  body[data-page="analyzer"] .username-area {
+  body[data-page="leaguehub"] .username-area {
     border-radius: 18px;
   }
-  body[data-page="analyzer"] #usernameInput {
+  body[data-page="leaguehub"] #usernameInput {
     font-size: 1.35rem !important;
     padding: 0.6rem 1rem;
     font-weight: 300;
   }
-  body[data-page="analyzer"] #leagueSelect {
+  body[data-page="leaguehub"] #leagueSelect {
     font-size: 1.05rem;
     padding: 0.6rem 1.8rem 0.6rem 1rem;
     color: #d5d9ff;
     border-radius: 18px;
   }
-  body[data-page="analyzer"] .custom-select-wrapper::after {
+  body[data-page="leaguehub"] .custom-select-wrapper::after {
     right: 1.05rem;
     font-size: 0.9rem;
     transform: translateY(-50%) scale(0.95);
@@ -1352,29 +1352,29 @@ body[data-page="analyzer"] .app-header {
 
   /* Analyzer desktop panel controls: lightly normalize control widths so the lineup toggle
      buttons (including the active state) and leaderboard filter chips look more balanced. */
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
-  body[data-page="analyzer"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
-  body[data-page="analyzer"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active {
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="leaguehub"] #lineup-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option,
+  body[data-page="leaguehub"] #radar-panel>.analyzer-panel-header .analyzer-toggle .toggle-option.active {
     min-width: 4.1rem;
     padding-left: 0.32rem;
     padding-right: 0.32rem;
   }
 
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip,
-  body[data-page="analyzer"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip.active {
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip,
+  body[data-page="leaguehub"] .analyzer-leaderboard-panel>.analyzer-panel-header .analyzer-filter-group .filter-chip.active {
     min-width: 3.2rem;
   }
 }
 
 
 /* Hide filters/view-switcher on Analyzer page (header rules) */
-body[data-page="analyzer"] #filters-row,
-body[data-page="analyzer"] #secondary-header-row .view-switcher {
+body[data-page="leaguehub"] #filters-row,
+body[data-page="leaguehub"] #secondary-header-row .view-switcher {
   display: none !important;
 }
 
-body[data-page="analyzer"] #secondary-header-row {
+body[data-page="leaguehub"] #secondary-header-row {
   justify-content: center;
   gap: 0.75rem;
 }

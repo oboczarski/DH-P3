@@ -970,6 +970,14 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 }
 
+/* LeagueHub nav button: tightened letter-spacing on mobile to fit the longer label.
+   Applied below desktop breakpoint (< 768px) only; desktop layout has more room. */
+@media (max-width: 767px) {
+  #leagueHubButton .nav-label {
+    letter-spacing: -0.06em;
+  }
+}
+
 /* === Desktop Responsive Adjustments === */
 @media (min-width: 768px) {
   .nav-button {

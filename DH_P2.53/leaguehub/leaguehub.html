@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>League Analyzer • Dynasty Hub</title>
+  <title>LeagueHub • Dynasty Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@200;300;400;500;600;700&display=swap"
@@ -16,8 +16,8 @@
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet" />
-  <!-- Analyzer page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/analyzer.css?v=20260223" />
+  <!-- LeagueHub page-specific styles (extracted from styles.css) -->
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=20260401" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -30,7 +30,7 @@
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 </head>
 
-<body data-page="analyzer" class="p-2 sm:p-4">
+<body data-page="leaguehub" class="p-2 sm:p-4">
   <div aria-hidden="true" id="starfield">
     <div id="stars"></div>
     <div id="stars1"></div>
@@ -55,9 +55,9 @@
               <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
               <span class="nav-label">Stats</span>
             </button>
-            <button class="nav-button active" id="analyzerButton" data-nav="analyzer">
+            <button class="nav-button active" id="leagueHubButton" data-nav="leaguehub">
               <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
-              <span class="nav-label">L.Analyze</span>
+              <span class="nav-label">LeagueHub</span>
             </button>
             <button class="nav-button" id="researchButton" data-nav="research">
               <i class="fa-solid fa-flask" aria-hidden="true"></i>
@@ -337,7 +337,7 @@
     </main>
   </div>
 
-  <script src="../scripts/analyzer.js"></script>
+  <script src="../scripts/leaguehub.js"></script>
   <script defer src="../scripts/app.js?v=20260116"></script>
 </body>
 
