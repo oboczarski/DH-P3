@@ -913,8 +913,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
   body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(4),
   body[data-page="analyzer"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
   body[data-page="analyzer"] #analyzerStandingsTable tbody td:nth-child(5) {
-    width: 3.4rem;
-    min-width: 3.4rem;
+    width: 3rem;
+    min-width: 3rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-header {
@@ -935,8 +935,8 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="analyzer"] .analyzer-standings-col-rec,
   body[data-page="analyzer"] .analyzer-standings-rec {
-    width: 3.35rem;
-    min-width: 3.35rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
   }
 
   body[data-page="analyzer"] .analyzer-table thead .analyzer-table-group-row th {
@@ -952,14 +952,14 @@ body[data-page="analyzer"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="analyzer"] .analyzer-standings-col-career-rec,
   body[data-page="analyzer"] .analyzer-standings-career-start {
-    width: 3.05rem;
-    min-width: 3.05rem;
+    width: 2.85rem;
+    min-width: 2.75rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-pct,
   body[data-page="analyzer"] .analyzer-standings-career-pct-cell {
-    width: 2.85rem;
-    min-width: 2.85rem;
+    width: 2.45rem;
+    min-width: 2.45rem;
   }
 
   body[data-page="analyzer"] .analyzer-standings-col-career-champ,
@@ -1075,7 +1075,7 @@ body[data-page="analyzer"] .app-header {
 
   body[data-page="analyzer"] .analyzer-table th,
   body[data-page="analyzer"] .analyzer-table td {
-    padding: 0.55rem 0.3rem 0.3rem;
+    padding: 0.55rem 0.2rem 0.3rem;
     padding-top: 0.5rem !important;
     padding-bottom: 0.45rem !important;
   }
