@@ -1416,7 +1416,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     min-width: 3.65rem;
     background: rgba(13, 14, 35, 0.05);
     border: 1px solid rgba(128, 138, 189, 0.2);
-    border-radius: 8px;
+    border-radius: 12px;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -1553,6 +1553,7 @@ body[data-page="rosters"] #bottom-menu-panel {
     justify-content: flex-start;
     flex-wrap: nowrap;
     align-items: stretch;
+    border-radius: 10px;
   }
 
   body[data-page="rosters"] .filter-btn {
