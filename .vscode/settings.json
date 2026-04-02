@@ -197,7 +197,6 @@
   "window.density.editorTabHeight": "default",
   "window.zoomLevel": 0,
   "chat.experimental.useSkillAdherencePrompt": true,
-  "chat.tools.terminal.sandbox.enabled": true,
   "chat.useNestedAgentsMdFiles": false,
   "workbench.externalBrowser": "chrome",
   "workbench.browser.enableChatTools": true,
@@ -219,5 +218,6 @@
   "claudeCode.autosave": false,
   "imageCarousel.explorerContextMenu.enabled": true,
   "github.copilot.chat.agentDebugLog.enabled": true,
-  "github.copilot.chat.agentDebugLog.fileLogging.enabled": true
+  "github.copilot.chat.agentDebugLog.fileLogging.enabled": true,
+  "chat.agent.sandbox": true
 }

@@ -3892,13 +3892,17 @@ body:not([data-page="contact"]) #starfield::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(600px 560px at 12% 8%, rgba(90, 160, 255, 0.1), transparent 42%),
-    radial-gradient(980px 680px at 88% 10%, rgba(70, 190, 255, 0.12), transparent 38%),
-    radial-gradient(800px 320px at 99% 52%, rgba(250, 60, 38, 0.07), transparent 36%),
-    radial-gradient(900px 620px at 96% 28%, rgba(170, 0, 255, 0.13), transparent 34%),
-    radial-gradient(1160px 1140px at 92% 80%, rgba(255, 20, 140, 0.1), transparent 30%),
-    radial-gradient(980px 800px at 25% 52%, rgba(90, 0, 250, 0.13), transparent 29%),
-    radial-gradient(980px 800px at 1% 88%, rgba(0, 220, 220, 0.06), transparent 28%),
+    radial-gradient(600px 960px at 42% 48%, rgba(50, 90, 255, 0.1), transparent 62%),
+    radial-gradient(980px 680px at 85% 10%, rgba(70, 190, 255, 0.12), transparent 48%),
+    radial-gradient(800px 320px at 95% 52%, rgba(250, 60, 38, 0.05), transparent 46%),
+      radial-gradient(800px 320px at 25% 82%, rgba(250, 60, 38, 0.05), transparent 46%),
+    radial-gradient(1300px 1120px at 90% 28%, rgba(170, 0, 255, 0.15), transparent 44%),
+    radial-gradient(1160px 1140px at 90% 80%, rgba(255, 20, 140, 0.051), transparent 40%),
+    radial-gradient(1160px 1140px at 50% 70%, rgba(255, 20, 140, 0.051), transparent 40%),
+        radial-gradient(1160px 1140px at 40% 20%, rgba(255, 20, 140, 0.051), transparent 20%),
+    radial-gradient(980px 800px at 15% 52%, rgba(90, 0, 250, 0.1), transparent 39%),
+    radial-gradient(1580px 900px at 5% 12%, rgba(90, 0, 250, 0.13), transparent 39%),
+    radial-gradient(980px 800px at 1% 58%, rgba(0, 220, 220, 0.06), transparent 38%),
     linear-gradient(180deg, #abf2 0%, #091625 36%, #07111b 68%, #050c14 100%);
   background-repeat: no-repeat;
 }
@@ -4825,7 +4829,7 @@ body::before {
   pointer-events: none;
   z-index: 9999;
   -webkit-backdrop-filter: brightness(115%) contrast(104%) saturate(105%);
-  backdrop-filter: brightness(115%) contrast(104%) saturate(105%);
+  backdrop-filter: brightness(125%) contrast(104%) saturate(125%);
 }
 
 /* · · Mobile override · · */
