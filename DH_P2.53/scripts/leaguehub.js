@@ -35,6 +35,7 @@
       tradesSummaryCards: document.getElementById('leagueTradesSummaryCards'),
       tradesAnalysisHeading: document.getElementById('leagueTradesAnalysisHeading'),
       tradesAnalysisSubheading: document.getElementById('leagueTradesAnalysisSubheading'),
+      tradesAnalysisTable: document.getElementById('leagueTradesAnalysisTable'),
       tradesAnalysisHead: document.getElementById('leagueTradesAnalysisHead'),
       tradesAnalysisBody: document.getElementById('leagueTradesAnalysisBody'),
       tradesFeed: document.getElementById('leagueTradesFeed'),
@@ -1900,7 +1901,34 @@
       }
     }
 
+    // Explicit analytics column sizing:
+    // keeps Team / Partner columns wide enough on mobile while numeric columns stay narrow,
+    // so the table scrolls intentionally instead of collapsing into unreadable cells.
+    function setTradeAnalyticsColumns(columns) {
+      if (!elements.tradesAnalysisTable) return;
+
+      const colgroup = elements.tradesAnalysisTable.querySelector('colgroup');
+      if (colgroup) {
+        colgroup.innerHTML = columns
+          .map((column) => `<col style="width:${column.width}">`)
+          .join('');
+      }
+
+      const totalWidth = columns.reduce((sum, column) => sum + column.pxWidth, 0);
+      elements.tradesAnalysisTable.style.minWidth = `${totalWidth}px`;
+    }
+
     function renderAllMemberTradeAnalytics(currentMembers) {
+      setTradeAnalyticsColumns([
+        { width: '44px', pxWidth: 44 },
+        { width: '170px', pxWidth: 170 },
+        { width: '60px', pxWidth: 60 },
+        { width: '66px', pxWidth: 66 },
+        { width: '150px', pxWidth: 150 },
+        { width: '60px', pxWidth: 60 },
+        { width: '60px', pxWidth: 60 },
+      ]);
+
       const rows = currentMembers
         .map((member) => {
           const memberTrades = getTradesForOwner(member.ownerId);
@@ -1981,6 +2009,16 @@
     }
 
     function renderSelectedMemberTradeAnalytics(selectedOwnerId) {
+      setTradeAnalyticsColumns([
+        { width: '160px', pxWidth: 160 },
+        { width: '60px', pxWidth: 60 },
+        { width: '66px', pxWidth: 66 },
+        { width: '70px', pxWidth: 70 },
+        { width: '70px', pxWidth: 70 },
+        { width: '88px', pxWidth: 88 },
+        { width: '88px', pxWidth: 88 },
+      ]);
+
       const selectedMember = state.trades.currentMemberMap[selectedOwnerId];
       const selectedTrades = getTradesForOwner(selectedOwnerId);
       const acquiredPlayers = [];
@@ -2254,10 +2292,12 @@
     // surfaces what each team got back from a deal, with per-side received KTC, so the
     // trade archive reads from the manager's perspective rather than from sent assets.
     function renderTradeCard(trade) {
-      const isMultiRoster = trade.sides.length > 2;
+      const renderSides = getTradeRenderSides(trade);
+      const isMultiRoster = renderSides.length > 2;
       const tradeFootnote = isMultiRoster
         ? 'Multi-team deal shown as separate received packages.'
         : '';
+      const participantsLabel = renderSides.map((side) => side.teamName).join(' ↔ ');
       const metaBits = [
         trade.dateLabel,
         `${trade.assetCount} asset${trade.assetCount === 1 ? '' : 's'}`,
@@ -2269,13 +2309,37 @@
           <header class="leaguehub-trade-entry-head">
             <div class="leaguehub-trade-entry-meta">
               <p class="leaguehub-trade-entry-stamp">${escapeHtml(metaBits.join(' • '))}</p>
-              <h4 class="leaguehub-trade-entry-title">${escapeHtml(trade.participantsLabel)}</h4>
+              <h4 class="leaguehub-trade-entry-title">${escapeHtml(participantsLabel)}</h4>
             </div>
           </header>
           <div class="leaguehub-trade-entry-body ${isMultiRoster ? 'is-multi-team' : ''}">
-            ${trade.sides.map((side, index) => renderTradeSide(side, index)).join('')}
+            ${renderSides.map((side, index) => renderTradeSide(side, index)).join('')}
           </div>
         </article>`;
+    }
+
+    // Selected-member left-side ordering:
+    // keeps the chosen team first in the rendered package list so standard two-team cards
+    // always place that manager on the left without changing the stored trade data.
+    function getTradeRenderSides(trade) {
+      const selectedOwnerId = state.trades.memberFilter;
+      if (!selectedOwnerId || selectedOwnerId === 'ALL') {
+        return trade.sides;
+      }
+
+      const selectedOwnerKey = String(selectedOwnerId);
+      const selectedIndex = trade.sides.findIndex((side) => side.ownerId === selectedOwnerKey);
+      if (selectedIndex <= 0) {
+        return trade.sides;
+      }
+
+      const orderedSides = [trade.sides[selectedIndex]];
+      trade.sides.forEach((side, index) => {
+        if (index !== selectedIndex) {
+          orderedSides.push(side);
+        }
+      });
+      return orderedSides;
     }
 
     function renderTradeSide(side, index) {

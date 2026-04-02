@@ -377,47 +377,45 @@
         aria-labelledby="leagueTradesTab"
         aria-hidden="true">
         <section class="leaguehub-trades-shell">
-          <section class="leaguehub-trades-toolbar" aria-label="Trade archive controls">
-            <div class="leaguehub-trades-toolbar-head">
-              <div class="leaguehub-trades-heading">
-                <h2>Trade Archive</h2>
-              </div>
-              <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
-                Select a league to load the trade archive.
-              </div>
-            </div>
-
-            <div class="leaguehub-trades-toolbar-filters">
-              <div class="leaguehub-trades-control leaguehub-trades-control--member">
-                <label for="leagueTradesMemberFilter">Team / Username</label>
-                <div class="leaguehub-trades-select-wrap">
-                  <select id="leagueTradesMemberFilter" aria-label="Filter trades by team or username">
-                    <option value="ALL">ALL</option>
-                  </select>
-                </div>
-              </div>
-              <div class="leaguehub-trades-control leaguehub-trades-control--search">
-                <label for="leagueTradesSearch">Player search</label>
-                <div class="leaguehub-trades-search-wrap">
-                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                  <input
-                    id="leagueTradesSearch"
-                    type="search"
-                    inputmode="search"
-                    autocomplete="off"
-                    placeholder="Search any player in the trade archive" />
-                </div>
-              </div>
-              <div class="leaguehub-trades-control leaguehub-trades-control--scope">
-                <span class="leaguehub-trades-control-label">Visible scope</span>
-                <div id="leagueTradesScopeSummary" class="leaguehub-trades-scope-summary">3 most recent seasons</div>
-              </div>
-            </div>
-          </section>
-
-          <div id="leagueTradesEmptyState" class="leaguehub-trades-empty hidden" aria-live="polite"></div>
-
           <div class="leaguehub-trades-layout">
+            <section class="leaguehub-trades-toolbar" aria-label="Trade archive controls">
+              <div class="leaguehub-trades-toolbar-head">
+                <div class="leaguehub-trades-heading">
+                  <h2>Trade Archive</h2>
+                </div>
+                <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
+                  Select a league to load the trade archive.
+                </div>
+              </div>
+
+              <div class="leaguehub-trades-toolbar-filters">
+                <div class="leaguehub-trades-control leaguehub-trades-control--member">
+                  <label for="leagueTradesMemberFilter">Team / Username</label>
+                  <div class="leaguehub-trades-select-wrap">
+                    <select id="leagueTradesMemberFilter" aria-label="Filter trades by team or username">
+                      <option value="ALL">ALL</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="leaguehub-trades-control leaguehub-trades-control--search">
+                  <label for="leagueTradesSearch">Player search</label>
+                  <div class="leaguehub-trades-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input
+                      id="leagueTradesSearch"
+                      type="search"
+                      inputmode="search"
+                      autocomplete="off"
+                      placeholder="Search any player in the trade archive" />
+                  </div>
+                </div>
+                <div class="leaguehub-trades-control leaguehub-trades-control--scope">
+                  <span class="leaguehub-trades-control-label">Visible scope</span>
+                  <div id="leagueTradesScopeSummary" class="leaguehub-trades-scope-summary">3 most recent seasons</div>
+                </div>
+              </div>
+            </section>
+
             <section id="leagueTradesAnalytics" class="leaguehub-trades-analytics hidden" aria-live="polite">
               <article class="leaguehub-trades-module">
                 <header class="leaguehub-trades-module-header">
@@ -431,26 +429,29 @@
                 <div id="leagueTradesSummaryCards" class="leaguehub-trades-summary-grid hidden" aria-label="Selected manager trade summary"></div>
                 <div class="leaguehub-trades-table-wrap">
                   <table id="leagueTradesAnalysisTable" class="leaguehub-trades-table">
+                    <colgroup></colgroup>
                     <thead id="leagueTradesAnalysisHead"></thead>
                     <tbody id="leagueTradesAnalysisBody"></tbody>
                   </table>
                 </div>
               </article>
             </section>
-
-            <section class="leaguehub-trades-feed-stage" aria-labelledby="leagueTradesFeedHeading">
-              <div class="leaguehub-trades-feed-head">
-                <h3 id="leagueTradesFeedHeading">Trades</h3>
-                <p id="leagueTradesFeedMeta" class="leaguehub-trades-feed-meta">No trades loaded yet.</p>
-              </div>
-              <div id="leagueTradesFeed" class="leaguehub-trades-feed" aria-live="polite"></div>
-              <div class="leaguehub-trades-feed-footer">
-                <button type="button" id="leagueTradesLoadMore" class="leaguehub-trades-load-more hidden">
-                  Load More Trades
-                </button>
-              </div>
-            </section>
           </div>
+
+          <div id="leagueTradesEmptyState" class="leaguehub-trades-empty hidden" aria-live="polite"></div>
+
+          <section class="leaguehub-trades-feed-stage" aria-labelledby="leagueTradesFeedHeading">
+            <div class="leaguehub-trades-feed-head">
+              <h3 id="leagueTradesFeedHeading">Trades</h3>
+              <p id="leagueTradesFeedMeta" class="leaguehub-trades-feed-meta">No trades loaded yet.</p>
+            </div>
+            <div id="leagueTradesFeed" class="leaguehub-trades-feed" aria-live="polite"></div>
+            <div class="leaguehub-trades-feed-footer">
+              <button type="button" id="leagueTradesLoadMore" class="leaguehub-trades-load-more hidden">
+                Load More Trades
+              </button>
+            </div>
+          </section>
         </section>
       </section>
     </main>
