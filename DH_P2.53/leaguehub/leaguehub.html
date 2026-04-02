@@ -165,6 +165,34 @@
       </section>
     </div>
     <main class="container mx-auto analyzer-main" id="content">
+      <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
+        <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
+          <button
+            type="button"
+            id="leagueAnalysisTab"
+            class="leaguehub-tab-button active"
+            role="tab"
+            aria-selected="true"
+            aria-controls="leagueAnalysisPanel"
+            data-leaguehub-tab="analysis">
+            <span class="leaguehub-tab-eyebrow">Workspace</span>
+            <span class="leaguehub-tab-label">LEAGUE ANALYSIS</span>
+          </button>
+          <button
+            type="button"
+            id="leagueTradesTab"
+            class="leaguehub-tab-button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="leagueTradesPanel"
+            data-leaguehub-tab="trades"
+            tabindex="-1">
+            <span class="leaguehub-tab-eyebrow">Archive</span>
+            <span class="leaguehub-tab-label">LEAGUE TRADES</span>
+          </button>
+        </div>
+      </section>
+
       <div id="loading" class="hidden">
         <div class="loading-overlay" role="alert" aria-live="polite">
           <div class="loading-spinner" aria-hidden="true"></div>
@@ -178,160 +206,256 @@
         </div>
       </div>
 
-      <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
-      </section>
+      <section
+        id="leagueAnalysisPanel"
+        class="leaguehub-panel leaguehub-panel--analysis"
+        role="tabpanel"
+        aria-labelledby="leagueAnalysisTab">
+        <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
+        </section>
 
-      <section id="infographicContent" class="analyzer-content hidden">
-        <div class="analyzer-panels-grid">
-          <article class="analyzer-panel glass-panel" id="lineup-panel">
-            <header class="analyzer-panel-header">
-              <div>
-                <h2 class="analyzer-heading-with-info">
-                  <span class="analyzer-heading-text">Starting Lineup Overview</span>
-                  <!-- Analyzer lineup header help: explains that this chart auto-builds starters from league slot rules, including FLEX leftovers and SUPER_FLEX QB handling. -->
-                  <span class="analyzer-info">
-                    <button type="button" class="analyzer-info-trigger"
-                      aria-label="Explain how the starting lineup is determined"
-                      aria-describedby="startingLineupInfoTooltip">
-                      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    </button>
-                    <span class="analyzer-info-tooltip" id="startingLineupInfoTooltip" role="tooltip">
-                        • Value uses the highest KTC-value players by position, while PPG uses the highest-PPG players.                      
-                         <br>
-                        • Lineup parameters are pulled from league settings, and each team’s “Starting Lineup” is built from the best available player options at each position for the selected metric. For FLEX, it uses the best remaining RB/WR/TE after the main positional slots are filled.
+        <section id="infographicContent" class="analyzer-content hidden">
+          <div class="analyzer-panels-grid">
+            <article class="analyzer-panel glass-panel" id="lineup-panel">
+              <header class="analyzer-panel-header">
+                <div>
+                  <h2 class="analyzer-heading-with-info">
+                    <span class="analyzer-heading-text">Starting Lineup Overview</span>
+                    <!-- Analyzer lineup header help: explains that this chart auto-builds starters from league slot rules, including FLEX leftovers and SUPER_FLEX QB handling. -->
+                    <span class="analyzer-info">
+                      <button type="button" class="analyzer-info-trigger"
+                        aria-label="Explain how the starting lineup is determined"
+                        aria-describedby="startingLineupInfoTooltip">
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                      </button>
+                      <span class="analyzer-info-tooltip" id="startingLineupInfoTooltip" role="tooltip">
+                          • Value uses the highest KTC-value players by position, while PPG uses the highest-PPG players.
+                           <br>
+                          • Lineup parameters are pulled from league settings, and each team’s “Starting Lineup” is built from the best available player options at each position for the selected metric. For FLEX, it uses the best remaining RB/WR/TE after the main positional slots are filled.
+                      </span>
                     </span>
-                  </span>
-                </h2>
-                <p>Toggle between KTC value and combined starter efficiency.</p>
+                  </h2>
+                  <p>Toggle between KTC value and combined starter efficiency.</p>
+                </div>
+                <div class="analyzer-toggle" role="group" aria-label="Lineup metric">
+                  <button type="button" class="toggle-option active" data-metric="value"
+                    aria-pressed="true">Value</button>
+                  <button type="button" class="toggle-option" data-metric="ppg" aria-pressed="false">PPG</button>
+                </div>
+              </header>
+              <div class="analyzer-panel-body">
+                <div class="chart-container analyzer-chart">
+                  <canvas id="startersValueChart" aria-label="Starting lineup comparison" role="img"></canvas>
+                </div>
               </div>
-              <div class="analyzer-toggle" role="group" aria-label="Lineup metric">
-                <button type="button" class="toggle-option active" data-metric="value"
-                  aria-pressed="true">Value</button>
-                <button type="button" class="toggle-option" data-metric="ppg" aria-pressed="false">PPG</button>
-              </div>
-            </header>
-            <div class="analyzer-panel-body">
-              <div class="chart-container analyzer-chart">
-                <canvas id="startersValueChart" aria-label="Starting lineup comparison" role="img"></canvas>
-              </div>
-            </div>
-          </article>
+            </article>
 
-          <article class="analyzer-panel glass-panel" id="value-panel">
+            <article class="analyzer-panel glass-panel" id="value-panel">
+              <header class="analyzer-panel-header">
+                <div>
+                  <h2>Total Roster Value</h2>
+                  <p>KTC distribution by position for every team.</p>
+                </div>
+              </header>
+              <div class="analyzer-panel-body">
+                <div class="chart-container analyzer-chart">
+                  <canvas id="overallValueChart" aria-label="Total roster value comparison" role="img"></canvas>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <section class="analyzer-panel glass-panel analyzer-radar-section" id="radar-panel">
             <header class="analyzer-panel-header">
               <div>
-                <h2>Total Roster Value</h2>
-                <p>KTC distribution by position for every team.</p>
+                <h2>Positional Strength</h2>
+                <p>Your starters at each position <b>vs.</b> League AVG.</p>
+              </div>
+              <!-- Analyzer radar metric toggle: keeps the Positional Strength panel on an
+                   independent Value/PPG switch so the radar can compare either metric. -->
+              <div class="analyzer-toggle" role="group" aria-label="Radar metric">
+                <button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Value</button>
+                <button type="button" class="toggle-option active" data-metric="ppg" aria-pressed="true">PPG</button>
+              </div>
+            </header>
+            <div class="analyzer-panel-body analyzer-panel-body--stacked">
+              <div class="chart-container analyzer-chart analyzer-chart--radar">
+                <canvas id="radarChart" aria-label="Positional strength radar" role="img"></canvas>
+              </div>
+              <div class="analyzer-standings" aria-live="polite">
+                <div class="analyzer-standings-header">
+                  <h3>League Table</h3>
+                  <span class="analyzer-standings-subtitle"> - Season &amp; Career Overview</span>
+                </div>
+                <div class="analyzer-standings-table-wrapper">
+                  <table id="analyzerStandingsTable" class="analyzer-table" aria-describedby="analyzer-standings">
+                    <thead>
+                      <!-- Analyzer league table groups:
+                           keeps season standings on the left and adds a separate career-stats
+                           section on the right for linked league-history totals. -->
+                      <tr class="analyzer-table-group-row">
+                        <th scope="colgroup" colspan="2" class="analyzer-standings-section-divider-right">SZN Standings</th>
+                        <th scope="colgroup" colspan="3">SZN Results</th>
+                        <th scope="colgroup" colspan="3" class="analyzer-standings-career-group">Career Summary</th>
+                      </tr>
+                      <tr>
+                        <th scope="col" class="analyzer-standings-col-rank" data-sort-key="rank" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="rank">RK</button>
+                        </th>
+                        <th scope="col" class="analyzer-standings-section-divider-right" data-sort-key="teamName" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="teamName">Team</button>
+                        </th>
+                        <th scope="col" class="analyzer-standings-col-rec" data-sort-key="seasonRecord" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="seasonRecord">REC</button>
+                        </th>
+                        <th scope="col" data-sort-key="pf" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="pf">PF</button>
+                        </th>
+                        <th scope="col" data-sort-key="pa" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="pa">PA</button>
+                        </th>
+                        <th scope="col" class="analyzer-standings-col-career-rec analyzer-standings-career-start" data-sort-key="careerRecord" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="careerRecord">REC</button>
+                        </th>
+                        <th scope="col" class="analyzer-standings-col-career-pct" data-sort-key="careerWinPct" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="careerWinPct">WIN %</button>
+                        </th>
+                        <th scope="col" class="analyzer-standings-col-career-champ" data-sort-key="championships" aria-sort="none">
+                          <button type="button" class="analyzer-standings-sort" data-sort-key="championships">CHAMP</button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="standingsTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="analyzer-panel glass-panel analyzer-leaderboard-panel">
+            <header class="analyzer-panel-header">
+              <div>
+                <h2>League Leaders</h2>
+                <p>Top 100 total fantasy scorers by position with team ownership.</p>
+              </div>
+              <div class="analyzer-filter-group" role="tablist" aria-label="Position filters">
+                <button type="button" class="filter-chip active" data-pos="ALL" role="tab"
+                  aria-selected="true">ALL</button>
+                <button type="button" class="filter-chip" data-pos="QB" role="tab" aria-selected="false">QB</button>
+                <button type="button" class="filter-chip" data-pos="RB" role="tab" aria-selected="false">RB</button>
+                <button type="button" class="filter-chip" data-pos="WR" role="tab" aria-selected="false">WR</button>
+                <button type="button" class="filter-chip" data-pos="TE" role="tab" aria-selected="false">TE</button>
               </div>
             </header>
             <div class="analyzer-panel-body">
-              <div class="chart-container analyzer-chart">
-                <canvas id="overallValueChart" aria-label="Total roster value comparison" role="img"></canvas>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <section class="analyzer-panel glass-panel analyzer-radar-section" id="radar-panel">
-          <header class="analyzer-panel-header">
-            <div>
-              <h2>Positional Strength</h2>
-              <p>Your starters at each position <b>vs.</b> League AVG.</p>
-            </div>
-            <!-- Analyzer radar metric toggle: keeps the Positional Strength panel on an
-                 independent Value/PPG switch so the radar can compare either metric. -->
-            <div class="analyzer-toggle" role="group" aria-label="Radar metric">
-              <button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Value</button>
-              <button type="button" class="toggle-option active" data-metric="ppg" aria-pressed="true">PPG</button>
-            </div>
-          </header>
-          <div class="analyzer-panel-body analyzer-panel-body--stacked">
-            <div class="chart-container analyzer-chart analyzer-chart--radar">
-              <canvas id="radarChart" aria-label="Positional strength radar" role="img"></canvas>
-            </div>
-            <div class="analyzer-standings" aria-live="polite">
-              <div class="analyzer-standings-header">
-                <h3>League Table</h3>
-                <span class="analyzer-standings-subtitle"> - Season &amp; Career Overview</span>
-              </div>
-              <div class="analyzer-standings-table-wrapper">
-                <table id="analyzerStandingsTable" class="analyzer-table" aria-describedby="analyzer-standings">
+              <div class="analyzer-leaderboard-scroll">
+                <table class="analyzer-leaderboard-table" aria-live="polite">
                   <thead>
-                    <!-- Analyzer league table groups:
-                         keeps season standings on the left and adds a separate career-stats
-                         section on the right for linked league-history totals. -->
-                    <tr class="analyzer-table-group-row">
-                      <th scope="colgroup" colspan="2" class="analyzer-standings-section-divider-right">SZN Standings</th>
-                      <th scope="colgroup" colspan="3">SZN Results</th>
-                      <th scope="colgroup" colspan="3" class="analyzer-standings-career-group">Career Summary</th>
-                    </tr>
                     <tr>
-                      <th scope="col" class="analyzer-standings-col-rank" data-sort-key="rank" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="rank">RK</button>
-                      </th>
-                      <th scope="col" class="analyzer-standings-section-divider-right" data-sort-key="teamName" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="teamName">Team</button>
-                      </th>
-                      <th scope="col" class="analyzer-standings-col-rec" data-sort-key="seasonRecord" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="seasonRecord">REC</button>
-                      </th>
-                      <th scope="col" data-sort-key="pf" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="pf">PF</button>
-                      </th>
-                      <th scope="col" data-sort-key="pa" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="pa">PA</button>
-                      </th>
-                      <th scope="col" class="analyzer-standings-col-career-rec analyzer-standings-career-start" data-sort-key="careerRecord" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="careerRecord">REC</button>
-                      </th>
-                      <th scope="col" class="analyzer-standings-col-career-pct" data-sort-key="careerWinPct" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="careerWinPct">WIN %</button>
-                      </th>
-                      <th scope="col" class="analyzer-standings-col-career-champ" data-sort-key="championships" aria-sort="none">
-                        <button type="button" class="analyzer-standings-sort" data-sort-key="championships">CHAMP</button>
-                      </th>
+                      <th scope="col">RK</th>
+                      <th scope="col" class="al-col-player">Player</th>
+                      <th scope="col">Pos</th>
+                      <th scope="col">TM</th>
+                      <th scope="col" class="al-col-owner">Owner</th>
+                      <th scope="col">FPTS</th>
+                      <th scope="col">PPG</th>
                     </tr>
                   </thead>
-                  <tbody id="standingsTableBody"></tbody>
+                  <tbody id="leaderboardTableBody"></tbody>
                 </table>
               </div>
             </div>
-          </div>
+          </section>
         </section>
+      </section>
 
-        <section class="analyzer-panel glass-panel analyzer-leaderboard-panel">
-          <header class="analyzer-panel-header">
-            <div>
-              <h2>League Leaders</h2>
-              <p>Top 100 total fantasy scorers by position with team ownership.</p>
+      <!-- League trades workspace:
+           hosts the new all-time analytics, filters, and trade feed while keeping the
+           existing analysis DOM isolated in its own tab panel. -->
+      <section
+        id="leagueTradesPanel"
+        class="leaguehub-panel leaguehub-panel--trades hidden"
+        role="tabpanel"
+        aria-labelledby="leagueTradesTab"
+        aria-hidden="true">
+        <section class="leaguehub-trades-shell">
+          <div class="leaguehub-trades-topline">
+            <div class="leaguehub-trades-topline-copy">
+              <p class="leaguehub-trades-kicker">League history</p>
+              <h2>Trade archive and partner analysis</h2>
+              <p>Review every completed Sleeper deal with current KTC value context and 2025 scoring support.</p>
             </div>
-            <div class="analyzer-filter-group" role="tablist" aria-label="Position filters">
-              <button type="button" class="filter-chip active" data-pos="ALL" role="tab"
-                aria-selected="true">ALL</button>
-              <button type="button" class="filter-chip" data-pos="QB" role="tab" aria-selected="false">QB</button>
-              <button type="button" class="filter-chip" data-pos="RB" role="tab" aria-selected="false">RB</button>
-              <button type="button" class="filter-chip" data-pos="WR" role="tab" aria-selected="false">WR</button>
-              <button type="button" class="filter-chip" data-pos="TE" role="tab" aria-selected="false">TE</button>
-            </div>
-          </header>
-          <div class="analyzer-panel-body">
-            <div class="analyzer-leaderboard-scroll">
-              <table class="analyzer-leaderboard-table" aria-live="polite">
-                <thead>
-                  <tr>
-                    <th scope="col">RK</th>
-                    <th scope="col" class="al-col-player">Player</th>
-                    <th scope="col">Pos</th>
-                    <th scope="col">TM</th>
-                    <th scope="col" class="al-col-owner">Owner</th>
-                    <th scope="col">FPTS</th>
-                    <th scope="col">PPG</th>
-                  </tr>
-                </thead>
-                <tbody id="leaderboardTableBody"></tbody>
-              </table>
+            <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
+              Select a league to load the trade archive.
             </div>
           </div>
+
+          <section class="leaguehub-trades-controls" aria-label="Trade filters">
+            <div class="leaguehub-trades-control leaguehub-trades-control--member">
+              <label for="leagueTradesMemberFilter">Team / Username</label>
+              <div class="leaguehub-trades-select-wrap">
+                <select id="leagueTradesMemberFilter" aria-label="Filter trades by team or username">
+                  <option value="ALL">ALL</option>
+                </select>
+              </div>
+            </div>
+            <div class="leaguehub-trades-control leaguehub-trades-control--search">
+              <label for="leagueTradesSearch">Player search</label>
+              <div class="leaguehub-trades-search-wrap">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input
+                  id="leagueTradesSearch"
+                  type="search"
+                  inputmode="search"
+                  autocomplete="off"
+                  placeholder="Search any player in the trade archive" />
+              </div>
+            </div>
+            <div class="leaguehub-trades-control leaguehub-trades-control--scope">
+              <span class="leaguehub-trades-control-label">Visible scope</span>
+              <div id="leagueTradesScopeSummary" class="leaguehub-trades-scope-summary">3 most recent seasons</div>
+            </div>
+          </section>
+
+          <div id="leagueTradesEmptyState" class="leaguehub-trades-empty hidden" aria-live="polite"></div>
+
+          <section id="leagueTradesAnalytics" class="leaguehub-trades-analytics hidden" aria-live="polite">
+            <div id="leagueTradesSummaryCards" class="leaguehub-trades-summary-grid hidden" aria-label="Selected manager trade summary"></div>
+
+            <article class="leaguehub-trades-analytics-panel">
+              <header class="leaguehub-trades-panel-header">
+                <div>
+                  <p class="leaguehub-trades-panel-kicker">Career view</p>
+                  <h3 id="leagueTradesAnalysisHeading">League trade activity</h3>
+                </div>
+                <p id="leagueTradesAnalysisSubheading" class="leaguehub-trades-panel-subheading">
+                  All-time trade history ranked across current league members.
+                </p>
+              </header>
+              <div class="leaguehub-trades-table-wrap">
+                <table id="leagueTradesAnalysisTable" class="leaguehub-trades-table">
+                  <thead id="leagueTradesAnalysisHead"></thead>
+                  <tbody id="leagueTradesAnalysisBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section class="leaguehub-trades-feed-section" aria-labelledby="leagueTradesFeedHeading">
+            <div class="leaguehub-trades-feed-header">
+              <div>
+                <p class="leaguehub-trades-panel-kicker">Deal feed</p>
+                <h3 id="leagueTradesFeedHeading">Trade cards</h3>
+              </div>
+              <p id="leagueTradesFeedMeta" class="leaguehub-trades-feed-meta">No trades loaded yet.</p>
+            </div>
+            <div id="leagueTradesFeed" class="leaguehub-trades-feed" aria-live="polite"></div>
+            <div class="leaguehub-trades-feed-footer">
+              <button type="button" id="leagueTradesLoadMore" class="leaguehub-trades-load-more hidden">
+                Load More Trades
+              </button>
+            </div>
+          </section>
         </section>
       </section>
     </main>
