@@ -2208,18 +2208,35 @@
         </section>`;
     }
 
+    // Condensed trade card rendering:
+    // keeps the same trade data and filters, but flattens the DOM so mobile can scan
+    // deal totals, centerpiece assets, and both sides without the previous large footer stack.
     function renderTradeCard(trade) {
       const isMultiRoster = trade.sides.length > 2;
       const notableAssets = trade.notableAssets || [];
-      const extraAssetCount = Math.max(0, notableAssets.length - 3);
+      const extraAssetCount = Math.max(0, notableAssets.length - 2);
+      const tradeFootnote = isMultiRoster
+        ? 'Multi-team trade rendered in stacked sections for clarity.'
+        : '';
+      const assetSummary = `${trade.assetCount} tracked asset${trade.assetCount === 1 ? '' : 's'}`;
+      const notableMarkup = notableAssets.length
+        ? `
+            <div class="leaguehub-trade-card-pieces" aria-label="Notable trade assets">
+              ${notableAssets.slice(0, 2).map((title) => `<span class="leaguehub-trade-card-chip">${escapeHtml(title)}</span>`).join('')}
+              ${extraAssetCount > 0 ? `<span class="leaguehub-trade-card-chip">+${extraAssetCount} more</span>` : ''}
+            </div>`
+        : '';
 
       return `
         <article class="leaguehub-trade-card">
           <header class="leaguehub-trade-card-header">
             <div class="leaguehub-trade-card-meta">
-              <p class="leaguehub-trade-card-stamp">${escapeHtml(trade.dateLabel)} • ${escapeHtml(trade.season)} season</p>
+              <div class="leaguehub-trade-card-meta-top">
+                <p class="leaguehub-trade-card-stamp">${escapeHtml(trade.dateLabel)} • ${escapeHtml(trade.season)} season</p>
+                <span class="leaguehub-trade-card-asset-count">${escapeHtml(assetSummary)}</span>
+              </div>
               <h4 class="leaguehub-trade-card-title">${escapeHtml(trade.participantsLabel)}</h4>
-              <p class="leaguehub-trade-card-subtitle">${trade.assetCount} tracked asset${trade.assetCount === 1 ? '' : 's'} moved</p>
+              ${notableMarkup}
             </div>
             <div class="leaguehub-trade-card-total">
               <span class="leaguehub-trade-card-total-label">Total deal KTC</span>
@@ -2230,71 +2247,88 @@
           <div class="leaguehub-trade-card-body ${isMultiRoster ? 'is-multi-roster' : ''}">
             ${trade.sides.map((side, index) => renderTradeSide(side, index)).join('')}
           </div>
-          <footer class="leaguehub-trade-card-footer">
-            <p class="leaguehub-trade-card-note">${isMultiRoster ? 'Multi-team trade rendered in stacked sections for clarity.' : 'Side totals show the KTC value each manager sent out.'}</p>
-            <div class="leaguehub-trade-card-pieces">
-              ${notableAssets.slice(0, 3).map((title) => `<span class="leaguehub-trade-card-chip">${escapeHtml(title)}</span>`).join('')}
-              ${extraAssetCount > 0 ? `<span class="leaguehub-trade-card-chip">+${extraAssetCount} more</span>` : ''}
-            </div>
-          </footer>
+          ${tradeFootnote
+            ? `<footer class="leaguehub-trade-card-footer">
+                <p class="leaguehub-trade-card-note">${escapeHtml(tradeFootnote)}</p>
+              </footer>`
+            : ''}
         </article>`;
     }
 
     function renderTradeSide(side, index) {
       const sideClass = index % 2 === 0 ? 'leaguehub-trade-side--primary' : 'leaguehub-trade-side--secondary';
+      const ownerSubtitle = side.subtitle && side.subtitle !== side.teamName
+        ? side.subtitle
+        : '';
+      const assetCounts = [];
+      if (side.playerCount) assetCounts.push(`${side.playerCount} player${side.playerCount === 1 ? '' : 's'}`);
+      if (side.pickCount) assetCounts.push(`${side.pickCount} pick${side.pickCount === 1 ? '' : 's'}`);
+      if (side.faabCount) assetCounts.push(`${side.faabCount} FAAB`);
+      const sideMeta = assetCounts.join(' • ');
 
       return `
         <section class="leaguehub-trade-side ${sideClass}">
           <header class="leaguehub-trade-side-header">
             <div class="leaguehub-trade-side-owner">
               <strong>${escapeHtml(side.teamName)}</strong>
-              <span>${escapeHtml(side.subtitle || side.displayName)}</span>
+              ${ownerSubtitle ? `<span>${escapeHtml(ownerSubtitle)}</span>` : ''}
+              ${sideMeta ? `<span class="leaguehub-trade-side-meta">${escapeHtml(sideMeta)}</span>` : ''}
             </div>
             <div class="leaguehub-trade-side-total">
-              <span class="leaguehub-trade-side-total-label">Sent</span>
+              <span class="leaguehub-trade-side-total-label">Sent KTC</span>
               <span class="leaguehub-trade-side-total-value">${formatNumber(side.totalKtc)}</span>
             </div>
           </header>
           <div class="leaguehub-trade-assets">
             ${side.outgoingAssets.length
               ? side.outgoingAssets.map((asset) => renderTradeAsset(asset)).join('')
-              : '<p class="leaguehub-trade-card-note">No tracked outgoing assets.</p>'}
+              : '<p class="leaguehub-trade-card-note leaguehub-trade-card-note--inline">No tracked outgoing assets.</p>'}
           </div>
         </section>`;
     }
 
+    // Condensed asset rows:
+    // keeps KTC, 2025 PPG, and 2025 FPTS visible, but packs them into a two-line
+    // asset treatment so player rows do not dominate mobile trade cards.
     function renderTradeAsset(asset) {
       const badgeClass = asset.type === 'pick'
         ? 'is-pick'
         : asset.type === 'faab'
           ? 'is-faab'
           : '';
+      const assetClass = `leaguehub-trade-asset is-${asset.type}`;
+      const seasonLabel = escapeHtml(String(state.playerStatsSeason || 2025));
       const metrics = asset.type === 'player'
         ? `
           <div class="leaguehub-trade-asset-metrics">
-            <span class="leaguehub-trade-asset-metric"><strong>${formatNumber(asset.ktc)}</strong> KTC</span>
-            <span class="leaguehub-trade-asset-metric"><strong>${formatPpg(asset.ppg)}</strong> ${escapeHtml(String(state.playerStatsSeason || 2025))} PPG</span>
-            <span class="leaguehub-trade-asset-metric"><strong>${formatTradePoints(asset.totalFpts)}</strong> ${escapeHtml(String(state.playerStatsSeason || 2025))} FPTS</span>
+            <span class="leaguehub-trade-asset-metric"><strong>${formatPpg(asset.ppg)}</strong><span>${seasonLabel} PPG</span></span>
+            <span class="leaguehub-trade-asset-metric"><strong>${formatTradePoints(asset.totalFpts)}</strong><span>${seasonLabel} FPTS</span></span>
           </div>`
         : '';
 
       const valueColumn = asset.type === 'player' || asset.type === 'pick'
         ? `
-          <div class="leaguehub-trade-asset-value">
+          <span class="leaguehub-trade-asset-value">
             <strong>${formatNumber(asset.ktc)}</strong>
             <span>KTC</span>
-          </div>`
+          </span>`
         : '';
 
       return `
-        <div class="leaguehub-trade-asset">
+        <div class="${assetClass}">
           <span class="leaguehub-trade-asset-badge ${badgeClass}">${escapeHtml(asset.badge)}</span>
           <div class="leaguehub-trade-asset-main">
-            <span class="leaguehub-trade-asset-title">${escapeHtml(asset.title)}</span>
-            <span class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}</span>
-            ${metrics}
+            <div class="leaguehub-trade-asset-topline">
+              <span class="leaguehub-trade-asset-title">${escapeHtml(asset.title)}</span>
+              ${valueColumn}
+            </div>
+            ${(asset.subtitle || metrics)
+              ? `<div class="leaguehub-trade-asset-subline">
+                  ${asset.subtitle ? `<span class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}</span>` : ''}
+                  ${metrics}
+                </div>`
+              : ''}
           </div>
-          ${valueColumn}
         </div>`;
     }
 
