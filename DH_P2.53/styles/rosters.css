@@ -53,7 +53,7 @@ body[data-page="rosters"] .roster-brand-name {
 /* Uses same gradient + border + backdrop as .username-area for visual parity */
 body[data-page="rosters"] .roster-inline-search {
   position: relative;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   isolation: isolate;
   padding: 0;
