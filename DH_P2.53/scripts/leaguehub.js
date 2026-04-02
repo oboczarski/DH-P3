@@ -1597,6 +1597,8 @@
       const txRosterIds = collectTradeRosterIds(transaction);
       if (!txRosterIds.length) return null;
 
+      // Trade data model: each side tracks both outgoing (sent) and incoming (received)
+      // assets so renderers can display what each team received instead of what they sent.
       const tradeSides = new Map();
       const getOrCreateSide = (rosterId) => {
         const rosterKey = String(rosterId);
@@ -1610,10 +1612,15 @@
             label: rosterMeta?.label || `Roster ${rosterKey}`,
             subtitle: rosterMeta?.subtitle || '',
             outgoingAssets: [],
-            totalKtc: 0,
-            playerCount: 0,
-            pickCount: 0,
-            faabCount: 0,
+            incomingAssets: [],
+            sentKtc: 0,
+            receivedKtc: 0,
+            sentPlayerCount: 0,
+            sentPickCount: 0,
+            sentFaabCount: 0,
+            receivedPlayerCount: 0,
+            receivedPickCount: 0,
+            receivedFaabCount: 0,
           });
         }
         return tradeSides.get(rosterKey);
@@ -1639,8 +1646,8 @@
         const senderSide = getOrCreateSide(fallbackFromRosterId);
         const asset = buildTradePlayerAsset(playerId);
         senderSide.outgoingAssets.push(asset);
-        senderSide.totalKtc += asset.ktc;
-        senderSide.playerCount += 1;
+        senderSide.sentKtc += asset.ktc;
+        senderSide.sentPlayerCount += 1;
       });
 
       (Array.isArray(transaction?.draft_picks) ? transaction.draft_picks : []).forEach((pick) => {
@@ -1652,8 +1659,8 @@
         const senderSide = getOrCreateSide(fromRosterId);
         const asset = buildTradePickAsset(pick, rosterContext);
         senderSide.outgoingAssets.push(asset);
-        senderSide.totalKtc += asset.ktc;
-        senderSide.pickCount += 1;
+        senderSide.sentKtc += asset.ktc;
+        senderSide.sentPickCount += 1;
       });
 
       (Array.isArray(transaction?.waiver_budget) ? transaction.waiver_budget : []).forEach((budgetMove) => {
@@ -1669,7 +1676,7 @@
         const senderSide = getOrCreateSide(fromRosterId);
         const asset = buildTradeFaabAsset(budgetMove);
         senderSide.outgoingAssets.push(asset);
-        senderSide.faabCount += 1;
+        senderSide.sentFaabCount += 1;
       });
 
       const sides = Array.from(tradeSides.values())
@@ -1678,6 +1685,21 @@
           outgoingAssets: side.outgoingAssets.sort(sortTradeAssets),
         }))
         .sort((a, b) => txRosterIds.indexOf(Number(a.rosterId)) - txRosterIds.indexOf(Number(b.rosterId)));
+
+      // Received-vs-sent cross-population:
+      // For each side, the assets it RECEIVED are the outgoing assets of every OTHER side.
+      // This mirrors the data so renderers can show received packages directly.
+      sides.forEach((sideA) => {
+        sides.forEach((sideB) => {
+          if (sideA.rosterId === sideB.rosterId) return;
+          sideA.incomingAssets.push(...sideB.outgoingAssets);
+          sideA.receivedKtc += sideB.sentKtc;
+          sideA.receivedPlayerCount += sideB.sentPlayerCount;
+          sideA.receivedPickCount += sideB.sentPickCount;
+          sideA.receivedFaabCount += sideB.sentFaabCount;
+        });
+        sideA.incomingAssets.sort(sortTradeAssets);
+      });
 
       const totalTrackedAssets = sides.reduce((sum, side) => sum + side.outgoingAssets.length, 0);
       if (!totalTrackedAssets) return null;
@@ -1691,13 +1713,6 @@
         .filter(Boolean)
         .join(' ');
 
-      const notableAssets = sides
-        .flatMap((side) => side.outgoingAssets)
-        .filter((asset) => asset.type !== 'faab')
-        .sort((a, b) => (b.ktc || 0) - (a.ktc || 0))
-        .slice(0, 3)
-        .map((asset) => asset.title);
-
       return {
         id: String(transaction.transaction_id || `${historyLeague?.league_id}-${transaction?.created || Date.now()}`),
         season: String(historyLeague?.season || ''),
@@ -1708,9 +1723,8 @@
         participantOwnerIds,
         searchablePlayerNames,
         sides,
-        totalKtc: sides.reduce((sum, side) => sum + (Number(side.totalKtc) || 0), 0),
+        totalKtc: sides.reduce((sum, side) => sum + (Number(side.sentKtc) || 0), 0),
         assetCount: totalTrackedAssets,
-        notableAssets,
       };
     }
 
@@ -1864,21 +1878,16 @@
       }
     }
 
+    // All-members analytics table:
+    // Columns: RK | Team | Trades | Share | Top Trd. Partner | Partners | Top Trds.
+    // Removed Players +/-, Avg deal KTC, and the duplicate username subtitle.
     function renderAllMemberTradeAnalytics(currentMembers) {
       const rows = currentMembers
         .map((member) => {
           const memberTrades = getTradesForOwner(member.ownerId);
           const partnerCounts = new Map();
-          let playersAcquired = 0;
-          let playersSent = 0;
-          let totalDealKtc = 0;
 
           memberTrades.forEach((trade) => {
-            const memberSide = getTradeSideForOwner(trade, member.ownerId);
-            if (!memberSide) return;
-            totalDealKtc += trade.totalKtc;
-            playersSent += memberSide.playerCount;
-
             trade.sides.forEach((side) => {
               if (side.ownerId === member.ownerId) return;
               const partnerKey = side.ownerId || `${trade.season}-${side.rosterId}`;
@@ -1888,12 +1897,20 @@
               };
               currentCount.count += 1;
               partnerCounts.set(partnerKey, currentCount);
-              playersAcquired += side.playerCount;
             });
           });
 
           const favoritePartner = Array.from(partnerCounts.values())
             .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))[0] || null;
+
+          // Top Trds.: highest-KTC received package across all trades for this member.
+          const topTrade = memberTrades
+            .map((trade) => {
+              const side = getTradeSideForOwner(trade, member.ownerId);
+              return side ? { receivedKtc: side.receivedKtc || 0, trade } : null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.receivedKtc - a.receivedKtc)[0] || null;
 
           return {
             member,
@@ -1901,15 +1918,13 @@
             sharePct: state.trades.allTrades.length ? (memberTrades.length / state.trades.allTrades.length) * 100 : 0,
             favoritePartner,
             distinctPartners: partnerCounts.size,
-            playersAcquired,
-            playersSent,
-            averageDealKtc: memberTrades.length ? totalDealKtc / memberTrades.length : 0,
+            topTradeKtc: topTrade ? topTrade.receivedKtc : 0,
           };
         })
         .sort((a, b) =>
           b.tradeCount - a.tradeCount
           || b.distinctPartners - a.distinctPartners
-          || b.averageDealKtc - a.averageDealKtc
+          || b.topTradeKtc - a.topTradeKtc
           || a.member.teamName.localeCompare(b.member.teamName));
 
       if (elements.tradesSummaryCards) {
@@ -1928,13 +1943,12 @@
         elements.tradesAnalysisHead.innerHTML = `
           <tr>
             <th scope="col" class="is-numeric">RK</th>
-            <th scope="col">Member</th>
+            <th scope="col">Team</th>
             <th scope="col" class="is-numeric">Trades</th>
             <th scope="col" class="is-numeric">Share</th>
-            <th scope="col">Favorite partner</th>
+            <th scope="col">Top Trd. Partner</th>
             <th scope="col" class="is-numeric">Partners</th>
-            <th scope="col" class="is-numeric">Players +/-</th>
-            <th scope="col" class="is-numeric">Avg deal KTC</th>
+            <th scope="col" class="is-numeric">Top Trds.</th>
           </tr>`;
       }
 
@@ -1942,27 +1956,25 @@
         elements.tradesAnalysisBody.innerHTML = rows.map((row, index) => `
           <tr>
             <td class="is-numeric">${index + 1}</td>
-            <td class="leaguehub-trades-name-cell">
-              <strong>${escapeHtml(row.member.teamName)}</strong>
-              <span class="leaguehub-trades-cell-subtext">${escapeHtml(row.member.subtitle)}</span>
-            </td>
+            <td><strong>${escapeHtml(row.member.teamName)}</strong></td>
             <td class="is-numeric">${row.tradeCount}</td>
             <td class="is-numeric">${formatTradePct(row.sharePct)}</td>
             <td class="leaguehub-trades-partner-cell">
-              <strong>${escapeHtml(row.favoritePartner?.label || '—')}</strong>
-              <span class="leaguehub-trades-cell-subtext">${row.favoritePartner ? `${row.favoritePartner.count} trade${row.favoritePartner.count === 1 ? '' : 's'}` : 'No completed trades'}</span>
+              ${escapeHtml(row.favoritePartner?.label || '—')}
+              <span class="leaguehub-trades-cell-subtext">${row.favoritePartner ? `${row.favoritePartner.count}×` : ''}</span>
             </td>
             <td class="is-numeric">${row.distinctPartners}</td>
-            <td class="is-numeric">${row.playersAcquired}/${row.playersSent}</td>
-            <td class="is-numeric">${formatNumber(row.averageDealKtc)}</td>
+            <td class="is-numeric">${formatNumber(row.topTradeKtc)}</td>
           </tr>`).join('');
       }
     }
 
+    // Selected-member analytics:
+    // Compact micro-stat strip (5 tiles) replaces the previous 6 oversized summary cards.
+    // Partner table keeps the same columns but drops the duplicate username subtitle.
     function renderSelectedMemberTradeAnalytics(selectedOwnerId) {
       const selectedMember = state.trades.currentMemberMap[selectedOwnerId];
       const selectedTrades = getTradesForOwner(selectedOwnerId);
-      const acquiredPlayers = [];
       const acquiredPositionCounts = {};
       const partnerStatsByOwner = new Map();
       let playersSent = 0;
@@ -1974,89 +1986,53 @@
         const memberSide = getTradeSideForOwner(trade, selectedOwnerId);
         if (!memberSide) return;
 
-        playersSent += memberSide.playerCount;
-        totalKtcSent += memberSide.totalKtc;
+        playersSent += memberSide.sentPlayerCount;
+        totalKtcSent += memberSide.sentKtc;
+        playersAcquired += memberSide.receivedPlayerCount;
+        totalKtcAcquired += memberSide.receivedKtc;
+
+        // Tally acquired positions from incoming assets
+        memberSide.incomingAssets
+          .filter((asset) => asset.type === 'player')
+          .forEach((asset) => {
+            const posKey = asset.badge || 'PLYR';
+            acquiredPositionCounts[posKey] = (acquiredPositionCounts[posKey] || 0) + 1;
+          });
 
         trade.sides.forEach((side) => {
-          if (side.rosterId === memberSide.rosterId) return;
-
-          playersAcquired += side.playerCount;
-          totalKtcAcquired += side.totalKtc;
-
-          side.outgoingAssets
-            .filter((asset) => asset.type === 'player')
-            .forEach((asset) => {
-              acquiredPlayers.push(asset);
-              const posKey = asset.badge || 'PLYR';
-              acquiredPositionCounts[posKey] = (acquiredPositionCounts[posKey] || 0) + 1;
-            });
-
-          if (side.ownerId !== selectedOwnerId) {
-            const partnerKey = side.ownerId || `unknown-${trade.id}-${side.rosterId}`;
-            const existing = partnerStatsByOwner.get(partnerKey) || {
-              member: state.trades.currentMemberMap[side.ownerId] || {
-                ownerId: side.ownerId,
-                teamName: side.teamName,
-                subtitle: side.displayName,
-              },
-              tradeCount: 0,
-              playersAcquired: 0,
-              playersSent: 0,
-              ktcIn: 0,
-              ktcOut: 0,
-            };
-            existing.tradeCount += 1;
-            existing.playersAcquired += side.playerCount;
-            existing.playersSent += memberSide.playerCount;
-            existing.ktcIn += side.totalKtc;
-            existing.ktcOut += memberSide.totalKtc;
-            partnerStatsByOwner.set(partnerKey, existing);
-          }
+          if (side.ownerId === selectedOwnerId) return;
+          const partnerKey = side.ownerId || `unknown-${trade.id}-${side.rosterId}`;
+          const existing = partnerStatsByOwner.get(partnerKey) || {
+            member: state.trades.currentMemberMap[side.ownerId] || {
+              ownerId: side.ownerId,
+              teamName: side.teamName,
+              subtitle: side.displayName,
+            },
+            tradeCount: 0,
+            playersAcquired: 0,
+            playersSent: 0,
+            ktcIn: 0,
+            ktcOut: 0,
+          };
+          existing.tradeCount += 1;
+          existing.playersAcquired += side.sentPlayerCount;
+          existing.playersSent += memberSide.sentPlayerCount;
+          existing.ktcIn += side.sentKtc;
+          existing.ktcOut += memberSide.sentKtc;
+          partnerStatsByOwner.set(partnerKey, existing);
         });
       });
 
       const favoritePositionEntry = Object.entries(acquiredPositionCounts)
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] || null;
 
-      const highestValuePlayer = acquiredPlayers
-        .slice()
-        .sort((a, b) => (b.ktc || 0) - (a.ktc || 0))[0] || null;
-
-      const averageDealKtc = selectedTrades.length
-        ? selectedTrades.reduce((sum, trade) => sum + trade.totalKtc, 0) / selectedTrades.length
-        : 0;
-
-      const summaryCards = [
-        {
-          label: 'Total trades',
-          value: String(selectedTrades.length),
-          meta: 'Completed Sleeper trades across the linked league history.',
-        },
-        {
-          label: 'Most acquired position',
-          value: favoritePositionEntry ? favoritePositionEntry[0] : '—',
-          meta: favoritePositionEntry ? `${favoritePositionEntry[1]} player acquisition${favoritePositionEntry[1] === 1 ? '' : 's'}` : 'No player acquisitions recorded.',
-        },
-        {
-          label: 'Top acquisition',
-          value: highestValuePlayer ? highestValuePlayer.title : '—',
-          meta: highestValuePlayer ? `${formatNumber(highestValuePlayer.ktc)} KTC` : 'No acquired players yet.',
-        },
-        {
-          label: 'Players sent',
-          value: String(playersSent),
-          meta: `${formatNumber(totalKtcSent)} total outgoing KTC`,
-        },
-        {
-          label: 'Players acquired',
-          value: String(playersAcquired),
-          meta: `${formatNumber(totalKtcAcquired)} total incoming KTC`,
-        },
-        {
-          label: 'Avg deal size',
-          value: formatNumber(averageDealKtc),
-          meta: 'Average full-deal KTC across completed trades.',
-        },
+      // 5-tile micro-stat strip instead of 6 oversized cards
+      const microStats = [
+        { label: 'Trades', value: String(selectedTrades.length) },
+        { label: 'Plyr In', value: String(playersAcquired) },
+        { label: 'Plyr Out', value: String(playersSent) },
+        { label: 'KTC In', value: formatNumber(totalKtcAcquired) },
+        { label: 'Top POS', value: favoritePositionEntry ? favoritePositionEntry[0] : '—' },
       ];
 
       const partnerRows = state.trades.currentMembers
@@ -2082,21 +2058,21 @@
           || b.ktcIn - a.ktcIn
           || a.member.teamName.localeCompare(b.member.teamName));
 
+      // Micro-stat strip rendering (replaces bloated summary cards)
       if (elements.tradesSummaryCards) {
         elements.tradesSummaryCards.classList.remove('hidden');
-        elements.tradesSummaryCards.innerHTML = summaryCards.map((card) => `
-          <article class="leaguehub-trades-summary-card">
-            <span class="leaguehub-trades-summary-label">${escapeHtml(card.label)}</span>
-            <span class="leaguehub-trades-summary-value">${escapeHtml(card.value)}</span>
-            <span class="leaguehub-trades-summary-meta">${escapeHtml(card.meta)}</span>
-          </article>`).join('');
+        elements.tradesSummaryCards.innerHTML = microStats.map((stat) => `
+          <div class="leaguehub-trades-micro-stat">
+            <span class="leaguehub-trades-micro-stat-value">${escapeHtml(stat.value)}</span>
+            <span class="leaguehub-trades-micro-stat-label">${escapeHtml(stat.label)}</span>
+          </div>`).join('');
       }
 
       if (elements.tradesAnalysisHeading) {
         elements.tradesAnalysisHeading.textContent = `${selectedMember?.teamName || 'Selected member'} trade relationships`;
       }
       if (elements.tradesAnalysisSubheading) {
-        elements.tradesAnalysisSubheading.textContent = 'Current-member breakdown of partner frequency, player flow, and KTC exchanged.';
+        elements.tradesAnalysisSubheading.textContent = 'Partner frequency, player flow, and KTC exchanged.';
       }
 
       if (elements.tradesAnalysisHead) {
@@ -2115,10 +2091,7 @@
       if (elements.tradesAnalysisBody) {
         elements.tradesAnalysisBody.innerHTML = partnerRows.map((row) => `
           <tr>
-            <td class="leaguehub-trades-partner-cell">
-              <strong>${escapeHtml(row.member.teamName)}</strong>
-              <span class="leaguehub-trades-cell-subtext">${escapeHtml(row.member.subtitle || row.member.displayName || 'Current member')}</span>
-            </td>
+            <td><strong>${escapeHtml(row.member.teamName)}</strong></td>
             <td class="is-numeric">${row.tradeCount}</td>
             <td class="is-numeric">${formatTradePct(row.sharePct)}</td>
             <td class="is-numeric">${row.playersAcquired}</td>
@@ -2178,7 +2151,10 @@
         ? `${totalVisibleTrades} trade match${totalVisibleTrades === 1 ? '' : 'es'} for "${state.trades.searchTerm.trim()}".`
         : `${totalVisibleTrades} completed trade${totalVisibleTrades === 1 ? '' : 's'} in the current archive view.`;
 
-      elements.tradesFeed.innerHTML = renderedBundles.map((seasonBundle) => renderTradeSeasonBundle(seasonBundle, selectedMember)).join('');
+      // Pass selectedOwnerId through so trade cards can order the selected team's side first (left column).
+      elements.tradesFeed.innerHTML = renderedBundles
+        .map((seasonBundle) => renderTradeSeasonBundle(seasonBundle, selectedMember, selectedOwnerId))
+        .join('');
 
       if (!searchIsActive && visibleSeasonLimit < state.trades.seasonBundles.length) {
         elements.tradesLoadMore?.classList.remove('hidden');
@@ -2187,109 +2163,88 @@
       }
     }
 
-    function renderTradeSeasonBundle(seasonBundle, selectedMember) {
+    // Season divider rendering:
+    // lightweight label + count instead of a heavy glass-panel container. Individual
+    // trade cards inside render standalone so the feed reads as a flat sequence.
+    function renderTradeSeasonBundle(seasonBundle, selectedMember, selectedOwnerId) {
       const tradeCount = seasonBundle.trades.length;
       const emptyMessage = selectedMember
         ? `No completed trades involving ${selectedMember.teamName} in ${seasonBundle.season}.`
         : `No completed trades were recorded in ${seasonBundle.season}.`;
 
       return `
-        <section class="leaguehub-trade-season">
-          <header class="leaguehub-trade-season-header">
-            <h4 class="leaguehub-trade-season-label">
+        <div class="leaguehub-trade-season">
+          <div class="leaguehub-trade-season-header">
+            <span class="leaguehub-trade-season-label">
               <span class="leaguehub-trade-season-badge">${escapeHtml(seasonBundle.season)}</span>
               <span>${escapeHtml(seasonBundle.leagueName || `Season ${seasonBundle.season}`)}</span>
-            </h4>
+            </span>
             <span class="leaguehub-trade-season-count">${tradeCount} trade${tradeCount === 1 ? '' : 's'}</span>
-          </header>
+          </div>
           ${tradeCount
-            ? seasonBundle.trades.map((trade) => renderTradeCard(trade)).join('')
+            ? seasonBundle.trades.map((trade) => renderTradeCard(trade, selectedOwnerId)).join('')
             : `<p class="leaguehub-trade-card-note">${escapeHtml(emptyMessage)}</p>`}
-        </section>`;
+        </div>`;
     }
 
-    // Condensed trade card rendering:
-    // keeps the same trade data and filters, but flattens the DOM so mobile can scan
-    // deal totals, centerpiece assets, and both sides without the previous large footer stack.
-    function renderTradeCard(trade) {
+    // Received-package trade card rendering:
+    // each side shows what that team RECEIVED (incomingAssets + receivedKtc).
+    // No total deal KTC. When a member is selected, their side renders first (left).
+    function renderTradeCard(trade, selectedOwnerId) {
       const isMultiRoster = trade.sides.length > 2;
-      const notableAssets = trade.notableAssets || [];
-      const extraAssetCount = Math.max(0, notableAssets.length - 2);
-      const tradeFootnote = isMultiRoster
-        ? 'Multi-team trade rendered in stacked sections for clarity.'
-        : '';
-      const assetSummary = `${trade.assetCount} tracked asset${trade.assetCount === 1 ? '' : 's'}`;
-      const notableMarkup = notableAssets.length
-        ? `
-            <div class="leaguehub-trade-card-pieces" aria-label="Notable trade assets">
-              ${notableAssets.slice(0, 2).map((title) => `<span class="leaguehub-trade-card-chip">${escapeHtml(title)}</span>`).join('')}
-              ${extraAssetCount > 0 ? `<span class="leaguehub-trade-card-chip">+${extraAssetCount} more</span>` : ''}
-            </div>`
-        : '';
+
+      // Selected-member side ordering: put the filtered team on the left so
+      // the user always sees their own received package in the primary position.
+      let orderedSides = trade.sides;
+      if (selectedOwnerId && selectedOwnerId !== 'ALL') {
+        const ownerKey = String(selectedOwnerId);
+        orderedSides = [...trade.sides].sort((a, b) => {
+          const aMatch = a.ownerId === ownerKey ? 0 : 1;
+          const bMatch = b.ownerId === ownerKey ? 0 : 1;
+          return aMatch - bMatch;
+        });
+      }
 
       return `
         <article class="leaguehub-trade-card">
           <header class="leaguehub-trade-card-header">
             <div class="leaguehub-trade-card-meta">
-              <div class="leaguehub-trade-card-meta-top">
-                <p class="leaguehub-trade-card-stamp">${escapeHtml(trade.dateLabel)} • ${escapeHtml(trade.season)} season</p>
-                <span class="leaguehub-trade-card-asset-count">${escapeHtml(assetSummary)}</span>
-              </div>
+              <p class="leaguehub-trade-card-stamp">${escapeHtml(trade.dateLabel)} · ${escapeHtml(trade.season)} season</p>
               <h4 class="leaguehub-trade-card-title">${escapeHtml(trade.participantsLabel)}</h4>
-              ${notableMarkup}
-            </div>
-            <div class="leaguehub-trade-card-total">
-              <span class="leaguehub-trade-card-total-label">Total deal KTC</span>
-              <span class="leaguehub-trade-card-total-value">${formatNumber(trade.totalKtc)}</span>
-              <span class="leaguehub-trade-card-total-meta">${trade.sides.length} side${trade.sides.length === 1 ? '' : 's'}</span>
             </div>
           </header>
           <div class="leaguehub-trade-card-body ${isMultiRoster ? 'is-multi-roster' : ''}">
-            ${trade.sides.map((side, index) => renderTradeSide(side, index)).join('')}
+            ${orderedSides.map((side, index) => renderTradeSide(side, index)).join('')}
           </div>
-          ${tradeFootnote
-            ? `<footer class="leaguehub-trade-card-footer">
-                <p class="leaguehub-trade-card-note">${escapeHtml(tradeFootnote)}</p>
-              </footer>`
-            : ''}
         </article>`;
     }
 
+    // Received-package side rendering:
+    // displays incomingAssets (what this team got back) and receivedKtc.
+    // Team name only — no duplicate subtitle or asset-count meta.
     function renderTradeSide(side, index) {
       const sideClass = index % 2 === 0 ? 'leaguehub-trade-side--primary' : 'leaguehub-trade-side--secondary';
-      const ownerSubtitle = side.subtitle && side.subtitle !== side.teamName
-        ? side.subtitle
-        : '';
-      const assetCounts = [];
-      if (side.playerCount) assetCounts.push(`${side.playerCount} player${side.playerCount === 1 ? '' : 's'}`);
-      if (side.pickCount) assetCounts.push(`${side.pickCount} pick${side.pickCount === 1 ? '' : 's'}`);
-      if (side.faabCount) assetCounts.push(`${side.faabCount} FAAB`);
-      const sideMeta = assetCounts.join(' • ');
 
       return `
         <section class="leaguehub-trade-side ${sideClass}">
           <header class="leaguehub-trade-side-header">
-            <div class="leaguehub-trade-side-owner">
-              <strong>${escapeHtml(side.teamName)}</strong>
-              ${ownerSubtitle ? `<span>${escapeHtml(ownerSubtitle)}</span>` : ''}
-              ${sideMeta ? `<span class="leaguehub-trade-side-meta">${escapeHtml(sideMeta)}</span>` : ''}
-            </div>
+            <strong class="leaguehub-trade-side-owner">${escapeHtml(side.teamName)}</strong>
             <div class="leaguehub-trade-side-total">
-              <span class="leaguehub-trade-side-total-label">Sent KTC</span>
-              <span class="leaguehub-trade-side-total-value">${formatNumber(side.totalKtc)}</span>
+              <span class="leaguehub-trade-side-total-label">Received KTC</span>
+              <span class="leaguehub-trade-side-total-value">${formatNumber(side.receivedKtc)}</span>
             </div>
           </header>
           <div class="leaguehub-trade-assets">
-            ${side.outgoingAssets.length
-              ? side.outgoingAssets.map((asset) => renderTradeAsset(asset)).join('')
-              : '<p class="leaguehub-trade-card-note leaguehub-trade-card-note--inline">No tracked outgoing assets.</p>'}
+            ${side.incomingAssets.length
+              ? side.incomingAssets.map((asset) => renderTradeAsset(asset)).join('')
+              : '<p class="leaguehub-trade-card-note leaguehub-trade-card-note--inline">No tracked received assets.</p>'}
           </div>
         </section>`;
     }
 
-    // Condensed asset rows:
-    // keeps KTC, 2025 PPG, and 2025 FPTS visible, but packs them into a two-line
-    // asset treatment so player rows do not dominate mobile trade cards.
+    // Compact received-package asset rows:
+    // Player: name + KTC on main line, POS · TEAM · PPG · FPTS as subtitle.
+    // Pick: compact label + origin + KTC. FAAB: inline amount.
     function renderTradeAsset(asset) {
       const badgeClass = asset.type === 'pick'
         ? 'is-pick'
@@ -2297,21 +2252,21 @@
           ? 'is-faab'
           : '';
       const assetClass = `leaguehub-trade-asset is-${asset.type}`;
-      const seasonLabel = escapeHtml(String(state.playerStatsSeason || 2025));
-      const metrics = asset.type === 'player'
-        ? `
-          <div class="leaguehub-trade-asset-metrics">
-            <span class="leaguehub-trade-asset-metric"><strong>${formatPpg(asset.ppg)}</strong><span>${seasonLabel} PPG</span></span>
-            <span class="leaguehub-trade-asset-metric"><strong>${formatTradePoints(asset.totalFpts)}</strong><span>${seasonLabel} FPTS</span></span>
-          </div>`
-        : '';
+      const seasonLabel = String(state.playerStatsSeason || 2025);
+
+      // Build subtitle: fold PPG and FPTS inline for players instead of separate metric pills.
+      let subtitle = '';
+      if (asset.type === 'player') {
+        const parts = [asset.badge, asset.team || ''];
+        if (asset.ppg) parts.push(`${formatPpg(asset.ppg)} PPG`);
+        if (asset.totalFpts) parts.push(`${formatTradePoints(asset.totalFpts)} FPTS`);
+        subtitle = parts.filter(Boolean).join(' · ');
+      } else if (asset.subtitle) {
+        subtitle = asset.subtitle;
+      }
 
       const valueColumn = asset.type === 'player' || asset.type === 'pick'
-        ? `
-          <span class="leaguehub-trade-asset-value">
-            <strong>${formatNumber(asset.ktc)}</strong>
-            <span>KTC</span>
-          </span>`
+        ? `<span class="leaguehub-trade-asset-value"><strong>${formatNumber(asset.ktc)}</strong><span>KTC</span></span>`
         : '';
 
       return `
@@ -2322,12 +2277,7 @@
               <span class="leaguehub-trade-asset-title">${escapeHtml(asset.title)}</span>
               ${valueColumn}
             </div>
-            ${(asset.subtitle || metrics)
-              ? `<div class="leaguehub-trade-asset-subline">
-                  ${asset.subtitle ? `<span class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}</span>` : ''}
-                  ${metrics}
-                </div>`
-              : ''}
+            ${subtitle ? `<span class="leaguehub-trade-asset-subtitle">${escapeHtml(subtitle)}</span>` : ''}
           </div>
         </div>`;
     }
