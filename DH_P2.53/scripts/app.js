@@ -368,10 +368,10 @@ const getPageUrl = (page) => {
         case 'stats':
             url = `${base}stats/stats.html`;
             break;
-        // DataHub page routing: keep the new standalone page on the same menu-driven
-        // navigation map as the rest of the internal pages.
+        // DataHub page routing: use the folder index entrypoint so the page
+        // resolves consistently on Netlify and in local static servers.
         case 'datahub':
-            url = `${base}datahub/DataHub.html`;
+            url = `${base}datahub/index.html`;
             break;
         case 'leaguehub':
             url = `${base}leaguehub/leaguehub.html`;

@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub rollout: bump the cache so browsers pick up the new dashboard route
-// and the newly added DataHub page bundle on the next refresh after deploy.
-const CACHE_NAME = 'DH2.41';
+// DataHub Netlify route fix: bump the cache so browsers pick up the new
+// folder-index entrypoint and stop requesting the stale uppercase HTML path.
+const CACHE_NAME = 'DH2.5';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -37,6 +37,7 @@ const CORE_ASSET_PATHS = [
   '/manifest.webmanifest',
   '/rosters/rosters.html',
   '/stats/stats.html',
+  '/datahub/index.html',
   '/datahub/DataHub.html',
   '/ownership/ownership.html',
   '/leaguehub/leaguehub.html',

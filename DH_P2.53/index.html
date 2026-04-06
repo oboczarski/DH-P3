@@ -118,8 +118,8 @@
                         class="fa-solid fa-house"></i><span>Home</span></button>
                     <button class="home-menu-item" data-page="rosters"><i
                         class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
-                    <!-- Dashboard menu: give DataHub a direct href/data-url fallback so it can navigate even if a browser is still holding stale cached JS. -->
-                    <a class="home-menu-item" data-page="datahub" data-url="datahub/DataHub.html" href="datahub/DataHub.html"><i
+                    <!-- Dashboard menu: use the folder index route so local static serving and Netlify both resolve the same working DataHub entrypoint. -->
+                    <a class="home-menu-item" data-page="datahub" href="datahub/index.html"><i
                         class="fa-solid fa-chart-column"></i><span>DataHub</span></a>
                     <button class="home-menu-item" data-page="leaguehub"><i
                         class="fa-solid fa-square-poll-vertical"></i><span>LeagueHub</span></button>
