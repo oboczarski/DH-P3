@@ -374,10 +374,6 @@ const getPageUrl = (page) => {
         case 'research':
             url = `${base}research/research.html`;
             break;
-        case 'datahub':
-            // DataHub standalone stats/analytics page
-            url = `${base}datahub/DataHub.html`;
-            break;
         case 'contact':
             url = `${base}contact/contact.html`;
             break;
