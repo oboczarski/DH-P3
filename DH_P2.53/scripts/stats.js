@@ -388,6 +388,62 @@
   }
   
   const RECEIVING_SUBFILTERS = ['WR', 'TE'];
+
+  // Maps the new data-category attribute values to the internal activePosition values.
+  const CATEGORY_TO_POSITION = {
+    overview:  'ALL',
+    passing:   'QB',
+    rushing:   'RB',
+    receiving: 'Receiving',
+    rdp:       'RDP'
+  };
+  // Reverse map for syncUiState (activePosition → data-category).
+  const POSITION_TO_CATEGORY = {
+    ALL:       'overview',
+    QB:        'passing',
+    RB:        'rushing',
+    Receiving: 'receiving',
+    RDP:       'rdp'
+  };
+
+  // Column group definitions for the group-header row in the two-pane table.
+  // Each entry gives a display label and the set of columns it spans.
+  const STATS_COLUMN_GROUPS = {
+    overview: [
+      { label: 'INFO',           columns: ['TM','AGE','G'] },
+      { label: 'FANTASY',        columns: ['FPTS','PPG','VALUE','ADP','POS·ADP'] },
+      { label: 'OVERVIEW STATS', columns: ['SNP%','YDS(t)','YPG(t)','OPP','IMP','IMP/OPP','CSTY%','CL'] }
+    ],
+    passing: [
+      { label: 'INFO',          columns: ['TM','AGE','G'] },
+      { label: 'FANTASY',       columns: ['FPTS','PPG','VALUE','ADP','POS·ADP'] },
+      { label: 'PASSING',       columns: ['paYDS','paTD','CMP%','paATT','paRTG','EPA/DB','CPOE','CMP','YDS(t)','paYPG'] },
+      { label: 'IMPACT',        columns: ['pIMP','pIMP/A','IMP/G'] },
+      { label: 'RUSHING',       columns: ['CAR','ruYDS','ruTD','YPC'] },
+      { label: 'PRESSURE',      columns: ['TTT','PRS%','SAC','INT'] },
+      { label: 'ADVANCED',      columns: ['pa1D','ru1D','FUM','FPOE','CSTY%','CL'] }
+    ],
+    rushing: [
+      { label: 'INFO',          columns: ['TM','AGE','G'] },
+      { label: 'FANTASY',       columns: ['FPTS','PPG','VALUE','ADP','POS·ADP'] },
+      { label: 'USAGE',         columns: ['SNP%','CAR'] },
+      { label: 'RUSHING',       columns: ['ruYDS','YPC','ruTD','YDS(t)','ruYPG'] },
+      { label: 'RECEIVING',     columns: ['REC','recYDS','TGT'] },
+      { label: 'EFFICIENCY',    columns: ['ELU','MTF/A','YCO/A','MTF','YCO','EXPLSV%'] },
+      { label: 'ADVANCED',      columns: ['ru1D','RYOE','recTD','rec1D','YAC','IMP/G','FUM','FPOE','CSTY%','CL'] }
+    ],
+    receiving: [
+      { label: 'INFO',          columns: ['TM','AGE','G'] },
+      { label: 'FANTASY',       columns: ['FPTS','PPG','VALUE','ADP','POS·ADP'] },
+      { label: 'USAGE',         columns: ['SNP%','TGT','REC','TS%'] },
+      { label: 'RECEIVING',     columns: ['recYDS','recTD','YPRR','rec1D','1DRR','recYPG'] },
+      { label: 'EFFICIENCY',    columns: ['AY%','YAC','YPR','IMP/G','RR','FPOE'] },
+      { label: 'ADVANCED',      columns: ['YDS(t)','RZ Tgt','CAR','ruYDS','ruTD','YPC','FUM','CSTY%','CL'] }
+    ]
+  };
+  // Frozen pane always shows the GENERAL group (RK / PLAYER / POS).
+  const STATS_FROZEN_GROUP = [{ label: 'GENERAL', columns: ['RK','PLAYER','POS'] }];
+
   const statsState = {
     currentTab: 'oneQb',
     activePosition: 'ALL',
@@ -403,25 +459,41 @@
       WR: true,
       TE: true
     },
-    // Performance optimization state
+    // Two-pane table references (set by renderTable, used by updateTableRows)
     needsFullRebuild: true,
-    currentContainer: null,
-    scrollPositions: { horizontal: 0, vertical: 0 }
+    currentFrozenTbody: null,
+    currentScrollTbody: null,
+    currentScrollPane:  null,
+    currentFrozenPane:  null
   };
+
+  // DOM anchors — mapped to the new stats.html element IDs.
   const dom = {
-    tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
-    tabHeadings: Array.from(document.querySelectorAll('.stats-tab-heading')),
-    tableWrappers: Array.from(document.querySelectorAll('.stats-table-wrapper')),
-    loading: document.getElementById('statsLoading'),
-    emptyState: document.getElementById('statsEmptyState'),
-    searchInput: document.getElementById('statsSearchInput'),
-    searchClear: document.getElementById('statsSearchClear'),
-    filterGroup: document.getElementById('statsFilterGroup'),
-    rookieButton: document.querySelector('.stats-rookie-btn'),
-    secondaryFilterGroup: document.getElementById('statsSecondaryFilterGroup'),
-    leagueChip: document.getElementById('statsLeagueContext'),
-    receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
-    receivingButton: document.querySelector('.stats-filter-btn-receiving')
+    // Legacy loading spinner (still present in new HTML)
+    loading:              document.getElementById('statsLoading'),
+    // Primary tab buttons (1-QB / SFLX) — live inside .top-tabs
+    primaryTabButtons:    Array.from(document.querySelectorAll('[data-primary-tab]')),
+    // Category chips — OVERVIEW / PASSING / RUSHING / RECEIVING
+    categoryButtons:      Array.from(document.querySelectorAll('.category-chip[data-category]')),
+    // PICK VALUES pill
+    rdpButton:            document.querySelector('[data-category="rdp"]'),
+    // Rookies mini-chip
+    rookieChip:           document.querySelector('[data-category="rookies"]'),
+    // Receiving sub-filter panel + individual buttons
+    receivingSubfilters:  document.getElementById('receiving-subfilters'),
+    receivingSubfilterButtons: Array.from(document.querySelectorAll('[data-receiving-filter]')),
+    // Search input
+    searchInput:          document.getElementById('player-search'),
+    // Two-pane table container
+    gridContainer:        document.getElementById('player-grid'),
+    // Grid overlay (loading / empty state)
+    gridOverlay:          document.getElementById('grid-overlay'),
+    overlayTitle:         document.getElementById('overlay-title'),
+    overlayBody:          document.getElementById('overlay-description'),
+    overlayActions:       document.getElementById('overlay-actions'),
+    // Meta labels
+    rowCount:             document.getElementById('row-count'),
+    activeViewLabel:      document.getElementById('active-view-label')
   };
   // Allow forcing the inline stats-table loader via DevTools, similar to the global `setLoading()` helper.
   // Usage (Stats page only):
@@ -477,10 +549,6 @@
   } catch (e) {
     // ignore
   }
-  dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
-  dom.receivingSubfilterButtons = dom.receivingSubfilters
-    ? Array.from(dom.receivingSubfilters.querySelectorAll('.stats-receiving-subfilter'))
-    : [];
   const gameLogDom = {
     modal: document.getElementById('game-logs-modal'),
     overlay: document.querySelector('#game-logs-modal .modal-overlay'),
@@ -550,9 +618,10 @@
   function updateReceivingSubfilterButtons() {
     if (!dom.receivingSubfilterButtons) return;
     dom.receivingSubfilterButtons.forEach((btn) => {
-      const key = btn.dataset.subfilter;
+      // New HTML uses data-receiving-filter; old used data-subfilter — handle both.
+      const key = btn.dataset.receivingFilter || btn.dataset.subfilter;
       const isActive = !!statsState.receivingSubfilters[key];
-      btn.classList.toggle('active', isActive);
+      btn.classList.toggle('is-active', isActive);
       btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
   }
@@ -563,13 +632,9 @@
     updateReceivingSubfilterButtons();
   }
   function setReceivingSubfiltersVisible(visible) {
-    if (!dom.receivingFilterWrapper) return;
-    dom.receivingFilterWrapper.classList.toggle('subfilters-visible', visible);
+    // Show/hide the receiving-subfilters panel using the HTML `hidden` attribute.
     if (dom.receivingSubfilters) {
-      dom.receivingSubfilters.setAttribute('aria-hidden', visible ? 'false' : 'true');
-    }
-    if (dom.receivingButton) {
-      dom.receivingButton.setAttribute('aria-pressed', visible ? 'true' : 'false');
+      dom.receivingSubfilters.hidden = !visible;
     }
   }
   function syncReceivingSubfilterUi({ ensureReset = false } = {}) {
@@ -1217,6 +1282,177 @@
 
     return null;
   }
+
+  // === New two-pane table helpers ===
+
+  // Show and hide the #grid-overlay element (loading / error state).
+  function showGridOverlay({ title, body, showActions } = {}) {
+    if (!dom.gridOverlay) return;
+    if (dom.overlayTitle && title) dom.overlayTitle.textContent = title;
+    if (dom.overlayBody && body) dom.overlayBody.textContent = body;
+    if (dom.overlayActions) dom.overlayActions.hidden = !showActions;
+    dom.gridOverlay.classList.remove('is-hidden');
+  }
+  function hideGridOverlay() {
+    if (dom.gridOverlay) dom.gridOverlay.classList.add('is-hidden');
+  }
+
+  // Update the meta row-count label in .grid-shell__meta.
+  function updateRowCount(count) {
+    if (dom.rowCount) {
+      dom.rowCount.textContent = `${count} player${count !== 1 ? 's' : ''}`;
+    }
+  }
+
+  // Sync the active-view label and all UI button states to the current statsState.
+  function syncUiState() {
+    // Primary tabs (1-QB / SFLX)
+    dom.primaryTabButtons.forEach(btn => {
+      const isActive = btn.dataset.primaryTab === (statsState.currentTab === 'sflx' ? 'SFLX' : '1-QB');
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // Category chips (overview / passing / rushing / receiving)
+    const activeCategory = POSITION_TO_CATEGORY[statsState.activePosition] || 'overview';
+    dom.categoryButtons.forEach(btn => {
+      const isActive = btn.dataset.category === activeCategory;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    // PICK VALUES pill (rdp)
+    if (dom.rdpButton) {
+      dom.rdpButton.classList.toggle('is-active', statsState.activePosition === 'RDP');
+    }
+
+    // Rookies mini-chip
+    if (dom.rookieChip) {
+      dom.rookieChip.classList.toggle('is-active', statsState.rookieOnly);
+      dom.rookieChip.setAttribute('aria-pressed', statsState.rookieOnly ? 'true' : 'false');
+    }
+
+    // Receiving subfilters visibility
+    setReceivingSubfiltersVisible(statsState.activePosition === 'Receiving');
+    updateReceivingSubfilterButtons();
+
+    // Active-view label
+    const VIEW_LABELS = {
+      ALL:       'OVERVIEW (ALL)',
+      QB:        'PASSING (QB)',
+      RB:        'RUSHING (RB)',
+      Receiving: 'RECEIVING (W/T)',
+      RDP:       'PICK VALUES'
+    };
+    if (dom.activeViewLabel) {
+      dom.activeViewLabel.textContent = VIEW_LABELS[statsState.activePosition] || 'OVERVIEW (ALL)';
+    }
+  }
+
+  // After a full render, sync tbody row heights across the two panes using ResizeObserver.
+  // This ensures frozen and scroll rows are always the same height.
+  function syncStatsPaneHeights(frozenTable, scrollTable) {
+    if (!frozenTable || !scrollTable) return;
+    const frozenRows  = Array.from(frozenTable.querySelectorAll('tbody tr'));
+    const scrollRows  = Array.from(scrollTable.querySelectorAll('tbody tr'));
+    const len = Math.min(frozenRows.length, scrollRows.length);
+    for (let i = 0; i < len; i++) {
+      const maxH = Math.max(frozenRows[i].offsetHeight, scrollRows[i].offsetHeight);
+      if (maxH > 0) {
+        frozenRows[i].style.height  = `${maxH}px`;
+        scrollRows[i].style.height  = `${maxH}px`;
+      }
+    }
+  }
+
+  // Build a group-header <tr> whose cells span the columns in each group.
+  function buildStatsGroupHeaderRow(columns, groups) {
+    const tr = document.createElement('tr');
+    const colToGroup = new Map();
+    groups.forEach(g => g.columns.forEach(c => colToGroup.set(c, g.label)));
+
+    let i = 0;
+    while (i < columns.length) {
+      const label = colToGroup.get(columns[i]) || null;
+      let span = 1;
+      while (i + span < columns.length && colToGroup.get(columns[i + span]) === label) span++;
+      const th = document.createElement('th');
+      th.className = 'stats-table__group-header-cell';
+      th.colSpan = span;
+      if (label) th.textContent = label;
+      tr.appendChild(th);
+      i += span;
+    }
+    return tr;
+  }
+
+  // Build a complete <table> for one pane (frozen or scroll).
+  function buildPaneTable(columns, groups, tableRows, headerLabels) {
+    const table = document.createElement('table');
+    table.className = 'stats-table';
+
+    // colgroup
+    const colgroup = document.createElement('colgroup');
+    columns.forEach(col => {
+      const c = document.createElement('col');
+      c.style.width = `${getColumnWidth(col)}px`;
+      colgroup.appendChild(c);
+    });
+    table.appendChild(colgroup);
+
+    // thead: group header row + column header row
+    const thead = document.createElement('thead');
+    thead.appendChild(buildStatsGroupHeaderRow(columns, groups));
+
+    const colRow = document.createElement('tr');
+    columns.forEach(col => {
+      const th = document.createElement('th');
+      th.dataset.columnKey = col;
+      const w = getColumnWidth(col);
+      th.style.width = `${w}px`;
+      th.style.minWidth = `${w}px`;
+      // Sort button label
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stats-sort-btn';
+      btn.textContent = headerLabels.get(col) || col;
+      th.appendChild(btn);
+      if (statsState.sort.column === col) applySortIndicator(th);
+      colRow.appendChild(th);
+    });
+    thead.appendChild(colRow);
+    table.appendChild(thead);
+
+    // tbody
+    const tbody = document.createElement('tbody');
+    buildBodyRowsInTbody(tbody, columns, tableRows);
+    table.appendChild(tbody);
+    return table;
+  }
+
+  // Render (or re-render) body rows into a given <tbody>.
+  // tableRows is the array of { [column]: descriptor } objects built by renderTable.
+  function buildBodyRowsInTbody(tbody, columns, tableRows) {
+    tbody.innerHTML = '';
+    tableRows.forEach(rowData => {
+      const tr = document.createElement('tr');
+      columns.forEach(col => {
+        const td = document.createElement('td');
+        td.dataset.col = col;
+        const descriptor = rowData[col];
+        if (!descriptor) {
+          td.textContent = '';
+        } else if (typeof descriptor.render === 'function') {
+          descriptor.render(td);
+        } else {
+          td.textContent = String(descriptor);
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
   function formatCellValue(column, entry) {
     const { row, meta } = entry;
     if (column === 'PLAYER') {
@@ -1301,1072 +1537,215 @@
     }
   }
   
-	  // Helper to save scroll positions before re-render
-	  function saveScrollPositions() {
-	    if (!statsState.currentContainer) return;
-	    const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
-	    const scrollableHeader = statsState.currentContainer.querySelector('.stats-scrollable-header');
-	    statsState.scrollPositions.horizontal = scrollableHeader?.scrollLeft || 0;
-	    if (vScroll) {
-	      statsState.scrollPositions.vertical = vScroll.scrollTop || 0;
-	    }
-	  }
-  
-  // Helper to restore scroll positions after re-render
-		  function restoreScrollPositions() {
-		    if (!statsState.currentContainer) return;
-		    requestAnimationFrame(() => {
-		      const hScroll = statsState.currentContainer.querySelector('.stats-hscroll-container');
-		      const vScroll = statsState.currentContainer.querySelector('.stats-vscroll-container');
-		      const scrollableHeader = hScroll?.querySelector('.stats-scrollable-header');
-		      const overlayInner = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay-inner');
-		      
-		      if (scrollableHeader) scrollableHeader.scrollLeft = statsState.scrollPositions.horizontal || 0;
-		      if (overlayInner) overlayInner.style.transform = `translate3d(-${statsState.scrollPositions.horizontal || 0}px, 0, 0)`;
-		      if (vScroll && statsState.scrollPositions.vertical > 0) {
-		        vScroll.scrollTop = statsState.scrollPositions.vertical;
-		      }
-		    });
-		  }
-  
-  // Fast row update - only re-renders tbody rows without touching structure
+  // updateTableRows: triggers a full re-render (delegates to renderTable).
+  // Column structure doesn't change on sort/filter so this is always safe.
   function updateTableRows() {
-    if (!statsState.currentContainer) {
-      // No container yet, do full render
-      renderTable();
-      return;
-    }
-    
-    const dataset = getActiveDataset();
-    const baseColumnSet = getColumnSet();
-    const availableColumns = statsState.availableColumns.get(statsState.currentTab);
-    const columnSet = baseColumnSet.filter((column, index) => {
-      if (index < 3) return true;
-      if (statsState.activePosition === 'RDP' && ['YEAR', 'RANGE', 'ROUND'].includes(column)) return true;
-      if (!availableColumns) return true;
-      return availableColumns.has(column);
-    });
-
-    const filtered = dataset.filter(passesFilters);
-    const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
-      ? statsState.sort.column
-      : 'RK';
-
-    const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
-    const sortCollection = (collection) => {
-      if (!collection.length) return [];
-      if (statsState.sort.direction === 0 || !statsState.sort.column) {
-        return [...collection].sort((a, b) => (a.meta.rank ?? Infinity) - (b.meta.rank ?? Infinity));
-      }
-      return getSortedRows(collection, sortColumn);
-    };
-
-    let sortedRows;
-    if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
-      sortedRows = [...filtered];
-    } else {
-      const playerRows = [];
-      const pickRows = [];
-      filtered.forEach((entry) => {
-        if (entry.meta.pos === 'RDP') {
-          pickRows.push(entry);
-        } else {
-          playerRows.push(entry);
-        }
-      });
-      const sortedPlayers = sortCollection(playerRows);
-      sortedRows = [...sortedPlayers, ...pickRows];
-    }
-
-    sortedRows.forEach((entry, index) => {
-      // In RDP mode, give picks proper ranks; otherwise only rank non-RDP entries
-      if (statsState.activePosition === 'RDP') {
-        entry.meta.currentRank = index + 1;
-      } else if (entry.meta.pos !== 'RDP') {
-        entry.meta.currentRank = index + 1;
-      } else {
-        entry.meta.currentRank = null;
-      }
-    });
-    
-    statsState.lastRenderedRows = sortedRows;
-
-	    const createTextDescriptor = (textOrDescriptor, style) => ({
-	      render: (td) => {
-	        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
-	          ? textOrDescriptor
-	          : { text: textOrDescriptor, asterisk: false };
-        td.textContent = descriptor.text ?? '';
-        if (descriptor.asterisk) {
-          const star = document.createElement('span');
-          star.className = 'stats-eff-asterisk';
-          star.textContent = '✼';
-          td.appendChild(star);
-        }
-	        if (style) Object.assign(td.style, style);
-	      }
-	    });
-
-	    // Always include FPTS/PPG for rank-based coloring, even in position-specific filter views.
-	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
-	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : columnSet.filter((col) => ALWAYS_RANKED_COLUMNS.has(col));
-	    const overviewRankColors = overviewRankColumns.length
-	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
-	      : null;
-
-	    const tableRows = sortedRows.map((entry, entryIndex) => {
-	      const rowData = {};
-	      for (const column of columnSet) {
-	        const textValue = formatCellValue(column, entry);
-	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
-	        if (column === 'PLAYER') {
-	          rowData[column] = {
-	            render: (td) => {
-	              td.classList.add('stats-player-cell');
-	              const isPickRow = entry.meta.pos === 'RDP' || !entry.meta.playerId;
-	              if (isPickRow) {
-	                td.textContent = displayValue.text ?? displayValue;
-	                if (displayValue.asterisk) {
-	                  const star = document.createElement('span');
-	                  star.className = 'stats-eff-asterisk';
-	                  star.textContent = '*';
-	                  td.appendChild(star);
-	                }
-	                return;
-	              }
-	              const button = document.createElement('button');
-	              button.type = 'button';
-	              button.className = 'stats-player-btn';
-	              button.dataset.playerId = entry.meta.playerId;
-	              button.dataset.entryIndex = entryIndex;
-              button.textContent = displayValue.text ?? displayValue;
-              if (displayValue.asterisk) {
-                const star = document.createElement('span');
-                star.className = 'stats-eff-asterisk';
-                star.textContent = '*';
-                button.appendChild(star);
-              }
-              td.appendChild(button);
-            }
-          };
-        } else if (column === 'POS') {
-          const pos = (textValue || entry.meta.pos || '').trim().toUpperCase();
-          rowData[column] = {
-            render: (td) => {
-              if (pos) {
-                const posTag = document.createElement('span');
-                posTag.className = `player-tag modal-pos-tag ${pos}`;
-                posTag.textContent = pos;
-                td.appendChild(posTag);
-              } else {
-                td.textContent = '';
-              }
-            }
-          };
-        } else if (column === 'VALUE') {
-          rowData[column] = {
-            render: (td) => {
-              const span = document.createElement('span');
-              span.className = 'stats-value-chip';
-              span.style.cssText = entry.meta.valueStyle;
-              span.textContent = displayValue.text ?? displayValue;
-              if (displayValue.asterisk) {
-                const star = document.createElement('span');
-                star.className = 'stats-eff-asterisk';
-                star.textContent = '*';
-                span.appendChild(star);
-              }
-              td.appendChild(span);
-            }
-          };
-	        } else if (column === 'TM') {
-	          rowData[column] = {
-	            render: (td) => {
-	              if (entry.meta.pos === 'RDP') {
-	                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
-              } else {
-                const teamKey = (textValue || 'FA').toUpperCase();
-                const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-                const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-                const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
-                td.innerHTML = (teamKey && teamKey !== 'FA')
-                  ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
-              }
-	            }
-	          };
-	        } else {
-	          const style = getConditionalCellStyle(column, entry, overviewRankColors);
-	          rowData[column] = createTextDescriptor(displayValue, style);
-	        }
-	      }
-	      return rowData;
-	    });
-
-    const FROZEN_COLUMN_COUNT = 3;
-    const frozenColumns = columnSet.slice(0, FROZEN_COLUMN_COUNT);
-    const scrollableColumns = columnSet.slice(FROZEN_COLUMN_COUNT);
-
-    const applyCellDescriptor = (td, descriptor) => {
-      td.textContent = '';
-      td.innerHTML = '';
-      if (!descriptor) return;
-      if (typeof descriptor.render === 'function') {
-        descriptor.render(td);
-      } else {
-        td.textContent = String(descriptor);
-      }
-    };
-
-    const renderBodyRows = (tbody, cols, rowsData) => {
-      tbody.innerHTML = ''; // Clear existing rows
-      rowsData.forEach((rowData) => {
-        const tr = document.createElement('tr');
-        cols.forEach((col) => {
-          const td = document.createElement('td');
-          td.dataset.col = col;
-          const descriptor = rowData[col];
-          applyCellDescriptor(td, descriptor);
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-    };
-
-    // Update both frozen and scrollable tbody sections
-    const frozenBodyTbody = statsState.currentContainer.querySelector('.stats-frozen-body tbody');
-    const scrollableBodyTbody = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay tbody');
-
-    if (frozenBodyTbody) {
-      renderBodyRows(frozenBodyTbody, frozenColumns, tableRows);
-    }
-    if (scrollableBodyTbody) {
-      renderBodyRows(scrollableBodyTbody, scrollableColumns, tableRows);
-    }
-
-    // Update sort indicators in headers
-    const allHeaders = statsState.currentContainer.querySelectorAll('th[data-column-key]');
-    allHeaders.forEach(th => {
-      th.classList.remove('stats-sort-asc', 'stats-sort-desc', 'stats-sort-low-better');
-      if (th.dataset.columnKey === statsState.sort.column) {
-        applySortIndicator(th);
-      }
-    });
-
-    // Update content height
-    const vScrollContainer = statsState.currentContainer.querySelector('.stats-vscroll-container');
-    const frozenBody = statsState.currentContainer.querySelector('.stats-frozen-body');
-    const scrollableBodyOverlay = statsState.currentContainer.querySelector('.stats-scrollable-body-overlay');
-    const vScrollContent = statsState.currentContainer.querySelector('.stats-vscroll-content');
-    
-    if (frozenBodyTbody && scrollableBodyTbody && frozenBody && scrollableBodyOverlay && vScrollContent) {
-      const frozenBodyTable = frozenBodyTbody.closest('table');
-      const scrollableBodyOverlayTable = scrollableBodyTbody.closest('table');
-      const scrollableBodyHeight = scrollableBodyOverlayTable?.offsetHeight || 0;
-      const frozenBodyHeight = frozenBodyTable?.offsetHeight || 0;
-      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
-      if (maxHeight > 0) {
-        frozenBody.style.height = `${maxHeight}px`;
-        scrollableBodyOverlay.style.height = `${maxHeight}px`;
-        vScrollContent.style.minHeight = `${maxHeight}px`;
-      }
-    }
-
-    // Handle empty state
-    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
+    statsState.needsFullRebuild = true;
+    renderTable();
   }
   
   function renderTable() {
-    // If we don't need a full rebuild and have a container, just update rows
-    if (!statsState.needsFullRebuild && statsState.currentContainer) {
-      updateTableRows();
-      return;
-    }
-    
-    // Save scroll positions before full re-render
-    saveScrollPositions();
-
-    // Note: We use manual rendering for frozen columns, so TanStack Table is optional
-    // Keeping the check for potential future use, but not required for current implementation
-
-    const dataset = getActiveDataset();
-    const baseColumnSet = getColumnSet();
+    // === Data preparation: filter, sort, and assign current display ranks ===
+    const dataset        = getActiveDataset();
     const availableColumns = statsState.availableColumns.get(statsState.currentTab);
-    const columnSet = baseColumnSet.filter((column, index) => {
-      if (index < 3) return true; // Always show first 3 columns
-      if (statsState.activePosition === 'RDP' && ['YEAR', 'RANGE', 'ROUND'].includes(column)) return true;
+    const baseColumnSet  = getColumnSet();
+    const columnSet      = baseColumnSet.filter((col, idx) => {
+      if (idx < 3) return true; // always keep frozen columns (RK / PLAYER / POS)
+      if (statsState.activePosition === 'RDP' && ['YEAR','RANGE','ROUND'].includes(col)) return true;
       if (!availableColumns) return true;
-      return availableColumns.has(column);
+      return availableColumns.has(col);
     });
 
-    const headerLabels = statsState.headerLabels.get(statsState.currentTab) || new Map();
-    const filtered = dataset.filter(passesFilters);
-    const sortColumn = statsState.sort.column && columnSet.includes(statsState.sort.column)
-      ? statsState.sort.column
-      : 'RK';
+    const headerLabels  = statsState.headerLabels.get(statsState.currentTab) || new Map();
+    const filtered      = dataset.filter(passesFilters);
+    const sortColumn    = (statsState.sort.column && columnSet.includes(statsState.sort.column))
+                          ? statsState.sort.column : null;
+    const hasOnlyPicks  = filtered.length > 0 && filtered.every(e => e.meta.pos === 'RDP');
 
-    const hasOnlyPicks = filtered.length > 0 && filtered.every((entry) => entry.meta.pos === 'RDP');
-    const sortCollection = (collection) => {
-      if (!collection.length) return [];
+    const sortCollection = coll => {
+      if (!coll.length) return [];
       if (statsState.sort.direction === 0 || !statsState.sort.column) {
-        return [...collection].sort((a, b) => (a.meta.rank ?? Infinity) - (b.meta.rank ?? Infinity));
+        return [...coll].sort((a, b) => (a.meta.rank ?? Infinity) - (b.meta.rank ?? Infinity));
       }
-      return getSortedRows(collection, sortColumn);
+      return getSortedRows(coll, sortColumn || 'RK');
     };
 
     let sortedRows;
     if (statsState.activePosition === 'RDP' || hasOnlyPicks) {
       sortedRows = [...filtered];
     } else {
-      const playerRows = [];
-      const pickRows = [];
-      filtered.forEach((entry) => {
-        if (entry.meta.pos === 'RDP') {
-          pickRows.push(entry);
-        } else {
-          playerRows.push(entry);
-        }
-      });
-      const sortedPlayers = sortCollection(playerRows);
-      sortedRows = [...sortedPlayers, ...pickRows];
+      const playerRows = [], pickRows = [];
+      filtered.forEach(e => (e.meta.pos === 'RDP' ? pickRows : playerRows).push(e));
+      sortedRows = [...sortCollection(playerRows), ...pickRows];
     }
 
-    sortedRows.forEach((entry, index) => {
-      // In RDP mode, give picks proper ranks; otherwise only rank non-RDP entries
-      if (statsState.activePosition === 'RDP') {
-        entry.meta.currentRank = index + 1;
-      } else if (entry.meta.pos !== 'RDP') {
-        entry.meta.currentRank = index + 1;
-      } else {
-        entry.meta.currentRank = null;
-      }
+    sortedRows.forEach((entry, idx) => {
+      if (statsState.activePosition === 'RDP')  entry.meta.currentRank = idx + 1;
+      else if (entry.meta.pos !== 'RDP')         entry.meta.currentRank = idx + 1;
+      else                                        entry.meta.currentRank = null;
     });
-    
     statsState.lastRenderedRows = sortedRows;
 
-    // --- Data Transformation for TanStack Table ---
-	    const createTextDescriptor = (textOrDescriptor, style) => ({
-	      render: (td) => {
-	        const descriptor = typeof textOrDescriptor === 'object' && textOrDescriptor !== null
-	          ? textOrDescriptor
-	          : { text: textOrDescriptor, asterisk: false };
-        td.textContent = descriptor.text ?? '';
-        if (descriptor.asterisk) {
+    // === Build per-cell descriptors (formatted values + category-specific coloring) ===
+    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
+      ? columnSet.filter(col => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
+      : columnSet.filter(col => ALWAYS_RANKED_COLUMNS.has(col));
+    const overviewRankColors = overviewRankColumns.length
+      ? buildOverviewRankColorCache(filtered, overviewRankColumns) : null;
+
+    // Helper: create a descriptor that applies inline style and handles the efficiency asterisk.
+    const createTextDescriptor = (textOrDescriptor, style) => ({
+      render: (td) => {
+        const d = (typeof textOrDescriptor === 'object' && textOrDescriptor !== null)
+          ? textOrDescriptor : { text: textOrDescriptor, asterisk: false };
+        td.textContent = d.text ?? '';
+        if (d.asterisk) {
           const star = document.createElement('span');
           star.className = 'stats-eff-asterisk';
-          star.textContent = '*';
+          star.textContent = '\u273c'; // ✼
           td.appendChild(star);
         }
-	        if (style) Object.assign(td.style, style);
-	      }
-	    });
+        if (style) Object.assign(td.style, style);
+      }
+    });
 
-	    // Always include FPTS/PPG for rank-based coloring, even in position-specific filter views.
-	    const overviewRankColumns = (!statsState.activePosition || statsState.activePosition === 'ALL')
-	      ? columnSet.filter((col) => OVERVIEW_RANKED_STAT_COLUMN_SET.has(col))
-	      : columnSet.filter((col) => ALWAYS_RANKED_COLUMNS.has(col));
-	    const overviewRankColors = overviewRankColumns.length
-	      ? buildOverviewRankColorCache(filtered, overviewRankColumns)
-	      : null;
+    // One descriptor object per (row, column) combination.
+    const tableRows = sortedRows.map((entry, entryIndex) => {
+      const rowData = {};
+      for (const column of columnSet) {
+        const textValue    = formatCellValue(column, entry);
+        const displayValue = annotateEfficiencyValue(column, entry, textValue);
+        const dText        = typeof displayValue === 'object' ? (displayValue.text ?? '') : displayValue;
+        const dAsterisk    = typeof displayValue === 'object' ? !!displayValue.asterisk : false;
 
-	    const tableRows = sortedRows.map((entry, entryIndex) => {
-	      const rowData = {};
-	      for (const column of columnSet) {
-	        const textValue = formatCellValue(column, entry);
-	        const displayValue = annotateEfficiencyValue(column, entry, textValue);
-	        if (column === 'PLAYER') {
-	          rowData[column] = {
-	            render: (td) => {
-	              td.classList.add('stats-player-cell');
-	              const isPickRow = entry.meta.pos === 'RDP' || !entry.meta.playerId;
-	              if (isPickRow) {
-	                td.textContent = displayValue.text ?? displayValue;
-	                if (displayValue.asterisk) {
-	                  const star = document.createElement('span');
-	                  star.className = 'stats-eff-asterisk';
-	                  star.textContent = '*';
-	                  td.appendChild(star);
-	                }
-	                return;
-	              }
-	              const button = document.createElement('button');
-	              button.type = 'button';
-	              button.className = 'stats-player-btn';
-	              button.dataset.playerId = entry.meta.playerId;
-	              button.dataset.entryIndex = entryIndex;
-              button.textContent = displayValue.text ?? displayValue;
-              if (displayValue.asterisk) {
+        if (column === 'PLAYER') {
+          rowData[column] = {
+            render: (td) => {
+              td.classList.add('stats-player-cell');
+              const isPickRow = entry.meta.pos === 'RDP' || !entry.meta.playerId;
+              if (isPickRow) { td.textContent = dText; return; }
+              // Player button wires into the shared game-logs modal via openGameLogs().
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'stats-player-btn';
+              button.dataset.playerId   = entry.meta.playerId;
+              button.dataset.entryIndex = entryIndex;
+              button.textContent = dText;
+              if (dAsterisk) {
                 const star = document.createElement('span');
                 star.className = 'stats-eff-asterisk';
-                star.textContent = '*';
+                star.textContent = '\u273c';
                 button.appendChild(star);
               }
               td.appendChild(button);
             }
           };
         } else if (column === 'POS') {
-          // POS column - render as styled tag
           const pos = (textValue || entry.meta.pos || '').trim().toUpperCase();
           rowData[column] = {
             render: (td) => {
               if (pos) {
-                const posTag = document.createElement('span');
-                posTag.className = `player-tag modal-pos-tag ${pos}`;
-                posTag.textContent = pos;
-                td.appendChild(posTag);
-              } else {
-                td.textContent = '';
+                const tag = document.createElement('span');
+                tag.className = `player-tag modal-pos-tag ${pos}`;
+                tag.textContent = pos;
+                td.appendChild(tag);
               }
             }
           };
         } else if (column === 'VALUE') {
           rowData[column] = {
             render: (td) => {
-              const span = document.createElement('span');
-              span.className = 'stats-value-chip';
-              span.style.cssText = entry.meta.valueStyle;
-              span.textContent = displayValue.text ?? displayValue;
-              if (displayValue.asterisk) {
+              const chip = document.createElement('span');
+              chip.className = 'stats-value-chip';
+              chip.style.cssText = entry.meta.valueStyle;
+              chip.textContent = dText;
+              if (dAsterisk) {
                 const star = document.createElement('span');
                 star.className = 'stats-eff-asterisk';
-                star.textContent = '*';
-                span.appendChild(star);
+                star.textContent = '\u273c';
+                chip.appendChild(star);
               }
-              td.appendChild(span);
+              td.appendChild(chip);
             }
           };
-	        } else if (column === 'TM') {
-	          rowData[column] = {
-	            render: (td) => {
-	              if (entry.meta.pos === 'RDP') {
-	                td.innerHTML = `<span style="color: var(--color-text-secondary);">RDP</span>`;
+        } else if (column === 'TM') {
+          rowData[column] = {
+            render: (td) => {
+              if (entry.meta.pos === 'RDP') {
+                td.innerHTML = '<span style="color:var(--color-text-secondary)">RDP</span>';
               } else {
                 const teamKey = (textValue || 'FA').toUpperCase();
-                const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
-                const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
-                const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
+                const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
+                const nk  = logoKeyMap[teamKey] || teamKey.toLowerCase();
+                const src = `../assets/NFL_logos_svg/${nk}.svg`;
                 td.innerHTML = (teamKey && teamKey !== 'FA')
                   ? `<img class="team-logo glow" src="${src}" alt="${teamKey}" width="20" height="20">`
-                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${displayValue.text ?? displayValue}</span>`;
+                  : `<span class="stats-team-chip" style="${entry.meta.teamStyle}">${dText}</span>`;
               }
-	            }
-	          };
-	        } else {
-	          const style = getConditionalCellStyle(column, entry, overviewRankColors);
-	          rowData[column] = createTextDescriptor(displayValue, style);
-	        }
-	      }
-	      return rowData;
-	    });
-
-    const columns = columnSet.map(column => ({
-      id: column,
-      accessorKey: column,
-      header: () => headerLabels.get(column) || column,
-      size: getColumnWidth(column),
-    }));
-
-    // Calculate column sizes
-    let columnSizes = columns.map(col => Number.isFinite(col.size) ? col.size : DEFAULT_COLUMN_WIDTH);
-    
-    // Split columns into frozen (first 3) and scrollable (rest)
-    const FROZEN_COLUMN_COUNT = 3;
-    const frozenColumns = columnSet.slice(0, FROZEN_COLUMN_COUNT);
-    const scrollableColumns = columnSet.slice(FROZEN_COLUMN_COUNT);
-    const frozenColumnSizes = columnSizes.slice(0, FROZEN_COLUMN_COUNT);
-    const scrollableColumnSizes = columnSizes.slice(FROZEN_COLUMN_COUNT);
-    const frozenWidth = frozenColumnSizes.reduce((sum, size) => sum + size, 0);
-    const scrollableWidth = scrollableColumnSizes.reduce((sum, size) => sum + size, 0);
-    
-    // Note: We use manual rendering for frozen/scrollable split columns
-    // TanStack Table doesn't handle split column sets well, so we render manually
-
-    // --- Frozen Columns Pattern: Separate Frozen and Scrollable Sections ---
-    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
-    const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
-    wrapper.classList.remove('hidden');
-    otherWrappers.forEach((el) => el.classList.add('hidden'));
-
-    // Preserve caption if it exists
-    const existingCaption = wrapper.querySelector('caption');
-    const previousContainer = wrapper.querySelector('.stats-table-container');
-    const placeholderTable = !previousContainer ? wrapper.querySelector('table.stats-table') : null;
-
-    if (placeholderTable) {
-      placeholderTable.remove();
-    }
-
-    // Helper to create a table with colgroup for specific columns
-    const createSectionTable = (cols, sizes) => {
-      const table = document.createElement('table');
-      table.className = 'stats-table';
-      const colgroup = document.createElement('colgroup');
-      sizes.forEach(size => {
-        const col = document.createElement('col');
-        col.style.width = `${size}px`;
-        colgroup.appendChild(col);
-      });
-      table.appendChild(colgroup);
-      return table;
-    };
-
-    // Create main container structure
-    const container = document.createElement('div');
-    container.className = 'stats-table-container';
-    container.style.setProperty('--frozen-width', `${frozenWidth}px`);
-    
-    // Create frozen corner (first 3 header columns)
-    const frozenCorner = document.createElement('div');
-    frozenCorner.className = 'stats-frozen-corner';
-    const frozenCornerTable = createSectionTable(frozenColumns, frozenColumnSizes);
-    if (existingCaption) {
-      const caption = existingCaption.cloneNode(true);
-      frozenCornerTable.appendChild(caption);
-    }
-    const frozenCornerThead = document.createElement('thead');
-    frozenCornerTable.appendChild(frozenCornerThead);
-    frozenCorner.appendChild(frozenCornerTable);
-    
-	    // Create horizontal scroll container (scrollable header + body)
-	    const hScrollContainer = document.createElement('div');
-	    hScrollContainer.className = 'stats-hscroll-container';
-	    
-	    // Scrollable header (columns 4+)
-	    const scrollableHeader = document.createElement('div');
-	    scrollableHeader.className = 'stats-scrollable-header';
-    const scrollableHeaderTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-    const scrollableHeaderThead = document.createElement('thead');
-	    scrollableHeaderTable.appendChild(scrollableHeaderThead);
-	    scrollableHeader.appendChild(scrollableHeaderTable);
-	    
-	    hScrollContainer.appendChild(scrollableHeader);
-	    
-	    // Create vertical scroll container (frozen body + scrollable body overlay)
-	    const vScrollContainer = document.createElement('div');
-	    vScrollContainer.className = 'stats-vscroll-container';
-    
-    // Frozen body (first 3 body columns) - direct child of container for proper positioning
-    const frozenBody = document.createElement('div');
-    frozenBody.className = 'stats-frozen-body';
-    const frozenBodyTable = createSectionTable(frozenColumns, frozenColumnSizes);
-    const frozenBodyTbody = document.createElement('tbody');
-    frozenBodyTable.appendChild(frozenBodyTbody);
-    frozenBody.appendChild(frozenBodyTable);
-    
-    // Content wrapper for scrollable content only
-    const vScrollContent = document.createElement('div');
-    vScrollContent.className = 'stats-vscroll-content';
-    
-		    // Scrollable body overlay (same content as scrollableBodyWrapper, positioned absolutely)
-		    const scrollableBodyOverlay = document.createElement('div');
-		    scrollableBodyOverlay.className = 'stats-scrollable-body-overlay';
-			    // Inner wrapper that will be transformed for horizontal scrolling (keeps overlay itself fixed).
-			    const scrollableBodyOverlayInner = document.createElement('div');
-			    scrollableBodyOverlayInner.className = 'stats-scrollable-body-overlay-inner';
-			    // Ensure we start on a composited transform to avoid a "first horizontal scroll" jerk on iOS.
-			    scrollableBodyOverlayInner.style.transform = 'translate3d(0, 0, 0)';
-			    const scrollableBodyOverlayTable = createSectionTable(scrollableColumns, scrollableColumnSizes);
-			    const scrollableBodyOverlayTbody = document.createElement('tbody');
-			    scrollableBodyOverlayTable.appendChild(scrollableBodyOverlayTbody);
-		    scrollableBodyOverlayInner.appendChild(scrollableBodyOverlayTable);
-		    scrollableBodyOverlay.appendChild(scrollableBodyOverlayInner);
-	    
-	    // Append frozen body directly to container, scrollable content to wrapper
-	    vScrollContainer.appendChild(frozenBody);
-	    vScrollContent.appendChild(scrollableBodyOverlay);
-	    vScrollContainer.appendChild(vScrollContent);
-
-	    // Apply cell descriptor helper
-	    const applyCellDescriptor = (td, descriptor) => {
-	      td.textContent = '';
-      td.innerHTML = '';
-      if (!descriptor) return;
-      if (typeof descriptor.render === 'function') {
-        descriptor.render(td);
-      } else {
-        td.textContent = String(descriptor); // Fallback for plain values
+            }
+          };
+        } else {
+          const style = getConditionalCellStyle(column, entry, overviewRankColors);
+          rowData[column] = createTextDescriptor(displayValue, style);
+        }
       }
-    };
+      return rowData;
+    });
 
-    // Helper to render header cells
-    const renderHeaderCells = (thead, cols, sizes, tableInst) => {
-      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
-        const tr = document.createElement('tr');
-      cols.forEach((col, idx) => {
-          const th = document.createElement('th');
-        const label = headerLabels.get(col) || col;
-        th.textContent = label || '';
-        th.dataset.columnKey = col;
-        const w = sizes[idx] || DEFAULT_COLUMN_WIDTH;
-        th.style.width = `${w}px`;
-        th.style.minWidth = `${w}px`;
-        th.style.maxWidth = `${w}px`;
-        
-        // Apply header color classes
-        const columnCategory = getColumnCategory(col);
-        if (columnCategory === 'all') {
-          th.classList.add('stats-header-all');
-        } else if (columnCategory === 'passing') {
-          th.classList.add('stats-header-passing');
-        } else if (columnCategory === 'rushing') {
-          th.classList.add('stats-header-rushing');
-        } else if (columnCategory === 'receiving') {
-          th.classList.add('stats-header-receiving');
-        }
-        
-        // Apply sort indicator
-        if (statsState.sort.column === col) {
-          applySortIndicator(th);
-        }
-        
-        tr.appendChild(th);
-      });
-      thead.appendChild(tr);
-    };
+    // === Two-pane DOM build ===
+    // Target structure inside #player-grid:
+    //   div.table-frame
+    //     div.table-pane--frozen   (RK / PLAYER / POS)
+    //       table.stats-table  (colgroup + thead[group-row + col-row] + tbody)
+    //     div.table-pane--scroll   (remaining columns, horizontally scrollable)
+    //       table.stats-table  (colgroup + thead[group-row + col-row] + tbody)
+    const FROZEN_COUNT   = 3;
+    const frozenCols     = columnSet.slice(0, FROZEN_COUNT);
+    const scrollCols     = columnSet.slice(FROZEN_COUNT);
+    const activeCategory = POSITION_TO_CATEGORY[statsState.activePosition] || 'overview';
+    const scrollGroups   = STATS_COLUMN_GROUPS[activeCategory] || [];
 
-    // Helper to render body rows
-    const renderBodyRows = (tbody, cols, sizes, tableInst, rowsData) => {
-      // Always use manual rendering for split columns (TanStack Table has issues with split column sets)
-      rowsData.forEach((rowData, idx) => {
-        const tr = document.createElement('tr');
-        cols.forEach((col, cIdx) => {
-          const td = document.createElement('td');
-          td.dataset.col = col;
-          // Get the descriptor for this column from the full row data
-          const descriptor = rowData[col];
-          // Apply the descriptor (which handles POS tags, player buttons, value chips, etc.)
-          applyCellDescriptor(td, descriptor);
-          
-          const w = sizes[cIdx] || DEFAULT_COLUMN_WIDTH;
-          td.style.width = `${w}px`;
-          td.style.minWidth = `${w}px`;
-          td.style.maxWidth = `${w}px`;
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-    };
+    const frozenTable = buildPaneTable(frozenCols, STATS_FROZEN_GROUP, tableRows, headerLabels);
+    const scrollTable = buildPaneTable(scrollCols, scrollGroups,       tableRows, headerLabels);
 
-    // Render frozen corner header (first 3 columns)
-    renderHeaderCells(frozenCornerThead, frozenColumns, frozenColumnSizes, null);
-    
-    // Render scrollable header (columns 4+)
-    renderHeaderCells(scrollableHeaderThead, scrollableColumns, scrollableColumnSizes, null);
+    const frozenPane = document.createElement('div');
+    frozenPane.className = 'table-pane--frozen';
+    frozenPane.appendChild(frozenTable);
 
-	    // Render frozen body rows (first 3 columns)
-	    renderBodyRows(frozenBodyTbody, frozenColumns, frozenColumnSizes, null, tableRows);
+    const scrollPane = document.createElement('div');
+    scrollPane.className = 'table-pane--scroll';
+    scrollPane.appendChild(scrollTable);
 
-	    // Render scrollable body rows (columns 4+)
-	    renderBodyRows(scrollableBodyOverlayTbody, scrollableColumns, scrollableColumnSizes, null, tableRows);
+    // Vertical scroll sync: scrolling the scroll pane mirrors the frozen pane.
+    scrollPane.addEventListener('scroll', () => {
+      frozenPane.scrollTop = scrollPane.scrollTop;
+    }, { passive: true });
 
-	    // Calculate table widths
-	    if (Number.isFinite(frozenWidth) && frozenWidth > 0) {
-      frozenCornerTable.style.width = `${frozenWidth}px`;
-      frozenCornerTable.style.minWidth = `${frozenWidth}px`;
-      frozenBodyTable.style.width = `${frozenWidth}px`;
-      frozenBodyTable.style.minWidth = `${frozenWidth}px`;
-    }
-	    
-	    if (Number.isFinite(scrollableWidth) && scrollableWidth > 0) {
-	      scrollableHeaderTable.style.width = `${scrollableWidth}px`;
-	      scrollableHeaderTable.style.minWidth = `${scrollableWidth}px`;
-	      scrollableBodyOverlayTable.style.width = `${scrollableWidth}px`;
-	      scrollableBodyOverlayTable.style.minWidth = `${scrollableWidth}px`;
-	    }
-    
-    // Get header height for positioning vertical scroll container
-    const getHeaderHeight = () => {
-      return scrollableHeader.offsetHeight || frozenCorner.offsetHeight || 50;
-    };
+    const frame = document.createElement('div');
+    frame.className = 'table-frame';
+    frame.appendChild(frozenPane);
+    frame.appendChild(scrollPane);
 
-    // Assemble the structure
-    container.appendChild(frozenCorner);
-    container.appendChild(hScrollContainer);
-    container.appendChild(vScrollContainer);
-
-	    const applyHeaderMetrics = () => {
-	      const headerHeight = getHeaderHeight();
-	      if (!headerHeight) return false;
-	      frozenCorner.style.height = `${headerHeight}px`;
-	      scrollableHeader.style.height = `${headerHeight}px`;
-	      vScrollContainer.style.top = `${headerHeight}px`;
-	      vScrollContainer.style.height = `calc(100% - ${headerHeight}px)`;
-	      frozenBody.style.top = '0';
-	      return true;
-	    };
-	    
-		    const updateContentHeight = () => {
-		      const scrollableBodyHeight = scrollableBodyOverlayTable.offsetHeight;
-		      const frozenBodyHeight = frozenBodyTable.offsetHeight;
-		      const maxHeight = Math.max(scrollableBodyHeight, frozenBodyHeight);
-	      if (maxHeight > 0) {
-	        frozenBody.style.height = `${maxHeight}px`;
-	        scrollableBodyOverlay.style.height = `${maxHeight}px`;
-	        vScrollContent.style.minHeight = `${maxHeight}px`;
-	      }
-	    };
-
-	    // iOS Safari can fire resize events repeatedly while scrolling (URL bar show/hide),
-	    // which forces expensive layout reads. Only recompute when the viewport width changes.
-	    let lastResizeWidth = window.innerWidth;
-	    let resizeFrame = null;
-		    const handleResize = () => {
-		      const nextWidth = window.innerWidth;
-		      if (nextWidth === lastResizeWidth) return;
-		      lastResizeWidth = nextWidth;
-		      if (resizeFrame) cancelAnimationFrame(resizeFrame);
-		      resizeFrame = requestAnimationFrame(() => {
-		        resizeFrame = null;
-		        applyHeaderMetrics();
-		        updateContentHeight();
-		      });
-		    };
-
-	    const mountContainer = () => {
-	      if (!applyHeaderMetrics()) {
-	        requestAnimationFrame(applyHeaderMetrics);
-	      }
-	      if (scrollableBodyOverlayTable.offsetHeight === 0) {
-	        requestAnimationFrame(updateContentHeight);
-	      } else {
-	        updateContentHeight();
-	      }
-		      window.addEventListener('resize', handleResize);
-		      container._teardown = () => {
-		        window.removeEventListener('resize', handleResize);
-		        if (resizeFrame) cancelAnimationFrame(resizeFrame);
-	      };
-	    };
-
-    if (previousContainer) {
-      container.classList.add('incoming');
-      previousContainer.classList.add('outgoing');
-      wrapper.appendChild(container);
-      mountContainer();
-      requestAnimationFrame(() => {
-        previousContainer._teardown?.();
-        previousContainer.remove();
-        container.classList.remove('incoming');
-        // Store reference to current container
-        statsState.currentContainer = container;
-        statsState.needsFullRebuild = false;
-        restoreScrollPositions();
-      });
-    } else {
-      wrapper.appendChild(container);
-      mountContainer();
-      // Store reference to current container
-      statsState.currentContainer = container;
-      statsState.needsFullRebuild = false;
-      restoreScrollPositions();
+    // Mount into the #player-grid container.
+    if (dom.gridContainer) {
+      dom.gridContainer.replaceChildren(frame);
     }
 
-			    // Scroll synchronization
-			    // Single source of truth: the header is the only horizontal scroller.
-			    // The body overlay content is translated to match immediately (no body-native horizontal scroll).
-				    const overlayInner = scrollableBodyOverlayInner;
-				    let pendingOverlayScrollLeft = 0;
-				    let overlaySyncFrame = null;
-				    let ignoreHeaderScrollEvent = false;
-				    let ignoreHeaderScrollResetFrame = null;
-			
-			    const syncOverlayInner = (scrollLeft) => {
-			      if (!overlayInner) return;
-			      // translate3d helps iOS keep this on the compositor for smoother scroll.
-			      overlayInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
-			    };
-			
-				    // Temporarily promote the overlay during active horizontal scroll to reduce jitter.
-				    let hScrollActiveTimer = null;
-				    let hScrollActiveUntil = 0;
-				    const markHScrollingActive = () => {
-				      hScrollActiveUntil = performance.now() + 160;
-				      container.classList.add('stats-is-hscrolling');
-				      if (hScrollActiveTimer) return;
-				
-				      const tick = () => {
-				        const remaining = hScrollActiveUntil - performance.now();
-				        if (remaining <= 0) {
-				          container.classList.remove('stats-is-hscrolling');
-				          hScrollActiveTimer = null;
-				          return;
-				        }
-				        hScrollActiveTimer = setTimeout(tick, Math.min(remaining, 160));
-				      };
-				
-				      hScrollActiveTimer = setTimeout(tick, 160);
-				    };
-			
-			    const scheduleOverlaySync = () => {
-			      if (!overlayInner || overlaySyncFrame) return;
-			      markHScrollingActive();
-			      overlaySyncFrame = requestAnimationFrame(() => {
-			        overlaySyncFrame = null;
-			        syncOverlayInner(pendingOverlayScrollLeft);
-			      });
-			    };
-			
-				    scrollableHeader.addEventListener('scroll', () => {
-				      if (ignoreHeaderScrollEvent) return;
-				      pendingOverlayScrollLeft = scrollableHeader.scrollLeft;
-				      // Apply immediately once per frame to reduce perceived lag when users drag the header itself,
-				      // while still batching the final sync to rAF to avoid over-updating transforms.
-				      if (!overlaySyncFrame) {
-				        syncOverlayInner(pendingOverlayScrollLeft);
-				      }
-				      markHScrollingActive();
-				      scheduleOverlaySync();
-				    });
-			
-				    if (typeof container._teardown === 'function') {
-				      const previousTeardown = container._teardown;
-				      container._teardown = () => {
-				        previousTeardown();
-				        if (ignoreHeaderScrollResetFrame) {
-				          cancelAnimationFrame(ignoreHeaderScrollResetFrame);
-				          ignoreHeaderScrollResetFrame = null;
-				        }
-				        if (hScrollActiveTimer) {
-				          clearTimeout(hScrollActiveTimer);
-				          hScrollActiveTimer = null;
-				        }
-			        if (overlaySyncFrame) {
-			          cancelAnimationFrame(overlaySyncFrame);
-			          overlaySyncFrame = null;
-			        }
-			      };
-			    }
-			
-					    const setHorizontalScrollLeft = (nextScrollLeft, beforeScrollLeft = scrollableHeader.scrollLeft) => {
-					      // Suppress the header's scroll event that fires due to this programmatic scrollLeft update,
-					      // otherwise we double-sync (and jitter) on iOS during touch-driven scrolling.
-					      ignoreHeaderScrollEvent = true;
-				      if (!ignoreHeaderScrollResetFrame) {
-				        ignoreHeaderScrollResetFrame = requestAnimationFrame(() => {
-				          ignoreHeaderScrollEvent = false;
-				          ignoreHeaderScrollResetFrame = null;
-				        });
-				      }
-					      scrollableHeader.scrollLeft = nextScrollLeft;
-					      const applied = scrollableHeader.scrollLeft;
-					      if (applied !== beforeScrollLeft) {
-					        pendingOverlayScrollLeft = applied;
-					        syncOverlayInner(applied);
-					        markHScrollingActive();
-					      }
-					      return applied;
-					    };
-			
-				    const applyImmediateSync = (deltaX) => {
-				      const before = scrollableHeader.scrollLeft;
-				      const after = setHorizontalScrollLeft(before - deltaX, before);
-				      return after !== before;
-				    };
-		    
-			    // Route horizontal wheel/trackpad gestures to horizontal scroll container (header)
-				    vScrollContainer.addEventListener('wheel', (e) => {
-				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-				        const before = scrollableHeader.scrollLeft;
-				        setHorizontalScrollLeft(before + delta, before);
-				        e.preventDefault();
-				      }
-				    }, { passive: false });
-		    
-			    // Also handle horizontal scroll on frozen body and overlay
-				    frozenBody.addEventListener('wheel', (e) => {
-				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-				        const before = scrollableHeader.scrollLeft;
-				        setHorizontalScrollLeft(before + delta, before);
-				        e.preventDefault();
-				      }
-				    }, { passive: false });
-		    
-				    scrollableBodyOverlay.addEventListener('wheel', (e) => {
-				      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
-				        const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
-				        const before = scrollableHeader.scrollLeft;
-				        setHorizontalScrollLeft(before + delta, before);
-				        e.preventDefault();
-				      }
-				    }, { passive: false });
-			
-			    // Touch gesture support so mobile users can drag anywhere on the body/frozen section
-					    const attachTouchScroller = (surface, onHorizontalScroll) => {
-					      if (!surface) return;
-			
-			      let touchActive = false;
-			      let isHorizontal = null;
-			      let touchStartX = 0;
-			      let touchStartY = 0;
-			      let lastTouchX = 0;
-			      let lastTimestamp = 0;
-			
-			      // Match iOS scroll momentum more closely:
-			      // UIScrollViewDecelerationRateNormal = 0.998, UIScrollViewDecelerationRateFast = 0.99
-			      // (per ms multiplier; we apply `rate^elapsedMs` each frame)
-			      // Source: grep.app search results for UIScrollViewDecelerationRateNormal.
-			      const DECELERATION_RATE = 0.998;
-				      const VELOCITY_HISTORY_LIMIT = 6;
-				      const velocitySamples = [];
-				      let lastVelocitySign = 0;
-				      let momentumFrame = null;
-				      const H_THRESHOLD = 1;
-				      const DIRECTION_LOCK_RATIO = 1.1;
-			      const MOMENTUM_START_VELOCITY = 0.08; // px/ms (80px/s) - avoids "drift" after slow drags
-			      const MOMENTUM_STOP_VELOCITY = 0.015; // px/ms
-			      const MIN_VELOCITY_SAMPLE_MS = 8;
-			
-			      const cancelMomentum = () => {
-			        if (momentumFrame) {
-			          cancelAnimationFrame(momentumFrame);
-			          momentumFrame = null;
-			        }
-			      };
-			
-				      const startMomentum = (initialVelocity) => {
-				        cancelMomentum();
-				        if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) return;
-				        let velocity = initialVelocity;
-				        let prev = performance.now();
-				        const MAX_ELAPSED_MS = 64;
-				        const STEP_MAX_MS = 16;
-				
-				        const step = (now) => {
-				          const elapsed = Math.min(now - prev, MAX_ELAPSED_MS);
-				          prev = now;
-				
-				          // Sub-step long frames so decay is integrated over time (avoids "jerk" on dropped frames).
-				          let remaining = elapsed;
-				          while (remaining > 0) {
-				            const dt = Math.min(remaining, STEP_MAX_MS);
-				            const delta = velocity * dt;
-				            if (delta !== 0 && typeof onHorizontalScroll === 'function') {
-				              const moved = onHorizontalScroll(delta);
-				              if (moved === false) {
-				                momentumFrame = null;
-				                return;
-				              }
-				            } else if (delta !== 0) {
-				              scrollableHeader.scrollLeft -= delta;
-				            }
-				
-				            // Exponential decay: v(t+dt) = v(t) * rate^dt
-				            const attenuation = Math.pow(DECELERATION_RATE, dt);
-				            velocity *= attenuation;
-				            remaining -= dt;
-				            if (Math.abs(velocity) <= MOMENTUM_STOP_VELOCITY) break;
-				          }
-				          if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
-				            momentumFrame = requestAnimationFrame(step);
-				          } else {
-			            momentumFrame = null;
-			          }
-			        };
-			
-			        momentumFrame = requestAnimationFrame(step);
-			      };
-			
-				      surface.addEventListener('touchstart', (event) => {
-				        if (event.touches.length !== 1) return;
-				        const touch = event.touches[0];
-				        cancelMomentum();
-				        touchActive = true;
-				        isHorizontal = null;
-				        touchStartX = touch.clientX;
-				        touchStartY = touch.clientY;
-				        lastTouchX = touch.clientX;
-				        lastTimestamp = event.timeStamp;
-				        velocitySamples.length = 0;
-				        lastVelocitySign = 0;
-				      }, { passive: true });
-			
-			      surface.addEventListener('touchmove', (event) => {
-			        if (!touchActive || event.touches.length !== 1) return;
-			        const touch = event.touches[0];
-			        const deltaXFromStart = touch.clientX - touchStartX;
-			        const deltaYFromStart = touch.clientY - touchStartY;
-			        const deltaX = touch.clientX - lastTouchX;
-			        const elapsed = event.timeStamp - lastTimestamp;
-			
-				        if (isHorizontal === null) {
-				          const absX = Math.abs(deltaXFromStart);
-				          const absY = Math.abs(deltaYFromStart);
-				          if (absX > H_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
-				            isHorizontal = true;
-				            markHScrollingActive();
-				          } else if (absY > H_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
-				            isHorizontal = false;
-				          }
-				        }
-			
-				        if (isHorizontal) {
-				          event.preventDefault();
-				          if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
-				            const instantaneousVelocity = deltaX / elapsed;
-				            const sign = Math.sign(instantaneousVelocity);
-				            if (sign !== 0 && lastVelocitySign !== 0 && sign !== lastVelocitySign) {
-				              // Fast direction changes should favor the newest direction to avoid twitchy momentum.
-				              velocitySamples.length = 0;
-				            }
-				            if (sign !== 0) lastVelocitySign = sign;
-				            velocitySamples.push(instantaneousVelocity);
-				            if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
-				              velocitySamples.shift();
-				            }
-				          }
-				          if (deltaX !== 0) {
-				            if (typeof onHorizontalScroll === 'function') {
-				              const moved = onHorizontalScroll(deltaX);
-				              if (moved === false) {
-				                velocitySamples.length = 0;
-				                lastVelocitySign = 0;
-				              }
-				            } else {
-				              scrollableHeader.scrollLeft -= deltaX;
-				            }
-				          }
-				        }
-			
-			        // Always advance the baseline so horizontal locking doesn't "jump" when it kicks in.
-			        lastTouchX = touch.clientX;
-			        lastTimestamp = event.timeStamp;
-			      }, { passive: false });
-			
-				      const resetTouchState = () => {
-				        touchActive = false;
-				        isHorizontal = null;
-				        if (velocitySamples.length >= 2 && typeof onHorizontalScroll === 'function') {
-			          let weightedSum = 0;
-			          let weightTotal = 0;
-			          for (let i = 0; i < velocitySamples.length; i++) {
-			            const weight = i + 1; // favor most-recent samples to reduce "extra scroll" on lift
-			            weightedSum += velocitySamples[i] * weight;
-			            weightTotal += weight;
-			          }
-				          const averagedVelocity = weightTotal ? (weightedSum / weightTotal) : 0;
-				          startMomentum(averagedVelocity);
-				        }
-				        velocitySamples.length = 0;
-				        lastVelocitySign = 0;
-				      };
-			
-			      surface.addEventListener('touchend', resetTouchState, { passive: true });
-			      surface.addEventListener('touchcancel', resetTouchState, { passive: true });
-			    };
-			
-			    attachTouchScroller(scrollableBodyOverlay, applyImmediateSync);
-			    attachTouchScroller(frozenBody, applyImmediateSync);
-		    
-		    // Initialize scroll positions
-		    setHorizontalScrollLeft(0);
-		    vScrollContainer.scrollTop = 0;
+    // Persist tbody references (not used for partial updates, but available if needed).
+    statsState.currentFrozenTbody = frozenTable.querySelector('tbody');
+    statsState.currentScrollTbody = scrollTable.querySelector('tbody');
+    statsState.currentScrollPane  = scrollPane;
+    statsState.currentFrozenPane  = frozenPane;
+    statsState.needsFullRebuild   = false;
 
-		    // Empty state handling
-		    dom.emptyState.classList.toggle('hidden', sortedRows.length > 0);
-		  }
+    // Refresh meta labels and all button active states.
+    updateRowCount(sortedRows.length);
+    syncUiState();
+    hideGridOverlay();
+
+    // Sync cross-pane row heights after the browser has done layout.
+    requestAnimationFrame(() => syncStatsPaneHeights(frozenTable, scrollTable));
+  }
   function openGameLogs(entry) {
     if (typeof handlePlayerNameClick !== 'function') return;
     const { meta } = entry;
@@ -2541,50 +1920,36 @@
     }
   }
   function toggleTab(tabKey) {
+    // tabKey is 'oneQb' or 'sflx'; map to primary-tab button values '1-QB' / 'SFLX'.
+    const tabBtnValue = tabKey === 'sflx' ? 'SFLX' : '1-QB';
     if (statsState.currentTab === tabKey) return;
     statsState.currentTab = tabKey;
     statsState.sort = { column: 'FPTS', direction: 2 };
-    statsState.needsFullRebuild = true; // Tab change requires full rebuild
-    
-    // Untoggle Pick Values (RDP) when switching tabs
+    statsState.needsFullRebuild = true;
+
+    // Untoggle Pick Values (RDP) when switching tabs.
     if (statsState.activePosition === 'RDP') {
       statsState.activePosition = 'ALL';
-      // Update filter button states
-      dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.position === 'ALL');
-      });
-      // Update RDP button state
-      const rdpButton = document.getElementById('statsSecondaryFilterGroup');
-      if (rdpButton) {
-        rdpButton.classList.remove('active');
-      }
     }
-    dom.tabButtons.forEach((btn) => {
-      const isActive = btn.dataset.tab === tabKey;
-      btn.classList.toggle('active', isActive);
+
+    // Update primary-tab button active states.
+    dom.primaryTabButtons.forEach(btn => {
+      const isActive = btn.dataset.primaryTab === tabBtnValue;
+      btn.classList.toggle('is-active', isActive);
       btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
-    dom.tabHeadings.forEach((heading) => {
-      const isActive = heading.dataset.tabHeading === tabKey;
-      heading.classList.toggle('hidden', !isActive);
-    });
+
     if (!statsState.datasets.has(tabKey)) {
       toggleInlineLoading(true);
       loadTabData(tabKey).then(() => {
-        // Build rank cache after data loads
         const dataset = statsState.datasets.get(tabKey);
-        if (dataset) {
-          statsState.rankCache = buildStatsPageRankCache(dataset);
-        }
+        if (dataset) statsState.rankCache = buildStatsPageRankCache(dataset);
         toggleInlineLoading(false);
         renderTable();
       }).catch(() => toggleInlineLoading(false));
     } else {
-      // Rebuild rank cache when switching to already-loaded tab
       const dataset = statsState.datasets.get(tabKey);
-      if (dataset) {
-        statsState.rankCache = buildStatsPageRankCache(dataset);
-      }
+      if (dataset) statsState.rankCache = buildStatsPageRankCache(dataset);
       renderTable();
     }
   }
@@ -2635,99 +2000,86 @@
   let searchDebounceTimer = null;
   function handleSearchInput(event) {
     const term = event.target.value || '';
-    dom.searchClear.classList.toggle('visible', term.length > 0);
-    
-    // Debounce search to avoid re-rendering on every keystroke
-    if (searchDebounceTimer) {
-      clearTimeout(searchDebounceTimer);
-    }
-    
+    // Debounce to avoid re-rendering on every keystroke.
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => {
       statsState.searchTerm = term.trim().toLowerCase();
-      // Search changes filter, needs full rebuild
       statsState.needsFullRebuild = true;
       renderTable();
       searchDebounceTimer = null;
-    }, 200); // 200ms debounce
+    }, 200);
   }
   function clearSearch() {
-    // Clear any pending search debounce
-    if (searchDebounceTimer) {
-      clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = null;
-    }
-    dom.searchInput.value = '';
+    if (searchDebounceTimer) { clearTimeout(searchDebounceTimer); searchDebounceTimer = null; }
+    if (dom.searchInput) dom.searchInput.value = '';
     statsState.searchTerm = '';
-    dom.searchClear.classList.remove('visible');
     statsState.needsFullRebuild = true;
     renderTable();
-    dom.searchInput.focus();
+    if (dom.searchInput) dom.searchInput.focus();
   }
   function handleFilterClick(event) {
-    const button = event.target.closest('.stats-filter-btn[data-position]') || event.target.closest('.stats-filter-btn-secondary[data-position]');
-    if (!button || button.classList.contains('stats-rookie-btn')) return;
-    const position = button.dataset.position;
+    // Handles clicks on category chips (data-category) and the PICK VALUES pill.
+    // Maps data-category → internal activePosition value via CATEGORY_TO_POSITION.
+    const chip = event.target.closest('[data-category]');
+    if (!chip) return;
+    const category = chip.dataset.category;
+    if (!category) return;
+
+    // Rookies chip is handled separately by handleRookieClick — skip here.
+    if (category === 'rookies') return;
+
+    const newPosition = CATEGORY_TO_POSITION[category] || 'ALL';
     const prevPosition = statsState.activePosition;
-    
-    // Prevent re-render if clicking already active main filter
-    if (button.classList.contains('stats-filter-btn') && statsState.activePosition === position) return;
-    
-    if (position === 'RDP') {
-      // Toggle logic for RDP
-      const newPosition = statsState.activePosition === 'RDP' ? 'ALL' : 'RDP';
-      if (newPosition === prevPosition) return; // No change
-      statsState.activePosition = newPosition;
+
+    // RDP toggle: clicking again while active deactivates it.
+    if (category === 'rdp') {
+      statsState.activePosition = (prevPosition === 'RDP') ? 'ALL' : 'RDP';
     } else {
-      if (position === prevPosition) return; // No change
-      statsState.activePosition = position;
+      if (newPosition === prevPosition) return; // already active — no change
+      statsState.activePosition = newPosition;
     }
-    
+
     statsState.sort = statsState.activePosition === 'RDP'
       ? { column: null, direction: 0 }
-      : { column: 'FPTS', direction: 2 }; // Reset sort when changing filter
-    // Update main filters
-    dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.position === statsState.activePosition);
+      : { column: 'FPTS', direction: 2 };
+
+    syncReceivingSubfilterUi({
+      ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving'
     });
-    // Update secondary RDP filter (dom.secondaryFilterGroup IS the RDP button)
-    if (dom.secondaryFilterGroup) {
-      dom.secondaryFilterGroup.classList.toggle('active', statsState.activePosition === 'RDP');
-    }
-    syncReceivingSubfilterUi({ ensureReset: statsState.activePosition === 'Receiving' && prevPosition !== 'Receiving' });
-    // Filter changes require full rebuild (different column set)
     statsState.needsFullRebuild = true;
     renderTable();
   }
   function handleReceivingSubfilterClick(event) {
-    const btn = event.target.closest('.stats-receiving-subfilter');
+    // Uses data-receiving-filter (new HTML) with dataset.subfilter as fallback.
+    const btn = event.target.closest('[data-receiving-filter]');
     if (!btn) return;
     event.stopPropagation();
     if (statsState.activePosition !== 'Receiving') return;
-    const key = btn.dataset.subfilter;
+    const key = btn.dataset.receivingFilter || btn.dataset.subfilter;
     if (!key || !RECEIVING_SUBFILTERS.includes(key)) return;
     const isActive = !!statsState.receivingSubfilters[key];
     if (isActive) {
-      const activeCount = RECEIVING_SUBFILTERS.reduce((count, subKey) => (
-        statsState.receivingSubfilters[subKey] ? count + 1 : count
-      ), 0);
-      if (activeCount <= 1) {
-        return; // always keep at least one subfilter active
-      }
+      const activeCount = RECEIVING_SUBFILTERS.reduce(
+        (count, k) => (statsState.receivingSubfilters[k] ? count + 1 : count), 0
+      );
+      if (activeCount <= 1) return; // always keep at least one subfilter active
     }
     statsState.receivingSubfilters[key] = !isActive;
     updateReceivingSubfilterButtons();
-    // Subfilter changes data but not structure, use fast update
     updateTableRows();
   }
-  function toggleRookieFilter() {
+  function handleRookieClick() {
     statsState.rookieOnly = !statsState.rookieOnly;
-    dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
+    if (dom.rookieChip) {
+      dom.rookieChip.classList.toggle('is-active', statsState.rookieOnly);
+      dom.rookieChip.setAttribute('aria-pressed', statsState.rookieOnly ? 'true' : 'false');
+    }
     statsState.sort = statsState.activePosition === 'RDP'
       ? { column: null, direction: 0 }
       : { column: 'FPTS', direction: 2 };
-    // Rookie filter changes data, use fast update
     updateTableRows();
   }
+  function toggleRookieFilter() { handleRookieClick(); }
   function toggleInlineLoading(show) {
     if (!dom.loading) return;
     dom.loading.classList.toggle('hidden', !(show || statsLoadingLocked));
@@ -2995,126 +2347,92 @@
     await Promise.all(Object.keys(TAB_CONFIG).map(loadTabData));
   }
   async function initialise() {
-    try {
-      setLoading(true);
-    } catch (e) {
-      // silent – setLoading may not be available yet
-    }
+    // Show overlay while data loads.
+    showGridOverlay({ title: 'Preparing Stats Data', body: 'Loading season data…', showActions: false });
     toggleInlineLoading(true);
     try {
       await ensureLeagueContext();
-      if (typeof fetchSleeperPlayers === 'function') {
-        await fetchSleeperPlayers();
-      }
-      // Ensure KTC + pick values workbook is loaded (used for VALUE/RK + RDP rows).
-      if (typeof fetchDataFromGoogleSheet === 'function') {
-        await fetchDataFromGoogleSheet();
-      }
-      // Fetch ADP data from ADP_2026 tab (same workbook as KTC values).
+      if (typeof fetchSleeperPlayers === 'function') await fetchSleeperPlayers();
+      // KTC workbook provides VALUE and pick (RDP) rows.
+      if (typeof fetchDataFromGoogleSheet === 'function') await fetchDataFromGoogleSheet();
       await fetchAdpData();
-      // Don't await - weekly stats now load in background after page renders
       await loadAllTabs();
       scheduleTeamLogoPreload();
-      
-      // Build rank cache for the initial tab
+
       const initialDataset = statsState.datasets.get(statsState.currentTab);
-      if (initialDataset) {
-        statsState.rankCache = buildStatsPageRankCache(initialDataset);
-      }
-      
-      // Set initial active filter buttons
-      dom.filterGroup.querySelectorAll('.stats-filter-btn').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.position === statsState.activePosition);
-      });
-      // dom.secondaryFilterGroup IS the RDP button
-      if (dom.secondaryFilterGroup) {
-        dom.secondaryFilterGroup.classList.toggle('active', statsState.activePosition === 'RDP');
-      }
-      dom.rookieButton.classList.toggle('active', statsState.rookieOnly);
+      if (initialDataset) statsState.rankCache = buildStatsPageRankCache(initialDataset);
+
       syncReceivingSubfilterUi();
-      statsState.needsFullRebuild = true; // Initial render needs full rebuild
-      renderTable();
+      statsState.needsFullRebuild = true;
+      renderTable();         // hides overlay, calls syncUiState
       wireGameLogControls();
-      
-      // Start loading weekly stats in background (non-blocking)
+
       if (typeof fetchPlayerStatsSheets === 'function') {
-        fetchPlayerStatsSheets().catch(err => {
-          console.warn('Background load of weekly stats failed:', err);
-        });
+        fetchPlayerStatsSheets().catch(err => console.warn('Background weekly stats load failed:', err));
       }
     } catch (error) {
       console.error('Failed to initialise stats page:', error);
-      if (dom.emptyState) {
-        dom.emptyState.textContent = 'Unable to load stats data at this time.';
-        dom.emptyState.classList.remove('hidden');
-      }
+      showGridOverlay({ title: 'Error Loading Stats', body: 'Unable to load stats data at this time.', showActions: false });
     } finally {
       toggleInlineLoading(false);
-      try {
-        setLoading(false);
-      } catch (e) {
-        // ignore
-      }
+      try { setLoading(false); } catch (_) { /* ignore */ }
     }
   }
-  dom.tabButtons.forEach((btn) => {
-    btn.addEventListener('click', () => toggleTab(btn.dataset.tab));
+
+  // ── Primary tab buttons (1-QB / SFLX) ─────────────────────────────────────
+  dom.primaryTabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      toggleTab(btn.dataset.primaryTab === 'SFLX' ? 'sflx' : 'oneQb');
+    });
   });
-  dom.searchInput.addEventListener('input', handleSearchInput);
-  dom.searchClear.addEventListener('click', clearSearch);
-  dom.filterGroup.addEventListener('click', handleFilterClick);
-  dom.secondaryFilterGroup.addEventListener('click', handleFilterClick);
-  dom.rookieButton.addEventListener('click', toggleRookieFilter);
-  dom.receivingSubfilters?.addEventListener('click', handleReceivingSubfilterClick);
-  
-  // Stats Key Popup handlers
-  const statsKeyButton = document.getElementById('statsKeyButton');
-  const statsKeyPopup = document.getElementById('statsKeyPopup');
-  const statsKeyPopupClose = document.getElementById('statsKeyPopupClose');
-  
-  if (statsKeyButton && statsKeyPopup && statsKeyPopupClose) {
-    statsKeyButton.addEventListener('click', () => {
-      statsKeyPopup.classList.add('visible');
-    });
-    
-    statsKeyPopupClose.addEventListener('click', () => {
-      statsKeyPopup.classList.remove('visible');
-    });
-    
-    // Close on overlay click
-    statsKeyPopup.addEventListener('click', (e) => {
-      if (e.target === statsKeyPopup) {
-        statsKeyPopup.classList.remove('visible');
+
+  // ── Category chips + PICK VALUES pill ─────────────────────────────────────
+  dom.categoryButtons.forEach(btn => btn.addEventListener('click', handleFilterClick));
+  if (dom.rdpButton) dom.rdpButton.addEventListener('click', handleFilterClick);
+
+  // ── Rookies chip ──────────────────────────────────────────────────────────
+  if (dom.rookieChip) dom.rookieChip.addEventListener('click', handleRookieClick);
+
+  // ── Receiving subfilters ──────────────────────────────────────────────────
+  if (dom.receivingSubfilters) {
+    dom.receivingSubfilters.addEventListener('click', handleReceivingSubfilterClick);
+  }
+
+  // ── Search input ──────────────────────────────────────────────────────────
+  if (dom.searchInput) dom.searchInput.addEventListener('input', handleSearchInput);
+
+  // ── Table interaction: sort + player row click (event delegation) ─────────
+  if (dom.gridContainer) {
+    dom.gridContainer.addEventListener('click', event => {
+      const th = event.target.closest('th[data-column-key]');
+      if (th) { handleSortClick(event); return; }
+      const btn = event.target.closest('.stats-player-btn');
+      if (btn) {
+        const idx   = parseInt(btn.dataset.entryIndex, 10);
+        const entry = statsState.lastRenderedRows[idx];
+        if (entry) openGameLogs(entry);
       }
     });
-    
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
+  }
+
+  // ── Stats Key Popup ───────────────────────────────────────────────────────
+  const statsKeyButton   = document.getElementById('statsKeyButton');
+  const statsKeyPopup    = document.getElementById('statsKeyPopup');
+  const statsKeyPopupClose = document.getElementById('statsKeyPopupClose');
+
+  if (statsKeyButton && statsKeyPopup && statsKeyPopupClose) {
+    statsKeyButton.addEventListener('click', () => statsKeyPopup.classList.add('visible'));
+    statsKeyPopupClose.addEventListener('click', () => statsKeyPopup.classList.remove('visible'));
+    statsKeyPopup.addEventListener('click', e => {
+      if (e.target === statsKeyPopup) statsKeyPopup.classList.remove('visible');
+    });
+    document.addEventListener('keydown', e => {
       if (e.key === 'Escape' && statsKeyPopup.classList.contains('visible')) {
         statsKeyPopup.classList.remove('visible');
       }
     });
   }
-  
-  // Use event delegation on wrapper to handle clicks from both header and body tables
-  dom.tableWrappers.forEach((wrapper) => {
-    wrapper.addEventListener('click', (event) => {
-      const th = event.target.closest('th[data-column-key]');
-      if (th) {
-        handleSortClick(event);
-        return;
-      }
 
-      const btn = event.target.closest('.stats-player-btn');
-      if (btn) {
-        const entryIndex = parseInt(btn.dataset.entryIndex, 10);
-        const entry = statsState.lastRenderedRows[entryIndex];
-        if (entry) {
-          openGameLogs(entry);
-        }
-      }
-    });
-  });
-  syncReceivingSubfilterUi();
   initialise();
 })();
+

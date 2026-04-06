@@ -12,11 +12,10 @@
 <link href="../manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest"/>
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c"/>
 <meta content="#0D0E1B" name="theme-color"/>
-<link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
-<link href="../styles/stats.css?v=20250827" rel="stylesheet"/>
-<!-- Ownership modal styles (needed for inline ownership tab in game logs modal) -->
-<link rel="stylesheet" href="../styles/ownership.css?v=20260326" />
-<script src="https://cdn.tailwindcss.com"></script>
+<!-- Shared app styles: provides starfield, game-logs modal, nav-more-dropdown, base tokens -->
+<link href="../styles/styles.css?v=20260116" rel="stylesheet"/>
+<!-- Stats page styles: reference DataHub design (hero-shell, controls-shell, grid-shell, two-pane table) -->
+<link href="../styles/stats.css?v=20260406" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c"/>
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c"/>
@@ -25,7 +24,7 @@
 <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 </head>
-<body data-page="stats" class="p-2 sm:p-4">
+<body data-page="stats">
 <!-- Reused immersive background -->
 <div aria-hidden="true" id="starfield">
   <div id="stars"></div>
@@ -35,173 +34,271 @@
 </div>
 <div id="noise-overlay"></div>
 
-<div class="relative z-10 content-wrapper">
-  <div id="header-container">
-    <header class="app-header glass-panel stats-header-shell">
-      <div class="header-row" id="primary-header-row">
-        <div class="nav-buttons-container">
-          <button class="nav-button" id="homeButton" data-nav="home">
-            <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true"/>
-            <span class="nav-label">Home</span>
-          </button>
-          <button class="nav-button" id="rostersButton" data-nav="rosters">
-            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-            <span class="nav-label">Rosters</span>
-          </button>
-          <button class="nav-button active" id="statsButton" data-nav="stats">
-            <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
-            <span class="nav-label">Stats</span>
-          </button>
-          <button class="nav-button" id="leagueHubButton" data-nav="leaguehub">
-            <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
-            <span class="nav-label">LeagueHub</span>
-          </button>
-          <button class="nav-button" id="researchButton" data-nav="research">
-            <i class="fa-solid fa-flask" aria-hidden="true"></i>
-            <span class="nav-label">Research</span>
-          </button>
-          <button class="nav-button nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
-            <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
-            <span class="nav-label">More</span>
-            <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
-          </button>
-          <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
-            <button class="nav-more-item" data-nav="ownership" role="menuitem">
-              <i class="fa-solid fa-percent" aria-hidden="true"></i>
-              <span class="nav-label">Ownership</span>
-            </button>
-            <button class="nav-more-item" data-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
-              <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-              <span class="nav-label">Trophy Room</span>
-            </button>
-            <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
-              <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-              <span class="nav-label">Matchups</span>
-            </button>
-            <button class="nav-more-item" data-nav="contact" role="menuitem">
-              <i class="fa-solid fa-envelope" aria-hidden="true"></i>
-              <span class="nav-label">Contact</span>
-            </button>
-          </div>
-        </div>
+<!-- ══════════════════════════════════════════════════════════
+     APP SHELL — Reference DataHub layout (hero + controls + grid)
+     Nav button IDs live in the mobile header (wired by app.js).
+     Desktop header uses data-nav delegation (see inline script
+     near </body>). Data-page="stats" on <body> scopes app.js.
+     ══════════════════════════════════════════════════════════ -->
+<div class="app-shell">
+
+  <!-- ── Mobile header: shown at < 720px. All functional nav button IDs live here. ── -->
+  <header class="app-header app-header--mobile">
+    <div class="header-shell header-shell--stacked">
+      <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
+        <img class="brand-lockup__logo" src="../assets/logos/App_Logo_icon256.png" alt=""/>
+        <span class="brand-lockup__wordmark">
+          <span class="brand-lockup__name">Dynasty</span>
+          <span class="brand-lockup__accent">Hub</span>
+        </span>
       </div>
+      <nav class="main-nav" aria-label="Main Navigation">
+        <button type="button" class="nav-item" id="homeButton" data-nav="home">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+        <button type="button" class="nav-item" id="rostersButton" data-nav="rosters">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Rosters</span>
+        </button>
+        <button type="button" class="nav-item is-active" id="statsButton" data-nav="stats" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+          <span>Stats</span>
+        </button>
+        <button type="button" class="nav-item" id="leagueHubButton" data-nav="leaguehub">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+          <span>LeagueHub</span>
+        </button>
+        <button type="button" class="nav-item" id="researchButton" data-nav="research">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"></path><path d="M14 9.31V2"></path><path d="M8.5 2h7"></path><path d="M14 9.31l6.75 10.19a2 2 0 0 1-1.73 3.5H3.76a2 2 0 0 1-1.73-3.51L8.78 9.31"></path><path d="M3.25 19.5h17.5"></path></svg>
+          <span>Research</span>
+        </button>
+        <button type="button" class="nav-item nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+          <span>More</span>
+        </button>
+      </nav>
+      <!-- More dropdown: portal-positioned by app.js -->
+      <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
+        <button class="nav-more-item" data-nav="ownership" role="menuitem">
+          <i class="fa-solid fa-percent" aria-hidden="true"></i>
+          <span class="nav-label">Ownership</span>
+        </button>
+        <button class="nav-more-item" data-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+          <span class="nav-label">Trophy Room</span>
+        </button>
+        <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
+          <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+          <span class="nav-label">Matchups</span>
+        </button>
+        <button class="nav-more-item" data-nav="contact" role="menuitem">
+          <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+          <span class="nav-label">Contact</span>
+        </button>
+      </div>
+      <!-- Hidden inputs used by app.js for league/username state -->
       <div class="stats-nav-hidden-inputs">
         <label class="sr-only" for="usernameInput">SLPR Username</label>
-        <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" name="username" placeholder="SLPR Username" type="text" />
+        <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" name="username" placeholder="SLPR Username" type="text"/>
         <select id="leagueSelect" hidden>
           <option>Select a league...</option>
         </select>
       </div>
-    </header>
-  </div>
+    </div>
+  </header><!-- end .app-header--mobile -->
 
-  <main id="content" class="stats-page-content">
-    <div class="stats-loading hidden" id="statsLoading" role="status" aria-live="polite">
-      <div class="stats-loading-spinner" aria-hidden="true"></div>
-      <div class="stats-loading-body">
-        <img class="stats-loading-logo" src="../assets/welcome/welcome-logo-256.png" alt="Dynasty Hub" width="216" height="216" loading="eager" decoding="async"/>
-        <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
+
+  <\!-- hero-shell: desktop header + page tabs + title + primary format tabs -->
+  <section class="hero-shell glass-panel">
+    <\!-- Desktop header: shown at >= 720px, sits inside the hero panel.
+         Buttons have data-nav but no IDs; clicks delegate to mobile
+         header buttons (with IDs) via the inline script near </body>. -->
+    <header class="app-header app-header--desktop">
+      <div class="header-layout">
+        <div class="header-shell header-shell--brand">
+          <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
+            <img class="brand-lockup__logo" src="../assets/logos/App_Logo_icon256.png" alt=""/>
+            <span class="brand-lockup__wordmark">
+              <span class="brand-lockup__name">Dynasty</span>
+              <span class="brand-lockup__accent">Hub</span>
+            </span>
+          </div>
+        </div>
+        <div class="header-shell header-shell--nav">
+          <nav class="main-nav" aria-label="Main Navigation">
+            <button type="button" class="nav-item" data-nav="home">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Home</span>
+            </button>
+            <button type="button" class="nav-item" data-nav="rosters">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Rosters</span>
+            </button>
+            <button type="button" class="nav-item is-active" data-nav="stats" aria-current="page">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+              <span>Stats</span>
+            </button>
+            <button type="button" class="nav-item" data-nav="leaguehub">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+              <span>LeagueHub</span>
+            </button>
+            <button type="button" class="nav-item" data-nav="research">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"></path><path d="M14 9.31V2"></path><path d="M8.5 2h7"></path><path d="M14 9.31l6.75 10.19a2 2 0 0 1-1.73 3.5H3.76a2 2 0 0 1-1.73-3.51L8.78 9.31"></path><path d="M3.25 19.5h17.5"></path></svg>
+              <span>Research</span>
+            </button>
+            <button type="button" class="nav-item" data-nav-more-desktop="true">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              <span>More</span>
+            </button>
+          </nav>
+        </div>
+        <div class="app-header__balance" aria-hidden="true"></div>
+      </div>
+    </header><\!-- end .app-header--desktop -->
+
+    <\!-- Page-view tabs: Stats is always is-active on this page -->
+    <nav class="page-tabs" aria-label="Page Views">
+      <button type="button" class="page-tab is-active" aria-selected="true">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Stats</span>
+      </button>
+      <button type="button" class="page-tab">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><polyline points="4 6 4 10 6 10"></polyline><polyline points="6 18 4 18 4 14 6 14"></polyline><line x1="4" y1="14" x2="6" y2="14"></line></svg>
+        <span>Rankings</span>
+      </button>
+      <button type="button" class="page-tab page-tab--adp">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        <span class="page-tab__label page-tab__label--adp"><span>ADP &amp;</span><span>Values</span></span>
+      </button>
+      <button type="button" class="page-tab">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+        <span>Rookies</span>
+      </button>
+      <button type="button" class="page-tab">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+        <span>Ownership</span>
+      </button>
+    </nav>
+
+    <\!-- Hero copy: eyebrow chip + main title (updated by stats.js on tab switch) -->
+    <div class="hero-copy">
+      <p class="eyebrow">DH DATA HUB – ADVANCED ANALYTICS</p>
+      <h1 id="main-title" class="page-title">1QB ADP, Trade Values &amp; 2025 Stats</h1>
+    </div>
+
+    <\!-- Hero actions: 1QB / SFLX format tabs + Pick Values pill -->
+    <div class="hero-actions">
+      <div class="top-tabs" role="tablist" aria-label="League format">
+        <button type="button" class="top-tab is-active" data-primary-tab="1-QB" role="tab" aria-selected="true">1·QB</button>
+        <button type="button" class="top-tab" data-primary-tab="SFLX" role="tab" aria-selected="false">SFLX</button>
+      </div>
+      <button type="button" class="top-pill top-pill--ghost" data-category="rdp">PICK VALUES</button>
+    </div>
+  </section><\!-- end .hero-shell -->
+
+  <\!-- controls-shell: stat-category chips, receiving subfilters, search -->
+  <section class="controls-shell glass-panel" aria-label="Filters and controls">
+    <div class="controls-cluster">
+      <div class="category-row" role="tablist" aria-label="Stat categories">
+        <button type="button" class="category-chip is-active" data-category="overview" role="tab" aria-selected="true" aria-label="OVERVIEW (ALL)">
+          <span class="category-chip__label">OVERVIEW</span>
+          <span class="category-chip__meta">(ALL)</span>
+        </button>
+        <button type="button" class="category-chip" data-category="passing" role="tab" aria-selected="false" aria-label="PASSING (QB)">
+          <span class="category-chip__label">PASSING</span>
+          <span class="category-chip__meta">(QB)</span>
+        </button>
+        <button type="button" class="category-chip" data-category="rushing" role="tab" aria-selected="false" aria-label="RUSHING (RB)">
+          <span class="category-chip__label">RUSHING</span>
+          <span class="category-chip__meta">(RB)</span>
+        </button>
+        <button type="button" class="category-chip" data-category="receiving" role="tab" aria-selected="false" aria-label="RECEIVING (W/T)">
+          <span class="category-chip__label">RECEIVING</span>
+          <span class="category-chip__meta">(W/T)</span>
+        </button>
+      </div>
+      <\!-- Receiving sub-filters: hidden until Receiving category is active -->
+      <div id="receiving-subfilters" class="receiving-subfilters" aria-label="Receiving position filters" hidden>
+        <button type="button" class="subfilter-chip is-active" data-receiving-filter="WR" aria-pressed="true">WR</button>
+        <button type="button" class="subfilter-chip is-active" data-receiving-filter="TE" aria-pressed="true">TE</button>
+      </div>
+      <\!-- Efficiency sort footnote -->
+      <p class="controls-footnote">
+        <em>
+          <span class="controls-footnote-line"><span class="controls-bullet">✶</span> When sorting efficiency stats players with &lt;3 G or &lt;40% SNP% are filtered out.</span>
+          <span class="controls-footnote-line"><span class="controls-bullet">✶</span> "<span class="stats-eff-asterisk" aria-hidden="true">✼</span>" Indicates sorted value belongs to player w &lt;7 G or &lt;45% SNP%.</span>
+        </em>
+      </p>
+    </div>
+    <div class="utility-row">
+      <\!-- KEY popup trigger: wired by stats.js -->
+      <button type="button" class="mini-chip mini-chip--icon" id="statsKeyButton" aria-label="Show stats key">
+        <svg class="mini-chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
+          <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+        </svg>
+        <span>KEY</span>
+      </button>
+      <\!-- Rookies filter toggle -->
+      <button type="button" class="mini-chip mini-chip--icon mini-chip--rookies" data-category="rookies" aria-pressed="false" aria-label="Filter: Rookies only">
+        <svg class="mini-chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+        <span>Rookies</span>
+      </button>
+      <\!-- Player search -->
+      <label class="search-shell" for="player-search">
+        <svg class="search-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M10.5 3a7.5 7.5 0 0 1 5.946 12.072l4.241 4.242-1.414 1.414-4.242-4.241A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/>
+        </svg>
+        <input id="player-search" class="search-shell__input" type="search" inputmode="search" placeholder="Search players..." autocomplete="off"/>
+      </label>
+    </div>
+  </section><\!-- end .controls-shell -->
+
+  <\!-- grid-shell: two-pane stats table (frozen + scroll columns) -->
+  <section class="grid-shell glass-panel">
+    <div class="grid-shell__meta">
+      <div>
+        <p class="meta-label">ACTIVE VIEW</p>
+        <p id="active-view-label" class="meta-value">OVERVIEW (ALL)</p>
+      </div>
+      <div class="meta-pill-wrap">
+        <span class="meta-pill">LIVE DATASET</span>
+        <span id="row-count" class="meta-count">0 rows</span>
       </div>
     </div>
-    <!-- Desktop: side-by-side panels wrapper -->
-    <div class="stats-top-panels-row">
-      <section class="stats-page-intro glass-panel">
-        <div class="stats-intro-stack">
-          <div class="stats-league-chip" id="statsLeagueContext" aria-live="polite">DH DATA HUB – ADVANCED ANALYTICS</div>
-          <h1 class="stats-page-title">
-            <span class="stats-tab-heading" data-tab-heading="oneQb">
-              <span class="stats-heading-accent stats-heading-accent-1qb">1QB</span> ADP, Trade Values &amp; 2025 Stats
-            </span>
-            <span class="stats-tab-heading hidden" data-tab-heading="sflx">
-              <span class="stats-heading-accent stats-heading-accent-sflx">SFLX</span> ADP, Trade Values &amp; 2025 Stats
-            </span>
-          </h1>
-        </div>
-        <div class="stats-tabs" role="presentation">
-          <div class="stats-tabs-buttons" role="tablist">
-            <button class="stats-tab-button stats-tab-button-1qb active" data-tab="oneQb" type="button" role="tab" aria-selected="true">
-              1·QB
-            </button>
-            <button class="stats-tab-button stats-tab-button-sflx" data-tab="sflx" typeS="button" role="tab" aria-selected="false">
-              SFLX
-            </button>
+    <div class="grid-stage">
+      <div class="grid-scroll-wrapper">
+        <\!-- JS replaces this node's contents with the two-pane table on every render. -->
+        <div id="player-grid" class="data-grid" aria-label="Player stats table"></div>
+      </div>
+      <\!-- Overlay: primary loading/error state. JS adds .is-hidden after data loads. -->
+      <div id="grid-overlay" class="grid-stage__overlay">
+        <div class="overlay-card">
+          <div class="overlay-card__pulse" aria-hidden="true"></div>
+          <p class="overlay-card__eyebrow">LOADING DATA</p>
+          <h2 id="overlay-title" class="overlay-card__title">Preparing Stats Data</h2>
+          <p id="overlay-description" class="overlay-card__body">Building the Dynasty Hub Stats grid and mapping 2025 stat views.</p>
+          <div id="overlay-actions" class="overlay-card__actions" hidden>
+            <button id="file-picker-button" type="button" class="overlay-card__button">Select SZN.csv</button>
+            <input id="file-picker-input" type="file" accept=".csv,text/csv" hidden/>
           </div>
         </div>
-        <div class="stats-intro-picks" role="presentation">
-          <button class="stats-filter-btn-secondary stats-picks-btn" data-position="RDP" type="button" id="statsSecondaryFilterGroup">
-            Pick Values
-          </button>
-        </div>
-      </section>
+      </div>
+    </div>
+  </section><\!-- end .grid-shell -->
 
-      <section class="stats-controls-panel glass-panel">
-      <button class="stats-key-button stats-key-button-floating" id="statsKeyButton" type="button" aria-label="Show stats key">
-        <i class="fa-solid fa-key" aria-hidden="true"></i>
-        <span class="stats-key-label-desktop">Key</span>
-        <span class="stats-key-label-mobile">Key &amp; Info</span>
-      </button>
-      <div class="stats-controls">
-        <div class="stats-controls-heading" aria-live="off">
-          <div class="stats-controls-header">Stat Categories:</div>
-        </div>
-        <div class="stats-controls-body">
-          <div class="stats-filter-block" id="statsFilterGroup">
-            <button class="stats-filter-btn" data-position="ALL" type="button">Overview (ALL)</button>
-            <button class="stats-filter-btn" data-position="QB" type="button">Passing (QB)</button>
-            <button class="stats-filter-btn" data-position="RB" type="button">Rushing (RB)</button>
-            <div class="stats-filter-with-subfilters" data-filter="receiving">
-              <button class="stats-filter-btn stats-filter-btn-receiving" data-position="Receiving" type="button">Receiving (W/T)</button>
-              <div class="stats-receiving-expanded" aria-hidden="true">
-                <button class="stats-receiving-subfilter" data-subfilter="WR" type="button" aria-pressed="true">WR</button>
-                <button class="stats-receiving-subfilter" data-subfilter="TE" type="button" aria-pressed="true">TE</button>
-              </div>
-            </div>
-          </div>
-          <div class="stats-secondary-row">
-            <div class="stats-search-block">
-              <label class="sr-only" for="statsSearchInput">Search player</label>
-              <div class="stats-search-input-wrap">
-                <input id="statsSearchInput" class="stats-search-input" type="search" placeholder="Search players..."/>
-                <button id="statsSearchClear" class="stats-search-clear" type="button" aria-label="Clear search">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-                <span class="stats-search-icon" aria-hidden="true">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-              </div>
-            </div>
-            <div class="stats-rookie-inline">
-              <span class="stats-filter-separator stats-secondary-separator" aria-hidden="true"></span>
-              <button class="stats-filter-btn-secondary stats-rookie-btn" data-position="Rookies" type="button">Rookies</button>
-            </div>
-          </div>
-        </div>
-        <p class="stats-controls-footer">
-          <em class="stats-footer-simple">
-                <span class="stats-footer-line"><span class="stats-bullet">✦</span> When sorting efficiency stats players with <b>&lt;</b> 3 G <b>or</b> <b>&lt;</b> 40% SNP% are filtered out.</span>
-            <span class="stats-footer-line"><span class="stats-bullet">✦</span> "<span class="stats-eff-asterisk" aria-hidden="true">✼</span>" Indicates sorted value belongs to player w <b>&lt;</b> 7 G <b>or</b> <b>&lt;</b> 45% SNP%.<span class="stats-arrow-gap"></span>➜  <b>Key</b> <i class="fa-solid fa-key"></i> for more info.</span>
-          </em>
-        </p>
-      </div>
-    </section>
-    </div><!-- end .stats-top-panels-row -->
+</div><\!-- end .app-shell -->
 
-    <section class="stats-table-region glass-panel">
-      <div class="stats-table-wrapper" data-tab-panel="oneQb">
-        <table class="stats-table">
-          <caption id="statsTableCaption-1qb" class="sr-only">1QB player stats</caption>
-        </table>
-      </div>
-      <div class="stats-table-wrapper hidden" data-tab-panel="sflx">
-        <table class="stats-table">
-          <caption id="statsTableCaption-sflx" class="sr-only">Superflex player stats</caption>
-        </table>
-      </div>
-      <div class="stats-empty-state hidden" id="statsEmptyState">
-        <p>No players match the current filters.</p>
-      </div>
-    </section>
-  </main>
+<\!-- Legacy loading overlay: visible fallback before #grid-overlay is wired -->
+<div class="stats-loading hidden" id="statsLoading" role="status" aria-live="polite">
+  <div class="stats-loading-spinner" aria-hidden="true"></div>
+  <div class="stats-loading-body">
+    <img class="stats-loading-logo" src="../assets/welcome/welcome-logo-256.png" alt="Dynasty Hub" width="216" height="216" loading="eager" decoding="async"/>
+    <span class="stats-loading-text">Crunching the numbers... initializing the Dynasty Hub Data Suite…</span>
+  </div>
 </div>
 
 <!-- Stats Key Popup -->
@@ -404,5 +501,34 @@
 <script src="https://cdn.jsdelivr.net/npm/@tanstack/table-core@8.11.0/build/umd/index.production.min.js"></script>
 <script defer src="../scripts/app.js?v=20260116"></script>
 <script defer src="../scripts/stats.js?v=20250827"></script>
+<!-- Desktop nav delegation: desktop header buttons (data-nav/data-nav-more-desktop)
+     have no IDs, so clicks are forwarded to the ID-bearing mobile header counterparts
+     that app.js is wired to. Must run after DOM is ready. -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Map each data-nav value to the corresponding mobile button ID
+    var navIdMap = {
+      home: 'homeButton',
+      rosters: 'rostersButton',
+      stats: 'statsButton',
+      leaguehub: 'leagueHubButton',
+      research: 'researchButton'
+    };
+    document.querySelectorAll('.app-header--desktop [data-nav]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mobileBtn = document.getElementById(navIdMap[btn.dataset.nav]);
+        if (mobileBtn) mobileBtn.click();
+      });
+    });
+    // Delegate the desktop "More" button to the mobile moreButton
+    var desktopMore = document.querySelector('.app-header--desktop [data-nav-more-desktop]');
+    if (desktopMore) {
+      desktopMore.addEventListener('click', function () {
+        var mobileMore = document.getElementById('moreButton');
+        if (mobileMore) mobileMore.click();
+      });
+    }
+  });
+</script>
 </body>
 </html>
