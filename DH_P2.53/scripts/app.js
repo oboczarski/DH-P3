@@ -442,10 +442,12 @@ rostersButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
     await ensureNavigate('rosters');
 });
-// Placeholder stats button (inserted between Ownership and Analyzer)
+// Shared middle nav button: some pages still use this slot for Stats, while
+// rosters/ownership/leaguehub/research now point the same control at DataHub.
+// Read the target from markup so each page shell can decide the destination.
 statsButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
-    await ensureNavigate('stats');
+    await ensureNavigate(statsButton.dataset.nav || 'stats');
 });
 leagueHubButton?.addEventListener('click', async () => {
     try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
