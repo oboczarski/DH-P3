@@ -305,6 +305,167 @@ body::after {
   transition: color 200ms ease;
 }
 
+/* DataHub More menu: a self-contained premium dropdown that visually matches
+   the glass nav shell while staying distinct via richer depth, icon wells,
+   and supporting copy beneath each action. */
+.nav-more-dropdown {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1200;
+  display: grid;
+  gap: 8px;
+  width: min(280px, calc(100vw - 24px));
+  padding: 10px;
+  border-radius: 24px;
+  border: 1px solid rgba(150, 220, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(34, 48, 71, 0.96), rgba(12, 18, 31, 0.96)),
+    rgba(10, 14, 24, 0.94);
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(86, 119, 181, 0.16);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.98);
+  transform-origin: top center;
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-more-dropdown::before,
+.nav-more-dropdown::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.nav-more-dropdown::before {
+  inset: 1px;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(102, 215, 255, 0.22), transparent 26%),
+    radial-gradient(circle at 10% 100%, rgba(162, 127, 255, 0.18), transparent 34%);
+}
+
+.nav-more-dropdown::after {
+  top: 0;
+  left: 22px;
+  right: 22px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(157, 229, 255, 0.82), transparent);
+  box-shadow: 0 0 18px rgba(102, 215, 255, 0.35);
+}
+
+.nav-more-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.nav-more-item {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(10, 17, 29, 0.42);
+  color: rgba(237, 243, 255, 0.94);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+}
+
+.nav-more-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(146, 222, 255, 0.28);
+  background:
+    linear-gradient(180deg, rgba(107, 188, 255, 0.12), rgba(162, 127, 255, 0.08)),
+    rgba(12, 20, 34, 0.74);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 22px rgba(6, 12, 22, 0.24);
+}
+
+.nav-more-item:active {
+  transform: scale(0.985);
+}
+
+.nav-more-item:focus-visible {
+  outline: none;
+  border-color: rgba(149, 226, 255, 0.44);
+  box-shadow:
+    0 0 0 1px rgba(149, 226, 255, 0.58),
+    0 0 0 5px rgba(102, 215, 255, 0.14);
+}
+
+.nav-more-item-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: rgba(152, 225, 255, 0.96);
+  background:
+    linear-gradient(180deg, rgba(129, 215, 255, 0.18), rgba(162, 127, 255, 0.12)),
+    rgba(15, 26, 42, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 18px rgba(4, 9, 18, 0.28);
+}
+
+.nav-more-item-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.nav-more-item-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nav-more-item-title {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgba(242, 247, 255, 0.96);
+}
+
+.nav-more-item-subtext {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(179, 197, 224, 0.76);
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .page-tabs {
   /* Desktop glint is positioned from JS against the active page tab. */
   --page-tabs-glint-left: 50%;
@@ -1544,6 +1705,24 @@ body::after {
 
   .nav-item span {
     font-size: clamp(0.62rem, 0.55rem + 0.5vw, 1rem);
+  }
+
+  .nav-more-dropdown {
+    width: min(292px, calc(100vw - 32px));
+    padding: 11px;
+  }
+
+  .nav-more-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 13px 14px;
+  }
+
+  .nav-more-item-title {
+    font-size: 0.9rem;
+  }
+
+  .nav-more-item-subtext {
+    font-size: 0.7rem;
   }
 
   .nav-icon {

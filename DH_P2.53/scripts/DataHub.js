@@ -527,6 +527,30 @@ const receivingSubfilters = document.querySelector("#receiving-subfilters");
 const receivingButtons = Array.from(
   document.querySelectorAll("[data-receiving-filter]"),
 );
+// DataHub navigation stays fully page-local: these buttons and the shared More
+// dropdown are wired here instead of relying on app.js so the page remains a
+// standalone bundle.
+const navButtons = Array.from(document.querySelectorAll(".main-nav .nav-item[data-nav]"));
+const moreToggles = Array.from(document.querySelectorAll(".nav-more-toggle"));
+const moreDropdown = document.querySelector("#datahubMoreMenu");
+const moreDropdownItems = Array.from(
+  document.querySelectorAll("#datahubMoreMenu .nav-more-item"),
+);
+
+const PAGE_ROUTES = Object.freeze({
+  home: "../index.html",
+  rosters: "../rosters/rosters.html",
+  ownership: "../ownership/ownership.html",
+  datahub: "../datahub/datahub.html",
+  leaguehub: "../leaguehub/leaguehub.html",
+  research: "../research/research.html",
+  contact: "../contact/contact.html",
+});
+
+const TROPHY_ROOM_HOST = "dynastyhub-trophyroom.netlify.app";
+
+let activeMoreToggle = null;
+let moreCloseTimer = 0;
 
 initializeApp();
 
@@ -560,6 +584,8 @@ function initializeApp() {
 // Event wiring
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
+  attachNavigationListeners();
+
   primaryTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.primaryTab = button.dataset.primaryTab;
@@ -594,6 +620,257 @@ function attachEventListeners() {
 
   window.addEventListener("load", updatePageTabsGlint);
   window.addEventListener("resize", handleViewportResize, { passive: true });
+}
+
+// Primary DataHub nav + More dropdown wiring.
+// Notes:
+// - Internal routes mirror the existing app page structure.
+// - Trophy Room keeps the same optional `?user=` forwarding used elsewhere.
+// - The dropdown is shared between mobile and desktop toggles and positioned
+//   directly beneath whichever visible More button opens it.
+function attachNavigationListeners() {
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.nav;
+      if (!target) {
+        return;
+      }
+
+      closeMoreDropdown({ immediate: true });
+      navigateToPage(target);
+    });
+  });
+
+  if (!moreDropdown) {
+    return;
+  }
+
+  moreToggles.forEach((toggle) => {
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      if (activeMoreToggle === toggle && moreDropdown.classList.contains("is-open")) {
+        closeMoreDropdown();
+        return;
+      }
+
+      openMoreDropdown(toggle);
+    });
+  });
+
+  moreDropdownItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      const page = item.dataset.nav;
+      const externalUrl = item.dataset.url;
+
+      closeMoreDropdown({ immediate: true });
+
+      if (externalUrl) {
+        window.location.href = buildExternalUrl(externalUrl);
+        return;
+      }
+
+      if (page) {
+        navigateToPage(page);
+      }
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!moreDropdown.classList.contains("is-open")) {
+      return;
+    }
+
+    const clickedToggle = moreToggles.some((toggle) => toggle.contains(event.target));
+    if (clickedToggle || moreDropdown.contains(event.target)) {
+      return;
+    }
+
+    closeMoreDropdown();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMoreDropdown();
+    }
+  });
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!moreDropdown.classList.contains("is-open")) {
+        return;
+      }
+
+      if (!activeMoreToggle || !isElementVisible(activeMoreToggle)) {
+        closeMoreDropdown({ immediate: true });
+        return;
+      }
+
+      positionMoreDropdown(activeMoreToggle);
+    },
+    { passive: true },
+  );
+}
+
+function navigateToPage(page) {
+  const destination = buildInternalUrl(page);
+  if (!destination) {
+    return;
+  }
+
+  window.location.href = destination;
+}
+
+function buildInternalUrl(page) {
+  const route = PAGE_ROUTES[page];
+  if (!route) {
+    return null;
+  }
+
+  const username = readStoredUsername();
+  if (!username || page === "home" || page === "datahub") {
+    return route;
+  }
+
+  const separator = route.includes("?") ? "&" : "?";
+  return `${route}${separator}username=${encodeURIComponent(username)}`;
+}
+
+function readStoredUsername() {
+  try {
+    return (localStorage.getItem("sleeper_username") || "").trim();
+  } catch (error) {
+    return "";
+  }
+}
+
+function buildExternalUrl(rawUrl) {
+  if (!rawUrl) {
+    return rawUrl;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(rawUrl, window.location.origin);
+  } catch (error) {
+    return rawUrl;
+  }
+
+  if (parsed.hostname !== TROPHY_ROOM_HOST) {
+    return parsed.toString();
+  }
+
+  const username = readStoredUsername();
+  if (!username) {
+    return parsed.toString();
+  }
+
+  parsed.searchParams.set("user", username);
+  return parsed.toString();
+}
+
+function openMoreDropdown(toggle) {
+  if (!moreDropdown) {
+    return;
+  }
+
+  window.clearTimeout(moreCloseTimer);
+  activeMoreToggle = toggle;
+  syncMoreToggleState(toggle, true);
+
+  moreDropdown.hidden = false;
+  moreDropdown.setAttribute("aria-hidden", "false");
+  positionMoreDropdown(toggle);
+
+  requestAnimationFrame(() => {
+    if (activeMoreToggle !== toggle) {
+      return;
+    }
+
+    moreDropdown.classList.add("is-open");
+  });
+}
+
+function closeMoreDropdown(options = {}) {
+  if (!moreDropdown) {
+    return;
+  }
+
+  const { immediate = false } = options;
+
+  window.clearTimeout(moreCloseTimer);
+  moreDropdown.classList.remove("is-open");
+  moreDropdown.setAttribute("aria-hidden", "true");
+  syncMoreToggleState(activeMoreToggle, false);
+  activeMoreToggle = null;
+
+  if (immediate) {
+    moreDropdown.hidden = true;
+    return;
+  }
+
+  moreCloseTimer = window.setTimeout(() => {
+    if (!moreDropdown.classList.contains("is-open")) {
+      moreDropdown.hidden = true;
+    }
+  }, 190);
+}
+
+function syncMoreToggleState(activeToggle, isExpanded) {
+  moreToggles.forEach((toggle) => {
+    const expanded = toggle === activeToggle && isExpanded;
+    toggle.setAttribute("aria-expanded", String(expanded));
+  });
+}
+
+function positionMoreDropdown(toggle) {
+  if (!moreDropdown || !toggle) {
+    return;
+  }
+
+  const wasHidden = moreDropdown.hidden;
+  const previousVisibility = moreDropdown.style.visibility;
+
+  if (wasHidden) {
+    moreDropdown.hidden = false;
+    moreDropdown.style.visibility = "hidden";
+  }
+
+  const rect = toggle.getBoundingClientRect();
+  const margin = 12;
+  const gap = state.isCompactViewport ? 8 : 10;
+  const menuWidth = moreDropdown.offsetWidth || 0;
+  const menuHeight = moreDropdown.offsetHeight || 0;
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+  left = Math.max(margin, Math.min(left, viewportWidth - margin - menuWidth));
+
+  let top = rect.bottom + gap;
+  const aboveTop = rect.top - menuHeight - gap;
+  if (top + menuHeight + margin > viewportHeight && aboveTop >= margin) {
+    top = aboveTop;
+  }
+
+  moreDropdown.style.left = `${Math.round(left)}px`;
+  moreDropdown.style.top = `${Math.round(top)}px`;
+  moreDropdown.style.right = "auto";
+  moreDropdown.style.bottom = "auto";
+
+  if (wasHidden) {
+    moreDropdown.hidden = true;
+    moreDropdown.style.visibility = previousVisibility;
+  }
+}
+
+function isElementVisible(element) {
+  if (!element) {
+    return false;
+  }
+
+  return element.offsetParent !== null;
 }
 
 async function loadInitialData() {
