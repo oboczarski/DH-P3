@@ -61,12 +61,17 @@ body[data-page="stats"] {
 }
 
 /* ── 4. App shell ────────────────────────────────────────────────────────────── */
+/* body[data-page="stats"] locks overflow:hidden to prevent background scroll;
+   .app-shell is the actual scroll container for all page content. */
 .app-shell {
   position: relative;
   z-index: 1;
   width: min(100%, 1680px);
   margin: 0 auto;
   padding: 11px 6px 28px;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ── 5. Glass panel (reference design — overrides styles.css .glass-panel) ────── */
