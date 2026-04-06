@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>DH Data Hub</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
+    />
+    <!-- DataHub page stylesheet — renamed from styles.css to DataHub.css for this multi-page environment -->
+    <link rel="stylesheet" href="./DataHub.css" />
+  </head>
+  <body>
+    <!-- Decorative background layers for the standalone reference shell. -->
+    <div class="background-orb background-orb--one" aria-hidden="true"></div>
+    <div class="background-orb background-orb--two" aria-hidden="true"></div>
+    <div class="background-orb background-orb--three" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <!-- Mobile header: intentionally separate from the desktop header so the
+           stacked mobile layout can keep its own DOM order without re-parenting. -->
+      <header class="app-header app-header--mobile">
+        <div class="header-shell header-shell--stacked">
+          <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
+            <!-- Logo path updated to assets folder relative to this page's location -->
+            <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
+            <span class="brand-lockup__wordmark">
+              <span class="brand-lockup__name">Dynasty</span>
+              <span class="brand-lockup__accent">Hub</span>
+            </span>
+          </div>
+
+          <nav class="main-nav" aria-label="Main Navigation">
+            <button type="button" class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span>Home</span>
+            </button>
+            <button type="button" class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <span>Rosters</span>
+            </button>
+            <button type="button" class="nav-item is-active" aria-current="page">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+              <span>DataHub</span>
+            </button>
+            <button type="button" class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+              <span>LeagueHub</span>
+            </button>
+            <button type="button" class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"></path><path d="M14 9.31V2"></path><path d="M8.5 2h7"></path><path d="M14 9.31l6.75 10.19a2 2 0 0 1-1.73 3.5H3.76a2 2 0 0 1-1.73-3.51L8.78 9.31"></path><path d="M3.25 19.5h17.5"></path></svg>
+              <span>Research</span>
+            </button>
+            <button type="button" class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+              <span>More</span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Hero shell: this defines the top-of-page composition future Stats-page
+           implementations should preserve (desktop header, page tabs, title, actions). -->
+      <section class="hero-shell glass-panel">
+        <!-- Desktop header: the nav is intentionally centered via a mirrored
+             balance column, so preserve this three-part layout during future ports. -->
+        <header class="app-header app-header--desktop">
+          <div class="header-layout">
+            <div class="header-shell header-shell--brand">
+              <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
+                <!-- Logo path updated to assets folder relative to this page's location -->
+                <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
+                <span class="brand-lockup__wordmark">
+                  <span class="brand-lockup__name">Dynasty</span>
+                  <span class="brand-lockup__accent">Hub</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="header-shell header-shell--nav">
+              <nav class="main-nav" aria-label="Main Navigation">
+                <button type="button" class="nav-item">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  <span>Home</span>
+                </button>
+                <button type="button" class="nav-item">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  <span>Rosters</span>
+                </button>
+                <button type="button" class="nav-item is-active" aria-current="page">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                  <span>DataHub</span>
+                </button>
+                <button type="button" class="nav-item">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+                  <span>LeagueHub</span>
+                </button>
+                <button type="button" class="nav-item">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"></path><path d="M14 9.31V2"></path><path d="M8.5 2h7"></path><path d="M14 9.31l6.75 10.19a2 2 0 0 1-1.73 3.5H3.76a2 2 0 0 1-1.73-3.51L8.78 9.31"></path><path d="M3.25 19.5h17.5"></path></svg>
+                  <span>Research</span>
+                </button>
+                <button type="button" class="nav-item">
+                  <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                  <span>More</span>
+                </button>
+              </nav>
+            </div>
+
+            <div class="app-header__balance" aria-hidden="true"></div>
+          </div>
+        </header>
+
+        <!-- Page-view tabs sit between the header system and hero copy. The
+             active-tab glint is positioned from JS against this exact container. -->
+        <nav class="page-tabs" aria-label="Page Views">
+          <button type="button" class="page-tab is-active" aria-selected="true">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Stats</span>
+          </button>
+          <button type="button" class="page-tab">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><polyline points="4 6 4 10 6 10"></polyline><polyline points="6 18 4 18 4 14 6 14"></polyline><line x1="4" y1="14" x2="6" y2="14"></line></svg>
+            <span>Rankings</span>
+          </button>
+          <button type="button" class="page-tab page-tab--adp">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span class="page-tab__label page-tab__label--adp">
+              <span>ADP &amp;</span>
+              <span>Values</span>
+            </span>
+          </button>
+          <button type="button" class="page-tab">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            <span>Rookies</span>
+          </button>
+          <button type="button" class="page-tab">
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+            <span>Ownership</span>
+          </button>
+        </nav>
+
+        <!-- Hero copy: the analytics chip + title relationship is part of the
+             reference composition and should remain visually tied to the page tabs. -->
+        <div class="hero-copy">
+          <p class="eyebrow">DH DATA HUB – ADVANCED ANALYTICS</p>
+          <h1 id="main-title" class="page-title">
+            1QB ADP, TRADE VALUES &amp; 2025 STATS
+          </h1>
+        </div>
+
+        <div class="hero-actions">
+          <div class="top-tabs" role="tablist" aria-label="League format">
+            <button
+              type="button"
+              class="top-tab is-active"
+              data-primary-tab="1-QB"
+              role="tab"
+              aria-selected="true"
+            >
+              1-QB
+            </button>
+            <button
+              type="button"
+              class="top-tab"
+              data-primary-tab="SFLX"
+              role="tab"
+              aria-selected="false"
+            >
+              SFLX
+            </button>
+          </div>
+          <button type="button" class="top-pill top-pill--ghost" aria-disabled="true">
+            PICK VALUES
+          </button>
+        </div>
+      </section>
+
+      <!-- Controls shell: category filters and search live outside the hero but
+           remain part of the same reference system surrounding the table. -->
+      <section class="controls-shell glass-panel" aria-label="Filters and controls">
+        <div class="controls-cluster">
+          <div class="category-row" role="tablist" aria-label="Stat categories">
+            <button
+              type="button"
+              class="category-chip is-active"
+              data-category="overview"
+              role="tab"
+              aria-selected="true"
+              aria-label="OVERVIEW (ALL)"
+            >
+              <span class="category-chip__label">OVERVIEW</span>
+              <span class="category-chip__meta">(ALL)</span>
+            </button>
+            <button
+              type="button"
+              class="category-chip"
+              data-category="passing"
+              role="tab"
+              aria-selected="false"
+              aria-label="PASSING (QB)"
+            >
+              <span class="category-chip__label">PASSING</span>
+              <span class="category-chip__meta">(QB)</span>
+            </button>
+            <button
+              type="button"
+              class="category-chip"
+              data-category="rushing"
+              role="tab"
+              aria-selected="false"
+              aria-label="RUSHING (RB)"
+            >
+              <span class="category-chip__label">RUSHING</span>
+              <span class="category-chip__meta">(RB)</span>
+            </button>
+            <button
+              type="button"
+              class="category-chip"
+              data-category="receiving"
+              role="tab"
+              aria-selected="false"
+              aria-label="RECEIVING (W/T)"
+            >
+              <span class="category-chip__label">RECEIVING</span>
+              <span class="category-chip__meta">(W/T)</span>
+            </button>
+          </div>
+
+          <div
+            id="receiving-subfilters"
+            class="receiving-subfilters"
+            aria-label="Receiving position filters"
+            hidden
+          >
+            <button
+              type="button"
+              class="subfilter-chip is-active"
+              data-receiving-filter="WR"
+              aria-pressed="true"
+            >
+              WR
+            </button>
+            <button
+              type="button"
+              class="subfilter-chip is-active"
+              data-receiving-filter="TE"
+              aria-pressed="true"
+            >
+              TE
+            </button>
+          </div>
+        </div>
+
+        <div class="utility-row">
+          <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
+            <svg
+              class="mini-chip__icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+              />
+              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+            </svg>
+            <span>KEY</span>
+          </button>
+
+          <label class="search-shell" for="player-search">
+            <svg
+              class="search-shell__icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M10.5 3a7.5 7.5 0 0 1 5.946 12.072l4.241 4.242-1.414 1.414-4.242-4.241A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+              />
+            </svg>
+            <input
+              id="player-search"
+              class="search-shell__input"
+              type="search"
+              inputmode="search"
+              placeholder="Search players..."
+              autocomplete="off"
+            />
+          </label>
+        </div>
+      </section>
+
+      <!-- Grid shell: this is the core reference table panel. Future
+           implementations should preserve the same meta area, two-pane table
+           structure, and overlay loading/import affordance. -->
+      <section class="grid-shell glass-panel">
+        <div class="grid-shell__meta">
+          <div>
+            <p class="meta-label">ACTIVE VIEW</p>
+            <p id="active-view-label" class="meta-value">OVERVIEW (ALL)</p>
+          </div>
+          <div class="meta-pill-wrap">
+            <span class="meta-pill">LIVE DATASET</span>
+            <span id="row-count" class="meta-count">0 rows</span>
+          </div>
+        </div>
+
+        <div class="grid-stage">
+          <div class="grid-scroll-wrapper">
+            <!-- JS replaces this node's contents with the frozen-pane table and
+                 the scroll-pane table on every render. -->
+            <div id="player-grid" class="data-grid" aria-label="Player stats table"></div>
+          </div>
+
+          <!-- Overlay remains in the DOM even after load so file:// fallback and
+               local CSV re-import can reuse the same UI without changing layout. -->
+          <div id="grid-overlay" class="grid-stage__overlay">
+            <div class="overlay-card">
+              <div class="overlay-card__pulse" aria-hidden="true"></div>
+              <p class="overlay-card__eyebrow">LOADING DATA</p>
+              <h2 id="overlay-title" class="overlay-card__title">
+                Preparing SZN.csv
+              </h2>
+              <p id="overlay-description" class="overlay-card__body">
+                Building the Data Hub grid and mapping the requested stat views.
+              </p>
+
+              <div id="overlay-actions" class="overlay-card__actions" hidden>
+                <button id="file-picker-button" type="button" class="overlay-card__button">
+                  Select SZN.csv
+                </button>
+                <input
+                  id="file-picker-input"
+                  type="file"
+                  accept=".csv,text/csv"
+                  hidden
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- DataHub JS — renamed from app.js to DataHub.js for this multi-page environment -->
+    <script type="module" src="./DataHub.js"></script>
+  </body>
+</html>

@@ -57,6 +57,11 @@
   to = "/stats/stats.html"
   status = 200
 
+[[redirects]]
+  from = "/datahub"
+  to = "/datahub/DataHub.html"
+  status = 200
+
 # =============================================================================
 # HEADERS — Security & Caching
 # =============================================================================
