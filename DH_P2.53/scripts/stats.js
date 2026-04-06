@@ -455,6 +455,9 @@
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
+    // The rebuilt DataHub shell uses a single live table panel instead of one wrapper per tab,
+    // and it no longer renders legacy tab-heading nodes inside the hero copy.
+    tabHeadings: Array.from(document.querySelectorAll('[data-tab-heading]')),
     tableWrappers: Array.from(document.querySelectorAll('.stats-table-wrapper')),
     tableWrapper: document.querySelector('.stats-table-wrapper'),
     grid: document.getElementById('playerGrid'),
@@ -1805,7 +1808,15 @@
     // TanStack Table doesn't handle split column sets well, so we render manually
 
     // --- Frozen Columns Pattern: Separate Frozen and Scrollable Sections ---
-    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab);
+    // The new Stats shell keeps a single active table wrapper and swaps datasets in place,
+    // so fall back to that wrapper when the legacy per-tab panels are not present.
+    const wrapper = dom.tableWrappers.find((el) => el.dataset.tabPanel === statsState.currentTab)
+      || dom.tableWrapper
+      || dom.tableWrappers[0];
+    if (!wrapper) {
+      console.warn('Stats table wrapper missing; skipping render until the shell is available.');
+      return;
+    }
     const otherWrappers = dom.tableWrappers.filter((el) => el !== wrapper);
     wrapper.classList.remove('hidden');
     otherWrappers.forEach((el) => el.classList.add('hidden'));
