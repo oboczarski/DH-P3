@@ -492,8 +492,15 @@ const state = {
     TE: true,
   },
   searchText: "",
+  rawSeasonRows: [],
   rows: [],
   displayedRows: [],
+  supplementalDataLoaded: false,
+  ktcLookups: {
+    "1-QB": Object.create(null),
+    SFLX: Object.create(null),
+  },
+  adpByPlayerId: Object.create(null),
   sort: {
     column: "RK",
     direction: "asc",
@@ -549,6 +556,17 @@ const PAGE_ROUTES = Object.freeze({
 
 const TROPHY_ROOM_HOST = "dynastyhub-trophyroom.netlify.app";
 
+// Data Hub intentionally mirrors the Stats page KTC + ADP wiring locally so
+// this page stays standalone and does not rely on app.js startup state.
+const GOOGLE_SHEET_ID = "1MDTf1IouUIrm4qabQT9E5T0FsJhQtmaX55P32XK5c_0";
+const KTC_SHEET_BY_FORMAT = Object.freeze({
+  "1-QB": "KTC_1QB",
+  SFLX: "KTC_SFLX",
+});
+const ADP_SHEET_NAME = "ADP_2026";
+
+let supplementalDataPromise = null;
+
 let activeMoreToggle = null;
 let moreCloseTimer = 0;
 
@@ -565,9 +583,9 @@ function initializeApp() {
   updatePageTabsGlint();
   renderTable();
   showOverlay({
-    title: "Preparing SZN.csv",
+    title: "Preparing SZN.csv + valuations",
     description:
-      "Building the Data Hub table and mapping the requested stat views.",
+      "Loading season stats plus the KTC trade value and ADP feeds for the Data Hub table.",
   });
   loadInitialData();
 
@@ -588,8 +606,23 @@ function attachEventListeners() {
 
   primaryTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      if (state.primaryTab === button.dataset.primaryTab) {
+        return;
+      }
+
       state.primaryTab = button.dataset.primaryTab;
       syncUiState();
+
+      // The 1-QB / SFLX tabs switch valuation context only; rebuild the same
+      // season rows against the already-cached KTC + ADP lookups.
+      if (!state.supplementalDataLoaded) {
+        ensureDataHubSupplementalData().then(() => {
+          rebuildDataHubRows();
+        });
+        return;
+      }
+
+      rebuildDataHubRows();
     });
   });
 
@@ -875,7 +908,10 @@ function isElementVisible(element) {
 
 async function loadInitialData() {
   try {
-    const csvText = await fetchCsvText();
+    const [csvText] = await Promise.all([
+      fetchCsvText(),
+      ensureDataHubSupplementalData(),
+    ]);
     applyCsvText(csvText);
     hideOverlay();
   } catch (error) {
@@ -900,6 +936,229 @@ async function fetchCsvText() {
   return response.text();
 }
 
+// Supplemental data mirrors the Stats page merge behavior locally:
+// - KTC_1QB / KTC_SFLX provide VALUE + RK context
+// - ADP_2026 provides ADP + POS·ADP context
+async function ensureDataHubSupplementalData() {
+  if (state.supplementalDataLoaded) {
+    return;
+  }
+
+  if (supplementalDataPromise) {
+    return supplementalDataPromise;
+  }
+
+  supplementalDataPromise = (async () => {
+    const [oneQbLookup, sflxLookup, adpLookup] = await Promise.all([
+      fetchKtcLookup(KTC_SHEET_BY_FORMAT["1-QB"]),
+      fetchKtcLookup(KTC_SHEET_BY_FORMAT.SFLX),
+      fetchDataHubAdpLookup(),
+    ]);
+
+    state.ktcLookups["1-QB"] = oneQbLookup;
+    state.ktcLookups.SFLX = sflxLookup;
+    state.adpByPlayerId = adpLookup;
+    state.supplementalDataLoaded = true;
+  })()
+    .catch((error) => {
+      console.error("Data Hub supplemental data load failed.", error);
+      state.ktcLookups["1-QB"] = Object.create(null);
+      state.ktcLookups.SFLX = Object.create(null);
+      state.adpByPlayerId = Object.create(null);
+      state.supplementalDataLoaded = true;
+    })
+    .finally(() => {
+      supplementalDataPromise = null;
+    });
+
+  return supplementalDataPromise;
+}
+
+async function fetchGoogleSheetCsv(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const response = await fetch(url, { cache: "no-cache" });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${sheetName}: ${response.status}`);
+  }
+  return response.text();
+}
+
+async function fetchKtcLookup(sheetName) {
+  try {
+    const csvText = await fetchGoogleSheetCsv(sheetName);
+    return parseKtcSheetData(csvText);
+  } catch (error) {
+    console.error(`Unable to load Data Hub KTC sheet: ${sheetName}`, error);
+    return Object.create(null);
+  }
+}
+
+async function fetchDataHubAdpLookup() {
+  try {
+    const csvText = await fetchGoogleSheetCsv(ADP_SHEET_NAME);
+    const rows = parseCsv(csvText);
+    const adpLookup = Object.create(null);
+
+    rows.forEach((row) => {
+      const normalizedRow = buildNormalizedSheetRow(row);
+      const playerId = getNormalizedSheetValue(normalizedRow, "SLPR_ID");
+      if (!playerId) {
+        return;
+      }
+
+      adpLookup[playerId] = {
+        sflxAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "SFLX_ADP")),
+        pprAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "PPR_ADP")),
+        posAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "POS_ADP")),
+        posSfAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, ["P-SF_ADP", "POS_SF_ADP"])),
+      };
+    });
+
+    return adpLookup;
+  } catch (error) {
+    console.error("Unable to load Data Hub ADP sheet.", error);
+    return Object.create(null);
+  }
+}
+
+function parseKtcSheetData(csvText) {
+  const rows = parseCsv(csvText);
+  const ktcLookup = Object.create(null);
+
+  rows.forEach((row) => {
+    const normalizedRow = buildNormalizedSheetRow(row);
+    const pos = getNormalizedSheetValue(normalizedRow, "POS").toUpperCase();
+    const playerId = getNormalizedSheetValue(normalizedRow, "SLPR_ID");
+
+    // Pick rows stay out of scope here until Data Hub gets its own pick-values view.
+    if (!playerId || playerId === "NA" || pos === "RDP") {
+      return;
+    }
+
+    ktcLookup[playerId] = {
+      ktc: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["VALUE", "KTC"])),
+      overallRank: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["RANK", "OVR", "OVERALL", "SCA"])),
+    };
+  });
+
+  return ktcLookup;
+}
+
+function normalizeSheetHeader(header) {
+  return String(header || "").replace(/[\u00a0\u202f]/g, " ").trim();
+}
+
+function buildNormalizedSheetRow(row) {
+  const normalizedRow = new Map();
+  Object.entries(row || {}).forEach(([key, value]) => {
+    normalizedRow.set(
+      normalizeSheetHeader(key).toUpperCase(),
+      typeof value === "string" ? value.trim() : String(value ?? "").trim(),
+    );
+  });
+  return normalizedRow;
+}
+
+function getNormalizedSheetValue(normalizedRow, names) {
+  const candidates = Array.isArray(names) ? names : [names];
+  for (const name of candidates) {
+    const value = normalizedRow.get(normalizeSheetHeader(name).toUpperCase());
+    if (value !== undefined) {
+      return value;
+    }
+  }
+  return "";
+}
+
+function toIntegerOrNull(value) {
+  const parsedValue = Number.parseInt(String(value || "").trim(), 10);
+  return Number.isNaN(parsedValue) ? null : parsedValue;
+}
+
+function toFloatOrNull(value) {
+  const parsedValue = Number.parseFloat(String(value || "").trim());
+  return Number.isNaN(parsedValue) ? null : parsedValue;
+}
+
+function getActiveKtcLookup() {
+  return state.primaryTab === "SFLX"
+    ? state.ktcLookups.SFLX
+    : state.ktcLookups["1-QB"];
+}
+
+// Rebuild the rendered season rows from the cached CSV base so the Data Hub
+// table can switch between 1-QB and SFLX instantly without re-fetching SZN.csv.
+function rebuildDataHubRows() {
+  if (!state.rawSeasonRows.length) {
+    state.rows = [];
+    refreshGrid();
+    return;
+  }
+
+  const ktcLookup = getActiveKtcLookup();
+  const adpLookup = state.adpByPlayerId || Object.create(null);
+
+  state.rows = state.rawSeasonRows.map((row) => {
+    const enrichedRow = enrichSeasonRow(row, ktcLookup, adpLookup);
+    return normalizeRow(enrichedRow);
+  });
+
+  refreshGrid();
+}
+
+function enrichSeasonRow(sourceRow, ktcLookup, adpLookup) {
+  const enrichedRow = { ...sourceRow };
+  const playerId = String(sourceRow.SLPR_ID || sourceRow.slpr_id || "").trim();
+  const ktcEntry = playerId ? ktcLookup?.[playerId] : null;
+  const adpEntry = playerId ? adpLookup?.[playerId] : null;
+  const fallbackRank = toComparableNumber(sourceRow.RK ?? sourceRow.PRK_PPR);
+  const gamesPlayed = toComparableNumber(sourceRow.GM ?? sourceRow.GM_P);
+  const fantasyPoints = toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR);
+  const ppg = computePpgValue(fantasyPoints, gamesPlayed);
+
+  // Match the Stats page merge path: KTC rank/value override the season row
+  // when present, while ADP columns are format-aware and sourced from ADP_2026.
+  enrichedRow.RK = formatIntegerString(ktcEntry?.overallRank ?? fallbackRank);
+  enrichedRow.VALUE = formatIntegerString(ktcEntry?.ktc);
+  enrichedRow.ADP = formatFixedString(
+    state.primaryTab === "SFLX" ? adpEntry?.sflxAdp : adpEntry?.pprAdp,
+    1,
+  );
+  enrichedRow["POS·ADP"] = formatFixedString(
+    state.primaryTab === "SFLX" ? adpEntry?.posSfAdp : adpEntry?.posAdp,
+    1,
+  );
+  enrichedRow.PPG = formatFixedString(ppg, 1);
+
+  return enrichedRow;
+}
+
+function computePpgValue(fantasyPoints, gamesPlayed) {
+  if (!Number.isFinite(fantasyPoints)) {
+    return null;
+  }
+
+  if (!Number.isFinite(gamesPlayed) || gamesPlayed <= 0) {
+    return null;
+  }
+
+  return fantasyPoints / gamesPlayed;
+}
+
+function formatIntegerString(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return String(Math.round(value));
+}
+
+function formatFixedString(value, decimals) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return Number(value).toFixed(decimals);
+}
+
 async function handlePickedFile(event) {
   const [file] = event.target.files || [];
   if (!file) {
@@ -910,8 +1169,9 @@ async function handlePickedFile(event) {
     showOverlay({
       title: "Importing SZN.csv",
       description:
-        "Parsing the selected local file and rebuilding the category views.",
+        "Parsing the selected local file and merging it with the Data Hub KTC + ADP lookups.",
     });
+    await ensureDataHubSupplementalData();
     const csvText = await file.text();
     applyCsvText(csvText);
     hideOverlay();
@@ -931,12 +1191,11 @@ async function handlePickedFile(event) {
 // Normalize the current CSV payload into app state, then rebuild every derived
 // view (formatting tiers, search results, row count, and the two-pane table).
 function applyCsvText(csvText) {
-  const parsedRows = parseCsv(csvText);
-  state.rows = parsedRows
-    .filter((row) => (row.NM || "").trim() || (row.POS || "").trim())
-    .map(normalizeRow);
+  state.rawSeasonRows = parseCsv(csvText).filter(
+    (row) => (row.NM || "").trim() || (row.POS || "").trim(),
+  );
 
-  refreshGrid();
+  rebuildDataHubRows();
 }
 
 // Refreshing the grid always follows the same pipeline:
@@ -1495,11 +1754,18 @@ function handleViewportResize() {
 // ---------------------------------------------------------------------------
 // Convert source CSV rows into the layout-friendly record shape expected by the
 // renderer. Every column in ALL_COLUMNS is populated so the table structure can
-// stay stable even when the source file omits optional fields.
+// stay stable even when the source file omits optional fields. Derived fields
+// like RK / VALUE / ADP / POS·ADP / PPG can override the CSV aliases by using
+// the final layout column name directly on the enriched source row.
 function normalizeRow(sourceRow) {
   const normalized = {};
 
   for (const columnName of ALL_COLUMNS) {
+    if (sourceRow[columnName] !== undefined) {
+      normalized[columnName] = sanitizeValue(sourceRow[columnName]);
+      continue;
+    }
+
     const alias = Object.prototype.hasOwnProperty.call(SOURCE_ALIASES, columnName)
       ? SOURCE_ALIASES[columnName]
       : columnName;
