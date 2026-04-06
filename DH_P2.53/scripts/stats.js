@@ -15,6 +15,18 @@
     oneQb: { sheet: 'STAT_1QB', headingSelector: '[data-tab-heading="oneQb"]' },
     sflx: { sheet: 'STAT_SFLX', headingSelector: '[data-tab-heading="sflx"]' }
   };
+  const PRIMARY_TITLES = {
+    oneQb: '1QB ADP, TRADE VALUES & 2025 STATS',
+    sflx: 'SFLX ADP, TRADE VALUES & 2025 STATS'
+  };
+  const CATEGORY_LABELS = {
+    ALL: 'Overview (ALL)',
+    QB: 'Passing (QB)',
+    RB: 'Rushing (RB)',
+    Receiving: 'Receiving (W/T)',
+    RDP: 'Pick Values',
+    Rookies: 'Rookies'
+  };
   const HEADER_ALIASES = new Map([
     ['PLAYER NAME', 'PLAYER'],
     // Season totals CSV uses `NM` for player name; treat it as PLAYER.
@@ -36,13 +48,46 @@
   ]);
   const COLUMN_SETS = {
     default: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'G', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'],
-    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'paYDS', 'paTD', 'CMP%', 'paATT', 'paRTG', 'EPA/DB', 'CPOE', 'CMP', 'YDS(t)', 'paYPG', 'ruYDS', 'ruTD', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'CAR', 'YPC', 'TTT', 'PRS%', 'SAC', 'INT', 'FUM', 'FPOE', 'CSTY%', 'CL'],
-    // RB rushing view: keep EXPLSV% with the other rushing-efficiency columns, immediately after YCO.
-    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'REC', 'recYDS', 'TGT', 'YDS(t)', 'ruYPG', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'EXPLSV%', 'ru1D', 'RYOE', 'recTD', 'rec1D', 'YAC', 'IMP/G', 'FUM', 'FPOE', 'CSTY%', 'CL'],
-    // Receiving filters (WR/TE): keep red-zone targets directly after total yards for quick usage context.
-    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'AY%', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'RZ Tgt', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
-    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'AY%', 'YAC', 'YPR', 'IMP/G', 'RR', 'FPOE', 'YDS(t)', 'RZ Tgt', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'CSTY%', 'CL'],
-    RDP: ['RK', 'YEAR', 'RANGE', 'ROUND', 'VALUE', 'POS', 'AGE', 'TM', 'G', 'FPTS', 'PPG']
+    QB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'paYDS', 'paTD', 'CMP%', 'paATT', 'paRTG', 'EPA/DB', 'CPOE', 'CMP', 'YDS(t)', 'paYPG', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'TTT', 'PRS%', 'SAC', 'INT', 'ruYDS', 'ruTD', 'CAR', 'YPC', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    RB: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'YPC', 'ruYPG', 'IMP/G', 'CAR', 'ruYDS', 'ruTD', 'ru1D', 'YDS(t)', 'FUM', 'REC', 'recYDS', 'recTD', 'rec1D', 'YAC', 'TGT', 'ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'RYOE', 'EXPLSV%', 'FPOE', 'CSTY%', 'CL'],
+    WR: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'AY%', 'YAC', 'YPR', 'IMP/G', 'RR', 'YDS(t)', 'RZ Tgt', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    TE: ['RK', 'PLAYER', 'POS', 'TM', 'AGE', 'G', 'FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP', 'SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'AY%', 'YAC', 'YPR', 'IMP/G', 'RR', 'YDS(t)', 'RZ Tgt', 'CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM', 'FPOE', 'CSTY%', 'CL'],
+    RDP: ['RK', 'PLAYER', 'POS', 'YEAR', 'RANGE', 'ROUND', 'VALUE']
+  };
+  const FROZEN_GROUP = [{ label: 'GENERAL', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', columns: ['RK', 'PLAYER', 'POS'] }];
+  const COLUMN_GROUPS = {
+    default: [
+      { label: 'INFO', icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ['TM', 'AGE'] },
+      { label: 'FANTASY', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', columns: ['FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP'] },
+      { label: 'OVERVIEW STATS', icon: 'M18 20V10M12 20V4M6 20v-6', columns: ['G', 'SNP%', 'YDS(t)', 'YPG(t)', 'OPP', 'IMP', 'IMP/OPP', 'CSTY%', 'CL'] }
+    ],
+    QB: [
+      { label: 'INFO', icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ['TM', 'AGE', 'G'] },
+      { label: 'FANTASY', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', columns: ['FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP'] },
+      { label: 'PASSING', icon: '<circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/>', columns: ['paYDS', 'paTD', 'CMP%', 'paATT', 'paRTG', 'EPA/DB', 'CPOE', 'CMP', 'YDS(t)', 'paYPG', 'pa1D', 'IMP/G', 'pIMP', 'pIMP/A', 'TTT', 'PRS%', 'SAC', 'INT'] },
+      { label: 'RUSHING', icon: 'M13 10V3L4 14h7v7l9-11h-7z', columns: ['ruYDS', 'ruTD', 'CAR', 'YPC', 'FUM'] },
+      { label: 'CEILING & CONSISTENCY', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', columns: ['FPOE', 'CSTY%', 'CL'] }
+    ],
+    RB: [
+      { label: 'INFO', icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ['TM', 'AGE', 'G'] },
+      { label: 'FANTASY', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', columns: ['FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP'] },
+      { label: 'RUSHING EFFICIENCY', icon: 'M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z', columns: ['SNP%', 'YPC', 'ruYPG', 'IMP/G'] },
+      { label: 'RUSHING PRODUCTION', icon: 'M22 7 12 17 7 12 2 17', columns: ['CAR', 'ruYDS', 'ruTD', 'ru1D', 'YDS(t)', 'FUM'] },
+      { label: 'RECEIVING', icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>', columns: ['REC', 'recYDS', 'recTD', 'rec1D', 'YAC', 'TGT'] },
+      { label: 'ADVANCED RUSHING', icon: '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>', columns: ['ELU', 'MTF/A', 'YCO/A', 'MTF', 'YCO', 'RYOE', 'EXPLSV%'] },
+      { label: 'CEILING & CONSISTENCY', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', columns: ['FPOE', 'CSTY%', 'CL'] }
+    ],
+    WR: [
+      { label: 'INFO', icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ['TM', 'AGE', 'G'] },
+      { label: 'FANTASY', icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z', columns: ['FPTS', 'PPG', 'VALUE', 'ADP', 'POS·ADP'] },
+      { label: 'RECEIVING', icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>', columns: ['SNP%', 'TGT', 'REC', 'TS%', 'recYDS', 'recTD', 'YPRR', 'rec1D', '1DRR', 'recYPG', 'AY%', 'YAC', 'YPR', 'IMP/G', 'RR', 'YDS(t)', 'RZ Tgt'] },
+      { label: 'RUSHING', icon: 'M13 10V3L4 14h7v7l9-11h-7z', columns: ['CAR', 'ruYDS', 'ruTD', 'YPC', 'FUM'] },
+      { label: 'CEILING & CONSISTENCY', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', columns: ['FPOE', 'CSTY%', 'CL'] }
+    ],
+    RDP: [
+      { label: 'PICK DETAILS', icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', columns: ['YEAR', 'RANGE', 'ROUND'] },
+      { label: 'MARKET VALUE', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6', columns: ['VALUE'] }
+    ]
   };
   const COLUMN_CATEGORY = {
     'FPTS': 'all',
@@ -410,9 +455,12 @@
   };
   const dom = {
     tabButtons: Array.from(document.querySelectorAll('.stats-tab-button')),
-    tabHeadings: Array.from(document.querySelectorAll('.stats-tab-heading')),
     tableWrappers: Array.from(document.querySelectorAll('.stats-table-wrapper')),
-    loading: document.getElementById('statsLoading'),
+    tableWrapper: document.querySelector('.stats-table-wrapper'),
+    grid: document.getElementById('playerGrid'),
+    loading: document.getElementById('statsGridOverlay'),
+    loadingTitle: document.getElementById('statsGridOverlayTitle'),
+    loadingDescription: document.getElementById('statsGridOverlayDescription'),
     emptyState: document.getElementById('statsEmptyState'),
     searchInput: document.getElementById('statsSearchInput'),
     searchClear: document.getElementById('statsSearchClear'),
@@ -420,6 +468,9 @@
     rookieButton: document.querySelector('.stats-rookie-btn'),
     secondaryFilterGroup: document.getElementById('statsSecondaryFilterGroup'),
     leagueChip: document.getElementById('statsLeagueContext'),
+    mainTitle: document.getElementById('statsMainTitle'),
+    activeViewLabel: document.getElementById('statsActiveViewLabel'),
+    rowCount: document.getElementById('statsRowCount'),
     receivingFilterWrapper: document.querySelector('.stats-filter-with-subfilters'),
     receivingButton: document.querySelector('.stats-filter-btn-receiving')
   };
@@ -431,7 +482,7 @@
   let statsLoadingDefaultText = null;
   function setStatsLoading(isLoading, message) {
     if (!dom.loading) return;
-    const textEl = dom.loading.querySelector('.stats-loading-text');
+    const textEl = dom.loadingDescription;
     if (statsLoadingDefaultText === null && textEl) {
       statsLoadingDefaultText = textEl.textContent || '';
     }
@@ -447,35 +498,6 @@
     window.setStatsLoading = setStatsLoading;
   } catch (e) {
     // ignore – window may not be writable in some environments
-  }
-
-  // Stats page: when the inline loader is rendered as a fixed overlay (mobile),
-  // keep it pinned below the sticky navigation header by updating `--stats-loading-top`.
-  function updateStatsLoadingViewportTop() {
-    try {
-      const header = document.getElementById('header-container');
-      if (!header) return;
-      const rect = header.getBoundingClientRect();
-      const top = Math.max(0, Math.ceil(rect.bottom));
-      const target = document.body || document.documentElement;
-      target.style.setProperty('--stats-loading-top', `${top}px`);
-    } catch (e) {
-      // ignore
-    }
-  }
-  updateStatsLoadingViewportTop();
-  try {
-    window.addEventListener('resize', updateStatsLoadingViewportTop, { passive: true });
-    window.addEventListener('orientationchange', updateStatsLoadingViewportTop, { passive: true });
-    if (typeof ResizeObserver === 'function') {
-      const header = document.getElementById('header-container');
-      if (header) {
-        const ro = new ResizeObserver(() => updateStatsLoadingViewportTop());
-        ro.observe(header);
-      }
-    }
-  } catch (e) {
-    // ignore
   }
   dom.receivingSubfilters = document.querySelector('.stats-receiving-expanded');
   dom.receivingSubfilterButtons = dom.receivingSubfilters
