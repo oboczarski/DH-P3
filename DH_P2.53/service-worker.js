@@ -24,7 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-const CACHE_NAME = 'DH2.3';
+// DataHub rollout: bump the cache so browsers pick up the new dashboard route
+// and the newly added DataHub page bundle on the next refresh after deploy.
+const CACHE_NAME = 'DH2.4';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -35,12 +37,14 @@ const CORE_ASSET_PATHS = [
   '/manifest.webmanifest',
   '/rosters/rosters.html',
   '/stats/stats.html',
+  '/datahub/DataHub.html',
   '/ownership/ownership.html',
   '/leaguehub/leaguehub.html',
   '/research/research.html',
   '/contact/contact.html',
   '/styles/styles.css',
   '/styles/stats.css',
+  '/styles/DataHub.css',
   '/styles/dashboard.css',
   '/styles/rosters.css',
   '/styles/leaguehub.css',
@@ -49,6 +53,7 @@ const CORE_ASSET_PATHS = [
   '/styles/contact.css',
   '/scripts/app.js',
   '/scripts/stats.js',
+  '/scripts/DataHub.js',
   '/scripts/leaguehub.js',
   '/scripts/dashboard.js',
   '/scripts/syop.js',

@@ -383,7 +383,9 @@ const getPageUrl = (page) => {
             url = `${base}contact/contact.html`;
             break;
     }
-    if (username && page !== 'home') {
+    // DataHub is a standalone page bundle and does not need the welcome-page
+    // username query string, so keep its URL clean like a plain static page path.
+    if (username && page !== 'home' && page !== 'datahub') {
         url += `?username=${encodeURIComponent(username)}`;
         if (page === 'rosters' || page === 'leaguehub' || page === 'stats') {
             const selected = leagueSelect?.value;
