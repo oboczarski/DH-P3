@@ -3028,6 +3028,7 @@ body[data-page="welcome"] .home-menu-item {
   color: var(--color-text-secondary);
   border: none;
   text-align: left;
+  text-decoration: none;
   padding: 4px 12px;
   /* Increased padding for better touch targets */
   display: flex;

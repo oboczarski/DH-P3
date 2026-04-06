@@ -118,9 +118,9 @@
                         class="fa-solid fa-house"></i><span>Home</span></button>
                     <button class="home-menu-item" data-page="rosters"><i
                         class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
-                    <!-- Dashboard menu: route DataHub through the same data-page mapping used by the other internal pages so the shared welcome-page navigation can resolve it in any environment. -->
-                    <button class="home-menu-item" data-page="datahub"><i
-                        class="fa-solid fa-chart-column"></i><span>DataHub</span></button>
+                    <!-- Dashboard menu: give DataHub a direct href/data-url fallback so it can navigate even if a browser is still holding stale cached JS. -->
+                    <a class="home-menu-item" data-page="datahub" data-url="datahub/DataHub.html" href="datahub/DataHub.html"><i
+                        class="fa-solid fa-chart-column"></i><span>DataHub</span></a>
                     <button class="home-menu-item" data-page="leaguehub"><i
                         class="fa-solid fa-square-poll-vertical"></i><span>LeagueHub</span></button>
                     <button class="home-menu-item" data-page="research"><i
@@ -533,9 +533,9 @@
     </div>
   </div>
 
-  <script defer src="scripts/app.js?v=20260116"></script>
+  <script defer src="scripts/app.js?v=20260406-datahub2"></script>
   <script src="scripts/dh-scramble.js"></script>
-  <script src="scripts/dashboard.js"></script>
+  <script src="scripts/dashboard.js?v=20260406-datahub2"></script>
 </body>
 
 </html>

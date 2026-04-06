@@ -26,7 +26,7 @@
 // ============================================================================
 // DataHub rollout: bump the cache so browsers pick up the new dashboard route
 // and the newly added DataHub page bundle on the next refresh after deploy.
-const CACHE_NAME = 'DH2.4';
+const CACHE_NAME = 'DH2.41';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

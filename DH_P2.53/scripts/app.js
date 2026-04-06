@@ -586,6 +586,12 @@ if (pageType === 'welcome') {
         // Wire menu items
         homeMenu.querySelectorAll('.home-menu-item').forEach(btn => {
             btn.addEventListener('click', async (e) => {
+                // Welcome-menu direct-link entries (like DataHub and sister apps)
+                // should use their own href/data-url navigation path instead of the
+                // shared page mapper below.
+                if (btn.dataset.url || btn.getAttribute('href')) {
+                    return;
+                }
                 const page = btn.dataset.page;
                 try { suppressFocusTemporary(); usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { }
                 // reuse ensureNavigate to validate username where needed
