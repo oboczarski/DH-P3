@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub Netlify route fix: bump the cache so browsers pick up the new
-// folder-index entrypoint and stop requesting the stale uppercase HTML path.
-const CACHE_NAME = 'DH2.5';
+// DataHub route cleanup: bump the cache so browsers pick up the single
+// lowercase DataHub page entrypoint and stop using the old aliases.
+const CACHE_NAME = 'DH2.6';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -37,8 +37,7 @@ const CORE_ASSET_PATHS = [
   '/manifest.webmanifest',
   '/rosters/rosters.html',
   '/stats/stats.html',
-  '/datahub/index.html',
-  '/datahub/DataHub.html',
+  '/datahub/datahub.html',
   '/ownership/ownership.html',
   '/leaguehub/leaguehub.html',
   '/research/research.html',

@@ -59,12 +59,17 @@
 
 [[redirects]]
   from = "/datahub"
-  to = "/datahub/index.html"
+  to = "/datahub/datahub.html"
   status = 200
 
 [[redirects]]
   from = "/datahub/DataHub.html"
-  to = "/datahub/"
+  to = "/datahub/datahub.html"
+  status = 200
+
+[[redirects]]
+  from = "/datahub/index.html"
+  to = "/datahub/datahub.html"
   status = 200
 
 # =============================================================================

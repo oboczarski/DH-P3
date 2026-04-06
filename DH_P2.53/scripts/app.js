@@ -368,10 +368,10 @@ const getPageUrl = (page) => {
         case 'stats':
             url = `${base}stats/stats.html`;
             break;
-        // DataHub page routing: use the folder index entrypoint so the page
-        // resolves consistently on Netlify and in local static servers.
+        // DataHub page routing: match the other folder-scoped pages by sending
+        // navigation to the single lowercase DataHub HTML entrypoint.
         case 'datahub':
-            url = `${base}datahub/index.html`;
+            url = `${base}datahub/datahub.html`;
             break;
         case 'leaguehub':
             url = `${base}leaguehub/leaguehub.html`;

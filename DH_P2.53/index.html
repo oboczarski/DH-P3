@@ -118,9 +118,9 @@
                         class="fa-solid fa-house"></i><span>Home</span></button>
                     <button class="home-menu-item" data-page="rosters"><i
                         class="fa-solid fa-clipboard-list"></i><span>Rosters</span></button>
-                    <!-- Dashboard menu: use the folder index route so local static serving and Netlify both resolve the same working DataHub entrypoint. -->
-                    <a class="home-menu-item" data-page="datahub" href="datahub/index.html"><i
-                        class="fa-solid fa-chart-column"></i><span>DataHub</span></a>
+                    <!-- Dashboard menu: route DataHub like the other internal pages via its lowercase page file inside /datahub. -->
+                    <button class="home-menu-item" data-page="datahub"><i
+                        class="fa-solid fa-chart-column"></i><span>DataHub</span></button>
                     <button class="home-menu-item" data-page="leaguehub"><i
                         class="fa-solid fa-square-poll-vertical"></i><span>LeagueHub</span></button>
                     <button class="home-menu-item" data-page="research"><i
@@ -533,7 +533,7 @@
     </div>
   </div>
 
-  <script defer src="scripts/app.js?v=20260406-datahub2"></script>
+  <script defer src="scripts/app.js?v=20260406-datahub3"></script>
   <script src="scripts/dh-scramble.js"></script>
   <script src="scripts/dashboard.js?v=20260406-datahub2"></script>
 </body>
