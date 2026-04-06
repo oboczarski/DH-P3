@@ -109,9 +109,9 @@
   </header><!-- end .app-header--mobile -->
 
 
-  <-g com.apple.mouse.scaling -float hero-shell: desktop header + page tabs + title + primary format tabs -->
+  <!-- hero-shell: desktop header + page tabs + title + primary format tabs -->
   <section class="hero-shell glass-panel">
-    <-g com.apple.mouse.scaling -float Desktop header: shown at >= 720px, sits inside the hero panel.
+    <!-- Desktop header: shown at >= 720px, sits inside the hero panel.
          Buttons have data-nav but no IDs; clicks delegate to mobile
          header buttons (with IDs) via the inline script near </body>. -->
     <header class="app-header app-header--desktop">
@@ -155,9 +155,9 @@
         </div>
         <div class="app-header__balance" aria-hidden="true"></div>
       </div>
-    </header><-g com.apple.mouse.scaling -float end .app-header--desktop -->
+    </header><!-- end .app-header--desktop -->
 
-    <-g com.apple.mouse.scaling -float Page-view tabs: Stats is always is-active on this page -->
+    <!-- Page-view tabs: Stats is always is-active on this page -->
     <nav class="page-tabs" aria-label="Page Views">
       <button type="button" class="page-tab is-active" aria-selected="true">
         <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
@@ -181,13 +181,13 @@
       </button>
     </nav>
 
-    <-g com.apple.mouse.scaling -float Hero copy: eyebrow chip + main title (updated by stats.js on tab switch) -->
+    <!-- Hero copy: eyebrow chip + main title (updated by stats.js on tab switch) -->
     <div class="hero-copy">
       <p class="eyebrow">DH DATA HUB – ADVANCED ANALYTICS</p>
       <h1 id="main-title" class="page-title">1QB ADP, Trade Values &amp; 2025 Stats</h1>
     </div>
 
-    <-g com.apple.mouse.scaling -float Hero actions: 1QB / SFLX format tabs + Pick Values pill -->
+    <!-- Hero actions: 1QB / SFLX format tabs + Pick Values pill -->
     <div class="hero-actions">
       <div class="top-tabs" role="tablist" aria-label="League format">
         <button type="button" class="top-tab is-active" data-primary-tab="1-QB" role="tab" aria-selected="true">1·QB</button>
@@ -195,9 +195,9 @@
       </div>
       <button type="button" class="top-pill top-pill--ghost" data-category="rdp">PICK VALUES</button>
     </div>
-  </section><-g com.apple.mouse.scaling -float end .hero-shell -->
+  </section><!-- end .hero-shell -->
 
-  <-g com.apple.mouse.scaling -float controls-shell: stat-category chips, receiving subfilters, search -->
+  <!-- controls-shell: stat-category chips, receiving subfilters, search -->
   <section class="controls-shell glass-panel" aria-label="Filters and controls">
     <div class="controls-cluster">
       <div class="category-row" role="tablist" aria-label="Stat categories">
@@ -218,12 +218,12 @@
           <span class="category-chip__meta">(W/T)</span>
         </button>
       </div>
-      <-g com.apple.mouse.scaling -float Receiving sub-filters: hidden until Receiving category is active -->
+      <!-- Receiving sub-filters: hidden until Receiving category is active -->
       <div id="receiving-subfilters" class="receiving-subfilters" aria-label="Receiving position filters" hidden>
         <button type="button" class="subfilter-chip is-active" data-receiving-filter="WR" aria-pressed="true">WR</button>
         <button type="button" class="subfilter-chip is-active" data-receiving-filter="TE" aria-pressed="true">TE</button>
       </div>
-      <-g com.apple.mouse.scaling -float Efficiency sort footnote -->
+      <!-- Efficiency sort footnote -->
       <p class="controls-footnote">
         <em>
           <span class="controls-footnote-line"><span class="controls-bullet">✶</span> When sorting efficiency stats players with &lt;3 G or &lt;40% SNP% are filtered out.</span>
@@ -232,7 +232,7 @@
       </p>
     </div>
     <div class="utility-row">
-      <-g com.apple.mouse.scaling -float KEY popup trigger: wired by stats.js -->
+      <!-- KEY popup trigger: wired by stats.js -->
       <button type="button" class="mini-chip mini-chip--icon" id="statsKeyButton" aria-label="Show stats key">
         <svg class="mini-chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/>
@@ -240,14 +240,14 @@
         </svg>
         <span>KEY</span>
       </button>
-      <-g com.apple.mouse.scaling -float Rookies filter toggle -->
+      <!-- Rookies filter toggle -->
       <button type="button" class="mini-chip mini-chip--icon mini-chip--rookies" data-category="rookies" aria-pressed="false" aria-label="Filter: Rookies only">
         <svg class="mini-chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
         </svg>
         <span>Rookies</span>
       </button>
-      <-g com.apple.mouse.scaling -float Player search -->
+      <!-- Player search -->
       <label class="search-shell" for="player-search">
         <svg class="search-shell__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M10.5 3a7.5 7.5 0 0 1 5.946 12.072l4.241 4.242-1.414 1.414-4.242-4.241A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/>
@@ -255,9 +255,9 @@
         <input id="player-search" class="search-shell__input" type="search" inputmode="search" placeholder="Search players..." autocomplete="off"/>
       </label>
     </div>
-  </section><-g com.apple.mouse.scaling -float end .controls-shell -->
+  </section><!-- end .controls-shell -->
 
-  <-g com.apple.mouse.scaling -float grid-shell: two-pane stats table (frozen + scroll columns) -->
+  <!-- grid-shell: two-pane stats table (frozen + scroll columns) -->
   <section class="grid-shell glass-panel">
     <div class="grid-shell__meta">
       <div>
@@ -271,10 +271,10 @@
     </div>
     <div class="grid-stage">
       <div class="grid-scroll-wrapper">
-        <-g com.apple.mouse.scaling -float JS replaces this node's contents with the two-pane table on every render. -->
+        <!-- JS replaces this node's contents with the two-pane table on every render. -->
         <div id="player-grid" class="data-grid" aria-label="Player stats table"></div>
       </div>
-      <-g com.apple.mouse.scaling -float Overlay: primary loading/error state. JS adds .is-hidden after data loads. -->
+      <!-- Overlay: primary loading/error state. JS adds .is-hidden after data loads. -->
       <div id="grid-overlay" class="grid-stage__overlay">
         <div class="overlay-card">
           <div class="overlay-card__pulse" aria-hidden="true"></div>
@@ -288,11 +288,11 @@
         </div>
       </div>
     </div>
-  </section><-g com.apple.mouse.scaling -float end .grid-shell -->
+  </section><!-- end .grid-shell -->
 
-</div><-g com.apple.mouse.scaling -float end .app-shell -->
+</div><!-- end .app-shell -->
 
-<-g com.apple.mouse.scaling -float Legacy loading overlay: visible fallback before #grid-overlay is wired -->
+<!-- Legacy loading overlay: visible fallback before #grid-overlay is wired -->
 <div class="stats-loading hidden" id="statsLoading" role="status" aria-live="polite">
   <div class="stats-loading-spinner" aria-hidden="true"></div>
   <div class="stats-loading-body">
