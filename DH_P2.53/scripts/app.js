@@ -368,6 +368,11 @@ const getPageUrl = (page) => {
         case 'stats':
             url = `${base}stats/stats.html`;
             break;
+        // DataHub page routing: keep the new standalone page on the same menu-driven
+        // navigation map as the rest of the internal pages.
+        case 'datahub':
+            url = `${base}datahub/DataHub.html`;
+            break;
         case 'leaguehub':
             url = `${base}leaguehub/leaguehub.html`;
             break;
