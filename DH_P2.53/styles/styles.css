@@ -9191,17 +9191,20 @@ body.league-gate-active {
   overflow: hidden;
 }
 
+/* League-connected username gate:
+   redesigned to follow the supplied reference — an atmospheric full-screen field
+   with a floating center capsule, instead of a boxed DataHub-style glass card. */
 .league-username-gate {
   position: fixed;
   inset: 0;
   z-index: 1600;
   display: grid;
   place-items: center;
-  padding: clamp(18px, 4vw, 34px);
+  padding: clamp(20px, 4vw, 44px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.22s ease, visibility 0.22s ease;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
 }
 
 .league-username-gate.is-open {
@@ -9214,70 +9217,75 @@ body.league-gate-active {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(520px 300px at 50% 30%, rgba(102, 215, 255, 0.12), transparent 58%),
-    radial-gradient(560px 340px at 15% 82%, rgba(162, 127, 255, 0.14), transparent 56%),
-    linear-gradient(180deg, rgba(4, 8, 15, 0.82), rgba(4, 8, 15, 0.95)),
-    radial-gradient(circle at 1px 1px, rgba(199, 213, 236, 0.09) 1px, transparent 0);
-  background-size: auto, auto, auto, 16px 16px;
-  backdrop-filter: blur(8px) saturate(140%);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
+    radial-gradient(56% 54% at 50% 78%, rgba(112, 90, 255, 0.24), transparent 72%),
+    radial-gradient(36% 34% at 56% 46%, rgba(94, 220, 255, 0.16), transparent 70%),
+    radial-gradient(42% 40% at 18% 88%, rgba(132, 88, 255, 0.16), transparent 74%),
+    linear-gradient(180deg, rgba(4, 7, 13, 0.96), rgba(8, 12, 20, 0.985)),
+    radial-gradient(circle at 1px 1px, rgba(184, 196, 216, 0.11) 1px, transparent 0);
+  background-size: auto, auto, auto, auto, 18px 18px;
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  animation: league-gate-background-breathe 7.2s ease-in-out infinite;
 }
 
 .league-username-gate__dialog {
   position: relative;
   z-index: 1;
-  width: min(100%, 474px);
+  display: grid;
+  justify-items: center;
+  width: min(100%, 760px);
+}
+
+.league-username-gate__dialog::before,
+.league-username-gate__dialog::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(56px);
+}
+
+.league-username-gate__dialog::before {
+  width: min(70vw, 520px);
+  height: 180px;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(88, 210, 255, 0.18), rgba(88, 210, 255, 0));
+}
+
+.league-username-gate__dialog::after {
+  width: min(55vw, 380px);
+  height: 220px;
+  left: 18%;
+  bottom: 4%;
+  background: radial-gradient(circle, rgba(112, 90, 255, 0.18), rgba(112, 90, 255, 0));
 }
 
 .league-username-gate__card {
   position: relative;
-  overflow: hidden;
-  padding: clamp(24px, 4vw, 32px);
-  border-radius: 34px;
-  border: 1px solid rgba(145, 174, 224, 0.22);
-  background:
-    linear-gradient(180deg, rgba(25, 36, 55, 0.96), rgba(10, 16, 26, 0.97)),
-    rgba(8, 14, 24, 0.96);
-  box-shadow:
-    0 30px 90px rgba(0, 0, 0, 0.56),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 0 0 1px rgba(126, 214, 255, 0.05);
-  backdrop-filter: blur(22px) saturate(165%);
-  -webkit-backdrop-filter: blur(22px) saturate(165%);
-  animation: league-gate-card-float 5.4s ease-in-out infinite;
+  width: 100%;
+  padding: clamp(28px, 6vh, 54px) 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .league-username-gate__card::before,
 .league-username-gate__card::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-}
-
-.league-username-gate__card::before {
-  inset: 1px;
-  border-radius: inherit;
-  background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.12), transparent 28%),
-    radial-gradient(circle at 16% 18%, rgba(126, 214, 255, 0.16), transparent 24%),
-    radial-gradient(circle at 84% 84%, rgba(162, 127, 255, 0.14), transparent 26%);
-}
-
-.league-username-gate__card::after {
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%);
+  display: none;
 }
 
 .league-username-gate__beam {
   position: absolute;
-  top: 0;
-  left: 16%;
-  right: 16%;
+  top: 6px;
+  left: 50%;
+  width: min(54vw, 310px);
   height: 2px;
+  transform: translateX(-50%);
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(126, 214, 255, 0.96), rgba(162, 127, 255, 0.62), transparent);
-  box-shadow: 0 0 24px rgba(126, 214, 255, 0.4);
+  background: linear-gradient(90deg, transparent, rgba(118, 232, 255, 0.88), rgba(142, 116, 255, 0.52), transparent);
+  box-shadow: 0 0 24px rgba(118, 232, 255, 0.3);
   animation: league-gate-beam-sweep 4.2s ease-in-out infinite;
 }
 
@@ -9285,13 +9293,14 @@ body.league-gate-active {
   position: relative;
   z-index: 1;
   display: grid;
+  justify-items: center;
   gap: 14px;
 }
 
 .league-username-gate__panel--loading {
   text-align: center;
   justify-items: center;
-  padding-block: 8px 2px;
+  padding-block: 14px 6px;
 }
 
 .league-username-gate.is-loading .league-username-gate__panel--form {
@@ -9307,14 +9316,15 @@ body.league-gate-active {
   align-items: center;
   gap: 0.55rem;
   width: fit-content;
-  padding: 0.4rem 0.78rem;
+  padding: 0.42rem 0.9rem;
   border-radius: 999px;
-  border: 1px solid rgba(126, 214, 255, 0.2);
-  background: rgba(10, 17, 29, 0.58);
-  color: rgba(198, 214, 240, 0.78);
+  border: 1px solid rgba(174, 190, 212, 0.14);
+  background: rgba(17, 23, 34, 0.44);
+  color: rgba(215, 223, 237, 0.78);
   font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .league-username-gate__badge--loading {
@@ -9325,16 +9335,19 @@ body.league-gate-active {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(126, 214, 255, 0.95), rgba(162, 127, 255, 0.8));
-  box-shadow: 0 0 14px rgba(126, 214, 255, 0.45);
+  background: linear-gradient(180deg, rgba(126, 236, 255, 0.94), rgba(128, 102, 255, 0.82));
+  box-shadow: 0 0 14px rgba(126, 236, 255, 0.4);
 }
 
 .league-username-gate__title {
   margin: 0;
-  font-size: clamp(1.48rem, 3vw, 2.15rem);
-  line-height: 0.98;
-  letter-spacing: -0.05em;
-  color: var(--color-text-primary);
+  max-width: 13ch;
+  font-size: clamp(1.72rem, 3.9vw, 2.85rem);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+  text-align: center;
+  color: #f3f7fd;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.24);
 }
 
 .league-username-gate__title--loading {
@@ -9343,70 +9356,99 @@ body.league-gate-active {
 
 .league-username-gate__description {
   margin: 0;
-  color: rgba(198, 214, 240, 0.78);
-  font-size: 0.92rem;
-  line-height: 1.58;
+  max-width: 42ch;
+  color: rgba(201, 210, 226, 0.78);
+  font-size: 0.95rem;
+  line-height: 1.68;
+  text-align: center;
 }
 
 .league-username-gate__description--loading {
-  max-width: 28ch;
+  max-width: 32ch;
   text-align: center;
 }
 
 .league-username-gate__form {
   display: grid;
+  justify-items: center;
+  width: min(100%, 560px);
   gap: 12px;
+}
+
+.league-username-gate__input-stack {
+  width: 100%;
+  display: grid;
+  gap: 10px;
 }
 
 .league-username-gate__input-shell {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.78rem;
-  min-height: 74px;
-  padding: 0 1.05rem 0 1.15rem;
+  gap: 0.82rem;
+  min-height: 82px;
+  padding: 0 0.6rem 0 1.2rem;
   border-radius: 999px;
-  border: 1px solid rgba(126, 214, 255, 0.16);
+  border: 1px solid rgba(171, 187, 211, 0.16);
   background:
-    linear-gradient(180deg, rgba(33, 47, 70, 0.88), rgba(12, 18, 30, 0.92)),
-    rgba(12, 18, 30, 0.92);
+    linear-gradient(180deg, rgba(42, 50, 62, 0.6), rgba(20, 26, 35, 0.9)),
+    rgba(20, 26, 35, 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 22px 42px rgba(0, 0, 0, 0.32),
-    inset 0 0 0 1px rgba(126, 214, 255, 0.03);
+    inset 0 -18px 28px rgba(0, 0, 0, 0.16),
+    0 24px 58px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(86, 104, 132, 0.16),
+    0 0 36px rgba(94, 220, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  animation: league-gate-input-hum 5.8s ease-in-out infinite;
 }
 
 .league-username-gate__input-edge {
   position: absolute;
-  top: 0;
-  left: 18%;
-  right: 18%;
+  top: 1px;
+  left: 24%;
+  right: 24%;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(126, 214, 255, 0.95), transparent);
-  box-shadow: 0 0 18px rgba(126, 214, 255, 0.34);
+  background: linear-gradient(90deg, transparent, rgba(114, 232, 255, 0.86), transparent);
+  box-shadow: 0 0 18px rgba(114, 232, 255, 0.28);
+}
+
+.league-username-gate__input-haze {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  width: 44%;
+  height: 40px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(96, 220, 255, 0.2), rgba(96, 220, 255, 0));
+  filter: blur(16px);
+  pointer-events: none;
 }
 
 .league-username-gate__input-icon {
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
   flex-shrink: 0;
-  color: rgba(152, 225, 255, 0.84);
+  color: rgba(162, 220, 239, 0.78);
 }
 
 .league-username-gate__input-shell input {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   border: none;
   background: transparent;
-  color: #e7eefb;
+  color: #edf3fc;
   font: inherit;
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 1.02rem;
+  font-weight: 500;
   letter-spacing: 0.01em;
 }
 
 .league-username-gate__input-shell input::placeholder {
-  color: rgba(170, 188, 216, 0.42);
+  color: rgba(184, 194, 210, 0.42);
 }
 
 .league-username-gate__input-shell input:focus {
@@ -9414,55 +9456,67 @@ body.league-gate-active {
 }
 
 .league-username-gate__hint {
-  margin: 0 0 0.1rem;
-  color: rgba(177, 193, 218, 0.58);
-  font-size: 0.76rem;
+  margin: 0;
+  text-align: center;
+  color: rgba(178, 188, 203, 0.58);
+  font-size: 0.77rem;
   letter-spacing: 0.02em;
 }
 
 .league-username-gate__error {
   margin: 0;
-  padding: 0.72rem 0.86rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 105, 178, 0.24);
-  background: rgba(54, 11, 32, 0.42);
+  width: 100%;
+  padding: 0.78rem 0.98rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 124, 186, 0.18);
+  background: rgba(41, 14, 28, 0.58);
   color: #ffd3ea;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   line-height: 1.45;
+  text-align: center;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .league-username-gate.has-error .league-username-gate__input-shell {
-  border-color: rgba(255, 105, 178, 0.36);
+  border-color: rgba(255, 124, 186, 0.26);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(255, 105, 178, 0.14),
-    0 22px 42px rgba(0, 0, 0, 0.32);
+    inset 0 -18px 28px rgba(0, 0, 0, 0.16),
+    0 0 0 1px rgba(255, 124, 186, 0.12),
+    0 24px 58px rgba(0, 0, 0, 0.42),
+    0 0 36px rgba(255, 124, 186, 0.08);
 }
 
 .league-username-gate__submit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.72rem;
-  width: 100%;
-  min-height: 52px;
-  padding: 0 1rem;
-  border: 1px solid rgba(126, 214, 255, 0.28);
-  border-radius: 19px;
+  gap: 0.58rem;
+  flex: 0 0 auto;
+  min-height: 60px;
+  min-width: 148px;
+  padding: 0 1.08rem;
+  border: 1px solid rgba(184, 197, 217, 0.14);
+  border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(126, 214, 255, 0.2), rgba(162, 127, 255, 0.16)),
-    rgba(13, 20, 34, 0.78);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(19, 25, 35, 0.72);
   color: #eff5ff;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 16px 34px rgba(0, 0, 0, 0.26);
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 12px 26px rgba(0, 0, 0, 0.24);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.league-username-gate__submit-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .league-username-gate__submit svg {
@@ -9472,11 +9526,11 @@ body.league-gate-active {
 
 .league-username-gate__submit:hover {
   transform: translateY(-1px);
-  border-color: rgba(126, 214, 255, 0.42);
+  border-color: rgba(118, 232, 255, 0.28);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 20px 40px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(126, 214, 255, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 16px 30px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(118, 232, 255, 0.08);
 }
 
 .league-username-gate__submit:active {
@@ -9486,71 +9540,80 @@ body.league-gate-active {
 .league-username-gate__submit:focus-visible {
   outline: none;
   box-shadow:
-    0 0 0 1px rgba(149, 226, 255, 0.58),
-    0 0 0 5px rgba(126, 214, 255, 0.14),
+    0 0 0 1px rgba(149, 226, 255, 0.5),
+    0 0 0 5px rgba(118, 232, 255, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .league-username-gate__loader {
   position: relative;
-  width: 94px;
-  height: 94px;
-  margin-bottom: 0.2rem;
+  width: min(100%, 430px);
+  height: 78px;
+  margin-bottom: 0.55rem;
 }
 
 .league-username-gate__loader-ring,
 .league-username-gate__loader-core {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
+  border-radius: 999px;
 }
 
 .league-username-gate__loader-ring {
-  border: 2px solid rgba(126, 214, 255, 0.12);
-  border-top-color: rgba(126, 214, 255, 0.96);
-  border-right-color: rgba(162, 127, 255, 0.82);
-  box-shadow: 0 0 28px rgba(126, 214, 255, 0.14);
-  animation: league-gate-loader-spin 1.1s linear infinite;
+  overflow: hidden;
+  border: 1px solid rgba(171, 187, 211, 0.16);
+  background:
+    linear-gradient(180deg, rgba(42, 50, 62, 0.6), rgba(20, 26, 35, 0.9)),
+    rgba(20, 26, 35, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -18px 28px rgba(0, 0, 0, 0.16),
+    0 24px 58px rgba(0, 0, 0, 0.42),
+    0 0 36px rgba(94, 220, 255, 0.08);
+}
+
+.league-username-gate__loader-ring::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: -34%;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(114, 232, 255, 0.18), rgba(114, 232, 255, 0.9), rgba(142, 116, 255, 0.58), transparent);
+  filter: blur(0.4px);
+  animation: league-gate-loader-travel 1.9s ease-in-out infinite;
 }
 
 .league-username-gate__loader-core {
-  inset: 18px;
+  inset: 16px;
   background:
-    radial-gradient(circle at 36% 34%, rgba(255, 255, 255, 0.9), transparent 18%),
-    radial-gradient(circle at 50% 50%, rgba(126, 214, 255, 0.44), rgba(162, 127, 255, 0.2) 62%, transparent 72%);
+    linear-gradient(90deg, rgba(114, 232, 255, 0.16), rgba(142, 116, 255, 0.14), rgba(255, 255, 255, 0));
   box-shadow:
-    inset 0 0 18px rgba(255, 255, 255, 0.08),
-    0 0 30px rgba(126, 214, 255, 0.22);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 26px rgba(94, 220, 255, 0.12);
   animation: league-gate-loader-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes league-gate-loader-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes league-gate-loader-pulse {
   0%,
   100% {
-    transform: scale(0.98);
-    opacity: 0.88;
+    opacity: 0.68;
   }
 
   50% {
-    transform: scale(1.04);
     opacity: 1;
   }
 }
 
-@keyframes league-gate-card-float {
+@keyframes league-gate-background-breathe {
   0%,
   100% {
-    transform: translateY(0);
+    opacity: 0.96;
   }
 
   50% {
-    transform: translateY(-4px);
+    opacity: 1;
   }
 }
 
@@ -9567,28 +9630,67 @@ body.league-gate-active {
   }
 }
 
-@media (max-width: 640px) {
-  .league-username-gate__dialog {
-    width: min(100%, 406px);
+@keyframes league-gate-input-hum {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -18px 28px rgba(0, 0, 0, 0.16),
+      0 24px 58px rgba(0, 0, 0, 0.42),
+      0 0 0 1px rgba(86, 104, 132, 0.16),
+      0 0 36px rgba(94, 220, 255, 0.08);
   }
 
-  .league-username-gate__card {
-    padding: 22px 18px 20px;
-    border-radius: 28px;
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -18px 28px rgba(0, 0, 0, 0.16),
+      0 26px 62px rgba(0, 0, 0, 0.44),
+      0 0 0 1px rgba(94, 220, 255, 0.14),
+      0 0 44px rgba(94, 220, 255, 0.14);
+  }
+}
+
+@keyframes league-gate-loader-travel {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(320%);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .league-username-gate__dialog {
+    width: min(100%, 460px);
+  }
+
+  .league-username-gate__dialog::before {
+    width: min(82vw, 360px);
+    height: 160px;
   }
 
   .league-username-gate__title {
-    font-size: 1.52rem;
+    font-size: 1.8rem;
   }
 
   .league-username-gate__description {
-    font-size: 0.84rem;
-    line-height: 1.5;
+    max-width: 30ch;
+    font-size: 0.86rem;
+    line-height: 1.56;
   }
 
   .league-username-gate__input-shell {
-    min-height: 66px;
-    padding-inline: 0.95rem;
+    min-height: 72px;
+    padding-left: 1rem;
+    padding-right: 0.4rem;
   }
 
   .league-username-gate__input-shell input {
@@ -9596,8 +9698,14 @@ body.league-gate-active {
   }
 
   .league-username-gate__submit {
-    min-height: 48px;
-    font-size: 0.84rem;
+    min-width: 52px;
+    width: 52px;
+    min-height: 52px;
+    padding: 0;
+  }
+
+  .league-username-gate__submit-label {
+    display: none;
   }
 
   .league-username-gate__hint,

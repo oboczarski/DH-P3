@@ -318,6 +318,7 @@ let leagueUsernameGateButtonLabelEl = null;
 let leagueUsernameGateLoadingEyebrowEl = null;
 let leagueUsernameGateLoadingTitleEl = null;
 let leagueUsernameGateLoadingDescriptionEl = null;
+let initialPageDataLoadPromise = null;
 function normalizeLeagueUsername(value) {
     return String(value || '').trim().toLowerCase();
 }
@@ -383,23 +384,26 @@ function ensureLeagueUsernameGate() {
                         <p id="leagueUsernameGateDescription" class="league-username-gate__description"></p>
                         <form id="leagueUsernameGateForm" class="league-username-gate__form">
                             <label class="sr-only" for="leagueUsernameGateInput">Sleeper username</label>
-                            <div class="league-username-gate__input-shell">
-                                <span class="league-username-gate__input-edge" aria-hidden="true"></span>
-                                <svg class="league-username-gate__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <input id="leagueUsernameGateInput" type="text" inputmode="text" autocapitalize="none" autocomplete="username" autocorrect="off" spellcheck="false" placeholder="Enter Sleeper username" />
+                            <div class="league-username-gate__input-stack">
+                                <div class="league-username-gate__input-shell">
+                                    <span class="league-username-gate__input-edge" aria-hidden="true"></span>
+                                    <span class="league-username-gate__input-haze" aria-hidden="true"></span>
+                                    <svg class="league-username-gate__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <input id="leagueUsernameGateInput" type="text" inputmode="text" autocapitalize="none" autocomplete="username" autocorrect="off" spellcheck="false" placeholder="Enter Sleeper username" />
+                                    <button id="leagueUsernameGateSubmit" class="league-username-gate__submit" type="submit">
+                                        <span id="leagueUsernameGateButtonLabel" class="league-username-gate__submit-label"></span>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                            <path d="M5 12h14"></path>
+                                            <path d="m12 5 7 7-7 7"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <p class="league-username-gate__hint">No password needed — just your public Sleeper username.</p>
+                                <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
                             </div>
-                            <p class="league-username-gate__hint">No password needed — just your public Sleeper username.</p>
-                            <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
-                            <button id="leagueUsernameGateSubmit" class="league-username-gate__submit" type="submit">
-                                <span id="leagueUsernameGateButtonLabel"></span>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                    <path d="M5 12h14"></path>
-                                    <path d="m12 5 7 7-7 7"></path>
-                                </svg>
-                            </button>
                         </form>
                     </div>
                     <div class="league-username-gate__panel league-username-gate__panel--loading" hidden aria-live="polite">
@@ -447,6 +451,23 @@ function ensureLeagueUsernameGate() {
 function initializeLeagueUsernameGate() {
     if (!usesLeagueUsernameGate(pageType)) return;
     ensureLeagueUsernameGate();
+}
+function loadInitialPageBootstrapData() {
+    if (initialPageDataLoadPromise) return initialPageDataLoadPromise;
+
+    // Shared gated-page bootstrap:
+    // cache one preload pass so no-username arrivals can open the prompt immediately,
+    // then reuse the same player/value data after the username is submitted.
+    const loaders = (pageType === 'stats' || pageType === 'rosters')
+        ? [fetchSleeperPlayers(), fetchDataFromGoogleSheet()]
+        : [fetchSleeperPlayers(), fetchDataFromGoogleSheet(), fetchPlayerStatsSheets()];
+
+    initialPageDataLoadPromise = Promise.all(loaders).catch((error) => {
+        initialPageDataLoadPromise = null;
+        throw error;
+    });
+
+    return initialPageDataLoadPromise;
 }
 function setLeagueUsernameGateLoading(isLoading, message = '') {
     const gate = ensureLeagueUsernameGate();
@@ -1642,9 +1663,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    const params = new URLSearchParams(window.location.search);
+    const uname = normalizeLeagueUsername(params.get('username'));
+    const storedUsername = usesLeagueUsernameGate(pageType) ? readPreferredHeaderUsername() : '';
+
+    // Immediate gate-open path:
+    // if navigation lands on a gated page without any saved/query username,
+    // open the overlay first instead of waiting on page bootstrap data.
+    if (usesLeagueUsernameGate(pageType) && !uname && !storedUsername) {
+        if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+        showLeagueUsernameGate({ page: pageType, focusInput: false });
+        return;
+    }
+
     // Prevent mobile keyboard appearing when arriving via nav with ?username=
     try {
-        const params = new URLSearchParams(window.location.search);
         if (params.has('username')) {
             // enable temporary focus suppression and blur after the page settles
             try { suppressFocusTemporary(600); } catch (e) { }
@@ -1652,17 +1685,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (e) { }
     setLoading(true, 'Loading initial data...');
-
-    // Stats and Rosters pages defer weekly stats loading for better performance
-    const initialDataPromises = (pageType === 'stats' || pageType === 'rosters')
-        ? [fetchSleeperPlayers(), fetchDataFromGoogleSheet()]
-        : [fetchSleeperPlayers(), fetchDataFromGoogleSheet(), fetchPlayerStatsSheets()];
-
-    await Promise.all(initialDataPromises);
+    await loadInitialPageBootstrapData();
     setLoading(false);
     if (welcomeScreen) welcomeScreen.classList.remove('hidden');
-    const params = new URLSearchParams(window.location.search);
-    const uname = normalizeLeagueUsername(params.get('username'));
     if (uname) {
         try { suppressFocusTemporary(600); } catch (e) { }
         syncHeaderUsernameValue(uname);
@@ -1674,15 +1699,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     if (usesLeagueUsernameGate(pageType)) {
-        const storedUsername = readPreferredHeaderUsername();
         if (storedUsername) {
+            syncHeaderUsernameValue(storedUsername);
             if (pageType === 'rosters') {
                 await handleFetchRosters();
             } else if (pageType === 'ownership') {
                 await handleFetchOwnership();
             }
         } else {
-            showLeagueUsernameGate({ page: pageType });
+            showLeagueUsernameGate({ page: pageType, focusInput: false });
         }
     }
 });
@@ -1948,9 +1973,11 @@ async function handleFetchRosters() {
     hideLegend();
     const username = syncHeaderUsernameValue(usernameInput.value);
     if (!username) return false;
-    setLoading(true, 'Fetching user leagues...');
+    setLoading(true, 'Loading player data...');
     let wasSuccessful = false;
     try {
+        await loadInitialPageBootstrapData();
+        setLoading(true, 'Fetching user leagues...');
         await fetchAndSetUser(username);
         const leagues = await fetchUserLeagues(state.userId);
         state.leagues = leagues.sort((a, b) => a.name.localeCompare(b.name));
@@ -1995,9 +2022,11 @@ async function handleFetchRosters() {
 async function handleFetchOwnership() {
     const username = syncHeaderUsernameValue(usernameInput.value);
     if (!username) return false;
-    setLoading(true, 'Fetching ownership data...');
+    setLoading(true, 'Loading player data...');
     let wasSuccessful = false;
     try {
+        await loadInitialPageBootstrapData();
+        setLoading(true, 'Fetching ownership data...');
         await fetchAndSetUser(username);
         rosterView.classList.add('hidden');
         playerListView.classList.remove('hidden');

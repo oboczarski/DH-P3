@@ -473,12 +473,13 @@
       }
       return 'LeagueHub could not finish connecting that username. Please try again.';
     };
-    const showLeagueHubGate = ({ username = '', errorMessage = '' } = {}) => {
+    const showLeagueHubGate = ({ username = '', errorMessage = '', focusInput = true } = {}) => {
       try {
         window.__dhUsernameGate?.show?.({
           page: 'leaguehub',
           username,
           errorMessage,
+          focusInput,
         });
       } catch (error) { }
     };
@@ -596,7 +597,7 @@
       syncStoredUsername(storedUsername);
       handleFetchData(initialLeagueId);
     } else {
-      showLeagueHubGate();
+      showLeagueHubGate({ focusInput: false });
     }
 
     async function handleFetchData(targetLeagueId) {
@@ -2711,10 +2712,7 @@
 
       if (gateSubmitting) {
         try {
-            const gateSubmitting = Boolean(window.__dhUsernameGate?.isSubmitting?.());
-
-            if (gateSubmitting) {
-              window.__dhUsernameGate?.setLoading?.(isLoading, message);
+          window.__dhUsernameGate?.setLoading?.(isLoading, message);
         } catch (error) { }
         elements.loading?.classList.add('hidden');
         return;
