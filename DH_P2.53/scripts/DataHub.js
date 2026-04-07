@@ -2071,3 +2071,36 @@ function showOverlay({ title, description, showActions = false }) {
 function hideOverlay() {
   overlay.classList.add("is-hidden");
 }
+
+// ---------------------------------------------------------------------------
+// 4-Theme Premium Switcher Logic
+// ---------------------------------------------------------------------------
+const themeButtons = document.querySelectorAll('.theme-btn');
+
+function applyTheme(themeName) {
+  // Update document body attribute
+  document.body.setAttribute('data-theme', themeName);
+  
+  // Persist choice
+  localStorage.setItem('dh_datahub_theme', themeName);
+
+  // Update switcher visual state
+  themeButtons.forEach(btn => {
+    if (btn.getAttribute('data-theme-set') === themeName) {
+      btn.classList.add('is-active');
+    } else {
+      btn.classList.remove('is-active');
+    }
+  });
+}
+
+// Attach listener to buttons
+themeButtons.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    applyTheme(e.target.getAttribute('data-theme-set'));
+  });
+});
+
+// Init from localStorage on load
+const savedTheme = localStorage.getItem('dh_datahub_theme') || 'cyber';
+applyTheme(savedTheme);
