@@ -447,6 +447,61 @@
       radarSlots: [],
     };
 
+    const normalizeLeagueUsername = (value) => String(value || '').trim().toLowerCase();
+    const syncStoredUsername = (value) => {
+      const normalizedUsername = normalizeLeagueUsername(value);
+      if (elements.usernameInput) {
+        elements.usernameInput.value = normalizedUsername;
+      }
+      try {
+        if (normalizedUsername) localStorage.setItem('sleeper_username', normalizedUsername);
+        else localStorage.removeItem('sleeper_username');
+      } catch (error) { }
+      return normalizedUsername;
+    };
+    const getLeagueHubGateErrorMessage = (error) => {
+      const rawMessage = String(error?.message || '').trim();
+      const normalizedMessage = rawMessage.toLowerCase();
+      if (normalizedMessage.includes('not found')) {
+        return 'That Sleeper username was not found. Double-check the spelling and try again.';
+      }
+      if (normalizedMessage.includes('no active dynasty leagues')) {
+        return 'We found the username, but there are no active dynasty leagues available right now.';
+      }
+      if (normalizedMessage.includes('request failed') || normalizedMessage.includes('network')) {
+        return 'LeagueHub could not reach Sleeper right now. Please try again in a moment.';
+      }
+      return 'LeagueHub could not finish connecting that username. Please try again.';
+    };
+    const showLeagueHubGate = ({ username = '', errorMessage = '' } = {}) => {
+      try {
+        window.__dhUsernameGate?.show?.({
+          page: 'leaguehub',
+          username,
+          errorMessage,
+        });
+      } catch (error) { }
+    };
+
+    // LeagueHub gate bridge:
+    // lets the shared username overlay in app.js submit directly into the
+    // LeagueHub fetch flow without coupling this page to shared app.js logic.
+    if (typeof window !== 'undefined') {
+      window.__dhLeagueHubBridge = {
+        submitUsername: async ({ username = '', leagueId = '' } = {}) => {
+          const normalizedUsername = syncStoredUsername(username);
+          if (!normalizedUsername) {
+            showLeagueHubGate({
+              username: '',
+              errorMessage: 'Enter your Sleeper username to continue.',
+            });
+            return false;
+          }
+          return handleFetchData(leagueId);
+        },
+      };
+    }
+
     elements.usernameInput?.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         handleFetchData();
@@ -529,22 +584,34 @@
       renderStandings(state.standingsTeams);
     });
 
-    if (initialUsername) {
-      elements.usernameInput.value = initialUsername;
+    const normalizedInitialUsername = normalizeLeagueUsername(initialUsername);
+    const storedUsername = normalizeLeagueUsername(elements.usernameInput?.value);
+
+    if (normalizedInitialUsername) {
+      syncStoredUsername(initialUsername);
       // If arriving via nav with username in query, blur to avoid mobile keyboard
       setTimeout(() => { try { elements.usernameInput?.blur(); if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); } catch (e) { } }, 50);
       handleFetchData(initialLeagueId);
+    } else if (storedUsername) {
+      syncStoredUsername(storedUsername);
+      handleFetchData(initialLeagueId);
+    } else {
+      showLeagueHubGate();
     }
 
     async function handleFetchData(targetLeagueId) {
-      const username = elements.usernameInput.value.trim();
+      const username = syncStoredUsername(elements.usernameInput.value);
       if (!username) {
-        alert('Please enter a Sleeper username.');
-        return;
+        showLeagueHubGate({
+          username: '',
+          errorMessage: 'Enter your Sleeper username to continue.',
+        });
+        return false;
       }
 
-      setLoading(true);
+      setLoading(true, 'Finding your dynasty leagues...');
       hideContent();
+      let wasSuccessful = false;
 
       try {
         await Promise.all([fetchSleeperPlayers(), fetchKTCData()]);
@@ -554,23 +621,30 @@
           throw new Error('No active dynasty leagues found for this user in the current season.');
         }
 
+        setLoading(true, 'Analyzing league value and production...');
+
         if (targetLeagueId) {
           const target = state.leagues.find((league) => league.league_id === targetLeagueId);
           if (target) {
             elements.leagueSelect.value = targetLeagueId;
-            await analyzeLeague(targetLeagueId);
-            return;
+            wasSuccessful = await analyzeLeague(targetLeagueId);
+            return wasSuccessful;
           }
         }
 
         elements.leagueSelect.selectedIndex = 1;
-        await analyzeLeague(state.leagues[0].league_id);
+        wasSuccessful = await analyzeLeague(state.leagues[0].league_id);
       } catch (error) {
         console.error('Analyzer fetch error:', error);
-        alert(`An error occurred while loading data: ${error.message}`);
+        showLeagueHubGate({
+          username,
+          errorMessage: getLeagueHubGateErrorMessage(error),
+        });
       } finally {
         setLoading(false);
       }
+
+      return wasSuccessful;
     }
 
     function hideContent() {
@@ -1114,7 +1188,7 @@
 
     async function analyzeLeague(leagueId) {
       try {
-        setLoading(true);
+        setLoading(true, 'Analyzing league value and production...');
         hideContent();
 
         const leagueInfo = state.leagues.find((league) => league.league_id === leagueId);
@@ -1178,9 +1252,18 @@
         } else {
           elements.summaryStats.classList.remove('hidden');
         }
+        return true;
       } catch (error) {
         console.error('Analyze league error:', error);
-        alert(`Failed to analyze league: ${error.message}`);
+        if (window.__dhUsernameGate?.isSubmitting?.()) {
+          showLeagueHubGate({
+            username: elements.usernameInput?.value || '',
+            errorMessage: getLeagueHubGateErrorMessage(error),
+          });
+        } else {
+          alert(`Failed to analyze league: ${error.message}`);
+        }
+        return false;
       } finally {
         setLoading(false);
       }
@@ -2623,8 +2706,25 @@
       select.disabled = false;
     }
 
-    function setLoading(isLoading) {
+    function setLoading(isLoading, message = 'Loading LeagueHub...') {
+      const gateSubmitting = Boolean(window.__dhUsernameGate?.isSubmitting?.());
+
+      if (gateSubmitting) {
+        try {
+            const gateSubmitting = Boolean(window.__dhUsernameGate?.isSubmitting?.());
+
+            if (gateSubmitting) {
+              window.__dhUsernameGate?.setLoading?.(isLoading, message);
+        } catch (error) { }
+        elements.loading?.classList.add('hidden');
+        return;
+      }
+
       if (!elements.loading) return;
+      const messageEl = elements.loading.querySelector('.loading-message');
+      if (messageEl) {
+        messageEl.textContent = message;
+      }
       if (isLoading) {
         elements.loading.classList.remove('hidden');
       } else {

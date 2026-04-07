@@ -277,6 +277,309 @@ function suppressFocusTemporary(ms) {
         return parsed.toString();
     };
 })();
+const LEAGUE_CONNECTED_PAGES = new Set(['rosters', 'ownership', 'leaguehub']);
+const LEAGUE_USERNAME_GATE_COPY = Object.freeze({
+    rosters: {
+        eyebrow: 'ROSTER ACCESS',
+        title: 'Connect your Sleeper username',
+        description: 'Drop in your Sleeper handle to open roster boards, matchup context, trade tools, and player cards right from this page.',
+        buttonLabel: 'Open Rosters',
+        loadingEyebrow: 'SYNCING ROSTERS',
+        loadingTitle: 'Building your roster lounge',
+        loadingDescription: 'Finding your dynasty leagues, valuations, and weekly context.'
+    },
+    ownership: {
+        eyebrow: 'OWNERSHIP ACCESS',
+        title: 'Connect your Sleeper username',
+        description: 'Load your player exposures, ownership percentages, and cross-league value footprint from one polished dashboard.',
+        buttonLabel: 'Open Ownership',
+        loadingEyebrow: 'MAPPING EXPOSURES',
+        loadingTitle: 'Preparing your ownership view',
+        loadingDescription: 'Gathering league data and assembling your exposure dashboard.'
+    },
+    leaguehub: {
+        eyebrow: 'LEAGUEHUB ACCESS',
+        title: 'Connect your Sleeper username',
+        description: 'Unlock the LeagueHub analyzer for lineup value, production, standings context, and league-wide leaderboards.',
+        buttonLabel: 'Open LeagueHub',
+        loadingEyebrow: 'ANALYZING LEAGUES',
+        loadingTitle: 'Powering up LeagueHub',
+        loadingDescription: 'Connecting to Sleeper and building the league-wide analysis board.'
+    }
+});
+let leagueUsernameGateRoot = null;
+let leagueUsernameGateForm = null;
+let leagueUsernameGateInputEl = null;
+let leagueUsernameGateErrorEl = null;
+let leagueUsernameGateEyebrowEl = null;
+let leagueUsernameGateTitleEl = null;
+let leagueUsernameGateDescriptionEl = null;
+let leagueUsernameGateButtonLabelEl = null;
+let leagueUsernameGateLoadingEyebrowEl = null;
+let leagueUsernameGateLoadingTitleEl = null;
+let leagueUsernameGateLoadingDescriptionEl = null;
+function normalizeLeagueUsername(value) {
+    return String(value || '').trim().toLowerCase();
+}
+function readPreferredHeaderUsername() {
+    const inputValue = normalizeLeagueUsername(usernameInput?.value);
+    if (inputValue) return inputValue;
+    try {
+        return normalizeLeagueUsername(localStorage.getItem(HEADER_USERNAME_STORAGE_KEY));
+    } catch (error) {
+        return '';
+    }
+}
+function syncHeaderUsernameValue(nextUsername) {
+    const normalizedUsername = normalizeLeagueUsername(nextUsername);
+    if (usernameInput) {
+        usernameInput.value = normalizedUsername;
+    }
+    try {
+        if (normalizedUsername) localStorage.setItem(HEADER_USERNAME_STORAGE_KEY, normalizedUsername);
+        else localStorage.removeItem(HEADER_USERNAME_STORAGE_KEY);
+    } catch (error) { }
+    return normalizedUsername;
+}
+function usesLeagueUsernameGate(page = pageType) {
+    return LEAGUE_CONNECTED_PAGES.has(page);
+}
+function getLeagueUsernameGateCopy(page = pageType) {
+    return LEAGUE_USERNAME_GATE_COPY[page] || LEAGUE_USERNAME_GATE_COPY.rosters;
+}
+function getLeagueUsernameGateErrorMessage(error) {
+    const rawMessage = String(error?.message || '').trim();
+    const normalizedMessage = rawMessage.toLowerCase();
+    if (normalizedMessage.includes('not found')) {
+        return 'That Sleeper username was not found. Double-check the spelling and try again.';
+    }
+    if (normalizedMessage.includes('no active dynasty leagues')) {
+        return 'We found the username, but there are no active dynasty leagues available right now.';
+    }
+    if (normalizedMessage.includes('request failed') || normalizedMessage.includes('network')) {
+        return 'Dynasty Hub could not reach Sleeper right now. Please give it another shot in a moment.';
+    }
+    return 'We could not finish connecting that username. Please try again.';
+}
+function ensureLeagueUsernameGate() {
+    if (!usesLeagueUsernameGate(pageType)) return null;
+    if (leagueUsernameGateRoot) return leagueUsernameGateRoot;
+
+    // League-connected username gate:
+    // injected once per gated page so Rosters, Ownership, and LeagueHub can share
+    // the same high-end username prompt without duplicating markup in each HTML file.
+    document.body.insertAdjacentHTML('beforeend', `
+        <div id="leagueUsernameGate" class="league-username-gate" aria-hidden="true" hidden>
+            <div class="league-username-gate__backdrop" aria-hidden="true"></div>
+            <div class="league-username-gate__dialog" role="dialog" aria-modal="true" aria-labelledby="leagueUsernameGateTitle">
+                <div class="league-username-gate__card">
+                    <span class="league-username-gate__beam" aria-hidden="true"></span>
+                    <div class="league-username-gate__panel league-username-gate__panel--form">
+                        <div class="league-username-gate__badge">
+                            <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
+                            <span id="leagueUsernameGateEyebrow"></span>
+                        </div>
+                        <h2 id="leagueUsernameGateTitle" class="league-username-gate__title"></h2>
+                        <p id="leagueUsernameGateDescription" class="league-username-gate__description"></p>
+                        <form id="leagueUsernameGateForm" class="league-username-gate__form">
+                            <label class="sr-only" for="leagueUsernameGateInput">Sleeper username</label>
+                            <div class="league-username-gate__input-shell">
+                                <span class="league-username-gate__input-edge" aria-hidden="true"></span>
+                                <svg class="league-username-gate__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <input id="leagueUsernameGateInput" type="text" inputmode="text" autocapitalize="none" autocomplete="username" autocorrect="off" spellcheck="false" placeholder="Enter Sleeper username" />
+                            </div>
+                            <p class="league-username-gate__hint">No password needed — just your public Sleeper username.</p>
+                            <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
+                            <button id="leagueUsernameGateSubmit" class="league-username-gate__submit" type="submit">
+                                <span id="leagueUsernameGateButtonLabel"></span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                    <path d="M5 12h14"></path>
+                                    <path d="m12 5 7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="league-username-gate__panel league-username-gate__panel--loading" hidden aria-live="polite">
+                        <div class="league-username-gate__loader" aria-hidden="true">
+                            <span class="league-username-gate__loader-ring"></span>
+                            <span class="league-username-gate__loader-core"></span>
+                        </div>
+                        <div class="league-username-gate__badge league-username-gate__badge--loading">
+                            <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
+                            <span id="leagueUsernameGateLoadingEyebrow"></span>
+                        </div>
+                        <h2 id="leagueUsernameGateLoadingTitle" class="league-username-gate__title league-username-gate__title--loading"></h2>
+                        <p id="leagueUsernameGateLoadingDescription" class="league-username-gate__description league-username-gate__description--loading"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `);
+
+    leagueUsernameGateRoot = document.getElementById('leagueUsernameGate');
+    leagueUsernameGateForm = document.getElementById('leagueUsernameGateForm');
+    leagueUsernameGateInputEl = document.getElementById('leagueUsernameGateInput');
+    leagueUsernameGateErrorEl = document.getElementById('leagueUsernameGateError');
+    leagueUsernameGateEyebrowEl = document.getElementById('leagueUsernameGateEyebrow');
+    leagueUsernameGateTitleEl = document.getElementById('leagueUsernameGateTitle');
+    leagueUsernameGateDescriptionEl = document.getElementById('leagueUsernameGateDescription');
+    leagueUsernameGateButtonLabelEl = document.getElementById('leagueUsernameGateButtonLabel');
+    leagueUsernameGateLoadingEyebrowEl = document.getElementById('leagueUsernameGateLoadingEyebrow');
+    leagueUsernameGateLoadingTitleEl = document.getElementById('leagueUsernameGateLoadingTitle');
+    leagueUsernameGateLoadingDescriptionEl = document.getElementById('leagueUsernameGateLoadingDescription');
+
+    leagueUsernameGateForm?.addEventListener('submit', handleLeagueUsernameGateSubmit);
+
+    if (typeof window !== 'undefined') {
+        window.__dhUsernameGate = {
+            show: showLeagueUsernameGate,
+            hide: hideLeagueUsernameGate,
+            setLoading: setLeagueUsernameGateLoading,
+            isSubmitting: () => leagueUsernameGateRoot?.dataset.submitting === 'true'
+        };
+    }
+
+    return leagueUsernameGateRoot;
+}
+function initializeLeagueUsernameGate() {
+    if (!usesLeagueUsernameGate(pageType)) return;
+    ensureLeagueUsernameGate();
+}
+function setLeagueUsernameGateLoading(isLoading, message = '') {
+    const gate = ensureLeagueUsernameGate();
+    if (!gate) return;
+
+    const activePage = gate.dataset.page || pageType;
+    const copy = getLeagueUsernameGateCopy(activePage);
+
+    gate.dataset.submitting = isLoading ? 'true' : 'false';
+    gate.classList.toggle('is-loading', Boolean(isLoading));
+
+    if (leagueUsernameGateLoadingDescriptionEl) {
+        leagueUsernameGateLoadingDescriptionEl.textContent = message || copy.loadingDescription;
+    }
+
+    if (!isLoading) {
+        leagueUsernameGateRoot.classList.remove('has-error');
+        if (leagueUsernameGateErrorEl) {
+            leagueUsernameGateErrorEl.hidden = true;
+            leagueUsernameGateErrorEl.textContent = '';
+        }
+    }
+}
+function showLeagueUsernameGate(options = {}) {
+    const gate = ensureLeagueUsernameGate();
+    if (!gate) return;
+
+    const activePage = usesLeagueUsernameGate(options.page) ? options.page : (gate.dataset.page || pageType);
+    const copy = getLeagueUsernameGateCopy(activePage);
+    const presetUsername = normalizeLeagueUsername(options.username || readPreferredHeaderUsername());
+
+    gate.dataset.page = activePage;
+    gate.hidden = false;
+    gate.setAttribute('aria-hidden', 'false');
+    gate.classList.add('is-open');
+    document.body.classList.add('league-gate-active');
+
+    leagueUsernameGateEyebrowEl.textContent = copy.eyebrow;
+    leagueUsernameGateTitleEl.textContent = copy.title;
+    leagueUsernameGateDescriptionEl.textContent = copy.description;
+    leagueUsernameGateButtonLabelEl.textContent = copy.buttonLabel;
+    leagueUsernameGateLoadingEyebrowEl.textContent = copy.loadingEyebrow;
+    leagueUsernameGateLoadingTitleEl.textContent = copy.loadingTitle;
+    leagueUsernameGateLoadingDescriptionEl.textContent = copy.loadingDescription;
+    if (leagueUsernameGateInputEl) {
+        leagueUsernameGateInputEl.value = presetUsername;
+    }
+
+    setLeagueUsernameGateLoading(false, copy.loadingDescription);
+
+    const errorMessage = typeof options.errorMessage === 'string' ? options.errorMessage.trim() : '';
+    gate.classList.toggle('has-error', Boolean(errorMessage));
+    if (leagueUsernameGateErrorEl) {
+        leagueUsernameGateErrorEl.hidden = !errorMessage;
+        leagueUsernameGateErrorEl.textContent = errorMessage;
+    }
+
+    if (options.focusInput !== false) {
+        window.setTimeout(() => {
+            try {
+                leagueUsernameGateInputEl?.focus();
+                leagueUsernameGateInputEl?.select();
+            } catch (error) { }
+        }, 70);
+    }
+}
+function hideLeagueUsernameGate() {
+    if (!leagueUsernameGateRoot) return;
+    document.body.classList.remove('league-gate-active');
+    leagueUsernameGateRoot.classList.remove('is-open', 'is-loading', 'has-error');
+    leagueUsernameGateRoot.dataset.submitting = 'false';
+    leagueUsernameGateRoot.setAttribute('aria-hidden', 'true');
+    window.setTimeout(() => {
+        if (leagueUsernameGateRoot && !leagueUsernameGateRoot.classList.contains('is-open')) {
+            leagueUsernameGateRoot.hidden = true;
+        }
+    }, 180);
+}
+async function handleLeagueUsernameGateSubmit(event) {
+    event.preventDefault();
+    const gate = ensureLeagueUsernameGate();
+    if (!gate) return;
+
+    const activePage = gate.dataset.page || pageType;
+    const normalizedUsername = syncHeaderUsernameValue(leagueUsernameGateInputEl?.value);
+
+    if (!normalizedUsername) {
+        showLeagueUsernameGate({
+            page: activePage,
+            username: '',
+            errorMessage: 'Enter your Sleeper username to continue.'
+        });
+        return;
+    }
+
+    const copy = getLeagueUsernameGateCopy(activePage);
+    setLeagueUsernameGateLoading(true, copy.loadingDescription);
+
+    let wasSuccessful = false;
+    if (activePage === 'leaguehub') {
+        const leagueHubBridge = window.__dhLeagueHubBridge;
+        const targetLeagueId = new URLSearchParams(window.location.search).get('leagueId') || '';
+        if (!leagueHubBridge || typeof leagueHubBridge.submitUsername !== 'function') {
+            showLeagueUsernameGate({
+                page: activePage,
+                username: normalizedUsername,
+                errorMessage: 'LeagueHub is still warming up. Please try again.'
+            });
+            return;
+        }
+        wasSuccessful = await leagueHubBridge.submitUsername({ username: normalizedUsername, leagueId: targetLeagueId });
+    } else if (activePage === 'ownership') {
+        wasSuccessful = await handleFetchOwnership();
+    } else {
+        wasSuccessful = await handleFetchRosters();
+    }
+
+    if (wasSuccessful) {
+        hideLeagueUsernameGate();
+        return;
+    }
+
+    if (leagueUsernameGateErrorEl?.hidden) {
+        showLeagueUsernameGate({
+            page: activePage,
+            username: normalizedUsername,
+            errorMessage: 'We could not finish connecting that username. Please try again.'
+        });
+    }
+}
+if (usesLeagueUsernameGate(pageType)) {
+    initializeLeagueUsernameGate();
+}
 (function installFocusGuard() {
     try {
         const originalFocus = HTMLElement.prototype.focus;
@@ -352,7 +655,7 @@ try {
     }, true);
 } catch (e) { }
 const getPageUrl = (page) => {
-    const username = usernameInput?.value?.trim() || '';
+    const username = readPreferredHeaderUsername();
     let url = '';
     const base = pageType === 'welcome' ? '' : '../';
     switch (page) {
@@ -412,25 +715,6 @@ async function ensureValidUser(username) {
 }
 // Helper wrapper to validate username for non-home pages and navigate.
 async function ensureNavigate(page) {
-    if (page === 'home') {
-        window.location.href = getPageUrl('home');
-        return;
-    }
-    const username = usernameInput?.value?.trim() || '';
-    const pagesRequiringUsername = new Set(['rosters', 'ownership', 'leaguehub']);
-    const needsValidation = pagesRequiringUsername.has(page);
-    if (needsValidation && !username) {
-        showTemporaryTooltip(usernameInput || document.body, 'League-Connected Content Requires a Valid Username Input via the Home Page');
-        return;
-    }
-    if (needsValidation) {
-        try {
-            await ensureValidUser(username);
-        } catch (e) {
-            showTemporaryTooltip(usernameInput || document.body, 'Username not found');
-            return;
-        }
-    }
     window.location.href = getPageUrl(page);
 }
 homeButton?.addEventListener('click', async () => {
@@ -1331,6 +1615,9 @@ if (pageType === 'ownership' || pageType === 'rosters') {
 }
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
+    if (usesLeagueUsernameGate(pageType)) {
+        initializeLeagueUsernameGate();
+    }
     if (pageType === 'leaguehub') return;
     if (pageType === 'research') {
         const params = new URLSearchParams(window.location.search);
@@ -1375,14 +1662,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     setLoading(false);
     if (welcomeScreen) welcomeScreen.classList.remove('hidden');
     const params = new URLSearchParams(window.location.search);
-    const uname = params.get('username');
+    const uname = normalizeLeagueUsername(params.get('username'));
     if (uname) {
         try { suppressFocusTemporary(600); } catch (e) { }
-        usernameInput.value = uname;
+        syncHeaderUsernameValue(uname);
         if (pageType === 'rosters') {
             await handleFetchRosters();
         } else if (pageType === 'ownership') {
             await handleFetchOwnership();
+        }
+        return;
+    }
+    if (usesLeagueUsernameGate(pageType)) {
+        const storedUsername = readPreferredHeaderUsername();
+        if (storedUsername) {
+            if (pageType === 'rosters') {
+                await handleFetchRosters();
+            } else if (pageType === 'ownership') {
+                await handleFetchOwnership();
+            }
+        } else {
+            showLeagueUsernameGate({ page: pageType });
         }
     }
 });
@@ -1646,9 +1946,10 @@ function setRosterView(view) {
 }
 async function handleFetchRosters() {
     hideLegend();
-    const username = usernameInput.value.trim();
-    if (!username) return;
+    const username = syncHeaderUsernameValue(usernameInput.value);
+    if (!username) return false;
     setLoading(true, 'Fetching user leagues...');
+    let wasSuccessful = false;
     try {
         await fetchAndSetUser(username);
         const leagues = await fetchUserLeagues(state.userId);
@@ -1676,6 +1977,7 @@ async function handleFetchRosters() {
             loadWatchlist();
             updateWatchlistBadge();
         }
+        wasSuccessful = true;
     } catch (error) {
         handleError(error, username);
     } finally {
@@ -1688,11 +1990,13 @@ async function handleFetchRosters() {
             });
         }
     }
+    return wasSuccessful;
 }
 async function handleFetchOwnership() {
-    const username = usernameInput.value.trim();
-    if (!username) return;
+    const username = syncHeaderUsernameValue(usernameInput.value);
+    if (!username) return false;
     setLoading(true, 'Fetching ownership data...');
+    let wasSuccessful = false;
     try {
         await fetchAndSetUser(username);
         rosterView.classList.add('hidden');
@@ -1702,11 +2006,13 @@ async function handleFetchOwnership() {
         buildOwnershipRowsFromContext();
         buildOwnershipValueRows();
         setOwnershipMode(state.ownershipMode || 'ownership');
+        wasSuccessful = true;
     } catch (error) {
         handleError(error, username);
     } finally {
         setLoading(false);
     }
+    return wasSuccessful;
 }
 // Helper to determine the winner of a league from the bracket
 async function fetchPreviousSeasonData(currentLeagueInfo) {
@@ -10626,6 +10932,15 @@ function setLoading(isLoading, message = 'Loading...') {
         adjustStickyHeaders();
     }
 
+    const gateSubmitting = Boolean(window.__dhUsernameGate?.isSubmitting?.());
+    if (gateSubmitting) {
+        try {
+            window.__dhUsernameGate?.setLoading?.(isLoading, message);
+        } catch (error) { }
+        loadingIndicator?.classList.add('hidden');
+        return;
+    }
+
     // Skip loading panel on stats page (uses inline table spinner instead)
     if (document.body?.dataset?.page === 'stats') {
         try {
@@ -10650,6 +10965,16 @@ function setLoading(isLoading, message = 'Loading...') {
 }
 function handleError(error, username) {
     console.error(`Error for user ${username}:`, error);
+    if (usesLeagueUsernameGate(pageType)) {
+        rosterView?.classList.add('hidden');
+        playerListView?.classList.add('hidden');
+        showLeagueUsernameGate({
+            page: pageType,
+            username,
+            errorMessage: getLeagueUsernameGateErrorMessage(error)
+        });
+        return;
+    }
     if (welcomeScreen) {
         welcomeScreen.classList.remove('hidden');
         welcomeScreen.innerHTML = `<h2 class="text-red-400">Error</h2><p>Could not fetch data for user: ${username}</p><p>${error.message}</p>`;
