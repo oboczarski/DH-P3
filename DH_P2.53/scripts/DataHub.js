@@ -543,6 +543,11 @@ const moreDropdown = document.querySelector("#datahubMoreMenu");
 const moreDropdownItems = Array.from(
   document.querySelectorAll("#datahubMoreMenu .nav-more-item"),
 );
+// DataHub visual themes are intentionally page-local so this redesign never
+// leaks into the other standalone pages that live beside this bundle.
+const DATAHUB_THEME_STORAGE_KEY = "dh_datahub_theme";
+const DATAHUB_THEMES = Object.freeze(["spectra", "forge", "velvet", "signal-hud"]);
+const themeButtons = Array.from(document.querySelectorAll("[data-theme-option]"));
 
 const PAGE_ROUTES = Object.freeze({
   home: "../index.html",
@@ -578,6 +583,7 @@ initializeApp();
 // overlay so the layout stays stable even before CSV import completes.
 // ---------------------------------------------------------------------------
 function initializeApp() {
+  initializeDataHubTheme();
   attachEventListeners();
   syncUiState();
   updatePageTabsGlint();
@@ -601,6 +607,49 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 // Event wiring
 // ---------------------------------------------------------------------------
+function initializeDataHubTheme() {
+  const preferredTheme = getStoredDataHubTheme() || document.body.dataset.dhTheme;
+  applyDataHubTheme(preferredTheme, { persist: false });
+
+  themeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyDataHubTheme(button.dataset.themeOption);
+    });
+  });
+}
+
+function getStoredDataHubTheme() {
+  try {
+    const storedTheme = (localStorage.getItem(DATAHUB_THEME_STORAGE_KEY) || "").trim();
+    return DATAHUB_THEMES.includes(storedTheme) ? storedTheme : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function applyDataHubTheme(theme, options = {}) {
+  const { persist = true } = options;
+  const nextTheme = DATAHUB_THEMES.includes(theme) ? theme : DATAHUB_THEMES[0];
+
+  document.body.dataset.dhTheme = nextTheme;
+
+  themeButtons.forEach((button) => {
+    const isActive = button.dataset.themeOption === nextTheme;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  if (!persist) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(DATAHUB_THEME_STORAGE_KEY, nextTheme);
+  } catch (error) {
+    // Ignore storage failures: theme switching should still work during this session.
+  }
+}
+
 function attachEventListeners() {
   attachNavigationListeners();
 

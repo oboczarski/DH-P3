@@ -22,7 +22,7 @@
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
     <link rel="stylesheet" href="../styles/DataHub.css" />
   </head>
-  <body data-page="datahub">
+  <body data-page="datahub" data-dh-theme="spectra">
     <!-- Decorative background layers for the standalone reference shell. -->
     <div class="background-orb background-orb--one" aria-hidden="true"></div>
     <div class="background-orb background-orb--two" aria-hidden="true"></div>
@@ -39,6 +39,44 @@
               <span class="brand-lockup__name">Dynasty</span>
               <span class="brand-lockup__accent">Hub</span>
             </span>
+          </div>
+
+          <!-- DataHub theme switcher: mobile and desktop each get their own
+               anchored copy so the top-right placement stays precise without
+               changing the underlying spacing or flow metrics. -->
+          <div class="theme-switcher theme-switcher--mobile" role="group" aria-label="DataHub visual styles">
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--spectra is-active"
+              data-theme-option="spectra"
+              aria-label="Activate Spectra theme"
+              aria-pressed="true"
+              title="Spectra"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--forge"
+              data-theme-option="forge"
+              aria-label="Activate Forge theme"
+              aria-pressed="false"
+              title="Forge"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--velvet"
+              data-theme-option="velvet"
+              aria-label="Activate Velvet theme"
+              aria-pressed="false"
+              title="Velvet"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--signal"
+              data-theme-option="signal-hud"
+              aria-label="Activate Signal HUD theme"
+              aria-pressed="false"
+              title="Signal HUD"
+            ></button>
           </div>
 
           <!-- DataHub mobile nav stays self-contained: each button carries its
@@ -134,7 +172,42 @@
               </nav>
             </div>
 
-            <div class="app-header__balance" aria-hidden="true"></div>
+            <div class="app-header__balance">
+              <div class="theme-switcher theme-switcher--desktop" role="group" aria-label="DataHub visual styles">
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--spectra is-active"
+                  data-theme-option="spectra"
+                  aria-label="Activate Spectra theme"
+                  aria-pressed="true"
+                  title="Spectra"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--forge"
+                  data-theme-option="forge"
+                  aria-label="Activate Forge theme"
+                  aria-pressed="false"
+                  title="Forge"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--velvet"
+                  data-theme-option="velvet"
+                  aria-label="Activate Velvet theme"
+                  aria-pressed="false"
+                  title="Velvet"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--signal"
+                  data-theme-option="signal-hud"
+                  aria-label="Activate Signal HUD theme"
+                  aria-pressed="false"
+                  title="Signal HUD"
+                ></button>
+              </div>
+            </div>
           </div>
         </header>
 
