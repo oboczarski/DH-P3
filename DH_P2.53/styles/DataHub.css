@@ -1373,7 +1373,7 @@ body::after {
 
   .hero-shell {
     position: relative;
-    padding-top: 50px;
+    padding-top: 36px;
   }
 
   .eyebrow {
@@ -1387,7 +1387,7 @@ body::after {
   }
 
   .page-tabs {
-    margin-bottom: 10px;
+    margin-bottom: -2px;
   }
 
   .page-tab {
