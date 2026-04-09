@@ -3541,19 +3541,28 @@ function buildDataHubWeekTagMarkup(week, stats) {
   const opponentRank = Number.isFinite(stats?.opponent_rank) ? Math.round(stats.opponent_rank) : null;
   const opponentRankColor = getDataHubOpponentRankColor(opponentRank);
   const weekNumber = String(week).padStart(2, "0");
+  // Rank suffix helper
+  const rankSuffix = (n) => {
+    const j = n % 10, k = n % 100;
+    if (j === 1 && k !== 11) return "st";
+    if (j === 2 && k !== 12) return "nd";
+    if (j === 3 && k !== 13) return "rd";
+    return "th";
+  };
+  // Build rank span if available
+  const rankHtml = opponentRank != null
+    ? `<span class="gamelog-week-tag-separator"> • </span><span class="gamelog-week-tag-rank" style="color:${opponentRankColor || "inherit"}"><span class="gamelog-week-tag-rank-number">${opponentRank}</span><span class="gamelog-week-tag-rank-suffix">${rankSuffix(opponentRank)}</span></span>`
+    : "";
+
   if (!stats) {
-    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">—</span></span>`;
+    // Unknown week — show dash as the bottom line inside opponent wrapper
+    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-opponent"><span class="gamelog-week-tag-opponent-text">—</span></span></span>`;
   }
   if (opponent === "BYE") {
-    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">BYE</span></span>`;
+    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-opponent">BYE</span></span>`;
   }
-  return `
-    <span class="gamelog-week-tag">
-      <span class="gamelog-week-tag-number">WK ${weekNumber}</span>
-      ${opponent ? `<span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">${dataHubEscapeHtml(opponent)}</span>` : ""}
-      ${Number.isFinite(opponentRank) ? `<span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-rank" style="color:${opponentRankColor || "inherit"}">#${opponentRank}</span>` : ""}
-    </span>
-  `;
+  // Normal game week: 2-row grid (tag-number on row 1, tag-opponent wrapper on row 2)
+  return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-opponent">${opponent ? `<span class="gamelog-week-tag-opponent-text">${dataHubEscapeHtml(opponent)}</span>${rankHtml}` : ""}</span></span>`;
 }
 
 function getDataHubLogOrderForPosition(position) {

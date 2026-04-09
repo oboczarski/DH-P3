@@ -2631,6 +2631,8 @@ body[data-page="datahub"] .game-logs-table-footer {
 }
 
 body[data-page="datahub"] .game-logs-table-body {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 322px;
   overflow-y: auto;
   overflow-x: hidden;
