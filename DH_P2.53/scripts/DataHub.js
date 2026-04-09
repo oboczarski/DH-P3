@@ -507,6 +507,36 @@ const state = {
   },
   isCompactViewport: isCompactViewport(),
   columnFormatting: Object.create(null),
+  // DataHub game logs modal state:
+  // keep all modal data local to this page so the DataHub port never depends on
+  // shared Stats-page globals or app.js startup wiring.
+  modalRankCache: Object.create(null),
+  sleeperPlayers: Object.create(null),
+  userId: "",
+  username: "",
+  ownershipContext: null,
+  ownershipPreferredKtcMode: "oneqb",
+  leagues: [],
+  gameLogsDataLoaded: false,
+  gameLogsDataPromise: null,
+  playerSeasonStats: Object.create(null),
+  playerSeasonRanks: Object.create(null),
+  playerWeeklyStats: Object.create(null),
+  weeklyStats: Object.create(null),
+  liveWeeklyStats: Object.create(null),
+  playerProjectionWeeks: Object.create(null),
+  liveStatsLoaded: false,
+  lastLiveStatsWeek: null,
+  lastLiveStatsFetchTs: 0,
+  currentNflSeason: 2025,
+  currentNflWeek: null,
+  currentGameLogsPlayer: null,
+  currentGameLogsPlayerRanks: null,
+  currentGameLogsSummary: null,
+  currentGameLogsFooterStats: null,
+  currentGameLogsView: "gl",
+  currentConsistencyData: null,
+  currentModalSeason: "2025",
 };
 
 // ---------------------------------------------------------------------------
@@ -523,6 +553,27 @@ const filePickerButton = document.querySelector("#file-picker-button");
 const filePickerInput = document.querySelector("#file-picker-input");
 const playerSearch = document.querySelector("#player-search");
 const gridContainer = document.querySelector("#player-grid");
+const gameLogsModal = document.querySelector("#game-logs-modal");
+const modalOverlay = document.querySelector("#game-logs-modal .modal-overlay");
+const modalPlayerName = document.querySelector("#modal-player-name");
+const modalPlayerVitals = document.querySelector("#modal-player-vitals");
+const modalSummaryChips = document.querySelector("#modal-summary-chips");
+const modalBody = document.querySelector("#modal-body");
+const statsKeyContainer = document.querySelector("#stats-key-container");
+const radarChartContainer = document.querySelector("#radar-chart-container");
+const consistencyContainer = document.querySelector("#consistency-container");
+const gameLogsModalTabs = Array.from(
+  document.querySelectorAll("#game-logs-modal .gamelogs-modal-tab"),
+);
+const gameLogsViewButtons = Array.from(
+  document.querySelectorAll("#game-logs-modal .gamelogs-view-option"),
+);
+const gameLogsSeasonButtons = Array.from(
+  document.querySelectorAll("#game-logs-modal .gamelogs-season-tab"),
+);
+const modalInfoButtons = Array.from(
+  document.querySelectorAll("#game-logs-modal .modal-info-btn"),
+);
 const pageTabs = document.querySelector(".page-tabs");
 const pageTabButtons = Array.from(document.querySelectorAll(".page-tabs .page-tab"));
 const primaryTabButtons = Array.from(
@@ -605,6 +656,11 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
   attachNavigationListeners();
+  // DataHub modal wiring is deferred until the current script finishes
+  // evaluating so the local game-logs constants are initialized first.
+  queueMicrotask(() => {
+    attachGameLogsModalListeners();
+  });
 
   pageTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -1053,6 +1109,8 @@ function parseKtcSheetData(csvText) {
     ktcLookup[playerId] = {
       ktc: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["VALUE", "KTC"])),
       overallRank: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["RANK", "OVR", "OVERALL", "SCA"])),
+      posRank: getNormalizedSheetValue(normalizedRow, ["POS RK", "POS_RK", "POS|RK", "POS | RK"]),
+      age: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "AGE")),
     };
   });
 
@@ -1106,6 +1164,7 @@ function getActiveKtcLookup() {
 function rebuildDataHubRows() {
   if (!state.rawSeasonRows.length) {
     state.rows = [];
+    state.modalRankCache = Object.create(null);
     refreshGrid();
     return;
   }
@@ -1117,6 +1176,7 @@ function rebuildDataHubRows() {
     const enrichedRow = enrichSeasonRow(row, ktcLookup, adpLookup);
     return normalizeRow(enrichedRow);
   });
+  state.modalRankCache = buildDataHubModalRankCache(state.rows);
 
   refreshGrid();
 }
@@ -1533,7 +1593,12 @@ function createBodyCell(row, column) {
   const content = document.createElement("div");
   content.className = "stats-table__cell-content";
 
-  if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
+  // DataHub player trigger:
+  // the frozen PLAYER cell becomes the page-local game logs launcher so taps and
+  // clicks can open the DataHub-owned modal without app.js.
+  if (column.name === PLAYER_COLUMN) {
+    content.append(createPlayerTriggerButton(row));
+  } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else {
     content.textContent = formatDisplayValue(column.name, value);
@@ -1541,6 +1606,18 @@ function createBodyCell(row, column) {
 
   td.append(content);
   return td;
+}
+
+function createPlayerTriggerButton(row) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "stats-player-btn";
+  button.setAttribute("aria-label", `Open game logs for ${formatDisplayValue(PLAYER_COLUMN, row.PLAYER)}`);
+  button.textContent = formatDisplayValue(PLAYER_COLUMN, row.PLAYER);
+  button.addEventListener("click", () => {
+    openDataHubGameLogs(row);
+  });
+  return button;
 }
 
 function createFptsChip(value) {
@@ -1812,6 +1889,11 @@ function normalizeRow(sourceRow) {
     const rawValue = sourceRow[alias];
     normalized[columnName] = sanitizeValue(rawValue);
   }
+
+  // DataHub modal metadata:
+  // store the non-display values needed by the game logs modal directly on the
+  // row so the table can stay detached from any shared Stats page state.
+  normalized.__meta = buildDataHubRowMeta(sourceRow, normalized);
 
   return normalized;
 }
@@ -2104,4 +2186,2891 @@ function showOverlay({ title, description, showActions = false }) {
 
 function hideOverlay() {
   overlay.classList.add("is-hidden");
+}
+
+// ---------------------------------------------------------------------------
+// DataHub game logs modal subsystem
+// ---------------------------------------------------------------------------
+// This block recreates the Stats-page game logs experience inside DataHub only.
+// It owns the modal data flow, rendering, and behavior locally so DataHub never
+// relies on shared Stats/app.js wiring at runtime.
+const DATAHUB_SLEEper_API_BASE = "https://api.sleeper.app/v1";
+const DATAHUB_GAME_LOGS_YEAR = "2025";
+const DATAHUB_MAX_WEEKS = 18;
+const DATAHUB_TEAM_LOGO_KEY_MAP = Object.freeze({
+  WSH: "was",
+  WAS: "was",
+  JAC: "jax",
+  JAX: "jax",
+  LA: "lar",
+});
+const DATAHUB_STATS_KEY_SECTIONS = [
+  {
+    id: "fantasy",
+    label: "Fantasy",
+    tone: "all",
+    items: [
+      { abbr: "FPOE", desc: "Fantasy Points Over Expected" },
+      { abbr: "FPTS", desc: "Fantasy Points (PPR)" },
+      { abbr: "PPG", desc: "Points Per Game" },
+    ],
+  },
+  {
+    id: "passing",
+    label: "Passing",
+    tone: "passing",
+    items: [
+      { abbr: "CMP", desc: "Completions" },
+      { abbr: "CMP%", desc: "Completion Percentage" },
+      { abbr: "CPOE", desc: "Completion Percentage Over Expected" },
+      { abbr: "EPA/DB", desc: "Expected Points Added per Dropback" },
+      { abbr: "INT", desc: "Interceptions" },
+      { abbr: "pa1D", desc: "Passing First Downs" },
+      { abbr: "paATT", desc: "Passing Attempts" },
+      { abbr: "paRTG", desc: "Passer Rating" },
+      { abbr: "paTD", desc: "Passing Touchdowns" },
+      { abbr: "paYDS", desc: "Passing Yards" },
+      { abbr: "pIMP", desc: "Passing Impact Plays" },
+      { abbr: "pIMP/A", desc: "Passing Impact per Attempt" },
+      { abbr: "PRS%", desc: "Pressure Rate" },
+      { abbr: "SAC", desc: "Sacks Taken" },
+      { abbr: "TTT", desc: "Time to Throw" },
+    ],
+  },
+  {
+    id: "rushing",
+    label: "Rushing",
+    tone: "rushing",
+    items: [
+      { abbr: "CAR", desc: "Carries" },
+      { abbr: "ELU", desc: "Elusiveness Rating" },
+      { abbr: "EXPLSV%", desc: "Explosive Rush Rate" },
+      { abbr: "MTF", desc: "Missed Tackles Forced" },
+      { abbr: "MTF/A", desc: "Missed Tackles per Attempt" },
+      { abbr: "ru1D", desc: "Rushing First Downs" },
+      { abbr: "ruTD", desc: "Rushing Touchdowns" },
+      { abbr: "ruYDS", desc: "Rushing Yards" },
+      { abbr: "YCO", desc: "Yards After Contact" },
+      { abbr: "YCO/A", desc: "Yards After Contact per Attempt" },
+      { abbr: "YPC", desc: "Yards per Carry" },
+    ],
+  },
+  {
+    id: "receiving",
+    label: "Receiving",
+    tone: "receiving",
+    items: [
+      { abbr: "1DRR", desc: "First Downs per Route Run" },
+      { abbr: "AY%", desc: "Air Yards Share" },
+      { abbr: "REC", desc: "Receptions" },
+      { abbr: "rec1D", desc: "Receiving First Downs" },
+      { abbr: "recTD", desc: "Receiving Touchdowns" },
+      { abbr: "recYDS", desc: "Receiving Yards" },
+      { abbr: "RR", desc: "Routes Run" },
+      { abbr: "RZ Tgt", desc: "Red Zone Targets" },
+      { abbr: "TGT", desc: "Targets" },
+      { abbr: "TS%", desc: "Target Share" },
+      { abbr: "YAC", desc: "Yards After Catch" },
+      { abbr: "YPR", desc: "Yards per Reception" },
+      { abbr: "YPRR", desc: "Yards per Route Run" },
+    ],
+  },
+  {
+    id: "general",
+    label: "General",
+    tone: "all",
+    items: [
+      { abbr: "ADP", desc: "Average Draft Position" },
+      { abbr: "AGE", desc: "Player Age" },
+      { abbr: "CL", desc: "Ceiling" },
+      { abbr: "CSTY%", desc: "Consistency Percentage" },
+      { abbr: "FUM", desc: "Fumbles Lost" },
+      { abbr: "G", desc: "Games Played" },
+      { abbr: "IMP", desc: "Impact Plays" },
+      { abbr: "IMP/G", desc: "Impact Plays per Game" },
+      { abbr: "IMP/OPP", desc: "Impact per Opportunity" },
+      { abbr: "POS", desc: "Position" },
+      { abbr: "POS·ADP", desc: "Positional ADP" },
+      { abbr: "RK", desc: "Overall Rank" },
+      { abbr: "SNP%", desc: "Snap Share" },
+      { abbr: "TM", desc: "Team" },
+      { abbr: "VALUE", desc: "Trade Value" },
+      { abbr: "YDS(t)", desc: "Total Yards" },
+      { abbr: "YPG(t)", desc: "Yards per Game (Total)" },
+    ],
+  },
+];
+const DATAHUB_PLAYER_STAT_HEADER_MAP = {
+  paATT: "pass_att",
+  CMP: "pass_cmp",
+  "CMP PCT": "cmp_pct",
+  "CMP%": "cmp_pct",
+  paYDS: "pass_yd",
+  paTD: "pass_td",
+  pa1D: "pass_fd",
+  "EPA/DB": "epa_per_db",
+  CPOE: "cpoe",
+  "DP%": "dp_pct",
+  "IMP/G": "imp_per_g",
+  paRTG: "pass_rtg",
+  pIMP: "pass_imp",
+  "pIMP/A": "pass_imp_per_att",
+  INT: "pass_int",
+  SAC: "pass_sack",
+  TTT: "ttt",
+  "PRS%": "prs_pct",
+  CAR: "rush_att",
+  ruYDS: "rush_yd",
+  YPC: "ypc",
+  ruTD: "rush_td",
+  ru1D: "rush_fd",
+  MTF: "mtf",
+  ELU: "elu",
+  RYOE: "ryoe",
+  YCO: "rush_yac",
+  "YCO/A": "yco_per_att",
+  "ExplRu%": "expl_ru_pct",
+  "EXPLSV%": "expl_ru_pct",
+  "MTF/A": "mtf_per_att",
+  TGT: "rec_tgt",
+  REC: "rec",
+  recYDS: "rec_yd",
+  recTD: "rec_td",
+  rec1D: "rec_fd",
+  YAC: "rec_yar",
+  YPR: "ypr",
+  RR: "rr",
+  "RZ Tgt": "rz_tgt",
+  "TS%": "ts_per_rr",
+  "CSTY%": "csty_pct",
+  YPRR: "yprr",
+  "1DRR": "first_down_rec_rate",
+  IMP: "imp",
+  FUM: "fum",
+  SNP: "snp",
+  "SNP%": "snp_pct",
+  "YDS(t)": "yds_total",
+  FPOE: "fpoe",
+  aFPOE: "fpoe",
+  CL: "ceiling",
+  "YPG(t)": "ypg",
+  paYPG: "pa_ypg",
+  ruYPG: "ru_ypg",
+  recYPG: "rec_ypg",
+  "AY%": "ay_pct",
+  PROJ: "proj",
+  FPT_PPR: "fpt_ppr",
+  FPTS_PPR: "fpt_ppr",
+};
+const DATAHUB_WEEKLY_META_HEADER_MAP = {
+  VS: "opponent",
+  vsRK: "opponent_rank",
+};
+const DATAHUB_RADAR_STATS_CONFIG = {
+  QB: {
+    stats: ["fpts", "ppg", "ttt", "cmp_pct", "pa_ypg", "pass_rtg", "cpoe", "epa_per_db"],
+    labels: ["FPTS", "PPG", "TTT", "CMP%", "paYPG", "paRTG", "CPOE", "EPA/DB"],
+    maxRank: 36,
+  },
+  RB: {
+    stats: ["fpts", "ppg", "yds_total", "snp_pct", "mtf_per_att", "yco_per_att", "ypc", "ts_per_rr"],
+    labels: ["FPTS", "PPG", "YDS(t)", "SNP%", "MTF/A", "YCO/A", "YPC", "TS%"],
+    maxRank: 48,
+  },
+  WR: {
+    stats: ["fpts", "ppg", "rec", "rec_ypg", "ts_per_rr", "yprr", "first_down_rec_rate", "imp_per_g"],
+    labels: ["FPTS", "PPG", "REC", "recYPG", "TS%", "YPRR", "1DRR", "IMP/G"],
+    maxRank: 72,
+  },
+  TE: {
+    stats: ["fpts", "ppg", "rec", "rec_ypg", "ts_per_rr", "yprr", "first_down_rec_rate", "imp_per_g"],
+    labels: ["FPTS", "PPG", "REC", "recYPG", "TS%", "YPRR", "1DRR", "IMP/G"],
+    maxRank: 24,
+  },
+};
+const DATAHUB_SZN_PROGRESS_THRESHOLDS = {
+  QB: [
+    { rank: 1, pct: 100 },
+    { rank: 13, pct: 75 },
+    { rank: 26, pct: 50 },
+    { rank: 39, pct: 25 },
+    { rank: 53, pct: 0 },
+  ],
+  RB: [
+    { rank: 1, pct: 100 },
+    { rank: 16, pct: 75 },
+    { rank: 32, pct: 50 },
+    { rank: 48, pct: 25 },
+    { rank: 65, pct: 0 },
+  ],
+  WR: [
+    { rank: 1, pct: 100 },
+    { rank: 24, pct: 75 },
+    { rank: 48, pct: 50 },
+    { rank: 72, pct: 25 },
+    { rank: 96, pct: 0 },
+  ],
+  TE: [
+    { rank: 1, pct: 100 },
+    { rank: 13, pct: 75 },
+    { rank: 26, pct: 50 },
+    { rank: 39, pct: 25 },
+    { rank: 53, pct: 0 },
+  ],
+};
+const DATAHUB_SZN_STAT_SECTIONS_BY_POS = {
+  QB: [
+    { label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    {
+      label: "PASSING PRODUCTION",
+      tone: "passing",
+      stats: ["pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "pass_imp", "pass_sack", "pass_int"],
+    },
+    {
+      label: "PASSING EFFICIENCY",
+      tone: "passing",
+      stats: ["epa_per_db", "cpoe", "pass_rtg", "cmp_pct", "pass_imp_per_att", "ttt", "prs_pct", "dp_pct", "pa_ypg"],
+    },
+    { label: "RUSHING PRODUCTION", tone: "rushing", stats: ["rush_att", "rush_yd", "rush_td"] },
+    { label: "RUSHING EFFICIENCY", tone: "rushing", stats: ["ypc"] },
+    { label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "fum"] },
+    { label: "GENERAL EFFICIENCY", tone: "all", stats: ["imp_per_g"] },
+  ],
+  RB: [
+    { label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    { label: "RUSHING PRODUCTION", tone: "rushing", stats: ["snp_pct", "rush_att", "rush_yd", "rush_td", "rush_fd", "rush_yac", "mtf"] },
+    { label: "RUSHING EFFICIENCY", tone: "rushing", stats: ["ypc", "elu", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ryoe", "ru_ypg"] },
+    { label: "RECEIVING PRODUCTION", tone: "receiving", stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar"] },
+    { label: "RECEIVING EFFICIENCY", tone: "receiving", stats: ["ts_per_rr", "yprr"] },
+    { label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "fum"] },
+    { label: "GENERAL EFFICIENCY", tone: "all", stats: ["imp_per_g"] },
+  ],
+  WR: [
+    { label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    { label: "RECEIVING PRODUCTION", tone: "receiving", stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt"] },
+    { label: "RECEIVING EFFICIENCY", tone: "receiving", stats: ["ts_per_rr", "yprr", "first_down_rec_rate", "ypr", "rec_ypg", "ay_pct"] },
+    { label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "rush_att", "rush_yd", "rush_td", "fum"] },
+    { label: "GENERAL EFFICIENCY", tone: "all", stats: ["snp_pct", "imp_per_g"] },
+  ],
+  TE: [
+    { label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    { label: "RECEIVING PRODUCTION", tone: "receiving", stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt"] },
+    { label: "RECEIVING EFFICIENCY", tone: "receiving", stats: ["ts_per_rr", "yprr", "first_down_rec_rate", "ypr", "rec_ypg", "ay_pct"] },
+    { label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "rush_att", "rush_yd", "rush_td"] },
+    { label: "GENERAL EFFICIENCY", tone: "all", stats: ["snp_pct", "fum", "imp_per_g"] },
+  ],
+};
+const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
+  QB: { solid: 18, high: 24 },
+  RB: { solid: 11, high: 18 },
+  WR: { solid: 12, high: 20 },
+  TE: { solid: 9, high: 15 },
+  FLEX: { solid: 11, high: 18 },
+};
+const DATAHUB_MAX_CONSISTENCY_POINTS = 40;
+const DATAHUB_CONSISTENCY_BUCKET_STYLES = {
+  high: { color: "#00ffc1" },
+  solid: { color: "#00c5ff" },
+  low: { color: "#c26cfc" },
+};
+const DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS = {
+  high: "#5dfdca",
+  solid: "#47befd",
+  low: "#d3a5ff",
+};
+const DATAHUB_SVG_NS = "http://www.w3.org/2000/svg";
+const DATAHUB_CONSISTENCY_LINE_FILTER_ID = "datahub-consistency-line-glow";
+const DATAHUB_CONSISTENCY_AREA_FILTER_ID = "datahub-consistency-area-glow";
+const DATAHUB_CONSISTENCY_AREA_GRADIENT_ID = "datahub-consistency-area-gradient";
+const DATAHUB_CONSISTENCY_GRADIENT_COLORS = {
+  low: "#c26cfc10",
+  solid: "#005cff10",
+  high: "#00ffc110",
+};
+const DATAHUB_CONSISTENCY_EDGE_PADDING_PCT = 2.8;
+const DATAHUB_CONSISTENCY_VERTICAL_PADDING_PCT = 8;
+const DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES = new Set(["IR", "OUT", "PUP", "BYE", "Q", "D"]);
+const DATAHUB_LEAGUE_COLOR_PALETTE = [
+  "#a6e7ff",
+  "#7fd4ff",
+  "#8ec1ff",
+  "#9d9eff",
+  "#bf8cff",
+  "#ef9dff",
+  "#93f4cf",
+  "#f2bc8a",
+];
+const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
+  "dynasty hub": "DH",
+};
+const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
+const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  "yprr",
+  "ts_per_rr",
+  "imp_per_g",
+  "epa_per_db",
+  "cpoe",
+  "snp_pct",
+  "prs_pct",
+  "ypr",
+  "first_down_rec_rate",
+  "expl_ru_pct",
+]);
+const DATAHUB_QB_LOG_ORDER = [
+  "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "cmp_pct", "yds_total",
+  "rush_yd", "rush_td", "pass_att", "pass_cmp", "pass_fd", "imp_per_g",
+  "pass_imp", "pass_imp_per_att", "rush_att", "ypc", "ttt", "prs_pct",
+  "pass_sack", "pass_int", "fum", "fpoe",
+];
+const DATAHUB_RB_LOG_ORDER = [
+  "fpts", "proj", "snp_pct", "rush_att", "rush_yd", "ypc", "rush_td", "rec",
+  "rec_yd", "rec_tgt", "ts_per_rr", "yds_total", "elu", "mtf_per_att",
+  "yco_per_att", "mtf", "rush_yac", "rush_fd", "rec_td", "rec_fd", "rec_yar",
+  "imp_per_g", "fum", "fpoe",
+];
+const DATAHUB_WR_TE_LOG_ORDER = [
+  "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
+  "yprr", "rec_fd", "first_down_rec_rate", "rec_yar", "ypr", "imp_per_g", "rr",
+  "fpoe", "yds_total", "rush_att", "rush_yd", "rush_td", "ypc", "fum",
+];
+const DATAHUB_RANK_COLOR_THRESHOLDS = [
+  { v: 24, c: "#8bebcdbb" },
+  { v: 48, c: "#97ebe3ab" },
+  { v: 72, c: "#7dd1ffaa" },
+  { v: 96, c: "#48a6ffaa" },
+  { v: 120, c: "#957cffbb" },
+  { v: 156, c: "#a642ffbb" },
+  { v: 180, c: "#cf60ffcc" },
+  { v: 204, c: "#ff6fe1cc" },
+  { v: 250, c: "#ff2eb2" },
+];
+let dataHubGameLogsRequestSeq = 0;
+let dataHubRadarChartInstance = null;
+let dataHubCurveSvg = null;
+let dataHubOwnershipContextLoadPromise = null;
+let dataHubOwnershipContextLoadKey = "";
+const dataHubAssignedLeagueColors = new Map();
+let dataHubNextLeagueColorIndex = 0;
+
+function buildDataHubStatLabels() {
+  const labels = {};
+  Object.entries(DATAHUB_PLAYER_STAT_HEADER_MAP).forEach(([header, key]) => {
+    labels[key] = header;
+  });
+  labels.fpts = "FPTS";
+  labels.ppg = "PPG";
+  labels.ts_per_rr = "TS%";
+  labels.fpoe = "FPOE";
+  labels.expl_ru_pct = "EXPLSV%";
+  return labels;
+}
+
+function buildDataHubRowMeta(sourceRow, normalizedRow) {
+  const playerId = String(sourceRow.SLPR_ID || sourceRow.slpr_id || "").trim();
+  const pos = String(sourceRow.POS || normalizedRow.POS || "").trim().toUpperCase();
+  const team = String(sourceRow.TM || normalizedRow.TM || "FA").trim().toUpperCase() || "FA";
+  const playerName = String(
+    sourceRow.PLAYER
+      || sourceRow["PLAYER NAME"]
+      || sourceRow.NM
+      || normalizedRow.PLAYER
+      || "",
+  ).trim();
+  const ktcEntry = playerId ? getActiveKtcLookup()?.[playerId] : null;
+  return {
+    playerId,
+    name: playerName,
+    fullName: playerName,
+    displayName: playerName,
+    pos,
+    team,
+    rank: toComparableNumber(sourceRow.RK ?? sourceRow.PRK_PPR ?? normalizedRow.RK),
+    age: toComparableNumber(sourceRow.AGE ?? normalizedRow.AGE),
+    gmPlayed: toComparableNumber(sourceRow.GM ?? sourceRow.GM_P ?? normalizedRow.G),
+    value: toComparableNumber(sourceRow.VALUE ?? normalizedRow.VALUE),
+    fpts: toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR ?? normalizedRow.FPTS),
+    ppg: toComparableNumber(sourceRow.PPG ?? normalizedRow.PPG),
+    adp: toComparableNumber(sourceRow.ADP ?? normalizedRow.ADP),
+    posAdp: toComparableNumber(sourceRow["POS·ADP"] ?? normalizedRow["POS·ADP"]),
+    posRankText: formatDataHubPosRankText(pos, ktcEntry?.posRank || sourceRow["POS RK"] || sourceRow["POS | RK"] || normalizedRow["POS·ADP"]),
+    overallKtcRank: toIntegerOrNull(ktcEntry?.overallRank),
+    ktc: toIntegerOrNull(ktcEntry?.ktc),
+  };
+}
+
+function formatDataHubPosRankText(pos, sourceText) {
+  const cleanPos = String(pos || "").trim().toUpperCase();
+  const raw = String(sourceText || "").trim();
+  if (raw.includes("·")) {
+    return raw.replace(/\s+/g, "");
+  }
+  if (raw.includes("|")) {
+    return raw.replace("|", "·").replace(/\s+/g, "");
+  }
+  const numericRank = parseDataHubPosRankNumber(raw);
+  if (cleanPos && Number.isFinite(numericRank)) {
+    return `${cleanPos}·${numericRank}`;
+  }
+  return cleanPos ? `${cleanPos}·NA` : "NA";
+}
+
+function parseDataHubPosRankNumber(posRankText) {
+  const match = String(posRankText || "").match(/(\d+)/);
+  if (!match) {
+    return null;
+  }
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildDataHubModalRankCache(rows) {
+  const cache = Object.create(null);
+  const playersWithStats = rows.filter((row) => {
+    const meta = row?.__meta;
+    return meta?.playerId && Number.isFinite(meta.fpts) && meta.fpts > 0 && meta.pos !== "RDP";
+  });
+  const assignRanks = (entries, targetKey, selector) => {
+    const sorted = [...entries].sort((left, right) => (selector(right) || 0) - (selector(left) || 0));
+    sorted.forEach((row, index) => {
+      const playerId = row.__meta.playerId;
+      if (!cache[playerId]) {
+        cache[playerId] = {};
+      }
+      cache[playerId][targetKey] = index + 1;
+    });
+  };
+  assignRanks(playersWithStats, "overallRank", (row) => row.__meta.fpts || 0);
+  assignRanks(playersWithStats, "ppgOverallRank", (row) => row.__meta.ppg || 0);
+  const groupedByPos = new Map();
+  playersWithStats.forEach((row) => {
+    const pos = row.__meta.pos || "";
+    if (!groupedByPos.has(pos)) {
+      groupedByPos.set(pos, []);
+    }
+    groupedByPos.get(pos).push(row);
+  });
+  groupedByPos.forEach((groupRows) => {
+    assignRanks(groupRows, "posRank", (row) => row.__meta.fpts || 0);
+    assignRanks(groupRows, "ppgPosRank", (row) => row.__meta.ppg || 0);
+  });
+  return cache;
+}
+
+function attachGameLogsModalListeners() {
+  if (!gameLogsModal || gameLogsModal.dataset.datahubWired) {
+    return;
+  }
+  gameLogsModal.dataset.datahubWired = "true";
+  initializeDataHubStatsKeyMarkup();
+
+  gameLogsModal.addEventListener("click", (event) => {
+    if (event.target?.closest?.(".modal-close-btn")) {
+      closeDataHubModal();
+    }
+  });
+  modalOverlay?.addEventListener("click", closeDataHubModal);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && gameLogsModal && !gameLogsModal.classList.contains("hidden")) {
+      closeDataHubModal();
+    }
+  });
+  gameLogsModalTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const key = tab.dataset.modalTab;
+      if (key) {
+        switchDataHubModalTab(key);
+      }
+    });
+  });
+  gameLogsViewButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setDataHubGameLogsView(button.dataset.gamelogsView);
+    });
+  });
+  gameLogsSeasonButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const season = button.dataset.gamelogsSeason;
+      if (season !== DATAHUB_GAME_LOGS_YEAR) {
+        showDataHubTemporaryTooltip(button, `${season} game logs are not available in DataHub yet.`);
+        return;
+      }
+      gameLogsSeasonButtons.forEach((entry) => {
+        const isActive = entry === button;
+        entry.classList.toggle("is-active", isActive);
+        entry.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+      state.currentModalSeason = season;
+    });
+  });
+  modalInfoButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = button.dataset.panel;
+      const overlays = {
+        "stats-key": statsKeyContainer,
+        "radar-chart": radarChartContainer,
+        consistency: consistencyContainer,
+      };
+      if (panel === "game-logs") {
+        Object.values(overlays).forEach((node) => node?.classList.add("hidden"));
+        modalInfoButtons.forEach((entry) => entry.classList.toggle("active", entry === button));
+        return;
+      }
+      const target = overlays[panel];
+      if (!target) {
+        return;
+      }
+      const isOpen = !target.classList.contains("hidden");
+      Object.values(overlays).forEach((node) => node?.classList.add("hidden"));
+      modalInfoButtons.forEach((entry) => entry.classList.remove("active"));
+      if (isOpen) {
+        modalInfoButtons.find((entry) => entry.dataset.panel === "game-logs")?.classList.add("active");
+        return;
+      }
+      target.classList.remove("hidden");
+      button.classList.add("active");
+      if (panel === "radar-chart" && state.currentGameLogsPlayer) {
+        renderDataHubRadarChart(state.currentGameLogsPlayer.id, state.currentGameLogsPlayer.pos);
+      }
+      if (panel === "consistency" && state.currentGameLogsPlayer) {
+        renderDataHubConsistencyChart();
+      }
+    });
+  });
+}
+
+function openDataHubModal() {
+  if (!gameLogsModal) {
+    return;
+  }
+  gameLogsModal.classList.remove("hidden");
+  statsKeyContainer?.classList.add("hidden");
+  radarChartContainer?.classList.add("hidden");
+  consistencyContainer?.classList.add("hidden");
+  setDataHubGameLogsView("gl");
+  switchDataHubModalTab("gamelogs");
+  modalInfoButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.panel === "game-logs");
+  });
+}
+
+function closeDataHubModal() {
+  dataHubGameLogsRequestSeq += 1;
+  if (!gameLogsModal) {
+    return;
+  }
+  gameLogsModal.classList.add("hidden");
+  gameLogsModal.classList.remove("loading");
+  gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
+  modalBody?.classList.remove("loading");
+  modalBody?.replaceChildren();
+  statsKeyContainer?.classList.add("hidden");
+  radarChartContainer?.classList.add("hidden");
+  consistencyContainer?.classList.add("hidden");
+  modalInfoButtons.forEach((button) => button.classList.remove("active"));
+  if (dataHubRadarChartInstance) {
+    dataHubRadarChartInstance.destroy();
+    dataHubRadarChartInstance = null;
+  }
+  if (dataHubCurveSvg) {
+    dataHubCurveSvg.remove();
+    dataHubCurveSvg = null;
+  }
+  const radarContent = radarChartContainer?.querySelector(".radar-chart-content");
+  if (radarContent) {
+    radarContent.innerHTML = "";
+  }
+  const ownershipBody = document.querySelector("#glOwnershipBody");
+  const ownershipChips = document.querySelector("#glOwnershipSummaryChips");
+  const ownershipLeft = document.querySelector("#glOwnershipLeft");
+  const ownershipVitals = document.querySelector("#glOwnershipPlayerVitals");
+  if (ownershipBody) ownershipBody.innerHTML = "";
+  if (ownershipChips) ownershipChips.innerHTML = "";
+  if (ownershipLeft) ownershipLeft.innerHTML = "";
+  if (ownershipVitals) ownershipVitals.innerHTML = "";
+  state.currentGameLogsPlayer = null;
+  state.currentGameLogsPlayerRanks = null;
+  state.currentGameLogsSummary = null;
+  state.currentGameLogsFooterStats = null;
+  state.currentConsistencyData = null;
+}
+
+function setDataHubGameLogsView(view) {
+  const normalizedView = view === "szn" ? "szn" : "gl";
+  state.currentGameLogsView = normalizedView;
+  gameLogsViewButtons.forEach((button) => {
+    const isActive = button.dataset.gamelogsView === normalizedView;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+  modalBody?.querySelectorAll(".game-logs-table-container, .no-logs[data-gamelogs-view='gl']").forEach((node) => {
+    node.classList.toggle("hidden", normalizedView !== "gl");
+  });
+  modalBody?.querySelectorAll(".game-logs-szn-view").forEach((node) => {
+    node.classList.toggle("hidden", normalizedView !== "szn");
+  });
+  statsKeyContainer?.classList.add("hidden");
+  radarChartContainer?.classList.add("hidden");
+  consistencyContainer?.classList.add("hidden");
+  modalInfoButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.panel === "game-logs");
+  });
+}
+
+function switchDataHubModalTab(tabKey) {
+  const gameLogsPane = document.querySelector("#gamelogs-tab-pane");
+  const ownershipPane = document.querySelector("#gamelogs-ownership-pane");
+  if (!gameLogsPane || !ownershipPane) {
+    return;
+  }
+  if (tabKey === "ownership" && !state.userId) {
+    const ownershipTab = gameLogsModalTabs.find((tab) => tab.dataset.modalTab === "ownership");
+    showDataHubTemporaryTooltip(ownershipTab || document.body, "Please enter a Sleeper username to view Ownership data.");
+    return;
+  }
+  gameLogsModalTabs.forEach((button) => {
+    const isActive = button.dataset.modalTab === tabKey;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+  if (tabKey === "ownership") {
+    gameLogsPane.classList.add("hidden");
+    ownershipPane.classList.remove("hidden");
+    if (state.currentGameLogsPlayer?.id) {
+      renderDataHubOwnershipPane(state.currentGameLogsPlayer.id);
+      if (!hasDataHubOwnershipContextLoaded()) {
+        loadDataHubOwnershipContextForUser()
+          .then(() => {
+            if (state.currentGameLogsPlayer?.id) {
+              renderDataHubOwnershipPane(state.currentGameLogsPlayer.id);
+            }
+          })
+          .catch(() => {
+            const body = document.querySelector("#glOwnershipBody");
+            if (body) {
+              body.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
+            }
+          });
+      }
+    }
+  } else {
+    gameLogsPane.classList.remove("hidden");
+    ownershipPane.classList.add("hidden");
+  }
+}
+
+async function openDataHubGameLogs(row) {
+  const meta = row?.__meta;
+  if (!meta?.playerId || meta.pos === "RDP") {
+    return;
+  }
+  const requestSeq = ++dataHubGameLogsRequestSeq;
+  state.currentGameLogsPlayer = null;
+  state.currentGameLogsPlayerRanks = null;
+  state.currentGameLogsSummary = null;
+  const isStaleRequest = () => requestSeq !== dataHubGameLogsRequestSeq;
+
+  try {
+    await ensureDataHubGameLogsData();
+  } catch (error) {
+    console.error("Unable to prepare DataHub game logs data.", error);
+  }
+  if (isStaleRequest()) {
+    return;
+  }
+
+  const player = buildDataHubModalPlayer(meta);
+  state.currentGameLogsPlayer = player;
+  modalPlayerName.textContent = player.fullName || player.name || "Player";
+  if (modalPlayerVitals) modalPlayerVitals.innerHTML = "";
+  if (modalSummaryChips) modalSummaryChips.innerHTML = "";
+  modalBody?.replaceChildren();
+  openDataHubModal();
+  showDataHubLoadingPanel();
+
+  const gameLogs = await fetchDataHubGameLogs(player.id);
+  if (isStaleRequest()) {
+    return;
+  }
+  const playerRanks = buildDataHubPlayerRanks(player.id, meta);
+  if (isStaleRequest()) {
+    return;
+  }
+  await renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq);
+}
+
+function buildDataHubModalPlayer(meta) {
+  const playerData = state.sleeperPlayers?.[meta.playerId] || {};
+  const firstName = String(playerData.first_name || "").trim();
+  const lastName = String(playerData.last_name || "").trim();
+  const fullName = `${firstName} ${lastName}`.trim() || meta.fullName || meta.name;
+  return {
+    id: meta.playerId,
+    name: meta.name,
+    fullName,
+    pos: meta.pos || playerData.position || "WR",
+    team: meta.team || playerData.team || "FA",
+    ktc: Number.isFinite(meta.ktc) ? meta.ktc : (Number.isFinite(meta.value) ? meta.value : 0),
+    posRank: meta.posRankText,
+    overallRank: Number.isFinite(meta.overallKtcRank) ? meta.overallKtcRank : meta.rank,
+  };
+}
+
+function showDataHubLoadingPanel() {
+  const modalContent = gameLogsModal?.querySelector(".modal-content");
+  if (!modalContent || !modalBody) {
+    return;
+  }
+  modalBody.classList.add("loading");
+  gameLogsModal.classList.add("loading");
+  modalContent.querySelector(".game-logs-loading-container")?.remove();
+  const panel = document.createElement("div");
+  panel.className = "game-logs-loading-container";
+  panel.innerHTML = `
+    <div class="game-logs-loading-content">
+      <div class="game-logs-loading-spinner"></div>
+      <p class="game-logs-loading-message">
+        <strong>Syncing Game Logs ⇄</strong>
+        Fetching DataHub game log data for the selected player.<br /><br />
+        — This may take a few seconds...
+      </p>
+    </div>
+    <p class="game-logs-loading-footer">
+      <em>DataHub keeps the modal self-contained, so the first open hydrates all local game log sources for this session.</em>
+    </p>
+  `;
+  modalContent.appendChild(panel);
+}
+
+async function ensureDataHubGameLogsData() {
+  if (state.gameLogsDataLoaded) {
+    await ensureDataHubLiveStats();
+    if (!state.username) {
+      await bootstrapDataHubUserContext();
+    }
+    return;
+  }
+  if (state.gameLogsDataPromise) {
+    await state.gameLogsDataPromise;
+    return;
+  }
+  state.gameLogsDataPromise = (async () => {
+    await Promise.all([
+      fetchDataHubSleeperPlayers(),
+      ensureDataHubSupplementalData(),
+      bootstrapDataHubUserContext(),
+    ]);
+    const [seasonCsvText, seasonRanksCsvText, ...weeklyCsvText] = await Promise.all([
+      fetchCsvText(),
+      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKS.csv", window.location.href)),
+      ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
+        const week = index + 1;
+        return fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${week}.csv`, window.location.href), { allowFailure: true });
+      }),
+    ]);
+    state.playerSeasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonCsvText));
+    state.playerSeasonRanks = parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText));
+    const weeklyStats = Object.create(null);
+    weeklyCsvText.forEach((csvText, index) => {
+      if (!csvText) {
+        return;
+      }
+      weeklyStats[index + 1] = parseDataHubWeeklyStatsRows(parseCsv(csvText));
+    });
+    state.playerWeeklyStats = weeklyStats;
+    state.weeklyStats = weeklyStats;
+    state.gameLogsDataLoaded = true;
+    await ensureDataHubLiveStats();
+  })()
+    .catch((error) => {
+      state.gameLogsDataLoaded = false;
+      throw error;
+    })
+    .finally(() => {
+      state.gameLogsDataPromise = null;
+    });
+  await state.gameLogsDataPromise;
+}
+
+async function bootstrapDataHubUserContext() {
+  const queryUsername = new URLSearchParams(window.location.search).get("username") || "";
+  const storedUsername = readStoredUsername();
+  const username = String(queryUsername || storedUsername || "").trim();
+  state.username = username;
+  if (!username) {
+    state.userId = "";
+    return;
+  }
+  try {
+    const user = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${encodeURIComponent(username)}`);
+    state.userId = user?.user_id || "";
+    if (queryUsername) {
+      try {
+        localStorage.setItem("sleeper_username", username);
+      } catch (error) {}
+    }
+  } catch (error) {
+    state.userId = "";
+  }
+}
+
+async function fetchDataHubSleeperPlayers({ force = false } = {}) {
+  if (!force && Object.keys(state.sleeperPlayers || {}).length) {
+    return state.sleeperPlayers;
+  }
+  const payload = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/players/nfl`);
+  state.sleeperPlayers = payload || Object.create(null);
+  return state.sleeperPlayers;
+}
+
+async function fetchDataHubGameLogs(playerId) {
+  await ensureDataHubGameLogsData();
+  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
+  const gameLogs = [];
+  Object.keys(combinedWeeklyStats)
+    .map((week) => Number(week))
+    .sort((left, right) => left - right)
+    .forEach((week) => {
+      const stats = combinedWeeklyStats[week]?.[playerId];
+      if (stats) {
+        gameLogs.push({ week, stats });
+      }
+    });
+  return gameLogs;
+}
+
+function getDataHubCombinedWeeklyStats() {
+  const combined = Object.create(null);
+  Object.entries(state.weeklyStats || {}).forEach(([week, players]) => {
+    combined[week] = {};
+    Object.entries(players || {}).forEach(([playerId, statLine]) => {
+      combined[week][playerId] = { ...(statLine || {}) };
+    });
+  });
+  Object.entries(state.liveWeeklyStats || {}).forEach(([week, players]) => {
+    if (!combined[week]) {
+      combined[week] = {};
+    }
+    Object.entries(players || {}).forEach(([playerId, statLine]) => {
+      const existing = combined[week][playerId] ? { ...combined[week][playerId] } : {};
+      const merged = { ...existing, ...(statLine || {}) };
+      if (Number.isFinite(statLine?.fpts_override)) {
+        merged.fpts_override = statLine.fpts_override;
+        merged.fpts = statLine.fpts_override;
+      }
+      combined[week][playerId] = merged;
+    });
+  });
+  return combined;
+}
+
+async function ensureDataHubLiveStats(force = false) {
+  if (!force && state.liveStatsLoaded && state.lastLiveStatsFetchTs && (Date.now() - state.lastLiveStatsFetchTs) < 5 * 60 * 1000) {
+    return;
+  }
+  await fetchDataHubLiveStats();
+}
+
+async function fetchDataHubLiveStats() {
+  try {
+    const sleeperState = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/state/nfl`);
+    const season = String(sleeperState?.season || DATAHUB_GAME_LOGS_YEAR);
+    const currentWeek = Number(sleeperState?.week);
+    state.currentNflSeason = season;
+    state.currentNflWeek = Number.isFinite(currentWeek) ? currentWeek : null;
+    if (!Number.isFinite(currentWeek) || currentWeek <= 0) {
+      state.liveStatsLoaded = true;
+      return;
+    }
+    const liveWeeklyStats = { ...(state.liveWeeklyStats || {}) };
+    const latestStoredWeek = Math.max(0, ...Object.keys(state.weeklyStats || {}).map((value) => Number(value)).filter(Number.isFinite));
+    const fetchStartWeek = Math.max(1, Math.min(currentWeek, latestStoredWeek + 1));
+    for (let week = fetchStartWeek; week <= currentWeek; week += 1) {
+      try {
+        const weekPayload = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/stats/nfl/regular/${season}/${week}`);
+        const weekStats = {};
+        Object.entries(weekPayload || {}).forEach(([playerId, statLine]) => {
+          const override = Number(
+            statLine?.pts_ppr
+            ?? statLine?.pts
+            ?? statLine?.pts_ppr_total
+            ?? statLine?.fantasy_points_ppr,
+          );
+          if (!Number.isFinite(override)) {
+            return;
+          }
+          weekStats[playerId] = {
+            fpts_override: override,
+            fpts: override,
+            __live: true,
+          };
+        });
+        if (Object.keys(weekStats).length) {
+          liveWeeklyStats[week] = weekStats;
+        }
+      } catch (error) {
+        console.warn(`DataHub live stats unavailable for week ${week}.`, error);
+      }
+    }
+    state.liveWeeklyStats = liveWeeklyStats;
+  } finally {
+    state.liveStatsLoaded = true;
+    state.lastLiveStatsFetchTs = Date.now();
+  }
+}
+
+function buildDataHubPlayerRanks(playerId, meta) {
+  const cacheEntry = state.modalRankCache?.[playerId] || {};
+  return {
+    total_pts: Number.isFinite(meta?.fpts) ? meta.fpts.toFixed(1) : "0.0",
+    ppg: Number.isFinite(meta?.ppg) ? meta.ppg.toFixed(1) : "0.0",
+    posRank: cacheEntry.posRank || null,
+    overallRank: cacheEntry.overallRank || null,
+    ppgPosRank: cacheEntry.ppgPosRank || null,
+    ppgOverallRank: cacheEntry.ppgOverallRank || null,
+    gamesPlayed: Number.isFinite(meta?.gmPlayed) ? meta.gmPlayed : 0,
+  };
+}
+
+function parseDataHubSeasonStatsRows(rows) {
+  const seasonStats = Object.create(null);
+  rows.forEach((row) => {
+    const playerId = String(row.SLPR_ID || row.slpr_id || "").trim();
+    if (!playerId) {
+      return;
+    }
+    const stats = {};
+    Object.entries(row).forEach(([header, value]) => {
+      const normalizedHeader = normalizeSheetHeader(header);
+      if (normalizedHeader === "SLPR_ID") {
+        return;
+      }
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[normalizedHeader];
+      if (statKey) {
+        const parsedValue = parseDataHubStatValue(normalizedHeader, value);
+        if (parsedValue !== null) {
+          stats[statKey] = parsedValue;
+        }
+      }
+    });
+    stats.pos = String(row.POS || "").trim().toUpperCase();
+    stats.team = String(row.TM || "").trim().toUpperCase() || "FA";
+    stats.games_played = toComparableNumber(row.GM ?? row.GM_P);
+    stats.fpts_ppr = toComparableNumber(row.FPT_PPR ?? row.FPTS_PPR ?? row.FPTS);
+    stats.fpt_ppr = stats.fpts_ppr;
+    stats.ppg = Number.isFinite(toComparableNumber(row.PPG))
+      ? toComparableNumber(row.PPG)
+      : computePpgValue(stats.fpts_ppr, stats.games_played);
+    seasonStats[playerId] = stats;
+  });
+  return seasonStats;
+}
+
+function parseDataHubSeasonRanksRows(rows) {
+  const rankRows = Object.create(null);
+  rows.forEach((row) => {
+    const playerId = String(row.SLPR_ID || row.slpr_id || "").trim();
+    if (!playerId) {
+      return;
+    }
+    const ranks = {};
+    Object.entries(row).forEach(([header, value]) => {
+      const normalizedHeader = normalizeSheetHeader(header);
+      if (normalizedHeader === "SLPR_ID") {
+        return;
+      }
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[normalizedHeader];
+      if (!statKey) {
+        return;
+      }
+      const parsedRank = toComparableNumber(value);
+      if (Number.isFinite(parsedRank)) {
+        ranks[statKey] = parsedRank;
+      }
+    });
+    rankRows[playerId] = ranks;
+  });
+  return rankRows;
+}
+
+function parseDataHubWeeklyStatsRows(rows) {
+  const weeklyStats = Object.create(null);
+  rows.forEach((row) => {
+    const playerId = String(row.SLPR_ID || row.slpr_id || "").trim();
+    if (!playerId) {
+      return;
+    }
+    const stats = {};
+    Object.entries(row).forEach(([header, value]) => {
+      const normalizedHeader = normalizeSheetHeader(header);
+      if (normalizedHeader === "SLPR_ID") {
+        return;
+      }
+      const metaKey = DATAHUB_WEEKLY_META_HEADER_MAP[normalizedHeader];
+      if (metaKey) {
+        if (metaKey === "opponent_rank") {
+          const numericValue = toComparableNumber(value);
+          if (Number.isFinite(numericValue)) {
+            stats[metaKey] = numericValue;
+          }
+        } else if (String(value || "").trim()) {
+          stats[metaKey] = String(value || "").trim();
+        }
+        return;
+      }
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[normalizedHeader];
+      if (!statKey) {
+        return;
+      }
+      if (normalizedHeader === "PROJ") {
+        stats[statKey] = String(value ?? "").trim();
+        return;
+      }
+      const parsedValue = parseDataHubStatValue(normalizedHeader, value);
+      if (parsedValue !== null) {
+        stats[statKey] = parsedValue;
+      }
+    });
+    weeklyStats[playerId] = stats;
+  });
+  return weeklyStats;
+}
+
+function parseDataHubStatValue(header, value) {
+  const trimmedValue = String(value ?? "").trim();
+  if (!trimmedValue || trimmedValue.toUpperCase() === "NA") {
+    return null;
+  }
+  if (header === "SNP%") {
+    const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
+    if (!Number.isFinite(numericPortion)) {
+      return null;
+    }
+    return trimmedValue.includes("%") || numericPortion > 1.5
+      ? numericPortion
+      : numericPortion * 100;
+  }
+  const numericValue = Number.parseFloat(trimmedValue);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+async function fetchDataHubJson(url) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchDataHubText(url, options = {}) {
+  const { allowFailure = false } = options;
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+    return response.text();
+  } catch (error) {
+    if (allowFailure) {
+      return "";
+    }
+    throw error;
+  }
+}
+
+function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
+  if (requestSeq !== dataHubGameLogsRequestSeq) {
+    return;
+  }
+  if (modalBody) {
+    modalBody.classList.remove("loading");
+  }
+  if (gameLogsModal) {
+    gameLogsModal.classList.remove("loading");
+    gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
+  }
+  state.currentGameLogsPlayer = player;
+  state.currentGameLogsPlayerRanks = playerRanks;
+  state.currentGameLogsSummary = {
+    fpts: playerRanks.total_pts,
+    ppg: playerRanks.ppg,
+  };
+  renderDataHubModalHeader(player, playerRanks);
+  const tableNode = renderDataHubGameLogsTable(gameLogs, player, playerRanks);
+  const seasonNode = renderDataHubSeasonStatsView(player, gameLogs, playerRanks);
+  modalBody?.replaceChildren();
+  if (tableNode) modalBody?.appendChild(tableNode);
+  if (seasonNode) modalBody?.appendChild(seasonNode);
+  if (statsKeyContainer) {
+    statsKeyContainer.classList.add("hidden");
+    modalBody?.appendChild(statsKeyContainer);
+  }
+  if (radarChartContainer) {
+    radarChartContainer.classList.add("hidden");
+    modalBody?.appendChild(radarChartContainer);
+  }
+  if (consistencyContainer) {
+    consistencyContainer.classList.add("hidden");
+    modalBody?.appendChild(consistencyContainer);
+    prepareDataHubConsistencyPanel(player);
+  }
+  setDataHubGameLogsView(state.currentGameLogsView || "gl");
+}
+
+function renderDataHubModalHeader(player, playerRanks) {
+  const header = document.querySelector("#modal-header");
+  if (!header) {
+    return;
+  }
+  header.querySelector(".modal-header-left-container")?.remove();
+  const left = document.createElement("div");
+  left.className = "modal-header-left-container";
+  left.innerHTML = `
+    <div class="player-tag modal-pos-tag ${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}</div>
+    ${getDataHubTeamLogoMarkup(player.team)}
+  `;
+  header.insertBefore(left, header.firstChild);
+  modalPlayerName.textContent = player.fullName || player.name || "Player";
+  if (modalPlayerVitals) {
+    modalPlayerVitals.innerHTML = "";
+    modalPlayerVitals.appendChild(createDataHubPlayerVitalsElement(getDataHubPlayerVitals(player.id, player), { variant: "modal", pos: player.pos }));
+  }
+  if (modalSummaryChips) {
+    modalSummaryChips.innerHTML = `
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.posRank, player.pos)}">${playerRanks.total_pts}</span>
+          <span class="chip-unit"> FPTS</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(playerRanks.posRank, player.pos)}">${playerRanks.posRank || "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(playerRanks.overallRank)}">${Number.isFinite(playerRanks.overallRank) ? `#${playerRanks.overallRank}` : "NA"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${playerRanks.ppg}</span>
+          <span class="chip-unit"> PPG</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${playerRanks.ppgPosRank || "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(playerRanks.ppgOverallRank)}">${Number.isFinite(playerRanks.ppgOverallRank) ? `#${playerRanks.ppgOverallRank}` : "NA"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubKtcColor(player.ktc)}">${Number.isFinite(player.ktc) ? Math.round(player.ktc) : "NA"}</span>
+          <span class="chip-unit"> KTC</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(player.pos)}">${dataHubEscapeHtml(player.pos)}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(parseDataHubPosRankNumber(player.posRank), player.pos)}">${parseDataHubPosRankNumber(player.posRank) || "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(player.overallRank)}">${Number.isFinite(player.overallRank) ? `#${player.overallRank}` : "NA"}</span>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
+  const container = document.createElement("div");
+  container.className = "game-logs-table-container";
+  container.dataset.gamelogsView = "gl";
+  const seasonTotals = state.playerSeasonStats?.[player.id] || {};
+  const logsByWeek = new Map(gameLogs.map((entry) => [entry.week, entry.stats]));
+  const statOrder = getDataHubLogOrderForPosition(player.pos);
+  const aggregatedTotals = buildDataHubAggregatedTotals(gameLogs);
+  const footerStats = buildDataHubFooterStats(player, playerRanks, seasonTotals, aggregatedTotals, gameLogs);
+  state.currentGameLogsFooterStats = footerStats;
+
+  if (!gameLogs.length) {
+    const empty = document.createElement("p");
+    empty.className = "no-logs";
+    empty.dataset.gamelogsView = "gl";
+    empty.textContent = `No game logs found for ${player.fullName || player.name} for the current season.`;
+    return empty;
+  }
+
+  const hScroll = document.createElement("div");
+  hScroll.className = "game-logs-hscroll";
+  const hContent = document.createElement("div");
+  hContent.className = "game-logs-hscroll-content";
+  const headerWrap = document.createElement("div");
+  headerWrap.className = "game-logs-table-header";
+  const bodyWrap = document.createElement("div");
+  bodyWrap.className = "game-logs-table-body";
+  const footerWrap = document.createElement("div");
+  footerWrap.className = "game-logs-table-footer";
+
+  const headerTable = document.createElement("table");
+  headerTable.className = "game-logs-table";
+  const bodyTable = document.createElement("table");
+  bodyTable.className = "game-logs-table";
+  const footerTable = document.createElement("table");
+  footerTable.className = "game-logs-table";
+
+  const headerThead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  headerRow.appendChild(buildDataHubHeaderCell("WK"));
+  statOrder.forEach((statKey) => {
+    headerRow.appendChild(buildDataHubHeaderCell(DATAHUB_STAT_LABELS[statKey] || statKey, statKey));
+  });
+  headerThead.appendChild(headerRow);
+  headerTable.appendChild(headerThead);
+
+  const bodyTbody = document.createElement("tbody");
+  for (let week = 1; week <= DATAHUB_MAX_WEEKS; week += 1) {
+    const stats = logsByWeek.get(week) || null;
+    const row = document.createElement("tr");
+    if (!stats) {
+      row.className = "unplayed-week-row";
+    } else if (stats.__live) {
+      row.className = "live-week-row";
+    }
+    const weekCell = document.createElement("td");
+    weekCell.innerHTML = buildDataHubWeekTagMarkup(week, stats);
+    row.appendChild(weekCell);
+    statOrder.forEach((statKey) => {
+      const cell = document.createElement("td");
+      if (!stats) {
+        cell.textContent = "—";
+      } else {
+        const rawValue = resolveDataHubStatCellValue(statKey, stats);
+        cell.textContent = formatDataHubStatDisplay(statKey, rawValue);
+        if (statKey === "proj") {
+          cell.classList.add("proj-cell");
+        }
+      }
+      row.appendChild(cell);
+    });
+    bodyTbody.appendChild(row);
+  }
+  bodyTable.appendChild(bodyTbody);
+
+  const footerTfoot = document.createElement("tfoot");
+  const footerRow = document.createElement("tr");
+  footerRow.appendChild(buildDataHubHeaderCell("SZN"));
+  statOrder.forEach((statKey) => {
+    const cell = document.createElement("td");
+    cell.textContent = formatDataHubStatDisplay(statKey, footerStats[statKey]);
+    footerRow.appendChild(cell);
+  });
+  footerTfoot.appendChild(footerRow);
+  footerTable.appendChild(footerTfoot);
+
+  headerWrap.appendChild(headerTable);
+  bodyWrap.appendChild(bodyTable);
+  footerWrap.appendChild(footerTable);
+  hContent.append(headerWrap, bodyWrap, footerWrap);
+  hScroll.appendChild(hContent);
+  container.appendChild(hScroll);
+  return container;
+}
+
+function buildDataHubHeaderCell(label, statKey = "") {
+  const cell = document.createElement("th");
+  cell.textContent = label;
+  if (statKey) {
+    cell.classList.add(`gamelog-header-${getDataHubStatGroup(statKey)}`);
+  }
+  return cell;
+}
+
+function buildDataHubWeekTagMarkup(week, stats) {
+  const opponent = String(stats?.opponent || "").trim().toUpperCase();
+  const opponentRank = Number.isFinite(stats?.opponent_rank) ? Math.round(stats.opponent_rank) : null;
+  const opponentRankColor = getDataHubOpponentRankColor(opponentRank);
+  const weekNumber = String(week).padStart(2, "0");
+  if (!stats) {
+    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">—</span></span>`;
+  }
+  if (opponent === "BYE") {
+    return `<span class="gamelog-week-tag"><span class="gamelog-week-tag-number">WK ${weekNumber}</span><span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">BYE</span></span>`;
+  }
+  return `
+    <span class="gamelog-week-tag">
+      <span class="gamelog-week-tag-number">WK ${weekNumber}</span>
+      ${opponent ? `<span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-opponent-text">${dataHubEscapeHtml(opponent)}</span>` : ""}
+      ${Number.isFinite(opponentRank) ? `<span class="gamelog-week-tag-separator">•</span><span class="gamelog-week-tag-rank" style="color:${opponentRankColor || "inherit"}">#${opponentRank}</span>` : ""}
+    </span>
+  `;
+}
+
+function getDataHubLogOrderForPosition(position) {
+  const pos = String(position || "").trim().toUpperCase();
+  if (pos === "QB") return DATAHUB_QB_LOG_ORDER;
+  if (pos === "RB") return DATAHUB_RB_LOG_ORDER;
+  return DATAHUB_WR_TE_LOG_ORDER;
+}
+
+function buildDataHubAggregatedTotals(gameLogs) {
+  const totals = Object.create(null);
+  gameLogs.forEach(({ stats }) => {
+    Object.entries(stats || {}).forEach(([key, value]) => {
+      if (!Number.isFinite(value)) {
+        return;
+      }
+      totals[key] = (totals[key] || 0) + value;
+    });
+  });
+  return totals;
+}
+
+function buildDataHubFooterStats(player, playerRanks, seasonTotals, aggregatedTotals, gameLogs) {
+  const footerStats = Object.create(null);
+  const statOrder = getDataHubLogOrderForPosition(player.pos);
+  footerStats.fpts = Number(playerRanks.total_pts);
+  footerStats.ppg = Number(playerRanks.ppg);
+  statOrder.forEach((statKey) => {
+    if (statKey === "proj") {
+      footerStats[statKey] = null;
+      return;
+    }
+    footerStats[statKey] = computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, gameLogs, playerRanks);
+  });
+  return footerStats;
+}
+
+function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, gameLogs, playerRanks) {
+  if (statKey === "fpts") {
+    return Number(playerRanks.total_pts);
+  }
+  if (statKey === "ppg") {
+    return Number(playerRanks.ppg);
+  }
+  if (Number.isFinite(seasonTotals?.[statKey])) {
+    return seasonTotals[statKey];
+  }
+  if (DATAHUB_NO_FALLBACK_KEYS.has(statKey) && !Number.isFinite(seasonTotals?.[statKey])) {
+    return null;
+  }
+  if (statKey === "yds_total") {
+    return (aggregatedTotals.pass_yd || 0) + (aggregatedTotals.rush_yd || 0) + (aggregatedTotals.rec_yd || 0);
+  }
+  if (statKey === "snp_pct") {
+    const snapValues = gameLogs
+      .map(({ stats }) => Number(stats?.snp_pct))
+      .filter((value) => Number.isFinite(value));
+    if (!snapValues.length) return null;
+    return snapValues.reduce((sum, value) => sum + value, 0) / snapValues.length;
+  }
+  if (statKey === "imp_per_g") {
+    const games = Math.max(1, gameLogs.length);
+    const impactTotal = Number.isFinite(aggregatedTotals.imp)
+      ? aggregatedTotals.imp
+      : (aggregatedTotals.pass_fd || 0) + (aggregatedTotals.rush_fd || 0) + (aggregatedTotals.rec_fd || 0)
+        + (aggregatedTotals.pass_td || 0) + (aggregatedTotals.rush_td || 0) + (aggregatedTotals.rec_td || 0);
+    return impactTotal / games;
+  }
+  if (statKey === "ypc") {
+    const attempts = aggregatedTotals.rush_att || 0;
+    return attempts > 0 ? (aggregatedTotals.rush_yd || 0) / attempts : null;
+  }
+  if (statKey === "ypr") {
+    const receptions = aggregatedTotals.rec || 0;
+    return receptions > 0 ? (aggregatedTotals.rec_yd || 0) / receptions : null;
+  }
+  if (statKey === "yprr") {
+    const routes = aggregatedTotals.rr || 0;
+    return routes > 0 ? (aggregatedTotals.rec_yd || 0) / routes : null;
+  }
+  if (statKey === "ts_per_rr") {
+    const routes = aggregatedTotals.rr || 0;
+    return routes > 0 ? ((aggregatedTotals.rec_tgt || 0) / routes) * 100 : null;
+  }
+  if (statKey === "first_down_rec_rate") {
+    const receptions = aggregatedTotals.rec || 0;
+    return receptions > 0 ? (aggregatedTotals.rec_fd || 0) / receptions : null;
+  }
+  if (statKey === "pass_imp_per_att") {
+    const attempts = aggregatedTotals.pass_att || 0;
+    return attempts > 0 ? ((aggregatedTotals.pass_imp || 0) / attempts) * 100 : null;
+  }
+  return Number.isFinite(aggregatedTotals[statKey]) ? aggregatedTotals[statKey] : null;
+}
+
+function resolveDataHubStatCellValue(statKey, stats) {
+  if (statKey === "fpts") {
+    return Number.isFinite(stats?.fpts_override) ? stats.fpts_override : (stats?.fpt_ppr ?? stats?.fpts);
+  }
+  return stats?.[statKey];
+}
+
+function formatDataHubStatDisplay(statKey, value) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
+  if (statKey === "proj") {
+    return String(value || "—");
+  }
+  if (!Number.isFinite(Number(value))) {
+    return String(value);
+  }
+  const numericValue = Number(value);
+  if (["cmp_pct", "snp_pct", "ts_per_rr", "pass_imp_per_att"].includes(statKey)) {
+    return `${numericValue.toFixed(1)}%`;
+  }
+  if (["ttt", "ypc", "ypr", "yprr", "first_down_rec_rate", "imp_per_g", "epa_per_db", "cpoe", "fpts", "ppg"].includes(statKey)) {
+    return numericValue.toFixed(1);
+  }
+  return Number.isInteger(numericValue) ? String(numericValue) : numericValue.toFixed(1);
+}
+
+function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
+  const container = document.createElement("div");
+  container.className = "game-logs-szn-view hidden";
+  const seasonTotals = state.playerSeasonStats?.[player.id] || {};
+  const aggregatedTotals = buildDataHubAggregatedTotals(gameLogs);
+  const sections = DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
+
+  const title = document.createElement("div");
+  title.className = "gamelogs-szn-title";
+  title.innerHTML = `
+    <i class="fa-regular fa-chart-bar gamelogs-szn-title-icon" aria-hidden="true"></i>
+    <span class="gamelogs-szn-title-text">Season Stats</span>
+    <span class="gamelogs-szn-title-games">
+      <span class="gamelogs-szn-title-games-label">G:</span>
+      <span class="gamelogs-szn-title-games-value">${Number.isFinite(seasonTotals.games_played) ? Math.round(seasonTotals.games_played) : (playerRanks.gamesPlayed || 0)}</span>
+    </span>
+  `;
+  container.appendChild(title);
+
+  const list = document.createElement("div");
+  list.className = "gamelogs-szn-list";
+  sections.forEach((section) => {
+    const header = document.createElement("div");
+    header.className = `gamelogs-szn-section-header gamelogs-szn-section-header--${section.tone || "all"}`;
+    header.textContent = section.label;
+    list.appendChild(header);
+
+    section.stats.forEach((statKey) => {
+      const value = computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, gameLogs, playerRanks);
+      const rankValue = getDataHubSeasonRankValue(player.id, statKey);
+      const rankColor = getDataHubConditionalColorByRank(rankValue, player.pos);
+      const row = document.createElement("div");
+      row.className = `gamelogs-szn-row gamelogs-szn-row--${getDataHubStatGroup(statKey)}`;
+      row.innerHTML = `
+        <div class="gamelogs-szn-label">${dataHubEscapeHtml(DATAHUB_STAT_LABELS[statKey] || statKey)}</div>
+        <div class="gamelogs-szn-bar" role="img" aria-label="${dataHubEscapeHtml(DATAHUB_STAT_LABELS[statKey] || statKey)} rank ${Number.isFinite(rankValue) ? rankValue : "NA"}">
+          <div class="gamelogs-szn-bar-fill" style="width:${computeDataHubSznProgressPercent(rankValue, player.pos)}%;border-color:${rankColor};"></div>
+          <span class="gamelogs-szn-bar-rank" style="color:${rankColor};">${Number.isFinite(rankValue) ? rankValue : "NA"}</span>
+        </div>
+        <div class="gamelogs-szn-value"><span class="gamelogs-szn-value-main">${dataHubEscapeHtml(formatDataHubStatDisplay(statKey, value))}</span></div>
+      `;
+      list.appendChild(row);
+    });
+  });
+  container.appendChild(list);
+  return container;
+}
+
+function computeDataHubSznProgressPercent(rank, position) {
+  const numericRank = Number(rank);
+  if (!Number.isFinite(numericRank) || numericRank <= 0) {
+    return 0;
+  }
+  const thresholds = DATAHUB_SZN_PROGRESS_THRESHOLDS[String(position || "").trim().toUpperCase()] || DATAHUB_SZN_PROGRESS_THRESHOLDS.WR;
+  if (numericRank <= thresholds[0].rank) {
+    return thresholds[0].pct;
+  }
+  for (let index = 0; index < thresholds.length - 1; index += 1) {
+    const start = thresholds[index];
+    const end = thresholds[index + 1];
+    if (numericRank >= start.rank && numericRank <= end.rank) {
+      const progress = (numericRank - start.rank) / Math.max(1, end.rank - start.rank);
+      return start.pct + ((end.pct - start.pct) * progress);
+    }
+  }
+  return thresholds[thresholds.length - 1].pct;
+}
+
+function getDataHubSeasonRankValue(playerId, statKey) {
+  const ranks = state.playerSeasonRanks?.[playerId];
+  if (statKey === "fpts") {
+    return state.currentGameLogsPlayerRanks?.posRank || state.modalRankCache?.[playerId]?.posRank || null;
+  }
+  if (statKey === "ppg") {
+    return state.currentGameLogsPlayerRanks?.ppgPosRank || state.modalRankCache?.[playerId]?.ppgPosRank || null;
+  }
+  return Number.isFinite(ranks?.[statKey]) ? ranks[statKey] : null;
+}
+
+function getDataHubStatGroup(statKey) {
+  if ([
+    "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "pass_imp", "pass_rtg",
+    "pass_imp_per_att", "pass_int", "pass_sack", "ttt", "prs_pct", "cmp_pct", "epa_per_db", "cpoe", "dp_pct", "pa_ypg",
+  ].includes(statKey)) return "passing";
+  if ([
+    "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc", "elu", "mtf_per_att", "yco_per_att",
+    "mtf", "rush_yac", "ryoe", "expl_ru_pct", "ru_ypg",
+  ].includes(statKey)) return "rushing";
+  if ([
+    "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",
+    "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct",
+  ].includes(statKey)) return "receiving";
+  return "all";
+}
+
+function renderDataHubRadarChart(playerId, position) {
+  const container = radarChartContainer?.querySelector(".radar-chart-content");
+  if (!container) {
+    return;
+  }
+  if (dataHubRadarChartInstance) {
+    dataHubRadarChartInstance.destroy();
+    dataHubRadarChartInstance = null;
+  }
+  container.innerHTML = "";
+  const radarData = getDataHubRadarData(playerId, position);
+  if (!radarData || !window.Chart) {
+    container.innerHTML = '<p class="no-data-message">No radar data available for this player.</p>';
+    return;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.id = "datahub-player-radar-canvas";
+  container.appendChild(canvas);
+  dataHubRadarChartInstance = new window.Chart(canvas.getContext("2d"), {
+    type: "radar",
+    data: {
+      labels: radarData.labels,
+      datasets: [{
+        label: "Player Rank",
+        data: radarData.ranks,
+        rawRanks: radarData.rawRanks,
+        statValues: radarData.statValues,
+        position,
+        fill: true,
+        backgroundColor: "rgba(83, 0, 255, 0.28)",
+        borderColor: "#6700ff",
+        borderWidth: 2,
+        pointBackgroundColor: "#6300ff",
+        pointBorderColor: "#0d0e1b",
+        pointRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const rank = radarData.rawRanks[context.dataIndex];
+              const value = radarData.statValues[context.dataIndex];
+              return `${context.label}: ${formatDataHubStatDisplay(radarData.statKeys[context.dataIndex], value)} (${Number.isFinite(rank) ? `#${rank}` : "NA"})`;
+            },
+          },
+        },
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: { display: false },
+          angleLines: { color: "rgba(208, 214, 255, 0.12)" },
+          grid: { color: "rgba(208, 214, 255, 0.16)" },
+          pointLabels: {
+            color: "#e6ebff",
+            font: { family: "Product Sans", size: 12, weight: "600" },
+          },
+        },
+      },
+    },
+  });
+}
+
+function getDataHubRadarData(playerId, position) {
+  const config = DATAHUB_RADAR_STATS_CONFIG[position];
+  if (!config) {
+    return null;
+  }
+  const footerStats = state.currentGameLogsFooterStats || {};
+  const playerRanks = state.currentGameLogsPlayerRanks || {};
+  const statValues = config.stats.map((statKey) => {
+    if (statKey === "fpts") return Number(playerRanks.total_pts);
+    if (statKey === "ppg") return Number(playerRanks.ppg);
+    return footerStats[statKey];
+  });
+  const rawRanks = config.stats.map((statKey) => getDataHubSeasonRankValue(playerId, statKey));
+  const ranks = rawRanks.map((rankValue) => {
+    if (!Number.isFinite(rankValue)) return 10;
+    if (rankValue <= 1) return 85;
+    if (rankValue >= config.maxRank) return 10;
+    return Math.max(10, 85 - ((rankValue - 1) / Math.max(1, config.maxRank - 1)) * 75);
+  });
+  return {
+    labels: config.labels,
+    ranks,
+    rawRanks,
+    statValues,
+    statKeys: config.stats,
+  };
+}
+
+function initializeDataHubStatsKeyMarkup() {
+  document.querySelectorAll(".stats-key-shared-body").forEach((container) => {
+    container.innerHTML = buildDataHubStatsKeyMarkup();
+  });
+}
+
+function buildDataHubStatsKeyMarkup() {
+  return `
+    <div class="stats-key-sections">
+      ${DATAHUB_STATS_KEY_SECTIONS.map((section) => `
+        <section class="stats-key-section stats-key-section--${section.tone}">
+          <div class="stats-key-section-header stats-key-section-header--${section.tone}">${section.label}</div>
+          <div class="stats-key-section-body">
+            ${section.items
+              .slice()
+              .sort((left, right) => left.abbr.localeCompare(right.abbr, undefined, { numeric: true, sensitivity: "base" }))
+              .map((item) => `
+                <div class="stats-key-item">
+                  <span class="stats-key-abbr">${item.abbr}</span>
+                  <span class="stats-key-desc">${item.desc}</span>
+                </div>
+              `)
+              .join("")}
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
+
+function getDataHubOpponentRankColor(rank) {
+  if (!Number.isFinite(rank)) return null;
+  if (rank <= 8) return "#82d8bee0";
+  if (rank <= 16) return "#73b9e7e0";
+  if (rank <= 24) return "#c093ebe0";
+  if (rank <= 32) return "#c456b1e0";
+  return null;
+}
+
+function prepareDataHubConsistencyPanel(player) {
+  state.currentConsistencyData = buildDataHubConsistencyPanelData(player);
+  updateDataHubConsistencyHud(state.currentConsistencyData);
+}
+
+function getDataHubConsistencyAxisWeeks() {
+  return Object.keys(state.playerWeeklyStats || {})
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((left, right) => left - right);
+}
+
+function clampDataHubConsistencyPoints(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+  return Math.max(0, Math.min(DATAHUB_MAX_CONSISTENCY_POINTS, value));
+}
+
+function pluralizeDataHubWeeks(count) {
+  if (!count) return "No weeks charted";
+  return count === 1 ? "1 week charted" : `${count} weeks charted`;
+}
+
+function buildDataHubConsistencyPanelData(player) {
+  if (!player?.id) {
+    return null;
+  }
+  const axisWeeks = getDataHubConsistencyAxisWeeks();
+  if (!axisWeeks.length) {
+    return null;
+  }
+  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
+  const fullPlayer = state.sleeperPlayers?.[player.id];
+  const resolvedPosition = String(player.pos || fullPlayer?.position || "FLEX").trim().toUpperCase() || "FLEX";
+  const thresholds = getDataHubConsistencyThresholds(resolvedPosition);
+  const series = [];
+  const skippedLabels = {};
+  axisWeeks.forEach((week) => {
+    const stats = combinedWeeklyStats?.[week]?.[player.id];
+    if (!stats) {
+      return;
+    }
+    const projReason = formatDataHubProjReason(stats.proj);
+    if (shouldSkipDataHubConsistencyWeek(stats)) {
+      if (projReason) {
+        skippedLabels[week] = projReason;
+      }
+      return;
+    }
+    const opponent = String(stats.opponent || "").trim().toUpperCase();
+    if (opponent === "BYE") {
+      skippedLabels[week] = "BYE";
+      return;
+    }
+    const originalPoints = Number(stats.fpts_override ?? stats.fpt_ppr ?? stats.fpts);
+    const clampedPoints = clampDataHubConsistencyPoints(originalPoints);
+    if (clampedPoints === null) {
+      return;
+    }
+    series.push({
+      week,
+      pts: clampedPoints,
+      originalPts: originalPoints,
+      opponent: stats.opponent || "",
+    });
+  });
+  series.sort((left, right) => left.week - right.week);
+  const seasonTotals = state.playerSeasonStats?.[player.id] || {};
+  const gamesPlayed = Number.isFinite(seasonTotals.games_played) ? seasonTotals.games_played : series.length;
+  const highWeekCount = series.filter((entry) => entry.pts >= thresholds.high).length;
+  const solidHighCount = series.filter((entry) => entry.pts >= thresholds.solid).length;
+  const lastFive = series.slice(-5);
+  const lastFiveAvg = lastFive.length
+    ? lastFive.reduce((sum, entry) => sum + (Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts), 0) / lastFive.length
+    : null;
+  const consistencyPct = Number.isFinite(seasonTotals.csty_pct)
+    ? seasonTotals.csty_pct
+    : (gamesPlayed > 0 ? (solidHighCount / gamesPlayed) * 100 : null);
+  const ceilingValue = Number.isFinite(seasonTotals.ceiling)
+    ? seasonTotals.ceiling
+    : (series.length ? Math.max(...series.map((entry) => Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts)) : null);
+  const consistencyRank = getDataHubSeasonRankValue(player.id, "csty_pct");
+  const ceilingRank = getDataHubSeasonRankValue(player.id, "ceiling");
+  const axisStart = axisWeeks[0];
+  const axisEnd = axisWeeks[axisWeeks.length - 1];
+  return {
+    playerId: player.id,
+    position: resolvedPosition,
+    axisWeeks,
+    series,
+    gamesPlayed,
+    thresholds,
+    consistencyPct,
+    ceilingValue,
+    consistencyRank,
+    ceilingRank,
+    highWeekCount,
+    solidHighCount,
+    totalWeeks: series.length,
+    lastFiveAvg,
+    weekRangeLabel: axisStart === axisEnd ? `Week ${axisStart}` : `Weeks ${axisStart}–${axisEnd}`,
+    weeksChartedLabel: pluralizeDataHubWeeks(series.length),
+    ceilingRankMax: DATAHUB_RADAR_STATS_CONFIG[resolvedPosition]?.maxRank || 32,
+    skippedLabels,
+  };
+}
+
+function shouldSkipDataHubConsistencyWeek(statsForWeek) {
+  if (!statsForWeek) {
+    return false;
+  }
+  const rawFantasyPoints = statsForWeek.fpts_override ?? statsForWeek.fpt_ppr ?? statsForWeek.fpts;
+  const numericFantasyPoints = Number(rawFantasyPoints);
+  if (Number.isFinite(numericFantasyPoints) && numericFantasyPoints > 0.5) {
+    return false;
+  }
+  const rawProj = statsForWeek.proj;
+  if (rawProj === undefined || rawProj === null) {
+    return false;
+  }
+  if (typeof rawProj === "number" && Number.isFinite(rawProj)) {
+    return false;
+  }
+  const trimmedProj = String(rawProj).trim();
+  if (!trimmedProj) {
+    return false;
+  }
+  const numericProjection = Number(trimmedProj);
+  if (Number.isFinite(numericProjection)) {
+    return false;
+  }
+  return DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES.has(trimmedProj.toUpperCase()) || true;
+}
+
+function formatDataHubProjReason(rawProj) {
+  if (rawProj === undefined || rawProj === null) {
+    return "";
+  }
+  const text = String(rawProj).trim();
+  return text ? text.toUpperCase() : "";
+}
+
+function formatDataHubHudPercentage(value, decimals = 1) {
+  if (!Number.isFinite(value)) {
+    return "N/A";
+  }
+  return `${Number(value).toFixed(decimals)}%`;
+}
+
+function formatDataHubCeilingValue(value) {
+  if (!Number.isFinite(value)) {
+    return "N/A";
+  }
+  return Number(value).toFixed(1);
+}
+
+function getDataHubRankAccentColor(rank) {
+  if (!Number.isFinite(rank)) return "#f8faff";
+  if (rank <= 12) return "#7cf5ff";
+  if (rank <= 24) return "#56c4ff";
+  return "#d3a5ff";
+}
+
+function updateDataHubConsistencyHud(data) {
+  if (!consistencyContainer) {
+    return;
+  }
+  consistencyContainer.querySelector("[data-week-range]")?.replaceChildren(document.createTextNode(data?.weekRangeLabel || "Weeks —"));
+  consistencyContainer.querySelector("[data-weeks-charted]")?.replaceChildren(document.createTextNode(data?.weeksChartedLabel || "No weeks charted"));
+  const consistencyRankEl = consistencyContainer.querySelector("[data-consistency-rank]");
+  if (consistencyRankEl) {
+    consistencyRankEl.textContent = Number.isFinite(data?.consistencyRank) ? `#${data.consistencyRank}` : "NA";
+    consistencyRankEl.style.color = getDataHubRankAccentColor(data?.consistencyRank);
+  }
+  const ceilingValueEl = consistencyContainer.querySelector("[data-ceiling-value]");
+  if (ceilingValueEl) {
+    ceilingValueEl.textContent = formatDataHubCeilingValue(data?.ceilingValue);
+    ceilingValueEl.style.color = getDataHubRankAccentColor(data?.ceilingRank);
+  }
+  const consistencyCircleValue = consistencyContainer.querySelector("[data-consistency-circle-value]");
+  if (consistencyCircleValue) {
+    consistencyCircleValue.textContent = formatDataHubHudPercentage(data?.consistencyPct);
+    consistencyCircleValue.style.color = getDataHubRankAccentColor(data?.consistencyRank);
+  }
+  const ceilingCircleValue = consistencyContainer.querySelector("[data-ceiling-circle-rank]");
+  if (ceilingCircleValue) {
+    ceilingCircleValue.innerHTML = Number.isFinite(data?.ceilingRank)
+      ? `${Math.round(data.ceilingRank)}<span class="ceiling-rank-suffix">${getDataHubOrdinalSuffix(Math.round(data.ceilingRank))}</span>`
+      : "NA";
+    ceilingCircleValue.style.color = getDataHubRankAccentColor(data?.ceilingRank);
+  }
+  const consistencyRing = consistencyContainer.querySelector(".progress-circle--consistency .progress-ring-fill");
+  if (consistencyRing) {
+    consistencyRing.style.setProperty("--progress", `${Math.max(0, Math.min(1, Number(data?.consistencyPct || 0) / 100))}`);
+    consistencyRing.setAttribute("stroke", getDataHubRankAccentColor(data?.consistencyRank));
+  }
+  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  if (ceilingRing) {
+    const maxRank = data?.ceilingRankMax || DATAHUB_RADAR_STATS_CONFIG[data?.position]?.maxRank || 32;
+    const progress = Number.isFinite(data?.ceilingRank)
+      ? 1 - ((data.ceilingRank - 1) / Math.max(1, maxRank - 1))
+      : 0;
+    ceilingRing.style.setProperty("--progress", `${Math.max(0, Math.min(1, progress))}`);
+    ceilingRing.setAttribute("stroke", getDataHubRankAccentColor(data?.ceilingRank));
+  }
+  const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
+  if (cstyCountEl) {
+    cstyCountEl.innerHTML = Number.isFinite(data?.solidHighCount)
+      ? `<span class="csty-made" style="color:${getDataHubRankAccentColor(data?.consistencyRank)}">${data.solidHighCount}</span><span class="hud-insight-suffix">/${data.totalWeeks || 0}</span>`
+      : "—";
+  }
+  const bigGameEl = consistencyContainer.querySelector("[data-insight-best]");
+  if (bigGameEl) {
+    const percentage = data?.gamesPlayed ? (data.highWeekCount / data.gamesPlayed) * 100 : null;
+    bigGameEl.innerHTML = Number.isFinite(percentage)
+      ? `<span style="color:${getDataHubConditionalHudColor(percentage, 23, 40)}">${percentage.toFixed(1)}</span><span class="hud-insight-suffix">%</span>`
+      : "—";
+  }
+  const lastFiveEl = consistencyContainer.querySelector("[data-insight-last5]");
+  if (lastFiveEl) {
+    if (Number.isFinite(data?.lastFiveAvg)) {
+      const bucket = getDataHubConsistencyBucket(data.lastFiveAvg, data.thresholds || getDataHubConsistencyThresholds(data?.position));
+      const color = bucket?.name === "high"
+        ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.high
+        : (bucket?.name === "solid" ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
+      lastFiveEl.innerHTML = `<span style="color:${color}">${data.lastFiveAvg.toFixed(1)}</span><span class="hud-insight-suffix"> fpts</span>`;
+    } else {
+      lastFiveEl.textContent = "—";
+    }
+  }
+}
+
+function showDataHubConsistencyEmptyState(chartBox, message) {
+  if (!chartBox) {
+    return;
+  }
+  let emptyEl = chartBox.querySelector(".consistency-empty-state");
+  if (!emptyEl) {
+    emptyEl = document.createElement("div");
+    emptyEl.className = "consistency-empty-state";
+    chartBox.appendChild(emptyEl);
+  }
+  emptyEl.textContent = message;
+  emptyEl.classList.remove("hidden");
+}
+
+function hideDataHubConsistencyEmptyState(chartBox) {
+  const emptyEl = chartBox?.querySelector(".consistency-empty-state");
+  if (emptyEl) {
+    emptyEl.classList.add("hidden");
+  }
+}
+
+function renderDataHubConsistencyChart() {
+  const data = state.currentConsistencyData;
+  const chartBox = document.querySelector("#weekly-chart-box");
+  const pointsLayer = document.querySelector("#weekly-chart-points");
+  const xAxisEl = document.querySelector("#weekly-chart-x-axis");
+  if (!chartBox || !pointsLayer || !xAxisEl) {
+    return;
+  }
+  updateDataHubConsistencyHud(data);
+  requestAnimationFrame(() => {
+    if (!data) {
+      renderDataHubConsistencyXAxis({ axisWeeks: getDataHubConsistencyAxisWeeks() });
+      renderDataHubConsistencyZoneSummary(null);
+      pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label").forEach((node) => node.remove());
+      if (dataHubCurveSvg) {
+        dataHubCurveSvg.remove();
+        dataHubCurveSvg = null;
+      }
+      showDataHubConsistencyEmptyState(chartBox, "Consistency data unavailable.");
+      hydrateDataHubConsistencyProgressCircles(null);
+      return;
+    }
+    renderDataHubConsistencyXAxis(data);
+    renderDataHubConsistencyZoneSummary(data);
+    renderDataHubConsistencyPoints(data);
+    hydrateDataHubConsistencyProgressCircles(data);
+    if (!data.series.length) {
+      showDataHubConsistencyEmptyState(chartBox, "No sheet-based fantasy points recorded yet.");
+    } else {
+      hideDataHubConsistencyEmptyState(chartBox);
+    }
+  });
+}
+
+function getDataHubConsistencyThresholds(position) {
+  return DATAHUB_CONSISTENCY_THRESHOLD_MAP[String(position || "").trim().toUpperCase()]
+    || DATAHUB_CONSISTENCY_THRESHOLD_MAP.FLEX;
+}
+
+function renderDataHubConsistencyZoneSummary(data) {
+  const container = document.querySelector("#weekly-zone-summary");
+  if (!container) {
+    return;
+  }
+  const lowEl = container.querySelector("[data-zone-low]");
+  const solidEl = container.querySelector("[data-zone-solid]");
+  const highEl = container.querySelector("[data-zone-high]");
+  const lowThresholdEl = container.querySelector("[data-threshold-low]");
+  const solidThresholdEl = container.querySelector("[data-threshold-solid]");
+  const highThresholdEl = container.querySelector("[data-threshold-high]");
+  const resetCounts = () => {
+    if (lowEl) lowEl.textContent = "0";
+    if (solidEl) solidEl.textContent = "0";
+    if (highEl) highEl.textContent = "0";
+  };
+  const resetThresholds = () => {
+    if (lowThresholdEl) lowThresholdEl.textContent = "";
+    if (solidThresholdEl) solidThresholdEl.textContent = "";
+    if (highThresholdEl) highThresholdEl.textContent = "";
+  };
+  if (!data || !data.series?.length) {
+    resetCounts();
+    resetThresholds();
+    return;
+  }
+  const thresholds = data.thresholds || getDataHubConsistencyThresholds(data.position);
+  const solidRounded = Math.round(thresholds.solid);
+  const highRounded = Math.round(thresholds.high);
+  if (lowThresholdEl) lowThresholdEl.textContent = `(<${solidRounded}):`;
+  if (solidThresholdEl) solidThresholdEl.textContent = `(${solidRounded}-${highRounded}):`;
+  if (highThresholdEl) highThresholdEl.textContent = `(≥${highRounded}):`;
+  let low = 0;
+  let solid = 0;
+  let high = 0;
+  data.series.forEach((entry) => {
+    const points = entry?.pts;
+    if (!Number.isFinite(points)) {
+      return;
+    }
+    if (points >= thresholds.high) {
+      high += 1;
+    } else if (points >= thresholds.solid) {
+      solid += 1;
+    } else {
+      low += 1;
+    }
+  });
+  if (lowEl) lowEl.textContent = String(low);
+  if (solidEl) solidEl.textContent = String(solid);
+  if (highEl) highEl.textContent = String(high);
+}
+
+function renderDataHubConsistencyXAxis(data) {
+  const xAxisEl = document.querySelector("#weekly-chart-x-axis");
+  if (!xAxisEl) {
+    return;
+  }
+  xAxisEl.innerHTML = "";
+  const weeks = data?.axisWeeks?.length ? data.axisWeeks : getDataHubConsistencyAxisWeeks();
+  const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map((entry) => entry.week) : []);
+  const totalSlots = weeks.length || 1;
+  const spanSlots = Math.max(1, totalSlots - 1);
+  const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
+  weeks.forEach((week, slotIndex) => {
+    const pctX = totalSlots === 1
+      ? 50
+      : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
+    const label = document.createElement("span");
+    label.textContent = `WK${week}`;
+    if (playedWeeks.size && !playedWeeks.has(week)) {
+      label.classList.add("axis-week-missed");
+    }
+    label.style.left = `${pctX}%`;
+    xAxisEl.appendChild(label);
+  });
+}
+
+function ensureDataHubCurveInfrastructure(pointsLayer) {
+  if (!dataHubCurveSvg) {
+    dataHubCurveSvg = document.createElementNS(DATAHUB_SVG_NS, "svg");
+    dataHubCurveSvg.setAttribute("class", "weekly-curve-layer");
+    dataHubCurveSvg.style.position = "absolute";
+    dataHubCurveSvg.style.inset = "0";
+    dataHubCurveSvg.style.pointerEvents = "none";
+  }
+  if (!pointsLayer.contains(dataHubCurveSvg)) {
+    pointsLayer.prepend(dataHubCurveSvg);
+  }
+  let defs = dataHubCurveSvg.querySelector("defs");
+  if (!defs) {
+    defs = document.createElementNS(DATAHUB_SVG_NS, "defs");
+    dataHubCurveSvg.appendChild(defs);
+  }
+  let areaPath = dataHubCurveSvg.querySelector(".weekly-area-path");
+  if (!areaPath) {
+    areaPath = document.createElementNS(DATAHUB_SVG_NS, "path");
+    areaPath.setAttribute("class", "weekly-area-path");
+    dataHubCurveSvg.appendChild(areaPath);
+  }
+  let lineGroup = dataHubCurveSvg.querySelector(".weekly-line-group");
+  if (!lineGroup) {
+    lineGroup = document.createElementNS(DATAHUB_SVG_NS, "g");
+    lineGroup.setAttribute("class", "weekly-line-group");
+    dataHubCurveSvg.appendChild(lineGroup);
+  }
+  if (areaPath.nextSibling !== lineGroup) {
+    dataHubCurveSvg.insertBefore(areaPath, lineGroup);
+  }
+  return { svg: dataHubCurveSvg, defs, areaPath, lineGroup };
+}
+
+function clampDataHubGradientOffset(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function updateDataHubConsistencyAreaGradient(defs, height, thresholds) {
+  let gradient = defs.querySelector(`#${DATAHUB_CONSISTENCY_AREA_GRADIENT_ID}`);
+  if (!gradient) {
+    gradient = document.createElementNS(DATAHUB_SVG_NS, "linearGradient");
+    gradient.id = DATAHUB_CONSISTENCY_AREA_GRADIENT_ID;
+    defs.appendChild(gradient);
+  }
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  gradient.setAttribute("x1", "0");
+  gradient.setAttribute("y1", `${height}`);
+  gradient.setAttribute("x2", "0");
+  gradient.setAttribute("y2", "0");
+  const solidOffset = clampDataHubGradientOffset((thresholds?.solid || 0) / DATAHUB_MAX_CONSISTENCY_POINTS);
+  const highOffset = clampDataHubGradientOffset((thresholds?.high || 0) / DATAHUB_MAX_CONSISTENCY_POINTS);
+  const stops = [
+    { offset: 0, color: DATAHUB_CONSISTENCY_GRADIENT_COLORS.low },
+    { offset: solidOffset, color: DATAHUB_CONSISTENCY_GRADIENT_COLORS.solid },
+    { offset: highOffset, color: DATAHUB_CONSISTENCY_GRADIENT_COLORS.high },
+    { offset: 1, color: DATAHUB_CONSISTENCY_GRADIENT_COLORS.high },
+  ];
+  while (gradient.firstChild) {
+    gradient.removeChild(gradient.firstChild);
+  }
+  stops.forEach((stopDef) => {
+    const stop = document.createElementNS(DATAHUB_SVG_NS, "stop");
+    stop.setAttribute("offset", clampDataHubGradientOffset(stopDef.offset).toFixed(3));
+    stop.setAttribute("stop-color", stopDef.color);
+    gradient.appendChild(stop);
+  });
+}
+
+function ensureDataHubConsistencyLineFilter(defs) {
+  let filter = defs.querySelector(`#${DATAHUB_CONSISTENCY_LINE_FILTER_ID}`);
+  if (filter) {
+    return;
+  }
+  filter = document.createElementNS(DATAHUB_SVG_NS, "filter");
+  filter.id = DATAHUB_CONSISTENCY_LINE_FILTER_ID;
+  filter.setAttribute("x", "-10%");
+  filter.setAttribute("y", "-10%");
+  filter.setAttribute("width", "120%");
+  filter.setAttribute("height", "120%");
+  const shadow = document.createElementNS(DATAHUB_SVG_NS, "feDropShadow");
+  shadow.setAttribute("dx", "0");
+  shadow.setAttribute("dy", "1");
+  shadow.setAttribute("stdDeviation", "0.5");
+  shadow.setAttribute("flood-color", "#d2e6fa");
+  shadow.setAttribute("flood-opacity", "0.06");
+  filter.appendChild(shadow);
+  defs.appendChild(filter);
+}
+
+function ensureDataHubConsistencyAreaFilter(defs) {
+  let filter = defs.querySelector(`#${DATAHUB_CONSISTENCY_AREA_FILTER_ID}`);
+  if (filter) {
+    return;
+  }
+  filter = document.createElementNS(DATAHUB_SVG_NS, "filter");
+  filter.id = DATAHUB_CONSISTENCY_AREA_FILTER_ID;
+  filter.setAttribute("x", "-40%");
+  filter.setAttribute("y", "-60%");
+  filter.setAttribute("width", "200%");
+  filter.setAttribute("height", "240%");
+  const shadow = document.createElementNS(DATAHUB_SVG_NS, "feDropShadow");
+  shadow.setAttribute("dx", "0");
+  shadow.setAttribute("dy", "10");
+  shadow.setAttribute("stdDeviation", "30");
+  shadow.setAttribute("flood-color", "#38bdf8");
+  shadow.setAttribute("flood-opacity", "0.22");
+  filter.appendChild(shadow);
+  defs.appendChild(filter);
+}
+
+function getDataHubSegmentThresholds(thresholds) {
+  if (!thresholds) {
+    return [];
+  }
+  return Array.from(new Set([thresholds.solid, thresholds.high].filter(Number.isFinite))).sort((left, right) => left - right);
+}
+
+function createDataHubCubicSegment(p0, p1, value0, value1) {
+  const deltaX = (p1.x - p0.x) * 0.35;
+  return {
+    p0,
+    c1: { x: p0.x + deltaX, y: p0.y },
+    c2: { x: p1.x - deltaX, y: p1.y },
+    p1,
+    v0: value0,
+    v1: value1,
+  };
+}
+
+function lerpDataHubPoint(left, right, t) {
+  return {
+    x: left.x + ((right.x - left.x) * t),
+    y: left.y + ((right.y - left.y) * t),
+  };
+}
+
+function splitDataHubCubicSegment(segment, t) {
+  const { p0, c1, c2, p1, v0, v1 } = segment;
+  const p01 = lerpDataHubPoint(p0, c1, t);
+  const p12 = lerpDataHubPoint(c1, c2, t);
+  const p23 = lerpDataHubPoint(c2, p1, t);
+  const p012 = lerpDataHubPoint(p01, p12, t);
+  const p123 = lerpDataHubPoint(p12, p23, t);
+  const p0123 = lerpDataHubPoint(p012, p123, t);
+  const splitValue = v0 + ((v1 - v0) * t);
+  return [
+    {
+      p0,
+      c1: p01,
+      c2: p012,
+      p1: p0123,
+      v0,
+      v1: splitValue,
+    },
+    {
+      p0: p0123,
+      c1: p123,
+      c2: p23,
+      p1,
+      v0: splitValue,
+      v1,
+    },
+  ];
+}
+
+function splitDataHubSegmentByThresholds(segment, thresholds) {
+  if (!thresholds.length) {
+    return [segment];
+  }
+  const delta = segment.v1 - segment.v0;
+  if (delta === 0) {
+    return [segment];
+  }
+  const breakpoints = thresholds
+    .map((threshold) => {
+      const minValue = Math.min(segment.v0, segment.v1);
+      const maxValue = Math.max(segment.v0, segment.v1);
+      if (threshold <= minValue || threshold >= maxValue) {
+        return null;
+      }
+      const t = (threshold - segment.v0) / delta;
+      return t > 0 && t < 1 ? t : null;
+    })
+    .filter((value) => value !== null)
+    .sort((left, right) => left - right);
+  if (!breakpoints.length) {
+    return [segment];
+  }
+  const segments = [];
+  let remaining = segment;
+  let previousT = 0;
+  breakpoints.forEach((originalT) => {
+    const adjustedT = (originalT - previousT) / (1 - previousT);
+    const [leftSegment, rightSegment] = splitDataHubCubicSegment(remaining, adjustedT);
+    segments.push(leftSegment);
+    remaining = rightSegment;
+    previousT = originalT;
+  });
+  segments.push(remaining);
+  return segments;
+}
+
+function dataHubCubicSegmentToPath(segment) {
+  const { p0, c1, c2, p1 } = segment;
+  return `M ${p0.x} ${p0.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p1.x} ${p1.y}`;
+}
+
+function buildDataHubCurvePath(points) {
+  if (points.length < 2) {
+    return "";
+  }
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const deltaX = (end.x - start.x) * 0.35;
+    path += ` C ${start.x + deltaX} ${start.y}, ${end.x - deltaX} ${end.y}, ${end.x} ${end.y}`;
+  }
+  return path;
+}
+
+function buildDataHubAreaPath(points, height) {
+  if (points.length < 2) {
+    return "";
+  }
+  const curvePath = buildDataHubCurvePath(points);
+  const lastPoint = points[points.length - 1];
+  const firstPoint = points[0];
+  return `${curvePath} L ${lastPoint.x} ${height} L ${firstPoint.x} ${height} Z`;
+}
+
+function extendDataHubCurvePoints(points) {
+  if (!points?.length) {
+    return [];
+  }
+  if (points.length === 1) {
+    return [
+      { ...points[0], x: 0 },
+      { ...points[0], x: 100 },
+    ];
+  }
+  return [
+    { ...points[0], x: 0 },
+    ...points,
+    { ...points[points.length - 1], x: 100 },
+  ];
+}
+
+function drawDataHubSegmentedCurve(pointsLayer, relativePoints, data) {
+  if (!pointsLayer || relativePoints.length < 2) {
+    if (dataHubCurveSvg) {
+      const areaPath = dataHubCurveSvg.querySelector(".weekly-area-path");
+      if (areaPath) {
+        areaPath.setAttribute("d", "");
+      }
+      const lineGroup = dataHubCurveSvg.querySelector(".weekly-line-group");
+      if (lineGroup) {
+        lineGroup.innerHTML = "";
+      }
+    }
+    return;
+  }
+  const bounds = pointsLayer.getBoundingClientRect();
+  const width = bounds.width || pointsLayer.clientWidth || pointsLayer.offsetWidth;
+  const height = bounds.height || pointsLayer.clientHeight || pointsLayer.offsetHeight;
+  if (!width || !height) {
+    return;
+  }
+  const absolutePoints = relativePoints.map((point) => ({
+    x: (point.x / 100) * width,
+    y: (point.y / 100) * height,
+    value: point.value,
+  }));
+  const { svg, defs, areaPath, lineGroup } = ensureDataHubCurveInfrastructure(pointsLayer);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  updateDataHubConsistencyAreaGradient(defs, height, data.thresholds);
+  ensureDataHubConsistencyLineFilter(defs);
+  ensureDataHubConsistencyAreaFilter(defs);
+  areaPath.setAttribute("d", buildDataHubAreaPath(absolutePoints, height));
+  areaPath.setAttribute("fill", `url(#${DATAHUB_CONSISTENCY_AREA_GRADIENT_ID})`);
+  areaPath.setAttribute("fill-opacity", "0.92");
+  areaPath.setAttribute("filter", `url(#${DATAHUB_CONSISTENCY_AREA_FILTER_ID})`);
+  lineGroup.innerHTML = "";
+  const thresholdValues = getDataHubSegmentThresholds(data.thresholds);
+  for (let index = 0; index < absolutePoints.length - 1; index += 1) {
+    const baseSegment = createDataHubCubicSegment(
+      absolutePoints[index],
+      absolutePoints[index + 1],
+      absolutePoints[index].value,
+      absolutePoints[index + 1].value,
+    );
+    const splitSegments = splitDataHubSegmentByThresholds(baseSegment, thresholdValues);
+    splitSegments.forEach((segment) => {
+      const path = document.createElementNS(DATAHUB_SVG_NS, "path");
+      path.setAttribute("d", dataHubCubicSegmentToPath(segment));
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", getDataHubConsistencyBucket((segment.v0 + segment.v1) / 2, data.thresholds).color);
+      path.setAttribute("stroke-width", "2");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("filter", `url(#${DATAHUB_CONSISTENCY_LINE_FILTER_ID})`);
+      lineGroup.appendChild(path);
+    });
+  }
+}
+
+function getDataHubEdgePaddingPct(slotCount) {
+  return slotCount > 1 ? DATAHUB_CONSISTENCY_EDGE_PADDING_PCT : 0;
+}
+
+function yFromDataHubConsistencyPoints(points) {
+  const clamped = Math.max(0, Math.min(points, DATAHUB_MAX_CONSISTENCY_POINTS));
+  const rawPct = (1 - (clamped / DATAHUB_MAX_CONSISTENCY_POINTS)) * 100;
+  const paddedRange = 100 - (DATAHUB_CONSISTENCY_VERTICAL_PADDING_PCT * 2);
+  return DATAHUB_CONSISTENCY_VERTICAL_PADDING_PCT + ((rawPct / 100) * paddedRange);
+}
+
+function renderDataHubConsistencyPoints(data) {
+  const pointsLayer = document.querySelector("#weekly-chart-points");
+  if (!pointsLayer) {
+    return;
+  }
+  pointsLayer.querySelectorAll(".weekly-point, .weekly-skip-label").forEach((node) => node.remove());
+  if (dataHubCurveSvg) {
+    dataHubCurveSvg.remove();
+    dataHubCurveSvg = null;
+  }
+  const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map((entry) => entry.week);
+  const totalSlots = axisWeeks.length || data.series.length || 1;
+  if (!data.series.length) {
+    return;
+  }
+  const spanSlots = Math.max(1, totalSlots - 1);
+  const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
+  const curvePoints = [];
+  data.series.forEach((entry) => {
+    const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
+    const pctX = totalSlots === 1
+      ? 50
+      : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
+    const pctY = yFromDataHubConsistencyPoints(entry.pts);
+    curvePoints.push({ x: pctX, y: pctY, value: entry.pts });
+    const bucket = getDataHubConsistencyBucket(entry.pts, data.thresholds);
+    const pointEl = document.createElement("div");
+    pointEl.className = "weekly-point";
+    pointEl.dataset.zone = bucket.name;
+    pointEl.style.setProperty("--point-color", bucket.color);
+    pointEl.style.left = `${pctX}%`;
+    pointEl.style.top = `${pctY}%`;
+    pointEl.title = `WK${entry.week}: ${(Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts).toFixed(1)}${entry.opponent ? ` vs ${entry.opponent}` : ""}`;
+    const label = document.createElement("div");
+    label.className = `weekly-point-label weekly-point-label--${bucket.name}`;
+    const suffix = document.createElement("span");
+    suffix.className = "weekly-point-label__suffix";
+    suffix.textContent = `wk${entry.week}`;
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "weekly-point-label__value";
+    const valueNumber = document.createElement("span");
+    valueNumber.style.color = bucket.color;
+    const rawValue = Number.isFinite(entry.originalPts) ? entry.originalPts : entry.pts;
+    valueNumber.textContent = Number.isFinite(rawValue) ? rawValue.toFixed(1) : "—";
+    valueSpan.appendChild(valueNumber);
+    if (Number.isFinite(rawValue) && rawValue > DATAHUB_MAX_CONSISTENCY_POINTS) {
+      label.classList.add("weekly-point-label--capped");
+    }
+    label.append(suffix, valueSpan);
+    pointEl.appendChild(label);
+    pointsLayer.appendChild(pointEl);
+  });
+  const skipped = data.skippedLabels || {};
+  const playedWeekSet = new Set(data.series.map((entry) => entry.week));
+  axisWeeks.forEach((week, slotIndex) => {
+    if (!skipped[week] || playedWeekSet.has(week)) {
+      return;
+    }
+    const pctX = totalSlots === 1
+      ? 50
+      : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
+    const previous = [...data.series].reverse().find((entry) => entry.week < week);
+    const next = data.series.find((entry) => entry.week > week);
+    let interpolatedPoints = null;
+    if (previous && next && next.week !== previous.week) {
+      const t = (week - previous.week) / (next.week - previous.week);
+      interpolatedPoints = previous.pts + ((next.pts - previous.pts) * t);
+    } else if (previous) {
+      interpolatedPoints = previous.pts;
+    } else if (next) {
+      interpolatedPoints = next.pts;
+    }
+    if (!Number.isFinite(interpolatedPoints)) {
+      return;
+    }
+    const marker = document.createElement("div");
+    marker.className = "weekly-skip-label";
+    marker.textContent = skipped[week];
+    marker.style.left = `${pctX}%`;
+    marker.style.top = `${yFromDataHubConsistencyPoints(interpolatedPoints)}%`;
+    pointsLayer.appendChild(marker);
+  });
+  drawDataHubSegmentedCurve(pointsLayer, extendDataHubCurvePoints(curvePoints), data);
+}
+
+function hydrateDataHubConsistencyProgressCircles(data) {
+  const consistencyCircle = document.querySelector(".progress-circle--consistency .progress-ring-fill");
+  const pctValue = data && Number.isFinite(data.consistencyPct)
+    ? Math.max(0, Math.min(100, data.consistencyPct)) / 100
+    : 0;
+  if (consistencyCircle) {
+    consistencyCircle.style.setProperty("--progress", pctValue.toFixed(3));
+  }
+  const ceilingCircle = document.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  if (ceilingCircle) {
+    const rankMax = Math.max(2, data?.ceilingRankMax || 24);
+    const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
+    const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
+    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+  }
+}
+
+function getDataHubConsistencyBucket(points, thresholds) {
+  if (!Number.isFinite(points)) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.low, name: "low" };
+  if (points >= thresholds.high) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.high, name: "high" };
+  if (points >= thresholds.solid) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.solid, name: "solid" };
+  return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.low, name: "low" };
+}
+
+async function loadDataHubOwnershipContextForUser() {
+  const cacheKey = String(state.userId || "").trim();
+  if (!cacheKey) {
+    return null;
+  }
+  if (hasDataHubOwnershipContextLoaded(cacheKey)) {
+    return state.ownershipContext;
+  }
+  if (dataHubOwnershipContextLoadPromise && dataHubOwnershipContextLoadKey === cacheKey) {
+    return dataHubOwnershipContextLoadPromise;
+  }
+  dataHubOwnershipContextLoadKey = cacheKey;
+  dataHubOwnershipContextLoadPromise = (async () => {
+    const currentYear = new Date().getFullYear();
+    const leagues = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${cacheKey}/leagues/nfl/${currentYear}`);
+    const leaguePayloads = await Promise.allSettled(
+      (Array.isArray(leagues) ? leagues : []).map(async (league) => {
+        const [rosters, users] = await Promise.all([
+          fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/league/${league.league_id}/rosters`),
+          fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/league/${league.league_id}/users`),
+        ]);
+        return { league, rosters, users };
+      }),
+    );
+    const hydratedLeagues = [];
+    const failures = [];
+    leaguePayloads.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        hydratedLeagues.push(result.value);
+      } else {
+        const fallbackName = Array.isArray(leagues) ? leagues[index]?.name : `League ${index + 1}`;
+        failures.push(fallbackName || `League ${index + 1}`);
+      }
+    });
+    state.ownershipContext = {
+      cacheKey,
+      leagues: hydratedLeagues,
+      failures,
+    };
+    return state.ownershipContext;
+  })()
+    .finally(() => {
+      dataHubOwnershipContextLoadPromise = null;
+      dataHubOwnershipContextLoadKey = "";
+    });
+  return dataHubOwnershipContextLoadPromise;
+}
+
+function hasDataHubOwnershipContextLoaded(cacheKey = String(state.userId || "").trim()) {
+  return Boolean(
+    cacheKey
+    && state.ownershipContext?.cacheKey === cacheKey
+    && Array.isArray(state.ownershipContext?.leagues),
+  );
+}
+
+function renderDataHubOwnershipPane(playerId) {
+  const nameEl = document.querySelector("#glOwnershipPlayerName");
+  const leftEl = document.querySelector("#glOwnershipLeft");
+  const vitalsEl = document.querySelector("#glOwnershipPlayerVitals");
+  const chipsEl = document.querySelector("#glOwnershipSummaryChips");
+  const bodyEl = document.querySelector("#glOwnershipBody");
+  const summary = getDataHubOwnershipSummary(playerId);
+  if (!summary) {
+    if (bodyEl) {
+      bodyEl.innerHTML = '<div class="ownership-modal-empty">Player data unavailable.</div>';
+    }
+    return;
+  }
+  if (nameEl) nameEl.textContent = summary.fullName;
+  if (leftEl) {
+    leftEl.innerHTML = `
+      <div class="player-tag modal-pos-tag ${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}</div>
+      ${getDataHubTeamLogoMarkup(summary.team)}
+    `;
+  }
+  if (vitalsEl) {
+    vitalsEl.innerHTML = "";
+    vitalsEl.appendChild(createDataHubPlayerVitalsElement(getDataHubPlayerVitals(playerId, summary), { variant: "modal", pos: summary.pos }));
+  }
+  if (chipsEl) {
+    chipsEl.innerHTML = `
+      <div class="gamelogs-summary-chip ownership-summary-chip">
+        <h4><span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(summary.posRank, summary.pos)}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : "—"}</span><span class="chip-unit"> FPTS</span></h4>
+        <div class="chip-values">
+          <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.posRank, summary.pos)}">${summary.posRank || "—"}</span></span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : "—"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip ownership-summary-chip">
+        <h4><span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(summary.ppgPosRank, summary.pos)}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : "—"}</span><span class="chip-unit"> PPG</span></h4>
+        <div class="chip-values">
+          <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ppgPosRank, summary.pos)}">${summary.ppgPosRank || "—"}</span></span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : "—"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip ownership-summary-chip">
+        <h4><span class="chip-header-value" style="color:${getDataHubKtcColor(summary.ktc)}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : "—"}</span><span class="chip-unit"> KTC</span></h4>
+        <div class="chip-values">
+          <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${summary.ktcPosRank || "—"}</span></span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : "—"}</span>
+        </div>
+      </div>
+    `;
+  }
+  if (bodyEl) {
+    if (!hasDataHubOwnershipContextLoaded()) {
+      bodyEl.innerHTML = '<div class="ownership-modal-empty">Ownership data is loading…</div>';
+      return;
+    }
+    const rows = findDataHubOwnershipLeagueOwnerRows(playerId);
+    const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+    bodyEl.innerHTML = `
+      <div class="ownership-modal-section-title">
+        League Ownership
+        <span class="ownership-modal-section-subtitle">${rows.length} league${rows.length === 1 ? "" : "s"}</span>
+      </div>
+      <div class="ownership-modal-league-list">
+        ${rows.map((row) => {
+          const ownerText = row.missing ? "Unrostered" : (row.isUser ? "You" : row.ownerDisplay);
+          const ownerClass = row.missing ? "owner-none" : (row.isUser ? "owner-you" : "owner-other");
+          return `
+            <article class="ownership-league-row ${ownerClass}">
+              <div class="ownership-league-meta">
+                <span class="ownership-league-abbr" style="color:${getDataHubLeagueColor(row.leagueAbbr)}">${dataHubEscapeHtml(row.leagueAbbr)}</span>
+                <span class="ownership-league-name">${dataHubEscapeHtml(row.leagueName)}</span>
+              </div>
+              <div class="ownership-league-owner">${dataHubEscapeHtml(ownerText)}</div>
+            </article>
+          `;
+        }).join("")}
+      </div>
+      ${failures.length ? `<p class="ownership-modal-warning">Some leagues could not be loaded: ${failures.map((item) => dataHubEscapeHtml(item)).join(", ")}</p>` : ""}
+    `;
+  }
+}
+
+function getDataHubOwnershipSummary(playerId) {
+  const player = state.sleeperPlayers?.[playerId];
+  const seasonStats = state.playerSeasonStats?.[playerId] || {};
+  const rowMeta = state.rows.find((row) => row.__meta?.playerId === playerId)?.__meta || null;
+  if (!player && !rowMeta) {
+    return null;
+  }
+  const currentLookup = getActiveKtcLookup()?.[playerId] || null;
+  const fallbackLookup = state.primaryTab === "SFLX"
+    ? state.ktcLookups["1-QB"]?.[playerId]
+    : state.ktcLookups.SFLX?.[playerId];
+  const valueData = currentLookup || fallbackLookup || {};
+  const rankCache = state.modalRankCache?.[playerId] || {};
+  const firstName = String(player?.first_name || "").trim();
+  const lastName = String(player?.last_name || "").trim();
+  return {
+    fullName: `${firstName} ${lastName}`.trim() || rowMeta?.fullName || rowMeta?.name || playerId,
+    pos: String(player?.position || rowMeta?.pos || "").trim().toUpperCase() || "—",
+    team: String(player?.team || rowMeta?.team || "FA").trim().toUpperCase() || "FA",
+    fpts: Number.isFinite(seasonStats.fpts_ppr) ? seasonStats.fpts_ppr : rowMeta?.fpts,
+    ppg: Number.isFinite(seasonStats.ppg) ? seasonStats.ppg : rowMeta?.ppg,
+    posRank: rankCache.posRank || null,
+    overallRank: rankCache.overallRank || null,
+    ppgPosRank: rankCache.ppgPosRank || null,
+    ppgOverallRank: rankCache.ppgOverallRank || null,
+    ktc: Number.isFinite(valueData?.ktc) ? valueData.ktc : rowMeta?.ktc,
+    ktcPosRank: parseDataHubPosRankNumber(valueData?.posRank || rowMeta?.posRankText),
+    ktcOverallRank: Number.isFinite(valueData?.overallRank) ? valueData.overallRank : rowMeta?.overallKtcRank,
+  };
+}
+
+function findDataHubOwnershipLeagueOwnerRows(playerId) {
+  return (state.ownershipContext?.leagues || []).map(({ league, rosters, users }) => {
+    const usersById = new Map((users || []).map((user) => [user.user_id, user]));
+    const roster = (rosters || []).find((entry) => (entry.players || []).includes(playerId));
+    if (!roster) {
+      return {
+        leagueName: league?.name || "League",
+        leagueAbbr: getDataHubLeagueAbbr(league?.name || "League"),
+        ownerDisplay: "Free Agent / Not rostered",
+        missing: true,
+      };
+    }
+    const owner = usersById.get(roster.owner_id) || null;
+    return {
+      leagueName: league?.name || "League",
+      leagueAbbr: getDataHubLeagueAbbr(league?.name || "League"),
+      ownerDisplay: owner?.display_name || owner?.username || `Roster ${roster.roster_id}`,
+      isUser: roster.owner_id === state.userId || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId)),
+      missing: false,
+    };
+  });
+}
+
+function getDataHubPlayerVitals(playerId, fallbackPlayer) {
+  const player = state.sleeperPlayers?.[playerId] || fallbackPlayer || {};
+  const currentLookup = getActiveKtcLookup()?.[playerId];
+  const age = Number.isFinite(currentLookup?.age)
+    ? currentLookup.age.toFixed(1)
+    : (player.age ? Number(player.age).toFixed(1) : "—");
+  const height = formatDataHubHeight(player);
+  const weight = formatDataHubWeight(player);
+  return {
+    age: age || "—",
+    height: height || "—",
+    weight: weight || "—",
+    exp: player.years_exp != null && player.years_exp !== "" ? String(player.years_exp) : "—",
+    ry: player.rookie_year && player.rookie_year !== "0"
+      ? String(player.rookie_year)
+      : (player.years_exp != null && player.years_exp !== "" ? String(new Date().getFullYear() - Number(player.years_exp)) : "—"),
+  };
+}
+
+function createDataHubPlayerVitalsElement(vitals, { variant = "modal", pos = "" } = {}) {
+  const container = document.createElement("div");
+  container.className = `player-vitals player-vitals--${variant}`;
+  [
+    { label: "AGE", value: vitals.age },
+    { label: "HEIGHT", value: vitals.height },
+    { label: "WEIGHT", value: vitals.weight },
+    { label: "EXP", value: vitals.exp },
+    { label: "RY", value: vitals.ry },
+  ].forEach(({ label, value }) => {
+    const item = document.createElement("div");
+    item.className = "player-vitals__item";
+    const labelEl = document.createElement("span");
+    labelEl.className = "player-vitals__label";
+    labelEl.textContent = label;
+    const valueEl = document.createElement("span");
+    valueEl.className = "player-vitals__value";
+    valueEl.textContent = value;
+    if (["AGE", "HEIGHT", "WEIGHT"].includes(label)) {
+      valueEl.style.color = getDataHubVitalsColor(label, pos, value) || "";
+    }
+    item.append(labelEl, valueEl);
+    container.appendChild(item);
+  });
+  return container;
+}
+
+function formatDataHubHeight(player) {
+  const feet = Number.parseInt(player.height_feet ?? player.metadata?.height_feet ?? player.height_ft, 10);
+  const inches = Number.parseInt(player.height_inches ?? player.metadata?.height_inches ?? player.height_in, 10);
+  if (Number.isFinite(feet)) {
+    return `${feet}'${Number.isFinite(inches) ? inches : 0}"`;
+  }
+  const raw = String(player.height ?? player.metadata?.height ?? "").trim();
+  const match = raw.match(/(\d+)[^\d]+(\d+)/);
+  if (match) {
+    return `${match[1]}'${match[2]}"`;
+  }
+  return raw || "";
+}
+
+function formatDataHubWeight(player) {
+  const weight = Number.parseInt(player.weight ?? player.metadata?.weight ?? player.weight_lbs, 10);
+  return Number.isFinite(weight) ? `${weight} lbs` : "";
+}
+
+function getDataHubVitalsColor(label, pos, rawValue) {
+  const position = String(pos || "").trim().toUpperCase();
+  if (!rawValue || rawValue === "—") return null;
+  if (label === "AGE") {
+    const age = Number.parseFloat(rawValue);
+    if (!Number.isFinite(age)) return null;
+    if (position === "RB") return age <= 24 ? "#96f2ceb9" : (age < 28 ? "#84b8fbff" : "#f7a3ebdf");
+    if (position === "WR" || position === "TE") return age < 26 ? "#96f2ceb9" : (age < 30 ? "#84b8fbff" : "#f7a3ebdf");
+    if (position === "QB") return age < 29 ? "#96f2ceb9" : (age < 36 ? "#84b8fbff" : "#f7a3ebdf");
+  }
+  if (label === "HEIGHT") {
+    const inchesMatch = String(rawValue).match(/(\d+)'(\d+)/);
+    if (!inchesMatch) return null;
+    const totalInches = (Number(inchesMatch[1]) * 12) + Number(inchesMatch[2]);
+    return totalInches >= 72 ? "#96f2ceb9" : "#84b8fbff";
+  }
+  if (label === "WEIGHT") {
+    const weight = Number.parseInt(rawValue, 10);
+    if (!Number.isFinite(weight)) return null;
+    return weight >= 210 ? "#96f2ceb9" : "#84b8fbff";
+  }
+  return null;
+}
+
+function getDataHubConditionalColorByRank(rank, position) {
+  if (!Number.isFinite(Number(rank)) || Number(rank) <= 0) {
+    return "inherit";
+  }
+  const normalizedRank = Number(rank);
+  const pos = String(position || "").trim().toUpperCase();
+  const thresholds = pos === "WR"
+    ? [
+      { v: 12, c: "#51cba5" },
+      { v: 24, c: "#34aabf" },
+      { v: 36, c: "#4798fc" },
+      { v: 48, c: "#957cff" },
+      { v: 60, c: "#ff6fe1" },
+      { v: 72, c: "#ff2eb9" },
+    ]
+    : [
+      { v: 8, c: "#51cba5" },
+      { v: 16, c: "#34aabf" },
+      { v: 24, c: "#4798fc" },
+      { v: 32, c: "#957cff" },
+      { v: 44, c: "#ff6fe1" },
+      { v: 60, c: "#ff2eb2" },
+    ];
+  const match = thresholds.find((entry) => normalizedRank <= entry.v);
+  return match ? match.c : "#767693";
+}
+
+function getDataHubRankColor(rank) {
+  const numericRank = Number(rank);
+  if (!Number.isFinite(numericRank)) return "var(--color-text-primary, #e7ecff)";
+  const match = DATAHUB_RANK_COLOR_THRESHOLDS.find((entry) => numericRank <= entry.v);
+  if (match) return match.c;
+  if (numericRank >= 300) return "#656565";
+  return "#ff0080";
+}
+
+function getDataHubKtcColor(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return "#e0e6ed";
+  const scales = [
+    { v: 9000, c: "#72edd0b3" },
+    { v: 8000, c: "#58d5ceb3" },
+    { v: 7000, c: "#5bdae8b3" },
+    { v: 6000, c: "#6eb4ebb3" },
+    { v: 5500, c: "#62a5f9b3" },
+    { v: 5000, c: "#848bffb3" },
+    { v: 4500, c: "#7b63ffb3" },
+    { v: 4000, c: "#964effb3" },
+    { v: 3500, c: "#c449f9b3" },
+    { v: 3000, c: "#ee42ffb3" },
+    { v: 2500, c: "#d13eb8b3" },
+    { v: 2000, c: "#d032aab3" },
+    { v: 0, c: "#f94ea4b3" },
+  ];
+  return scales.find((entry) => numericValue >= entry.v)?.c || scales[scales.length - 1].c;
+}
+
+function getDataHubConditionalHudColor(value, lowThreshold, highThreshold) {
+  if (!Number.isFinite(value)) return "inherit";
+  if (value >= highThreshold) return "#51cba5";
+  if (value >= lowThreshold) return "#4798fc";
+  return "#ff6fe1";
+}
+
+function getDataHubLeagueAbbr(name) {
+  const trimmedName = String(name || "").trim();
+  const normalizedName = trimmedName.toLowerCase().replace(/[.,()]/g, "");
+  if (DATAHUB_LEAGUE_ABBR_OVERRIDES[normalizedName]) {
+    return DATAHUB_LEAGUE_ABBR_OVERRIDES[normalizedName];
+  }
+  if (trimmedName.length <= 4 && !trimmedName.includes(" ") && !trimmedName.includes("-")) {
+    return trimmedName.toUpperCase();
+  }
+  return trimmedName.split(/[\s-]+/).map((part) => part[0] || "").join("").toUpperCase() || "LG";
+}
+
+function getDataHubLeagueColor(abbr) {
+  if (!dataHubAssignedLeagueColors.has(abbr)) {
+    dataHubAssignedLeagueColors.set(
+      abbr,
+      DATAHUB_LEAGUE_COLOR_PALETTE[dataHubNextLeagueColorIndex % DATAHUB_LEAGUE_COLOR_PALETTE.length],
+    );
+    dataHubNextLeagueColorIndex += 1;
+  }
+  return dataHubAssignedLeagueColors.get(abbr);
+}
+
+function getDataHubTeamLogoMarkup(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  const normalizedTeam = DATAHUB_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
+  return teamKey !== "FA"
+    ? `<div class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"><img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedTeam}.svg" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" /></div>`
+    : '<div class="player-tag modal-team-logo-chip" data-team="FA"><span>FA</span></div>';
+}
+
+function showDataHubTemporaryTooltip(element, message) {
+  document.querySelectorAll(".custom-tooltip").forEach((node) => node.remove());
+  const tooltip = document.createElement("div");
+  tooltip.className = "custom-tooltip";
+  tooltip.textContent = message;
+  document.body.appendChild(tooltip);
+  const anchor = element || document.body;
+  const rect = anchor.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const left = Math.max(8, rect.left + window.scrollX + ((rect.width - tooltipRect.width) / 2));
+  const top = rect.bottom + window.scrollY + 12;
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+  requestAnimationFrame(() => tooltip.classList.add("is-visible"));
+  window.setTimeout(() => tooltip.classList.add("is-hiding"), 2000);
+  window.setTimeout(() => tooltip.remove(), 2400);
+}
+
+function dataHubEscapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getDataHubOrdinalSuffix(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return "";
+  const abs = Math.abs(numericValue);
+  const tens = abs % 100;
+  if (tens >= 11 && tens <= 13) return "th";
+  const ones = abs % 10;
+  if (ones === 1) return "st";
+  if (ones === 2) return "nd";
+  if (ones === 3) return "rd";
+  return "th";
 }

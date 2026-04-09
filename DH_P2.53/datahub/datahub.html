@@ -19,6 +19,15 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
+    <!-- DataHub game logs modal icons:
+         keep this local to datahub.html so the modal footer/tab icons do not
+         depend on any shared Stats page asset loading. -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
     <link rel="stylesheet" href="../styles/DataHub.css" />
   </head>
@@ -516,6 +525,280 @@
       </button>
     </div>
 
+    <!-- DataHub game logs modal:
+         this mirrors the Stats page shell locally so DataHub can open full game
+         logs without depending on shared Stats markup or app.js wiring. -->
+    <div id="game-logs-modal" class="hidden gamelogs-modal-container">
+      <div class="modal-overlay"></div>
+
+      <div class="gamelogs-modal-tabs" role="tablist" aria-label="Modal view">
+        <button
+          type="button"
+          class="gamelogs-modal-tab is-active"
+          data-modal-tab="gamelogs"
+          role="tab"
+          aria-selected="true"
+        >
+          <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+          <span>Game Logs</span>
+        </button>
+        <button
+          type="button"
+          class="gamelogs-modal-tab"
+          data-modal-tab="ownership"
+          role="tab"
+          aria-selected="false"
+        >
+          <i class="fa-solid fa-percent" aria-hidden="true"></i>
+          <span>Ownership</span>
+        </button>
+      </div>
+
+      <div id="gamelogs-tab-pane" class="modal-content glass-panel gamelogs-tab-pane">
+        <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+        <div id="modal-header">
+          <h3 id="modal-player-name">Player Game Logs</h3>
+          <div id="modal-player-vitals"></div>
+          <div id="modal-summary-row">
+            <div id="modal-summary-chips"></div>
+          </div>
+          <div class="gamelogs-nav-row" aria-label="Game logs navigation">
+            <div class="gamelogs-season-tabs" role="group" aria-label="Season">
+              <button
+                type="button"
+                class="gamelogs-season-tab is-active"
+                aria-pressed="true"
+                data-gamelogs-season="2025"
+              >
+                2025
+              </button>
+              <button
+                type="button"
+                class="gamelogs-season-tab"
+                aria-pressed="false"
+                data-gamelogs-season="2026"
+              >
+                2026
+              </button>
+            </div>
+            <div class="gamelogs-view-switcher" role="group" aria-label="View">
+              <button
+                type="button"
+                class="gamelogs-view-option is-active"
+                aria-pressed="true"
+                data-gamelogs-view="gl"
+              >
+                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                GameLog
+              </button>
+              <button
+                type="button"
+                class="gamelogs-view-option"
+                aria-pressed="false"
+                data-gamelogs-view="szn"
+              >
+                <i class="fa-regular fa-chart-bar" aria-hidden="true"></i>
+                Season
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-body" class="modal-body"></div>
+
+        <div id="stats-key-container" class="hidden stats-key-panel">
+          <h4>Stats Key</h4>
+          <div class="stats-key-shared-body" data-stats-key-body="datahub-gamelogs"></div>
+        </div>
+
+        <div id="radar-chart-container" class="hidden stats-key-panel radar-panel">
+          <h4>Efficiency &amp; Production • Position Rankings</h4>
+          <div class="radar-chart-content"></div>
+        </div>
+
+        <div id="consistency-container" class="hidden stats-key-panel">
+          <div class="consistency-shell">
+            <div class="consistency-eyebrow-header">
+              <div class="hud-eyebrow">Consistency &amp; Ceiling | Weekly Overview</div>
+            </div>
+
+            <header class="consistency-hud">
+              <div class="hud-segment hud-segment--left">
+                <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
+                  <svg viewBox="0 0 120 120" class="progress-ring">
+                    <defs>
+                      <linearGradient id="datahubConsistencyGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                        <stop offset="0%" stop-color="#5300ff"></stop>
+                        <stop offset="35%" stop-color="#5300ff"></stop>
+                        <stop offset="65%" stop-color="#6900ff"></stop>
+                        <stop offset="75%" stop-color="#7300ff"></stop>
+                        <stop offset="90%" stop-color="#7b00ed"></stop>
+                        <stop offset="100%" stop-color="#7b00edcc"></stop>
+                      </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-track" cx="60" cy="60" r="46"></circle>
+                    <circle
+                      class="progress-ring-fill"
+                      cx="60"
+                      cy="60"
+                      r="46"
+                      stroke="url(#datahubConsistencyGradient)"
+                      style="--progress: 0.667;"
+                    ></circle>
+                  </svg>
+                  <div class="progress-circle-inner">
+                    <div class="progress-value" data-consistency-circle-value>66.7%</div>
+                    <div class="progress-label">Consistency Rate</div>
+                    <div class="progress-caption" data-consistency-circle-caption>CSTY RATE</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hud-segment hud-segment--center">
+                <div class="hud-player">
+                  <div class="hud-context">
+                    <span data-week-range>Weeks 1–9</span>
+                    <span class="hud-context-divider">•</span>
+                    <span data-weeks-charted>9 weeks charted</span>
+                  </div>
+                </div>
+                <div class="hud-metrics">
+                  <div class="metric-block">
+                    <div class="metric-label">CSTY% POS RK</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value metric-value--rank" data-consistency-rank>#11</span>
+                    </div>
+                  </div>
+                  <div class="metric-block">
+                    <div class="metric-label">Ceiling</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value" data-ceiling-value>28.8</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="hud-insights">
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">CSTY Count</div>
+                    <div class="hud-insight-value" data-insight-cstycount>10/11</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Big Game %</div>
+                    <div class="hud-insight-value" data-insight-best>—</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Last 5 Avg</div>
+                    <div class="hud-insight-value" data-insight-last5>24.1 fpts</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hud-segment hud-segment--right">
+                <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
+                  <svg viewBox="0 0 120 120" class="progress-ring">
+                    <defs>
+                      <linearGradient id="datahubCeilingGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                        <stop offset="0%" stop-color="#00b2fe"></stop>
+                        <stop offset="40%" stop-color="#00b2fe"></stop>
+                        <stop offset="65%" stop-color="#4faafe"></stop>
+                        <stop offset="100%" stop-color="#4faafecc"></stop>
+                      </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-track" cx="60" cy="60" r="46"></circle>
+                    <circle
+                      class="progress-ring-fill progress-ring-fill--ceiling"
+                      cx="60"
+                      cy="60"
+                      r="46"
+                      stroke="url(#datahubCeilingGradient)"
+                      style="--progress: 0.842;"
+                    ></circle>
+                  </svg>
+                  <div class="progress-circle-inner">
+                    <div class="progress-value" data-ceiling-circle-rank>4<span class="ceiling-rank-suffix">th</span></div>
+                    <div class="progress-label">Ceiling<br />Rank</div>
+                    <div class="progress-caption" data-ceiling-circle-caption>CL POS RANK</div>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <section class="consistency-chart-shell">
+              <div class="weekly-chart-box" id="weekly-chart-box">
+                <div class="weekly-zone-summary" id="weekly-zone-summary">
+                  <span class="zone-chip zone-chip--low">
+                    <span class="zone-chip-label">Low</span>
+                    <span class="zone-chip-threshold" data-threshold-low></span>
+                    <span class="zone-chip-value" data-zone-low>0</span>
+                  </span>
+                  <span class="zone-chip zone-chip--solid">
+                    <span class="zone-chip-label">Solid</span>
+                    <span class="zone-chip-threshold" data-threshold-solid></span>
+                    <span class="zone-chip-value" data-zone-solid>0</span>
+                  </span>
+                  <span class="zone-chip zone-chip--high">
+                    <span class="zone-chip-label">High</span>
+                    <span class="zone-chip-threshold" data-threshold-high></span>
+                    <span class="zone-chip-value" data-zone-high>0</span>
+                  </span>
+                </div>
+                <div class="weekly-chart-grid" aria-hidden="true"></div>
+                <div class="weekly-chart-line-layer" id="weekly-chart-points"></div>
+                <div class="weekly-chart-x-axis" id="weekly-chart-x-axis"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <div class="key-chip modal-info-btn active" data-panel="game-logs">
+            <i class="fa-solid fa-rectangle-list" aria-hidden="true"></i>
+            <span>GM-Logs</span>
+          </div>
+          <div class="key-chip modal-info-btn" data-panel="radar-chart">
+            <i class="fa-solid fa-chart-area" aria-hidden="true"></i>
+            <span>Performance</span>
+          </div>
+          <div class="key-chip modal-info-btn" data-panel="consistency">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <span>Consistency</span>
+          </div>
+          <div class="key-chip modal-info-btn" data-panel="stats-key">
+            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <span>Key</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="gamelogs-ownership-pane"
+        class="modal-content glass-panel ownership-modal-content hidden gamelogs-tab-pane"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="glOwnershipPlayerName"
+      >
+        <button
+          class="modal-close-btn ownership-modal-close gamelogs-ownership-close"
+          type="button"
+          aria-label="Close player ownership details"
+        >
+          &times;
+        </button>
+        <div class="ownership-modal-header" id="glOwnershipHeader">
+          <div class="modal-header-left-container" id="glOwnershipLeft"></div>
+          <h3 id="glOwnershipPlayerName">Player Ownership Details</h3>
+          <div id="glOwnershipPlayerVitals"></div>
+          <div id="glOwnershipSummaryRow">
+            <div id="glOwnershipSummaryChips"></div>
+          </div>
+        </div>
+        <div class="ownership-modal-body" id="glOwnershipBody"></div>
+      </div>
+    </div>
+
+    <!-- DataHub game logs charts stay page-local:
+         load Chart.js here so DataHub.js can render the performance radar without
+         depending on the Stats page head assets. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="../scripts/DataHub.js"></script>
   </body>
 </html>
