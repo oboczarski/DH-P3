@@ -2071,3 +2071,37 @@ function showOverlay({ title, description, showActions = false }) {
 function hideOverlay() {
   overlay.classList.add("is-hidden");
 }
+
+// ──────────────────────────────────────────────────────────────────────────
+// DataHub Multi-Theme Switcher System
+// ──────────────────────────────────────────────────────────────────────────
+(function initThemeSwitcher() {
+  const themeBtns = document.querySelectorAll('.theme-switcher .theme-btn');
+  if (\!themeBtns.length) return;
+
+  // Retrieve saved theme or default to 'glass'
+  const savedTheme = localStorage.getItem('dh-datahub-theme') || 'glass';
+  document.body.setAttribute('data-theme', savedTheme);
+  updateActiveBtn(savedTheme);
+
+  // Add click listeners to the four circular buttons
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const selectedTheme = e.target.getAttribute('data-theme');
+      
+      // Update DOM & LocalStorage
+      document.body.setAttribute('data-theme', selectedTheme);
+      localStorage.setItem('dh-datahub-theme', selectedTheme);
+      
+      updateActiveBtn(selectedTheme);
+    });
+  });
+
+  function updateActiveBtn(activeTheme) {
+    themeBtns.forEach(btn => {
+      const isMatch = btn.getAttribute('data-theme') === activeTheme;
+      btn.classList.toggle('is-active', isMatch);
+      btn.setAttribute('aria-pressed', isMatch);
+    });
+  }
+})();
