@@ -220,18 +220,6 @@ body::after {
   width: 36px;
   height: 36px;
   flex-shrink: 0;
-  box-sizing: border-box;
-  padding: 1px;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  /* DataHub brand mark: add the same gradient ring as the active controls so
-     the logo can be previewed with the page accent without touching other apps. */
-  background:
-    linear-gradient(180deg, rgba(12, 20, 34, 0.92), rgba(6, 12, 22, 0.9)) padding-box,
-    var(--datahub-active-accent-gradient) border-box;
-  box-shadow:
-    0 0 14px rgba(114, 151, 255, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding-top: 2px !important;
   object-fit: contain;
   filter: drop-shadow(0 0 10px rgba(126, 214, 255, 0.18)) saturate(5.5) brightness(1.2) hue-rotate(
@@ -1847,7 +1835,12 @@ body::after {
   .brand-lockup__logo {
     width: 61px;
     height: 56px;
+    border: 0px solid #51545c57;
     border-radius: 30px;
+    padding: 0px 0px 0px 0px;
+    background: #32363a21;
+    box-shadow: 0 0 6px #837baa59, inset 0 0 5px #141414aa;
+    position: relative;
   }
 
   .brand-lockup__name,
