@@ -6015,6 +6015,10 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
      Important notes: these selectors intentionally use the exact game-logs
      header structure and `!important` only where older DataHub rules were
      still affecting the rendered header contract. */
+  body[data-page="datahub"] #game-logs-modal .gamelogs-tab-pane {
+    display: block !important;
+  }
+
   body[data-page="datahub"] #game-logs-modal .modal-content {
     padding: 0.65rem 0.85rem 0.25rem 0.85rem !important;
   }
@@ -6026,6 +6030,10 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
   }
 
   body[data-page="datahub"] #game-logs-modal #modal-header {
+    text-align: center !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-player-name {
     text-align: center !important;
   }
 
@@ -6154,5 +6162,174 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
 
   body[data-page="datahub"] #game-logs-modal .chip-pos-rank-label {
     font-weight: 400 !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2.15rem !important;
+    flex-wrap: wrap !important;
+    margin: 0 auto 0.45rem !important;
+    margin-right: 0 !important;
+    padding: 0 0.15rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-tabs {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab {
+    padding: 0.3rem 0.52rem !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
+    padding: 0.05rem 0.07rem !important;
+    border-radius: 7px !important;
+    gap: 0.12rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+    padding: 0.2rem 0.52rem !important;
+    width: 5.3rem !important;
+    border-radius: 6px !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0 !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option i {
+    font-size: 14px !important;
+  }
+}
+
+/* DataHub consistency parity:
+   Targets: the consistency HUD, chart chips, and weekly point labels.
+   What it does: ports the exact shared Game Logs consistency presentation so
+   DataHub uses the same label shadows, bucket colors, and chip colors as the
+   Rosters/Stats modal.
+   Important notes: these rules stay DataHub-scoped and intentionally override
+   the earlier custom consistency tuning above. */
+body[data-page="datahub"] .hud-insight-value {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #a0a6b5;
+  text-shadow: 0 0 6px rgba(124, 181, 255, 0.2);
+}
+
+body[data-page="datahub"] .hud-insight-value .hud-insight-suffix {
+  color: rgba(160, 166, 181, 0.72);
+  font-weight: 400;
+  text-shadow: none;
+}
+
+body[data-page="datahub"] .hud-insight-value .csty-made {
+  font-weight: 700;
+}
+
+body[data-page="datahub"] .hud-insight-value .csty-total {
+  color: rgba(160, 166, 181, 0.72);
+  font-weight: 400;
+  text-shadow: none;
+}
+
+body[data-page="datahub"] .zone-chip-threshold {
+  letter-spacing: 0.02em;
+}
+
+body[data-page="datahub"] .zone-chip--low {
+  border-color: rgb(194 108 252 / 29%);
+  background: rgb(194 108 252 / 6%);
+  color: #e7d2ff;
+}
+
+body[data-page="datahub"] .zone-chip--solid {
+  border-color: rgb(0 197 255 / 20%);
+  background: rgb(0 197 255 / 8%);
+  color: #d1f6ff;
+}
+
+body[data-page="datahub"] .zone-chip--high {
+  border-color: rgb(0 255 193 / 18%);
+  background: rgb(0 255 231 / 7%);
+  color: #d6fff6;
+}
+
+body[data-page="datahub"] .weekly-point {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+body[data-page="datahub"] .weekly-point[data-zone="low"] {
+  --point-color: #c26cfc;
+}
+
+body[data-page="datahub"] .weekly-point[data-zone="solid"] {
+  --point-color: #00c5ff;
+}
+
+body[data-page="datahub"] .weekly-point[data-zone="high"] {
+  --point-color: #00ffc1;
+}
+
+body[data-page="datahub"] .weekly-point-label--low {
+  background: rgba(194, 108, 252, 0.16);
+  border-color: rgba(194, 108, 252, 0.45);
+  box-shadow: 0 10px 20px rgba(194, 108, 252, 0.18);
+}
+
+body[data-page="datahub"] .weekly-point-label--solid {
+  background: rgba(0, 197, 255, 0.12);
+  border-color: rgba(0, 197, 255, 0.4);
+  box-shadow: 0 10px 20px rgba(0, 197, 255, 0.18);
+}
+
+body[data-page="datahub"] .weekly-point-label--high {
+  background: rgba(0, 255, 193, 0.12);
+  border-color: rgba(0, 255, 193, 0.35);
+  box-shadow: 0 10px 20px rgba(0, 255, 193, 0.2);
+}
+
+body[data-page="datahub"] .weekly-point-label--capped::after {
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+@media (min-width: 641px) {
+  body[data-page="datahub"] .hud-insight-value .hud-insight-suffix {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 540px) {
+  body[data-page="datahub"] .weekly-zone-summary {
+    gap: 0.25rem;
+  }
+
+  body[data-page="datahub"] .zone-chip {
+    gap: 0.12rem;
+    padding: 0.14rem 0.32rem;
+    font-size: 0.38rem;
+  }
+
+  body[data-page="datahub"] .zone-chip-label {
+    font-size: 0.45rem;
+    line-height: 0.45rem;
+  }
+
+  body[data-page="datahub"] .zone-chip-threshold {
+    font-size: 0.46rem;
+    line-height: 0.46rem;
+  }
+
+  body[data-page="datahub"] .zone-chip-value {
+    font-size: 0.58rem;
+    line-height: 0.6rem;
+    margin-left: 3px;
   }
 }

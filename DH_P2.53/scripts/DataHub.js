@@ -2461,11 +2461,12 @@ const DATAHUB_SZN_STAT_SECTIONS_BY_POS = {
   ],
 };
 const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
-  QB: { solid: 18, high: 24 },
-  RB: { solid: 11, high: 18 },
-  WR: { solid: 12, high: 20 },
-  TE: { solid: 9, high: 15 },
-  FLEX: { solid: 11, high: 18 },
+  QB: { solid: 16, high: 22 },
+  RB: { solid: 12, high: 18 },
+  WR: { solid: 12, high: 18 },
+  TE: { solid: 11, high: 17 },
+  DEFAULT: { solid: 14, high: 20 },
+  FLEX: { solid: 14, high: 20 },
 };
 const DATAHUB_MAX_CONSISTENCY_POINTS = 40;
 const DATAHUB_CONSISTENCY_BUCKET_STYLES = {
@@ -5163,6 +5164,19 @@ function getDataHubRankAccentColor(rank) {
   return "#d3a5ff";
 }
 
+function applyDataHubRankStyling({ rank, metricValueEl, metricSubEl, circleValueEl }) {
+  const color = getDataHubRankAccentColor(rank);
+  if (metricValueEl) metricValueEl.style.color = color;
+  if (circleValueEl) circleValueEl.style.color = color;
+  if (metricSubEl) {
+    const valueNode = metricSubEl.querySelector(".metric-sub-value");
+    if (valueNode) {
+      valueNode.textContent = Number.isFinite(rank) ? `${rank}` : "NA";
+      valueNode.style.color = color;
+    }
+  }
+}
+
 function updateDataHubConsistencyHud(data) {
   if (!consistencyContainer) {
     return;
@@ -5172,51 +5186,73 @@ function updateDataHubConsistencyHud(data) {
   const consistencyRankEl = consistencyContainer.querySelector("[data-consistency-rank]");
   if (consistencyRankEl) {
     consistencyRankEl.textContent = Number.isFinite(data?.consistencyRank) ? `#${data.consistencyRank}` : "NA";
-    consistencyRankEl.style.color = getDataHubRankAccentColor(data?.consistencyRank);
   }
   const ceilingValueEl = consistencyContainer.querySelector("[data-ceiling-value]");
   if (ceilingValueEl) {
     ceilingValueEl.textContent = formatDataHubCeilingValue(data?.ceilingValue);
-    ceilingValueEl.style.color = getDataHubRankAccentColor(data?.ceilingRank);
   }
   const consistencyCircleValue = consistencyContainer.querySelector("[data-consistency-circle-value]");
   if (consistencyCircleValue) {
     consistencyCircleValue.textContent = formatDataHubHudPercentage(data?.consistencyPct);
-    consistencyCircleValue.style.color = getDataHubRankAccentColor(data?.consistencyRank);
   }
   const ceilingCircleValue = consistencyContainer.querySelector("[data-ceiling-circle-rank]");
   if (ceilingCircleValue) {
     ceilingCircleValue.innerHTML = Number.isFinite(data?.ceilingRank)
       ? `${Math.round(data.ceilingRank)}<span class="ceiling-rank-suffix">${getDataHubOrdinalSuffix(Math.round(data.ceilingRank))}</span>`
       : "NA";
-    ceilingCircleValue.style.color = getDataHubRankAccentColor(data?.ceilingRank);
   }
+  const consistencyCaptionEl = consistencyContainer.querySelector("[data-consistency-circle-caption]");
+  if (consistencyCaptionEl) consistencyCaptionEl.textContent = "CSTY RATE";
+  const ceilingCaptionEl = consistencyContainer.querySelector("[data-ceiling-circle-caption]");
+  if (ceilingCaptionEl) ceilingCaptionEl.textContent = "CL POS RANK";
   const consistencyRing = consistencyContainer.querySelector(".progress-circle--consistency .progress-ring-fill");
+  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  applyDataHubRankStyling({
+    rank: data?.consistencyRank,
+    metricValueEl: consistencyRankEl,
+    metricSubEl: null,
+    circleValueEl: consistencyCircleValue,
+  });
   if (consistencyRing) {
-    consistencyRing.style.setProperty("--progress", `${Math.max(0, Math.min(1, Number(data?.consistencyPct || 0) / 100))}`);
     consistencyRing.setAttribute("stroke", getDataHubRankAccentColor(data?.consistencyRank));
   }
-  const ceilingRing = consistencyContainer.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  applyDataHubRankStyling({
+    rank: data?.ceilingRank,
+    metricValueEl: ceilingValueEl,
+    metricSubEl: null,
+    circleValueEl: ceilingCircleValue,
+  });
   if (ceilingRing) {
-    const maxRank = data?.ceilingRankMax || DATAHUB_RADAR_STATS_CONFIG[data?.position]?.maxRank || 32;
-    const progress = Number.isFinite(data?.ceilingRank)
-      ? 1 - ((data.ceilingRank - 1) / Math.max(1, maxRank - 1))
-      : 0;
-    ceilingRing.style.setProperty("--progress", `${Math.max(0, Math.min(1, progress))}`);
     ceilingRing.setAttribute("stroke", getDataHubRankAccentColor(data?.ceilingRank));
   }
   const cstyCountEl = consistencyContainer.querySelector("[data-insight-cstycount]");
   if (cstyCountEl) {
-    cstyCountEl.innerHTML = Number.isFinite(data?.solidHighCount)
-      ? `<span class="csty-made" style="color:${getDataHubRankAccentColor(data?.consistencyRank)}">${data.solidHighCount}</span><span class="hud-insight-suffix">/${data.totalWeeks || 0}</span>`
-      : "—";
+    const made = Number.isFinite(data?.solidHighCount) ? data.solidHighCount : null;
+    const total = Number.isFinite(data?.totalWeeks) ? data.totalWeeks : null;
+    if (made !== null && total !== null && total > 0) {
+      const color = getDataHubRankAccentColor(data?.consistencyRank);
+      cstyCountEl.innerHTML = `<span class="csty-made" style="color:${color}">${made}</span><span class="hud-insight-suffix">/${total}</span>`;
+    } else {
+      cstyCountEl.textContent = "—";
+    }
   }
   const bigGameEl = consistencyContainer.querySelector("[data-insight-best]");
   if (bigGameEl) {
-    const percentage = data?.gamesPlayed ? (data.highWeekCount / data.gamesPlayed) * 100 : null;
-    bigGameEl.innerHTML = Number.isFinite(percentage)
-      ? `<span style="color:${getDataHubConditionalHudColor(percentage, 23, 40)}">${percentage.toFixed(1)}</span><span class="hud-insight-suffix">%</span>`
-      : "—";
+    const highCount = Number.isFinite(data?.highWeekCount) ? data.highWeekCount : null;
+    const gamesPlayed = Number.isFinite(data?.gamesPlayed)
+      ? data.gamesPlayed
+      : (Number.isFinite(data?.totalWeeks) ? data.totalWeeks : null);
+    if (highCount !== null && gamesPlayed !== null && gamesPlayed > 0) {
+      const percentage = (highCount / gamesPlayed) * 100;
+      const color = percentage > 40
+        ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.high
+        : (percentage < 23 ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.low : DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.solid);
+      bigGameEl.style.color = "";
+      bigGameEl.innerHTML = `<span style="color:${color}">${percentage.toFixed(1)}</span><span class="hud-insight-suffix">%</span>`;
+    } else {
+      bigGameEl.textContent = "—";
+      bigGameEl.style.color = "";
+    }
   }
   const lastFiveEl = consistencyContainer.querySelector("[data-insight-last5]");
   if (lastFiveEl) {
@@ -5225,9 +5261,11 @@ function updateDataHubConsistencyHud(data) {
       const color = bucket?.name === "high"
         ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.high
         : (bucket?.name === "solid" ? DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.solid : DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS.low);
+      lastFiveEl.style.color = "";
       lastFiveEl.innerHTML = `<span style="color:${color}">${data.lastFiveAvg.toFixed(1)}</span><span class="hud-insight-suffix"> fpts</span>`;
     } else {
       lastFiveEl.textContent = "—";
+      lastFiveEl.style.color = "";
     }
   }
 }
@@ -5289,7 +5327,7 @@ function renderDataHubConsistencyChart() {
 
 function getDataHubConsistencyThresholds(position) {
   return DATAHUB_CONSISTENCY_THRESHOLD_MAP[String(position || "").trim().toUpperCase()]
-    || DATAHUB_CONSISTENCY_THRESHOLD_MAP.FLEX;
+    || DATAHUB_CONSISTENCY_THRESHOLD_MAP.DEFAULT;
 }
 
 function renderDataHubConsistencyZoneSummary(data) {
