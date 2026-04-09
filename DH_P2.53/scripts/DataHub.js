@@ -14,6 +14,22 @@ const CATEGORY_LABELS = {
 };
 
 // ---------------------------------------------------------------------------
+// DataHub page-style switching stays fully page-local.
+// Notes:
+// - Only the DataHub design system changes; all nav, filters, and grid logic stay the same.
+// - The selected style persists locally so returning users keep their preferred look.
+// ---------------------------------------------------------------------------
+const DATAHUB_STYLE_ATTRIBUTE = "data-datahub-style";
+const DATAHUB_STYLE_STORAGE_KEY = "dh_datahub_style";
+const DEFAULT_DATAHUB_STYLE = "prism";
+const DATAHUB_STYLES = new Set([
+  DEFAULT_DATAHUB_STYLE,
+  "graphite",
+  "infrared",
+  "signal",
+]);
+
+// ---------------------------------------------------------------------------
 // Column order is the main structural source of truth for each category view.
 // These arrays simultaneously define:
 // 1. visible column order
@@ -524,6 +540,9 @@ const filePickerInput = document.querySelector("#file-picker-input");
 const playerSearch = document.querySelector("#player-search");
 const gridContainer = document.querySelector("#player-grid");
 const pageTabs = document.querySelector(".page-tabs");
+const dataHubStyleButtons = Array.from(
+  document.querySelectorAll("[data-datahub-style-option]"),
+);
 const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
@@ -578,6 +597,7 @@ initializeApp();
 // overlay so the layout stays stable even before CSV import completes.
 // ---------------------------------------------------------------------------
 function initializeApp() {
+  applyDataHubStyle(getStoredDataHubStyle(), { persist: false });
   attachEventListeners();
   syncUiState();
   updatePageTabsGlint();
@@ -603,6 +623,7 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
   attachNavigationListeners();
+  attachDataHubStyleListeners();
 
   primaryTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -653,6 +674,62 @@ function attachEventListeners() {
 
   window.addEventListener("load", updatePageTabsGlint);
   window.addEventListener("resize", handleViewportResize, { passive: true });
+}
+
+// DataHub style-switch buttons: update the body attribute + button states while
+// keeping the rest of the page behavior untouched.
+function attachDataHubStyleListeners() {
+  dataHubStyleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const requestedStyle = button.dataset.datahubStyleOption;
+      if (!requestedStyle) {
+        return;
+      }
+
+      applyDataHubStyle(requestedStyle);
+    });
+  });
+}
+
+function applyDataHubStyle(styleName, options = {}) {
+  const { persist = true } = options;
+  const nextStyle = DATAHUB_STYLES.has(styleName)
+    ? styleName
+    : DEFAULT_DATAHUB_STYLE;
+
+  document.body.setAttribute(DATAHUB_STYLE_ATTRIBUTE, nextStyle);
+  syncDataHubStyleButtons(nextStyle);
+
+  if (persist) {
+    storeDataHubStyle(nextStyle);
+  }
+}
+
+function syncDataHubStyleButtons(activeStyle) {
+  dataHubStyleButtons.forEach((button) => {
+    const isActive = button.dataset.datahubStyleOption === activeStyle;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function getStoredDataHubStyle() {
+  try {
+    const storedStyle = (localStorage.getItem(DATAHUB_STYLE_STORAGE_KEY) || "").trim();
+    return DATAHUB_STYLES.has(storedStyle)
+      ? storedStyle
+      : DEFAULT_DATAHUB_STYLE;
+  } catch (error) {
+    return DEFAULT_DATAHUB_STYLE;
+  }
+}
+
+function storeDataHubStyle(styleName) {
+  try {
+    localStorage.setItem(DATAHUB_STYLE_STORAGE_KEY, styleName);
+  } catch (error) {
+    // Ignore storage failures so design switching never blocks the page.
+  }
 }
 
 // Primary DataHub nav + More dropdown wiring.
