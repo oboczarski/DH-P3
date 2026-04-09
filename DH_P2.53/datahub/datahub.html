@@ -33,6 +33,32 @@
            stacked mobile layout can keep its own DOM order without re-parenting. -->
       <header class="app-header app-header--mobile">
         <div class="header-shell header-shell--stacked">
+          <!-- DataHub style switcher: this mobile copy sits in the existing
+               top-right corner so the page can swap visual systems only. -->
+          <div class="theme-switcher theme-switcher--mobile" role="group" aria-label="DataHub styles">
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--halo"
+              data-theme-variant="halo"
+              aria-label="Switch DataHub to the Halo style"
+              aria-pressed="true"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--ember"
+              data-theme-variant="ember"
+              aria-label="Switch DataHub to the Ember style"
+              aria-pressed="false"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--contour"
+              data-theme-variant="contour"
+              aria-label="Switch DataHub to the Contour style"
+              aria-pressed="false"
+            ></button>
+          </div>
+
           <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
             <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
             <span class="brand-lockup__wordmark">
@@ -134,7 +160,33 @@
               </nav>
             </div>
 
-            <div class="app-header__balance" aria-hidden="true"></div>
+            <div class="app-header__balance">
+              <!-- DataHub style switcher: this desktop copy uses the mirrored
+                   right balance slot so the centered nav layout stays intact. -->
+              <div class="theme-switcher theme-switcher--desktop" role="group" aria-label="DataHub styles">
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--halo"
+                  data-theme-variant="halo"
+                  aria-label="Switch DataHub to the Halo style"
+                  aria-pressed="true"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--ember"
+                  data-theme-variant="ember"
+                  aria-label="Switch DataHub to the Ember style"
+                  aria-pressed="false"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--contour"
+                  data-theme-variant="contour"
+                  aria-label="Switch DataHub to the Contour style"
+                  aria-pressed="false"
+                ></button>
+              </div>
+            </div>
           </div>
         </header>
 
