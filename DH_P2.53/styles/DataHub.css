@@ -4493,8 +4493,8 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
   padding: 0.05rem;
   border-radius: 13px;
   border: 1px solid rgba(250, 250, 250, 0.1);
-  background: rgba(0, 0, 0, 0.02);
-  backdrop-filter: blur(1px) saturate(180%);
+  background: rgb(143 148 166 / 10%);
+  backdrop-filter: blur(1px) saturate(120%);
   -webkit-backdrop-filter: blur(1px) saturate(180%);
   box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
 }
@@ -4523,8 +4523,8 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
 body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
   color: #9b9da6;
   background: rgba(118, 109, 255, 0.1);
-  border-color: rgba(118, 109, 255, 0.3);
-  box-shadow: 0 0 12px rgba(118, 109, 255, 0.18), inset 0 0 12px rgba(118, 109, 255, 0.08);
+  border-color: rgb(32 105 244 / 43%);
+  box-shadow: 0 0 12px rgba(118, 109, 255, 0.18), inset 0 0px 5px rgb(32 105 244 / 25%);
   filter: brightness(1.16) saturate(1.2);
 }
 
@@ -5643,7 +5643,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
     padding: 0.05rem 0.07rem;
     border-radius: 7px;
-    gap: 0.12rem;
+    gap: 0rem;
   }
 
   body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
@@ -5733,7 +5733,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
-    height: 573px;
+    height: 573px !important;
   }
 
   body[data-page="datahub"] .modal-body {
@@ -6171,9 +6171,9 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 2.15rem !important;
+    gap: 1.15rem !important;
     flex-wrap: wrap !important;
-    margin: 0 auto 0.45rem !important;
+    margin: 0.45rem auto 0.45rem !important;
     margin-right: 0 !important;
     padding: 0 0.15rem !important;
   }
@@ -6193,16 +6193,16 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
 
   body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
     padding: 0.05rem 0.07rem !important;
-    border-radius: 7px !important;
-    gap: 0.12rem !important;
+    border-radius: 20px !important;
+    gap: -3rem !important;
   }
 
   body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
-    padding: 0.2rem 0.52rem !important;
-    width: 5.3rem !important;
-    border-radius: 6px !important;
+    padding: 0.3rem 0.52rem !important;
+    width: 5.6rem !important;
+    border-radius: 23px !important;
     font-size: 0.75rem !important;
-    letter-spacing: 0 !important;
+    letter-spacing: -0.02rem !important;
     line-height: 1 !important;
   }
 
@@ -6547,7 +6547,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
   padding: 0.22rem 0.62rem;
   border-radius: 11px;
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.08em;
   line-height: 1;
 }
@@ -6573,7 +6573,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
   body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
     padding: 0.05rem 0.07rem;
     border-radius: 7px;
-    gap: 0.12rem;
+    gap: 0rem;
   }
 
   body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
