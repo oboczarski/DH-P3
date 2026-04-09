@@ -2074,29 +2074,18 @@ function hideOverlay() {
 
 // ──────────────────────────────────────────────────────────────────────────
 // DataHub Multi-Theme Switcher System
+
+// ──────────────────────────────────────────────────────────────────────────
+// DataHub Multi-Theme Switcher System
 // ──────────────────────────────────────────────────────────────────────────
 (function initThemeSwitcher() {
   const themeBtns = document.querySelectorAll('.theme-switcher .theme-btn');
-  if (\!themeBtns.length) return;
+  if (!themeBtns.length) return;
 
-  // Retrieve saved theme or default to 'glass'
-  const savedTheme = localStorage.getItem('dh-datahub-theme') || 'glass';
+  const CURRENT_THEME_KEY = 'dh-datahub-theme';
+  const savedTheme = localStorage.getItem(CURRENT_THEME_KEY) || 'glass';
   document.body.setAttribute('data-theme', savedTheme);
-  updateActiveBtn(savedTheme);
-
-  // Add click listeners to the four circular buttons
-  themeBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const selectedTheme = e.target.getAttribute('data-theme');
-      
-      // Update DOM & LocalStorage
-      document.body.setAttribute('data-theme', selectedTheme);
-      localStorage.setItem('dh-datahub-theme', selectedTheme);
-      
-      updateActiveBtn(selectedTheme);
-    });
-  });
-
+  
   function updateActiveBtn(activeTheme) {
     themeBtns.forEach(btn => {
       const isMatch = btn.getAttribute('data-theme') === activeTheme;
@@ -2104,4 +2093,17 @@ function hideOverlay() {
       btn.setAttribute('aria-pressed', isMatch);
     });
   }
+
+  updateActiveBtn(savedTheme);
+
+  themeBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const selectedTheme = e.target.getAttribute('data-theme');
+      if (!selectedTheme) return;
+      
+      document.body.setAttribute('data-theme', selectedTheme);
+      localStorage.setItem(CURRENT_THEME_KEY, selectedTheme);
+      updateActiveBtn(selectedTheme);
+    });
+  });
 })();
