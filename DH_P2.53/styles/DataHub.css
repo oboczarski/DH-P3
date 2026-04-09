@@ -2571,7 +2571,6 @@ body[data-page="datahub"] #modal-body {
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 10px;
-  background: rgba(25, 32, 49, 0.72);
   border: 1px solid rgba(170, 187, 255, 0.16);
   box-shadow:
     0 8px 32px rgba(31, 38, 105, 0.12),
@@ -4928,11 +4927,11 @@ body[data-page="datahub"] #game-logs-modal .gamelog-week-tag {
   min-height: 1.5rem;
   line-height: 1;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.02);
-  -webkit-backdrop-filter: blur(1px) saturate(180%);
-  backdrop-filter: blur(1px) saturate(180%);
+  background: rgb(122 131 160 / 2%);
+  -webkit-backdrop-filter: blur(1px) saturate(140%);
+  backdrop-filter: blur(1px) saturate(140%);
   border: 1px solid rgba(250, 250, 250, 0.1);
-  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.05);
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelog-week-tag::after {
@@ -5109,13 +5108,13 @@ body[data-page="datahub"] .modal-info-btn {
 
 body[data-page="datahub"] .modal-info-btn.active {
   color: var(--color-text-primary);
-  filter: drop-shadow(0 0 8px rgba(154, 153, 242, 0.6)) drop-shadow(0 0 12px rgba(154, 153, 242, 0.4)) brightness(1.15);
+  filter: drop-shadow(0 0 4px rgba(154, 153, 242, 0.56)) drop-shadow(0 0 6px rgba(154, 153, 242, 0.63)) brightness(1.15);
 }
 
 body[data-page="datahub"] .modal-info-btn.active.key-chip {
   border-color: rgba(154, 153, 242, 0.3);
   background: rgba(154, 153, 242, 0.08);
-  box-shadow: 0 0 16px rgba(154, 153, 242, 0.4), 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 8px rgba(154, 153, 242, 0.14), inset 0 1px 5px rgba(255, 255, 255, 0.13);
 }
 
 body[data-page="datahub"] .key-chip {
@@ -5736,7 +5735,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] .modal-body {
-    height: 352px;
+    height: 346px;
     max-height: 65vh;
   }
 
