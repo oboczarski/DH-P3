@@ -9240,6 +9240,8 @@ body.league-gate-active {
   grid-template-rows: auto 1fr;
   gap: clamp(22px, 4.6vh, 54px);
   align-items: start;
+  justify-items: center;
+  --league-gate-rail-width: min(100%, 760px);
 }
 
 /* Shared gate navigation:
@@ -9248,14 +9250,12 @@ body.league-gate-active {
 .league-username-gate__nav-shell {
   position: relative;
   z-index: 2;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  width: var(--league-gate-rail-width);
 }
 
 .league-username-gate__nav-bar {
   position: relative;
-  width: min(100%, 820px);
+  width: 100%;
   padding: clamp(0.52rem, 1vw, 0.72rem);
   border-radius: 30px;
   border: 1px solid rgba(133, 150, 181, 0.16);
@@ -9467,7 +9467,7 @@ body.league-gate-active {
   z-index: 1;
   display: grid;
   justify-items: center;
-  width: min(100%, 760px);
+  width: var(--league-gate-rail-width);
   align-self: center;
 }
 
@@ -9924,10 +9924,10 @@ body.league-gate-active {
     gap: 18px;
     min-height: calc(100vh - 40px);
     min-height: calc(100dvh - 40px);
+    --league-gate-rail-width: 100%;
   }
 
   .league-username-gate__nav-bar {
-    width: 100%;
     padding: 0.46rem;
     border-radius: 24px;
   }
