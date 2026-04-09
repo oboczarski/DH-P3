@@ -9451,6 +9451,22 @@ body.league-gate-active {
   color: rgba(184, 194, 210, 0.42);
 }
 
+/* League-connected username gate input:
+   keeps the shared Sleeper username overlay on-brand when Chrome/Safari autofill
+   injects saved usernames, so the input continues to inherit the dark glass shell. */
+.league-username-gate__input-shell input:-webkit-autofill,
+.league-username-gate__input-shell input:-webkit-autofill:hover,
+.league-username-gate__input-shell input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #edf3fc !important;
+  caret-color: #edf3fc !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(13, 14, 35, 0) inset !important;
+  box-shadow: 0 0 0 1000px rgba(13, 14, 35, 0) inset !important;
+  background-color: transparent !important;
+  background-clip: padding-box !important;
+  border-radius: inherit;
+  transition: background-color 99999s ease-in-out 0s !important;
+}
+
 .league-username-gate__input-shell input:focus {
   outline: none;
 }
