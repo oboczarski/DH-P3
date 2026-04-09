@@ -219,5 +219,5 @@
   "imageCarousel.explorerContextMenu.enabled": true,
   "github.copilot.chat.agentDebugLog.enabled": true,
   "github.copilot.chat.agentDebugLog.fileLogging.enabled": true,
-  "chat.agent.sandbox": true
+  "chat.agent.sandbox.enabled": "on"
 }
