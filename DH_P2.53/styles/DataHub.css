@@ -220,6 +220,18 @@ body::after {
   width: 36px;
   height: 36px;
   flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 1px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  /* DataHub brand mark: add the same gradient ring as the active controls so
+     the logo can be previewed with the page accent without touching other apps. */
+  background:
+    linear-gradient(180deg, rgba(12, 20, 34, 0.92), rgba(6, 12, 22, 0.9)) padding-box,
+    var(--datahub-active-accent-gradient) border-box;
+  box-shadow:
+    0 0 14px rgba(114, 151, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding-top: 2px !important;
   object-fit: contain;
   filter: drop-shadow(0 0 10px rgba(126, 214, 255, 0.18)) saturate(5.5) brightness(1.2) hue-rotate(
@@ -545,9 +557,18 @@ body::after {
 }
 
 .page-tab:hover {
-  color: var(--text-secondary);
-  border-color: rgba(255, 255, 255, 0.04);
-  background: rgba(255, 255, 255, 0.02);
+  border-color: transparent;
+  background: transparent;
+}
+
+.page-tab:hover:not(.is-active) {
+  /* Placeholder page tabs should only hint hover through icon/text tinting,
+     never by drawing a pill background behind the button. */
+  color: rgba(219, 232, 250, 0.9);
+}
+
+.page-tab:hover:not(.is-active) .tab-icon {
+  filter: drop-shadow(0 0 6px rgba(116, 239, 255, 0.16));
 }
 
 .page-tab:active {
@@ -564,7 +585,12 @@ body::after {
 /* Active page-view tabs keep the placeholder shell visual-only, but the
    selected icon + label share the same gradient accent as the active borders. */
 .page-tab.is-active .page-tab__text {
+  /* Active page-tab content uses one left-to-right flow: the icon gets the
+     first half of the gradient and the text picks up the second half. */
   background-image: var(--datahub-active-accent-gradient);
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  background-position: 100% 50%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1821,12 +1847,7 @@ body::after {
   .brand-lockup__logo {
     width: 61px;
     height: 56px;
-    border: 0px solid #51545c57;
     border-radius: 30px;
-    padding: 0px 0px 0px 0px;
-    background: #32363a21;
-    box-shadow: 0 0 6px #837baa59, inset 0 0 5px #141414aa;
-    position: relative;
   }
 
   .brand-lockup__name,
