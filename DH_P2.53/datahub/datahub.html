@@ -140,29 +140,114 @@
 
         <!-- Page-view tabs sit between the header system and hero copy. The
              active-tab glint is positioned from JS against this exact container. -->
-        <nav class="page-tabs" aria-label="Page Views">
-          <button type="button" class="page-tab is-active" aria-selected="true">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            <span>Stats</span>
+        <nav class="page-tabs" aria-label="Page Views" role="tablist">
+          <button
+            type="button"
+            class="page-tab is-active"
+            data-page-tab="stats"
+            role="tab"
+            aria-selected="true"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-stats" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span class="page-tab__text">Stats</span>
           </button>
-          <button type="button" class="page-tab">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><polyline points="4 6 4 10 6 10"></polyline><polyline points="6 18 4 18 4 14 6 14"></polyline><line x1="4" y1="14" x2="6" y2="14"></line></svg>
-            <span>Rankings</span>
+          <button
+            type="button"
+            class="page-tab"
+            data-page-tab="rankings"
+            role="tab"
+            aria-selected="false"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-rankings" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <line x1="10" y1="6" x2="21" y2="6"></line>
+              <line x1="10" y1="12" x2="21" y2="12"></line>
+              <line x1="10" y1="18" x2="21" y2="18"></line>
+              <polyline points="4 6 4 10 6 10"></polyline>
+              <polyline points="6 18 4 18 4 14 6 14"></polyline>
+              <line x1="4" y1="14" x2="6" y2="14"></line>
+            </svg>
+            <span class="page-tab__text">Rankings</span>
           </button>
-          <button type="button" class="page-tab page-tab--adp">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span class="page-tab__label page-tab__label--adp">
+          <button
+            type="button"
+            class="page-tab page-tab--adp"
+            data-page-tab="adp-values"
+            role="tab"
+            aria-selected="false"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-adp-values" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span class="page-tab__text page-tab__label page-tab__label--adp">
               <span>ADP &amp;</span>
               <span>Values</span>
             </span>
           </button>
-          <button type="button" class="page-tab">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-            <span>Rookies</span>
+          <button
+            type="button"
+            class="page-tab"
+            data-page-tab="rookies"
+            role="tab"
+            aria-selected="false"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-rookies" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+            </svg>
+            <span class="page-tab__text">Rookies</span>
           </button>
-          <button type="button" class="page-tab">
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-            <span>Ownership</span>
+          <button
+            type="button"
+            class="page-tab"
+            data-page-tab="ownership"
+            role="tab"
+            aria-selected="false"
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-ownership" x1="0" y1="12" x2="24" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+            </svg>
+            <span class="page-tab__text">Ownership</span>
           </button>
         </nav>
 

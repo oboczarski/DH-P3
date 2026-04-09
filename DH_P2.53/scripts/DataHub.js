@@ -524,6 +524,7 @@ const filePickerInput = document.querySelector("#file-picker-input");
 const playerSearch = document.querySelector("#player-search");
 const gridContainer = document.querySelector("#player-grid");
 const pageTabs = document.querySelector(".page-tabs");
+const pageTabButtons = Array.from(document.querySelectorAll(".page-tabs .page-tab"));
 const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
@@ -579,6 +580,7 @@ initializeApp();
 // ---------------------------------------------------------------------------
 function initializeApp() {
   attachEventListeners();
+  syncPageTabButtons();
   syncUiState();
   updatePageTabsGlint();
   renderTable();
@@ -603,6 +605,19 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
   attachNavigationListeners();
+
+  pageTabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.classList.contains("is-active")) {
+        return;
+      }
+
+      // Page-view tabs are placeholders for now: clicking them should only
+      // move the active styling and desktop glint, not trigger page data work.
+      syncPageTabButtons(button);
+      updatePageTabsGlint();
+    });
+  });
 
   primaryTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -1264,6 +1279,25 @@ function updatePageTabsGlint() {
 
   pageTabs.style.setProperty("--page-tabs-glint-left", `${glowCenter}px`);
   pageTabs.style.setProperty("--page-tabs-glint-width", `${glowWidth}px`);
+}
+
+// Page-view tab shell state stays UI-only for the current placeholder tabs.
+// It keeps one tab visually active and updates accessibility state without
+// changing the table, hero copy, or any loaded data.
+function syncPageTabButtons(nextActiveButton = null) {
+  if (!pageTabButtons.length) {
+    return;
+  }
+
+  const activeButton = nextActiveButton
+    ?? pageTabButtons.find((button) => button.classList.contains("is-active"))
+    ?? pageTabButtons[0];
+
+  pageTabButtons.forEach((button) => {
+    const isActive = button === activeButton;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
 }
 
 function updateRowCount() {
