@@ -3390,6 +3390,14 @@ function renderDataHubModalHeader(player, playerRanks) {
         </div>
       </div>
     `;
+    // DataHub Game Logs header parity:
+    // match the shared Rosters/Stats modal by sizing the vitals capsule to the
+    // rendered summary-chip row width after the chips exist in the DOM.
+    const playerVitalsElement = modalPlayerVitals?.querySelector(".player-vitals--modal");
+    const summaryChipsWidth = modalSummaryChips.offsetWidth;
+    if (playerVitalsElement && summaryChipsWidth > 0) {
+      playerVitalsElement.style.width = `${summaryChipsWidth}px`;
+    }
   }
 }
 
@@ -6052,21 +6060,153 @@ function findDataHubOwnershipLeagueOwnerRows(playerId) {
 }
 
 function getDataHubPlayerVitals(playerId, fallbackPlayer) {
-  const player = state.sleeperPlayers?.[playerId] || fallbackPlayer || {};
-  const currentLookup = getActiveKtcLookup()?.[playerId];
-  const age = Number.isFinite(currentLookup?.age)
-    ? currentLookup.age.toFixed(1)
-    : (player.age ? Number(player.age).toFixed(1) : "—");
-  const height = formatDataHubHeight(player);
-  const weight = formatDataHubWeight(player);
+  const fallback = { age: "—", height: "—", weight: "—", exp: "—", ry: "—" };
+  const player = state.sleeperPlayers?.[playerId] || fallbackPlayer || null;
+  if (!player) return fallback;
+
+  const collect = (...values) => values
+    .map((value) => (typeof value === "string" ? value.trim() : value))
+    .filter((value) => value !== undefined && value !== null && value !== "");
+
+  const parseAge = () => {
+    const valueData = getActiveKtcLookup()?.[playerId];
+    const ageFromSheet = valueData?.age;
+    if (typeof ageFromSheet === "number") {
+      return ageFromSheet.toFixed(1);
+    }
+    const candidates = collect(
+      player.age,
+      player.metadata?.age,
+      player.metadata?.player_age,
+    );
+    for (const candidate of candidates) {
+      const numeric = Number.parseInt(candidate, 10);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return Number(numeric).toFixed(1);
+      }
+    }
+    if (player.birthdate) {
+      const birth = new Date(player.birthdate);
+      if (!Number.isNaN(birth.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const hasHadBirthdayThisYear =
+          today.getMonth() > birth.getMonth()
+          || (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+        if (!hasHadBirthdayThisYear) age -= 1;
+        if (Number.isFinite(age) && age > 0 && age < 80) {
+          return Number(age).toFixed(1);
+        }
+      }
+    }
+    return null;
+  };
+
+  const formatHeightFromParts = (feet, inches) => {
+    const f = Number.parseInt(feet, 10);
+    const i = Number.parseInt(inches, 10);
+    if (!Number.isFinite(f) && !Number.isFinite(i)) return null;
+    const safeFeet = Number.isFinite(f) ? f : Math.floor(i / 12);
+    const safeInches = Number.isFinite(i) ? i % 12 : 0;
+    if (!Number.isFinite(safeFeet) || safeFeet <= 0) return null;
+    const boundedInches = Math.max(0, Math.min(11, safeInches));
+    return `${safeFeet}'${boundedInches}"`;
+  };
+
+  const parseHeightString = (value) => {
+    if (value === undefined || value === null) return null;
+    const str = String(value).trim();
+    if (!str) return null;
+    const digits = str.match(/\d+/g);
+    if (!digits || digits.length === 0) return null;
+    if (digits.length >= 2) {
+      return formatHeightFromParts(digits[0], digits[1]);
+    }
+    const only = Number.parseInt(digits[0], 10);
+    if (!Number.isFinite(only) || only <= 0) return null;
+    const raw = digits[0];
+    if (raw.length >= 3) {
+      const feetPart = raw.slice(0, raw.length - 2);
+      const inchPart = raw.slice(-2);
+      const formattedFromRaw = formatHeightFromParts(feetPart, inchPart);
+      if (formattedFromRaw) return formattedFromRaw;
+    }
+    if (only > 12) {
+      const feet = Math.floor(only / 12);
+      const inches = only % 12;
+      return `${feet}'${inches}"`;
+    }
+    return `${only}'0"`;
+  };
+
+  const parseHeight = () => {
+    const pairCandidates = [
+      [player.height_feet, player.height_inches],
+      [player.metadata?.height_feet, player.metadata?.height_inches],
+      [player.height_ft, player.height_in],
+      [player.metadata?.height_ft, player.metadata?.height_in],
+    ];
+    for (const [feet, inches] of pairCandidates) {
+      const formatted = formatHeightFromParts(feet, inches);
+      if (formatted) return formatted;
+    }
+    const heightCandidates = collect(
+      player.height,
+      player.metadata?.height,
+      player.metadata?.player_height,
+      player.height_inches,
+      player.height_in,
+      player.metadata?.height_inches,
+      player.metadata?.height_in,
+    );
+    for (const candidate of heightCandidates) {
+      const formatted = parseHeightString(candidate);
+      if (formatted) return formatted;
+    }
+    return null;
+  };
+
+  const parseWeight = () => {
+    const weightCandidates = collect(
+      player.weight,
+      player.metadata?.weight,
+      player.metadata?.player_weight,
+      player.weight_lbs,
+      player.metadata?.weight_lbs,
+    );
+    for (const candidate of weightCandidates) {
+      const numeric = Number.parseInt(candidate, 10);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        return `${numeric} lbs`;
+      }
+    }
+    return null;
+  };
+
+  const parseYearsExperience = () => {
+    const exp = player.years_exp;
+    if (exp === null || exp === undefined || exp === "") return "—";
+    return String(exp);
+  };
+
+  const parseRookieYear = () => {
+    const rookieYear = player.rookie_year;
+    if (rookieYear && rookieYear !== "0") {
+      return String(rookieYear);
+    }
+    const exp = player.years_exp;
+    if (exp !== null && exp !== undefined && exp !== "") {
+      return String(2025 - Number(exp));
+    }
+    return "—";
+  };
+
   return {
-    age: age || "—",
-    height: height || "—",
-    weight: weight || "—",
-    exp: player.years_exp != null && player.years_exp !== "" ? String(player.years_exp) : "—",
-    ry: player.rookie_year && player.rookie_year !== "0"
-      ? String(player.rookie_year)
-      : (player.years_exp != null && player.years_exp !== "" ? String(new Date().getFullYear() - Number(player.years_exp)) : "—"),
+    age: parseAge() ?? "—",
+    height: parseHeight() ?? "—",
+    weight: parseWeight() ?? "—",
+    exp: parseYearsExperience(),
+    ry: parseRookieYear(),
   };
 }
 
@@ -6095,25 +6235,6 @@ function createDataHubPlayerVitalsElement(vitals, { variant = "modal", pos = "" 
     container.appendChild(item);
   });
   return container;
-}
-
-function formatDataHubHeight(player) {
-  const feet = Number.parseInt(player.height_feet ?? player.metadata?.height_feet ?? player.height_ft, 10);
-  const inches = Number.parseInt(player.height_inches ?? player.metadata?.height_inches ?? player.height_in, 10);
-  if (Number.isFinite(feet)) {
-    return `${feet}'${Number.isFinite(inches) ? inches : 0}"`;
-  }
-  const raw = String(player.height ?? player.metadata?.height ?? "").trim();
-  const match = raw.match(/(\d+)[^\d]+(\d+)/);
-  if (match) {
-    return `${match[1]}'${match[2]}"`;
-  }
-  return raw || "";
-}
-
-function formatDataHubWeight(player) {
-  const weight = Number.parseInt(player.weight ?? player.metadata?.weight ?? player.weight_lbs, 10);
-  return Number.isFinite(weight) ? `${weight} lbs` : "";
 }
 
 function getDataHubVitalsColor(label, pos, rawValue) {

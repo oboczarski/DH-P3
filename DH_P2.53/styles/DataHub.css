@@ -6333,3 +6333,267 @@ body[data-page="datahub"] .weekly-point-label--capped::after {
     margin-left: 3px;
   }
 }
+
+/* DataHub Game Logs modal finish parity:
+   Targets: the shared Game Logs modal header shell and consistency mobile HUD.
+   What it does: ports the exact shared Rosters/Stats header sizing contract and
+   the missing mobile consistency typography so DataHub stops inheriting the
+   earlier custom modal layout values defined higher in this file.
+   Important notes: these selectors intentionally live at the end of the file
+   so they win over older DataHub-only modal rules without affecting other pages. */
+body[data-page="datahub"] #game-logs-modal .modal-content {
+  display: block;
+}
+
+body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
+  height: 638px;
+}
+
+body[data-page="datahub"] #game-logs-modal .modal-close-btn {
+  top: 0rem;
+  right: 0.45rem;
+  font-size: 2.2rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-header {
+  text-align: center;
+}
+
+body[data-page="datahub"] #game-logs-modal .modal-header-left-container {
+  position: absolute;
+  top: 0.70rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .modal-team-logo-chip {
+  min-height: 0;
+  padding: 0px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="datahub"] #game-logs-modal .modal-pos-tag {
+  min-height: 0;
+  padding: 4.4px 8.5px;
+  line-height: 0.9rem;
+  font-size: 0.9rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-player-name {
+  text-align: center;
+  margin-bottom: 0.12rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-header h3 {
+  display: inline-block;
+  max-width: 15ch;
+  margin-bottom: 0.2rem;
+  margin-left: 15px;
+  font-size: 1.15rem;
+  font-weight: 200;
+  color: var(--color-text-primary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-player-vitals {
+  display: flex;
+  justify-content: center;
+}
+
+body[data-page="datahub"] #game-logs-modal .player-vitals {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.9rem;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal .player-vitals__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .player-vitals__label {
+  font-size: 0.45rem;
+  letter-spacing: 0.07em;
+  color: #7b81a5;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .player-vitals__value {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #bdc1d8df;
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .player-vitals--modal {
+  margin: 0.2rem 0 0.58rem;
+  padding: 4px 7px;
+  border-radius: 8px;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-summary-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-summary-chips {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  width: auto;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip {
+  flex: 1;
+  min-width: auto;
+  padding: 0.25rem 0.7rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip h4 {
+  display: block;
+  margin-bottom: 0.1rem;
+  padding-bottom: 0.1rem;
+  border-bottom: 1px solid var(--color-panel-border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.8rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip .chip-values {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.25rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .chip-pos-rank-label {
+  font-size: 0.85em;
+  font-weight: 400;
+  margin-top: 0.05rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .pos-rank-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin: 0 auto 0.55rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab,
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+  min-height: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  padding: 0.05rem;
+  border-radius: 13px;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+  gap: 6px;
+  padding: 0.22rem 0.62rem;
+  border-radius: 11px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+    gap: 2.15rem;
+    margin-bottom: 0.45rem;
+    margin-right: 0;
+    padding: 0 0.15rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-tabs {
+    gap: 0.5rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-tab {
+    padding: 0.3rem 0.52rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
+    padding: 0.05rem 0.07rem;
+    border-radius: 7px;
+    gap: 0.12rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+    width: 5.3rem;
+    padding: 0.2rem 0.52rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option i {
+    font-size: 14px;
+  }
+
+  body[data-page="datahub"] .weekly-chart-x-axis .axis-week-prefix {
+    font-size: 0.7em;
+    letter-spacing: 0em;
+    opacity: 11;
+    font-weight: 400;
+  }
+
+  body[data-page="datahub"] .hud-insight-value {
+    font-size: 0.55rem;
+    margin-top: -2px;
+  }
+}
