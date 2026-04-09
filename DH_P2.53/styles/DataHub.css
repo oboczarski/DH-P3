@@ -641,13 +641,14 @@ body::after {
 .mini-chip,
 .subfilter-chip,
 .overlay-card__button {
+  position: relative;
   appearance: none;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03)),
     rgba(14, 22, 35, 0.54);
-  color: var(--text-primary);
+  color: rgb(163 173 189 / 96%);
   font: inherit;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -703,13 +704,31 @@ body::after {
 .top-tab.is-active,
 .category-chip.is-active,
 .subfilter-chip.is-active {
-  border-color: rgba(126, 214, 255, 0.6);
+  border: 0px solid transparent;
   color: #f3f8ff;
   background:
     linear-gradient(180deg, rgba(133, 215, 255, 0.24), rgba(162, 127, 255, 0.16)),
     rgba(11, 22, 39, 0.74);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 10px 16px rgba(44, 109, 214, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 16px rgba(44, 109, 214, 0.18);
+}
+
+.top-tab.is-active::before,
+.category-chip.is-active::before,
+.subfilter-chip.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  /* Active DataHub filter controls use the same gradient border ring as the
+     nav state so all selected buttons share one page-specific accent. */
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .top-pill--ghost,
