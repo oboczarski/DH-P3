@@ -200,6 +200,39 @@
             PICK VALUES
           </button>
         </div>
+
+        <!-- DataHub style switcher: this stays pinned to the hero's top-right
+             corner and only swaps page-local visual themes without changing
+             sizing, spacing, or any table/navigation behavior. -->
+        <div class="datahub-style-switcher" aria-label="DataHub visual styles">
+          <button
+            type="button"
+            class="datahub-style-switcher__button"
+            data-style-choice="spectra"
+            aria-label="Use Spectra theme"
+            aria-pressed="false"
+          >
+            <span class="datahub-style-switcher__swatch" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="datahub-style-switcher__button"
+            data-style-choice="ember"
+            aria-label="Use Ember theme"
+            aria-pressed="false"
+          >
+            <span class="datahub-style-switcher__swatch" aria-hidden="true"></span>
+          </button>
+          <button
+            type="button"
+            class="datahub-style-switcher__button"
+            data-style-choice="gridline"
+            aria-label="Use Gridline theme"
+            aria-pressed="false"
+          >
+            <span class="datahub-style-switcher__swatch" aria-hidden="true"></span>
+          </button>
+        </div>
       </section>
 
       <!-- Controls shell: category filters and search live outside the hero but

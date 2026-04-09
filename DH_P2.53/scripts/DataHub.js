@@ -510,6 +510,13 @@ const state = {
 };
 
 // ---------------------------------------------------------------------------
+// DataHub theme persistence stays separate from table state so visual style
+// changes never interfere with navigation, filters, sorting, or data loading.
+// ---------------------------------------------------------------------------
+const DATAHUB_STYLE_STORAGE_KEY = "dh_datahub_style";
+const DATAHUB_STYLES = Object.freeze(["spectra", "ember", "gridline"]);
+
+// ---------------------------------------------------------------------------
 // DOM anchors that define the page shell around the custom table renderer.
 // ---------------------------------------------------------------------------
 const mainTitle = document.querySelector("#main-title");
@@ -542,6 +549,9 @@ const moreToggles = Array.from(document.querySelectorAll(".nav-more-toggle"));
 const moreDropdown = document.querySelector("#datahubMoreMenu");
 const moreDropdownItems = Array.from(
   document.querySelectorAll("#datahubMoreMenu .nav-more-item"),
+);
+const dataHubStyleButtons = Array.from(
+  document.querySelectorAll("[data-style-choice]"),
 );
 
 const PAGE_ROUTES = Object.freeze({
@@ -578,6 +588,7 @@ initializeApp();
 // overlay so the layout stays stable even before CSV import completes.
 // ---------------------------------------------------------------------------
 function initializeApp() {
+  initializeDataHubStyle();
   attachEventListeners();
   syncUiState();
   updatePageTabsGlint();
@@ -602,6 +613,7 @@ function initializeApp() {
 // Event wiring
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
+  attachDataHubStyleListeners();
   attachNavigationListeners();
 
   primaryTabButtons.forEach((button) => {
@@ -653,6 +665,51 @@ function attachEventListeners() {
 
   window.addEventListener("load", updatePageTabsGlint);
   window.addEventListener("resize", handleViewportResize, { passive: true });
+}
+
+// DataHub theme controls only target the DataHub shell. They persist the
+// chosen style locally and update the circular switch buttons for accessibility.
+function initializeDataHubStyle() {
+  applyDataHubStyle(readStoredDataHubStyle());
+}
+
+function attachDataHubStyleListeners() {
+  dataHubStyleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyDataHubStyle(button.dataset.styleChoice);
+    });
+  });
+}
+
+function readStoredDataHubStyle() {
+  try {
+    return normalizeDataHubStyle(
+      window.localStorage.getItem(DATAHUB_STYLE_STORAGE_KEY),
+    );
+  } catch (_error) {
+    return DATAHUB_STYLES[0];
+  }
+}
+
+function normalizeDataHubStyle(style) {
+  return DATAHUB_STYLES.includes(style) ? style : DATAHUB_STYLES[0];
+}
+
+function applyDataHubStyle(styleChoice) {
+  const activeStyle = normalizeDataHubStyle(styleChoice);
+  document.body.dataset.datahubStyle = activeStyle;
+
+  dataHubStyleButtons.forEach((button) => {
+    const isActive = button.dataset.styleChoice === activeStyle;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  try {
+    window.localStorage.setItem(DATAHUB_STYLE_STORAGE_KEY, activeStyle);
+  } catch (_error) {
+    // Storage failures should not block theme switching during the session.
+  }
 }
 
 // Primary DataHub nav + More dropdown wiring.
