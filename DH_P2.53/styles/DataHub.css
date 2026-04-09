@@ -4078,12 +4078,14 @@ body[data-page="datahub"] .game-logs-loading-footer {
    tuning, and it stays fully scoped under `body[data-page="datahub"]`. */
 body[data-page="datahub"] #game-logs-modal .stat-rank-variant-gamelogs-footer sup.stat-rank-suffix-gamelogs-footer,
 body[data-page="datahub"] #game-logs-modal tfoot td.has-rank-annotation span.stat-rank-annotation sup {
+  position: relative !important;
   top: 0em !important;
   font-size: 0.5rem !important;
 }
 
 body[data-page="datahub"] #game-logs-modal .stat-rank-variant-gamelogs-opponent sup.stat-rank-suffix-gamelogs-opponent,
 body[data-page="datahub"] #game-logs-modal tbody td:first-child span.stat-rank-annotation sup {
+  position: relative !important;
   top: 0em !important;
   font-size: 0.5rem !important;
   display: inline-block !important;
@@ -4093,8 +4095,23 @@ body[data-page="datahub"] #game-logs-modal tbody td:first-child span.stat-rank-a
 }
 
 body[data-page="datahub"] #game-logs-modal .stat-rank-variant-szn sup.stat-rank-suffix-szn {
+  position: relative !important;
   top: 0em !important;
   font-size: 0.6rem !important;
+}
+
+body[data-page="datahub"] .has-rank-annotation {
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .has-rank-annotation .stat-rank-annotation {
+  display: inline-block;
+  font-size: 1.15em;
+  line-height: 1;
+  margin-left: 0.1em;
+  transform: translateY(-0.25em);
+  color: #eefd;
+  font-weight: 300;
 }
 
 body[data-page="datahub"] .gamelogs-modal-tabs {
@@ -5805,6 +5822,13 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
     padding: 0.08rem 0.18rem 0.12rem;
     min-height: 1.3rem;
     font-weight: 800;
+  }
+
+  body[data-page="datahub"] .weekly-chart-x-axis .axis-week-prefix {
+    font-size: 0.7em;
+    letter-spacing: 0em;
+    opacity: 11;
+    font-weight: 400;
   }
 
   body[data-page="datahub"] .weekly-zone-summary {

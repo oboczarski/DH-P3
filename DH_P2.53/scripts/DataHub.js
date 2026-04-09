@@ -3923,6 +3923,32 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
   if (statKey === "yds_total") {
     return (aggregatedTotals.pass_yd || 0) + (aggregatedTotals.rush_yd || 0) + (aggregatedTotals.rec_yd || 0);
   }
+  if (statKey === "fpoe") {
+    return Number.isFinite(aggregatedTotals.fpoe) ? aggregatedTotals.fpoe : null;
+  }
+  if (statKey === "pa_ypg") {
+    const gamesPlayed = Number.isFinite(seasonTotals?.games_played) ? seasonTotals.games_played : gameLogs.length;
+    const totalPassYds = aggregatedTotals.pass_yd || 0;
+    return gamesPlayed > 0 ? totalPassYds / gamesPlayed : null;
+  }
+  if (statKey === "ru_ypg") {
+    const gamesPlayed = Number.isFinite(seasonTotals?.games_played) ? seasonTotals.games_played : gameLogs.length;
+    const totalRushYds = aggregatedTotals.rush_yd || 0;
+    return gamesPlayed > 0 ? totalRushYds / gamesPlayed : null;
+  }
+  if (statKey === "rec_ypg") {
+    const gamesPlayed = Number.isFinite(seasonTotals?.games_played) ? seasonTotals.games_played : gameLogs.length;
+    const totalRecYds = aggregatedTotals.rec_yd || 0;
+    return gamesPlayed > 0 ? totalRecYds / gamesPlayed : null;
+  }
+  if (statKey === "dp_pct") {
+    const total = Number.isFinite(aggregatedTotals.dp_pct) ? aggregatedTotals.dp_pct : null;
+    const count = gameLogs
+      .map(({ stats }) => Number(stats?.dp_pct))
+      .filter(Number.isFinite)
+      .length;
+    return total !== null && count > 0 ? total / count : null;
+  }
   if (statKey === "snp_pct") {
     const snapValues = gameLogs
       .map(({ stats }) => Number(stats?.snp_pct))
@@ -3973,6 +3999,10 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
   if (statKey === "pass_imp_per_att") {
     const attempts = aggregatedTotals.pass_att || 0;
     return attempts > 0 ? ((aggregatedTotals.pass_imp || 0) / attempts) * 100 : null;
+  }
+  if (statKey === "pass_rtg") {
+    const gamesWithPassAttempts = gameLogs.filter(({ stats }) => (stats?.pass_att || 0) > 0).length;
+    return gamesWithPassAttempts > 0 ? (aggregatedTotals.pass_rtg || 0) / gamesWithPassAttempts : null;
   }
   if (statKey === "cmp_pct") {
     const attempts = aggregatedTotals.pass_att || 0;
@@ -4098,6 +4128,14 @@ function formatDataHubRadarStatValue(statKey, value) {
   return numericValue.toFixed(2);
 }
 
+function formatDataHubPercentage(value, decimals = 1) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return `${(0).toFixed(decimals)}%`;
+  }
+  return `${numericValue.toFixed(decimals)}%`;
+}
+
 function getDataHubRankDisplayText(rank) {
   if (rank === null || rank === undefined || Number.isNaN(rank)) {
     return "NA";
@@ -4167,11 +4205,97 @@ function getDataHubGameLogsSeasonDisplayValue({
   playerRanks,
 }) {
   if (key === "proj") return "-";
-  const numericValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
-  if (numericValue === null || numericValue === undefined || Number.isNaN(numericValue)) {
-    return "N/A";
+  let displayValue;
+
+  if (DATAHUB_NO_FALLBACK_KEYS.has(key)) {
+    const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
+    if (raw === null) {
+      displayValue = "N/A";
+    } else if (key === "expl_ru_pct") {
+      const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
+      displayValue = formatDataHubPercentage(normalized);
+    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct"].includes(key)) {
+      displayValue = formatDataHubPercentage(raw);
+    } else if (key === "cpoe") {
+      const formatted = formatDataHubPercentage(raw, 1);
+      displayValue = raw > 0 ? `+${formatted}` : formatted;
+    } else if (key === "epa_per_db") {
+      const formatted = Number(raw).toFixed(2);
+      displayValue = raw > 0 ? `+${formatted}` : formatted;
+    } else {
+      displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
+    }
+    return displayValue;
   }
-  return formatDataHubRadarStatValue(key, numericValue);
+
+  if (key === "fpts") {
+    const summaryFpts = playerRanks?.total_pts;
+    if (summaryFpts !== null && summaryFpts !== undefined && summaryFpts !== "") {
+      return typeof summaryFpts === "number" ? summaryFpts.toFixed(1) : String(summaryFpts);
+    }
+    const numericValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    return Number.isFinite(numericValue) ? Number(numericValue).toFixed(1) : "N/A";
+  }
+
+  if (key === "ppg") {
+    const summaryPpg = playerRanks?.ppg;
+    if (summaryPpg !== null && summaryPpg !== undefined && summaryPpg !== "") {
+      return typeof summaryPpg === "number" ? summaryPpg.toFixed(1) : String(summaryPpg);
+    }
+    const numericValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    return Number.isFinite(numericValue) ? Number(numericValue).toFixed(1) : "N/A";
+  }
+
+  if (key === "fpoe") {
+    const hasSeasonValue = seasonTotals && typeof seasonTotals.fpoe === "number" && Number.isFinite(seasonTotals.fpoe);
+    const hasAggregatedValue = aggregatedTotals && Object.prototype.hasOwnProperty.call(aggregatedTotals, "fpoe")
+      && typeof aggregatedTotals.fpoe === "number" && Number.isFinite(aggregatedTotals.fpoe);
+    if (!hasSeasonValue && !hasAggregatedValue) return "N/A";
+    const value = hasSeasonValue ? seasonTotals.fpoe : aggregatedTotals.fpoe;
+    return Number(value).toFixed(1);
+  }
+
+  if (["pa_ypg", "ru_ypg", "rec_ypg"].includes(key)) {
+    const perGameValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    return Number.isFinite(perGameValue) ? Number(perGameValue).toFixed(1) : "N/A";
+  }
+
+  if (key === "dp_pct") {
+    let pctValue = seasonTotals && typeof seasonTotals.dp_pct === "number" ? seasonTotals.dp_pct : null;
+    if (pctValue === null) {
+      const hasTotal = aggregatedTotals && typeof aggregatedTotals.dp_pct === "number" && Number.isFinite(aggregatedTotals.dp_pct);
+      const count = typeof statValueCounts?.dp_pct === "number" ? statValueCounts.dp_pct : 0;
+      if (hasTotal && count > 0) pctValue = aggregatedTotals.dp_pct / count;
+    }
+    if (pctValue === null || pctValue === undefined || !Number.isFinite(Number(pctValue))) {
+      return "N/A";
+    }
+    const normalized = Math.abs(pctValue) <= 1.5 ? pctValue * 100 : pctValue;
+    return formatDataHubPercentage(normalized, 1);
+  }
+
+  if (key === "pass_rtg") {
+    const rating = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    if (!Number.isFinite(rating)) return "N/A";
+    return Number.isInteger(rating) ? String(rating) : Number(rating).toFixed(1);
+  }
+
+  if (["pass_imp_per_att", "prs_pct", "cmp_pct", "snp_pct", "ts_per_rr"].includes(key)) {
+    const pctValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    if (!Number.isFinite(pctValue)) return "N/A";
+    return formatDataHubPercentage(pctValue);
+  }
+
+  if (["ypc", "yco_per_att", "mtf_per_att", "ttt", "imp_per_g", "yprr", "ypr", "first_down_rec_rate"].includes(key)) {
+    const numericValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+    if (!Number.isFinite(numericValue)) return "N/A";
+    if (key === "ttt" && Number.isInteger(numericValue)) return String(numericValue);
+    return Number.isInteger(numericValue) ? String(numericValue) : Number(numericValue).toFixed(2);
+  }
+
+  const totalValue = computeDataHubSeasonValue(key, seasonTotals, aggregatedTotals, gameLogsWithData, playerRanks);
+  if (!Number.isFinite(totalValue)) return "N/A";
+  return Number.isInteger(totalValue) ? String(totalValue) : Number(totalValue).toFixed(2);
 }
 
 function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
