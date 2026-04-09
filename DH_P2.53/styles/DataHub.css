@@ -2200,13 +2200,14 @@ body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content,
 body[data-page="datahub"] #game-logs-modal:not(.hidden) .ownership-modal-content {
   transform: scale(1);
   opacity: 1;
+  height: 638px;
 }
 
 body[data-page="datahub"] #game-logs-modal .modal-content {
   display: flex;
   flex-direction: column;
-  padding: 0.68rem 0.82rem 0.32rem;
-  height: min(88vh, 640px);
+  padding: 0.65rem 0.85rem 0.25rem 0.85rem;
+  max-height: 90vh;
 }
 
 body[data-page="datahub"] .gamelogs-tab-pane {
@@ -2552,14 +2553,17 @@ body[data-page="datahub"] #modal-body {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  color: #8086b0;
   overflow-x: auto;
   overflow-y: auto;
-  border-radius: 10px;
-  background: rgba(25, 32, 49, 0.72);
-  border: 1px solid rgba(170, 187, 255, 0.16);
+  border-radius: 9px;
+  max-height: 70vh;
+  background: #282d438c;
+  border: 1px solid rgba(250, 250, 250, 0);
   box-shadow:
-    0 8px 32px rgba(31, 38, 105, 0.12),
-    inset 0 6px 20px rgba(255, 255, 255, 0.015);
+    0 8px 32px rgba(31, 38, 105, 0.15),
+    inset 0 6px 20px rgba(255, 255, 255, 0.013);
+  height: 416px;
   scrollbar-width: none;
   overscroll-behavior: contain;
 }
@@ -2594,8 +2598,9 @@ body[data-page="datahub"] #game-logs-modal #modal-body:has(.game-logs-szn-view:n
 body[data-page="datahub"] .game-logs-table-container {
   display: flex;
   flex-direction: column;
+  gap: 0;
   height: 100%;
-  border: 1px solid rgba(170, 187, 255, 0.12);
+  border: 1px solid #aaf2;
   border-radius: 10px;
 }
 
@@ -2604,6 +2609,7 @@ body[data-page="datahub"] .game-logs-hscroll {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 0;
 }
 
 body[data-page="datahub"] .game-logs-hscroll-content {
@@ -2618,12 +2624,18 @@ body[data-page="datahub"] .game-logs-table-footer {
   padding: 0;
 }
 
+/* Footer needs small padding-bottom to avoid clipping */
+body[data-page="datahub"] .game-logs-table-footer {
+  padding-bottom: 4px;
+  margin-bottom: 0;
+}
+
 body[data-page="datahub"] .game-logs-table-body {
   max-height: 322px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
 }
 
 body[data-page="datahub"] .game-logs-table-body::-webkit-scrollbar {
@@ -2641,9 +2653,12 @@ body[data-page="datahub"] .game-logs-hscroll::-webkit-scrollbar-thumb {
 
 body[data-page="datahub"] .game-logs-table,
 body[data-page="datahub"] #modal-body table {
+  width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
   font-size: 0.7rem;
+  will-change: transform;
+  transform: translateZ(0);
   color: var(--datahub-modal-text-primary);
 }
 
@@ -2662,9 +2677,31 @@ body[data-page="datahub"] #modal-body td {
 
 body[data-page="datahub"] #modal-body th {
   font-size: 0.64rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #bbc0e8;
   white-space: nowrap;
+}
+
+/* Week column header/cell: tighter padding, muted color */
+body[data-page="datahub"] .week-column-header {
+  font-weight: 700;
+  text-align: center;
+}
+
+body[data-page="datahub"] #modal-body thead .week-column-header,
+body[data-page="datahub"] #modal-body tbody .week-cell,
+body[data-page="datahub"] #modal-body tfoot .week-column-header {
+  color: #8f93ab;
+  padding-right: 1px;
+  padding-left: 1px;
+}
+
+body[data-page="datahub"] #modal-body tbody .week-cell {
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 0rem 0.2rem;
 }
 
 body[data-page="datahub"] #modal-body thead th {
@@ -2728,37 +2765,85 @@ body[data-page="datahub"] .unplayed-week-row {
   opacity: 0.82;
 }
 
+/* Game log week tag container — matches Stats page inline-grid layout */
 body[data-page="datahub"] .gamelog-week-tag {
-  display: inline-flex;
+  --week-tag-w: 57px;
+  --week-tag-h: 26px;
+  position: relative;
+  display: inline-grid;
   align-items: center;
-  justify-content: center;
-  gap: 0.08rem;
-  min-height: 24px;
-  min-width: 58px;
-  padding: 0 0.3rem;
-  border-radius: 6px;
-  border: 1px solid rgba(250, 250, 250, 0.1);
+  justify-items: center;
+  width: var(--week-tag-w);
+  min-width: var(--week-tag-w);
+  height: 1.2rem;
+  min-height: 1.5rem;
+  line-height: 1;
+  border-radius: 4px;
   background: rgba(0, 0, 0, 0.02);
-  box-shadow: var(--datahub-modal-card-shadow);
-  white-space: nowrap;
+  -webkit-backdrop-filter: blur(1px) saturate(180%);
+  backdrop-filter: blur(1px) saturate(180%);
+  border: 1px solid rgba(250, 250, 250, 0.1);
+  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.10), inset 0 6px 20px rgba(255, 255, 255, 0.013);
 }
 
+/* Glass refraction overlay on week tag */
+body[data-page="datahub"] .gamelog-week-tag::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(1px);
+  box-shadow: inset 10px 12px 0px -8px rgba(255, 255, 255, .05),
+    inset 0px 8px 0px -6px rgba(255, 255, 255, .051);
+  opacity: 0.4;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Top line: WK-# */
 body[data-page="datahub"] .gamelog-week-tag-number {
   font-size: 0.6rem;
   font-weight: 700;
   color: #8f93ab;
+  margin: 0;
 }
 
-body[data-page="datahub"] .gamelog-week-tag-opponent-text,
-body[data-page="datahub"] .gamelog-week-tag-rank,
-body[data-page="datahub"] .gamelog-week-tag-separator {
+/* Bottom line: opponent • rank */
+body[data-page="datahub"] .gamelog-week-tag-opponent {
   font-size: 0.5rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.05rem;
+  margin: 0;
+}
+
+body[data-page="datahub"] .gamelog-week-tag-opponent-text {
+  display: inline-block;
 }
 
 body[data-page="datahub"] .gamelog-week-tag-separator {
   color: #8f93ab;
-  opacity: 0.66;
+  opacity: 0.6;
+  margin: 0px 1px;
+}
+
+body[data-page="datahub"] .gamelog-week-tag-rank {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 0.5rem;
+}
+
+body[data-page="datahub"] .gamelog-week-tag-rank-number {
+  font-size: 0.95em;
+  font-weight: 400;
+}
+
+body[data-page="datahub"] .gamelog-week-tag-rank-suffix {
+  font-size: 0.9em;
+  font-weight: 400;
 }
 
 body[data-page="datahub"] .game-logs-szn-view {
@@ -3811,7 +3896,17 @@ body[data-page="datahub"] .game-logs-loading-footer {
 
   body[data-page="datahub"] #game-logs-modal .modal-content {
     padding: 0.58rem 0.52rem 0.28rem;
-    height: min(90vh, 690px);
+  }
+
+  /* Mobile modal content height — matches Stats page 573px */
+  body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
+    height: 573px;
+  }
+
+  /* Mobile modal body height — matches Stats page */
+  body[data-page="datahub"] #modal-body {
+    height: 352px;
+    max-height: 65vh;
   }
 
   /* Constrain table body height on mobile to match Stats page */
