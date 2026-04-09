@@ -2098,7 +2098,7 @@ function hideOverlay() {
 
   themeBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const selectedTheme = e.target.getAttribute('data-theme');
+      const selectedTheme = btn.getAttribute('data-theme');
       if (!selectedTheme) return;
       
       document.body.setAttribute('data-theme', selectedTheme);
