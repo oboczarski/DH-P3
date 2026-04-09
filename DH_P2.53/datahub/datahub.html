@@ -33,6 +33,39 @@
            stacked mobile layout can keep its own DOM order without re-parenting. -->
       <header class="app-header app-header--mobile">
         <div class="header-shell header-shell--stacked">
+          <!-- DataHub theme switcher: stays in the mobile header's top-right corner
+               so users can swap the page-only visual system without moving layout. -->
+          <div class="theme-switcher theme-switcher--mobile" role="group" aria-label="DataHub styles">
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--prism"
+              data-theme-variant="prism"
+              aria-label="Switch DataHub to the Prism style"
+              aria-pressed="true"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--forge"
+              data-theme-variant="forge"
+              aria-label="Switch DataHub to the Forge style"
+              aria-pressed="false"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--signal"
+              data-theme-variant="signal"
+              aria-label="Switch DataHub to the Signal style"
+              aria-pressed="false"
+            ></button>
+            <button
+              type="button"
+              class="theme-switcher__button theme-switcher__button--afterglow"
+              data-theme-variant="afterglow"
+              aria-label="Switch DataHub to the Afterglow style"
+              aria-pressed="false"
+            ></button>
+          </div>
+
           <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
             <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
             <span class="brand-lockup__wordmark">
@@ -134,7 +167,40 @@
               </nav>
             </div>
 
-            <div class="app-header__balance" aria-hidden="true"></div>
+            <div class="app-header__balance">
+              <!-- DataHub theme switcher: this desktop copy lives in the mirrored
+                   right-side header slot so the nav stays centered and untouched. -->
+              <div class="theme-switcher theme-switcher--desktop" role="group" aria-label="DataHub styles">
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--prism"
+                  data-theme-variant="prism"
+                  aria-label="Switch DataHub to the Prism style"
+                  aria-pressed="true"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--forge"
+                  data-theme-variant="forge"
+                  aria-label="Switch DataHub to the Forge style"
+                  aria-pressed="false"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--signal"
+                  data-theme-variant="signal"
+                  aria-label="Switch DataHub to the Signal style"
+                  aria-pressed="false"
+                ></button>
+                <button
+                  type="button"
+                  class="theme-switcher__button theme-switcher__button--afterglow"
+                  data-theme-variant="afterglow"
+                  aria-label="Switch DataHub to the Afterglow style"
+                  aria-pressed="false"
+                ></button>
+              </div>
+            </div>
           </div>
         </header>
 

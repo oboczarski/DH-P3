@@ -318,6 +318,8 @@ let leagueUsernameGateButtonLabelEl = null;
 let leagueUsernameGateLoadingEyebrowEl = null;
 let leagueUsernameGateLoadingTitleEl = null;
 let leagueUsernameGateLoadingDescriptionEl = null;
+let leagueUsernameGateMoreToggleEl = null;
+let leagueUsernameGateMoreMenuEl = null;
 let initialPageDataLoadPromise = null;
 function normalizeLeagueUsername(value) {
     return String(value || '').trim().toLowerCase();
@@ -369,54 +371,116 @@ function ensureLeagueUsernameGate() {
     // League-connected username gate:
     // injected once per gated page so Rosters, Ownership, and LeagueHub can share
     // the same high-end username prompt without duplicating markup in each HTML file.
+    // The overlay now includes its own top navigation bar so users can move through
+    // the shared app shell without dropping behind the gate first.
     document.body.insertAdjacentHTML('beforeend', `
         <div id="leagueUsernameGate" class="league-username-gate" aria-hidden="true" hidden>
             <div class="league-username-gate__backdrop" aria-hidden="true"></div>
-            <div class="league-username-gate__dialog" role="dialog" aria-modal="true" aria-labelledby="leagueUsernameGateTitle">
-                <div class="league-username-gate__card">
-                    <span class="league-username-gate__beam" aria-hidden="true"></span>
-                    <div class="league-username-gate__panel league-username-gate__panel--form">
-                        <div class="league-username-gate__badge">
-                            <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
-                            <span id="leagueUsernameGateEyebrow"></span>
-                        </div>
-                        <h2 id="leagueUsernameGateTitle" class="league-username-gate__title"></h2>
-                        <p id="leagueUsernameGateDescription" class="league-username-gate__description"></p>
-                        <form id="leagueUsernameGateForm" class="league-username-gate__form">
-                            <label class="sr-only" for="leagueUsernameGateInput">Sleeper username</label>
-                            <div class="league-username-gate__input-stack">
-                                <div class="league-username-gate__input-shell">
-                                    <span class="league-username-gate__input-edge" aria-hidden="true"></span>
-                                    <span class="league-username-gate__input-haze" aria-hidden="true"></span>
-                                    <svg class="league-username-gate__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                        <circle cx="12" cy="7" r="4"></circle>
-                                    </svg>
-                                    <input id="leagueUsernameGateInput" type="text" inputmode="text" autocapitalize="none" autocomplete="username" autocorrect="off" spellcheck="false" placeholder="Enter Sleeper username" />
-                                    <button id="leagueUsernameGateSubmit" class="league-username-gate__submit" type="submit">
-                                        <span id="leagueUsernameGateButtonLabel" class="league-username-gate__submit-label"></span>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                            <path d="M5 12h14"></path>
-                                            <path d="m12 5 7 7-7 7"></path>
-                                        </svg>
+            <div class="league-username-gate__layout">
+                <header class="league-username-gate__nav-shell" aria-label="Dynasty Hub navigation">
+                    <div class="league-username-gate__nav-bar">
+                        <nav class="league-username-gate__nav-grid" aria-label="Primary navigation">
+                            <button class="nav-button league-username-gate__nav-button" type="button" data-gate-nav="home">
+                                <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true" />
+                                <span class="nav-label">Home</span>
+                            </button>
+                            <button class="nav-button league-username-gate__nav-button" type="button" data-gate-nav="rosters">
+                                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                                <span class="nav-label">Rosters</span>
+                            </button>
+                            <button class="nav-button league-username-gate__nav-button" type="button" data-gate-nav="datahub">
+                                <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+                                <span class="nav-label">DataHub</span>
+                            </button>
+                            <button class="nav-button league-username-gate__nav-button" type="button" data-gate-nav="leaguehub">
+                                <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
+                                <span class="nav-label">LeagueHub</span>
+                            </button>
+                            <button class="nav-button league-username-gate__nav-button" type="button" data-gate-nav="research">
+                                <i class="fa-solid fa-flask" aria-hidden="true"></i>
+                                <span class="nav-label">Research</span>
+                            </button>
+                            <div class="league-username-gate__more">
+                                <button
+                                    class="nav-button league-username-gate__nav-button league-username-gate__more-toggle"
+                                    type="button"
+                                    data-gate-more-toggle
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="leagueUsernameGateMoreMenu"
+                                >
+                                    <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+                                    <span class="nav-label">More</span>
+                                    <i class="fa-solid fa-caret-down league-username-gate__more-caret" aria-hidden="true"></i>
+                                </button>
+                                <div id="leagueUsernameGateMoreMenu" class="league-username-gate__more-menu hidden" role="menu" aria-hidden="true" data-gate-more-menu>
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-nav="ownership" role="menuitem">
+                                        <i class="fa-solid fa-percent" aria-hidden="true"></i>
+                                        <span class="nav-label">Ownership</span>
+                                    </button>
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
+                                        <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+                                        <span class="nav-label">Trophy Room</span>
+                                    </button>
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
+                                        <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+                                        <span class="nav-label">Matchups</span>
+                                    </button>
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-nav="contact" role="menuitem">
+                                        <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                                        <span class="nav-label">Contact</span>
                                     </button>
                                 </div>
-                                <p class="league-username-gate__hint">No password needed — just your public Sleeper username.</p>
-                                <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
                             </div>
-                        </form>
+                        </nav>
                     </div>
-                    <div class="league-username-gate__panel league-username-gate__panel--loading" hidden aria-live="polite">
-                        <div class="league-username-gate__loader" aria-hidden="true">
-                            <span class="league-username-gate__loader-ring"></span>
-                            <span class="league-username-gate__loader-core"></span>
+                </header>
+                <div class="league-username-gate__dialog" role="dialog" aria-modal="true" aria-labelledby="leagueUsernameGateTitle">
+                    <div class="league-username-gate__card">
+                        <span class="league-username-gate__beam" aria-hidden="true"></span>
+                        <div class="league-username-gate__panel league-username-gate__panel--form">
+                            <div class="league-username-gate__badge">
+                                <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
+                                <span id="leagueUsernameGateEyebrow"></span>
+                            </div>
+                            <h2 id="leagueUsernameGateTitle" class="league-username-gate__title"></h2>
+                            <p id="leagueUsernameGateDescription" class="league-username-gate__description"></p>
+                            <form id="leagueUsernameGateForm" class="league-username-gate__form">
+                                <label class="sr-only" for="leagueUsernameGateInput">Sleeper username</label>
+                                <div class="league-username-gate__input-stack">
+                                    <div class="league-username-gate__input-shell">
+                                        <span class="league-username-gate__input-edge" aria-hidden="true"></span>
+                                        <span class="league-username-gate__input-haze" aria-hidden="true"></span>
+                                        <svg class="league-username-gate__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                        <input id="leagueUsernameGateInput" type="text" inputmode="text" autocapitalize="none" autocomplete="username" autocorrect="off" spellcheck="false" placeholder="Enter Sleeper username" />
+                                        <button id="leagueUsernameGateSubmit" class="league-username-gate__submit" type="submit">
+                                            <span id="leagueUsernameGateButtonLabel" class="league-username-gate__submit-label"></span>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                                <path d="M5 12h14"></path>
+                                                <path d="m12 5 7 7-7 7"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <p class="league-username-gate__hint">No password needed — just your public Sleeper username.</p>
+                                    <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
+                                </div>
+                            </form>
                         </div>
-                        <div class="league-username-gate__badge league-username-gate__badge--loading">
-                            <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
-                            <span id="leagueUsernameGateLoadingEyebrow"></span>
+                        <div class="league-username-gate__panel league-username-gate__panel--loading" hidden aria-live="polite">
+                            <div class="league-username-gate__loader" aria-hidden="true">
+                                <span class="league-username-gate__loader-ring"></span>
+                                <span class="league-username-gate__loader-core"></span>
+                            </div>
+                            <div class="league-username-gate__badge league-username-gate__badge--loading">
+                                <span class="league-username-gate__badge-dot" aria-hidden="true"></span>
+                                <span id="leagueUsernameGateLoadingEyebrow"></span>
+                            </div>
+                            <h2 id="leagueUsernameGateLoadingTitle" class="league-username-gate__title league-username-gate__title--loading"></h2>
+                            <p id="leagueUsernameGateLoadingDescription" class="league-username-gate__description league-username-gate__description--loading"></p>
                         </div>
-                        <h2 id="leagueUsernameGateLoadingTitle" class="league-username-gate__title league-username-gate__title--loading"></h2>
-                        <p id="leagueUsernameGateLoadingDescription" class="league-username-gate__description league-username-gate__description--loading"></p>
                     </div>
                 </div>
             </div>
@@ -434,8 +498,12 @@ function ensureLeagueUsernameGate() {
     leagueUsernameGateLoadingEyebrowEl = document.getElementById('leagueUsernameGateLoadingEyebrow');
     leagueUsernameGateLoadingTitleEl = document.getElementById('leagueUsernameGateLoadingTitle');
     leagueUsernameGateLoadingDescriptionEl = document.getElementById('leagueUsernameGateLoadingDescription');
+    leagueUsernameGateMoreToggleEl = leagueUsernameGateRoot?.querySelector('[data-gate-more-toggle]') || null;
+    leagueUsernameGateMoreMenuEl = document.getElementById('leagueUsernameGateMoreMenu');
 
     leagueUsernameGateForm?.addEventListener('submit', handleLeagueUsernameGateSubmit);
+    leagueUsernameGateRoot?.addEventListener('click', handleLeagueUsernameGateClick);
+    leagueUsernameGateRoot?.addEventListener('keydown', handleLeagueUsernameGateKeydown);
 
     if (typeof window !== 'undefined') {
         window.__dhUsernameGate = {
@@ -447,6 +515,113 @@ function ensureLeagueUsernameGate() {
     }
 
     return leagueUsernameGateRoot;
+}
+function closeLeagueUsernameGateMoreMenu() {
+    if (!leagueUsernameGateMoreToggleEl || !leagueUsernameGateMoreMenuEl) return;
+    leagueUsernameGateMoreToggleEl.setAttribute('aria-expanded', 'false');
+    leagueUsernameGateMoreMenuEl.classList.add('hidden');
+    leagueUsernameGateMoreMenuEl.setAttribute('aria-hidden', 'true');
+}
+function toggleLeagueUsernameGateMoreMenu(forceExpanded) {
+    if (!leagueUsernameGateMoreToggleEl || !leagueUsernameGateMoreMenuEl) return;
+    const shouldExpand = typeof forceExpanded === 'boolean'
+        ? forceExpanded
+        : leagueUsernameGateMoreToggleEl.getAttribute('aria-expanded') !== 'true';
+    leagueUsernameGateMoreToggleEl.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
+    leagueUsernameGateMoreMenuEl.classList.toggle('hidden', !shouldExpand);
+    leagueUsernameGateMoreMenuEl.setAttribute('aria-hidden', shouldExpand ? 'false' : 'true');
+}
+function syncLeagueUsernameGateNavState(activePage = pageType) {
+    if (!leagueUsernameGateRoot) return;
+    const normalizedPage = String(activePage || '').trim().toLowerCase();
+
+    // Overlay navigation state:
+    // highlights the current gated page in the top bar, and uses the More button
+    // as the visible active state whenever Ownership is the current destination.
+    leagueUsernameGateRoot.querySelectorAll('[data-gate-nav]').forEach((button) => {
+        const isActive = normalizedPage !== 'ownership' && button.dataset.gateNav === normalizedPage;
+        button.classList.toggle('active', isActive);
+        if (isActive) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+    });
+
+    const isMoreActive = normalizedPage === 'ownership';
+    if (leagueUsernameGateMoreToggleEl) {
+        leagueUsernameGateMoreToggleEl.classList.toggle('active', isMoreActive);
+        if (isMoreActive) leagueUsernameGateMoreToggleEl.setAttribute('aria-current', 'page');
+        else leagueUsernameGateMoreToggleEl.removeAttribute('aria-current');
+    }
+
+    leagueUsernameGateRoot.querySelectorAll('[data-gate-menu-nav]').forEach((button) => {
+        const isActive = button.dataset.gateMenuNav === normalizedPage;
+        button.classList.toggle('is-active', isActive);
+        if (isActive) button.setAttribute('aria-current', 'page');
+        else button.removeAttribute('aria-current');
+    });
+}
+async function navigateFromLeagueUsernameGate(target) {
+    const page = target?.dataset?.gateNav || target?.dataset?.gateMenuNav || '';
+    const url = target?.dataset?.gateUrl || target?.dataset?.gateMenuUrl || '';
+
+    try {
+        suppressFocusTemporary();
+        leagueUsernameGateInputEl?.blur();
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+    } catch (error) { }
+
+    closeLeagueUsernameGateMoreMenu();
+
+    if (url) {
+        const destination = typeof window.__dhBuildExternalUrl === 'function'
+            ? window.__dhBuildExternalUrl(url)
+            : url;
+        window.location.href = destination;
+        return;
+    }
+
+    if (page) {
+        await ensureNavigate(page);
+    }
+}
+function handleLeagueUsernameGateClick(event) {
+    const moreToggle = event.target.closest('[data-gate-more-toggle]');
+    if (moreToggle && leagueUsernameGateRoot?.contains(moreToggle)) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleLeagueUsernameGateMoreMenu();
+        return;
+    }
+
+    const moreAction = event.target.closest('[data-gate-menu-nav], [data-gate-menu-url]');
+    if (moreAction && leagueUsernameGateRoot?.contains(moreAction)) {
+        event.preventDefault();
+        event.stopPropagation();
+        void navigateFromLeagueUsernameGate(moreAction);
+        return;
+    }
+
+    const navAction = event.target.closest('[data-gate-nav]');
+    if (navAction && leagueUsernameGateRoot?.contains(navAction)) {
+        event.preventDefault();
+        event.stopPropagation();
+        void navigateFromLeagueUsernameGate(navAction);
+        return;
+    }
+
+    if (!event.target.closest('.league-username-gate__more')) {
+        closeLeagueUsernameGateMoreMenu();
+    }
+}
+function handleLeagueUsernameGateKeydown(event) {
+    if (event.key !== 'Escape') return;
+    if (!leagueUsernameGateMoreMenuEl || leagueUsernameGateMoreMenuEl.classList.contains('hidden')) return;
+    event.preventDefault();
+    closeLeagueUsernameGateMoreMenu();
+    try {
+        leagueUsernameGateMoreToggleEl?.focus();
+    } catch (error) { }
 }
 function initializeLeagueUsernameGate() {
     if (!usesLeagueUsernameGate(pageType)) return;
@@ -504,6 +679,8 @@ function showLeagueUsernameGate(options = {}) {
     gate.setAttribute('aria-hidden', 'false');
     gate.classList.add('is-open');
     document.body.classList.add('league-gate-active');
+    syncLeagueUsernameGateNavState(activePage);
+    closeLeagueUsernameGateMoreMenu();
 
     leagueUsernameGateEyebrowEl.textContent = copy.eyebrow;
     leagueUsernameGateTitleEl.textContent = copy.title;
@@ -540,6 +717,7 @@ function hideLeagueUsernameGate() {
     leagueUsernameGateRoot.classList.remove('is-open', 'is-loading', 'has-error');
     leagueUsernameGateRoot.dataset.submitting = 'false';
     leagueUsernameGateRoot.setAttribute('aria-hidden', 'true');
+    closeLeagueUsernameGateMoreMenu();
     window.setTimeout(() => {
         if (leagueUsernameGateRoot && !leagueUsernameGateRoot.classList.contains('is-open')) {
             leagueUsernameGateRoot.hidden = true;

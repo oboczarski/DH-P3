@@ -345,6 +345,10 @@ const CATEGORY_FILTERS = {
 };
 
 const MOBILE_BREAKPOINT = 719;
+const DEFAULT_DATAHUB_THEME = "prism";
+const DATAHUB_THEME_STORAGE_KEY = "dh_datahub_theme";
+const DATAHUB_THEMES = Object.freeze(["prism", "forge", "signal", "afterglow"]);
+const DATAHUB_THEME_SET = new Set(DATAHUB_THEMES);
 
 const COLUMN_WIDTHS = {
   RK: 78,
@@ -506,6 +510,7 @@ const state = {
     direction: "asc",
   },
   isCompactViewport: isCompactViewport(),
+  themeVariant: DEFAULT_DATAHUB_THEME,
   columnFormatting: Object.create(null),
 };
 
@@ -524,6 +529,9 @@ const filePickerInput = document.querySelector("#file-picker-input");
 const playerSearch = document.querySelector("#player-search");
 const gridContainer = document.querySelector("#player-grid");
 const pageTabs = document.querySelector(".page-tabs");
+const themeButtons = Array.from(
+  document.querySelectorAll("[data-theme-variant]"),
+);
 const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
@@ -570,6 +578,7 @@ let supplementalDataPromise = null;
 let activeMoreToggle = null;
 let moreCloseTimer = 0;
 
+applyInitialTheme();
 initializeApp();
 
 // ---------------------------------------------------------------------------
@@ -603,6 +612,7 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
   attachNavigationListeners();
+  attachThemeSwitcherListeners();
 
   primaryTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -653,6 +663,73 @@ function attachEventListeners() {
 
   window.addEventListener("load", updatePageTabsGlint);
   window.addEventListener("resize", handleViewportResize, { passive: true });
+}
+
+// DataHub theme controller: this only targets the page shell visuals via a
+// body data attribute, so the active style can change without touching data or
+// table render state. Stored selection is local to DataHub.
+function applyInitialTheme() {
+  setDataHubTheme(readStoredThemeVariant(), { persist: false });
+}
+
+function attachThemeSwitcherListeners() {
+  themeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextTheme = button.dataset.themeVariant;
+      if (!isValidDataHubTheme(nextTheme) || nextTheme === state.themeVariant) {
+        return;
+      }
+
+      setDataHubTheme(nextTheme);
+    });
+  });
+}
+
+function setDataHubTheme(themeVariant, options = {}) {
+  const { persist = true } = options;
+  const resolvedTheme = isValidDataHubTheme(themeVariant)
+    ? themeVariant
+    : DEFAULT_DATAHUB_THEME;
+
+  state.themeVariant = resolvedTheme;
+  document.body.dataset.datahubTheme = resolvedTheme;
+  syncThemeSwitcherUi();
+
+  if (persist) {
+    persistThemeVariant(resolvedTheme);
+  }
+}
+
+function syncThemeSwitcherUi() {
+  themeButtons.forEach((button) => {
+    const isActive = button.dataset.themeVariant === state.themeVariant;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function readStoredThemeVariant() {
+  try {
+    const storedTheme = localStorage.getItem(DATAHUB_THEME_STORAGE_KEY);
+    return isValidDataHubTheme(storedTheme)
+      ? storedTheme
+      : DEFAULT_DATAHUB_THEME;
+  } catch (error) {
+    return DEFAULT_DATAHUB_THEME;
+  }
+}
+
+function persistThemeVariant(themeVariant) {
+  try {
+    localStorage.setItem(DATAHUB_THEME_STORAGE_KEY, themeVariant);
+  } catch (error) {
+    // Storage can fail in privacy-restricted contexts; the page still works
+    // by keeping the chosen theme in memory for the current session.
+  }
+}
+
+function isValidDataHubTheme(themeVariant) {
+  return typeof themeVariant === "string" && DATAHUB_THEME_SET.has(themeVariant);
 }
 
 // Primary DataHub nav + More dropdown wiring.
