@@ -9710,7 +9710,7 @@ body.league-gate-active {
   }
 
   .league-username-gate__input-shell input {
-    font-size: 0.94rem;
+    font-size: 16px;
   }
 
   .league-username-gate__submit {
