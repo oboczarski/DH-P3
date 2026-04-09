@@ -1975,6 +1975,157 @@ body::after {
    selectors, that rule is dropped entirely.
    ────────────────────────────────────────────────────────────────────────── */
 
+/* ── DataHub game-logs foundations ──────────────────────────────────────────
+   Required because DataHub.css does NOT load styles.css.
+   1. CSS token aliases: names used throughout the ported styles.css rules.
+      Defined on body[data-page="datahub"] so they only affect this page.
+   2. .hidden utility: JS-toggled panels (stats-key, radar, consistency,
+      ownership pane, szn-view etc.) rely on this to stay hidden by default.
+   3. .custom-tooltip + .stats-player-btn: DataHub-only UI rules used by
+      DataHub.js for player row clicks and tooltip feedback.
+   4. z-index override: styles.css uses z-index:100 for #game-logs-modal
+      but DataHub's page shell requires 1300 to stack above other layers.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* CSS token aliases: map ported styles.css var() names → DataHub values */
+body[data-page="datahub"] {
+  --datahub-modal-text-primary: rgba(238, 243, 255, 0.96);
+  --datahub-modal-text-secondary: rgba(189, 206, 232, 0.76);
+  --datahub-modal-text-tertiary: rgba(144, 150, 192, 0.7);
+  --datahub-modal-border: rgba(128, 138, 189, 0.2);
+  --datahub-modal-border-strong: rgba(183, 194, 246, 0.18);
+  --datahub-modal-panel-bg: rgba(18, 24, 39, 0.86);
+  --datahub-modal-panel-bg-strong: rgba(13, 17, 28, 0.94);
+  --datahub-modal-chip-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(9, 14, 24, 0.5);
+  --datahub-modal-card-shadow:
+    0 8px 32px rgba(31, 38, 105, 0.16),
+    inset 0 6px 20px rgba(255, 255, 255, 0.015);
+  --color-text-primary: var(--datahub-modal-text-primary);
+  --color-text-secondary: var(--datahub-modal-text-secondary);
+  --color-text-tertiary: #5f6795;
+  --color-text-teriary: #5f6795;
+  --color-panel-border: rgba(128, 138, 189, 0.2);
+  --color-panel-border-glow: rgba(128, 138, 189, 0.4);
+  --color-panel-bg: rgba(22, 24, 43, 0.1);
+  --color-accent-primary: #766dff;
+  --color-accent-primary-glow: rgba(118, 109, 255, 0.5);
+  --panel-border-radius: 12px;
+  --card-border-radius: 8px;
+}
+
+/* .hidden utility: hides any JS-toggled panel/pane that starts hidden */
+body[data-page="datahub"] .hidden {
+  display: none !important;
+}
+
+/* Tooltip feedback for blocked modal actions (unavailable seasons, missing
+   ownership context, etc.) — triggered by DataHub.js tooltip logic */
+body[data-page="datahub"] .custom-tooltip {
+  position: absolute;
+  z-index: 1400;
+  max-width: min(240px, calc(100vw - 24px));
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(178, 193, 252, 0.18);
+  background:
+    linear-gradient(180deg, rgba(31, 40, 63, 0.96), rgba(14, 19, 30, 0.96)),
+    rgba(10, 14, 24, 0.95);
+  color: var(--datahub-modal-text-primary);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+body[data-page="datahub"] .custom-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  border-left: 1px solid rgba(178, 193, 252, 0.18);
+  border-top: 1px solid rgba(178, 193, 252, 0.18);
+  background: rgba(27, 35, 54, 0.98);
+}
+
+body[data-page="datahub"] .custom-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+body[data-page="datahub"] .custom-tooltip.is-hiding {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+/* Player-cell trigger: DataHub table PLAYER column — opens game logs modal.
+   Mirrors the Stats page clickable player affordance via DataHub.js. */
+body[data-page="datahub"] .stats-player-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(236, 242, 252, 0.94);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .stats-player-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(116, 239, 255, 0.2), rgba(217, 125, 255, 0.55), rgba(116, 239, 255, 0.1));
+  opacity: 0.65;
+  transform: scaleX(0.72);
+  transform-origin: left center;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] .stats-player-btn:hover {
+    color: #f3f8ff;
+  }
+
+  body[data-page="datahub"] .stats-player-btn:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+body[data-page="datahub"] .stats-player-btn:focus-visible {
+  outline: none;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px rgba(149, 226, 255, 0.42),
+    0 0 0 5px rgba(102, 215, 255, 0.12);
+}
+
+/* z-index override: bump modal above DataHub page layers (styles.css default
+   is z-index:100 but DataHub shell requires 1300) */
+body[data-page="datahub"] #game-logs-modal {
+  z-index: 1300 !important;
+}
+
 
 body[data-page="datahub"] #game-logs-modal .stat-rank-variant-gamelogs-footer sup.stat-rank-suffix-gamelogs-footer,
 body[data-page="datahub"] #game-logs-modal tfoot td.has-rank-annotation span.stat-rank-annotation sup {
