@@ -2588,6 +2588,16 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
       || "",
   ).trim();
   const ktcEntry = playerId ? getActiveKtcLookup()?.[playerId] : null;
+  const gmPlayed = toComparableNumber(sourceRow.GM ?? sourceRow.GM_P ?? normalizedRow.G);
+  const fpts = toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR ?? normalizedRow.FPTS);
+  // DataHub game logs modal PPG ranks:
+  // keep the page-local modal aligned with the Stats page pipeline by storing the
+  // same two-decimal computed FPTS/G value that stats.js ranks on, while the table
+  // can keep its own rounded PPG display text without affecting the summary chip ranks.
+  const computedPpg = computePpgValue(fpts, gmPlayed);
+  const ppg = toComparableNumber(
+    formatFixedString(computedPpg, 2) ?? sourceRow.PPG ?? normalizedRow.PPG,
+  );
   return {
     playerId,
     name: playerName,
@@ -2597,10 +2607,10 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
     team,
     rank: toComparableNumber(sourceRow.RK ?? sourceRow.PRK_PPR ?? normalizedRow.RK),
     age: toComparableNumber(sourceRow.AGE ?? normalizedRow.AGE),
-    gmPlayed: toComparableNumber(sourceRow.GM ?? sourceRow.GM_P ?? normalizedRow.G),
+    gmPlayed,
     value: toComparableNumber(sourceRow.VALUE ?? normalizedRow.VALUE),
-    fpts: toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR ?? normalizedRow.FPTS),
-    ppg: toComparableNumber(sourceRow.PPG ?? normalizedRow.PPG),
+    fpts,
+    ppg,
     adp: toComparableNumber(sourceRow.ADP ?? normalizedRow.ADP),
     posAdp: toComparableNumber(sourceRow["POS·ADP"] ?? normalizedRow["POS·ADP"]),
     posRankText: formatDataHubPosRankText(pos, ktcEntry?.posRank || sourceRow["POS RK"] || sourceRow["POS | RK"] || normalizedRow["POS·ADP"]),
