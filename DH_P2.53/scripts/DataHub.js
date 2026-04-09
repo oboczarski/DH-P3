@@ -5351,17 +5351,37 @@ function renderDataHubConsistencyXAxis(data) {
     return;
   }
   xAxisEl.innerHTML = "";
+  // Match the shared Rosters/Stats modal axis contract so mobile styling can
+  // target the separate week prefix and number spans exactly the same way.
+  const isMobile = typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia("(max-width: 540px)").matches;
   const weeks = data?.axisWeeks?.length ? data.axisWeeks : getDataHubConsistencyAxisWeeks();
   const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map((entry) => entry.week) : []);
   const totalSlots = weeks.length || 1;
   const spanSlots = Math.max(1, totalSlots - 1);
   const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
+  if (edgePaddingPct > 0) {
+    xAxisEl.dataset.padding = edgePaddingPct;
+  } else {
+    delete xAxisEl.dataset.padding;
+  }
   weeks.forEach((week, slotIndex) => {
     const pctX = totalSlots === 1
       ? 50
       : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
     const label = document.createElement("span");
-    label.textContent = `WK${week}`;
+    if (isMobile) {
+      const prefix = document.createElement("span");
+      prefix.className = "axis-week-prefix";
+      prefix.textContent = "wk";
+      const number = document.createElement("span");
+      number.className = "axis-week-number";
+      number.textContent = `${week}`;
+      label.append(prefix, number);
+    } else {
+      label.textContent = `WK${week}`;
+    }
     if (playedWeeks.size && !playedWeeks.has(week)) {
       label.classList.add("axis-week-missed");
     }
