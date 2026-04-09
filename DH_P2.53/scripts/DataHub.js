@@ -510,6 +510,87 @@ const state = {
 };
 
 // ---------------------------------------------------------------------------
+// DataHub-local Game Logs subsystem state.
+// This modal is fully page-scoped: weekly/season caches, live Sleeper overlay,
+// player metadata, and active modal UI state all live here instead of app.js.
+// ---------------------------------------------------------------------------
+const DATAHUB_API_BASE = "https://api.sleeper.app/v1";
+const DATAHUB_MAX_DISPLAY_WEEKS = 18;
+const DATAHUB_PLAYER_STATS_WEEKS = Object.freeze(
+  Array.from({ length: DATAHUB_MAX_DISPLAY_WEEKS }, (_, index) => [index + 1, `WK${index + 1}`]),
+);
+const DATAHUB_PLAYER_STATS_CSV_PATHS = Object.freeze({
+  season: new URL("../data/NFL-2025_Stats/SZN.csv", window.location.href).href,
+  seasonRanks: new URL("../data/NFL-2025_Stats/SZN_RKs.csv", window.location.href).href,
+  weeksDir: new URL("../data/NFL-2025_Stats/Weeks/", window.location.href),
+});
+const DATAHUB_TEAM_COLORS = Object.freeze({
+  ARI: "#97233F",
+  ATL: "#A71930",
+  BAL: "#241773",
+  BUF: "#00338D",
+  CAR: "#0085CA",
+  CHI: "#1a2d4e",
+  CIN: "#FB4F14",
+  CLE: "#311D00",
+  DAL: "#003594",
+  DEN: "#FB4F14",
+  DET: "#0076B6",
+  GB: "#203731",
+  HOU: "#03202F",
+  IND: "#002C5F",
+  JAX: "#006778",
+  KC: "#E31837",
+  LAC: "#0080C6",
+  LAR: "#003594",
+  LV: "#A5ACAF",
+  MIA: "#008E97",
+  MIN: "#4F2683",
+  NE: "#002244",
+  NO: "#D3BC8D",
+  NYG: "#0B2265",
+  NYJ: "#125740",
+  PHI: "#004C54",
+  PIT: "#FFB612",
+  SEA: "#69BE28",
+  SF: "#B3995D",
+  TB: "#D50A0A",
+  TEN: "#4B92DB",
+  WAS: "#5A1414",
+  FA: "#64748b",
+});
+const gameLogsState = {
+  statsSheetsLoaded: false,
+  statsSheetsLoadPromise: null,
+  textCache: new Map(),
+  playerSeasonStats: Object.create(null),
+  playerSeasonRanks: Object.create(null),
+  playerWeeklyStats: Object.create(null),
+  weeklyStats: Object.create(null),
+  playerProjectionWeeks: Object.create(null),
+  liveWeeklyStats: Object.create(null),
+  liveStatsLoaded: false,
+  currentNflSeason: null,
+  currentNflWeek: null,
+  lastLiveStatsWeek: null,
+  lastLiveStatsFetchTs: 0,
+  playerMetaById: Object.create(null),
+  playerMetaLoaded: false,
+  playerMetaLoadPromise: null,
+  rankCache: Object.create(null),
+  requestSeq: 0,
+  activePlayer: null,
+  activeRanks: null,
+  activeSummary: null,
+  activeFooterStats: { __gamesPlayed: 0 },
+  currentView: "gl",
+  activePanel: "game-logs",
+  currentConsistencyData: null,
+  radarChartInstance: null,
+  initialized: false,
+};
+
+// ---------------------------------------------------------------------------
 // DOM anchors that define the page shell around the custom table renderer.
 // ---------------------------------------------------------------------------
 const mainTitle = document.querySelector("#main-title");
@@ -544,6 +625,35 @@ const moreDropdown = document.querySelector("#datahubMoreMenu");
 const moreDropdownItems = Array.from(
   document.querySelectorAll("#datahubMoreMenu .nav-more-item"),
 );
+const dataHubGameLogsModal = document.querySelector("#datahub-game-logs-modal");
+const dataHubGameLogsModalOverlay = dataHubGameLogsModal?.querySelector(
+  ".datahub-gamelogs-modal__overlay",
+);
+const dataHubGameLogsModalContent = dataHubGameLogsModal?.querySelector(
+  ".datahub-gamelogs-modal__content",
+);
+const dataHubGameLogsCloseButtons = Array.from(
+  dataHubGameLogsModal?.querySelectorAll("[data-gamelogs-close]") || [],
+);
+const dataHubGameLogsModalHeader = document.querySelector("#modal-header");
+const dataHubGameLogsModalPlayerName = document.querySelector("#modal-player-name");
+const dataHubGameLogsModalPlayerVitals = document.querySelector("#modal-player-vitals");
+const dataHubGameLogsModalSummaryChips = document.querySelector("#modal-summary-chips");
+const dataHubGameLogsModalBody = document.querySelector("#modal-body");
+const dataHubGameLogsSeasonTabs = Array.from(
+  dataHubGameLogsModal?.querySelectorAll(".gamelogs-season-tab") || [],
+);
+const dataHubGameLogsViewButtons = Array.from(
+  dataHubGameLogsModal?.querySelectorAll(".gamelogs-view-option") || [],
+);
+const dataHubGameLogsFooterButtons = Array.from(
+  dataHubGameLogsModal?.querySelectorAll(".datahub-gamelogs-footer-btn") || [],
+);
+const dataHubStatsKeyContainer = document.querySelector("#stats-key-container");
+const dataHubStatsKeyBody = dataHubStatsKeyContainer?.querySelector(".stats-key-shared-body");
+const dataHubRadarChartContainer = document.querySelector("#radar-chart-container");
+const dataHubRadarChartContent = dataHubRadarChartContainer?.querySelector(".radar-chart-content");
+const dataHubConsistencyContainer = document.querySelector("#consistency-container");
 
 const PAGE_ROUTES = Object.freeze({
   home: "../index.html",
@@ -580,6 +690,7 @@ initializeApp();
 // ---------------------------------------------------------------------------
 function initializeApp() {
   attachEventListeners();
+  queueMicrotask(initializeDataHubGameLogs);
   syncPageTabButtons();
   syncUiState();
   updatePageTabsGlint();
@@ -662,6 +773,10 @@ function attachEventListeners() {
     state.searchText = event.target.value;
     refreshGrid();
   });
+
+  // The DataHub player column opens the local game logs modal through one
+  // delegated listener so table re-renders never duplicate button handlers.
+  gridContainer.addEventListener("click", handleDataHubGridClick);
 
   filePickerButton.addEventListener("click", () => filePickerInput.click());
   filePickerInput.addEventListener("change", handlePickedFile);
@@ -929,6 +1044,7 @@ async function loadInitialData() {
     ]);
     applyCsvText(csvText);
     hideOverlay();
+    preloadDataHubGameLogsData();
   } catch (error) {
     console.error(error);
     showOverlay({
@@ -1053,6 +1169,8 @@ function parseKtcSheetData(csvText) {
     ktcLookup[playerId] = {
       ktc: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["VALUE", "KTC"])),
       overallRank: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["RANK", "OVR", "OVERALL", "SCA"])),
+      posRank: getNormalizedSheetValue(normalizedRow, ["POS·RK", "POS RK", "POS_RK"]) || "",
+      age: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "AGE")),
     };
   });
 
@@ -1106,6 +1224,7 @@ function getActiveKtcLookup() {
 function rebuildDataHubRows() {
   if (!state.rawSeasonRows.length) {
     state.rows = [];
+    gameLogsState.rankCache = Object.create(null);
     refreshGrid();
     return;
   }
@@ -1117,6 +1236,7 @@ function rebuildDataHubRows() {
     const enrichedRow = enrichSeasonRow(row, ktcLookup, adpLookup);
     return normalizeRow(enrichedRow);
   });
+  gameLogsState.rankCache = buildDataHubGameLogRankCache(state.rows);
 
   refreshGrid();
 }
@@ -1144,6 +1264,12 @@ function enrichSeasonRow(sourceRow, ktcLookup, adpLookup) {
     1,
   );
   enrichedRow.PPG = formatFixedString(ppg, 1);
+  if (!String(enrichedRow.AGE || "").trim() && Number.isFinite(ktcEntry?.age)) {
+    enrichedRow.AGE = Number(ktcEntry.age).toFixed(1);
+  }
+  if (ktcEntry?.posRank) {
+    enrichedRow.POS_RK = String(ktcEntry.posRank).trim();
+  }
 
   return enrichedRow;
 }
@@ -1533,7 +1659,18 @@ function createBodyCell(row, column) {
   const content = document.createElement("div");
   content.className = "stats-table__cell-content";
 
-  if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
+  if (column.name === PLAYER_COLUMN && row.__meta?.playerId) {
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "datahub-player-trigger";
+    trigger.dataset.gamelogsPlayerId = row.__meta.playerId;
+    trigger.setAttribute(
+      "aria-label",
+      `Open game logs for ${row.__meta.name || formatCellValue(value)}`,
+    );
+    trigger.textContent = formatDisplayValue(column.name, value);
+    content.append(trigger);
+  } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else {
     content.textContent = formatDisplayValue(column.name, value);
@@ -1812,6 +1949,8 @@ function normalizeRow(sourceRow) {
     const rawValue = sourceRow[alias];
     normalized[columnName] = sanitizeValue(rawValue);
   }
+
+  normalized.__meta = buildDataHubRowMeta(sourceRow);
 
   return normalized;
 }
@@ -2104,4 +2243,3008 @@ function showOverlay({ title, description, showActions = false }) {
 
 function hideOverlay() {
   overlay.classList.add("is-hidden");
+}
+
+// ---------------------------------------------------------------------------
+// DataHub-local Game Logs subsystem.
+// This block ports the Stats page modal experience into DataHub without
+// depending on shared app.js, styles.css, stats.js, or stats.css at runtime.
+// ---------------------------------------------------------------------------
+
+const DATAHUB_SHARED_STATS_KEY_SECTIONS = [
+  {
+    id: "fantasy",
+    label: "Fantasy",
+    tone: "all",
+    items: [
+      { abbr: "FPOE", desc: "Fantasy Points Over Expected" },
+      { abbr: "FPTS", desc: "Fantasy Points (PPR)" },
+      { abbr: "PPG", desc: "Points Per Game" },
+    ],
+  },
+  {
+    id: "passing",
+    label: "Passing",
+    tone: "passing",
+    items: [
+      { abbr: "CMP", desc: "Completions" },
+      { abbr: "CMP%", desc: "Completion Percentage" },
+      { abbr: "CPOE", desc: "Completion Percentage Over Expected" },
+      { abbr: "EPA/DB", desc: "Expected Points Added per dropback" },
+      { abbr: "INT", desc: "Interceptions" },
+      { abbr: "pa1D", desc: "Passing First Downs" },
+      { abbr: "paATT", desc: "Passing Attempts" },
+      { abbr: "paRTG", desc: "Passer Rating" },
+      { abbr: "paTD", desc: "Passing Touchdowns" },
+      { abbr: "paYDS", desc: "Passing Yards" },
+      { abbr: "pIMP", desc: "Passing Impact Plays" },
+      { abbr: "pIMP/A", desc: "Passing Impact per Attempt" },
+      { abbr: "PRS%", desc: "Pressure Rate" },
+      { abbr: "SAC", desc: "Sacks Taken" },
+      { abbr: "TTT", desc: "Time to Throw" },
+    ],
+  },
+  {
+    id: "rushing",
+    label: "Rushing",
+    tone: "rushing",
+    items: [
+      { abbr: "CAR", desc: "Carries" },
+      { abbr: "ELU", desc: "Elusiveness Rating" },
+      { abbr: "EXPLSV%", desc: "Explosive Rush Rate [% CAR of 10+ YDS]" },
+      { abbr: "MTF", desc: "Missed Tackles Forced" },
+      { abbr: "MTF/A", desc: "Missed Tackles per Attempt" },
+      { abbr: "ru1D", desc: "Rushing First Downs" },
+      { abbr: "ruTD", desc: "Rushing Touchdowns" },
+      { abbr: "ruYDS", desc: "Rushing Yards" },
+      { abbr: "YCO", desc: "Yards After Contact" },
+      { abbr: "YCO/A", desc: "Yards After Contact per Attempt" },
+      { abbr: "YPC", desc: "Yards per Carry" },
+    ],
+  },
+  {
+    id: "receiving",
+    label: "Receiving",
+    tone: "receiving",
+    items: [
+      { abbr: "1DRR", desc: "First Downs per Route Run" },
+      { abbr: "AY%", desc: "Air Yards Share" },
+      { abbr: "REC", desc: "Receptions" },
+      { abbr: "rec1D", desc: "Receiving First Downs" },
+      { abbr: "recTD", desc: "Receiving Touchdowns" },
+      { abbr: "recYDS", desc: "Receiving Yards" },
+      { abbr: "RR", desc: "Routes Run" },
+      { abbr: "RZ Tgt", desc: "Red Zone Targets" },
+      { abbr: "TGT", desc: "Targets" },
+      { abbr: "TS%", desc: "Target Share" },
+      { abbr: "YAC", desc: "Yards After Catch" },
+      { abbr: "YPR", desc: "Yards per Reception" },
+      { abbr: "YPRR", desc: "Yards per Route Run" },
+    ],
+  },
+  {
+    id: "general",
+    label: "General",
+    tone: "all",
+    items: [
+      { abbr: "ADP", desc: "Average Draft Position" },
+      { abbr: "AGE", desc: "Player Age" },
+      { abbr: "CL", desc: "Ceiling" },
+      { abbr: "CSTY%", desc: "Consistency Percentage" },
+      { abbr: "FUM", desc: "Fumbles Lost" },
+      { abbr: "G", desc: "Games Played" },
+      { abbr: "IMP", desc: "Impact Plays (1D + TD)" },
+      { abbr: "IMP/G", desc: "Impact Plays per Game" },
+      { abbr: "IMP/OPP", desc: "Impact per Opportunity" },
+      { abbr: "POS", desc: "Position" },
+      { abbr: "POS·ADP", desc: "Positional ADP" },
+      { abbr: "RK", desc: "Overall Rank" },
+      { abbr: "SNP%", desc: "Snap Share" },
+      { abbr: "TM", desc: "Team" },
+      { abbr: "VALUE", desc: "Trade Value" },
+      { abbr: "YDS(t)", desc: "Total Yards" },
+      { abbr: "YPG(t)", desc: "Yards per Game (Total)" },
+    ],
+  },
+];
+
+const DATAHUB_PLAYER_STAT_HEADER_MAP = {
+  paATT: "pass_att",
+  CMP: "pass_cmp",
+  "CMP PCT": "cmp_pct",
+  "CMP%": "cmp_pct",
+  paYDS: "pass_yd",
+  paTD: "pass_td",
+  pa1D: "pass_fd",
+  "EPA/DB": "epa_per_db",
+  CPOE: "cpoe",
+  "DP%": "dp_pct",
+  "IMP/G": "imp_per_g",
+  paRTG: "pass_rtg",
+  pIMP: "pass_imp",
+  "pIMP/A": "pass_imp_per_att",
+  INT: "pass_int",
+  SAC: "pass_sack",
+  TTT: "ttt",
+  "PRS%": "prs_pct",
+  CAR: "rush_att",
+  ruYDS: "rush_yd",
+  YPC: "ypc",
+  ruTD: "rush_td",
+  ru1D: "rush_fd",
+  MTF: "mtf",
+  ELU: "elu",
+  RYOE: "ryoe",
+  YCO: "rush_yac",
+  "YCO/A": "yco_per_att",
+  "ExplRu%": "expl_ru_pct",
+  "EXPLSV%": "expl_ru_pct",
+  "MTF/A": "mtf_per_att",
+  TGT: "rec_tgt",
+  REC: "rec",
+  recYDS: "rec_yd",
+  recTD: "rec_td",
+  rec1D: "rec_fd",
+  YAC: "rec_yar",
+  YPR: "ypr",
+  RR: "rr",
+  "RZ Tgt": "rz_tgt",
+  "TS%": "ts_per_rr",
+  "CSTY%": "csty_pct",
+  YPRR: "yprr",
+  "1DRR": "first_down_rec_rate",
+  IMP: "imp",
+  FUM: "fum",
+  SNP: "snp",
+  "SNP%": "snp_pct",
+  "YDS(t)": "yds_total",
+  FPOE: "fpoe",
+  aFPOE: "fpoe",
+  CL: "ceiling",
+  "YPG(t)": "ypg",
+  paYPG: "pa_ypg",
+  ruYPG: "ru_ypg",
+  recYPG: "rec_ypg",
+  "AY%": "ay_pct",
+  PROJ: "proj",
+  FPT_PPR: "fpt_ppr",
+  FPTS_PPR: "fpt_ppr",
+};
+const DATAHUB_WEEKLY_META_HEADER_MAP = {
+  VS: "opponent",
+  vsRK: "opponent_rank",
+};
+const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  "yprr",
+  "ts_per_rr",
+  "imp_per_g",
+  "epa_per_db",
+  "cpoe",
+  "snp_pct",
+  "prs_pct",
+  "ypr",
+  "first_down_rec_rate",
+  "expl_ru_pct",
+]);
+const DATAHUB_SEASON_META_HEADERS = {
+  POS: "pos",
+  TM: "team",
+  GM_P: "games_played",
+};
+const DATAHUB_SEASON_VALUE_HEADERS = {
+  FPT_PPR: "fpts_ppr",
+  FPTS_PPR: "fpts_ppr",
+  PRK_PPR: "pos_rank_ppr",
+};
+const DATAHUB_STAT_KEY_RANK_OVERRIDES = { fpts: "fpts_ppr" };
+const DATAHUB_RADAR_STATS_CONFIG = {
+  QB: {
+    stats: ["fpts", "ppg", "ttt", "cmp_pct", "pa_ypg", "pass_rtg", "cpoe", "epa_per_db"],
+    labels: ["FPTS", "PPG", "TTT", "CMP%", "paYPG", "paRTG", "CPOE", "EPA/DB"],
+    maxRank: 36,
+  },
+  RB: {
+    stats: ["fpts", "ppg", "yds_total", "snp_pct", "mtf_per_att", "yco_per_att", "ypc", "ts_per_rr"],
+    labels: ["FPTS", "PPG", "YDS(t)", "SNP%", "MTF/A", "YCO/A", "YPC", "TS%"],
+    maxRank: 48,
+  },
+  WR: {
+    stats: ["fpts", "ppg", "rec", "rec_ypg", "ts_per_rr", "yprr", "first_down_rec_rate", "imp_per_g"],
+    labels: ["FPTS", "PPG", "REC", "recYPG", "TS%", "YPRR", "1DRR", "IMP/G"],
+    maxRank: 72,
+  },
+  TE: {
+    stats: ["fpts", "ppg", "rec", "rec_ypg", "ts_per_rr", "yprr", "first_down_rec_rate", "imp_per_g"],
+    labels: ["FPTS", "PPG", "REC", "recYPG", "TS%", "YPRR", "1DRR", "IMP/G"],
+    maxRank: 24,
+  },
+};
+const DATAHUB_SZN_PROGRESS_THRESHOLDS = {
+  QB: [
+    { rank: 1, pct: 100 },
+    { rank: 13, pct: 75 },
+    { rank: 26, pct: 50 },
+    { rank: 39, pct: 25 },
+    { rank: 53, pct: 0 },
+  ],
+  RB: [
+    { rank: 1, pct: 100 },
+    { rank: 16, pct: 75 },
+    { rank: 32, pct: 50 },
+    { rank: 48, pct: 25 },
+    { rank: 65, pct: 0 },
+  ],
+  WR: [
+    { rank: 1, pct: 100 },
+    { rank: 24, pct: 75 },
+    { rank: 48, pct: 50 },
+    { rank: 72, pct: 25 },
+    { rank: 96, pct: 0 },
+  ],
+  TE: [
+    { rank: 1, pct: 100 },
+    { rank: 13, pct: 75 },
+    { rank: 26, pct: 50 },
+    { rank: 39, pct: 25 },
+    { rank: 53, pct: 0 },
+  ],
+};
+const DATAHUB_SZN_STAT_SECTIONS_BY_POS = {
+  QB: [
+    { id: "fantasy", label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    {
+      id: "passing-production",
+      label: "PASSING PRODUCTION",
+      tone: "passing",
+      stats: ["pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "pass_imp", "pass_sack", "pass_int"],
+    },
+    {
+      id: "passing-efficiency",
+      label: "PASSING EFFICIENCY",
+      tone: "passing",
+      stats: ["epa_per_db", "cpoe", "pass_rtg", "cmp_pct", "pass_imp_per_att", "ttt", "prs_pct", "dp_pct", "pa_ypg"],
+    },
+    { id: "rushing-production", label: "RUSHING PRODUCTION", tone: "rushing", stats: ["rush_att", "rush_yd", "rush_td"] },
+    { id: "rushing-efficiency", label: "RUSHING EFFICIENCY", tone: "rushing", stats: ["ypc"] },
+    { id: "general-production", label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "fum"] },
+    { id: "general-efficiency", label: "GENERAL EFFICIENCY", tone: "all", stats: ["imp_per_g"] },
+  ],
+  RB: [
+    { id: "fantasy", label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    {
+      id: "rushing-production",
+      label: "RUSHING PRODUCTION",
+      tone: "rushing",
+      stats: ["snp_pct", "rush_att", "rush_yd", "rush_td", "rush_fd", "rush_yac", "mtf"],
+    },
+    {
+      id: "rushing-efficiency",
+      label: "RUSHING EFFICIENCY",
+      tone: "rushing",
+      stats: ["ypc", "elu", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ryoe", "ru_ypg"],
+    },
+    {
+      id: "receiving-production",
+      label: "RECEIVING PRODUCTION",
+      tone: "receiving",
+      stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar"],
+    },
+    { id: "receiving-efficiency", label: "RECEIVING EFFICIENCY", tone: "receiving", stats: ["ts_per_rr", "yprr"] },
+    { id: "general-production", label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "fum"] },
+    { id: "general-efficiency", label: "GENERAL EFFICIENCY", tone: "all", stats: ["imp_per_g"] },
+  ],
+  WR: [
+    { id: "fantasy", label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    {
+      id: "receiving-production",
+      label: "RECEIVING PRODUCTION",
+      tone: "receiving",
+      stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt"],
+    },
+    {
+      id: "receiving-efficiency",
+      label: "RECEIVING EFFICIENCY",
+      tone: "receiving",
+      stats: ["ts_per_rr", "yprr", "first_down_rec_rate", "ypr", "rec_ypg", "ay_pct"],
+    },
+    { id: "general-production", label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "rush_att", "rush_yd", "rush_td", "fum"] },
+    { id: "general-efficiency", label: "GENERAL EFFICIENCY", tone: "all", stats: ["snp_pct", "imp_per_g"] },
+  ],
+  TE: [
+    { id: "fantasy", label: "FANTASY", tone: "all", stats: ["fpts", "ppg", "fpoe"] },
+    {
+      id: "receiving-production",
+      label: "RECEIVING PRODUCTION",
+      tone: "receiving",
+      stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt"],
+    },
+    {
+      id: "receiving-efficiency",
+      label: "RECEIVING EFFICIENCY",
+      tone: "receiving",
+      stats: ["ts_per_rr", "yprr", "first_down_rec_rate", "ypr", "rec_ypg", "ay_pct"],
+    },
+    { id: "general-production", label: "GENERAL PRODUCTION", tone: "all", stats: ["yds_total", "rush_att", "rush_yd", "rush_td"] },
+    { id: "general-efficiency", label: "GENERAL EFFICIENCY", tone: "all", stats: ["snp_pct", "fum", "imp_per_g"] },
+  ],
+};
+const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
+  QB: { solid: 16, high: 22 },
+  RB: { solid: 12, high: 18 },
+  WR: { solid: 12, high: 18 },
+  TE: { solid: 11, high: 17 },
+  DEFAULT: { solid: 14, high: 20 },
+};
+const DATAHUB_CONSISTENCY_BUCKET_STYLES = {
+  high: { color: "#00ffc1" },
+  solid: { color: "#00c5ff" },
+  low: { color: "#c26cfc" },
+};
+const DATAHUB_CONSISTENCY_HUD_COLORS = {
+  high: "#5dfdca",
+  solid: "#47befd",
+  low: "#d3a5ff",
+};
+const DATAHUB_MAX_CONSISTENCY_POINTS = 40;
+const DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES = new Set(["IR", "OUT", "PUP", "BYE", "Q", "D"]);
+const DATAHUB_HEIGHT_WEIGHT_COLORS = {
+  low: "#F7A3EBDF",
+  mid: "#84b8fbff",
+  high: "#96F2CEB9",
+};
+
+function initializeDataHubGameLogs() {
+  if (!dataHubGameLogsModal || gameLogsState.initialized) {
+    return;
+  }
+
+  // DataHub modal boot:
+  // 1. inject shared stat-key markup
+  // 2. wire one close / view / footer listener set
+  // 3. keep season pills visual-only for parity with the Stats modal
+  renderDataHubSharedStatsKeyMarkup(dataHubStatsKeyBody);
+  setDataHubGameLogsModalView("gl");
+  setDataHubGameLogsPanel("game-logs", { force: true });
+
+  dataHubGameLogsCloseButtons.forEach((button) => {
+    button.addEventListener("click", () => closeDataHubGameLogsModal());
+  });
+
+  dataHubGameLogsViewButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      setDataHubGameLogsModalView(button.dataset.gamelogsView || "gl");
+    });
+  });
+
+  dataHubGameLogsFooterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = button.dataset.panel || "game-logs";
+      if (panel !== "game-logs" && gameLogsState.activePanel === panel) {
+        setDataHubGameLogsPanel("game-logs");
+        return;
+      }
+      setDataHubGameLogsPanel(panel);
+    });
+  });
+
+  dataHubGameLogsSeasonTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      dataHubGameLogsSeasonTabs.forEach((tab) => tab.classList.toggle("is-active", tab === button));
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !dataHubGameLogsModal.classList.contains("is-hidden")) {
+      closeDataHubGameLogsModal();
+    }
+  });
+
+  gameLogsState.initialized = true;
+}
+
+function preloadDataHubGameLogsData() {
+  fetchDataHubPlayerStatsSheets().catch((error) => {
+    console.warn("DataHub game logs preload failed.", error);
+  });
+}
+
+function handleDataHubGridClick(event) {
+  const trigger = event.target.closest(".datahub-player-trigger");
+  if (!trigger) {
+    return;
+  }
+
+  const playerId = String(trigger.dataset.gamelogsPlayerId || "").trim();
+  if (!playerId) {
+    return;
+  }
+
+  const row = state.rows.find((candidate) => candidate.__meta?.playerId === playerId);
+  if (!row) {
+    return;
+  }
+
+  openDataHubGameLogs(buildDataHubGameLogEntry(row));
+}
+
+function buildDataHubRowMeta(sourceRow) {
+  const playerId = String(sourceRow.SLPR_ID || sourceRow.slpr_id || "").trim();
+  const pos = String(sourceRow.POS || sourceRow.pos || "").trim().toUpperCase() || "NA";
+  const name = String(sourceRow.NM || sourceRow.PLAYER || "").trim();
+  const team = String(sourceRow.TM || sourceRow.team || "").trim().toUpperCase() || "FA";
+  const gamesPlayed = toComparableNumber(sourceRow.GM ?? sourceRow.GM_P);
+  const fpts = toComparableNumber(sourceRow.FPT_PPR ?? sourceRow.FPTS_PPR ?? sourceRow.FPTS);
+  const ppg = toComparableNumber(sourceRow.PPG);
+  const ktc = toComparableNumber(sourceRow.VALUE);
+  const overallRank = toComparableNumber(sourceRow.RK);
+  const activeKtcLookup = getActiveKtcLookup();
+  const ktcEntry = playerId ? activeKtcLookup?.[playerId] : null;
+  const rawPosRank = String(sourceRow.POS_RK || ktcEntry?.posRank || "").trim();
+
+  return {
+    playerId,
+    name,
+    pos,
+    team,
+    gamesPlayed,
+    fpts,
+    ppg,
+    ktc,
+    ktcOverallRank: Number.isFinite(ktcEntry?.overallRank) ? ktcEntry.overallRank : overallRank,
+    ktcPosRank: toComparableNumber(rawPosRank),
+    ktcPosRankText: rawPosRank && pos ? `${pos}·${rawPosRank}` : null,
+    sourceRow,
+  };
+}
+
+function buildDataHubGameLogEntry(row) {
+  const meta = row.__meta || {};
+  return {
+    id: meta.playerId,
+    name: meta.name || row.PLAYER,
+    pos: meta.pos || row.POS,
+    team: meta.team || row.TM || "FA",
+    ktc: Number.isFinite(meta.ktc) ? meta.ktc : 0,
+    posRank: meta.ktcPosRankText || null,
+    overallRank: Number.isFinite(meta.ktcOverallRank) ? meta.ktcOverallRank : null,
+    fpts: Number.isFinite(meta.fpts) ? meta.fpts : null,
+    ppg: Number.isFinite(meta.ppg) ? meta.ppg : null,
+    gamesPlayed: Number.isFinite(meta.gamesPlayed) ? meta.gamesPlayed : null,
+  };
+}
+
+function buildDataHubGameLogRankCache(dataset) {
+  const cache = Object.create(null);
+  const playersWithStats = dataset.filter((entry) => {
+    const meta = entry.__meta;
+    return meta?.playerId && meta.pos !== "RDP" && Number.isFinite(meta.fpts) && meta.fpts > 0;
+  });
+
+  const fptsSorted = [...playersWithStats].sort((left, right) => {
+    return (right.__meta?.fpts || 0) - (left.__meta?.fpts || 0);
+  });
+  fptsSorted.forEach((entry, index) => {
+    const playerId = entry.__meta.playerId;
+    if (!cache[playerId]) cache[playerId] = {};
+    cache[playerId].overallRank = index + 1;
+  });
+
+  const ppgSorted = [...playersWithStats].sort((left, right) => {
+    return (right.__meta?.ppg || 0) - (left.__meta?.ppg || 0);
+  });
+  ppgSorted.forEach((entry, index) => {
+    const playerId = entry.__meta.playerId;
+    if (!cache[playerId]) cache[playerId] = {};
+    cache[playerId].ppgOverallRank = index + 1;
+  });
+
+  const positionGroups = new Map();
+  playersWithStats.forEach((entry) => {
+    const pos = entry.__meta?.pos;
+    if (!pos) return;
+    if (!positionGroups.has(pos)) positionGroups.set(pos, []);
+    positionGroups.get(pos).push(entry);
+  });
+
+  positionGroups.forEach((players) => {
+    [...players]
+      .sort((left, right) => (right.__meta?.fpts || 0) - (left.__meta?.fpts || 0))
+      .forEach((entry, index) => {
+        cache[entry.__meta.playerId].posRank = index + 1;
+      });
+
+    [...players]
+      .sort((left, right) => (right.__meta?.ppg || 0) - (left.__meta?.ppg || 0))
+      .forEach((entry, index) => {
+        cache[entry.__meta.playerId].ppgPosRank = index + 1;
+      });
+  });
+
+  return cache;
+}
+
+function getDataHubDefaultPlayerRanks() {
+  return {
+    total_pts: "0.0",
+    overallRank: null,
+    posRank: null,
+    ppg: "0.0",
+    ppgOverallRank: null,
+    ppgPosRank: null,
+  };
+}
+
+function getDataHubPlayerRanks(entry) {
+  if (!entry?.id) {
+    return getDataHubDefaultPlayerRanks();
+  }
+
+  const ranks = gameLogsState.rankCache?.[entry.id] || {};
+  return {
+    total_pts: Number.isFinite(entry.fpts) ? entry.fpts.toFixed(1) : "0.0",
+    overallRank: Number.isFinite(ranks.overallRank) ? ranks.overallRank : null,
+    posRank: Number.isFinite(ranks.posRank) ? ranks.posRank : null,
+    ppg: Number.isFinite(entry.ppg) ? entry.ppg.toFixed(1) : "0.0",
+    ppgOverallRank: Number.isFinite(ranks.ppgOverallRank) ? ranks.ppgOverallRank : null,
+    ppgPosRank: Number.isFinite(ranks.ppgPosRank) ? ranks.ppgPosRank : null,
+  };
+}
+
+function openDataHubGameLogsModal() {
+  if (!dataHubGameLogsModal) {
+    return;
+  }
+
+  dataHubGameLogsModal.classList.remove("is-hidden");
+  dataHubGameLogsModal.setAttribute("aria-hidden", "false");
+  setDataHubGameLogsPanel("game-logs", { force: true });
+  setDataHubGameLogsModalView(gameLogsState.currentView || "gl");
+}
+
+function closeDataHubGameLogsModal() {
+  if (!dataHubGameLogsModal) {
+    return;
+  }
+
+  gameLogsState.requestSeq += 1;
+  gameLogsState.activePlayer = null;
+  gameLogsState.activeRanks = null;
+  gameLogsState.activeSummary = null;
+  gameLogsState.activeFooterStats = { __gamesPlayed: 0 };
+  gameLogsState.currentConsistencyData = null;
+
+  dataHubGameLogsModal.classList.add("is-hidden");
+  dataHubGameLogsModal.setAttribute("aria-hidden", "true");
+  dataHubGameLogsModal.classList.remove("is-loading");
+  if (dataHubGameLogsModalBody) {
+    dataHubGameLogsModalBody.classList.remove("is-loading");
+  }
+  destroyDataHubRadarChart();
+  setDataHubGameLogsPanel("game-logs", { force: true });
+}
+
+function setDataHubGameLogsModalView(view) {
+  const normalizedView = view === "szn" ? "szn" : "gl";
+  gameLogsState.currentView = normalizedView;
+
+  dataHubGameLogsViewButtons.forEach((button) => {
+    const isActive = button.dataset.gamelogsView === normalizedView;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+
+  if (dataHubGameLogsModalBody) {
+    dataHubGameLogsModalBody
+      .querySelectorAll(".game-logs-table-container, .no-logs[data-gamelogs-view=\"gl\"]")
+      .forEach((node) => {
+        node.classList.toggle("is-hidden", normalizedView !== "gl");
+      });
+
+    const sznView = dataHubGameLogsModalBody.querySelector(".game-logs-szn-view");
+    if (sznView) {
+      sznView.classList.toggle("is-hidden", normalizedView !== "szn");
+    }
+  }
+}
+
+function setDataHubGameLogsPanel(panel, options = {}) {
+  const { force = false } = options;
+  const targetPanel = panel || "game-logs";
+  if (!force && gameLogsState.activePanel === targetPanel) {
+    return;
+  }
+
+  gameLogsState.activePanel = targetPanel;
+  dataHubGameLogsFooterButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.panel === targetPanel);
+  });
+
+  const showGameLogs = targetPanel === "game-logs";
+  dataHubStatsKeyContainer?.classList.toggle("is-hidden", targetPanel !== "stats-key");
+  dataHubRadarChartContainer?.classList.toggle("is-hidden", targetPanel !== "radar-chart");
+  dataHubConsistencyContainer?.classList.toggle("is-hidden", targetPanel !== "consistency");
+
+  if (dataHubGameLogsModalBody) {
+    dataHubGameLogsModalBody.classList.toggle("is-hidden", !showGameLogs);
+  }
+
+  if (targetPanel === "radar-chart" && gameLogsState.activePlayer) {
+    renderDataHubPlayerRadarChart(gameLogsState.activePlayer.id, gameLogsState.activePlayer.pos);
+  }
+  if (targetPanel === "consistency" && gameLogsState.activePlayer) {
+    renderDataHubConsistencyChart();
+  }
+}
+
+function renderDataHubGameLogsLoading(player) {
+  if (!dataHubGameLogsModal || !dataHubGameLogsModalBody) {
+    return;
+  }
+
+  dataHubGameLogsModal.classList.add("is-loading");
+  dataHubGameLogsModalBody.classList.add("is-loading");
+  if (dataHubGameLogsModalPlayerName) {
+    dataHubGameLogsModalPlayerName.textContent = player?.name || "Player";
+  }
+  if (dataHubGameLogsModalPlayerVitals) {
+    dataHubGameLogsModalPlayerVitals.innerHTML = "";
+  }
+  if (dataHubGameLogsModalSummaryChips) {
+    dataHubGameLogsModalSummaryChips.innerHTML = "";
+  }
+
+  dataHubGameLogsModalBody.innerHTML = `
+    <div class="game-logs-loading-container">
+      <div class="game-logs-loading-content">
+        <div class="game-logs-loading-spinner" aria-hidden="true"></div>
+        <p class="game-logs-loading-message">
+          <strong>Syncing Game Logs</strong><br>
+          Loading DataHub game logs, season totals, and live-week updates.
+        </p>
+      </div>
+      <p class="game-logs-loading-footer">
+        <em>One-time local sync per session. After this load, modal re-opens are instant.</em>
+      </p>
+    </div>
+  `;
+}
+
+async function openDataHubGameLogs(entry) {
+  if (!entry?.id || !entry?.pos) {
+    return;
+  }
+
+  const requestSeq = ++gameLogsState.requestSeq;
+  const isStaleRequest = () => requestSeq !== gameLogsState.requestSeq;
+
+  renderDataHubGameLogsLoading(entry);
+  openDataHubGameLogsModal();
+
+  try {
+    await Promise.all([
+      fetchDataHubPlayerStatsSheets(),
+      loadDataHubPlayerMeta(),
+    ]);
+    if (isStaleRequest()) return;
+
+    const gameLogs = await fetchDataHubGameLogs(entry.id);
+    if (isStaleRequest()) return;
+
+    const playerRanks = getDataHubPlayerRanks(entry);
+    if (isStaleRequest()) return;
+
+    renderDataHubGameLogs(gameLogs, entry, playerRanks, requestSeq);
+  } catch (error) {
+    console.error("DataHub game logs open failed.", error);
+    if (isStaleRequest()) return;
+    dataHubGameLogsModal.classList.remove("is-loading");
+    dataHubGameLogsModalBody.classList.remove("is-loading");
+    dataHubGameLogsModalBody.innerHTML = `
+      <div class="datahub-gamelogs-error">
+        <h4>Game logs unavailable</h4>
+        <p>The local weekly or rank files could not be loaded for this player.</p>
+      </div>
+    `;
+  }
+}
+
+function destroyDataHubRadarChart() {
+  if (gameLogsState.radarChartInstance) {
+    gameLogsState.radarChartInstance.destroy();
+    gameLogsState.radarChartInstance = null;
+  }
+  if (dataHubRadarChartContent) {
+    dataHubRadarChartContent.innerHTML = "";
+  }
+}
+
+async function fetchDataHubPlayerStatsSheets() {
+  if (gameLogsState.statsSheetsLoaded) {
+    await ensureDataHubLiveStats();
+    return;
+  }
+
+  if (gameLogsState.statsSheetsLoadPromise) {
+    await gameLogsState.statsSheetsLoadPromise;
+    return;
+  }
+
+  gameLogsState.statsSheetsLoadPromise = (async () => {
+    const weeklyPromises = DATAHUB_PLAYER_STATS_WEEKS.map(async ([week, sheetName]) => {
+      const csvUrl = new URL(`${sheetName}.csv`, DATAHUB_PLAYER_STATS_CSV_PATHS.weeksDir).href;
+      try {
+        const csv = await fetchDataHubTextWithCache(csvUrl);
+        return { week, csv };
+      } catch (error) {
+        console.warn(`Week ${week} CSV unavailable for DataHub game logs.`, error);
+        return { week, csv: null };
+      }
+    });
+
+    const [seasonCsv, seasonRanksCsv, ...weeklyCsvs] = await Promise.all([
+      fetchDataHubTextWithCache(DATAHUB_PLAYER_STATS_CSV_PATHS.season),
+      fetchDataHubTextWithCache(DATAHUB_PLAYER_STATS_CSV_PATHS.seasonRanks),
+      ...weeklyPromises,
+    ]);
+
+    gameLogsState.playerSeasonStats = parseDataHubSeasonStatsCsv(seasonCsv);
+    gameLogsState.playerSeasonRanks = parseDataHubSeasonRanksCsv(seasonRanksCsv);
+
+    const weeklyStats = Object.create(null);
+    const projectionWeeks = Object.create(null);
+    weeklyCsvs.forEach(({ week, csv }) => {
+      if (!csv) return;
+      weeklyStats[week] = parseDataHubWeeklyStatsCsv(csv);
+      if (!DATAHUB_PLAYER_STATS_WEEKS.some(([knownWeek]) => knownWeek === week)) {
+        projectionWeeks[week] = true;
+      }
+    });
+
+    gameLogsState.playerWeeklyStats = weeklyStats;
+    gameLogsState.weeklyStats = weeklyStats;
+    gameLogsState.playerProjectionWeeks = projectionWeeks;
+    gameLogsState.statsSheetsLoaded = true;
+    gameLogsState.liveStatsLoaded = false;
+
+    await ensureDataHubLiveStats();
+  })()
+    .catch((error) => {
+      gameLogsState.playerSeasonStats = Object.create(null);
+      gameLogsState.playerSeasonRanks = Object.create(null);
+      gameLogsState.playerWeeklyStats = Object.create(null);
+      gameLogsState.weeklyStats = Object.create(null);
+      gameLogsState.playerProjectionWeeks = Object.create(null);
+      gameLogsState.statsSheetsLoaded = false;
+      gameLogsState.liveWeeklyStats = Object.create(null);
+      gameLogsState.liveStatsLoaded = true;
+      throw error;
+    })
+    .finally(() => {
+      gameLogsState.statsSheetsLoadPromise = null;
+    });
+
+  await gameLogsState.statsSheetsLoadPromise;
+}
+
+async function fetchDataHubTextWithCache(url) {
+  if (gameLogsState.textCache.has(url)) {
+    return gameLogsState.textCache.get(url);
+  }
+
+  const promise = fetch(url, { cache: "no-store" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.status}`);
+      }
+      return response.text();
+    })
+    .catch((error) => {
+      gameLogsState.textCache.delete(url);
+      throw error;
+    });
+
+  gameLogsState.textCache.set(url, promise);
+  return promise;
+}
+
+async function loadDataHubPlayerMeta() {
+  if (gameLogsState.playerMetaLoaded) {
+    return;
+  }
+  if (gameLogsState.playerMetaLoadPromise) {
+    return gameLogsState.playerMetaLoadPromise;
+  }
+
+  gameLogsState.playerMetaLoadPromise = fetch(`${DATAHUB_API_BASE}/players/nfl`, {
+    cache: "no-store",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Sleeper players request failed: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((players) => {
+      gameLogsState.playerMetaById = players || Object.create(null);
+      gameLogsState.playerMetaLoaded = true;
+    })
+    .catch((error) => {
+      console.warn("DataHub player metadata unavailable.", error);
+      gameLogsState.playerMetaById = Object.create(null);
+      gameLogsState.playerMetaLoaded = true;
+    })
+    .finally(() => {
+      gameLogsState.playerMetaLoadPromise = null;
+    });
+
+  return gameLogsState.playerMetaLoadPromise;
+}
+
+async function ensureDataHubLiveStats(force = false) {
+  if (!force && gameLogsState.liveStatsLoaded) {
+    const knownWeek = gameLogsState.currentNflWeek;
+    const lastFetchedWeek = gameLogsState.lastLiveStatsWeek;
+    if (Number.isFinite(knownWeek) && knownWeek === lastFetchedWeek) {
+      const now = Date.now();
+      if (gameLogsState.lastLiveStatsFetchTs && now - gameLogsState.lastLiveStatsFetchTs < 5 * 60 * 1000) {
+        return;
+      }
+    }
+  }
+
+  await fetchDataHubLiveStats();
+}
+
+async function fetchDataHubLiveStats() {
+  const sheetWeeks = Object.keys(gameLogsState.playerWeeklyStats || {})
+    .map(Number)
+    .filter(Number.isFinite);
+  const latestSheetWeek = sheetWeeks.length ? Math.max(...sheetWeeks) : 0;
+  const existingLiveStats = Object.entries(gameLogsState.liveWeeklyStats || {}).reduce((accumulator, [week, stats]) => {
+    accumulator[week] = { ...(stats || {}) };
+    return accumulator;
+  }, Object.create(null));
+
+  try {
+    const response = await fetch(`${DATAHUB_API_BASE}/state/nfl`, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Sleeper state request failed: ${response.status}`);
+    }
+
+    const sleeperState = await response.json();
+    const season = sleeperState?.season || null;
+    const currentWeek = Number(sleeperState?.week);
+    gameLogsState.currentNflSeason = season;
+    gameLogsState.currentNflWeek = Number.isFinite(currentWeek) ? currentWeek : null;
+
+    if (!season || !Number.isFinite(currentWeek) || currentWeek <= 0) {
+      gameLogsState.liveWeeklyStats = existingLiveStats;
+      return;
+    }
+
+    const liveWeeklyStats = { ...existingLiveStats };
+    const fetchStartWeek = Math.max(Math.min(latestSheetWeek + 1, currentWeek), 1);
+    for (let week = fetchStartWeek; week <= currentWeek; week += 1) {
+      try {
+        const statsResponse = await fetch(`${DATAHUB_API_BASE}/stats/nfl/regular/${season}/${week}`, {
+          cache: "no-store",
+        });
+        if (!statsResponse.ok) {
+          throw new Error(`Sleeper stats request failed: ${statsResponse.status}`);
+        }
+        const statsData = await statsResponse.json();
+        if (!statsData || typeof statsData !== "object") {
+          continue;
+        }
+
+        const weekStats = Object.create(null);
+        Object.entries(statsData).forEach(([playerId, statLine]) => {
+          const override = Number(
+            statLine?.pts_ppr ?? statLine?.pts ?? statLine?.pts_ppr_total ?? statLine?.fantasy_points_ppr,
+          );
+          if (!Number.isFinite(override)) {
+            return;
+          }
+          weekStats[playerId] = {
+            fpts: override,
+            fpts_override: override,
+            __live: true,
+          };
+        });
+
+        if (Object.keys(weekStats).length > 0) {
+          liveWeeklyStats[week] = weekStats;
+        }
+      } catch (weekError) {
+        console.warn(`Unable to fetch DataHub live fantasy points for week ${week}.`, weekError);
+      }
+    }
+
+    gameLogsState.liveWeeklyStats = liveWeeklyStats;
+    gameLogsState.lastLiveStatsWeek = currentWeek;
+  } catch (error) {
+    console.warn("DataHub live Sleeper stats unavailable.", error);
+    gameLogsState.liveWeeklyStats = existingLiveStats;
+    if (!Number.isFinite(gameLogsState.lastLiveStatsWeek) && Number.isFinite(gameLogsState.currentNflWeek)) {
+      gameLogsState.lastLiveStatsWeek = gameLogsState.currentNflWeek;
+    }
+  } finally {
+    gameLogsState.liveStatsLoaded = true;
+    gameLogsState.lastLiveStatsFetchTs = Date.now();
+  }
+}
+
+function getDataHubCombinedWeeklyStats() {
+  const combined = Object.create(null);
+
+  Object.entries(gameLogsState.weeklyStats || {}).forEach(([week, stats]) => {
+    const clonedWeek = Object.create(null);
+    Object.entries(stats || {}).forEach(([playerId, statLine]) => {
+      clonedWeek[playerId] = { ...(statLine || {}) };
+    });
+    combined[week] = clonedWeek;
+  });
+
+  Object.entries(gameLogsState.liveWeeklyStats || {}).forEach(([week, stats]) => {
+    if (!combined[week]) combined[week] = Object.create(null);
+    const weekBucket = combined[week];
+    Object.entries(stats || {}).forEach(([playerId, liveLine]) => {
+      const existing = weekBucket[playerId] ? { ...(weekBucket[playerId]) } : {};
+      const merged = { ...existing, ...(liveLine || {}) };
+      const liveFpts = Number.isFinite(liveLine?.fpts)
+        ? liveLine.fpts
+        : (Number.isFinite(liveLine?.fpts_override) ? liveLine.fpts_override : null);
+      if (liveFpts !== null) {
+        merged.fpts = liveFpts;
+        merged.fpts_override = liveFpts;
+      }
+      if (liveLine?.__live === true) {
+        merged.__live = true;
+      }
+      weekBucket[playerId] = merged;
+    });
+  });
+
+  return combined;
+}
+
+async function fetchDataHubGameLogs(playerId) {
+  if (!gameLogsState.statsSheetsLoaded) {
+    await fetchDataHubPlayerStatsSheets();
+  } else {
+    await ensureDataHubLiveStats();
+  }
+
+  const allWeeklyStats = [];
+  const weeklyStats = getDataHubCombinedWeeklyStats();
+  Object.keys(weeklyStats)
+    .map(Number)
+    .sort((left, right) => left - right)
+    .forEach((week) => {
+      const statsForWeek = weeklyStats[week]?.[playerId];
+      if (statsForWeek) {
+        allWeeklyStats.push({ week, stats: statsForWeek });
+      }
+    });
+
+  return allWeeklyStats;
+}
+
+function parseDataHubSeasonStatsCsv(csvText) {
+  const rows = parseCsv(csvText);
+  const result = Object.create(null);
+
+  rows.forEach((row) => {
+    let playerId = null;
+    const stats = {};
+
+    Object.entries(row || {}).forEach(([rawHeader, rawValue]) => {
+      const header = normalizeDataHubPlayerStatsHeader(rawHeader);
+      const value = String(rawValue ?? "");
+      if (!value && header !== "PROJ") {
+        return;
+      }
+
+      if (header === "SLPR_ID") {
+        playerId = value.trim();
+        return;
+      }
+
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[header];
+      if (statKey) {
+        const parsedValue = parseDataHubStatValue(header, value);
+        if (parsedValue !== null) stats[statKey] = parsedValue;
+        return;
+      }
+
+      const metaKey = DATAHUB_SEASON_META_HEADERS[header];
+      if (metaKey) {
+        if (metaKey === "games_played") {
+          const num = parseFloat(value);
+          if (!Number.isNaN(num)) stats[metaKey] = num;
+        } else {
+          const trimmed = value.trim();
+          if (trimmed) stats[metaKey] = trimmed;
+        }
+        return;
+      }
+
+      const valueKey = DATAHUB_SEASON_VALUE_HEADERS[header];
+      if (valueKey) {
+        const parsed = parseDataHubSeasonValue(header, value);
+        if (parsed !== null) stats[valueKey] = parsed;
+      }
+    });
+
+    if (!playerId) {
+      return;
+    }
+
+    if (!Number.isFinite(stats.fpts_ppr) && Number.isFinite(stats.fpt_ppr)) {
+      stats.fpts_ppr = stats.fpt_ppr;
+    }
+    if (!Number.isFinite(stats.fpt_ppr) && Number.isFinite(stats.fpts_ppr)) {
+      stats.fpt_ppr = stats.fpts_ppr;
+    }
+    result[playerId] = stats;
+  });
+
+  return result;
+}
+
+function parseDataHubSeasonRanksCsv(csvText) {
+  const rows = parseCsv(csvText);
+  const result = Object.create(null);
+
+  rows.forEach((row) => {
+    let playerId = null;
+    const ranks = {};
+
+    Object.entries(row || {}).forEach(([rawHeader, rawValue]) => {
+      const header = normalizeDataHubPlayerStatsHeader(rawHeader);
+      const value = String(rawValue ?? "");
+      if (!value) {
+        return;
+      }
+
+      if (header === "SLPR_ID") {
+        playerId = value.trim();
+        return;
+      }
+
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[header] || DATAHUB_SEASON_VALUE_HEADERS[header];
+      if (!statKey) {
+        return;
+      }
+
+      const parsedRank = parseDataHubRankValue(value);
+      if (parsedRank !== null) {
+        ranks[statKey] = parsedRank;
+      }
+    });
+
+    if (playerId) {
+      result[playerId] = ranks;
+    }
+  });
+
+  return result;
+}
+
+function parseDataHubWeeklyStatsCsv(csvText) {
+  const rows = parseCsv(csvText);
+  const result = Object.create(null);
+
+  rows.forEach((row) => {
+    let playerId = null;
+    const stats = {};
+
+    Object.entries(row || {}).forEach(([rawHeader, rawValue]) => {
+      const header = normalizeDataHubPlayerStatsHeader(rawHeader);
+      const value = String(rawValue ?? "");
+
+      if (header === "SLPR_ID") {
+        if (value) playerId = value.trim();
+        return;
+      }
+      if (header !== "PROJ" && !value) {
+        return;
+      }
+
+      const metaKey = DATAHUB_WEEKLY_META_HEADER_MAP[header];
+      if (metaKey) {
+        if (metaKey === "opponent_rank") {
+          const parsed = parseFloat(value.trim());
+          if (!Number.isNaN(parsed)) stats[metaKey] = parsed;
+        } else {
+          const trimmed = value.trim();
+          if (trimmed) stats[metaKey] = trimmed;
+        }
+        return;
+      }
+
+      const statKey = DATAHUB_PLAYER_STAT_HEADER_MAP[header];
+      if (!statKey) {
+        return;
+      }
+      if (header === "PROJ") {
+        stats[statKey] = value || "";
+        return;
+      }
+
+      const parsedValue = parseDataHubStatValue(header, value);
+      if (parsedValue !== null) {
+        stats[statKey] = parsedValue;
+      }
+    });
+
+    if (playerId) {
+      result[playerId] = stats;
+    }
+  });
+
+  return result;
+}
+
+function normalizeDataHubPlayerStatsHeader(header) {
+  return String(header || "").replace(/[\u00a0\u202f]/g, " ").trim();
+}
+
+function parseDataHubStatValue(header, value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed || trimmed.toUpperCase() === "NA") {
+    return null;
+  }
+  if (header === "SNP%") {
+    const numericPortion = parseFloat(trimmed.replace("%", ""));
+    if (Number.isNaN(numericPortion)) return null;
+    if (trimmed.includes("%") || numericPortion > 1.5) return numericPortion;
+    return numericPortion * 100;
+  }
+  const num = parseFloat(trimmed);
+  return Number.isNaN(num) ? null : num;
+}
+
+function parseDataHubSeasonValue(header, value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed || trimmed.toUpperCase() === "NA") return null;
+  if (header === "PRK_PPR") {
+    const intVal = parseInt(trimmed, 10);
+    return Number.isNaN(intVal) ? null : intVal;
+  }
+  const numVal = parseFloat(trimmed);
+  return Number.isNaN(numVal) ? null : numVal;
+}
+
+function parseDataHubRankValue(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return null;
+  const upper = trimmed.toUpperCase();
+  if (upper === "NA" || upper === "N/A") return null;
+  const numVal = parseFloat(trimmed);
+  return Number.isNaN(numVal) ? null : numVal;
+}
+
+function buildDataHubStatLabels() {
+  const labels = {};
+  Object.entries(DATAHUB_PLAYER_STAT_HEADER_MAP).forEach(([header, key]) => {
+    labels[key] = header;
+  });
+  labels.fpts = "FPTS";
+  labels.ppg = "PPG";
+  labels.ts_per_rr = "TS%";
+  labels.fpoe = "FPOE";
+  labels.expl_ru_pct = "EXPLSV%";
+  return labels;
+}
+
+function getDataHubSeasonRankKey(statKey) {
+  return DATAHUB_STAT_KEY_RANK_OVERRIDES[statKey] || statKey;
+}
+
+function getDataHubSeasonRankValue(playerId, statKey) {
+  const normalizeRank = (value) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    return parseDataHubRankValue(String(value));
+  };
+
+  if (statKey === "fpts" || statKey === "ppg") {
+    const liveRank = statKey === "fpts"
+      ? gameLogsState.activeRanks?.posRank
+      : gameLogsState.activeRanks?.ppgPosRank;
+    return normalizeRank(liveRank);
+  }
+
+  const ranks = gameLogsState.playerSeasonRanks?.[playerId];
+  if (!ranks) return null;
+  const key = getDataHubSeasonRankKey(statKey);
+  if (!(key in ranks)) return null;
+  return normalizeRank(ranks[key]);
+}
+
+function getDataHubRankDisplayText(rank) {
+  if (rank === null || rank === undefined || Number.isNaN(rank)) {
+    return "NA";
+  }
+  const rankStr = String(rank).trim();
+  if (!rankStr) return "NA";
+  const upper = rankStr.toUpperCase();
+  if (upper === "NA" || upper === "N/A") return "NA";
+  return rankStr;
+}
+
+function getSortedDataHubSharedStatsKeySections() {
+  return DATAHUB_SHARED_STATS_KEY_SECTIONS.map((section) => ({
+    ...section,
+    items: [...section.items].sort((left, right) => {
+      return left.abbr.localeCompare(right.abbr, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    }),
+  }));
+}
+
+function buildDataHubSharedStatsKeyMarkup() {
+  const sections = getSortedDataHubSharedStatsKeySections();
+  return `
+    <div class="stats-key-sections">
+      ${sections.map((section) => `
+        <section class="stats-key-section stats-key-section--${section.tone}">
+          <div class="stats-key-section-header stats-key-section-header--${section.tone}">${section.label}</div>
+          <div class="stats-key-section-body">
+            ${section.items.map((item) => `
+              <div class="stats-key-item">
+                <span class="stats-key-abbr">${item.abbr}</span>
+                <span class="stats-key-desc">${item.desc}</span>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderDataHubSharedStatsKeyMarkup(container) {
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = buildDataHubSharedStatsKeyMarkup();
+}
+
+function formatDataHubPercentage(value, decimals = 1) {
+  const fallback = (0).toFixed(decimals) + "%";
+  if (value === null || value === undefined || Number.isNaN(value)) return fallback;
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue)) return fallback;
+  return numericValue.toFixed(decimals) + "%";
+}
+
+function formatDataHubRadarStatValue(statKey, value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed) {
+      if ((statKey === "cpoe" || statKey === "epa_per_db") && !trimmed.startsWith("-") && !trimmed.startsWith("+")) {
+        const numeric = parseFloat(trimmed.replace("%", ""));
+        if (Number.isFinite(numeric) && numeric > 0) return `+${trimmed}`;
+      }
+      return trimmed;
+    }
+  }
+  if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
+
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue)) return "N/A";
+  if (["cmp_pct", "snp_pct", "ts_per_rr", "prs_pct", "pass_imp_per_att"].includes(statKey)) {
+    return numericValue.toFixed(1) + "%";
+  }
+  if (statKey === "cpoe") {
+    const formatted = numericValue.toFixed(1) + "%";
+    return numericValue > 0 ? `+${formatted}` : formatted;
+  }
+  if (statKey === "first_down_rec_rate") return numericValue.toFixed(2);
+  if (statKey === "fpts" || statKey === "ppg") return numericValue.toFixed(1);
+  if (statKey === "rec" || statKey === "rec_tgt" || statKey === "yds_total") {
+    return Math.round(numericValue).toString();
+  }
+  if (statKey === "rec_ypg" || statKey === "pass_rtg") return numericValue.toFixed(1);
+  if (statKey === "ttt" || statKey === "imp_per_g") return numericValue.toFixed(2);
+  if (statKey === "epa_per_db") {
+    const formatted = numericValue.toFixed(2);
+    return numericValue > 0 ? `+${formatted}` : formatted;
+  }
+  return numericValue.toFixed(2);
+}
+
+function createDataHubRankAnnotation(rank, { wrapInParens = true, ordinal = false, variant = "default" } = {}) {
+  const span = document.createElement("span");
+  span.className = `stat-rank-annotation stat-rank-variant-${variant}`;
+  const displayText = getDataHubRankDisplayText(rank);
+
+  if (displayText !== "NA") {
+    const numericValue = Number(displayText);
+    if (Number.isFinite(numericValue)) {
+      if (wrapInParens) span.append(document.createTextNode("("));
+      const number = document.createElement("span");
+      number.className = "stat-rank-number";
+      number.textContent = String(numericValue);
+      span.append(number);
+
+      if (ordinal) {
+        const suffix = document.createElement("sup");
+        suffix.className = `stat-rank-suffix stat-rank-suffix-${variant}`;
+        suffix.textContent = getOrdinalSuffixOnly(numericValue);
+        span.append(suffix);
+      }
+      if (wrapInParens) span.append(document.createTextNode(")"));
+      return span;
+    }
+  }
+
+  span.textContent = wrapInParens ? `(${displayText})` : displayText;
+  return span;
+}
+
+function getOrdinalSuffixOnly(number) {
+  const numeric = Math.abs(Number(number));
+  if (!Number.isFinite(numeric) || Math.floor(numeric) !== numeric) return "";
+  const tens = numeric % 100;
+  if (tens >= 11 && tens <= 13) return "th";
+  const ones = numeric % 10;
+  if (ones === 1) return "st";
+  if (ones === 2) return "nd";
+  if (ones === 3) return "rd";
+  return "th";
+}
+
+function ordinalSuffix(number) {
+  const suffix = getOrdinalSuffixOnly(number);
+  return `${number}${suffix}`;
+}
+
+function getDataHubRankColor(rank) {
+  if (typeof rank !== "number") return "var(--datahub-gamelogs-text-primary)";
+  const thresholds = [
+    { v: 24, c: "#8BEBCDbb" },
+    { v: 48, c: "#97EBE3ab" },
+    { v: 72, c: "#7dd1ffaa" },
+    { v: 96, c: "#48a6ffaa" },
+    { v: 120, c: "#957cffbb" },
+    { v: 156, c: "#a642ffbb" },
+    { v: 180, c: "#cf60ffcc" },
+    { v: 204, c: "#ff6fe1cc" },
+    { v: 250, c: "#ff2eb2" },
+  ];
+  for (const threshold of thresholds) {
+    if (rank <= threshold.v) return threshold.c;
+  }
+  if (rank > 250 && rank < 300) return "#ff0080";
+  if (rank >= 300) return "#656565";
+  return "var(--datahub-gamelogs-text-secondary)";
+}
+
+function getDataHubConditionalColorByRank(rank, position) {
+  if (typeof rank !== "number" || rank <= 0) return "inherit";
+  const normalizedPos = typeof position === "string" ? position.trim().toUpperCase() : "";
+  const thresholds = normalizedPos === "WR"
+    ? [
+      { v: 12, c: "#51CBA5" },
+      { v: 24, c: "#34aabf" },
+      { v: 36, c: "#4798fc" },
+      { v: 48, c: "#957CFF" },
+      { v: 60, c: "#FF6FE1" },
+      { v: 72, c: "#FF2EB9" },
+    ]
+    : [
+      { v: 8, c: "#51CBA5" },
+      { v: 16, c: "#34aabf" },
+      { v: 24, c: "#4798fc" },
+      { v: 32, c: "#957CFF" },
+      { v: 44, c: "#FF6FE1" },
+      { v: 60, c: "#FF2EB2" },
+    ];
+  for (const threshold of thresholds) {
+    if (rank <= threshold.v) return threshold.c;
+  }
+  return "#767693";
+}
+
+function getDataHubKtcColor(value) {
+  const scale = [
+    { v: 9000, c: "#72edd0B3" },
+    { v: 8000, c: "#58d5ceB3" },
+    { v: 7000, c: "#5bdae8B3" },
+    { v: 6000, c: "#6eb4ebB3" },
+    { v: 5500, c: "#62a5f9B3" },
+    { v: 5000, c: "#848bffB3" },
+    { v: 4500, c: "#7b63ffB3" },
+    { v: 4000, c: "#964effB3" },
+    { v: 3500, c: "#c449f9B3" },
+    { v: 3000, c: "#ee42ffB3" },
+    { v: 2500, c: "#d13eb8B3" },
+    { v: 2000, c: "#d032aaB3" },
+    { v: 0, c: "#f94ea4B3" },
+  ];
+  if (value === null || value === 0) return "#e0e6ed";
+  for (const threshold of scale) {
+    if (value >= threshold.v) return threshold.c;
+  }
+  return scale[scale.length - 1].c;
+}
+
+function parseDataHubHeightToInches(heightStr) {
+  if (!heightStr && heightStr !== 0) return null;
+  const normalized = String(heightStr)
+    .trim()
+    .replace(/[’‘]/g, "'")
+    .replace(/[‐–—−]/g, "-")
+    .replace(/\s+ft\b/gi, "'")
+    .replace(/\s*in\b/gi, "");
+  let match = normalized.match(/^(\d{1,2})\s*(?:'|-)\s*(\d{1,2})\s*(?:\"?)$/);
+  if (match) {
+    return parseInt(match[1], 10) * 12 + parseInt(match[2], 10);
+  }
+  match = normalized.match(/^(\d{1,2})\s*(?:'|ft)?\s*$/i);
+  if (match) {
+    return parseInt(match[1], 10) * 12;
+  }
+  const digits = normalized.match(/\d+/g) || [];
+  if (digits.length === 1) {
+    const raw = digits[0];
+    if (raw.length === 3) {
+      return parseInt(raw.slice(0, 1), 10) * 12 + parseInt(raw.slice(1), 10);
+    }
+    const num = parseInt(raw, 10);
+    if (num >= 50 && num <= 90) return num;
+  }
+  if (digits.length >= 2) {
+    return parseInt(digits[0], 10) * 12 + parseInt(digits[1], 10);
+  }
+  return null;
+}
+
+function parseDataHubWeightToLbs(weightStr) {
+  if (!weightStr && weightStr !== 0) return null;
+  const match = String(weightStr).match(/(\d{2,3})\s*(?:lbs?|lb)?/i) || String(weightStr).match(/(\d{2,3})/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+function parseDataHubAgeValue(ageStr) {
+  if (!ageStr && ageStr !== 0) return null;
+  const match = String(ageStr).trim().match(/\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const numeric = Number(match[0]);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function getDataHubVitalsColor(label, position, rawValue) {
+  const pos = String(position || "").toUpperCase();
+  if (!rawValue) return null;
+  if (label === "AGE") {
+    const age = parseDataHubAgeValue(rawValue);
+    if (age === null) return null;
+    if (pos === "WR") {
+      if (age < 26) return "#96F2CEB9";
+      if (age < 29) return "#84B8FBFF";
+      if (age < 31) return "#AB8BF5FF";
+      return "#F7A3EBDF";
+    }
+    if (pos === "RB") {
+      if (age <= 24) return "#96F2CEB9";
+      if (age < 25) return "#84B8FBFF";
+      if (age < 28) return "#AB8BF5FF";
+      return "#F7A3EBDF";
+    }
+    if (pos === "TE") {
+      if (age < 26) return "#96F2CEB9";
+      if (age < 29.5) return "#84B8FBFF";
+      if (age < 32) return "#AB8BF5FF";
+      return "#F7A3EBDF";
+    }
+    if (pos === "QB") {
+      if (age < 28.5) return "#96F2CEB9";
+      if (age < 33) return "#84B8FBFF";
+      if (age < 41) return "#AB8BF5FF";
+      return "#F7A3EBDF";
+    }
+  }
+  if (label === "WEIGHT") {
+    const weight = parseDataHubWeightToLbs(rawValue);
+    if (weight === null) return null;
+    if (pos === "QB") {
+      if (weight < 210) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (weight <= 250) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+    }
+    if (pos === "RB") {
+      if (weight < 190) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (weight < 200) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+    }
+    if (pos === "TE") {
+      if (weight < 230) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (weight < 240) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+    }
+    if (pos === "WR") {
+      if (weight < 190) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (weight <= 200) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      if (weight <= 234) return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+    }
+  }
+  if (label === "HEIGHT") {
+    const inches = parseDataHubHeightToInches(rawValue);
+    if (inches === null) return null;
+    if (pos === "QB") {
+      if (inches < 72) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (inches <= 73) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+    }
+    if (pos === "RB") {
+      if (inches >= 75) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (inches > 69) return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+      if (inches >= 67) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+    }
+    if (pos === "TE") {
+      if (inches > 74) return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+      if (inches >= 73) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+    }
+    if (pos === "WR") {
+      if (inches < 71) return DATAHUB_HEIGHT_WEIGHT_COLORS.low;
+      if (inches <= 72) return DATAHUB_HEIGHT_WEIGHT_COLORS.mid;
+      return DATAHUB_HEIGHT_WEIGHT_COLORS.high;
+    }
+  }
+  return null;
+}
+
+function getDataHubPlayerVitals(playerId, player) {
+  const fallback = { age: "—", height: "—", weight: "—", exp: "—", ry: "—" };
+  const playerMeta = gameLogsState.playerMetaById?.[playerId];
+  const activeKtcLookup = getActiveKtcLookup();
+  const ktcMeta = activeKtcLookup?.[playerId] || null;
+  const collect = (...values) => values
+    .map((value) => (typeof value === "string" ? value.trim() : value))
+    .filter((value) => value !== undefined && value !== null && value !== "");
+
+  if (!playerMeta && !ktcMeta) {
+    return fallback;
+  }
+
+  const parseAge = () => {
+    if (typeof ktcMeta?.age === "number") return ktcMeta.age.toFixed(1);
+    const candidates = collect(playerMeta?.age, playerMeta?.metadata?.age, playerMeta?.metadata?.player_age);
+    for (const candidate of candidates) {
+      const numeric = parseInt(candidate, 10);
+      if (Number.isFinite(numeric) && numeric > 0) return Number(numeric).toFixed(1);
+    }
+    if (playerMeta?.birth_date || playerMeta?.birthdate) {
+      const birth = new Date(playerMeta.birth_date || playerMeta.birthdate);
+      if (!Number.isNaN(birth.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const hasHadBirthday = today.getMonth() > birth.getMonth()
+          || (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+        if (!hasHadBirthday) age -= 1;
+        if (Number.isFinite(age) && age > 0 && age < 80) return Number(age).toFixed(1);
+      }
+    }
+    return null;
+  };
+
+  const formatHeightFromParts = (feet, inches) => {
+    const parsedFeet = parseInt(feet, 10);
+    const parsedInches = parseInt(inches, 10);
+    if (!Number.isFinite(parsedFeet) && !Number.isFinite(parsedInches)) return null;
+    const safeFeet = Number.isFinite(parsedFeet) ? parsedFeet : Math.floor(parsedInches / 12);
+    const safeInches = Number.isFinite(parsedInches) ? parsedInches % 12 : 0;
+    if (!Number.isFinite(safeFeet) || safeFeet <= 0) return null;
+    return `${safeFeet}'${Math.max(0, Math.min(11, safeInches))}"`;
+  };
+
+  const parseHeight = () => {
+    const pairCandidates = [
+      [playerMeta?.height_feet, playerMeta?.height_inches],
+      [playerMeta?.metadata?.height_feet, playerMeta?.metadata?.height_inches],
+      [playerMeta?.height_ft, playerMeta?.height_in],
+      [playerMeta?.metadata?.height_ft, playerMeta?.metadata?.height_in],
+    ];
+    for (const [feet, inches] of pairCandidates) {
+      const formatted = formatHeightFromParts(feet, inches);
+      if (formatted) return formatted;
+    }
+    const candidates = collect(
+      playerMeta?.height,
+      playerMeta?.metadata?.height,
+      playerMeta?.metadata?.player_height,
+      playerMeta?.height_inches,
+      playerMeta?.height_in,
+      playerMeta?.metadata?.height_inches,
+      playerMeta?.metadata?.height_in,
+    );
+    for (const candidate of candidates) {
+      const inches = parseDataHubHeightToInches(candidate);
+      if (Number.isFinite(inches)) {
+        const feet = Math.floor(inches / 12);
+        const remainder = inches % 12;
+        return `${feet}'${remainder}"`;
+      }
+    }
+    return null;
+  };
+
+  const parseWeight = () => {
+    const candidates = collect(
+      playerMeta?.weight,
+      playerMeta?.metadata?.weight,
+      playerMeta?.metadata?.player_weight,
+      playerMeta?.weight_lbs,
+      playerMeta?.metadata?.weight_lbs,
+    );
+    for (const candidate of candidates) {
+      const numeric = parseInt(candidate, 10);
+      if (Number.isFinite(numeric) && numeric > 0) return `${numeric} lbs`;
+    }
+    return null;
+  };
+
+  const parseExperience = () => {
+    const exp = playerMeta?.years_exp ?? playerMeta?.metadata?.years_exp;
+    if (exp === null || exp === undefined || exp === "") return "—";
+    return String(exp);
+  };
+
+  const parseRookieYear = () => {
+    const rookieYear = playerMeta?.rookie_year ?? playerMeta?.metadata?.rookie_year;
+    if (rookieYear && rookieYear !== "0") return String(rookieYear);
+    const exp = playerMeta?.years_exp;
+    if (exp !== null && exp !== undefined && exp !== "") {
+      return String(2025 - Number(exp));
+    }
+    return "—";
+  };
+
+  return {
+    age: parseAge() ?? fallback.age,
+    height: parseHeight() ?? fallback.height,
+    weight: parseWeight() ?? fallback.weight,
+    exp: parseExperience(),
+    ry: parseRookieYear(),
+    pos: player?.pos || playerMeta?.position || "",
+  };
+}
+
+function createDataHubPlayerVitalsElement(vitals, { variant = "modal", pos = "" } = {}) {
+  const container = document.createElement("div");
+  container.className = `player-vitals player-vitals--${variant}`;
+  [
+    { label: "AGE", value: vitals.age },
+    { label: "HEIGHT", value: vitals.height },
+    { label: "WEIGHT", value: vitals.weight },
+    { label: "EXP", value: vitals.exp },
+    { label: "RY", value: vitals.ry },
+  ].forEach(({ label, value }) => {
+    const item = document.createElement("div");
+    item.className = "player-vitals__item";
+    const labelEl = document.createElement("span");
+    labelEl.className = "player-vitals__label";
+    labelEl.textContent = label;
+    const valueEl = document.createElement("span");
+    valueEl.className = "player-vitals__value";
+    valueEl.textContent = value;
+    if (label === "AGE" || label === "HEIGHT" || label === "WEIGHT") {
+      const color = getDataHubVitalsColor(label, pos, value);
+      if (color) valueEl.style.color = color;
+    }
+    item.append(labelEl, valueEl);
+    container.append(item);
+  });
+  return container;
+}
+
+function getDataHubOpponentRankColor(rank) {
+  const numericRank = typeof rank === "number" ? rank : parseFloat(rank);
+  if (!Number.isFinite(numericRank)) return null;
+  if (numericRank <= 8) return "#82d8bee0";
+  if (numericRank <= 16) return "#73b9e7e0";
+  if (numericRank <= 24) return "#c093ebe0";
+  if (numericRank <= 32) return "#c456b1e0";
+  return null;
+}
+
+function buildDataHubGameLogsHeader(player, playerRanks) {
+  if (!dataHubGameLogsModalHeader) {
+    return;
+  }
+
+  dataHubGameLogsModal.classList.remove("is-loading");
+  dataHubGameLogsModalBody.classList.remove("is-loading");
+
+  if (dataHubGameLogsModalPlayerName) {
+    dataHubGameLogsModalPlayerName.textContent = player.name || "Player";
+  }
+
+  dataHubGameLogsModalHeader.querySelector(".modal-header-left-container")?.remove();
+  const leftContainer = document.createElement("div");
+  leftContainer.className = "modal-header-left-container";
+
+  const posTag = document.createElement("div");
+  posTag.className = `modal-pos-tag ${player.pos}`;
+  posTag.textContent = player.pos;
+  leftContainer.append(posTag);
+
+  const teamKey = String(player.team || "FA").toUpperCase();
+  const logoKeyMap = { WSH: "was", WAS: "was", JAC: "jax", LA: "lar" };
+  const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
+  const teamLogoChip = document.createElement("div");
+  teamLogoChip.className = "modal-team-logo-chip";
+  teamLogoChip.dataset.team = teamKey;
+  if (teamKey && teamKey !== "FA") {
+    const img = document.createElement("img");
+    img.className = "team-logo";
+    img.alt = teamKey;
+    img.width = 24;
+    img.height = 24;
+    img.loading = "eager";
+    img.src = new URL(`../assets/NFL_logos_svg/${normalizedKey}.svg`, window.location.href).href;
+    teamLogoChip.append(img);
+  } else {
+    teamLogoChip.textContent = "FA";
+  }
+  leftContainer.append(teamLogoChip);
+  dataHubGameLogsModalHeader.insertBefore(leftContainer, dataHubGameLogsModalHeader.firstChild);
+
+  if (dataHubGameLogsModalPlayerVitals) {
+    dataHubGameLogsModalPlayerVitals.innerHTML = "";
+    const vitals = getDataHubPlayerVitals(player.id, player);
+    dataHubGameLogsModalPlayerVitals.append(
+      createDataHubPlayerVitalsElement(vitals, { variant: "modal", pos: player.pos }),
+    );
+  }
+
+  if (dataHubGameLogsModalSummaryChips) {
+    const ktcPosRank = parseInt(String(player.posRank || "").split("·")[1], 10);
+    dataHubGameLogsModalSummaryChips.innerHTML = `
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.posRank, player.pos)}">${playerRanks.total_pts}</span>
+          <span class="chip-unit">FPTS</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${player.pos}">${player.pos}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(playerRanks.posRank, player.pos)}">${Number.isFinite(playerRanks.posRank) ? playerRanks.posRank : "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(playerRanks.overallRank)}">${Number.isFinite(playerRanks.overallRank) ? `#${playerRanks.overallRank}` : "NA"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${playerRanks.ppg}</span>
+          <span class="chip-unit">PPG</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${player.pos}">${player.pos}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${Number.isFinite(playerRanks.ppgPosRank) ? playerRanks.ppgPosRank : "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(playerRanks.ppgOverallRank)}">${Number.isFinite(playerRanks.ppgOverallRank) ? `#${playerRanks.ppgOverallRank}` : "NA"}</span>
+        </div>
+      </div>
+      <div class="gamelogs-summary-chip">
+        <h4>
+          <span class="chip-header-value" style="color:${getDataHubKtcColor(player.ktc)}">${Number.isFinite(player.ktc) ? player.ktc : "—"}</span>
+          <span class="chip-unit">KTC</span>
+        </h4>
+        <div class="chip-values">
+          <span class="pos-rank-container">
+            <span class="chip-pos-rank-label pos-color-${player.pos}">${player.pos}·</span>
+            <span style="color:${getDataHubConditionalColorByRank(ktcPosRank, player.pos)}">${Number.isFinite(ktcPosRank) ? ktcPosRank : "NA"}</span>
+          </span>
+          <span class="chip-separator">•</span>
+          <span style="color:${getDataHubRankColor(player.overallRank)}">${Number.isFinite(player.overallRank) ? `#${player.overallRank}` : "NA"}</span>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function getDataHubOrderedStatKeys(position) {
+  const qbStatOrder = ["fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "cmp_pct", "yds_total", "rush_yd", "rush_td", "pass_att", "pass_cmp", "pass_fd", "imp_per_g", "pass_imp", "pass_imp_per_att", "rush_att", "ypc", "ttt", "prs_pct", "pass_sack", "pass_int", "fum", "fpoe"];
+  const rbStatOrder = ["fpts", "proj", "snp_pct", "rush_att", "rush_yd", "rush_td", "rush_fd", "yds_total", "ypc", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rec_tgt", "elu", "mtf_per_att", "yco_per_att", "mtf", "rush_yac", "ryoe", "expl_ru_pct", "imp_per_g", "fum", "fpoe"];
+  const wrTeStatOrder = ["fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td", "yprr", "rec_fd", "first_down_rec_rate", "rec_ypg", "ay_pct", "rec_yar", "ypr", "imp_per_g", "rr", "yds_total", "rz_tgt", "rush_att", "rush_yd", "rush_td", "ypc", "fum", "fpoe"];
+  if (position === "QB") return qbStatOrder;
+  if (position === "RB") return rbStatOrder;
+  return wrTeStatOrder;
+}
+
+function buildDataHubStatGroupMap() {
+  const map = new Map();
+  const assign = (group, keys) => keys.forEach((key) => map.set(key, group));
+  assign("all", ["fpts", "ppg", "proj", "snp_pct", "yds_total", "imp_per_g", "fum", "fpoe"]);
+  assign("passing", ["pass_rtg", "pass_yd", "pass_td", "cmp_pct", "pass_att", "pass_cmp", "pass_fd", "pass_imp", "pass_imp_per_att", "ttt", "prs_pct", "cpoe", "dp_pct", "pass_int", "epa_per_db", "pa_ypg", "pass_sack"]);
+  assign("rushing", ["rush_att", "rush_yd", "ypc", "rush_td", "rush_fd", "elu", "mtf_per_att", "yco_per_att", "expl_ru_pct", "mtf", "rush_yac", "ryoe", "ru_ypg"]);
+  assign("receiving", ["rec", "rec_yd", "rec_tgt", "rec_td", "rec_fd", "rec_yar", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate", "rr", "rz_tgt", "rec_ypg", "ay_pct"]);
+  return map;
+}
+
+function createDataHubWeekTag(week, stats) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "gamelog-week-tag";
+
+  const weekNumberLine = document.createElement("div");
+  weekNumberLine.className = "gamelog-week-tag-number";
+  weekNumberLine.textContent = `WK-${week}`;
+  wrapper.append(weekNumberLine);
+
+  if (stats?.opponent) {
+    const opponentLine = document.createElement("div");
+    opponentLine.className = "gamelog-week-tag-opponent";
+    const opponentText = document.createElement("span");
+    opponentText.className = "gamelog-week-tag-opponent-text";
+    opponentText.textContent = stats.opponent;
+    opponentLine.append(opponentText);
+
+    if (Number.isFinite(stats.opponent_rank)) {
+      const separator = document.createElement("span");
+      separator.className = "gamelog-week-tag-separator";
+      separator.textContent = "•";
+      const rankWrap = document.createElement("span");
+      rankWrap.className = "gamelog-week-tag-rank";
+      rankWrap.style.color = getDataHubOpponentRankColor(stats.opponent_rank) || "";
+      rankWrap.innerHTML = `
+        <span class="gamelog-week-tag-rank-number">${Math.round(stats.opponent_rank)}</span>
+        <span class="gamelog-week-tag-rank-suffix">${getOrdinalSuffixOnly(stats.opponent_rank)}</span>
+      `;
+      opponentLine.append(separator, rankWrap);
+    }
+
+    wrapper.append(opponentLine);
+  }
+
+  return wrapper;
+}
+
+function getDataHubProjectionDisplayValue(stats) {
+  if (stats && Object.prototype.hasOwnProperty.call(stats, "proj")) {
+    return String(stats.proj ?? "");
+  }
+  return "";
+}
+
+function resolveDataHubWeeklyStatDisplayValue(key, stats, isLiveWeek) {
+  if (!stats) {
+    return key === "fpts" ? "-" : "N/A";
+  }
+  if (key === "proj") {
+    return getDataHubProjectionDisplayValue(stats);
+  }
+  if (key === "fpts") {
+    if (isLiveWeek && Number.isFinite(stats.fpts)) return stats.fpts.toFixed(1);
+    if (Number.isFinite(stats.fpt_ppr)) return stats.fpt_ppr.toFixed(1);
+    return "-";
+  }
+
+  let value = null;
+  if (DATAHUB_NO_FALLBACK_KEYS.has(key)) {
+    value = typeof stats[key] === "number" ? stats[key] : null;
+  } else if (key === "ypc") {
+    value = (stats.rush_att || 0) > 0 ? (stats.rush_yd || 0) / stats.rush_att : 0;
+  } else if (key === "yco_per_att") {
+    value = (stats.rush_att || 0) > 0 ? (stats.rush_yac || 0) / stats.rush_att : 0;
+  } else if (key === "mtf_per_att") {
+    value = (stats.rush_att || 0) > 0 ? (stats.mtf || 0) / stats.rush_att : 0;
+  } else if (key === "pass_imp_per_att") {
+    if (typeof stats[key] === "number") value = stats[key];
+    else if ((stats.pass_att || 0) > 0) value = ((stats.pass_imp || 0) / stats.pass_att) * 100;
+    else value = 0;
+  } else if (key === "ts_per_rr") {
+    if (typeof stats[key] === "number") value = stats[key];
+    else if ((stats.rr || 0) > 0) value = ((stats.rec_tgt || 0) / stats.rr) * 100;
+    else value = 0;
+  } else if (key === "yprr") {
+    if (typeof stats[key] === "number") value = stats[key];
+    else if ((stats.rr || 0) > 0) value = (stats.rec_yd || 0) / stats.rr;
+    else value = 0;
+  } else if (key === "ypr") {
+    if (typeof stats[key] === "number") value = stats[key];
+    else if ((stats.rec || 0) > 0) value = (stats.rec_yd || 0) / stats.rec;
+    else value = 0;
+  } else if (key === "first_down_rec_rate") {
+    if (typeof stats[key] === "number") value = stats[key];
+    else if ((stats.rec || 0) > 0) value = (stats.rec_fd || 0) / stats.rec;
+    else value = 0;
+  } else if (key === "imp_per_g") {
+    value = typeof stats[key] === "number" ? stats[key] : (stats.imp || 0);
+  } else {
+    value = typeof stats[key] === "number" ? stats[key] : null;
+  }
+
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return key === "fpts" ? "-" : "N/A";
+  }
+  if (key === "expl_ru_pct") {
+    const normalized = Math.abs(value) <= 1.5 ? value * 100 : value;
+    return formatDataHubPercentage(normalized, 1);
+  }
+  if (["pass_imp_per_att", "prs_pct", "snp_pct", "ts_per_rr", "cmp_pct"].includes(key)) {
+    return formatDataHubPercentage(value, 1);
+  }
+  if (key === "cpoe") {
+    const formatted = formatDataHubPercentage(value, 1);
+    return value > 0 ? `+${formatted}` : formatted;
+  }
+  if (key === "epa_per_db") {
+    const formatted = Number(value).toFixed(2);
+    return value > 0 ? `+${formatted}` : formatted;
+  }
+  if (["yco_per_att", "mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate", "imp_per_g"].includes(key)) {
+    return Number(value).toFixed(2);
+  }
+  if (key === "pass_rtg") return Number(value).toFixed(1);
+  return Number.isInteger(value) ? String(value) : Number(value).toFixed(1);
+}
+
+function getDataHubSznSectionsForPosition(position) {
+  const normalized = String(position || "").trim().toUpperCase();
+  return DATAHUB_SZN_STAT_SECTIONS_BY_POS[normalized] || [];
+}
+
+function computeDataHubSznProgressPercent(rank, position) {
+  const numericRank = typeof rank === "number" ? rank : Number(rank);
+  if (!Number.isFinite(numericRank) || numericRank <= 0) return 0;
+  const thresholds = DATAHUB_SZN_PROGRESS_THRESHOLDS[String(position || "").toUpperCase()] || DATAHUB_SZN_PROGRESS_THRESHOLDS.WR;
+  if (numericRank <= thresholds[0].rank) return thresholds[0].pct;
+  if (numericRank >= thresholds[thresholds.length - 1].rank) return thresholds[thresholds.length - 1].pct;
+  for (let index = 0; index < thresholds.length - 1; index += 1) {
+    const start = thresholds[index];
+    const end = thresholds[index + 1];
+    if (numericRank >= start.rank && numericRank <= end.rank) {
+      const span = Math.max(end.rank - start.rank, 1);
+      const t = (numericRank - start.rank) / span;
+      return Math.max(0, Math.min(100, start.pct + (end.pct - start.pct) * t));
+    }
+  }
+  return 0;
+}
+
+function getDataHubSznStatRankColor(rank, position) {
+  return getDataHubConditionalColorByRank(rank, position);
+}
+
+function getDataHubSznStatFillCoreColor(rank, position) {
+  if (typeof rank !== "number" || rank <= 0) return "inherit";
+  const pos = String(position || "").toUpperCase();
+  const thresholds = pos === "WR"
+    ? [
+      { v: 12, c: "#DEF5" },
+      { v: 24, c: "#DEF3" },
+      { v: 36, c: "#DEF5" },
+      { v: 48, c: "#DEF5" },
+      { v: 60, c: "#DEF3" },
+      { v: 72, c: "#DEF6" },
+    ]
+    : [
+      { v: 8, c: "#def5" },
+      { v: 16, c: "#def3" },
+      { v: 24, c: "#def5" },
+      { v: 32, c: "#def5" },
+      { v: 40, c: "#def3" },
+      { v: 50, c: "#def6" },
+    ];
+  for (const threshold of thresholds) {
+    if (rank <= threshold.v) return threshold.c;
+  }
+  return "#7f7e99";
+}
+
+function buildDataHubSznFillCoreGradient(fillCoreColor) {
+  if (!fillCoreColor || fillCoreColor === "inherit") return null;
+  return `linear-gradient(90deg, ${fillCoreColor} 0%, ${fillCoreColor} 100%)`;
+}
+
+function getDataHubSznStatRankBoxShadow(rank, position, rankColor) {
+  if (typeof rank !== "number" || rank <= 0 || !rankColor || rankColor === "inherit") return "none";
+  return `inset 0 0 5px 1px ${rankColor}`;
+}
+
+function getDataHubGameLogsSeasonDisplayValue({ key, seasonTotals, aggregatedTotals, snapPctValues, statValueCounts, gameLogsWithData }) {
+  if (key === "proj") return "-";
+  if (key === "fpts") return gameLogsState.activeRanks?.total_pts ?? "0.0";
+  if (key === "ppg") return gameLogsState.activeRanks?.ppg ?? "0.0";
+  if (DATAHUB_NO_FALLBACK_KEYS.has(key)) {
+    const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
+    if (raw === null) return "N/A";
+    if (key === "expl_ru_pct") {
+      const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
+      return formatDataHubPercentage(normalized, 1);
+    }
+    if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct"].includes(key)) return formatDataHubPercentage(raw, 1);
+    if (key === "cpoe") {
+      const formatted = formatDataHubPercentage(raw, 1);
+      return raw > 0 ? `+${formatted}` : formatted;
+    }
+    if (key === "epa_per_db") {
+      const formatted = Number(raw).toFixed(2);
+      return raw > 0 ? `+${formatted}` : formatted;
+    }
+    return Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
+  }
+  if (key === "fpoe") {
+    const value = typeof seasonTotals?.fpoe === "number" ? seasonTotals.fpoe : aggregatedTotals.fpoe;
+    return Number.isFinite(value) ? Number(value).toFixed(1) : "N/A";
+  }
+  if (key === "pa_ypg") {
+    const total = typeof seasonTotals?.pass_yd === "number" ? seasonTotals.pass_yd : (aggregatedTotals.pass_yd || 0);
+    const games = typeof seasonTotals?.games_played === "number" ? seasonTotals.games_played : gameLogsWithData.length;
+    return (games > 0 ? total / games : 0).toFixed(1);
+  }
+  if (key === "ru_ypg") {
+    const total = typeof seasonTotals?.rush_yd === "number" ? seasonTotals.rush_yd : (aggregatedTotals.rush_yd || 0);
+    const games = typeof seasonTotals?.games_played === "number" ? seasonTotals.games_played : gameLogsWithData.length;
+    return (games > 0 ? total / games : 0).toFixed(1);
+  }
+  if (key === "rec_ypg") {
+    const total = typeof seasonTotals?.rec_yd === "number" ? seasonTotals.rec_yd : (aggregatedTotals.rec_yd || 0);
+    const games = typeof seasonTotals?.games_played === "number" ? seasonTotals.games_played : gameLogsWithData.length;
+    return (games > 0 ? total / games : 0).toFixed(1);
+  }
+  if (key === "dp_pct") {
+    let pctValue = typeof seasonTotals?.dp_pct === "number" ? seasonTotals.dp_pct : null;
+    if (pctValue === null) {
+      const total = aggregatedTotals.dp_pct || 0;
+      const count = statValueCounts.dp_pct || 0;
+      pctValue = count > 0 ? total / count : 0;
+    }
+    const normalized = Math.abs(pctValue) <= 1.5 ? pctValue * 100 : pctValue;
+    return formatDataHubPercentage(normalized, 1);
+  }
+  if (key === "ypc") {
+    const yards = typeof seasonTotals?.rush_yd === "number" ? seasonTotals.rush_yd : (aggregatedTotals.rush_yd || 0);
+    const carries = typeof seasonTotals?.rush_att === "number" ? seasonTotals.rush_att : (aggregatedTotals.rush_att || 0);
+    return (carries > 0 ? yards / carries : 0).toFixed(2);
+  }
+  if (key === "yco_per_att") {
+    const yco = typeof seasonTotals?.rush_yac === "number" ? seasonTotals.rush_yac : (aggregatedTotals.rush_yac || 0);
+    const carries = typeof seasonTotals?.rush_att === "number" ? seasonTotals.rush_att : (aggregatedTotals.rush_att || 0);
+    return (carries > 0 ? yco / carries : 0).toFixed(2);
+  }
+  if (key === "mtf_per_att") {
+    const mtf = typeof seasonTotals?.mtf === "number" ? seasonTotals.mtf : (aggregatedTotals.mtf || 0);
+    const carries = typeof seasonTotals?.rush_att === "number" ? seasonTotals.rush_att : (aggregatedTotals.rush_att || 0);
+    return (carries > 0 ? mtf / carries : 0).toFixed(2);
+  }
+  if (key === "pass_imp_per_att") {
+    const passImp = typeof seasonTotals?.pass_imp === "number" ? seasonTotals.pass_imp : (aggregatedTotals.pass_imp || 0);
+    const passAtt = typeof seasonTotals?.pass_att === "number" ? seasonTotals.pass_att : (aggregatedTotals.pass_att || 0);
+    return formatDataHubPercentage(passAtt > 0 ? (passImp / passAtt) * 100 : 0, 1);
+  }
+  if (key === "pass_rtg") {
+    const value = typeof seasonTotals?.pass_rtg === "number"
+      ? seasonTotals.pass_rtg
+      : (statValueCounts.pass_rtg ? (aggregatedTotals.pass_rtg || 0) / statValueCounts.pass_rtg : 0);
+    return Number(value).toFixed(1);
+  }
+  if (key === "ttt") {
+    const value = typeof seasonTotals?.ttt === "number"
+      ? seasonTotals.ttt
+      : (statValueCounts.ttt ? (aggregatedTotals.ttt || 0) / statValueCounts.ttt : 0);
+    return Number(value).toFixed(2);
+  }
+  if (key === "prs_pct" || key === "cmp_pct") {
+    const count = statValueCounts[key] || 0;
+    const value = typeof seasonTotals?.[key] === "number" ? seasonTotals[key] : (count > 0 ? (aggregatedTotals[key] || 0) / count : 0);
+    return formatDataHubPercentage(value, 1);
+  }
+  if (key === "snp_pct") {
+    const value = typeof seasonTotals?.snp_pct === "number"
+      ? seasonTotals.snp_pct
+      : (snapPctValues.length ? snapPctValues.reduce((sum, pct) => sum + pct, 0) / snapPctValues.length : 0);
+    return formatDataHubPercentage(value, 1);
+  }
+  if (key === "imp_per_g") {
+    const impact = typeof seasonTotals?.imp === "number" ? seasonTotals.imp : (aggregatedTotals.imp || 0);
+    const games = typeof seasonTotals?.games_played === "number" ? seasonTotals.games_played : gameLogsWithData.length;
+    return Number(games > 0 ? impact / games : 0).toFixed(2);
+  }
+  if (key === "yprr") {
+    const routes = typeof seasonTotals?.rr === "number" ? seasonTotals.rr : (aggregatedTotals.rr || 0);
+    const yards = typeof seasonTotals?.rec_yd === "number" ? seasonTotals.rec_yd : (aggregatedTotals.rec_yd || 0);
+    return Number(routes > 0 ? yards / routes : 0).toFixed(2);
+  }
+  if (key === "ts_per_rr") {
+    const routes = typeof seasonTotals?.rr === "number" ? seasonTotals.rr : (aggregatedTotals.rr || 0);
+    const targets = typeof seasonTotals?.rec_tgt === "number" ? seasonTotals.rec_tgt : (aggregatedTotals.rec_tgt || 0);
+    return formatDataHubPercentage(routes > 0 ? (targets / routes) * 100 : 0, 1);
+  }
+  if (key === "ypr") {
+    const receptions = typeof seasonTotals?.rec === "number" ? seasonTotals.rec : (aggregatedTotals.rec || 0);
+    const yards = typeof seasonTotals?.rec_yd === "number" ? seasonTotals.rec_yd : (aggregatedTotals.rec_yd || 0);
+    return Number(receptions > 0 ? yards / receptions : 0).toFixed(2);
+  }
+  if (key === "first_down_rec_rate") {
+    const firstDowns = typeof seasonTotals?.rec_fd === "number" ? seasonTotals.rec_fd : (aggregatedTotals.rec_fd || 0);
+    const receptions = typeof seasonTotals?.rec === "number" ? seasonTotals.rec : (aggregatedTotals.rec || 0);
+    return Number(receptions > 0 ? firstDowns / receptions : 0).toFixed(2);
+  }
+  const totalValue = typeof seasonTotals?.[key] === "number" ? seasonTotals[key] : (aggregatedTotals[key] || 0);
+  return Number.isInteger(totalValue) ? String(totalValue) : Number(totalValue || 0).toFixed(1);
+}
+
+function renderDataHubGameLogsSeasonStatsView({ container, player, orderedStatKeys, statLabels, seasonTotals, aggregatedTotals, snapPctValues, statValueCounts, gameLogsWithData, statGroupByKey }) {
+  if (!container) return;
+  container.innerHTML = "";
+
+  const title = document.createElement("div");
+  title.className = "gamelogs-szn-title";
+  const titleText = document.createElement("span");
+  titleText.className = "gamelogs-szn-title-text";
+  titleText.textContent = "Season Stats";
+  title.append(titleText);
+
+  const gamesPlayed = typeof seasonTotals?.games_played === "number" ? Math.round(seasonTotals.games_played) : null;
+  if (gamesPlayed !== null) {
+    const games = document.createElement("span");
+    games.className = "gamelogs-szn-title-games";
+    games.innerHTML = `<span class="gamelogs-szn-title-games-label">G:</span><span class="gamelogs-szn-title-games-value">${gamesPlayed}</span>`;
+    title.append(games);
+  }
+
+  const list = document.createElement("div");
+  list.className = "gamelogs-szn-list";
+  const usedKeys = new Set();
+
+  const appendStatRow = (statKey) => {
+    if (!statLabels?.[statKey] || statKey === "proj" || usedKeys.has(statKey)) return;
+    usedKeys.add(statKey);
+
+    const rankValue = getDataHubSeasonRankValue(player.id, statKey);
+    const rankColor = getDataHubSznStatRankColor(rankValue, player.pos);
+    const fillCoreColor = getDataHubSznStatFillCoreColor(rankValue, player.pos);
+    const rankBoxShadow = getDataHubSznStatRankBoxShadow(rankValue, player.pos, rankColor);
+    const progressPct = computeDataHubSznProgressPercent(rankValue, player.pos);
+    const displayValue = getDataHubGameLogsSeasonDisplayValue({
+      key: statKey,
+      seasonTotals,
+      aggregatedTotals,
+      snapPctValues,
+      statValueCounts,
+      gameLogsWithData,
+    });
+
+    const row = document.createElement("div");
+    row.className = "gamelogs-szn-row";
+    const group = statGroupByKey.get(statKey);
+    if (group) row.classList.add(`gamelogs-szn-row--${group}`);
+
+    const label = document.createElement("div");
+    label.className = "gamelogs-szn-label";
+    label.textContent = statLabels[statKey];
+
+    const bar = document.createElement("div");
+    bar.className = "gamelogs-szn-bar";
+    const fill = document.createElement("div");
+    fill.className = "gamelogs-szn-bar-fill";
+    fill.style.width = `${progressPct}%`;
+    const gradient = buildDataHubSznFillCoreGradient(fillCoreColor);
+    if (gradient) {
+      fill.style.backgroundImage = gradient;
+      fill.style.backgroundColor = "transparent";
+    }
+    if (rankColor && rankColor !== "inherit") {
+      fill.style.border = `1px solid ${rankColor}`;
+      fill.style.boxShadow = rankBoxShadow;
+    }
+    const rankAnnotation = createDataHubRankAnnotation(rankValue, {
+      wrapInParens: false,
+      ordinal: true,
+      variant: "szn",
+    });
+    rankAnnotation.classList.add("gamelogs-szn-bar-rank");
+    rankAnnotation.style.color = rankColor;
+    rankAnnotation.style.setProperty("--szn-rank-pos", `${Math.min(98, Math.max(2, progressPct))}%`);
+    bar.append(fill, rankAnnotation);
+
+    const value = document.createElement("div");
+    value.className = "gamelogs-szn-value";
+    const valueMain = document.createElement("span");
+    valueMain.className = "gamelogs-szn-value-main";
+    const valueText = String(displayValue ?? "").trim();
+    if (valueText.endsWith("%") && valueText.length > 1) {
+      valueMain.innerHTML = `<span class="gamelogs-szn-value-number">${valueText.slice(0, -1)}</span><span class="gamelogs-szn-value-percent">%</span>`;
+    } else {
+      valueMain.textContent = valueText;
+    }
+    value.append(valueMain);
+
+    row.append(label, bar, value);
+    list.append(row);
+  };
+
+  const sections = getDataHubSznSectionsForPosition(player.pos);
+  if (sections.length) {
+    sections.forEach((section) => {
+      const visibleKeys = (section.stats || []).filter((key) => statLabels?.[key] && key !== "proj" && !usedKeys.has(key));
+      if (!visibleKeys.length) return;
+      const header = document.createElement("div");
+      header.className = `gamelogs-szn-section-header gamelogs-szn-section-header--${section.tone}`;
+      header.textContent = section.label;
+      list.append(header);
+      visibleKeys.forEach(appendStatRow);
+    });
+  } else {
+    orderedStatKeys.forEach(appendStatRow);
+  }
+
+  container.append(title, list);
+}
+
+function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
+  const isStaleRequest = () => requestSeq !== gameLogsState.requestSeq;
+  if (isStaleRequest()) return;
+
+  gameLogsState.activePlayer = player;
+  gameLogsState.activeRanks = playerRanks;
+  gameLogsState.activeSummary = {
+    fpts: playerRanks.total_pts,
+    ppg: playerRanks.ppg,
+  };
+
+  buildDataHubGameLogsHeader(player, playerRanks);
+  dataHubGameLogsModalBody.innerHTML = "";
+
+  const statLabels = buildDataHubStatLabels();
+  const orderedStatKeys = getDataHubOrderedStatKeys(player.pos);
+  const statGroupByKey = buildDataHubStatGroupMap();
+  const seasonTotals = gameLogsState.playerSeasonStats?.[player.id] || null;
+  const gameLogsByWeek = new Map((gameLogs || []).map((entry) => [Number(entry.week), entry]));
+  const gameLogsWithData = [];
+  const aggregatedTotals = Object.create(null);
+  const statValueCounts = Object.create(null);
+  const snapPctValues = [];
+
+  const container = document.createElement("div");
+  container.className = "game-logs-table-container";
+  const scroller = document.createElement("div");
+  scroller.className = "game-logs-hscroll";
+  const table = document.createElement("table");
+  table.className = "game-logs-table";
+  const thead = document.createElement("thead");
+  const tbody = document.createElement("tbody");
+  const tfoot = document.createElement("tfoot");
+  table.append(thead, tbody, tfoot);
+  scroller.append(table);
+  container.append(scroller);
+
+  const headerRow = document.createElement("tr");
+  const weekHeader = document.createElement("th");
+  weekHeader.className = "week-column-header";
+  weekHeader.textContent = "WK · VS";
+  headerRow.append(weekHeader);
+  orderedStatKeys
+    .filter((key) => statLabels[key])
+    .forEach((key) => {
+      const th = document.createElement("th");
+      const group = statGroupByKey.get(key);
+      if (group) th.classList.add(`gamelog-header-${group}`);
+      th.textContent = statLabels[key];
+      headerRow.append(th);
+    });
+  thead.append(headerRow);
+
+  for (let week = 1; week <= DATAHUB_MAX_DISPLAY_WEEKS; week += 1) {
+    const weekEntry = gameLogsByWeek.get(week) || null;
+    const stats = weekEntry?.stats || gameLogsState.weeklyStats?.[week]?.[player.id] || null;
+    const isByeWeek = stats?.opponent === "BYE";
+    const hasRecordedStat = stats
+      ? orderedStatKeys.some((key) => key !== "proj" && statLabels[key] && typeof stats[key] === "number")
+      : false;
+    const isLiveWeek = stats?.__live === true || Number.isFinite(stats?.fpts);
+    const isUnplayedWeek = !isLiveWeek && (isByeWeek || !hasRecordedStat);
+
+    const row = document.createElement("tr");
+    if (isByeWeek) row.classList.add("bye-week-row");
+    if (isUnplayedWeek) row.classList.add("unplayed-week-row");
+    if (isLiveWeek) row.classList.add("live-week-row");
+
+    const weekCell = document.createElement("td");
+    weekCell.className = "week-cell";
+    weekCell.append(createDataHubWeekTag(week, stats));
+    row.append(weekCell);
+
+    let rowHasData = false;
+    orderedStatKeys
+      .filter((key) => statLabels[key])
+      .forEach((key) => {
+        const td = document.createElement("td");
+        if (key === "proj") td.classList.add("proj-cell");
+        const displayValue = resolveDataHubWeeklyStatDisplayValue(key, stats, isLiveWeek);
+        td.textContent = displayValue;
+        row.append(td);
+
+        if (stats && key !== "proj" && typeof stats[key] === "number") {
+          rowHasData = true;
+          if (key === "snp_pct") {
+            snapPctValues.push(stats[key]);
+          } else {
+            aggregatedTotals[key] = (aggregatedTotals[key] || 0) + stats[key];
+          }
+          statValueCounts[key] = (statValueCounts[key] || 0) + 1;
+        }
+        if (key === "fpts" && Number.isFinite(stats?.fpt_ppr)) {
+          aggregatedTotals.fpt_ppr = (aggregatedTotals.fpt_ppr || 0) + stats.fpt_ppr;
+        }
+      });
+
+    if (rowHasData || isLiveWeek) {
+      gameLogsWithData.push({ week, stats: stats || {} });
+    }
+    tbody.append(row);
+  }
+
+  const footerHeaderRow = document.createElement("tr");
+  const footerSeasonHead = document.createElement("th");
+  footerSeasonHead.className = "week-column-header";
+  footerSeasonHead.textContent = "SZN";
+  footerHeaderRow.append(footerSeasonHead);
+  orderedStatKeys.filter((key) => statLabels[key]).forEach((key) => {
+    const th = document.createElement("th");
+    const group = statGroupByKey.get(key);
+    if (group) th.classList.add(`gamelog-header-${group}`);
+    th.textContent = statLabels[key];
+    footerHeaderRow.append(th);
+  });
+  tfoot.append(footerHeaderRow);
+
+  const totalsRow = document.createElement("tr");
+  const totalsLabel = document.createElement("th");
+  totalsLabel.className = "week-column-header";
+  const gp = typeof seasonTotals?.games_played === "number" ? Math.round(seasonTotals.games_played) : gameLogsWithData.length;
+  totalsLabel.innerHTML = `<span class="season-label">2025</span><br><span class="gp-label">(GP: ${gp})</span>`;
+  totalsRow.append(totalsLabel);
+
+  const footerStatsForRadar = { __gamesPlayed: gp };
+  orderedStatKeys.filter((key) => statLabels[key]).forEach((key) => {
+    const td = document.createElement("td");
+    if (key === "proj") {
+      td.textContent = "-";
+      totalsRow.append(td);
+      return;
+    }
+    const displayValue = getDataHubGameLogsSeasonDisplayValue({
+      key,
+      seasonTotals,
+      aggregatedTotals,
+      snapPctValues,
+      statValueCounts,
+      gameLogsWithData,
+    });
+    const rankValue = getDataHubSeasonRankValue(player.id, key);
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "stat-value";
+    valueSpan.textContent = displayValue;
+    td.append(valueSpan);
+    if (Number.isFinite(rankValue)) {
+      const annotation = createDataHubRankAnnotation(rankValue, {
+        wrapInParens: false,
+        ordinal: true,
+        variant: "gamelogs-footer",
+      });
+      annotation.classList.add("stat-rank-annotation--footer");
+      annotation.style.color = getDataHubConditionalColorByRank(rankValue, player.pos);
+      td.append(annotation);
+      td.classList.add("has-rank-annotation");
+    }
+    const numericValue = parseFloat(String(displayValue).replace(/[,%+]/g, ""));
+    if (!Number.isNaN(numericValue)) {
+      footerStatsForRadar[key] = numericValue;
+    }
+    totalsRow.append(td);
+  });
+  tfoot.append(totalsRow);
+  gameLogsState.activeFooterStats = footerStatsForRadar;
+
+  if (!gameLogsWithData.length) {
+    const noLogs = document.createElement("p");
+    noLogs.className = "no-logs";
+    noLogs.dataset.gamelogsView = "gl";
+    noLogs.textContent = `No game logs found for ${player.name} for the current season.`;
+    dataHubGameLogsModalBody.append(noLogs);
+    container.classList.add("is-hidden");
+  }
+
+  dataHubGameLogsModalBody.append(container);
+
+  const sznContainer = document.createElement("div");
+  sznContainer.className = "game-logs-szn-view is-hidden";
+  renderDataHubGameLogsSeasonStatsView({
+    container: sznContainer,
+    player,
+    orderedStatKeys,
+    statLabels,
+    seasonTotals,
+    aggregatedTotals,
+    snapPctValues,
+    statValueCounts,
+    gameLogsWithData,
+    statGroupByKey,
+  });
+  dataHubGameLogsModalBody.append(sznContainer);
+
+  prepareDataHubConsistencyPanel(player);
+  setDataHubGameLogsPanel("game-logs", { force: true });
+  setDataHubGameLogsModalView(gameLogsState.currentView || "gl");
+}
+
+const dataHubPlayerRadarBackgroundPlugin = {
+  id: "dataHubPlayerRadarBackground",
+  beforeDraw(chart, args, options) {
+    const scale = chart.scales?.r;
+    if (!scale) return;
+    const { ctx } = chart;
+    const centerX = scale.xCenter;
+    const centerY = scale.yCenter;
+    const angleStep = (Math.PI * 2) / chart.data.labels.length;
+    const startAngle = -Math.PI / 2;
+    const maxRadius = scale.drawingArea;
+    (options.levels || []).forEach((level) => {
+      const radius = maxRadius * (level.ratio ?? 1);
+      ctx.beginPath();
+      ctx.strokeStyle = level.stroke || "rgba(151, 166, 210, 0.15)";
+      ctx.fillStyle = level.fill || "transparent";
+      ctx.lineWidth = 1;
+      chart.data.labels.forEach((label, index) => {
+        const angle = startAngle + angleStep * index;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    });
+  },
+};
+
+const dataHubPlayerRadarLabelPlugin = {
+  id: "dataHubPlayerRadarLabels",
+  afterDatasetsDraw(chart, args, options) {
+    const dataset = chart.data.datasets[0];
+    const scale = chart.scales?.r;
+    if (!dataset || !scale) return;
+    const { ctx } = chart;
+    const angleStep = (Math.PI * 2) / chart.data.labels.length;
+    const startAngle = -Math.PI / 2;
+    ctx.font = options.font || '11px "Product Sans"';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    dataset.data.forEach((value, index) => {
+      const angle = startAngle + angleStep * index;
+      const point = scale.getPointPositionForValue(index, value);
+      let offsetDistance = options.offset || 18;
+      if (index === 0 || index === 1) offsetDistance -= 1.5;
+      else if (index === 7) offsetDistance += 3.5;
+      else if (index === 5) offsetDistance += 4;
+      else if (index === 6) offsetDistance += 7;
+
+      const offsetX = Math.cos(angle) * offsetDistance;
+      const offsetY = Math.sin(angle) * offsetDistance;
+      const rawRank = dataset.rawRanks?.[index];
+      const color = getDataHubConditionalColorByRank(rawRank, dataset.position);
+      ctx.fillStyle = color;
+
+      if (Number.isFinite(rawRank)) {
+        const rankNum = Math.round(rawRank);
+        const label = String(rankNum);
+        ctx.fillText(label, point.x + offsetX, point.y + offsetY);
+        const metrics = ctx.measureText(label);
+        const suffixFontSize = parseInt(ctx.font, 10) * 0.7;
+        ctx.font = `${suffixFontSize}px "Product Sans"`;
+        ctx.fillText(getOrdinalSuffixOnly(rankNum), point.x + offsetX + (metrics.width / 2) + 4, point.y + offsetY);
+        ctx.font = options.font || '11px "Product Sans"';
+      } else {
+        ctx.fillText("NA", point.x + offsetX, point.y + offsetY);
+      }
+    });
+  },
+};
+
+const dataHubPlayerRadarAxisLabelsPlugin = {
+  id: "dataHubPlayerRadarAxisLabels",
+  afterDraw(chart, args, options) {
+    const scale = chart.scales?.r;
+    const dataset = chart.data.datasets[0];
+    const labels = chart.data.labels;
+    if (!scale || !dataset || !labels?.length) return;
+
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const labelFontSize = isMobile ? (options?.labelFontSizeMobile ?? 11) : (options?.labelFontSize ?? 12);
+    const valueFontSize = isMobile ? (options?.valueFontSizeMobile ?? 9) : (options?.valueFontSize ?? 10);
+    const labelFont = `${labelFontSize}px "Product Sans", "Google Sans", sans-serif`;
+    const valueFont = `${valueFontSize}px "Product Sans", "Google Sans", sans-serif`;
+    const labelOffset = options?.labelOffset ?? (isMobile ? 14 : 18);
+    const topLabelExtraOffset = options?.topLabelExtraOffset ?? (isMobile ? 10 : 12);
+    const axisExtraOffsets = options?.axisLabelExtraOffsetsByIndex ?? { 1: 17, 2: 14, 3: 10, 5: 13, 6: 18, 7: 21 };
+    const valueSpacing = options?.valueSpacing ?? (isMobile ? 3 : 4);
+
+    const { ctx } = chart;
+    const angleStep = (Math.PI * 2) / labels.length;
+    const startAngle = -Math.PI / 2;
+
+    ctx.save();
+    for (let index = 0; index < labels.length; index += 1) {
+      const angle = startAngle + angleStep * index;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const textBaseline = Math.abs(sin) <= 1e-4 ? "middle" : (sin < 0 ? "bottom" : "top");
+      let effectiveOffset = labelOffset;
+      if (index === 0) effectiveOffset += topLabelExtraOffset;
+      if (Number.isFinite(axisExtraOffsets[index])) effectiveOffset += axisExtraOffsets[index];
+      const radius = scale.drawingArea + effectiveOffset;
+      const x = scale.xCenter + cos * radius;
+      const y = scale.yCenter + sin * radius;
+
+      ctx.font = labelFont;
+      ctx.textAlign = "center";
+      ctx.textBaseline = textBaseline;
+      ctx.fillStyle = options?.labelColor || "#EAEBF0";
+      ctx.fillText(String(labels[index] ?? ""), x, y);
+
+      const statKey = dataset.statKeys?.[index];
+      const statValue = dataset.statValues?.[index];
+      const formattedValue = formatDataHubRadarStatValue(statKey, statValue);
+      const rawRank = dataset.rawRanks?.[index];
+      const valueColor = getDataHubConditionalColorByRank(rawRank, dataset.position) || options?.labelColor || "#EAEBF0";
+
+      let valueY = y;
+      if (textBaseline === "top") valueY = y + labelFontSize + valueSpacing;
+      else if (textBaseline === "middle") valueY = y + (labelFontSize / 2) + valueSpacing;
+      else valueY = y + valueSpacing;
+
+      ctx.font = valueFont;
+      ctx.textBaseline = "top";
+      ctx.fillStyle = valueColor;
+      ctx.fillText(`• ${formattedValue} •`, x, valueY);
+    }
+    ctx.restore();
+  },
+};
+
+function getDataHubPlayerRadarData(playerId, position) {
+  const config = DATAHUB_RADAR_STATS_CONFIG[position];
+  if (!config) return null;
+  const radarData = {
+    labels: config.labels,
+    ranks: [],
+    rawRanks: [],
+    statValues: [],
+    statKeys: config.stats,
+    maxRank: config.maxRank,
+  };
+  const footerStats = gameLogsState.activeFooterStats || {};
+  const seasonTotals = gameLogsState.playerSeasonStats?.[playerId] || null;
+  const playerRanks = gameLogsState.activeRanks || null;
+  const summarySnapshot = gameLogsState.activeSummary || null;
+
+  config.stats.forEach((statKey) => {
+    const rankValue = getDataHubSeasonRankValue(playerId, statKey);
+    radarData.rawRanks.push(rankValue);
+    let statValue;
+    if (statKey === "ppg") {
+      statValue = playerRanks?.ppg;
+    } else {
+      statValue = footerStats[statKey];
+      if (statValue === undefined) {
+        if (statKey === "fpts") statValue = summarySnapshot?.fpts;
+        else if (statKey === "ypc") {
+          statValue = seasonTotals?.rush_att > 0 ? (seasonTotals.rush_yd || 0) / seasonTotals.rush_att : null;
+        } else if (statKey === "yco_per_att") {
+          statValue = seasonTotals?.rush_att > 0 ? (seasonTotals.rush_yac || 0) / seasonTotals.rush_att : null;
+        } else if (statKey === "mtf_per_att") {
+          statValue = seasonTotals?.rush_att > 0 ? (seasonTotals.mtf || 0) / seasonTotals.rush_att : null;
+        } else if (statKey === "pass_imp_per_att") {
+          statValue = seasonTotals?.pass_att > 0 ? ((seasonTotals.pass_imp || 0) / seasonTotals.pass_att) * 100 : null;
+        } else if (seasonTotals && typeof seasonTotals[statKey] === "number") {
+          statValue = seasonTotals[statKey];
+        } else {
+          statValue = null;
+        }
+      }
+    }
+
+    if (typeof statValue === "string") {
+      const trimmed = statValue.trim();
+      if (!trimmed) statValue = null;
+    }
+    radarData.statValues.push(statValue);
+
+    if (!Number.isFinite(rankValue)) {
+      radarData.ranks.push(10);
+    } else if (rankValue <= 1) {
+      radarData.ranks.push(85);
+    } else if (rankValue >= config.maxRank) {
+      radarData.ranks.push(10);
+    } else if (rankValue <= 7) {
+      radarData.ranks.push(85 - ((rankValue - 1) / 6) * 12);
+    } else {
+      radarData.ranks.push(73 - ((rankValue - 7) / (config.maxRank - 7)) * 63);
+    }
+  });
+
+  return radarData;
+}
+
+function renderDataHubPlayerRadarChart(playerId, position) {
+  if (!dataHubRadarChartContent || typeof Chart === "undefined") {
+    return;
+  }
+
+  destroyDataHubRadarChart();
+  const radarData = getDataHubPlayerRadarData(playerId, position);
+  if (!radarData) {
+    dataHubRadarChartContent.innerHTML = '<p class="no-data-message">No radar data available for this position.</p>';
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "datahub-player-radar-canvas";
+  dataHubRadarChartContent.append(canvas);
+  const ctx = canvas.getContext("2d");
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+  const chart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: radarData.labels,
+      datasets: [{
+        label: "Player Rank",
+        data: radarData.ranks,
+        rawRanks: radarData.rawRanks,
+        statValues: radarData.statValues,
+        statKeys: radarData.statKeys,
+        position,
+        fill: true,
+        backgroundColor: "rgba(83, 0, 255, 0.33)",
+        borderColor: "#6700ff",
+        borderWidth: 2,
+        pointBackgroundColor: "#6300ff",
+        pointBorderColor: "#0D0E1B",
+        pointRadius: 4.5,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      events: [],
+      layout: {
+        padding: {
+          top: isMobile ? 34 : 50,
+          bottom: isMobile ? 44 : 52,
+          left: isMobile ? 45 : 18,
+          right: isMobile ? 45 : 18,
+        },
+      },
+      elements: {
+        line: { tension: 0.4 },
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          suggestedMin: 0,
+          suggestedMax: 100,
+          max: 100,
+          grid: { display: false },
+          angleLines: { display: false },
+          ticks: { display: false },
+          pointLabels: { display: false },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        dataHubPlayerRadarBackground: {
+          levels: [
+            { ratio: 0.95, fill: "#2c334f62", stroke: "#525a7739" },
+            { ratio: 0.75, fill: "#2D345153", stroke: "#525a7729" },
+            { ratio: 0.55, fill: "#2F365250", stroke: "#525a7729" },
+            { ratio: 0.35, fill: "#30375455", stroke: "#525a7729" },
+            { ratio: 0.18, fill: "#31385565", stroke: "#525a7735" },
+          ],
+        },
+        dataHubPlayerRadarLabels: {
+          font: '14px "Product Sans", "Google Sans", sans-serif',
+          offset: isMobile ? 13 : 16,
+        },
+        dataHubPlayerRadarAxisLabels: {
+          labelFontSize: 14,
+          labelFontSizeMobile: 13,
+          valueFontSize: 12,
+          valueFontSizeMobile: 11,
+          labelOffset: isMobile ? 10 : 14,
+          topLabelExtraOffset: isMobile ? 10 : 12,
+          axisLabelExtraOffsetsByIndex: { 1: 17, 2: 14, 3: 10, 5: 13, 6: 18, 7: 21 },
+          valueSpacing: isMobile ? 3 : 4,
+          labelColor: "#EAEBF0",
+        },
+      },
+    },
+    plugins: [dataHubPlayerRadarBackgroundPlugin, dataHubPlayerRadarLabelPlugin, dataHubPlayerRadarAxisLabelsPlugin],
+  });
+
+  const scale = chart.scales?.r;
+  if (scale) {
+    const gradient = ctx.createRadialGradient(scale.xCenter, scale.yCenter, 0, scale.xCenter, scale.yCenter, scale.drawingArea);
+    gradient.addColorStop(0, "rgba(121, 0, 245, 0.13)");
+    gradient.addColorStop(0.4, "rgba(92, 0, 255, 0.20)");
+    gradient.addColorStop(0.78, "rgba(75, 0, 255, 0.34)");
+    gradient.addColorStop(1, "rgba(34, 0, 255, 0.91)");
+    chart.data.datasets[0].backgroundColor = gradient;
+    chart.update("none");
+  }
+
+  gameLogsState.radarChartInstance = chart;
+}
+
+function getDataHubConsistencyThresholds(position) {
+  return DATAHUB_CONSISTENCY_THRESHOLD_MAP[String(position || "").toUpperCase()] || DATAHUB_CONSISTENCY_THRESHOLD_MAP.DEFAULT;
+}
+
+function clampDataHubConsistencyPoints(value) {
+  if (!Number.isFinite(value)) return null;
+  return Math.max(0, Math.min(DATAHUB_MAX_CONSISTENCY_POINTS, value));
+}
+
+function getDataHubConsistencyBucket(points, thresholds) {
+  if (!Number.isFinite(points)) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.low, name: "low" };
+  if (points >= thresholds.high) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.high, name: "high" };
+  if (points >= thresholds.solid) return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.solid, name: "solid" };
+  return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.low, name: "low" };
+}
+
+function buildDataHubConsistencyPanelData(player) {
+  if (!player?.id) return null;
+  const axisWeeks = Array.from({ length: DATAHUB_MAX_DISPLAY_WEEKS }, (_, index) => index + 1);
+  const thresholds = getDataHubConsistencyThresholds(player.pos);
+  const series = [];
+  const skippedLabels = {};
+
+  axisWeeks.forEach((week) => {
+    const stats = gameLogsState.playerWeeklyStats?.[week]?.[player.id];
+    if (!stats) return;
+    const opponent = String(stats.opponent || "").toUpperCase();
+    if (opponent === "BYE") {
+      skippedLabels[week] = "BYE";
+      return;
+    }
+    const rawProjection = String(stats.proj || "").trim().toUpperCase();
+    if (!Number.isFinite(stats.fpt_ppr) && DATAHUB_CONSISTENCY_PROJECTION_SKIP_CODES.has(rawProjection)) {
+      skippedLabels[week] = rawProjection;
+      return;
+    }
+    const numeric = Number(stats.fpt_ppr);
+    if (!Number.isFinite(numeric)) return;
+    const clamped = clampDataHubConsistencyPoints(numeric);
+    if (clamped === null) return;
+    series.push({
+      week,
+      pts: clamped,
+      originalPts: numeric,
+      opponent: stats.opponent || "",
+    });
+  });
+
+  series.sort((left, right) => left.week - right.week);
+
+  const seasonTotals = gameLogsState.playerSeasonStats?.[player.id] || {};
+  const consistencyPct = Number(seasonTotals.csty_pct);
+  const ceilingValue = Number(seasonTotals.ceiling);
+  const consistencyRank = getDataHubSeasonRankValue(player.id, "csty_pct");
+  const ceilingRank = getDataHubSeasonRankValue(player.id, "ceiling");
+  const bestGame = series.reduce((best, entry) => (!best || entry.pts > best.pts ? entry : best), null);
+  const lastFive = series.slice(-5);
+  const lastFiveAvg = lastFive.length ? lastFive.reduce((sum, entry) => sum + entry.originalPts, 0) / lastFive.length : null;
+  const solidHighCount = series.filter((entry) => entry.pts >= thresholds.solid).length;
+  const highWeekCount = series.filter((entry) => entry.pts >= thresholds.high).length;
+  const gamesPlayed = typeof seasonTotals.games_played === "number" ? seasonTotals.games_played : series.length;
+
+  return {
+    playerId: player.id,
+    playerName: player.name,
+    position: player.pos,
+    axisWeeks,
+    series,
+    chartedWeeksCount: series.length,
+    gamesPlayed,
+    thresholds,
+    consistencyPct: Number.isFinite(consistencyPct) ? consistencyPct : null,
+    ceilingValue: Number.isFinite(ceilingValue) ? ceilingValue : null,
+    consistencyRank: Number.isFinite(consistencyRank) ? consistencyRank : null,
+    ceilingRank: Number.isFinite(ceilingRank) ? ceilingRank : null,
+    weekRangeLabel: "Weeks 1-18",
+    weeksChartedLabel: series.length === 1 ? "1 week charted" : `${series.length} weeks charted`,
+    ceilingRankMax: DATAHUB_RADAR_STATS_CONFIG[player.pos]?.maxRank || 32,
+    bestGame,
+    lastFiveAvg,
+    highWeekCount,
+    solidHighCount,
+    totalWeeks: series.length,
+    skippedLabels,
+  };
+}
+
+function prepareDataHubConsistencyPanel(player) {
+  gameLogsState.currentConsistencyData = buildDataHubConsistencyPanelData(player);
+  updateDataHubConsistencyHud(gameLogsState.currentConsistencyData);
+}
+
+function updateDataHubConsistencyHud(data) {
+  if (!dataHubConsistencyContainer) return;
+  const setText = (selector, value) => {
+    const node = dataHubConsistencyContainer.querySelector(selector);
+    if (node) node.textContent = value;
+  };
+  setText("[data-week-range]", data?.weekRangeLabel || "Weeks -");
+  setText("[data-weeks-charted]", data?.weeksChartedLabel || "No weeks charted");
+  setText("[data-consistency-rank]", Number.isFinite(data?.consistencyRank) ? `#${data.consistencyRank}` : "NA");
+  setText("[data-ceiling-value]", Number.isFinite(data?.ceilingValue) ? data.ceilingValue.toFixed(1) : "N/A");
+  setText("[data-consistency-circle-value]", Number.isFinite(data?.consistencyPct) ? `${data.consistencyPct.toFixed(1)}%` : "N/A");
+  setText("[data-consistency-circle-caption]", "CSTY RATE");
+  setText("[data-ceiling-circle-caption]", "CL POS RANK");
+
+  const ceilingCircle = dataHubConsistencyContainer.querySelector("[data-ceiling-circle-rank]");
+  if (ceilingCircle) {
+    if (Number.isFinite(data?.ceilingRank)) {
+      const rankInt = Math.round(data.ceilingRank);
+      ceilingCircle.innerHTML = `${rankInt}<span class="ceiling-rank-suffix">${getOrdinalSuffixOnly(rankInt)}</span>`;
+    } else {
+      ceilingCircle.textContent = "NA";
+    }
+  }
+
+  const highPctNode = dataHubConsistencyContainer.querySelector("[data-insight-best]");
+  if (highPctNode) {
+    if (Number.isFinite(data?.highWeekCount) && Number.isFinite(data?.gamesPlayed) && data.gamesPlayed > 0) {
+      const pct = (data.highWeekCount / data.gamesPlayed) * 100;
+      const color = pct > 40 ? DATAHUB_CONSISTENCY_HUD_COLORS.high : (pct < 23 ? DATAHUB_CONSISTENCY_HUD_COLORS.low : DATAHUB_CONSISTENCY_HUD_COLORS.solid);
+      highPctNode.innerHTML = `<span style="color:${color}">${pct.toFixed(1)}</span><span class="hud-insight-suffix">%</span>`;
+    } else {
+      highPctNode.textContent = "—";
+    }
+  }
+
+  const lastFiveNode = dataHubConsistencyContainer.querySelector("[data-insight-last5]");
+  if (lastFiveNode) {
+    if (Number.isFinite(data?.lastFiveAvg)) {
+      const bucket = getDataHubConsistencyBucket(data.lastFiveAvg, data.thresholds);
+      const color = bucket.name === "high"
+        ? DATAHUB_CONSISTENCY_HUD_COLORS.high
+        : (bucket.name === "solid" ? DATAHUB_CONSISTENCY_HUD_COLORS.solid : DATAHUB_CONSISTENCY_HUD_COLORS.low);
+      lastFiveNode.innerHTML = `<span style="color:${color}">${data.lastFiveAvg.toFixed(1)}</span><span class="hud-insight-suffix"> fpts</span>`;
+    } else {
+      lastFiveNode.textContent = "—";
+    }
+  }
+
+  const cstyCountNode = dataHubConsistencyContainer.querySelector("[data-insight-cstycount]");
+  if (cstyCountNode) {
+    if (Number.isFinite(data?.solidHighCount) && Number.isFinite(data?.totalWeeks) && data.totalWeeks > 0) {
+      const color = getDataHubConditionalColorByRank(data?.consistencyRank, data?.position);
+      cstyCountNode.innerHTML = `<span class="csty-made" style="color:${color}">${data.solidHighCount}</span><span class="hud-insight-suffix">/${data.totalWeeks}</span>`;
+    } else {
+      cstyCountNode.textContent = "—";
+    }
+  }
+
+  const lowCount = data?.series?.filter((entry) => entry.pts < data.thresholds.solid).length ?? 0;
+  const solidCount = data?.series?.filter((entry) => entry.pts >= data.thresholds.solid && entry.pts < data.thresholds.high).length ?? 0;
+  const highCount = data?.series?.filter((entry) => entry.pts >= data.thresholds.high).length ?? 0;
+  setText("[data-zone-low]", String(lowCount));
+  setText("[data-zone-solid]", String(solidCount));
+  setText("[data-zone-high]", String(highCount));
+  setText("[data-threshold-low]", data ? `(<${Math.round(data.thresholds.solid)}):` : "");
+  setText("[data-threshold-solid]", data ? `(${Math.round(data.thresholds.solid)}-${Math.round(data.thresholds.high)}):` : "");
+  setText("[data-threshold-high]", data ? `(>=${Math.round(data.thresholds.high)}):` : "");
+
+  hydrateDataHubProgressCircles(data);
+}
+
+function hydrateDataHubProgressCircles(data) {
+  const consistencyCircle = dataHubConsistencyContainer?.querySelector(".progress-circle--consistency .progress-ring-fill");
+  if (consistencyCircle) {
+    const progress = data && Number.isFinite(data.consistencyPct) ? Math.max(0, Math.min(100, data.consistencyPct)) / 100 : 0;
+    consistencyCircle.style.setProperty("--progress", progress.toFixed(3));
+  }
+  const ceilingCircle = dataHubConsistencyContainer?.querySelector(".progress-circle--ceiling .progress-ring-fill--ceiling");
+  if (ceilingCircle) {
+    const rankMax = Math.max(2, data?.ceilingRankMax || 24);
+    const rank = Number.isFinite(data?.ceilingRank) ? data.ceilingRank : rankMax;
+    const normalized = Math.max(0, Math.min(1, (rankMax - rank) / (rankMax - 1)));
+    ceilingCircle.style.setProperty("--progress", normalized.toFixed(3));
+  }
+}
+
+function renderDataHubConsistencyChart() {
+  if (!dataHubConsistencyContainer) return;
+  const pointsLayer = dataHubConsistencyContainer.querySelector("#weekly-chart-points");
+  const xAxis = dataHubConsistencyContainer.querySelector("#weekly-chart-x-axis");
+  const chartBox = dataHubConsistencyContainer.querySelector("#weekly-chart-box");
+  if (!pointsLayer || !xAxis || !chartBox) return;
+
+  const data = gameLogsState.currentConsistencyData;
+  updateDataHubConsistencyHud(data);
+  pointsLayer.innerHTML = "";
+  xAxis.innerHTML = "";
+  chartBox.querySelector(".consistency-empty-state")?.remove();
+
+  const axisWeeks = data?.axisWeeks || Array.from({ length: DATAHUB_MAX_DISPLAY_WEEKS }, (_, index) => index + 1);
+  axisWeeks.forEach((week, index) => {
+    const span = document.createElement("span");
+    span.textContent = `WK${week}`;
+    span.style.left = `${axisWeeks.length === 1 ? 50 : (index / (axisWeeks.length - 1)) * 100}%`;
+    xAxis.append(span);
+  });
+
+  if (!data?.series?.length) {
+    const empty = document.createElement("div");
+    empty.className = "consistency-empty-state";
+    empty.textContent = "No sheet-based fantasy points recorded yet.";
+    chartBox.append(empty);
+    return;
+  }
+
+  const curvePoints = [];
+  data.series.forEach((entry) => {
+    const x = axisWeeks.length === 1 ? 50 : ((entry.week - 1) / (axisWeeks.length - 1)) * 100;
+    const y = 100 - ((Math.max(0, Math.min(DATAHUB_MAX_CONSISTENCY_POINTS, entry.pts)) / DATAHUB_MAX_CONSISTENCY_POINTS) * 100);
+    curvePoints.push({ x, y });
+    const bucket = getDataHubConsistencyBucket(entry.pts, data.thresholds);
+    const point = document.createElement("div");
+    point.className = "weekly-point";
+    point.dataset.zone = bucket.name;
+    point.style.left = `${x}%`;
+    point.style.top = `${y}%`;
+    point.style.setProperty("--point-color", bucket.color);
+    point.innerHTML = `
+      <div class="weekly-point-label weekly-point-label--${bucket.name}">
+        <span class="weekly-point-label__suffix">wk${entry.week}</span>
+        <span class="weekly-point-label__value"><span style="color:${bucket.color}">${entry.originalPts.toFixed(1)}</span></span>
+      </div>
+    `;
+    pointsLayer.append(point);
+  });
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add("weekly-curve-layer");
+  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("preserveAspectRatio", "none");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const d = curvePoints.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "#9ad7ff");
+  path.setAttribute("stroke-width", "1.8");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+  svg.append(path);
+  pointsLayer.prepend(svg);
+
+  Object.entries(data.skippedLabels || {}).forEach(([week, label]) => {
+    const skip = document.createElement("div");
+    skip.className = "weekly-skip-label";
+    skip.textContent = label;
+    const x = axisWeeks.length === 1 ? 50 : ((Number(week) - 1) / (axisWeeks.length - 1)) * 100;
+    skip.style.left = `${x}%`;
+    skip.style.top = "82%";
+    pointsLayer.append(skip);
+  });
 }

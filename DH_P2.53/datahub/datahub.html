@@ -516,6 +516,212 @@
       </button>
     </div>
 
+    <!-- DataHub game logs radar uses Chart.js locally instead of inheriting it
+         from the shared Stats page runtime. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- DataHub-local game logs modal: self-contained port of the Stats page
+         GL/SZN subsystem, scoped to this page and wired only by DataHub.js. -->
+    <div id="datahub-game-logs-modal" class="datahub-gamelogs-modal is-hidden" aria-hidden="true">
+      <div class="datahub-gamelogs-modal__overlay" data-gamelogs-close></div>
+
+      <div class="datahub-gamelogs-modal__content glass-panel" role="dialog" aria-modal="true" aria-labelledby="modal-player-name">
+        <button class="datahub-gamelogs-modal__close" type="button" aria-label="Close player game logs" data-gamelogs-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+
+        <div id="modal-header" class="datahub-gamelogs-modal__header">
+          <h3 id="modal-player-name">Player Game Logs</h3>
+          <div id="modal-player-vitals"></div>
+          <div id="modal-summary-row">
+            <div id="modal-summary-chips"></div>
+          </div>
+          <div class="gamelogs-nav-row" aria-label="Game logs navigation">
+            <div class="gamelogs-season-tabs" role="group" aria-label="Season">
+              <button type="button" class="gamelogs-season-tab is-active" aria-pressed="true" data-gamelogs-season="2025">2025</button>
+              <button type="button" class="gamelogs-season-tab" aria-pressed="false" data-gamelogs-season="2026">2026</button>
+            </div>
+            <div class="gamelogs-view-switcher" role="group" aria-label="View">
+              <button type="button" class="gamelogs-view-option is-active" aria-pressed="true" data-gamelogs-view="gl">
+                <svg class="gamelogs-view-option__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M8 6h13"></path>
+                  <path d="M8 12h13"></path>
+                  <path d="M8 18h13"></path>
+                  <path d="M3 6h.01"></path>
+                  <path d="M3 12h.01"></path>
+                  <path d="M3 18h.01"></path>
+                </svg>
+                <span>GameLog</span>
+              </button>
+              <button type="button" class="gamelogs-view-option" aria-pressed="false" data-gamelogs-view="szn">
+                <svg class="gamelogs-view-option__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M5 21V10"></path>
+                  <path d="M12 21V3"></path>
+                  <path d="M19 21v-7"></path>
+                </svg>
+                <span>Season</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-body" class="datahub-gamelogs-modal__body"></div>
+
+        <div id="stats-key-container" class="datahub-gamelogs-panel is-hidden">
+          <h4>Stats Key</h4>
+          <div class="stats-key-shared-body" data-stats-key-body="datahub-gamelogs"></div>
+        </div>
+
+        <div id="radar-chart-container" class="datahub-gamelogs-panel datahub-gamelogs-panel--radar is-hidden">
+          <h4>Efficiency &amp; Production • Position Rankings</h4>
+          <div class="radar-chart-content"></div>
+        </div>
+
+        <div id="consistency-container" class="datahub-gamelogs-panel is-hidden">
+          <div class="consistency-shell">
+            <div class="consistency-eyebrow-header">
+              <div class="hud-eyebrow">Consistency &amp; Ceiling  |  Weekly Overview</div>
+            </div>
+            <header class="consistency-hud">
+              <div class="hud-segment hud-segment--left">
+                <div class="progress-circle progress-circle--consistency" aria-label="Season Consistency Rate">
+                  <svg viewBox="0 0 120 120" class="progress-ring">
+                    <defs>
+                      <linearGradient id="datahubConsistencyGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                        <stop offset="0%" stop-color="#5300ff" />
+                        <stop offset="35%" stop-color="#5300ff" />
+                        <stop offset="65%" stop-color="#6900ff" />
+                        <stop offset="75%" stop-color="#7300ff" />
+                        <stop offset="90%" stop-color="#7B00ED" />
+                        <stop offset="100%" stop-color="#7B00EDCC" />
+                      </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-track" cx="60" cy="60" r="46" />
+                    <circle class="progress-ring-fill" cx="60" cy="60" r="46" stroke="url(#datahubConsistencyGradient)" style="--progress: 0;" />
+                  </svg>
+                  <div class="progress-circle-inner">
+                    <div class="progress-value" data-consistency-circle-value>—</div>
+                    <div class="progress-label">Consistency Rate</div>
+                    <div class="progress-caption" data-consistency-circle-caption>2025 CSTY RATE</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hud-segment hud-segment--center">
+                <div class="hud-player">
+                  <div class="hud-context">
+                    <span data-week-range>Weeks 1–18</span>
+                    <span class="hud-context-divider">•</span>
+                    <span data-weeks-charted>0 weeks charted</span>
+                  </div>
+                </div>
+                <div class="hud-metrics">
+                  <div class="metric-block">
+                    <div class="metric-label">CSTY% POS RK</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value metric-value--rank" data-consistency-rank>—</span>
+                    </div>
+                  </div>
+                  <div class="metric-block">
+                    <div class="metric-label">Ceiling</div>
+                    <div class="metric-primary metric-primary--single">
+                      <span class="metric-value" data-ceiling-value>—</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="hud-insights">
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">CSTY Count</div>
+                    <div class="hud-insight-value" data-insight-cstycount>—</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Big Game %</div>
+                    <div class="hud-insight-value" data-insight-best>—</div>
+                  </div>
+                  <div class="summary-chip hud-insight">
+                    <div class="hud-insight-label">Last 5 Avg</div>
+                    <div class="hud-insight-value" data-insight-last5>—</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hud-segment hud-segment--right">
+                <div class="progress-circle progress-circle--ceiling" aria-label="Ceiling Positional Rank">
+                  <svg viewBox="0 0 120 120" class="progress-ring">
+                    <defs>
+                      <linearGradient id="datahubCeilingGradient" gradientUnits="userSpaceOnUse" x1="60" y1="14" x2="60" y2="106">
+                        <stop offset="0%" stop-color="#00b2fe" />
+                        <stop offset="40%" stop-color="#00b2fe" />
+                        <stop offset="65%" stop-color="#4faafe" />
+                        <stop offset="100%" stop-color="#4faafecc" />
+                      </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-track" cx="60" cy="60" r="46" />
+                    <circle class="progress-ring-fill progress-ring-fill--ceiling" cx="60" cy="60" r="46" stroke="url(#datahubCeilingGradient)" style="--progress: 0;" />
+                  </svg>
+                  <div class="progress-circle-inner">
+                    <div class="progress-value" data-ceiling-circle-rank>—</div>
+                    <div class="progress-label">Ceiling<br> Rank</div>
+                    <div class="progress-caption" data-ceiling-circle-caption>2025 CL POS RANK</div>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <section class="consistency-chart-shell">
+              <div class="weekly-chart-box" id="weekly-chart-box">
+                <div class="weekly-zone-summary" id="weekly-zone-summary">
+                  <span class="zone-chip zone-chip--low"><span class="zone-chip-label">Low</span><span class="zone-chip-threshold" data-threshold-low></span><span class="zone-chip-value" data-zone-low>0</span></span>
+                  <span class="zone-chip zone-chip--solid"><span class="zone-chip-label">Solid</span><span class="zone-chip-threshold" data-threshold-solid></span><span class="zone-chip-value" data-zone-solid>0</span></span>
+                  <span class="zone-chip zone-chip--high"><span class="zone-chip-label">High</span><span class="zone-chip-threshold" data-threshold-high></span><span class="zone-chip-value" data-zone-high>0</span></span>
+                </div>
+                <div class="weekly-chart-grid" aria-hidden="true"></div>
+                <div class="weekly-chart-line-layer" id="weekly-chart-points"></div>
+                <div class="weekly-chart-x-axis" id="weekly-chart-x-axis"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div class="datahub-gamelogs-modal__footer">
+          <button type="button" class="datahub-gamelogs-footer-btn is-active" data-panel="game-logs">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M8 6h13"></path>
+              <path d="M8 12h13"></path>
+              <path d="M8 18h13"></path>
+              <path d="M3 6h.01"></path>
+              <path d="M3 12h.01"></path>
+              <path d="M3 18h.01"></path>
+            </svg>
+            <span>GM-Logs</span>
+          </button>
+          <button type="button" class="datahub-gamelogs-footer-btn" data-panel="radar-chart">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3v18"></path>
+              <path d="M3 12h18"></path>
+              <path d="m5.5 5.5 13 13"></path>
+              <path d="m18.5 5.5-13 13"></path>
+            </svg>
+            <span>Performance</span>
+          </button>
+          <button type="button" class="datahub-gamelogs-footer-btn" data-panel="consistency">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 17 9 11l4 4 8-8"></path>
+              <path d="M21 21H3V3"></path>
+            </svg>
+            <span>Consistency</span>
+          </button>
+          <button type="button" class="datahub-gamelogs-footer-btn" data-panel="stats-key">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m14.5 7.5 2 2"></path>
+              <path d="M15.5 6.5a4.95 4.95 0 1 1-7 7L3 19v2h2l5.5-5.5a4.95 4.95 0 0 1 5-9Z"></path>
+            </svg>
+            <span>Key</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="../scripts/DataHub.js"></script>
   </body>
 </html>
