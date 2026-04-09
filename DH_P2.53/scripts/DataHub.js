@@ -2628,8 +2628,15 @@ function initializeDataHubGameLogs() {
   });
 
   dataHubGameLogsSeasonTabs.forEach((button) => {
+    // Season tabs are currently visual-only, but we still keep the pressed
+    // state synchronized so the localized DataHub modal remains accessible.
+    button.setAttribute("aria-pressed", String(button.classList.contains("is-active")));
     button.addEventListener("click", () => {
-      dataHubGameLogsSeasonTabs.forEach((tab) => tab.classList.toggle("is-active", tab === button));
+      dataHubGameLogsSeasonTabs.forEach((tab) => {
+        const isActive = tab === button;
+        tab.classList.toggle("is-active", isActive);
+        tab.setAttribute("aria-pressed", String(isActive));
+      });
     });
   });
 
@@ -2856,7 +2863,9 @@ function setDataHubGameLogsPanel(panel, options = {}) {
 
   gameLogsState.activePanel = targetPanel;
   dataHubGameLogsFooterButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.panel === targetPanel);
+    const isActive = button.dataset.panel === targetPanel;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
 
   const showGameLogs = targetPanel === "game-logs";

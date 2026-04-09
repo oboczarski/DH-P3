@@ -301,6 +301,9 @@ body::after {
      border ring so the original filled background remains unchanged. */
   background: var(--datahub-active-accent-gradient);
   pointer-events: none;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -772,6 +775,9 @@ body::after {
      nav state so all selected buttons share one page-specific accent. */
   background: var(--datahub-active-accent-gradient);
   pointer-events: none;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -1947,6 +1953,2001 @@ body::after {
     padding: 22px;
   }
 
+}
+
+/* ── DataHub Game Logs Modal ────────────────────────────────────────────── */
+
+/* DataHub-local token shim for the self-contained Game Logs subsystem.
+   These aliases intentionally mirror the shared modal vocabulary while still
+   resolving to DataHub's page tokens, so the port stays scoped to this file. */
+#datahub-game-logs-modal {
+  --color-panel-bg: color-mix(in srgb, var(--panel-fill-strong) 84%, rgba(10, 16, 28, 0.96));
+  --color-panel-border: rgba(153, 192, 255, 0.18);
+  --color-panel-border-glow: rgba(120, 211, 255, 0.3);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: rgba(205, 222, 248, 0.82);
+  --color-text-tertiary: rgba(158, 176, 204, 0.6);
+  --color-accent-primary: #92dcff;
+  --color-accent-secondary: #6dc5ff;
+  --color-accent-trade-win: #71ebc7;
+  --panel-border-radius: 24px;
+  --card-border-radius: 16px;
+  --datahub-pos-qb: #ff5b8d;
+  --datahub-pos-rb: #7df0cc;
+  --datahub-pos-wr: #7abaff;
+  --datahub-pos-te: #c89aff;
+  position: fixed;
+  inset: 0;
+  z-index: 2400;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 220ms ease, visibility 220ms ease;
+}
+
+/* Root hidden state: modal closes by becoming non-interactive instead of
+   tearing down DOM nodes, so the JS can preserve panel state between opens. */
+#datahub-game-logs-modal.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#datahub-game-logs-modal .is-hidden {
+  display: none !important;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(102, 215, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 82% 78%, rgba(162, 127, 255, 0.18), transparent 28%),
+    rgba(3, 8, 15, 0.76);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* The content shell uses an explicit grid so the body and each auxiliary
+   panel can share the middle row without needing shared global modal rules. */
+#datahub-game-logs-modal .datahub-gamelogs-modal__content {
+  position: relative;
+  z-index: 1;
+  width: min(95vw, 734px);
+  height: min(92dvh, 760px);
+  max-height: min(92dvh, 760px);
+  padding: 0.72rem 0.9rem 0.72rem;
+  border-radius: var(--panel-border-radius);
+  border: 1px solid rgba(176, 205, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(15, 25, 43, 0.92), rgba(7, 13, 24, 0.9)),
+    rgba(7, 13, 24, 0.88);
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 0 0 1px rgba(94, 134, 199, 0.1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  row-gap: 0.58rem;
+  overflow: hidden;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__close {
+  position: absolute;
+  top: 0.18rem;
+  right: 0.48rem;
+  z-index: 5;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__close:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  transform: scale(1.04);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__close:focus-visible,
+#datahub-game-logs-modal .gamelogs-season-tab:focus-visible,
+#datahub-game-logs-modal .gamelogs-view-option:focus-visible,
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn:focus-visible,
+#datahub-game-logs-modal .datahub-player-trigger:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(155, 222, 255, 0.72),
+    0 0 0 5px rgba(102, 215, 255, 0.18);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__header {
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.05rem 0.1rem 0;
+  text-align: center;
+}
+
+#datahub-game-logs-modal #modal-player-name {
+  margin: 0;
+  max-width: 16ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: clamp(1.02rem, 1rem + 0.5vw, 1.26rem);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+#datahub-game-logs-modal .modal-header-left-container {
+  position: absolute;
+  top: 0.1rem;
+  left: 0.08rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.44rem;
+}
+
+#datahub-game-logs-modal .modal-team-logo-chip,
+#datahub-game-logs-modal .modal-pos-tag,
+#datahub-game-logs-modal .player-vitals--modal,
+#datahub-game-logs-modal .gamelogs-summary-chip,
+#datahub-game-logs-modal .summary-chip,
+#datahub-game-logs-modal .gamelogs-season-tab,
+#datahub-game-logs-modal .gamelogs-view-switcher,
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(9, 15, 27, 0.56);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 24px rgba(2, 6, 15, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+#datahub-game-logs-modal .modal-team-logo-chip::after,
+#datahub-game-logs-modal .modal-pos-tag::after,
+#datahub-game-logs-modal .player-vitals--modal::after,
+#datahub-game-logs-modal .gamelogs-summary-chip::after,
+#datahub-game-logs-modal .summary-chip::after,
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 32%),
+    radial-gradient(circle at 24% 0%, rgba(255, 255, 255, 0.06), transparent 40%);
+  opacity: 0.5;
+}
+
+#datahub-game-logs-modal .modal-team-logo-chip {
+  min-width: 35px;
+  min-height: 31px;
+  padding: 0 7px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+#datahub-game-logs-modal .modal-team-logo-chip img.team-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(102, 215, 255, 0.18));
+}
+
+#datahub-game-logs-modal .modal-pos-tag {
+  min-height: 31px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#datahub-game-logs-modal .modal-pos-tag.QB {
+  color: var(--datahub-pos-qb);
+  box-shadow: inset 0 0 14px rgba(255, 91, 141, 0.14), 0 8px 24px rgba(2, 6, 15, 0.34);
+}
+
+#datahub-game-logs-modal .modal-pos-tag.RB {
+  color: var(--datahub-pos-rb);
+  box-shadow: inset 0 0 14px rgba(125, 240, 204, 0.16), 0 8px 24px rgba(2, 6, 15, 0.34);
+}
+
+#datahub-game-logs-modal .modal-pos-tag.WR {
+  color: var(--datahub-pos-wr);
+  box-shadow: inset 0 0 14px rgba(122, 186, 255, 0.18), 0 8px 24px rgba(2, 6, 15, 0.34);
+}
+
+#datahub-game-logs-modal .modal-pos-tag.TE {
+  color: var(--datahub-pos-te);
+  box-shadow: inset 0 0 14px rgba(200, 154, 255, 0.16), 0 8px 24px rgba(2, 6, 15, 0.34);
+}
+
+#datahub-game-logs-modal #modal-player-vitals {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+#datahub-game-logs-modal .player-vitals {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.45rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+#datahub-game-logs-modal .player-vitals--modal {
+  margin: 0.18rem 0 0.5rem;
+  padding: 0.38rem 0.72rem;
+  border-radius: 12px;
+}
+
+#datahub-game-logs-modal .player-vitals__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08rem;
+}
+
+#datahub-game-logs-modal .player-vitals__label {
+  font-size: 0.44rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(160, 176, 202, 0.72);
+}
+
+#datahub-game-logs-modal .player-vitals__value {
+  font-size: 0.76rem;
+  line-height: 1;
+  color: rgba(221, 232, 250, 0.92);
+}
+
+#datahub-game-logs-modal #modal-summary-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 0.32rem;
+}
+
+#datahub-game-logs-modal #modal-summary-chips {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.64rem;
+}
+
+/* Summary cards: FPTS / PPG / KTC snapshots shown at the top of the modal. */
+#datahub-game-logs-modal .gamelogs-summary-chip {
+  padding: 0.28rem 0.72rem 0.34rem;
+  border-radius: 14px;
+  text-align: center;
+  overflow: hidden;
+}
+
+#datahub-game-logs-modal .gamelogs-summary-chip h4 {
+  margin: 0 0 0.12rem;
+  padding-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.28rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+#datahub-game-logs-modal .gamelogs-summary-chip .chip-header-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+#datahub-game-logs-modal .gamelogs-summary-chip .chip-unit {
+  font-size: 0.62rem;
+  color: var(--color-text-tertiary);
+}
+
+#datahub-game-logs-modal .gamelogs-summary-chip .chip-values {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+#datahub-game-logs-modal .gamelogs-summary-chip .chip-separator {
+  margin: 0 0.15rem;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+#datahub-game-logs-modal .chip-pos-rank-label {
+  font-size: 0.72em;
+  font-weight: 500;
+}
+
+#datahub-game-logs-modal .pos-rank-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+#datahub-game-logs-modal .pos-color-QB {
+  color: var(--datahub-pos-qb);
+}
+
+#datahub-game-logs-modal .pos-color-RB {
+  color: var(--datahub-pos-rb);
+}
+
+#datahub-game-logs-modal .pos-color-WR {
+  color: var(--datahub-pos-wr);
+}
+
+#datahub-game-logs-modal .pos-color-TE {
+  color: var(--datahub-pos-te);
+}
+
+/* GameLog / Season nav strip and cosmetic season pills. */
+#datahub-game-logs-modal .gamelogs-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.62rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+#datahub-game-logs-modal .gamelogs-season-tabs,
+#datahub-game-logs-modal .gamelogs-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.16rem;
+  padding: 0.08rem;
+  border-radius: 14px;
+}
+
+#datahub-game-logs-modal .gamelogs-season-tab,
+#datahub-game-logs-modal .gamelogs-view-option {
+  appearance: none;
+  min-height: 31px;
+  padding: 0 0.72rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+#datahub-game-logs-modal .gamelogs-view-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 104px;
+}
+
+#datahub-game-logs-modal .gamelogs-view-option__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+#datahub-game-logs-modal .gamelogs-view-option__icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#datahub-game-logs-modal .gamelogs-season-tab:hover,
+#datahub-game-logs-modal .gamelogs-view-option:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#datahub-game-logs-modal .gamelogs-season-tab.is-active,
+#datahub-game-logs-modal .gamelogs-view-option.is-active {
+  color: #f3f8ff;
+  background:
+    linear-gradient(180deg, rgba(133, 215, 255, 0.18), rgba(162, 127, 255, 0.12)),
+    rgba(19, 29, 48, 0.76);
+  border-color: rgba(132, 209, 255, 0.22);
+  box-shadow: 0 0 18px rgba(102, 215, 255, 0.14);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__body,
+#datahub-game-logs-modal .datahub-gamelogs-panel {
+  grid-row: 2;
+  grid-column: 1;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 16px;
+}
+
+/* The main panel keeps scroll ownership for weekly table mode while allowing
+   the inner Season view to become the scroll owner when SZN is active. */
+#datahub-game-logs-modal .datahub-gamelogs-modal__body {
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.08rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    rgba(26, 35, 56, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(137, 205, 255, 0.24) transparent;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__body:has(.game-logs-szn-view:not(.is-hidden)) {
+  overflow-y: hidden;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__body::-webkit-scrollbar,
+#datahub-game-logs-modal .datahub-gamelogs-panel::-webkit-scrollbar,
+#datahub-game-logs-modal .game-logs-szn-view::-webkit-scrollbar,
+#datahub-game-logs-modal .game-logs-hscroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__body::-webkit-scrollbar-thumb,
+#datahub-game-logs-modal .datahub-gamelogs-panel::-webkit-scrollbar-thumb,
+#datahub-game-logs-modal .game-logs-szn-view::-webkit-scrollbar-thumb,
+#datahub-game-logs-modal .game-logs-hscroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(131, 214, 255, 0.45), rgba(162, 127, 255, 0.42));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-panel {
+  position: relative;
+  z-index: 3;
+  overflow: auto;
+  padding: 0.55rem;
+  background:
+    linear-gradient(180deg, rgba(10, 16, 29, 0.92), rgba(17, 24, 40, 0.92)),
+    rgba(9, 15, 27, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-panel h4 {
+  margin: 0 0 0.5rem;
+  padding: 0.18rem 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: var(--color-text-primary);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-modal__footer {
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  flex-wrap: wrap;
+}
+
+/* Footer panel pills switch between the weekly table and auxiliary overlays. */
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn {
+  appearance: none;
+  min-width: 88px;
+  min-height: 34px;
+  padding: 0.2rem 0.58rem;
+  border-radius: 12px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn:hover {
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-footer-btn.is-active {
+  color: #f2f8ff;
+  border-color: rgba(144, 218, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(133, 215, 255, 0.16), rgba(162, 127, 255, 0.1)),
+    rgba(12, 20, 34, 0.76);
+  box-shadow: 0 0 20px rgba(114, 151, 255, 0.14);
+}
+
+/* Trigger buttons inside the frozen PLAYER column should look like text until
+   hovered, so DataHub's table stays familiar while gaining a modal affordance. */
+.datahub-player-trigger {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.datahub-player-trigger:hover {
+  color: rgba(179, 228, 255, 0.96);
+  text-shadow: 0 0 12px rgba(102, 215, 255, 0.16);
+}
+
+/* Weekly Game Log table surface. */
+#datahub-game-logs-modal .game-logs-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(164, 191, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    rgba(8, 13, 23, 0.44);
+  overflow: hidden;
+}
+
+#datahub-game-logs-modal .game-logs-hscroll {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+#datahub-game-logs-modal .game-logs-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.7rem;
+  color: rgba(231, 239, 252, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+#datahub-game-logs-modal .game-logs-table th,
+#datahub-game-logs-modal .game-logs-table td {
+  min-width: 60px;
+  padding: 0.26rem 0.3rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#datahub-game-logs-modal .game-logs-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(42, 54, 82, 0.96), rgba(30, 39, 61, 0.98));
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  color: rgba(194, 208, 235, 0.82);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#datahub-game-logs-modal .game-logs-table thead th:first-child,
+#datahub-game-logs-modal .game-logs-table tbody td.week-cell,
+#datahub-game-logs-modal .game-logs-table tfoot th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background:
+    linear-gradient(180deg, rgba(30, 39, 61, 0.98), rgba(20, 26, 44, 0.98)),
+    rgba(12, 18, 30, 0.96);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.06);
+}
+
+#datahub-game-logs-modal .game-logs-table tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+#datahub-game-logs-modal .game-logs-table tbody tr:hover td {
+  background: rgba(102, 215, 255, 0.04);
+}
+
+#datahub-game-logs-modal .game-logs-table tfoot th,
+#datahub-game-logs-modal .game-logs-table tfoot td {
+  background: rgba(16, 22, 38, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#datahub-game-logs-modal .game-logs-table tfoot tr:first-child th {
+  padding-top: 0.36rem;
+  padding-bottom: 0.36rem;
+}
+
+#datahub-game-logs-modal .week-column-header {
+  font-weight: 700;
+  color: rgba(155, 171, 198, 0.86);
+}
+
+#datahub-game-logs-modal .week-cell {
+  padding-right: 0.22rem;
+  padding-left: 0.22rem;
+  white-space: nowrap;
+}
+
+#datahub-game-logs-modal .season-label {
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+#datahub-game-logs-modal .gp-label {
+  color: rgba(160, 176, 202, 0.66);
+  font-size: 0.92em;
+}
+
+#datahub-game-logs-modal .gamelog-header-passing {
+  color: #ffb2d8;
+}
+
+#datahub-game-logs-modal .gamelog-header-rushing {
+  color: #75e0b7;
+}
+
+#datahub-game-logs-modal .gamelog-header-receiving {
+  color: #63b0de;
+}
+
+#datahub-game-logs-modal .gamelog-header-all {
+  color: #b7adfe;
+}
+
+#datahub-game-logs-modal .gamelog-week-tag {
+  width: 58px;
+  min-width: 58px;
+  min-height: 30px;
+  padding: 0.18rem 0.28rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  gap: 0.05rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(11, 18, 31, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-number {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(198, 213, 240, 0.82);
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-opponent {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.08rem;
+  font-size: 0.47rem;
+  color: rgba(172, 186, 210, 0.82);
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-opponent-text {
+  font-weight: 600;
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-separator {
+  opacity: 0.5;
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-rank {
+  display: inline-flex;
+  align-items: baseline;
+  font-weight: 600;
+}
+
+#datahub-game-logs-modal .gamelog-week-tag-rank-suffix {
+  font-size: 0.78em;
+}
+
+#datahub-game-logs-modal .unplayed-week-row {
+  opacity: 0.72;
+}
+
+#datahub-game-logs-modal .bye-week-row {
+  opacity: 0.72;
+}
+
+#datahub-game-logs-modal .live-week-row .gamelog-week-tag {
+  border-color: rgba(96, 245, 199, 0.22);
+  box-shadow:
+    0 0 18px rgba(96, 245, 199, 0.16),
+    0 10px 22px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+#datahub-game-logs-modal td.proj-cell {
+  color: rgba(175, 181, 211, 0.72);
+  font-style: italic;
+}
+
+#datahub-game-logs-modal .has-rank-annotation {
+  white-space: nowrap;
+}
+
+#datahub-game-logs-modal .stat-value {
+  display: block;
+  line-height: 1.08;
+}
+
+#datahub-game-logs-modal .stat-rank-annotation {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  margin-top: 0.04rem;
+  color: var(--color-text-secondary);
+}
+
+#datahub-game-logs-modal .stat-rank-annotation sup,
+#datahub-game-logs-modal .gamelogs-szn-bar-rank sup,
+#datahub-game-logs-modal .gamelog-week-tag-rank-suffix,
+#datahub-game-logs-modal .ceiling-rank-suffix {
+  font-size: 0.62em;
+  line-height: 1;
+  margin-left: 0.04em;
+  vertical-align: baseline;
+  font-variant-numeric: ordinal;
+}
+
+#datahub-game-logs-modal tfoot td.has-rank-annotation {
+  padding-top: 0.18rem;
+  padding-bottom: 0.16rem;
+}
+
+#datahub-game-logs-modal tfoot td.has-rank-annotation .stat-rank-annotation {
+  display: block;
+  text-align: center;
+}
+
+#datahub-game-logs-modal .no-logs,
+#datahub-game-logs-modal .datahub-gamelogs-error {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    rgba(9, 15, 27, 0.46);
+  color: var(--color-text-secondary);
+}
+
+#datahub-game-logs-modal .datahub-gamelogs-error h4 {
+  margin: 0 0 0.35rem;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+/* Season view container and ranked progress bars. */
+#datahub-game-logs-modal .game-logs-szn-view {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.2rem 0.3rem 0.5rem;
+  border-radius: 14px;
+  border: 1px solid rgba(164, 191, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+    rgba(9, 15, 27, 0.46);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-title {
+  margin: 0.08rem 0 0.5rem;
+  padding: 0.34rem 0.62rem;
+  border-radius: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(10, 12, 28, 0.18));
+  border: 1px solid rgba(128, 138, 189, 0.14);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-title-games {
+  position: absolute;
+  right: 0.62rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18rem;
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-title-games-label {
+  opacity: 0.72;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-title-games-value {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-section-header {
+  position: relative;
+  margin: 0.34rem 0 0.08rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.58rem;
+  font-weight: 800;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(10, 12, 28, 0.18));
+  border: 1px solid rgba(128, 138, 189, 0.12);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-section-header--passing {
+  color: #ffb2d8;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-section-header--rushing {
+  color: #75e0b7;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-section-header--receiving {
+  color: #63b0de;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-section-header--all {
+  color: #b7adfe;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-row {
+  --szn-value-col: 64px;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) var(--szn-value-col);
+  align-items: center;
+  gap: 0.26rem;
+  padding: 0.18rem 0.2rem;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgb(210 206 250 / 9%), rgba(15, 35, 55, 0.02), rgb(173 170 232 / 4%));
+  border: 1px solid rgba(128, 138, 189, 0.1);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-row--passing .gamelogs-szn-label {
+  color: #ffb2d8;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-row--rushing .gamelogs-szn-label {
+  color: #75e0b7;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-row--receiving .gamelogs-szn-label {
+  color: #63b0de;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-row--all .gamelogs-szn-label {
+  color: #b7adfe;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  position: relative;
+  overflow: visible;
+  background: rgba(10, 12, 28, 0.32);
+  border: 1px solid rgba(250, 250, 250, 0.06);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(254, 153, 242, 0.52), rgba(154, 153, 242, 0.82));
+  transition: width 180ms ease;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-bar-rank {
+  position: absolute;
+  top: 50%;
+  left: var(--szn-rank-pos, 0%);
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 20px;
+  padding: 0 0.28rem;
+  border-radius: 7px;
+  background: rgba(154, 154, 200, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 6px -1px currentColor;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-value {
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+#datahub-game-logs-modal .gamelogs-szn-value-main {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.02em;
+}
+
+#datahub-game-logs-modal .gamelogs-szn-value-percent {
+  font-size: 0.88em;
+  opacity: 0.9;
+}
+
+/* Shared stats key panel markup: localized so the modal remains independent
+   of the shared styles.css implementation. */
+#datahub-game-logs-modal .stats-key-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.62rem;
+}
+
+#datahub-game-logs-modal .stats-key-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+#datahub-game-logs-modal .stats-key-section-header {
+  position: relative;
+  margin: 0;
+  padding: 0.34rem 0.7rem;
+  border-radius: 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(10, 12, 28, 0.18));
+  border: 1px solid rgba(128, 138, 189, 0.14);
+}
+
+#datahub-game-logs-modal .stats-key-section-header--passing {
+  color: #ffb2d8;
+}
+
+#datahub-game-logs-modal .stats-key-section-header--rushing {
+  color: #75e0b7;
+}
+
+#datahub-game-logs-modal .stats-key-section-header--receiving {
+  color: #63b0de;
+}
+
+#datahub-game-logs-modal .stats-key-section-header--all {
+  color: #b7adfe;
+}
+
+#datahub-game-logs-modal .stats-key-section-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.14rem 0.9rem;
+}
+
+#datahub-game-logs-modal .stats-key-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.12rem 0.2rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+#datahub-game-logs-modal .stats-key-item:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+#datahub-game-logs-modal .stats-key-abbr {
+  flex: 0 0 74px;
+  width: 74px;
+  min-width: 74px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+#datahub-game-logs-modal .stats-key-desc {
+  color: rgba(199, 212, 235, 0.76);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-weight: 300;
+}
+
+/* Radar panel keeps the canvas centered and resilient on small screens. */
+#datahub-game-logs-modal .radar-chart-content {
+  min-height: calc(100% - 2.4rem);
+  height: calc(100% - 2.4rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.25rem 0.5rem;
+}
+
+#datahub-game-logs-modal #datahub-player-radar-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+}
+
+#datahub-game-logs-modal .no-data-message {
+  margin: 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.86rem;
+}
+
+/* Consistency panel with HUD, progress rings, and weekly trend track. */
+#datahub-game-logs-modal .consistency-shell {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.02rem;
+}
+
+#datahub-game-logs-modal .consistency-eyebrow-header {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+#datahub-game-logs-modal .hud-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #6b7096;
+  text-shadow: 0 0 12px rgba(102, 215, 255, 0.18);
+}
+
+#datahub-game-logs-modal .consistency-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: stretch;
+  padding: 0;
+  border-radius: 16px;
+}
+
+#datahub-game-logs-modal .hud-segment {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+#datahub-game-logs-modal .hud-segment--left,
+#datahub-game-logs-modal .hud-segment--right,
+#datahub-game-logs-modal .hud-segment--center {
+  align-items: center;
+}
+
+#datahub-game-logs-modal .progress-circle {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(rgba(55, 65, 155, 0.22), rgba(51, 51, 85, 0.33));
+  border: 1px solid rgba(151, 194, 255, 0.42);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(255, 255, 255, 0.02);
+}
+
+#datahub-game-logs-modal .progress-ring {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  transform: rotate(-90deg);
+}
+
+#datahub-game-logs-modal .progress-ring-track {
+  fill: none;
+  stroke: rgba(90, 112, 164, 0.15);
+  stroke-width: 7;
+}
+
+#datahub-game-logs-modal .progress-ring-fill {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 289;
+  stroke-dashoffset: calc(289 * (1 - var(--progress, 0)));
+  transition: stroke-dashoffset 260ms ease;
+}
+
+#datahub-game-logs-modal .progress-circle-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.02rem;
+}
+
+#datahub-game-logs-modal .progress-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #7cf5ff;
+  text-shadow: 0 0 16px rgba(124, 245, 255, 0.52);
+}
+
+#datahub-game-logs-modal .progress-label {
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9096c0;
+  line-height: 1.1;
+}
+
+#datahub-game-logs-modal .progress-caption {
+  font-size: 0.46rem;
+  color: #6b7096;
+}
+
+#datahub-game-logs-modal .hud-context {
+  margin-top: 0.2rem;
+  font-size: 0.62rem;
+  color: #9096c0;
+  text-align: center;
+}
+
+#datahub-game-logs-modal .hud-context-divider {
+  margin: 0 0.32rem;
+  color: rgba(239, 246, 255, 0.45);
+  font-weight: 600;
+}
+
+#datahub-game-logs-modal .hud-metrics {
+  display: flex;
+  gap: 3.75rem;
+  justify-content: center;
+}
+
+#datahub-game-logs-modal .metric-block {
+  display: flex;
+  flex-direction: column;
+}
+
+#datahub-game-logs-modal .metric-label {
+  font-size: 0.54rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: #9aa2dc;
+}
+
+#datahub-game-logs-modal .metric-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#datahub-game-logs-modal .metric-primary--single {
+  gap: 0;
+}
+
+#datahub-game-logs-modal .metric-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #9f8bff;
+  align-self: center;
+}
+
+#datahub-game-logs-modal .metric-value--rank {
+  letter-spacing: 0.08em;
+}
+
+#datahub-game-logs-modal .hud-insights {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+#datahub-game-logs-modal .summary-chip {
+  padding: 0.1rem 0.25rem;
+  border-radius: 8px;
+}
+
+#datahub-game-logs-modal .hud-insight {
+  flex: 1 1 60px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.04rem;
+}
+
+#datahub-game-logs-modal .hud-insight-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(194, 208, 255, 0.78);
+}
+
+#datahub-game-logs-modal .hud-insight-value {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #a0a6b5;
+}
+
+#datahub-game-logs-modal .hud-insight-value .hud-insight-suffix,
+#datahub-game-logs-modal .hud-insight-value .csty-total {
+  color: rgba(160, 166, 181, 0.72);
+  font-weight: 400;
+}
+
+#datahub-game-logs-modal .consistency-chart-shell {
+  margin-top: 0.45rem;
+  padding: 0;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08), inset 0 1px 60px rgba(255, 255, 255, 0.018);
+  overflow: hidden;
+  background: rgba(17, 17, 34, 0.5);
+}
+
+#datahub-game-logs-modal .weekly-chart-box {
+  position: relative;
+  width: 100%;
+  height: 287px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+#datahub-game-logs-modal .weekly-zone-summary {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.4rem;
+  right: 0.4rem;
+  display: flex;
+  justify-content: space-around;
+  gap: 0.4rem;
+  z-index: 7;
+  pointer-events: none;
+}
+
+#datahub-game-logs-modal .zone-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+  font-size: 0.44rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 9, 20, 0.76);
+  box-shadow: 0 6px 18px rgba(4, 8, 18, 0.35);
+  backdrop-filter: blur(14px);
+}
+
+#datahub-game-logs-modal .zone-chip-label {
+  color: rgba(239, 246, 255, 0.78);
+  font-weight: 600;
+  font-size: 0.52rem;
+}
+
+#datahub-game-logs-modal .zone-chip-threshold {
+  color: rgba(239, 246, 255, 0.55);
+  font-weight: 500;
+  font-size: 0.52rem;
+}
+
+#datahub-game-logs-modal .zone-chip-value {
+  font-weight: 700;
+  color: #f8faff;
+  font-size: 0.62rem;
+}
+
+#datahub-game-logs-modal .zone-chip--low {
+  border-color: rgb(194 108 252 / 29%);
+  background: rgb(194 108 252 / 6%);
+  color: #e7d2ff;
+}
+
+#datahub-game-logs-modal .zone-chip--solid {
+  border-color: rgb(0 197 255 / 20%);
+  background: rgb(0 197 255 / 8%);
+  color: #d1f6ff;
+}
+
+#datahub-game-logs-modal .zone-chip--high {
+  border-color: rgb(0 255 193 / 18%);
+  background: rgb(0 255 231 / 7%);
+  color: #d6fff6;
+}
+
+#datahub-game-logs-modal .consistency-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: rgba(239, 246, 255, 0.78);
+  background: rgba(4, 10, 21, 0.72);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  z-index: 6;
+}
+
+#datahub-game-logs-modal .weekly-chart-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(transparent calc(100% - 326px), rgba(255, 255, 255, 0.03) calc(100% - -12px)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 28px);
+}
+
+#datahub-game-logs-modal .weekly-chart-line-layer {
+  position: absolute;
+  inset: 2.9rem 0.05rem 1.75rem 0.05rem;
+  z-index: 4;
+  border-radius: 14px;
+}
+
+#datahub-game-logs-modal .weekly-chart-x-axis {
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  right: 1px;
+  display: block;
+  font-size: 0.7rem;
+  color: rgba(239, 246, 255, 0.82);
+  background: rgba(181, 198, 255, 0.04);
+  border-top: 1px solid rgba(239, 246, 255, 0.06);
+  border-radius: 0 0 6px 6px;
+  backdrop-filter: blur(10px);
+  padding: 0.25rem 0.35rem 0.25rem;
+  letter-spacing: 0.04em;
+  z-index: 5;
+  min-height: 1.6rem;
+  overflow: visible;
+}
+
+#datahub-game-logs-modal .weekly-chart-x-axis > span {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
+}
+
+#datahub-game-logs-modal .weekly-skip-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(175, 181, 211, 0.68);
+  pointer-events: none;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  background: rgba(18, 24, 40, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  padding: 2px 4px;
+  line-height: 1.05;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+#datahub-game-logs-modal .weekly-point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 3px solid #ffffff;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  box-shadow: 0 10px 22px rgba(6, 10, 24, 0.45);
+  z-index: 5;
+}
+
+#datahub-game-logs-modal .weekly-point::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: var(--point-color, #00c5ff);
+  box-shadow: 0 6px 16px rgba(5, 9, 22, 0.35);
+}
+
+#datahub-game-logs-modal .weekly-point[data-zone="low"] {
+  --point-color: #c26cfc;
+}
+
+#datahub-game-logs-modal .weekly-point[data-zone="solid"] {
+  --point-color: #00c5ff;
+}
+
+#datahub-game-logs-modal .weekly-point[data-zone="high"] {
+  --point-color: #00ffc1;
+}
+
+#datahub-game-logs-modal .weekly-point-label {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  border-radius: 0.55rem;
+  padding: 0.18rem 0.14rem;
+  text-align: center;
+  min-width: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  pointer-events: none;
+  line-height: 1.05;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08rem;
+  box-shadow: 0 8px 24px rgba(4, 10, 25, 0.35);
+  background: rgba(5, 9, 20, 0.78);
+}
+
+#datahub-game-logs-modal .weekly-point-label--low {
+  background: rgba(194, 108, 252, 0.16);
+  border-color: rgba(194, 108, 252, 0.45);
+}
+
+#datahub-game-logs-modal .weekly-point-label--solid {
+  background: rgba(0, 197, 255, 0.12);
+  border-color: rgba(0, 197, 255, 0.4);
+}
+
+#datahub-game-logs-modal .weekly-point-label--high {
+  background: rgba(0, 255, 193, 0.12);
+  border-color: rgba(0, 255, 193, 0.35);
+}
+
+#datahub-game-logs-modal .weekly-point-label__value {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #f8faff;
+  display: inline-flex;
+  white-space: nowrap;
+  order: 1;
+}
+
+#datahub-game-logs-modal .weekly-point-label__suffix {
+  font-size: 0.44rem;
+  font-weight: 600;
+  color: #f8faff;
+  order: 0;
+  text-transform: none;
+}
+
+#datahub-game-logs-modal .weekly-curve-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Loading + error affordances that the DataHub-local JS injects while the
+   CSV/Sleeper data hydrates for a clicked player. */
+#datahub-game-logs-modal.is-loading .datahub-gamelogs-modal__footer {
+  opacity: 0.7;
+}
+
+#datahub-game-logs-modal .game-logs-loading-container {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1rem;
+  text-align: center;
+}
+
+#datahub-game-logs-modal .game-logs-loading-content {
+  display: grid;
+  place-items: center;
+  gap: 0.9rem;
+}
+
+#datahub-game-logs-modal .game-logs-loading-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  animation: datahub-gamelogs-pulse 2.2s ease-in-out infinite;
+}
+
+#datahub-game-logs-modal .game-logs-loading-spinner::before,
+#datahub-game-logs-modal .game-logs-loading-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+#datahub-game-logs-modal .game-logs-loading-spinner::before {
+  border: 2px solid rgba(120, 211, 255, 0.14);
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255, 255, 255, 0.72), transparent 18%),
+    radial-gradient(circle at 50% 50%, rgba(102, 215, 255, 0.34), rgba(162, 127, 255, 0.12) 58%, transparent 70%);
+  box-shadow: 0 0 28px rgba(102, 215, 255, 0.18);
+}
+
+#datahub-game-logs-modal .game-logs-loading-spinner::after {
+  inset: -5px;
+  border: 4px solid transparent;
+  border-top-color: rgba(102, 215, 255, 0.9);
+  border-right-color: rgba(162, 127, 255, 0.82);
+  animation: datahub-gamelogs-spin 1.1s linear infinite;
+}
+
+#datahub-game-logs-modal .game-logs-loading-message {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+#datahub-game-logs-modal .game-logs-loading-message strong {
+  display: block;
+  margin-bottom: 0.16rem;
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+#datahub-game-logs-modal .game-logs-loading-footer {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: 0.72rem;
+}
+
+@keyframes datahub-gamelogs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes datahub-gamelogs-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.03);
+    filter: brightness(1.08);
+  }
+}
+
+/* Mobile-first refinements so the modal remains readable without disturbing
+   the surrounding DataHub shell on narrow screens. */
+@media (max-width: 640px) {
+  #datahub-game-logs-modal {
+    padding: 6px;
+  }
+
+  #datahub-game-logs-modal .datahub-gamelogs-modal__content {
+    width: min(100vw - 12px, 734px);
+    height: min(100dvh - 12px, 760px);
+    max-height: min(100dvh - 12px, 760px);
+    padding: 0.54rem 0.52rem 0.56rem;
+    row-gap: 0.48rem;
+  }
+
+  #datahub-game-logs-modal .modal-header-left-container {
+    top: 0.14rem;
+    left: 0.02rem;
+    gap: 0.28rem;
+  }
+
+  #datahub-game-logs-modal .modal-team-logo-chip,
+  #datahub-game-logs-modal .modal-pos-tag {
+    min-height: 28px;
+  }
+
+  #datahub-game-logs-modal #modal-player-name {
+    max-width: 14ch;
+    font-size: 1.02rem;
+  }
+
+  #datahub-game-logs-modal .player-vitals {
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  #datahub-game-logs-modal .player-vitals--modal {
+    width: 100%;
+    margin: 0.14rem 0 0.42rem;
+    padding: 0.34rem 0.36rem;
+  }
+
+  #datahub-game-logs-modal .player-vitals__label {
+    font-size: 0.34rem;
+    letter-spacing: 0.12em;
+  }
+
+  #datahub-game-logs-modal .player-vitals__value {
+    font-size: 0.62rem;
+  }
+
+  #datahub-game-logs-modal #modal-summary-chips {
+    gap: 0.34rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-summary-chip {
+    padding: 0.24rem 0.34rem 0.28rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-summary-chip h4 {
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+  }
+
+  #datahub-game-logs-modal .gamelogs-summary-chip .chip-header-value {
+    font-size: 0.78rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-summary-chip .chip-values {
+    font-size: 0.68rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-nav-row {
+    gap: 0.42rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-season-tab,
+  #datahub-game-logs-modal .gamelogs-view-option {
+    min-height: 31px;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  #datahub-game-logs-modal .gamelogs-view-option {
+    min-width: 92px;
+    padding: 0 0.48rem;
+  }
+
+  #datahub-game-logs-modal .datahub-gamelogs-footer-btn {
+    min-width: 76px;
+    font-size: 0.64rem;
+    gap: 0.3rem;
+  }
+
+  #datahub-game-logs-modal .game-logs-table th,
+  #datahub-game-logs-modal .game-logs-table td {
+    min-width: 54px;
+    padding: 0.22rem 0.2rem;
+    font-size: 0.64rem;
+  }
+
+  #datahub-game-logs-modal .gamelog-week-tag {
+    width: 52px;
+    min-width: 52px;
+    min-height: 28px;
+  }
+
+  #datahub-game-logs-modal .gamelog-week-tag-number {
+    font-size: 0.54rem;
+  }
+
+  #datahub-game-logs-modal .gamelog-week-tag-opponent {
+    font-size: 0.42rem;
+  }
+
+  #datahub-game-logs-modal .game-logs-szn-view {
+    padding: 0.08rem 0.14rem 0.3rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-title {
+    margin: 0 0 0.16rem;
+    padding: 0.16rem 0.1rem;
+    font-size: 0.92rem;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-title-games {
+    right: 0.08rem;
+    font-size: 0.72rem;
+    padding: 2px 4px;
+    border: 1px solid rgba(205, 222, 248, 0.08);
+    border-radius: 8px;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-section-header {
+    font-size: 0.74rem;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-row {
+    --szn-value-col: 56px;
+    grid-template-columns: 52px minmax(0, 1fr) var(--szn-value-col);
+    gap: 0.08rem;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-label {
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+  }
+
+  #datahub-game-logs-modal .gamelogs-szn-value {
+    font-size: 0.74rem;
+  }
+
+  #datahub-game-logs-modal .stats-key-section-body {
+    grid-template-columns: 1fr;
+    gap: 0.08rem;
+  }
+
+  #datahub-game-logs-modal .stats-key-abbr {
+    flex: 0 0 82px;
+    width: 82px;
+    min-width: 82px;
+  }
+
+  #datahub-game-logs-modal .consistency-hud {
+    gap: 0.22rem;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 2fr) minmax(0, 0.95fr);
+  }
+
+  #datahub-game-logs-modal .progress-circle {
+    width: 70px;
+    height: 70px;
+    padding: 4px;
+  }
+
+  #datahub-game-logs-modal .progress-ring-track,
+  #datahub-game-logs-modal .progress-ring-fill {
+    stroke-width: 7;
+  }
+
+  #datahub-game-logs-modal .progress-value {
+    font-size: 0.82rem;
+  }
+
+  #datahub-game-logs-modal .progress-label {
+    font-size: 0.4rem;
+    letter-spacing: 0.08em;
+  }
+
+  #datahub-game-logs-modal .progress-caption {
+    font-size: 0.3rem;
+  }
+
+  #datahub-game-logs-modal .hud-eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.07em;
+  }
+
+  #datahub-game-logs-modal .hud-context {
+    margin-top: 0.18rem;
+    font-size: 0.54rem;
+  }
+
+  #datahub-game-logs-modal .hud-context-divider {
+    margin: 0 0.18rem;
+  }
+
+  #datahub-game-logs-modal .hud-metrics {
+    gap: 1.45rem;
+    margin: 0.02rem 0 0.12rem;
+  }
+
+  #datahub-game-logs-modal .metric-label {
+    font-size: 0.4rem;
+    letter-spacing: 0.11em;
+  }
+
+  #datahub-game-logs-modal .metric-value {
+    font-size: 0.7rem;
+  }
+
+  #datahub-game-logs-modal .hud-insights {
+    gap: 0.18rem;
+  }
+
+  #datahub-game-logs-modal .hud-insight {
+    flex: 1 1 calc(30% - 0.24rem);
+  }
+
+  #datahub-game-logs-modal .hud-insight-label {
+    font-size: 0.4rem;
+  }
+
+  #datahub-game-logs-modal .hud-insight-value {
+    font-size: 0.55rem;
+  }
+
+  #datahub-game-logs-modal .consistency-chart-shell {
+    margin-top: 0.23rem;
+    border-radius: 8px;
+  }
+
+  #datahub-game-logs-modal .weekly-chart-box {
+    height: 253px;
+  }
+
+  #datahub-game-logs-modal .weekly-chart-line-layer {
+    inset: 1.9rem 0.02rem 1rem 0.02rem;
+  }
+
+  #datahub-game-logs-modal .weekly-chart-x-axis {
+    left: -0.1rem;
+    right: -0.1rem;
+    font-size: 0.52rem;
+    padding: 0.08rem 0.18rem 0.12rem;
+    min-height: 1.3rem;
+    font-weight: 800;
+  }
+
+  #datahub-game-logs-modal .weekly-zone-summary {
+    gap: 0.2rem;
+  }
+
+  #datahub-game-logs-modal .zone-chip {
+    gap: 0.12rem;
+    padding: 0.14rem 0.32rem;
+  }
+
+  #datahub-game-logs-modal .zone-chip-label {
+    font-size: 0.45rem;
+  }
+
+  #datahub-game-logs-modal .zone-chip-threshold {
+    font-size: 0.46rem;
+  }
+
+  #datahub-game-logs-modal .zone-chip-value {
+    font-size: 0.58rem;
+  }
+
+  #datahub-game-logs-modal .weekly-point {
+    width: 7px;
+    height: 7px;
+    border-width: 2px;
+  }
+
+  #datahub-game-logs-modal .weekly-point::after {
+    inset: 2px;
+  }
+
+  #datahub-game-logs-modal .weekly-point-label {
+    top: -4px;
+    min-width: 20px;
+    padding: 0.07rem 0.07rem;
+    border-radius: 0.35rem;
+    gap: 0;
+  }
+
+  #datahub-game-logs-modal .weekly-point-label__suffix {
+    font-size: 0.34rem;
+  }
+
+  #datahub-game-logs-modal .weekly-point-label__value {
+    font-size: 0.5rem;
+  }
 }
 
 /* ── Accessibility: Reduced Motion ──────────────────────────────────────── */
