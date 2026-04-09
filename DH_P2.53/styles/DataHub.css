@@ -25,6 +25,13 @@
   --table-panel-height-wide: clamp(620px, 72vh, 940px);
   --table-group-header-height: 36px;
   --table-group-header-height-mobile: 26px;
+  /* DataHub active chrome: keep the nav pill border, tab underline, and
+     desktop glint on the same branch-specific gradient accent. */
+  --datahub-active-accent-gradient: linear-gradient(90deg, #74efff 0%, #7297ff 52%, #d97dff 100%);
+  --page-tabs-glint-shadow:
+    0 0 12px rgba(116, 239, 255, 0.42),
+    0 0 20px rgba(114, 151, 255, 0.28),
+    0 0 28px rgba(217, 125, 255, 0.18);
 }
 
 /* ── Base Page Shell ─────────────────────────────────────────────────────── */
@@ -274,12 +281,13 @@ body::after {
 .nav-item.is-active {
   color: #cdd6ef;
   background:
-    linear-gradient(180deg, rgba(133, 215, 255, 0.18), rgba(162, 127, 255, 0.08)),
-    rgba(255, 255, 255, 0.05);
-  border-color: rgba(126, 214, 255, 0.3);
+    linear-gradient(180deg, rgba(18, 26, 43, 0.96), rgba(9, 15, 28, 0.92)) padding-box,
+    var(--datahub-active-accent-gradient) border-box;
+  border-color: transparent;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 12px rgba(44, 109, 214, 0.2);
+    0 4px 12px rgba(44, 109, 214, 0.2),
+    0 0 20px rgba(114, 151, 255, 0.1);
 }
 
 .nav-icon {
@@ -539,8 +547,13 @@ body::after {
   bottom: 0px;
   height: 2px;
   border-radius: 2px;
-  background: var(--accent-cyan, #66d7ff);
-  box-shadow: 0 0 10px rgba(102, 215, 255, 0.5);
+  /* Active page-view indicator stays scoped to DataHub and mirrors the active
+     nav border gradient so the shell reads as one system. */
+  background: var(--datahub-active-accent-gradient);
+  box-shadow:
+    0 0 10px rgba(116, 239, 255, 0.32),
+    0 0 16px rgba(114, 151, 255, 0.26),
+    0 0 22px rgba(217, 125, 255, 0.22);
 }
 
 .tab-icon {
@@ -1795,8 +1808,10 @@ body::after {
     width: var(--page-tabs-glint-width, 96px);
     height: 1px;
     transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(126, 214, 255, 0.6), transparent);
-    box-shadow: 0 0 14px rgba(126, 214, 255, 0.8);
+    /* Desktop-only glint tracks the active page tab with the updated DataHub
+       accent gradient while JS continues to control the exact position. */
+    background: linear-gradient(90deg, transparent, #74efff, #7297ff, #d97dff, transparent);
+    box-shadow: var(--page-tabs-glint-shadow);
   }
 
   .page-tab {
