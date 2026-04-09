@@ -2533,6 +2533,25 @@ const DATAHUB_WR_TE_LOG_ORDER = [
   "yprr", "rec_fd", "first_down_rec_rate", "rec_yar", "ypr", "imp_per_g", "rr",
   "fpoe", "yds_total", "rush_att", "rush_yd", "rush_td", "ypc", "fum",
 ];
+
+/* ── Game Logs table column widths (matches Stats page sizing) ── */
+const DATAHUB_COLUMN_WIDTHS = {
+  week: 56, proj: 32, snp_pct: 44, ts_per_rr: 38,
+  first_down_rec_rate: 30, yds_total: 37, rush_att: 34,
+  rush_td: 35, rush_yd: 44, rec_tgt: 41, rec: 36,
+  rec_yd: 38, rec_td: 44, ypr: 40, yprr: 42,
+  imp_per_g: 45, pass_rtg: 48, pass_yd: 40, pass_td: 36,
+  pass_att: 38, pass_cmp: 38, pass_imp_per_att: 44,
+  prs_pct: 42, ttt: 38, yco_per_att: 44, ypc: 40,
+  mtf_per_att: 44, fpts: 45, pass_fd: 36, pass_imp: 36,
+  pass_int: 34, pass_sack: 34, rush_fd: 36, mtf: 36,
+  elu: 36, rush_yac: 36, rec_fd: 36, rec_yar: 36,
+  rr: 36, imp: 36, fum: 36, fpoe: 36, ypg: 36,
+  pa_ypg: 36, ru_ypg: 36, rec_ypg: 36,
+  cmp_pct: 44, epa_per_db: 44, cpoe: 42,
+};
+const DATAHUB_DEFAULT_COLUMN_WIDTH = 54;
+
 const DATAHUB_RANK_COLOR_THRESHOLDS = [
   { v: 24, c: "#8bebcdbb" },
   { v: 48, c: "#97ebe3ab" },
@@ -3419,11 +3438,31 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const footerTable = document.createElement("table");
   footerTable.className = "game-logs-table";
 
+  /* Build ordered list of column sizes: [week, ...statColumns] */
+  const columnSizes = [DATAHUB_COLUMN_WIDTHS.week || DATAHUB_DEFAULT_COLUMN_WIDTH];
+  statOrder.forEach((statKey) => {
+    columnSizes.push(DATAHUB_COLUMN_WIDTHS[statKey] || DATAHUB_DEFAULT_COLUMN_WIDTH);
+  });
+  const totalTableWidth = columnSizes.reduce((sum, s) => sum + s, 0);
+  const widthPx = `${totalTableWidth}px`;
+
+  /* Helper: apply pixel width to a cell given column index */
+  const applyCellWidth = (cell, colIdx) => {
+    const w = columnSizes[colIdx] || DATAHUB_DEFAULT_COLUMN_WIDTH;
+    cell.style.width = `${w}px`;
+    cell.style.minWidth = `${w}px`;
+    cell.style.maxWidth = `${w}px`;
+  };
+
   const headerThead = document.createElement("thead");
   const headerRow = document.createElement("tr");
-  headerRow.appendChild(buildDataHubHeaderCell("WK"));
-  statOrder.forEach((statKey) => {
-    headerRow.appendChild(buildDataHubHeaderCell(DATAHUB_STAT_LABELS[statKey] || statKey, statKey));
+  const wkTh = buildDataHubHeaderCell("WK");
+  applyCellWidth(wkTh, 0);
+  headerRow.appendChild(wkTh);
+  statOrder.forEach((statKey, idx) => {
+    const th = buildDataHubHeaderCell(DATAHUB_STAT_LABELS[statKey] || statKey, statKey);
+    applyCellWidth(th, idx + 1);
+    headerRow.appendChild(th);
   });
   headerThead.appendChild(headerRow);
   headerTable.appendChild(headerThead);
@@ -3439,8 +3478,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     }
     const weekCell = document.createElement("td");
     weekCell.innerHTML = buildDataHubWeekTagMarkup(week, stats);
+    applyCellWidth(weekCell, 0);
     row.appendChild(weekCell);
-    statOrder.forEach((statKey) => {
+    statOrder.forEach((statKey, idx) => {
       const cell = document.createElement("td");
       if (!stats) {
         cell.textContent = "—";
@@ -3451,6 +3491,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
           cell.classList.add("proj-cell");
         }
       }
+      applyCellWidth(cell, idx + 1);
       row.appendChild(cell);
     });
     bodyTbody.appendChild(row);
@@ -3459,14 +3500,23 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 
   const footerTfoot = document.createElement("tfoot");
   const footerRow = document.createElement("tr");
-  footerRow.appendChild(buildDataHubHeaderCell("SZN"));
-  statOrder.forEach((statKey) => {
+  const sznTh = buildDataHubHeaderCell("SZN");
+  applyCellWidth(sznTh, 0);
+  footerRow.appendChild(sznTh);
+  statOrder.forEach((statKey, idx) => {
     const cell = document.createElement("td");
     cell.textContent = formatDataHubStatDisplay(statKey, footerStats[statKey]);
+    applyCellWidth(cell, idx + 1);
     footerRow.appendChild(cell);
   });
   footerTfoot.appendChild(footerRow);
   footerTable.appendChild(footerTfoot);
+
+  /* Apply total table width to all three tables for column alignment */
+  [headerTable, bodyTable, footerTable].forEach((tbl) => {
+    tbl.style.width = widthPx;
+    tbl.style.minWidth = widthPx;
+  });
 
   headerWrap.appendChild(headerTable);
   bodyWrap.appendChild(bodyTable);
@@ -3721,6 +3771,201 @@ function getDataHubStatGroup(statKey) {
   return "all";
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Radar Chart Custom Plugins — DataHub-scoped duplicates of the three
+   Chart.js plugins used by the Stats-page Game Logs Performance radar.
+   Draws hexagonal grid backgrounds, rank labels at data points, and
+   stat name + value labels on the axes outside the chart.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Plugin 1: Hexagonal background grid layers (drawn before data) */
+const dataHubRadarBackgroundPlugin = {
+  id: "playerRadarBackground",
+  beforeDraw(chart, args, options) {
+    const scale = chart.scales?.r;
+    if (!scale) return;
+    const { ctx } = chart;
+    const centerX = scale.xCenter;
+    const centerY = scale.yCenter;
+    const angleStep = (Math.PI * 2) / chart.data.labels.length;
+    const startAngle = -Math.PI / 2;
+    const maxRadius = scale.drawingArea;
+    const levels = options.levels || [];
+    levels.forEach((level) => {
+      const radius = maxRadius * (level.ratio ?? 1);
+      ctx.beginPath();
+      ctx.strokeStyle = level.stroke || "rgba(151, 166, 210, 0.15)";
+      ctx.fillStyle = level.fill || "transparent";
+      ctx.lineWidth = 1;
+      chart.data.labels.forEach((label, index) => {
+        const angle = startAngle + angleStep * index;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    });
+  },
+};
+
+/* Plugin 2: Ordinal rank labels drawn near each data point (e.g. "1st", "12th") */
+const dataHubRadarLabelPlugin = {
+  id: "playerRadarLabels",
+  afterDatasetsDraw(chart, args, options) {
+    const dataset = chart.data.datasets[0];
+    if (!dataset || !dataset.data) return;
+    const { ctx } = chart;
+    const scale = chart.scales?.r;
+    if (!scale) return;
+    const centerX = scale.xCenter;
+    const centerY = scale.yCenter;
+    const angleStep = (Math.PI * 2) / chart.data.labels.length;
+    const startAngle = -Math.PI / 2;
+    const getOrdinalSuffix = (n) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return s[(v - 20) % 10] || s[v] || s[0];
+    };
+    ctx.font = options.font || '11px "Product Sans"';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    dataset.data.forEach((value, index) => {
+      const angle = startAngle + angleStep * index;
+      const dataPoint = scale.getPointPositionForValue(index, value);
+      let offsetDistance = options.offset || 18;
+      if (index === 0 || index === 1) offsetDistance -= 1.5;
+      else if (index === 7) offsetDistance += 3.5;
+      else if (index === 5) offsetDistance += 4;
+      else if (index === 6) offsetDistance += 7;
+      const offsetX = Math.cos(angle) * offsetDistance;
+      const offsetY = Math.sin(angle) * offsetDistance;
+      const rawRank = dataset.rawRanks?.[index];
+      let label;
+      if (rawRank !== null && rawRank !== undefined && !Number.isNaN(rawRank)) {
+        const rankNum = Math.round(rawRank);
+        const suffix = getOrdinalSuffix(rankNum);
+        label = rankNum.toString();
+        const rankColor = getDataHubConditionalColorByRank(rawRank, dataset.position);
+        ctx.fillStyle = rankColor;
+        ctx.fillText(label, dataPoint.x + offsetX, dataPoint.y + offsetY);
+        const metrics = ctx.measureText(label);
+        const suffixFontSize = parseInt(ctx.font) * 0.7;
+        ctx.font = `${suffixFontSize}px "Product Sans"`;
+        ctx.fillText(suffix, dataPoint.x + offsetX + metrics.width / 2 + 4, dataPoint.y + offsetY);
+        ctx.font = options.font || '11px "Product Sans"';
+      } else {
+        label = "NA";
+        const rankColor = getDataHubConditionalColorByRank(rawRank, dataset.position);
+        ctx.fillStyle = rankColor;
+        ctx.fillText(label, dataPoint.x + offsetX, dataPoint.y + offsetY);
+      }
+    });
+  },
+};
+
+/* Plugin 3: Stat name + formatted value labels drawn on axes outside the chart */
+const dataHubRadarAxisLabelsPlugin = {
+  id: "playerRadarAxisLabels",
+  afterDraw(chart, args, options) {
+    const scale = chart.scales?.r;
+    if (!scale) return;
+    const dataset = chart.data.datasets[0];
+    if (!dataset) return;
+    const labels = chart.data.labels;
+    if (!labels || !labels.length) return;
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const labelFontSize = isMobile ? (options?.labelFontSizeMobile ?? 11) : (options?.labelFontSize ?? 12);
+    const valueFontSize = isMobile ? (options?.valueFontSizeMobile ?? 9) : (options?.valueFontSize ?? 10);
+    const labelFont = `${labelFontSize}px "Product Sans", "Google Sans", sans-serif`;
+    const valueFont = `${valueFontSize}px "Product Sans", "Google Sans", sans-serif`;
+    const labelColor = options?.labelColor || "#EAEBF0";
+    const labelOffset = options?.labelOffset ?? (isMobile ? 14 : 18);
+    const topLabelExtraOffset = options?.topLabelExtraOffset ?? (isMobile ? 10 : 12);
+    const axisLabelExtraOffsetsByIndex = options?.axisLabelExtraOffsetsByIndex ?? {
+      1: 17, 2: 14, 3: 10, 5: 13, 6: 18, 7: 21,
+    };
+    const valueSpacing = options?.valueSpacing ?? (isMobile ? 3 : 4);
+    const { ctx } = chart;
+    const angleStep = (Math.PI * 2) / labels.length;
+    const startAngle = -Math.PI / 2;
+    ctx.save();
+    for (let index = 0; index < labels.length; index++) {
+      const angle = startAngle + angleStep * index;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      let textBaseline;
+      if (Math.abs(sin) <= 1e-4) textBaseline = "middle";
+      else textBaseline = sin < 0 ? "bottom" : "top";
+      const textAlign = "center";
+      let effectiveOffset = labelOffset;
+      if (index === 0) effectiveOffset = labelOffset + topLabelExtraOffset;
+      const axisExtraOffset = Number(axisLabelExtraOffsetsByIndex[index]);
+      if (Number.isFinite(axisExtraOffset)) effectiveOffset += axisExtraOffset;
+      const radius = scale.drawingArea + effectiveOffset;
+      const x = scale.xCenter + cos * radius;
+      const y = scale.yCenter + sin * radius;
+      const labelText = typeof labels[index] === "string" ? labels[index] : String(labels[index] ?? "");
+      ctx.font = labelFont;
+      ctx.textAlign = textAlign;
+      ctx.textBaseline = textBaseline;
+      ctx.fillStyle = labelColor;
+      ctx.fillText(labelText, x, y);
+      const statKey = dataset.statKeys?.[index];
+      const statValue = dataset.statValues?.[index];
+      const formattedValue = formatDataHubRadarStatValue(statKey, statValue);
+      const rawRank = dataset.rawRanks?.[index];
+      const valueColor = getDataHubConditionalColorByRank(rawRank, dataset.position) || labelColor;
+      let valueY = y;
+      if (textBaseline === "top") valueY = y + labelFontSize + valueSpacing;
+      else if (textBaseline === "middle") valueY = y + labelFontSize / 2 + valueSpacing;
+      else valueY = y + valueSpacing;
+      ctx.font = valueFont;
+      ctx.textBaseline = "top";
+      ctx.fillStyle = valueColor;
+      ctx.fillText(`• ${formattedValue} •`, x, valueY);
+    }
+    ctx.restore();
+  },
+};
+
+/* Formats stat values for radar axis labels (matches Stats page formatting) */
+function formatDataHubRadarStatValue(statKey, value) {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed) {
+      if ((statKey === "cpoe" || statKey === "epa_per_db") && !trimmed.startsWith("-") && !trimmed.startsWith("+")) {
+        const numeric = parseFloat(trimmed.replace("%", ""));
+        if (Number.isFinite(numeric) && numeric > 0) return `+${trimmed}`;
+      }
+      return trimmed;
+    }
+  }
+  if (value === null || value === undefined || Number.isNaN(value)) return "N/A";
+  const numericValue = Number(value);
+  if (Number.isNaN(numericValue)) return "N/A";
+  if (statKey === "cmp_pct" || statKey === "snp_pct" || statKey === "ts_per_rr" ||
+      statKey === "prs_pct" || statKey === "pass_imp_per_att") return numericValue.toFixed(1) + "%";
+  if (statKey === "cpoe") {
+    const formatted = numericValue.toFixed(1) + "%";
+    return numericValue > 0 ? `+${formatted}` : formatted;
+  }
+  if (statKey === "first_down_rec_rate") return numericValue.toFixed(2);
+  if (statKey === "fpts" || statKey === "ppg") return numericValue.toFixed(1);
+  if (statKey === "rec" || statKey === "rec_tgt") return Math.round(numericValue).toString();
+  if (statKey === "yds_total") return Math.round(numericValue).toString();
+  if (statKey === "rec_ypg") return numericValue.toFixed(1);
+  if (statKey === "pass_rtg") return numericValue.toFixed(1);
+  if (statKey === "ttt" || statKey === "imp_per_g") return numericValue.toFixed(2);
+  if (statKey === "epa_per_db") {
+    const formatted = numericValue.toFixed(2);
+    return numericValue > 0 ? `+${formatted}` : formatted;
+  }
+  return numericValue.toFixed(2);
+}
+
 function renderDataHubRadarChart(playerId, position) {
   const container = radarChartContainer?.querySelector(".radar-chart-content");
   if (!container) {
@@ -3739,7 +3984,22 @@ function renderDataHubRadarChart(playerId, position) {
   const canvas = document.createElement("canvas");
   canvas.id = "datahub-player-radar-canvas";
   container.appendChild(canvas);
-  dataHubRadarChartInstance = new window.Chart(canvas.getContext("2d"), {
+  const ctx = canvas.getContext("2d");
+
+  /* Responsive layout padding matching Stats page radar */
+  const isMobileRadar = window.matchMedia("(max-width: 640px)").matches;
+  const radarLayoutPadding = {
+    top: isMobileRadar ? 34 : 50,
+    bottom: isMobileRadar ? 44 : 52,
+    left: isMobileRadar ? 45 : 18,
+    right: isMobileRadar ? 45 : 18,
+  };
+  const radarLabelOffset = isMobileRadar ? 10 : 14;
+  const radarRankLabelOffset = isMobileRadar ? 13 : 16;
+  const scaleMax = 100;
+
+  /* Game Logs modal -> Performance tab -> main radar chart setup */
+  const chartInstance = new window.Chart(ctx, {
     type: "radar",
     data: {
       labels: radarData.labels,
@@ -3748,46 +4008,86 @@ function renderDataHubRadarChart(playerId, position) {
         data: radarData.ranks,
         rawRanks: radarData.rawRanks,
         statValues: radarData.statValues,
-        position,
+        statKeys: radarData.statKeys,
+        position: position,
         fill: true,
-        backgroundColor: "rgba(83, 0, 255, 0.28)",
+        backgroundColor: "rgba(83, 0, 255, 0.33)",
         borderColor: "#6700ff",
         borderWidth: 2,
         pointBackgroundColor: "#6300ff",
-        pointBorderColor: "#0d0e1b",
-        pointRadius: 4,
+        pointBorderColor: "#0D0E1B",
+        pointRadius: 4.5,
+        analyzerLabels: true,
+        order: 2,
       }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              const rank = radarData.rawRanks[context.dataIndex];
-              const value = radarData.statValues[context.dataIndex];
-              return `${context.label}: ${formatDataHubStatDisplay(radarData.statKeys[context.dataIndex], value)} (${Number.isFinite(rank) ? `#${rank}` : "NA"})`;
-            },
-          },
-        },
-      },
+      events: [],
+      layout: { padding: radarLayoutPadding },
+      elements: { line: { tension: 0.40 } },
       scales: {
         r: {
-          min: 0,
-          max: 100,
+          beginAtZero: true,
+          suggestedMin: 0,
+          suggestedMax: scaleMax,
+          max: scaleMax,
+          grid: { display: false },
+          angleLines: { display: false },
           ticks: { display: false },
-          angleLines: { color: "rgba(208, 214, 255, 0.12)" },
-          grid: { color: "rgba(208, 214, 255, 0.16)" },
-          pointLabels: {
-            color: "#e6ebff",
-            font: { family: "Product Sans", size: 12, weight: "600" },
+          pointLabels: { display: false },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        playerRadarBackground: {
+          levels: [
+            { ratio: 0.95, fill: "#2c334f62", stroke: "#525a7739", lineWidth: 1 },
+            { ratio: 0.75, fill: "#2D345153", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.55, fill: "#2F365250", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.35, fill: "#30375455", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.18, fill: "#31385565", stroke: "#525a7735", lineWidth: 1 },
+          ],
+        },
+        playerRadarLabels: {
+          font: '14px "Product Sans", "Google Sans", sans-serif',
+          offset: radarRankLabelOffset,
+        },
+        playerRadarAxisLabels: {
+          labelFontSize: 14,
+          labelFontSizeMobile: 13,
+          valueFontSize: 12,
+          valueFontSizeMobile: 11,
+          labelOffset: isMobileRadar ? 10 : 14,
+          topLabelExtraOffset: isMobileRadar ? 10 : 12,
+          axisLabelExtraOffsetsByIndex: {
+            1: 17, 2: 14, 3: 10, 5: 13, 6: 18, 7: 21,
           },
+          valueSpacing: isMobileRadar ? 3 : 4,
+          labelColor: "#EAEBF0",
         },
       },
     },
+    plugins: [dataHubRadarBackgroundPlugin, dataHubRadarLabelPlugin, dataHubRadarAxisLabelsPlugin],
   });
+  dataHubRadarChartInstance = chartInstance;
+
+  /* Build a radial gradient fill using the chart's computed center/radius */
+  const scale = chartInstance.scales?.r;
+  if (scale) {
+    const centerX = scale.xCenter;
+    const centerY = scale.yCenter;
+    const radius = scale.drawingArea;
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    gradient.addColorStop(0, "rgba(121, 0, 245, 0.13)");
+    gradient.addColorStop(0.4, "rgba(92, 0, 255, 0.20)");
+    gradient.addColorStop(0.78, "rgba(75, 0, 255, 0.34)");
+    gradient.addColorStop(1, "rgba(34, 0, 255, 0.91)");
+    chartInstance.data.datasets[0].backgroundColor = gradient;
+    chartInstance.update("none");
+  }
 }
 
 function getDataHubRadarData(playerId, position) {
