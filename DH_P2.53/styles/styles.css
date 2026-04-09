@@ -9201,6 +9201,8 @@ body.league-gate-active {
   display: grid;
   place-items: center;
   padding: clamp(20px, 4vw, 44px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -9228,12 +9230,245 @@ body.league-gate-active {
   animation: league-gate-background-breathe 7.2s ease-in-out infinite;
 }
 
+.league-username-gate__layout {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 960px);
+  min-height: calc(100vh - clamp(40px, 8vw, 88px));
+  min-height: calc(100dvh - clamp(40px, 8vw, 88px));
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(22px, 4.6vh, 54px);
+  align-items: start;
+}
+
+/* Shared gate navigation:
+   adds the regular Dynasty Hub page routing to the top of the username overlay,
+   with a self-contained More menu so the full-screen gate feels like part of the app shell. */
+.league-username-gate__nav-shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.league-username-gate__nav-bar {
+  position: relative;
+  width: min(100%, 820px);
+  padding: clamp(0.52rem, 1vw, 0.72rem);
+  border-radius: 30px;
+  border: 1px solid rgba(133, 150, 181, 0.16);
+  background:
+    linear-gradient(180deg, rgba(14, 19, 28, 0.84), rgba(7, 11, 18, 0.6)),
+    rgba(8, 11, 18, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 46px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(94, 220, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(118%);
+  -webkit-backdrop-filter: blur(18px) saturate(118%);
+  overflow: visible;
+}
+
+.league-username-gate__nav-bar::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 16%;
+  right: 16%;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(120, 232, 255, 0.7), rgba(142, 116, 255, 0.46), transparent);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.league-username-gate__nav-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(0.28rem, 0.9vw, 0.48rem);
+  align-items: stretch;
+}
+
+.league-username-gate__nav-button {
+  position: relative;
+  min-width: 0;
+  max-width: none;
+  min-height: 3.5rem;
+  padding: 0.62rem 0.38rem 0.56rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(13, 17, 26, 0.68);
+  border-color: rgba(128, 144, 176, 0.16);
+  border-radius: 21px;
+  color: rgba(221, 230, 245, 0.74);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.league-username-gate__nav-button i {
+  font-size: 1.02rem;
+}
+
+.league-username-gate__nav-button .nav-logo {
+  width: 1.08rem;
+  height: 1.08rem;
+  margin-bottom: 0.03rem;
+  filter: opacity(0.74) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2)) brightness(1.5) hue-rotate(42deg);
+}
+
+.league-username-gate__nav-button .nav-label {
+  font-size: clamp(0.56rem, 0.95vw, 0.68rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.league-username-gate__nav-button[data-gate-nav="leaguehub"] .nav-label {
+  letter-spacing: -0.04em;
+}
+
+.league-username-gate__nav-button:hover,
+.league-username-gate__nav-button:focus-visible {
+  outline: none;
+  color: #f2f7ff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)),
+    rgba(16, 22, 34, 0.86);
+  border-color: rgba(117, 233, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 24px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(117, 233, 255, 0.06);
+}
+
+.league-username-gate__nav-button.active {
+  color: #9fe8ff;
+  background:
+    linear-gradient(180deg, rgba(86, 214, 255, 0.14), rgba(118, 109, 255, 0.08)),
+    rgba(13, 18, 28, 0.88);
+  border-color: rgba(120, 232, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 30px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(120, 232, 255, 0.1),
+    0 0 28px rgba(120, 232, 255, 0.1);
+}
+
+.league-username-gate__more {
+  position: relative;
+  min-width: 0;
+}
+
+.league-username-gate__more-toggle {
+  width: 100%;
+}
+
+.league-username-gate__more-caret {
+  position: absolute;
+  right: 8px;
+  top: 11px;
+  font-size: 0.62rem;
+  color: rgba(198, 207, 226, 0.76);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.league-username-gate__more-toggle[aria-expanded="true"] .league-username-gate__more-caret {
+  transform: rotate(180deg);
+  color: #9fe8ff;
+}
+
+.league-username-gate__more-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 172px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  border-radius: 20px;
+  border: 1px solid rgba(133, 150, 181, 0.18);
+  background:
+    linear-gradient(180deg, rgba(16, 21, 31, 0.94), rgba(10, 14, 22, 0.86)),
+    rgba(10, 14, 22, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 40px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(120, 232, 255, 0.06);
+  backdrop-filter: blur(18px) saturate(118%);
+  -webkit-backdrop-filter: blur(18px) saturate(118%);
+  z-index: 5;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.985);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.league-username-gate__more-menu:not(.hidden) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.league-username-gate__more-item {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  width: 100%;
+  padding: 0.78rem 0.92rem;
+  border: 1px solid rgba(128, 144, 176, 0.16);
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(14, 19, 28, 0.62);
+  color: rgba(221, 230, 245, 0.78);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 16px rgba(0, 0, 0, 0.22);
+  transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.league-username-gate__more-item i {
+  width: 1rem;
+  text-align: center;
+  font-size: 0.96rem;
+  color: rgba(159, 232, 255, 0.82);
+}
+
+.league-username-gate__more-item .nav-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.league-username-gate__more-item:hover,
+.league-username-gate__more-item:focus-visible,
+.league-username-gate__more-item.is-active {
+  outline: none;
+  color: #f2f7ff;
+  background:
+    linear-gradient(180deg, rgba(86, 214, 255, 0.12), rgba(118, 109, 255, 0.06)),
+    rgba(18, 24, 35, 0.84);
+  border-color: rgba(117, 233, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 22px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(117, 233, 255, 0.08);
+}
+
 .league-username-gate__dialog {
   position: relative;
   z-index: 1;
   display: grid;
   justify-items: center;
   width: min(100%, 760px);
+  align-self: center;
 }
 
 .league-username-gate__dialog::before,
@@ -9283,6 +9518,7 @@ body.league-gate-active {
   width: min(54vw, 310px);
   height: 2px;
   transform: translateX(-50%);
+  transform-origin: center;
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, rgba(118, 232, 255, 0.88), rgba(142, 116, 255, 0.52), transparent);
   box-shadow: 0 0 24px rgba(118, 232, 255, 0.3);
@@ -9637,12 +9873,12 @@ body.league-gate-active {
   0%,
   100% {
     opacity: 0.72;
-    transform: scaleX(0.92);
+    transform: translateX(-50%) scaleX(0.92);
   }
 
   50% {
     opacity: 1;
-    transform: scaleX(1);
+    transform: translateX(-50%) scaleX(1);
   }
 }
 
@@ -9684,6 +9920,62 @@ body.league-gate-active {
 }
 
 @media (max-width: 640px) {
+  .league-username-gate__layout {
+    gap: 18px;
+    min-height: calc(100vh - 40px);
+    min-height: calc(100dvh - 40px);
+  }
+
+  .league-username-gate__nav-bar {
+    width: 100%;
+    padding: 0.46rem;
+    border-radius: 24px;
+  }
+
+  .league-username-gate__nav-grid {
+    gap: 0.3rem;
+  }
+
+  .league-username-gate__nav-button {
+    min-height: 3rem;
+    padding: 0.48rem 0.18rem 0.42rem;
+    border-radius: 17px;
+  }
+
+  .league-username-gate__nav-button i {
+    font-size: 0.94rem;
+  }
+
+  .league-username-gate__nav-button .nav-logo {
+    width: 0.98rem;
+    height: 0.98rem;
+  }
+
+  .league-username-gate__nav-button .nav-label {
+    font-size: 0.58rem;
+    line-height: 0.98;
+  }
+
+  .league-username-gate__more-caret {
+    right: 6px;
+    top: 9px;
+    font-size: 0.54rem;
+  }
+
+  .league-username-gate__more-menu {
+    right: -2px;
+    min-width: 154px;
+    padding: 8px;
+  }
+
+  .league-username-gate__more-item {
+    padding: 0.7rem 0.78rem;
+  }
+
+  .league-username-gate__more-item .nav-label {
+    font-size: 0.68rem;
+  }
+
   .league-username-gate__dialog {
     width: min(100%, 460px);
   }
