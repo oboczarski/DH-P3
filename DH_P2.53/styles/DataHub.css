@@ -32,6 +32,19 @@
     0 0 12px rgba(116, 239, 255, 0.42),
     0 0 20px rgba(114, 151, 255, 0.28),
     0 0 28px rgba(217, 125, 255, 0.18);
+  /* DataHub game logs modal token aliases: the imported Stats subsystem relies
+     on these names, so map them locally instead of depending on styles.css. */
+  --color-panel-bg: rgba(10, 18, 30, 0.9);
+  --color-panel-border: rgba(255, 255, 255, 0.12);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-muted);
+  --color-accent-primary: var(--accent-cyan);
+  --panel-border-radius: 24px;
+  --pos-qb: #7fd5ff;
+  --pos-rb: #7df1c4;
+  --pos-wr: #b68dff;
+  --pos-te: #ff9ee8;
 }
 
 /* ── Base Page Shell ─────────────────────────────────────────────────────── */
@@ -43,6 +56,10 @@
 }
 
 [hidden] {
+  display: none !important;
+}
+
+.hidden {
   display: none !important;
 }
 
