@@ -4530,8 +4530,8 @@ body[data-page="datahub"] #modal-body {
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 8px;
-  max-height: 45.4vh;
-  height: 45.4vh;
+  max-height: 42.2vh;
+  height: 45vh;
   scrollbar-width: none;
   overscroll-behavior: contain;
   flex: none;
@@ -5088,7 +5088,7 @@ body[data-page="datahub"] .modal-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.84rem;
+  gap: 0.24rem;
   margin-top: 0.4rem;
   margin-bottom: 0.15rem;
   font-size: 0.75rem;
@@ -5097,13 +5097,13 @@ body[data-page="datahub"] .modal-footer {
 }
 
 body[data-page="datahub"] .modal-info-btn {
-  font-size: 1rem;
-  line-height: 1rem;
+  font-size: 0.75rem;
+  line-height: 0.8rem;
   cursor: pointer;
   transition: color 0.2s ease, filter 0.2s ease, transform 0.1s ease;
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.2rem;
   text-wrap-mode: nowrap;
   letter-spacing: -0.03em;
   min-width: 53px;
@@ -5126,7 +5126,7 @@ body[data-page="datahub"] .key-chip {
   backdrop-filter: blur(3px) saturate(170%);
   border: 1px solid rgba(250, 250, 250, 0.06);
   border-radius: 7px;
-  padding: 7px 15px;
+  padding: 5px 5px;
   box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
@@ -5734,7 +5734,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
-    height: 571px !important;
+    height: 579px !important;
   }
 
   body[data-page="datahub"] .modal-body {
