@@ -1142,6 +1142,8 @@ body::after {
   overflow-y: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(131, 214, 255, 0.5) rgba(255, 255, 255, 0.04);
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .datahub-hscroll-bar::-webkit-scrollbar {

@@ -1716,6 +1716,7 @@ function bindGridShellEvents(refs) {
     }, { passive: false });
   });
 
+  attachGridTouchHorizontalScroll(refs.frozenBody, refs);
   attachGridTouchHorizontalScroll(refs.scrollBodyOverlay, refs);
   attachGridTouchHorizontalScroll(refs.scrollHeaderShell, refs);
 }
@@ -1738,44 +1739,178 @@ function routeGridHorizontalWheel(event, refs) {
 }
 
 function attachGridTouchHorizontalScroll(surface, refs) {
+  let touchActive = false;
+  let isHorizontalGesture = null;
   let touchStartX = 0;
   let touchStartY = 0;
-  let startScrollLeft = 0;
-  let isHorizontalGesture = false;
+  let lastTouchX = 0;
+  let lastTimestamp = 0;
+  const DECELERATION_RATE = 0.998;
+  const VELOCITY_HISTORY_LIMIT = 6;
+  const MOMENTUM_START_VELOCITY = 0.08;
+  const MOMENTUM_STOP_VELOCITY = 0.015;
+  const MIN_VELOCITY_SAMPLE_MS = 8;
+  const HORIZONTAL_THRESHOLD = 1;
+  const DIRECTION_LOCK_RATIO = 1.1;
+  const velocitySamples = [];
+  let lastVelocitySign = 0;
+  let momentumFrame = 0;
 
-  surface.addEventListener("touchstart", (event) => {
-    const touch = event.touches[0];
-    if (!touch) {
+  const cancelMomentum = () => {
+    if (momentumFrame) {
+      cancelAnimationFrame(momentumFrame);
+      momentumFrame = 0;
+    }
+  };
+
+  const applyImmediateScroll = (deltaX) => {
+    const before = refs.hscrollBar.scrollLeft;
+    const after = setGridHorizontalScrollLeft(refs, before - deltaX);
+    return after !== before;
+  };
+
+  const startMomentum = (initialVelocity) => {
+    cancelMomentum();
+    if (!Number.isFinite(initialVelocity) || Math.abs(initialVelocity) < MOMENTUM_START_VELOCITY) {
       return;
     }
 
+    let velocity = initialVelocity;
+    let previousFrameTime = performance.now();
+    const MAX_ELAPSED_MS = 64;
+    const STEP_MAX_MS = 16;
+
+    const step = (now) => {
+      const elapsed = Math.min(now - previousFrameTime, MAX_ELAPSED_MS);
+      previousFrameTime = now;
+      let remaining = elapsed;
+
+      while (remaining > 0) {
+        const dt = Math.min(remaining, STEP_MAX_MS);
+        const delta = velocity * dt;
+        if (delta !== 0) {
+          const moved = applyImmediateScroll(delta);
+          if (!moved) {
+            momentumFrame = 0;
+            return;
+          }
+        }
+
+        velocity *= Math.pow(DECELERATION_RATE, dt);
+        remaining -= dt;
+        if (Math.abs(velocity) <= MOMENTUM_STOP_VELOCITY) {
+          break;
+        }
+      }
+
+      if (Math.abs(velocity) > MOMENTUM_STOP_VELOCITY) {
+        momentumFrame = requestAnimationFrame(step);
+      } else {
+        momentumFrame = 0;
+      }
+    };
+
+    momentumFrame = requestAnimationFrame(step);
+  };
+
+  const resetTouchState = () => {
+    touchActive = false;
+    isHorizontalGesture = null;
+
+    if (velocitySamples.length >= 2) {
+      let weightedSum = 0;
+      let weightTotal = 0;
+      for (let index = 0; index < velocitySamples.length; index += 1) {
+        const weight = index + 1;
+        weightedSum += velocitySamples[index] * weight;
+        weightTotal += weight;
+      }
+      startMomentum(weightTotal ? (weightedSum / weightTotal) : 0);
+    }
+
+    velocitySamples.length = 0;
+    lastVelocitySign = 0;
+  };
+
+  surface.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    cancelMomentum();
+    touchActive = true;
+    isHorizontalGesture = null;
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
-    startScrollLeft = refs.hscrollBar.scrollLeft;
-    isHorizontalGesture = false;
+    lastTouchX = touch.clientX;
+    lastTimestamp = event.timeStamp;
+    velocitySamples.length = 0;
+    lastVelocitySign = 0;
   }, { passive: true });
 
   surface.addEventListener("touchmove", (event) => {
-    const touch = event.touches[0];
-    if (!touch) {
+    if (!touchActive || event.touches.length !== 1) {
       return;
     }
 
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = touch.clientY - touchStartY;
+    const touch = event.touches[0];
+    const deltaXFromStart = touch.clientX - touchStartX;
+    const deltaYFromStart = touch.clientY - touchStartY;
+    const deltaX = touch.clientX - lastTouchX;
+    const elapsed = event.timeStamp - lastTimestamp;
 
-    if (!isHorizontalGesture) {
-      if (Math.abs(deltaX) < 8 || Math.abs(deltaX) <= Math.abs(deltaY)) {
-        return;
+    if (isHorizontalGesture === null) {
+      const absX = Math.abs(deltaXFromStart);
+      const absY = Math.abs(deltaYFromStart);
+      if (absX > HORIZONTAL_THRESHOLD && absX > absY * DIRECTION_LOCK_RATIO) {
+        isHorizontalGesture = true;
+      } else if (absY > HORIZONTAL_THRESHOLD && absY > absX * DIRECTION_LOCK_RATIO) {
+        isHorizontalGesture = false;
       }
-      isHorizontalGesture = true;
     }
 
-    refs.hscrollBar.scrollLeft = startScrollLeft - deltaX;
-    state.gridScroll.horizontal = refs.hscrollBar.scrollLeft;
-    scheduleGridHorizontalSync(refs, refs.hscrollBar.scrollLeft);
-    event.preventDefault();
+    if (isHorizontalGesture) {
+      event.preventDefault();
+
+      if (elapsed >= MIN_VELOCITY_SAMPLE_MS) {
+        const instantaneousVelocity = deltaX / elapsed;
+        const sign = Math.sign(instantaneousVelocity);
+        if (sign !== 0 && lastVelocitySign !== 0 && sign !== lastVelocitySign) {
+          velocitySamples.length = 0;
+        }
+        if (sign !== 0) {
+          lastVelocitySign = sign;
+        }
+        velocitySamples.push(instantaneousVelocity);
+        if (velocitySamples.length > VELOCITY_HISTORY_LIMIT) {
+          velocitySamples.shift();
+        }
+      }
+
+      if (deltaX !== 0) {
+        const moved = applyImmediateScroll(deltaX);
+        if (!moved) {
+          velocitySamples.length = 0;
+          lastVelocitySign = 0;
+        }
+      }
+    }
+
+    lastTouchX = touch.clientX;
+    lastTimestamp = event.timeStamp;
   }, { passive: false });
+
+  surface.addEventListener("touchend", resetTouchState, { passive: true });
+  surface.addEventListener("touchcancel", resetTouchState, { passive: true });
+}
+
+function setGridHorizontalScrollLeft(refs, nextScrollLeft) {
+  refs.hscrollBar.scrollLeft = nextScrollLeft;
+  const appliedScrollLeft = refs.hscrollBar.scrollLeft;
+  state.gridScroll.horizontal = appliedScrollLeft;
+  syncGridHorizontalOffset(refs, appliedScrollLeft);
+  return appliedScrollLeft;
 }
 
 function scheduleGridHorizontalSync(refs, scrollLeft) {
