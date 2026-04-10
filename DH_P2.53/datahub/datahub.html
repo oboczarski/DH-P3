@@ -28,6 +28,35 @@
     <div class="background-orb background-orb--two" aria-hidden="true"></div>
     <div class="background-orb background-orb--three" aria-hidden="true"></div>
 
+    <!-- DataHub page-level loading shell:
+         Targets the full DataHub page during initial load and CSV fallback.
+         This replaces the old table-only overlay so the whole page shows a
+         single loading state while local stats and valuation feeds hydrate. -->
+    <div id="datahub-page-loading" class="datahub-page-loading">
+      <div class="overlay-card">
+        <div class="overlay-card__pulse" aria-hidden="true"></div>
+        <p class="overlay-card__eyebrow">LOADING DATA</p>
+        <h2 id="overlay-title" class="overlay-card__title">
+          Preparing SZN.csv
+        </h2>
+        <p id="overlay-description" class="overlay-card__body">
+          Building the Data Hub grid and mapping the requested stat views.
+        </p>
+
+        <div id="overlay-actions" class="overlay-card__actions" hidden>
+          <button id="file-picker-button" type="button" class="overlay-card__button">
+            Select SZN.csv
+          </button>
+          <input
+            id="file-picker-input"
+            type="file"
+            accept=".csv,text/csv"
+            hidden
+          />
+        </div>
+      </div>
+    </div>
+
     <main class="app-shell">
       <!-- Mobile header: intentionally separate from the desktop header so the
            stacked mobile layout can keep its own DOM order without re-parenting. -->
@@ -422,33 +451,6 @@
             <!-- JS replaces this node's contents with the frozen-pane table and
                  the scroll-pane table on every render. -->
             <div id="player-grid" class="data-grid" aria-label="Player stats table"></div>
-          </div>
-
-          <!-- Overlay remains in the DOM even after load so file:// fallback and
-               local CSV re-import can reuse the same UI without changing layout. -->
-          <div id="grid-overlay" class="grid-stage__overlay">
-            <div class="overlay-card">
-              <div class="overlay-card__pulse" aria-hidden="true"></div>
-              <p class="overlay-card__eyebrow">LOADING DATA</p>
-              <h2 id="overlay-title" class="overlay-card__title">
-                Preparing SZN.csv
-              </h2>
-              <p id="overlay-description" class="overlay-card__body">
-                Building the Data Hub grid and mapping the requested stat views.
-              </p>
-
-              <div id="overlay-actions" class="overlay-card__actions" hidden>
-                <button id="file-picker-button" type="button" class="overlay-card__button">
-                  Select SZN.csv
-                </button>
-                <input
-                  id="file-picker-input"
-                  type="file"
-                  accept=".csv,text/csv"
-                  hidden
-                />
-              </div>
-            </div>
           </div>
         </div>
       </section>

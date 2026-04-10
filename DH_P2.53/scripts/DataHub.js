@@ -334,6 +334,55 @@ const ALL_COLUMNS = [...new Set(Object.values(COLUMN_SETS).flat())];
 const COMPACT_SCROLL_COLUMN_SCALE = 1.3;
 const DEFAULT_COLUMN_WIDTH = 94;
 const DEFAULT_COMPACT_COLUMN_WIDTH = 58;
+// DataHub sort defaults:
+// VALUE desc is the baseline table order, and every non-default third click
+// returns the grid to this exact sort state.
+const DEFAULT_SORT = Object.freeze({
+  column: "VALUE",
+  direction: "desc",
+});
+const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
+  "RK",
+  "AGE",
+  "ADP",
+  "POS·ADP",
+  "TTT",
+  "PRS%",
+  "SAC",
+  "INT",
+  "FUM",
+]);
+const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM"]);
+const SORT_ICON_PATHS = Object.freeze({
+  ArrowDownWideNarrow: [
+    "m3 16 4 4 4-4",
+    "M7 20V4",
+    "M11 4h10",
+    "M11 8h7",
+    "M11 12h4",
+  ],
+  ArrowUpWideNarrow: [
+    "m3 8 4-4 4 4",
+    "M7 4v16",
+    "M11 20h10",
+    "M11 16h7",
+    "M11 12h4",
+  ],
+  ArrowDownNarrowWide: [
+    "m3 16 4 4 4-4",
+    "M7 20V4",
+    "M11 4h4",
+    "M11 8h7",
+    "M11 12h10",
+  ],
+  ArrowUpNarrowWide: [
+    "m3 8 4-4 4 4",
+    "M7 4v16",
+    "M11 20h4",
+    "M11 16h7",
+    "M11 12h10",
+  ],
+});
 
 const CATEGORY_FILTERS = {
   overview: (row) => Boolean(row.POS && row.POS !== "NA"),
@@ -414,7 +463,7 @@ const COLUMN_WIDTHS = {
 };
 
 const MOBILE_COLUMN_WIDTHS = {
-  RK: 35,
+  RK: 32,
   PLAYER: 62,
   POS: 37,
   TM: 52,
@@ -501,10 +550,7 @@ const state = {
     SFLX: Object.create(null),
   },
   adpByPlayerId: Object.create(null),
-  sort: {
-    column: "RK",
-    direction: "asc",
-  },
+  sort: createDefaultSort(),
   isCompactViewport: isCompactViewport(),
   columnFormatting: Object.create(null),
   // DataHub game logs modal state:
@@ -537,6 +583,7 @@ const state = {
   currentGameLogsView: "gl",
   currentConsistencyData: null,
   currentModalSeason: "2025",
+  currentGameLogsTriggerButton: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -545,7 +592,7 @@ const state = {
 const mainTitle = document.querySelector("#main-title");
 const activeViewLabel = document.querySelector("#active-view-label");
 const rowCount = document.querySelector("#row-count");
-const overlay = document.querySelector("#grid-overlay");
+const overlay = document.querySelector("#datahub-page-loading");
 const overlayTitle = document.querySelector("#overlay-title");
 const overlayDescription = document.querySelector("#overlay-description");
 const overlayActions = document.querySelector("#overlay-actions");
@@ -1577,11 +1624,11 @@ function createHeaderCell(column) {
 
   const indicator = document.createElement("span");
   indicator.className = "stats-table__sort-indicator";
-  indicator.textContent = getSortIndicator(column.name);
   indicator.setAttribute("aria-hidden", "true");
-
-  if (getActiveSortColumn() === column.name) {
+  const sortIcon = createSortIndicatorIcon(column.name);
+  if (sortIcon) {
     indicator.classList.add("is-active");
+    indicator.append(sortIcon);
   }
 
   button.append(label, indicator);
@@ -1606,6 +1653,11 @@ function createBodyCell(row, column) {
   // clicks can open the DataHub-owned modal without app.js.
   if (column.name === PLAYER_COLUMN) {
     content.append(createPlayerTriggerButton(row));
+  } else if (column.name === "TM") {
+    // DataHub TM cell logo swap:
+    // render the same team-logo treatment used by the local modal so the table
+    // shows logos while sort/search still operate on the raw team abbreviation.
+    content.append(createDataHubTableTeamLogo(value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else {
@@ -1623,9 +1675,29 @@ function createPlayerTriggerButton(row) {
   button.setAttribute("aria-label", `Open game logs for ${formatDisplayValue(PLAYER_COLUMN, row.PLAYER)}`);
   button.textContent = formatDisplayValue(PLAYER_COLUMN, row.PLAYER);
   button.addEventListener("click", () => {
-    openDataHubGameLogs(row);
+    openDataHubGameLogs(row, button);
   });
   return button;
+}
+
+function createDataHubTableTeamLogo(value) {
+  const teamKey = String(value || "FA").trim().toUpperCase() || "FA";
+  if (!teamKey || teamKey === "FA" || isMissingValue(teamKey)) {
+    const fallback = document.createElement("span");
+    fallback.className = "stats-table__team-fallback";
+    fallback.textContent = "FA";
+    return fallback;
+  }
+
+  const logo = document.createElement("img");
+  logo.className = "team-logo glow";
+  logo.src = getDataHubTeamLogoSrc(teamKey);
+  logo.alt = teamKey;
+  logo.width = 20;
+  logo.height = 20;
+  logo.loading = "eager";
+  logo.decoding = "async";
+  return logo;
 }
 
 function createFptsChip(value) {
@@ -1774,22 +1846,88 @@ function getAriaSort(columnName) {
   return state.sort.direction === "asc" ? "ascending" : "descending";
 }
 
-function getSortIndicator(columnName) {
-  if (getActiveSortColumn() !== columnName) {
-    return "↕";
+function createDefaultSort() {
+  return { ...DEFAULT_SORT };
+}
+
+function createSortIndicatorIcon(columnName) {
+  const iconKey = getSortIndicatorIconKey(columnName);
+  if (!iconKey) {
+    return null;
   }
 
-  return state.sort.direction === "asc" ? "▲" : "▼";
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.classList.add("stats-table__sort-icon");
+
+  SORT_ICON_PATHS[iconKey].forEach((segment) => {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", segment);
+    svg.append(path);
+  });
+
+  return svg;
+}
+
+function getSortIndicatorIconKey(columnName) {
+  if (getActiveSortColumn() !== columnName) {
+    return null;
+  }
+
+  if (LOWER_IS_BETTER_SORT_COLUMNS.has(columnName)) {
+    return state.sort.direction === "asc"
+      ? "ArrowDownNarrowWide"
+      : "ArrowUpNarrowWide";
+  }
+
+  return state.sort.direction === "desc"
+    ? "ArrowDownWideNarrow"
+    : "ArrowUpWideNarrow";
+}
+
+function getInitialSortDirection(columnName) {
+  if (TEXT_SORT_COLUMNS.has(columnName) || LOWER_IS_BETTER_SORT_COLUMNS.has(columnName)) {
+    return "asc";
+  }
+
+  return "desc";
+}
+
+function getOppositeSortDirection(direction) {
+  return direction === "asc" ? "desc" : "asc";
 }
 
 function handleHeaderSort(columnName) {
-  if (state.sort.column === columnName) {
-    state.sort.direction = state.sort.direction === "asc" ? "desc" : "asc";
-  } else {
+  // DataHub table sort cycle:
+  // most columns use preferred -> opposite -> reset-to-default, while VALUE
+  // cycles desc -> asc -> desc because resetting lands on the default sort.
+  if (columnName === DEFAULT_SORT.column) {
+    if (state.sort.column === columnName && state.sort.direction === DEFAULT_SORT.direction) {
+      state.sort = {
+        column: columnName,
+        direction: getOppositeSortDirection(DEFAULT_SORT.direction),
+      };
+    } else {
+      state.sort = createDefaultSort();
+    }
+    refreshGrid();
+    return;
+  }
+
+  if (state.sort.column !== columnName) {
     state.sort = {
       column: columnName,
-      direction: "asc",
+      direction: getInitialSortDirection(columnName),
     };
+  } else if (state.sort.direction === getInitialSortDirection(columnName)) {
+    state.sort = {
+      column: columnName,
+      direction: getOppositeSortDirection(state.sort.direction),
+    };
+  } else {
+    state.sort = createDefaultSort();
   }
 
   refreshGrid();
@@ -1840,7 +1978,7 @@ function sortRows(rows) {
 
 function getActiveSortColumn() {
   const columns = COLUMN_SETS[state.activeCategory];
-  return columns.includes(state.sort.column) ? state.sort.column : "RK";
+  return columns.includes(state.sort.column) ? state.sort.column : DEFAULT_SORT.column;
 }
 
 function getColumnWidth(columnName) {
@@ -2860,6 +2998,7 @@ function closeDataHubModal() {
   if (ownershipChips) ownershipChips.innerHTML = "";
   if (ownershipLeft) ownershipLeft.innerHTML = "";
   if (ownershipVitals) ownershipVitals.innerHTML = "";
+  clearDataHubPendingPlayerButton();
   state.currentGameLogsPlayer = null;
   state.currentGameLogsPlayerRanks = null;
   state.currentGameLogsSummary = null;
@@ -2931,7 +3070,7 @@ function switchDataHubModalTab(tabKey) {
   }
 }
 
-async function openDataHubGameLogs(row) {
+async function openDataHubGameLogs(row, triggerButton = null) {
   const meta = row?.__meta;
   if (!meta?.playerId || meta.pos === "RDP") {
     return;
@@ -2942,33 +3081,48 @@ async function openDataHubGameLogs(row) {
   state.currentGameLogsSummary = null;
   const isStaleRequest = () => requestSeq !== dataHubGameLogsRequestSeq;
 
-  try {
-    await ensureDataHubGameLogsData();
-  } catch (error) {
-    console.error("Unable to prepare DataHub game logs data.", error);
-  }
-  if (isStaleRequest()) {
-    return;
-  }
+  // DataHub player-tap feedback:
+  // promote the clicked name button into a scoped loading state immediately so
+  // the interaction feels responsive even before the modal data promise settles.
+  setDataHubPendingPlayerButton(triggerButton);
 
-  const player = buildDataHubModalPlayer(meta);
-  state.currentGameLogsPlayer = player;
-  modalPlayerName.textContent = player.fullName || player.name || "Player";
-  if (modalPlayerVitals) modalPlayerVitals.innerHTML = "";
-  if (modalSummaryChips) modalSummaryChips.innerHTML = "";
-  modalBody?.replaceChildren();
+  const loadingPlayer = buildDataHubModalPlayer(meta);
+  state.currentGameLogsPlayer = loadingPlayer;
+  prepareDataHubModalForLoading(loadingPlayer);
   openDataHubModal();
   showDataHubLoadingPanel();
 
-  const gameLogs = await fetchDataHubGameLogs(player.id);
-  if (isStaleRequest()) {
-    return;
+  try {
+    await ensureDataHubGameLogsData();
+    if (isStaleRequest()) {
+      return;
+    }
+
+    const player = buildDataHubModalPlayer(meta);
+    state.currentGameLogsPlayer = player;
+    modalPlayerName.textContent = player.fullName || player.name || "Player";
+
+    const gameLogs = await fetchDataHubGameLogs(player.id);
+    if (isStaleRequest()) {
+      return;
+    }
+
+    const playerRanks = buildDataHubPlayerRanks(player.id, meta);
+    if (isStaleRequest()) {
+      return;
+    }
+
+    await renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq);
+  } catch (error) {
+    console.error("Unable to prepare DataHub game logs data.", error);
+    if (isStaleRequest()) {
+      return;
+    }
+    clearDataHubPendingPlayerButton();
+    gameLogsModal?.classList.remove("loading");
+    gameLogsModal?.querySelector(".game-logs-loading-container")?.remove();
+    modalBody?.classList.remove("loading");
   }
-  const playerRanks = buildDataHubPlayerRanks(player.id, meta);
-  if (isStaleRequest()) {
-    return;
-  }
-  await renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq);
 }
 
 function buildDataHubModalPlayer(meta) {
@@ -2986,6 +3140,44 @@ function buildDataHubModalPlayer(meta) {
     posRank: meta.posRankText,
     overallRank: Number.isFinite(meta.overallKtcRank) ? meta.overallKtcRank : meta.rank,
   };
+}
+
+function prepareDataHubModalForLoading(player) {
+  // DataHub modal pre-open state:
+  // clear prior player chrome before async game log work starts so the modal can
+  // open instantly with the new player name and the existing loading panel.
+  modalPlayerName.textContent = player.fullName || player.name || "Player";
+  modalPlayerVitals?.replaceChildren();
+  modalSummaryChips?.replaceChildren();
+  modalBody?.replaceChildren();
+  document.querySelector("#modal-header .modal-header-left-container")?.remove();
+}
+
+function setDataHubPendingPlayerButton(button) {
+  if (state.currentGameLogsTriggerButton && state.currentGameLogsTriggerButton !== button) {
+    clearDataHubPendingPlayerButton(state.currentGameLogsTriggerButton);
+  }
+  if (!button) {
+    state.currentGameLogsTriggerButton = null;
+    return;
+  }
+
+  state.currentGameLogsTriggerButton = button;
+  button.classList.add("is-loading");
+  button.setAttribute("aria-busy", "true");
+}
+
+function clearDataHubPendingPlayerButton(button = state.currentGameLogsTriggerButton) {
+  if (!button) {
+    state.currentGameLogsTriggerButton = null;
+    return;
+  }
+
+  button.classList.remove("is-loading");
+  button.removeAttribute("aria-busy");
+  if (state.currentGameLogsTriggerButton === button) {
+    state.currentGameLogsTriggerButton = null;
+  }
 }
 
 function showDataHubLoadingPanel() {
@@ -3361,6 +3553,7 @@ function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
     gameLogsModal.classList.remove("loading");
     gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
   }
+  clearDataHubPendingPlayerButton();
   state.currentGameLogsPlayer = player;
   state.currentGameLogsPlayerRanks = playerRanks;
   state.currentGameLogsSummary = {
@@ -6412,10 +6605,19 @@ function getDataHubLeagueColor(abbr) {
 
 function getDataHubTeamLogoMarkup(team) {
   const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
-  const normalizedTeam = DATAHUB_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
   return teamKey !== "FA"
-    ? `<div class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"><img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedTeam}.svg" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" /></div>`
+    ? `<div class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"><img class="team-logo glow" src="${getDataHubTeamLogoSrc(teamKey)}" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" /></div>`
     : '<div class="player-tag modal-team-logo-chip" data-team="FA"><span>FA</span></div>';
+}
+
+function getDataHubNormalizedTeamLogoKey(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  return DATAHUB_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
+}
+
+function getDataHubTeamLogoSrc(team) {
+  const normalizedTeam = getDataHubNormalizedTeamLogoKey(team);
+  return `../assets/NFL_logos_svg/${normalizedTeam}.svg`;
 }
 
 function showDataHubTemporaryTooltip(element, message) {
