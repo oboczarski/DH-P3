@@ -674,14 +674,14 @@ body::after {
 }
 
 .page-title {
-  margin: 4px 0 0;
+  margin: -13px 0 0;
   max-width: none;
-  font-size: clamp(1.38rem, 8.3vw, 3.5rem);
+  font-size: clamp(1.28rem, 5.3vw, 3.5rem);
   line-height: 0.94;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.08em;
   font-weight: 800;
   word-spacing: 0.18em;
-  text-wrap: balance;
+  text-wrap: nowrap;
 }
 
 .top-tab,
@@ -1512,12 +1512,12 @@ body::after {
 
   .hero-shell {
     position: relative;
-    padding-top: 50px;
+    padding-top: 32px;
   }
 
   .eyebrow {
     position: absolute;
-    top: 10px;
+    top: 3px;
     left: 50%;
     z-index: 1;
     width: max-content;
