@@ -1075,7 +1075,7 @@ body::after {
   flex: 1;
   min-width: 0;
   overflow: auto;
-  height: var(--table-panel-height);
+  height: 800px;
   max-height: var(--table-panel-height);
   overscroll-behavior-x: none;
   overscroll-behavior-y: none;
@@ -1176,9 +1176,9 @@ body::after {
 
 .stats-table__header-cell,
 .stats-table__body-cell {
-  width: var(--column-width);
-  min-width: var(--column-width);
-  max-width: var(--column-width);
+  width: 26px !important;
+  min-width: 26px;
+  max-width: 26px;
   padding: 0;
   border: 0;
   vertical-align: middle;
@@ -2117,7 +2117,7 @@ body[data-page="datahub"] .stats-player-btn {
   font: inherit;
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.05em;
   cursor: pointer;
 }
 
