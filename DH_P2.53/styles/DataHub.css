@@ -6351,7 +6351,7 @@ body[data-page="datahub"] #game-logs-modal .modal-content {
 }
 
 body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
-  height: 638px;
+  height: 655px;
 }
 
 body[data-page="datahub"] #game-logs-modal .modal-close-btn {
@@ -6366,7 +6366,7 @@ body[data-page="datahub"] #game-logs-modal #modal-header {
 
 body[data-page="datahub"] #game-logs-modal .modal-header-left-container {
   position: absolute;
-  top: 0.70rem;
+  top: 0.1rem;
   left: 0.75rem;
   display: flex;
   align-items: center;
@@ -6383,7 +6383,7 @@ body[data-page="datahub"] #game-logs-modal .modal-team-logo-chip {
 
 body[data-page="datahub"] #game-logs-modal .modal-pos-tag {
   min-height: 0;
-  padding: 4.4px 8.5px;
+  padding: 5px 9px;
   line-height: 0.9rem;
   font-size: 0.9rem;
 }
@@ -6396,9 +6396,9 @@ body[data-page="datahub"] #game-logs-modal #modal-player-name {
 body[data-page="datahub"] #game-logs-modal #modal-header h3 {
   display: inline-block;
   max-width: 15ch;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0rem;
   margin-left: 15px;
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 200;
   color: var(--color-text-primary);
   text-align: center;
@@ -6805,6 +6805,7 @@ body[data-page="datahub"] #game-logs-modal .modal-pos-tag {
   box-shadow:
     0 14px 28px rgba(0, 0, 0, 0.24),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  min-height: 26px;
 }
 
 body[data-page="datahub"] #game-logs-modal .modal-team-logo-chip::after,
