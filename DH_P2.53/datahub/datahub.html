@@ -19,15 +19,6 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23060d16'/%3E%3Cpath d='M19 20.5h17.5c5.8 0 9.5 3.2 9.5 8.4 0 3.7-1.9 6.3-5.2 7.3 4.1.8 6.7 4 6.7 8.4 0 5.8-4 9.4-10.6 9.4H19V20.5Zm8.2 13.2h7c2.5 0 3.9-1.2 3.9-3.3 0-2.2-1.5-3.3-4.3-3.3h-6.7v6.6Zm0 13.9h7.8c2.9 0 4.5-1.3 4.5-3.7 0-2.4-1.7-3.7-4.8-3.7h-7.5v7.4Z' fill='%23dff5ff'/%3E%3C/svg%3E"
     />
-    <!-- DataHub game logs modal icons:
-         keep this local to datahub.html so the modal footer/tab icons do not
-         depend on any shared Stats page asset loading. -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
     <!-- DataHub shell assets: keep the reference bundle intact and only repoint files for the DH-P3 page/script/style layout. -->
     <link rel="stylesheet" href="../styles/DataHub.css" />
   </head>
@@ -539,7 +530,14 @@
           role="tab"
           aria-selected="true"
         >
-          <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+          <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M8 6h13"></path>
+            <path d="M8 12h13"></path>
+            <path d="M8 18h13"></path>
+            <path d="M3 6h.01"></path>
+            <path d="M3 12h.01"></path>
+            <path d="M3 18h.01"></path>
+          </svg>
           <span>Game Logs</span>
         </button>
         <button
@@ -549,13 +547,25 @@
           role="tab"
           aria-selected="false"
         >
-          <i class="fa-solid fa-percent" aria-hidden="true"></i>
+          <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
           <span>Ownership</span>
         </button>
       </div>
 
       <div id="gamelogs-tab-pane" class="modal-content glass-panel gamelogs-tab-pane">
-        <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+        <!-- DataHub modal close control:
+             keeps the same button footprint while switching the visual to an inline Lucide-style icon. -->
+        <button class="modal-close-btn" type="button" aria-label="Close modal">
+          <svg class="gamelogs-modal-icon gamelogs-modal-icon--close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
         <div id="modal-header">
           <h3 id="modal-player-name">Player Game Logs</h3>
           <div id="modal-player-vitals"></div>
@@ -588,7 +598,14 @@
                 aria-pressed="true"
                 data-gamelogs-view="gl"
               >
-                <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M8 6h13"></path>
+                  <path d="M8 12h13"></path>
+                  <path d="M8 18h13"></path>
+                  <path d="M3 6h.01"></path>
+                  <path d="M3 12h.01"></path>
+                  <path d="M3 18h.01"></path>
+                </svg>
                 GameLog
               </button>
               <button
@@ -597,7 +614,11 @@
                 aria-pressed="false"
                 data-gamelogs-view="szn"
               >
-                <i class="fa-regular fa-chart-bar" aria-hidden="true"></i>
+                <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M18 20V10"></path>
+                  <path d="M12 20V4"></path>
+                  <path d="M6 20v-6"></path>
+                </svg>
                 Season
               </button>
             </div>
@@ -751,19 +772,34 @@
 
         <div class="modal-footer">
           <div class="key-chip modal-info-btn active" data-panel="game-logs">
-            <i class="fa-solid fa-rectangle-list" aria-hidden="true"></i>
+            <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M8 6h13"></path>
+              <path d="M8 12h13"></path>
+              <path d="M8 18h13"></path>
+              <path d="M3 6h.01"></path>
+              <path d="M3 12h.01"></path>
+              <path d="M3 18h.01"></path>
+            </svg>
             <span>GM-Logs</span>
           </div>
           <div class="key-chip modal-info-btn" data-panel="radar-chart">
-            <i class="fa-solid fa-chart-area" aria-hidden="true"></i>
+            <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
             <span>Performance</span>
           </div>
           <div class="key-chip modal-info-btn" data-panel="consistency">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="m22 7-8.5 8.5-5-5L2 17"></path>
+              <path d="M16 7h6v6"></path>
+            </svg>
             <span>Consistency</span>
           </div>
           <div class="key-chip modal-info-btn" data-panel="stats-key">
-            <i class="fa-solid fa-key" aria-hidden="true"></i>
+            <svg class="gamelogs-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
+              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" stroke="none"></circle>
+            </svg>
             <span>Key</span>
           </div>
         </div>
@@ -781,7 +817,10 @@
           type="button"
           aria-label="Close player ownership details"
         >
-          &times;
+          <svg class="gamelogs-modal-icon gamelogs-modal-icon--close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
         </button>
         <div class="ownership-modal-header" id="glOwnershipHeader">
           <div class="modal-header-left-container" id="glOwnershipLeft"></div>

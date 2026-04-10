@@ -2480,6 +2480,16 @@ const DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS = {
   low: "#d3a5ff",
 };
 const DATAHUB_SVG_NS = "http://www.w3.org/2000/svg";
+const DATAHUB_MODAL_ICON_PATHS = Object.freeze({
+  // DataHub modal icon map:
+  // targets the local game logs modal only and keeps JS-rendered modal icons on
+  // the same inline SVG system as the rest of the DataHub page chrome.
+  season: [
+    { tag: "path", attrs: { d: "M18 20V10" } },
+    { tag: "path", attrs: { d: "M12 20V4" } },
+    { tag: "path", attrs: { d: "M6 20v-6" } },
+  ],
+});
 const DATAHUB_CONSISTENCY_LINE_FILTER_ID = "datahub-consistency-line-glow";
 const DATAHUB_CONSISTENCY_AREA_FILTER_ID = "datahub-consistency-area-glow";
 const DATAHUB_CONSISTENCY_AREA_GRADIENT_ID = "datahub-consistency-area-gradient";
@@ -3356,8 +3366,11 @@ function renderDataHubModalHeader(player, playerRanks) {
     modalPlayerVitals.appendChild(createDataHubPlayerVitalsElement(getDataHubPlayerVitals(player.id, player), { variant: "modal", pos: player.pos }));
   }
   if (modalSummaryChips) {
+    // DataHub modal summary chips:
+    // adds styling-only modifier classes so the revamp can give each metric card
+    // its own accent treatment without changing the rendered data or layout.
     modalSummaryChips.innerHTML = `
-      <div class="gamelogs-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--fpts">
         <h4>
           <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.posRank, player.pos)}">${playerRanks.total_pts}</span>
           <span class="chip-unit"> FPTS</span>
@@ -3371,7 +3384,7 @@ function renderDataHubModalHeader(player, playerRanks) {
           <span style="color:${getDataHubRankColor(playerRanks.overallRank)}">${Number.isFinite(playerRanks.overallRank) ? `#${playerRanks.overallRank}` : "NA"}</span>
         </div>
       </div>
-      <div class="gamelogs-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--ppg">
         <h4>
           <span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${playerRanks.ppg}</span>
           <span class="chip-unit"> PPG</span>
@@ -3385,7 +3398,7 @@ function renderDataHubModalHeader(player, playerRanks) {
           <span style="color:${getDataHubRankColor(playerRanks.ppgOverallRank)}">${Number.isFinite(playerRanks.ppgOverallRank) ? `#${playerRanks.ppgOverallRank}` : "NA"}</span>
         </div>
       </div>
-      <div class="gamelogs-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--ktc">
         <h4>
           <span class="chip-header-value" style="color:${getDataHubKtcColor(player.ktc)}">${Number.isFinite(player.ktc) ? Math.round(player.ktc) : "NA"}</span>
           <span class="chip-unit"> KTC</span>
@@ -4333,10 +4346,15 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
   title.setAttribute("role", "heading");
   title.setAttribute("aria-level", "3");
 
-  const titleIcon = document.createElement("i");
-  titleIcon.className = "fa-regular fa-chart-bar gamelogs-szn-title-icon";
-  titleIcon.setAttribute("aria-hidden", "true");
-  title.appendChild(titleIcon);
+  // DataHub season-view heading:
+  // builds the title icon locally as inline SVG so the modal stays independent
+  // from external icon fonts while preserving the existing heading structure.
+  const titleIcon = createDataHubModalIcon("season", {
+    className: "gamelogs-modal-icon gamelogs-szn-title-icon",
+  });
+  if (titleIcon) {
+    title.appendChild(titleIcon);
+  }
 
   const titleText = document.createElement("span");
   titleText.className = "gamelogs-szn-title-text";
@@ -5309,6 +5327,33 @@ function hideDataHubConsistencyEmptyState(chartBox) {
   }
 }
 
+function createDataHubModalIcon(iconName, { className = "gamelogs-modal-icon" } = {}) {
+  const shapes = DATAHUB_MODAL_ICON_PATHS[iconName];
+  if (!Array.isArray(shapes) || !shapes.length) {
+    return null;
+  }
+  const svg = document.createElementNS(DATAHUB_SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  if (className) {
+    svg.setAttribute("class", className);
+  }
+  shapes.forEach(({ tag = "path", attrs = {} }) => {
+    const node = document.createElementNS(DATAHUB_SVG_NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => {
+      node.setAttribute(key, String(value));
+    });
+    svg.appendChild(node);
+  });
+  return svg;
+}
+
 function renderDataHubConsistencyChart() {
   const data = state.currentConsistencyData;
   const chartBox = document.querySelector("#weekly-chart-box");
@@ -5957,7 +6002,7 @@ function renderDataHubOwnershipPane(playerId) {
   }
   if (chipsEl) {
     chipsEl.innerHTML = `
-      <div class="gamelogs-summary-chip ownership-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--fpts ownership-summary-chip">
         <h4><span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(summary.posRank, summary.pos)}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : "—"}</span><span class="chip-unit"> FPTS</span></h4>
         <div class="chip-values">
           <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.posRank, summary.pos)}">${summary.posRank || "—"}</span></span>
@@ -5965,7 +6010,7 @@ function renderDataHubOwnershipPane(playerId) {
           <span style="color:${getDataHubRankColor(summary.overallRank)}">${Number.isFinite(summary.overallRank) ? `#${summary.overallRank}` : "—"}</span>
         </div>
       </div>
-      <div class="gamelogs-summary-chip ownership-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--ppg ownership-summary-chip">
         <h4><span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(summary.ppgPosRank, summary.pos)}">${Number.isFinite(summary.ppg) ? summary.ppg.toFixed(1) : "—"}</span><span class="chip-unit"> PPG</span></h4>
         <div class="chip-values">
           <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ppgPosRank, summary.pos)}">${summary.ppgPosRank || "—"}</span></span>
@@ -5973,7 +6018,7 @@ function renderDataHubOwnershipPane(playerId) {
           <span style="color:${getDataHubRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : "—"}</span>
         </div>
       </div>
-      <div class="gamelogs-summary-chip ownership-summary-chip">
+      <div class="gamelogs-summary-chip gamelogs-summary-chip--ktc ownership-summary-chip">
         <h4><span class="chip-header-value" style="color:${getDataHubKtcColor(summary.ktc)}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : "—"}</span><span class="chip-unit"> KTC</span></h4>
         <div class="chip-values">
           <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${summary.ktcPosRank || "—"}</span></span>
