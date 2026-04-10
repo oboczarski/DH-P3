@@ -1187,7 +1187,7 @@ function enrichSeasonRow(sourceRow, ktcLookup, adpLookup) {
   const ktcEntry = playerId ? ktcLookup?.[playerId] : null;
   const adpEntry = playerId ? adpLookup?.[playerId] : null;
   const fallbackRank = toComparableNumber(sourceRow.RK ?? sourceRow.PRK_PPR);
-  const gamesPlayed = toComparableNumber(sourceRow.GM ?? sourceRow.GM_P);
+  const gamesPlayed = getDataHubGamesPlayedValue(sourceRow);
   const fantasyPoints = toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR);
   const ppg = computePpgValue(fantasyPoints, gamesPlayed);
 
@@ -1218,6 +1218,14 @@ function computePpgValue(fantasyPoints, gamesPlayed) {
   }
 
   return fantasyPoints / gamesPlayed;
+}
+
+// DataHub PPG source:
+// mirror the Stats page season CSV path by preferring `GM_P` / aliased `G` for
+// games played, with `GM` only as a final fallback for rows that lack the season
+// totals field.
+function getDataHubGamesPlayedValue(source = {}) {
+  return toComparableNumber(source.GM_P ?? source.G ?? source.GM);
 }
 
 function formatIntegerString(value) {
@@ -2588,7 +2596,11 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
       || "",
   ).trim();
   const ktcEntry = playerId ? getActiveKtcLookup()?.[playerId] : null;
-  const gmPlayed = toComparableNumber(sourceRow.GM ?? sourceRow.GM_P ?? normalizedRow.G);
+  const gmPlayed = getDataHubGamesPlayedValue({
+    GM_P: sourceRow.GM_P,
+    G: normalizedRow.G,
+    GM: sourceRow.GM,
+  });
   const fpts = toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR ?? normalizedRow.FPTS);
   // DataHub game logs modal PPG ranks:
   // keep the page-local modal aligned with the Stats page pipeline by storing the
@@ -3175,7 +3187,7 @@ function parseDataHubSeasonStatsRows(rows) {
     });
     stats.pos = String(row.POS || "").trim().toUpperCase();
     stats.team = String(row.TM || "").trim().toUpperCase() || "FA";
-    stats.games_played = toComparableNumber(row.GM ?? row.GM_P);
+    stats.games_played = getDataHubGamesPlayedValue(row);
     stats.fpts_ppr = toComparableNumber(row.FPT_PPR ?? row.FPTS_PPR ?? row.FPTS);
     stats.fpt_ppr = stats.fpts_ppr;
     stats.ppg = Number.isFinite(toComparableNumber(row.PPG))
