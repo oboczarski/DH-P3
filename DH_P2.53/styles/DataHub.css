@@ -1374,8 +1374,16 @@ body::after {
   cursor: pointer;
 }
 
+.stats-table__head-button--static {
+  cursor: default;
+}
+
 .stats-table__head-button:hover {
   background: rgba(255, 255, 255, 0.02);
+}
+
+.stats-table__head-button--static:hover {
+  background: transparent;
 }
 
 .stats-table__head-button:focus-visible {

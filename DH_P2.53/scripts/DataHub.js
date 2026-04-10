@@ -316,9 +316,13 @@ const COLUMN_GROUPS = {
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
 // ---------------------------------------------------------------------------
-const NON_FORMATTED_COLUMNS = new Set(["PLAYER", "POS", "TM", "AGE", "G"]);
+// RK is a display-only rank column:
+// it should always show the current rendered order (1..N), so it stays plain
+// and does not participate in value-based cell formatting or sorting.
+const RK_COLUMN = "RK";
+const NON_FORMATTED_COLUMNS = new Set([RK_COLUMN, "PLAYER", "POS", "TM", "AGE", "G"]);
+const NON_SORTABLE_COLUMNS = new Set([RK_COLUMN]);
 const INVERTED_COLUMNS = new Set([
-  "RK",
   "ADP",
   "POS·ADP",
   "INT",
@@ -342,7 +346,6 @@ const DEFAULT_SORT = Object.freeze({
   direction: "desc",
 });
 const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
-  "RK",
   "AGE",
   "ADP",
   "POS·ADP",
@@ -1650,7 +1653,7 @@ function renderTableBody(tbody, columns, showEmptyState) {
       const tr = document.createElement("tr");
       tr.className = "stats-table__body-row";
       tr.dataset.rowIndex = rowIndex;
-      columns.forEach((column) => tr.append(createBodyCell(row, column)));
+      columns.forEach((column) => tr.append(createBodyCell(row, column, rowIndex)));
       fragment.append(tr);
     });
   }
@@ -1959,6 +1962,10 @@ function restoreGridScrollPositions(refs, savedScroll = state.gridScroll) {
   };
 }
 
+function isSortableColumn(columnName) {
+  return !NON_SORTABLE_COLUMNS.has(columnName);
+}
+
 function buildColumnLayout(columnNames, compactScaleFactor = 1) {
   let totalWidth = 0;
   const scale = state.isCompactViewport ? compactScaleFactor : 1;
@@ -1980,11 +1987,19 @@ function createHeaderCell(column) {
   applyColumnStyle(th, column);
   th.setAttribute("aria-sort", getAriaSort(column.name));
 
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "stats-table__head-button";
-  button.setAttribute("aria-label", `Sort by ${column.name}`);
-  button.addEventListener("click", () => handleHeaderSort(column.name));
+  // Static RK header:
+  // the frozen rank column is presentation-only, so it keeps the shared header
+  // layout without exposing a dead sort control.
+  const isSortable = isSortableColumn(column.name);
+  const headerControl = document.createElement(isSortable ? "button" : "div");
+  headerControl.className = "stats-table__head-button";
+  if (isSortable) {
+    headerControl.type = "button";
+    headerControl.setAttribute("aria-label", `Sort by ${column.name}`);
+    headerControl.addEventListener("click", () => handleHeaderSort(column.name));
+  } else {
+    headerControl.classList.add("stats-table__head-button--static");
+  }
 
   // Icon (Lucide inline SVG — only rendered when a path is defined)
   const iconPath = COLUMN_ICONS[column.name];
@@ -1997,29 +2012,36 @@ function createHeaderCell(column) {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", iconPath);
     svg.append(path);
-    button.append(svg);
+    headerControl.append(svg);
   }
 
   const label = document.createElement("span");
   label.className = "stats-table__head-label";
   label.textContent = column.name;
 
-  const indicator = document.createElement("span");
-  indicator.className = "stats-table__sort-indicator";
-  indicator.setAttribute("aria-hidden", "true");
-  const sortIcon = createSortIndicatorIcon(column.name);
-  if (sortIcon) {
-    indicator.classList.add("is-active");
-    indicator.append(sortIcon);
+  headerControl.append(label);
+
+  if (isSortable) {
+    const indicator = document.createElement("span");
+    indicator.className = "stats-table__sort-indicator";
+    indicator.setAttribute("aria-hidden", "true");
+    const sortIcon = createSortIndicatorIcon(column.name);
+    if (sortIcon) {
+      indicator.classList.add("is-active");
+      indicator.append(sortIcon);
+    }
+    headerControl.append(indicator);
   }
 
-  button.append(label, indicator);
-  th.append(button);
+  th.append(headerControl);
   return th;
 }
 
-function createBodyCell(row, column) {
-  const value = row[column.name];
+function createBodyCell(row, column, rowIndex) {
+  const rawValue = row[column.name];
+  const value = column.name === RK_COLUMN
+    ? String(rowIndex + 1)
+    : rawValue;
   const td = document.createElement("td");
   td.classList.add("stats-table__body-cell");
   applyColumnStyle(td, column);
@@ -2035,11 +2057,16 @@ function createBodyCell(row, column) {
   // clicks can open the DataHub-owned modal without app.js.
   if (column.name === PLAYER_COLUMN) {
     content.append(createPlayerTriggerButton(row));
+  } else if (column.name === RK_COLUMN) {
+    // RK display rank:
+    // show the current rendered table order so every sort/search state gets a
+    // fresh 1..N rank instead of reusing the imported source rank values.
+    content.textContent = value;
   } else if (column.name === "TM") {
     // DataHub TM cell logo swap:
     // render the same team-logo treatment used by the local modal so the table
     // shows logos while sort/search still operate on the raw team abbreviation.
-    content.append(createDataHubTableTeamLogo(value));
+    content.append(createDataHubTableTeamLogo(rawValue));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else {
@@ -2152,6 +2179,10 @@ function buildGroupHeaderRow(columns, groups) {
 // Sorting, filtering, and viewport responsiveness
 // ---------------------------------------------------------------------------
 function getAriaSort(columnName) {
+  if (!isSortableColumn(columnName)) {
+    return "none";
+  }
+
   if (getActiveSortColumn() !== columnName) {
     return "none";
   }
@@ -2185,6 +2216,10 @@ function createSortIndicatorIcon(columnName) {
 }
 
 function getSortIndicatorIconKey(columnName) {
+  if (!isSortableColumn(columnName)) {
+    return null;
+  }
+
   if (getActiveSortColumn() !== columnName) {
     return null;
   }
@@ -2213,6 +2248,10 @@ function getOppositeSortDirection(direction) {
 }
 
 function handleHeaderSort(columnName) {
+  if (!isSortableColumn(columnName)) {
+    return;
+  }
+
   // DataHub table sort cycle:
   // most columns use preferred -> opposite -> reset-to-default, while VALUE
   // cycles desc -> asc -> desc because resetting lands on the default sort.
@@ -2314,7 +2353,11 @@ function filterRowsForActiveSort(rows, sortColumn) {
 
 function getActiveSortColumn() {
   const columns = COLUMN_SETS[state.activeCategory];
-  return columns.includes(state.sort.column) ? state.sort.column : DEFAULT_SORT.column;
+  if (!columns.includes(state.sort.column) || !isSortableColumn(state.sort.column)) {
+    return DEFAULT_SORT.column;
+  }
+
+  return state.sort.column;
 }
 
 function getColumnWidth(columnName) {
