@@ -1623,18 +1623,16 @@ body::after {
   }
 
   .page-tabs {
-    /* Mobile page-tabs rebuild:
-       Targets the full mobile page-view tab bar after the earlier desktop-first
-       implementation left the icons, labels, spacing, and active indicator
-       misaligned on small screens.
-       Important notes: this keeps the existing HTML structure, distributes all
-       five tabs evenly, and preserves the ADP & Values two-line label. */
+    /* Mobile page-tabs:
+       Targets the five-view tab row on small screens so each tab keeps an
+       inline icon + label layout, equal spacing, and a centered active
+       indicator while preserving the ADP & Values two-line label. */
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: stretch;
-    gap: 3px;
+    gap: 2px;
     width: 100%;
-    padding: 7px;
+    padding: 6px;
     margin: 0 0 12px;
     overflow: visible;
     border: 1px solid var(--panel-edge);
@@ -1654,42 +1652,41 @@ body::after {
   .page-tab {
     width: 100%;
     min-width: 0;
-    min-height: 72px;
+    min-height: 58px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 9px 4px 10px;
+    gap: 5px;
+    padding: 9px 4px 12px;
     border-radius: 16px;
-    font-size: 0.57rem;
-    line-height: 1.08;
+    font-size: 0.58rem;
+    line-height: 1.02;
     letter-spacing: -0.03em;
-    text-align: center;
-    text-wrap: balance;
+    text-align: left;
   }
 
   .page-tab .tab-icon {
     flex: 0 0 auto;
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
     margin-top: 0;
   }
 
   .page-tab__text,
   .page-tab__label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    min-height: 26px;
+    display: block;
+    min-width: 0;
     line-height: 1.05;
-    text-align: center;
+    text-align: left;
+    white-space: nowrap;
   }
 
   .page-tab__label--adp {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 1px;
+    white-space: normal;
   }
 
   .page-tab__label--adp > span {
@@ -1706,17 +1703,17 @@ body::after {
   .page-tab.is-active::after {
     left: 50%;
     right: auto;
-    width: min(42px, calc(100% - 18px));
+    width: min(40px, calc(100% - 20px));
     bottom: 6px;
     transform: translateX(-50%);
   }
 
   /* Mobile branding/nav panel parity:
-     Targets only the stacked mobile branding + nav shell so it matches the
-     same glass-panel treatment used by the other page panels. */
+     Targets only the stacked mobile branding + nav shell so the outer panel
+     uses the same glass-panel surface as the other DataHub sections while the
+     existing mobile brand + nav layout stays intact. */
   .header-shell--stacked {
-    padding: 10px 12px 12px;
-    gap: 10px;
+    overflow: hidden;
     border: 1px solid var(--panel-edge);
     border-radius: 28px;
     background:
@@ -1725,6 +1722,17 @@ body::after {
     box-shadow: var(--shadow-soft), var(--shadow-glass);
     backdrop-filter: blur(4px) saturate(140%);
     -webkit-backdrop-filter: blur(4px) saturate(140%);
+    will-change: backdrop-filter, transform;
+  }
+
+  .header-shell--stacked::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 32%),
+      radial-gradient(circle at top left, rgba(215, 225, 255, 0.14), transparent 34%);
   }
 
   .header-shell--stacked .brand-lockup {
