@@ -1374,16 +1374,8 @@ body::after {
   cursor: pointer;
 }
 
-.stats-table__head-button--static {
-  cursor: default;
-}
-
 .stats-table__head-button:hover {
   background: rgba(255, 255, 255, 0.02);
-}
-
-.stats-table__head-button--static:hover {
-  background: transparent;
 }
 
 .stats-table__head-button:focus-visible {
@@ -1871,6 +1863,9 @@ body::after {
     font-size: clamp(1.7rem, 4vw, 3.5rem);
     line-height: 0.96;
     font-weight: 800;
+    text-wrap: balance;
+    letter-spacing: -0.05em;
+    margin: 0px 0 0;
   }
 
   .top-tabs,

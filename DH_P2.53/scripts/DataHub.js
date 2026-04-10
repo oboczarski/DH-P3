@@ -2988,6 +2988,8 @@ const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
   FLEX: { solid: 14, high: 20 },
 };
 const DATAHUB_MAX_CONSISTENCY_POINTS = 40;
+
+// Consistency Chart Line Color
 const DATAHUB_CONSISTENCY_BUCKET_STYLES = {
   high: { color: "#00ffc1" },
   solid: { color: "#00c5ff" },
@@ -6358,6 +6360,9 @@ function drawDataHubSegmentedCurve(pointsLayer, relativePoints, data) {
       absolutePoints[index].value,
       absolutePoints[index + 1].value,
     );
+
+    // Consistency Chart Line Stroke Width 
+    
     const splitSegments = splitDataHubSegmentByThresholds(baseSegment, thresholdValues);
     splitSegments.forEach((segment) => {
       const path = document.createElementNS(DATAHUB_SVG_NS, "path");
