@@ -1301,11 +1301,11 @@ body::after {
 .stats-table__head-label {
   flex: 1;
   display: block;
-  padding: 0 2px;
+  padding: 0 0px;
   overflow: overlay;
   white-space: nowrap;
   text-align: center;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.05em;
 }
 
 .stats-table__sort-indicator {
@@ -1325,8 +1325,8 @@ body::after {
 }
 
 .stats-table__sort-indicator.is-active {
-  opacity: 0.82;
-  color: rgba(202, 222, 247, 0.88);
+  opacity: 1;
+  color: rgb(90 245 209);
 }
 
 .stats-table__sort-icon {
@@ -1578,24 +1578,24 @@ body::after {
 
   .stats-table__head-button {
     min-height: 34px;
-    padding: 0 13px 0 7px;
+    padding: 0 8px 0 6px;
     gap: 0px;
   }
 
   .stats-table__head-icon {
-    width: 10px;
-    height: 10px;
-  }
-
-  .stats-table__sort-indicator {
-    right: 4px;
     width: 12px;
     height: 12px;
   }
 
+  .stats-table__sort-indicator {
+    right: 4px;
+    width: 13px;
+    height: 13px;
+  }
+
   .stats-table__sort-icon {
-    width: 11px;
-    height: 11px;
+    width: 14px;
+    height: 14px;
   }
 
   .stats-table__cell-content {
