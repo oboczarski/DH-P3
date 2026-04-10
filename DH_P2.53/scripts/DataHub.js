@@ -550,6 +550,12 @@ const state = {
   visibleRows: [],
   searchedRows: [],
   displayedRows: [],
+  gridRefs: null,
+  gridShellKey: "",
+  gridScroll: {
+    horizontal: 0,
+    vertical: 0,
+  },
   supplementalDataLoaded: false,
   ktcLookups: {
     "1-QB": Object.create(null),
@@ -1437,129 +1443,186 @@ function updateRowCount() {
   rowCount.textContent = `${displayedRows} row${displayedRows === 1 ? "" : "s"}`;
 }
 
-// Render one frame composed of two synchronized tables:
-// - frozen pane: identity columns only
-// - scroll pane: category-dependent stats columns
-// Both tables must stay column-order compatible with COLUMN_SETS/COLUMN_GROUPS.
+// Render the DataHub grid as one persistent shell:
+// - frozen header
+// - scroll header
+// - one shared vertical scroller for both body tables
+// - one dedicated horizontal scrollbar for the right-side columns
+// The shell only rebuilds when the table structure changes; sorts/searches
+// simply repopulate the tbody nodes and preserve scroll positions.
 function renderTable() {
-  // Preserve horizontal scroll position across re-renders (e.g. after a sort)
-  const savedScrollLeft = gridContainer.querySelector(".table-pane--scroll")?.scrollLeft ?? 0;
-
   const allColumns = COLUMN_SETS[state.activeCategory];
   const frozenNames = allColumns.slice(0, STICKY_COLUMN_COUNT);
   const scrollNames = allColumns.slice(STICKY_COLUMN_COUNT);
-
   const { columns: frozenCols, totalWidth: frozenWidth } = buildColumnLayout(frozenNames);
-  // Non-frozen columns are intentionally wider on compact viewports so the
-  // horizontal table section stays legible once headers and chips compress.
   const { columns: scrollCols, totalWidth: scrollWidth } = buildColumnLayout(
     scrollNames,
     COMPACT_SCROLL_COLUMN_SCALE,
   );
+  const nextShellKey = getGridShellKey();
+  const savedScroll = saveGridScrollPositions();
 
-  // ── Frozen pane ──────────────────────────────────────────────────────────
-  const frozenTable = buildTable(frozenCols, frozenWidth, FROZEN_GROUP, "frozen");
-  const frozenPane = document.createElement("div");
-  frozenPane.className = "table-pane table-pane--frozen";
-  frozenPane.append(frozenTable);
+  let refs = state.gridRefs;
+  if (!refs || state.gridShellKey !== nextShellKey) {
+    refs = createGridShell({
+      frozenCols,
+      frozenWidth,
+      scrollCols,
+      scrollWidth,
+    });
+    state.gridRefs = refs;
+    state.gridShellKey = nextShellKey;
+    gridContainer.replaceChildren(refs.frame);
+  } else {
+    refs.frozenColumns = frozenCols;
+    refs.scrollColumns = scrollCols;
+    refs.frame.style.setProperty("--datahub-frozen-width", `${frozenWidth}px`);
+    refs.frame.style.setProperty("--datahub-scroll-width", `${scrollWidth}px`);
+  }
 
-  // ── Scroll pane ──────────────────────────────────────────────────────────
-  const scrollTable = buildTable(scrollCols, scrollWidth, COLUMN_GROUPS[state.activeCategory], "scroll");
-  const scrollPane = document.createElement("div");
-  scrollPane.className = "table-pane table-pane--scroll";
-  scrollPane.append(scrollTable);
+  renderGridBodyRows(refs);
+  updateGridHeaderSortState(refs);
+  syncGridContentHeight(refs);
+  restoreGridScrollPositions(refs, savedScroll);
+}
 
-  // ── Assemble frame ────────────────────────────────────────────────────────
+function getGridShellKey() {
+  return [
+    state.primaryTab,
+    state.activeCategory,
+    state.isCompactViewport ? "compact" : "regular",
+  ].join("|");
+}
+
+// Shared-scroll shell:
+// the frozen side and the scrollable side live inside one vertical scroller so
+// the panes stop chasing each other during touch/wheel scroll.
+function createGridShell({ frozenCols, frozenWidth, scrollCols, scrollWidth }) {
   const frame = document.createElement("div");
   frame.className = "table-frame";
-  frame.append(frozenPane, scrollPane);
+  frame.style.setProperty("--datahub-frozen-width", `${frozenWidth}px`);
+  frame.style.setProperty("--datahub-scroll-width", `${scrollWidth}px`);
 
-  gridContainer.replaceChildren(frame);
+  const frozenCorner = document.createElement("div");
+  frozenCorner.className = "datahub-frozen-corner";
+  const frozenHeaderTable = buildHeaderTable(
+    frozenCols,
+    frozenWidth,
+    FROZEN_GROUP,
+    "frozen-header",
+  );
+  frozenCorner.append(frozenHeaderTable);
 
-  // Restore horizontal scroll position (avoids snap-to-left after sort/re-render)
-  scrollPane.scrollLeft = savedScrollLeft;
+  const scrollHeaderShell = document.createElement("div");
+  scrollHeaderShell.className = "datahub-scroll-header-shell";
+  const scrollHeaderInner = document.createElement("div");
+  scrollHeaderInner.className = "datahub-scroll-header-inner";
+  const scrollHeaderTable = buildHeaderTable(
+    scrollCols,
+    scrollWidth,
+    COLUMN_GROUPS[state.activeCategory],
+    "scroll-header",
+  );
+  scrollHeaderInner.append(scrollHeaderTable);
+  scrollHeaderShell.append(scrollHeaderInner);
 
-  // Vertical scroll sync: right pane is the sole scroll container; left pane follows via JS
-  scrollPane.addEventListener("scroll", () => {
-    if (frozenPane.scrollTop !== scrollPane.scrollTop) {
-      frozenPane.scrollTop = scrollPane.scrollTop;
-    }
-  });
+  const vscrollContainer = document.createElement("div");
+  vscrollContainer.className = "datahub-vscroll-container";
+  const vscrollContent = document.createElement("div");
+  vscrollContent.className = "datahub-vscroll-content";
 
-  attachFrozenPaneScrollProxy(frozenPane, scrollPane);
+  const frozenBody = document.createElement("div");
+  frozenBody.className = "datahub-frozen-body";
+  const frozenBodyTable = buildBodyTable(frozenCols, frozenWidth, "frozen-body");
+  const frozenBodyTbody = frozenBodyTable.tBodies[0];
+  frozenBody.append(frozenBodyTable);
 
-  // Prevent left-edge overscroll bounce — block rightward pull when already at scrollLeft === 0
-  let touchStartX = 0;
-  scrollPane.addEventListener("touchstart", (event) => {
-    touchStartX = event.touches[0].clientX;
-  }, { passive: true });
-  scrollPane.addEventListener("touchmove", (e) => {
-    if (scrollPane.scrollLeft === 0 && e.touches[0].clientX > touchStartX) e.preventDefault();
-  }, { passive: false });
+  const scrollBodyOverlay = document.createElement("div");
+  scrollBodyOverlay.className = "datahub-scroll-body-overlay";
+  const scrollBodyInner = document.createElement("div");
+  scrollBodyInner.className = "datahub-scroll-body-inner";
+  const scrollBodyTable = buildBodyTable(scrollCols, scrollWidth, "scroll-body");
+  const scrollBodyTbody = scrollBodyTable.tBodies[0];
+  scrollBodyInner.append(scrollBodyTable);
+  scrollBodyOverlay.append(scrollBodyInner);
 
-  // Sync row heights after paint (both panes are now in the DOM)
-  requestAnimationFrame(() => {
-    syncRowHeights(frozenTable, scrollTable);
-    observeRowResize(frozenTable, scrollTable);
-  });
+  vscrollContent.append(frozenBody, scrollBodyOverlay);
+  vscrollContainer.append(vscrollContent);
+
+  const hscrollShell = document.createElement("div");
+  hscrollShell.className = "datahub-hscroll-shell";
+  const hscrollBar = document.createElement("div");
+  hscrollBar.className = "datahub-hscroll-bar";
+  const hscrollSpacer = document.createElement("div");
+  hscrollSpacer.className = "datahub-hscroll-spacer";
+  hscrollBar.append(hscrollSpacer);
+  hscrollShell.append(hscrollBar);
+
+  frame.append(frozenCorner, scrollHeaderShell, vscrollContainer, hscrollShell);
+
+  const refs = {
+    frame,
+    frozenColumns: frozenCols,
+    scrollColumns: scrollCols,
+    frozenHeaderTable,
+    scrollHeaderShell,
+    scrollHeaderInner,
+    scrollHeaderTable,
+    vscrollContainer,
+    vscrollContent,
+    frozenBody,
+    frozenBodyTable,
+    frozenBodyTbody,
+    scrollBodyOverlay,
+    scrollBodyInner,
+    scrollBodyTable,
+    scrollBodyTbody,
+    hscrollBar,
+    hscrollSpacer,
+    horizontalSyncFrame: 0,
+    pendingScrollLeft: 0,
+    headerCells: Array.from(frame.querySelectorAll("th[data-column-name]")),
+  };
+
+  bindGridShellEvents(refs);
+  syncGridHorizontalOffset(refs, 0);
+  return refs;
 }
 
-// The frozen pane never owns vertical scrolling itself. It only proxies wheel
-// and touch gestures into the real scroll pane so both halves still feel like
-// one table when the pointer is over the locked columns.
-function attachFrozenPaneScrollProxy(frozenPane, scrollPane) {
-  let lastTouchY = 0;
-
-  frozenPane.addEventListener("wheel", (event) => {
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-      return;
-    }
-
-    const previousScrollTop = scrollPane.scrollTop;
-    scrollPane.scrollTop += event.deltaY;
-    if (scrollPane.scrollTop !== previousScrollTop) {
-      event.preventDefault();
-    }
-  }, { passive: false });
-
-  frozenPane.addEventListener("touchstart", (event) => {
-    lastTouchY = event.touches[0]?.clientY ?? 0;
-  }, { passive: true });
-
-  frozenPane.addEventListener("touchmove", (event) => {
-    const touch = event.touches[0];
-    if (!touch) {
-      return;
-    }
-
-    const deltaY = lastTouchY - touch.clientY;
-    lastTouchY = touch.clientY;
-
-    if (Math.abs(deltaY) < 0.5) {
-      return;
-    }
-
-    const previousScrollTop = scrollPane.scrollTop;
-    const maxScrollTop = scrollPane.scrollHeight - scrollPane.clientHeight;
-    const nextScrollTop = Math.max(0, Math.min(maxScrollTop, previousScrollTop + deltaY));
-
-    if (nextScrollTop !== previousScrollTop) {
-      scrollPane.scrollTop = nextScrollTop;
-      event.preventDefault();
-    }
-  }, { passive: false });
+function buildHeaderTable(columns, totalWidth, groups, paneType) {
+  const table = createTableBase(
+    columns,
+    totalWidth,
+    paneType,
+    paneType.startsWith("frozen") ? "Player identity header" : "Player stats header",
+  );
+  const thead = document.createElement("thead");
+  thead.append(buildGroupHeaderRow(columns, groups));
+  const columnRow = document.createElement("tr");
+  columns.forEach((column) => columnRow.append(createHeaderCell(column)));
+  thead.append(columnRow);
+  table.append(thead);
+  return table;
 }
 
-// Build one complete <table> (colgroup + group header row + column row + body).
-// Both panes use this same builder so the header/body structure stays mirrored.
-function buildTable(columns, totalWidth, groups, paneType) {
+function buildBodyTable(columns, totalWidth, paneType) {
+  const table = createTableBase(
+    columns,
+    totalWidth,
+    paneType,
+    paneType.startsWith("frozen") ? "Player identity columns" : "Player stats columns",
+  );
+  table.append(document.createElement("tbody"));
+  return table;
+}
+
+function createTableBase(columns, totalWidth, paneType, ariaLabel) {
   const table = document.createElement("table");
   table.className = "stats-table";
   table.dataset.pane = paneType;
-  table.setAttribute("aria-label", paneType === "frozen" ? "Player identity columns" : "Player stats columns");
+  table.setAttribute("aria-label", ariaLabel);
   table.style.setProperty("--table-width", `${totalWidth}px`);
 
-  // colgroup
   const colgroup = document.createElement("colgroup");
   columns.forEach((column) => {
     const col = document.createElement("col");
@@ -1569,30 +1632,196 @@ function buildTable(columns, totalWidth, groups, paneType) {
     colgroup.append(col);
   });
   table.append(colgroup);
+  return table;
+}
 
-  // thead: group row + column row
-  const thead = document.createElement("thead");
-  thead.append(buildGroupHeaderRow(columns, groups));
-  const columnRow = document.createElement("tr");
-  columns.forEach((column) => columnRow.append(createHeaderCell(column)));
-  thead.append(columnRow);
-  table.append(thead);
+function renderGridBodyRows(refs) {
+  renderTableBody(refs.frozenBodyTbody, refs.frozenColumns, false);
+  renderTableBody(refs.scrollBodyTbody, refs.scrollColumns, true);
+}
 
-  // tbody
-  const tbody = document.createElement("tbody");
-  if (paneType === "scroll" && !state.displayedRows.length) {
-    tbody.append(createEmptyStateRow(columns.length));
+function renderTableBody(tbody, columns, showEmptyState) {
+  const fragment = document.createDocumentFragment();
+
+  if (showEmptyState && !state.displayedRows.length) {
+    fragment.append(createEmptyStateRow(columns.length));
   } else {
     state.displayedRows.forEach((row, rowIndex) => {
       const tr = document.createElement("tr");
+      tr.className = "stats-table__body-row";
       tr.dataset.rowIndex = rowIndex;
       columns.forEach((column) => tr.append(createBodyCell(row, column)));
-      tbody.append(tr);
+      fragment.append(tr);
     });
   }
-  table.append(tbody);
 
-  return table;
+  tbody.replaceChildren(fragment);
+}
+
+function updateGridHeaderSortState(refs) {
+  refs.headerCells.forEach((headerCell) => {
+    const columnName = headerCell.dataset.columnName;
+    headerCell.setAttribute("aria-sort", getAriaSort(columnName));
+
+    const indicator = headerCell.querySelector(".stats-table__sort-indicator");
+    if (!indicator) {
+      return;
+    }
+
+    const sortIcon = createSortIndicatorIcon(columnName);
+    indicator.replaceChildren();
+    indicator.classList.toggle("is-active", Boolean(sortIcon));
+    if (sortIcon) {
+      indicator.append(sortIcon);
+    }
+  });
+}
+
+// Shared body-height contract:
+// body wrappers are absolutely positioned, so one measured content height keeps
+// the shared vertical scroller aligned without row-by-row height syncing.
+function syncGridContentHeight(refs) {
+  const maxHeight = Math.max(
+    refs.frozenBodyTable.offsetHeight,
+    refs.scrollBodyTable.offsetHeight,
+    0,
+  );
+
+  const nextHeight = maxHeight > 0 ? `${maxHeight}px` : "100%";
+  refs.frozenBody.style.height = nextHeight;
+  refs.scrollBodyOverlay.style.height = nextHeight;
+  refs.vscrollContent.style.height = nextHeight;
+  refs.vscrollContent.style.minHeight = nextHeight;
+}
+
+function bindGridShellEvents(refs) {
+  refs.hscrollBar.addEventListener("scroll", () => {
+    state.gridScroll.horizontal = refs.hscrollBar.scrollLeft;
+    scheduleGridHorizontalSync(refs, refs.hscrollBar.scrollLeft);
+  }, { passive: true });
+
+  refs.vscrollContainer.addEventListener("scroll", () => {
+    state.gridScroll.vertical = refs.vscrollContainer.scrollTop;
+  }, { passive: true });
+
+  const surfaces = [
+    refs.vscrollContainer,
+    refs.frozenBody,
+    refs.scrollBodyOverlay,
+    refs.scrollHeaderShell,
+  ];
+  surfaces.forEach((surface) => {
+    surface.addEventListener("wheel", (event) => {
+      routeGridHorizontalWheel(event, refs);
+    }, { passive: false });
+  });
+
+  attachGridTouchHorizontalScroll(refs.scrollBodyOverlay, refs);
+  attachGridTouchHorizontalScroll(refs.scrollHeaderShell, refs);
+}
+
+function routeGridHorizontalWheel(event, refs) {
+  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+    ? event.deltaX
+    : (event.shiftKey ? event.deltaY : 0);
+  if (!delta) {
+    return;
+  }
+
+  const previousScrollLeft = refs.hscrollBar.scrollLeft;
+  refs.hscrollBar.scrollLeft += delta;
+  if (refs.hscrollBar.scrollLeft !== previousScrollLeft) {
+    state.gridScroll.horizontal = refs.hscrollBar.scrollLeft;
+    scheduleGridHorizontalSync(refs, refs.hscrollBar.scrollLeft);
+    event.preventDefault();
+  }
+}
+
+function attachGridTouchHorizontalScroll(surface, refs) {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let startScrollLeft = 0;
+  let isHorizontalGesture = false;
+
+  surface.addEventListener("touchstart", (event) => {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    startScrollLeft = refs.hscrollBar.scrollLeft;
+    isHorizontalGesture = false;
+  }, { passive: true });
+
+  surface.addEventListener("touchmove", (event) => {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    if (!isHorizontalGesture) {
+      if (Math.abs(deltaX) < 8 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+        return;
+      }
+      isHorizontalGesture = true;
+    }
+
+    refs.hscrollBar.scrollLeft = startScrollLeft - deltaX;
+    state.gridScroll.horizontal = refs.hscrollBar.scrollLeft;
+    scheduleGridHorizontalSync(refs, refs.hscrollBar.scrollLeft);
+    event.preventDefault();
+  }, { passive: false });
+}
+
+function scheduleGridHorizontalSync(refs, scrollLeft) {
+  refs.pendingScrollLeft = scrollLeft;
+  if (refs.horizontalSyncFrame) {
+    return;
+  }
+
+  refs.horizontalSyncFrame = requestAnimationFrame(() => {
+    refs.horizontalSyncFrame = 0;
+    syncGridHorizontalOffset(refs, refs.pendingScrollLeft);
+  });
+}
+
+function syncGridHorizontalOffset(refs, scrollLeft) {
+  refs.scrollHeaderInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
+  refs.scrollBodyInner.style.transform = `translate3d(-${scrollLeft}px, 0, 0)`;
+}
+
+function saveGridScrollPositions() {
+  const nextScroll = {
+    horizontal: state.gridRefs?.hscrollBar?.scrollLeft ?? state.gridScroll.horizontal,
+    vertical: state.gridRefs?.vscrollContainer?.scrollTop ?? state.gridScroll.vertical,
+  };
+  state.gridScroll = nextScroll;
+  return nextScroll;
+}
+
+function restoreGridScrollPositions(refs, savedScroll = state.gridScroll) {
+  const horizontal = Math.max(0, savedScroll?.horizontal ?? 0);
+  refs.hscrollBar.scrollLeft = horizontal;
+  syncGridHorizontalOffset(refs, refs.hscrollBar.scrollLeft);
+
+  const maxVertical = Math.max(
+    0,
+    refs.vscrollContainer.scrollHeight - refs.vscrollContainer.clientHeight,
+  );
+  refs.vscrollContainer.scrollTop = Math.min(
+    Math.max(0, savedScroll?.vertical ?? 0),
+    maxVertical,
+  );
+
+  state.gridScroll = {
+    horizontal: refs.hscrollBar.scrollLeft,
+    vertical: refs.vscrollContainer.scrollTop,
+  };
 }
 
 function buildColumnLayout(columnNames, compactScaleFactor = 1) {
@@ -1611,6 +1840,7 @@ function buildColumnLayout(columnNames, compactScaleFactor = 1) {
 function createHeaderCell(column) {
   const th = document.createElement("th");
   th.className = "stats-table__header-cell";
+  th.dataset.columnName = column.name;
   th.scope = "col";
   applyColumnStyle(th, column);
   th.setAttribute("aria-sort", getAriaSort(column.name));
@@ -1781,75 +2011,6 @@ function buildGroupHeaderRow(columns, groups) {
   });
 
   return tr;
-}
-
-// ---------------------------------------------------------------------------
-// Row height synchronization — keeps frozen + scroll pane rows identical
-// ---------------------------------------------------------------------------
-let rowResizeObserver = null;
-
-function syncRowHeights(frozenTable, scrollTable) {
-  // Sync thead rows (group row + column row)
-  const frozenHeadRows = frozenTable.tHead ? Array.from(frozenTable.tHead.rows) : [];
-  const scrollHeadRows = scrollTable.tHead ? Array.from(scrollTable.tHead.rows) : [];
-  const headLen = Math.min(frozenHeadRows.length, scrollHeadRows.length);
-  for (let i = 0; i < headLen; i++) {
-    const h = Math.max(frozenHeadRows[i].offsetHeight, scrollHeadRows[i].offsetHeight);
-    frozenHeadRows[i].style.height = `${h}px`;
-    scrollHeadRows[i].style.height = `${h}px`;
-  }
-
-  // Sync tbody rows
-  const frozenRows = frozenTable.tBodies[0] ? Array.from(frozenTable.tBodies[0].rows) : [];
-  const scrollRows = scrollTable.tBodies[0] ? Array.from(scrollTable.tBodies[0].rows) : [];
-  const len = Math.max(frozenRows.length, scrollRows.length);
-  for (let i = 0; i < len; i++) {
-    const frozenRow = frozenRows[i];
-    const scrollRow = scrollRows[i];
-    if (!frozenRow || !scrollRow) { continue; }
-    // Reset to natural height first so we don't lock in a stale value
-    frozenRow.style.height = "";
-    scrollRow.style.height = "";
-    const h = Math.max(frozenRow.offsetHeight, scrollRow.offsetHeight);
-    frozenRow.style.height = `${h}px`;
-    scrollRow.style.height = `${h}px`;
-  }
-
-  // Wire hover sync once per pair of rows
-  attachHoverSync(frozenRows, scrollRows);
-}
-
-function attachHoverSync(frozenRows, scrollRows) {
-  const len = Math.min(frozenRows.length, scrollRows.length);
-  for (let i = 0; i < len; i++) {
-    const fr = frozenRows[i];
-    const sr = scrollRows[i];
-    [fr, sr].forEach((el) => {
-      el.addEventListener("mouseenter", () => {
-        fr.classList.add("is-hovered");
-        sr.classList.add("is-hovered");
-      });
-      el.addEventListener("mouseleave", () => {
-        fr.classList.remove("is-hovered");
-        sr.classList.remove("is-hovered");
-      });
-    });
-  }
-}
-
-function observeRowResize(frozenTable, scrollTable) {
-  if (typeof ResizeObserver === "undefined") { return; }
-  if (rowResizeObserver) {
-    rowResizeObserver.disconnect();
-  }
-  let frame = 0;
-  rowResizeObserver = new ResizeObserver(() => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => syncRowHeights(frozenTable, scrollTable));
-  });
-  if (scrollTable.tBodies[0]) {
-    rowResizeObserver.observe(scrollTable.tBodies[0]);
-  }
 }
 
 // ---------------------------------------------------------------------------

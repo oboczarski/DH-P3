@@ -1002,30 +1002,15 @@ body::after {
 }
 
 .grid-scroll-wrapper {
+  height: var(--table-panel-height);
   min-height: var(--table-panel-height);
   border-radius: 24px;
-}
-
-.table-pane--scroll::-webkit-scrollbar {
-  height: 12px;
-  width: 12px;
-}
-
-.table-pane--scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  border: 3px solid transparent;
-  background: linear-gradient(180deg, rgba(131, 214, 255, 0.5), rgba(162, 127, 255, 0.5));
-  background-clip: padding-box;
-}
-
-.table-pane--scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .data-grid {
   width: 100%;
   min-height: var(--table-panel-height);
-  height: auto;
+  height: var(--table-panel-height);
   background: transparent;
 }
 
@@ -1055,31 +1040,130 @@ body::after {
 /* ── Two-Pane Table Layout ──────────────────────────────────────────────── */
 
 .table-frame {
-  display: flex;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: var(--datahub-frozen-width) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: var(--table-panel-height);
   height: var(--table-panel-height);
+  --datahub-row-height: 44px;
 }
 
-/* Frozen pane: always visible on the left; body scrollTop driven by JS scroll-sync */
-.table-pane--frozen {
-  flex-shrink: 0;
+/* Shared-shell table layout:
+   Targets the rebuilt DataHub grid where one vertical scroller owns both body
+   tables and the right side gets its own dedicated horizontal scrollbar. */
+.datahub-frozen-corner,
+.datahub-frozen-body {
+  position: relative;
   overflow: hidden;
-  height: var(--table-panel-height);
-  max-height: var(--table-panel-height);
   border-right: 2px solid #43516d;
+  background: transparent;
 }
 
-/* Scrollable pane: sole scroll container — handles all horizontal and vertical scrolling */
-.table-pane--scroll {
-  flex: 1;
+.datahub-frozen-corner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.datahub-scroll-header-shell {
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
-  overflow: auto;
-  height: 800px;
-  max-height: var(--table-panel-height);
-  overscroll-behavior-x: none;
-  overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
+}
+
+.datahub-scroll-header-inner,
+.datahub-scroll-body-inner {
+  width: max(100%, var(--datahub-scroll-width));
+  min-width: max(100%, var(--datahub-scroll-width));
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.datahub-vscroll-container {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(131, 214, 255, 0.3) transparent;
+  overscroll-behavior: contain;
+}
+
+.datahub-vscroll-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+.datahub-vscroll-container::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: linear-gradient(180deg, rgba(131, 214, 255, 0.32), rgba(162, 127, 255, 0.32));
+  background-clip: padding-box;
+}
+
+.datahub-vscroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.datahub-vscroll-content {
+  position: relative;
+  min-height: 100%;
+}
+
+.datahub-frozen-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--datahub-frozen-width);
+  z-index: 2;
+}
+
+.datahub-scroll-body-overlay {
+  position: absolute;
+  top: 0;
+  left: var(--datahub-frozen-width);
+  right: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.datahub-hscroll-shell {
+  grid-column: 2;
+  grid-row: 3;
+  min-width: 0;
+  overflow: hidden;
+  padding-top: 3px;
+}
+
+.datahub-hscroll-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(131, 214, 255, 0.5) rgba(255, 255, 255, 0.04);
+}
+
+.datahub-hscroll-bar::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.datahub-hscroll-bar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background: linear-gradient(180deg, rgba(131, 214, 255, 0.5), rgba(162, 127, 255, 0.5));
+  background-clip: padding-box;
+}
+
+.datahub-hscroll-bar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.datahub-hscroll-spacer {
+  width: var(--datahub-scroll-width);
+  min-width: var(--datahub-scroll-width);
+  height: 1px;
 }
 
 .grid-stage__overlay {
@@ -1168,8 +1252,10 @@ body::after {
   font-size: 13px;
 }
 
-/* Frozen pane table: exact width, no stretching */
-.table-pane--frozen .stats-table {
+/* Frozen-side tables keep their exact column-sum width, while the right-side
+   tables stretch to at least the visible panel width through the inner shell. */
+.datahub-frozen-corner .stats-table,
+.datahub-frozen-body .stats-table {
   width: var(--table-width);
   min-width: var(--table-width);
 }
@@ -1254,9 +1340,18 @@ body::after {
   border-bottom: 0;
 }
 
-/* Hover sync across both panes (JS class-driven; CSS :hover alone can't span tables) */
-.stats-table tbody tr.is-hovered td {
-  background: rgba(102, 215, 255, 0.045);
+.datahub-frozen-body tbody tr,
+.datahub-scroll-body-overlay tbody tr {
+  height: var(--datahub-row-height);
+  min-height: var(--datahub-row-height);
+  max-height: var(--datahub-row-height);
+}
+
+.datahub-frozen-body tbody td,
+.datahub-scroll-body-overlay tbody td {
+  height: var(--datahub-row-height);
+  min-height: var(--datahub-row-height);
+  max-height: var(--datahub-row-height);
 }
 
 .stats-table__head-button {
@@ -1563,8 +1658,10 @@ body::after {
 
   .stats-table {
     font-size: 11px;
-    width: 198px !important;
-    min-width: 198px !important;
+  }
+
+  .table-frame {
+    --datahub-row-height: 38px;
   }
 
   .stats-table__group-header-cell {
@@ -2126,24 +2223,10 @@ body[data-page="datahub"] .stats-player-btn::after {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -2px;
+  bottom: 0.12rem;
   height: 1px;
-  background: linear-gradient(90deg, rgba(116, 239, 255, 0.2), rgba(217, 125, 255, 0.55), rgba(116, 239, 255, 0.1));
-  opacity: 0.65;
-  transform: scaleX(0.72);
-  transform-origin: left center;
-  transition: transform 180ms ease, opacity 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  body[data-page="datahub"] .stats-player-btn:hover {
-    color: #f3f8ff;
-  }
-
-  body[data-page="datahub"] .stats-player-btn:hover::after {
-    opacity: 1;
-    transform: scaleX(1);
-  }
+  background: rgba(144, 150, 208, 0.28);
+  opacity: 1;
 }
 
 body[data-page="datahub"] .stats-player-btn:focus-visible {
@@ -2178,7 +2261,6 @@ body[data-page="datahub"] .stats-player-btn.is-loading::before {
 
 body[data-page="datahub"] .stats-player-btn.is-loading::after {
   opacity: 1;
-  transform: scaleX(1);
 }
 
 /* DataHub table TM logo rendering:

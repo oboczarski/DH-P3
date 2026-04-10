@@ -448,8 +448,10 @@
 
         <div class="grid-stage">
           <div class="grid-scroll-wrapper">
-            <!-- JS replaces this node's contents with the frozen-pane table and
-                 the scroll-pane table on every render. -->
+            <!-- DataHub grid mount:
+                 JS replaces this node with the shared-scroll shell that keeps
+                 the frozen left table and the right-side table locked together
+                 under one vertical scroller. -->
             <div id="player-grid" class="data-grid" aria-label="Player stats table"></div>
           </div>
         </div>
