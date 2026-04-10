@@ -2488,6 +2488,13 @@ const DATAHUB_CONSISTENCY_HUD_CONDITIONAL_COLORS = {
   low: "#d3a5ff",
 };
 const DATAHUB_SVG_NS = "http://www.w3.org/2000/svg";
+// DataHub modal icon map:
+// targets the Game Logs modal controls and generated Season title icon.
+// It keeps modal icons on the same inline SVG/Lucide-style path contract used
+// elsewhere on this page, so the modal stays self-contained and font-free.
+const DATAHUB_MODAL_ICON_PATHS = {
+  season: '<path d="M3 3v18h18"></path><path d="M7 16v-4"></path><path d="M12 16V8"></path><path d="M17 16v-7"></path>',
+};
 const DATAHUB_CONSISTENCY_LINE_FILTER_ID = "datahub-consistency-line-glow";
 const DATAHUB_CONSISTENCY_AREA_FILTER_ID = "datahub-consistency-area-glow";
 const DATAHUB_CONSISTENCY_AREA_GRADIENT_ID = "datahub-consistency-area-gradient";
@@ -2582,6 +2589,39 @@ function buildDataHubStatLabels() {
   labels.fpoe = "FPOE";
   labels.expl_ru_pct = "EXPLSV%";
   return labels;
+}
+
+// DataHub modal icon helper:
+// targets JS-generated icon surfaces inside the Game Logs modal only.
+// It creates the same inline stroke SVG structure the page already uses for
+// table/group icons, so the modal can drop Font Awesome without changing its
+// event or data wiring.
+function createDataHubModalIcon(iconKey, extraClassName = "") {
+  const iconMarkup = DATAHUB_MODAL_ICON_PATHS[iconKey];
+  if (!iconMarkup) {
+    return null;
+  }
+
+  const svg = document.createElementNS(DATAHUB_SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.classList.add("datahub-modal-icon");
+  if (extraClassName) {
+    extraClassName.split(/\s+/).filter(Boolean).forEach((className) => {
+      svg.classList.add(className);
+    });
+  }
+
+  if (iconMarkup.startsWith("<")) {
+    svg.innerHTML = iconMarkup;
+  } else {
+    const path = document.createElementNS(DATAHUB_SVG_NS, "path");
+    path.setAttribute("d", iconMarkup);
+    svg.appendChild(path);
+  }
+
+  return svg;
 }
 
 function buildDataHubRowMeta(sourceRow, normalizedRow) {
@@ -4345,10 +4385,10 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
   title.setAttribute("role", "heading");
   title.setAttribute("aria-level", "3");
 
-  const titleIcon = document.createElement("i");
-  titleIcon.className = "fa-regular fa-chart-bar gamelogs-szn-title-icon";
-  titleIcon.setAttribute("aria-hidden", "true");
-  title.appendChild(titleIcon);
+  const titleIcon = createDataHubModalIcon("season", "gamelogs-szn-title-icon");
+  if (titleIcon) {
+    title.appendChild(titleIcon);
+  }
 
   const titleText = document.createElement("span");
   titleText.className = "gamelogs-szn-title-text";
