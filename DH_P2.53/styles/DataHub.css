@@ -1623,28 +1623,108 @@ body::after {
   }
 
   .page-tabs {
-    margin-bottom: 10px;
+    /* Mobile page-tabs rebuild:
+       Targets the full mobile page-view tab bar after the earlier desktop-first
+       implementation left the icons, labels, spacing, and active indicator
+       misaligned on small screens.
+       Important notes: this keeps the existing HTML structure, distributes all
+       five tabs evenly, and preserves the ADP & Values two-line label. */
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 3px;
+    width: 100%;
+    padding: 7px;
+    margin: 0 0 12px;
+    overflow: visible;
+    border: 1px solid var(--panel-edge);
+    border-radius: 24px;
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.015)),
+      linear-gradient(180deg, rgba(8, 16, 28, 0.6), rgba(6, 12, 20, 0.4));
+    box-shadow: var(--shadow-soft), var(--shadow-glass);
+    scrollbar-width: none;
+  }
+
+  .page-tabs::before,
+  .page-tabs::after {
+    content: none;
   }
 
   .page-tab {
-    align-items: flex-start;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px 6px;
+    width: 100%;
     min-width: 0;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 4px 10px;
+    border-radius: 16px;
+    font-size: 0.57rem;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-align: center;
+    text-wrap: balance;
   }
 
-  .page-tab--adp {
-    gap: 3px;
+  .page-tab .tab-icon {
+    flex: 0 0 auto;
+    width: 17px;
+    height: 17px;
+    margin-top: 0;
+  }
+
+  .page-tab__text,
+  .page-tab__label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 26px;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .page-tab__label--adp {
+    gap: 1px;
   }
 
   .page-tab__label--adp > span {
     display: block;
   }
 
+  .page-tab.is-active {
+    background:
+      linear-gradient(180deg, rgba(133, 215, 255, 0.14), rgba(162, 127, 255, 0.08)),
+      rgba(11, 22, 39, 0.28);
+    border-color: rgba(142, 214, 255, 0.14);
+  }
+
+  .page-tab.is-active::after {
+    left: 50%;
+    right: auto;
+    width: min(42px, calc(100% - 18px));
+    bottom: 6px;
+    transform: translateX(-50%);
+  }
+
+  /* Mobile branding/nav panel parity:
+     Targets only the stacked mobile branding + nav shell so it matches the
+     same glass-panel treatment used by the other page panels. */
   .header-shell--stacked {
-    padding: 4px 3px 5px;
-    gap: 1px;
+    padding: 10px 12px 12px;
+    gap: 10px;
+    border: 1px solid var(--panel-edge);
+    border-radius: 28px;
+    background:
+      linear-gradient(155deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.015)),
+      linear-gradient(180deg, rgba(8, 16, 28, 0.6), rgba(6, 12, 20, 0.4));
+    box-shadow: var(--shadow-soft), var(--shadow-glass);
+    backdrop-filter: blur(4px) saturate(140%);
+    -webkit-backdrop-filter: blur(4px) saturate(140%);
   }
 
   .header-shell--stacked .brand-lockup {
