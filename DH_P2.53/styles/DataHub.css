@@ -7312,3 +7312,49 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
     box-shadow: none;
   }
 }
+
+/* DataHub desktop-only modal spacing pass:
+   Targets: the Game Logs modal footer controls, modal body shell, and footer
+   rank annotations on desktop widths only.
+   What it does: applies the requested desktop sizing/alignment adjustments
+   without changing the mobile modal treatment or the year button row. */
+@media (min-width: 869px) {
+  body[data-page="datahub"] #game-logs-modal tfoot td.has-rank-annotation {
+    vertical-align: bottom;
+    padding-bottom: 0.2rem;
+    padding-top: 0.35rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-body {
+    color: #8086b0;
+    overflow-x: auto;
+    overflow-y: auto;
+    border-radius: 8px;
+    max-height: 45.2vh;
+    height: 45.2vh;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+    flex: none;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .modal-info-btn {
+    font-size: 0.95rem;
+    line-height: 0.8rem;
+    cursor: pointer;
+    transition: color 0.2s ease, filter 0.2s ease, transform 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    letter-spacing: -0.03em;
+    min-width: 53px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.15rem;
+  }
+}

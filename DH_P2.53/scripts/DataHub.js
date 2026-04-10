@@ -353,6 +353,10 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "FUM",
 ]);
 const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM"]);
+const GRID_TEXT_COLLATOR = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
 const SORT_ICON_PATHS = Object.freeze({
   ArrowDownWideNarrow: [
     "m3 16 4 4 4-4",
@@ -543,6 +547,8 @@ const state = {
   searchText: "",
   rawSeasonRows: [],
   rows: [],
+  visibleRows: [],
+  searchedRows: [],
   displayedRows: [],
   supplementalDataLoaded: false,
   ktcLookups: {
@@ -1331,10 +1337,21 @@ function applyCsvText(csvText) {
 // Refreshing the grid always follows the same pipeline:
 // category filter -> formatting metrics -> free-text search -> sort -> render.
 function refreshGrid() {
-  const visibleRows = getVisibleRows();
-  state.columnFormatting = buildColumnFormatting(visibleRows);
-  const searchedRows = visibleRows.filter(matchesSearch);
-  state.displayedRows = sortRows(searchedRows);
+  rebuildGridData();
+  applySortedRows();
+}
+
+// DataHub sort performance pass:
+// cache the expensive category/search work once so repeated header clicks only
+// redo the active sort and render instead of rebuilding the whole pipeline.
+function rebuildGridData() {
+  state.visibleRows = getVisibleRows();
+  state.columnFormatting = buildColumnFormatting(state.visibleRows);
+  state.searchedRows = state.visibleRows.filter(matchesSearch);
+}
+
+function applySortedRows() {
+  state.displayedRows = sortRows(state.searchedRows);
   renderTable();
   updateRowCount();
 }
@@ -1912,7 +1929,7 @@ function handleHeaderSort(columnName) {
     } else {
       state.sort = createDefaultSort();
     }
-    refreshGrid();
+    applySortedRows();
     return;
   }
 
@@ -1930,7 +1947,7 @@ function handleHeaderSort(columnName) {
     state.sort = createDefaultSort();
   }
 
-  refreshGrid();
+  applySortedRows();
 }
 
 function getVisibleRows() {
@@ -1953,27 +1970,50 @@ function matchesSearch(row) {
 function sortRows(rows) {
   const sortColumn = getActiveSortColumn();
   const directionMultiplier = state.sort.direction === "desc" ? -1 : 1;
+  const sortableRows = filterRowsForActiveSort(rows, sortColumn);
 
-  return [...rows].sort((left, right) => {
-    const primaryResult = compareGridValues(left[sortColumn], right[sortColumn]);
-    if (primaryResult !== 0) {
-      return primaryResult * directionMultiplier;
-    }
-
-    if (sortColumn !== "RK") {
-      const rankFallback = compareGridValues(left.RK, right.RK);
-      if (rankFallback !== 0) {
-        return rankFallback;
+  return sortableRows
+    .map((row, index) => ({
+      row,
+      index,
+      primaryValue: toComparableValue(row[sortColumn]),
+      rankValue: sortColumn === "RK" ? null : toComparableValue(row.RK),
+      playerValue: toComparableValue(row.PLAYER),
+      posValue: toComparableValue(row.POS),
+    }))
+    .sort((left, right) => {
+      const primaryResult = comparePreparedGridValues(left.primaryValue, right.primaryValue);
+      if (primaryResult !== 0) {
+        return primaryResult * directionMultiplier;
       }
-    }
 
-    const playerFallback = compareGridValues(left.PLAYER, right.PLAYER);
-    if (playerFallback !== 0) {
-      return playerFallback;
-    }
+      if (sortColumn !== "RK") {
+        const rankFallback = comparePreparedGridValues(left.rankValue, right.rankValue);
+        if (rankFallback !== 0) {
+          return rankFallback;
+        }
+      }
 
-    return compareGridValues(left.POS, right.POS);
-  });
+      const playerFallback = comparePreparedGridValues(left.playerValue, right.playerValue);
+      if (playerFallback !== 0) {
+        return playerFallback;
+      }
+
+      const posFallback = comparePreparedGridValues(left.posValue, right.posValue);
+      if (posFallback !== 0) {
+        return posFallback;
+      }
+
+      return left.index - right.index;
+    })
+    .map((entry) => entry.row);
+}
+
+// Active sort value guard:
+// when a column is the selected sort key, rows without a real value in that
+// column are removed from the rendered table so NA entries never linger.
+function filterRowsForActiveSort(rows, sortColumn) {
+  return rows.filter((row) => !isMissingValue(row[sortColumn]));
 }
 
 function getActiveSortColumn() {
@@ -1999,7 +2039,7 @@ function handleViewportResize() {
     const nextCompact = isCompactViewport();
     if (nextCompact !== state.isCompactViewport) {
       state.isCompactViewport = nextCompact;
-      refreshGrid();
+      renderTable();
     }
 
     updatePageTabsGlint();
@@ -2260,12 +2300,9 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function compareGridValues(valueA, valueB) {
-  const parsedA = toComparableValue(valueA);
-  const parsedB = toComparableValue(valueB);
-
-  const aMissing = parsedA == null;
-  const bMissing = parsedB == null;
+function comparePreparedGridValues(valueA, valueB) {
+  const aMissing = valueA == null;
+  const bMissing = valueB == null;
 
   if (aMissing && bMissing) {
     return 0;
@@ -2279,14 +2316,11 @@ function compareGridValues(valueA, valueB) {
     return -1;
   }
 
-  if (typeof parsedA === "number" && typeof parsedB === "number") {
-    return parsedA - parsedB;
+  if (typeof valueA === "number" && typeof valueB === "number") {
+    return valueA - valueB;
   }
 
-  return String(parsedA).localeCompare(String(parsedB), undefined, {
-    numeric: true,
-    sensitivity: "base",
-  });
+  return GRID_TEXT_COLLATOR.compare(String(valueA), String(valueB));
 }
 
 function toComparableValue(value) {
