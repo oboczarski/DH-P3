@@ -1,10 +1,8 @@
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
 // ---------------------------------------------------------------------------
-const PRIMARY_TITLES = {
-  "1-QB": "1QB ADP, TRADE VALUES & 2025 STATS",
-  SFLX: "SFLX ADP, TRADE VALUES & 2025 STATS",
-};
+const PAGE_TITLE = "2025 Stats & Advanced Analytics";
+const CONTENT_PAGE_VIEWS = new Set(["stats", "adp-values"]);
 
 const CATEGORY_LABELS = {
   overview: "OVERVIEW (ALL)",
@@ -21,10 +19,12 @@ const CATEGORY_LABELS = {
 // 3. which fields participate in search/sort for that view
 // 4. how column groups must line up with the rendered table
 // ---------------------------------------------------------------------------
-const COLUMN_SETS = {
+const MARKET_DATA_COLUMNS = ["KTC 1QB", "KTC SFLX", "1QB ADP", "SFLX ADP"];
+
+const STATS_COLUMN_SETS = {
   // GENERAL (frozen): RK, PLAYER, POS
   // INFO: TM, AGE
-  // FANTASY: FPTS, PPG, VALUE, ADP, POS·ADP
+  // FANTASY: FPTS, PPG
   // OVERVIEW STATS: G, SNP%, YDS(t), YPG(t), OPP, IMP, IMP/OPP, CSTY%, CL
   overview: [
     "RK",
@@ -34,9 +34,6 @@ const COLUMN_SETS = {
     "AGE",
     "FPTS",
     "PPG",
-    "VALUE",
-    "ADP",
-    "POS·ADP",
     "G",
     "SNP%",
     "YDS(t)",
@@ -49,7 +46,7 @@ const COLUMN_SETS = {
   ],
   // GENERAL (frozen): RK, PLAYER, POS
   // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG, VALUE, ADP, POS·ADP
+  // FANTASY: FPTS, PPG
   // PASSING: paYDS, paTD, CMP%, paATT, paRTG, EPA/DB, CPOE, CMP, YDS(t), paYPG, pa1D, IMP/G, pIMP, pIMP/A, TTT, PRS%, SAC, INT
   // RUSHING: ruYDS, ruTD, CAR, YPC, FUM
   // CEILING & CONSISTENCY: FPOE, CSTY%, CL
@@ -62,9 +59,6 @@ const COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
-    "VALUE",
-    "ADP",
-    "POS·ADP",
     "paYDS",
     "paTD",
     "CMP%",
@@ -94,7 +88,7 @@ const COLUMN_SETS = {
   ],
   // GENERAL (frozen): RK, PLAYER, POS
   // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG, VALUE, ADP, POS·ADP
+  // FANTASY: FPTS, PPG
   // RUSHING EFFICIENCY: SNP%, YPC, ruYPG, IMP/G
   // RUSHING PRODUCTION: CAR, ruYDS, ruTD, ru1D, YDS(t), FUM
   // RECEIVING: REC, recYDS, recTD, rec1D, YAC, TGT
@@ -109,9 +103,6 @@ const COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
-    "VALUE",
-    "ADP",
-    "POS·ADP",
     "SNP%",
     "YPC",
     "ruYPG",
@@ -141,7 +132,7 @@ const COLUMN_SETS = {
   ],
   // GENERAL (frozen): RK, PLAYER, POS
   // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG, VALUE, ADP, POS·ADP
+  // FANTASY: FPTS, PPG
   // RECEIVING: SNP%, TGT, REC, TS%, recYDS, recTD, YPRR, rec1D, 1DRR, recYPG, AY%, YAC, YPR, IMP/G, RR, YDS(t), RZ Tgt
   // RUSHING: CAR, ruYDS, ruTD, YPC, FUM
   // CEILING & CONSISTENCY: FPOE, CSTY%, CL
@@ -154,9 +145,6 @@ const COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
-    "VALUE",
-    "ADP",
-    "POS·ADP",
     "SNP%",
     "TGT",
     "REC",
@@ -185,6 +173,11 @@ const COLUMN_SETS = {
   ],
 };
 
+const PAGE_VIEW_COLUMN_SETS = Object.freeze({
+  stats: STATS_COLUMN_SETS,
+  "adp-values": createTradeValuesColumnSets(STATS_COLUMN_SETS),
+});
+
 // ---------------------------------------------------------------------------
 // CSV alias map. A null alias means the current local CSV does not provide that
 // field, but the column still exists in the reference layout and should render
@@ -195,6 +188,10 @@ const SOURCE_ALIASES = {
   RK: "PRK_PPR",
   FPTS: "FPT_PPR",
   G: "GM",
+  "KTC 1QB": null,
+  "KTC SFLX": null,
+  "1QB ADP": null,
+  "SFLX ADP": null,
   VALUE: null,
   ADP: null,
   "POS·ADP": null,
@@ -214,6 +211,10 @@ const COLUMN_ICONS = {
   G:         "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games played
   FPTS:      "M13 2L3 14h9l-1 8 10-12h-9l1-8z", // Zap
   PPG:       "M22 7 12 17 7 12 2 17", // TrendingUp
+  "KTC 1QB": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
+  "KTC SFLX": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
+  "1QB ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
+  "SFLX ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
   VALUE:     "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   ADP:       "M18 20V10M12 20V4M6 20v-6", // BarChart2
   "POS·ADP": "M3 6h18M7 12h10M11 18h2", // ListFilter (3 lines decreasing)
@@ -275,29 +276,30 @@ const COLUMN_ICONS = {
 
 // ---------------------------------------------------------------------------
 // Column group definitions per view. Each group has a label and lists the
-// exact columns it spans (in-order, matching COLUMN_SETS). The frozen pane
-// always uses FROZEN_GROUP. The scrollable pane uses per-category groups.
+// exact columns it spans (in-order, matching the active page-view column set).
+// The frozen pane always uses FROZEN_GROUP. The scrollable pane uses the
+// per-category groups for either the Stats or Trade Values table mode.
 // ---------------------------------------------------------------------------
 // GENERAL icon: User (person)
 const FROZEN_GROUP = [{ label: "GENERAL", icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", columns: ["RK", "PLAYER", "POS"] }];
 
 // Group icons: badge-info, Star, BarChart2, Crosshair, Zap(new), TrendingUpDown(rotated), TrendingUp, Waypoints, Shield
-const COLUMN_GROUPS = {
+const BASE_COLUMN_GROUPS = {
   overview: [
     { label: "INFO",           icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                                columns: ["TM", "AGE"] },
-    { label: "FANTASY",        icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                              columns: ["FPTS", "PPG", "VALUE", "ADP", "POS·ADP"] },
+    { label: "FANTASY",        icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                              columns: ["FPTS", "PPG"] },
     { label: "OVERVIEW STATS", icon: "M18 20V10M12 20V4M6 20v-6",                                                                                                                                   columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "CSTY%", "CL"] },
   ],
   passing: [
     { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG", "VALUE", "ADP", "POS·ADP"] },
+    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
     { label: "PASSING",               icon: '<circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/>',                                                                                                                                 columns: ["paYDS", "paTD", "CMP%", "paATT", "paRTG", "EPA/DB", "CPOE", "CMP", "YDS(t)", "paYPG", "pa1D", "IMP/G", "pIMP", "pIMP/A", "TTT", "PRS%", "SAC", "INT"] },
     { label: "RUSHING",               icon: "M13 10V3L4 14h7v7l9-11h-7z",                                                                                                                            columns: ["ruYDS", "ruTD", "CAR", "YPC", "FUM"] },
     { label: "CEILING & CONSISTENCY", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",                                                                                                          columns: ["FPOE", "CSTY%", "CL"] },
   ],
   rushing: [
     { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG", "VALUE", "ADP", "POS·ADP"] },
+    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
     { label: "RUSHING EFFICIENCY",    icon: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",                                                                                                                             columns: ["SNP%", "YPC", "ruYPG", "IMP/G"] },
     { label: "RUSHING PRODUCTION",    icon: "M22 7 12 17 7 12 2 17",                                                                                                                                 columns: ["CAR", "ruYDS", "ruTD", "ru1D", "YDS(t)", "FUM"] },
     { label: "RECEIVING",             icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>',                columns: ["REC", "recYDS", "recTD", "rec1D", "YAC", "TGT"] },
@@ -306,12 +308,76 @@ const COLUMN_GROUPS = {
   ],
   receiving: [
     { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG", "VALUE", "ADP", "POS·ADP"] },
+    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
     { label: "RECEIVING",             icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>',                columns: ["SNP%", "TGT", "REC", "TS%", "recYDS", "recTD", "YPRR", "rec1D", "1DRR", "recYPG", "AY%", "YAC", "YPR", "IMP/G", "RR", "YDS(t)", "RZ Tgt"] },
     { label: "RUSHING",               icon: "M13 10V3L4 14h7v7l9-11h-7z",                                                                                                                            columns: ["CAR", "ruYDS", "ruTD", "YPC", "FUM"] },
     { label: "CEILING & CONSISTENCY", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",                                                                                                          columns: ["FPOE", "CSTY%", "CL"] },
   ],
 };
+
+const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
+  stats: BASE_COLUMN_GROUPS,
+  "adp-values": createTradeValuesColumnGroups(BASE_COLUMN_GROUPS),
+});
+
+function createTradeValuesColumnSets(baseSets) {
+  return Object.fromEntries(
+    Object.entries(baseSets).map(([category, columns]) => ([
+      category,
+      insertColumnsAfter(columns, "PPG", MARKET_DATA_COLUMNS),
+    ])),
+  );
+}
+
+function createTradeValuesColumnGroups(baseGroups) {
+  const marketDataGroup = {
+    label: "TRADE VALUES & ADP",
+    icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+    columns: MARKET_DATA_COLUMNS,
+  };
+
+  return Object.fromEntries(
+    Object.entries(baseGroups).map(([category, groups]) => ([
+      category,
+      insertGroupAfter(groups, "FANTASY", marketDataGroup),
+    ])),
+  );
+}
+
+function insertColumnsAfter(columns, anchorColumn, columnsToInsert) {
+  const anchorIndex = columns.indexOf(anchorColumn);
+  if (anchorIndex === -1) {
+    return [...columns];
+  }
+
+  return [
+    ...columns.slice(0, anchorIndex + 1),
+    ...columnsToInsert,
+    ...columns.slice(anchorIndex + 1),
+  ];
+}
+
+function insertGroupAfter(groups, anchorLabel, groupToInsert) {
+  const insertedGroup = {
+    ...groupToInsert,
+    columns: [...groupToInsert.columns],
+  };
+  const anchorIndex = groups.findIndex((group) => group.label === anchorLabel);
+  const nextGroups = groups.map((group) => ({
+    ...group,
+    columns: [...group.columns],
+  }));
+
+  if (anchorIndex === -1) {
+    return nextGroups;
+  }
+
+  return [
+    ...nextGroups.slice(0, anchorIndex + 1),
+    insertedGroup,
+    ...nextGroups.slice(anchorIndex + 1),
+  ];
+}
 
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
@@ -325,6 +391,8 @@ const NON_SORTABLE_COLUMNS = new Set([RK_COLUMN]);
 const INVERTED_COLUMNS = new Set([
   "ADP",
   "POS·ADP",
+  "1QB ADP",
+  "SFLX ADP",
   "INT",
   "FUM",
   "PRS%",
@@ -334,21 +402,36 @@ const NEUTRAL_COLUMNS = new Set(["TTT", "CL"]);
 const PLAYER_COLUMN = "PLAYER";
 const FPTS_COLUMN = "FPTS";
 const STICKY_COLUMN_COUNT = 3;
-const ALL_COLUMNS = [...new Set(Object.values(COLUMN_SETS).flat())];
+const ALL_COLUMNS = [...new Set([
+  ...Object.values(STATS_COLUMN_SETS).flat(),
+  ...MARKET_DATA_COLUMNS,
+  "VALUE",
+  "ADP",
+  "POS·ADP",
+])];
 const COMPACT_SCROLL_COLUMN_SCALE = 1.3;
 const DEFAULT_COLUMN_WIDTH = 94;
 const DEFAULT_COMPACT_COLUMN_WIDTH = 58;
-// DataHub sort defaults:
-// VALUE desc is the baseline table order, and every non-default third click
-// returns the grid to this exact sort state.
-const DEFAULT_SORT = Object.freeze({
-  column: "VALUE",
-  direction: "desc",
+// DataHub table-view defaults:
+// each real content view owns its own baseline sort so switching between the
+// Stats grid and the Trade Values & ADP grid immediately lands on the intended
+// primary metric for that specific table.
+const DEFAULT_SORT_BY_VIEW = Object.freeze({
+  stats: Object.freeze({
+    column: "FPTS",
+    direction: "desc",
+  }),
+  "adp-values": Object.freeze({
+    column: "KTC 1QB",
+    direction: "desc",
+  }),
 });
 const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "AGE",
   "ADP",
   "POS·ADP",
+  "1QB ADP",
+  "SFLX ADP",
   "TTT",
   "PRS%",
   "SAC",
@@ -410,6 +493,10 @@ const COLUMN_WIDTHS = {
   AGE: 78,
   FPTS: 110,
   PPG: 92,
+  "KTC 1QB": 96,
+  "KTC SFLX": 96,
+  "1QB ADP": 96,
+  "SFLX ADP": 100,
   VALUE: 100,
   ADP: 92,
   "POS·ADP": 116,
@@ -477,6 +564,10 @@ const MOBILE_COLUMN_WIDTHS = {
   AGE: 45,
   FPTS: 68,
   PPG: 52,
+  "KTC 1QB": 60,
+  "KTC SFLX": 60,
+  "1QB ADP": 60,
+  "SFLX ADP": 62,
   VALUE: 62,
   ADP: 52,
   "POS·ADP": 64,
@@ -541,6 +632,14 @@ const MOBILE_COLUMN_WIDTHS = {
 // two-pane table whenever view state changes.
 // ---------------------------------------------------------------------------
 const state = {
+  // DataHub table mode:
+  // tracks which top page tab should actively drive the grid layout. The
+  // placeholder tabs can still borrow the active tab styling without forcing
+  // the table off of its current Stats or Trade Values schema.
+  activePageView: "stats",
+  // Hidden valuation context:
+  // the visible 1-QB / SFLX toggle was removed from the DataHub hero, but the
+  // local modal and ownership summaries still default to 1-QB KTC data.
   primaryTab: "1-QB",
   activeCategory: "overview",
   receivingFilters: {
@@ -565,7 +664,7 @@ const state = {
     SFLX: Object.create(null),
   },
   adpByPlayerId: Object.create(null),
-  sort: createDefaultSort(),
+  sort: createDefaultSort("stats"),
   isCompactViewport: isCompactViewport(),
   columnFormatting: Object.create(null),
   // DataHub game logs modal state:
@@ -730,10 +829,21 @@ function attachEventListeners() {
         return;
       }
 
-      // Page-view tabs are placeholders for now: clicking them should only
-      // move the active styling and desktop glint, not trigger page data work.
+      // DataHub page-view switch:
+      // only the Stats and Trade Values & ADP tabs drive the grid schema. The
+      // remaining tabs keep their placeholder active styling without changing
+      // the current table data until those views get their own implementations.
       syncPageTabButtons(button);
       updatePageTabsGlint();
+
+      const nextPageView = button.dataset.pageTab;
+      if (!CONTENT_PAGE_VIEWS.has(nextPageView) || nextPageView === state.activePageView) {
+        return;
+      }
+
+      state.activePageView = nextPageView;
+      state.sort = createDefaultSort(nextPageView);
+      refreshGrid();
     });
   });
 
@@ -1070,8 +1180,8 @@ async function fetchCsvText() {
 }
 
 // Supplemental data mirrors the Stats page merge behavior locally:
-// - KTC_1QB / KTC_SFLX provide VALUE + RK context
-// - ADP_2026 provides ADP + POS·ADP context
+// - KTC_1QB / KTC_SFLX provide the dual-format trade value context
+// - ADP_2026 provides the dual-format ADP context
 async function ensureDataHubSupplementalData() {
   if (state.supplementalDataLoaded) {
     return;
@@ -1222,7 +1332,8 @@ function getActiveKtcLookup() {
 }
 
 // Rebuild the rendered season rows from the cached CSV base so the Data Hub
-// table can switch between 1-QB and SFLX instantly without re-fetching SZN.csv.
+// table can swap between the Stats and Trade Values views without re-fetching
+// SZN.csv, while the hidden 1-QB modal context remains available separately.
 function rebuildDataHubRows() {
   if (!state.rawSeasonRows.length) {
     state.rows = [];
@@ -1231,11 +1342,16 @@ function rebuildDataHubRows() {
     return;
   }
 
-  const ktcLookup = getActiveKtcLookup();
+  const oneQbLookup = state.ktcLookups["1-QB"] || Object.create(null);
+  const sflxLookup = state.ktcLookups.SFLX || Object.create(null);
   const adpLookup = state.adpByPlayerId || Object.create(null);
 
   state.rows = state.rawSeasonRows.map((row) => {
-    const enrichedRow = enrichSeasonRow(row, ktcLookup, adpLookup);
+    const enrichedRow = enrichSeasonRow(row, {
+      oneQbLookup,
+      sflxLookup,
+      adpLookup,
+    });
     return normalizeRow(enrichedRow);
   });
   state.modalRankCache = buildDataHubModalRankCache(state.rows);
@@ -1243,28 +1359,32 @@ function rebuildDataHubRows() {
   refreshGrid();
 }
 
-function enrichSeasonRow(sourceRow, ktcLookup, adpLookup) {
+function enrichSeasonRow(sourceRow, { oneQbLookup, sflxLookup, adpLookup }) {
   const enrichedRow = { ...sourceRow };
   const playerId = String(sourceRow.SLPR_ID || sourceRow.slpr_id || "").trim();
-  const ktcEntry = playerId ? ktcLookup?.[playerId] : null;
+  const oneQbEntry = playerId ? oneQbLookup?.[playerId] : null;
+  const sflxEntry = playerId ? sflxLookup?.[playerId] : null;
   const adpEntry = playerId ? adpLookup?.[playerId] : null;
   const fallbackRank = toComparableNumber(sourceRow.RK ?? sourceRow.PRK_PPR);
   const gamesPlayed = getDataHubGamesPlayedValue(sourceRow);
   const fantasyPoints = toComparableNumber(sourceRow.FPTS ?? sourceRow.FPT_PPR);
   const ppg = computePpgValue(fantasyPoints, gamesPlayed);
 
-  // Match the Stats page merge path: KTC rank/value override the season row
-  // when present, while ADP columns are format-aware and sourced from ADP_2026.
-  enrichedRow.RK = formatIntegerString(ktcEntry?.overallRank ?? fallbackRank);
-  enrichedRow.VALUE = formatIntegerString(ktcEntry?.ktc);
-  enrichedRow.ADP = formatFixedString(
-    state.primaryTab === "SFLX" ? adpEntry?.sflxAdp : adpEntry?.pprAdp,
-    1,
-  );
-  enrichedRow["POS·ADP"] = formatFixedString(
-    state.primaryTab === "SFLX" ? adpEntry?.posSfAdp : adpEntry?.posAdp,
-    1,
-  );
+  // DataHub table enrichment:
+  // attach both KTC formats and both ADP formats to every row so the Stats
+  // tab can omit market columns entirely while the Trade Values tab can render
+  // both league formats side-by-side from the same cached dataset.
+  enrichedRow.RK = formatIntegerString(oneQbEntry?.overallRank ?? fallbackRank);
+  enrichedRow["KTC 1QB"] = formatIntegerString(oneQbEntry?.ktc);
+  enrichedRow["KTC SFLX"] = formatIntegerString(sflxEntry?.ktc);
+  enrichedRow["1QB ADP"] = formatFixedString(adpEntry?.pprAdp, 1);
+  enrichedRow["SFLX ADP"] = formatFixedString(adpEntry?.sflxAdp, 1);
+  // Legacy modal metadata fields:
+  // keep the hidden default 1-QB context available for page-local modal and
+  // ownership summaries that still read the existing VALUE / ADP fields.
+  enrichedRow.VALUE = formatIntegerString(oneQbEntry?.ktc);
+  enrichedRow.ADP = formatFixedString(adpEntry?.pprAdp, 1);
+  enrichedRow["POS·ADP"] = formatFixedString(adpEntry?.posAdp, 1);
   enrichedRow.PPG = formatFixedString(ppg, 1);
 
   return enrichedRow;
@@ -1368,7 +1488,7 @@ function applySortedRows() {
 // Sync the non-table shell controls so the header, chips, and receiving
 // subfilters stay aligned with the active in-memory state.
 function syncUiState() {
-  mainTitle.textContent = PRIMARY_TITLES[state.primaryTab];
+  mainTitle.textContent = PAGE_TITLE;
   activeViewLabel.textContent = CATEGORY_LABELS[state.activeCategory];
 
   primaryTabButtons.forEach((button) => {
@@ -1392,6 +1512,16 @@ function syncUiState() {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
+}
+
+function getActiveColumnSet() {
+  const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
+  return viewSets[state.activeCategory] || PAGE_VIEW_COLUMN_SETS.stats.overview;
+}
+
+function getActiveColumnGroups() {
+  const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
+  return viewGroups[state.activeCategory] || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
 }
 
 // Desktop-only glint positioning for the top page tabs. This depends on the
@@ -1454,7 +1584,7 @@ function updateRowCount() {
 // The shell only rebuilds when the table structure changes; sorts/searches
 // simply repopulate the tbody nodes and preserve scroll positions.
 function renderTable() {
-  const allColumns = COLUMN_SETS[state.activeCategory];
+  const allColumns = getActiveColumnSet();
   const frozenNames = allColumns.slice(0, STICKY_COLUMN_COUNT);
   const scrollNames = allColumns.slice(STICKY_COLUMN_COUNT);
   const { columns: frozenCols, totalWidth: frozenWidth } = buildColumnLayout(frozenNames);
@@ -1491,7 +1621,7 @@ function renderTable() {
 
 function getGridShellKey() {
   return [
-    state.primaryTab,
+    state.activePageView,
     state.activeCategory,
     state.isCompactViewport ? "compact" : "regular",
   ].join("|");
@@ -1523,7 +1653,7 @@ function createGridShell({ frozenCols, frozenWidth, scrollCols, scrollWidth }) {
   const scrollHeaderTable = buildHeaderTable(
     scrollCols,
     scrollWidth,
-    COLUMN_GROUPS[state.activeCategory],
+    getActiveColumnGroups(),
     "scroll-header",
   );
   scrollHeaderInner.append(scrollHeaderTable);
@@ -2190,8 +2320,9 @@ function getAriaSort(columnName) {
   return state.sort.direction === "asc" ? "ascending" : "descending";
 }
 
-function createDefaultSort() {
-  return { ...DEFAULT_SORT };
+function createDefaultSort(pageView = "stats") {
+  const defaultSort = DEFAULT_SORT_BY_VIEW[pageView] || DEFAULT_SORT_BY_VIEW.stats;
+  return { ...defaultSort };
 }
 
 function createSortIndicatorIcon(columnName) {
@@ -2253,16 +2384,18 @@ function handleHeaderSort(columnName) {
   }
 
   // DataHub table sort cycle:
-  // most columns use preferred -> opposite -> reset-to-default, while VALUE
-  // cycles desc -> asc -> desc because resetting lands on the default sort.
-  if (columnName === DEFAULT_SORT.column) {
-    if (state.sort.column === columnName && state.sort.direction === DEFAULT_SORT.direction) {
+  // most columns use preferred -> opposite -> reset-to-view-default, while the
+  // active view's default column cycles default -> opposite -> default.
+  const defaultSort = createDefaultSort(state.activePageView);
+
+  if (columnName === defaultSort.column) {
+    if (state.sort.column === columnName && state.sort.direction === defaultSort.direction) {
       state.sort = {
         column: columnName,
-        direction: getOppositeSortDirection(DEFAULT_SORT.direction),
+        direction: getOppositeSortDirection(defaultSort.direction),
       };
     } else {
-      state.sort = createDefaultSort();
+      state.sort = defaultSort;
     }
     applySortedRows();
     return;
@@ -2279,7 +2412,7 @@ function handleHeaderSort(columnName) {
       direction: getOppositeSortDirection(state.sort.direction),
     };
   } else {
-    state.sort = createDefaultSort();
+    state.sort = defaultSort;
   }
 
   applySortedRows();
@@ -2296,7 +2429,7 @@ function matchesSearch(row) {
     return true;
   }
 
-  return COLUMN_SETS[state.activeCategory].some((columnName) => {
+  return getActiveColumnSet().some((columnName) => {
     const value = row[columnName];
     return !isMissingValue(value) && String(value).toLowerCase().includes(query);
   });
@@ -2352,9 +2485,9 @@ function filterRowsForActiveSort(rows, sortColumn) {
 }
 
 function getActiveSortColumn() {
-  const columns = COLUMN_SETS[state.activeCategory];
+  const columns = getActiveColumnSet();
   if (!columns.includes(state.sort.column) || !isSortableColumn(state.sort.column)) {
-    return DEFAULT_SORT.column;
+    return createDefaultSort(state.activePageView).column;
   }
 
   return state.sort.column;
@@ -2560,7 +2693,7 @@ function abbreviatePlayerName(name) {
 
 function buildColumnFormatting(rows) {
   const formatting = Object.create(null);
-  const columns = COLUMN_SETS[state.activeCategory];
+  const columns = getActiveColumnSet();
 
   columns.forEach((columnName) => {
     if (NON_FORMATTED_COLUMNS.has(columnName)) {

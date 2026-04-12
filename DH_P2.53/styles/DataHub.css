@@ -658,9 +658,9 @@ body::after {
 .hero-actions {
   display: flex;
   align-items: center;
-  gap: 17px;
+  gap: 10px;
   flex-wrap: nowrap;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .eyebrow,
@@ -676,13 +676,13 @@ body::after {
 
 .page-title {
   margin: -13px 0 0;
-  max-width: none;
+  max-width: 14ch;
   font-size: clamp(1.28rem, 5.3vw, 3.5rem);
   line-height: 0.94;
   letter-spacing: -0.08em;
   font-weight: 800;
-  word-spacing: 0.18em;
-  text-wrap: nowrap;
+  word-spacing: 0.04em;
+  text-wrap: balance;
 }
 
 .top-tab,
@@ -1627,7 +1627,8 @@ body::after {
     /* Mobile page-tabs:
        Targets the five-view tab row on small screens so each tab keeps an
        inline icon + label layout, equal spacing, and a centered active
-       indicator while preserving the ADP & Values two-line label. */
+       indicator while preserving the Trade Values & ADP two-line label. */
+    order: 2;
     display: flex;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: stretch;
@@ -1727,9 +1728,12 @@ body::after {
   .page-tab__label--adp {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 1px;
     white-space: normal;
+    font-size: 0.55rem;
+    line-height: 0.98;
+    letter-spacing: -0.05em;
   }
 
   .page-tab__label--adp > span {
@@ -1854,10 +1858,20 @@ body::after {
     background: linear-gradient(180deg, rgb(92 108 157 / 34%), rgb(88 124 153 / 34%), rgb(101 89 158 / 20%));
   }
 
+  /* Mobile hero order:
+     targets the DataHub title, tabs, and action row so the new page title
+     renders above the tabs on small screens without changing the desktop
+     composition or moving the PICK VALUES control out of the hero shell. */
   .hero-copy {
+    order: 1;
     gap: 6px;
     margin-top: 0;
     text-align: center;
+  }
+
+  .hero-actions {
+    order: 3;
+    justify-content: flex-end;
   }
 }
 
