@@ -1,7 +1,13 @@
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
 // ---------------------------------------------------------------------------
-const PAGE_TITLE = "2025 Stats & Advanced Analytics";
+// DataHub hero titles:
+// the visible page title now follows the active Stats vs Trade Values tab so
+// each content view shows the requested heading without touching other pages.
+const PAGE_TITLES = Object.freeze({
+  stats: "2025 Stats & Advanced Analytics",
+  "adp-values": "Trade Values & ADP",
+});
 const CONTENT_PAGE_VIEWS = new Set(["stats", "adp-values"]);
 
 const CATEGORY_LABELS = {
@@ -19,7 +25,33 @@ const CATEGORY_LABELS = {
 // 3. which fields participate in search/sort for that view
 // 4. how column groups must line up with the rendered table
 // ---------------------------------------------------------------------------
-const MARKET_DATA_COLUMNS = ["KTC 1QB", "KTC SFLX", "1QB ADP", "SFLX ADP"];
+// Trade Values table group:
+// keeps the live market-data columns together and reserves two blank placeholder
+// slots at the end of the group for the next DataHub iteration.
+const MARKET_DATA_COLUMNS = [
+  "KTC 1QB",
+  "KTC SFLX",
+  "1QB ADP",
+  "SFLX ADP",
+  "TV Placeholder 1",
+  "TV Placeholder 2",
+];
+const BLANK_PLACEHOLDER_COLUMNS = new Set(["TV Placeholder 1", "TV Placeholder 2"]);
+
+// Trade Values table layout:
+// this view intentionally stays compact and reuses one shared schema across all
+// category filters, so category changes only affect which players are shown and
+// never introduce the passing/rushing/receiving stat groups back into the table.
+const TRADE_VALUES_COLUMN_SET = [
+  "RK",
+  "PLAYER",
+  "POS",
+  "TM",
+  "AGE",
+  "FPTS",
+  "PPG",
+  ...MARKET_DATA_COLUMNS,
+];
 
 const STATS_COLUMN_SETS = {
   // GENERAL (frozen): RK, PLAYER, POS
@@ -175,7 +207,7 @@ const STATS_COLUMN_SETS = {
 
 const PAGE_VIEW_COLUMN_SETS = Object.freeze({
   stats: STATS_COLUMN_SETS,
-  "adp-values": createTradeValuesColumnSets(STATS_COLUMN_SETS),
+  "adp-values": createSharedCategoryMap(TRADE_VALUES_COLUMN_SET),
 });
 
 // ---------------------------------------------------------------------------
@@ -192,6 +224,8 @@ const SOURCE_ALIASES = {
   "KTC SFLX": null,
   "1QB ADP": null,
   "SFLX ADP": null,
+  "TV Placeholder 1": null,
+  "TV Placeholder 2": null,
   VALUE: null,
   ADP: null,
   "POS·ADP": null,
@@ -317,66 +351,34 @@ const BASE_COLUMN_GROUPS = {
 
 const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   stats: BASE_COLUMN_GROUPS,
-  "adp-values": createTradeValuesColumnGroups(BASE_COLUMN_GROUPS),
+  "adp-values": createSharedCategoryMap([
+    { label: "INFO", icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ["TM", "AGE"] },
+    { label: "FANTASY", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", columns: ["FPTS", "PPG"] },
+    { label: "TRADE VALUES & ADP", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", columns: MARKET_DATA_COLUMNS },
+  ]),
 });
 
-function createTradeValuesColumnSets(baseSets) {
-  return Object.fromEntries(
-    Object.entries(baseSets).map(([category, columns]) => ([
-      category,
-      insertColumnsAfter(columns, "PPG", MARKET_DATA_COLUMNS),
-    ])),
-  );
+function createSharedCategoryMap(value) {
+  return Object.freeze({
+    overview: cloneSharedCategoryValue(value),
+    passing: cloneSharedCategoryValue(value),
+    rushing: cloneSharedCategoryValue(value),
+    receiving: cloneSharedCategoryValue(value),
+  });
 }
 
-function createTradeValuesColumnGroups(baseGroups) {
-  const marketDataGroup = {
-    label: "TRADE VALUES & ADP",
-    icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
-    columns: MARKET_DATA_COLUMNS,
-  };
-
-  return Object.fromEntries(
-    Object.entries(baseGroups).map(([category, groups]) => ([
-      category,
-      insertGroupAfter(groups, "FANTASY", marketDataGroup),
-    ])),
-  );
-}
-
-function insertColumnsAfter(columns, anchorColumn, columnsToInsert) {
-  const anchorIndex = columns.indexOf(anchorColumn);
-  if (anchorIndex === -1) {
-    return [...columns];
+function cloneSharedCategoryValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => (
+      typeof entry === "object" && entry !== null
+        ? {
+          ...entry,
+          columns: Array.isArray(entry.columns) ? [...entry.columns] : entry.columns,
+        }
+        : entry
+    ));
   }
-
-  return [
-    ...columns.slice(0, anchorIndex + 1),
-    ...columnsToInsert,
-    ...columns.slice(anchorIndex + 1),
-  ];
-}
-
-function insertGroupAfter(groups, anchorLabel, groupToInsert) {
-  const insertedGroup = {
-    ...groupToInsert,
-    columns: [...groupToInsert.columns],
-  };
-  const anchorIndex = groups.findIndex((group) => group.label === anchorLabel);
-  const nextGroups = groups.map((group) => ({
-    ...group,
-    columns: [...group.columns],
-  }));
-
-  if (anchorIndex === -1) {
-    return nextGroups;
-  }
-
-  return [
-    ...nextGroups.slice(0, anchorIndex + 1),
-    insertedGroup,
-    ...nextGroups.slice(anchorIndex + 1),
-  ];
+  return value;
 }
 
 // ---------------------------------------------------------------------------
@@ -386,8 +388,16 @@ function insertGroupAfter(groups, anchorLabel, groupToInsert) {
 // it should always show the current rendered order (1..N), so it stays plain
 // and does not participate in value-based cell formatting or sorting.
 const RK_COLUMN = "RK";
-const NON_FORMATTED_COLUMNS = new Set([RK_COLUMN, "PLAYER", "POS", "TM", "AGE", "G"]);
-const NON_SORTABLE_COLUMNS = new Set([RK_COLUMN]);
+const NON_FORMATTED_COLUMNS = new Set([
+  RK_COLUMN,
+  "PLAYER",
+  "POS",
+  "TM",
+  "AGE",
+  "G",
+  ...BLANK_PLACEHOLDER_COLUMNS,
+]);
+const NON_SORTABLE_COLUMNS = new Set([RK_COLUMN, ...BLANK_PLACEHOLDER_COLUMNS]);
 const INVERTED_COLUMNS = new Set([
   "ADP",
   "POS·ADP",
@@ -439,6 +449,10 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "FUM",
 ]);
 const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM"]);
+const COLUMN_LABELS = Object.freeze({
+  "TV Placeholder 1": "",
+  "TV Placeholder 2": "",
+});
 const GRID_TEXT_COLLATOR = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: "base",
@@ -556,6 +570,22 @@ const COLUMN_WIDTHS = {
   "RZ Tgt": 98,
 };
 
+const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
+  RK: 88,
+  PLAYER: 196,
+  POS: 92,
+  TM: 90,
+  AGE: 84,
+  FPTS: 122,
+  PPG: 104,
+  "KTC 1QB": 114,
+  "KTC SFLX": 114,
+  "1QB ADP": 114,
+  "SFLX ADP": 116,
+  "TV Placeholder 1": 118,
+  "TV Placeholder 2": 118,
+});
+
 const MOBILE_COLUMN_WIDTHS = {
   RK: 39,
   PLAYER: 73,
@@ -626,6 +656,22 @@ const MOBILE_COLUMN_WIDTHS = {
   RR: 52,
   "RZ Tgt": 64,
 };
+
+const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
+  RK: 48,
+  PLAYER: 92,
+  POS: 62,
+  TM: 50,
+  AGE: 52,
+  FPTS: 78,
+  PPG: 62,
+  "KTC 1QB": 76,
+  "KTC SFLX": 76,
+  "1QB ADP": 76,
+  "SFLX ADP": 78,
+  "TV Placeholder 1": 76,
+  "TV Placeholder 2": 76,
+});
 
 // ---------------------------------------------------------------------------
 // Runtime state. This app keeps a single in-memory dataset and re-renders the
@@ -843,6 +889,7 @@ function attachEventListeners() {
 
       state.activePageView = nextPageView;
       state.sort = createDefaultSort(nextPageView);
+      syncUiState();
       refreshGrid();
     });
   });
@@ -1488,7 +1535,7 @@ function applySortedRows() {
 // Sync the non-table shell controls so the header, chips, and receiving
 // subfilters stay aligned with the active in-memory state.
 function syncUiState() {
-  mainTitle.textContent = PAGE_TITLE;
+  mainTitle.textContent = PAGE_TITLES[state.activePageView] || PAGE_TITLES.stats;
   activeViewLabel.textContent = CATEGORY_LABELS[state.activeCategory];
 
   primaryTabButtons.forEach((button) => {
@@ -2147,7 +2194,7 @@ function createHeaderCell(column) {
 
   const label = document.createElement("span");
   label.className = "stats-table__head-label";
-  label.textContent = column.name;
+  label.textContent = getColumnLabel(column.name);
 
   headerControl.append(label);
 
@@ -2177,7 +2224,7 @@ function createBodyCell(row, column, rowIndex) {
   applyColumnStyle(td, column);
 
   td.classList.add(...getCellClassNames(column.name, value));
-  td.title = formatCellValue(value);
+  td.title = BLANK_PLACEHOLDER_COLUMNS.has(column.name) ? "" : formatCellValue(value);
 
   const content = document.createElement("div");
   content.className = "stats-table__cell-content";
@@ -2262,6 +2309,12 @@ function createEmptyStateRow(columnCount) {
 
 function applyColumnStyle(cell, column) {
   cell.style.setProperty("--column-width", `${column.width}px`);
+}
+
+function getColumnLabel(columnName) {
+  return Object.prototype.hasOwnProperty.call(COLUMN_LABELS, columnName)
+    ? COLUMN_LABELS[columnName]
+    : columnName;
 }
 
 // ---------------------------------------------------------------------------
@@ -2494,9 +2547,20 @@ function getActiveSortColumn() {
 }
 
 function getColumnWidth(columnName) {
-  const widths = state.isCompactViewport ? MOBILE_COLUMN_WIDTHS : COLUMN_WIDTHS;
+  const widths = getActiveWidthMap();
   return widths[columnName]
     ?? (state.isCompactViewport ? DEFAULT_COMPACT_COLUMN_WIDTH : DEFAULT_COLUMN_WIDTH);
+}
+
+function getActiveWidthMap() {
+  // Trade Values table sizing:
+  // widen only the market-data view so its shorter schema fills more of the
+  // available grid width while the Stats tab keeps its existing column sizing.
+  if (state.activePageView === "adp-values") {
+    return state.isCompactViewport ? TRADE_VALUES_MOBILE_COLUMN_WIDTHS : TRADE_VALUES_COLUMN_WIDTHS;
+  }
+
+  return state.isCompactViewport ? MOBILE_COLUMN_WIDTHS : COLUMN_WIDTHS;
 }
 
 function isCompactViewport() {
@@ -2530,6 +2594,11 @@ function normalizeRow(sourceRow) {
   const normalized = {};
 
   for (const columnName of ALL_COLUMNS) {
+    if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
+      normalized[columnName] = "";
+      continue;
+    }
+
     if (sourceRow[columnName] !== undefined) {
       normalized[columnName] = sanitizeValue(sourceRow[columnName]);
       continue;
@@ -2630,13 +2699,19 @@ function parseCsv(csvText) {
 // future agents can read it as custom renderer logic, not adapter code.
 function getCellClassNames(columnName, value) {
   const classes = ["dh-grid-cell"];
-  const missingValue = isMissingValue(value);
 
   if (columnName === PLAYER_COLUMN) {
     classes.push("player-cell");
   } else {
     classes.push("center-cell");
   }
+
+  if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
+    classes.push("plain-cell", "blank-placeholder-cell");
+    return classes;
+  }
+
+  const missingValue = isMissingValue(value);
 
   if (NON_FORMATTED_COLUMNS.has(columnName)) {
     classes.push("plain-cell");
@@ -2668,6 +2743,10 @@ function formatCellValue(value) {
 }
 
 function formatDisplayValue(columnName, value) {
+  if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
+    return "";
+  }
+
   const formattedValue = formatCellValue(value);
 
   if (columnName !== PLAYER_COLUMN || !state.isCompactViewport) {
