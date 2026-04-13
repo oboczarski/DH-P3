@@ -1629,16 +1629,16 @@ body[data-page="datahub"] .dh-pos-badge {
   justify-content: center;
   gap: 5px;
   /* Fixed width keeps every row's POS cell identical in width */
-  width: 52px;
-  padding: 3px 8px 3px 7px;
+  width: 42px;
+  padding: 4px 4px 4px 2px;
   border-radius: 999px;
   box-sizing: border-box;
   white-space: nowrap;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.05em;
   border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 2px 0px rgba(255, 255, 255, 0.021);
 }
 
 body[data-page="datahub"] .dh-pos-badge__dot {
@@ -1651,14 +1651,15 @@ body[data-page="datahub"] .dh-pos-badge__dot {
 }
 
 body[data-page="datahub"] .dh-pos-badge__label {
-  line-height: 1;
+  line-height: 1.1;
 }
 
 /* QB — #ff4187 */
 body[data-page="datahub"] .dh-pos-badge--qb {
   color: #ff4187;
-  background: rgba(255, 65, 135, 0.1);
-  border-color: rgba(255, 65, 135, 0.22);
+  background: rgb(232 240 255 / 3%);
+  border-color: rgb(255 65 135 / 47%);
+  box-shadow: 0 0 3px rgba(255, 65, 135, 0.4);
 }
 body[data-page="datahub"] .dh-pos-badge--qb .dh-pos-badge__dot {
   box-shadow: 0 0 5px rgba(255, 65, 135, 0.55);
@@ -1666,9 +1667,10 @@ body[data-page="datahub"] .dh-pos-badge--qb .dh-pos-badge__dot {
 
 /* RB — #06ffa8 */
 body[data-page="datahub"] .dh-pos-badge--rb {
-  color: #06ffa8;
-  background: rgba(6, 255, 168, 0.08);
-  border-color: rgba(6, 255, 168, 0.18);
+  color: #06ffc2e3;
+  background: rgb(237 245 255 / 3%);
+  border-color: #06ffc265;
+  box-shadow: 0 0 3px #06ffc245;
 }
 body[data-page="datahub"] .dh-pos-badge--rb .dh-pos-badge__dot {
   box-shadow: 0 0 5px rgba(6, 255, 168, 0.5);
@@ -1677,8 +1679,9 @@ body[data-page="datahub"] .dh-pos-badge--rb .dh-pos-badge__dot {
 /* WR — #3881ff */
 body[data-page="datahub"] .dh-pos-badge--wr {
   color: #3881ff;
-  background: rgba(56, 129, 255, 0.1);
-  border-color: rgba(56, 129, 255, 0.22);
+  background: rgb(239 245 255 / 3%);
+  border-color: rgb(56 129 255 / 59%);
+  box-shadow: 0 0 3px rgb(56 129 255 / 39%);
 }
 body[data-page="datahub"] .dh-pos-badge--wr .dh-pos-badge__dot {
   box-shadow: 0 0 5px rgba(56, 129, 255, 0.55);
@@ -1686,9 +1689,10 @@ body[data-page="datahub"] .dh-pos-badge--wr .dh-pos-badge__dot {
 
 /* TE — #7f2fff */
 body[data-page="datahub"] .dh-pos-badge--te {
-  color: #7f2fff;
-  background: rgba(127, 47, 255, 0.1);
-  border-color: rgba(127, 47, 255, 0.22);
+  color: #6833ff;
+  background: rgb(232 239 255 / 3%);
+  border-color: rgb(85 49 255);
+  box-shadow: 0 0 3px #6833ffa8;
 }
 body[data-page="datahub"] .dh-pos-badge--te .dh-pos-badge__dot {
   box-shadow: 0 0 5px rgba(127, 47, 255, 0.5);
@@ -2270,7 +2274,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     min-width: 0;
     padding: 3px 8px;
     justify-self: center;
-    margin-top: -33px;
+    margin-top: 0px;
   }
 
   .app-header__balance {
