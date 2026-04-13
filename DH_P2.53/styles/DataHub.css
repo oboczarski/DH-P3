@@ -2617,8 +2617,8 @@ body[data-page="datahub"] .stats-player-btn.is-loading::after {
    crisp like the Stats reference while modal logo styling remains untouched. */
 body[data-page="datahub"] .stats-table .stats-table__cell-content img.team-logo {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   backface-visibility: hidden;
   transform: translateZ(0);
