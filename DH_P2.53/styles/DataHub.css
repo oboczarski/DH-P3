@@ -2281,57 +2281,49 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     position: relative;
     display: grid;
     grid-area: controls;
-    gap: 14px;
+    gap: 12px;
     justify-self: center;
     align-self: start;
-    width: min(100%, 640px);
-    padding: 18px 18px 16px;
-    border-radius: 28px;
-    background:
-      radial-gradient(circle at 50% -8%, rgba(116, 239, 255, 0.13), transparent 42%),
-      linear-gradient(180deg, rgba(27, 38, 57, 0.9), rgba(13, 20, 33, 0.88));
-    border: 1px solid rgba(173, 202, 244, 0.1);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.09),
-      inset 0 -1px 0 rgba(77, 96, 133, 0.1),
-      0 22px 48px rgba(2, 9, 19, 0.42),
-      0 0 0 1px rgba(15, 28, 47, 0.24);
-    backdrop-filter: blur(14px) saturate(150%);
-    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    width: min(100%, max-content);
+    padding-top: 18px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     overflow: visible;
   }
 
   /* Desktop control connector:
-     adds a subtle chroma bridge from the tabs to the control rail so the two
-     desktop interaction rows feel like one premium system instead of stacked
-     standalone pills. */
+     replaces the oversized desktop box with a lighter chroma bridge so the
+     centered control rails still feel tethered to the page tabs above them. */
   .hero-controls--desktop::before {
     content: "";
     position: absolute;
-    top: -26px;
+    top: -10px;
     left: 50%;
-    width: 170px;
-    height: 34px;
+    width: 220px;
+    height: 30px;
     transform: translateX(-50%);
     background:
-      radial-gradient(circle at center, rgba(116, 239, 255, 0.18), rgba(114, 151, 255, 0.1) 38%, rgba(217, 125, 255, 0) 72%);
-    filter: blur(8px);
+      radial-gradient(circle at center, rgba(116, 239, 255, 0.18), rgba(114, 151, 255, 0.12) 34%, rgba(217, 125, 255, 0.04) 56%, rgba(217, 125, 255, 0) 74%);
+    filter: blur(10px);
     pointer-events: none;
   }
 
   .hero-controls--desktop::after {
     content: "";
     position: absolute;
-    top: 0;
+    top: 2px;
     left: 50%;
-    width: 154px;
-    height: 2px;
-    transform: translate(-50%, -50%);
+    width: 96px;
+    height: 1px;
+    transform: translateX(-50%);
     border-radius: 999px;
-    background: linear-gradient(90deg, transparent, rgba(116, 239, 255, 0.92), rgba(114, 151, 255, 0.95), rgba(217, 125, 255, 0.88), transparent);
+    background: linear-gradient(90deg, transparent, rgba(116, 239, 255, 0.85), rgba(114, 151, 255, 0.92), rgba(217, 125, 255, 0.78), transparent);
     box-shadow:
-      0 0 12px rgba(116, 239, 255, 0.22),
-      0 0 26px rgba(217, 125, 255, 0.14);
+      0 0 10px rgba(116, 239, 255, 0.16),
+      0 0 20px rgba(217, 125, 255, 0.12);
     pointer-events: none;
   }
 
@@ -2345,7 +2337,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .hero-controls--desktop .controls-cluster {
     justify-items: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .hero-controls--desktop .category-row,
@@ -2392,16 +2384,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     position: relative;
     width: fit-content;
     max-width: 100%;
-    padding: 9px 10px;
-    border-radius: 999px;
+    padding: 7px 8px;
+    border-radius: 22px;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.016)),
-      rgba(7, 14, 26, 0.74);
-    border: 1px solid rgba(168, 196, 236, 0.08);
+      linear-gradient(180deg, rgba(36, 48, 68, 0.84), rgba(14, 21, 34, 0.92));
+    border: 1px solid rgba(165, 191, 232, 0.12);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(84, 103, 138, 0.08),
-      0 14px 28px rgba(0, 0, 0, 0.24);
+      0 14px 28px rgba(4, 10, 20, 0.28);
   }
 
   .top-tab {
@@ -2444,23 +2434,21 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   /* Desktop control rails:
-     the category and subfilter rows get their own quieter rail surfaces so the
-     controls feel engineered and related to the desktop page tabs. */
+     the category and subfilter rows become lighter independent rails so the
+     controls read as a designed system instead of one oversized dark block. */
   .hero-controls--desktop .category-row,
   .hero-controls--desktop .receiving-subfilters {
     position: relative;
     width: min(100%, max-content);
     max-width: 100%;
-    padding: 9px 10px;
-    border-radius: 999px;
+    padding: 7px 8px;
+    border-radius: 22px;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.014)),
-      rgba(8, 15, 27, 0.68);
-    border: 1px solid rgba(168, 196, 236, 0.08);
+      linear-gradient(180deg, rgba(35, 47, 67, 0.82), rgba(13, 20, 33, 0.92));
+    border: 1px solid rgba(165, 191, 232, 0.11);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(84, 103, 138, 0.08),
-      0 14px 28px rgba(0, 0, 0, 0.22);
+      0 14px 28px rgba(4, 10, 20, 0.26);
   }
 
   .hero-controls--desktop .category-row {
@@ -2471,12 +2459,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .hero-controls--desktop .utility-row::before {
     content: "";
     position: absolute;
-    left: 18px;
-    right: 18px;
+    left: 20px;
+    right: 20px;
     top: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
-    opacity: 0.78;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    opacity: 0.72;
     pointer-events: none;
   }
 
@@ -2484,30 +2472,32 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .hero-controls--desktop .subfilter-chip,
   .hero-controls--desktop .mini-chip {
     overflow: hidden;
-    border-color: rgba(196, 214, 239, 0.12);
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 16px;
+    border-color: rgba(192, 210, 238, 0.14);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.018)),
-      linear-gradient(180deg, rgba(54, 67, 90, 0.9), rgba(30, 40, 57, 0.88));
-    color: rgba(216, 226, 243, 0.86);
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 52%),
+      linear-gradient(180deg, rgba(70, 84, 110, 0.96), rgba(36, 47, 66, 0.94));
+    color: rgba(222, 232, 246, 0.88);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(55, 72, 102, 0.16),
-      0 10px 20px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(10px) saturate(150%);
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(28, 38, 56, 0.34),
+      0 10px 20px rgba(0, 0, 0, 0.2);
   }
 
   .hero-controls--desktop .category-chip:hover,
   .hero-controls--desktop .subfilter-chip:hover,
   .hero-controls--desktop .mini-chip:hover {
-    border-color: rgba(162, 204, 255, 0.24);
+    transform: translateY(-1px);
+    border-color: rgba(151, 209, 255, 0.26);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.02)),
-      rgba(43, 57, 79, 0.92);
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1), transparent 54%),
+      linear-gradient(180deg, rgba(79, 95, 123, 0.98), rgba(43, 57, 79, 0.96));
     color: rgba(236, 243, 255, 0.94);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 14px 26px rgba(5, 14, 28, 0.28);
+      0 14px 26px rgba(5, 14, 28, 0.24);
   }
 
   .hero-controls--desktop .category-chip::after,
@@ -2520,22 +2510,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     top: 1px;
     height: 1px;
     border-radius: 999px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    opacity: 0.9;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+    opacity: 0.86;
     pointer-events: none;
   }
 
   .hero-controls--desktop .category-chip.is-active,
   .hero-controls--desktop .subfilter-chip.is-active {
     background:
-      linear-gradient(180deg, rgba(128, 217, 255, 0.28), rgba(162, 127, 255, 0.15)),
-      rgba(17, 31, 50, 0.94);
-    color: rgba(246, 250, 255, 0.98);
+      radial-gradient(circle at 50% 0%, rgba(194, 240, 255, 0.18), transparent 50%),
+      linear-gradient(180deg, rgba(79, 114, 160, 0.98), rgba(34, 54, 92, 0.96));
+    color: rgba(248, 251, 255, 0.98);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 14px 30px rgba(16, 37, 68, 0.34),
+      inset 0 -1px 0 rgba(22, 37, 70, 0.28),
+      0 12px 24px rgba(16, 37, 68, 0.3),
       0 0 0 1px rgba(116, 239, 255, 0.18),
-      0 0 22px rgba(116, 239, 255, 0.08);
+      0 0 20px rgba(116, 239, 255, 0.08);
   }
 
   .hero-controls--desktop .category-chip__label {
@@ -2570,16 +2561,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .hero-controls--desktop .mini-chip {
-    min-height: 42px;
+    min-height: 44px;
     padding: 0 17px;
     letter-spacing: 0.04em;
     font-weight: 700;
+    font-size: 0.78rem;
   }
 
   .hero-controls--desktop .mini-chip--pick-values {
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
-      linear-gradient(135deg, rgba(50, 60, 83, 0.95), rgba(34, 45, 62, 0.9));
+      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 54%),
+      linear-gradient(180deg, rgba(72, 86, 112, 0.96), rgba(39, 49, 68, 0.94));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
       inset 0 -1px 0 rgba(63, 81, 112, 0.16),
@@ -2599,8 +2591,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .hero-controls--desktop .mini-chip--icon .mini-chip__icon {
     padding: 5px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(42, 58, 84, 0.18);
   }
 
   .search-shell {
@@ -2610,27 +2604,25 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .hero-controls--desktop .search-shell {
-    flex: 0 1 clamp(244px, 22vw, 330px);
-    min-height: 46px;
+    flex: 0 1 clamp(258px, 23vw, 344px);
+    min-height: 44px;
+    border-radius: 16px;
     border-color: rgba(173, 202, 244, 0.14);
     background:
-      radial-gradient(circle at 14% 50%, rgba(116, 239, 255, 0.08), transparent 18%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.014)),
-      rgba(5, 12, 22, 0.92);
+      radial-gradient(circle at 14% 50%, rgba(116, 239, 255, 0.1), transparent 18%),
+      linear-gradient(180deg, rgba(9, 17, 30, 0.98), rgba(8, 15, 27, 0.94));
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 0 0 1px rgba(15, 28, 47, 0.24),
-      0 14px 30px rgba(0, 0, 0, 0.24);
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 12px 22px rgba(0, 0, 0, 0.18);
   }
 
   .hero-controls--desktop .search-shell:focus-within {
     border-color: rgba(128, 220, 255, 0.24);
     box-shadow:
       0 0 0 1px rgba(128, 220, 255, 0.18),
-      0 0 0 6px rgba(114, 151, 255, 0.06),
+      0 0 0 5px rgba(114, 151, 255, 0.05),
       inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 0 0 1px rgba(15, 28, 47, 0.24),
-      0 14px 30px rgba(0, 0, 0, 0.24);
+      0 12px 22px rgba(0, 0, 0, 0.18);
   }
 
   .search-shell__icon {
@@ -2641,6 +2633,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .hero-controls--desktop .search-shell__icon {
     fill: rgba(170, 201, 238, 0.66);
+  }
+
+  .hero-controls--desktop .search-shell__input {
+    min-height: 44px;
   }
 
   .search-shell__input {
