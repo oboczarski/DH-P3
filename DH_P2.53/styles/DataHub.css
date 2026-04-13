@@ -1975,12 +1975,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .stats-table__cell-content {
     min-height: 38px;
-    padding: 0 8px;
+    padding: 0 2px;
   }
 
   .stats-table__fpts-chip {
     min-height: 22px;
     padding: 0 6px;
+    max-width: 54px;
   }
 
   .stats-table__group-header-icon {
@@ -2069,10 +2070,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   /* Mobile compact pos badge: slightly smaller to fit the reduced POS column */
   body[data-page="datahub"] .dh-pos-badge {
-    width: 46px;
-    padding: 2px 6px 2px 5px;
+    width: 40px;
+    padding: 3px 4px 3px 2px;
     gap: 4px;
-    font-size: 0.68rem;
+    font-size: 0.7rem;
   }
 
   body[data-page="datahub"] .dh-pos-badge__dot {

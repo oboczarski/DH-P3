@@ -636,9 +636,9 @@ const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
 });
 
 const MOBILE_COLUMN_WIDTHS = {
-  RK: 30,
-  PLAYER: 73,
-  POS: 68,
+  RK: 28,
+  PLAYER: 75,
+  POS: 64,
   TM: 40,
   AGE: 45,
   FPTS: 68,
