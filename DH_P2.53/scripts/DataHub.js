@@ -710,9 +710,12 @@ const MOBILE_COLUMN_WIDTHS = {
 };
 
 const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
-  RK: 36,
-  PLAYER: 100,
-  POS: 76,
+  // Mobile Trade Values frozen columns:
+  // keep the left frozen pane aligned to the same widths as the Stats table
+  // so the mobile identity columns feel identical across both real views.
+  RK: MOBILE_COLUMN_WIDTHS.RK,
+  PLAYER: MOBILE_COLUMN_WIDTHS.PLAYER,
+  POS: MOBILE_COLUMN_WIDTHS.POS,
   TM: 54,
   AGE: 56,
   FPTS: 82,
@@ -843,8 +846,8 @@ const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
 // DataHub controls live in two mounts:
-// desktop uses the restored standalone controls shell, while mobile keeps the
-// same control cluster inside the hero shell. Both mounts stay synced here.
+// desktop and mobile each get their own hero-shell control mount so layout can
+// diverge per breakpoint while the underlying DataHub state stays synced.
 const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]")).map((root) => ({
   root,
   categoryRow: root.querySelector("[data-category-row]"),
@@ -1753,8 +1756,24 @@ function updateSortMetaPill() {
     return;
   }
 
-  const { column, direction } = getResolvedSortState();
-  sortMetaPill.textContent = `SORTED BY: ${getColumnLabel(column)} ${direction === "desc" ? "↓" : "↑"}`;
+  const { column } = getResolvedSortState();
+  const label = document.createElement("span");
+  label.className = "meta-pill__label";
+  label.textContent = `SORTED BY: ${getColumnLabel(column)}`;
+
+  const iconWrap = document.createElement("span");
+  iconWrap.className = "meta-pill__icon";
+
+  // Sort meta pill icon:
+  // mirror the same active sort icon used by the matching table header so the
+  // shell summary always reflects the exact current sort mode and direction.
+  const sortIcon = createSortIndicatorIcon(column);
+  if (sortIcon) {
+    sortIcon.classList.add("meta-pill__sort-icon");
+    iconWrap.append(sortIcon);
+  }
+
+  sortMetaPill.replaceChildren(label, iconWrap);
 }
 
 function renderCategoryButtons(viewConfig, categoryRow) {

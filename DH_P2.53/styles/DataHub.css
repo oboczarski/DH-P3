@@ -672,6 +672,10 @@ body::after {
   order: 2;
 }
 
+.hero-controls--desktop {
+  display: none;
+}
+
 .controls-shell {
   display: none;
 }
@@ -1005,8 +1009,23 @@ body::after {
 }
 
 .meta-pill {
+  gap: 6px;
   color: rgba(182, 244, 226, 0.88);
   box-shadow: inset 0 0 18px var(--success-glow);
+}
+
+.meta-pill__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: inherit;
+}
+
+.meta-pill__sort-icon {
+  width: 13px;
+  height: 13px;
 }
 
 .grid-stage {
@@ -2012,11 +2031,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-tab.is-active::after {
-    left: 51%;
-    right: auto;
-    width: min(40px, calc(100% - 20px));
+    left: 8px;
+    right: 8px;
+    width: auto;
     bottom: 2px;
-    transform: translateX(-50%);
+    transform: none;
   }
 
   /* Mobile branding/nav panel parity:
@@ -2186,7 +2205,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell {
-    flex: 0.9 1 0;
+    flex: 1.18 1 0;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell__input {
@@ -2241,15 +2260,20 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding: 28px 22px 36px;
   }
 
+  .hero-controls--desktop {
+    display: grid;
+    gap: 14px;
+    order: 1;
+    justify-self: center;
+    width: min(100%, max-content);
+  }
+
   .hero-controls--mobile {
     display: none;
   }
 
   .controls-shell {
-    display: grid;
-    gap: 14px;
-    margin-top: 14px;
-    padding: 16px 18px;
+    display: none;
   }
 
   .hero-shell {
@@ -2259,8 +2283,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding: 24px;
   }
 
-  .controls-shell {
-    gap: 14px;
+  .hero-controls--desktop .controls-cluster {
+    justify-items: center;
+  }
+
+  .hero-controls--desktop .category-row,
+  .hero-controls--desktop .receiving-subfilters,
+  .hero-controls--desktop .utility-row {
+    justify-content: center;
+  }
+
+  .hero-copy {
+    order: 2;
   }
 
   .page-title {
@@ -2285,6 +2319,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     flex-wrap: wrap;
     gap: 10px;
     justify-content: flex-start;
+  }
+
+  .hero-controls--desktop .utility-row {
+    justify-content: center;
   }
 
   .top-tab {
