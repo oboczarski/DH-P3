@@ -1409,6 +1409,7 @@ body::after {
   min-height: 44px;
   padding: 0 18px 0 10px;
   border: 0;
+  border-right: 1px solid #eaefff03;
   background: transparent;
   color: rgba(202, 222, 247, 0.88);
   font: inherit;
