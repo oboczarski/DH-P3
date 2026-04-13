@@ -65,8 +65,11 @@
           <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
             <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
             <span class="brand-lockup__wordmark">
-              <span class="brand-lockup__name">Dynasty</span>
-              <span class="brand-lockup__accent">Hub</span>
+              <span class="brand-lockup__title">
+                <span class="brand-lockup__name">Dynasty</span>
+                <span class="brand-lockup__accent">Hub</span>
+              </span>
+              <span class="brand-lockup__footer">DATA HUB – ADVANCED ANALYTICS</span>
             </span>
           </div>
 
@@ -119,8 +122,11 @@
               <div class="brand-lockup" role="img" aria-label="Dynasty Hub">
                 <img class="brand-lockup__logo" src="../assets/dh-Logo.png" alt="" />
                 <span class="brand-lockup__wordmark">
-                  <span class="brand-lockup__name">Dynasty</span>
-                  <span class="brand-lockup__accent">Hub</span>
+                  <span class="brand-lockup__title">
+                    <span class="brand-lockup__name">Dynasty</span>
+                    <span class="brand-lockup__accent">Hub</span>
+                  </span>
+                  <span class="brand-lockup__footer">DATA HUB – ADVANCED ANALYTICS</span>
                 </span>
               </div>
             </div>
@@ -280,138 +286,82 @@
           </button>
         </nav>
 
-        <!-- Hero copy: the analytics chip + title relationship is part of the
-             reference composition and should remain visually tied to the page tabs. -->
+        <!-- Hero controls:
+             keeps the category filters, pick-values action, key button, and
+             player search in the same hero glass shell while DataHub.js swaps
+             the filter set per active content view. -->
+        <div class="hero-controls" aria-label="Filters and controls">
+          <div class="controls-cluster">
+            <div
+              id="category-row"
+              class="category-row"
+              role="tablist"
+              aria-label="Stat categories"
+            ></div>
+
+            <div
+              id="receiving-subfilters"
+              class="receiving-subfilters"
+              aria-label="Receiving position filters"
+              hidden
+            ></div>
+          </div>
+
+          <div class="utility-row">
+            <button
+              id="pick-values-button"
+              type="button"
+              class="mini-chip mini-chip--ghost mini-chip--pick-values"
+              aria-disabled="true"
+              hidden
+            >
+              PICK VALUES
+            </button>
+            <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
+              <svg
+                class="mini-chip__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
+                />
+                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
+              </svg>
+              <span>KEY</span>
+            </button>
+
+            <label class="search-shell" for="player-search">
+              <svg
+                class="search-shell__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M10.5 3a7.5 7.5 0 0 1 5.946 12.072l4.241 4.242-1.414 1.414-4.242-4.241A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+                />
+              </svg>
+              <input
+                id="player-search"
+                class="search-shell__input"
+                type="search"
+                inputmode="search"
+                placeholder="Search players..."
+                autocomplete="off"
+              />
+            </label>
+          </div>
+        </div>
+
+        <!-- Hero copy:
+             the visible DataHub title is still owned by the active Stats or
+             Trade Values content view, but the old eyebrow chip is removed. -->
         <div class="hero-copy">
-          <p class="eyebrow">DH DATA HUB – ADVANCED ANALYTICS</p>
           <h1 id="main-title" class="page-title">
             2025 Stats &amp; Advanced Analytics
           </h1>
-        </div>
-
-        <div class="hero-actions">
-          <!-- DataHub hero action:
-               Targets the page-level utility area after the 1-QB / SFLX toggle
-               was removed, while keeping PICK VALUES in its current location
-               for the upcoming dedicated pick-values redesign. -->
-          <button type="button" class="top-pill top-pill--ghost" aria-disabled="true">
-            PICK VALUES
-          </button>
-        </div>
-      </section>
-
-      <!-- Controls shell: category filters and search live outside the hero but
-           remain part of the same reference system surrounding the table. -->
-      <section class="controls-shell glass-panel" aria-label="Filters and controls">
-        <div class="controls-cluster">
-          <div class="category-row" role="tablist" aria-label="Stat categories">
-            <button
-              type="button"
-              class="category-chip is-active"
-              data-category="overview"
-              role="tab"
-              aria-selected="true"
-              aria-label="OVERVIEW (ALL)"
-            >
-              <span class="category-chip__label">OVERVIEW</span>
-              <span class="category-chip__meta">(ALL)</span>
-            </button>
-            <button
-              type="button"
-              class="category-chip"
-              data-category="passing"
-              role="tab"
-              aria-selected="false"
-              aria-label="PASSING (QB)"
-            >
-              <span class="category-chip__label">PASSING</span>
-              <span class="category-chip__meta">(QB)</span>
-            </button>
-            <button
-              type="button"
-              class="category-chip"
-              data-category="rushing"
-              role="tab"
-              aria-selected="false"
-              aria-label="RUSHING (RB)"
-            >
-              <span class="category-chip__label">RUSHING</span>
-              <span class="category-chip__meta">(RB)</span>
-            </button>
-            <button
-              type="button"
-              class="category-chip"
-              data-category="receiving"
-              role="tab"
-              aria-selected="false"
-              aria-label="RECEIVING (W/T)"
-            >
-              <span class="category-chip__label">RECEIVING</span>
-              <span class="category-chip__meta">(W/T)</span>
-            </button>
-          </div>
-
-          <div
-            id="receiving-subfilters"
-            class="receiving-subfilters"
-            aria-label="Receiving position filters"
-            hidden
-          >
-            <button
-              type="button"
-              class="subfilter-chip is-active"
-              data-receiving-filter="WR"
-              aria-pressed="true"
-            >
-              WR
-            </button>
-            <button
-              type="button"
-              class="subfilter-chip is-active"
-              data-receiving-filter="TE"
-              aria-pressed="true"
-            >
-              TE
-            </button>
-          </div>
-        </div>
-
-        <div class="utility-row">
-          <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
-            <svg
-              class="mini-chip__icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
-              />
-              <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/>
-            </svg>
-            <span>KEY</span>
-          </button>
-
-          <label class="search-shell" for="player-search">
-            <svg
-              class="search-shell__icon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M10.5 3a7.5 7.5 0 0 1 5.946 12.072l4.241 4.242-1.414 1.414-4.242-4.241A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
-              />
-            </svg>
-            <input
-              id="player-search"
-              class="search-shell__input"
-              type="search"
-              inputmode="search"
-              placeholder="Search players..."
-              autocomplete="off"
-            />
-          </label>
         </div>
       </section>
 

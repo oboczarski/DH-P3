@@ -9,13 +9,51 @@ const PAGE_TITLES = Object.freeze({
   "adp-values": "Trade Values & ADP",
 });
 const CONTENT_PAGE_VIEWS = new Set(["stats", "adp-values"]);
+const STATS_CATEGORY_KEYS = Object.freeze(["overview", "passing", "rushing", "receiving"]);
+const TRADE_VALUES_CATEGORY_KEYS = Object.freeze(["all", "qb", "rb", "wr", "te", "flx"]);
 
-const CATEGORY_LABELS = {
-  overview: "OVERVIEW (ALL)",
-  passing: "PASSING (QB)",
-  rushing: "RUSHING (RB)",
-  receiving: "RECEIVING (W/T)",
-};
+// DataHub view-specific filter controls:
+// these configs drive the chip labels, active-view meta text, and which filter
+// state belongs to Stats versus Trade Values so tab switches restore the last
+// valid selection for each table instead of sharing one category key.
+const VIEW_FILTER_CONFIGS = Object.freeze({
+  stats: Object.freeze({
+    defaultCategory: "overview",
+    activeViewLabels: Object.freeze({
+      overview: "OVERVIEW (ALL)",
+      passing: "PASSING (QB)",
+      rushing: "RUSHING (RB)",
+      receiving: "RECEIVING (W/T)",
+    }),
+    categories: Object.freeze([
+      Object.freeze({ key: "overview", label: "OVERVIEW", meta: "(ALL)", ariaLabel: "OVERVIEW (ALL)" }),
+      Object.freeze({ key: "passing", label: "PASSING", meta: "(QB)", ariaLabel: "PASSING (QB)" }),
+      Object.freeze({ key: "rushing", label: "RUSHING", meta: "(RB)", ariaLabel: "RUSHING (RB)" }),
+      Object.freeze({ key: "receiving", label: "RECEIVING", meta: "(W/T)", ariaLabel: "RECEIVING (W/T)" }),
+    ]),
+    supportsReceivingSubfilters: true,
+  }),
+  "adp-values": Object.freeze({
+    defaultCategory: "all",
+    activeViewLabels: Object.freeze({
+      all: "ALL",
+      qb: "QB",
+      rb: "RB",
+      wr: "WR",
+      te: "TE",
+      flx: "FLX",
+    }),
+    categories: Object.freeze([
+      Object.freeze({ key: "all", label: "ALL", ariaLabel: "ALL" }),
+      Object.freeze({ key: "qb", label: "QB", ariaLabel: "QB" }),
+      Object.freeze({ key: "rb", label: "RB", ariaLabel: "RB" }),
+      Object.freeze({ key: "wr", label: "WR", ariaLabel: "WR" }),
+      Object.freeze({ key: "te", label: "TE", ariaLabel: "TE" }),
+      Object.freeze({ key: "flx", label: "FLX", ariaLabel: "FLX" }),
+    ]),
+    supportsReceivingSubfilters: false,
+  }),
+});
 
 // ---------------------------------------------------------------------------
 // Column order is the main structural source of truth for each category view.
@@ -26,17 +64,17 @@ const CATEGORY_LABELS = {
 // 4. how column groups must line up with the rendered table
 // ---------------------------------------------------------------------------
 // Trade Values table group:
-// keeps the live market-data columns together and reserves two blank placeholder
-// slots at the end of the group for the next DataHub iteration.
+// keeps the live market-data columns together, now with the requested KTC vs
+// ADP gap columns replacing the temporary placeholders.
 const MARKET_DATA_COLUMNS = [
   "KTC 1QB",
   "KTC SFLX",
   "1QB ADP",
   "SFLX ADP",
-  "TV Placeholder 1",
-  "TV Placeholder 2",
+  "1QB DIFF",
+  "SFLX DIFF",
 ];
-const BLANK_PLACEHOLDER_COLUMNS = new Set(["TV Placeholder 1", "TV Placeholder 2"]);
+const BLANK_PLACEHOLDER_COLUMNS = new Set();
 
 // Trade Values table layout:
 // this view intentionally stays compact and reuses one shared schema across all
@@ -207,7 +245,7 @@ const STATS_COLUMN_SETS = {
 
 const PAGE_VIEW_COLUMN_SETS = Object.freeze({
   stats: STATS_COLUMN_SETS,
-  "adp-values": createSharedCategoryMap(TRADE_VALUES_COLUMN_SET),
+  "adp-values": createCategoryMap(TRADE_VALUES_CATEGORY_KEYS, TRADE_VALUES_COLUMN_SET),
 });
 
 // ---------------------------------------------------------------------------
@@ -224,8 +262,8 @@ const SOURCE_ALIASES = {
   "KTC SFLX": null,
   "1QB ADP": null,
   "SFLX ADP": null,
-  "TV Placeholder 1": null,
-  "TV Placeholder 2": null,
+  "1QB DIFF": null,
+  "SFLX DIFF": null,
   VALUE: null,
   ADP: null,
   "POS·ADP": null,
@@ -249,6 +287,8 @@ const COLUMN_ICONS = {
   "KTC SFLX": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   "1QB ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
   "SFLX ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
+  "1QB DIFF": "M5 12h14M13 5l7 7-7 7", // ArrowRight
+  "SFLX DIFF": "M5 12h14M13 5l7 7-7 7", // ArrowRight
   VALUE:     "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   ADP:       "M18 20V10M12 20V4M6 20v-6", // BarChart2
   "POS·ADP": "M3 6h18M7 12h10M11 18h2", // ListFilter (3 lines decreasing)
@@ -351,20 +391,20 @@ const BASE_COLUMN_GROUPS = {
 
 const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   stats: BASE_COLUMN_GROUPS,
-  "adp-values": createSharedCategoryMap([
+  "adp-values": createCategoryMap(TRADE_VALUES_CATEGORY_KEYS, [
     { label: "INFO", icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ["TM", "AGE"] },
     { label: "FANTASY", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", columns: ["FPTS", "PPG"] },
     { label: "TRADE VALUES & ADP", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", columns: MARKET_DATA_COLUMNS },
   ]),
 });
 
-function createSharedCategoryMap(value) {
-  return Object.freeze({
-    overview: cloneSharedCategoryValue(value),
-    passing: cloneSharedCategoryValue(value),
-    rushing: cloneSharedCategoryValue(value),
-    receiving: cloneSharedCategoryValue(value),
-  });
+function createCategoryMap(keys, value) {
+  return Object.freeze(
+    keys.reduce((map, key) => {
+      map[key] = cloneSharedCategoryValue(value);
+      return map;
+    }, {}),
+  );
 }
 
 function cloneSharedCategoryValue(value) {
@@ -403,6 +443,8 @@ const INVERTED_COLUMNS = new Set([
   "POS·ADP",
   "1QB ADP",
   "SFLX ADP",
+  "1QB DIFF",
+  "SFLX DIFF",
   "INT",
   "FUM",
   "PRS%",
@@ -442,6 +484,8 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "POS·ADP",
   "1QB ADP",
   "SFLX ADP",
+  "1QB DIFF",
+  "SFLX DIFF",
   "TTT",
   "PRS%",
   "SAC",
@@ -449,10 +493,7 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "FUM",
 ]);
 const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM"]);
-const COLUMN_LABELS = Object.freeze({
-  "TV Placeholder 1": "",
-  "TV Placeholder 2": "",
-});
+const COLUMN_LABELS = Object.freeze({});
 const GRID_TEXT_COLLATOR = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: "base",
@@ -490,11 +531,17 @@ const SORT_ICON_PATHS = Object.freeze({
 
 const CATEGORY_FILTERS = {
   overview: (row) => Boolean(row.POS && row.POS !== "NA"),
-  passing: (row) => row.POS === "QB",
-  rushing: (row) => row.POS === "RB",
-  receiving: (row, state) =>
-    (row.POS === "WR" && state.receivingFilters.WR) ||
-    (row.POS === "TE" && state.receivingFilters.TE),
+  passing: (row, appState) => CATEGORY_FILTERS.qb(row, appState),
+  rushing: (row, appState) => CATEGORY_FILTERS.rb(row, appState),
+  receiving: (row, appState) =>
+    (row.POS === "WR" && appState.receivingFilters.WR) ||
+    (row.POS === "TE" && appState.receivingFilters.TE),
+  all: (row) => Boolean(row.POS && row.POS !== "NA"),
+  qb: (row) => row.POS === "QB",
+  rb: (row) => row.POS === "RB",
+  wr: (row) => row.POS === "WR",
+  te: (row) => row.POS === "TE",
+  flx: (row) => row.POS === "RB" || row.POS === "WR" || row.POS === "TE",
 };
 
 const MOBILE_BREAKPOINT = 719;
@@ -511,6 +558,8 @@ const COLUMN_WIDTHS = {
   "KTC SFLX": 96,
   "1QB ADP": 96,
   "SFLX ADP": 100,
+  "1QB DIFF": 96,
+  "SFLX DIFF": 96,
   VALUE: 100,
   ADP: 92,
   "POS·ADP": 116,
@@ -572,18 +621,18 @@ const COLUMN_WIDTHS = {
 
 const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
   RK: 88,
-  PLAYER: 196,
-  POS: 92,
-  TM: 90,
-  AGE: 84,
-  FPTS: 122,
-  PPG: 104,
-  "KTC 1QB": 114,
-  "KTC SFLX": 114,
-  "1QB ADP": 114,
-  "SFLX ADP": 116,
-  "TV Placeholder 1": 118,
-  "TV Placeholder 2": 118,
+  PLAYER: 210,
+  POS: 96,
+  TM: 94,
+  AGE: 88,
+  FPTS: 126,
+  PPG: 108,
+  "KTC 1QB": 152,
+  "KTC SFLX": 152,
+  "1QB ADP": 128,
+  "SFLX ADP": 130,
+  "1QB DIFF": 118,
+  "SFLX DIFF": 120,
 });
 
 const MOBILE_COLUMN_WIDTHS = {
@@ -598,6 +647,8 @@ const MOBILE_COLUMN_WIDTHS = {
   "KTC SFLX": 60,
   "1QB ADP": 60,
   "SFLX ADP": 62,
+  "1QB DIFF": 60,
+  "SFLX DIFF": 60,
   VALUE: 62,
   ADP: 52,
   "POS·ADP": 64,
@@ -659,18 +710,18 @@ const MOBILE_COLUMN_WIDTHS = {
 
 const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
   RK: 48,
-  PLAYER: 92,
-  POS: 62,
-  TM: 50,
-  AGE: 52,
-  FPTS: 78,
-  PPG: 62,
-  "KTC 1QB": 76,
-  "KTC SFLX": 76,
-  "1QB ADP": 76,
-  "SFLX ADP": 78,
-  "TV Placeholder 1": 76,
-  "TV Placeholder 2": 76,
+  PLAYER: 100,
+  POS: 66,
+  TM: 54,
+  AGE: 56,
+  FPTS: 82,
+  PPG: 66,
+  "KTC 1QB": 92,
+  "KTC SFLX": 92,
+  "1QB ADP": 84,
+  "SFLX ADP": 86,
+  "1QB DIFF": 78,
+  "SFLX DIFF": 80,
 });
 
 // ---------------------------------------------------------------------------
@@ -687,6 +738,10 @@ const state = {
   // the visible 1-QB / SFLX toggle was removed from the DataHub hero, but the
   // local modal and ownership summaries still default to 1-QB KTC data.
   primaryTab: "1-QB",
+  activeCategoryByView: {
+    stats: VIEW_FILTER_CONFIGS.stats.defaultCategory,
+    "adp-values": VIEW_FILTER_CONFIGS["adp-values"].defaultCategory,
+  },
   activeCategory: "overview",
   receivingFilters: {
     WR: true,
@@ -783,16 +838,12 @@ const modalInfoButtons = Array.from(
 );
 const pageTabs = document.querySelector(".page-tabs");
 const pageTabButtons = Array.from(document.querySelectorAll(".page-tabs .page-tab"));
+const categoryRow = document.querySelector("#category-row");
 const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
-const categoryButtons = Array.from(
-  document.querySelectorAll("[data-category]"),
-);
 const receivingSubfilters = document.querySelector("#receiving-subfilters");
-const receivingButtons = Array.from(
-  document.querySelectorAll("[data-receiving-filter]"),
-);
+const pickValuesButton = document.querySelector("#pick-values-button");
 // DataHub navigation stays fully page-local: these buttons and the shared More
 // dropdown are wired here instead of relying on app.js so the page remains a
 // standalone bundle.
@@ -888,6 +939,7 @@ function attachEventListeners() {
       }
 
       state.activePageView = nextPageView;
+      state.activeCategory = getStoredCategoryForView(nextPageView);
       state.sort = createDefaultSort(nextPageView);
       syncUiState();
       refreshGrid();
@@ -916,21 +968,37 @@ function attachEventListeners() {
     });
   });
 
-  categoryButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      state.activeCategory = button.dataset.category;
-      syncUiState();
-      refreshGrid();
-    });
+  categoryRow?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-category]");
+    if (!(button instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const nextCategory = button.dataset.category;
+    if (!nextCategory || nextCategory === state.activeCategory) {
+      return;
+    }
+
+    state.activeCategory = nextCategory;
+    state.activeCategoryByView[state.activePageView] = nextCategory;
+    syncUiState();
+    refreshGrid();
   });
 
-  receivingButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const key = button.dataset.receivingFilter;
-      state.receivingFilters[key] = !state.receivingFilters[key];
-      syncUiState();
-      refreshGrid();
-    });
+  receivingSubfilters?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-receiving-filter]");
+    if (!(button instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const key = button.dataset.receivingFilter;
+    if (!key) {
+      return;
+    }
+
+    state.receivingFilters[key] = !state.receivingFilters[key];
+    syncUiState();
+    refreshGrid();
   });
 
   playerSearch.addEventListener("input", (event) => {
@@ -1426,6 +1494,14 @@ function enrichSeasonRow(sourceRow, { oneQbLookup, sflxLookup, adpLookup }) {
   enrichedRow["KTC SFLX"] = formatIntegerString(sflxEntry?.ktc);
   enrichedRow["1QB ADP"] = formatFixedString(adpEntry?.pprAdp, 1);
   enrichedRow["SFLX ADP"] = formatFixedString(adpEntry?.sflxAdp, 1);
+  const oneQbDiff = getTradeDiffValue(oneQbEntry?.overallRank, adpEntry?.pprAdp);
+  const sflxDiff = getTradeDiffValue(sflxEntry?.overallRank, adpEntry?.sflxAdp);
+  enrichedRow["1QB DIFF"] = formatTradeDiffString(oneQbDiff);
+  enrichedRow["SFLX DIFF"] = formatTradeDiffString(sflxDiff);
+  enrichedRow.__oneQbOverallRank = oneQbEntry?.overallRank ?? null;
+  enrichedRow.__sflxOverallRank = sflxEntry?.overallRank ?? null;
+  enrichedRow.__oneQbDiffWinner = getTradeDiffWinner(oneQbEntry?.overallRank, adpEntry?.pprAdp);
+  enrichedRow.__sflxDiffWinner = getTradeDiffWinner(sflxEntry?.overallRank, adpEntry?.sflxAdp);
   // Legacy modal metadata fields:
   // keep the hidden default 1-QB context available for page-local modal and
   // ownership summaries that still read the existing VALUE / ADP fields.
@@ -1469,6 +1545,34 @@ function formatFixedString(value, decimals) {
     return null;
   }
   return Number(value).toFixed(decimals);
+}
+
+function getTradeDiffValue(ktcRank, adpValue) {
+  if (!Number.isFinite(ktcRank) || !Number.isFinite(adpValue)) {
+    return null;
+  }
+
+  return Math.abs(Number(ktcRank) - Number(adpValue));
+}
+
+function getTradeDiffWinner(ktcRank, adpValue) {
+  if (!Number.isFinite(ktcRank) || !Number.isFinite(adpValue)) {
+    return "";
+  }
+
+  if (Number(ktcRank) === Number(adpValue)) {
+    return "";
+  }
+
+  return Number(ktcRank) < Number(adpValue) ? "ktc" : "adp";
+}
+
+function formatTradeDiffString(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  return Number(value).toFixed(1).replace(/\.0$/, "");
 }
 
 async function handlePickedFile(event) {
@@ -1535,8 +1639,11 @@ function applySortedRows() {
 // Sync the non-table shell controls so the header, chips, and receiving
 // subfilters stay aligned with the active in-memory state.
 function syncUiState() {
+  const viewConfig = getViewFilterConfig();
+  state.activeCategory = getStoredCategoryForView(state.activePageView);
   mainTitle.textContent = PAGE_TITLES[state.activePageView] || PAGE_TITLES.stats;
-  activeViewLabel.textContent = CATEGORY_LABELS[state.activeCategory];
+  activeViewLabel.textContent = getActiveViewLabelText();
+  document.body.dataset.datahubView = state.activePageView;
 
   primaryTabButtons.forEach((button) => {
     const isActive = button.dataset.primaryTab === state.primaryTab;
@@ -1544,31 +1651,116 @@ function syncUiState() {
     button.setAttribute("aria-selected", String(isActive));
   });
 
-  categoryButtons.forEach((button) => {
-    const isActive = button.dataset.category === state.activeCategory;
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-selected", String(isActive));
-  });
+  renderCategoryButtons(viewConfig);
+  renderReceivingSubfilters(viewConfig);
 
-  const showReceivingFilters = state.activeCategory === "receiving";
+  const showReceivingFilters = viewConfig.supportsReceivingSubfilters && state.activeCategory === "receiving";
   receivingSubfilters.hidden = !showReceivingFilters;
-
-  receivingButtons.forEach((button) => {
-    const key = button.dataset.receivingFilter;
-    const isActive = Boolean(state.receivingFilters[key]);
-    button.classList.toggle("is-active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
-  });
+  if (pickValuesButton) {
+    pickValuesButton.hidden = state.activePageView !== "adp-values";
+  }
 }
 
 function getActiveColumnSet() {
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
-  return viewSets[state.activeCategory] || PAGE_VIEW_COLUMN_SETS.stats.overview;
+  return viewSets[state.activeCategory] || viewSets[getDefaultCategory(state.activePageView)] || PAGE_VIEW_COLUMN_SETS.stats.overview;
 }
 
 function getActiveColumnGroups() {
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
-  return viewGroups[state.activeCategory] || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
+  return viewGroups[state.activeCategory] || viewGroups[getDefaultCategory(state.activePageView)] || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
+}
+
+function getViewFilterConfig(pageView = state.activePageView) {
+  return VIEW_FILTER_CONFIGS[pageView] || VIEW_FILTER_CONFIGS.stats;
+}
+
+function getDefaultCategory(pageView = state.activePageView) {
+  return getViewFilterConfig(pageView).defaultCategory;
+}
+
+function getStoredCategoryForView(pageView = state.activePageView) {
+  const viewConfig = getViewFilterConfig(pageView);
+  const storedCategory = state.activeCategoryByView?.[pageView];
+  const categoryExists = viewConfig.categories.some(({ key }) => key === storedCategory);
+  return categoryExists ? storedCategory : viewConfig.defaultCategory;
+}
+
+function getActiveViewLabelText() {
+  const viewConfig = getViewFilterConfig();
+  return viewConfig.activeViewLabels[state.activeCategory]
+    || viewConfig.activeViewLabels[viewConfig.defaultCategory]
+    || "";
+}
+
+function renderCategoryButtons(viewConfig) {
+  if (!categoryRow) {
+    return;
+  }
+
+  categoryRow.dataset.view = state.activePageView;
+  categoryRow.setAttribute(
+    "aria-label",
+    state.activePageView === "adp-values" ? "Trade values position filters" : "Stat categories",
+  );
+
+  const fragment = document.createDocumentFragment();
+  viewConfig.categories.forEach((category) => {
+    const button = document.createElement("button");
+    const isActive = category.key === state.activeCategory;
+    button.type = "button";
+    button.className = "category-chip";
+    if (!category.meta) {
+      button.classList.add("category-chip--single-line");
+    }
+    button.dataset.category = category.key;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", String(isActive));
+    button.setAttribute("aria-label", category.ariaLabel || category.label);
+    button.classList.toggle("is-active", isActive);
+
+    const label = document.createElement("span");
+    label.className = "category-chip__label";
+    label.textContent = category.label;
+    button.append(label);
+
+    if (category.meta) {
+      const meta = document.createElement("span");
+      meta.className = "category-chip__meta";
+      meta.textContent = category.meta;
+      button.append(meta);
+    }
+
+    fragment.append(button);
+  });
+
+  categoryRow.replaceChildren(fragment);
+}
+
+function renderReceivingSubfilters(viewConfig) {
+  if (!receivingSubfilters) {
+    return;
+  }
+
+  if (!viewConfig.supportsReceivingSubfilters) {
+    receivingSubfilters.replaceChildren();
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  ["WR", "TE"].forEach((position) => {
+    const button = document.createElement("button");
+    const isActive = Boolean(state.receivingFilters[position]);
+    button.type = "button";
+    button.className = "subfilter-chip";
+    button.dataset.receivingFilter = position;
+    button.setAttribute("aria-pressed", String(isActive));
+    button.classList.toggle("is-active", isActive);
+    button.textContent = position;
+    fragment.append(button);
+  });
+
+  receivingSubfilters.replaceChildren(fragment);
 }
 
 // Desktop-only glint positioning for the top page tabs. This depends on the
@@ -2244,6 +2436,11 @@ function createBodyCell(row, column, rowIndex) {
     // render the same team-logo treatment used by the local modal so the table
     // shows logos while sort/search still operate on the raw team abbreviation.
     content.append(createDataHubTableTeamLogo(rawValue));
+  } else if (state.activePageView === "adp-values" && isTradeValuesRichColumn(column.name)) {
+    // Trade Values table renderers:
+    // keep the stored cell data numeric for sorting and heat formatting, while
+    // the displayed KTC and DIFF cells add the requested rank/suffix typography.
+    content.append(createTradeValuesRichCell(column.name, row, value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else {
@@ -2292,6 +2489,76 @@ function createFptsChip(value) {
   chip.className = `stats-table__fpts-chip stats-table__fpts-chip--tier-${tier}`;
   chip.textContent = formatDisplayValue(FPTS_COLUMN, value);
   return chip;
+}
+
+function isTradeValuesRichColumn(columnName) {
+  return columnName === "KTC 1QB"
+    || columnName === "KTC SFLX"
+    || columnName === "1QB DIFF"
+    || columnName === "SFLX DIFF";
+}
+
+function createTradeValuesRichCell(columnName, row, value) {
+  const meta = row.__meta || {};
+  const wrapper = document.createElement("span");
+  wrapper.className = "trade-value-metric";
+
+  const valueNode = document.createElement("span");
+  valueNode.className = "trade-value-metric__value";
+  valueNode.textContent = formatDisplayValue(columnName, value);
+  wrapper.append(valueNode);
+
+  const annotation = buildTradeValuesAnnotation(columnName, meta);
+  if (annotation) {
+    wrapper.append(annotation);
+  }
+
+  return wrapper;
+}
+
+function buildTradeValuesAnnotation(columnName, meta) {
+  if (columnName === "KTC 1QB" || columnName === "KTC SFLX") {
+    const rank = columnName === "KTC 1QB" ? meta.ktcOneQbRank : meta.ktcSflxRank;
+    if (!Number.isFinite(rank)) {
+      return null;
+    }
+
+    const annotation = document.createElement("span");
+    annotation.className = "trade-value-metric__annotation";
+
+    const open = document.createElement("span");
+    open.className = "trade-value-metric__annotation-bracket";
+    open.textContent = "(";
+
+    const rankNumber = document.createElement("span");
+    rankNumber.className = "trade-value-metric__rank-number";
+    rankNumber.textContent = String(Math.round(rank));
+
+    const suffix = document.createElement("span");
+    suffix.className = "trade-value-metric__rank-suffix";
+    suffix.textContent = getDataHubOrdinalSuffix(rank);
+
+    const close = document.createElement("span");
+    close.className = "trade-value-metric__annotation-bracket";
+    close.textContent = ")";
+
+    annotation.append(open, rankNumber, suffix, close);
+    return annotation;
+  }
+
+  if (columnName === "1QB DIFF" || columnName === "SFLX DIFF") {
+    const winner = columnName === "1QB DIFF" ? meta.diffOneQbWinner : meta.diffSflxWinner;
+    if (!winner) {
+      return null;
+    }
+
+    const suffix = document.createElement("span");
+    suffix.className = "trade-value-metric__diff-suffix";
+    suffix.textContent = winner;
+    return suffix;
+  }
+
+  return null;
 }
 
 function createEmptyStateRow(columnCount) {
@@ -2472,7 +2739,9 @@ function handleHeaderSort(columnName) {
 }
 
 function getVisibleRows() {
-  const predicate = CATEGORY_FILTERS[state.activeCategory];
+  const predicate = CATEGORY_FILTERS[state.activeCategory]
+    || CATEGORY_FILTERS[getDefaultCategory(state.activePageView)]
+    || CATEGORY_FILTERS.overview;
   return state.rows.filter((row) => predicate(row, state));
 }
 
@@ -3375,6 +3644,8 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
   const ppg = toComparableNumber(
     formatFixedString(computedPpg, 2) ?? sourceRow.PPG ?? normalizedRow.PPG,
   );
+  const ktcOneQbRank = toComparableNumber(sourceRow.__oneQbOverallRank);
+  const ktcSflxRank = toComparableNumber(sourceRow.__sflxOverallRank);
   return {
     playerId,
     name: playerName,
@@ -3393,6 +3664,10 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
     posRankText: formatDataHubPosRankText(pos, ktcEntry?.posRank || sourceRow["POS RK"] || sourceRow["POS | RK"] || normalizedRow["POS·ADP"]),
     overallKtcRank: toIntegerOrNull(ktcEntry?.overallRank),
     ktc: toIntegerOrNull(ktcEntry?.ktc),
+    ktcOneQbRank,
+    ktcSflxRank,
+    diffOneQbWinner: String(sourceRow.__oneQbDiffWinner || ""),
+    diffSflxWinner: String(sourceRow.__sflxDiffWinner || ""),
   };
 }
 
