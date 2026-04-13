@@ -1161,14 +1161,28 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 .qualifier-field {
   position: relative;
   min-width: 0;
+  border-radius: 14px;
 }
 
 .qualifier-field.is-filtering .qualifier-select {
-  border-color: rgba(118, 224, 255, 0.34);
   box-shadow:
-    0 0 0 1px rgba(118, 224, 255, 0.16),
     0 0 16px rgba(116, 239, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-field.is-filtering::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 14px;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .qualifier-field.is-dimmed .qualifier-select {
@@ -1285,11 +1299,24 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 }
 
 .qualifier-toggle.is-active {
-  border-color: rgba(118, 224, 255, 0.34);
   box-shadow:
-    0 0 0 1px rgba(118, 224, 255, 0.16),
     0 0 16px rgba(116, 239, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-toggle.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .qualifier-toggle.is-active .qualifier-toggle__text {
@@ -1325,6 +1352,7 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 
 .team-filter {
   position: relative;
+  border-radius: 14px;
 }
 
 .team-filter__trigger {
@@ -1368,11 +1396,24 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 .team-filter__trigger:focus-visible,
 .team-filter[data-open="true"] .team-filter__trigger,
 .team-filter.is-selected .team-filter__trigger {
-  border-color: rgba(132, 210, 255, 0.28);
   box-shadow:
-    0 0 0 1px rgba(132, 210, 255, 0.18),
     0 0 0 4px rgba(114, 151, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.team-filter.is-selected::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 14px;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .team-filter__value,
@@ -1454,10 +1495,31 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 
 .team-filter__option:hover,
 .team-filter__option.is-active {
-  border-color: rgba(118, 224, 255, 0.22);
   background:
     linear-gradient(180deg, rgba(62, 86, 122, 0.52), rgba(25, 39, 60, 0.76));
   color: rgba(244, 248, 255, 0.96);
+}
+
+.team-filter__option.is-active {
+  position: relative;
+  box-shadow:
+    0 0 14px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.team-filter__option.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .mini-chip {
@@ -2816,6 +2878,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .qualifier-row__controls {
     grid-template-columns: minmax(0, 1fr) minmax(0, 0.76fr) auto 1px minmax(0, 1fr);
     gap: 4px;
+  }
+
+  .qualifier-field,
+  .team-filter {
+    border-radius: 12px;
   }
 
   .qualifier-select {
