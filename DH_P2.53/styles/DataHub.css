@@ -1914,13 +1914,13 @@ body::after {
   }
 
   .page-title {
-    max-width: 14ch;
+    max-width: 13ch;
     font-size: clamp(1.7rem, 4vw, 3.3rem);
     line-height: 0.96;
     font-weight: 800;
     text-wrap: balance;
     letter-spacing: -0.05em;
-    margin: 0px 0 0;
+    margin: 21px 0 0;
   }
 
   .top-tabs,
