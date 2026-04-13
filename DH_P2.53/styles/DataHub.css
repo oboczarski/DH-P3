@@ -5087,8 +5087,8 @@ body[data-page="datahub"] #modal-body {
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 8px;
-  max-height: 42.2vh;
-  height: 45vh;
+  max-height: 38vh;
+  height: 38vh;
   scrollbar-width: none;
   overscroll-behavior: contain;
   flex: none;
