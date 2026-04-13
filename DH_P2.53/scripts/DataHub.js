@@ -63,17 +63,12 @@ const VIEW_FILTER_CONFIGS = Object.freeze({
 // 3. which fields participate in search/sort for that view
 // 4. how column groups must line up with the rendered table
 // ---------------------------------------------------------------------------
-// Trade Values table group:
-// keeps the live market-data columns together, now with the requested KTC vs
-// ADP gap columns replacing the temporary placeholders.
-const MARKET_DATA_COLUMNS = [
-  "KTC 1QB",
-  "KTC SFLX",
-  "1QB ADP",
-  "SFLX ADP",
-  "1QB DIFF",
-  "SFLX DIFF",
-];
+// Trade Values table groups:
+// the market columns are split into parallel 1QB and SFLX trios so the
+// compact Trade Values view can compare each format left-to-right.
+const ONE_QB_MARKET_DATA_COLUMNS = ["KTC 1QB", "1QB ADP", "1QB DIFF"];
+const SFLX_MARKET_DATA_COLUMNS = ["KTC SFLX", "SFLX ADP", "SFLX DIFF"];
+const MARKET_DATA_COLUMNS = [...ONE_QB_MARKET_DATA_COLUMNS, ...SFLX_MARKET_DATA_COLUMNS];
 const BLANK_PLACEHOLDER_COLUMNS = new Set();
 
 // Trade Values table layout:
@@ -394,7 +389,8 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   "adp-values": createCategoryMap(TRADE_VALUES_CATEGORY_KEYS, [
     { label: "INFO", icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ["TM", "AGE"] },
     { label: "FANTASY", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", columns: ["FPTS", "PPG"] },
-    { label: "TRADE VALUES & ADP", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", columns: MARKET_DATA_COLUMNS },
+    { label: "1QB", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", iconColor: "#74efff", columns: ONE_QB_MARKET_DATA_COLUMNS },
+    { label: "SFLX", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", iconColor: "#d97dff", columns: SFLX_MARKET_DATA_COLUMNS },
   ]),
 });
 
@@ -451,9 +447,14 @@ const INVERTED_COLUMNS = new Set([
   "CSTY%",
 ]);
 const NEUTRAL_COLUMNS = new Set(["TTT", "CL"]);
+const PPG_COLUMNS = new Set(["PPG"]);
+const KTC_COLUMNS = new Set(["KTC 1QB", "KTC SFLX"]);
+const ADP_COLUMNS = new Set(["1QB ADP", "SFLX ADP", "ADP", "POS·ADP"]);
+const DIFF_COLUMNS = new Set(["1QB DIFF", "SFLX DIFF"]);
 const PLAYER_COLUMN = "PLAYER";
 const FPTS_COLUMN = "FPTS";
 const STICKY_COLUMN_COUNT = 3;
+const FORMATTING_TOP_RANGE_LIMIT = 160;
 const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
   ...MARKET_DATA_COLUMNS,
@@ -807,13 +808,13 @@ const state = {
 const mainTitle = document.querySelector("#main-title");
 const activeViewLabel = document.querySelector("#active-view-label");
 const rowCount = document.querySelector("#row-count");
+const sortMetaPill = document.querySelector("#sort-meta-pill");
 const overlay = document.querySelector("#datahub-page-loading");
 const overlayTitle = document.querySelector("#overlay-title");
 const overlayDescription = document.querySelector("#overlay-description");
 const overlayActions = document.querySelector("#overlay-actions");
 const filePickerButton = document.querySelector("#file-picker-button");
 const filePickerInput = document.querySelector("#file-picker-input");
-const playerSearch = document.querySelector("#player-search");
 const gridContainer = document.querySelector("#player-grid");
 const gameLogsModal = document.querySelector("#game-logs-modal");
 const modalOverlay = document.querySelector("#game-logs-modal .modal-overlay");
@@ -838,12 +839,22 @@ const modalInfoButtons = Array.from(
 );
 const pageTabs = document.querySelector(".page-tabs");
 const pageTabButtons = Array.from(document.querySelectorAll(".page-tabs .page-tab"));
-const categoryRow = document.querySelector("#category-row");
 const primaryTabButtons = Array.from(
   document.querySelectorAll("[data-primary-tab]"),
 );
-const receivingSubfilters = document.querySelector("#receiving-subfilters");
-const pickValuesButton = document.querySelector("#pick-values-button");
+// DataHub controls live in two mounts:
+// desktop uses the restored standalone controls shell, while mobile keeps the
+// same control cluster inside the hero shell. Both mounts stay synced here.
+const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]")).map((root) => ({
+  root,
+  categoryRow: root.querySelector("[data-category-row]"),
+  receivingSubfilters: root.querySelector("[data-receiving-subfilters]"),
+  pickValuesButton: root.querySelector("[data-pick-values-button]"),
+  playerSearch: root.querySelector("[data-player-search]"),
+}));
+const playerSearchInputs = controlMounts
+  .map(({ playerSearch }) => playerSearch)
+  .filter((input) => input instanceof HTMLInputElement);
 // DataHub navigation stays fully page-local: these buttons and the shared More
 // dropdown are wired here instead of relying on app.js so the page remains a
 // standalone bundle.
@@ -968,42 +979,45 @@ function attachEventListeners() {
     });
   });
 
-  categoryRow?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-category]");
-    if (!(button instanceof HTMLButtonElement)) {
-      return;
-    }
+  controlMounts.forEach(({ categoryRow, receivingSubfilters, playerSearch }) => {
+    categoryRow?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-category]");
+      if (!(button instanceof HTMLButtonElement)) {
+        return;
+      }
 
-    const nextCategory = button.dataset.category;
-    if (!nextCategory || nextCategory === state.activeCategory) {
-      return;
-    }
+      const nextCategory = button.dataset.category;
+      if (!nextCategory || nextCategory === state.activeCategory) {
+        return;
+      }
 
-    state.activeCategory = nextCategory;
-    state.activeCategoryByView[state.activePageView] = nextCategory;
-    syncUiState();
-    refreshGrid();
-  });
+      state.activeCategory = nextCategory;
+      state.activeCategoryByView[state.activePageView] = nextCategory;
+      syncUiState();
+      refreshGrid();
+    });
 
-  receivingSubfilters?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-receiving-filter]");
-    if (!(button instanceof HTMLButtonElement)) {
-      return;
-    }
+    receivingSubfilters?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-receiving-filter]");
+      if (!(button instanceof HTMLButtonElement)) {
+        return;
+      }
 
-    const key = button.dataset.receivingFilter;
-    if (!key) {
-      return;
-    }
+      const key = button.dataset.receivingFilter;
+      if (!key) {
+        return;
+      }
 
-    state.receivingFilters[key] = !state.receivingFilters[key];
-    syncUiState();
-    refreshGrid();
-  });
+      state.receivingFilters[key] = !state.receivingFilters[key];
+      syncUiState();
+      refreshGrid();
+    });
 
-  playerSearch.addEventListener("input", (event) => {
-    state.searchText = event.target.value;
-    refreshGrid();
+    playerSearch?.addEventListener("input", (event) => {
+      state.searchText = event.target.value;
+      syncSearchInputs(playerSearch);
+      refreshGrid();
+    });
   });
 
   filePickerButton.addEventListener("click", () => filePickerInput.click());
@@ -1617,6 +1631,7 @@ function applyCsvText(csvText) {
 // Refreshing the grid always follows the same pipeline:
 // category filter -> formatting metrics -> free-text search -> sort -> render.
 function refreshGrid() {
+  ensureValidActiveSort();
   rebuildGridData();
   applySortedRows();
 }
@@ -1626,13 +1641,17 @@ function refreshGrid() {
 // redo the active sort and render instead of rebuilding the whole pipeline.
 function rebuildGridData() {
   state.visibleRows = getVisibleRows();
-  state.columnFormatting = buildColumnFormatting(state.visibleRows);
   state.searchedRows = state.visibleRows.filter(matchesSearch);
+  // DataHub conditional formatting:
+  // calculate tiers from the post-filter, post-search rows so the visible table
+  // always drives the active heat range rather than the hidden remainder.
+  state.columnFormatting = buildColumnFormatting(state.searchedRows);
 }
 
 function applySortedRows() {
   state.displayedRows = sortRows(state.searchedRows);
   renderTable();
+  updateSortMetaPill();
   updateRowCount();
 }
 
@@ -1641,8 +1660,10 @@ function applySortedRows() {
 function syncUiState() {
   const viewConfig = getViewFilterConfig();
   state.activeCategory = getStoredCategoryForView(state.activePageView);
+  ensureValidActiveSort();
   mainTitle.textContent = PAGE_TITLES[state.activePageView] || PAGE_TITLES.stats;
   activeViewLabel.textContent = getActiveViewLabelText();
+  updateSortMetaPill();
   document.body.dataset.datahubView = state.activePageView;
 
   primaryTabButtons.forEach((button) => {
@@ -1651,14 +1672,20 @@ function syncUiState() {
     button.setAttribute("aria-selected", String(isActive));
   });
 
-  renderCategoryButtons(viewConfig);
-  renderReceivingSubfilters(viewConfig);
-
   const showReceivingFilters = viewConfig.supportsReceivingSubfilters && state.activeCategory === "receiving";
-  receivingSubfilters.hidden = !showReceivingFilters;
-  if (pickValuesButton) {
-    pickValuesButton.hidden = state.activePageView !== "adp-values";
-  }
+  controlMounts.forEach((mount) => {
+    mount.root.dataset.view = state.activePageView;
+    renderCategoryButtons(viewConfig, mount.categoryRow);
+    renderReceivingSubfilters(viewConfig, mount.receivingSubfilters);
+    if (mount.receivingSubfilters) {
+      mount.receivingSubfilters.hidden = !showReceivingFilters;
+    }
+    if (mount.pickValuesButton) {
+      mount.pickValuesButton.hidden = state.activePageView !== "adp-values";
+    }
+  });
+
+  syncSearchInputs();
 }
 
 function getActiveColumnSet() {
@@ -1693,7 +1720,44 @@ function getActiveViewLabelText() {
     || "";
 }
 
-function renderCategoryButtons(viewConfig) {
+function ensureValidActiveSort() {
+  const activeColumns = getActiveColumnSet();
+  if (activeColumns.includes(state.sort.column) && isSortableColumn(state.sort.column)) {
+    return;
+  }
+
+  state.sort = createDefaultSort(state.activePageView);
+}
+
+function syncSearchInputs(sourceInput = null) {
+  playerSearchInputs.forEach((input) => {
+    if (input === sourceInput) {
+      return;
+    }
+    if (input.value !== state.searchText) {
+      input.value = state.searchText;
+    }
+  });
+}
+
+function getResolvedSortState() {
+  ensureValidActiveSort();
+  return {
+    column: state.sort.column,
+    direction: state.sort.direction,
+  };
+}
+
+function updateSortMetaPill() {
+  if (!sortMetaPill) {
+    return;
+  }
+
+  const { column, direction } = getResolvedSortState();
+  sortMetaPill.textContent = `SORTED BY: ${getColumnLabel(column)} ${direction === "desc" ? "↓" : "↑"}`;
+}
+
+function renderCategoryButtons(viewConfig, categoryRow) {
   if (!categoryRow) {
     return;
   }
@@ -1737,7 +1801,7 @@ function renderCategoryButtons(viewConfig) {
   categoryRow.replaceChildren(fragment);
 }
 
-function renderReceivingSubfilters(viewConfig) {
+function renderReceivingSubfilters(viewConfig, receivingSubfilters) {
   if (!receivingSubfilters) {
     return;
   }
@@ -2641,6 +2705,9 @@ function buildGroupHeaderRow(columns, groups) {
       svg.setAttribute("aria-hidden", "true");
       svg.setAttribute("focusable", "false");
       svg.classList.add("stats-table__group-header-icon");
+      if (group.iconColor) {
+        svg.style.setProperty("--group-icon-color", group.iconColor);
+      }
       if (group.icon.startsWith("<")) {
         svg.innerHTML = group.icon;
       } else {
@@ -3036,7 +3103,7 @@ function getCellClassNames(columnName, value) {
   }
 
   if (!NON_FORMATTED_COLUMNS.has(columnName)) {
-    const family = NEUTRAL_COLUMNS.has(columnName) ? "neutral" : "heat";
+    const family = getFormattingFamily(columnName);
     const tier = getFormattingTier(columnName, value);
     classes.push("heat-cell", `heat-cell--${family}`, `heat-cell--tier-${tier}`);
   }
@@ -3051,6 +3118,11 @@ function formatCellValue(value) {
 function formatDisplayValue(columnName, value) {
   if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
     return "";
+  }
+
+  if (columnName === FPTS_COLUMN) {
+    const numericValue = toComparableNumber(value);
+    return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
   const formattedValue = formatCellValue(value);
@@ -3093,18 +3165,29 @@ function buildColumnFormatting(rows) {
       return;
     }
 
-    formatting[columnName] = createColumnMetric(values);
+    formatting[columnName] = createColumnMetric(values, columnName);
   });
 
   return formatting;
 }
 
-function createColumnMetric(values) {
+function createColumnMetric(values, columnName) {
   const sorted = [...values].sort((left, right) => left - right);
+  const isInverted = INVERTED_COLUMNS.has(columnName);
+  const limitedSorted = sorted.length > FORMATTING_TOP_RANGE_LIMIT
+    ? (isInverted
+      ? sorted.slice(0, FORMATTING_TOP_RANGE_LIMIT)
+      : sorted.slice(sorted.length - FORMATTING_TOP_RANGE_LIMIT))
+    : sorted;
+  const floorValue = limitedSorted.length
+    ? (isInverted ? limitedSorted[limitedSorted.length - 1] : limitedSorted[0])
+    : null;
 
   return {
-    sorted,
-    isFlat: sorted[0] === sorted[sorted.length - 1],
+    sorted: limitedSorted,
+    isFlat: limitedSorted[0] === limitedSorted[limitedSorted.length - 1],
+    isInverted,
+    floorValue,
   };
 }
 
@@ -3120,12 +3203,51 @@ function getFormattingTier(columnName, value) {
     return 2;
   }
 
-  const percentile = getPercentileRank(metric.sorted, numericValue);
-  const normalized = INVERTED_COLUMNS.has(columnName)
+  if (
+    metric.floorValue != null
+    && (
+      (metric.isInverted && numericValue >= metric.floorValue)
+      || (!metric.isInverted && numericValue <= metric.floorValue)
+    )
+  ) {
+    return 0;
+  }
+
+  const clampedValue = metric.floorValue == null
+    ? numericValue
+    : (metric.isInverted
+      ? Math.min(numericValue, metric.floorValue)
+      : Math.max(numericValue, metric.floorValue));
+  const percentile = getPercentileRank(metric.sorted, clampedValue);
+  const normalized = metric.isInverted
     ? 1 - percentile
     : percentile;
 
   return clamp(Math.round(normalized * 4), 0, 4);
+}
+
+function getFormattingFamily(columnName) {
+  if (NEUTRAL_COLUMNS.has(columnName)) {
+    return "neutral";
+  }
+
+  if (PPG_COLUMNS.has(columnName)) {
+    return "ppg";
+  }
+
+  if (state.activePageView === "adp-values") {
+    if (KTC_COLUMNS.has(columnName)) {
+      return "ktc";
+    }
+    if (ADP_COLUMNS.has(columnName)) {
+      return "adp";
+    }
+    if (DIFF_COLUMNS.has(columnName)) {
+      return "diff";
+    }
+  }
+
+  return "heat";
 }
 
 function getPercentileRank(sortedValues, value) {
