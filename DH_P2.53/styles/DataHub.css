@@ -2570,24 +2570,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     grid-template-areas:
       "header header header"
       "copy tabs ."
-      "copy controls ."
-      "chart chart chart";
+      "copy controls .";
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 38px);
     row-gap: 14px;
     padding: 24px;
   }
 
-  /* Desktop chart lane:
-     keeps the imported widget available on larger-than-mobile layouts while a
-     later wide-desktop override moves it into the dedicated right-side lane. */
+  /* Desktop chart default:
+     keep the hero layout unchanged on standard desktop widths; the chart only
+     becomes visible once there is enough unused top-right hero space for it. */
   body[data-page="datahub"] .datahub-chart-panel--desktop {
-    display: block;
-    grid-area: chart;
-    justify-self: center;
-    align-self: start;
-    width: 360px;
-    margin-top: 6px;
+    display: none;
   }
 
   .hero-controls--desktop {
@@ -3180,19 +3174,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 }
 
 @media (min-width: 1280px) {
-  /* Wide desktop chart port:
-     moves the Top 60 widget into a dedicated right-side hero lane once the
-     viewport can preserve the reference widget size without compressing tabs. */
-  .hero-shell {
-    grid-template-columns: minmax(220px, 1fr) minmax(0, 564px) 360px;
-    grid-template-areas:
-      "header header header"
-      "copy tabs chart"
-      "copy controls chart";
-  }
-
+  /* Wide desktop chart placement:
+     anchors the widget into the unused top-right hero space so the original
+     title, tabs, and controls stay on their pre-chart layout contract. */
   body[data-page="datahub"] .datahub-chart-panel--desktop {
-    justify-self: end;
+    display: block;
+    position: absolute;
+    top: 24px;
+    right: 22px;
+    z-index: 2;
+    width: 360px;
     margin-top: 0;
   }
 }
@@ -3222,6 +3213,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .hero-shell {
     padding: 18px 26px;
+  }
+
+  /* Large desktop chart alignment:
+     match the chart widget's top edge to the nav shell by using the same
+     effective hero padding offset on the wider desktop hero shell. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    top: 18px;
+    right: 26px;
   }
 
   .grid-shell {
