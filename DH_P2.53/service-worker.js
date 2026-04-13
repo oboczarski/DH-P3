@@ -26,7 +26,7 @@
 // ============================================================================
 // DataHub route cleanup: bump the cache so browsers pick up the single
 // lowercase DataHub page entrypoint and stop using the old aliases.
-const CACHE_NAME = 'DH2.6';
+const CACHE_NAME = 'DH2.7';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
