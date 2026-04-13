@@ -2795,7 +2795,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
       "copy controls .";
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 38px);
-    row-gap: 34px;
+    row-gap: 9px;
     padding: 24px;
   }
 
