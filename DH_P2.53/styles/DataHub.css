@@ -1610,6 +1610,90 @@ body::after {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
+.stats-table__fpts-chip--tier-4 {
+  background:
+    linear-gradient(180deg, rgba(102, 215, 255, 0.28), rgba(162, 127, 255, 0.16)),
+    rgba(255, 255, 255, 0.02);
+  border-color: rgba(145, 224, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+/* ── POS column position badges ─────────────────────────────────────────────
+   Compact pill-shaped badges for QB / RB / WR / TE in the POS column.
+   Each badge has a fixed width, fully-rounded ends, a colored dot on the
+   left, and position text. Scoped to the DataHub page so these styles
+   never affect other pages or chip components. */
+body[data-page="datahub"] .dh-pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  /* Fixed width keeps every row's POS cell identical in width */
+  width: 52px;
+  padding: 3px 8px 3px 7px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+body[data-page="datahub"] .dh-pos-badge__dot {
+  display: block;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  /* Base color is set inline by JS; glow is per-position class below */
+}
+
+body[data-page="datahub"] .dh-pos-badge__label {
+  line-height: 1;
+}
+
+/* QB — #ff4187 */
+body[data-page="datahub"] .dh-pos-badge--qb {
+  color: #ff4187;
+  background: rgba(255, 65, 135, 0.1);
+  border-color: rgba(255, 65, 135, 0.22);
+}
+body[data-page="datahub"] .dh-pos-badge--qb .dh-pos-badge__dot {
+  box-shadow: 0 0 5px rgba(255, 65, 135, 0.55);
+}
+
+/* RB — #06ffa8 */
+body[data-page="datahub"] .dh-pos-badge--rb {
+  color: #06ffa8;
+  background: rgba(6, 255, 168, 0.08);
+  border-color: rgba(6, 255, 168, 0.18);
+}
+body[data-page="datahub"] .dh-pos-badge--rb .dh-pos-badge__dot {
+  box-shadow: 0 0 5px rgba(6, 255, 168, 0.5);
+}
+
+/* WR — #3881ff */
+body[data-page="datahub"] .dh-pos-badge--wr {
+  color: #3881ff;
+  background: rgba(56, 129, 255, 0.1);
+  border-color: rgba(56, 129, 255, 0.22);
+}
+body[data-page="datahub"] .dh-pos-badge--wr .dh-pos-badge__dot {
+  box-shadow: 0 0 5px rgba(56, 129, 255, 0.55);
+}
+
+/* TE — #7f2fff */
+body[data-page="datahub"] .dh-pos-badge--te {
+  color: #7f2fff;
+  background: rgba(127, 47, 255, 0.1);
+  border-color: rgba(127, 47, 255, 0.22);
+}
+body[data-page="datahub"] .dh-pos-badge--te .dh-pos-badge__dot {
+  box-shadow: 0 0 5px rgba(127, 47, 255, 0.5);
+}
+
 .stats-table__empty-cell {
   padding: 24px 16px;
   text-align: center;
@@ -1971,6 +2055,25 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell__input {
     font-size: 0.72rem;
     padding-left: 31px;
+  }
+
+  /* Mobile-only: hide the RK column header text label so only the icon shows.
+     The column width is already reduced via MOBILE_COLUMN_WIDTHS in DataHub.js. */
+  body[data-page="datahub"] [data-column-name="RK"] .stats-table__head-label {
+    display: none;
+  }
+
+  /* Mobile compact pos badge: slightly smaller to fit the reduced POS column */
+  body[data-page="datahub"] .dh-pos-badge {
+    width: 46px;
+    padding: 2px 6px 2px 5px;
+    gap: 4px;
+    font-size: 0.68rem;
+  }
+
+  body[data-page="datahub"] .dh-pos-badge__dot {
+    width: 5px;
+    height: 5px;
   }
 }
 

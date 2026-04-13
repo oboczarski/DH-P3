@@ -636,9 +636,9 @@ const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
 });
 
 const MOBILE_COLUMN_WIDTHS = {
-  RK: 39,
+  RK: 30,
   PLAYER: 73,
-  POS: 58,
+  POS: 68,
   TM: 40,
   AGE: 45,
   FPTS: 68,
@@ -709,9 +709,9 @@ const MOBILE_COLUMN_WIDTHS = {
 };
 
 const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
-  RK: 48,
+  RK: 36,
   PLAYER: 100,
-  POS: 66,
+  POS: 76,
   TM: 54,
   AGE: 56,
   FPTS: 82,
@@ -2443,6 +2443,11 @@ function createBodyCell(row, column, rowIndex) {
     content.append(createTradeValuesRichCell(column.name, row, value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
+  } else if (column.name === "POS") {
+    // POS column badge:
+    // replace plain position text with a pill-shaped badge that shows a colored
+    // dot + position abbreviation. Rendered for both desktop and mobile tables.
+    content.append(createPosBadge(value));
   } else {
     content.textContent = formatDisplayValue(column.name, value);
   }
@@ -2489,6 +2494,38 @@ function createFptsChip(value) {
   chip.className = `stats-table__fpts-chip stats-table__fpts-chip--tier-${tier}`;
   chip.textContent = formatDisplayValue(FPTS_COLUMN, value);
   return chip;
+}
+
+// DataHub POS column badge:
+// renders a compact pill-shaped position badge (QB/RB/WR/TE) with a colored
+// dot and position text. Used in place of plain text in the POS column for
+// both the Stats and Trade Values tables on desktop and mobile.
+const POS_BADGE_COLORS = Object.freeze({
+  QB: "#ff4187",
+  RB: "#06ffa8",
+  WR: "#3881ff",
+  TE: "#7f2fff",
+});
+
+function createPosBadge(posValue) {
+  const pos = String(posValue || "").trim().toUpperCase();
+  const color = POS_BADGE_COLORS[pos] || "rgba(202, 222, 247, 0.7)";
+
+  const badge = document.createElement("span");
+  badge.className = `dh-pos-badge dh-pos-badge--${pos.toLowerCase()}`;
+
+  // Colored dot — matches the badge text color per position spec
+  const dot = document.createElement("span");
+  dot.className = "dh-pos-badge__dot";
+  dot.setAttribute("aria-hidden", "true");
+  dot.style.background = color;
+
+  const label = document.createElement("span");
+  label.className = "dh-pos-badge__label";
+  label.textContent = pos || "—";
+
+  badge.append(dot, label);
+  return badge;
 }
 
 function isTradeValuesRichColumn(columnName) {
