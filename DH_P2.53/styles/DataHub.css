@@ -5087,8 +5087,6 @@ body[data-page="datahub"] #modal-body {
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 8px;
-  max-height: 38vh;
-  height: 38vh;
   scrollbar-width: none;
   overscroll-behavior: contain;
   flex: none;
@@ -6295,7 +6293,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] .modal-body {
-    height: 346px;
+    height: 355px;
     max-height: 65vh;
   }
 
