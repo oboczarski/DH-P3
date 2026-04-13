@@ -211,7 +211,7 @@ body::after {
 .brand-lockup {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   min-width: 0;
   max-width: 100%;
   max-height: 62px;
@@ -1863,13 +1863,13 @@ body[data-page="datahub"] .trade-value-metric__rank-number {
 
 body[data-page="datahub"] .trade-value-metric__rank-suffix,
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
-  font-size: 0.66em;
-  letter-spacing: 0.04em;
+  font-size: 0.8em;
+  letter-spacing: -0.02em;
   color: rgba(177, 194, 221, 0.82);
 }
 
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
-  text-transform: lowercase;
+  text-transform: uppercase;
 }
 
 /* ── Mobile Layout (< 720px) ────────────────────────────────────────────── */
@@ -2015,7 +2015,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     left: 51%;
     right: auto;
     width: min(40px, calc(100% - 20px));
-    bottom: 6px;
+    bottom: 2px;
     transform: translateX(-50%);
   }
 
@@ -2049,7 +2049,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .header-shell--stacked .brand-lockup {
     padding: 0px;
     justify-self: center;
-    margin-right: 83px;
+    margin-right: 75px;
   }
 
   .header-shell--stacked .brand-lockup__logo {
@@ -2058,8 +2058,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .header-shell--stacked .brand-lockup__footer {
-    font-size: 0.42rem;
+    font-size: 0.52rem;
     letter-spacing: 0.12em;
+    text-align: center;
   }
 
   .stats-table {
@@ -2164,6 +2165,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     overflow-x: auto;
     padding-bottom: 2px;
     scrollbar-width: none;
+    gap: 4px;
+    justify-content: space-between;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .category-row::-webkit-scrollbar {
@@ -2172,13 +2175,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .category-chip {
     flex: 0 0 auto;
-    min-width: 58px;
+    min-width: 55px;
     white-space: nowrap;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .mini-chip--pick-values {
     font-size: 0.6rem;
     padding: 0 8px;
+    max-width: 60px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell {
@@ -2260,13 +2264,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-title {
-    max-width: 13ch;
+    max-width: 12ch;
     font-size: clamp(1.7rem, 4vw, 3.3rem);
     line-height: 0.96;
     font-weight: 800;
     text-wrap: balance;
     letter-spacing: -0.05em;
-    margin: 21px 0 0;
+    margin: -31px 0 0;
   }
 
   .top-tabs,
