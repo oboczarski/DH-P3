@@ -1163,6 +1163,19 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
   min-width: 0;
 }
 
+.qualifier-field.is-filtering .qualifier-select {
+  border-color: rgba(118, 224, 255, 0.34);
+  box-shadow:
+    0 0 0 1px rgba(118, 224, 255, 0.16),
+    0 0 16px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-field.is-dimmed .qualifier-select {
+  opacity: 0.52;
+  color: rgba(171, 186, 209, 0.62);
+}
+
 .qualifier-field::after {
   content: "";
   position: absolute;
@@ -1205,6 +1218,10 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
     0 0 0 1px rgba(132, 210, 255, 0.18),
     0 0 0 4px rgba(114, 151, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.qualifier-select:disabled {
+  cursor: default;
 }
 
 .qualifier-toggle {
@@ -1267,6 +1284,18 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
   text-transform: uppercase;
 }
 
+.qualifier-toggle.is-active {
+  border-color: rgba(118, 224, 255, 0.34);
+  box-shadow:
+    0 0 0 1px rgba(118, 224, 255, 0.16),
+    0 0 16px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-toggle.is-active .qualifier-toggle__text {
+  color: rgba(240, 247, 255, 0.96);
+}
+
 .qualifier-toggle__input:checked + .qualifier-toggle__switch {
   background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
   box-shadow:
@@ -1288,6 +1317,147 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
   align-self: stretch;
   width: 1px;
   background: linear-gradient(180deg, transparent, rgba(151, 172, 207, 0.36), transparent);
+}
+
+.qualifier-field--team::after {
+  content: none;
+}
+
+.team-filter {
+  position: relative;
+}
+
+.team-filter__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 28px 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(10, 18, 30, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  color: rgba(221, 232, 247, 0.9);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-filter__trigger::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid rgba(183, 198, 224, 0.7);
+  border-bottom: 1.5px solid rgba(183, 198, 224, 0.7);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+.team-filter__trigger:focus {
+  outline: none;
+}
+
+.team-filter__trigger:focus-visible,
+.team-filter[data-open="true"] .team-filter__trigger,
+.team-filter.is-selected .team-filter__trigger {
+  border-color: rgba(132, 210, 255, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(132, 210, 255, 0.18),
+    0 0 0 4px rgba(114, 151, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.team-filter__value,
+.team-filter__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.team-filter__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.team-filter__logo {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.team-filter__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(164, 180, 206, 0.16);
+  color: rgba(221, 232, 247, 0.86);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.team-filter__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 18;
+  display: grid;
+  gap: 4px;
+  max-height: 238px;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid rgba(145, 173, 214, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(11, 19, 31, 0.98), rgba(8, 14, 24, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
+.team-filter__option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(214, 227, 246, 0.88);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-filter__option:hover,
+.team-filter__option.is-active {
+  border-color: rgba(118, 224, 255, 0.22);
+  background:
+    linear-gradient(180deg, rgba(62, 86, 122, 0.52), rgba(25, 39, 60, 0.76));
+  color: rgba(244, 248, 255, 0.96);
 }
 
 .mini-chip {
@@ -2690,6 +2860,45 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     letter-spacing: 0.06em;
   }
 
+  .team-filter__trigger {
+    min-height: 30px;
+    padding: 0 20px 0 8px;
+    border-radius: 12px;
+  }
+
+  .team-filter__trigger::after {
+    right: 8px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .team-filter__text {
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+  }
+
+  .team-filter__logo {
+    width: 15px;
+    height: 15px;
+  }
+
+  .team-filter__fallback {
+    min-width: 15px;
+    min-height: 15px;
+    font-size: 0.48rem;
+  }
+
+  .team-filter__menu {
+    top: calc(100% + 4px);
+    padding: 6px;
+    max-height: 212px;
+  }
+
+  .team-filter__option {
+    min-height: 30px;
+    padding: 0 8px;
+  }
+
   body[data-page="datahub"][data-datahub-view="adp-values"] .category-row {
     display: flex;
     flex-wrap: nowrap;
@@ -2931,6 +3140,26 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .hero-controls--desktop .qualifier-toggle__text {
     font-size: 0.58rem;
+  }
+
+  .hero-controls--desktop .team-filter__trigger {
+    min-height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(29, 43, 64, 0.9), rgba(17, 23, 35, 0.95));
+    box-shadow: inset 0 5px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(171, 189, 209, 0.14);
+  }
+
+  .hero-controls--desktop .team-filter__text {
+    font-size: 0.74rem;
+  }
+
+  .hero-controls--desktop .team-filter__menu {
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(17, 24, 37, 0.98), rgba(9, 15, 25, 0.98));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 18px 36px rgba(0, 0, 0, 0.3);
   }
 
   .hero-controls--desktop .category-row,

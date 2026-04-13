@@ -348,7 +348,7 @@
             </div>
 
             <div class="qualifier-row__controls">
-              <label class="qualifier-field" aria-label="Qualifying Stat">
+              <label class="qualifier-field qualifier-field--stat" aria-label="Qualifying Stat">
                 <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
               </label>
 
@@ -366,9 +366,19 @@
 
               <span class="qualifier-divider" aria-hidden="true"></span>
 
-              <label class="qualifier-field qualifier-field--team" aria-label="NFL Team">
-                <select data-team-filter class="qualifier-select" aria-label="NFL Team"></select>
-              </label>
+              <div class="qualifier-field qualifier-field--team team-filter" data-team-filter-shell>
+                <button
+                  type="button"
+                  class="team-filter__trigger"
+                  data-team-filter-toggle
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="NFL Team"
+                >
+                  <span class="team-filter__value" data-team-filter-value>All Teams</span>
+                </button>
+                <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
+              </div>
             </div>
           </div>
 
@@ -460,7 +470,7 @@
             </div>
 
             <div class="qualifier-row__controls">
-              <label class="qualifier-field" aria-label="Qualifying Stat">
+              <label class="qualifier-field qualifier-field--stat" aria-label="Qualifying Stat">
                 <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
               </label>
 
@@ -478,9 +488,19 @@
 
               <span class="qualifier-divider" aria-hidden="true"></span>
 
-              <label class="qualifier-field qualifier-field--team" aria-label="NFL Team">
-                <select data-team-filter class="qualifier-select" aria-label="NFL Team"></select>
-              </label>
+              <div class="qualifier-field qualifier-field--team team-filter" data-team-filter-shell>
+                <button
+                  type="button"
+                  class="team-filter__trigger"
+                  data-team-filter-toggle
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="NFL Team"
+                >
+                  <span class="team-filter__value" data-team-filter-value>All Teams</span>
+                </button>
+                <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
+              </div>
             </div>
           </div>
 

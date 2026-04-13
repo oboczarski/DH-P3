@@ -101,6 +101,13 @@ const STATS_QUALIFIER_CONFIGS = Object.freeze({
     }),
   }),
 });
+const DATAHUB_CONTROL_TEAM_LOGO_KEY_MAP = Object.freeze({
+  WSH: "was",
+  WAS: "was",
+  JAC: "jax",
+  JAX: "jax",
+  LA: "lar",
+});
 
 // ---------------------------------------------------------------------------
 // Top 60 positional chart reference data.
@@ -628,6 +635,12 @@ function getDataHubTeamOptions() {
   ];
 }
 
+function getDataHubControlTeamLogoSrc(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  const normalizedKey = DATAHUB_CONTROL_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
+  return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
+}
+
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
 // ---------------------------------------------------------------------------
@@ -1089,7 +1102,10 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   qualifierStat: root.querySelector("[data-qualifier-stat]"),
   qualifierThreshold: root.querySelector("[data-qualifier-threshold]"),
   qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
-  teamFilter: root.querySelector("[data-team-filter]"),
+  teamFilterShell: root.querySelector("[data-team-filter-shell]"),
+  teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
+  teamFilterValue: root.querySelector("[data-team-filter-value]"),
+  teamFilterMenu: root.querySelector("[data-team-filter-menu]"),
   pickValuesButton: root.querySelector("[data-pick-values-button]"),
   playerSearch: root.querySelector("[data-player-search]"),
 }));
@@ -1228,7 +1244,9 @@ function attachEventListeners() {
       qualifierStat,
       qualifierThreshold,
       qualifierShowAll,
-      teamFilter,
+      teamFilterShell,
+      teamFilterToggle,
+      teamFilterMenu,
       playerSearch,
     } = mount;
 
@@ -1310,12 +1328,34 @@ function attachEventListeners() {
       refreshGrid();
     });
 
-    teamFilter?.addEventListener("change", (event) => {
+    teamFilterToggle?.addEventListener("click", () => {
       if (state.activePageView !== "stats") {
         return;
       }
 
-      state.statsFilters.team = event.target.value;
+      const shouldOpen = teamFilterMenu?.hidden !== false;
+      closeAllDataHubTeamMenus();
+      if (teamFilterMenu) {
+        teamFilterMenu.hidden = !shouldOpen;
+      }
+      if (teamFilterShell) {
+        teamFilterShell.dataset.open = String(shouldOpen);
+      }
+      teamFilterToggle.setAttribute("aria-expanded", String(shouldOpen));
+    });
+
+    teamFilterMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const option = event.target.closest("[data-team-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      state.statsFilters.team = option.dataset.teamOption || "";
+      closeAllDataHubTeamMenus();
       syncUiState();
       refreshGrid();
     });
@@ -1335,9 +1375,18 @@ function attachEventListeners() {
     }
   });
   chartModalOverlay?.addEventListener("click", closeDataHubChartModal);
+  document.addEventListener("click", (event) => {
+    if (event.target?.closest?.("[data-team-filter-shell]")) {
+      return;
+    }
+    closeAllDataHubTeamMenus();
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.isChartModalOpen) {
       closeDataHubChartModal();
+    }
+    if (event.key === "Escape") {
+      closeAllDataHubTeamMenus();
     }
   });
 
@@ -2535,6 +2584,15 @@ function syncStatsQualifierControls(mount) {
   const isStatsView = state.activePageView === "stats";
   mount.qualifierRow.hidden = !isStatsView;
   if (!isStatsView) {
+    if (mount.teamFilterMenu) {
+      mount.teamFilterMenu.hidden = true;
+    }
+    if (mount.teamFilterShell) {
+      mount.teamFilterShell.dataset.open = "false";
+    }
+    if (mount.teamFilterToggle) {
+      mount.teamFilterToggle.setAttribute("aria-expanded", "false");
+    }
     return;
   }
 
@@ -2547,10 +2605,14 @@ function syncStatsQualifierControls(mount) {
     value: statKey,
     label: statKey,
   }));
+  const qualifiersActive = !state.statsFilters.showAll;
   syncQualifierSelectOptions(
     mount.qualifierStat,
-    statOptions,
-    state.statsFilters.qualifierStat,
+    qualifiersActive
+      ? statOptions
+      : [{ value: "__show-all__", label: "NA" }],
+    qualifiersActive ? state.statsFilters.qualifierStat : "__show-all__",
+    !qualifiersActive,
   );
 
   const thresholdOptions = getStatsQualifierThresholds(
@@ -2570,24 +2632,33 @@ function syncStatsQualifierControls(mount) {
 
   syncQualifierSelectOptions(
     mount.qualifierThreshold,
-    thresholdOptions,
-    state.statsFilters.qualifierThreshold,
+    qualifiersActive
+      ? thresholdOptions
+      : [{ value: "__show-all__", label: "-" }],
+    qualifiersActive ? state.statsFilters.qualifierThreshold : "__show-all__",
+    !qualifiersActive,
   );
 
   const teamOptions = getDataHubTeamOptions();
   if (!teamOptions.some((option) => option.value === state.statsFilters.team)) {
     state.statsFilters.team = "";
   }
-  syncQualifierSelectOptions(mount.teamFilter, teamOptions, state.statsFilters.team);
+  syncTeamFilterControl(mount, teamOptions);
 
   if (mount.qualifierShowAll instanceof HTMLInputElement) {
     mount.qualifierShowAll.checked = state.statsFilters.showAll;
   }
 
   mount.qualifierRow.dataset.showAll = String(state.statsFilters.showAll);
+  mount.qualifierRow.dataset.qualifierActive = String(qualifiersActive);
+  mount.qualifierStat?.closest(".qualifier-field")?.classList.toggle("is-filtering", qualifiersActive);
+  mount.qualifierThreshold?.closest(".qualifier-field")?.classList.toggle("is-filtering", qualifiersActive);
+  mount.qualifierStat?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
+  mount.qualifierThreshold?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
+  mount.qualifierShowAll?.closest(".qualifier-toggle")?.classList.toggle("is-active", state.statsFilters.showAll);
 }
 
-function syncQualifierSelectOptions(select, options, selectedValue) {
+function syncQualifierSelectOptions(select, options, selectedValue, isDisabled = false) {
   if (!(select instanceof HTMLSelectElement)) {
     return;
   }
@@ -2601,9 +2672,82 @@ function syncQualifierSelectOptions(select, options, selectedValue) {
   });
 
   select.replaceChildren(fragment);
+  select.disabled = isDisabled;
   select.value = options.some((option) => option.value === selectedValue)
     ? selectedValue
     : (options[0]?.value || "");
+}
+
+function syncTeamFilterControl(mount, options) {
+  if (!mount.teamFilterMenu || !mount.teamFilterValue || !mount.teamFilterToggle) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  options.forEach((optionConfig) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "team-filter__option";
+    button.dataset.teamOption = optionConfig.value;
+    button.setAttribute("role", "option");
+    const isSelected = optionConfig.value === state.statsFilters.team;
+    button.setAttribute("aria-selected", String(isSelected));
+    button.classList.toggle("is-active", isSelected);
+    button.append(buildTeamFilterContent(optionConfig));
+    fragment.append(button);
+  });
+
+  mount.teamFilterMenu.replaceChildren(fragment);
+
+  const activeOption = options.find((option) => option.value === state.statsFilters.team)
+    || options[0]
+    || { value: "", label: "All Teams" };
+  mount.teamFilterValue.replaceChildren(buildTeamFilterContent(activeOption, { compact: true }));
+  mount.teamFilterShell?.classList.toggle("is-selected", Boolean(state.statsFilters.team));
+  mount.teamFilterToggle.setAttribute("aria-expanded", String(mount.teamFilterMenu.hidden === false));
+}
+
+function buildTeamFilterContent(optionConfig, options = {}) {
+  const { compact = false } = options;
+  const wrapper = document.createElement("span");
+  wrapper.className = "team-filter__content";
+
+  if (optionConfig.value && optionConfig.value !== "FA") {
+    const logo = document.createElement("img");
+    logo.className = "team-logo glow team-filter__logo";
+    logo.src = getDataHubControlTeamLogoSrc(optionConfig.value);
+    logo.alt = optionConfig.label;
+    logo.width = compact ? 16 : 18;
+    logo.height = compact ? 16 : 18;
+    logo.loading = "lazy";
+    wrapper.append(logo);
+  } else if (optionConfig.value === "FA") {
+    const fallback = document.createElement("span");
+    fallback.className = "team-filter__fallback";
+    fallback.textContent = "FA";
+    wrapper.append(fallback);
+  }
+
+  const label = document.createElement("span");
+  label.className = "team-filter__text";
+  label.textContent = optionConfig.label;
+  wrapper.append(label);
+
+  return wrapper;
+}
+
+function closeAllDataHubTeamMenus() {
+  controlMounts.forEach((mount) => {
+    if (mount.teamFilterMenu) {
+      mount.teamFilterMenu.hidden = true;
+    }
+    if (mount.teamFilterShell) {
+      mount.teamFilterShell.dataset.open = "false";
+    }
+    if (mount.teamFilterToggle) {
+      mount.teamFilterToggle.setAttribute("aria-expanded", "false");
+    }
+  });
 }
 
 // Desktop-only glint positioning for the top page tabs. This depends on the
@@ -3761,6 +3905,7 @@ let resizeFrame = 0;
 function handleViewportResize() {
   cancelAnimationFrame(resizeFrame);
   resizeFrame = requestAnimationFrame(() => {
+    closeAllDataHubTeamMenus();
     const nextCompact = isCompactViewport();
     if (nextCompact !== state.isCompactViewport) {
       if (!nextCompact && state.isChartModalOpen) {
