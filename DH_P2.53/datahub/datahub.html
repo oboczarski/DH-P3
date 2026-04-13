@@ -333,6 +333,45 @@
             ></div>
           </div>
 
+          <!-- Stats-only qualifier controls:
+               this middle row sits between the category chips and utility row,
+               and DataHub.js keeps both desktop/mobile mounts synced to the
+               real Stats filtering state. -->
+          <div
+            data-qualifier-row
+            class="qualifier-row"
+            aria-label="Minimum qualifiers and NFL team filters"
+            hidden
+          >
+            <div class="qualifier-row__header">
+              <span class="qualifier-row__label">Min Qualifiers</span>
+            </div>
+
+            <div class="qualifier-row__controls">
+              <label class="qualifier-field" aria-label="Qualifying Stat">
+                <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
+              </label>
+
+              <label class="qualifier-field qualifier-field--threshold" aria-label="Threshold">
+                <select data-qualifier-threshold class="qualifier-select" aria-label="Threshold"></select>
+              </label>
+
+              <label class="qualifier-toggle" aria-label="Show All">
+                <input data-qualifier-show-all type="checkbox" class="qualifier-toggle__input" />
+                <span class="qualifier-toggle__switch" aria-hidden="true">
+                  <span class="qualifier-toggle__thumb"></span>
+                </span>
+                <span class="qualifier-toggle__text">Show All</span>
+              </label>
+
+              <span class="qualifier-divider" aria-hidden="true"></span>
+
+              <label class="qualifier-field qualifier-field--team" aria-label="NFL Team">
+                <select data-team-filter class="qualifier-select" aria-label="NFL Team"></select>
+              </label>
+            </div>
+          </div>
+
           <div class="utility-row">
             <button
               data-pick-values-button
@@ -404,6 +443,45 @@
               aria-label="Receiving position filters"
               hidden
             ></div>
+          </div>
+
+          <!-- Stats-only qualifier controls:
+               duplicated in the mobile mount so the DataHub hero can keep a
+               mobile-specific layout without forking the underlying filter
+               behavior from the desktop controls. -->
+          <div
+            data-qualifier-row
+            class="qualifier-row"
+            aria-label="Minimum qualifiers and NFL team filters"
+            hidden
+          >
+            <div class="qualifier-row__header">
+              <span class="qualifier-row__label">Min Qualifiers</span>
+            </div>
+
+            <div class="qualifier-row__controls">
+              <label class="qualifier-field" aria-label="Qualifying Stat">
+                <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
+              </label>
+
+              <label class="qualifier-field qualifier-field--threshold" aria-label="Threshold">
+                <select data-qualifier-threshold class="qualifier-select" aria-label="Threshold"></select>
+              </label>
+
+              <label class="qualifier-toggle" aria-label="Show All">
+                <input data-qualifier-show-all type="checkbox" class="qualifier-toggle__input" />
+                <span class="qualifier-toggle__switch" aria-hidden="true">
+                  <span class="qualifier-toggle__thumb"></span>
+                </span>
+                <span class="qualifier-toggle__text">Show All</span>
+              </label>
+
+              <span class="qualifier-divider" aria-hidden="true"></span>
+
+              <label class="qualifier-field qualifier-field--team" aria-label="NFL Team">
+                <select data-team-filter class="qualifier-select" aria-label="NFL Team"></select>
+              </label>
+            </div>
           </div>
 
           <div class="utility-row">

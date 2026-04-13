@@ -55,6 +55,53 @@ const VIEW_FILTER_CONFIGS = Object.freeze({
   }),
 });
 
+// Stats-only qualifier controls:
+// these category configs drive the new middle-row qualifier UI so each Stats
+// category can reset to its requested defaults while keeping the team filter
+// independent from those per-category qualifier resets.
+const STATS_QUALIFIER_CONFIGS = Object.freeze({
+  overview: Object.freeze({
+    defaultStat: "SNP%",
+    defaultThreshold: 70,
+    defaultShowAll: true,
+    stats: Object.freeze({
+      "SNP%": Object.freeze([70, 60, 50, 40, 30]),
+      GM_P: Object.freeze([17, 14, 10, 7, 4]),
+    }),
+  }),
+  passing: Object.freeze({
+    defaultStat: "paATT",
+    defaultThreshold: 200,
+    defaultShowAll: false,
+    stats: Object.freeze({
+      DB: Object.freeze([500, 400, 300]),
+      paATT: Object.freeze([400, 300, 200, 100]),
+      GM_P: Object.freeze([17, 14, 10, 7, 4]),
+    }),
+  }),
+  rushing: Object.freeze({
+    defaultStat: "CAR",
+    defaultThreshold: 100,
+    defaultShowAll: false,
+    stats: Object.freeze({
+      CAR: Object.freeze([200, 150, 100, 75, 50]),
+      "SNP%": Object.freeze([70, 60, 50, 40, 30]),
+      GM_P: Object.freeze([17, 14, 10, 7, 4]),
+    }),
+  }),
+  receiving: Object.freeze({
+    defaultStat: "RR",
+    defaultThreshold: 220,
+    defaultShowAll: false,
+    stats: Object.freeze({
+      RR: Object.freeze([450, 380, 300, 220, 180]),
+      TGT: Object.freeze([110, 100, 90, 80]),
+      "SNP%": Object.freeze([70, 60, 50, 40, 30]),
+      GM_P: Object.freeze([17, 14, 10, 7, 4]),
+    }),
+  }),
+});
+
 // ---------------------------------------------------------------------------
 // Top 60 positional chart reference data.
 // ---------------------------------------------------------------------------
@@ -528,6 +575,59 @@ function cloneSharedCategoryValue(value) {
   return value;
 }
 
+function getStatsQualifierConfig(category = VIEW_FILTER_CONFIGS.stats.defaultCategory) {
+  return STATS_QUALIFIER_CONFIGS[category] || STATS_QUALIFIER_CONFIGS.overview;
+}
+
+function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.defaultCategory) {
+  const config = getStatsQualifierConfig(category);
+  return {
+    qualifierStat: config.defaultStat,
+    qualifierThreshold: String(config.defaultThreshold),
+    showAll: Boolean(config.defaultShowAll),
+    team: "",
+  };
+}
+
+function resetStatsQualifierDefaultsForCategory(category = state.activeCategory) {
+  const defaults = createDefaultStatsQualifierState(category);
+  state.statsFilters.qualifierStat = defaults.qualifierStat;
+  state.statsFilters.qualifierThreshold = defaults.qualifierThreshold;
+  state.statsFilters.showAll = defaults.showAll;
+}
+
+function getStatsQualifierThresholds(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
+  const config = getStatsQualifierConfig(category);
+  return config.stats?.[qualifierStat] || [];
+}
+
+function getDefaultThresholdForStat(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
+  const thresholds = getStatsQualifierThresholds(category, qualifierStat);
+  return thresholds.length ? String(thresholds[0]) : "";
+}
+
+function isAllowedStatsQualifierStat(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
+  const config = getStatsQualifierConfig(category);
+  return Object.prototype.hasOwnProperty.call(config.stats, qualifierStat);
+}
+
+function formatQualifierThresholdLabel(qualifierStat, threshold) {
+  return qualifierStat === "SNP%" ? `${threshold}%` : String(threshold);
+}
+
+function getDataHubTeamOptions() {
+  const uniqueTeams = [...new Set(
+    state.rows
+      .map((row) => String(row.TM || "").trim())
+      .filter((team) => team && team !== "NA"),
+  )].sort();
+
+  return [
+    { value: "", label: "All Teams" },
+    ...uniqueTeams.map((team) => ({ value: team, label: team })),
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
 // ---------------------------------------------------------------------------
@@ -572,6 +672,12 @@ const ALL_COLUMNS = [...new Set([
   "VALUE",
   "ADP",
   "POS·ADP",
+  // Hidden Stats qualifier fields:
+  // keep these source columns on the normalized row object even when they are
+  // not visible in the table so the new minimum qualifier controls can filter
+  // against the original season CSV values.
+  "GM_P",
+  "DB",
 ])];
 const COMPACT_SCROLL_COLUMN_SCALE = 1.3;
 const DEFAULT_COLUMN_WIDTH = 94;
@@ -862,6 +968,7 @@ const state = {
     WR: true,
     TE: true,
   },
+  statsFilters: createDefaultStatsQualifierState(),
   searchText: "",
   rawSeasonRows: [],
   rows: [],
@@ -978,6 +1085,11 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   root,
   categoryRow: root.querySelector("[data-category-row]"),
   receivingSubfilters: root.querySelector("[data-receiving-subfilters]"),
+  qualifierRow: root.querySelector("[data-qualifier-row]"),
+  qualifierStat: root.querySelector("[data-qualifier-stat]"),
+  qualifierThreshold: root.querySelector("[data-qualifier-threshold]"),
+  qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
+  teamFilter: root.querySelector("[data-team-filter]"),
   pickValuesButton: root.querySelector("[data-pick-values-button]"),
   playerSearch: root.querySelector("[data-player-search]"),
 }));
@@ -1109,7 +1221,17 @@ function attachEventListeners() {
     });
   });
 
-  controlMounts.forEach(({ categoryRow, receivingSubfilters, playerSearch }) => {
+  controlMounts.forEach((mount) => {
+    const {
+      categoryRow,
+      receivingSubfilters,
+      qualifierStat,
+      qualifierThreshold,
+      qualifierShowAll,
+      teamFilter,
+      playerSearch,
+    } = mount;
+
     categoryRow?.addEventListener("click", (event) => {
       const button = event.target.closest("[data-category]");
       if (!(button instanceof HTMLButtonElement)) {
@@ -1123,6 +1245,9 @@ function attachEventListeners() {
 
       state.activeCategory = nextCategory;
       state.activeCategoryByView[state.activePageView] = nextCategory;
+      if (state.activePageView === "stats") {
+        resetStatsQualifierDefaultsForCategory(nextCategory);
+      }
       syncUiState();
       refreshGrid();
     });
@@ -1146,6 +1271,52 @@ function attachEventListeners() {
     playerSearch?.addEventListener("input", (event) => {
       state.searchText = event.target.value;
       syncSearchInputs(playerSearch);
+      refreshGrid();
+    });
+
+    qualifierStat?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const nextStat = event.target.value;
+      if (!isAllowedStatsQualifierStat(state.activeCategory, nextStat)) {
+        return;
+      }
+
+      state.statsFilters.qualifierStat = nextStat;
+      state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(state.activeCategory, nextStat);
+      syncUiState();
+      refreshGrid();
+    });
+
+    qualifierThreshold?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      state.statsFilters.qualifierThreshold = event.target.value;
+      syncUiState();
+      refreshGrid();
+    });
+
+    qualifierShowAll?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      state.statsFilters.showAll = Boolean(event.target.checked);
+      syncUiState();
+      refreshGrid();
+    });
+
+    teamFilter?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      state.statsFilters.team = event.target.value;
+      syncUiState();
       refreshGrid();
     });
   });
@@ -1617,6 +1788,7 @@ function rebuildDataHubRows() {
   if (!state.rawSeasonRows.length) {
     state.rows = [];
     state.modalRankCache = Object.create(null);
+    syncUiState();
     refreshGrid();
     return;
   }
@@ -1635,6 +1807,7 @@ function rebuildDataHubRows() {
   });
   state.modalRankCache = buildDataHubModalRankCache(state.rows);
 
+  syncUiState();
   refreshGrid();
 }
 
@@ -1830,6 +2003,7 @@ function syncUiState() {
     if (mount.receivingSubfilters) {
       mount.receivingSubfilters.hidden = !showReceivingFilters;
     }
+    syncStatsQualifierControls(mount);
     if (mount.pickValuesButton) {
       mount.pickValuesButton.hidden = state.activePageView !== "adp-values";
     }
@@ -2348,6 +2522,88 @@ function renderReceivingSubfilters(viewConfig, receivingSubfilters) {
   });
 
   receivingSubfilters.replaceChildren(fragment);
+}
+
+// Stats qualifier controls:
+// keep the new middle-row dropdowns/toggle mirrored between the desktop and
+// mobile mounts while only exposing them in the real Stats table view.
+function syncStatsQualifierControls(mount) {
+  if (!mount.qualifierRow) {
+    return;
+  }
+
+  const isStatsView = state.activePageView === "stats";
+  mount.qualifierRow.hidden = !isStatsView;
+  if (!isStatsView) {
+    return;
+  }
+
+  if (!isAllowedStatsQualifierStat(state.activeCategory, state.statsFilters.qualifierStat)) {
+    resetStatsQualifierDefaultsForCategory(state.activeCategory);
+  }
+
+  const qualifierConfig = getStatsQualifierConfig(state.activeCategory);
+  const statOptions = Object.keys(qualifierConfig.stats).map((statKey) => ({
+    value: statKey,
+    label: statKey,
+  }));
+  syncQualifierSelectOptions(
+    mount.qualifierStat,
+    statOptions,
+    state.statsFilters.qualifierStat,
+  );
+
+  const thresholdOptions = getStatsQualifierThresholds(
+    state.activeCategory,
+    state.statsFilters.qualifierStat,
+  ).map((threshold) => ({
+    value: String(threshold),
+    label: formatQualifierThresholdLabel(state.statsFilters.qualifierStat, threshold),
+  }));
+
+  if (!thresholdOptions.some((option) => option.value === state.statsFilters.qualifierThreshold)) {
+    state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(
+      state.activeCategory,
+      state.statsFilters.qualifierStat,
+    );
+  }
+
+  syncQualifierSelectOptions(
+    mount.qualifierThreshold,
+    thresholdOptions,
+    state.statsFilters.qualifierThreshold,
+  );
+
+  const teamOptions = getDataHubTeamOptions();
+  if (!teamOptions.some((option) => option.value === state.statsFilters.team)) {
+    state.statsFilters.team = "";
+  }
+  syncQualifierSelectOptions(mount.teamFilter, teamOptions, state.statsFilters.team);
+
+  if (mount.qualifierShowAll instanceof HTMLInputElement) {
+    mount.qualifierShowAll.checked = state.statsFilters.showAll;
+  }
+
+  mount.qualifierRow.dataset.showAll = String(state.statsFilters.showAll);
+}
+
+function syncQualifierSelectOptions(select, options, selectedValue) {
+  if (!(select instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  options.forEach((optionConfig) => {
+    const option = document.createElement("option");
+    option.value = optionConfig.value;
+    option.textContent = optionConfig.label;
+    fragment.append(option);
+  });
+
+  select.replaceChildren(fragment);
+  select.value = options.some((option) => option.value === selectedValue)
+    ? selectedValue
+    : (options[0]?.value || "");
 }
 
 // Desktop-only glint positioning for the top page tabs. This depends on the
@@ -3369,7 +3625,44 @@ function getVisibleRows() {
   const predicate = CATEGORY_FILTERS[state.activeCategory]
     || CATEGORY_FILTERS[getDefaultCategory(state.activePageView)]
     || CATEGORY_FILTERS.overview;
-  return state.rows.filter((row) => predicate(row, state));
+  return state.rows.filter((row) => {
+    if (!predicate(row, state)) {
+      return false;
+    }
+
+    if (state.activePageView === "stats" && !matchesStatsControlFilters(row)) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function matchesStatsControlFilters(row) {
+  return matchesStatsQualifierFilter(row) && matchesStatsTeamFilter(row);
+}
+
+function matchesStatsQualifierFilter(row) {
+  if (state.statsFilters.showAll) {
+    return true;
+  }
+
+  const qualifierValue = toComparableNumber(row[state.statsFilters.qualifierStat]);
+  const thresholdValue = toComparableNumber(state.statsFilters.qualifierThreshold);
+
+  if (!Number.isFinite(qualifierValue) || !Number.isFinite(thresholdValue)) {
+    return false;
+  }
+
+  return qualifierValue >= thresholdValue;
+}
+
+function matchesStatsTeamFilter(row) {
+  if (!state.statsFilters.team) {
+    return true;
+  }
+
+  return String(row.TM || "").trim() === state.statsFilters.team;
 }
 
 function matchesSearch(row) {
