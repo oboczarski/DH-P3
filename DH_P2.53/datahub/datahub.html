@@ -286,6 +286,29 @@
           </button>
         </nav>
 
+        <!-- Mobile chart trigger:
+             stays absolutely positioned inside the hero shell so the button can
+             open the Top 60 chart modal without changing the title layout. -->
+        <button
+          type="button"
+          class="hero-chart-toggle"
+          data-chart-modal-toggle
+          aria-controls="datahub-chart-modal"
+          aria-expanded="false"
+        >
+          <svg
+            class="hero-chart-toggle__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M18 20V10"></path>
+            <path d="M12 20V4"></path>
+            <path d="M6 20v-6"></path>
+          </svg>
+          <span>Chart</span>
+        </button>
+
         <!-- Desktop-only hero controls:
              restores the controls to the top panel on larger screens while the
              mobile hero keeps its current integrated controls unchanged. -->
@@ -440,6 +463,31 @@
             2025 Stats &amp; Advanced Analytics
           </h1>
         </div>
+
+        <!-- Desktop chart lane:
+             ports the standalone Top 60 chart widget into the hero shell while
+             keeping the original widget sizing and internal composition intact. -->
+        <div class="datahub-chart-panel datahub-chart-panel--desktop" data-chart-panel="desktop">
+          <section
+            class="datahub-top60-chart"
+            data-chart-widget="desktop"
+            aria-label="Top 60 positional distribution chart"
+          >
+            <div class="datahub-top60-chart__header">
+              <h2>PPR · Top 60  — Positional Distribution</h2>
+            </div>
+
+            <div class="datahub-top60-chart__body">
+              <div class="datahub-top60-chart__shell">
+                <div class="datahub-top60-chart__plot" data-chart-canvas></div>
+                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x">Rank</div>
+                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y">Count</div>
+              </div>
+
+              <div class="datahub-top60-chart__chips" data-chart-summary></div>
+            </div>
+          </section>
+        </div>
       </section>
 
       <!-- Grid shell: this is the core reference table panel. Future
@@ -529,6 +577,52 @@
           <span class="nav-more-item-subtext">Feedback</span>
         </span>
       </button>
+    </div>
+
+    <!-- Mobile chart modal:
+         keeps the Top 60 widget page-local and reuses a centered popup shell so
+         mobile can show the chart without inserting it into the hero flow. -->
+    <div
+      id="datahub-chart-modal"
+      class="datahub-chart-modal hidden"
+      aria-hidden="true"
+    >
+      <div class="datahub-chart-modal__overlay"></div>
+      <div
+        class="datahub-chart-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="datahub-chart-modal-title"
+      >
+        <button
+          type="button"
+          class="datahub-chart-modal__close"
+          data-chart-modal-close
+          aria-label="Close chart"
+        >
+          &times;
+        </button>
+
+        <section
+          class="datahub-top60-chart datahub-top60-chart--modal"
+          data-chart-widget="mobile"
+          aria-label="Top 60 positional distribution chart"
+        >
+          <div class="datahub-top60-chart__header">
+            <h2 id="datahub-chart-modal-title">PPR · Top 60  — Positional Distribution</h2>
+          </div>
+
+          <div class="datahub-top60-chart__body">
+            <div class="datahub-top60-chart__shell">
+              <div class="datahub-top60-chart__plot" data-chart-canvas></div>
+              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x">Rank</div>
+              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y">Count</div>
+            </div>
+
+            <div class="datahub-top60-chart__chips" data-chart-summary></div>
+          </div>
+        </section>
+      </div>
     </div>
 
     <!-- DataHub game logs modal:
@@ -856,6 +950,7 @@
          load Chart.js here so DataHub.js can render the performance radar without
          depending on the Stats page head assets. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <script type="module" src="../scripts/DataHub.js"></script>
   </body>
 </html>

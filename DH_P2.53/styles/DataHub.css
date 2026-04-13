@@ -708,6 +708,246 @@ body::after {
   text-wrap: balance;
 }
 
+/* ── Top 60 Chart Widget ────────────────────────────────────────────────── */
+
+body[data-page="datahub"].datahub-chart-modal-open {
+  overflow: hidden;
+}
+
+body[data-page="datahub"] .hero-chart-toggle,
+body[data-page="datahub"] .datahub-chart-panel {
+  display: none;
+}
+
+body[data-page="datahub"] .datahub-top60-chart {
+  --datahub-chart-surface: rgb(5, 6, 11);
+  --datahub-chart-text: rgba(255, 255, 255, 0.96);
+  --datahub-chart-text-secondary: rgba(255, 255, 255, 0.62);
+  --datahub-chart-text-tertiary: rgba(255, 255, 255, 0.44);
+  width: min(100%, 360px);
+  max-width: 375px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 26px;
+  background: var(--datahub-chart-surface);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.45);
+  color: var(--datahub-chart-text);
+  font-family: "Product Sans", "Google Sans", sans-serif;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__header {
+  padding: 10px 16px 4px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__header h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--datahub-chart-text);
+  word-spacing: 0.12em;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__body {
+  padding: 0 5px 8px 7px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__shell {
+  position: relative;
+  height: 302px;
+  padding: 2px 2px 2px 7px;
+  border-radius: 22px;
+  background: var(--datahub-chart-surface);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__plot {
+  width: 100%;
+  height: 100%;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis--x {
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis--y {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 8px;
+  padding-inline: 2px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8px 5px 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  background: var(--datahub-chart-surface);
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--datahub-chart-chip-line);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-dot {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-bottom: 2px;
+  border-radius: 999px;
+  background: var(--datahub-chart-chip-dot);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-label {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-count {
+  font-size: 24px;
+  line-height: 0.95;
+  font-weight: 300;
+  color: var(--datahub-chart-text);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-meta {
+  flex: 0 0 auto;
+  text-align: right;
+  line-height: 1;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-sub {
+  display: block;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--datahub-chart-text-tertiary);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-pct {
+  display: block;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Mobile chart modal shell:
+   keeps the imported chart popup local to DataHub and visually separate from
+   the game-logs modal so the widget can preserve its original card treatment. */
+body[data-page="datahub"] .datahub-chart-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: 18px 14px;
+}
+
+body[data-page="datahub"] .datahub-chart-modal.hidden {
+  display: none;
+}
+
+body[data-page="datahub"] .datahub-chart-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.72);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 388px);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close {
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(173, 198, 236, 0.18);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(35, 49, 72, 0.94), rgba(14, 21, 34, 0.96));
+  color: rgba(236, 244, 255, 0.92);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close:hover {
+  transform: translateY(-1px);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(151, 221, 255, 0.56),
+    0 0 0 6px rgba(92, 170, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
 .top-tab,
 .top-pill,
 .category-chip,
@@ -1904,6 +2144,48 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding-top: 18px;
   }
 
+  /* Mobile chart trigger:
+     anchors the new Chart button in the hero corner so it can open the popup
+     without changing the title's normal flow or adding extra vertical space. */
+  body[data-page="datahub"] .hero-chart-toggle {
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 30px;
+    padding: 0 10px;
+    border: 1px solid rgba(149, 177, 220, 0.18);
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(39, 54, 79, 0.9), rgba(18, 27, 42, 0.94));
+    color: rgba(223, 234, 249, 0.88);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  body[data-page="datahub"] .hero-chart-toggle__icon {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: none !important;
+  }
+
   .page-tabs {
     /* Mobile page-tabs:
        Targets the five-view tab row on small screens so each tab keeps an
@@ -2169,6 +2451,19 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     order: 3;
   }
 
+  body[data-page="datahub"] .datahub-chart-modal {
+    padding: 18px 12px;
+  }
+
+  body[data-page="datahub"] .datahub-chart-modal__dialog {
+    width: min(100%, 372px);
+  }
+
+  body[data-page="datahub"] .datahub-top60-chart--modal {
+    width: min(100%, 360px);
+    margin: 0 auto;
+  }
+
   .utility-row {
     gap: 6px;
   }
@@ -2275,11 +2570,24 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     grid-template-areas:
       "header header header"
       "copy tabs ."
-      "copy controls .";
+      "copy controls ."
+      "chart chart chart";
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 38px);
     row-gap: 14px;
     padding: 24px;
+  }
+
+  /* Desktop chart lane:
+     keeps the imported widget available on larger-than-mobile layouts while a
+     later wide-desktop override moves it into the dedicated right-side lane. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: block;
+    grid-area: chart;
+    justify-self: center;
+    align-self: start;
+    width: 360px;
+    margin-top: 6px;
   }
 
   .hero-controls--desktop {
@@ -2869,6 +3177,24 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding: 9px 18px 11px;
   }
 
+}
+
+@media (min-width: 1280px) {
+  /* Wide desktop chart port:
+     moves the Top 60 widget into a dedicated right-side hero lane once the
+     viewport can preserve the reference widget size without compressing tabs. */
+  .hero-shell {
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 564px) 360px;
+    grid-template-areas:
+      "header header header"
+      "copy tabs chart"
+      "copy controls chart";
+  }
+
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    justify-self: end;
+    margin-top: 0;
+  }
 }
 
 /* ── Large Desktop Refinements ──────────────────────────────────────────── */

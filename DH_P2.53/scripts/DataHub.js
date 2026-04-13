@@ -56,6 +56,117 @@ const VIEW_FILTER_CONFIGS = Object.freeze({
 });
 
 // ---------------------------------------------------------------------------
+// Top 60 positional chart reference data.
+// ---------------------------------------------------------------------------
+// This keeps the imported Top60ChrtW widget page-local to DataHub and preserves
+// the exact static series/count data from the reference bundle for v1.
+const DATAHUB_TOP60_CHART_DATA = Object.freeze([
+  { rank: 1, QB: 0, RB: 1, WR: 0, TE: 0 },
+  { rank: 2, QB: 0, RB: 1, WR: 1, TE: 0 },
+  { rank: 3, QB: 1, RB: 1, WR: 1, TE: 0 },
+  { rank: 4, QB: 1, RB: 2, WR: 1, TE: 0 },
+  { rank: 5, QB: 1, RB: 3, WR: 1, TE: 0 },
+  { rank: 6, QB: 1, RB: 4, WR: 1, TE: 0 },
+  { rank: 7, QB: 2, RB: 4, WR: 1, TE: 0 },
+  { rank: 8, QB: 2, RB: 4, WR: 2, TE: 0 },
+  { rank: 9, QB: 3, RB: 4, WR: 2, TE: 0 },
+  { rank: 10, QB: 4, RB: 4, WR: 2, TE: 0 },
+  { rank: 11, QB: 5, RB: 4, WR: 2, TE: 0 },
+  { rank: 12, QB: 5, RB: 4, WR: 3, TE: 0 },
+  { rank: 13, QB: 6, RB: 4, WR: 3, TE: 0 },
+  { rank: 14, QB: 6, RB: 5, WR: 3, TE: 0 },
+  { rank: 15, QB: 6, RB: 5, WR: 3, TE: 1 },
+  { rank: 16, QB: 7, RB: 5, WR: 3, TE: 1 },
+  { rank: 17, QB: 7, RB: 5, WR: 4, TE: 1 },
+  { rank: 18, QB: 8, RB: 5, WR: 4, TE: 1 },
+  { rank: 19, QB: 9, RB: 5, WR: 4, TE: 1 },
+  { rank: 20, QB: 9, RB: 6, WR: 4, TE: 1 },
+  { rank: 21, QB: 10, RB: 6, WR: 4, TE: 1 },
+  { rank: 22, QB: 11, RB: 6, WR: 4, TE: 1 },
+  { rank: 23, QB: 12, RB: 6, WR: 4, TE: 1 },
+  { rank: 24, QB: 12, RB: 6, WR: 5, TE: 1 },
+  { rank: 25, QB: 12, RB: 7, WR: 5, TE: 1 },
+  { rank: 26, QB: 12, RB: 7, WR: 5, TE: 2 },
+  { rank: 27, QB: 12, RB: 7, WR: 6, TE: 2 },
+  { rank: 28, QB: 12, RB: 8, WR: 6, TE: 2 },
+  { rank: 29, QB: 13, RB: 8, WR: 6, TE: 2 },
+  { rank: 30, QB: 14, RB: 8, WR: 6, TE: 2 },
+  { rank: 31, QB: 14, RB: 8, WR: 7, TE: 2 },
+  { rank: 32, QB: 14, RB: 9, WR: 7, TE: 2 },
+  { rank: 33, QB: 15, RB: 9, WR: 7, TE: 2 },
+  { rank: 34, QB: 15, RB: 10, WR: 7, TE: 2 },
+  { rank: 35, QB: 15, RB: 11, WR: 7, TE: 2 },
+  { rank: 36, QB: 16, RB: 11, WR: 7, TE: 2 },
+  { rank: 37, QB: 17, RB: 11, WR: 7, TE: 2 },
+  { rank: 38, QB: 18, RB: 11, WR: 7, TE: 2 },
+  { rank: 39, QB: 18, RB: 11, WR: 8, TE: 2 },
+  { rank: 40, QB: 19, RB: 11, WR: 8, TE: 2 },
+  { rank: 41, QB: 19, RB: 12, WR: 8, TE: 2 },
+  { rank: 42, QB: 19, RB: 13, WR: 8, TE: 2 },
+  { rank: 43, QB: 19, RB: 14, WR: 8, TE: 2 },
+  { rank: 44, QB: 19, RB: 14, WR: 9, TE: 2 },
+  { rank: 45, QB: 20, RB: 14, WR: 9, TE: 2 },
+  { rank: 46, QB: 20, RB: 14, WR: 10, TE: 2 },
+  { rank: 47, QB: 20, RB: 15, WR: 10, TE: 2 },
+  { rank: 48, QB: 20, RB: 15, WR: 11, TE: 2 },
+  { rank: 49, QB: 20, RB: 15, WR: 12, TE: 2 },
+  { rank: 50, QB: 20, RB: 15, WR: 13, TE: 2 },
+  { rank: 51, QB: 20, RB: 15, WR: 14, TE: 2 },
+  { rank: 52, QB: 20, RB: 16, WR: 14, TE: 2 },
+  { rank: 53, QB: 21, RB: 16, WR: 14, TE: 2 },
+  { rank: 54, QB: 21, RB: 17, WR: 14, TE: 2 },
+  { rank: 55, QB: 21, RB: 18, WR: 14, TE: 2 },
+  { rank: 56, QB: 21, RB: 18, WR: 15, TE: 2 },
+  { rank: 57, QB: 21, RB: 18, WR: 16, TE: 2 },
+  { rank: 58, QB: 21, RB: 18, WR: 17, TE: 2 },
+  { rank: 59, QB: 21, RB: 19, WR: 17, TE: 2 },
+  { rank: 60, QB: 21, RB: 20, WR: 17, TE: 2 },
+]);
+
+const DATAHUB_TOP60_CHART_SERIES = Object.freeze([
+  Object.freeze({
+    key: "QB",
+    count: 21,
+    pct: 35.0,
+    lineStart: "#ff9a3d",
+    lineEnd: "#ff4187",
+    areaStart: "#ff9a3d",
+    areaEnd: "#ff4187",
+    glow: "rgba(255, 120, 90, 0.34)",
+  }),
+  Object.freeze({
+    key: "RB",
+    count: 20,
+    pct: 33.3,
+    lineStart: "#1ac2ff",
+    lineEnd: "#06ff97",
+    areaStart: "#64d8ff",
+    areaEnd: "#06ffa8",
+    glow: "rgba(100, 216, 255, 0.34)",
+  }),
+  Object.freeze({
+    key: "WR",
+    count: 17,
+    pct: 28.3,
+    lineStart: "#8153ff",
+    lineEnd: "#0299fe",
+    areaStart: "#6e10fb",
+    areaEnd: "#0d72ff",
+    glow: "rgba(124, 111, 255, 0.34)",
+  }),
+  Object.freeze({
+    key: "TE",
+    count: 2,
+    pct: 3.3,
+    lineStart: "#ff6bc8",
+    lineEnd: "#7f2fff",
+    areaStart: "#ff6bc8",
+    areaEnd: "#7f2fff",
+    glow: "rgba(255, 107, 200, 0.30)",
+  }),
+]);
+
+// ---------------------------------------------------------------------------
 // Column order is the main structural source of truth for each category view.
 // These arrays simultaneously define:
 // 1. visible column order
@@ -764,6 +875,14 @@ const state = {
     vertical: 0,
   },
   supplementalDataLoaded: false,
+  // Top 60 chart widget state:
+  // keep the imported ECharts widget local to DataHub so desktop can render it
+  // in the hero shell and mobile can lazy-mount it inside a popup modal.
+  top60ChartWidgets: {
+    desktop: null,
+    mobile: null,
+  },
+  isChartModalOpen: false,
   ktcLookups: {
     "1-QB": Object.create(null),
     SFLX: Object.create(null),
@@ -812,6 +931,13 @@ const mainTitle = document.querySelector("#main-title");
 const activeViewLabel = document.querySelector("#active-view-label");
 const rowCount = document.querySelector("#row-count");
 const sortMetaPill = document.querySelector("#sort-meta-pill");
+const chartToggleButton = document.querySelector("[data-chart-modal-toggle]");
+const chartModal = document.querySelector("#datahub-chart-modal");
+const chartModalOverlay = chartModal?.querySelector(".datahub-chart-modal__overlay");
+const chartModalCloseButton = chartModal?.querySelector("[data-chart-modal-close]");
+const chartDesktopPanel = document.querySelector("[data-chart-panel='desktop']");
+const chartDesktopRoot = document.querySelector("[data-chart-widget='desktop']");
+const chartMobileRoot = document.querySelector("[data-chart-widget='mobile']");
 const overlay = document.querySelector("#datahub-page-loading");
 const overlayTitle = document.querySelector("#overlay-title");
 const overlayDescription = document.querySelector("#overlay-description");
@@ -858,6 +984,7 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
 const playerSearchInputs = controlMounts
   .map(({ playerSearch }) => playerSearch)
   .filter((input) => input instanceof HTMLInputElement);
+let hasWarnedMissingEcharts = false;
 // DataHub navigation stays fully page-local: these buttons and the shared More
 // dropdown are wired here instead of relying on app.js so the page remains a
 // standalone bundle.
@@ -1021,6 +1148,26 @@ function attachEventListeners() {
       syncSearchInputs(playerSearch);
       refreshGrid();
     });
+  });
+
+  chartToggleButton?.addEventListener("click", () => {
+    if (state.isChartModalOpen) {
+      closeDataHubChartModal();
+      return;
+    }
+    openDataHubChartModal();
+  });
+
+  chartModal?.addEventListener("click", (event) => {
+    if (event.target?.closest?.("[data-chart-modal-close]")) {
+      closeDataHubChartModal();
+    }
+  });
+  chartModalOverlay?.addEventListener("click", closeDataHubChartModal);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && state.isChartModalOpen) {
+      closeDataHubChartModal();
+    }
   });
 
   filePickerButton.addEventListener("click", () => filePickerInput.click());
@@ -1689,6 +1836,363 @@ function syncUiState() {
   });
 
   syncSearchInputs();
+  syncDataHubChartUi();
+}
+
+// ---------------------------------------------------------------------------
+// DataHub Top 60 chart widget
+// ---------------------------------------------------------------------------
+// This ports the standalone Top60ChrtW reference widget into DataHub while
+// keeping the chart fully local to this page and its desktop/mobile shell.
+function syncDataHubChartUi() {
+  const shouldShowChart = CONTENT_PAGE_VIEWS.has(state.activePageView);
+
+  if (chartDesktopPanel) {
+    chartDesktopPanel.hidden = !shouldShowChart || state.isCompactViewport;
+  }
+
+  if (chartToggleButton) {
+    chartToggleButton.hidden = !shouldShowChart || !state.isCompactViewport;
+    chartToggleButton.setAttribute("aria-expanded", String(state.isChartModalOpen));
+  }
+
+  if (!shouldShowChart) {
+    closeDataHubChartModal({ restoreFocus: false });
+    return;
+  }
+
+  if (state.isCompactViewport) {
+    if (chartDesktopPanel) {
+      chartDesktopPanel.hidden = true;
+    }
+    return;
+  }
+
+  closeDataHubChartModal({ restoreFocus: false });
+  const widget = ensureDataHubTop60ChartWidget("desktop");
+  requestAnimationFrame(() => {
+    widget?.resize?.();
+  });
+}
+
+function getDataHubTop60ChartRoot(widgetKey) {
+  return widgetKey === "mobile" ? chartMobileRoot : chartDesktopRoot;
+}
+
+function ensureDataHubTop60ChartWidget(widgetKey) {
+  const existingWidget = state.top60ChartWidgets?.[widgetKey];
+  if (existingWidget) {
+    return existingWidget;
+  }
+
+  const widgetRoot = getDataHubTop60ChartRoot(widgetKey);
+  if (!widgetRoot) {
+    return null;
+  }
+
+  const widget = createDataHubTop60ChartWidget(widgetRoot, widgetKey);
+  state.top60ChartWidgets[widgetKey] = widget;
+  return widget;
+}
+
+function createDataHubTop60ChartWidget(widgetRoot, widgetKey) {
+  const chartCanvas = widgetRoot.querySelector("[data-chart-canvas]");
+  const summaryHost = widgetRoot.querySelector("[data-chart-summary]");
+
+  if (!chartCanvas || !summaryHost) {
+    return null;
+  }
+
+  renderDataHubTop60SummaryChips(summaryHost);
+
+  const echartsApi = getDataHubEchartsApi();
+  if (!echartsApi) {
+    return {
+      key: widgetKey,
+      root: widgetRoot,
+      resize: () => {},
+      dispose: () => {},
+    };
+  }
+
+  const chart = echartsApi.init(chartCanvas, null, { renderer: "svg" });
+  chart.setOption(buildDataHubTop60ChartOption(echartsApi));
+
+  const resize = () => {
+    if (!widgetRoot.isConnected || chart.isDisposed()) {
+      return;
+    }
+    chart.resize();
+  };
+
+  const resizeObserver = typeof ResizeObserver === "function"
+    ? new ResizeObserver(() => resize())
+    : null;
+  resizeObserver?.observe(widgetRoot);
+
+  return {
+    key: widgetKey,
+    root: widgetRoot,
+    chart,
+    resize,
+    dispose: () => {
+      resizeObserver?.disconnect();
+      if (!chart.isDisposed()) {
+        chart.dispose();
+      }
+    },
+  };
+}
+
+function getDataHubEchartsApi() {
+  if (window.echarts) {
+    return window.echarts;
+  }
+
+  if (!hasWarnedMissingEcharts) {
+    console.warn("DataHub Top 60 chart skipped because ECharts is unavailable.");
+    hasWarnedMissingEcharts = true;
+  }
+
+  return null;
+}
+
+function renderDataHubTop60SummaryChips(summaryHost) {
+  summaryHost.innerHTML = DATAHUB_TOP60_CHART_SERIES
+    .map((series) => `
+      <div
+        class="datahub-top60-chart__stat-chip"
+        style="
+          --datahub-chart-chip-line: linear-gradient(90deg, ${series.lineStart}, ${series.lineEnd});
+          --datahub-chart-chip-dot: linear-gradient(135deg, ${series.lineStart}, ${series.lineEnd});
+          box-shadow:
+            0 2px 8px rgba(0,0,0,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.03),
+            0 0 0 1px rgba(255,255,255,0.02),
+            0 -3px 10px ${series.glow};
+        "
+      >
+        <div class="datahub-top60-chart__stat-chip-top">
+          <span class="datahub-top60-chart__stat-dot"></span>
+          <span class="datahub-top60-chart__stat-label">${series.key}</span>
+        </div>
+
+        <div class="datahub-top60-chart__stat-chip-bottom">
+          <span class="datahub-top60-chart__stat-count">${series.count}</span>
+          <span class="datahub-top60-chart__stat-meta">
+            <span class="datahub-top60-chart__stat-sub">Top 60</span>
+            <span class="datahub-top60-chart__stat-pct">${series.pct.toFixed(1)}%</span>
+          </span>
+        </div>
+      </div>
+    `)
+    .join("");
+}
+
+function buildDataHubTop60ChartOption(echartsApi) {
+  return {
+    animationDuration: 450,
+    backgroundColor: "transparent",
+    grid: {
+      left: 30,
+      right: 8,
+      top: 16,
+      bottom: 44,
+      containLabel: false,
+    },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(5,6,11,0.96)",
+      borderColor: "rgba(255,255,255,0.10)",
+      borderWidth: 1,
+      textStyle: {
+        color: "#fff",
+        fontSize: 12,
+        fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+      },
+      axisPointer: {
+        type: "line",
+        lineStyle: {
+          color: "rgba(255,255,255,0.14)",
+          width: 1,
+        },
+      },
+      extraCssText:
+        "border-radius:16px; box-shadow:0 16px 40px rgba(0,0,0,.45); padding:10px 12px;",
+      formatter(params) {
+        const items = params
+          .map((entry) => {
+            const series = DATAHUB_TOP60_CHART_SERIES.find((item) => item.key === entry.seriesName);
+            if (!series) {
+              return "";
+            }
+
+            return `
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:20px; margin-top:4px;">
+                <div style="display:flex; align-items:center; gap:8px; color:rgba(255,255,255,.78);">
+                  <span style="
+                    width:10px;
+                    height:10px;
+                    border-radius:999px;
+                    display:inline-block;
+                    background: linear-gradient(135deg, ${series.lineStart}, ${series.lineEnd});
+                  "></span>
+                  ${entry.seriesName}
+                </div>
+                <div style="font-weight:700; color:#fff;">${entry.value[1]}</div>
+              </div>
+            `;
+          })
+          .join("");
+
+        return `
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:.18em; color:rgba(255,255,255,.55); margin-bottom:6px;">
+            Rank ${params[0]?.axisValue ?? ""}
+          </div>
+          ${items}
+        `;
+      },
+    },
+    xAxis: {
+      type: "value",
+      min: 0,
+      max: 60,
+      interval: 12,
+      axisLabel: {
+        color: "rgba(255,255,255,0.76)",
+        fontSize: 11,
+        fontWeight: 300,
+        fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+        formatter(value) {
+          return Number.isInteger(value) ? String(value) : "";
+        },
+      },
+      axisLine: {
+        lineStyle: {
+          color: "rgba(255,255,255,0.14)",
+        },
+      },
+      axisTick: {
+        show: false,
+      },
+      splitLine: {
+        show: false,
+      },
+    },
+    yAxis: {
+      type: "value",
+      min: 0,
+      max: 22,
+      interval: 2,
+      axisLabel: {
+        color: "rgba(255,255,255,0.76)",
+        fontSize: 11,
+        fontWeight: 300,
+        fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+      },
+      axisLine: {
+        lineStyle: {
+          color: "rgba(255,255,255,0)",
+        },
+      },
+      axisTick: {
+        show: false,
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: "rgba(255,255,255,0.05)",
+          type: "dotted",
+        },
+      },
+    },
+    series: buildDataHubTop60ChartSeries(echartsApi),
+  };
+}
+
+function buildDataHubTop60ChartSeries(echartsApi) {
+  return DATAHUB_TOP60_CHART_SERIES.map((series) => ({
+    name: series.key,
+    type: "line",
+    smooth: 0.55,
+    showSymbol: false,
+    symbol: "none",
+    z: 3,
+    lineStyle: {
+      width: 3,
+      color: createDataHubTop60LineGradient(echartsApi, series.lineStart, series.lineEnd),
+      cap: "round",
+      join: "round",
+    },
+    areaStyle: {
+      color: createDataHubTop60AreaGradient(echartsApi, series.areaStart, series.areaEnd),
+    },
+    emphasis: {
+      focus: "series",
+    },
+    data: DATAHUB_TOP60_CHART_DATA.map((row) => [row.rank, row[series.key]]),
+  }));
+}
+
+function createDataHubTop60LineGradient(echartsApi, start, end) {
+  return new echartsApi.graphic.LinearGradient(0, 0, 1, 0, [
+    { offset: 0, color: start },
+    { offset: 0.42, color: start },
+    { offset: 0.82, color: end },
+    { offset: 1, color: end },
+  ]);
+}
+
+function createDataHubTop60AreaGradient(echartsApi, start, end) {
+  return new echartsApi.graphic.LinearGradient(0, 0, 1, 0, [
+    { offset: 0, color: echartsApi.color.modifyAlpha(start, 0.44) },
+    { offset: 0.4, color: echartsApi.color.modifyAlpha(start, 0.32) },
+    { offset: 0.82, color: echartsApi.color.modifyAlpha(end, 0.21) },
+    { offset: 1, color: echartsApi.color.modifyAlpha(end, 0.14) },
+  ]);
+}
+
+function openDataHubChartModal() {
+  if (!state.isCompactViewport || !chartModal || chartToggleButton?.hidden) {
+    return;
+  }
+
+  state.isChartModalOpen = true;
+  chartModal.classList.remove("hidden");
+  chartModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("datahub-chart-modal-open");
+  chartToggleButton?.setAttribute("aria-expanded", "true");
+
+  requestAnimationFrame(() => {
+    const widget = ensureDataHubTop60ChartWidget("mobile");
+    requestAnimationFrame(() => {
+      widget?.resize?.();
+      chartModalCloseButton?.focus?.();
+    });
+  });
+}
+
+function closeDataHubChartModal({ restoreFocus = true } = {}) {
+  if (!chartModal) {
+    return;
+  }
+
+  state.isChartModalOpen = false;
+  chartModal.classList.add("hidden");
+  chartModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("datahub-chart-modal-open");
+  chartToggleButton?.setAttribute("aria-expanded", "false");
+
+  if (restoreFocus && state.isCompactViewport) {
+    chartToggleButton?.focus?.();
+  }
+}
+
+function resizeDataHubTop60Charts() {
+  state.top60ChartWidgets.desktop?.resize?.();
+  if (state.isChartModalOpen) {
+    state.top60ChartWidgets.mobile?.resize?.();
+  }
 }
 
 function getActiveColumnSet() {
@@ -2966,10 +3470,15 @@ function handleViewportResize() {
   resizeFrame = requestAnimationFrame(() => {
     const nextCompact = isCompactViewport();
     if (nextCompact !== state.isCompactViewport) {
+      if (!nextCompact && state.isChartModalOpen) {
+        closeDataHubChartModal({ restoreFocus: false });
+      }
       state.isCompactViewport = nextCompact;
       renderTable();
     }
 
+    syncDataHubChartUi();
+    resizeDataHubTop60Charts();
     updatePageTabsGlint();
   });
 }
