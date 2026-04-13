@@ -2304,7 +2304,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     font-weight: 800;
     text-wrap: balance;
     letter-spacing: -0.05em;
-    margin: -31px 0 0;
+    margin: -164px 0 0;
   }
 
   .top-tabs,
@@ -5264,8 +5264,6 @@ body[data-page="datahub"] #modal-body {
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 8px;
-  max-height: 42.2vh;
-  height: 45vh;
   scrollbar-width: none;
   overscroll-behavior: contain;
   flex: none;
@@ -6472,7 +6470,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] .modal-body {
-    height: 346px;
+    height: 355px;
     max-height: 65vh;
   }
 
