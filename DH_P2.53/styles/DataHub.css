@@ -1162,6 +1162,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .qualifier-row {
   display: grid;
   gap: 3px;
+  overflow: visible;
 }
 
 .qualifier-row__header {
@@ -1183,6 +1184,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   align-items: center;
   gap: 6px;
   min-width: 0;
+  overflow: visible;
 }
 
 .qualifier-field {
@@ -1380,6 +1382,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .team-filter {
   position: relative;
   border-radius: 14px;
+  overflow: visible;
 }
 
 .team-filter__trigger {
@@ -1490,7 +1493,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 18;
+  z-index: 40;
   display: grid;
   gap: 4px;
   max-height: 238px;
@@ -2626,18 +2629,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .page-tabs {
     /* Mobile page-tabs:
-       Targets the five-view tab row on small screens so each tab keeps an
-       inline icon + label layout, equal spacing, and a centered active
-       indicator while preserving the Trade Values & ADP two-line label. */
+       stack each icon above a single-line label so the long Trade Values tab
+       stops wrapping and the active underline can align to the full tab width. */
     order: 2;
     display: flex;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: none;
     align-items: stretch;
-    gap: 0px;
-    width: auto;
-    padding: 1px;
+    gap: 2px;
+    width: 100%;
+    padding: 1px 0 4px;
     margin: 0 8px 6px -6px;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: visible;
     border-bottom: 1px solid #abd1;
     border-radius: 0px;
     background: none;
@@ -2650,95 +2653,55 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-tab {
-    /* Mobile per-tab icon controls:
-       each page-tab gets its own CSS variables so odd-shaped icons can be
-       nudged independently without affecting the shared mobile tab layout. */
-    --page-tab-icon-size: 17px;
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-margin-right: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-    width: 100%;
-    min-width: 0;
-    min-height: 35px;
+    /* Mobile tab stack:
+       let each tab size to its own content while keeping the icon above the
+       label, which avoids wrapped labels distorting the active indicator. */
+    width: auto;
+    min-width: max-content;
+    min-height: 48px;
+    flex: 0 0 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
-    padding: 0px;
+    padding: 3px 8px 8px;
     border-radius: 16px;
-    font-size: 0.65rem;
-    line-height: 1.02;
+    font-size: 0.58rem;
+    line-height: 1;
     letter-spacing: -0.03em;
-    text-align: left;
+    text-align: center;
   }
 
   .page-tab .tab-icon {
     flex: 0 0 auto;
     display: block;
-    width: var(--page-tab-icon-size);
-    height: var(--page-tab-icon-size);
-    margin-top: var(--page-tab-icon-margin-top);
-    margin-right: var(--page-tab-icon-margin-right);
-    transform: translate(var(--page-tab-icon-offset-x), var(--page-tab-icon-offset-y));
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    transform: none;
     transform-origin: center;
-  }
-
-  /* Mobile page-tab icon tuning hooks:
-     keep these selectors local to the mobile tab bar so any one icon can be
-     nudged independently when its SVG shape sits visually high/low/left/right. */
-  .page-tab[data-page-tab="stats"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: -2px;
-  }
-
-  .page-tab[data-page-tab="rankings"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-  }
-
-  .page-tab[data-page-tab="adp-values"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-  }
-
-  .page-tab[data-page-tab="rookies"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: -1px;
-  }
-
-  .page-tab[data-page-tab="ownership"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
   }
 
   .page-tab__text,
   .page-tab__label {
     display: block;
     min-width: 0;
-    line-height: 1.05;
-    text-align: left;
+    line-height: 1;
+    text-align: center;
     white-space: nowrap;
   }
 
   .page-tab__label--adp {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    white-space: normal;
-    font-size: 0.55rem;
-    line-height: 0.98;
-    letter-spacing: -0.05em;
+    display: block;
+    white-space: nowrap;
+    font-size: 0.5rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
   }
 
   .page-tab__label--adp > span {
-    display: block;
+    display: inline;
   }
 
   .page-tab.is-active {
@@ -2747,11 +2710,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-tab.is-active::after {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    bottom: 2px;
-    transform: none;
+    left: 50%;
+    right: auto;
+    width: calc(100% - 12px);
+    bottom: 3px;
+    transform: translateX(-50%);
   }
 
   /* Mobile branding/nav panel parity:
@@ -3142,7 +3105,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),      0 18px 40px rgba(4, 10, 20, 0.24),      0 0 0 1px rgba(90, 117, 160, 0.06);
     backdrop-filter: blur(10px) saturate(135%);
     -webkit-backdrop-filter: blur(10px) saturate(135%);
-    overflow: hidden;
+    /* Desktop team dropdowns need to escape the panel bounds so the team menu
+       can render above the table shell instead of getting clipped by the card. */
+    overflow: visible;
   }
 
   /* Desktop control panel:
