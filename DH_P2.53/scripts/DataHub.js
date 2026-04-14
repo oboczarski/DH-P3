@@ -3153,8 +3153,20 @@ function buildHeaderTable(columns, totalWidth, groups, paneType) {
   );
   const thead = document.createElement("thead");
   thead.append(buildGroupHeaderRow(columns, groups));
+
+  // Compute group-start columns so the column header cells at each group
+  // boundary get a matching left border that connects to the group header row
+  // border-right directly above them.
+  const groupStartCols = getGroupStartColumnSet(groups);
+
   const columnRow = document.createElement("tr");
-  columns.forEach((column) => columnRow.append(createHeaderCell(column)));
+  columns.forEach((column) => {
+    const th = createHeaderCell(column);
+    if (groupStartCols.has(column.name)) {
+      th.classList.add("stats-table__header-cell--group-start");
+    }
+    columnRow.append(th);
+  });
   thead.append(columnRow);
   table.append(thead);
   return table;
@@ -3191,11 +3203,16 @@ function createTableBase(columns, totalWidth, paneType, ariaLabel) {
 }
 
 function renderGridBodyRows(refs) {
+  // Compute group-start columns for the scroll body so each body row can carry
+  // a left-border class that visually connects to the group header row borders.
+  const activeGroups = getActiveColumnGroups();
+  const scrollGroupStartCols = getGroupStartColumnSet(activeGroups);
+
   renderTableBody(refs.frozenBodyTbody, refs.frozenColumns, false);
-  renderTableBody(refs.scrollBodyTbody, refs.scrollColumns, true);
+  renderTableBody(refs.scrollBodyTbody, refs.scrollColumns, true, scrollGroupStartCols);
 }
 
-function renderTableBody(tbody, columns, showEmptyState) {
+function renderTableBody(tbody, columns, showEmptyState, groupStartCols = new Set()) {
   const fragment = document.createDocumentFragment();
 
   if (showEmptyState && !state.displayedRows.length) {
@@ -3205,7 +3222,7 @@ function renderTableBody(tbody, columns, showEmptyState) {
       const tr = document.createElement("tr");
       tr.className = "stats-table__body-row";
       tr.dataset.rowIndex = rowIndex;
-      columns.forEach((column) => tr.append(createBodyCell(row, column, rowIndex)));
+      columns.forEach((column) => tr.append(createBodyCell(row, column, rowIndex, groupStartCols)));
       fragment.append(tr);
     });
   }
@@ -3589,13 +3606,20 @@ function createHeaderCell(column) {
   return th;
 }
 
-function createBodyCell(row, column, rowIndex) {
+function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   const rawValue = row[column.name];
   const value = column.name === RK_COLUMN
     ? String(rowIndex + 1)
     : rawValue;
   const td = document.createElement("td");
   td.classList.add("stats-table__body-cell");
+
+  // Mark body cells at column-group boundaries so CSS can draw a continuous
+  // vertical separator that connects to the group header row border above.
+  if (groupStartCols.has(column.name)) {
+    td.classList.add("stats-table__body-cell--group-start");
+  }
+
   applyColumnStyle(td, column);
 
   td.classList.add(...getCellClassNames(column.name, value));
@@ -3876,6 +3900,25 @@ function buildGroupHeaderRow(columns, groups) {
   });
 
   return tr;
+}
+
+// ---------------------------------------------------------------------------
+// Group separator helpers
+// ---------------------------------------------------------------------------
+// Compute a Set of column names that begin a new group boundary.
+// The first group is skipped because there is no separator before it.
+// Used to apply matching left-border classes on column header th and body td
+// cells so the visual divider connects to the group header row border above.
+function getGroupStartColumnSet(groups) {
+  const set = new Set();
+  if (!groups || groups.length < 2) return set;
+  for (let i = 1; i < groups.length; i++) {
+    const group = groups[i];
+    if (group.columns && group.columns.length > 0) {
+      set.add(group.columns[0]);
+    }
+  }
+  return set;
 }
 
 // ---------------------------------------------------------------------------
