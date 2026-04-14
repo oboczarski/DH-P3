@@ -1755,7 +1755,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .datahub-frozen-body {
   position: relative;
   overflow: hidden;
-  border-right: 2px solid #43516d;
+  border-right: 1px solid #43516d;
   background: transparent;
 }
 
