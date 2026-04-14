@@ -623,8 +623,9 @@ function formatQualifierThresholdLabel(qualifierStat, threshold) {
 }
 
 function getDataHubTeamOptions() {
+  const sourceRows = state.statsRowsBase.length ? state.statsRowsBase : state.rows;
   const uniqueTeams = [...new Set(
-    state.rows
+    sourceRows
       .map((row) => String(row.TM || "").trim())
       .filter((team) => team && team !== "NA"),
   )].sort();
@@ -705,7 +706,7 @@ const DEFAULT_SORT_BY_VIEW = Object.freeze({
     direction: "desc",
   }),
   "adp-values": Object.freeze({
-    column: "KTC 1QB",
+    column: "KTC SFLX",
     direction: "desc",
   }),
 });
@@ -982,8 +983,12 @@ const state = {
     TE: true,
   },
   statsFilters: createDefaultStatsQualifierState(),
+  showPickValues: false,
   searchText: "",
   rawSeasonRows: [],
+  statsRowsBase: [],
+  tradeRowsBase: [],
+  statsRowsByPlayerId: Object.create(null),
   rows: [],
   visibleRows: [],
   searchedRows: [],
@@ -1003,6 +1008,10 @@ const state = {
     mobile: null,
   },
   isChartModalOpen: false,
+  ktcSheetData: {
+    "1-QB": createEmptyKtcSheetStore(),
+    SFLX: createEmptyKtcSheetStore(),
+  },
   ktcLookups: {
     "1-QB": Object.create(null),
     SFLX: Object.create(null),
@@ -1210,6 +1219,7 @@ function attachEventListeners() {
       state.activePageView = nextPageView;
       state.activeCategory = getStoredCategoryForView(nextPageView);
       state.sort = createDefaultSort(nextPageView);
+      state.rows = getActiveRowsForView(nextPageView);
       syncUiState();
       refreshGrid();
     });
@@ -1247,6 +1257,7 @@ function attachEventListeners() {
       teamFilterShell,
       teamFilterToggle,
       teamFilterMenu,
+      pickValuesButton,
       playerSearch,
     } = mount;
 
@@ -1356,6 +1367,20 @@ function attachEventListeners() {
 
       state.statsFilters.team = option.dataset.teamOption || "";
       closeAllDataHubTeamMenus();
+      syncUiState();
+      refreshGrid();
+    });
+
+    pickValuesButton?.addEventListener("click", () => {
+      if (state.activePageView !== "adp-values") {
+        return;
+      }
+
+      // Trade Values pick toggle:
+      // the existing hero button now controls whether pick entities sourced
+      // directly from KTC_SFLX participate in the adp-values row set.
+      state.showPickValues = !state.showPickValues;
+      state.rows = getActiveRowsForView();
       syncUiState();
       refreshGrid();
     });
@@ -1691,19 +1716,23 @@ async function ensureDataHubSupplementalData() {
   }
 
   supplementalDataPromise = (async () => {
-    const [oneQbLookup, sflxLookup, adpLookup] = await Promise.all([
-      fetchKtcLookup(KTC_SHEET_BY_FORMAT["1-QB"]),
-      fetchKtcLookup(KTC_SHEET_BY_FORMAT.SFLX),
+    const [oneQbSheetData, sflxSheetData, adpLookup] = await Promise.all([
+      fetchKtcSheetData(KTC_SHEET_BY_FORMAT["1-QB"]),
+      fetchKtcSheetData(KTC_SHEET_BY_FORMAT.SFLX),
       fetchDataHubAdpLookup(),
     ]);
 
-    state.ktcLookups["1-QB"] = oneQbLookup;
-    state.ktcLookups.SFLX = sflxLookup;
+    state.ktcSheetData["1-QB"] = oneQbSheetData;
+    state.ktcSheetData.SFLX = sflxSheetData;
+    state.ktcLookups["1-QB"] = oneQbSheetData.byPlayerId;
+    state.ktcLookups.SFLX = sflxSheetData.byPlayerId;
     state.adpByPlayerId = adpLookup;
     state.supplementalDataLoaded = true;
   })()
     .catch((error) => {
       console.error("Data Hub supplemental data load failed.", error);
+      state.ktcSheetData["1-QB"] = createEmptyKtcSheetStore();
+      state.ktcSheetData.SFLX = createEmptyKtcSheetStore();
       state.ktcLookups["1-QB"] = Object.create(null);
       state.ktcLookups.SFLX = Object.create(null);
       state.adpByPlayerId = Object.create(null);
@@ -1725,13 +1754,21 @@ async function fetchGoogleSheetCsv(sheetName) {
   return response.text();
 }
 
-async function fetchKtcLookup(sheetName) {
+function createEmptyKtcSheetStore() {
+  return {
+    entities: [],
+    byPlayerId: Object.create(null),
+    byEntityKey: Object.create(null),
+  };
+}
+
+async function fetchKtcSheetData(sheetName) {
   try {
     const csvText = await fetchGoogleSheetCsv(sheetName);
     return parseKtcSheetData(csvText);
   } catch (error) {
     console.error(`Unable to load Data Hub KTC sheet: ${sheetName}`, error);
-    return Object.create(null);
+    return createEmptyKtcSheetStore();
   }
 }
 
@@ -1765,27 +1802,79 @@ async function fetchDataHubAdpLookup() {
 
 function parseKtcSheetData(csvText) {
   const rows = parseCsv(csvText);
-  const ktcLookup = Object.create(null);
+  const ktcSheetData = createEmptyKtcSheetStore();
 
   rows.forEach((row) => {
     const normalizedRow = buildNormalizedSheetRow(row);
-    const pos = getNormalizedSheetValue(normalizedRow, "POS").toUpperCase();
-    const playerId = getNormalizedSheetValue(normalizedRow, "SLPR_ID");
-
-    // Pick rows stay out of scope here until Data Hub gets its own pick-values view.
-    if (!playerId || playerId === "NA" || pos === "RDP") {
+    const entity = buildKtcSheetEntity(normalizedRow);
+    if (!entity) {
       return;
     }
 
-    ktcLookup[playerId] = {
-      ktc: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["VALUE", "KTC"])),
-      overallRank: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["RANK", "OVR", "OVERALL", "SCA"])),
-      posRank: getNormalizedSheetValue(normalizedRow, ["POS RK", "POS_RK", "POS|RK", "POS | RK"]),
-      age: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "AGE")),
-    };
+    ktcSheetData.entities.push(entity);
+    if (entity.playerId) {
+      ktcSheetData.byPlayerId[entity.playerId] = entity;
+    }
+    if (entity.entityKey) {
+      ktcSheetData.byEntityKey[entity.entityKey] = entity;
+    }
   });
 
-  return ktcLookup;
+  return ktcSheetData;
+}
+
+function buildKtcSheetEntity(normalizedRow) {
+  const name = getNormalizedSheetValue(normalizedRow, ["PLAYER NAME", "PLAYER", "NAME"]);
+  const pos = getNormalizedSheetValue(normalizedRow, "POS").toUpperCase();
+  const playerId = getNormalizedSheetValue(normalizedRow, "SLPR_ID");
+
+  if (!name && !playerId) {
+    return null;
+  }
+
+  return {
+    name,
+    pos,
+    playerId: !playerId || playerId === "NA" ? "" : playerId,
+    team: getNormalizedSheetValue(normalizedRow, "TM").toUpperCase(),
+    entityKey: buildKtcEntityKey(name, pos),
+    ktc: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["VALUE", "KTC"])),
+    overallRank: toIntegerOrNull(getNormalizedSheetValue(normalizedRow, ["RANK", "OVR", "OVERALL", "SCA"])),
+    posRank: getNormalizedSheetValue(normalizedRow, ["POS RK", "POS_RK", "POS|RK", "POS | RK", "POS·RK"]),
+    age: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "AGE")),
+    rookieYear: getNormalizedSheetValue(normalizedRow, ["RY", "ROOKIE YEAR"]),
+    experience: getNormalizedSheetValue(normalizedRow, ["EXP", "YEARS"]),
+    tier: getNormalizedSheetValue(normalizedRow, "TIER"),
+    trend: getNormalizedSheetValue(normalizedRow, "TREND"),
+    sheetAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "ADP")),
+  };
+}
+
+function buildKtcEntityKey(name, pos) {
+  const normalizedName = String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+  const normalizedPos = String(pos || "").trim().toUpperCase();
+
+  if (!normalizedName && !normalizedPos) {
+    return "";
+  }
+
+  return `${normalizedName}::${normalizedPos}`;
+}
+
+function getKtcSheetEntity(sheetData, playerId, entityKey) {
+  if (playerId && sheetData?.byPlayerId?.[playerId]) {
+    return sheetData.byPlayerId[playerId];
+  }
+
+  if (entityKey && sheetData?.byEntityKey?.[entityKey]) {
+    return sheetData.byEntityKey[entityKey];
+  }
+
+  return null;
 }
 
 function normalizeSheetHeader(header) {
@@ -1835,6 +1924,9 @@ function getActiveKtcLookup() {
 // SZN.csv, while the hidden 1-QB modal context remains available separately.
 function rebuildDataHubRows() {
   if (!state.rawSeasonRows.length) {
+    state.statsRowsBase = [];
+    state.tradeRowsBase = [];
+    state.statsRowsByPlayerId = Object.create(null);
     state.rows = [];
     state.modalRankCache = Object.create(null);
     syncUiState();
@@ -1842,11 +1934,12 @@ function rebuildDataHubRows() {
     return;
   }
 
-  const oneQbLookup = state.ktcLookups["1-QB"] || Object.create(null);
-  const sflxLookup = state.ktcLookups.SFLX || Object.create(null);
+  const oneQbSheetData = state.ktcSheetData["1-QB"] || createEmptyKtcSheetStore();
+  const sflxSheetData = state.ktcSheetData.SFLX || createEmptyKtcSheetStore();
+  const oneQbLookup = oneQbSheetData.byPlayerId || Object.create(null);
+  const sflxLookup = sflxSheetData.byPlayerId || Object.create(null);
   const adpLookup = state.adpByPlayerId || Object.create(null);
-
-  state.rows = state.rawSeasonRows.map((row) => {
+  const statsRowsBase = state.rawSeasonRows.map((row) => {
     const enrichedRow = enrichSeasonRow(row, {
       oneQbLookup,
       sflxLookup,
@@ -1854,10 +1947,107 @@ function rebuildDataHubRows() {
     });
     return normalizeRow(enrichedRow);
   });
-  state.modalRankCache = buildDataHubModalRankCache(state.rows);
+  const statsRowsByPlayerId = buildStatsRowsByPlayerId(statsRowsBase);
+  const tradeRowsBase = buildTradeRowsBase({
+    sflxSheetData,
+    oneQbSheetData,
+    adpLookup,
+    statsRowsByPlayerId,
+  });
+
+  state.statsRowsBase = statsRowsBase;
+  state.tradeRowsBase = tradeRowsBase;
+  state.statsRowsByPlayerId = statsRowsByPlayerId;
+  state.rows = getActiveRowsForView();
+  state.modalRankCache = buildDataHubModalRankCache(statsRowsBase);
 
   syncUiState();
   refreshGrid();
+}
+
+function buildStatsRowsByPlayerId(rows) {
+  const rowsByPlayerId = Object.create(null);
+
+  rows.forEach((row) => {
+    const playerId = String(row?.__meta?.playerId || "").trim();
+    if (!playerId) {
+      return;
+    }
+
+    rowsByPlayerId[playerId] = row;
+  });
+
+  return rowsByPlayerId;
+}
+
+function getActiveRowsForView(pageView = state.activePageView) {
+  if (pageView === "adp-values") {
+    return state.showPickValues
+      ? [...state.tradeRowsBase]
+      : state.tradeRowsBase.filter((row) => row?.__meta?.pos !== "RDP");
+  }
+
+  return [...state.statsRowsBase];
+}
+
+function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId }) {
+  return (sflxSheetData.entities || []).map((sflxEntity) => {
+    const entityKey = sflxEntity.entityKey || buildKtcEntityKey(sflxEntity.name, sflxEntity.pos);
+    const oneQbEntity = getKtcSheetEntity(oneQbSheetData, sflxEntity.playerId, entityKey);
+    const statsRow = sflxEntity.playerId ? statsRowsByPlayerId[sflxEntity.playerId] : null;
+    const adpEntry = sflxEntity.playerId ? adpLookup?.[sflxEntity.playerId] : null;
+    const oneQbAdpValue = Number.isFinite(adpEntry?.pprAdp) ? adpEntry.pprAdp : oneQbEntity?.sheetAdp;
+    const sflxAdpValue = Number.isFinite(adpEntry?.sflxAdp) ? adpEntry.sflxAdp : sflxEntity.sheetAdp;
+    const tradeSourceRow = {
+      PLAYER: sflxEntity.name,
+      "PLAYER NAME": sflxEntity.name,
+      SLPR_ID: sflxEntity.playerId,
+      RK: formatIntegerString(sflxEntity.overallRank),
+      POS: sflxEntity.pos,
+      TM: resolveTradeEntityTeam(sflxEntity, statsRow),
+      AGE: formatTradeEntityAge(sflxEntity.age, statsRow?.AGE),
+      G: statsRow?.G,
+      FPTS: statsRow?.FPTS,
+      PPG: statsRow?.PPG,
+      VALUE: formatIntegerString(oneQbEntity?.ktc),
+      ADP: formatFixedString(oneQbAdpValue, 1),
+      "POS·ADP": formatFixedString(adpEntry?.posAdp, 1),
+      "POS RK": sflxEntity.posRank,
+      RY: sflxEntity.rookieYear,
+      EXP: sflxEntity.experience,
+      "KTC 1QB": formatIntegerString(oneQbEntity?.ktc),
+      "KTC SFLX": formatIntegerString(sflxEntity.ktc),
+      "1QB ADP": formatFixedString(oneQbAdpValue, 1),
+      "SFLX ADP": formatFixedString(sflxAdpValue, 1),
+      "1QB DIFF": formatTradeDiffString(getTradeDiffValue(oneQbEntity?.overallRank, oneQbAdpValue)),
+      "SFLX DIFF": formatTradeDiffString(getTradeDiffValue(sflxEntity.overallRank, sflxAdpValue)),
+      __oneQbOverallRank: oneQbEntity?.overallRank ?? null,
+      __sflxOverallRank: sflxEntity.overallRank ?? null,
+      __oneQbDiffWinner: getTradeDiffWinner(oneQbEntity?.overallRank, oneQbAdpValue),
+      __sflxDiffWinner: getTradeDiffWinner(sflxEntity.overallRank, sflxAdpValue),
+      __hasGameLogsSupport: Boolean(statsRow?.__meta?.playerId),
+      __tradeEntityType: sflxEntity.pos === "RDP" ? "pick" : "player",
+    };
+
+    return normalizeRow(tradeSourceRow);
+  });
+}
+
+function resolveTradeEntityTeam(entity, statsRow) {
+  const sheetTeam = String(entity?.team || "").trim().toUpperCase();
+  if (sheetTeam && sheetTeam !== "NA") {
+    return sheetTeam;
+  }
+
+  const statsTeam = String(statsRow?.TM || "").trim().toUpperCase();
+  return statsTeam || "FA";
+}
+
+function formatTradeEntityAge(ageValue, fallbackAge) {
+  const resolvedAge = Number.isFinite(ageValue)
+    ? ageValue
+    : toComparableNumber(fallbackAge);
+  return formatFixedString(resolvedAge, 1);
 }
 
 function enrichSeasonRow(sourceRow, { oneQbLookup, sflxLookup, adpLookup }) {
@@ -1895,6 +2085,7 @@ function enrichSeasonRow(sourceRow, { oneQbLookup, sflxLookup, adpLookup }) {
   enrichedRow.ADP = formatFixedString(adpEntry?.pprAdp, 1);
   enrichedRow["POS·ADP"] = formatFixedString(adpEntry?.posAdp, 1);
   enrichedRow.PPG = formatFixedString(ppg, 1);
+  enrichedRow.__hasGameLogsSupport = Boolean(playerId && String(sourceRow.POS || "").trim().toUpperCase() !== "RDP");
 
   return enrichedRow;
 }
@@ -2032,6 +2223,7 @@ function applySortedRows() {
 function syncUiState() {
   const viewConfig = getViewFilterConfig();
   state.activeCategory = getStoredCategoryForView(state.activePageView);
+  state.rows = getActiveRowsForView();
   ensureValidActiveSort();
   mainTitle.textContent = PAGE_TITLES[state.activePageView] || PAGE_TITLES.stats;
   activeViewLabel.textContent = getActiveViewLabelText();
@@ -2054,7 +2246,11 @@ function syncUiState() {
     }
     syncStatsQualifierControls(mount);
     if (mount.pickValuesButton) {
-      mount.pickValuesButton.hidden = state.activePageView !== "adp-values";
+      const showPickValuesButton = state.activePageView === "adp-values";
+      mount.pickValuesButton.hidden = !showPickValuesButton;
+      mount.pickValuesButton.setAttribute("aria-disabled", String(!showPickValuesButton));
+      mount.pickValuesButton.setAttribute("aria-pressed", String(showPickValuesButton && state.showPickValues));
+      mount.pickValuesButton.classList.toggle("is-active", showPickValuesButton && state.showPickValues);
     }
   });
 
@@ -3444,11 +3640,19 @@ function createBodyCell(row, column, rowIndex) {
 }
 
 function createPlayerTriggerButton(row) {
+  const playerLabel = formatDisplayValue(PLAYER_COLUMN, row.PLAYER);
+  if (!canOpenDataHubGameLogs(row)) {
+    const text = document.createElement("span");
+    text.className = "stats-player-btn stats-player-btn--static";
+    text.textContent = playerLabel;
+    return text;
+  }
+
   const button = document.createElement("button");
   button.type = "button";
   button.className = "stats-player-btn";
-  button.setAttribute("aria-label", `Open game logs for ${formatDisplayValue(PLAYER_COLUMN, row.PLAYER)}`);
-  button.textContent = formatDisplayValue(PLAYER_COLUMN, row.PLAYER);
+  button.setAttribute("aria-label", `Open game logs for ${playerLabel}`);
+  button.textContent = playerLabel;
   button.addEventListener("click", () => {
     openDataHubGameLogs(row, button);
   });
@@ -3458,10 +3662,15 @@ function createPlayerTriggerButton(row) {
 function createDataHubTableTeamLogo(value) {
   const teamKey = String(value || "FA").trim().toUpperCase() || "FA";
   if (!teamKey || teamKey === "FA" || isMissingValue(teamKey)) {
-    const fallback = document.createElement("span");
-    fallback.className = "stats-table__team-fallback";
-    fallback.textContent = "FA";
-    return fallback;
+    return createDataHubTableTeamFallback("FA");
+  }
+
+  // Trade Values sheet-only teams:
+  // rookies currently use UD and pick rows use ordinal team placeholders like
+  // 1st, so these entries should stay as clean text chips instead of loading
+  // NFL logo assets that do not exist for those pseudo-team values.
+  if (teamKey === "UD" || /\d+(?:ST|ND|RD|TH)$/.test(teamKey)) {
+    return createDataHubTableTeamFallback(teamKey);
   }
 
   const logo = document.createElement("img");
@@ -3472,7 +3681,24 @@ function createDataHubTableTeamLogo(value) {
   logo.height = 20;
   logo.loading = "eager";
   logo.decoding = "async";
+  logo.addEventListener("error", () => {
+    if (logo.isConnected) {
+      logo.replaceWith(createDataHubTableTeamFallback(teamKey));
+    }
+  }, { once: true });
   return logo;
+}
+
+function createDataHubTableTeamFallback(teamKey) {
+  const fallback = document.createElement("span");
+  fallback.className = "stats-table__team-fallback";
+  fallback.textContent = teamKey;
+  return fallback;
+}
+
+function canOpenDataHubGameLogs(rowOrMeta) {
+  const meta = rowOrMeta?.__meta || rowOrMeta;
+  return Boolean(meta?.hasGameLogsSupport && meta?.playerId && meta.pos !== "RDP");
 }
 
 function createFptsChip(value) {
@@ -4771,6 +4997,9 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
   );
   const ktcOneQbRank = toComparableNumber(sourceRow.__oneQbOverallRank);
   const ktcSflxRank = toComparableNumber(sourceRow.__sflxOverallRank);
+  const hasGameLogsSupport = sourceRow.__hasGameLogsSupport != null
+    ? Boolean(sourceRow.__hasGameLogsSupport)
+    : Boolean(playerId && pos !== "RDP");
   return {
     playerId,
     name: playerName,
@@ -4793,6 +5022,7 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
     ktcSflxRank,
     diffOneQbWinner: String(sourceRow.__oneQbDiffWinner || ""),
     diffSflxWinner: String(sourceRow.__sflxDiffWinner || ""),
+    hasGameLogsSupport,
   };
 }
 
@@ -5059,7 +5289,7 @@ function switchDataHubModalTab(tabKey) {
 
 async function openDataHubGameLogs(row, triggerButton = null) {
   const meta = row?.__meta;
-  if (!meta?.playerId || meta.pos === "RDP") {
+  if (!canOpenDataHubGameLogs(meta)) {
     return;
   }
   const requestSeq = ++dataHubGameLogsRequestSeq;
@@ -8253,7 +8483,7 @@ function renderDataHubOwnershipPane(playerId) {
 function getDataHubOwnershipSummary(playerId) {
   const player = state.sleeperPlayers?.[playerId];
   const seasonStats = state.playerSeasonStats?.[playerId] || {};
-  const rowMeta = state.rows.find((row) => row.__meta?.playerId === playerId)?.__meta || null;
+  const rowMeta = state.statsRowsByPlayerId?.[playerId]?.__meta || null;
   if (!player && !rowMeta) {
     return null;
   }
