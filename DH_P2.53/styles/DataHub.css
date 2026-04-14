@@ -663,6 +663,11 @@ body::after {
   display: grid;
   gap: 7px;
   padding: 10px 10px 14px;
+  /* DataHub hero overflow:
+     the shared glass-panel shell clips by default, but the Stats team filter
+     menu needs to extend beyond the hero card without being cut off. */
+  overflow: visible;
+  z-index: 3;
 }
 
 .hero-controls {
