@@ -642,6 +642,34 @@ function getDataHubControlTeamLogoSrc(team) {
   return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
 }
 
+// DataHub Stats receiving subfilters:
+// mirrors the dedicated Stats page by swapping the Receiving chip into inline
+// WR / TE buttons, while always keeping at least one nested filter active.
+function resetDataHubReceivingFilters() {
+  RECEIVING_SUBFILTER_KEYS.forEach((key) => {
+    state.receivingFilters[key] = true;
+  });
+}
+
+function toggleDataHubReceivingFilter(key) {
+  if (!RECEIVING_SUBFILTER_KEYS.includes(key)) {
+    return false;
+  }
+
+  const isActive = Boolean(state.receivingFilters[key]);
+  if (isActive) {
+    const activeCount = RECEIVING_SUBFILTER_KEYS.reduce((count, filterKey) => (
+      state.receivingFilters[filterKey] ? count + 1 : count
+    ), 0);
+    if (activeCount <= 1) {
+      return false;
+    }
+  }
+
+  state.receivingFilters[key] = !isActive;
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
 // ---------------------------------------------------------------------------
@@ -775,6 +803,7 @@ const CATEGORY_FILTERS = {
   te: (row) => row.POS === "TE",
   flx: (row) => row.POS === "RB" || row.POS === "WR" || row.POS === "TE",
 };
+const RECEIVING_SUBFILTER_KEYS = Object.freeze(["WR", "TE"]);
 
 const MOBILE_BREAKPOINT = 719;
 
@@ -1262,6 +1291,22 @@ function attachEventListeners() {
     } = mount;
 
     categoryRow?.addEventListener("click", (event) => {
+      const receivingFilterButton = event.target.closest("[data-receiving-filter]");
+      if (receivingFilterButton instanceof HTMLButtonElement) {
+        if (state.activePageView !== "stats" || state.activeCategory !== "receiving") {
+          return;
+        }
+
+        const filterKey = receivingFilterButton.dataset.receivingFilter;
+        if (!toggleDataHubReceivingFilter(filterKey)) {
+          return;
+        }
+
+        syncUiState();
+        refreshGrid();
+        return;
+      }
+
       const button = event.target.closest("[data-category]");
       if (!(button instanceof HTMLButtonElement)) {
         return;
@@ -1272,9 +1317,13 @@ function attachEventListeners() {
         return;
       }
 
+      const previousCategory = state.activeCategory;
       state.activeCategory = nextCategory;
       state.activeCategoryByView[state.activePageView] = nextCategory;
       if (state.activePageView === "stats") {
+        if (nextCategory === "receiving" && previousCategory !== "receiving") {
+          resetDataHubReceivingFilters();
+        }
         resetStatsQualifierDefaultsForCategory(nextCategory);
       }
       syncUiState();
@@ -1292,7 +1341,9 @@ function attachEventListeners() {
         return;
       }
 
-      state.receivingFilters[key] = !state.receivingFilters[key];
+      if (!toggleDataHubReceivingFilter(key)) {
+        return;
+      }
       syncUiState();
       refreshGrid();
     });
@@ -2236,13 +2287,15 @@ function syncUiState() {
     button.setAttribute("aria-selected", String(isActive));
   });
 
-  const showReceivingFilters = viewConfig.supportsReceivingSubfilters && state.activeCategory === "receiving";
   controlMounts.forEach((mount) => {
     mount.root.dataset.view = state.activePageView;
     renderCategoryButtons(viewConfig, mount.categoryRow);
     renderReceivingSubfilters(viewConfig, mount.receivingSubfilters);
     if (mount.receivingSubfilters) {
-      mount.receivingSubfilters.hidden = !showReceivingFilters;
+      // DataHub now mirrors the Stats-page receiving interaction:
+      // WR / TE render inside the Receiving category slot, so the legacy extra
+      // row stays empty and hidden in every control mount.
+      mount.receivingSubfilters.hidden = true;
     }
     syncStatsQualifierControls(mount);
     if (mount.pickValuesButton) {
@@ -2699,6 +2752,64 @@ function updateSortMetaPill() {
   sortMetaPill.replaceChildren(label, iconWrap);
 }
 
+function createCategoryChipButton(category, isActive) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "category-chip";
+  if (!category.meta) {
+    button.classList.add("category-chip--single-line");
+  }
+  button.dataset.category = category.key;
+  button.setAttribute("role", "tab");
+  button.setAttribute("aria-selected", String(isActive));
+  button.setAttribute("aria-label", category.ariaLabel || category.label);
+  button.classList.toggle("is-active", isActive);
+
+  const label = document.createElement("span");
+  label.className = "category-chip__label";
+  label.textContent = category.label;
+  button.append(label);
+
+  if (category.meta) {
+    const meta = document.createElement("span");
+    meta.className = "category-chip__meta";
+    meta.textContent = category.meta;
+    button.append(meta);
+  }
+
+  return button;
+}
+
+function createStatsReceivingCategoryControl(category) {
+  const wrapper = document.createElement("div");
+  const isExpanded = state.activeCategory === "receiving";
+  wrapper.className = "datahub-receiving-filter-shell";
+  wrapper.classList.toggle("is-expanded", isExpanded);
+
+  const triggerButton = createCategoryChipButton(category, isExpanded);
+  triggerButton.classList.add("datahub-receiving-filter-trigger");
+  triggerButton.setAttribute("aria-pressed", String(isExpanded));
+
+  const expandedGroup = document.createElement("div");
+  expandedGroup.className = "datahub-receiving-filter-inline";
+  expandedGroup.setAttribute("aria-hidden", String(!isExpanded));
+
+  RECEIVING_SUBFILTER_KEYS.forEach((position) => {
+    const isActive = Boolean(state.receivingFilters[position]);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "category-chip category-chip--single-line datahub-receiving-filter-chip";
+    button.dataset.receivingFilter = position;
+    button.setAttribute("aria-pressed", String(isActive));
+    button.classList.toggle("is-active", isActive);
+    button.textContent = position;
+    expandedGroup.append(button);
+  });
+
+  wrapper.append(triggerButton, expandedGroup);
+  return wrapper;
+}
+
 function renderCategoryButtons(viewConfig, categoryRow) {
   if (!categoryRow) {
     return;
@@ -2712,32 +2823,15 @@ function renderCategoryButtons(viewConfig, categoryRow) {
 
   const fragment = document.createDocumentFragment();
   viewConfig.categories.forEach((category) => {
-    const button = document.createElement("button");
-    const isActive = category.key === state.activeCategory;
-    button.type = "button";
-    button.className = "category-chip";
-    if (!category.meta) {
-      button.classList.add("category-chip--single-line");
-    }
-    button.dataset.category = category.key;
-    button.setAttribute("role", "tab");
-    button.setAttribute("aria-selected", String(isActive));
-    button.setAttribute("aria-label", category.ariaLabel || category.label);
-    button.classList.toggle("is-active", isActive);
-
-    const label = document.createElement("span");
-    label.className = "category-chip__label";
-    label.textContent = category.label;
-    button.append(label);
-
-    if (category.meta) {
-      const meta = document.createElement("span");
-      meta.className = "category-chip__meta";
-      meta.textContent = category.meta;
-      button.append(meta);
+    if (state.activePageView === "stats" && category.key === "receiving") {
+      // Stats-tab receiving category:
+      // keep the WR / TE controls inside the original Receiving slot so the
+      // interaction matches the dedicated Stats page instead of using a second row.
+      fragment.append(createStatsReceivingCategoryControl(category));
+      return;
     }
 
-    fragment.append(button);
+    fragment.append(createCategoryChipButton(category, category.key === state.activeCategory));
   });
 
   categoryRow.replaceChildren(fragment);
@@ -2748,25 +2842,8 @@ function renderReceivingSubfilters(viewConfig, receivingSubfilters) {
     return;
   }
 
-  if (!viewConfig.supportsReceivingSubfilters) {
-    receivingSubfilters.replaceChildren();
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-  ["WR", "TE"].forEach((position) => {
-    const button = document.createElement("button");
-    const isActive = Boolean(state.receivingFilters[position]);
-    button.type = "button";
-    button.className = "subfilter-chip";
-    button.dataset.receivingFilter = position;
-    button.setAttribute("aria-pressed", String(isActive));
-    button.classList.toggle("is-active", isActive);
-    button.textContent = position;
-    fragment.append(button);
-  });
-
-  receivingSubfilters.replaceChildren(fragment);
+  void viewConfig;
+  receivingSubfilters.replaceChildren();
 }
 
 // Stats qualifier controls:
