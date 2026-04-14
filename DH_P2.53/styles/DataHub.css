@@ -545,7 +545,6 @@ body::after {
   font-weight: 700;
   letter-spacing: -0.05em;
   cursor: pointer;
-  transition: all 200ms ease;
   text-wrap-style: balance;
 }
 
@@ -570,7 +569,7 @@ body::after {
 .page-tab:hover:not(.is-active) {
   /* Placeholder page tabs should only hint hover through icon/text tinting,
      never by drawing a pill background behind the button. */
-  color: rgba(219, 232, 250, 0.9);
+  color: rgb(219 232 250 / 58%);
 }
 
 .page-tab:hover:not(.is-active) .tab-icon {
@@ -595,7 +594,7 @@ body::after {
      first half of the gradient and the text picks up the second half. */
   background-image: var(--datahub-active-accent-gradient);
   background-repeat: no-repeat;
-  background-size: 200% 100%;
+  background-size: 168% 100%;
   background-position: 100% 50%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -2590,8 +2589,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
      without changing the title's normal flow or adding extra vertical space. */
   body[data-page="datahub"] .hero-chart-toggle {
     position: absolute;
-    top: 11px;
-    right: 9px;
+    top: 4px;
+    right: 5px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
@@ -2637,14 +2636,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     align-items: stretch;
     gap: 2px;
     width: 100%;
-    padding: 1px 0 4px;
-    margin: 0 8px 6px -6px;
+    padding: 0px 0 0px;
+    margin: 0 0px 2px 0px;
     overflow-x: auto;
     overflow-y: visible;
     border-bottom: 1px solid #abd1;
     border-radius: 0px;
     background: none;
     scrollbar-width: none;
+    justify-content: center;
   }
 
   .page-tabs::before,
@@ -2657,17 +2657,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
        let each tab size to its own content while keeping the icon above the
        label, which avoids wrapped labels distorting the active indicator. */
     width: auto;
-    min-width: max-content;
+    min-width: 56px;
     min-height: 48px;
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
     padding: 3px 8px 8px;
     border-radius: 16px;
-    font-size: 0.58rem;
+    font-size: 0.8rem;
     line-height: 1;
     letter-spacing: -0.03em;
     text-align: center;
@@ -2676,8 +2676,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .page-tab .tab-icon {
     flex: 0 0 auto;
     display: block;
-    width: 15px;
-    height: 15px;
+    width: 21px;
+    height: fit-content;
     margin: 0;
     transform: none;
     transform-origin: center;
@@ -2695,7 +2695,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .page-tab__label--adp {
     display: block;
     white-space: nowrap;
-    font-size: 0.5rem;
+    font-size: 0.75rem;
     line-height: 1;
     letter-spacing: -0.04em;
   }
@@ -2705,15 +2705,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-tab.is-active {
-    background: none;
-    border-color: none;
   }
 
   .page-tab.is-active::after {
     left: 50%;
     right: auto;
     width: calc(100% - 12px);
-    bottom: 3px;
+    bottom: 5px;
     transform: translateX(-50%);
   }
 
