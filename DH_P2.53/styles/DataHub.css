@@ -358,7 +358,7 @@ body::after {
   left: 0;
   z-index: 1200;
   display: grid;
-  gap: 5px;
+  gap: 6px;
   width: min(129px, calc(100vw - 24px));
   padding: 7px 4px;
   border-radius: 24px;
@@ -3672,13 +3672,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .nav-more-dropdown {
-    width: min(292px, calc(100vw - 32px));
-    padding: 11px;
+    width: min(192px, calc(100vw - 32px));
+    padding: 8px 7px;
   }
 
   .nav-more-item {
     grid-template-columns: 44px minmax(0, 1fr);
-    padding: 13px 14px;
+    padding: 7px 9px;
   }
 
   .nav-more-item-title {
