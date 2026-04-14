@@ -1988,7 +1988,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   letter-spacing: 0.1em;
   color: rgba(175, 200, 235, 0.58);
   background: linear-gradient(180deg, rgb(51 63 81), rgba(10, 18, 30, 0.18)), rgb(46 51 70);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   letter-spacing: -0.02em;
 }
@@ -2003,7 +2003,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
    group-header row's border-right so the vertical divider is seamless from
    the group header row down through the column-label row. */
 .stats-table__header-cell--group-start .stats-table__head-button {
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 /* Trade Values group separator — table body:
@@ -2011,7 +2011,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
    vertical divider continues from the column-label row through every body row,
    connecting all the way back up to the group header border-right above. */
 .stats-table__body-cell--group-start {
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px dotted rgba(255, 255, 255, 0.04);
 }
 
 /* Group header icon + text wrapper */
