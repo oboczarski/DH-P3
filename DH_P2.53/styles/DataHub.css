@@ -156,7 +156,7 @@ body::after {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: 11px;
+  border-radius: 25px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 32%),
     radial-gradient(circle at top left, rgba(215, 225, 255, 0.14), transparent 34%);
 }
@@ -1454,7 +1454,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .team-filter__content {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -2594,12 +2594,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
      without changing the title's normal flow or adding extra vertical space. */
   body[data-page="datahub"] .hero-chart-toggle {
     position: absolute;
-    top: 4px;
-    right: 5px;
+    top: 11px;
+    right: 6px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
     min-height: 30px;
     padding: 0 5px;
     border: 1px solid rgba(149, 177, 220, 0.18);
@@ -2956,8 +2956,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .team-filter__logo {
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
   }
 
   .team-filter__fallback {
@@ -2973,8 +2973,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .team-filter__option {
-    min-height: 30px;
-    padding: 0 8px;
+    min-height: 26px;
+    padding: 0px 10px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .category-row {
