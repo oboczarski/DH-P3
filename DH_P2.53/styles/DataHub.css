@@ -1190,6 +1190,17 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   gap: 0;
 }
 
+/* DataHub Stats WR / TE nested filters:
+   override only these two active rings so the in-place receiving subfilters
+   use their own solid accent borders instead of the shared gradient border. */
+body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
+  background: #7297ff;
+}
+
+body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
+  background: #a453ff;
+}
+
 .receiving-subfilters {
   display: flex;
   justify-content: flex-end;
