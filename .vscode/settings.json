@@ -219,5 +219,7 @@
   "imageCarousel.explorerContextMenu.enabled": true,
   "github.copilot.chat.agentDebugLog.enabled": true,
   "github.copilot.chat.agentDebugLog.fileLogging.enabled": true,
-  "chat.agent.sandbox.enabled": "on"
+  "chat.agent.sandbox.enabled": "on",
+  "chat.tools.confirmationCarousel.enabled": true,
+  "workbench.browser.openLocalhostLinks": true
 }
