@@ -1394,7 +1394,7 @@ body[data-page="leaguehub"] .analyzer-chip .chip-avg {
   font-style: italic;
   word-spacing: 0.3rem;
   text-align: center;
-  margin-top: -0.2rem;
+  margin-top: -0.1rem;
 }
 
 /* Top-scorer chip: smaller font for the avg line to match the condensed chip-meta. */
