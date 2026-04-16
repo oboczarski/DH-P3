@@ -1547,7 +1547,7 @@ function initializeApp() {
   updatePageTabsGlint();
   renderTable();
   showOverlay({
-    title: "Crunching numbers.. and stuff..brb",
+    title: "Crunching Numbers.. Building Data Hub..",
     description:
       "Building out the Data Hub. Loading season stats, rankings, player values, and ADP feeds.",
   });
