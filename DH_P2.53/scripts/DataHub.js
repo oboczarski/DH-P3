@@ -1547,9 +1547,9 @@ function initializeApp() {
   updatePageTabsGlint();
   renderTable();
   showOverlay({
-    title: "Preparing SZN.csv + valuations",
+    title: "Crunching numbers.. and stuff..brb",
     description:
-      "Loading season stats plus the KTC trade value and ADP feeds for the Data Hub table.",
+      "Building out the Data Hub. Loading season stats, rankings, player values, and ADP feeds.",
   });
   loadInitialData();
 
