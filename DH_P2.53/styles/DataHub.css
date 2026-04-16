@@ -808,7 +808,7 @@ body[data-page="datahub"] .datahub-top60-chart__stat-chip {
   overflow: hidden;
   padding: 8px 5px 7px 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 11px;
+  border-radius: 14px;
   background: rgb(5 6 11 / 0%);
   box-shadow:
     0 14px 38px rgba(0, 0, 0, 0.28),
@@ -874,7 +874,7 @@ body[data-page="datahub"] .datahub-top60-chart__stat-meta {
 
 body[data-page="datahub"] .datahub-top60-chart__stat-sub {
   display: block;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -899,7 +899,7 @@ body[data-page="datahub"] .datahub-top60-chart__stat-block {
 
 body[data-page="datahub"] .datahub-top60-chart__stat-divider {
   width: 1px;
-  height: 16px;
+  height: 24px;
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -919,14 +919,14 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .da
 }
 
 body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__body {
-  padding: 0 4px 7px 4px;
+  padding: 0 6px 9px 7px;
 }
 
 body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__shell {
-  height: 288px;
+  height: 267px;
   padding: 0;
-  margin: -3px -15px -14px -29px;
-  background: rgb(5 6 11);
+  margin: -3px -15px -14px -32px;
+  background: rgb(5 6 11 / 0%);
 }
 
 body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__axis--x {
@@ -947,8 +947,8 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .da
 }
 
 body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-bottom--split {
-  gap: 4px;
-  margin-top: 2px;
+  gap: 8px;
+  margin-top: 0px;
 }
 
 body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-bottom--split .datahub-top60-chart__stat-count {
@@ -3246,7 +3246,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
       "copy controls .";
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 38px);
-    row-gap: 18px;
+    row-gap: 17px;
     padding: 24px;
   }
 
