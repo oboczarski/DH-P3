@@ -574,14 +574,25 @@ const CURRENT_ADV_RUSHING_GROUP_ICON = '<path d="m10.586 5.414-5.172 5.172"/><pa
 const CURRENT_CEILING_GROUP_ICON = "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z";
 const TRADE_VALUES_MARKET_GROUP_ICON = "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6";
 
-const SHARED_GROUP_ICON_COLORS = Object.freeze({
+// Stats group-header vs column-header icon colors:
+// keep these as separate constant maps even when they currently use the same
+// hex values so future icon-color tweaks can target group headers without
+// having to touch the column-header icon color assignments.
+const SHARED_GROUP_HEADER_ICON_COLORS = Object.freeze({
   GENERAL: "#B59F6A",
   INFO: "#9496d9",
   FANTASY: "#D0B472",
   OVERVIEW_STATS: "#6E35FF",
 });
 
-const PASSING_GROUP_ICON_COLORS = Object.freeze({
+const SHARED_COLUMN_ICON_COLORS = Object.freeze({
+  GENERAL: "#B59F6A",
+  INFO: "#9496d9",
+  FANTASY: "#D0B472",
+  OVERVIEW_STATS: "#6E35FF",
+});
+
+const PASSING_GROUP_HEADER_ICON_COLORS = Object.freeze({
   PASSING_PRODUCTION: "#ffbcbc",
   PASSING_EFFICIENCY: "#ff1d7b",
   RUSHING: "#3af2a1",
@@ -589,7 +600,15 @@ const PASSING_GROUP_ICON_COLORS = Object.freeze({
   CEILING: "#ff6752",
 });
 
-const RECEIVING_GROUP_ICON_COLORS = Object.freeze({
+const PASSING_COLUMN_ICON_COLORS = Object.freeze({
+  PASSING_PRODUCTION: "#ffbcbc",
+  PASSING_EFFICIENCY: "#ff1d7b",
+  RUSHING: "#3af2a1",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+const RECEIVING_GROUP_HEADER_ICON_COLORS = Object.freeze({
   RECEIVING_PRODUCTION: "#4a86e8",
   RECEIVING_EFFICIENCY: "#9fc5e8",
   RUSHING: "#3af2a1",
@@ -597,7 +616,23 @@ const RECEIVING_GROUP_ICON_COLORS = Object.freeze({
   CEILING: "#ff6752",
 });
 
-const RUSHING_GROUP_ICON_COLORS = Object.freeze({
+const RECEIVING_COLUMN_ICON_COLORS = Object.freeze({
+  RECEIVING_PRODUCTION: "#4a86e8",
+  RECEIVING_EFFICIENCY: "#9fc5e8",
+  RUSHING: "#3af2a1",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+const RUSHING_GROUP_HEADER_ICON_COLORS = Object.freeze({
+  RUSHING_PRODUCTION: "#3af2a1",
+  RUSHING_EFFICIENCY: "#12cdaa",
+  RECEIVING: "#4a86e8",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+const RUSHING_COLUMN_ICON_COLORS = Object.freeze({
   RUSHING_PRODUCTION: "#3af2a1",
   RUSHING_EFFICIENCY: "#12cdaa",
   RECEIVING: "#4a86e8",
@@ -627,8 +662,8 @@ const FROZEN_GROUPS = Object.freeze({
       label: "GENERAL",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
       columns: ["RK", "PLAYER", "POS"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.GENERAL,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.GENERAL,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
     }),
   ]),
   "adp-values": Object.freeze([
@@ -646,22 +681,22 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["TM", "AGE"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "OVERVIEW STATS",
       icon: CURRENT_OVERVIEW_STATS_GROUP_ICON,
       columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "CSTY%", "CL"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.OVERVIEW_STATS,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.OVERVIEW_STATS,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
   ]),
   passing: Object.freeze([
@@ -669,50 +704,50 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["TM", "AGE", "G"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "PASSING PRODUCTION",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Crosshair,
       columns: ["paATT", "CMP", "paYDS", "paTD", "pa1D", "SAC", "INT"],
-      groupIconColor: PASSING_GROUP_ICON_COLORS.PASSING_PRODUCTION,
-      columnIconColor: PASSING_GROUP_ICON_COLORS.PASSING_PRODUCTION,
+      groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_PRODUCTION,
+      columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "PASSING EFFICIENCY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkle,
       columns: ["CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "DP%", "paYPG", "pIMP/A"],
-      groupIconColor: PASSING_GROUP_ICON_COLORS.PASSING_EFFICIENCY,
-      columnIconColor: PASSING_GROUP_ICON_COLORS.PASSING_EFFICIENCY,
+      groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_EFFICIENCY,
+      columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
       columns: ["ruYDS", "ruTD", "CAR", "YPC"],
-      groupIconColor: PASSING_GROUP_ICON_COLORS.RUSHING,
-      columnIconColor: PASSING_GROUP_ICON_COLORS.RUSHING,
+      groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.RUSHING,
+      columnIconColor: PASSING_COLUMN_ICON_COLORS.RUSHING,
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
       columns: ["YDS(t)", "FUM", "IMP/G"],
-      groupIconColor: PASSING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
-      columnIconColor: PASSING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: PASSING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
     createDataHubColumnGroup({
       label: "CEILING & CONSISTENCY",
       icon: CURRENT_CEILING_GROUP_ICON,
       columns: ["FPOE", "CSTY%", "CL"],
-      groupIconColor: PASSING_GROUP_ICON_COLORS.CEILING,
-      columnIconColor: PASSING_GROUP_ICON_COLORS.CEILING,
+      groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.CEILING,
+      columnIconColor: PASSING_COLUMN_ICON_COLORS.CEILING,
     }),
   ]),
   rushing: Object.freeze([
@@ -720,50 +755,50 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["TM", "AGE", "G"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING PRODUCTION",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
       columns: ["CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO", "RYOE"],
-      groupIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_PRODUCTION,
-      columnIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_PRODUCTION,
+      groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_PRODUCTION,
+      columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "RUSHING EFFICIENCY",
       icon: CURRENT_ADV_RUSHING_GROUP_ICON,
       columns: ["SNP%", "YPC", "ELU", "MTF/A", "YCO/A", "EXPLSV%", "ruYPG"],
-      groupIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_EFFICIENCY,
-      columnIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_EFFICIENCY,
+      groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_EFFICIENCY,
+      columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING",
       icon: CURRENT_RECEIVING_GROUP_ICON,
       columns: ["REC", "recYDS", "recTD", "YPRR", "TS%", "TGT", "YAC", "rec1D"],
-      groupIconColor: RUSHING_GROUP_ICON_COLORS.RECEIVING,
-      columnIconColor: RUSHING_GROUP_ICON_COLORS.RECEIVING,
+      groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RECEIVING,
+      columnIconColor: RUSHING_COLUMN_ICON_COLORS.RECEIVING,
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
       columns: ["YDS(t)", "FUM", "IMP/G"],
-      groupIconColor: RUSHING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
-      columnIconColor: RUSHING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: RUSHING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
     createDataHubColumnGroup({
       label: "CEILING & CONSISTENCY",
       icon: CURRENT_CEILING_GROUP_ICON,
       columns: ["FPOE", "CSTY%", "CL"],
-      groupIconColor: RUSHING_GROUP_ICON_COLORS.CEILING,
-      columnIconColor: RUSHING_GROUP_ICON_COLORS.CEILING,
+      groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.CEILING,
+      columnIconColor: RUSHING_COLUMN_ICON_COLORS.CEILING,
     }),
   ]),
   receiving: Object.freeze([
@@ -771,50 +806,50 @@ const BASE_COLUMN_GROUPS = Object.freeze({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["TM", "AGE", "G"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
-      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING PRODUCTION",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.TrendingUp,
       columns: ["TGT", "REC", "recYDS", "recTD", "rec1D", "RR", "RZ Tgt"],
-      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_PRODUCTION,
-      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_PRODUCTION,
+      groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_PRODUCTION,
+      columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING EFFICIENCY",
       icon: CURRENT_RECEIVING_GROUP_ICON,
       columns: ["TS%", "YPRR", "TPRR", "1DRR", "recYPG", "AY%", "YAC", "YPR"],
-      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_EFFICIENCY,
-      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_EFFICIENCY,
+      groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_EFFICIENCY,
+      columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
       columns: ["CAR", "ruYDS", "ruTD", "YPC"],
-      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RUSHING,
-      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RUSHING,
+      groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RUSHING,
+      columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RUSHING,
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
       columns: ["SNP%", "IMP/G", "YDS(t)", "FUM"],
-      groupIconColor: RECEIVING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
-      columnIconColor: RECEIVING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: RECEIVING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
     createDataHubColumnGroup({
       label: "CEILING & CONSISTENCY",
       icon: CURRENT_CEILING_GROUP_ICON,
       columns: ["FPOE", "CSTY%", "CL"],
-      groupIconColor: RECEIVING_GROUP_ICON_COLORS.CEILING,
-      columnIconColor: RECEIVING_GROUP_ICON_COLORS.CEILING,
+      groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.CEILING,
+      columnIconColor: RECEIVING_COLUMN_ICON_COLORS.CEILING,
     }),
   ]),
 });
