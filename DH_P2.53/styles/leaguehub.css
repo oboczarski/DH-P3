@@ -108,14 +108,14 @@ body[data-page="leaguehub"] .analyzer-summary-grid {
 
 body[data-page="leaguehub"] .analyzer-chip {
   position: relative;
-  padding: 0.85rem 0.85rem;
+  padding: 0.75rem 0.8rem 0.4rem;
   border-radius: 22px;
   border: 1px solid rgba(128, 138, 189, 0.05);
   background: linear-gradient(135deg, rgb(45 51 95 / 62%), rgb(40 42 73 / 62%));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(5, 7, 15, 0.32), inset 7px 8px 6px -5px #abd1;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.1rem;
   min-height: 96px;
 }
 
@@ -137,7 +137,7 @@ body[data-page="leaguehub"] .analyzer-chip .chip-label {
 }
 
 body[data-page="leaguehub"] .analyzer-chip .chip-value {
-  font-size: 1.22rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
@@ -147,6 +147,7 @@ body[data-page="leaguehub"] .analyzer-chip .chip-meta {
   color: var(--color-text-secondary);
   line-height: 1.35;
   margin-top: auto;
+  text-align: left;
 }
 
 body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-value {
@@ -1386,10 +1387,14 @@ body[data-page="leaguehub"] #secondary-header-row {
    Displays the league average below the rank footer for non-ranking chips.
    Matches chip-meta sizing; acts as a secondary footer line. */
 body[data-page="leaguehub"] .analyzer-chip .chip-avg {
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
+  font-size: 0.68rem;
+  color: #7076a0;
   line-height: 1.35;
-  opacity: 0.72;
+  opacity: 0.7;
+  font-style: italic;
+  word-spacing: 0.3rem;
+  text-align: center;
+  margin-top: -0.2rem;
 }
 
 /* Top-scorer chip: smaller font for the avg line to match the condensed chip-meta. */
