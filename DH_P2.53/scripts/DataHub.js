@@ -252,10 +252,6 @@ const TRADE_VALUES_COLUMN_SET = [
 ];
 
 const STATS_COLUMN_SETS = {
-  // GENERAL (frozen): RK, PLAYER, POS
-  // INFO: TM, AGE
-  // FANTASY: FPTS, PPG
-  // OVERVIEW STATS: G, SNP%, YDS(t), YPG(t), OPP, IMP, IMP/OPP, CSTY%, CL
   overview: [
     "RK",
     "PLAYER",
@@ -274,12 +270,6 @@ const STATS_COLUMN_SETS = {
     "CSTY%",
     "CL",
   ],
-  // GENERAL (frozen): RK, PLAYER, POS
-  // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG
-  // PASSING: paYDS, paTD, CMP%, paATT, paRTG, EPA/DB, CPOE, CMP, YDS(t), paYPG, pa1D, IMP/G, pIMP, pIMP/A, TTT, PRS%, SAC, INT
-  // RUSHING: ruYDS, ruTD, CAR, YPC, FUM
-  // CEILING & CONSISTENCY: FPOE, CSTY%, CL
   passing: [
     "RK",
     "PLAYER",
@@ -289,41 +279,33 @@ const STATS_COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
+    "paATT",
+    "CMP",
     "paYDS",
     "paTD",
+    "pa1D",
+    "SAC",
+    "INT",
     "CMP%",
-    "paATT",
     "paRTG",
     "EPA/DB",
     "CPOE",
-    "CMP",
-    "YDS(t)",
-    "paYPG",
-    "pa1D",
-    "IMP/G",
-    "pIMP",
-    "pIMP/A",
     "TTT",
     "PRS%",
-    "SAC",
-    "INT",
+    "DP%",
+    "paYPG",
+    "pIMP/A",
     "ruYDS",
     "ruTD",
     "CAR",
     "YPC",
+    "YDS(t)",
     "FUM",
+    "IMP/G",
     "FPOE",
     "CSTY%",
     "CL",
   ],
-  // GENERAL (frozen): RK, PLAYER, POS
-  // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG
-  // RUSHING EFFICIENCY: SNP%, YPC, ruYPG, IMP/G
-  // RUSHING PRODUCTION: CAR, ruYDS, ruTD, ru1D, YDS(t), FUM
-  // RECEIVING: REC, recYDS, recTD, rec1D, YAC, TGT
-  // ADVANCED RUSHING: ELU, MTF/A, YCO/A, MTF, YCO, RYOE, EXPLSV%
-  // CEILING & CONSISTENCY: FPOE, CSTY%, CL
   rushing: [
     "RK",
     "PLAYER",
@@ -333,39 +315,35 @@ const STATS_COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
-    "SNP%",
-    "YPC",
-    "ruYPG",
-    "IMP/G",
     "CAR",
     "ruYDS",
     "ruTD",
     "ru1D",
-    "YDS(t)",
-    "FUM",
-    "REC",
-    "recYDS",
-    "recTD",
-    "rec1D",
-    "YAC",
-    "TGT",
-    "ELU",
-    "MTF/A",
-    "YCO/A",
     "MTF",
     "YCO",
     "RYOE",
+    "SNP%",
+    "YPC",
+    "ELU",
+    "MTF/A",
+    "YCO/A",
     "EXPLSV%",
+    "ruYPG",
+    "REC",
+    "recYDS",
+    "recTD",
+    "YPRR",
+    "TS%",
+    "TGT",
+    "YAC",
+    "rec1D",
+    "YDS(t)",
+    "FUM",
+    "IMP/G",
     "FPOE",
     "CSTY%",
     "CL",
   ],
-  // GENERAL (frozen): RK, PLAYER, POS
-  // INFO: TM, AGE, G
-  // FANTASY: FPTS, PPG
-  // RECEIVING: SNP%, TGT, REC, TS%, recYDS, recTD, YPRR, rec1D, 1DRR, recYPG, AY%, YAC, YPR, IMP/G, RR, YDS(t), RZ Tgt
-  // RUSHING: CAR, ruYDS, ruTD, YPC, FUM
-  // CEILING & CONSISTENCY: FPOE, CSTY%, CL
   receiving: [
     "RK",
     "PLAYER",
@@ -375,27 +353,28 @@ const STATS_COLUMN_SETS = {
     "G",
     "FPTS",
     "PPG",
-    "SNP%",
     "TGT",
     "REC",
-    "TS%",
     "recYDS",
     "recTD",
-    "YPRR",
     "rec1D",
+    "RR",
+    "RZ Tgt",
+    "TS%",
+    "YPRR",
+    "TPRR",
     "1DRR",
     "recYPG",
     "AY%",
     "YAC",
     "YPR",
-    "IMP/G",
-    "RR",
-    "YDS(t)",
-    "RZ Tgt",
     "CAR",
     "ruYDS",
     "ruTD",
     "YPC",
+    "SNP%",
+    "IMP/G",
+    "YDS(t)",
     "FUM",
     "FPOE",
     "CSTY%",
@@ -431,6 +410,65 @@ const SOURCE_ALIASES = {
 };
 
 // ---------------------------------------------------------------------------
+// Local Lucide SVG fragments.
+// These are kept inline so DataHub can use the requested icon set without
+// adding a runtime icon dependency or changing the page-local rendering model.
+// ---------------------------------------------------------------------------
+const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
+  CircleUser: '<circle cx="12" cy="12" r="10" /><circle cx="12" cy="10" r="3" /><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />',
+  Sparkles: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" />',
+  CircleFadingPlus: '<path d="M12 2a10 10 0 0 1 7.38 16.75" /><path d="M12 8v8" /><path d="M16 12H8" /><path d="M2.5 8.875a10 10 0 0 0-.5 3" /><path d="M2.83 16a10 10 0 0 0 2.43 3.4" /><path d="M4.636 5.235a10 10 0 0 1 .891-.857" /><path d="M8.644 21.42a10 10 0 0 0 7.631-.38" />',
+  BadgePercent: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m15 9-6 6" /><path d="M9 9h.01" /><path d="M15 15h.01" />',
+  RulerDimensionLine: '<path d="M10 15v-3" /><path d="M14 15v-3" /><path d="M18 15v-3" /><path d="M2 8V4" /><path d="M22 6H2" /><path d="M22 8V4" /><path d="M6 15v-3" /><rect x="2" y="12" width="20" height="8" rx="2" />',
+  ChartSpline: '<path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7" />',
+  SignalHigh: '<path d="M2 20h.01" /><path d="M7 20v-4" /><path d="M12 20v-8" /><path d="M17 20V8" />',
+  RefreshCw: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" />',
+  ArrowUpToLine: '<path d="M5 3h14" /><path d="m18 13-6-6-6 6" /><path d="M12 7v14" />',
+  Crosshair: '<circle cx="12" cy="12" r="10" /><line x1="22" x2="18" y1="12" y2="12" /><line x1="6" x2="2" y1="12" y2="12" /><line x1="12" x2="12" y1="6" y2="2" /><line x1="12" x2="12" y1="22" y2="18" />',
+  ChartScatter: '<circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /><circle cx="18.5" cy="5.5" r=".5" fill="currentColor" /><circle cx="11.5" cy="11.5" r=".5" fill="currentColor" /><circle cx="7.5" cy="16.5" r=".5" fill="currentColor" /><circle cx="17.5" cy="14.5" r=".5" fill="currentColor" /><path d="M3 3v16a2 2 0 0 0 2 2h16" />',
+  ChevronsLeftRightEllipsis: '<path d="M12 12h.01" /><path d="M16 12h.01" /><path d="m17 7 5 5-5 5" /><path d="m7 7-5 5 5 5" /><path d="M8 12h.01" />',
+  MapPinCheckInside: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><path d="m9 10 2 2 4-4" />',
+  ArrowBigDownDash: '<path d="M14 8a1 1 0 0 1 1 1v2a1 1 0 0 0 1 1h3.293a.707.707 0 0 1 .5 1.207l-6.939 6.939a1.207 1.207 0 0 1-1.708 0l-6.94-6.94a.707.707 0 0 1 .5-1.206H8a1 1 0 0 0 1-1V9a1 1 0 0 1 1-1z" /><path d="M9 4h6" />',
+  Tablets: '<circle cx="7" cy="7" r="5" /><circle cx="17" cy="17" r="5" /><path d="M12 17h10" /><path d="m3.46 10.54 7.08-7.08" />',
+  Sparkle: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />',
+  RefreshCcwDot: '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v5" /><circle cx="12" cy="12" r="1" />',
+  Flame: '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4" />',
+  LocateFixed: '<line x1="2" x2="5" y1="12" y2="12" /><line x1="19" x2="22" y1="12" y2="12" /><line x1="12" x2="12" y1="2" y2="5" /><line x1="12" x2="12" y1="19" y2="22" /><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="3" />',
+  RedoDot: '<circle cx="12" cy="17" r="1" /><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />',
+  ClockFading: '<path d="M12 2a10 10 0 0 1 7.38 16.75" /><path d="M12 6v6l4 2" /><path d="M2.5 8.875a10 10 0 0 0-.5 3" /><path d="M2.83 16a10 10 0 0 0 2.43 3.4" /><path d="M4.636 5.235a10 10 0 0 1 .891-.857" /><path d="M8.644 21.42a10 10 0 0 0 7.631-.38" />',
+  SquareActivity: '<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M17 12h-2l-2 5-2-10-2 5H7" />',
+  Split: '<path d="M16 3h5v5" /><path d="M8 3H3v5" /><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" /><path d="m15 9 6-6" />',
+  BowArrow: '<path d="M17 3h4v4" /><path d="M18.575 11.082a13 13 0 0 1 1.048 9.027 1.17 1.17 0 0 1-1.914.597L14 17" /><path d="M7 10 3.29 6.29a1.17 1.17 0 0 1 .6-1.91 13 13 0 0 1 9.03 1.05" /><path d="M7 14a1.7 1.7 0 0 0-1.207.5l-2.646 2.646A.5.5 0 0 0 3.5 18H5a1 1 0 0 1 1 1v1.5a.5.5 0 0 0 .854.354L9.5 18.207A1.7 1.7 0 0 0 10 17v-2a1 1 0 0 0-1-1z" /><path d="M9.707 14.293 21 3" />',
+  CircleDotDashed: '<path d="M10.1 2.18a9.93 9.93 0 0 1 3.8 0" /><path d="M17.6 3.71a9.95 9.95 0 0 1 2.69 2.7" /><path d="M21.82 10.1a9.93 9.93 0 0 1 0 3.8" /><path d="M20.29 17.6a9.95 9.95 0 0 1-2.7 2.69" /><path d="M13.9 21.82a9.94 9.94 0 0 1-3.8 0" /><path d="M6.4 20.29a9.95 9.95 0 0 1-2.69-2.7" /><path d="M2.18 13.9a9.93 9.93 0 0 1 0-3.8" /><path d="M3.71 6.4a9.95 9.95 0 0 1 2.7-2.69" /><circle cx="12" cy="12" r="1" />',
+  Tractor: '<path d="m10 11 11 .9a1 1 0 0 1 .8 1.1l-.665 4.158a1 1 0 0 1-.988.842H20" /><path d="M16 18h-5" /><path d="M18 5a1 1 0 0 0-1 1v5.573" /><path d="M3 4h8.129a1 1 0 0 1 .99.863L13 11.246" /><path d="M4 11V4" /><path d="M7 15h.01" /><path d="M8 10.1V4" /><circle cx="18" cy="18" r="2" /><circle cx="7" cy="15" r="5" />',
+  Route: '<circle cx="6" cy="19" r="3" /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle cx="18" cy="5" r="3" />',
+  ArrowUp10: '<path d="m3 8 4-4 4 4" /><path d="M7 4v16" /><path d="M17 10V4h-2" /><path d="M15 10h4" /><rect x="15" y="14" width="4" height="6" ry="2" />',
+  Bus: '<path d="M8 6v6" /><path d="M15 6v6" /><path d="M2 12h19.6" /><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" /><circle cx="7" cy="18" r="2" /><path d="M9 18h5" /><circle cx="16" cy="18" r="2" />',
+  Atom: '<circle cx="12" cy="12" r="1" /><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z" /><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z" />',
+  Fan: '<path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z" /><path d="M12 12v.01" />',
+  ChartNoAxesCombined: '<path d="M12 16v5" /><path d="M16 14v7" /><path d="M20 10v11" /><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15" /><path d="M4 18v3" /><path d="M8 14v7" />',
+  LayersPlus: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 .83.18 2 2 0 0 0 .83-.18l8.58-3.9a1 1 0 0 0 0-1.831z" /><path d="M16 17h6" /><path d="M19 14v6" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 .825.178" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l2.116-.962" />',
+  TrendingUp: '<path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" />',
+  HandHelping: '<path d="M11 12h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 14" /><path d="m7 18 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" /><path d="m2 13 6 6" />',
+  CircleCheckBig: '<path d="M21.801 10A10 10 0 1 1 17 3.335" /><path d="m9 11 3 3L22 4" />',
+  GitPullRequestDraft: '<circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M18 6V5" /><path d="M18 11v-1" /><line x1="6" x2="6" y1="9" y2="21" />',
+  HandCoins: '<path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17" /><path d="m7 21 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" /><path d="m2 16 6 6" /><circle cx="16" cy="9" r="2.9" /><circle cx="6" cy="5" r="3" />',
+  GitCompareArrows: '<circle cx="5" cy="6" r="3" /><path d="M12 6h5a2 2 0 0 1 2 2v7" /><path d="m15 9-3-3 3-3" /><circle cx="19" cy="18" r="3" /><path d="M12 18H7a2 2 0 0 1-2-2V9" /><path d="m9 15 3 3-3 3" />',
+  GitCompare: '<circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M13 6h3a2 2 0 0 1 2 2v7" /><path d="M11 18H8a2 2 0 0 1-2-2V9" />',
+  GitPullRequestArrow: '<circle cx="5" cy="6" r="3" /><path d="M5 9v12" /><circle cx="19" cy="18" r="3" /><path d="m15 9-3-3 3-3" /><path d="M12 6h5a2 2 0 0 1 2 2v7" />',
+  PlaneTakeoff: '<path d="M2 22h20" /><path d="M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z" />',
+  Waypoints: '<path d="m10.586 5.414-5.172 5.172" /><path d="m18.586 13.414-5.172 5.172" /><path d="M6 12h12" /><circle cx="12" cy="20" r="2" /><circle cx="12" cy="4" r="2" /><circle cx="20" cy="12" r="2" /><circle cx="4" cy="12" r="2" />',
+  ListStart: '<path d="M3 5h6" /><path d="M3 12h13" /><path d="M3 19h13" /><path d="m16 8-3-3 3-3" /><path d="M21 19V7a2 2 0 0 0-2-2h-6" />',
+  TramFront: '<rect width="16" height="16" x="4" y="3" rx="2" /><path d="M4 11h16" /><path d="M12 3v8" /><path d="m8 19-2 3" /><path d="m18 22-2-3" /><path d="M8 15h.01" /><path d="M16 15h.01" />',
+  Rocket: '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" /><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" />',
+  Joystick: '<path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2Z" /><path d="M6 15v-2" /><path d="M12 15V9" /><circle cx="12" cy="6" r="3" />',
+  Bomb: '<circle cx="11" cy="13" r="9" /><path d="M14.35 4.65 16.3 2.7a2.41 2.41 0 0 1 3.4 0l1.6 1.6a2.4 2.4 0 0 1 0 3.4l-1.95 1.95" /><path d="m22 2-1.5 1.5" />',
+  MoveDiagonal: '<path d="M11 19H5v-6" /><path d="M13 5h6v6" /><path d="M19 5 5 19" />',
+  Bolt: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><circle cx="12" cy="12" r="4" />',
+  Zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />',
+});
+
+// ---------------------------------------------------------------------------
 // Lucide icon paths (24×24 viewBox, stroke-based). Only columns used in this
 // app are listed here — no full icon library is loaded or bundled.
 // ---------------------------------------------------------------------------
@@ -441,8 +479,8 @@ const COLUMN_ICONS = {
   TM:        "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10", // Home/Building
   AGE:       "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", // Calendar
   G:         "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games played
-  FPTS:      "M13 2L3 14h9l-1 8 10-12h-9l1-8z", // Zap
-  PPG:       "M22 7 12 17 7 12 2 17", // TrendingUp
+  FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
+  PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
   "KTC 1QB": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   "KTC SFLX": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   "1QB ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
@@ -453,109 +491,361 @@ const COLUMN_ICONS = {
   ADP:       "M18 20V10M12 20V4M6 20v-6", // BarChart2
   "POS·ADP": "M3 6h18M7 12h10M11 18h2", // ListFilter (3 lines decreasing)
   SNP:       "M22 12h-4l-3 9L9 3l-3 9H2", // Activity
-  "SNP%":    "M22 12h-4l-3 9L9 3l-3 9H2", // Activity
-  "YDS(t)":  "M22 3H2l8 9.46V19l4 2v-8.54L22 3z", // Filter/Ruler-like
-  "YPG(t)":  "M18 20V10M12 20V4M6 20v-6", // BarChart
+  "SNP%":    DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
+  "YDS(t)":  DATAHUB_LUCIDE_ICON_MARKUP.RulerDimensionLine,
+  "YPG(t)":  DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
   OPP:       "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", // Shield/Opposition
   IMP:       "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83", // Sun/Impact
-  "IMP/OPP": "M12 2v20M2 12h20", // Percent-like cross
-  "CSTY%":   "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4", // ShieldCheck
-  CL:        "M8.21 13.89L7 23l5-3 5 3-1.21-9.12M12 2a5 5 0 0 1 5 5v1H7V7a5 5 0 0 1 5-5z", // Award-like
-  paYDS:     "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z", // Send
+  "IMP/OPP": DATAHUB_LUCIDE_ICON_MARKUP.SignalHigh,
+  "CSTY%":   DATAHUB_LUCIDE_ICON_MARKUP.RefreshCw,
+  CL:        DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
+  paYDS:     DATAHUB_LUCIDE_ICON_MARKUP.ChevronsLeftRightEllipsis,
   paTD:      "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3", // CheckCircle
-  "CMP%":    "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 8v4M12 16h.01", // Target-like
-  paATT:     "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", // MessageSquare (attempts)
-  paRTG:     "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", // Star
-  "EPA/DB":  "M13 2L3 14h9l-1 8 10-12h-9l1-8z", // Zap
-  CPOE:      "M22 7 12 17 7 12 2 17", // TrendingUp
+  "CMP%":    DATAHUB_LUCIDE_ICON_MARKUP.RefreshCcwDot,
+  paATT:     DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
+  paRTG:     DATAHUB_LUCIDE_ICON_MARKUP.Flame,
+  "EPA/DB":  DATAHUB_LUCIDE_ICON_MARKUP.LocateFixed,
+  CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
   CMP:       "M20 6 9 17l-5-5", // Check
-  paYPG:     "M22 7 12 17 7 12 2 17", // TrendingUp
-  ruYDS:     "M5 12h14M12 5l7 7-7 7", // ArrowRight
-  ruTD:      "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z", // Flag
-  pa1D:      "M9 18l6-6-6-6", // ChevronRight
-  "IMP/G":   "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83", // Gauge/Sun
+  paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
+  ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
+  ruTD:      DATAHUB_LUCIDE_ICON_MARKUP.ArrowUp10,
+  pa1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
+  "IMP/G":   DATAHUB_LUCIDE_ICON_MARKUP.Fan,
   pIMP:      "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8 12l3 3 5-5", // Target+check
-  "pIMP/A":  "M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM12 10v4M12 14h.01", // Percent frame
-  CAR:       "M5 12h14M12 5l7 7-7 7", // ArrowRight (carries)
-  YPC:       "M6 3l6 18M18 3l-6 18M3 12h18", // Divide
-  TTT:       "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2", // Clock
-  "PRS%":    "M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 1-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10", // Lock
-  SAC:       "M5 12h14", // Minus
-  INT:       "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01", // AlertTriangle
+  "pIMP/A":  DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
+  CAR:       DATAHUB_LUCIDE_ICON_MARKUP.Bus,
+  YPC:       DATAHUB_LUCIDE_ICON_MARKUP.Atom,
+  TTT:       DATAHUB_LUCIDE_ICON_MARKUP.ClockFading,
+  "PRS%":    DATAHUB_LUCIDE_ICON_MARKUP.SquareActivity,
+  "DP%":     DATAHUB_LUCIDE_ICON_MARKUP.Split,
+  SAC:       DATAHUB_LUCIDE_ICON_MARKUP.ArrowBigDownDash,
+  INT:       DATAHUB_LUCIDE_ICON_MARKUP.Tablets,
   FUM:       "M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", // AlertCircle
-  FPOE:      "M22 7 12 17 7 12 2 17", // TrendingUp
-  REC:       "M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z", // Inbox
+  FPOE:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
+  REC:       DATAHUB_LUCIDE_ICON_MARKUP.HandHelping,
+  recYDS:    DATAHUB_LUCIDE_ICON_MARKUP.Split,
   TGT:       "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target circles
   ELU:       "M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2 2 0 1 1 19 12H2", // Wind
-  "MTF/A":   "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75", // Users
-  "YCO/A":   "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 7v6M12 13h.01", // MapPin
-  MTF:       "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75", // Users
-  YCO:       "M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3zM13 13l6 6", // Map/Compass
-  "EXPLSV%": "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z", // Flame
-  ru1D:      "M9 18l6-6-6-6", // ChevronRight
-  RYOE:      "M22 7 12 17 7 12 2 17", // TrendingUp
-  recTD:     "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z", // Flag
-  rec1D:     "M9 18l6-6-6-6", // ChevronRight
-  YAC:       "M5 12h14M12 19l7-7-7-7", // ArrowRight (after catch)
-  "TS%":     "M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM16 10h-6M12 8v4", // Target share
-  YPRR:      "M22 7 12 17 7 12 2 17", // TrendingUp
-  "1DRR":    "M18 20V10M12 20V4M6 20v-6", // BarChart
-  recYPG:    "M22 7 12 17 7 12 2 17", // TrendingUp
-  "AY%":     "M12 2v20M2 12h20", // Percent cross
-  YPR:       "M6 3l6 18M18 3l-6 18M3 12h18", // Divide
-  RR:        "M17 2l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3", // Repeat
+  "MTF/A":   DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
+  "YCO/A":   DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+  MTF:       DATAHUB_LUCIDE_ICON_MARKUP.Zap,
+  YCO:       DATAHUB_LUCIDE_ICON_MARKUP.TramFront,
+  "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
+  ru1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
+  RYOE:      DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
+  recTD:     DATAHUB_LUCIDE_ICON_MARKUP.CircleCheckBig,
+  rec1D:     DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
+  YAC:       DATAHUB_LUCIDE_ICON_MARKUP.Waypoints,
+  "TS%":     DATAHUB_LUCIDE_ICON_MARKUP.HandCoins,
+  YPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompareArrows,
+  TPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompare,
+  "1DRR":    DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestArrow,
+  recYPG:    DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
+  "AY%":     DATAHUB_LUCIDE_ICON_MARKUP.PlaneTakeoff,
+  YPR:       DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
+  RR:        DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestDraft,
   "RZ Tgt":  "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target
-  ruYPG:     "M22 7 12 17 7 12 2 17", // TrendingUp
+  ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
 };
+
+const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
+  rushing: Object.freeze({
+    // Rushing-category receiving subsection:
+    // YAC intentionally uses a different icon here than the receiving table.
+    YAC: DATAHUB_LUCIDE_ICON_MARKUP.MoveDiagonal,
+  }),
+});
 
 // ---------------------------------------------------------------------------
 // Column group definitions per view. Each group has a label and lists the
 // exact columns it spans (in-order, matching the active page-view column set).
-// The frozen pane always uses FROZEN_GROUP. The scrollable pane uses the
+// The frozen pane uses a view-scoped group config so Stats-only header icon
+// changes can land without leaking into the Trade Values identity pane.
+// The scrollable pane uses the
 // per-category groups for either the Stats or Trade Values table mode.
 // ---------------------------------------------------------------------------
-// GENERAL icon: User (person)
-const FROZEN_GROUP = [{ label: "GENERAL", icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", columns: ["RK", "PLAYER", "POS"] }];
+const CURRENT_FROZEN_GROUP_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
+const CURRENT_INFO_GROUP_ICON = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>';
+const CURRENT_TRADE_FANTASY_GROUP_ICON = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
+const CURRENT_OVERVIEW_STATS_GROUP_ICON = "M18 20V10M12 20V4M6 20v-6";
+const CURRENT_RECEIVING_GROUP_ICON = '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>';
+const CURRENT_ADV_RUSHING_GROUP_ICON = '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>';
+const CURRENT_CEILING_GROUP_ICON = "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z";
+const TRADE_VALUES_MARKET_GROUP_ICON = "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6";
 
-// Group icons: badge-info, Star, BarChart2, Crosshair, Zap(new), TrendingUpDown(rotated), TrendingUp, Waypoints, Shield
-const BASE_COLUMN_GROUPS = {
-  overview: [
-    { label: "INFO",           icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                                columns: ["TM", "AGE"] },
-    { label: "FANTASY",        icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                              columns: ["FPTS", "PPG"] },
-    { label: "OVERVIEW STATS", icon: "M18 20V10M12 20V4M6 20v-6",                                                                                                                                   columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "CSTY%", "CL"] },
-  ],
-  passing: [
-    { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
-    { label: "PASSING",               icon: '<circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/>',                                                                                                                                 columns: ["paYDS", "paTD", "CMP%", "paATT", "paRTG", "EPA/DB", "CPOE", "CMP", "YDS(t)", "paYPG", "pa1D", "IMP/G", "pIMP", "pIMP/A", "TTT", "PRS%", "SAC", "INT"] },
-    { label: "RUSHING",               icon: "M13 10V3L4 14h7v7l9-11h-7z",                                                                                                                            columns: ["ruYDS", "ruTD", "CAR", "YPC", "FUM"] },
-    { label: "CEILING & CONSISTENCY", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",                                                                                                          columns: ["FPOE", "CSTY%", "CL"] },
-  ],
-  rushing: [
-    { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
-    { label: "RUSHING EFFICIENCY",    icon: "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",                                                                                                                             columns: ["SNP%", "YPC", "ruYPG", "IMP/G"] },
-    { label: "RUSHING PRODUCTION",    icon: "M22 7 12 17 7 12 2 17",                                                                                                                                 columns: ["CAR", "ruYDS", "ruTD", "ru1D", "YDS(t)", "FUM"] },
-    { label: "RECEIVING",             icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>',                columns: ["REC", "recYDS", "recTD", "rec1D", "YAC", "TGT"] },
-    { label: "ADVANCED RUSHING",      icon: '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>',                                                                                          columns: ["ELU", "MTF/A", "YCO/A", "MTF", "YCO", "RYOE", "EXPLSV%"] },
-    { label: "CEILING & CONSISTENCY", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",                                                                                                          columns: ["FPOE", "CSTY%", "CL"] },
-  ],
-  receiving: [
-    { label: "INFO",                  icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>',                                                                                           columns: ["TM", "AGE", "G"] },
-    { label: "FANTASY",               icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",                                                         columns: ["FPTS", "PPG"] },
-    { label: "RECEIVING",             icon: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>',                columns: ["SNP%", "TGT", "REC", "TS%", "recYDS", "recTD", "YPRR", "rec1D", "1DRR", "recYPG", "AY%", "YAC", "YPR", "IMP/G", "RR", "YDS(t)", "RZ Tgt"] },
-    { label: "RUSHING",               icon: "M13 10V3L4 14h7v7l9-11h-7z",                                                                                                                            columns: ["CAR", "ruYDS", "ruTD", "YPC", "FUM"] },
-    { label: "CEILING & CONSISTENCY", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",                                                                                                          columns: ["FPOE", "CSTY%", "CL"] },
-  ],
-};
+const SHARED_GROUP_ICON_COLORS = Object.freeze({
+  GENERAL: "#B59F6A",
+  INFO: "#9496d9",
+  FANTASY: "#D0B472",
+  OVERVIEW_STATS: "#6E35FF",
+});
+
+const PASSING_GROUP_ICON_COLORS = Object.freeze({
+  PASSING_PRODUCTION: "#ffbcbc",
+  PASSING_EFFICIENCY: "#ff1d7b",
+  RUSHING: "#3af2a1",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+const RECEIVING_GROUP_ICON_COLORS = Object.freeze({
+  RECEIVING_PRODUCTION: "#4a86e8",
+  RECEIVING_EFFICIENCY: "#9fc5e8",
+  RUSHING: "#3af2a1",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+const RUSHING_GROUP_ICON_COLORS = Object.freeze({
+  RUSHING_PRODUCTION: "#3af2a1",
+  RUSHING_EFFICIENCY: "#12cdaa",
+  RECEIVING: "#4a86e8",
+  GENERAL_PROD_EFF: "#9900ff",
+  CEILING: "#ff6752",
+});
+
+function createDataHubColumnGroup({
+  label,
+  icon,
+  columns,
+  groupIconColor,
+  columnIconColor = groupIconColor,
+}) {
+  return Object.freeze({
+    label,
+    icon,
+    columns: Object.freeze([...columns]),
+    groupIconColor,
+    columnIconColor,
+  });
+}
+
+const FROZEN_GROUPS = Object.freeze({
+  stats: Object.freeze([
+    createDataHubColumnGroup({
+      label: "GENERAL",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      columns: ["RK", "PLAYER", "POS"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.GENERAL,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.GENERAL,
+    }),
+  ]),
+  "adp-values": Object.freeze([
+    createDataHubColumnGroup({
+      label: "GENERAL",
+      icon: CURRENT_FROZEN_GROUP_ICON,
+      columns: ["RK", "PLAYER", "POS"],
+    }),
+  ]),
+});
+
+const BASE_COLUMN_GROUPS = Object.freeze({
+  overview: Object.freeze([
+    createDataHubColumnGroup({
+      label: "INFO",
+      icon: CURRENT_INFO_GROUP_ICON,
+      columns: ["TM", "AGE"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+    }),
+    createDataHubColumnGroup({
+      label: "FANTASY",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      columns: ["FPTS", "PPG"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+    }),
+    createDataHubColumnGroup({
+      label: "OVERVIEW STATS",
+      icon: CURRENT_OVERVIEW_STATS_GROUP_ICON,
+      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "CSTY%", "CL"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.OVERVIEW_STATS,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.OVERVIEW_STATS,
+    }),
+  ]),
+  passing: Object.freeze([
+    createDataHubColumnGroup({
+      label: "INFO",
+      icon: CURRENT_INFO_GROUP_ICON,
+      columns: ["TM", "AGE", "G"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+    }),
+    createDataHubColumnGroup({
+      label: "FANTASY",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      columns: ["FPTS", "PPG"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+    }),
+    createDataHubColumnGroup({
+      label: "PASSING PRODUCTION",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Crosshair,
+      columns: ["paATT", "CMP", "paYDS", "paTD", "pa1D", "SAC", "INT"],
+      groupIconColor: PASSING_GROUP_ICON_COLORS.PASSING_PRODUCTION,
+      columnIconColor: PASSING_GROUP_ICON_COLORS.PASSING_PRODUCTION,
+    }),
+    createDataHubColumnGroup({
+      label: "PASSING EFFICIENCY",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkle,
+      columns: ["CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "DP%", "paYPG", "pIMP/A"],
+      groupIconColor: PASSING_GROUP_ICON_COLORS.PASSING_EFFICIENCY,
+      columnIconColor: PASSING_GROUP_ICON_COLORS.PASSING_EFFICIENCY,
+    }),
+    createDataHubColumnGroup({
+      label: "RUSHING",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      columns: ["ruYDS", "ruTD", "CAR", "YPC"],
+      groupIconColor: PASSING_GROUP_ICON_COLORS.RUSHING,
+      columnIconColor: PASSING_GROUP_ICON_COLORS.RUSHING,
+    }),
+    createDataHubColumnGroup({
+      label: "GENERAL PROD. & EFF.",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      columns: ["YDS(t)", "FUM", "IMP/G"],
+      groupIconColor: PASSING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: PASSING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+    }),
+    createDataHubColumnGroup({
+      label: "CEILING & CONSISTENCY",
+      icon: CURRENT_CEILING_GROUP_ICON,
+      columns: ["FPOE", "CSTY%", "CL"],
+      groupIconColor: PASSING_GROUP_ICON_COLORS.CEILING,
+      columnIconColor: PASSING_GROUP_ICON_COLORS.CEILING,
+    }),
+  ]),
+  rushing: Object.freeze([
+    createDataHubColumnGroup({
+      label: "INFO",
+      icon: CURRENT_INFO_GROUP_ICON,
+      columns: ["TM", "AGE", "G"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+    }),
+    createDataHubColumnGroup({
+      label: "FANTASY",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      columns: ["FPTS", "PPG"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+    }),
+    createDataHubColumnGroup({
+      label: "RUSHING PRODUCTION",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      columns: ["CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO", "RYOE"],
+      groupIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_PRODUCTION,
+      columnIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_PRODUCTION,
+    }),
+    createDataHubColumnGroup({
+      label: "RUSHING EFFICIENCY",
+      icon: CURRENT_ADV_RUSHING_GROUP_ICON,
+      columns: ["SNP%", "YPC", "ELU", "MTF/A", "YCO/A", "EXPLSV%", "ruYPG"],
+      groupIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_EFFICIENCY,
+      columnIconColor: RUSHING_GROUP_ICON_COLORS.RUSHING_EFFICIENCY,
+    }),
+    createDataHubColumnGroup({
+      label: "RECEIVING",
+      icon: CURRENT_RECEIVING_GROUP_ICON,
+      columns: ["REC", "recYDS", "recTD", "YPRR", "TS%", "TGT", "YAC", "rec1D"],
+      groupIconColor: RUSHING_GROUP_ICON_COLORS.RECEIVING,
+      columnIconColor: RUSHING_GROUP_ICON_COLORS.RECEIVING,
+    }),
+    createDataHubColumnGroup({
+      label: "GENERAL PROD. & EFF.",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      columns: ["YDS(t)", "FUM", "IMP/G"],
+      groupIconColor: RUSHING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: RUSHING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+    }),
+    createDataHubColumnGroup({
+      label: "CEILING & CONSISTENCY",
+      icon: CURRENT_CEILING_GROUP_ICON,
+      columns: ["FPOE", "CSTY%", "CL"],
+      groupIconColor: RUSHING_GROUP_ICON_COLORS.CEILING,
+      columnIconColor: RUSHING_GROUP_ICON_COLORS.CEILING,
+    }),
+  ]),
+  receiving: Object.freeze([
+    createDataHubColumnGroup({
+      label: "INFO",
+      icon: CURRENT_INFO_GROUP_ICON,
+      columns: ["TM", "AGE", "G"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.INFO,
+    }),
+    createDataHubColumnGroup({
+      label: "FANTASY",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      columns: ["FPTS", "PPG"],
+      groupIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_GROUP_ICON_COLORS.FANTASY,
+    }),
+    createDataHubColumnGroup({
+      label: "RECEIVING PRODUCTION",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.TrendingUp,
+      columns: ["TGT", "REC", "recYDS", "recTD", "rec1D", "RR", "RZ Tgt"],
+      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_PRODUCTION,
+      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_PRODUCTION,
+    }),
+    createDataHubColumnGroup({
+      label: "RECEIVING EFFICIENCY",
+      icon: CURRENT_RECEIVING_GROUP_ICON,
+      columns: ["TS%", "YPRR", "TPRR", "1DRR", "recYPG", "AY%", "YAC", "YPR"],
+      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_EFFICIENCY,
+      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RECEIVING_EFFICIENCY,
+    }),
+    createDataHubColumnGroup({
+      label: "RUSHING",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      columns: ["CAR", "ruYDS", "ruTD", "YPC"],
+      groupIconColor: RECEIVING_GROUP_ICON_COLORS.RUSHING,
+      columnIconColor: RECEIVING_GROUP_ICON_COLORS.RUSHING,
+    }),
+    createDataHubColumnGroup({
+      label: "GENERAL PROD. & EFF.",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      columns: ["SNP%", "IMP/G", "YDS(t)", "FUM"],
+      groupIconColor: RECEIVING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+      columnIconColor: RECEIVING_GROUP_ICON_COLORS.GENERAL_PROD_EFF,
+    }),
+    createDataHubColumnGroup({
+      label: "CEILING & CONSISTENCY",
+      icon: CURRENT_CEILING_GROUP_ICON,
+      columns: ["FPOE", "CSTY%", "CL"],
+      groupIconColor: RECEIVING_GROUP_ICON_COLORS.CEILING,
+      columnIconColor: RECEIVING_GROUP_ICON_COLORS.CEILING,
+    }),
+  ]),
+});
 
 const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   stats: BASE_COLUMN_GROUPS,
   "adp-values": createCategoryMap(TRADE_VALUES_CATEGORY_KEYS, [
-    { label: "INFO", icon: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>', columns: ["TM", "AGE"] },
-    { label: "FANTASY", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z", columns: ["FPTS", "PPG"] },
-    { label: "1QB", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", iconColor: "#74efff", columns: ONE_QB_MARKET_DATA_COLUMNS },
-    { label: "SFLX", icon: "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", iconColor: "#d97dff", columns: SFLX_MARKET_DATA_COLUMNS },
+    createDataHubColumnGroup({
+      label: "INFO",
+      icon: CURRENT_INFO_GROUP_ICON,
+      columns: ["TM", "AGE"],
+    }),
+    createDataHubColumnGroup({
+      label: "FANTASY",
+      icon: CURRENT_TRADE_FANTASY_GROUP_ICON,
+      columns: ["FPTS", "PPG"],
+    }),
+    createDataHubColumnGroup({
+      label: "1QB",
+      icon: TRADE_VALUES_MARKET_GROUP_ICON,
+      columns: ONE_QB_MARKET_DATA_COLUMNS,
+      groupIconColor: "#74efff",
+      columnIconColor: "#74efff",
+    }),
+    createDataHubColumnGroup({
+      label: "SFLX",
+      icon: TRADE_VALUES_MARKET_GROUP_ICON,
+      columns: SFLX_MARKET_DATA_COLUMNS,
+      groupIconColor: "#d97dff",
+      columnIconColor: "#d97dff",
+    }),
   ]),
 });
 
@@ -852,6 +1142,7 @@ const COLUMN_WIDTHS = {
   YPC: 88,
   TTT: 88,
   "PRS%": 90,
+  "DP%": 90,
   SAC: 82,
   INT: 82,
   FUM: 84,
@@ -872,6 +1163,7 @@ const COLUMN_WIDTHS = {
   YAC: 88,
   "TS%": 86,
   YPRR: 88,
+  TPRR: 88,
   "1DRR": 88,
   recYPG: 96,
   "AY%": 84,
@@ -941,6 +1233,7 @@ const MOBILE_COLUMN_WIDTHS = {
   YPC: 52,
   TTT: 52,
   "PRS%": 58,
+  "DP%": 58,
   SAC: 50,
   INT: 50,
   FUM: 50,
@@ -961,6 +1254,7 @@ const MOBILE_COLUMN_WIDTHS = {
   YAC: 56,
   "TS%": 56,
   YPRR: 56,
+  TPRR: 56,
   "1DRR": 56,
   recYPG: 62,
   "AY%": 54,
@@ -2677,6 +2971,25 @@ function getActiveColumnGroups() {
   return viewGroups[state.activeCategory] || viewGroups[getDefaultCategory(state.activePageView)] || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
 }
 
+function getActiveFrozenColumnGroups() {
+  return FROZEN_GROUPS[state.activePageView] || FROZEN_GROUPS.stats;
+}
+
+// Stats header icon overrides:
+// a handful of column names appear in multiple category tables with different
+// requested icons, so resolve the active icon from the current stats category
+// before falling back to the shared column icon registry.
+function getActiveColumnIconMarkup(columnName) {
+  if (state.activePageView === "stats") {
+    const categoryOverrides = STATS_COLUMN_ICON_OVERRIDES[state.activeCategory];
+    if (categoryOverrides?.[columnName]) {
+      return categoryOverrides[columnName];
+    }
+  }
+
+  return COLUMN_ICONS[columnName];
+}
+
 function getViewFilterConfig(pageView = state.activePageView) {
   return VIEW_FILTER_CONFIGS[pageView] || VIEW_FILTER_CONFIGS.stats;
 }
@@ -3140,7 +3453,7 @@ function createGridShell({ frozenCols, frozenWidth, scrollCols, scrollWidth }) {
   const frozenHeaderTable = buildHeaderTable(
     frozenCols,
     frozenWidth,
-    FROZEN_GROUP,
+    getActiveFrozenColumnGroups(),
     "frozen-header",
   );
   frozenCorner.append(frozenHeaderTable);
@@ -3230,6 +3543,7 @@ function buildHeaderTable(columns, totalWidth, groups, paneType) {
   );
   const thead = document.createElement("thead");
   thead.append(buildGroupHeaderRow(columns, groups));
+  const columnIconColors = buildColumnIconColorMap(groups);
 
   // Compute group-start columns so the column header cells at each group
   // boundary get a matching left border that connects to the group header row
@@ -3238,7 +3552,7 @@ function buildHeaderTable(columns, totalWidth, groups, paneType) {
 
   const columnRow = document.createElement("tr");
   columns.forEach((column) => {
-    const th = createHeaderCell(column);
+    const th = createHeaderCell(column, columnIconColors.get(column.name));
     if (groupStartCols.has(column.name)) {
       th.classList.add("stats-table__header-cell--group-start");
     }
@@ -3247,6 +3561,21 @@ function buildHeaderTable(columns, totalWidth, groups, paneType) {
   thead.append(columnRow);
   table.append(thead);
   return table;
+}
+
+function buildColumnIconColorMap(groups) {
+  const colorMap = new Map();
+  groups.forEach((group) => {
+    const color = group.columnIconColor || group.groupIconColor || group.iconColor;
+    if (!color) {
+      return;
+    }
+
+    group.columns.forEach((columnName) => {
+      colorMap.set(columnName, color);
+    });
+  });
+  return colorMap;
 }
 
 function buildBodyTable(columns, totalWidth, paneType) {
@@ -3625,7 +3954,22 @@ function buildColumnLayout(columnNames, compactScaleFactor = 1) {
   return { columns, totalWidth };
 }
 
-function createHeaderCell(column) {
+function appendDataHubIconMarkup(svg, iconMarkup) {
+  if (!iconMarkup) {
+    return;
+  }
+
+  if (iconMarkup.startsWith("<")) {
+    svg.innerHTML = iconMarkup;
+    return;
+  }
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", iconMarkup);
+  svg.append(path);
+}
+
+function createHeaderCell(column, columnIconColor) {
   const th = document.createElement("th");
   th.className = "stats-table__header-cell";
   th.dataset.columnName = column.name;
@@ -3647,17 +3991,20 @@ function createHeaderCell(column) {
     headerControl.classList.add("stats-table__head-button--static");
   }
 
-  // Icon (Lucide inline SVG — only rendered when a path is defined)
-  const iconPath = COLUMN_ICONS[column.name];
-  if (iconPath) {
+  // Column icon coloring:
+  // the Stats rebuild uses group-owned column colors that are separate from the
+  // group-header icon color so future header-icon recolors stay isolated.
+  const iconMarkup = getActiveColumnIconMarkup(column.name);
+  if (iconMarkup) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
     svg.classList.add("stats-table__head-icon");
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", iconPath);
-    svg.append(path);
+    if (columnIconColor) {
+      svg.style.setProperty("--column-icon-color", columnIconColor);
+    }
+    appendDataHubIconMarkup(svg, iconMarkup);
     headerControl.append(svg);
   }
 
@@ -3940,6 +4287,7 @@ function getColumnLabel(columnName) {
 // ---------------------------------------------------------------------------
 function buildGroupHeaderRow(columns, groups) {
   const tr = document.createElement("tr");
+  void columns;
 
   groups.forEach((group) => {
     const th = document.createElement("th");
@@ -3955,16 +4303,11 @@ function buildGroupHeaderRow(columns, groups) {
       svg.setAttribute("aria-hidden", "true");
       svg.setAttribute("focusable", "false");
       svg.classList.add("stats-table__group-header-icon");
-      if (group.iconColor) {
-        svg.style.setProperty("--group-icon-color", group.iconColor);
+      const groupIconColor = group.groupIconColor || group.iconColor;
+      if (groupIconColor) {
+        svg.style.setProperty("--group-icon-color", groupIconColor);
       }
-      if (group.icon.startsWith("<")) {
-        svg.innerHTML = group.icon;
-      } else {
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", group.icon);
-        svg.append(path);
-      }
+      appendDataHubIconMarkup(svg, group.icon);
       inner.append(svg);
     }
 

@@ -2100,6 +2100,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   height: 16px;
   flex-shrink: 0;
   opacity: 1;
+  color: var(--group-icon-color, rgb(225 129 117 / 74%));
   stroke: var(--group-icon-color, rgb(225 129 117 / 74%));
   stroke-width: 2;
   stroke-linecap: round;
@@ -2177,7 +2178,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   height: 13px;
   flex-shrink: 0;
   opacity: 1;
-  stroke: rgb(98 135 183);
+  color: var(--column-icon-color, rgb(98 135 183));
+  stroke: var(--column-icon-color, rgb(98 135 183));
   stroke-width: 3px;
   stroke-linecap: round;
   fill: none;
