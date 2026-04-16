@@ -1414,9 +1414,10 @@ body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-meta .chip-meta-uni
 /* Radar panel title: positional-strength rank badge "(#N Value / #N PPG)"
    rendered as subtle supplementary text next to the heading. */
 body[data-page="leaguehub"] .radar-strength-rank-badge {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 400;
   color: var(--color-text-secondary);
   opacity: 0.82;
   white-space: nowrap;
+  letter-spacing: -0.04em;
 }
