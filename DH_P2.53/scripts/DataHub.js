@@ -419,6 +419,8 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   Sparkles: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" />',
   CircleFadingPlus: '<path d="M12 2a10 10 0 0 1 7.38 16.75" /><path d="M12 8v8" /><path d="M16 12H8" /><path d="M2.5 8.875a10 10 0 0 0-.5 3" /><path d="M2.83 16a10 10 0 0 0 2.43 3.4" /><path d="M4.636 5.235a10 10 0 0 1 .891-.857" /><path d="M8.644 21.42a10 10 0 0 0 7.631-.38" />',
   BadgePercent: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m15 9-6 6" /><path d="M9 9h.01" /><path d="M15 15h.01" />',
+  BadgeDollarSign: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" />',
+  CircleDollarSign: '<circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" />',
   RulerDimensionLine: '<path d="M10 15v-3" /><path d="M14 15v-3" /><path d="M18 15v-3" /><path d="M2 8V4" /><path d="M22 6H2" /><path d="M22 8V4" /><path d="M6 15v-3" /><rect x="2" y="12" width="20" height="8" rx="2" />',
   ChartSpline: '<path d="M3 3v16a2 2 0 0 0 2 2h16" /><path d="M7 16c.5-2 1.5-7 4-7 2 0 2 3 4 3 2.5 0 4.5-5 5-7" />',
   SignalHigh: '<path d="M2 20h.01" /><path d="M7 20v-4" /><path d="M12 20v-8" /><path d="M17 20V8" />',
@@ -449,6 +451,7 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   ChartNoAxesCombined: '<path d="M12 16v5" /><path d="M16 14v7" /><path d="M20 10v11" /><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15" /><path d="M4 18v3" /><path d="M8 14v7" />',
   LayersPlus: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 .83.18 2 2 0 0 0 .83-.18l8.58-3.9a1 1 0 0 0 0-1.831z" /><path d="M16 17h6" /><path d="M19 14v6" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 .825.178" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l2.116-.962" />',
   TrendingUp: '<path d="M16 7h6v6" /><path d="m22 7-8.5 8.5-5-5L2 17" />',
+  TrendingUpDown: '<path d="M14.828 14.828 21 21" /><path d="M21 16v5h-5" /><path d="m21 3-9 9-4-4-6 6" /><path d="M21 8V3h-5" />',
   HandHelping: '<path d="M11 12h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 14" /><path d="m7 18 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9" /><path d="m2 13 6 6" />',
   CircleCheckBig: '<path d="M21.801 10A10 10 0 1 1 17 3.335" /><path d="m9 11 3 3L22 4" />',
   GitPullRequestDraft: '<circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M18 6V5" /><path d="M18 11v-1" /><line x1="6" x2="6" y1="9" y2="21" />',
@@ -464,6 +467,7 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   Joystick: '<path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2Z" /><path d="M6 15v-2" /><path d="M12 15V9" /><circle cx="12" cy="6" r="3" />',
   Bomb: '<circle cx="11" cy="13" r="9" /><path d="M14.35 4.65 16.3 2.7a2.41 2.41 0 0 1 3.4 0l1.6 1.6a2.4 2.4 0 0 1 0 3.4l-1.95 1.95" /><path d="m22 2-1.5 1.5" />',
   MoveDiagonal: '<path d="M11 19H5v-6" /><path d="M13 5h6v6" /><path d="M19 5 5 19" />',
+  Diff: '<path d="M12 3v14" /><path d="M5 10h14" /><path d="M5 21h14" />',
   Bolt: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><circle cx="12" cy="12" r="4" />',
   Zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />',
 });
@@ -483,10 +487,10 @@ const COLUMN_ICONS = {
   PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
   "KTC 1QB": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   "KTC SFLX": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
-  "1QB ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
-  "SFLX ADP": "M18 20V10M12 20V4M6 20v-6", // BarChart2
-  "1QB DIFF": "M5 12h14M13 5l7 7-7 7", // ArrowRight
-  "SFLX DIFF": "M5 12h14M13 5l7 7-7 7", // ArrowRight
+  "1QB ADP": DATAHUB_LUCIDE_ICON_MARKUP.TrendingUpDown,
+  "SFLX ADP": DATAHUB_LUCIDE_ICON_MARKUP.TrendingUpDown,
+  "1QB DIFF": DATAHUB_LUCIDE_ICON_MARKUP.Diff,
+  "SFLX DIFF": DATAHUB_LUCIDE_ICON_MARKUP.Diff,
   VALUE:     "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
   ADP:       "M18 20V10M12 20V4M6 20v-6", // BarChart2
   "POS·ADP": "M3 6h18M7 12h10M11 18h2", // ListFilter (3 lines decreasing)
@@ -572,7 +576,8 @@ const CURRENT_OVERVIEW_STATS_GROUP_ICON = "M18 20V10M12 20V4M6 20v-6";
 const CURRENT_RECEIVING_GROUP_ICON = '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>';
 const CURRENT_ADV_RUSHING_GROUP_ICON = '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>';
 const CURRENT_CEILING_GROUP_ICON = "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z";
-const TRADE_VALUES_MARKET_GROUP_ICON = "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6";
+const TRADE_VALUES_ONE_QB_GROUP_ICON = DATAHUB_LUCIDE_ICON_MARKUP.BadgeDollarSign;
+const TRADE_VALUES_SFLX_GROUP_ICON = DATAHUB_LUCIDE_ICON_MARKUP.CircleDollarSign;
 
 // Stats group-header vs column-header icon colors:
 // keep these as separate constant maps even when they currently use the same
@@ -875,14 +880,17 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "1QB",
-      icon: TRADE_VALUES_MARKET_GROUP_ICON,
+      // Trade Values market groups:
+      // keep 1QB and SFLX on separate group-header icons so each market lane
+      // can evolve independently without changing the column-header icons.
+      icon: TRADE_VALUES_ONE_QB_GROUP_ICON,
       columns: ONE_QB_MARKET_DATA_COLUMNS,
       groupIconColor: "#74efff",
       columnIconColor: "#74efff",
     }),
     createDataHubColumnGroup({
       label: "SFLX",
-      icon: TRADE_VALUES_MARKET_GROUP_ICON,
+      icon: TRADE_VALUES_SFLX_GROUP_ICON,
       columns: SFLX_MARKET_DATA_COLUMNS,
       groupIconColor: "#d97dff",
       columnIconColor: "#d97dff",
