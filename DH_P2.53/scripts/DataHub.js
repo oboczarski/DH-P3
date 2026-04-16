@@ -579,65 +579,65 @@ const TRADE_VALUES_MARKET_GROUP_ICON = "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.
 // hex values so future icon-color tweaks can target group headers without
 // having to touch the column-header icon color assignments.
 const SHARED_GROUP_HEADER_ICON_COLORS = Object.freeze({
-  GENERAL: "#B59F6A",
-  INFO: "#9496d9",
-  FANTASY: "#D0B472",
-  OVERVIEW_STATS: "#6E35FF",
+  GENERAL: "#6cb0fe",
+  INFO: "#888bff",
+  FANTASY: "#dfc689",
+  OVERVIEW_STATS: "#8454ff",
 });
 
 const SHARED_COLUMN_ICON_COLORS = Object.freeze({
-  GENERAL: "#B59F6A",
-  INFO: "#9496d9",
-  FANTASY: "#D0B472",
+  GENERAL: "#7ebafd",
+  INFO: "#828be2",
+  FANTASY: "#ac9a70",
   OVERVIEW_STATS: "#6E35FF",
 });
 
 const PASSING_GROUP_HEADER_ICON_COLORS = Object.freeze({
-  PASSING_PRODUCTION: "#ffbcbc",
-  PASSING_EFFICIENCY: "#ff1d7b",
-  RUSHING: "#3af2a1",
-  GENERAL_PROD_EFF: "#9900ff",
+  PASSING_PRODUCTION: "#fd8787",
+  PASSING_EFFICIENCY: "#ff2782",
+  RUSHING: "#1cffd3",
+  GENERAL_PROD_EFF: "#8454ff",
   CEILING: "#ff6752",
 });
 
 const PASSING_COLUMN_ICON_COLORS = Object.freeze({
-  PASSING_PRODUCTION: "#ffbcbc",
-  PASSING_EFFICIENCY: "#ff1d7b",
-  RUSHING: "#3af2a1",
-  GENERAL_PROD_EFF: "#9900ff",
-  CEILING: "#ff6752",
+  PASSING_PRODUCTION: "#ffa0a0",
+  PASSING_EFFICIENCY: "#ff4593",
+  RUSHING: "#5ce0c6",
+  GENERAL_PROD_EFF: "#6E35FF",
+  CEILING: "#fd6759",
 });
 
 const RECEIVING_GROUP_HEADER_ICON_COLORS = Object.freeze({
-  RECEIVING_PRODUCTION: "#4a86e8",
-  RECEIVING_EFFICIENCY: "#9fc5e8",
-  RUSHING: "#3af2a1",
-  GENERAL_PROD_EFF: "#9900ff",
+  RECEIVING_PRODUCTION: "#4289ff",
+  RECEIVING_EFFICIENCY: "#0975ff",
+  RUSHING: "#1cffd3",
+  GENERAL_PROD_EFF: "#8454ff",
   CEILING: "#ff6752",
 });
 
 const RECEIVING_COLUMN_ICON_COLORS = Object.freeze({
-  RECEIVING_PRODUCTION: "#4a86e8",
-  RECEIVING_EFFICIENCY: "#9fc5e8",
-  RUSHING: "#3af2a1",
-  GENERAL_PROD_EFF: "#9900ff",
-  CEILING: "#ff6752",
+  RECEIVING_PRODUCTION: "#4a82df",
+  RECEIVING_EFFICIENCY: "#207ffc",
+  RUSHING: "#5ce0c6",
+  GENERAL_PROD_EFF: "#6E35FF",
+  CEILING: "#fd6759",
 });
 
 const RUSHING_GROUP_HEADER_ICON_COLORS = Object.freeze({
-  RUSHING_PRODUCTION: "#3af2a1",
-  RUSHING_EFFICIENCY: "#12cdaa",
-  RECEIVING: "#4a86e8",
-  GENERAL_PROD_EFF: "#9900ff",
+  RUSHING_PRODUCTION: "#1cffd3",
+  RUSHING_EFFICIENCY: "#05e1b7",
+  RECEIVING: "#4289ff",
+  GENERAL_PROD_EFF: "#8454ff",
   CEILING: "#ff6752",
 });
 
 const RUSHING_COLUMN_ICON_COLORS = Object.freeze({
-  RUSHING_PRODUCTION: "#3af2a1",
-  RUSHING_EFFICIENCY: "#12cdaa",
+  RUSHING_PRODUCTION: "#5ce0c6",
+  RUSHING_EFFICIENCY: "#1aba9c",
   RECEIVING: "#4a86e8",
-  GENERAL_PROD_EFF: "#9900ff",
-  CEILING: "#ff6752",
+  GENERAL_PROD_EFF: "#6E35FF",
+  CEILING: "#fd6759",
 });
 
 function createDataHubColumnGroup({

@@ -2096,8 +2096,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .stats-table__group-header-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   opacity: 1;
   color: var(--group-icon-color, rgb(225 129 117 / 74%));
@@ -2174,8 +2174,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 /* Column header icon */
 .stats-table__head-icon {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   opacity: 1;
   color: var(--column-icon-color, rgb(98 135 183));
