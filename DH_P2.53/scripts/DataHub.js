@@ -4304,6 +4304,10 @@ function buildTradeValuesAnnotation(columnName, meta) {
 
     const suffix = document.createElement("span");
     suffix.className = "trade-value-metric__diff-suffix";
+    // Trade Values DIFF suffix:
+    // mark the winner source on the suffix itself so CSS can color ADP and
+    // KTC independently without affecting the numeric portion of the cell.
+    suffix.dataset.diffWinner = winner;
     suffix.textContent = winner;
     return suffix;
   }

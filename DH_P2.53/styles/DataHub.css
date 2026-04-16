@@ -2629,13 +2629,22 @@ body[data-page="datahub"] .trade-value-metric__rank-number {
 
 body[data-page="datahub"] .trade-value-metric__rank-suffix,
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
-  font-size: 0.8em;
+  font-size: 0.75em;
   letter-spacing: -0.02em;
   color: rgba(177, 194, 221, 0.82);
 }
 
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
   text-transform: uppercase;
+  font-weight: 500;
+}
+
+body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="adp"] {
+  color: #ad8d94;
+}
+
+body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc"] {
+  color: #7e8897;
 }
 
 /* ── Mobile Layout (< 720px) ────────────────────────────────────────────── */
