@@ -131,8 +131,9 @@ body[data-page="leaguehub"] .analyzer-chip::after {
 body[data-page="leaguehub"] .analyzer-chip .chip-label {
   font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   color: var(--color-text-secondary);
+  text-wrap-mode: nowrap;
 }
 
 body[data-page="leaguehub"] .analyzer-chip .chip-value {
