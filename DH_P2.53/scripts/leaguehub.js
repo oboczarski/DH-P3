@@ -1819,14 +1819,30 @@
       if (totalTeams) rankingMetaParts.push(`${totalTeams} Teams`);
       const rankingMeta = rankingMetaParts.length ? rankingMetaParts.join(' • ') : '—';
 
+      // Summary chip averages:
+      // compute league-wide averages for each metric so each chip can show a contextual
+      // average below the rank line. Ranking chip is excluded (no meaningful avg).
+      const avgTotalValue = teams.length
+        ? teams.reduce((s, t) => s + (t.totalValue || 0), 0) / teams.length
+        : 0;
+      const avgStarterValue = teams.length
+        ? teams.reduce((s, t) => s + (t.startersValueTotal || 0), 0) / teams.length
+        : 0;
+      const avgTotalFpts = standingsTeams.length
+        ? standingsTeams.reduce((s, t) => s + (t.totalFpts || 0), 0) / standingsTeams.length
+        : 0;
+      const avgStarterPpg = teams.length
+        ? teams.reduce((s, t) => s + (t.starterPpgTotal || 0), 0) / teams.length
+        : 0;
+      const avgTopScorerFpts = (() => {
+        const valid = teams.filter((t) => t.topScorer?.total > 0);
+        return valid.length ? valid.reduce((s, t) => s + t.topScorer.total, 0) / valid.length : null;
+      })();
+
       const topScorer = userTeam.topScorer;
+      // Top scorer meta: FPTS label wrapped in a smaller span for visual hierarchy.
       const topScorerMeta = topScorer?.total
-        ? [
-          topScorer.rank ? `Rank ${topScorer.rank}` : 'Rank NA',
-          `${topScorer.total.toFixed(1)} FPTS`,
-        ]
-          .filter(Boolean)
-          .join(' • ')
+        ? `${topScorer.rank ? `Rank ${topScorer.rank}` : 'Rank NA'} • ${topScorer.total.toFixed(1)} <span class="chip-meta-unit">FPTS</span>`
         : 'No scoring data';
 
       const chips = [
@@ -1840,30 +1856,35 @@
           label: 'TTL Team Value',
           value: formatNumber(userTeam.totalValue),
           meta: totalValueRank ? `Rank ${totalValueRank}/${totalTeams}` : 'KTC',
+          avg: `Avg: ${formatNumber(avgTotalValue)}`,
           accent: totalValueRank ? getRankColor(totalValueRank, totalTeams) : undefined,
         },
         {
           label: 'Starter Value',
           value: formatNumber(userTeam.startersValueTotal),
           meta: starterValueRank ? `Rank ${starterValueRank}/${totalTeams}` : 'Rank NA',
+          avg: `Avg: ${formatNumber(avgStarterValue)}`,
           accent: starterValueRank ? getRankColor(starterValueRank, totalTeams) : undefined,
         },
         {
           label: 'Total FPTS',
           value: standingsUserTeam.totalFpts.toFixed(1),
           meta: fptsRank ? `Rank ${fptsRank}/${totalTeams}` : 'Rank NA',
+          avg: `Avg: ${avgTotalFpts.toFixed(1)}`,
           accent: fptsRank ? getRankColor(fptsRank, totalTeams) : undefined,
         },
         {
           label: 'Starter PPG',
           value: userTeam.starterPpgTotal.toFixed(1),
           meta: starterPpgRank ? `Rank ${starterPpgRank}/${totalTeams}` : 'Rank NA',
+          avg: `Avg: ${avgStarterPpg.toFixed(1)}`,
           accent: starterPpgRank ? getRankColor(starterPpgRank, totalTeams) : undefined,
         },
         {
           label: 'Top Scorer',
           value: topScorer?.name ? abbreviateFirstName(topScorer.name) : '—',
           meta: topScorerMeta,
+          avg: avgTopScorerFpts != null ? `Avg: ${avgTopScorerFpts.toFixed(1)}` : null,
           accent: topScorer?.total ? 'var(--color-accent-secondary)' : undefined,
           className: 'analyzer-chip--top-scorer',
         },
@@ -1875,6 +1896,7 @@
             <span class="chip-label">${chip.label}</span>
             <span class="chip-value"${chip.accent ? ` style="color: ${chip.accent};"` : ''}>${chip.value}</span>
             <span class="chip-meta">${chip.meta}</span>
+            ${chip.avg ? `<span class="chip-avg">${chip.avg}</span>` : ''}
           </article>
         `)
         .join('');
@@ -2337,6 +2359,48 @@
         getRadarLabelColor(value, leagueAverages[index]),
       );
 
+      // Positional strength slot ranks:
+      // for each radar slot, ranks the user team among all teams by that slot's derived score
+      // so the chart labels can show rank in parentheses (e.g. "QB (#3)").
+      const slotRanks = slots.map((slot, slotIndex) => {
+        const sorted = [...teams].sort(
+          (a, b) =>
+            (b.derivedLineups?.[radarMetric]?.assignments?.[slotIndex]?.score ?? 0) -
+            (a.derivedLineups?.[radarMetric]?.assignments?.[slotIndex]?.score ?? 0),
+        );
+        const idx = sorted.findIndex((t) => t.isUserTeam);
+        return idx === -1 ? null : idx + 1;
+      });
+
+      // Positional strength overall rank:
+      // sums each team's derived lineup scores across all slots for the current metric,
+      // then ranks the user among all teams for the panel title badge.
+      const teamMetricTotals = teams.map((t) => ({
+        isUserTeam: t.isUserTeam,
+        total: slots.reduce(
+          (sum, _, slotIndex) =>
+            sum + (t.derivedLineups?.[radarMetric]?.assignments?.[slotIndex]?.score ?? 0),
+          0,
+        ),
+      }));
+      const radarRank = (() => {
+        const sorted = [...teamMetricTotals].sort((a, b) => b.total - a.total);
+        const idx = sorted.findIndex((t) => t.isUserTeam);
+        return idx === -1 ? null : idx + 1;
+      })();
+
+      // Update the Positional Strength title badge with the overall rank for the active metric.
+      const radarStrengthRankEl = document.getElementById('radarStrengthRank');
+      if (radarStrengthRankEl) {
+        const radarMetricBadgeLabel = radarMetric === 'value' ? 'Value' : 'PPG';
+        radarStrengthRankEl.textContent = radarRank ? `(#${radarRank} ${radarMetricBadgeLabel})` : '';
+      }
+
+      // Build labels with per-slot rank suffixes for the radar chart's point labels.
+      const labelsWithRanks = labels.map((lbl, i) =>
+        slotRanks[i] != null ? `${lbl} (#${slotRanks[i]})` : lbl,
+      );
+
       const radarLayoutPadding = {
         top: isMobileRadar ? 2 : 4,
         bottom: isMobileRadar ? 4 : 4,
@@ -2381,7 +2445,7 @@
       state.charts.radar = new Chart(elements.radarCanvas, {
         type: 'radar',
         data: {
-          labels,
+          labels: labelsWithRanks,
           datasets: [
             {
               label: 'League Average',

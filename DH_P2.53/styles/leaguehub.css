@@ -1381,3 +1381,37 @@ body[data-page="leaguehub"] #secondary-header-row {
   justify-content: center;
   gap: 0.75rem;
 }
+
+/* ---- Summary chip average line ----
+   Displays the league average below the rank footer for non-ranking chips.
+   Matches chip-meta sizing; acts as a secondary footer line. */
+body[data-page="leaguehub"] .analyzer-chip .chip-avg {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  opacity: 0.72;
+}
+
+/* Top-scorer chip: smaller font for the avg line to match the condensed chip-meta. */
+body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-avg {
+  font-size: 0.72rem;
+  letter-spacing: -0.02em;
+  text-wrap-mode: nowrap;
+}
+
+/* Top-scorer chip: "FPTS" unit label in chip-meta is rendered smaller than the score value. */
+body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-meta .chip-meta-unit {
+  font-size: 0.62rem;
+  letter-spacing: 0;
+  opacity: 0.85;
+}
+
+/* Radar panel title: positional-strength rank badge "(#N Value / #N PPG)"
+   rendered as subtle supplementary text next to the heading. */
+body[data-page="leaguehub"] .radar-strength-rank-badge {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  opacity: 0.82;
+  white-space: nowrap;
+}
