@@ -32,7 +32,7 @@ body {
 }
 
 .widget-card {
-  width: 360px;
+  width: 330px;
   max-width: 375px;
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -42,13 +42,13 @@ body {
 }
 
 .widget-header {
-  padding: 10px 16px 4px;
+  padding: 8px 16px 2px;
   border-bottom: 0px solid rgba(255, 255, 255, 0.08);
 }
 
 .widget-header h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -64,15 +64,16 @@ body {
 }
 
 .widget-body {
-  padding: 0px 5px 8px 7px;
+  padding: 0px 4px 7px 4px;
 }
 
 .chart-shell {
   position: relative;
-  height: 302px;
+  height: 288px;
   background: var(--surface);
   border-radius: 22px;
-  padding: 2px 2px 2px 7px;
+  padding: 0px 0px 0px 0px;
+  margin: -3px -15px -14px -29px;
 }
 
 .chart {
@@ -166,7 +167,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  text-align: center;
+  gap: 0;
 }
 
 .stat-count {
@@ -208,4 +210,9 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.14);
   border-radius: 999px;
+}
+
+/* Force negative letter spacing on ECharts text */
+#posChart svg text {
+  letter-spacing: -0.04em;
 }

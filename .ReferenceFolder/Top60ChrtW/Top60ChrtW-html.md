@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Top 60 FPTS — Position Count by Rank</title>
+    <title>Top 15 — KTC Rank vs. ADP</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&display=swap"
       rel="stylesheet"
@@ -18,14 +18,13 @@
     <div class="page">
       <div class="widget-card">
         <div class="widget-header">
-          <h2>PPR · Top 60  — Positional Distribution</h2>
+          <h2>SFLX · Top 15 — KTC Rank vs. ADP</h2>
         </div>
 
         <div class="widget-body">
           <div class="chart-shell">
             <div id="posChart" class="chart"></div>
-            <div class="axis-title axis-title-x">Rank</div>
-            <div class="axis-title axis-title-y">Count</div>
+            <div class="axis-title axis-title-y" style="left: -16px;">Player</div>
           </div>
 
           <div id="summaryChips" class="chips-row"></div>
