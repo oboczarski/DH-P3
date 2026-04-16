@@ -1015,6 +1015,14 @@ function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.d
   };
 }
 
+function createDefaultTradeEntityFilterState() {
+  return {
+    vets: true,
+    rookies: true,
+    picks: true,
+  };
+}
+
 function resetStatsQualifierDefaultsForCategory(category = state.activeCategory) {
   const defaults = createDefaultStatsQualifierState(category);
   state.statsFilters.qualifierStat = defaults.qualifierStat;
@@ -1059,6 +1067,36 @@ function getDataHubControlTeamLogoSrc(team) {
   const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
   const normalizedKey = DATAHUB_CONTROL_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
   return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
+}
+
+function getTradeEntityBucket(pos, team) {
+  if (String(pos || "").trim().toUpperCase() === "RDP") {
+    return "pick";
+  }
+
+  return String(team || "").trim().toUpperCase() === "UD" ? "rookie" : "vet";
+}
+
+// Trade Values entity controls:
+// keep the adp-values-only toggle row mirrored across both control mounts so
+// vets, rookies, and picks can be filtered independently without touching Stats.
+function syncTradeEntityControls(mount) {
+  if (!mount.tradeEntityRow) {
+    return;
+  }
+
+  const isTradeValuesView = state.activePageView === "adp-values";
+  mount.tradeEntityRow.hidden = !isTradeValuesView;
+  if (!isTradeValuesView) {
+    return;
+  }
+
+  mount.tradeEntityToggles.forEach((button) => {
+    const filterKey = button.dataset.tradeEntityToggle;
+    const isActive = Boolean(state.tradeEntityFilters[filterKey]);
+    button.setAttribute("aria-pressed", String(isActive));
+    button.classList.toggle("is-active", isActive);
+  });
 }
 
 // DataHub Stats receiving subfilters:
@@ -1223,6 +1261,7 @@ const CATEGORY_FILTERS = {
   flx: (row) => row.POS === "RB" || row.POS === "WR" || row.POS === "TE",
 };
 const RECEIVING_SUBFILTER_KEYS = Object.freeze(["WR", "TE"]);
+const TRADE_ENTITY_FILTER_KEYS = Object.freeze(["vets", "rookies", "picks"]);
 
 const MOBILE_BREAKPOINT = 719;
 
@@ -1438,7 +1477,10 @@ const state = {
     TE: true,
   },
   statsFilters: createDefaultStatsQualifierState(),
-  showPickValues: false,
+  // Trade Values entity toggles:
+  // keep the three adp-values row filters in page-local state so desktop and
+  // mobile controls stay mirrored while tab switches preserve the session.
+  tradeEntityFilters: createDefaultTradeEntityFilterState(),
   searchText: "",
   rawSeasonRows: [],
   statsRowsBase: [],
@@ -1562,6 +1604,7 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   root,
   categoryRow: root.querySelector("[data-category-row]"),
   receivingSubfilters: root.querySelector("[data-receiving-subfilters]"),
+  tradeEntityRow: root.querySelector("[data-trade-entity-row]"),
   qualifierRow: root.querySelector("[data-qualifier-row]"),
   qualifierStat: root.querySelector("[data-qualifier-stat]"),
   qualifierThreshold: root.querySelector("[data-qualifier-threshold]"),
@@ -1570,7 +1613,7 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
   teamFilterValue: root.querySelector("[data-team-filter-value]"),
   teamFilterMenu: root.querySelector("[data-team-filter-menu]"),
-  pickValuesButton: root.querySelector("[data-pick-values-button]"),
+  tradeEntityToggles: Array.from(root.querySelectorAll("[data-trade-entity-toggle]")),
   playerSearch: root.querySelector("[data-player-search]"),
 }));
 const playerSearchInputs = controlMounts
@@ -1706,13 +1749,13 @@ function attachEventListeners() {
     const {
       categoryRow,
       receivingSubfilters,
+      tradeEntityRow,
       qualifierStat,
       qualifierThreshold,
       qualifierShowAll,
       teamFilterShell,
       teamFilterToggle,
       teamFilterMenu,
-      pickValuesButton,
       playerSearch,
     } = mount;
 
@@ -1770,6 +1813,29 @@ function attachEventListeners() {
       if (!toggleDataHubReceivingFilter(key)) {
         return;
       }
+      syncUiState();
+      refreshGrid();
+    });
+
+    tradeEntityRow?.addEventListener("click", (event) => {
+      if (state.activePageView !== "adp-values") {
+        return;
+      }
+
+      const button = event.target.closest("[data-trade-entity-toggle]");
+      if (!(button instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const filterKey = button.dataset.tradeEntityToggle;
+      if (!TRADE_ENTITY_FILTER_KEYS.includes(filterKey)) {
+        return;
+      }
+
+      // Trade Values entity toggles:
+      // keep the KTC-driven row set intact while letting the control row hide
+      // vets, rookies, and picks in any combination within the current view.
+      state.tradeEntityFilters[filterKey] = !state.tradeEntityFilters[filterKey];
       syncUiState();
       refreshGrid();
     });
@@ -1844,20 +1910,6 @@ function attachEventListeners() {
 
       state.statsFilters.team = option.dataset.teamOption || "";
       closeAllDataHubTeamMenus();
-      syncUiState();
-      refreshGrid();
-    });
-
-    pickValuesButton?.addEventListener("click", () => {
-      if (state.activePageView !== "adp-values") {
-        return;
-      }
-
-      // Trade Values pick toggle:
-      // the existing hero button now controls whether pick entities sourced
-      // directly from KTC_SFLX participate in the adp-values row set.
-      state.showPickValues = !state.showPickValues;
-      state.rows = getActiveRowsForView();
       syncUiState();
       refreshGrid();
     });
@@ -2459,9 +2511,10 @@ function buildStatsRowsByPlayerId(rows) {
 
 function getActiveRowsForView(pageView = state.activePageView) {
   if (pageView === "adp-values") {
-    return state.showPickValues
-      ? [...state.tradeRowsBase]
-      : state.tradeRowsBase.filter((row) => row?.__meta?.pos !== "RDP");
+    // Trade Values row source:
+    // keep the full KTC_SFLX-driven row set available here so the view-level
+    // entity toggles can hide vets, rookies, and picks later in one place.
+    return [...state.tradeRowsBase];
   }
 
   return [...state.statsRowsBase];
@@ -2475,13 +2528,18 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
     const adpEntry = sflxEntity.playerId ? adpLookup?.[sflxEntity.playerId] : null;
     const oneQbAdpValue = Number.isFinite(adpEntry?.pprAdp) ? adpEntry.pprAdp : oneQbEntity?.sheetAdp;
     const sflxAdpValue = Number.isFinite(adpEntry?.sflxAdp) ? adpEntry.sflxAdp : sflxEntity.sheetAdp;
+    // Trade Values entity classification:
+    // bucket each KTC-driven row once here so later filters can treat vets,
+    // rookies, and picks as stable view-level toggles instead of re-inferring.
+    const resolvedTeam = resolveTradeEntityTeam(sflxEntity, statsRow);
+    const tradeEntityBucket = getTradeEntityBucket(sflxEntity.pos, resolvedTeam);
     const tradeSourceRow = {
       PLAYER: sflxEntity.name,
       "PLAYER NAME": sflxEntity.name,
       SLPR_ID: sflxEntity.playerId,
       RK: formatIntegerString(sflxEntity.overallRank),
       POS: sflxEntity.pos,
-      TM: resolveTradeEntityTeam(sflxEntity, statsRow),
+      TM: resolvedTeam,
       AGE: formatTradeEntityAge(sflxEntity.age, statsRow?.AGE),
       G: statsRow?.G,
       FPTS: statsRow?.FPTS,
@@ -2504,6 +2562,7 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       __sflxDiffWinner: getTradeDiffWinner(sflxEntity.overallRank, sflxAdpValue),
       __hasGameLogsSupport: Boolean(statsRow?.__meta?.playerId),
       __tradeEntityType: sflxEntity.pos === "RDP" ? "pick" : "player",
+      __tradeEntityBucket: tradeEntityBucket,
     };
 
     return normalizeRow(tradeSourceRow);
@@ -2723,14 +2782,8 @@ function syncUiState() {
       // row stays empty and hidden in every control mount.
       mount.receivingSubfilters.hidden = true;
     }
+    syncTradeEntityControls(mount);
     syncStatsQualifierControls(mount);
-    if (mount.pickValuesButton) {
-      const showPickValuesButton = state.activePageView === "adp-values";
-      mount.pickValuesButton.hidden = !showPickValuesButton;
-      mount.pickValuesButton.setAttribute("aria-disabled", String(!showPickValuesButton));
-      mount.pickValuesButton.setAttribute("aria-pressed", String(showPickValuesButton && state.showPickValues));
-      mount.pickValuesButton.classList.toggle("is-active", showPickValuesButton && state.showPickValues);
-    }
   });
 
   syncSearchInputs();
@@ -4957,6 +5010,10 @@ function getVisibleRows() {
       return false;
     }
 
+    if (state.activePageView === "adp-values" && !matchesTradeEntityFilters(row)) {
+      return false;
+    }
+
     return true;
   });
 }
@@ -4986,6 +5043,20 @@ function matchesStatsTeamFilter(row) {
   }
 
   return String(row.TM || "").trim() === state.statsFilters.team;
+}
+
+function matchesTradeEntityFilters(row) {
+  const tradeEntityBucket = String(row?.__meta?.tradeEntityBucket || "").trim().toLowerCase();
+  if (tradeEntityBucket === "pick") {
+    return Boolean(state.tradeEntityFilters.picks);
+  }
+  if (tradeEntityBucket === "rookie") {
+    return Boolean(state.tradeEntityFilters.rookies);
+  }
+  if (tradeEntityBucket === "vet") {
+    return Boolean(state.tradeEntityFilters.vets);
+  }
+  return true;
 }
 
 function matchesSearch(row) {
@@ -5975,6 +6046,8 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
     ktcSflxRank,
     diffOneQbWinner: String(sourceRow.__oneQbDiffWinner || ""),
     diffSflxWinner: String(sourceRow.__sflxDiffWinner || ""),
+    tradeEntityType: String(sourceRow.__tradeEntityType || ""),
+    tradeEntityBucket: String(sourceRow.__tradeEntityBucket || ""),
     hasGameLogsSupport,
   };
 }

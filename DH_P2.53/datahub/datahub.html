@@ -337,6 +337,44 @@
             ></div>
           </div>
 
+          <!-- Trade Values entity controls:
+               this middle row is only used by the adp-values view and lets the
+               user independently include or exclude vets, rookies, and picks. -->
+          <div
+            data-trade-entity-row
+            class="trade-entity-row"
+            role="group"
+            aria-label="Trade values entity filters"
+            hidden
+          >
+            <div class="trade-entity-bar">
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="vets"
+                aria-pressed="true"
+              >
+                VETS
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="rookies"
+                aria-pressed="true"
+              >
+                ROOKIES
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="picks"
+                aria-pressed="true"
+              >
+                PICK VALUES
+              </button>
+            </div>
+          </div>
+
           <!-- Stats-only qualifier controls:
                this middle row sits between the category chips and utility row,
                and DataHub.js keeps both desktop/mobile mounts synced to the
@@ -387,15 +425,6 @@
           </div>
 
           <div class="utility-row">
-            <button
-              data-pick-values-button
-              type="button"
-              class="mini-chip mini-chip--ghost mini-chip--pick-values"
-              aria-disabled="true"
-              hidden
-            >
-              PICK VALUES
-            </button>
             <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
               <svg
                 class="mini-chip__icon"
@@ -459,6 +488,44 @@
             ></div>
           </div>
 
+          <!-- Trade Values entity controls:
+               duplicated in the mobile mount so the adp-values view can keep
+               the same entity-filter behavior without moving controls in JS. -->
+          <div
+            data-trade-entity-row
+            class="trade-entity-row"
+            role="group"
+            aria-label="Trade values entity filters"
+            hidden
+          >
+            <div class="trade-entity-bar">
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="vets"
+                aria-pressed="true"
+              >
+                VETS
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="rookies"
+                aria-pressed="true"
+              >
+                ROOKIES
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                data-trade-entity-toggle="picks"
+                aria-pressed="true"
+              >
+                PICK VALUES
+              </button>
+            </div>
+          </div>
+
           <!-- Stats-only qualifier controls:
                duplicated in the mobile mount so the DataHub hero can keep a
                mobile-specific layout without forking the underlying filter
@@ -509,15 +576,6 @@
           </div>
 
           <div class="utility-row">
-            <button
-              data-pick-values-button
-              type="button"
-              class="mini-chip mini-chip--ghost mini-chip--pick-values"
-              aria-disabled="true"
-              hidden
-            >
-              PICK VALUES
-            </button>
             <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
               <svg
                 class="mini-chip__icon"

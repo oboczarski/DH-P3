@@ -1299,6 +1299,29 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   align-items: center;
 }
 
+/* Trade Values entity row:
+   this adp-values-only row sits between the position chips and the bottom
+   utility row so vets, rookies, and picks can be toggled independently. */
+.trade-entity-row {
+  display: grid;
+  gap: 0;
+  overflow: visible;
+}
+
+.trade-entity-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.trade-entity-toggle {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  justify-self: stretch;
+}
+
 /* Stats qualifier row:
    this middle control row sits between the category chips and utility row,
    and its compact dropdown/toggle layout is shared by both desktop and mobile
@@ -3163,14 +3186,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .mini-chip--pick-values {
-    font-size: 0.6rem;
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-row {
+    margin-top: 2px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
+    gap: 5px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle {
+    min-height: 32px;
     padding: 0 8px;
-    max-width: 60px;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell {
-    flex: 1.18 1 0;
+    flex: 1 1 auto;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell__input {
@@ -3491,7 +3523,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      the restored outer panel now carries the main chrome, so the category and
      subfilter rows stay lighter and centered inside that shared shell. */
   .hero-controls--desktop .category-row,
-  .hero-controls--desktop .receiving-subfilters {
+  .hero-controls--desktop .receiving-subfilters,
+  .hero-controls--desktop .trade-entity-row {
     position: relative;
     width: min(100%, 560px);
     max-width: 100%;
@@ -3503,6 +3536,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .hero-controls--desktop .category-row {
     flex-wrap: nowrap;
+  }
+
+  .hero-controls--desktop .trade-entity-bar {
+    gap: 10px;
+  }
+
+  .hero-controls--desktop .trade-entity-toggle {
+    min-width: 0;
+    width: 100%;
   }
 
   .hero-controls--desktop .datahub-receiving-filter-shell {
@@ -3649,11 +3691,6 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     border: rgba(136, 162, 198, 0);
     background: linear-gradient(180deg, rgb(29 43 64 / 90%), rgb(17 23 35 / 95%));
     color: #fff5;
-  }
-
-  .hero-controls--desktop .mini-chip--pick-values {
-    border-color: rgba(144, 170, 211, 0.2);
-    max-width: 80px;
   }
 
   .hero-controls--desktop .mini-chip__icon {
