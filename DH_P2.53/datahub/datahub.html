@@ -567,23 +567,24 @@
         </div>
 
         <!-- Desktop chart lane:
-             ports the standalone Top 60 chart widget into the hero shell while
-             keeping the original widget sizing and internal composition intact. -->
+             this shared hero mount is reused by the Stats and Trade Values
+             chart widgets, so DataHub.js swaps only the chart internals while
+             the panel sizing and placement stay unchanged. -->
         <div class="datahub-chart-panel datahub-chart-panel--desktop" data-chart-panel="desktop">
           <section
             class="datahub-top60-chart"
             data-chart-widget="desktop"
-            aria-label="Top 60 positional distribution chart"
+            aria-label="Data Hub chart widget"
           >
             <div class="datahub-top60-chart__header">
-              <h2>PPR · Top 60  — Positional Distribution</h2>
+              <h2 data-chart-title>PPR · Top 60  — Positional Distribution</h2>
             </div>
 
             <div class="datahub-top60-chart__body">
               <div class="datahub-top60-chart__shell">
                 <div class="datahub-top60-chart__plot" data-chart-canvas></div>
-                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x">Rank</div>
-                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y">Count</div>
+                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x" data-chart-axis-x>Rank</div>
+                <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y" data-chart-axis-y>Count</div>
               </div>
 
               <div class="datahub-top60-chart__chips" data-chart-summary></div>
@@ -682,8 +683,8 @@
     </div>
 
     <!-- Mobile chart modal:
-         keeps the Top 60 widget page-local and reuses a centered popup shell so
-         mobile can show the chart without inserting it into the hero flow. -->
+         this shared popup shell hosts the active Stats or Trade Values chart
+         without inserting either widget into the mobile hero flow. -->
     <div
       id="datahub-chart-modal"
       class="datahub-chart-modal hidden"
@@ -708,17 +709,17 @@
         <section
           class="datahub-top60-chart datahub-top60-chart--modal"
           data-chart-widget="mobile"
-          aria-label="Top 60 positional distribution chart"
+          aria-label="Data Hub chart widget"
         >
           <div class="datahub-top60-chart__header">
-            <h2 id="datahub-chart-modal-title">PPR · Top 60  — Positional Distribution</h2>
+            <h2 id="datahub-chart-modal-title" data-chart-title>PPR · Top 60  — Positional Distribution</h2>
           </div>
 
           <div class="datahub-top60-chart__body">
             <div class="datahub-top60-chart__shell">
               <div class="datahub-top60-chart__plot" data-chart-canvas></div>
-              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x">Rank</div>
-              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y">Count</div>
+              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x" data-chart-axis-x>Rank</div>
+              <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y" data-chart-axis-y>Count</div>
             </div>
 
             <div class="datahub-top60-chart__chips" data-chart-summary></div>

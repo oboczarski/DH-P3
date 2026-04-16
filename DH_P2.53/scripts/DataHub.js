@@ -220,6 +220,86 @@ const DATAHUB_TOP60_CHART_SERIES = Object.freeze([
   }),
 ]);
 
+// Trade Values chart reference data:
+// this is the updated Top60ChrtW widget content, kept page-local so the
+// Trade Values hero chart can match the standalone reference without pulling
+// from live table rows in this pass.
+const DATAHUB_TRADE_VALUES_CHART_DATA = Object.freeze([
+  { name: "J.Allen", fullName: "Josh Allen", pos: "QB", ktc: 3, adp: 1.5 },
+  { name: "Bijan", fullName: "Bijan Robinson", pos: "RB", ktc: 2, adp: 2.6 },
+  { name: "J.Chase", fullName: "Ja'Marr Chase", pos: "WR", ktc: 1, adp: 4.4 },
+  { name: "Maye", fullName: "Drake Maye", pos: "QB", ktc: 6, adp: 3.4 },
+  { name: "Gibbs", fullName: "Jahmyr Gibbs", pos: "RB", ktc: 5, adp: 5.9 },
+  { name: "JSN", fullName: "Jaxon Smith-Njigba", pos: "WR", ktc: 4, adp: 7.5 },
+  { name: "Nacua", fullName: "Puka Nacua", pos: "WR", ktc: 7, adp: 6.4 },
+  { name: "Daniels", fullName: "Jayden Daniels", pos: "QB", ktc: 11, adp: 8 },
+  { name: "Nabers", fullName: "Malik Nabers", pos: "WR", ktc: 9, adp: 12.8 },
+  { name: "St.Brown", fullName: "Amon-Ra St. Brown", pos: "WR", ktc: 13, adp: 9.1 },
+  { name: "C.Williams", fullName: "Caleb Williams", pos: "QB", ktc: 8, adp: 14.1 },
+  { name: "Bowers", fullName: "Brock Bowers", pos: "TE", ktc: 10, adp: 13.2 },
+  { name: "L.Jackson", fullName: "Lamar Jackson", pos: "QB", ktc: 14, adp: 11.8 },
+  { name: "Jefferson", fullName: "Justin Jefferson", pos: "WR", ktc: 12, adp: 16.3 },
+  { name: "Burrow", fullName: "Joe Burrow", pos: "QB", ktc: 18, adp: 10.4 },
+].sort((a, b) => b.adp - a.adp));
+
+const DATAHUB_TRADE_VALUES_CHART_POSITIONS = Object.freeze([
+  Object.freeze({
+    key: "QB",
+    lineStart: "#ff9a3d",
+    lineEnd: "#ff4187",
+    glow: "rgba(255,120,90,0.34)",
+    badgeColor: "#d37be9",
+  }),
+  Object.freeze({
+    key: "RB",
+    lineStart: "#1ac2ff",
+    lineEnd: "#06ff97",
+    glow: "rgba(100,216,255,0.34)",
+    badgeColor: "#66fccc",
+  }),
+  Object.freeze({
+    key: "WR",
+    lineStart: "#8153ff",
+    lineEnd: "#0299fe",
+    glow: "rgba(124,111,255,0.34)",
+    badgeColor: "#60b5ff",
+  }),
+  Object.freeze({
+    key: "TE",
+    lineStart: "#ff4187",
+    lineEnd: "#6a00ff",
+    glow: "rgba(255,107,200,0.30)",
+    badgeColor: "#7e51fc",
+  }),
+]);
+
+const DATAHUB_TRADE_VALUES_CHART_COLORS = Object.freeze({
+  ktc: "#4800ff",
+  mid: "#ca18fb",
+  adp: "#ff6441",
+});
+
+const DATAHUB_HERO_CHART_CONFIGS = Object.freeze({
+  stats: Object.freeze({
+    key: "stats",
+    title: "PPR · Top 60  — Positional Distribution",
+    ariaLabel: "Top 60 positional distribution chart",
+    xAxisLabel: "Rank",
+    yAxisLabel: "Count",
+    renderSummary: renderDataHubTop60SummaryChips,
+    buildOption: buildDataHubTop60ChartOption,
+  }),
+  "adp-values": Object.freeze({
+    key: "adp-values",
+    title: "SFLX · Top 15 — KTC Rank vs. ADP",
+    ariaLabel: "Top 15 KTC Rank vs. ADP chart",
+    xAxisLabel: "",
+    yAxisLabel: "Player",
+    renderSummary: renderDataHubTradeValuesSummaryChips,
+    buildOption: buildDataHubTradeValuesChartOption,
+  }),
+});
+
 // ---------------------------------------------------------------------------
 // Column order is the main structural source of truth for each category view.
 // These arrays simultaneously define:
@@ -1375,10 +1455,10 @@ const state = {
     vertical: 0,
   },
   supplementalDataLoaded: false,
-  // Top 60 chart widget state:
-  // keep the imported ECharts widget local to DataHub so desktop can render it
-  // in the hero shell and mobile can lazy-mount it inside a popup modal.
-  top60ChartWidgets: {
+  // Hero chart widget state:
+  // keep the DataHub chart widgets local to this page so the shared desktop
+  // panel and mobile modal can swap between Stats and Trade Values safely.
+  heroChartWidgets: {
     desktop: null,
     mobile: null,
   },
@@ -2658,12 +2738,14 @@ function syncUiState() {
 }
 
 // ---------------------------------------------------------------------------
-// DataHub Top 60 chart widget
+// DataHub hero chart widgets
 // ---------------------------------------------------------------------------
-// This ports the standalone Top60ChrtW reference widget into DataHub while
-// keeping the chart fully local to this page and its desktop/mobile shell.
+// These helpers keep the chart lane shared between page views while swapping
+// the underlying widget content so Stats and Trade Values can each own the
+// same desktop panel and mobile modal without duplicating the shell markup.
 function syncDataHubChartUi() {
-  const shouldShowChart = CONTENT_PAGE_VIEWS.has(state.activePageView);
+  const chartConfig = getDataHubHeroChartConfig();
+  const shouldShowChart = Boolean(chartConfig);
 
   if (chartDesktopPanel) {
     chartDesktopPanel.hidden = !shouldShowChart || state.isCompactViewport;
@@ -2683,37 +2765,86 @@ function syncDataHubChartUi() {
     if (chartDesktopPanel) {
       chartDesktopPanel.hidden = true;
     }
+
+    if (state.isChartModalOpen) {
+      const mobileWidget = ensureDataHubHeroChartWidget("mobile", chartConfig.key);
+      requestAnimationFrame(() => {
+        mobileWidget?.resize?.();
+      });
+    }
     return;
   }
 
   closeDataHubChartModal({ restoreFocus: false });
-  const widget = ensureDataHubTop60ChartWidget("desktop");
+  const desktopWidget = ensureDataHubHeroChartWidget("desktop", chartConfig.key);
   requestAnimationFrame(() => {
-    widget?.resize?.();
+    desktopWidget?.resize?.();
   });
 }
 
-function getDataHubTop60ChartRoot(widgetKey) {
+function getDataHubHeroChartConfig(viewKey = state.activePageView) {
+  return DATAHUB_HERO_CHART_CONFIGS[viewKey] || null;
+}
+
+function getDataHubHeroChartRoot(widgetKey) {
   return widgetKey === "mobile" ? chartMobileRoot : chartDesktopRoot;
 }
 
-function ensureDataHubTop60ChartWidget(widgetKey) {
-  const existingWidget = state.top60ChartWidgets?.[widgetKey];
-  if (existingWidget) {
-    return existingWidget;
+function syncDataHubHeroChartFrame(widgetRoot, chartConfig) {
+  if (!widgetRoot || !chartConfig) {
+    return;
   }
 
-  const widgetRoot = getDataHubTop60ChartRoot(widgetKey);
+  const chartTitle = widgetRoot.querySelector("[data-chart-title]");
+  const chartAxisX = widgetRoot.querySelector("[data-chart-axis-x]");
+  const chartAxisY = widgetRoot.querySelector("[data-chart-axis-y]");
+
+  widgetRoot.dataset.chartView = chartConfig.key;
+  widgetRoot.setAttribute("aria-label", chartConfig.ariaLabel);
+
+  if (chartTitle) {
+    chartTitle.textContent = chartConfig.title;
+  }
+
+  if (chartAxisX) {
+    chartAxisX.textContent = chartConfig.xAxisLabel || "";
+    chartAxisX.hidden = !chartConfig.xAxisLabel;
+  }
+
+  if (chartAxisY) {
+    chartAxisY.textContent = chartConfig.yAxisLabel || "";
+    chartAxisY.hidden = !chartConfig.yAxisLabel;
+  }
+}
+
+function ensureDataHubHeroChartWidget(widgetKey, viewKey = state.activePageView) {
+  const widgetRoot = getDataHubHeroChartRoot(widgetKey);
   if (!widgetRoot) {
     return null;
   }
 
-  const widget = createDataHubTop60ChartWidget(widgetRoot, widgetKey);
-  state.top60ChartWidgets[widgetKey] = widget;
+  const chartConfig = getDataHubHeroChartConfig(viewKey);
+  if (!chartConfig) {
+    return null;
+  }
+
+  const existingWidget = state.heroChartWidgets?.[widgetKey];
+  if (existingWidget?.viewKey === chartConfig.key && existingWidget.root === widgetRoot) {
+    syncDataHubHeroChartFrame(widgetRoot, chartConfig);
+    return existingWidget;
+  }
+
+  if (existingWidget) {
+    existingWidget.dispose?.();
+    state.heroChartWidgets[widgetKey] = null;
+  }
+
+  const widget = createDataHubHeroChartWidget(widgetRoot, widgetKey, chartConfig);
+  state.heroChartWidgets[widgetKey] = widget;
   return widget;
 }
 
-function createDataHubTop60ChartWidget(widgetRoot, widgetKey) {
+function createDataHubHeroChartWidget(widgetRoot, widgetKey, chartConfig) {
   const chartCanvas = widgetRoot.querySelector("[data-chart-canvas]");
   const summaryHost = widgetRoot.querySelector("[data-chart-summary]");
 
@@ -2721,12 +2852,14 @@ function createDataHubTop60ChartWidget(widgetRoot, widgetKey) {
     return null;
   }
 
-  renderDataHubTop60SummaryChips(summaryHost);
+  syncDataHubHeroChartFrame(widgetRoot, chartConfig);
+  chartConfig.renderSummary(summaryHost);
 
   const echartsApi = getDataHubEchartsApi();
   if (!echartsApi) {
     return {
       key: widgetKey,
+      viewKey: chartConfig.key,
       root: widgetRoot,
       resize: () => {},
       dispose: () => {},
@@ -2734,7 +2867,7 @@ function createDataHubTop60ChartWidget(widgetRoot, widgetKey) {
   }
 
   const chart = echartsApi.init(chartCanvas, null, { renderer: "svg" });
-  chart.setOption(buildDataHubTop60ChartOption(echartsApi));
+  chart.setOption(chartConfig.buildOption(echartsApi), true);
 
   const resize = () => {
     if (!widgetRoot.isConnected || chart.isDisposed()) {
@@ -2750,6 +2883,7 @@ function createDataHubTop60ChartWidget(widgetRoot, widgetKey) {
 
   return {
     key: widgetKey,
+    viewKey: chartConfig.key,
     root: widgetRoot,
     chart,
     resize,
@@ -2768,7 +2902,7 @@ function getDataHubEchartsApi() {
   }
 
   if (!hasWarnedMissingEcharts) {
-    console.warn("DataHub Top 60 chart skipped because ECharts is unavailable.");
+    console.warn("DataHub chart widget skipped because ECharts is unavailable.");
     hasWarnedMissingEcharts = true;
   }
 
@@ -2801,6 +2935,64 @@ function renderDataHubTop60SummaryChips(summaryHost) {
             <span class="datahub-top60-chart__stat-sub">Top 60</span>
             <span class="datahub-top60-chart__stat-pct">${series.pct.toFixed(1)}%</span>
           </span>
+        </div>
+      </div>
+    `)
+    .join("");
+}
+
+function renderDataHubTradeValuesSummaryChips(summaryHost) {
+  const summaries = DATAHUB_TRADE_VALUES_CHART_POSITIONS.map((positionGroup) => {
+    const players = DATAHUB_TRADE_VALUES_CHART_DATA.filter((row) => row.pos === positionGroup.key);
+    const count = players.length;
+    const totalShift = players.reduce((sum, row) => sum + (row.adp - row.ktc), 0);
+    const avgDiff = count ? totalShift / count : 0;
+
+    return {
+      ...positionGroup,
+      count,
+      avgDiff,
+      shiftText: count ? `${avgDiff > 0 ? "+" : ""}${avgDiff.toFixed(1)}` : "-",
+      shiftColor:
+        count > 0
+          ? avgDiff > 0
+            ? "#06ff97"
+            : "#ff4187"
+          : "rgba(255,255,255,0.72)",
+    };
+  });
+
+  summaryHost.innerHTML = summaries
+    .map((item) => `
+      <div
+        class="datahub-top60-chart__stat-chip"
+        style="
+          --datahub-chart-chip-line: linear-gradient(90deg, ${item.lineStart}, ${item.lineEnd});
+          --datahub-chart-chip-dot: linear-gradient(135deg, ${item.lineStart}, ${item.lineEnd});
+          --datahub-chart-chip-glow: ${item.glow};
+          --datahub-chart-shift-color: ${item.shiftColor};
+          box-shadow:
+            0 2px 8px rgba(0,0,0,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.03),
+            0 0 0 1px rgba(255,255,255,0.02),
+            0 -3px 10px ${item.glow};
+        "
+      >
+        <div class="datahub-top60-chart__stat-chip-top">
+          <span class="datahub-top60-chart__stat-dot"></span>
+          <span class="datahub-top60-chart__stat-label">${item.key}</span>
+        </div>
+
+        <div class="datahub-top60-chart__stat-chip-bottom datahub-top60-chart__stat-chip-bottom--split">
+          <div class="datahub-top60-chart__stat-block">
+            <span class="datahub-top60-chart__stat-count">${item.count}</span>
+            <span class="datahub-top60-chart__stat-sub">COUNT</span>
+          </div>
+          <span class="datahub-top60-chart__stat-divider" aria-hidden="true"></span>
+          <div class="datahub-top60-chart__stat-block">
+            <span class="datahub-top60-chart__stat-count datahub-top60-chart__stat-shift">${item.shiftText}</span>
+            <span class="datahub-top60-chart__stat-sub">AVG SHIFT</span>
+          </div>
         </div>
       </div>
     `)
@@ -2970,6 +3162,248 @@ function createDataHubTop60AreaGradient(echartsApi, start, end) {
   ]);
 }
 
+function buildDataHubTradeValuesChartOption(echartsApi) {
+  const adpData = DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.adp);
+  const ktcData = DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.ktc);
+
+  return {
+    animationDuration: 450,
+    backgroundColor: "transparent",
+    grid: {
+      left: 90,
+      right: 20,
+      top: 6,
+      bottom: 24,
+      containLabel: false,
+    },
+    legend: {
+      top: 6,
+      right: 24,
+      itemHeight: 14,
+      itemWidth: 14,
+      data: [
+        { name: "ADP", icon: "roundRect" },
+        { name: "KTC Rank", icon: "roundRect" },
+      ],
+      textStyle: {
+        color: "rgba(255,255,255,0.8)",
+        fontSize: 12,
+        fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+      },
+    },
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(10, 11, 16, 0.95)",
+      borderColor: "rgba(255,255,255,0.08)",
+      borderWidth: 1,
+      textStyle: {
+        color: "#fff",
+        fontSize: 13,
+        fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+      },
+      axisPointer: {
+        type: "shadow",
+        shadowStyle: {
+          color: "rgba(255,255,255,0.03)",
+        },
+      },
+      extraCssText:
+        "border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.6); padding:6px 9px; backdrop-filter:blur(8px);",
+      formatter(params) {
+        return buildDataHubTradeValuesTooltip(params);
+      },
+    },
+    xAxis: {
+      type: "value",
+      min: 0,
+      max: 20,
+      interval: 5,
+      axisLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      axisLabel: {
+        color: "rgba(255,255,255,0.76)",
+        fontSize: 11,
+        fontWeight: 500,
+        margin: 0,
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: "rgba(255,255,255,0.05)",
+          type: "dotted",
+        },
+      },
+    },
+    yAxis: {
+      type: "category",
+      data: DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.name),
+      axisLabel: {
+        formatter(value) {
+          const player = DATAHUB_TRADE_VALUES_CHART_DATA.find((row) => row.name === value);
+          if (!player) {
+            return value;
+          }
+          return `{name|${player.name}  •  }{pos${player.pos}|${player.pos}}`;
+        },
+        rich: {
+          name: {
+            color: "rgba(255,255,255,0.76)",
+            fontSize: 9,
+            fontWeight: 600,
+            fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+          },
+          posQB: {
+            color: "#d37be9",
+            fontSize: 9,
+            fontWeight: 400,
+            fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+          },
+          posRB: {
+            color: "#66fccc",
+            fontSize: 9,
+            fontWeight: 400,
+            fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+          },
+          posWR: {
+            color: "#60b5ff",
+            fontSize: 9,
+            fontWeight: 400,
+            fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+          },
+          posTE: {
+            color: "#7e51fc",
+            fontSize: 9,
+            fontWeight: 400,
+            fontFamily: "'Product Sans', 'Google Sans', sans-serif",
+          },
+        },
+        interval: 0,
+        margin: 4,
+      },
+      axisLine: {
+        show: true,
+        lineStyle: {
+          color: "rgba(255,255,255,0.10)",
+        },
+      },
+      axisTick: {
+        show: false,
+      },
+    },
+    series: [
+      {
+        name: "Connector",
+        type: "custom",
+        renderItem(params, api) {
+          const y = api.coord([0, api.value(2)])[1];
+          const x0 = api.coord([api.value(0), api.value(2)])[0];
+          const x1 = api.coord([api.value(1), api.value(2)])[0];
+          const minX = Math.min(x0, x1);
+          const maxX = Math.max(x0, x1);
+
+          return {
+            type: "rect",
+            transition: ["shape"],
+            shape: {
+              x: minX - 6,
+              y: y - 6,
+              width: maxX - minX + 12,
+              height: 12,
+              r: 6,
+            },
+            style: api.style({
+              fill: new echartsApi.graphic.LinearGradient(0, 0, 1, 0, [
+                {
+                  offset: 0,
+                  color: x0 < x1 ? DATAHUB_TRADE_VALUES_CHART_COLORS.ktc : DATAHUB_TRADE_VALUES_CHART_COLORS.adp,
+                },
+                { offset: 0.5, color: DATAHUB_TRADE_VALUES_CHART_COLORS.mid },
+                {
+                  offset: 1,
+                  color: x0 < x1 ? DATAHUB_TRADE_VALUES_CHART_COLORS.adp : DATAHUB_TRADE_VALUES_CHART_COLORS.ktc,
+                },
+              ]),
+            }),
+          };
+        },
+        data: DATAHUB_TRADE_VALUES_CHART_DATA.map((row, index) => [row.ktc, row.adp, index]),
+        z: 3,
+        tooltip: { show: false },
+      },
+      {
+        name: "KTC Rank",
+        type: "scatter",
+        symbol: "circle",
+        symbolSize: 12,
+        itemStyle: { color: DATAHUB_TRADE_VALUES_CHART_COLORS.ktc },
+        data: ktcData,
+        z: 2,
+      },
+      {
+        name: "ADP",
+        type: "scatter",
+        symbol: "circle",
+        symbolSize: 12,
+        itemStyle: { color: DATAHUB_TRADE_VALUES_CHART_COLORS.adp },
+        data: adpData,
+        z: 2,
+      },
+    ],
+  };
+}
+
+function buildDataHubTradeValuesTooltip(params) {
+  if (!Array.isArray(params) || params.length === 0) {
+    return "";
+  }
+
+  const playerIndex = params[0]?.dataIndex ?? 0;
+  const player = DATAHUB_TRADE_VALUES_CHART_DATA[playerIndex];
+  const adpPoint = params.find((entry) => entry.seriesName === "ADP");
+  const ktcPoint = params.find((entry) => entry.seriesName === "KTC Rank");
+
+  return `
+    <div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.9); margin-bottom:6px; display:flex; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">
+      ${player?.fullName || player?.name || params[0]?.name || ""}
+      ${buildDataHubTradeValuesPosBadge(player?.pos)}
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:24px; margin-bottom:2px; align-items:center;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="width:8px; height:8px; border-radius:50%; background:${DATAHUB_TRADE_VALUES_CHART_COLORS.adp};"></span>
+        <span style="color:rgba(255,255,255,0.7); font-size:12px;">ADP</span>
+      </div>
+      <strong style="font-size:14px; color:#fff;">${adpPoint?.value ?? ""}</strong>
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:24px; align-items:center;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="width:8px; height:8px; border-radius:50%; background:${DATAHUB_TRADE_VALUES_CHART_COLORS.ktc};"></span>
+        <span style="color:rgba(255,255,255,0.7); font-size:12px;">KTC Rank</span>
+      </div>
+      <strong style="font-size:14px; color:#fff;">${ktcPoint?.value ?? ""}</strong>
+    </div>
+  `;
+}
+
+function buildDataHubTradeValuesPosBadge(position) {
+  if (!position) {
+    return "";
+  }
+
+  const badgeColors = {
+    QB: "#d37be9",
+    RB: "#66fccc",
+    WR: "#60b5ff",
+    TE: "#7e51fc",
+  };
+  const badgeColor = badgeColors[position] || "rgba(255,255,255,0.7)";
+
+  return `<span style="background:${badgeColor}26; color:${badgeColor}; padding:2px 6px; border-radius:4px; font-weight:600; font-size:10px; margin-left:6px;">${position}</span>`;
+}
+
 function openDataHubChartModal() {
   if (!state.isCompactViewport || !chartModal || chartToggleButton?.hidden) {
     return;
@@ -2982,7 +3416,7 @@ function openDataHubChartModal() {
   chartToggleButton?.setAttribute("aria-expanded", "true");
 
   requestAnimationFrame(() => {
-    const widget = ensureDataHubTop60ChartWidget("mobile");
+    const widget = ensureDataHubHeroChartWidget("mobile", state.activePageView);
     requestAnimationFrame(() => {
       widget?.resize?.();
       chartModalCloseButton?.focus?.();
@@ -3006,10 +3440,10 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
   }
 }
 
-function resizeDataHubTop60Charts() {
-  state.top60ChartWidgets.desktop?.resize?.();
+function resizeDataHubHeroCharts() {
+  state.heroChartWidgets.desktop?.resize?.();
   if (state.isChartModalOpen) {
-    state.top60ChartWidgets.mobile?.resize?.();
+    state.heroChartWidgets.mobile?.resize?.();
   }
 }
 
@@ -4661,7 +5095,7 @@ function handleViewportResize() {
     }
 
     syncDataHubChartUi();
-    resizeDataHubTop60Charts();
+    resizeDataHubHeroCharts();
     updatePageTabsGlint();
   });
 }
