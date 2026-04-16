@@ -669,8 +669,10 @@ const FROZEN_GROUPS = Object.freeze({
   "adp-values": Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: CURRENT_FROZEN_GROUP_ICON,
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
       columns: ["RK", "PLAYER", "POS"],
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
     }),
   ]),
 });
@@ -861,11 +863,15 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["TM", "AGE"],
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: CURRENT_TRADE_FANTASY_GROUP_ICON,
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "1QB",
@@ -1309,12 +1315,15 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
   AGE: 56,
   FPTS: 82,
   PPG: 66,
-  "KTC 1QB": 92,
-  "KTC SFLX": 92,
-  "1QB ADP": 84,
-  "SFLX ADP": 86,
-  "1QB DIFF": 78,
-  "SFLX DIFF": 80,
+  // Mobile Trade Values market groups:
+  // tighten only the 1QB / SFLX market columns so the shorter trade-values
+  // schema fits more comfortably on mobile without affecting the Stats view.
+  "KTC 1QB": 82,
+  "KTC SFLX": 82,
+  "1QB ADP": 74,
+  "SFLX ADP": 76,
+  "1QB DIFF": 68,
+  "SFLX DIFF": 70,
 });
 
 // ---------------------------------------------------------------------------
