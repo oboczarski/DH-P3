@@ -245,8 +245,8 @@ const DATAHUB_TRADE_VALUES_CHART_DATA = Object.freeze([
 const DATAHUB_TRADE_VALUES_CHART_POSITIONS = Object.freeze([
   Object.freeze({
     key: "QB",
-    lineStart: "#ff9a3d",
-    lineEnd: "#ff4187",
+    lineStart: "#ff6441",
+    lineEnd: "#fe2a78",
     glow: "rgba(255,120,90,0.34)",
     badgeColor: "#d37be9",
   }),
@@ -274,9 +274,9 @@ const DATAHUB_TRADE_VALUES_CHART_POSITIONS = Object.freeze([
 ]);
 
 const DATAHUB_TRADE_VALUES_CHART_COLORS = Object.freeze({
-  ktc: "#4800ff",
-  mid: "#ca18fb",
-  adp: "#ff6441",
+  ktc: "#17c9ff",
+  mid: "#3d1bff",
+  adp: "#9205fd",
 });
 
 const DATAHUB_HERO_CHART_CONFIGS = Object.freeze({
