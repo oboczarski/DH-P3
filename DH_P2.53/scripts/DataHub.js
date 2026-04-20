@@ -7,8 +7,17 @@
 const PAGE_TITLES = Object.freeze({
   stats: "2025 Stats & Advanced Analytics",
   "adp-values": "Trade Values & ADP",
+  rookies: "2026 Rookie Prospect Grades",
 });
 const CONTENT_PAGE_VIEWS = new Set(["stats", "adp-values"]);
+// DataHub top-tab routing:
+// keep the rookies tab selectable in the hero shell while the table continues
+// to use the safest implemented content pipeline until the real rookies table ships.
+const DATAHUB_PAGE_TAB_TO_CONTENT_VIEW = Object.freeze({
+  stats: "stats",
+  "adp-values": "adp-values",
+  rookies: "stats",
+});
 const STATS_CATEGORY_KEYS = Object.freeze(["overview", "passing", "rushing", "receiving"]);
 const TRADE_VALUES_CATEGORY_KEYS = Object.freeze(["all", "qb", "rb", "wr", "te", "flx"]);
 
@@ -282,6 +291,7 @@ const DATAHUB_TRADE_VALUES_CHART_COLORS = Object.freeze({
 const DATAHUB_HERO_CHART_CONFIGS = Object.freeze({
   stats: Object.freeze({
     key: "stats",
+    template: "standard",
     title: "PPR · Top 60  — Positional Distribution",
     ariaLabel: "Top 60 positional distribution chart",
     xAxisLabel: "Rank",
@@ -291,6 +301,7 @@ const DATAHUB_HERO_CHART_CONFIGS = Object.freeze({
   }),
   "adp-values": Object.freeze({
     key: "adp-values",
+    template: "standard",
     title: "SFLX · Top 15 — KTC Rank vs. ADP",
     ariaLabel: "Top 15 KTC Rank vs. ADP chart",
     xAxisLabel: "",
@@ -298,7 +309,190 @@ const DATAHUB_HERO_CHART_CONFIGS = Object.freeze({
     renderSummary: renderDataHubTradeValuesSummaryChips,
     buildOption: buildDataHubTradeValuesChartOption,
   }),
+  rookies: Object.freeze({
+    key: "rookies",
+    template: "rookies",
+    title: "2026 NFL Prospect Grades • Tier Map",
+    ariaLabel: "2026 rookie prospect tier map chart",
+  }),
 });
+
+const DATAHUB_STANDARD_CHART_TEMPLATE = `
+  <div class="datahub-top60-chart__header">
+    <h2 data-chart-title></h2>
+  </div>
+
+  <div class="datahub-top60-chart__body">
+    <div class="datahub-top60-chart__shell">
+      <div class="datahub-top60-chart__plot" data-chart-canvas></div>
+      <div class="datahub-top60-chart__axis datahub-top60-chart__axis--x" data-chart-axis-x></div>
+      <div class="datahub-top60-chart__axis datahub-top60-chart__axis--y" data-chart-axis-y></div>
+    </div>
+
+    <div class="datahub-top60-chart__chips" data-chart-summary></div>
+  </div>
+`;
+
+const DATAHUB_ROOKIES_CHART_TEMPLATE = `
+  <div class="datahub-top60-chart__header datahub-top60-chart__header--rookies">
+    <h2 data-chart-title></h2>
+    <div class="datahub-rookies-chart__legend" aria-label="Tier legend">
+      <span class="datahub-rookies-chart__legend-item datahub-rookies-chart__legend-item--1">
+        <span class="datahub-rookies-chart__legend-dot"></span>
+        Tier 1
+      </span>
+      <span class="datahub-rookies-chart__legend-item datahub-rookies-chart__legend-item--2">
+        <span class="datahub-rookies-chart__legend-dot"></span>
+        Tier 2
+      </span>
+      <span class="datahub-rookies-chart__legend-item datahub-rookies-chart__legend-item--3">
+        <span class="datahub-rookies-chart__legend-dot"></span>
+        Tier 3
+      </span>
+      <span class="datahub-rookies-chart__legend-item datahub-rookies-chart__legend-item--4">
+        <span class="datahub-rookies-chart__legend-dot"></span>
+        Tier 4
+      </span>
+    </div>
+  </div>
+
+  <div class="datahub-top60-chart__body datahub-top60-chart__body--rookies">
+    <div class="datahub-rookies-chart__shell" data-rookies-chart-shell>
+      <div class="datahub-rookies-chart__plot" data-chart-canvas></div>
+    </div>
+  </div>
+`;
+
+// Rookies hero chart reference data:
+// these constants preserve the standalone prospect tier-map layout so the
+// DataHub rookies tab can use the same geometry and rendering behavior.
+const DATAHUB_ROOKIES_CHART_PLAYERS = Object.freeze([
+  { name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB" },
+  { name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB" },
+  { name: "Carnell Tate", grade: 89, tier: 2, pos: "WR" },
+  { name: "Makai Lemon", grade: 88, tier: 2, pos: "WR" },
+  { name: "Jordyn Tyson", grade: 87, tier: 2, pos: "WR" },
+  { name: "KC Concepcion", grade: 84, tier: 3, pos: "WR" },
+  { name: "Kenyon Sadiq", grade: 80, tier: 3, pos: "TE" },
+  { name: "Omar Cooper", grade: 81, tier: 3, pos: "WR" },
+  { name: "Denzel Boston", grade: 80, tier: 3, pos: "WR" },
+  { name: "Jadarian Price", grade: 74, tier: 4, pos: "RB" },
+  { name: "Ty Simpson", grade: 76, tier: 4, pos: "QB" },
+  { name: "Eli Stowers", grade: 77, tier: 4, pos: "TE" },
+  { name: "Mike Washington", grade: 73, tier: 4, pos: "RB" },
+  { name: "Jonah Coleman", grade: 72, tier: 4, pos: "RB" },
+  { name: "Elijah Sarratt", grade: 75, tier: 4, pos: "WR" },
+  { name: "Emmett Johnson", grade: 70, tier: 4, pos: "RB" },
+]);
+
+const DATAHUB_ROOKIES_TIER_LABELS = Object.freeze({
+  1: "Tier 1",
+  2: "Tier 2",
+  3: "Tier 3",
+  4: "Tier 4",
+});
+
+const DATAHUB_ROOKIES_TIER_KEYS = Object.freeze([2, 3, 4]);
+const DATAHUB_ROOKIES_REFERENCE_CENTER_X = 600;
+const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
+const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
+  centerNodeRadius: 102,
+  centerScale: 0.955,
+  outerScale: 1.08,
+  backdropInset: 18,
+  chartPadding: { top: 12, right: 10, bottom: 10, left: 10 },
+  coreOrbit3Radius: 170,
+  coreRingInnerRadius: 128,
+  bands: {
+    2: { radius: 214, width: 76, nodeRadius: 58, angles: [0, 106, 180, 276] },
+    3: { radius: 324, width: 74, nodeRadius: 52, angles: [56, 140, 228, 318] },
+    4: {
+      radius: 434,
+      width: 72,
+      nodeRadius: 46,
+      angles: [34, 72, 126, 180, 234, 288, 326],
+    },
+  },
+  radialOffsets: {
+    "Jonah Coleman": 34,
+    "Emmett Johnson": 34,
+  },
+});
+
+const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
+  const tierIndices = { 2: 0, 3: 0, 4: 0 };
+
+  return DATAHUB_ROOKIES_CHART_PLAYERS.map((player) => {
+    if (player.tier === 1) {
+      return {
+        ...player,
+        shortName: formatDataHubRookiesShortName(player.name),
+        angle: 0,
+        x: DATAHUB_ROOKIES_REFERENCE_CENTER_X,
+        y: DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
+        nodeRadius: DATAHUB_ROOKIES_GEOMETRY.centerNodeRadius,
+      };
+    }
+
+    const band = DATAHUB_ROOKIES_GEOMETRY.bands[player.tier];
+    const angle = band.angles[tierIndices[player.tier]++];
+    const radius = band.radius + (DATAHUB_ROOKIES_GEOMETRY.radialOffsets[player.name] || 0);
+    const point = dataHubPolarToCartesian(
+      DATAHUB_ROOKIES_REFERENCE_CENTER_X,
+      DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
+      radius,
+      angle,
+    );
+
+    return {
+      ...player,
+      shortName: formatDataHubRookiesShortName(player.name),
+      angle,
+      x: point.x,
+      y: point.y,
+      nodeRadius: band.nodeRadius,
+    };
+  });
+})();
+
+const DATAHUB_ROOKIES_REFERENCE_EXTENTS = (() => {
+  const bounds = {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+  };
+  const outerBand = DATAHUB_ROOKIES_GEOMETRY.bands[4];
+
+  dataHubExpandBounds(
+    bounds,
+    DATAHUB_ROOKIES_REFERENCE_CENTER_X,
+    DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
+    outerBand.radius + outerBand.nodeRadius + DATAHUB_ROOKIES_GEOMETRY.backdropInset,
+  );
+  dataHubExpandBounds(
+    bounds,
+    DATAHUB_ROOKIES_REFERENCE_CENTER_X,
+    DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
+    DATAHUB_ROOKIES_GEOMETRY.coreOrbit3Radius,
+  );
+
+  DATAHUB_ROOKIES_REFERENCE_PLAYERS.forEach((player) => {
+    dataHubExpandBounds(
+      bounds,
+      player.x,
+      player.y,
+      player.tier === 1 ? player.nodeRadius + 34 : player.nodeRadius + 15,
+    );
+  });
+
+  return {
+    left: DATAHUB_ROOKIES_REFERENCE_CENTER_X - bounds.minX,
+    right: bounds.maxX - DATAHUB_ROOKIES_REFERENCE_CENTER_X,
+    top: DATAHUB_ROOKIES_REFERENCE_CENTER_Y - bounds.minY,
+    bottom: bounds.maxY - DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
+  };
+})();
 
 // ---------------------------------------------------------------------------
 // Column order is the main structural source of truth for each category view.
@@ -1462,6 +1656,7 @@ const state = {
   // tracks which top page tab should actively drive the grid layout. The
   // placeholder tabs can still borrow the active tab styling without forcing
   // the table off of its current Stats or Trade Values schema.
+  activePageTab: "stats",
   activePageView: "stats",
   // Hidden valuation context:
   // the visible 1-QB / SFLX toggle was removed from the DataHub hero, but the
@@ -1698,19 +1893,25 @@ function attachEventListeners() {
 
   pageTabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      if (button.classList.contains("is-active")) {
+      const nextPageTab = button.dataset.pageTab;
+      if (!nextPageTab || nextPageTab === state.activePageTab) {
         return;
       }
 
-      // DataHub page-view switch:
-      // only the Stats and Trade Values & ADP tabs drive the grid schema. The
-      // remaining tabs keep their placeholder active styling without changing
-      // the current table data until those views get their own implementations.
-      syncPageTabButtons(button);
+      // DataHub top-tab selection:
+      // rookies now owns its title/chart state, but it intentionally resolves
+      // back to the Stats table pipeline until the dedicated rookies grid lands.
+      state.activePageTab = nextPageTab;
+      syncPageTabButtons();
       updatePageTabsGlint();
 
-      const nextPageView = button.dataset.pageTab;
-      if (!CONTENT_PAGE_VIEWS.has(nextPageView) || nextPageView === state.activePageView) {
+      const nextPageView = resolveDataHubContentView(nextPageTab);
+      if (!CONTENT_PAGE_VIEWS.has(nextPageView)) {
+        return;
+      }
+
+      if (nextPageView === state.activePageView) {
+        syncUiState();
         return;
       }
 
@@ -2754,6 +2955,16 @@ function applySortedRows() {
   updateRowCount();
 }
 
+function resolveDataHubContentView(pageTab = state.activePageTab) {
+  return DATAHUB_PAGE_TAB_TO_CONTENT_VIEW[pageTab] || state.activePageView || "stats";
+}
+
+function getDataHubHeroTitle(pageTab = state.activePageTab) {
+  return PAGE_TITLES[pageTab]
+    || PAGE_TITLES[resolveDataHubContentView(pageTab)]
+    || PAGE_TITLES.stats;
+}
+
 // Sync the non-table shell controls so the header, chips, and receiving
 // subfilters stay aligned with the active in-memory state.
 function syncUiState() {
@@ -2761,10 +2972,12 @@ function syncUiState() {
   state.activeCategory = getStoredCategoryForView(state.activePageView);
   state.rows = getActiveRowsForView();
   ensureValidActiveSort();
-  mainTitle.textContent = PAGE_TITLES[state.activePageView] || PAGE_TITLES.stats;
+  syncPageTabButtons();
+  mainTitle.textContent = getDataHubHeroTitle();
   activeViewLabel.textContent = getActiveViewLabelText();
   updateSortMetaPill();
   document.body.dataset.datahubView = state.activePageView;
+  document.body.dataset.datahubTab = state.activePageTab;
 
   primaryTabButtons.forEach((button) => {
     const isActive = button.dataset.primaryTab === state.primaryTab;
@@ -2835,8 +3048,10 @@ function syncDataHubChartUi() {
   });
 }
 
-function getDataHubHeroChartConfig(viewKey = state.activePageView) {
-  return DATAHUB_HERO_CHART_CONFIGS[viewKey] || null;
+function getDataHubHeroChartConfig(viewKey = state.activePageTab) {
+  return DATAHUB_HERO_CHART_CONFIGS[viewKey]
+    || DATAHUB_HERO_CHART_CONFIGS[resolveDataHubContentView(viewKey)]
+    || null;
 }
 
 function getDataHubHeroChartRoot(widgetKey) {
@@ -2870,7 +3085,7 @@ function syncDataHubHeroChartFrame(widgetRoot, chartConfig) {
   }
 }
 
-function ensureDataHubHeroChartWidget(widgetKey, viewKey = state.activePageView) {
+function ensureDataHubHeroChartWidget(widgetKey, viewKey = state.activePageTab) {
   const widgetRoot = getDataHubHeroChartRoot(widgetKey);
   if (!widgetRoot) {
     return null;
@@ -2897,7 +3112,35 @@ function ensureDataHubHeroChartWidget(widgetKey, viewKey = state.activePageView)
   return widget;
 }
 
+function getDataHubHeroChartMarkup(chartConfig) {
+  return chartConfig?.template === "rookies"
+    ? DATAHUB_ROOKIES_CHART_TEMPLATE
+    : DATAHUB_STANDARD_CHART_TEMPLATE;
+}
+
+function ensureDataHubHeroChartMarkup(widgetRoot, chartConfig) {
+  if (!widgetRoot || !chartConfig) {
+    return;
+  }
+
+  if (widgetRoot.dataset.chartTemplate === chartConfig.template) {
+    return;
+  }
+
+  widgetRoot.innerHTML = getDataHubHeroChartMarkup(chartConfig);
+  widgetRoot.dataset.chartTemplate = chartConfig.template;
+}
+
 function createDataHubHeroChartWidget(widgetRoot, widgetKey, chartConfig) {
+  if (chartConfig.template === "rookies") {
+    return createDataHubRookiesChartWidget(widgetRoot, widgetKey, chartConfig);
+  }
+
+  return createDataHubStandardHeroChartWidget(widgetRoot, widgetKey, chartConfig);
+}
+
+function createDataHubStandardHeroChartWidget(widgetRoot, widgetKey, chartConfig) {
+  ensureDataHubHeroChartMarkup(widgetRoot, chartConfig);
   const chartCanvas = widgetRoot.querySelector("[data-chart-canvas]");
   const summaryHost = widgetRoot.querySelector("[data-chart-summary]");
 
@@ -3457,6 +3700,1302 @@ function buildDataHubTradeValuesPosBadge(position) {
   return `<span style="background:${badgeColor}26; color:${badgeColor}; padding:2px 6px; border-radius:4px; font-weight:600; font-size:10px; margin-left:6px;">${position}</span>`;
 }
 
+function dataHubCssVar(styles, name, fallback = "") {
+  const value = styles.getPropertyValue(name).trim();
+  return value || fallback;
+}
+
+function dataHubCssNum(styles, name, fallback = 0) {
+  const value = Number.parseFloat(dataHubCssVar(styles, name));
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function dataHubCssList(styles, name, fallback) {
+  const matches = dataHubCssVar(styles, name).match(/-?\d*\.?\d+/g);
+  return matches ? matches.map((match) => Number.parseFloat(match)) : fallback;
+}
+
+function dataHubClamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function dataHubAlpha(echartsApi, color, value) {
+  return echartsApi.color.modifyAlpha(color, value);
+}
+
+function dataHubIsVisiblePaint(paint) {
+  if (!paint || paint === "transparent" || paint === "none") {
+    return false;
+  }
+
+  if (typeof paint !== "string") {
+    return true;
+  }
+
+  const rgba = paint.match(/rgba?\(([^)]+)\)/i);
+  if (!rgba) {
+    return true;
+  }
+
+  const parts = rgba[1].split(",").map((part) => Number.parseFloat(part.trim()));
+  return parts.length < 4 || parts[3] > 0.002;
+}
+
+function formatDataHubRookiesShortName(name) {
+  const parts = String(name || "").trim().split(" ").filter(Boolean);
+  return parts.length <= 1 ? String(name || "") : `${parts[0][0]}. ${parts[parts.length - 1]}`;
+}
+
+function dataHubPolarToCartesian(cx, cy, radius, angleFromTop) {
+  const angle = ((angleFromTop - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angle),
+    y: cy + radius * Math.sin(angle),
+  };
+}
+
+function dataHubVectorFromAngle(angleFromTop) {
+  const angle = ((angleFromTop - 90) * Math.PI) / 180;
+  return { x: Math.cos(angle), y: Math.sin(angle) };
+}
+
+function dataHubExpandBounds(bounds, x, y, radius) {
+  bounds.minX = Math.min(bounds.minX, x - radius);
+  bounds.maxX = Math.max(bounds.maxX, x + radius);
+  bounds.minY = Math.min(bounds.minY, y - radius);
+  bounds.maxY = Math.max(bounds.maxY, y + radius);
+}
+
+function dataHubBuildTierMap(builder) {
+  return {
+    2: builder(2),
+    3: builder(3),
+    4: builder(4),
+  };
+}
+
+function readDataHubRookiesChartTheme(shellEl, echartsApi) {
+  const styles = getComputedStyle(shellEl);
+  const tierColor = (tier) => dataHubCssVar(styles, `--tier-${tier}`);
+
+  return {
+    fontFamily: dataHubCssVar(
+      styles,
+      "--chart-font-family",
+      '"Product Sans", "Google Sans", sans-serif',
+    ),
+    text: {
+      strong: dataHubCssVar(styles, "--chart-text-strong", "#fff"),
+      name: dataHubCssVar(styles, "--chart-text-name", "rgba(255,255,255,0.94)"),
+    },
+    tooltip: {
+      background: dataHubCssVar(styles, "--chart-tooltip-bg", "rgba(7,11,28,0.96)"),
+      border: dataHubCssVar(styles, "--chart-tooltip-border", "rgba(255,255,255,0.08)"),
+      muted: dataHubCssVar(styles, "--chart-tooltip-text-muted", "rgba(255,255,255,0.7)"),
+      shadow: dataHubCssVar(styles, "--chart-tooltip-shadow", "0 16px 48px rgba(0,0,0,0.45)"),
+      radius: dataHubCssVar(styles, "--chart-tooltip-radius", "14px"),
+      padding: dataHubCssVar(styles, "--chart-tooltip-padding", "10px 12px"),
+    },
+    positions: {
+      QB: dataHubCssVar(styles, "--pos-qb", "#fc3688"),
+      RB: dataHubCssVar(styles, "--pos-rb", "#25f4c5"),
+      WR: dataHubCssVar(styles, "--pos-wr", "#48d1ff"),
+      TE: dataHubCssVar(styles, "--pos-te", "#8d63ff"),
+    },
+    tiers: {
+      1: { color: tierColor(1), label: DATAHUB_ROOKIES_TIER_LABELS[1] },
+      2: { color: tierColor(2), label: DATAHUB_ROOKIES_TIER_LABELS[2] },
+      3: { color: tierColor(3), label: DATAHUB_ROOKIES_TIER_LABELS[3] },
+      4: { color: tierColor(4), label: DATAHUB_ROOKIES_TIER_LABELS[4] },
+    },
+    bands: dataHubBuildTierMap((tier) => ({
+      stroke: dataHubCssVar(styles, `--tier-${tier}-band-stroke`),
+      fill: dataHubCssVar(styles, `--tier-${tier}-band-fill`),
+    })),
+    graphics: {
+      outerBackdropFill: dataHubCssVar(styles, "--chart-outer-backdrop-fill"),
+      outerBackdropStroke: dataHubCssVar(styles, "--chart-outer-backdrop-stroke"),
+      outerAccentStroke: dataHubCssVar(styles, "--chart-outer-accent-stroke"),
+      bandEdgeInner: dataHubCssVar(styles, "--chart-band-edge-inner"),
+      bandEdgeOuter: dataHubCssVar(styles, "--chart-band-edge-outer"),
+      coreOrbitStroke: dataHubCssVar(styles, "--chart-core-orbit-3-stroke"),
+      coreRingInnerStroke: dataHubCssVar(styles, "--chart-core-ring-inner-stroke"),
+      bandDash: {
+        aMin: dataHubCssNum(styles, "--chart-band-dash-a-min", 0.25),
+        aScale: dataHubCssNum(styles, "--chart-band-dash-a-scale", 1),
+        bMin: dataHubCssNum(styles, "--chart-band-dash-b-min", 4),
+        bScale: dataHubCssNum(styles, "--chart-band-dash-b-scale", 1),
+      },
+      bandRingWidth: {
+        min: dataHubCssNum(styles, "--chart-band-ring-line-min", 21),
+        scale: dataHubCssNum(styles, "--chart-band-ring-line-scale", 15),
+      },
+      coreRingInnerDash: {
+        aMin: dataHubCssNum(styles, "--chart-core-ring-inner-dash-a-min", 1),
+        aScale: dataHubCssNum(styles, "--chart-core-ring-inner-dash-a-scale", 2.2),
+        bMin: dataHubCssNum(styles, "--chart-core-ring-inner-dash-b-min", 1),
+        bScale: dataHubCssNum(styles, "--chart-core-ring-inner-dash-b-scale", 1.4),
+      },
+      coreRingInnerWidth: {
+        min: dataHubCssNum(styles, "--chart-core-ring-inner-line-min", 1),
+        scale: dataHubCssNum(styles, "--chart-core-ring-inner-line-scale", 21.4),
+      },
+    },
+    connectors: {
+      opacity: dataHubCssNum(styles, "--connector-opacity", 0.62),
+      shadowBlurMin: dataHubCssNum(styles, "--connector-shadow-blur-min", 4),
+      shadowBlurScale: dataHubCssNum(styles, "--connector-shadow-blur-scale", 6.2),
+      gradient: {
+        start: dataHubCssNum(styles, "--connector-gradient-start-alpha", 0.04),
+        mid: dataHubCssNum(styles, "--connector-gradient-mid-alpha", 0.48),
+        end: dataHubCssNum(styles, "--connector-gradient-end-alpha", 0.84),
+        tail: dataHubCssNum(styles, "--connector-gradient-tail-alpha", 0.28),
+      },
+      highlight: {
+        widthFactor: dataHubCssNum(styles, "--connector-highlight-width-factor", 0.34),
+        start: dataHubCssNum(styles, "--connector-highlight-start-alpha", 0.04),
+        mid: dataHubCssNum(styles, "--connector-highlight-mid-alpha", 0.18),
+        end: dataHubCssNum(styles, "--connector-highlight-end-alpha", 0.24),
+      },
+      tiers: dataHubBuildTierMap((tier) => ({
+        color: dataHubCssVar(styles, `--connector-tier-${tier}-color`, tierColor(tier)),
+        widthMin: dataHubCssNum(styles, `--connector-tier-${tier}-width-min`, 1),
+        widthScale: dataHubCssNum(styles, `--connector-tier-${tier}-width-scale`, 4),
+      })),
+    },
+    nodes: {
+      haloOpacity: {
+        center: dataHubCssNum(styles, "--chart-node-halo-opacity-center", 0.06),
+        outer: dataHubCssNum(styles, "--chart-node-halo-opacity-outer", 0.091),
+      },
+      haloBlur: {
+        center: dataHubCssNum(styles, "--chart-node-halo-blur-center", 6),
+        outer: dataHubCssNum(styles, "--chart-node-halo-blur-outer", 6),
+        tiers: dataHubBuildTierMap((tier) => (
+          dataHubCssNum(styles, `--chart-node-halo-blur-tier-${tier}`, 6)
+        )),
+      },
+      haloSpread: {
+        center: {
+          min: dataHubCssNum(styles, "--chart-node-halo-spread-center-min", 16),
+          scale: dataHubCssNum(styles, "--chart-node-halo-spread-center-scale", 34),
+        },
+        tiers: dataHubBuildTierMap((tier) => ({
+          min: dataHubCssNum(styles, `--chart-node-halo-spread-tier-${tier}-min`, 5),
+          scale: dataHubCssNum(styles, `--chart-node-halo-spread-tier-${tier}-scale`, 11),
+        })),
+      },
+      shadowFill: dataHubCssVar(styles, "--chart-node-sphere-shadow-fill", "rgba(3,8,20,0.6)"),
+      shadowOffset: {
+        center: dataHubCssNum(styles, "--chart-node-sphere-shadow-offset-center", 0.08),
+        outer: dataHubCssNum(styles, "--chart-node-sphere-shadow-offset-outer", 0.12),
+      },
+      fill: {
+        center: dataHubCssVar(styles, "--chart-node-shell-fill-center", "rgba(255,255,255,0.06)"),
+        tiers: dataHubBuildTierMap((tier) => (
+          dataHubCssVar(styles, `--chart-node-fill-tier-${tier}`)
+        )),
+      },
+      shell: {
+        highlight: {
+          center: dataHubCssNum(styles, "--chart-node-shell-highlight-alpha-center", 0.2),
+          outer: dataHubCssNum(styles, "--chart-node-shell-highlight-alpha-outer", 0.12),
+        },
+        edge: {
+          center: dataHubCssNum(styles, "--chart-node-shell-edge-alpha-center", 0.42),
+          outer: dataHubCssNum(styles, "--chart-node-shell-edge-alpha-outer", 0.3),
+        },
+      },
+      rim: {
+        alpha: {
+          center: dataHubCssNum(styles, "--chart-node-rim-alpha-center", 0.96),
+          outer: dataHubCssNum(styles, "--chart-node-rim-alpha-outer", 0.88),
+        },
+        width: {
+          center: {
+            min: dataHubCssNum(styles, "--chart-node-rim-width-center-min", 2.4),
+            factor: dataHubCssNum(styles, "--chart-node-rim-width-center-factor", 0.082),
+          },
+          outer: {
+            min: dataHubCssNum(styles, "--chart-node-rim-width-outer-min", 1.2),
+            factor: dataHubCssNum(styles, "--chart-node-rim-width-outer-factor", 0.094),
+          },
+        },
+        inner: {
+          color: dataHubCssVar(styles, "--chart-node-inner-rim-color", "rgba(255,255,255,1)"),
+          alpha: {
+            center: dataHubCssNum(styles, "--chart-node-inner-rim-alpha-center", 0.18),
+            outer: dataHubCssNum(styles, "--chart-node-inner-rim-alpha-outer", 0.12),
+          },
+          width: {
+            center: dataHubCssNum(styles, "--chart-node-inner-rim-width-center", 1.35),
+            outer: dataHubCssNum(styles, "--chart-node-inner-rim-width-outer", 0.9),
+          },
+        },
+      },
+      sphere: {
+        edgeShadow: dataHubCssVar(styles, "--chart-node-sphere-edge-shadow", "rgba(6,10,24,0.94)"),
+        specularCore: dataHubCssVar(styles, "--chart-node-sphere-specular-core", "rgba(255,255,255,0.98)"),
+        specularSoft: dataHubCssVar(styles, "--chart-node-sphere-specular-soft", "rgba(255,255,255,0.58)"),
+        specularGlint: dataHubCssVar(styles, "--chart-node-sphere-specular-glint", "rgba(255,255,255,0.82)"),
+        highlightFade: dataHubCssVar(styles, "--chart-node-sphere-highlight-fade", "rgba(255,255,255,0)"),
+        colorAlpha: {
+          inner: dataHubCssNum(styles, "--chart-node-sphere-color-alpha-inner", 0.22),
+          mid: dataHubCssNum(styles, "--chart-node-sphere-color-alpha-mid", 0.5),
+          edge: dataHubCssNum(styles, "--chart-node-sphere-color-alpha-edge", 0.96),
+        },
+      },
+      specular: {
+        offset: {
+          center: {
+            x: dataHubCssNum(styles, "--chart-node-specular-offset-x-center", -0.52),
+            y: dataHubCssNum(styles, "--chart-node-specular-offset-y-center", -0.72),
+          },
+          outer: {
+            x: dataHubCssNum(styles, "--chart-node-specular-offset-x-outer", -0.2),
+            y: dataHubCssNum(styles, "--chart-node-specular-offset-y-outer", -0.3),
+          },
+        },
+        radius: {
+          center: dataHubCssNum(styles, "--chart-node-specular-radius-center", 0.17),
+          outer: dataHubCssNum(styles, "--chart-node-specular-radius-outer", 0.48),
+        },
+        opacity: {
+          center: dataHubCssNum(styles, "--chart-node-specular-opacity-center", 0.04),
+          outer: dataHubCssNum(styles, "--chart-node-specular-opacity-outer", 0.26),
+        },
+      },
+      glint: {
+        offset: {
+          center: {
+            x: dataHubCssNum(styles, "--chart-node-glint-offset-x-center", -0.22),
+            y: dataHubCssNum(styles, "--chart-node-glint-offset-y-center", -0.52),
+          },
+          outer: {
+            x: dataHubCssNum(styles, "--chart-node-glint-offset-x-outer", -0.12),
+            y: dataHubCssNum(styles, "--chart-node-glint-offset-y-outer", -0.36),
+          },
+        },
+        size: {
+          center: dataHubCssNum(styles, "--chart-node-glint-size-center", 0.09),
+          outer: dataHubCssNum(styles, "--chart-node-glint-size-outer", 0.12),
+        },
+        alpha: {
+          center: dataHubCssNum(styles, "--chart-node-glint-alpha-center", 0.26),
+          outer: dataHubCssNum(styles, "--chart-node-glint-alpha-outer", 0.58),
+        },
+      },
+      centerInner: {
+        fill: dataHubCssVar(styles, "--chart-node-inner-fill-center", "rgba(18,10,39,0.42)"),
+        stroke: dataHubCssVar(styles, "--chart-node-inner-stroke-center", "rgba(255,255,255,0.16)"),
+        strokeWidth: dataHubCssNum(styles, "--chart-node-inner-stroke-width-center", 1),
+      },
+      centerGradient: {
+        start1: dataHubCssVar(styles, "--chart-center-gradient-stop-1", "rgba(246,237,255,0.98)"),
+        start2: dataHubCssVar(styles, "--chart-center-gradient-stop-2", "rgba(196,162,244,0.94)"),
+        end: dataHubCssVar(styles, "--chart-center-gradient-stop-4", "rgba(40,11,82,1)"),
+      },
+      nameChip: {
+        padding: {
+          center: dataHubCssList(styles, "--chart-name-chip-padding-center", [1, 5, 3, 4]),
+          outer: dataHubCssList(styles, "--chart-name-chip-padding-outer", [1, 3, 2, 3]),
+        },
+        bg: {
+          center: dataHubCssVar(styles, "--chart-name-chip-bg-center", "rgba(10,16,36,0.28)"),
+          outer: dataHubCssVar(styles, "--chart-name-chip-bg-outer", "rgba(33,41,55,0.9)"),
+        },
+        borderWidth: dataHubCssNum(styles, "--chart-name-chip-border-width", 1),
+        borderRadius: dataHubCssNum(styles, "--chart-name-chip-border-radius", 999),
+        borderAlpha: {
+          center: dataHubCssNum(styles, "--chart-name-chip-border-alpha-center", 0.5),
+          outer: dataHubCssNum(styles, "--chart-name-chip-border-alpha-outer", 0.38),
+        },
+        shadowBlur: {
+          center: dataHubCssNum(styles, "--chart-name-chip-shadow-blur-center", 3),
+          outer: dataHubCssNum(styles, "--chart-name-chip-shadow-blur-outer", 2),
+        },
+        shadowAlpha: {
+          center: dataHubCssNum(styles, "--chart-name-chip-shadow-alpha-center", 0.3),
+          outer: dataHubCssNum(styles, "--chart-name-chip-shadow-alpha-outer", 0.32),
+        },
+      },
+    },
+    type: {
+      stackGap: {
+        center: dataHubCssNum(styles, "--chart-pos-grade-gap-center", 1.15),
+        outer: dataHubCssNum(styles, "--chart-pos-grade-gap-outer", 0.55),
+      },
+      posLift: {
+        center: dataHubCssNum(styles, "--chart-pos-label-lift-center", 6),
+        outer: dataHubCssNum(styles, "--chart-pos-label-lift-outer", 3.2),
+      },
+      pos: {
+        center: {
+          weight: dataHubCssNum(styles, "--chart-pos-font-weight-center", 700),
+          factor: dataHubCssNum(styles, "--chart-pos-font-factor-center", 0.31),
+          min: dataHubCssNum(styles, "--chart-pos-font-min-center", 14),
+          max: dataHubCssNum(styles, "--chart-pos-font-max-center", 14.3),
+        },
+        outer: {
+          weight: dataHubCssNum(styles, "--chart-pos-font-weight-outer", 700),
+          factor: dataHubCssNum(styles, "--chart-pos-font-factor-outer", 0.42),
+          min: dataHubCssNum(styles, "--chart-pos-font-min-outer", 8.5),
+          max: dataHubCssNum(styles, "--chart-pos-font-max-outer", 9.5),
+          bumpByTier: dataHubBuildTierMap((tier) => (
+            dataHubCssNum(styles, `--chart-pos-font-bump-tier-${tier}`, 0)
+          )),
+        },
+        shadow: {
+          color: dataHubCssVar(styles, "--chart-pos-shadow-color", "rgba(0,0,0,0.58)"),
+          blur: {
+            center: dataHubCssNum(styles, "--chart-pos-shadow-blur-center", 4.2),
+            outer: dataHubCssNum(styles, "--chart-pos-shadow-blur-outer", 2.2),
+          },
+          offsetX: dataHubCssNum(styles, "--chart-pos-shadow-offset-x", 0),
+          offsetY: dataHubCssNum(styles, "--chart-pos-shadow-offset-y", 0.7),
+          underlay: {
+            center: {
+              color: dataHubCssVar(styles, "--chart-pos-underlay-color-center", "rgba(4,1,12,0.9)"),
+              bump: dataHubCssNum(styles, "--chart-pos-underlay-size-bump-center", 0.1),
+              offsetX: dataHubCssNum(styles, "--chart-pos-underlay-offset-x-center", 0.3),
+              offsetY: dataHubCssNum(styles, "--chart-pos-underlay-offset-y-center", 1.05),
+            },
+            outer: {
+              color: dataHubCssVar(styles, "--chart-pos-underlay-color-outer", "rgba(4,1,12,0.82)"),
+              bump: dataHubCssNum(styles, "--chart-pos-underlay-size-bump-outer", 0.05),
+              offsetX: dataHubCssNum(styles, "--chart-pos-underlay-offset-x-outer", 0.15),
+              offsetY: dataHubCssNum(styles, "--chart-pos-underlay-offset-y-outer", 0.8),
+            },
+            tier3: {
+              color: dataHubCssVar(styles, "--chart-pos-underlay-color-tier-3", "rgba(4,1,12,0.9)"),
+              bump: dataHubCssNum(styles, "--chart-pos-underlay-size-bump-tier-3", 0.08),
+              offsetX: dataHubCssNum(styles, "--chart-pos-underlay-offset-x-tier-3", 0.2),
+              offsetY: dataHubCssNum(styles, "--chart-pos-underlay-offset-y-tier-3", 0.95),
+            },
+          },
+        },
+      },
+      grade: {
+        center: {
+          weight: dataHubCssNum(styles, "--chart-grade-font-weight-center", 400),
+          factor: dataHubCssNum(styles, "--chart-grade-font-factor-center", 1),
+          min: dataHubCssNum(styles, "--chart-grade-font-min-center", 42),
+          max: dataHubCssNum(styles, "--chart-grade-font-max-center", 42),
+        },
+        outer: {
+          weight: dataHubCssNum(styles, "--chart-grade-font-weight-outer", 400),
+          factor: dataHubCssNum(styles, "--chart-grade-font-factor-outer", 0.82),
+          min: dataHubCssNum(styles, "--chart-grade-font-min-outer", 9.2),
+          max: dataHubCssNum(styles, "--chart-grade-font-max-outer", 13.4),
+          bumpByTier: dataHubBuildTierMap((tier) => (
+            dataHubCssNum(styles, `--chart-grade-font-bump-tier-${tier}`, 0)
+          )),
+        },
+        shadow: {
+          color: dataHubCssVar(styles, "--chart-grade-shadow-color-center", "rgba(3,1,12,0.98)"),
+          blur: dataHubCssNum(styles, "--chart-grade-shadow-blur-center", 10.5),
+          offsetX: dataHubCssNum(styles, "--chart-grade-shadow-offset-x-center", 0.45),
+          offsetY: dataHubCssNum(styles, "--chart-grade-shadow-offset-y-center", 2.2),
+          underlayColor: dataHubCssVar(styles, "--chart-grade-underlay-color-center", "rgba(2,1,10,0.96)"),
+          underlayBump: dataHubCssNum(styles, "--chart-grade-underlay-size-bump-center", 0.15),
+          underlayOffsetX: dataHubCssNum(styles, "--chart-grade-underlay-offset-x-center", 0.65),
+          underlayOffsetY: dataHubCssNum(styles, "--chart-grade-underlay-offset-y-center", 2.85),
+        },
+      },
+      name: {
+        weight: dataHubCssNum(styles, "--chart-name-font-weight", 400),
+        center: {
+          factor: dataHubCssNum(styles, "--chart-name-font-factor-center", 0.34),
+          min: dataHubCssNum(styles, "--chart-name-font-min-center", 11),
+          max: dataHubCssNum(styles, "--chart-name-font-max-center", 14.2),
+        },
+        outer: {
+          factor: dataHubCssNum(styles, "--chart-name-font-factor-outer", 0.5),
+          min: dataHubCssNum(styles, "--chart-name-font-min-outer", 6),
+          max: dataHubCssNum(styles, "--chart-name-font-max-outer", 8.5),
+          floor: dataHubCssNum(styles, "--chart-name-font-floor-outer", 5.7),
+          midCutoff: dataHubCssNum(styles, "--chart-name-font-mid-cutoff", 10),
+          midReduction: dataHubCssNum(styles, "--chart-name-font-mid-reduction", 0.5),
+          longCutoff: dataHubCssNum(styles, "--chart-name-font-long-cutoff", 13),
+          longReduction: dataHubCssNum(styles, "--chart-name-font-long-reduction", 0.9),
+        },
+      },
+    },
+  };
+}
+
+function getDataHubRookiesOuterNameSize(shortName, nodeRadius, nameTheme) {
+  let size = dataHubClamp(nodeRadius * nameTheme.factor, nameTheme.min, nameTheme.max);
+
+  if (shortName.length >= nameTheme.longCutoff) {
+    size -= nameTheme.longReduction;
+  } else if (shortName.length >= nameTheme.midCutoff) {
+    size -= nameTheme.midReduction;
+  }
+
+  return Math.max(nameTheme.floor, size);
+}
+
+function computeDataHubRookiesChartLayout(width, height, theme) {
+  const { chartPadding } = DATAHUB_ROOKIES_GEOMETRY;
+  const availableWidth = width - chartPadding.left - chartPadding.right;
+  const availableHeight = height - chartPadding.top - chartPadding.bottom;
+  const scale = Math.min(
+    availableWidth / (2 * Math.max(DATAHUB_ROOKIES_REFERENCE_EXTENTS.left, DATAHUB_ROOKIES_REFERENCE_EXTENTS.right)),
+    availableHeight / (2 * Math.max(DATAHUB_ROOKIES_REFERENCE_EXTENTS.top, DATAHUB_ROOKIES_REFERENCE_EXTENTS.bottom)),
+  ) * 0.985;
+  const center = {
+    x: chartPadding.left + availableWidth / 2,
+    y: chartPadding.top + availableHeight / 2,
+  };
+  const bands = DATAHUB_ROOKIES_TIER_KEYS.map((tier) => ({
+    tier,
+    radius: DATAHUB_ROOKIES_GEOMETRY.bands[tier].radius * scale,
+    width: DATAHUB_ROOKIES_GEOMETRY.bands[tier].width * scale,
+  }));
+  const players = DATAHUB_ROOKIES_REFERENCE_PLAYERS.map((player) => {
+    const isCenter = player.tier === 1;
+    const posTheme = isCenter ? theme.type.pos.center : theme.type.pos.outer;
+    const gradeTheme = isCenter ? theme.type.grade.center : theme.type.grade.outer;
+    const nameTheme = isCenter ? theme.type.name.center : theme.type.name.outer;
+    const nodeRadius = player.nodeRadius * scale * (
+      isCenter ? DATAHUB_ROOKIES_GEOMETRY.centerScale : DATAHUB_ROOKIES_GEOMETRY.outerScale
+    );
+    const posFontSize = dataHubClamp(nodeRadius * posTheme.factor, posTheme.min, posTheme.max)
+      + (isCenter ? 0 : posTheme.bumpByTier[player.tier] || 0);
+    const gradeFontSize = dataHubClamp(nodeRadius * gradeTheme.factor, gradeTheme.min, gradeTheme.max)
+      + (isCenter ? 0 : gradeTheme.bumpByTier[player.tier] || 0);
+    const posGap = isCenter ? theme.type.stackGap.center : theme.type.stackGap.outer;
+    const posSeparation = Math.round((
+      (posFontSize * (isCenter ? 0.58 : 0.54))
+      + (gradeFontSize * (isCenter ? 0.62 : 0.58))
+    ) / 2 + posGap);
+
+    return {
+      ...player,
+      color: theme.tiers[player.tier].color,
+      posColor: theme.positions[player.pos],
+      x: center.x + (player.x - DATAHUB_ROOKIES_REFERENCE_CENTER_X) * scale,
+      y: center.y + (player.y - DATAHUB_ROOKIES_REFERENCE_CENTER_Y) * scale,
+      nodeRadius,
+      shellRadius: isCenter ? nodeRadius + Math.max(7, 10 * scale) : nodeRadius,
+      haloRadius: nodeRadius + Math.max(
+        isCenter
+          ? theme.nodes.haloSpread.center.min
+          : theme.nodes.haloSpread.tiers[player.tier].min,
+        (
+          isCenter
+            ? theme.nodes.haloSpread.center.scale
+            : theme.nodes.haloSpread.tiers[player.tier].scale
+        ) * scale,
+      ),
+      innerRadius: isCenter ? Math.max(14, nodeRadius - Math.max(4, 14 * scale)) : 0,
+      posFontSize,
+      gradeFontSize,
+      posSeparation,
+      gradeOffsetY: isCenter ? -nodeRadius * 0.01 : nodeRadius * 0.04,
+      nameFontSize: isCenter
+        ? dataHubClamp(nodeRadius * nameTheme.factor, nameTheme.min, nameTheme.max)
+        : getDataHubRookiesOuterNameSize(player.shortName, nodeRadius, nameTheme),
+      nameOffsetY: isCenter
+        ? nodeRadius * 0.73
+        : player.tier === 4
+          ? nodeRadius * 0.81
+          : player.tier === 3
+            ? nodeRadius * 0.75
+            : nodeRadius * 0.68,
+    };
+  });
+
+  const bounds = {
+    minX: Number.POSITIVE_INFINITY,
+    maxX: Number.NEGATIVE_INFINITY,
+    minY: Number.POSITIVE_INFINITY,
+    maxY: Number.NEGATIVE_INFINITY,
+  };
+  const outerBackdropRadius = (
+    DATAHUB_ROOKIES_GEOMETRY.bands[4].radius
+    + DATAHUB_ROOKIES_GEOMETRY.bands[4].nodeRadius
+    + DATAHUB_ROOKIES_GEOMETRY.backdropInset
+  ) * scale;
+
+  dataHubExpandBounds(bounds, center.x, center.y, outerBackdropRadius);
+  dataHubExpandBounds(bounds, center.x, center.y, DATAHUB_ROOKIES_GEOMETRY.coreOrbit3Radius * scale);
+  players.forEach((player) => {
+    dataHubExpandBounds(bounds, player.x, player.y, player.haloRadius);
+  });
+
+  let shiftX = 0;
+  let shiftY = 0;
+  const minX = chartPadding.left;
+  const maxX = width - chartPadding.right;
+  const minY = chartPadding.top;
+  const maxY = height - chartPadding.bottom;
+
+  if (bounds.minX < minX) {
+    shiftX = minX - bounds.minX;
+  } else if (bounds.maxX > maxX) {
+    shiftX = maxX - bounds.maxX;
+  }
+
+  if (bounds.minY < minY) {
+    shiftY = minY - bounds.minY;
+  } else if (bounds.maxY > maxY) {
+    shiftY = maxY - bounds.maxY;
+  }
+
+  const shiftedPlayers = (shiftX || shiftY)
+    ? players.map((player) => ({
+      ...player,
+      x: player.x + shiftX,
+      y: player.y + shiftY,
+    }))
+    : players;
+
+  return {
+    width,
+    height,
+    scale,
+    bands,
+    center: { x: center.x + shiftX, y: center.y + shiftY },
+    outerBackdropRadius,
+    coreOrbit3Radius: DATAHUB_ROOKIES_GEOMETRY.coreOrbit3Radius * scale,
+    coreRingInnerRadius: DATAHUB_ROOKIES_GEOMETRY.coreRingInnerRadius * scale,
+    players: shiftedPlayers,
+    centerPlayer: shiftedPlayers.find((player) => player.tier === 1),
+    outerPlayers: shiftedPlayers.filter((player) => player.tier !== 1),
+  };
+}
+
+function buildDataHubRookiesDashPair(config, scale) {
+  return [
+    Math.max(config.aMin, config.aScale * scale),
+    Math.max(config.bMin, config.bScale * scale),
+  ];
+}
+
+function buildDataHubRookiesConnectorGradient(path, theme, isHighlight, echartsApi) {
+  const { start, end, color } = path;
+  const stops = isHighlight
+    ? [
+      { offset: 0, color: dataHubAlpha(echartsApi, theme.text.strong, theme.connectors.highlight.start) },
+      { offset: 0.36, color: dataHubAlpha(echartsApi, theme.text.strong, theme.connectors.highlight.mid) },
+      { offset: 0.84, color: dataHubAlpha(echartsApi, color, theme.connectors.highlight.end) },
+      { offset: 1, color: dataHubAlpha(echartsApi, color, 0) },
+    ]
+    : [
+      { offset: 0, color: dataHubAlpha(echartsApi, theme.text.strong, theme.connectors.gradient.start) },
+      { offset: 0.24, color: dataHubAlpha(echartsApi, theme.text.strong, theme.connectors.gradient.start * 0.72) },
+      { offset: 0.52, color: dataHubAlpha(echartsApi, color, theme.connectors.gradient.mid) },
+      { offset: 0.86, color: dataHubAlpha(echartsApi, color, theme.connectors.gradient.end) },
+      { offset: 1, color: dataHubAlpha(echartsApi, color, theme.connectors.gradient.tail) },
+    ];
+
+  return new echartsApi.graphic.LinearGradient(start[0], start[1], end[0], end[1], stops, true);
+}
+
+function buildDataHubRookiesConnectorPaths(layout, theme) {
+  const startRadius = layout.centerPlayer.nodeRadius + Math.max(8, 12 * layout.scale);
+
+  return layout.outerPlayers.map((player) => {
+    const direction = dataHubVectorFromAngle(player.angle);
+    const tierTheme = theme.connectors.tiers[player.tier];
+    const start = [
+      layout.center.x + direction.x * startRadius,
+      layout.center.y + direction.y * startRadius,
+    ];
+    const end = [
+      player.x - direction.x * player.shellRadius,
+      player.y - direction.y * player.shellRadius,
+    ];
+
+    return {
+      tier: player.tier,
+      color: tierTheme.color,
+      start,
+      end,
+      coords: [start, end],
+      width: Math.max(tierTheme.widthMin, tierTheme.widthScale * layout.scale),
+      shadowBlur: Math.max(
+        theme.connectors.shadowBlurMin,
+        theme.connectors.shadowBlurScale * layout.scale,
+      ),
+    };
+  });
+}
+
+function buildDataHubRookiesConnectorSeries(paths, theme, isHighlight, echartsApi) {
+  return {
+    type: "lines",
+    coordinateSystem: "cartesian2d",
+    polyline: false,
+    silent: true,
+    z: isHighlight ? 3 : 2,
+    data: paths.map((path) => ({
+      coords: path.coords,
+      lineStyle: {
+        color: buildDataHubRookiesConnectorGradient(path, theme, isHighlight, echartsApi),
+        width: path.width * (isHighlight ? theme.connectors.highlight.widthFactor : 1),
+        opacity: isHighlight ? 1 : theme.connectors.opacity,
+        shadowColor: path.color,
+        shadowBlur: isHighlight ? 0 : path.shadowBlur,
+        cap: "round",
+      },
+    })),
+  };
+}
+
+function pushDataHubRookiesCircle(target, cx, cy, radius, fill, stroke, lineWidth, style = {}) {
+  if (
+    (!dataHubIsVisiblePaint(fill) || radius <= 0)
+    && (!dataHubIsVisiblePaint(stroke) || !lineWidth || radius <= 0)
+  ) {
+    return;
+  }
+
+  target.push({
+    type: "circle",
+    silent: true,
+    shape: { cx, cy, r: radius },
+    style: {
+      fill,
+      stroke,
+      lineWidth,
+      ...style,
+    },
+  });
+}
+
+function buildDataHubRookiesGraphics(layout, theme) {
+  const elements = [];
+  const bandDash = buildDataHubRookiesDashPair(theme.graphics.bandDash, layout.scale);
+  const innerDash = buildDataHubRookiesDashPair(theme.graphics.coreRingInnerDash, layout.scale);
+  const bandRingWidth = Math.max(
+    theme.graphics.bandRingWidth.min,
+    theme.graphics.bandRingWidth.scale * layout.scale,
+  );
+
+  pushDataHubRookiesCircle(
+    elements,
+    layout.center.x,
+    layout.center.y,
+    layout.outerBackdropRadius,
+    theme.graphics.outerBackdropFill,
+    theme.graphics.outerBackdropStroke,
+    1,
+  );
+
+  pushDataHubRookiesCircle(
+    elements,
+    layout.center.x,
+    layout.center.y,
+    layout.bands[layout.bands.length - 1].radius
+      + layout.bands[layout.bands.length - 1].width / 2
+      + Math.max(2, 8 * layout.scale),
+    "transparent",
+    theme.graphics.outerAccentStroke,
+    1,
+  );
+
+  layout.bands.forEach((band) => {
+    const bandTheme = theme.bands[band.tier];
+
+    pushDataHubRookiesCircle(
+      elements,
+      layout.center.x,
+      layout.center.y,
+      band.radius,
+      "transparent",
+      bandTheme.fill,
+      band.width,
+    );
+    pushDataHubRookiesCircle(
+      elements,
+      layout.center.x,
+      layout.center.y,
+      band.radius,
+      "transparent",
+      bandTheme.stroke,
+      bandRingWidth,
+      { lineDash: bandDash },
+    );
+    pushDataHubRookiesCircle(
+      elements,
+      layout.center.x,
+      layout.center.y,
+      band.radius - band.width / 2,
+      "transparent",
+      theme.graphics.bandEdgeInner,
+      1,
+    );
+    pushDataHubRookiesCircle(
+      elements,
+      layout.center.x,
+      layout.center.y,
+      band.radius + band.width / 2,
+      "transparent",
+      theme.graphics.bandEdgeOuter,
+      1,
+    );
+  });
+
+  pushDataHubRookiesCircle(
+    elements,
+    layout.center.x,
+    layout.center.y,
+    layout.coreOrbit3Radius,
+    "transparent",
+    theme.graphics.coreOrbitStroke,
+    1,
+  );
+
+  pushDataHubRookiesCircle(
+    elements,
+    layout.center.x,
+    layout.center.y,
+    layout.coreRingInnerRadius,
+    "transparent",
+    theme.graphics.coreRingInnerStroke,
+    Math.max(
+      theme.graphics.coreRingInnerWidth.min,
+      theme.graphics.coreRingInnerWidth.scale * layout.scale,
+    ),
+    { lineDash: innerDash },
+  );
+
+  return elements;
+}
+
+function buildDataHubRookiesShellGradient(color, fillColor, theme, isCenter, echartsApi) {
+  return new echartsApi.graphic.RadialGradient(0.28, 0.24, 1, [
+    {
+      offset: 0,
+      color: dataHubAlpha(
+        echartsApi,
+        theme.text.strong,
+        isCenter ? theme.nodes.shell.highlight.center : theme.nodes.shell.highlight.outer,
+      ),
+    },
+    { offset: 0.22, color: dataHubAlpha(echartsApi, color, theme.nodes.sphere.colorAlpha.inner * 0.52) },
+    { offset: 0.74, color: fillColor },
+    {
+      offset: 1,
+      color: dataHubAlpha(
+        echartsApi,
+        color,
+        isCenter ? theme.nodes.shell.edge.center : theme.nodes.shell.edge.outer,
+      ),
+    },
+  ]);
+}
+
+function buildDataHubRookiesOuterBodyGradient(color, fillColor, theme, echartsApi) {
+  return new echartsApi.graphic.RadialGradient(0.34, 0.26, 0.94, [
+    { offset: 0, color: dataHubAlpha(echartsApi, theme.text.strong, 0.12) },
+    { offset: 0.16, color: dataHubAlpha(echartsApi, color, theme.nodes.sphere.colorAlpha.inner) },
+    { offset: 0.48, color: dataHubAlpha(echartsApi, color, theme.nodes.sphere.colorAlpha.mid) },
+    { offset: 0.8, color: fillColor },
+    { offset: 0.96, color: dataHubAlpha(echartsApi, color, theme.nodes.sphere.colorAlpha.edge) },
+    { offset: 1, color: theme.nodes.sphere.edgeShadow },
+  ]);
+}
+
+function buildDataHubRookiesCenterBodyGradient(color, theme, echartsApi) {
+  return new echartsApi.graphic.RadialGradient(0.3, 0.24, 1, [
+    { offset: 0, color: dataHubAlpha(echartsApi, theme.text.strong, 0.18) },
+    { offset: 0.08, color: theme.nodes.centerGradient.start1 },
+    { offset: 0.24, color: theme.nodes.centerGradient.start2 },
+    { offset: 0.54, color: dataHubAlpha(echartsApi, color, Math.max(0.68, theme.nodes.sphere.colorAlpha.mid)) },
+    { offset: 0.8, color },
+    { offset: 1, color: theme.nodes.centerGradient.end },
+  ]);
+}
+
+function buildDataHubRookiesHighlightGradient(theme, isCenter, echartsApi) {
+  return new echartsApi.graphic.RadialGradient(0.34, 0.28, 1, [
+    {
+      offset: 0,
+      color: dataHubAlpha(
+        echartsApi,
+        theme.nodes.sphere.specularCore,
+        isCenter ? 0.54 : 0.42,
+      ),
+    },
+    {
+      offset: 0.34,
+      color: dataHubAlpha(
+        echartsApi,
+        theme.nodes.sphere.specularSoft,
+        isCenter ? 0.28 : 0.22,
+      ),
+    },
+    { offset: 1, color: theme.nodes.sphere.highlightFade },
+  ]);
+}
+
+function buildDataHubRookiesTextLayer({
+  x,
+  y,
+  text,
+  fill,
+  font,
+  shadow,
+  padding,
+  backgroundColor,
+  borderColor,
+  borderWidth,
+  borderRadius,
+  shadowBlur,
+  shadowColor,
+}) {
+  return {
+    type: "text",
+    x,
+    y,
+    silent: true,
+    style: {
+      text,
+      fill,
+      font,
+      ...(shadow ? {
+        shadowColor: shadow.color,
+        shadowBlur: shadow.blur,
+        shadowOffsetX: shadow.offsetX,
+        shadowOffsetY: shadow.offsetY,
+      } : {}),
+      ...(padding ? { padding } : {}),
+      ...(backgroundColor ? { backgroundColor } : {}),
+      ...(borderColor ? { borderColor } : {}),
+      ...(borderWidth ? { borderWidth } : {}),
+      ...(borderRadius ? { borderRadius } : {}),
+      ...(shadowBlur ? { shadowBlur } : {}),
+      ...(shadowColor ? { shadowColor } : {}),
+      textAlign: "center",
+      textVerticalAlign: "middle",
+    },
+  };
+}
+
+function getDataHubRookiesPositionUnderlay(item, posShadow) {
+  if (item.tier === 1) {
+    return posShadow.underlay.center;
+  }
+
+  return item.tier === 3 ? posShadow.underlay.tier3 : posShadow.underlay.outer;
+}
+
+function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
+  return {
+    type: "custom",
+    coordinateSystem: "cartesian2d",
+    z: 10,
+    data: players.map((player, index) => [player.x, player.y, index]),
+    renderItem(params, api) {
+      const item = players[api.value(2)];
+      const isCenter = item.tier === 1;
+      const point = api.coord([item.x, item.y]);
+      const x = point[0];
+      const y = point[1];
+      const posTheme = isCenter ? theme.type.pos.center : theme.type.pos.outer;
+      const gradeTheme = isCenter ? theme.type.grade.center : theme.type.grade.outer;
+      const posShadow = theme.type.pos.shadow;
+      const gradeShadow = theme.type.grade.shadow;
+      const posTextY = Math.round(
+        y
+          + item.gradeOffsetY
+          - item.posSeparation
+          - (isCenter ? theme.type.posLift.center : theme.type.posLift.outer),
+      );
+      const gradeTextY = Math.round(y + item.gradeOffsetY);
+      const underlay = getDataHubRookiesPositionUnderlay(item, posShadow);
+      const rimWidth = Math.max(
+        isCenter ? theme.nodes.rim.width.center.min : theme.nodes.rim.width.outer.min,
+        item.nodeRadius * (
+          isCenter ? theme.nodes.rim.width.center.factor : theme.nodes.rim.width.outer.factor
+        ),
+      );
+      const bodyRadius = item.shellRadius - Math.max(0.7, rimWidth * 0.72);
+      const shadowOffsetFactor = isCenter
+        ? theme.nodes.shadowOffset.center
+        : theme.nodes.shadowOffset.outer;
+      const specularOffset = isCenter
+        ? theme.nodes.specular.offset.center
+        : theme.nodes.specular.offset.outer;
+      const glintOffset = isCenter
+        ? theme.nodes.glint.offset.center
+        : theme.nodes.glint.offset.outer;
+      const posShadowStyle = {
+        color: posShadow.color,
+        blur: isCenter ? posShadow.blur.center : posShadow.blur.outer,
+        offsetX: posShadow.offsetX,
+        offsetY: posShadow.offsetY,
+      };
+      const gradeShadowStyle = {
+        color: gradeShadow.color,
+        blur: gradeShadow.blur,
+        offsetX: gradeShadow.offsetX,
+        offsetY: gradeShadow.offsetY,
+      };
+      const children = [];
+
+      pushDataHubRookiesCircle(
+        children,
+        x + Math.round(item.nodeRadius * shadowOffsetFactor * 0.72),
+        y + Math.round(item.nodeRadius * shadowOffsetFactor),
+        item.shellRadius * (isCenter ? 1.08 : 1.05),
+        theme.nodes.shadowFill,
+        "transparent",
+        0,
+        { opacity: isCenter ? 0.58 : 0.82 },
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x,
+        y,
+        item.haloRadius,
+        item.color,
+        "transparent",
+        0,
+        {
+          opacity: isCenter ? theme.nodes.haloOpacity.center : theme.nodes.haloOpacity.outer,
+          shadowBlur: isCenter ? theme.nodes.haloBlur.center : theme.nodes.haloBlur.tiers[item.tier],
+          shadowColor: item.color,
+        },
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x,
+        y,
+        item.shellRadius,
+        buildDataHubRookiesShellGradient(
+          item.color,
+          isCenter ? theme.nodes.fill.center : theme.nodes.fill.tiers[item.tier],
+          theme,
+          isCenter,
+          echartsApi,
+        ),
+        "transparent",
+        0,
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x,
+        y,
+        item.shellRadius - rimWidth * 0.5,
+        "transparent",
+        dataHubAlpha(
+          echartsApi,
+          item.color,
+          isCenter ? theme.nodes.rim.alpha.center : theme.nodes.rim.alpha.outer,
+        ),
+        rimWidth,
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x,
+        y,
+        bodyRadius,
+        isCenter
+          ? buildDataHubRookiesCenterBodyGradient(item.color, theme, echartsApi)
+          : buildDataHubRookiesOuterBodyGradient(
+            item.color,
+            theme.nodes.fill.tiers[item.tier],
+            theme,
+            echartsApi,
+          ),
+        "transparent",
+        0,
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x + bodyRadius * specularOffset.x,
+        y + bodyRadius * specularOffset.y,
+        bodyRadius * (
+          isCenter ? theme.nodes.specular.radius.center : theme.nodes.specular.radius.outer
+        ),
+        buildDataHubRookiesHighlightGradient(theme, isCenter, echartsApi),
+        "transparent",
+        0,
+        {
+          opacity: isCenter
+            ? theme.nodes.specular.opacity.center
+            : theme.nodes.specular.opacity.outer,
+        },
+      );
+      pushDataHubRookiesCircle(
+        children,
+        x + bodyRadius * glintOffset.x,
+        y + bodyRadius * glintOffset.y,
+        bodyRadius * (isCenter ? theme.nodes.glint.size.center : theme.nodes.glint.size.outer),
+        dataHubAlpha(
+          echartsApi,
+          theme.nodes.sphere.specularGlint,
+          isCenter ? theme.nodes.glint.alpha.center : theme.nodes.glint.alpha.outer,
+        ),
+        "transparent",
+        0,
+      );
+
+      if (isCenter) {
+        pushDataHubRookiesCircle(
+          children,
+          x,
+          y,
+          item.innerRadius,
+          new echartsApi.graphic.RadialGradient(0.34, 0.28, 0.98, [
+            { offset: 0, color: dataHubAlpha(echartsApi, theme.text.strong, 0.14) },
+            { offset: 0.26, color: theme.nodes.centerInner.fill },
+            { offset: 1, color: dataHubAlpha(echartsApi, item.color, 0.24) },
+          ]),
+          theme.nodes.centerInner.stroke,
+          theme.nodes.centerInner.strokeWidth,
+        );
+      }
+
+      pushDataHubRookiesCircle(
+        children,
+        x,
+        y,
+        bodyRadius + Math.max(0.2, rimWidth * 0.12),
+        "transparent",
+        dataHubAlpha(
+          echartsApi,
+          theme.nodes.rim.inner.color,
+          isCenter ? theme.nodes.rim.inner.alpha.center : theme.nodes.rim.inner.alpha.outer,
+        ),
+        isCenter ? theme.nodes.rim.inner.width.center : theme.nodes.rim.inner.width.outer,
+      );
+
+      children.push(
+        buildDataHubRookiesTextLayer({
+          x: x + underlay.offsetX,
+          y: posTextY + underlay.offsetY,
+          text: item.pos,
+          fill: underlay.color,
+          font: `${posTheme.weight} ${item.posFontSize + underlay.bump}px ${theme.fontFamily}`,
+          shadow: posShadowStyle,
+        }),
+        buildDataHubRookiesTextLayer({
+          x,
+          y: posTextY,
+          text: item.pos,
+          fill: item.posColor,
+          font: `${posTheme.weight} ${item.posFontSize}px ${theme.fontFamily}`,
+          shadow: posShadowStyle,
+        }),
+      );
+
+      if (isCenter) {
+        children.push(
+          buildDataHubRookiesTextLayer({
+            x: x + gradeShadow.offsetX * 0.7,
+            y: gradeTextY + gradeShadow.offsetY * 0.7,
+            text: String(item.grade),
+            fill: dataHubAlpha(echartsApi, gradeShadow.color, 0.82),
+            font: `${gradeTheme.weight} ${item.gradeFontSize + 0.1}px ${theme.fontFamily}`,
+            shadow: gradeShadowStyle,
+          }),
+          buildDataHubRookiesTextLayer({
+            x: x + gradeShadow.underlayOffsetX,
+            y: gradeTextY + gradeShadow.underlayOffsetY,
+            text: String(item.grade),
+            fill: gradeShadow.underlayColor,
+            font: `${gradeTheme.weight} ${item.gradeFontSize + gradeShadow.underlayBump}px ${theme.fontFamily}`,
+          }),
+        );
+      }
+
+      children.push(
+        buildDataHubRookiesTextLayer({
+          x,
+          y: gradeTextY,
+          text: String(item.grade),
+          fill: theme.text.strong,
+          font: `${gradeTheme.weight} ${item.gradeFontSize}px ${theme.fontFamily}`,
+          shadow: isCenter ? {
+            color: gradeShadow.color,
+            blur: gradeShadow.blur * 0.34,
+            offsetX: gradeShadow.offsetX * 0.32,
+            offsetY: gradeShadow.offsetY * 0.32,
+          } : null,
+        }),
+        buildDataHubRookiesTextLayer({
+          x,
+          y: y + item.nameOffsetY,
+          text: item.shortName,
+          fill: theme.text.name,
+          font: `${theme.type.name.weight} ${item.nameFontSize}px ${theme.fontFamily}`,
+          padding: isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer,
+          backgroundColor: isCenter ? theme.nodes.nameChip.bg.center : theme.nodes.nameChip.bg.outer,
+          borderColor: dataHubAlpha(
+            echartsApi,
+            item.color,
+            isCenter ? theme.nodes.nameChip.borderAlpha.center : theme.nodes.nameChip.borderAlpha.outer,
+          ),
+          borderWidth: theme.nodes.nameChip.borderWidth,
+          borderRadius: theme.nodes.nameChip.borderRadius,
+          shadowBlur: isCenter ? theme.nodes.nameChip.shadowBlur.center : theme.nodes.nameChip.shadowBlur.outer,
+          shadowColor: dataHubAlpha(
+            echartsApi,
+            item.color,
+            isCenter ? theme.nodes.nameChip.shadowAlpha.center : theme.nodes.nameChip.shadowAlpha.outer,
+          ),
+        }),
+      );
+
+      return {
+        type: "group",
+        z2: isCenter ? 20 : 10 + item.tier,
+        children,
+      };
+    },
+    tooltip: {
+      formatter(params) {
+        const item = players[params.dataIndex];
+
+        return `
+          <div style="font-family:${theme.fontFamily}; min-width:128px;">
+            <div style="font-size:13px; font-weight:700; margin-bottom:5px;">${item.name}</div>
+            <div style="font-size:11px; color:${theme.tooltip.muted};">${theme.tiers[item.tier].label} · ${item.pos}</div>
+            <div style="margin-top:6px; font-size:12px; font-weight:700;">Grade: ${item.grade}</div>
+          </div>
+        `;
+      },
+    },
+  };
+}
+
+// DataHub rookies chart widget:
+// ports the standalone tier-map ECharts widget into the shared desktop/mobile
+// chart roots while keeping its own markup, geometry, and resize lifecycle local.
+function createDataHubRookiesChartWidget(widgetRoot, widgetKey, chartConfig) {
+  ensureDataHubHeroChartMarkup(widgetRoot, chartConfig);
+  syncDataHubHeroChartFrame(widgetRoot, chartConfig);
+
+  const shellEl = widgetRoot.querySelector("[data-rookies-chart-shell]");
+  const chartEl = widgetRoot.querySelector("[data-chart-canvas]");
+  if (!shellEl || !chartEl) {
+    return null;
+  }
+
+  const echartsApi = getDataHubEchartsApi();
+  if (!echartsApi) {
+    return {
+      key: widgetKey,
+      viewKey: chartConfig.key,
+      root: widgetRoot,
+      resize: () => {},
+      dispose: () => {},
+    };
+  }
+
+  const chart = echartsApi.init(chartEl, null, {
+    renderer: "canvas",
+    useDirtyRect: true,
+  });
+  let themeCache = null;
+  let lastWidth = 0;
+  let lastHeight = 0;
+  let renderFrame = 0;
+
+  const getTheme = (force = false) => {
+    if (!themeCache || force) {
+      themeCache = readDataHubRookiesChartTheme(shellEl, echartsApi);
+    }
+
+    return themeCache;
+  };
+
+  const syncShellAtmosphere = (layout) => {
+    shellEl.style.setProperty("--core-x", `${layout.center.x}px`);
+    shellEl.style.setProperty("--core-y", `${layout.center.y}px`);
+  };
+
+  const render = (forceTheme = false) => {
+    if (chart.isDisposed()) {
+      return;
+    }
+
+    const width = chartEl.clientWidth;
+    const height = chartEl.clientHeight;
+    if (!width || !height) {
+      return;
+    }
+
+    if (!forceTheme && width === lastWidth && height === lastHeight) {
+      return;
+    }
+
+    lastWidth = width;
+    lastHeight = height;
+
+    const theme = getTheme(forceTheme);
+    const layout = computeDataHubRookiesChartLayout(width, height, theme);
+    const connectorPaths = buildDataHubRookiesConnectorPaths(layout, theme);
+
+    syncShellAtmosphere(layout);
+    chart.resize({ width, height });
+    chart.setOption({
+      animationDuration: 700,
+      animationEasing: "cubicOut",
+      backgroundColor: "transparent",
+      grid: { left: 0, right: 0, top: 0, bottom: 0, containLabel: false },
+      xAxis: { type: "value", min: 0, max: width, show: false },
+      yAxis: { type: "value", min: 0, max: height, inverse: true, show: false },
+      tooltip: {
+        trigger: "item",
+        backgroundColor: theme.tooltip.background,
+        borderColor: theme.tooltip.border,
+        borderWidth: 1,
+        textStyle: {
+          color: theme.text.strong,
+          fontFamily: theme.fontFamily,
+        },
+        extraCssText: `box-shadow:${theme.tooltip.shadow}; border-radius:${theme.tooltip.radius}; padding:${theme.tooltip.padding};`,
+      },
+      graphic: buildDataHubRookiesGraphics(layout, theme),
+      series: [
+        buildDataHubRookiesConnectorSeries(connectorPaths, theme, false, echartsApi),
+        buildDataHubRookiesConnectorSeries(connectorPaths, theme, true, echartsApi),
+        buildDataHubRookiesNodeSeries(layout.players, theme, echartsApi),
+      ],
+    }, true);
+  };
+
+  const queueRender = (forceTheme = false) => {
+    cancelAnimationFrame(renderFrame);
+    renderFrame = requestAnimationFrame(() => render(forceTheme));
+  };
+
+  queueRender(true);
+
+  const resizeObserver = typeof ResizeObserver === "function"
+    ? new ResizeObserver(() => queueRender())
+    : null;
+  resizeObserver?.observe(shellEl);
+
+  if (document.fonts?.ready) {
+    document.fonts.ready
+      .then(() => queueRender(true))
+      .catch(() => {});
+  }
+
+  return {
+    key: widgetKey,
+    viewKey: chartConfig.key,
+    root: widgetRoot,
+    chart,
+    resize: () => queueRender(true),
+    dispose: () => {
+      cancelAnimationFrame(renderFrame);
+      resizeObserver?.disconnect();
+      if (!chart.isDisposed()) {
+        chart.dispose();
+      }
+    },
+  };
+}
+
 function openDataHubChartModal() {
   if (!state.isCompactViewport || !chartModal || chartToggleButton?.hidden) {
     return;
@@ -3469,7 +5008,7 @@ function openDataHubChartModal() {
   chartToggleButton?.setAttribute("aria-expanded", "true");
 
   requestAnimationFrame(() => {
-    const widget = ensureDataHubHeroChartWidget("mobile", state.activePageView);
+    const widget = ensureDataHubHeroChartWidget("mobile", state.activePageTab);
     requestAnimationFrame(() => {
       widget?.resize?.();
       chartModalCloseButton?.focus?.();
@@ -3912,6 +5451,7 @@ function syncPageTabButtons(nextActiveButton = null) {
   }
 
   const activeButton = nextActiveButton
+    ?? pageTabButtons.find((button) => button.dataset.pageTab === state.activePageTab)
     ?? pageTabButtons.find((button) => button.classList.contains("is-active"))
     ?? pageTabButtons[0];
 
