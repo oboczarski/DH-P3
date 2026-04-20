@@ -1640,11 +1640,11 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
   // tighten only the 1QB / SFLX market columns so the shorter trade-values
   // schema fits more comfortably on mobile without affecting the Stats view.
   "KTC 1QB": 68,
-  "KTC SFLX": 68,
+  "KTC SFLX": 72,
   "1QB ADP": 68,
   "SFLX ADP": 70,
   "1QB DIFF": 68,
-  "SFLX DIFF": 68,
+  "SFLX DIFF": 70,
 });
 
 // ---------------------------------------------------------------------------
