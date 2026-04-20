@@ -2630,7 +2630,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0px;
+  /* gap controls the space between the icon and label text as a unit */
+  gap: 4px;
   width: 100%;
   min-height: 44px;
   padding: 0 18px 0 10px;
@@ -2667,9 +2668,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .stats-table__head-label {
-  flex: 1;
+  /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
-  padding: 0 0px;
   overflow: overlay;
   white-space: nowrap;
   text-align: center;
@@ -3340,7 +3340,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .stats-table__head-button {
     min-height: 34px;
     padding: 0 8px 0 6px;
-    gap: 0px;
+    /* smaller gap on mobile to keep tight columns */
+    gap: 3px;
   }
 
   .stats-table__head-icon {
