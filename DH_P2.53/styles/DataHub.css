@@ -3339,7 +3339,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .stats-table__head-button {
     min-height: 34px;
-    padding: 0 8px 0 6px;
+    padding: 0 0px 0 0px;
     /* smaller gap on mobile to keep tight columns */
     gap: 3px;
   }
@@ -3350,7 +3350,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .stats-table__sort-indicator {
-    right: 4px;
+    right: 0px;
     width: 13px;
     height: 13px;
   }
