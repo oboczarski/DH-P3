@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Top 15 — KTC Rank vs. ADP</title>
+    <title>2026 NFL Prospect Grades • Tier Map</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@100;200;300;400;500;700;900&display=swap"
       rel="stylesheet"
@@ -18,16 +18,31 @@
     <div class="page">
       <div class="widget-card">
         <div class="widget-header">
-          <h2>SFLX · Top 15 — KTC Rank vs. ADP</h2>
+          <h2>2026 NFL Prospect Grades • Tier Map</h2>
+          <div class="tier-legend" aria-label="Tier legend">
+            <span class="tier-legend-item tier-legend-item-1">
+              <span class="tier-legend-dot"></span>
+              Tier 1
+            </span>
+            <span class="tier-legend-item tier-legend-item-2">
+              <span class="tier-legend-dot"></span>
+              Tier 2
+            </span>
+            <span class="tier-legend-item tier-legend-item-3">
+              <span class="tier-legend-dot"></span>
+              Tier 3
+            </span>
+            <span class="tier-legend-item tier-legend-item-4">
+              <span class="tier-legend-dot"></span>
+              Tier 4
+            </span>
+          </div>
         </div>
 
         <div class="widget-body">
           <div class="chart-shell">
             <div id="posChart" class="chart"></div>
-            <div class="axis-title axis-title-y" style="left: -16px;">Player</div>
           </div>
-
-          <div id="summaryChips" class="chips-row"></div>
         </div>
       </div>
     </div>
