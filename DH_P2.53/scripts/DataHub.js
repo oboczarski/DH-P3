@@ -3248,10 +3248,12 @@ function renderDataHubTradeValuesSummaryChips(summaryHost) {
       ...positionGroup,
       count,
       avgDiff,
-      shiftText: count ? `${avgDiff > 0 ? "+" : ""}${avgDiff.toFixed(1)}` : "-",
+      // No sign — just the absolute diff value for display.
+      shiftText: count ? Math.abs(avgDiff).toFixed(1) : "-",
+      // Green for diffs under 3 (QB/RB/WR), reddish for 3+ (TE).
       shiftColor:
         count > 0
-          ? avgDiff > 0
+          ? Math.abs(avgDiff) < 3
             ? "#06ff97"
             : "#ff4187"
           : "rgba(255,255,255,0.72)",
@@ -3287,7 +3289,7 @@ function renderDataHubTradeValuesSummaryChips(summaryHost) {
           <span class="datahub-top60-chart__stat-divider" aria-hidden="true"></span>
           <div class="datahub-top60-chart__stat-block">
             <span class="datahub-top60-chart__stat-count datahub-top60-chart__stat-shift">${item.shiftText}</span>
-            <span class="datahub-top60-chart__stat-sub">AVG SHIFT</span>
+            <span class="datahub-top60-chart__stat-sub">AVG DIFF</span>
           </div>
         </div>
       </div>
