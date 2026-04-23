@@ -696,14 +696,14 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
+    "TIER",
+    "GRD",
+    "POS-RK",
     "CFB",
     "HT",
     "WT",
     "40dsh",
     "Gs",
-    "TIER",
-    "GRD",
-    "POS-RK",
     "tYDS",
     "tTD",
     "OPP",
@@ -714,10 +714,10 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
-    "Gs",
     "GRD",
     "TIER",
     "OVR-RK",
+    "Gs",
     "tYDS",
     "tTD",
     "OPP",
@@ -748,10 +748,10 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
-    "Gs",
     "GRD",
     "TIER",
     "OVR-RK",
+    "Gs",
     "tYDS",
     "tTD",
     "OPP",
@@ -780,10 +780,10 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
-    "Gs",
     "GRD",
     "TIER",
     "OVR-RK",
+    "Gs",
     "tYDS",
     "tTD",
     "OPP",
@@ -1103,6 +1103,7 @@ function createDataHubColumnGroup({
   columns,
   groupIconColor,
   columnIconColor = groupIconColor,
+  columnIconColors = null,
 }) {
   return Object.freeze({
     label,
@@ -1110,6 +1111,7 @@ function createDataHubColumnGroup({
     columns: Object.freeze([...columns]),
     groupIconColor,
     columnIconColor,
+    columnIconColors: columnIconColors ? Object.freeze({ ...columnIconColors }) : null,
   });
 }
 
@@ -1146,7 +1148,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS", "TM"],
+        columns: ["RK", "PLAYER", "POS"],
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1155,7 +1157,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS", "TM", "Gs"],
+        columns: ["RK", "PLAYER", "POS"],
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1164,7 +1166,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS", "TM", "Gs"],
+        columns: ["RK", "PLAYER", "POS"],
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1173,7 +1175,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS", "TM", "Gs"],
+        columns: ["RK", "PLAYER", "POS"],
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1359,21 +1361,28 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
+// Rookie career Prospect Grades exception:
+// TM scrolls with the prospect columns but keeps the General identity
+// header-icon color so the team column remains visually tied to player info.
+const ROOKIE_PROSPECT_COLUMN_ICON_COLORS = Object.freeze({
+  TM: SHARED_COLUMN_ICON_COLORS.GENERAL,
+});
 const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
   overview: Object.freeze([
+    createDataHubColumnGroup({
+      label: "PROSPECT GRADES",
+      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      columns: ["TM", "TIER", "GRD", "POS-RK"],
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
+    }),
     createDataHubColumnGroup({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
       columns: ["CFB", "HT", "WT", "40dsh", "Gs"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
-    }),
-    createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TIER", "GRD", "POS-RK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS",
@@ -1387,14 +1396,15 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["TM", "GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (PA+RU)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
@@ -1431,14 +1441,15 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["TM", "GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (RU+REC)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
@@ -1475,14 +1486,15 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["TM", "GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (REC+RU)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
     }),
@@ -1594,6 +1606,7 @@ function cloneSharedCategoryValue(value) {
         ? {
           ...entry,
           columns: Array.isArray(entry.columns) ? [...entry.columns] : entry.columns,
+          columnIconColors: entry.columnIconColors ? { ...entry.columnIconColors } : entry.columnIconColors,
         }
         : entry
     ));
@@ -1651,7 +1664,10 @@ function getActiveRookiesSubview() {
 
 function getStickyColumnCount(pageView = state.activePageView, category = state.activeCategory) {
   if (pageView === "rookies-career") {
-    return category === "overview" ? 4 : 5;
+    // Rookie career sticky identity:
+    // TM now scrolls inside Prospect Grades and Gs lives in Career Totals, so
+    // all rookie career categories freeze only rank, player, and position.
+    return 3;
   }
 
   return 3;
@@ -6504,12 +6520,17 @@ function buildHeaderTable(columns, totalWidth, groups, paneType) {
 function buildColumnIconColorMap(groups) {
   const colorMap = new Map();
   groups.forEach((group) => {
-    const color = group.columnIconColor || group.groupIconColor || group.iconColor;
-    if (!color) {
-      return;
-    }
-
     group.columns.forEach((columnName) => {
+      // Group header exceptions:
+      // some rookie columns, like TM inside Prospect Grades, need a per-column
+      // header icon color while still belonging to a different group header.
+      const color = group.columnIconColors?.[columnName]
+        || group.columnIconColor
+        || group.groupIconColor
+        || group.iconColor;
+      if (!color) {
+        return;
+      }
       colorMap.set(columnName, color);
     });
   });
@@ -6988,7 +7009,7 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
 
   applyColumnStyle(td, column);
 
-  td.classList.add(...getCellClassNames(column.name, value));
+  td.classList.add(...getCellClassNames(column.name, value, row));
   td.title = BLANK_PLACEHOLDER_COLUMNS.has(column.name) ? "" : formatCellValue(value);
 
   const content = document.createElement("div");
@@ -7836,9 +7857,9 @@ function parseCsv(csvText) {
 // Cell styling and value formatting
 // ---------------------------------------------------------------------------
 // Class assignment mirrors the current table styling system. This deliberately
-// uses plain column/value inputs instead of old grid-library style params so
-// future agents can read it as custom renderer logic, not adapter code.
-function getCellClassNames(columnName, value) {
+// uses plain column/value/row inputs instead of old grid-library style params
+// so future agents can read it as custom renderer logic, not adapter code.
+function getCellClassNames(columnName, value, row = null) {
   const classes = ["dh-grid-cell"];
 
   if (columnName === PLAYER_COLUMN) {
@@ -7875,6 +7896,15 @@ function getCellClassNames(columnName, value) {
   // each tier number keeps one stable color in both rookies subviews.
   if (columnName === "TIER" && isDataHubRookiesView()) {
     const rookieTierStyle = getRookieTierStyleLevel(value);
+    classes.push("heat-cell", "heat-cell--rookie-tier", `heat-cell--tier-${rookieTierStyle}`);
+    return classes;
+  }
+
+  // Rookie GRD column:
+  // color grade cells from the row's TIER value so prospect grade values share
+  // the same table-specific tier palette as their tier label.
+  if (columnName === "GRD" && isDataHubRookiesView()) {
+    const rookieTierStyle = getRookieTierStyleLevel(row?.TIER);
     classes.push("heat-cell", "heat-cell--rookie-tier", `heat-cell--tier-${rookieTierStyle}`);
     return classes;
   }

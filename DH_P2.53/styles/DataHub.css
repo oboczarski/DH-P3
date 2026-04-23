@@ -2840,8 +2840,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 /* Rookies table tier colors:
-   the TIER column uses its own table-specific 1-8 palette instead of chart
-   colors or percentile heat so each tier remains visually consistent. */
+   TIER and GRD use the table-specific 1-8 palette instead of chart colors or
+   percentile heat so each prospect tier remains visually consistent. */
 .heat-cell--rookie-tier.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(214, 223, 237, 0.72);
   text-shadow: none;
