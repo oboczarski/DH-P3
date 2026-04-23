@@ -322,6 +322,37 @@
           aria-label="Filters and controls"
         >
           <div class="controls-cluster">
+            <!-- Rookies view switcher:
+                 targets only the DataHub rookies tab and lets that tab swap
+                 between career stats and rookie-only trade values without
+                 changing the top page-tab shell or other page views. -->
+            <div
+              data-rookies-mode-row
+              class="top-tabs rookies-mode-row"
+              role="tablist"
+              aria-label="Rookies view mode"
+              hidden
+            >
+              <button
+                type="button"
+                class="top-tab"
+                data-rookies-subview="rookies-career"
+                role="tab"
+                aria-selected="true"
+              >
+                Rankings &amp; Career Stats
+              </button>
+              <button
+                type="button"
+                class="top-tab"
+                data-rookies-subview="rookies-trade"
+                role="tab"
+                aria-selected="false"
+              >
+                Trade Values &amp; ADP
+              </button>
+            </div>
+
             <div
               data-category-row
               class="category-row"
@@ -473,6 +504,37 @@
           aria-label="Filters and controls"
         >
           <div class="controls-cluster">
+            <!-- Rookies view switcher:
+                 duplicated in the mobile control mount so the rookies tab can
+                 keep the same two-row control order on small screens without
+                 moving controls through JS or affecting other DataHub tabs. -->
+            <div
+              data-rookies-mode-row
+              class="top-tabs rookies-mode-row"
+              role="tablist"
+              aria-label="Rookies view mode"
+              hidden
+            >
+              <button
+                type="button"
+                class="top-tab"
+                data-rookies-subview="rookies-career"
+                role="tab"
+                aria-selected="true"
+              >
+                Rankings &amp; Career Stats
+              </button>
+              <button
+                type="button"
+                class="top-tab"
+                data-rookies-subview="rookies-trade"
+                role="tab"
+                aria-selected="false"
+              >
+                Trade Values &amp; ADP
+              </button>
+            </div>
+
             <div
               data-category-row
               class="category-row"
