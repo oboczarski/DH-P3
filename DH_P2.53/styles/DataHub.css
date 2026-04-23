@@ -580,6 +580,28 @@ body::after {
   transform: scale(0.97);
 }
 
+/* Disabled DataHub page tabs:
+   Rankings and Ownership stay visible in the shared tab strip, but are parked
+   as inactive placeholders until their table views are implemented. */
+.page-tab:disabled,
+.page-tab[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+  color: rgba(153, 169, 194, 0.44);
+  filter: grayscale(0.35);
+}
+
+.page-tab:disabled:hover,
+.page-tab[aria-disabled="true"]:hover {
+  color: rgba(153, 169, 194, 0.44);
+  filter: grayscale(0.35);
+}
+
+.page-tab:disabled:active,
+.page-tab[aria-disabled="true"]:active {
+  transform: none;
+}
+
 .page-tab.is-active {
   color: #d9ebff;
   border-color: transparent;
@@ -4667,6 +4689,15 @@ body[data-page="datahub"] .stats-player-btn {
   font-weight: 600;
   letter-spacing: -0.05em;
   cursor: pointer;
+}
+
+@media (min-width: 720px) {
+  /* Desktop table PLAYER column:
+     increase only the text size of the existing player trigger/static label;
+     column widths and table layout remain controlled by DataHub.js. */
+  body[data-page="datahub"] .stats-player-btn {
+    font-size: 0.88rem;
+  }
 }
 
 body[data-page="datahub"] .stats-player-btn--static {

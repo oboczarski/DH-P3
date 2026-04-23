@@ -1959,10 +1959,13 @@ const COLUMN_WIDTHS = {
   WT: 96,
   "40dsh": 86,
   Gs: 72,
-  GRD: 86,
-  TIER: 76,
-  "OVR-RK": 92,
-  "POS-RK": 88,
+  // Rookies prospect columns:
+  // these fields appear in the rookies grids only, and get a little extra
+  // width so grade/rank values do not feel cramped on either career or trade.
+  GRD: 98,
+  TIER: 90,
+  "OVR-RK": 104,
+  "POS-RK": 100,
   FPTS: 110,
   PPG: 92,
   tYDS: 98,
@@ -2060,9 +2063,9 @@ const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
 });
 const ROOKIES_TRADE_COLUMN_WIDTHS = Object.freeze({
   ...TRADE_VALUES_COLUMN_WIDTHS,
-  GRD: 92,
-  TIER: 84,
-  "OVR-RK": 98,
+  GRD: 104,
+  TIER: 96,
+  "OVR-RK": 110,
 });
 
 const MOBILE_COLUMN_WIDTHS = {
@@ -2079,10 +2082,10 @@ const MOBILE_COLUMN_WIDTHS = {
   WT: 50,
   "40dsh": 48,
   Gs: 42,
-  GRD: 52,
-  TIER: 48,
-  "OVR-RK": 60,
-  "POS-RK": 58,
+  GRD: 62,
+  TIER: 58,
+  "OVR-RK": 70,
+  "POS-RK": 68,
   FPTS: 62,
   PPG: 52,
   tYDS: 62,
@@ -2186,9 +2189,9 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
 });
 const ROOKIES_TRADE_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...TRADE_VALUES_MOBILE_COLUMN_WIDTHS,
-  GRD: 54,
-  TIER: 50,
-  "OVR-RK": 62,
+  GRD: 64,
+  TIER: 60,
+  "OVR-RK": 72,
 });
 
 // ---------------------------------------------------------------------------
@@ -7520,12 +7523,18 @@ function sortRows(rows) {
     .map((row, index) => ({
       row,
       index,
+      rookieBottomPriority: getRookieSortBottomPriority(row, sortColumn),
       primaryValue: toComparableValue(row[sortColumn]),
       rankValue: sortColumn === "RK" ? null : toComparableValue(row.RK),
       playerValue: toComparableValue(row.PLAYER),
       posValue: toComparableValue(row.POS),
     }))
     .sort((left, right) => {
+      const rookieBottomResult = left.rookieBottomPriority - right.rookieBottomPriority;
+      if (rookieBottomResult !== 0) {
+        return rookieBottomResult;
+      }
+
       const primaryResult = comparePreparedGridValues(left.primaryValue, right.primaryValue);
       if (primaryResult !== 0) {
         return primaryResult * directionMultiplier;
@@ -7553,6 +7562,34 @@ function sortRows(rows) {
       return left.index - right.index;
     })
     .map((entry) => entry.row);
+}
+
+function getRookieSortBottomPriority(row, sortColumn) {
+  if (!isDataHubRookiesView()) {
+    return 0;
+  }
+
+  // Rookies table bottom-pinning:
+  // keep rows showing "-" or "NR" at the bottom regardless of active sort
+  // direction, while preserving normal sorting for fully ranked/value rows.
+  if (isRookieBottomSortValue(row?.[sortColumn])) {
+    return 1;
+  }
+
+  if (isDataHubRookiesCareerView() && isRookieBottomSortValue(row?.RK)) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function isRookieBottomSortValue(value) {
+  if (isMissingValue(value)) {
+    return true;
+  }
+
+  const normalizedValue = String(value ?? "").trim().toUpperCase();
+  return normalizedValue === "-" || normalizedValue === "NR";
 }
 
 function compareRookieCareerRankRows(
@@ -7621,6 +7658,10 @@ function compareRookieCareerNrYards(leftRow, rightRow) {
 // when a column is the selected sort key, rows without a real value in that
 // column are removed from the rendered table so NA entries never linger.
 function filterRowsForActiveSort(rows, sortColumn) {
+  if (isDataHubRookiesView()) {
+    return rows;
+  }
+
   return rows.filter((row) => !isMissingValue(row[sortColumn]));
 }
 

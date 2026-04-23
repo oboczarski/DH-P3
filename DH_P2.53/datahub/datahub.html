@@ -199,30 +199,6 @@
           </button>
           <button
             type="button"
-            class="page-tab"
-            data-page-tab="rankings"
-            role="tab"
-            aria-selected="false"
-          >
-            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <defs>
-                <linearGradient id="page-tab-gradient-rankings" x1="0" y1="12" x2="48" y2="12" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stop-color="#74efff"></stop>
-                  <stop offset="52%" stop-color="#7297ff"></stop>
-                  <stop offset="100%" stop-color="#d97dff"></stop>
-                </linearGradient>
-              </defs>
-              <line x1="10" y1="6" x2="21" y2="6"></line>
-              <line x1="10" y1="12" x2="21" y2="12"></line>
-              <line x1="10" y1="18" x2="21" y2="18"></line>
-              <polyline points="4 6 4 10 6 10"></polyline>
-              <polyline points="6 18 4 18 4 14 6 14"></polyline>
-              <line x1="4" y1="14" x2="6" y2="14"></line>
-            </svg>
-            <span class="page-tab__text">Rankings</span>
-          </button>
-          <button
-            type="button"
             class="page-tab page-tab--adp"
             data-page-tab="adp-values"
             role="tab"
@@ -268,12 +244,43 @@
             </svg>
             <span class="page-tab__text">Rookies</span>
           </button>
+          <!-- Disabled page tabs:
+               Rankings is intentionally parked second-to-last and inactive
+               until that DataHub view gets a dedicated implementation. -->
           <button
             type="button"
-            class="page-tab"
+            class="page-tab page-tab--disabled"
+            data-page-tab="rankings"
+            role="tab"
+            aria-selected="false"
+            aria-disabled="true"
+            disabled
+          >
+            <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <defs>
+                <linearGradient id="page-tab-gradient-rankings" x1="0" y1="12" x2="48" y2="12" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#74efff"></stop>
+                  <stop offset="52%" stop-color="#7297ff"></stop>
+                  <stop offset="100%" stop-color="#d97dff"></stop>
+                </linearGradient>
+              </defs>
+              <line x1="10" y1="6" x2="21" y2="6"></line>
+              <line x1="10" y1="12" x2="21" y2="12"></line>
+              <line x1="10" y1="18" x2="21" y2="18"></line>
+              <polyline points="4 6 4 10 6 10"></polyline>
+              <polyline points="6 18 4 18 4 14 6 14"></polyline>
+              <line x1="4" y1="14" x2="6" y2="14"></line>
+            </svg>
+            <span class="page-tab__text">Rankings</span>
+          </button>
+          <button
+            type="button"
+            class="page-tab page-tab--disabled"
             data-page-tab="ownership"
             role="tab"
             aria-selected="false"
+            aria-disabled="true"
+            disabled
           >
             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <defs>
