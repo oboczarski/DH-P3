@@ -696,6 +696,7 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
+    "AGE",
     "TIER",
     "GRD",
     "POS-RK",
@@ -714,6 +715,7 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
+    "AGE",
     "GRD",
     "TIER",
     "OVR-RK",
@@ -748,6 +750,7 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
+    "AGE",
     "GRD",
     "TIER",
     "OVR-RK",
@@ -780,6 +783,7 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "PLAYER",
     "POS",
     "TM",
+    "AGE",
     "GRD",
     "TIER",
     "OVR-RK",
@@ -1099,6 +1103,7 @@ const RUSHING_COLUMN_ICON_COLORS = Object.freeze({
 
 function createDataHubColumnGroup({
   label,
+  ariaLabel = label,
   icon,
   columns,
   groupIconColor,
@@ -1107,6 +1112,7 @@ function createDataHubColumnGroup({
 }) {
   return Object.freeze({
     label,
+    ariaLabel,
     icon,
     columns: Object.freeze([...columns]),
     groupIconColor,
@@ -1361,21 +1367,29 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
-// Rookie career Prospect Grades exception:
-// TM scrolls with the prospect columns but keeps the General identity
-// header-icon color so the team column remains visually tied to player info.
-const ROOKIE_PROSPECT_COLUMN_ICON_COLORS = Object.freeze({
-  TM: SHARED_COLUMN_ICON_COLORS.GENERAL,
+// Rookie career scrollable General continuation:
+// TM and AGE follow the frozen RK/PLAYER/POS identity columns without becoming
+// sticky, while keeping the same General heading icon and column icon colors.
+const ROOKIE_CAREER_SCROLL_GENERAL_GROUP = createDataHubColumnGroup({
+  // Icon-only General continuation:
+  // show the General icon for scrollable TM/AGE, but omit visible group text so
+  // it reads as an extension of the frozen General group instead of a repeat.
+  label: "",
+  ariaLabel: "GENERAL",
+  icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+  columns: ["TM", "AGE"],
+  groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
+  columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
 });
 const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
   overview: Object.freeze([
+    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TM", "TIER", "GRD", "POS-RK"],
+      columns: ["TIER", "GRD", "POS-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "INFO",
@@ -1393,13 +1407,13 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   passing: Object.freeze([
+    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TM", "GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (PA+RU)",
@@ -1438,13 +1452,13 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   rushing: Object.freeze([
+    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TM", "GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (RU+REC)",
@@ -1483,13 +1497,13 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   receiving: Object.freeze([
+    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
       label: "PROSPECT GRADES",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TM", "GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-      columnIconColors: ROOKIE_PROSPECT_COLUMN_ICON_COLORS,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (REC+RU)",
@@ -3346,6 +3360,7 @@ function buildRookieCareerSourceRow(category, row) {
     PLAYER: getFirstUsableRookieValue(row.PLAYER, playerLookup?.PLAYER),
     POS: getFirstUsableRookieValue(row.POS, playerLookup?.POS),
     TM: resolveRookieCareerTeam(playerId),
+    AGE: getFirstUsableRookieValue(row.AGE, playerLookup?.AGE),
     CFB: getFirstUsableRookieValue(row.CFB, playerLookup?.CFB),
     HT: getFirstUsableRookieValue(row.HT, playerLookup?.HT),
     WT: getFirstUsableRookieValue(row.WT, playerLookup?.WT),
@@ -3434,6 +3449,10 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
       const prospect = rookieProspectByPlayerId?.[playerId] || null;
       return {
         ...row,
+        // Rookie Trade Values age:
+        // prefer the new ALL-Cr.csv prospect AGE joined by SLPR_ID, falling
+        // back to the KTC/SZN trade row age so non-age fields stay unchanged.
+        AGE: getFirstUsableRookieValue(prospect?.AGE, row.AGE),
         GRD: sanitizeValue(prospect?.GRD),
         TIER: sanitizeValue(prospect?.TIER),
         "OVR-RK": sanitizeValue(prospect?.["OVR-RK"]),
@@ -3452,6 +3471,7 @@ function mergeRookieProspectLookupEntry(store, row) {
     SLPR_ID: playerId,
     PLAYER: getFirstUsableRookieValue(previous.PLAYER, row.PLAYER),
     POS: getFirstUsableRookieValue(previous.POS, row.POS),
+    AGE: getFirstUsableRookieValue(previous.AGE, row.AGE),
     CFB: getFirstUsableRookieValue(previous.CFB, row.CFB),
     HT: getFirstUsableRookieValue(previous.HT, row.HT),
     WT: getFirstUsableRookieValue(previous.WT, row.WT),
@@ -7274,6 +7294,9 @@ function buildGroupHeaderRow(columns, groups) {
     const th = document.createElement("th");
     th.className = "stats-table__group-header-cell";
     th.colSpan = group.columns.length;
+    if (group.ariaLabel) {
+      th.setAttribute("aria-label", group.ariaLabel);
+    }
 
     const inner = document.createElement("div");
     inner.className = "stats-table__group-header-inner";
@@ -7292,9 +7315,14 @@ function buildGroupHeaderRow(columns, groups) {
       inner.append(svg);
     }
 
-    const label = document.createElement("span");
-    label.textContent = group.label;
-    inner.append(label);
+    // Icon-only groups:
+    // rookie career TM/AGE uses a General icon without repeating the General
+    // text label; all regular groups continue to render their visible label.
+    if (group.label) {
+      const label = document.createElement("span");
+      label.textContent = group.label;
+      inner.append(label);
+    }
 
     th.append(inner);
     tr.append(th);
