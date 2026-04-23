@@ -1865,8 +1865,11 @@ const DEFAULT_SORT_BY_VIEW = Object.freeze({
     direction: "asc",
   }),
   "rookies-trade": Object.freeze({
-    column: "KTC SFLX",
-    direction: "desc",
+    // Rookie trade view default sort:
+    // ADP is the requested landing sort for this subview, and because lower
+    // ADP is better it should open in ascending order on first render.
+    column: "SFLX ADP",
+    direction: "asc",
   }),
 });
 const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
@@ -2068,10 +2071,13 @@ const MOBILE_COLUMN_WIDTHS = {
   POS: 64,
   TM: 40,
   AGE: 45,
-  CFB: 82,
-  HT: 58,
-  WT: 60,
-  "40dsh": 56,
+  // Rookie info columns on mobile:
+  // tighten these four widths so the rookies career tables fit more cleanly
+  // across the small-screen scroll pane without changing desktop sizing.
+  CFB: 72,
+  HT: 48,
+  WT: 50,
+  "40dsh": 48,
   Gs: 42,
   GRD: 52,
   TIER: 48,
@@ -7823,6 +7829,15 @@ function getCellClassNames(columnName, value) {
     return classes;
   }
 
+  // Rookie tier column:
+  // use the explicit rookie tier palette instead of percentile-based heat so
+  // each tier number keeps one stable color in both rookies subviews.
+  if (columnName === "TIER" && isDataHubRookiesView()) {
+    const rookieTierStyle = getRookieTierStyleLevel(value);
+    classes.push("heat-cell", "heat-cell--rookie-tier", `heat-cell--tier-${rookieTierStyle}`);
+    return classes;
+  }
+
   if (!NON_FORMATTED_COLUMNS.has(columnName)) {
     const family = getFormattingFamily(columnName);
     const tier = getFormattingTier(columnName, value);
@@ -7836,6 +7851,21 @@ function formatCellValue(value) {
   return isMissingValue(value) ? (isDataHubRookiesView() ? "-" : "NA") : value;
 }
 
+function getRookieTierStyleLevel(value) {
+  const numericTier = toComparableNumber(value);
+  if (numericTier != null && numericTier >= 1 && numericTier <= 8) {
+    return Math.round(numericTier);
+  }
+
+  const match = String(value ?? "").match(/\d+/);
+  if (!match) {
+    return 0;
+  }
+
+  const parsedTier = Number.parseInt(match[0], 10);
+  return parsedTier >= 1 && parsedTier <= 8 ? parsedTier : 0;
+}
+
 function formatDisplayValue(columnName, value) {
   if (BLANK_PLACEHOLDER_COLUMNS.has(columnName)) {
     return "";
@@ -7847,6 +7877,13 @@ function formatDisplayValue(columnName, value) {
   }
 
   const formattedValue = formatCellValue(value);
+
+  // Rookie tier display:
+  // keep the stored value numeric for sorting/filtering, but render the table
+  // value with the requested T- prefix in both rookies subviews.
+  if (columnName === "TIER" && isDataHubRookiesView() && !isMissingValue(value)) {
+    return `T-${formattedValue}`;
+  }
 
   if (columnName !== PLAYER_COLUMN || !state.isCompactViewport) {
     return formattedValue;

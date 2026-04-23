@@ -2817,6 +2817,70 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
     0 0 28px rgba(162, 127, 255, 0.07);
 }
 
+/* Rookies table tier colors:
+   the TIER column uses its own table-specific 1-8 palette instead of chart
+   colors or percentile heat so each tier remains visually consistent. */
+.heat-cell--rookie-tier.heat-cell--tier-0 .stats-table__cell-content {
+  color: rgba(214, 223, 237, 0.72);
+  text-shadow: none;
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-1 .stats-table__cell-content {
+  color: #45ffcd;
+  text-shadow:
+    0 0 12px rgba(69, 255, 205, 0.2),
+    0 0 22px rgba(69, 255, 205, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-2 .stats-table__cell-content {
+  color: #5df9fc;
+  text-shadow:
+    0 0 12px rgba(93, 249, 252, 0.2),
+    0 0 22px rgba(93, 249, 252, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-3 .stats-table__cell-content {
+  color: #74c8ff;
+  text-shadow:
+    0 0 12px rgba(116, 200, 255, 0.2),
+    0 0 22px rgba(116, 200, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-4 .stats-table__cell-content {
+  color: #8b7cff;
+  text-shadow:
+    0 0 12px rgba(139, 124, 255, 0.2),
+    0 0 22px rgba(139, 124, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-5 .stats-table__cell-content {
+  color: #a642ff;
+  text-shadow:
+    0 0 12px rgba(166, 66, 255, 0.2),
+    0 0 22px rgba(166, 66, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-6 .stats-table__cell-content {
+  color: #ff9fc9;
+  text-shadow:
+    0 0 12px rgba(255, 159, 201, 0.2),
+    0 0 22px rgba(255, 159, 201, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-7 .stats-table__cell-content {
+  color: #ff6fe1;
+  text-shadow:
+    0 0 12px rgba(255, 111, 225, 0.2),
+    0 0 22px rgba(255, 111, 225, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-8 .stats-table__cell-content {
+  color: #ff1d7b;
+  text-shadow:
+    0 0 12px rgba(255, 29, 123, 0.2),
+    0 0 22px rgba(255, 29, 123, 0.08);
+}
+
 .heat-cell--neutral.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(214, 221, 234, 0.74);
   text-shadow: none;
