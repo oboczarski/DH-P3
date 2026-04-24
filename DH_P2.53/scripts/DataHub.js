@@ -1733,12 +1733,29 @@ function getDataHubControlTeamLogoSrc(team) {
   return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
 }
 
-function getTradeEntityBucket(pos, team) {
+function getTradeEntityExperience(...values) {
+  for (const value of values) {
+    const normalizedValue = String(value ?? "").trim();
+    if (!normalizedValue || normalizedValue.toUpperCase() === "NA" || normalizedValue.toUpperCase() === "#N/A") {
+      continue;
+    }
+
+    const parsedValue = Number(normalizedValue);
+    if (Number.isFinite(parsedValue)) {
+      return parsedValue;
+    }
+  }
+
+  return null;
+}
+
+function getTradeEntityBucket(pos, primaryExperience, fallbackExperience) {
   if (String(pos || "").trim().toUpperCase() === "RDP") {
     return "pick";
   }
 
-  return String(team || "").trim().toUpperCase() === "UD" ? "rookie" : "vet";
+  const experience = getTradeEntityExperience(primaryExperience, fallbackExperience);
+  return experience === 0 ? "rookie" : "vet";
 }
 
 // Trade Values entity controls:
@@ -3209,7 +3226,7 @@ function buildKtcSheetEntity(normalizedRow) {
     posRank: getNormalizedSheetValue(normalizedRow, ["POS RK", "POS_RK", "POS|RK", "POS | RK", "POS·RK"]),
     age: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "AGE")),
     rookieYear: getNormalizedSheetValue(normalizedRow, ["RY", "ROOKIE YEAR"]),
-    experience: getNormalizedSheetValue(normalizedRow, ["EXP", "YEARS"]),
+    experience: getTradeEntityExperience(getNormalizedSheetValue(normalizedRow, ["EXP", "YEARS"])),
     tier: getNormalizedSheetValue(normalizedRow, "TIER"),
     trend: getNormalizedSheetValue(normalizedRow, "TREND"),
     sheetAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "ADP")),
@@ -3604,10 +3621,12 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
     const oneQbAdpValue = Number.isFinite(adpEntry?.pprAdp) ? adpEntry.pprAdp : oneQbEntity?.sheetAdp;
     const sflxAdpValue = Number.isFinite(adpEntry?.sflxAdp) ? adpEntry.sflxAdp : sflxEntity.sheetAdp;
     // Trade Values entity classification:
-    // bucket each KTC-driven row once here so later filters can treat vets,
-    // rookies, and picks as stable view-level toggles instead of re-inferring.
+    // targets the DataHub Trade Values entity filters and the Rookies Trade
+    // Values subview. Rookie status comes from KTC EXP === 0 only; TM stays
+    // display-only here so drafted rookies are not misclassified as vets.
     const resolvedTeam = resolveTradeEntityTeam(sflxEntity, statsRow);
-    const tradeEntityBucket = getTradeEntityBucket(sflxEntity.pos, resolvedTeam);
+    const tradeEntityExperience = getTradeEntityExperience(sflxEntity.experience, oneQbEntity?.experience);
+    const tradeEntityBucket = getTradeEntityBucket(sflxEntity.pos, sflxEntity.experience, oneQbEntity?.experience);
     const tradeSourceRow = {
       PLAYER: sflxEntity.name,
       "PLAYER NAME": sflxEntity.name,
@@ -3624,7 +3643,7 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       "POS·ADP": formatFixedString(adpEntry?.posAdp, 1),
       "POS RK": sflxEntity.posRank,
       RY: sflxEntity.rookieYear,
-      EXP: sflxEntity.experience,
+      EXP: tradeEntityExperience,
       "KTC 1QB": formatIntegerString(oneQbEntity?.ktc),
       "KTC SFLX": formatIntegerString(sflxEntity.ktc),
       "1QB ADP": formatFixedString(oneQbAdpValue, 1),
