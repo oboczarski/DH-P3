@@ -9777,7 +9777,7 @@ function renderOwnershipInGameLogsPane(playerId) {
 
         bodyEl.innerHTML = `
             <div class="gl-ownership-exposure-card">
-                <span class="gl-exposure-label">My Exposure</span>
+                <span class="gl-exposure-label">Exposure</span>
                 <div class="gl-exposure-values ownership-list-exposure ${exposureClass}">
                     <span class="ownership-exposure-count">${ownedCount}</span>
                     <span class="ownership-exposure-sep" aria-hidden="true">⏐</span>

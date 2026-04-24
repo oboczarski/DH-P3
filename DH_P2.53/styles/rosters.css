@@ -1814,39 +1814,37 @@ body[data-page="rosters"] {
   --ownership-exp-c15-pct: #ff0000a8;
 }
 
-/* Exposure summary card: a centered glass block showing "My Exposure" count + % */
+/* Exposure summary row: horizontal layout — LABEL  count⏐pct%  context */
 body[data-page="rosters"] .gl-ownership-exposure-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.18rem;
-  padding: 0.7rem 1.6rem 0.62rem;
-  margin: 0.2rem auto 0.82rem;
+  justify-content: center;
+  gap: 0.52rem;
+  padding: 0.42rem 1.1rem;
+  margin: 0.2rem auto 0.72rem;
   width: fit-content;
-  min-width: 9rem;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(160deg, rgba(28, 34, 66, 0.72), rgba(16, 20, 48, 0.82));
   border: 1px solid rgba(156, 170, 242, 0.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 18px rgba(8, 10, 30, 0.38);
 }
 
-/* "MY EXPOSURE" eyebrow label */
+/* "EXPOSURE" label on the left */
 body[data-page="rosters"] .gl-exposure-label {
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: rgba(166, 176, 231, 0.6);
-  margin-bottom: 0.08rem;
 }
 
-/* "owned in N of N leagues" footer line */
+/* "owned in N of N leagues" dimmed context text on the right */
 body[data-page="rosters"] .gl-exposure-context {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 500;
-  color: rgba(166, 176, 231, 0.48);
+  color: rgba(166, 176, 231, 0.45);
   letter-spacing: 0.02em;
-  margin-top: 0.1rem;
 }
 
 /* Inner flex row holding count ⏐ pct — strip container chrome since card handles it */
