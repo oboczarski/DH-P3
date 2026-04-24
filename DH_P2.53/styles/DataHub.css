@@ -9967,7 +9967,7 @@ body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane:not(.hidden)
 body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane {
   width: min(94vw, 500px);
   max-width: 500px;
-  max-height: 90vh;
+  max-height: 64vh;
   overflow: hidden;
 }
 
@@ -10060,7 +10060,7 @@ body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
   body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane {
     width: min(96vw, 500px) !important;
     max-width: 500px;
-    max-height: calc(100dvh - 4.4rem);
+    max-height: calc(66dvh - 1.4rem);
     padding: 0.65rem 0.62rem 0.68rem !important;
   }
 
