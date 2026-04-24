@@ -9765,7 +9765,26 @@ function renderOwnershipInGameLogsPane(playerId) {
         }
         const rows = findOwnershipLeagueOwnerRows(playerId);
         const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+
+        // GL Ownership exposure summary:
+        // ownedCount = leagues where the CURRENT USER owns this player (mirrors Ownership page Exposure column).
+        // percentage = ownedCount / total leagues (same denominator as buildOwnershipRowsFromContext).
+        const ownedCount = rows.filter(r => r.isUser).length;
+        const ownershipPct = rows.length > 0 ? Math.round((ownedCount / rows.length) * 100) : 0;
+        const exposureClass = typeof getOwnershipExposureTierClassByCount === 'function'
+            ? getOwnershipExposureTierClassByCount(ownedCount)
+            : 'ownership-exposure--tier-1';
+
         bodyEl.innerHTML = `
+            <div class="gl-ownership-exposure-card">
+                <span class="gl-exposure-label">My Exposure</span>
+                <div class="gl-exposure-values ownership-list-exposure ${exposureClass}">
+                    <span class="ownership-exposure-count">${ownedCount}</span>
+                    <span class="ownership-exposure-sep" aria-hidden="true">⏐</span>
+                    <span class="ownership-exposure-pct">${ownershipPct}%</span>
+                </div>
+                <span class="gl-exposure-context">owned in ${ownedCount} of ${rows.length} leagues</span>
+            </div>
             <div class="ownership-modal-section-title">
                 League Ownership
                 <span class="ownership-modal-section-subtitle">${rows.length} league${rows.length !== 1 ? 's' : ''}</span>
