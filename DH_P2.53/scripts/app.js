@@ -4829,6 +4829,30 @@ function getPickBucketLabel(pickInRound, teamsCount) {
     return 'Late';
 }
 
+// Rosters draft-pick value helpers: build the exact KTC `PLAYER NAME`
+// labels used for 2026 pick cards/trade totals without changing older pick logic.
+function getDraftRoundSuffix(roundNum) {
+    if (roundNum === 1) return 'st';
+    if (roundNum === 2) return 'nd';
+    if (roundNum === 3) return 'rd';
+    return 'th';
+}
+
+function getExplicit2026PickBucket(pickInRound) {
+    const pickNum = Number(pickInRound);
+    if (!Number.isFinite(pickNum) || pickNum < 1 || pickNum > 12) return null;
+    if (pickNum <= 4) return 'Early';
+    if (pickNum <= 8) return 'Mid';
+    return 'Late';
+}
+
+function getKtcPickValueFromSheet(dataSet, season, bucket, roundNum) {
+    const suffix = getDraftRoundSuffix(roundNum);
+    const key = `${season} ${bucket} ${roundNum}${suffix}`;
+    const value = dataSet?.[key]?.ktc;
+    return (typeof value === 'number' && Number.isFinite(value)) ? value : null;
+}
+
 async function hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts }) {
     try {
         const rosterIdByUserId = buildRosterIdByUserIdFromRosters(rosters);
@@ -4988,11 +5012,27 @@ function getPickData(pick, leagueInfo) {
     if (parseInt(season) >= 2028 || round >= 5) {
         ktc = (state.isSuperflex ? staticVals.sflx : staticVals.oneqb)[round] || null;
     } else {
-        const sfx = round === 1 ? 'st' : round === 2 ? 'nd' : round === 3 ? 'rd' : 'th';
+        const dataSet = state.isSuperflex ? state.sflxData : state.oneQbData;
+        // Rosters draft-pick cards and trade preview:
+        // 2026 rounds 1-4 use the explicit KTC labels from `PLAYER NAME`
+        // (`2026 Early 1st`, etc.). 1.01 gets the required premium, while
+        // 5th-round, non-2026, unknown-slot, and missing-sheet cases continue
+        // through the existing generic lookup/static value behavior below.
+        if (seasonKey === '2026' && roundNum >= 1 && roundNum <= 4) {
+            const explicitBucket = getExplicit2026PickBucket(pickInRound);
+            if (explicitBucket) {
+                const explicitValue = getKtcPickValueFromSheet(dataSet, seasonKey, explicitBucket, roundNum);
+                if (explicitValue !== null) {
+                    ktc = (roundNum === 1 && Number(pickInRound) === 1)
+                        ? explicitValue + 1500
+                        : explicitValue;
+                }
+            }
+        }
+        const sfx = getDraftRoundSuffix(roundNum);
         const bucket = pickInRound ? getPickBucketLabel(pickInRound, teamsCount) : 'Mid';
         const bucketKey = bucket || 'Mid';
         // Primary key format expected by the sheet (examples: "2026 Early 1st", "2026 Mid 2nd", "2026 Late 4th")
-        const dataSet = state.isSuperflex ? state.sflxData : state.oneQbData;
         const buildKeyCandidates = (seasonStr, bucketStr, roundStr, suffixStr) => {
             const b = String(bucketStr || '').trim();
             const variants = b
@@ -5010,8 +5050,10 @@ function getPickData(pick, leagueInfo) {
             return null;
         };
 
-        const primaryKeys = buildKeyCandidates(String(season), bucketKey, String(round), sfx);
-        ktc = tryKeys(primaryKeys);
+        if (ktc === null) {
+            const primaryKeys = buildKeyCandidates(String(season), bucketKey, String(round), sfx);
+            ktc = tryKeys(primaryKeys);
+        }
 
         // Safety fallback to Mid if Early/Late is missing in the sheet.
         if (ktc === null && bucketKey !== 'Mid') {
