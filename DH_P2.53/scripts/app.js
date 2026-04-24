@@ -9771,9 +9771,12 @@ function renderOwnershipInGameLogsPane(playerId) {
         // percentage = ownedCount / total leagues (same denominator as buildOwnershipRowsFromContext).
         const ownedCount = rows.filter(r => r.isUser).length;
         const ownershipPct = rows.length > 0 ? Math.round((ownedCount / rows.length) * 100) : 0;
-        const exposureClass = typeof getOwnershipExposureTierClassByCount === 'function'
-            ? getOwnershipExposureTierClassByCount(ownedCount)
-            : 'ownership-exposure--tier-1';
+        // tier-0 used for 0-count so it renders muted (matches the label color) instead of tier-1.
+        const exposureClass = ownedCount === 0
+            ? 'ownership-exposure--tier-0'
+            : (typeof getOwnershipExposureTierClassByCount === 'function'
+                ? getOwnershipExposureTierClassByCount(ownedCount)
+                : 'ownership-exposure--tier-1');
 
         bodyEl.innerHTML = `
             <div class="gl-ownership-exposure-card">

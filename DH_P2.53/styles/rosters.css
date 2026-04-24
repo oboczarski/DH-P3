@@ -1820,19 +1820,20 @@ body[data-page="rosters"] .gl-ownership-exposure-card {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.52rem;
+  gap: 0.42rem;
   padding: 0.42rem 1.1rem;
   margin: 0.2rem auto 0.72rem;
+  max-width: 310px;
   width: fit-content;
-  border-radius: 10px;
-  background: linear-gradient(160deg, rgba(28, 34, 66, 0.72), rgba(16, 20, 48, 0.82));
+  border-radius: 13px;
+  background: linear-gradient(160deg, rgba(28, 34, 66, 0.02), rgba(16, 20, 48, 0.12));
   border: 1px solid rgba(156, 170, 242, 0.2);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 18px rgba(8, 10, 30, 0.38);
 }
 
 /* "EXPOSURE" label on the left */
 body[data-page="rosters"] .gl-exposure-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -1844,7 +1845,8 @@ body[data-page="rosters"] .gl-exposure-context {
   font-size: 0.62rem;
   font-weight: 500;
   color: rgba(166, 176, 231, 0.45);
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
+  text-wrap-mode: nowrap;
 }
 
 /* Inner flex row holding count ⏐ pct — strip container chrome since card handles it */
@@ -1876,12 +1878,19 @@ body[data-page="rosters"] .gl-exposure-values .ownership-exposure-sep {
 }
 
 body[data-page="rosters"] .gl-exposure-values .ownership-exposure-pct {
-  font-size: 1.45rem;
+  font-size: 1.95rem;
   font-weight: 800;
   line-height: 1;
 }
 
 /* Tier color rules (count-based, tier-1 … tier-15) */
+
+/* tier-0: zero exposure — matches the muted "EXPOSURE" label color */
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-0 .ownership-exposure-count,
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-0 .ownership-exposure-pct {
+  color: rgba(166, 176, 231, 0.6);
+}
+
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-count { color: var(--ownership-exp-c01-count); }
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-pct  { color: var(--ownership-exp-c01-pct); }
 
