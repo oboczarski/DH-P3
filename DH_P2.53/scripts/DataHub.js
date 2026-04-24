@@ -12114,6 +12114,14 @@ function renderDataHubOwnershipPane(playerId) {
         </div>
       </div>
     `;
+    // DataHub Ownership modal header:
+    // targets the inline Ownership tab's vitals capsule and matches the regular
+    // Game Logs header by sizing vitals to the rendered summary-chip row width.
+    const ownershipVitalsElement = vitalsEl?.querySelector(".player-vitals--modal");
+    const ownershipSummaryChipsWidth = chipsEl.offsetWidth;
+    if (ownershipVitalsElement && ownershipSummaryChipsWidth > 0) {
+      ownershipVitalsElement.style.width = `${ownershipSummaryChipsWidth}px`;
+    }
   }
   if (bodyEl) {
     if (!hasDataHubOwnershipContextLoaded()) {
