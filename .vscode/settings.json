@@ -222,5 +222,7 @@
   "chat.agent.sandbox.enabled": "on",
   "chat.tools.confirmationCarousel.enabled": true,
   "workbench.browser.openLocalhostLinks": true,
-  "chat.experimental.incrementalRendering.enabled": true
+  "chat.experimental.incrementalRendering.enabled": true,
+  "github.copilot.chat.skillTool.enabled": true,
+  "github.copilot.chat.localIndex.enabled": true
 }
