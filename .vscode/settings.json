@@ -224,5 +224,9 @@
   "workbench.browser.openLocalhostLinks": true,
   "chat.experimental.incrementalRendering.enabled": true,
   "github.copilot.chat.skillTool.enabled": true,
-  "github.copilot.chat.localIndex.enabled": true
+  "github.copilot.chat.localIndex.enabled": true,
+  "chat.agent.allowedNetworkDomains": [
+    " 127.0.0.1",
+    "http://127.0.0.1:5509/DH_P2.53"
+  ]
 }
