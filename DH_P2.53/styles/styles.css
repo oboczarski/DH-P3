@@ -2174,7 +2174,8 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 /* ⬇︎ COMPARE SELECTION GLOW ⬇︎ */
 .roster-column:has(.team-compare-checkbox.selected) .team-card {
-  box-shadow: inset 0 0 4px #6300ff55, inset 0 0 38px #5300ff35;
+  border-radius: 7px;
+  box-shadow: inset 0 0 4px #6300ff55, inset 0 0 13px #5300ff65;
   /* same highlight as header */
 }
 
@@ -2242,8 +2243,6 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   position: relative;
   border: 1px solid var(--color-panel-border);
   border-radius: 5px;
-  -webkit-backdrop-filter: saturate(114%) blur(1px);
-  backdrop-filter: saturate(114%) blur(1px);
   overflow: hidden;
 }
 
@@ -2261,25 +2260,25 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 .qb-section h3 {
   color: var(--pos-qb);
   border: solid 1px #FF3A7599;
-  box-shadow: inset 0 0 20px #FF3A7520;
+  background: #FF3A7515;
 }
 
 .rb-section h3 {
   color: var(--pos-rb);
   border: solid 1px #00EBC799;
-  box-shadow: inset 0 0 20px #00EBC716;
+  background: #00EBC714;
 }
 
 .wr-section h3 {
   color: var(--pos-wr);
   border: solid 1px #58A7FF99;
-  box-shadow: inset 0 0 20px #58A7FF20;
+  background: #58A7FF16;
 }
 
 .te-section h3 {
   color: var(--pos-te);
   border: solid 1px #B469FF99;
-  box-shadow: inset 0 0 20px #B469FF20;
+  background: #B469FF16;
 }
 
 #rosterGrid.condensed-mode .qb-section h3 {
@@ -2314,7 +2313,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 /* · · Card Box Shadows by POS · · */
 .qb-section .player-row {
-  box-shadow: inset 0 0 15px #FF3A7522;
+  box-shadow: inset 0 0 9px #FF3A7542;
   /* QB border */
 }
 
@@ -2346,9 +2345,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   flex-direction: column;
   gap: 0.03rem;
   transition: all 0.2s ease;
-  backdrop-filter: blur(var(--roster-card-blur));
-  -webkit-backdrop-filter: blur(var(--roster-card-blur));
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   overflow: hidden;
   /* clip the watermark to card bounds */
 }
@@ -2530,9 +2527,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
   .player-row,
   .pick-row {
-    --roster-card-blur: 0px;
-    background: rgba(22, 24, 43, 0.35);
-    box-shadow: 0 12px 28px rgba(7, 10, 25, 0.32);
+    background: none;
     contain: paint;
   }
 }
