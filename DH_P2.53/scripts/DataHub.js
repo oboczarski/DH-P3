@@ -7637,14 +7637,12 @@ function getRookieSortBottomPriority(row, sortColumn) {
     return 0;
   }
 
-  // Rookies table bottom-pinning:
-  // keep rows showing "-" or "NR" at the bottom regardless of active sort
-  // direction, while preserving normal sorting for fully ranked/value rows.
+  // Rookies table active-sort bottom-pinning:
+  // targets the currently sorted column only, so rows with "-", "NR", or "NA"
+  // in that specific stat land below rows that have sortable data. Do not fall
+  // back to RK here, because RK should not decide bottom placement for GRD,
+  // tYDS, receiving, rushing, market, or any other active sort column.
   if (isRookieBottomSortValue(row?.[sortColumn])) {
-    return 1;
-  }
-
-  if (isDataHubRookiesCareerView() && isRookieBottomSortValue(row?.RK)) {
     return 1;
   }
 
@@ -7657,7 +7655,7 @@ function isRookieBottomSortValue(value) {
   }
 
   const normalizedValue = String(value ?? "").trim().toUpperCase();
-  return normalizedValue === "-" || normalizedValue === "NR";
+  return normalizedValue === "-" || normalizedValue === "NR" || normalizedValue === "N/A";
 }
 
 function compareRookieCareerRankRows(
@@ -7990,6 +7988,15 @@ function formatDisplayValue(columnName, value) {
   }
 
   if (columnName === FPTS_COLUMN) {
+    const numericValue = toComparableNumber(value);
+    return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
+  }
+
+  // Rookie GRD display:
+  // targets the rookies career/trade grade column and keeps grade precision
+  // stable across source CSVs. RB/WT career files store whole-number grades,
+  // so render numeric grades with one decimal to match Overview and Passing.
+  if (columnName === "GRD" && isDataHubRookiesView()) {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
