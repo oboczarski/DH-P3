@@ -2224,12 +2224,8 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   gap: 0.25rem;
 }
 
-@supports (content-visibility: auto) {
-  #rosterGrid.roster-cv-enabled .team-card {
-    content-visibility: auto;
-    contain-intrinsic-size: auto var(--team-card-intrinsic-size, 1200px);
-  }
-}
+/* content-visibility: auto removed — caused card pop-in during scroll.
+   All team cards are now rendered upfront so content is immediately visible while scrolling. */
 
 .roster-section h3 {
   font-size: 0.8rem;

@@ -216,14 +216,11 @@ const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
     && CSS.supports('content-visibility', 'auto');
 function updateRosterContentVisibility() {
-    if (!supportsContentVisibility || !rosterGrid) {
-        rosterContentVisibilityEnabled = false;
-        rosterGrid?.classList.remove('roster-cv-enabled');
-        return;
-    }
-    const shouldEnable = rosterContentVisibilityQuery ? rosterContentVisibilityQuery.matches : false;
-    rosterContentVisibilityEnabled = shouldEnable;
-    rosterGrid.classList.toggle('roster-cv-enabled', shouldEnable);
+    // content-visibility: auto removed — caused card pop-in during scroll.
+    // All team cards render upfront so content is immediately visible while scrolling.
+    // Setting rosterContentVisibilityEnabled = false makes calibrateTeamCardIntrinsicSize a no-op.
+    rosterContentVisibilityEnabled = false;
+    rosterGrid?.classList.remove('roster-cv-enabled');
 }
 if (supportsContentVisibility) {
     updateRosterContentVisibility();
@@ -10643,7 +10640,17 @@ function syncRosterHeaderDividerPosition() {
 // Roster header horizontal-sync listeners are only needed on rosters page.
 // Keeping them page-scoped avoids extra scroll work on stats/ownership/research pages.
 if (pageType === 'rosters') {
-    window.addEventListener('scroll', syncRosterHeaderPosition, { passive: true });
+    // rAF-deduplicated scroll handler: syncRosterHeaderPosition reads getBoundingClientRect() and
+    // writes a CSS transform. Capping at one call per animation frame (≤16ms) prevents repeated
+    // forced layouts on every scroll tick while keeping the header visually locked.
+    let _syncRosterHeaderRafId = null;
+    window.addEventListener('scroll', () => {
+        if (_syncRosterHeaderRafId) return;
+        _syncRosterHeaderRafId = requestAnimationFrame(() => {
+            _syncRosterHeaderRafId = null;
+            syncRosterHeaderPosition();
+        });
+    }, { passive: true });
     window.addEventListener('load', syncRosterHeaderDividerPosition);
     window.addEventListener('resize', syncRosterHeaderPosition);
     window.addEventListener('resize', syncRosterHeaderDividerPosition);
