@@ -2912,6 +2912,123 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
     0 0 22px rgba(255, 29, 123, 0.08);
 }
 
+/* Rankings & Career Stats group heat colors:
+   targets only the DataHub rookies career view families emitted by
+   DataHub.js. Each column group keeps the same percentile tier math but uses a
+   distinct palette so Prospect Overview, totals, passing, rushing, receiving,
+   and info columns are visually separated. */
+body[data-page="datahub"] .heat-cell--career-info {
+  --career-heat-0: rgba(208, 218, 234, 0.72);
+  --career-heat-1: rgba(198, 219, 242, 0.82);
+  --career-heat-2: rgba(174, 210, 246, 0.9);
+  --career-heat-3: rgba(148, 198, 250, 0.98);
+  --career-heat-4: rgba(121, 186, 255, 1);
+  --career-glow-rgb: 121, 186, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-prospect {
+  --career-heat-0: rgba(226, 217, 194, 0.74);
+  --career-heat-1: rgba(240, 219, 160, 0.84);
+  --career-heat-2: rgba(250, 211, 115, 0.92);
+  --career-heat-3: rgba(255, 199, 82, 0.98);
+  --career-heat-4: rgba(255, 184, 52, 1);
+  --career-glow-rgb: 255, 184, 52;
+}
+
+body[data-page="datahub"] .heat-cell--career-total {
+  --career-heat-0: rgba(219, 208, 236, 0.74);
+  --career-heat-1: rgba(216, 194, 245, 0.84);
+  --career-heat-2: rgba(207, 171, 251, 0.92);
+  --career-heat-3: rgba(198, 148, 255, 0.98);
+  --career-heat-4: rgba(185, 122, 255, 1);
+  --career-glow-rgb: 185, 122, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-passing-production {
+  --career-heat-0: rgba(232, 208, 202, 0.74);
+  --career-heat-1: rgba(244, 197, 184, 0.84);
+  --career-heat-2: rgba(253, 174, 153, 0.92);
+  --career-heat-3: rgba(255, 148, 121, 0.98);
+  --career-heat-4: rgba(255, 119, 89, 1);
+  --career-glow-rgb: 255, 119, 89;
+}
+
+body[data-page="datahub"] .heat-cell--career-passing-efficiency {
+  --career-heat-0: rgba(231, 205, 226, 0.74);
+  --career-heat-1: rgba(244, 190, 230, 0.84);
+  --career-heat-2: rgba(252, 165, 225, 0.92);
+  --career-heat-3: rgba(255, 137, 219, 0.98);
+  --career-heat-4: rgba(255, 106, 211, 1);
+  --career-glow-rgb: 255, 106, 211;
+}
+
+body[data-page="datahub"] .heat-cell--career-rushing,
+body[data-page="datahub"] .heat-cell--career-rushing-production {
+  --career-heat-0: rgba(203, 226, 214, 0.74);
+  --career-heat-1: rgba(184, 237, 211, 0.84);
+  --career-heat-2: rgba(147, 242, 201, 0.92);
+  --career-heat-3: rgba(111, 246, 190, 0.98);
+  --career-heat-4: rgba(73, 252, 176, 1);
+  --career-glow-rgb: 73, 252, 176;
+}
+
+body[data-page="datahub"] .heat-cell--career-rushing-efficiency {
+  --career-heat-0: rgba(200, 225, 225, 0.74);
+  --career-heat-1: rgba(177, 238, 232, 0.84);
+  --career-heat-2: rgba(136, 242, 231, 0.92);
+  --career-heat-3: rgba(94, 246, 226, 0.98);
+  --career-heat-4: rgba(44, 250, 219, 1);
+  --career-glow-rgb: 44, 250, 219;
+}
+
+body[data-page="datahub"] .heat-cell--career-receiving,
+body[data-page="datahub"] .heat-cell--career-receiving-production {
+  --career-heat-0: rgba(204, 216, 234, 0.74);
+  --career-heat-1: rgba(185, 214, 245, 0.84);
+  --career-heat-2: rgba(153, 202, 253, 0.92);
+  --career-heat-3: rgba(122, 190, 255, 0.98);
+  --career-heat-4: rgba(90, 177, 255, 1);
+  --career-glow-rgb: 90, 177, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-receiving-efficiency {
+  --career-heat-0: rgba(210, 209, 234, 0.74);
+  --career-heat-1: rgba(196, 195, 246, 0.84);
+  --career-heat-2: rgba(175, 174, 253, 0.92);
+  --career-heat-3: rgba(153, 151, 255, 0.98);
+  --career-heat-4: rgba(130, 126, 255, 1);
+  --career-glow-rgb: 130, 126, 255;
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-0 .stats-table__cell-content {
+  color: var(--career-heat-0);
+  text-shadow: none;
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-1 .stats-table__cell-content {
+  color: var(--career-heat-1);
+  text-shadow: 0 0 9px rgba(var(--career-glow-rgb), 0.05);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-2 .stats-table__cell-content {
+  color: var(--career-heat-2);
+  text-shadow: 0 0 12px rgba(var(--career-glow-rgb), 0.08);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-3 .stats-table__cell-content {
+  color: var(--career-heat-3);
+  text-shadow:
+    0 0 14px rgba(var(--career-glow-rgb), 0.12),
+    0 0 21px rgba(var(--career-glow-rgb), 0.05);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-4 .stats-table__cell-content {
+  color: var(--career-heat-4);
+  text-shadow:
+    0 0 16px rgba(var(--career-glow-rgb), 0.16),
+    0 0 26px rgba(var(--career-glow-rgb), 0.07);
+}
+
 .heat-cell--neutral.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(214, 221, 234, 0.74);
   text-shadow: none;
