@@ -553,6 +553,8 @@ const ROOKIES_TRADE_COLUMN_SET = [
   "GRD",
   "TIER",
   "OVR-RK",
+  "RD & PK#",
+  "OVR_PK",
   ...MARKET_DATA_COLUMNS,
 ];
 
@@ -700,6 +702,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "TIER",
     "GRD",
     "POS-RK",
+    "RD & PK#",
+    "OVR_PK",
     "CFB",
     "HT",
     "WT",
@@ -719,6 +723,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "GRD",
     "TIER",
     "OVR-RK",
+    "RD & PK#",
+    "OVR_PK",
     "Gs",
     "tYDS",
     "tTD",
@@ -754,6 +760,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "GRD",
     "TIER",
     "OVR-RK",
+    "RD & PK#",
+    "OVR_PK",
     "Gs",
     "tYDS",
     "tTD",
@@ -787,6 +795,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "GRD",
     "TIER",
     "OVR-RK",
+    "RD & PK#",
+    "OVR_PK",
     "Gs",
     "tYDS",
     "tTD",
@@ -927,6 +937,8 @@ const COLUMN_ICONS = {
   GRD:       DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
   TIER:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
   "OVR-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
+  "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestDraft,
+  OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
   "POS-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
   FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
   PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
@@ -1101,6 +1113,25 @@ const RUSHING_COLUMN_ICON_COLORS = Object.freeze({
   CEILING: "#fd6759",
 });
 
+// Rookie career heat families:
+// these names are attached to Rankings & Career Stats column groups so each
+// stat area can keep the same percentile tier logic while rendering in its own
+// color scale.
+const ROOKIE_CAREER_FORMATTING_FAMILIES = Object.freeze({
+  GENERAL: "career-info",
+  PROSPECT: "career-prospect",
+  INFO: "career-info",
+  CAREER_TOTALS: "career-total",
+  PASSING_PRODUCTION: "career-passing-production",
+  PASSING_EFFICIENCY: "career-passing-efficiency",
+  RUSHING: "career-rushing",
+  RUSHING_PRODUCTION: "career-rushing-production",
+  RUSHING_EFFICIENCY: "career-rushing-efficiency",
+  RECEIVING: "career-receiving",
+  RECEIVING_PRODUCTION: "career-receiving-production",
+  RECEIVING_EFFICIENCY: "career-receiving-efficiency",
+});
+
 function createDataHubColumnGroup({
   label,
   ariaLabel = label,
@@ -1109,6 +1140,7 @@ function createDataHubColumnGroup({
   groupIconColor,
   columnIconColor = groupIconColor,
   columnIconColors = null,
+  formatFamily = null,
 }) {
   return Object.freeze({
     label,
@@ -1118,6 +1150,7 @@ function createDataHubColumnGroup({
     groupIconColor,
     columnIconColor,
     columnIconColors: columnIconColors ? Object.freeze({ ...columnIconColors }) : null,
+    formatFamily,
   });
 }
 
@@ -1380,16 +1413,18 @@ const ROOKIE_CAREER_SCROLL_GENERAL_GROUP = createDataHubColumnGroup({
   columns: ["TM", "AGE"],
   groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
   columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
+  formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.GENERAL,
 });
 const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
   overview: Object.freeze([
     ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
+      label: "PROSPECT OVERVIEW",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TIER", "GRD", "POS-RK"],
+      columns: ["TIER", "GRD", "POS-RK", "RD & PK#", "OVR_PK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "INFO",
@@ -1397,6 +1432,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["CFB", "HT", "WT", "40dsh", "Gs"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.INFO,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS",
@@ -1404,16 +1440,18 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
     }),
   ]),
   passing: Object.freeze([
     ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
+      label: "PROSPECT OVERVIEW",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (PA+RU)",
@@ -1421,6 +1459,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
     }),
     createDataHubColumnGroup({
       label: "PASSING PRODUCTION",
@@ -1428,6 +1467,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["paATT", "CMP", "paYDS", "paTD", "pa1D", "pIMP", "INT", "SAC"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_PRODUCTION,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_PRODUCTION,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PASSING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "PASSING EFFICIENCY",
@@ -1435,6 +1475,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["paATT_EFF", "CMP%", "YPA", "pIMP/ATT"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_EFFICIENCY,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_EFFICIENCY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PASSING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
@@ -1442,6 +1483,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["ruYDS", "ruTD", "CAR", "YPC"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.RUSHING,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.RUSHING,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RUSHING,
     }),
     createDataHubColumnGroup({
       label: "INFO",
@@ -1449,16 +1491,18 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["CFB", "HT", "WT", "40dsh"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.INFO,
     }),
   ]),
   rushing: Object.freeze([
     ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
+      label: "PROSPECT OVERVIEW",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (RU+REC)",
@@ -1466,6 +1510,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
     }),
     createDataHubColumnGroup({
       label: "RUSHING PRODUCTION",
@@ -1473,6 +1518,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_PRODUCTION,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_PRODUCTION,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RUSHING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "RUSHING EFFICIENCY",
@@ -1480,6 +1526,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["YPC", "MTF/A", "YCO/A", "EXPLSV%"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_EFFICIENCY,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_EFFICIENCY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RUSHING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING",
@@ -1487,6 +1534,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["TGT", "REC", "recYDS", "recTD"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RECEIVING,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.RECEIVING,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RECEIVING,
     }),
     createDataHubColumnGroup({
       label: "INFO",
@@ -1494,16 +1542,18 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["CFB", "HT", "WT", "40dsh"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.INFO,
     }),
   ]),
   receiving: Object.freeze([
     ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
     createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
+      label: "PROSPECT OVERVIEW",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (REC+RU)",
@@ -1511,6 +1561,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING PRODUCTION",
@@ -1518,6 +1569,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["TGT", "REC", "recYDS", "recTD", "rec1D", "RR", "YAC", "AY"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_PRODUCTION,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_PRODUCTION,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RECEIVING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING EFFICIENCY",
@@ -1525,6 +1577,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["YPR", "YPRR", "1DRR", "IMP/RR", "TGT%", "tgtQBR", "CTST%", "DROP%"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_EFFICIENCY,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_EFFICIENCY,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.RECEIVING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "INFO",
@@ -1532,6 +1585,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
       columns: ["CFB", "HT", "WT", "40dsh"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.INFO,
     }),
   ]),
 });
@@ -1581,9 +1635,9 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
     }),
     createDataHubColumnGroup({
-      label: "PROSPECT GRADES",
+      label: "PROSPECT OVERVIEW",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK"],
+      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
@@ -1679,7 +1733,7 @@ function getActiveRookiesSubview() {
 function getStickyColumnCount(pageView = state.activePageView, category = state.activeCategory) {
   if (pageView === "rookies-career") {
     // Rookie career sticky identity:
-    // TM now scrolls inside Prospect Grades and Gs lives in Career Totals, so
+    // TM now scrolls inside Prospect Overview and Gs lives in Career Totals, so
     // all rookie career categories freeze only rank, player, and position.
     return 3;
   }
@@ -1859,6 +1913,8 @@ const INVERTED_COLUMNS = new Set([
   "1QB DIFF",
   "SFLX DIFF",
   "OVR-RK",
+  "RD & PK#",
+  "OVR_PK",
   "POS-RK",
   "TIER",
   "40dsh",
@@ -1923,6 +1979,8 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   RK_COLUMN,
   "AGE",
   "OVR-RK",
+  "RD & PK#",
+  "OVR_PK",
   "POS-RK",
   "TIER",
   "40dsh",
@@ -2012,6 +2070,8 @@ const COLUMN_WIDTHS = {
   GRD: 98,
   TIER: 90,
   "OVR-RK": 104,
+  "RD & PK#": 112,
+  OVR_PK: 96,
   "POS-RK": 100,
   FPTS: 110,
   PPG: 92,
@@ -2113,6 +2173,8 @@ const ROOKIES_TRADE_COLUMN_WIDTHS = Object.freeze({
   GRD: 104,
   TIER: 96,
   "OVR-RK": 110,
+  "RD & PK#": 118,
+  OVR_PK: 104,
 });
 
 const MOBILE_COLUMN_WIDTHS = {
@@ -2132,6 +2194,8 @@ const MOBILE_COLUMN_WIDTHS = {
   GRD: 62,
   TIER: 58,
   "OVR-RK": 70,
+  "RD & PK#": 72,
+  OVR_PK: 64,
   "POS-RK": 68,
   FPTS: 62,
   PPG: 52,
@@ -2239,6 +2303,8 @@ const ROOKIES_TRADE_MOBILE_COLUMN_WIDTHS = Object.freeze({
   GRD: 64,
   TIER: 60,
   "OVR-RK": 72,
+  "RD & PK#": 74,
+  OVR_PK: 66,
 });
 
 // ---------------------------------------------------------------------------
@@ -3387,6 +3453,12 @@ function buildRookieCareerSourceRow(category, row) {
     TIER: getFirstUsableRookieValue(row.TIER, playerLookup?.TIER),
     "OVR-RK": getFirstUsableRookieValue(row["OVR-RK"], playerLookup?.["OVR-RK"]),
     "POS-RK": getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]),
+    // Updated CFB draft fields:
+    // carry round/pick and overall pick values into every rookies career
+    // category so Prospect Overview columns stay populated after category
+    // switches.
+    "RD & PK#": getFirstUsableRookieValue(row["RD & PK#"], playerLookup?.["RD & PK#"]),
+    OVR_PK: getFirstUsableRookieValue(row.OVR_PK, playerLookup?.OVR_PK),
     tYDS: row.tYDS,
     tTD: row.tTD,
     OPP: row.OPP,
@@ -3473,6 +3545,11 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
         GRD: sanitizeValue(prospect?.GRD),
         TIER: sanitizeValue(prospect?.TIER),
         "OVR-RK": sanitizeValue(prospect?.["OVR-RK"]),
+        // Rookie Trade Values draft fields:
+        // populate the Prospect Overview group from the CFB career lookup while
+        // leaving KTC market data on the original trade row.
+        "RD & PK#": sanitizeValue(prospect?.["RD & PK#"]),
+        OVR_PK: sanitizeValue(prospect?.OVR_PK),
       };
     });
 }
@@ -3498,6 +3575,11 @@ function mergeRookieProspectLookupEntry(store, row) {
     TIER: getFirstUsableRookieValue(previous.TIER, row.TIER),
     "OVR-RK": getFirstUsableRookieValue(previous["OVR-RK"], row["OVR-RK"]),
     "POS-RK": getFirstUsableRookieValue(previous["POS-RK"], row["POS-RK"]),
+    // Rookie prospect draft lookup:
+    // keep the new CFB draft columns available to both rookies subviews from
+    // the shared SLPR_ID merge path.
+    "RD & PK#": getFirstUsableRookieValue(previous["RD & PK#"], row["RD & PK#"]),
+    OVR_PK: getFirstUsableRookieValue(previous.OVR_PK, row.OVR_PK),
   };
 }
 
@@ -6561,7 +6643,7 @@ function buildColumnIconColorMap(groups) {
   groups.forEach((group) => {
     group.columns.forEach((columnName) => {
       // Group header exceptions:
-      // some rookie columns, like TM inside Prospect Grades, need a per-column
+      // some rookie columns, like TM inside Prospect Overview, need a per-column
       // header icon color while still belonging to a different group header.
       const color = group.columnIconColors?.[columnName]
         || group.columnIconColor
@@ -8109,7 +8191,27 @@ function getFormattingTier(columnName, value) {
   return clamp(Math.round(normalized * 4), 0, 4);
 }
 
+function getRookieCareerFormattingFamily(columnName) {
+  if (!isDataHubRookiesCareerView()) {
+    return null;
+  }
+
+  // Rankings & Career Stats group heat:
+  // resolve the active column group before choosing a CSS family so Overview,
+  // Passing, Rushing, Receiving, and supporting groups no longer reuse one
+  // generic heat color scale.
+  const group = getActiveColumnGroups().find((groupConfig) =>
+    groupConfig.formatFamily && groupConfig.columns.includes(columnName),
+  );
+  return group?.formatFamily || null;
+}
+
 function getFormattingFamily(columnName) {
+  const rookieCareerFamily = getRookieCareerFormattingFamily(columnName);
+  if (rookieCareerFamily) {
+    return rookieCareerFamily;
+  }
+
   if (NEUTRAL_COLUMNS.has(columnName)) {
     return "neutral";
   }
