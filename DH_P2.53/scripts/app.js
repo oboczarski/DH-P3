@@ -7464,6 +7464,9 @@ function calibrateTeamCardIntrinsicSize(card) {
         }
     });
 }
+// Generation counter: incremented on every renderAllTeamData call so stale
+// deferred-batch callbacks can detect they've been superseded and bail out.
+let _renderAllTeamDataGenId = 0;
 function renderAllTeamData(teams) {
     updateRosterContentVisibility();
     rosterGrid.innerHTML = '';
@@ -7483,10 +7486,12 @@ function renderAllTeamData(teams) {
         rosterGrid.style.justifyContent = 'center';
     }
 
-    // Use DocumentFragment for batch DOM insertion
-    const fragment = document.createDocumentFragment();
+    // Capture generation ID so deferred callbacks from a previous render can detect they're stale
+    const renderGenId = ++_renderAllTeamDataGenId;
 
-    teamsToRender.forEach(team => {
+    // Inline helper: build one team column (sticky header + player card) —
+    // same logic as before, extracted so both the immediate and deferred paths share it.
+    const buildTeamColumn = (team) => {
         const columnWrapper = document.createElement('div');
         columnWrapper.className = 'roster-column';
         columnWrapper.dataset.teamName = team.teamName;
@@ -7510,7 +7515,6 @@ function renderAllTeamData(teams) {
         }
         header.appendChild(checkbox);
         header.appendChild(teamNameSpan);
-
         if (team.isChamp) {
             const champIcon = document.createElement('i');
             champIcon.className = 'fa-solid fa-crown team-record-champ';
@@ -7526,18 +7530,68 @@ function renderAllTeamData(teams) {
             : createDepthChartTeamCard(team);
         columnWrapper.appendChild(header);
         columnWrapper.appendChild(card);
-        fragment.appendChild(columnWrapper);
-        calibrateTeamCardIntrinsicSize(card);
-    });
+        calibrateTeamCardIntrinsicSize(card); // no-op while content-visibility is disabled
+        return columnWrapper;
+    };
 
-    // Single DOM insertion instead of multiple
-    rosterGrid.appendChild(fragment);
+    // Mobile async chunked rendering:
+    // Rendering all 12 teams (300+ player rows) synchronously blocks the mobile main thread,
+    // causing a visible freeze before the page becomes interactive. Instead:
+    //   - Render the first few teams immediately so the viewport is populated right away.
+    //   - Render remaining teams in small batches via setTimeout so the browser gets
+    //     a paint opportunity between each batch. By the time the user scrolls to those
+    //     teams, they are already fully rendered — no pop-in, no blocking lag.
+    const MOBILE_INITIAL_BATCH = 3; // teams rendered synchronously on first call
+    const MOBILE_DEFERRED_BATCH = 2; // teams added per subsequent setTimeout tick
+    const isMobileDeferred = window.innerWidth <= 819 && teamsToRender.length > MOBILE_INITIAL_BATCH;
 
-    if (compareSearchInput && compareSearchInput.value) {
-        filterTeamsByQuery(compareSearchInput.value);
+    if (isMobileDeferred) {
+        // --- Immediate pass: first N teams ---
+        const immediateTeams = teamsToRender.slice(0, MOBILE_INITIAL_BATCH);
+        const deferredTeams  = teamsToRender.slice(MOBILE_INITIAL_BATCH);
+        const immediateFragment = document.createDocumentFragment();
+        immediateTeams.forEach(team => immediateFragment.appendChild(buildTeamColumn(team)));
+        rosterGrid.appendChild(immediateFragment);
+        adjustStickyHeaders();
+        syncRosterHeaderPosition();
+        if (compareSearchInput && compareSearchInput.value) {
+            filterTeamsByQuery(compareSearchInput.value);
+        }
+
+        // --- Deferred pass: remaining teams rendered in background ---
+        let deferIdx = 0;
+        const renderNextBatch = () => {
+            // A newer renderAllTeamData call cleared the grid — stop this deferred chain.
+            if (_renderAllTeamDataGenId !== renderGenId) return;
+            const batch = deferredTeams.slice(deferIdx, deferIdx + MOBILE_DEFERRED_BATCH);
+            if (batch.length === 0) {
+                // Final cleanup after all teams are in the DOM
+                if (compareSearchInput && compareSearchInput.value) {
+                    filterTeamsByQuery(compareSearchInput.value);
+                }
+                adjustStickyHeaders();
+                return;
+            }
+            const batchFragment = document.createDocumentFragment();
+            batch.forEach(team => batchFragment.appendChild(buildTeamColumn(team)));
+            rosterGrid.appendChild(batchFragment);
+            // Recalculate sticky-header offsets for newly added columns
+            adjustStickyHeaders();
+            deferIdx += MOBILE_DEFERRED_BATCH;
+            setTimeout(renderNextBatch, 0);
+        };
+        setTimeout(renderNextBatch, 0);
+    } else {
+        // Desktop or small team count: original single-pass render
+        const fragment = document.createDocumentFragment();
+        teamsToRender.forEach(team => fragment.appendChild(buildTeamColumn(team)));
+        rosterGrid.appendChild(fragment);
+        if (compareSearchInput && compareSearchInput.value) {
+            filterTeamsByQuery(compareSearchInput.value);
+        }
+        adjustStickyHeaders();
+        syncRosterHeaderPosition();
     }
-    adjustStickyHeaders();
-    syncRosterHeaderPosition();
 }
 function renderStartSitColumns(teams) {
     const targetTeamName = state.startSitTeamName || state.userTeamName;
