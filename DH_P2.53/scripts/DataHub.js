@@ -916,6 +916,8 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   Diff: '<path d="M12 3v14" /><path d="M5 10h14" /><path d="M5 21h14" />',
   Bolt: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><circle cx="12" cy="12" r="4" />',
   Zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />',
+  DraftTicket: '<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2.5a2.5 2.5 0 0 0 0 5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2.5a2.5 2.5 0 0 0 0-5z" /><path d="M8 8v8" /><path d="M12 10h5" /><path d="M12 14h4" />',
+  DraftMedal: '<path d="M8 2h8l-2 6h-4z" /><path d="M10 8 7 13" /><path d="m14 8 3 5" /><circle cx="12" cy="16" r="5" /><path d="M12 13v6" /><path d="M9.5 16h5" />',
 });
 
 // ---------------------------------------------------------------------------
@@ -937,8 +939,8 @@ const COLUMN_ICONS = {
   GRD:       DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
   TIER:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
   "OVR-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
-  "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestDraft,
-  OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
+  "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.DraftTicket,
+  OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.DraftMedal,
   "POS-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
   FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
   PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
@@ -1926,6 +1928,7 @@ const INVERTED_COLUMNS = new Set([
 ]);
 const NEUTRAL_COLUMNS = new Set(["TTT", "CL"]);
 const PPG_COLUMNS = new Set(["PPG"]);
+const ROOKIE_DRAFT_COLUMNS = new Set(["RD & PK#", "OVR_PK"]);
 const KTC_COLUMNS = new Set(["KTC 1QB", "KTC SFLX"]);
 const ADP_COLUMNS = new Set(["1QB ADP", "SFLX ADP", "ADP", "POS·ADP"]);
 const DIFF_COLUMNS = new Set(["1QB DIFF", "SFLX DIFF"]);
@@ -8036,6 +8039,16 @@ function getCellClassNames(columnName, value, row = null) {
     return classes;
   }
 
+  // Rookie draft columns:
+  // RD & PK# and OVR_PK use their own draft position values for conditional
+  // formatting, but render through the same fixed 1-8 color palette as TIER so
+  // draft capital reads consistently across both rookies subviews.
+  if (ROOKIE_DRAFT_COLUMNS.has(columnName) && isDataHubRookiesView()) {
+    const rookieDraftStyle = getRookieDraftStyleLevel(columnName, value);
+    classes.push("heat-cell", "heat-cell--rookie-tier", `heat-cell--tier-${rookieDraftStyle}`);
+    return classes;
+  }
+
   if (!NON_FORMATTED_COLUMNS.has(columnName)) {
     const family = getFormattingFamily(columnName);
     const tier = getFormattingTier(columnName, value);
@@ -8043,6 +8056,30 @@ function getCellClassNames(columnName, value, row = null) {
   }
 
   return classes;
+}
+
+function getRookieDraftStyleLevel(columnName, value) {
+  if (isMissingValue(value) || String(value).trim() === "--") {
+    return 0;
+  }
+
+  // RD & PK# values are stored like "1.03"; the round prefix maps directly to
+  // the TIER palette level so first-round picks get the best tier color.
+  if (columnName === "RD & PK#") {
+    const roundMatch = String(value).trim().match(/\d+/);
+    if (!roundMatch) {
+      return 0;
+    }
+    return clamp(Number.parseInt(roundMatch[0], 10), 1, 8);
+  }
+
+  // OVR_PK values are absolute draft picks. Bucket them by 32-pick NFL rounds
+  // so the column uses the same 1-8 color scale as RD & PK# and TIER.
+  const overallPick = toComparableNumber(value);
+  if (overallPick == null || overallPick <= 0) {
+    return 0;
+  }
+  return clamp(Math.ceil(overallPick / 32), 1, 8);
 }
 
 function formatCellValue(value) {
