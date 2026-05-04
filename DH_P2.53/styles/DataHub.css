@@ -1740,10 +1740,14 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 /* Trade Values entity row:
    this adp-values-only row sits between the position chips and the bottom
-   utility row so vets, rookies, and picks can be toggled independently. */
+   utility row so vets, rookies, and picks can be toggled independently.
+   Centering stays on the row/bar instead of the individual buttons so desktop
+   and mobile mounts keep one shared control structure. */
 .trade-entity-row {
   display: grid;
   gap: 0;
+  justify-self: center;
+  justify-items: center;
   overflow: visible;
 }
 
@@ -1752,6 +1756,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
+  margin-inline: auto;
 }
 
 .trade-entity-toggle {
@@ -3651,6 +3656,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     order: 3;
   }
 
+  /* Mobile non-Stats control panels:
+     targets the Trade Val. & ADP tab plus both Rookies subviews so their
+     control rows occupy the same vertical space as the Stats panel.
+     The rows are distributed inside that height, keeping entity toggles
+     visually between the position filters and search row. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--mobile,
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .hero-controls--mobile,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--mobile {
+    min-height: 143px;
+    align-content: space-between;
+  }
+
   body[data-page="datahub"] .datahub-chart-modal {
     padding: 18px 12px;
   }
@@ -3933,6 +3950,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     /* Desktop team dropdowns need to escape the panel bounds so the team menu
        can render above the table shell instead of getting clipped by the card. */
     overflow: visible;
+  }
+
+  /* Desktop non-Stats control panels:
+     targets Trade Val. & ADP plus the Rookies career/trade subviews so their
+     hero control cards match the Stats panel height and spread rows vertically.
+     This keeps the entity-toggle row centered between the position filters and
+     the search utility row without changing the Stats panel tuning. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop,
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .hero-controls--desktop,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--desktop {
+    min-height: 213px;
+    align-content: space-between;
   }
 
   /* Desktop control panel:
