@@ -216,11 +216,16 @@ const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
     && CSS.supports('content-visibility', 'auto');
 function updateRosterContentVisibility() {
-    // content-visibility: auto removed — caused card pop-in during scroll.
-    // All team cards render upfront so content is immediately visible while scrolling.
-    // Setting rosterContentVisibilityEnabled = false makes calibrateTeamCardIntrinsicSize a no-op.
-    rosterContentVisibilityEnabled = false;
-    rosterGrid?.classList.remove('roster-cv-enabled');
+    // Enable content-visibility: auto on mobile (≤819px) to defer rendering of off-screen
+    // team cards, keeping GPU tile memory usage low and preventing blank-tile scroll artifacts.
+    if (!supportsContentVisibility || !rosterGrid) {
+        rosterContentVisibilityEnabled = false;
+        rosterGrid?.classList.remove('roster-cv-enabled');
+        return;
+    }
+    const shouldEnable = rosterContentVisibilityQuery ? rosterContentVisibilityQuery.matches : false;
+    rosterContentVisibilityEnabled = shouldEnable;
+    rosterGrid.classList.toggle('roster-cv-enabled', shouldEnable);
 }
 if (supportsContentVisibility) {
     updateRosterContentVisibility();
@@ -7464,8 +7469,48 @@ function calibrateTeamCardIntrinsicSize(card) {
         }
     });
 }
+// Estimates the pixel height of a .team-card for content-visibility contain-intrinsic-size.
+// Using per-team player counts gives a close approximation to the actual rendered height,
+// minimising the scroll-position correction when a card first enters the viewport.
+// Height constants are tuned to the roster-page CSS:
+//   standard .player-row (3-line flex): ~72px
+//   condensed .player-row (2-line flex): ~38px
+//   .pick-row (2-line):                  ~48px
+//   section h3 + surrounding spacing:    ~44px
+function estimateTeamCardHeight(team) {
+    const view = state.currentRosterView;
+    const SECTION_H = 44;
+    const PLAYER_H  = view === 'condensed' ? 38 : 72;
+    const PICK_H    = 48;
+
+    if (view === 'positional' || view === 'condensed') {
+        const qb = (team.allPlayers || []).filter(p => p.pos === 'QB').length;
+        const rb = (team.allPlayers || []).filter(p => p.pos === 'RB').length;
+        const wr = (team.allPlayers || []).filter(p => p.pos === 'WR').length;
+        const te = (team.allPlayers || []).filter(p => p.pos === 'TE').length;
+        const pk = (team.draftPicks || []).length;
+        let h = 0;
+        if (qb > 0) h += SECTION_H + qb * PLAYER_H;
+        if (rb > 0) h += SECTION_H + rb * PLAYER_H;
+        if (wr > 0) h += SECTION_H + wr * PLAYER_H;
+        if (te > 0) h += SECTION_H + te * PLAYER_H;
+        h += SECTION_H + (pk > 0 ? pk : 1) * PICK_H; // picks section is always rendered
+        return Math.ceil(h);
+    }
+    // Depth-chart view (starters / bench / taxi / picks)
+    const starters = (team.starters   || []).length;
+    const bench    = (team.bench      || []).length;
+    const taxi     = (team.taxi       || []).length;
+    const pk       = (team.draftPicks || []).length;
+    return Math.ceil(
+        SECTION_H + starters * PLAYER_H +
+        SECTION_H + bench    * PLAYER_H +
+        SECTION_H + taxi     * PLAYER_H +
+        SECTION_H + (pk > 0 ? pk : 1) * PICK_H
+    );
+}
 // Generation counter: incremented on every renderAllTeamData call so stale
-// deferred-batch callbacks can detect they've been superseded and bail out.
+// rAF callbacks from a superseded render can bail out without mutating the DOM.
 let _renderAllTeamDataGenId = 0;
 function renderAllTeamData(teams) {
     updateRosterContentVisibility();
@@ -7486,12 +7531,15 @@ function renderAllTeamData(teams) {
         rosterGrid.style.justifyContent = 'center';
     }
 
-    // Capture generation ID so deferred callbacks from a previous render can detect they're stale
     const renderGenId = ++_renderAllTeamDataGenId;
 
-    // Inline helper: build one team column (sticky header + player card) —
-    // same logic as before, extracted so both the immediate and deferred paths share it.
-    const buildTeamColumn = (team) => {
+    // Build all team columns synchronously into a DocumentFragment, then perform a single
+    // DOM insertion. All teams are present in the DOM immediately after the call, so fast
+    // swipes never land on a blank column. content-visibility: auto handles the GPU tile
+    // budget by skipping layout/paint for horizontally off-screen cards.
+    const fragment = document.createDocumentFragment();
+
+    teamsToRender.forEach(team => {
         const columnWrapper = document.createElement('div');
         columnWrapper.className = 'roster-column';
         columnWrapper.dataset.teamName = team.teamName;
@@ -7528,69 +7576,39 @@ function renderAllTeamData(teams) {
         const card = (state.currentRosterView === 'positional' || state.currentRosterView === 'condensed')
             ? createPositionalTeamCard(team)
             : createDepthChartTeamCard(team);
+        // Set a per-team height estimate BEFORE insertion so content-visibility: auto
+        // uses an accurate intrinsic-size placeholder. This prevents scroll-position jumps
+        // when a card first enters the viewport (actual height ≈ estimate → minimal delta).
+        if (rosterContentVisibilityEnabled) {
+            const est = estimateTeamCardHeight(team);
+            if (est > 0) card.style.setProperty('--team-card-intrinsic-size', `${est}px`);
+        }
         columnWrapper.appendChild(header);
         columnWrapper.appendChild(card);
-        calibrateTeamCardIntrinsicSize(card); // no-op while content-visibility is disabled
-        return columnWrapper;
-    };
+        fragment.appendChild(columnWrapper);
+    });
 
-    // Mobile async chunked rendering:
-    // Rendering all 12 teams (300+ player rows) synchronously blocks the mobile main thread,
-    // causing a visible freeze before the page becomes interactive. Instead:
-    //   - Render the first few teams immediately so the viewport is populated right away.
-    //   - Render remaining teams in small batches via setTimeout so the browser gets
-    //     a paint opportunity between each batch. By the time the user scrolls to those
-    //     teams, they are already fully rendered — no pop-in, no blocking lag.
-    const MOBILE_INITIAL_BATCH = 3; // teams rendered synchronously on first call
-    const MOBILE_DEFERRED_BATCH = 2; // teams added per subsequent setTimeout tick
-    const isMobileDeferred = window.innerWidth <= 819 && teamsToRender.length > MOBILE_INITIAL_BATCH;
+    // Single DOM insertion — all teams are in the DOM before any paint.
+    rosterGrid.appendChild(fragment);
 
-    if (isMobileDeferred) {
-        // --- Immediate pass: first N teams ---
-        const immediateTeams = teamsToRender.slice(0, MOBILE_INITIAL_BATCH);
-        const deferredTeams  = teamsToRender.slice(MOBILE_INITIAL_BATCH);
-        const immediateFragment = document.createDocumentFragment();
-        immediateTeams.forEach(team => immediateFragment.appendChild(buildTeamColumn(team)));
-        rosterGrid.appendChild(immediateFragment);
-        adjustStickyHeaders();
-        syncRosterHeaderPosition();
-        if (compareSearchInput && compareSearchInput.value) {
-            filterTeamsByQuery(compareSearchInput.value);
-        }
+    if (compareSearchInput && compareSearchInput.value) {
+        filterTeamsByQuery(compareSearchInput.value);
+    }
+    adjustStickyHeaders();
+    syncRosterHeaderPosition();
 
-        // --- Deferred pass: remaining teams rendered in background ---
-        let deferIdx = 0;
-        const renderNextBatch = () => {
-            // A newer renderAllTeamData call cleared the grid — stop this deferred chain.
-            if (_renderAllTeamDataGenId !== renderGenId) return;
-            const batch = deferredTeams.slice(deferIdx, deferIdx + MOBILE_DEFERRED_BATCH);
-            if (batch.length === 0) {
-                // Final cleanup after all teams are in the DOM
-                if (compareSearchInput && compareSearchInput.value) {
-                    filterTeamsByQuery(compareSearchInput.value);
-                }
-                adjustStickyHeaders();
-                return;
-            }
-            const batchFragment = document.createDocumentFragment();
-            batch.forEach(team => batchFragment.appendChild(buildTeamColumn(team)));
-            rosterGrid.appendChild(batchFragment);
-            // Recalculate sticky-header offsets for newly added columns
-            adjustStickyHeaders();
-            deferIdx += MOBILE_DEFERRED_BATCH;
-            setTimeout(renderNextBatch, 0);
-        };
-        setTimeout(renderNextBatch, 0);
-    } else {
-        // Desktop or small team count: original single-pass render
-        const fragment = document.createDocumentFragment();
-        teamsToRender.forEach(team => fragment.appendChild(buildTeamColumn(team)));
-        rosterGrid.appendChild(fragment);
-        if (compareSearchInput && compareSearchInput.value) {
-            filterTeamsByQuery(compareSearchInput.value);
-        }
-        adjustStickyHeaders();
-        syncRosterHeaderPosition();
+    // Calibrate visible card heights after insertion. Cards in the viewport return their real
+    // height; cards skipped by content-visibility: auto return 0 and keep their per-team estimate.
+    // The `auto` keyword in contain-intrinsic-size caches the actual height on first render, so
+    // subsequent off-screen/on-screen transitions are automatically position-stable.
+    if (rosterContentVisibilityEnabled) {
+        requestAnimationFrame(() => {
+            if (_renderAllTeamDataGenId !== renderGenId) return; // superseded by a newer render
+            rosterGrid.querySelectorAll('.team-card').forEach(card => {
+                const h = card.getBoundingClientRect().height;
+                if (h > 0) card.style.setProperty('--team-card-intrinsic-size', `${Math.ceil(h)}px`);
+            });
+        });
     }
 }
 function renderStartSitColumns(teams) {
