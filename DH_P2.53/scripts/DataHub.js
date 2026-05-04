@@ -6762,30 +6762,36 @@ function renderTableBody(tbody, columns, showEmptyState, groupStartCols = new Se
 }
 
 function applyRookieCareerTierSeparatorRowState(tr, row, rowIndex) {
-  if (!shouldRenderRookieCareerTierSeparators()) {
-    return;
-  }
-
-  const tier = getRookieTierStyleLevel(row?.TIER);
-  if (tier < 2 || tier > 8) {
-    return;
-  }
-
-  const previousTier = rowIndex > 0
-    ? getRookieTierStyleLevel(state.displayedRows[rowIndex - 1]?.TIER)
-    : 0;
-  if (previousTier === tier) {
+  const tier = getRookieCareerTierSeparatorTier(row, rowIndex);
+  if (!tier) {
     return;
   }
 
   // Rankings & Career Stats tier separators:
-  // mark only the first rendered row for each T2+ tier in the default RK sort.
+  // mark only the first rendered row for each T1+ tier in the default RK sort.
   // Any alternate table sort skips these classes so tier borders do not drift
   // into arbitrary positions after players are reordered.
   tr.classList.add(
     "stats-table__body-row--rookie-tier-start",
     `stats-table__body-row--rookie-tier-start-${tier}`,
   );
+}
+
+function getRookieCareerTierSeparatorTier(row, rowIndex) {
+  if (!shouldRenderRookieCareerTierSeparators()) {
+    return null;
+  }
+
+  const tier = getRookieTierStyleLevel(row?.TIER);
+  if (tier < 1 || tier > 8) {
+    return null;
+  }
+
+  const previousTier = rowIndex > 0
+    ? getRookieTierStyleLevel(state.displayedRows[rowIndex - 1]?.TIER)
+    : 0;
+
+  return previousTier === tier ? null : tier;
 }
 
 function shouldRenderRookieCareerTierSeparators() {
@@ -7201,8 +7207,15 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   const value = column.name === RK_COLUMN
     ? (state.activePageView === "rookies-career" ? rawValue : String(rowIndex + 1))
     : rawValue;
+  const rookieTierSeparatorTier = column.name === RK_COLUMN
+    ? getRookieCareerTierSeparatorTier(row, rowIndex)
+    : null;
   const td = document.createElement("td");
   td.classList.add("stats-table__body-cell");
+
+  if (rookieTierSeparatorTier) {
+    td.classList.add("stats-table__body-cell--rookie-tier-label");
+  }
 
   // Mark body cells at column-group boundaries so CSS can draw a continuous
   // vertical separator that connects to the group header row border above.
@@ -7226,8 +7239,13 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   } else if (column.name === RK_COLUMN) {
     // RK display rank:
     // rookies-career preserves the imported source rank text (including NR),
-    // while the other DataHub views continue to show rendered table order.
+    // while the other DataHub views continue to show rendered table order. Tier
+    // divider labels render only in this RK cell so the tier cue sits directly
+    // on the horizontal divider without affecting other columns.
     content.textContent = value;
+    if (rookieTierSeparatorTier) {
+      content.append(createRookieCareerTierSeparatorLabel(rookieTierSeparatorTier));
+    }
   } else if (column.name === "TM") {
     // DataHub TM cell logo swap:
     // render the same team-logo treatment used by the local modal so the table
@@ -7251,6 +7269,13 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
 
   td.append(content);
   return td;
+}
+
+function createRookieCareerTierSeparatorLabel(tier) {
+  const label = document.createElement("span");
+  label.className = "stats-table__tier-divider-label";
+  label.textContent = `Tier-${tier}↓`;
+  return label;
 }
 
 function createPlayerTriggerButton(row) {

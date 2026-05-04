@@ -2919,40 +2919,72 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 /* Rankings & Career Stats tier dividers:
    targets default rank-sorted rookies career rows only. DataHub.js adds these
-   row classes at the first player of each T2+ tier and omits them for alternate
+   row classes at the first player of each T1+ tier and omits them for alternate
    sorts so colored dividers do not appear in random sorted positions. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start > .stats-table__body-cell {
   box-shadow:
-    inset 0 2px 0 var(--rookie-tier-separator-color),
-    inset 0 8px 12px -12px var(--rookie-tier-separator-color);
+    inset 0 1px 0px 0px var(--rookie-tier-separator-color),
+    inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-cell--rookie-tier-label .stats-table__cell-content {
+  position: relative;
+  overflow: visible;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--rookie-tier-separator-color);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 5px var(--rookie-tier-separator-glow-color);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
+  --rookie-tier-separator-color: #45ffcd;
+  --rookie-tier-separator-glow-color: #45ffcd32;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-2 {
   --rookie-tier-separator-color: #5df9fc;
+  --rookie-tier-separator-glow-color: #5df9fc32;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-3 {
   --rookie-tier-separator-color: #74c8ff;
+  --rookie-tier-separator-glow-color: #74c8ff32;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-4 {
   --rookie-tier-separator-color: #8b7cff;
+  --rookie-tier-separator-glow-color: #8b7cff32;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-5 {
   --rookie-tier-separator-color: #a642ff;
+  --rookie-tier-separator-glow-color: #a642ff32;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-6 {
   --rookie-tier-separator-color: #ff9fc9;
+  --rookie-tier-separator-glow-color: #ff9fc932;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-7 {
   --rookie-tier-separator-color: #ff6fe1;
+  --rookie-tier-separator-glow-color: #ff6fe132;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-8 {
   --rookie-tier-separator-color: #ff1d7b;
+  --rookie-tier-separator-glow-color: #ff1d7b32;
 }
 
 /* Rankings & Career Stats group heat colors:
