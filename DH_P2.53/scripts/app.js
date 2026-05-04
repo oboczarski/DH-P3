@@ -216,16 +216,12 @@ const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
     && CSS.supports('content-visibility', 'auto');
 function updateRosterContentVisibility() {
-    // Enable content-visibility: auto on mobile (≤819px) to defer rendering of off-screen
-    // team cards, keeping GPU tile memory usage low and preventing blank-tile scroll artifacts.
-    if (!supportsContentVisibility || !rosterGrid) {
-        rosterContentVisibilityEnabled = false;
-        rosterGrid?.classList.remove('roster-cv-enabled');
-        return;
-    }
-    const shouldEnable = rosterContentVisibilityQuery ? rosterContentVisibilityQuery.matches : false;
-    rosterContentVisibilityEnabled = shouldEnable;
-    rosterGrid.classList.toggle('roster-cv-enabled', shouldEnable);
+    // content-visibility: auto removed — caused card pop-in during scroll.
+    // All team cards render upfront (async-chunked on mobile) so content is
+    // immediately visible while scrolling. calibrateTeamCardIntrinsicSize() is
+    // a no-op while rosterContentVisibilityEnabled is false.
+    rosterContentVisibilityEnabled = false;
+    rosterGrid?.classList.remove('roster-cv-enabled');
 }
 if (supportsContentVisibility) {
     updateRosterContentVisibility();
@@ -7533,13 +7529,15 @@ function renderAllTeamData(teams) {
 
     const renderGenId = ++_renderAllTeamDataGenId;
 
-    // Build all team columns synchronously into a DocumentFragment, then perform a single
-    // DOM insertion. All teams are present in the DOM immediately after the call, so fast
-    // swipes never land on a blank column. content-visibility: auto handles the GPU tile
-    // budget by skipping layout/paint for horizontally off-screen cards.
-    const fragment = document.createDocumentFragment();
+    // Pre-warm the rank cache before any createPlayerRow calls.
+    // buildCalculatedRankCache iterates all ~10k NFL players on first call — running it once
+    // here keeps that cost out of the per-row render hot path on every subsequent row.
+    const warmupPlayer = teamsToRender.find(t => t.allPlayers?.length > 0)?.allPlayers[0];
+    if (warmupPlayer) calculatePlayerStatsAndRanks(warmupPlayer.id);
 
-    teamsToRender.forEach(team => {
+    // Inline helper: build one complete team column (sticky header + player card).
+    // Shared by both the immediate-paint and background-deferred render paths.
+    const buildTeamColumn = (team) => {
         const columnWrapper = document.createElement('div');
         columnWrapper.className = 'roster-column';
         columnWrapper.dataset.teamName = team.teamName;
@@ -7576,39 +7574,75 @@ function renderAllTeamData(teams) {
         const card = (state.currentRosterView === 'positional' || state.currentRosterView === 'condensed')
             ? createPositionalTeamCard(team)
             : createDepthChartTeamCard(team);
-        // Set a per-team height estimate BEFORE insertion so content-visibility: auto
-        // uses an accurate intrinsic-size placeholder. This prevents scroll-position jumps
-        // when a card first enters the viewport (actual height ≈ estimate → minimal delta).
-        if (rosterContentVisibilityEnabled) {
-            const est = estimateTeamCardHeight(team);
-            if (est > 0) card.style.setProperty('--team-card-intrinsic-size', `${est}px`);
-        }
         columnWrapper.appendChild(header);
         columnWrapper.appendChild(card);
-        fragment.appendChild(columnWrapper);
-    });
+        return columnWrapper;
+    };
 
-    // Single DOM insertion — all teams are in the DOM before any paint.
-    rosterGrid.appendChild(fragment);
+    // Mobile async chunked rendering (≤819px):
+    // Rendering all 12 teams (~300 player rows) synchronously blocks the main thread on mobile,
+    // causing a visible freeze before scroll is interactive.
+    // Fix: paint the first 2 teams immediately so the viewport is populated at once,
+    // then render remaining teams in small background batches (2 per setTimeout tick).
+    // Each tick gives the browser a paint frame — by the time the user scrolls to later
+    // teams they are already fully rendered. No pop-in, no blocking stall.
+    //
+    // Sticky offset: read the header height ONCE before the deferred loop (it doesn't change
+    // between batches) and stamp it directly onto new headers in each fragment — cheaper than
+    // calling adjustStickyHeaders() (full re-query + offsetHeight read) after every batch.
+    const MOBILE_INITIAL = 2; // teams rendered synchronously before first paint
+    const MOBILE_BATCH   = 2; // teams rendered per deferred background tick
+    const isMobile = window.innerWidth <= 819 && teamsToRender.length > MOBILE_INITIAL;
 
-    if (compareSearchInput && compareSearchInput.value) {
-        filterTeamsByQuery(compareSearchInput.value);
-    }
-    adjustStickyHeaders();
-    syncRosterHeaderPosition();
+    if (isMobile) {
+        // Cache sticky offset (header height minus optional CSS gap) — valid for this render.
+        const hdrEl    = document.getElementById('header-container');
+        const hdrGap   = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roster-header-gap')) || 0;
+        const stickyTop = hdrEl ? Math.max(hdrEl.offsetHeight - hdrGap, 0) : 0;
 
-    // Calibrate visible card heights after insertion. Cards in the viewport return their real
-    // height; cards skipped by content-visibility: auto return 0 and keep their per-team estimate.
-    // The `auto` keyword in contain-intrinsic-size caches the actual height on first render, so
-    // subsequent off-screen/on-screen transitions are automatically position-stable.
-    if (rosterContentVisibilityEnabled) {
-        requestAnimationFrame(() => {
-            if (_renderAllTeamDataGenId !== renderGenId) return; // superseded by a newer render
-            rosterGrid.querySelectorAll('.team-card').forEach(card => {
-                const h = card.getBoundingClientRect().height;
-                if (h > 0) card.style.setProperty('--team-card-intrinsic-size', `${Math.ceil(h)}px`);
-            });
-        });
+        // Stamp cached sticky-top onto all .team-header-item nodes in a not-yet-attached fragment.
+        const stampStickyTop = (frag) => {
+            frag.querySelectorAll('.team-header-item').forEach(h => { h.style.top = `${stickyTop}px`; });
+        };
+
+        // Immediate pass — first MOBILE_INITIAL teams painted synchronously.
+        const immediateFragment = document.createDocumentFragment();
+        teamsToRender.slice(0, MOBILE_INITIAL).forEach(t => immediateFragment.appendChild(buildTeamColumn(t)));
+        stampStickyTop(immediateFragment);
+        rosterGrid.appendChild(immediateFragment);
+        if (compareSearchInput && compareSearchInput.value) filterTeamsByQuery(compareSearchInput.value);
+        adjustStickyHeaders();
+        syncRosterHeaderPosition();
+
+        // Deferred pass — remaining teams added in background batches.
+        let deferIdx = MOBILE_INITIAL;
+        const renderNextBatch = () => {
+            if (_renderAllTeamDataGenId !== renderGenId) return; // newer render superseded this one
+            const batch = teamsToRender.slice(deferIdx, deferIdx + MOBILE_BATCH);
+            if (batch.length === 0) {
+                // All teams are in the DOM — final sync pass.
+                if (compareSearchInput && compareSearchInput.value) filterTeamsByQuery(compareSearchInput.value);
+                adjustStickyHeaders();
+                return;
+            }
+            const batchFragment = document.createDocumentFragment();
+            batch.forEach(t => batchFragment.appendChild(buildTeamColumn(t)));
+            stampStickyTop(batchFragment);
+            rosterGrid.appendChild(batchFragment);
+            deferIdx += MOBILE_BATCH;
+            setTimeout(renderNextBatch, 0);
+        };
+        setTimeout(renderNextBatch, 0);
+    } else {
+        // Desktop or compare mode: single-pass synchronous render (unchanged behavior).
+        const fragment = document.createDocumentFragment();
+        teamsToRender.forEach(team => fragment.appendChild(buildTeamColumn(team)));
+        rosterGrid.appendChild(fragment);
+        if (compareSearchInput && compareSearchInput.value) {
+            filterTeamsByQuery(compareSearchInput.value);
+        }
+        adjustStickyHeaders();
+        syncRosterHeaderPosition();
     }
 }
 function renderStartSitColumns(teams) {

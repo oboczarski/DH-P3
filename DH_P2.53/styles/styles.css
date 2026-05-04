@@ -2224,17 +2224,9 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   gap: 0.25rem;
 }
 
-/* content-visibility: auto defers rendering of off-screen team cards on mobile.
-   This keeps the GPU tile budget small and eliminates the blank-tile effect during
-   horizontal scroll. Per-team intrinsic-size estimates (set via JS before insertion)
-   keep scroll-position stable so a card entering the viewport causes minimal correction. */
-@supports (content-visibility: auto) {
-  #rosterGrid.roster-cv-enabled .team-card {
-    content-visibility: auto;
-    /* 2200px fallback covers un-estimated cards; per-team JS estimates replace this value. */
-    contain-intrinsic-size: auto var(--team-card-intrinsic-size, 2200px);
-  }
-}
+/* content-visibility: auto removed — it defers rendering of off-screen cards, which is the
+   direct cause of visible pop-in during scroll. All team cards are rendered upfront (via async
+   chunked rendering on mobile) so content is immediately present while scrolling. */
 
 .roster-section h3 {
   font-size: 0.8rem;

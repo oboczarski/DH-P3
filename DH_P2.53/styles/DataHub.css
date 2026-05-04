@@ -2934,15 +2934,27 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
   position: absolute;
-  top: 2px;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 11px;
+  padding: 0 4px;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--rookie-tier-separator-color);
+  border-radius: 999px;
+  background: rgba(7, 12, 22, 0.96);
+  box-shadow:
+    0 0 5px var(--rookie-tier-separator-glow-color),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   color: var(--rookie-tier-separator-color);
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 900;
   line-height: 1;
   letter-spacing: 0.02em;
-  text-shadow: 0 0 5px var(--rookie-tier-separator-glow-color);
+  text-shadow: 0 0 4px var(--rookie-tier-separator-glow-color);
   pointer-events: none;
   white-space: nowrap;
 }
