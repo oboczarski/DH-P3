@@ -2934,29 +2934,26 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
   position: absolute;
-  top: 0;
-  left: 50%;
+  top: 1px;
+  left: 55%;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 11px;
-  padding: 0 4px;
+  padding: 0px 3px 1px 3px;
   transform: translate(-50%, -50%);
-  border: 1px solid var(--rookie-tier-separator-color);
-  border-radius: 999px;
-  background: rgba(7, 12, 22, 0.96);
-  box-shadow:
-    0 0 5px var(--rookie-tier-separator-glow-color),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
   color: var(--rookie-tier-separator-color);
-  font-size: 7px;
-  font-weight: 900;
+  font-size: 8px;
+  font-weight: 600;
+  background: #3340;
   line-height: 1;
-  letter-spacing: 0.02em;
-  text-shadow: 0 0 4px var(--rookie-tier-separator-glow-color);
+  letter-spacing: 0;
+  text-shadow: 0px 0px 4px #334, 0 0 4px #334, 0 0 3px #334, 0 0 3px #334, 1px 1px 0px #000, 1px 1px 0px #000, 0 0 3px #334;
   pointer-events: none;
   white-space: nowrap;
+  filter: brightness(1.2) saturate(1.2);
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
