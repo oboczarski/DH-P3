@@ -920,19 +920,10 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   DraftMedal: '<path d="M8 2h8l-2 6h-4z" /><path d="M10 8 7 13" /><path d="m14 8 3 5" /><circle cx="12" cy="16" r="5" /><path d="M12 13v6" /><path d="M9.5 16h5" />',
 });
 
-// Rookie career tier label icon trials:
-// each tier gets a different Lucide-style down icon so the table can be reviewed
-// with all eight options side-by-side before settling on one final glyph.
-const ROOKIE_CAREER_TIER_LABEL_ICONS = Object.freeze({
-  1: '<path d="M12 5v14" /><path d="m19 12-7 7-7-7" />',
-  2: '<circle cx="12" cy="12" r="10" /><path d="M12 8v8" /><path d="m8 12 4 4 4-4" />',
-  3: '<path d="m10 15 5 5 5-5" /><path d="M4 4h7a4 4 0 0 1 4 4v12" />',
-  4: '<path d="M15 11a1 1 0 0 0 1 1h2.939a1 1 0 0 1 .75 1.811l-6.835 6.836a1.207 1.207 0 0 1-1.707 0L4.31 13.81A1 1 0 0 1 5.061 12H8a1 1 0 0 0 1-1V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1z" />',
-  5: '<path d="M19 3H5" /><path d="M12 21V7" /><path d="m6 15 6 6 6-6" />',
-  6: '<rect width="18" height="18" x="3" y="3" rx="2" /><path d="M12 8v8" /><path d="m8 12 4 4 4-4" />',
-  7: '<path d="M8 18 12 22 16 18" /><path d="M12 2v20" />',
-  8: '<circle cx="12" cy="12" r="10" /><path d="m16 10-4 4-4-4" />',
-});
+// Rookie career tier label icon:
+// use the selected CircleArrowDown-style glyph for every tier label pill while
+// keeping the text tier-specific.
+const ROOKIE_CAREER_TIER_LABEL_ICON = '<circle cx="12" cy="12" r="10" /><path d="M12 8v8" /><path d="m8 12 4 4 4-4" />';
 
 // ---------------------------------------------------------------------------
 // Lucide icon paths (24×24 viewBox, stroke-based). Only columns used in this
@@ -7298,16 +7289,13 @@ function createRookieCareerTierSeparatorLabel(tier) {
   text.textContent = `TIER⌁${tier}`;
   label.append(text);
 
-  const iconMarkup = ROOKIE_CAREER_TIER_LABEL_ICONS[tier];
-  if (iconMarkup) {
-    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    icon.setAttribute("viewBox", "0 0 24 24");
-    icon.setAttribute("aria-hidden", "true");
-    icon.setAttribute("focusable", "false");
-    icon.classList.add("stats-table__tier-divider-icon");
-    appendDataHubIconMarkup(icon, iconMarkup);
-    label.append(icon);
-  }
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("focusable", "false");
+  icon.classList.add("stats-table__tier-divider-icon");
+  appendDataHubIconMarkup(icon, ROOKIE_CAREER_TIER_LABEL_ICON);
+  label.append(icon);
 
   return label;
 }
