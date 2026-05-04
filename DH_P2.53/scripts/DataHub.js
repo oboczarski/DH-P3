@@ -3435,10 +3435,30 @@ async function ensureDataHubRookieData() {
 }
 
 function buildRookieCareerRowsForCategory(category, rows) {
-  return rows.map((row) => normalizeRow(buildRookieCareerSourceRow(category, row)));
+  let receivingCategoryRank = 0;
+
+  return rows.map((row) => {
+    let categoryRankOverride = null;
+
+    // Rankings & Career Stats receiving RK:
+    // WT-Cr.csv combines WR and TE players, but its POS-RK field ranks each
+    // position separately. Build one W/T display rank from source order while
+    // preserving NR rows so their existing bottom-sort handling still applies.
+    if (category === "receiving" && !isRookieCareerUnrankedSourceRow(row)) {
+      receivingCategoryRank += 1;
+      categoryRankOverride = String(receivingCategoryRank);
+    }
+
+    return normalizeRow(buildRookieCareerSourceRow(category, row, { categoryRankOverride }));
+  });
 }
 
-function buildRookieCareerSourceRow(category, row) {
+function isRookieCareerUnrankedSourceRow(row) {
+  const sourceRank = getFirstUsableRookieValue(row?.["OVR-RK"], row?.["POS-RK"]);
+  return isRookieBottomSortValue(sourceRank);
+}
+
+function buildRookieCareerSourceRow(category, row, { categoryRankOverride = null } = {}) {
   const playerId = getRookiePlayerId(row);
   const playerLookup = playerId ? state.rookieProspectByPlayerId[playerId] : null;
   const sourceRow = {
@@ -3478,7 +3498,11 @@ function buildRookieCareerSourceRow(category, row) {
     return sourceRow;
   }
 
-  sourceRow.RK = getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]);
+  // Rankings & Career Stats category RK:
+  // passing/rushing can keep POS-RK because they are single-position tables;
+  // receiving passes a combined W/T rank override because it includes WR + TE.
+  sourceRow.RK = categoryRankOverride
+    ?? getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]);
 
   if (category === "passing") {
     sourceRow.paATT = row.paATT;
@@ -6728,12 +6752,50 @@ function renderTableBody(tbody, columns, showEmptyState, groupStartCols = new Se
       const tr = document.createElement("tr");
       tr.className = "stats-table__body-row";
       tr.dataset.rowIndex = rowIndex;
+      applyRookieCareerTierSeparatorRowState(tr, row, rowIndex);
       columns.forEach((column) => tr.append(createBodyCell(row, column, rowIndex, groupStartCols)));
       fragment.append(tr);
     });
   }
 
   tbody.replaceChildren(fragment);
+}
+
+function applyRookieCareerTierSeparatorRowState(tr, row, rowIndex) {
+  if (!shouldRenderRookieCareerTierSeparators()) {
+    return;
+  }
+
+  const tier = getRookieTierStyleLevel(row?.TIER);
+  if (tier < 2 || tier > 8) {
+    return;
+  }
+
+  const previousTier = rowIndex > 0
+    ? getRookieTierStyleLevel(state.displayedRows[rowIndex - 1]?.TIER)
+    : 0;
+  if (previousTier === tier) {
+    return;
+  }
+
+  // Rankings & Career Stats tier separators:
+  // mark only the first rendered row for each T2+ tier in the default RK sort.
+  // Any alternate table sort skips these classes so tier borders do not drift
+  // into arbitrary positions after players are reordered.
+  tr.classList.add(
+    "stats-table__body-row--rookie-tier-start",
+    `stats-table__body-row--rookie-tier-start-${tier}`,
+  );
+}
+
+function shouldRenderRookieCareerTierSeparators() {
+  if (!isDataHubRookiesCareerView()) {
+    return false;
+  }
+
+  const defaultSort = createDefaultSort("rookies-career");
+  return getActiveSortColumn() === defaultSort.column
+    && state.sort.direction === defaultSort.direction;
 }
 
 function updateGridHeaderSortState(refs) {
