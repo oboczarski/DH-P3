@@ -3395,7 +3395,7 @@ async function ensureDataHubRookieData() {
         const rows = parseCsv(csvText);
         rookieCsvRowsByCategory[category] = rows;
         rows.forEach((row) => {
-          mergeRookieProspectLookupEntry(rookieProspectByPlayerId, row);
+          mergeRookieProspectLookupEntry(rookieProspectByPlayerId, row, category);
         });
       }),
     );
@@ -3445,7 +3445,11 @@ function buildRookieCareerSourceRow(category, row) {
     SLPR_ID: playerId,
     PLAYER: getFirstUsableRookieValue(row.PLAYER, playerLookup?.PLAYER),
     POS: getFirstUsableRookieValue(row.POS, playerLookup?.POS),
-    TM: resolveRookieCareerTeam(playerId),
+    // Rookies career TM:
+    // prefer the TM field carried directly in the CSV row (overview/ALL-Cr.csv)
+    // or via the merged prospect lookup, then fall back to the KTC-based
+    // resolver so the column stays populated for any players not yet in the CSVs.
+    TM: getFirstUsableRookieValue(row.TM, playerLookup?.TM) || resolveRookieCareerTeam(playerId),
     AGE: getFirstUsableRookieValue(row.AGE, playerLookup?.AGE),
     CFB: getFirstUsableRookieValue(row.CFB, playerLookup?.CFB),
     HT: getFirstUsableRookieValue(row.HT, playerLookup?.HT),
@@ -3541,7 +3545,10 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
       const prospect = rookieProspectByPlayerId?.[playerId] || null;
       return {
         ...row,
-        // Rookie Trade Values age:
+        // Rookie Trade Values TM:
+        // prefer the ALL-Cr.csv CSV team over the KTC trade row team so the
+        // Rookies trade table shows the same team as the career table.
+        TM: getFirstUsableRookieValue(prospect?.TM, row.TM),
         // prefer the new ALL-Cr.csv prospect AGE joined by SLPR_ID, falling
         // back to the KTC/SZN trade row age so non-age fields stay unchanged.
         AGE: getFirstUsableRookieValue(prospect?.AGE, row.AGE),
@@ -3557,7 +3564,7 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
     });
 }
 
-function mergeRookieProspectLookupEntry(store, row) {
+function mergeRookieProspectLookupEntry(store, row, category = "overview") {
   const playerId = getRookiePlayerId(row);
   if (!playerId) {
     return;
@@ -3568,6 +3575,16 @@ function mergeRookieProspectLookupEntry(store, row) {
     SLPR_ID: playerId,
     PLAYER: getFirstUsableRookieValue(previous.PLAYER, row.PLAYER),
     POS: getFirstUsableRookieValue(previous.POS, row.POS),
+    // Rookie prospect team lookup:
+    // QB-Cr.csv, RB-Cr.csv, and WT-Cr.csv (passing/rushing/receiving) are the
+    // authoritative source for TM per position. Their TM always wins over
+    // ALL-Cr.csv (overview). Since CSVs load in parallel via Promise.all we
+    // handle both orderings:
+    //   - position-specific finishes first  → sets TM; overview won't overwrite
+    //   - overview finishes first           → sets TM; position-specific overwrites
+    TM: category === "overview"
+      ? getFirstUsableRookieValue(previous.TM, row.TM)   // don't overwrite if position CSV already wrote
+      : getFirstUsableRookieValue(row.TM, previous.TM),  // position CSV always wins
     AGE: getFirstUsableRookieValue(previous.AGE, row.AGE),
     CFB: getFirstUsableRookieValue(previous.CFB, row.CFB),
     HT: getFirstUsableRookieValue(previous.HT, row.HT),
