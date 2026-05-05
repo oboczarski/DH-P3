@@ -2839,7 +2839,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rook
   padding: 0 6px;
   border-radius: 7px;
   box-sizing: border-box;
-  border: 1px solid;
+  border-bottom: 1px groove #00ffff45;
   background: linear-gradient(180deg, rgba(102, 215, 255, 0.30), rgba(162, 127, 255, 0.2)),
     rgba(255, 255, 255, 0.02);
   color: inherit;
@@ -2857,7 +2857,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rook
   flex: 0 0 auto;
   color: currentColor;
   stroke: currentColor;
-  stroke-width: 2.5px;
+  stroke-width: 3px;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
@@ -3766,11 +3766,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-height: 20px;
     padding: 0 20px 0 18px;
     font-size: 11px;
+    color: #2a2a3a;
   }
 
   body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge-icon {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
   }
 
   .stats-table__group-header-icon {
