@@ -3714,6 +3714,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     gap: 3px;
   }
 
+  /* Mobile sorted-column header:
+     targets the active sorted table header only, using DataHub.js aria-sort
+     state. The extra left padding and flex-start alignment keep the label/icon
+     group clear of the absolute sort indicator in narrow columns. */
+  .stats-table__header-cell:is([aria-sort="ascending"], [aria-sort="descending"]) .stats-table__head-button {
+    justify-content: flex-start;
+    padding: 0 0px 0 5px;
+  }
+
   .stats-table__head-icon {
     width: 13px;
     height: 13px;
