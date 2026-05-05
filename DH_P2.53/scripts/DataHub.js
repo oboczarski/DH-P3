@@ -7212,7 +7212,7 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   const value = column.name === RK_COLUMN
     ? (state.activePageView === "rookies-career" ? rawValue : String(rowIndex + 1))
     : rawValue;
-  const rookieTierSeparatorTier = column.name === RK_COLUMN
+  const rookieTierSeparatorTier = column.name === "TIER"
     ? getRookieCareerTierSeparatorTier(row, rowIndex)
     : null;
   const td = document.createElement("td");
@@ -7244,13 +7244,8 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   } else if (column.name === RK_COLUMN) {
     // RK display rank:
     // rookies-career preserves the imported source rank text (including NR),
-    // while the other DataHub views continue to show rendered table order. Tier
-    // divider labels render only in this RK cell so the tier cue sits directly
-    // on the horizontal divider without affecting other columns.
+    // while the other DataHub views continue to show rendered table order.
     content.textContent = value;
-    if (rookieTierSeparatorTier) {
-      content.append(createRookieCareerTierSeparatorLabel(rookieTierSeparatorTier));
-    }
   } else if (column.name === "TM") {
     // DataHub TM cell logo swap:
     // render the same team-logo treatment used by the local modal so the table
@@ -7268,6 +7263,14 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
     // replace plain position text with a pill-shaped badge that shows a colored
     // dot + position abbreviation. Rendered for both desktop and mobile tables.
     content.append(createPosBadge(value));
+  } else if (column.name === "TIER") {
+    // Rankings & Career Stats tier divider label:
+    // keep the visible tier value in the TIER column and anchor the tier pill
+    // there so the RK column can remain focused on rank display.
+    content.textContent = formatDisplayValue(column.name, value);
+    if (rookieTierSeparatorTier) {
+      content.append(createRookieCareerTierSeparatorLabel(rookieTierSeparatorTier));
+    }
   } else {
     content.textContent = formatDisplayValue(column.name, value);
   }
@@ -7281,7 +7284,7 @@ function createRookieCareerTierSeparatorLabel(tier) {
   label.className = `stats-table__tier-divider-label stats-table__tier-divider-label--tier-${tier}`;
   label.setAttribute("aria-label", `TIER ${tier}`);
 
-  // Rankings & Career Stats RK tier pill:
+  // Rankings & Career Stats TIER-column tier pill:
   // render the tier label as caps text plus one tier-specific down icon, replacing
   // the earlier unicode arrow while keeping the pill anchored to the divider.
   const text = document.createElement("span");
@@ -7500,10 +7503,6 @@ function getColumnLabel(columnName) {
 
   if (!isDataHubRookiesCareerView()) {
     return baseLabel;
-  }
-
-  if (state.activeCategory === "overview" && columnName === "GRD") {
-    return "GRADE";
   }
 
   if (columnName === "paATT_EFF") {

@@ -2929,8 +2929,8 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 
 /* First-row tier label clearance:
    when the first visible Rankings & Career Stats row has a tier pill, offset both
-   body panes together and let the frozen RK pane overflow vertically so the pill
-   can stay on its divider without being clipped by the header/body boundary. */
+   body panes together so the TIER-column pill has clearance from the header/body
+   boundary without changing sorted-table states. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) {
   --rookie-tier-first-row-clearance: 6px;
 }
@@ -2948,9 +2948,9 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.
   overflow: visible;
 }
 
-/* First visible RK divider:
-   keep the divider visible in the RK column for the first shown tier while the
-   table-frame clearance above prevents the pill from being clipped by the header. */
+/* First visible TIER divider:
+   keep the divider visible on the TIER cell that owns the tier pill while the
+   table-frame clearance above prevents the first pill from crowding the header. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {box-shadow: inset 0 1px 0px 0px var(--rookie-tier-separator-color),
     inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);}
 
@@ -2962,7 +2962,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
   position: absolute;
   top: 1px;
-  left: 229%;
+  left: 50%;
   z-index: 2;
   display: inline-flex;
   align-items: center;
@@ -2985,7 +2985,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
-  top: 1px;
+  top: 6px;
   box-shadow: inset 0px 5px 0px -1px #334f;
 }
 
