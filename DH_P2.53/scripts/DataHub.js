@@ -2215,7 +2215,7 @@ const MOBILE_COLUMN_WIDTHS = {
   WT: 42,
   "40dsh": 48,
   Gs: 42,
-  GRD: 57,
+  GRD: 48,
   TIER: 46,
   "OVR-RK": 60,
   "RD & PK#": 64,

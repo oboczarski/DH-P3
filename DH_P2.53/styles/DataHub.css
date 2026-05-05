@@ -3030,7 +3030,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
-  top: 9px;
+  top: 2px;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
