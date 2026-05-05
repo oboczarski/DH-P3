@@ -2943,12 +2943,12 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
   position: absolute;
   top: 1px;
-  left: 75%;
+  left: 67%;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 0px;
   min-height: 11px;
   padding: 1px 2px 2px 2px;
   transform: translate(-50%, -50%);
@@ -2966,7 +2966,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
-  top: 5px;
+  top: 4px;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-icon {
