@@ -156,7 +156,7 @@ body::after {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: 11px;
+  border-radius: 25px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 32%),
     radial-gradient(circle at top left, rgba(215, 225, 255, 0.14), transparent 34%);
 }
@@ -358,7 +358,7 @@ body::after {
   left: 0;
   z-index: 1200;
   display: grid;
-  gap: 5px;
+  gap: 6px;
   width: min(129px, calc(100vw - 24px));
   padding: 7px 4px;
   border-radius: 24px;
@@ -545,7 +545,6 @@ body::after {
   font-weight: 700;
   letter-spacing: -0.05em;
   cursor: pointer;
-  transition: all 200ms ease;
   text-wrap-style: balance;
 }
 
@@ -570,7 +569,7 @@ body::after {
 .page-tab:hover:not(.is-active) {
   /* Placeholder page tabs should only hint hover through icon/text tinting,
      never by drawing a pill background behind the button. */
-  color: rgba(219, 232, 250, 0.9);
+  color: rgb(219 232 250 / 58%);
 }
 
 .page-tab:hover:not(.is-active) .tab-icon {
@@ -579,6 +578,28 @@ body::after {
 
 .page-tab:active {
   transform: scale(0.97);
+}
+
+/* Disabled DataHub page tabs:
+   Rankings and Ownership stay visible in the shared tab strip, but are parked
+   as inactive placeholders until their table views are implemented. */
+.page-tab:disabled,
+.page-tab[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+  color: rgba(153, 169, 194, 0.44);
+  filter: grayscale(0.35);
+}
+
+.page-tab:disabled:hover,
+.page-tab[aria-disabled="true"]:hover {
+  color: rgba(153, 169, 194, 0.44);
+  filter: grayscale(0.35);
+}
+
+.page-tab:disabled:active,
+.page-tab[aria-disabled="true"]:active {
+  transform: none;
 }
 
 .page-tab.is-active {
@@ -595,7 +616,7 @@ body::after {
      first half of the gradient and the text picks up the second half. */
   background-image: var(--datahub-active-accent-gradient);
   background-repeat: no-repeat;
-  background-size: 200% 100%;
+  background-size: 168% 100%;
   background-position: 100% 50%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -662,8 +683,13 @@ body::after {
 
 .hero-shell {
   display: grid;
-  gap: 14px;
+  gap: 7px;
   padding: 10px 10px 14px;
+  /* DataHub hero overflow:
+     the shared glass-panel shell clips by default, but the Stats team filter
+     menu needs to extend beyond the hero card without being cut off. */
+  overflow: visible;
+  z-index: 3;
 }
 
 .hero-controls {
@@ -706,6 +732,714 @@ body::after {
   font-weight: 800;
   word-spacing: 0.04em;
   text-wrap: balance;
+}
+
+/* ── Top 60 Chart Widget ────────────────────────────────────────────────── */
+
+body[data-page="datahub"].datahub-chart-modal-open {
+  overflow: hidden;
+}
+
+body[data-page="datahub"] .hero-chart-toggle,
+body[data-page="datahub"] .datahub-chart-panel {
+  display: none;
+}
+
+body[data-page="datahub"] .datahub-top60-chart {
+  --datahub-chart-surface: rgb(5 6 11 / 31%);
+  --datahub-chart-text: rgba(255, 255, 255, 0.96);
+  --datahub-chart-text-secondary: rgba(255, 255, 255, 0.62);
+  --datahub-chart-text-tertiary: rgba(255, 255, 255, 0.44);
+  width: min(100%, 360px);
+  max-width: 340px;
+  overflow: hidden;
+  border: 0px solid rgba(255, 255, 255, 0.1);
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(30, 42, 60, 0.9), rgba(16, 24, 38, 0.95));
+  box-shadow: inset 0 5px 14px rgba(0, 0, 0, 0.43), 0 0 5px 3px #abd1;
+  color: var(--datahub-chart-text);
+  font-family: "Product Sans", "Google Sans", sans-serif;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__header {
+  padding: 12px 22px 0px;
+  margin-bottom: -4px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__header h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: rgb(145 155 178 / 99%);
+  word-spacing: 0.12em;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__body {
+  padding: 0 11px 10px 12px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__shell {
+  position: relative;
+  height: 264px;
+  padding: 2px 2px 2px 3px;
+  border-radius: 22px;
+  background: rgb(5 6 11 / 0%);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__plot {
+  width: 100%;
+  height: 100%;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis--x {
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__axis--y {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 8px;
+  padding-inline: 2px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8px 5px 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgb(5 6 11 / 0%);
+  box-shadow:
+    0 14px 38px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--datahub-chart-chip-line);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 4px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-dot {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin-bottom: 2px;
+  border-radius: 999px;
+  background: var(--datahub-chart-chip-dot);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-label {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-chip-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-count {
+  font-size: 22px;
+  line-height: 0.95;
+  font-weight: 300;
+  margin-top: 3px;
+  color: var(--datahub-chart-text);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-meta {
+  flex: 0 0 auto;
+  text-align: right;
+  line-height: 1;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-sub {
+  display: block;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--datahub-chart-text-tertiary);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-pct {
+  display: block;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-page="datahub"] .datahub-top60-chart__stat-shift {
+  color: var(--datahub-chart-shift-color, var(--datahub-chart-text));
+}
+
+/* Trade Values hero chart:
+   keep the shared DataHub panel shell, but restyle the internals to match the
+   updated Top60ChrtW reference when the active page view is adp-values. */
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__header {
+  padding: 8px 16px 2px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__header h2 {
+  font-size: 15px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__body {
+  padding: 0 6px 9px 7px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__shell {
+  height: 267px;
+  padding: 0;
+  margin: -3px -15px -14px -32px;
+  background: rgb(5 6 11 / 0%);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__axis--x {
+  display: none;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__axis--y {
+  left: -16px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-top {
+  margin-bottom: 2px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-bottom--split {
+  gap: 8px;
+  margin-top: 0px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-bottom--split .datahub-top60-chart__stat-count {
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] .datahub-top60-chart__stat-chip-bottom--split .datahub-top60-chart__stat-shift {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="adp-values"] [data-chart-canvas] svg text {
+  letter-spacing: -0.04em;
+}
+
+/* Rookies hero chart:
+   ports the standalone tier-map card into the shared DataHub chart mount while
+   keeping all layout, legend, and atmosphere styles scoped to the rookies view. */
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
+  --surface: #040714;
+  --border: rgba(255, 255, 255, 0.001);
+  --border-soft: rgb(255 255 255 / 0%);
+  --text: rgba(255, 255, 255, 0.97);
+  --tier-1: #7637ff;
+  --tier-2: #5e28ff;
+  --tier-3: #25d2f4;
+  --tier-4: #ff84ad;
+  --tier-1-rgb: 118, 55, 255;
+  --tier-2-rgb: 94, 40, 255;
+  --tier-3-rgb: 37, 210, 244;
+  --tier-4-rgb: 255, 132, 173;
+  --core-x: 54%;
+  --core-y: 62%;
+  --chart-font-family: "Product Sans", "Google Sans", sans-serif;
+  --chart-text-strong: #fff;
+  --chart-text-name: rgba(255, 255, 255, 0.94);
+  --chart-tooltip-bg: rgba(7, 11, 28, 0.96);
+  --chart-tooltip-border: rgba(255, 255, 255, 0.08);
+  --chart-tooltip-text-muted: rgba(255, 255, 255, 0.7);
+  --chart-tooltip-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  --chart-tooltip-radius: 14px;
+  --chart-tooltip-padding: 10px 12px;
+  --chart-name-font-weight: 400;
+  --chart-pos-font-weight-center: 700;
+  --chart-pos-font-weight-outer: 700;
+  --chart-grade-font-weight-center: 400;
+  --chart-grade-font-weight-outer: 400;
+  --chart-pos-font-factor-center: 0.31;
+  --chart-pos-font-min-center: 14;
+  --chart-pos-font-max-center: 14.3;
+  --chart-pos-font-factor-outer: 0.42;
+  --chart-pos-font-min-outer: 8.5;
+  --chart-pos-font-max-outer: 9.5;
+  --chart-pos-grade-gap-center: 1.15;
+  --chart-pos-grade-gap-outer: 0.55;
+  --chart-pos-label-lift-center: 6;
+  --chart-pos-label-lift-outer: 3.2;
+  --chart-pos-font-bump-tier-2: 1.5;
+  --chart-pos-font-bump-tier-3: 0.24;
+  --chart-pos-font-bump-tier-4: 0;
+  --chart-grade-font-factor-center: 1;
+  --chart-grade-font-min-center: 40;
+  --chart-grade-font-max-center: 40;
+  --chart-grade-font-factor-outer: 0.82;
+  --chart-grade-font-min-outer: 9.2;
+  --chart-grade-font-max-outer: 13.4;
+  --chart-grade-font-bump-tier-2: 6;
+  --chart-grade-font-bump-tier-3: 3.5;
+  --chart-grade-font-bump-tier-4: 0;
+  --chart-name-font-factor-center: 0.34;
+  --chart-name-font-min-center: 12;
+  --chart-name-font-max-center: 12;
+  --chart-name-font-factor-outer: 0.5;
+  --chart-name-font-min-outer: 6;
+  --chart-name-font-max-outer: 8.5;
+  --chart-name-font-floor-outer: 5.7;
+  --chart-name-font-mid-cutoff: 10;
+  --chart-name-font-mid-reduction: 0.5;
+  --chart-name-font-long-cutoff: 13;
+  --chart-name-font-long-reduction: 0.9;
+  width: min(100%, 348px);
+  max-width: 375px;
+  border: 1px solid var(--border);
+  background: transparent;
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.0042),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-top60-chart__header {
+  padding: 3px 24px 0;
+  margin-bottom: 0;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-top60-chart__header h2 {
+  color: var(--text);
+  text-align: center;
+  letter-spacing: -0.03em;
+  word-spacing: normal;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-top60-chart__body {
+  padding: 0;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 5px;
+  margin-bottom: -14px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 3px 5px 3px 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgb(93 100 124 / 25%);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-item--1 .datahub-rookies-chart__legend-dot {
+  background: #a071ff;
+  box-shadow: 0 0 5px rgba(var(--tier-1-rgb), 0.72);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-item--2 .datahub-rookies-chart__legend-dot {
+  background: var(--tier-2);
+  box-shadow: 0 0 10px rgba(var(--tier-2-rgb), 0.72);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-item--3 .datahub-rookies-chart__legend-dot {
+  background: var(--tier-3);
+  box-shadow: 0 0 10px rgba(var(--tier-3-rgb), 0.72);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__legend-item--4 .datahub-rookies-chart__legend-dot {
+  background: var(--tier-4);
+  box-shadow: 0 0 10px rgba(var(--tier-4-rgb), 0.72);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__shell {
+  max-height: 320px;
+  --pos-qb: #ff6363;
+  --pos-rb: #25f4c5;
+  --pos-wr: #3cbbfb;
+  --pos-te: #c072ff;
+
+  /* 3 rings of chart and dashedline color */
+  --tier-2-band-stroke: rgba(83, 58, 112, 0.74);
+  --tier-2-band-fill: rgba(141, 99, 255, 0);
+  --tier-3-band-stroke: rgba(95, 221, 246, 0.12);
+  --tier-3-band-fill: rgba(37, 210, 244, 0);
+  --tier-4-band-stroke: rgba(251, 163, 193, 0.12);
+  --tier-4-band-fill: rgba(255, 132, 173, 0);
+
+  /* dash distance and stuff */
+  --chart-band-dash-a-min: 0.75;
+  --chart-band-dash-a-scale: 1;
+  --chart-band-dash-b-min: 4;
+  --chart-band-dash-b-scale: 1;
+
+  /*dash thickness ithink */
+  --chart-band-ring-line-min: 11;
+  --chart-band-ring-line-scale: 15;
+  
+  /* Chart Circle BG color */
+  --chart-outer-backdrop-fill: rgba(0, 0, 0, 0.007);
+  --chart-outer-backdrop-stroke: rgba(255, 255, 255, 0.004);
+  --chart-outer-accent-stroke: rgba(141, 99, 255, 0.008);
+
+  --chart-band-edge-inner: rgba(205, 215, 255, 0.051);
+  --chart-band-edge-outer: rgba(205, 215, 255, 0.061);
+  --chart-core-orbit-3-stroke: rgba(123, 15, 255, 0.15);
+  --chart-core-ring-inner-stroke: rgba(255, 88, 214, 0);
+  --chart-core-ring-inner-dash-a-min: 1;
+  --chart-core-ring-inner-dash-a-scale: 2.2;
+  --chart-core-ring-inner-dash-b-min: 1;
+  --chart-core-ring-inner-dash-b-scale: 1.4;
+  --chart-core-ring-inner-line-min: 1;
+  --chart-core-ring-inner-line-scale: 21.4;
+  --connector-opacity: 0.62;
+  --connector-shadow-blur-min: 4;
+  --connector-shadow-blur-scale: 6.2;
+  --connector-gradient-start-alpha: 0.04;
+  --connector-gradient-mid-alpha: 0.48;
+  --connector-gradient-end-alpha: 0.84;
+  --connector-gradient-tail-alpha: 0.28;
+  --connector-highlight-width-factor: 0.34;
+  --connector-highlight-start-alpha: 0.04;
+  --connector-highlight-mid-alpha: 0.18;
+  --connector-highlight-end-alpha: 0.24;
+  --connector-tier-2-color: #7b5aff;
+  --connector-tier-2-width-min: 1;
+  --connector-tier-2-width-scale: 5.88;
+  --connector-tier-3-color: #25d2f4;
+  --connector-tier-3-width-min: 1;
+  --connector-tier-3-width-scale: 5.04;
+  --connector-tier-4-color: #ff84ad;
+  --connector-tier-4-width-min: 1;
+  --connector-tier-4-width-scale: 4.2;
+  --chart-node-halo-opacity-center: 0.06;
+  --chart-node-halo-opacity-outer: 0.091;
+  --chart-node-halo-blur-center: 6;
+  --chart-node-halo-blur-outer: 6;
+  --chart-node-halo-blur-tier-2: 5.8;
+  --chart-node-halo-blur-tier-3: 4.8;
+  --chart-node-halo-blur-tier-4: 4.4;
+  --chart-node-halo-spread-center-min: 16;
+  --chart-node-halo-spread-center-scale: 34;
+  --chart-node-halo-spread-tier-2-min: 6;
+  --chart-node-halo-spread-tier-2-scale: 13;
+  --chart-node-halo-spread-tier-3-min: 5;
+  --chart-node-halo-spread-tier-3-scale: 11;
+  --chart-node-halo-spread-tier-4-min: 5.1;
+  --chart-node-halo-spread-tier-4-scale: 10.8;
+  --chart-node-shell-fill-center: rgba(255, 255, 255, 0.06);
+  --chart-node-fill-tier-2: #5900ff43;
+  --chart-node-fill-tier-3: #25d2f418;
+  --chart-node-fill-tier-4: #ff84ad18;
+  --chart-node-sphere-shadow-fill: rgba(3, 8, 20, 0.6);
+  --chart-node-sphere-shadow-offset-center: 0.08;
+  --chart-node-sphere-shadow-offset-outer: 0.12;
+  --chart-node-shell-highlight-alpha-center: 0.2;
+  --chart-node-shell-highlight-alpha-outer: 0.12;
+  --chart-node-shell-edge-alpha-center: 0.42;
+  --chart-node-shell-edge-alpha-outer: 0.3;
+  --chart-node-rim-alpha-center: 0.96;
+  --chart-node-rim-alpha-outer: 0.88;
+  --chart-node-rim-width-center-min: 2.4;
+  --chart-node-rim-width-center-factor: 0.082;
+  --chart-node-rim-width-outer-min: 1.2;
+  --chart-node-rim-width-outer-factor: 0.094;
+  --chart-node-inner-rim-color: rgba(255, 255, 255, 1);
+  --chart-node-inner-rim-alpha-center: 0.18;
+  --chart-node-inner-rim-alpha-outer: 0.12;
+  --chart-node-inner-rim-width-center: 1.35;
+  --chart-node-inner-rim-width-outer: 0.9;
+  --chart-node-sphere-edge-shadow: rgba(6, 10, 24, 0.94);
+  --chart-node-sphere-specular-core: rgba(255, 255, 255, 0.98);
+  --chart-node-sphere-specular-soft: rgba(255, 255, 255, 0.58);
+  --chart-node-sphere-specular-glint: rgba(255, 255, 255, 0.82);
+  --chart-node-sphere-highlight-fade: rgba(255, 255, 255, 0);
+  --chart-node-sphere-color-alpha-inner: 0.22;
+  --chart-node-sphere-color-alpha-mid: 0.5;
+  --chart-node-sphere-color-alpha-edge: 0.96;
+  --chart-node-specular-offset-x-center: -0.52;
+  --chart-node-specular-offset-y-center: -0.72;
+  --chart-node-specular-offset-x-outer: -0.2;
+  --chart-node-specular-offset-y-outer: -0.3;
+  --chart-node-specular-radius-center: 0.17;
+  --chart-node-specular-radius-outer: 0.48;
+  --chart-node-specular-opacity-center: 0.04;
+  --chart-node-specular-opacity-outer: 0.26;
+  --chart-node-glint-offset-x-center: -0.22;
+  --chart-node-glint-offset-y-center: -0.52;
+  --chart-node-glint-offset-x-outer: -0.12;
+  --chart-node-glint-offset-y-outer: -0.36;
+  --chart-node-glint-size-center: 0.09;
+  --chart-node-glint-size-outer: 0.12;
+  --chart-node-glint-alpha-center: 0.26;
+  --chart-node-glint-alpha-outer: 0.58;
+  --chart-node-inner-fill-center: rgba(18, 10, 39, 0.42);
+  --chart-node-inner-stroke-center: rgba(255, 255, 255, 0.16);
+  --chart-node-inner-stroke-width-center: 1;
+  --chart-center-gradient-stop-1: rgba(246, 237, 255, 0.98);
+  --chart-center-gradient-stop-2: rgba(196, 162, 244, 0.94);
+  --chart-center-gradient-stop-4: rgba(40, 11, 82, 1);
+  --chart-name-chip-padding-center: 1 5 3 4;
+  --chart-name-chip-padding-outer: 1 3 2 3;
+  --chart-name-chip-bg-center: rgba(10, 16, 36, 0.28);
+  --chart-name-chip-bg-outer: rgba(33, 41, 55, 0.8);
+  --chart-name-chip-border-width: 1;
+  --chart-name-chip-border-radius: 999;
+  --chart-name-chip-border-alpha-center: 0.5;
+  --chart-name-chip-border-alpha-outer: 0.3;
+  --chart-name-chip-shadow-blur-center: 3;
+  --chart-name-chip-shadow-blur-outer: 2;
+  --chart-name-chip-shadow-alpha-center: 0.3;
+  --chart-name-chip-shadow-alpha-outer: 0.02;
+  --chart-pos-shadow-color: rgba(0, 0, 0, 0.58);
+  --chart-pos-shadow-blur-center: 4.2;
+  --chart-pos-shadow-blur-outer: 2.2;
+  --chart-pos-shadow-offset-x: 0;
+  --chart-pos-shadow-offset-y: 0.7;
+  --chart-pos-underlay-color-center: rgba(4, 1, 12, 0.9);
+  --chart-pos-underlay-size-bump-center: 0.1;
+  --chart-pos-underlay-offset-x-center: 0.3;
+  --chart-pos-underlay-offset-y-center: 1.05;
+  --chart-pos-underlay-color-outer: rgba(4, 1, 12, 0.82);
+  --chart-pos-underlay-size-bump-outer: 0.05;
+  --chart-pos-underlay-offset-x-outer: 0.15;
+  --chart-pos-underlay-offset-y-outer: 0.8;
+  --chart-pos-underlay-color-tier-3: rgba(4, 1, 12, 0.9);
+  --chart-pos-underlay-size-bump-tier-3: 0.08;
+  --chart-pos-underlay-offset-x-tier-3: 0.2;
+  --chart-pos-underlay-offset-y-tier-3: 0.95;
+  --chart-grade-shadow-color-center: rgba(3, 1, 12, 0.98);
+  --chart-grade-shadow-blur-center: 10.5;
+  --chart-grade-shadow-offset-x-center: 0.45;
+  --chart-grade-shadow-offset-y-center: 2.2;
+  --chart-grade-underlay-color-center: rgba(2, 1, 10, 0.96);
+  --chart-grade-underlay-size-bump-center: 0.15;
+  --chart-grade-underlay-offset-x-center: 0.65;
+  --chart-grade-underlay-offset-y-center: 2.85;
+  position: relative;
+  height: 388px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--border-soft);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at var(--core-x) var(--core-y),
+      rgba(187, 116, 255, 0.1) 0,
+      rgba(187, 116, 255, 0.06) 14%,
+      transparent 44%
+    ),
+    radial-gradient(circle at 22% 26%, rgba(72, 209, 255, 0.06), transparent 22%),
+    linear-gradient(180deg, rgba(5, 9, 24, 0.044), rgba(7, 10, 28, 0.048));
+  box-shadow: 0 16px 6px rgba(0, 0, 0, 0.32);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.64;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 0.52px, transparent 0.88px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.7) 0 0.62px, transparent 0.98px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.48) 0 0.74px, transparent 1.08px),
+    radial-gradient(circle, rgba(109, 226, 255, 0.78) 0 0.58px, transparent 0.94px),
+    radial-gradient(circle, rgba(132, 74, 255, 0.72) 0 0.66px, transparent 1.02px),
+    radial-gradient(circle, rgba(255, 128, 102, 0.7) 0 0.68px, transparent 1.04px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.38) 0 0.52px, transparent 0.9px),
+    radial-gradient(circle, rgba(109, 226, 255, 0.42) 0 0.56px, transparent 0.94px),
+    radial-gradient(circle, rgba(255, 128, 102, 0.38) 0 0.6px, transparent 0.96px);
+  background-size:
+    72px 72px,
+    94px 94px,
+    126px 126px,
+    144px 144px,
+    168px 168px,
+    196px 196px,
+    112px 112px,
+    184px 184px,
+    212px 212px;
+  background-position:
+    6px 10px,
+    24px 18px,
+    48px 40px,
+    18px 26px,
+    40px 16px,
+    62px 52px,
+    30px 58px,
+    88px 24px,
+    54px 96px;
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at var(--core-x) var(--core-y),
+      rgba(255, 255, 255, 0.08) 0,
+      rgba(187, 116, 255, 0.12) 12%,
+      rgba(72, 209, 255, 0.04) 26%,
+      transparent 44%
+    ),
+    radial-gradient(circle at 18% 34%, rgba(141, 99, 255, 0.07), transparent 18%);
+}
+
+body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datahub-rookies-chart__plot {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile chart modal shell:
+   keeps the imported chart popup local to DataHub and visually separate from
+   the game-logs modal so the widget can preserve its original card treatment. */
+body[data-page="datahub"] .datahub-chart-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-items: center;
+  padding: 18px 14px;
+}
+
+body[data-page="datahub"] .datahub-chart-modal.hidden {
+  display: none;
+}
+
+body[data-page="datahub"] .datahub-chart-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.72);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 388px);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close {
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(173, 198, 236, 0.18);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(35, 49, 72, 0.94), rgba(14, 21, 34, 0.96));
+  color: rgba(236, 244, 255, 0.92);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close:hover {
+  transform: translateY(-1px);
+}
+
+body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(151, 221, 255, 0.56),
+    0 0 0 6px rgba(92, 170, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .top-tab,
@@ -776,7 +1510,7 @@ body::after {
   background:
     linear-gradient(180deg, rgba(133, 215, 255, 0.24), rgba(162, 127, 255, 0.16)),
     rgba(11, 22, 39, 0.74);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 16px rgba(44, 109, 214, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 9px rgba(44, 109, 214, 0.18);
 }
 
 .top-tab.is-active::before,
@@ -789,6 +1523,33 @@ body::after {
   border-radius: inherit;
   /* Active DataHub filter controls use the same gradient border ring as the
      nav state so all selected buttons share one page-specific accent. */
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* DataHub utility-toggle active state:
+   lets hero utility chips like Pick Values reuse the same active gradient ring
+   as the surrounding tab/filter system when they are controlling live state. */
+body[data-page="datahub"] .mini-chip.is-active {
+  border: 0px solid transparent;
+  color: #f3f8ff;
+  background:
+    linear-gradient(180deg, rgba(133, 215, 255, 0.24), rgba(162, 127, 255, 0.16)),
+    rgba(11, 22, 39, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 9px rgba(44, 109, 214, 0.18);
+}
+
+body[data-page="datahub"] .mini-chip.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
   background: var(--datahub-active-accent-gradient);
   pointer-events: none;
   -webkit-mask:
@@ -820,6 +1581,29 @@ body::after {
   grid-template-columns: repeat(2, 111px);
   gap: 8px;
   margin-left: 10px;
+}
+
+/* Rookies subview switcher:
+   this DataHub-only first row sits above the category filters and needs wider,
+   equal-width buttons than the shared 111px top-tab layout can provide. */
+.rookies-mode-row {
+  width: 100%;
+  margin-left: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rookies-mode-row .top-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 0.68rem;
+  line-height: 1.1;
+  text-align: center;
+  white-space: normal;
 }
 
 .category-row {
@@ -865,6 +1649,73 @@ body::after {
   color: rgba(234, 244, 255, 0.84);
 }
 
+/* DataHub Stats receiving slot:
+   mirrors the dedicated Stats-page interaction by replacing the single
+   Receiving chip with inline WR / TE buttons inside the same category slot. */
+.datahub-receiving-filter-shell {
+  position: relative;
+  min-width: 0;
+}
+
+.datahub-receiving-filter-trigger,
+.datahub-receiving-filter-inline {
+  width: 100%;
+}
+
+.datahub-receiving-filter-inline {
+  display: none;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 42px;
+  padding: 2px;
+  border-radius: 18px;
+  border: 1px solid rgba(129, 147, 184, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.16)),
+    rgba(13, 19, 32, 0.74);
+  box-shadow:
+    inset 0 10px 16px rgba(255, 255, 255, 0.018),
+    0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.datahub-receiving-filter-shell.is-expanded .datahub-receiving-filter-trigger {
+  display: none;
+}
+
+.datahub-receiving-filter-shell.is-expanded .datahub-receiving-filter-inline {
+  display: flex;
+}
+
+.datahub-receiving-filter-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  /* min-height: 0 lets align-items: stretch on the inline container fill height
+     correctly; overrides the 42px min-height inherited from .category-chip which
+     would otherwise push the inline taller than the row's other category chips. */
+  min-height: 0;
+  padding-inline: 8px;
+}
+
+.datahub-receiving-filter-chip.category-chip--single-line {
+  min-width: 0;
+}
+
+.datahub-receiving-filter-chip.category-chip {
+  flex-direction: row;
+  gap: 0;
+}
+
+/* DataHub Stats WR / TE nested filters:
+   override only these two active rings so the in-place receiving subfilters
+   use their own solid accent borders instead of the shared gradient border. */
+body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
+  background: #7297ff;
+}
+
+body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
+  background: #a453ff;
+}
+
 .receiving-subfilters {
   display: flex;
   justify-content: flex-end;
@@ -887,8 +1738,433 @@ body::after {
   align-items: center;
 }
 
+/* Trade Values entity row:
+   this adp-values-only row sits between the position chips and the bottom
+   utility row so vets, rookies, and picks can be toggled independently.
+   Centering stays on the row/bar instead of the individual buttons so desktop
+   and mobile mounts keep one shared control structure. */
+.trade-entity-row {
+  display: grid;
+  gap: 0;
+  justify-self: center;
+  justify-items: center;
+  overflow: visible;
+}
+
+.trade-entity-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.trade-entity-toggle {
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  justify-self: stretch;
+}
+
+/* Stats qualifier row:
+   this middle control row sits between the category chips and utility row,
+   and its compact dropdown/toggle layout is shared by both desktop and mobile
+   while DataHub.js keeps it hidden outside the real Stats tab view. */
+.qualifier-row {
+  display: grid;
+  gap: 3px;
+  overflow: visible;
+}
+
+.qualifier-row__header {
+  display: flex;
+  align-items: center;
+}
+
+.qualifier-row__label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(185, 202, 227, 0.72);
+}
+
+.qualifier-row__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.76fr) auto 1px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.qualifier-field {
+  position: relative;
+  min-width: 0;
+  border-radius: 14px;
+}
+
+.qualifier-field.is-filtering .qualifier-select {
+  box-shadow:
+    0 0 16px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-field.is-filtering::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 14px;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.qualifier-field.is-dimmed .qualifier-select {
+  opacity: 0.52;
+  color: rgba(171, 186, 209, 0.62);
+}
+
+.qualifier-field::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid rgba(183, 198, 224, 0.7);
+  border-bottom: 1.5px solid rgba(183, 198, 224, 0.7);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+.qualifier-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 28px 0 12px;
+  border: 0px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(10, 18, 30, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  color: rgba(221, 232, 247, 0.9);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.qualifier-select:focus {
+  outline: none;
+  border-color: rgba(132, 210, 255, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(132, 210, 255, 0.18),
+    0 0 0 4px rgba(114, 151, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.qualifier-select:disabled {
+  cursor: default;
+}
+
+.qualifier-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(10, 18, 30, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  color: rgba(183, 198, 223, 0.86);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.qualifier-toggle__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.qualifier-toggle__switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(120, 137, 164, 0.34);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(121, 146, 186, 0.12);
+  transition: background 160ms ease, box-shadow 160ms ease;
+}
+
+.qualifier-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(246, 250, 255, 0.96), rgba(176, 196, 227, 0.92));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  transition: transform 160ms ease;
+}
+
+.qualifier-toggle__text {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qualifier-toggle.is-active {
+  box-shadow:
+    0 0 16px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.qualifier-toggle.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.qualifier-toggle.is-active .qualifier-toggle__text {
+  color: rgba(240, 247, 255, 0.96);
+}
+
+.qualifier-toggle__input:checked + .qualifier-toggle__switch {
+  background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
+  box-shadow:
+    0 0 0 1px rgba(124, 208, 255, 0.16),
+    0 0 14px rgba(116, 239, 255, 0.12);
+}
+
+.qualifier-toggle__input:checked + .qualifier-toggle__switch .qualifier-toggle__thumb {
+  transform: translateX(12px);
+}
+
+.qualifier-toggle__input:focus-visible + .qualifier-toggle__switch {
+  box-shadow:
+    0 0 0 1px rgba(132, 210, 255, 0.24),
+    0 0 0 4px rgba(114, 151, 255, 0.06);
+}
+
+.qualifier-divider {
+  align-self: stretch;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(151, 172, 207, 0.36), transparent);
+}
+
+.qualifier-field--team::after {
+  content: none;
+}
+
+.team-filter {
+  position: relative;
+  border-radius: 14px;
+  overflow: visible;
+}
+
+.team-filter__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 28px 0 12px;
+  border: 0px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(10, 18, 30, 0.64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  color: rgba(221, 232, 247, 0.9);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-filter__trigger::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid rgba(183, 198, 224, 0.7);
+  border-bottom: 1.5px solid rgba(183, 198, 224, 0.7);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+.team-filter__trigger:focus {
+  outline: none;
+}
+
+.team-filter__trigger:focus-visible,
+.team-filter[data-open="true"] .team-filter__trigger,
+.team-filter.is-selected .team-filter__trigger {
+  box-shadow:
+    0 0 0 4px rgba(114, 151, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.team-filter.is-selected::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: 14px;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.team-filter__value,
+.team-filter__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.team-filter__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.team-filter__logo {
+  display: block;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.team-filter__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(164, 180, 206, 0.16);
+  color: rgba(221, 232, 247, 0.86);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.team-filter__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 4px;
+  max-height: 238px;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid rgba(145, 173, 214, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(11, 19, 31, 0.98), rgba(8, 14, 24, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
+.team-filter__option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(214, 227, 246, 0.88);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.team-filter__option:hover,
+.team-filter__option.is-active {
+  background:
+    linear-gradient(180deg, rgba(62, 86, 122, 0.52), rgba(25, 39, 60, 0.76));
+  color: rgba(244, 248, 255, 0.96);
+}
+
+.team-filter__option.is-active {
+  position: relative;
+  box-shadow:
+    0 0 14px rgba(116, 239, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.team-filter__option.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--datahub-active-accent-gradient);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
 .mini-chip {
-  flex: 0 0 100px;
+  flex: 0 0 auto;
   min-height: 34px;
   padding: 0 10px;
   font-size: 0.68rem;
@@ -904,7 +2180,7 @@ body::after {
 .mini-chip__icon {
   width: 12px;
   height: 12px;
-  fill: currentColor;
+  fill: #1c1f26aa;
 }
 
 .mini-chip--pick-values {
@@ -942,9 +2218,10 @@ body::after {
   padding: 0 12px 0 34px;
   border: 0;
   background: transparent;
-  color: var(--text-primary);
+  color: rgb(161 174 192 / 96%);
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 16px;
+  font-weight: 200;
 }
 
 .search-shell__input::placeholder {
@@ -1092,7 +2369,7 @@ body::after {
 .datahub-frozen-body {
   position: relative;
   overflow: hidden;
-  border-right: 2px solid #43516d;
+  border-right: 1px solid #43516d;
   background: transparent;
 }
 
@@ -1320,12 +2597,12 @@ body::after {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.88rem;
+  font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   color: rgba(175, 200, 235, 0.58);
   background: linear-gradient(180deg, rgb(51 63 81), rgba(10, 18, 30, 0.18)), rgb(46 51 70);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   letter-spacing: -0.02em;
 }
@@ -1333,6 +2610,22 @@ body::after {
 /* Last group in row: no right border */
 .stats-table__group-header-cell:last-child {
   border-right: 0;
+}
+
+/* Trade Values group separator — column header row:
+   The first th of each subsequent group gets a left border matching the
+   group-header row's border-right so the vertical divider is seamless from
+   the group header row down through the column-label row. */
+.stats-table__header-cell--group-start .stats-table__head-button {
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Trade Values group separator — table body:
+   Each td at a group-start column carries a matching left border so the
+   vertical divider continues from the column-label row through every body row,
+   connecting all the way back up to the group header border-right above. */
+.stats-table__body-cell--group-start {
+  border-left: 1px dotted rgba(255, 255, 255, 0.04);
 }
 
 /* Group header icon + text wrapper */
@@ -1346,12 +2639,13 @@ body::after {
 }
 
 .stats-table__group-header-icon {
-  width: 16px;
-  height: 16px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
   opacity: 1;
+  color: var(--group-icon-color, rgb(225 129 117 / 74%));
   stroke: var(--group-icon-color, rgb(225 129 117 / 74%));
-  stroke-width: 2;
+  stroke-width: 2.5px;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
@@ -1398,10 +2692,11 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0px;
+  /* gap controls the space between the icon and label text as a unit */
+  gap: 4px;
   width: 100%;
   min-height: 44px;
-  padding: 0 18px 0 10px;
+  padding: 0 2px 0 0px;
   border: 0;
   border-right: 1px solid #eaefff03;
   background: transparent;
@@ -1423,20 +2718,20 @@ body::after {
 
 /* Column header icon */
 .stats-table__head-icon {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   opacity: 1;
-  stroke: rgb(98 135 183);
+  color: var(--column-icon-color, rgb(98 135 183));
+  stroke: var(--column-icon-color, rgb(98 135 183));
   stroke-width: 3px;
   stroke-linecap: round;
   fill: none;
 }
 
 .stats-table__head-label {
-  flex: 1;
+  /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
-  padding: 0 0px;
   overflow: overlay;
   white-space: nowrap;
   text-align: center;
@@ -1445,7 +2740,7 @@ body::after {
 
 .stats-table__sort-indicator {
   position: absolute;
-  right: 8px;
+  right: 4px;
   top: 50%;
   display: inline-flex;
   align-items: center;
@@ -1556,6 +2851,294 @@ body::after {
   text-shadow:
     0 0 16px rgba(102, 215, 255, 0.15),
     0 0 28px rgba(162, 127, 255, 0.07);
+}
+
+/* Rookies table tier colors:
+   TIER and GRD use the table-specific 1-8 palette instead of chart colors or
+   percentile heat so each prospect tier remains visually consistent. */
+.heat-cell--rookie-tier.heat-cell--tier-0 .stats-table__cell-content {
+  color: rgba(214, 223, 237, 0.72);
+  text-shadow: none;
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-1 .stats-table__cell-content {
+  color: #45ffcd;
+  text-shadow:
+    0 0 12px rgba(69, 255, 205, 0.2),
+    0 0 22px rgba(69, 255, 205, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-2 .stats-table__cell-content {
+  color: #5df9fc;
+  text-shadow:
+    0 0 12px rgba(93, 249, 252, 0.2),
+    0 0 22px rgba(93, 249, 252, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-3 .stats-table__cell-content {
+  color: #74c8ff;
+  text-shadow:
+    0 0 12px rgba(116, 200, 255, 0.2),
+    0 0 22px rgba(116, 200, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-4 .stats-table__cell-content {
+  color: #8b7cff;
+  text-shadow:
+    0 0 12px rgba(139, 124, 255, 0.2),
+    0 0 22px rgba(139, 124, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-5 .stats-table__cell-content {
+  color: #a642ff;
+  text-shadow:
+    0 0 12px rgba(166, 66, 255, 0.2),
+    0 0 22px rgba(166, 66, 255, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-6 .stats-table__cell-content {
+  color: #ff9fc9;
+  text-shadow:
+    0 0 12px rgba(255, 159, 201, 0.2),
+    0 0 22px rgba(255, 159, 201, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-7 .stats-table__cell-content {
+  color: #ff6fe1;
+  text-shadow:
+    0 0 12px rgba(255, 111, 225, 0.2),
+    0 0 22px rgba(255, 111, 225, 0.08);
+}
+
+.heat-cell--rookie-tier.heat-cell--tier-8 .stats-table__cell-content {
+  color: #ff1d7b;
+  text-shadow:
+    0 0 12px rgba(255, 29, 123, 0.2),
+    0 0 22px rgba(255, 29, 123, 0.08);
+}
+
+/* Rankings & Career Stats tier dividers:
+   targets default rank-sorted rookies career rows only. DataHub.js adds these
+   row classes at the first player of each T1+ tier and omits them for alternate
+   sorts so colored dividers do not appear in random sorted positions. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start > .stats-table__body-cell {
+  box-shadow:
+    inset 0 1px 0px 0px var(--rookie-tier-separator-color),
+    inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);
+}
+
+/* First visible tier label:
+   only the first tier shown in each Rankings & Career Stats table is lowered
+   and has the RK-column divider removed, because that pill sits closest to the
+   sticky table header. Later tier labels keep the normal divider alignment. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {box-shadow: inset 0 1px 0px 0px var(--rookie-tier-separator-color),
+    inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-cell--rookie-tier-label .stats-table__cell-content {
+  position: relative;
+  overflow: visible;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
+  position: absolute;
+  top: 1px;
+  left: 229%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 11px;
+  padding: 1px 2px 2px 2px;
+  transform: translate(-50%, -50%);
+  border-radius: 4px;
+  color: var(--rookie-tier-separator-color);
+  font-size: 8px;
+  font-weight: 500;
+  background: #3340;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: -3px 0px 2px #334, 0 0 4px #334, 0 0 3px #334, 0 0 3px #334, 1px 1px 0px #000, 1px 1px 0px #000, 0 0 3px #334, 12px 0px 1px #334, -1px -1px 2px #334;
+  pointer-events: none;
+  white-space: nowrap;
+  filter: brightness(1.2) saturate(1.2);
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
+  top: 1px;
+  box-shadow: inset 0px 5px 0px -1px #334f;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-icon {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  color: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  background: #334;
+  border-radius: 10px;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
+  --rookie-tier-separator-color: #45ffcd;
+  --rookie-tier-separator-glow-color: #45ffcd32;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-2 {
+  --rookie-tier-separator-color: #5df9fc;
+  --rookie-tier-separator-glow-color: #5df9fc32;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-3 {
+  --rookie-tier-separator-color: #74c8ff;
+  --rookie-tier-separator-glow-color: #74c8ff32;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-4 {
+  --rookie-tier-separator-color: #8b7cff;
+  --rookie-tier-separator-glow-color: #8b7cff32;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-5 {
+  --rookie-tier-separator-color: #a642ff;
+  --rookie-tier-separator-glow-color: #a642ff32;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-6 {
+  --rookie-tier-separator-color: #ff9fc9;
+  --rookie-tier-separator-glow-color: #ff9fc932;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-7 {
+  --rookie-tier-separator-color: #ff6fe1;
+  --rookie-tier-separator-glow-color: #ff6fe132;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-8 {
+  --rookie-tier-separator-color: #ff1d7b;
+  --rookie-tier-separator-glow-color: #ff1d7b32;
+}
+
+/* Rankings & Career Stats group heat colors:
+   targets only the DataHub rookies career view families emitted by
+   DataHub.js. Each column group keeps the same percentile tier math but uses a
+   distinct palette so Prospect Overview, totals, passing, rushing, receiving,
+   and info columns are visually separated. */
+body[data-page="datahub"] .heat-cell--career-info {
+  --career-heat-0: rgba(208, 218, 234, 0.72);
+  --career-heat-1: rgba(198, 219, 242, 0.82);
+  --career-heat-2: rgba(174, 210, 246, 0.9);
+  --career-heat-3: rgba(148, 198, 250, 0.98);
+  --career-heat-4: rgba(121, 186, 255, 1);
+  --career-glow-rgb: 121, 186, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-prospect {
+  --career-heat-0: rgba(226, 217, 194, 0.74);
+  --career-heat-1: rgba(240, 219, 160, 0.84);
+  --career-heat-2: rgba(250, 211, 115, 0.92);
+  --career-heat-3: rgba(255, 199, 82, 0.98);
+  --career-heat-4: rgba(255, 184, 52, 1);
+  --career-glow-rgb: 255, 184, 52;
+}
+
+body[data-page="datahub"] .heat-cell--career-total {
+  --career-heat-0: rgba(219, 208, 236, 0.74);
+  --career-heat-1: rgba(216, 194, 245, 0.84);
+  --career-heat-2: rgba(207, 171, 251, 0.92);
+  --career-heat-3: rgba(198, 148, 255, 0.98);
+  --career-heat-4: rgba(185, 122, 255, 1);
+  --career-glow-rgb: 185, 122, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-passing-production {
+  --career-heat-0: rgba(232, 208, 202, 0.74);
+  --career-heat-1: rgba(244, 197, 184, 0.84);
+  --career-heat-2: rgba(253, 174, 153, 0.92);
+  --career-heat-3: rgba(255, 148, 121, 0.98);
+  --career-heat-4: rgba(255, 119, 89, 1);
+  --career-glow-rgb: 255, 119, 89;
+}
+
+body[data-page="datahub"] .heat-cell--career-passing-efficiency {
+  --career-heat-0: rgba(231, 205, 226, 0.74);
+  --career-heat-1: rgba(244, 190, 230, 0.84);
+  --career-heat-2: rgba(252, 165, 225, 0.92);
+  --career-heat-3: rgba(255, 137, 219, 0.98);
+  --career-heat-4: rgba(255, 106, 211, 1);
+  --career-glow-rgb: 255, 106, 211;
+}
+
+body[data-page="datahub"] .heat-cell--career-rushing,
+body[data-page="datahub"] .heat-cell--career-rushing-production {
+  --career-heat-0: rgba(203, 226, 214, 0.74);
+  --career-heat-1: rgba(184, 237, 211, 0.84);
+  --career-heat-2: rgba(147, 242, 201, 0.92);
+  --career-heat-3: rgba(111, 246, 190, 0.98);
+  --career-heat-4: rgba(73, 252, 176, 1);
+  --career-glow-rgb: 73, 252, 176;
+}
+
+body[data-page="datahub"] .heat-cell--career-rushing-efficiency {
+  --career-heat-0: rgba(200, 225, 225, 0.74);
+  --career-heat-1: rgba(177, 238, 232, 0.84);
+  --career-heat-2: rgba(136, 242, 231, 0.92);
+  --career-heat-3: rgba(94, 246, 226, 0.98);
+  --career-heat-4: rgba(44, 250, 219, 1);
+  --career-glow-rgb: 44, 250, 219;
+}
+
+body[data-page="datahub"] .heat-cell--career-receiving,
+body[data-page="datahub"] .heat-cell--career-receiving-production {
+  --career-heat-0: rgba(204, 216, 234, 0.74);
+  --career-heat-1: rgba(185, 214, 245, 0.84);
+  --career-heat-2: rgba(153, 202, 253, 0.92);
+  --career-heat-3: rgba(122, 190, 255, 0.98);
+  --career-heat-4: rgba(90, 177, 255, 1);
+  --career-glow-rgb: 90, 177, 255;
+}
+
+body[data-page="datahub"] .heat-cell--career-receiving-efficiency {
+  --career-heat-0: rgba(210, 209, 234, 0.74);
+  --career-heat-1: rgba(196, 195, 246, 0.84);
+  --career-heat-2: rgba(175, 174, 253, 0.92);
+  --career-heat-3: rgba(153, 151, 255, 0.98);
+  --career-heat-4: rgba(130, 126, 255, 1);
+  --career-glow-rgb: 130, 126, 255;
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-0 .stats-table__cell-content {
+  color: var(--career-heat-0);
+  text-shadow: none;
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-1 .stats-table__cell-content {
+  color: var(--career-heat-1);
+  text-shadow: 0 0 9px rgba(var(--career-glow-rgb), 0.05);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-2 .stats-table__cell-content {
+  color: var(--career-heat-2);
+  text-shadow: 0 0 12px rgba(var(--career-glow-rgb), 0.08);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-3 .stats-table__cell-content {
+  color: var(--career-heat-3);
+  text-shadow:
+    0 0 14px rgba(var(--career-glow-rgb), 0.12),
+    0 0 21px rgba(var(--career-glow-rgb), 0.05);
+}
+
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-4 .stats-table__cell-content {
+  color: var(--career-heat-4);
+  text-shadow:
+    0 0 16px rgba(var(--career-glow-rgb), 0.16),
+    0 0 26px rgba(var(--career-glow-rgb), 0.07);
 }
 
 .heat-cell--neutral.heat-cell--tier-0 .stats-table__cell-content {
@@ -1877,13 +3460,22 @@ body[data-page="datahub"] .trade-value-metric__rank-number {
 
 body[data-page="datahub"] .trade-value-metric__rank-suffix,
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
-  font-size: 0.8em;
+  font-size: 0.75em;
   letter-spacing: -0.02em;
   color: rgba(177, 194, 221, 0.82);
 }
 
 body[data-page="datahub"] .trade-value-metric__diff-suffix {
   text-transform: uppercase;
+  font-weight: 500;
+}
+
+body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="adp"] {
+  color: #ad8d94;
+}
+
+body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc"] {
+  color: #7e8897;
 }
 
 /* ── Mobile Layout (< 720px) ────────────────────────────────────────────── */
@@ -1903,24 +3495,67 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding-top: 18px;
   }
 
+  /* Mobile chart trigger:
+     anchors the new Chart button in the hero corner so it can open the popup
+     without changing the title's normal flow or adding extra vertical space. */
+  body[data-page="datahub"] .hero-chart-toggle {
+    position: absolute;
+    top: 11px;
+    right: 6px;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 30px;
+    padding: 0 5px;
+    border: 1px solid rgba(149, 177, 220, 0.18);
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(39, 54, 79, 0.9), rgba(18, 27, 42, 0.94));
+    color: rgba(223, 234, 249, 0.88);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  body[data-page="datahub"] .hero-chart-toggle__icon {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: none !important;
+  }
+
   .page-tabs {
     /* Mobile page-tabs:
-       Targets the five-view tab row on small screens so each tab keeps an
-       inline icon + label layout, equal spacing, and a centered active
-       indicator while preserving the Trade Values & ADP two-line label. */
+       stack each icon above a single-line label so the long Trade Values tab
+       stops wrapping and the active underline can align to the full tab width. */
     order: 2;
     display: flex;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: none;
     align-items: stretch;
-    gap: 0px;
-    width: auto;
-    padding: 1px;
-    margin: 0 8px 12px -6px;
-    overflow: visible;
+    gap: 2px;
+    width: 100%;
+    padding: 0px 0 0px;
+    margin: 0 0px 2px 0px;
+    overflow-x: auto;
+    overflow-y: visible;
     border-bottom: 1px solid #abd1;
     border-radius: 0px;
     background: none;
     scrollbar-width: none;
+    justify-content: center;
   }
 
   .page-tabs::before,
@@ -1929,108 +3564,66 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-tab {
-    /* Mobile per-tab icon controls:
-       each page-tab gets its own CSS variables so odd-shaped icons can be
-       nudged independently without affecting the shared mobile tab layout. */
-    --page-tab-icon-size: 17px;
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-margin-right: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-    width: 100%;
-    min-width: 0;
-    min-height: 35px;
+    /* Mobile tab stack:
+       let each tab size to its own content while keeping the icon above the
+       label, which avoids wrapped labels distorting the active indicator. */
+    width: auto;
+    min-width: 56px;
+    min-height: 48px;
+    flex: 0 0 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 0px;
+    gap: 2px;
+    padding: 3px 8px 8px;
     border-radius: 16px;
-    font-size: 0.65rem;
-    line-height: 1.02;
+    font-size: 0.8rem;
+    line-height: 1;
     letter-spacing: -0.03em;
-    text-align: left;
+    text-align: center;
   }
 
   .page-tab .tab-icon {
     flex: 0 0 auto;
     display: block;
-    width: var(--page-tab-icon-size);
-    height: var(--page-tab-icon-size);
-    margin-top: var(--page-tab-icon-margin-top);
-    margin-right: var(--page-tab-icon-margin-right);
-    transform: translate(var(--page-tab-icon-offset-x), var(--page-tab-icon-offset-y));
+    width: 21px;
+    height: fit-content;
+    margin: 0;
+    transform: none;
     transform-origin: center;
-  }
-
-  /* Mobile page-tab icon tuning hooks:
-     keep these selectors local to the mobile tab bar so any one icon can be
-     nudged independently when its SVG shape sits visually high/low/left/right. */
-  .page-tab[data-page-tab="stats"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: -2px;
-  }
-
-  .page-tab[data-page-tab="rankings"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-  }
-
-  .page-tab[data-page-tab="adp-values"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
-  }
-
-  .page-tab[data-page-tab="rookies"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: -1px;
-  }
-
-  .page-tab[data-page-tab="ownership"] {
-    --page-tab-icon-margin-top: 0px;
-    --page-tab-icon-offset-x: 0px;
-    --page-tab-icon-offset-y: 0px;
   }
 
   .page-tab__text,
   .page-tab__label {
     display: block;
     min-width: 0;
-    line-height: 1.05;
-    text-align: left;
+    line-height: 1;
+    text-align: center;
     white-space: nowrap;
   }
 
   .page-tab__label--adp {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    white-space: normal;
-    font-size: 0.55rem;
-    line-height: 0.98;
-    letter-spacing: -0.05em;
+    display: block;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
   }
 
   .page-tab__label--adp > span {
-    display: block;
+    display: inline;
   }
 
   .page-tab.is-active {
-    background: none;
-    border-color: none;
   }
 
   .page-tab.is-active::after {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    bottom: 2px;
-    transform: none;
+    left: 50%;
+    right: auto;
+    width: calc(100% - 12px);
+    bottom: 5px;
+    transform: translateX(-50%);
   }
 
   /* Mobile branding/nav panel parity:
@@ -2096,17 +3689,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
   .stats-table__head-button {
     min-height: 34px;
-    padding: 0 8px 0 6px;
-    gap: 0px;
+    padding: 0 0px 0 0px;
+    /* smaller gap on mobile to keep tight columns */
+    gap: 3px;
   }
 
   .stats-table__head-icon {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
   }
 
   .stats-table__sort-indicator {
-    right: 4px;
+    right: 0px;
     width: 13px;
     height: 13px;
   }
@@ -2128,8 +3722,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .stats-table__group-header-icon {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
   }
 
   .meta-label,
@@ -2154,6 +3748,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     margin-top: 0;
     text-align: center;
     justify-items: center;
+    margin-right: 14px;
   }
 
   .page-title {
@@ -2168,11 +3763,154 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     order: 3;
   }
 
+  /* Mobile non-Stats control panels:
+     targets the Trade Val. & ADP tab plus both Rookies subviews so their
+     control rows occupy the same vertical space as the Stats panel.
+     The rows are distributed inside that height, keeping entity toggles
+     visually between the position filters and search row. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--mobile,
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .hero-controls--mobile,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--mobile {
+    min-height: 143px;
+    align-content: space-between;
+  }
+
+  body[data-page="datahub"] .datahub-chart-modal {
+    padding: 18px 12px;
+  }
+
+  body[data-page="datahub"] .datahub-chart-modal__dialog {
+    width: min(100%, 372px);
+  }
+
+  body[data-page="datahub"] .datahub-top60-chart--modal {
+    width: min(100%, 360px);
+    margin: 0 auto;
+  }
+
   .utility-row {
     gap: 6px;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .category-row {
+  /* Mobile qualifier row:
+     keeps the new Stats-only middle controls on one compact line beneath the
+     label so the row fits the hero panel without wrapping or horizontal scroll. */
+  .qualifier-row {
+    gap: 5px;
+  }
+
+  .qualifier-row__label {
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
+  }
+
+  .qualifier-row__controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.76fr) auto 1px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .qualifier-field,
+  .team-filter {
+    border-radius: 12px;
+  }
+
+  .qualifier-select {
+    min-height: 30px;
+    padding: 0 20px 0 8px;
+    border-radius: 12px;
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .qualifier-field::after {
+    right: 8px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .qualifier-toggle {
+    min-height: 30px;
+    padding: 0 7px;
+    gap: 4px;
+    border-radius: 12px;
+  }
+
+  .qualifier-toggle__switch {
+    width: 24px;
+    height: 14px;
+  }
+
+  .qualifier-toggle__thumb {
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .qualifier-toggle__input:checked + .qualifier-toggle__switch .qualifier-toggle__thumb {
+    transform: translateX(10px);
+  }
+
+  .qualifier-toggle__text {
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+  }
+
+  .team-filter__trigger {
+    min-height: 30px;
+    padding: 0 20px 0 8px;
+    border-radius: 12px;
+  }
+
+  .team-filter__trigger::after {
+    right: 8px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .team-filter__text {
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+  }
+
+  .team-filter__logo {
+    width: 20px;
+    height: 20px;
+  }
+
+  .team-filter__fallback {
+    min-width: 15px;
+    min-height: 15px;
+    font-size: 0.48rem;
+  }
+
+  .team-filter__menu {
+    top: calc(100% + 4px);
+    padding: 6px;
+    max-height: 212px;
+  }
+
+  .team-filter__option {
+    min-height: 26px;
+    padding: 0px 10px;
+  }
+
+  .datahub-receiving-filter-inline {
+    min-height: 38px;
+    gap: 3px;
+    padding: 2px;
+    border-radius: 16px;
+  }
+
+  .datahub-receiving-filter-chip {
+    min-height: 34px;
+    padding-inline: 4px;
+    font-size: 0.72rem;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .category-row,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .category-row {
     display: flex;
     flex-wrap: nowrap;
     grid-template-columns: none;
@@ -2183,29 +3921,52 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     justify-content: space-between;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .category-row::-webkit-scrollbar {
+  body[data-page="datahub"][data-datahub-view="adp-values"] .category-row::-webkit-scrollbar,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .category-row::-webkit-scrollbar {
     display: none;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .category-chip {
+  body[data-page="datahub"][data-datahub-view="adp-values"] .category-chip,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .category-chip {
     flex: 0 0 auto;
     min-width: 55px;
     white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.14);
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .mini-chip--pick-values {
-    font-size: 0.6rem;
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-row {
+    margin-top: 2px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
+    gap: 5px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle {
+    min-height: 32px;
     padding: 0 8px;
-    max-width: 60px;
+    font-size: 0.6rem;
+    letter-spacing: 0.05em;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell {
-    flex: 1.18 1 0;
+  body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .utility-row .search-shell {
+    flex: 1 1 auto;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell__input {
-    font-size: 0.72rem;
+  body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell__input,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .utility-row .search-shell__input {
+    font-size: 16px;
     padding-left: 31px;
+  }
+
+  /* Mobile DataHub key chip icon:
+     keeps the smaller icon sizing on handheld layouts while shifting the fill
+     to the softer slate tone requested for the mobile utility controls. */
+  body[data-page="datahub"] .mini-chip__icon {
+    width: 12px;
+    height: 12px;
+    fill: #a8b2c9aa;
   }
 
   /* Mobile-only: hide the RK column header text label so only the icon shows.
@@ -2267,8 +4028,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
       "copy controls .";
     align-items: start;
     column-gap: clamp(20px, 2.4vw, 38px);
-    row-gap: 14px;
+    row-gap: 17px;
     padding: 24px;
+  }
+
+  /* Desktop chart default:
+     keep the hero layout unchanged on standard desktop widths; the chart only
+     becomes visible once there is enough unused top-right hero space for it. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: none;
   }
 
   .hero-controls--desktop {
@@ -2278,15 +4046,29 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     gap: 0px;
     justify-self: center;
     align-self: start;
-    width: min(564px);
-    padding: 22px 18px 18px;
-    border: 0px solid rgba(156, 183, 226, 0.12);
+    width: min(591px);
+    padding: 15px 10px 18px;
+    border: 1px solid rgba(156, 183, 226, 0.12);
     border-radius: 28px;
-    background: linear-gradient(180deg, rgba(30, 42, 60, 0.9), rgba(16, 24, 38, 0.95));
-    box-shadow: inset 0 5px 19px rgba(0, 0, 0, 0.53), 0 0 0px 1px #abd1;
+    background: radial-gradient(circle at 50% 0%, rgba(116, 239, 255, 0.09), rgba(116, 239, 255, 0) 30%),      linear-gradient(180deg, rgba(24, 35, 53, 0.92), rgba(10, 17, 30, 0.95));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),      0 18px 40px rgba(4, 10, 20, 0.24),      0 0 0 1px rgba(90, 117, 160, 0.06);
     backdrop-filter: blur(10px) saturate(135%);
     -webkit-backdrop-filter: blur(10px) saturate(135%);
-    overflow: hidden;
+    /* Desktop team dropdowns need to escape the panel bounds so the team menu
+       can render above the table shell instead of getting clipped by the card. */
+    overflow: visible;
+  }
+
+  /* Desktop non-Stats control panels:
+     targets Trade Val. & ADP plus the Rookies career/trade subviews so their
+     hero control cards match the Stats panel height and spread rows vertically.
+     This keeps the entity-toggle row centered between the position filters and
+     the search utility row without changing the Stats panel tuning. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop,
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .hero-controls--desktop,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--desktop {
+    min-height: 213px;
+    align-content: space-between;
   }
 
   /* Desktop control panel:
@@ -2335,7 +4117,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     width: 100%;
     justify-items: center;
     gap: 10px;
-    padding-bottom: 12px;
+    padding-bottom: 0px;
   }
 
   /* Desktop panel divider:
@@ -2343,13 +4125,78 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
      relying on another heavy nested panel inside the restored shell. */
   .hero-controls--desktop .controls-cluster::after {
     content: "";
-    width: min(100%, 536px);
+    width: min(100%, 436px);
     height: 1px;
     margin: 2px auto 0;
     background: linear-gradient(90deg, transparent, rgba(137, 160, 199, 0.28), transparent);
     opacity: 0.88;
   }
 
+  /* Desktop qualifier row:
+     gives the new Stats-only controls their own centered surface inside the
+     existing panel while keeping the Trade Values controls unaffected. */
+  .hero-controls--desktop .qualifier-row {
+    width: min(100%, 569px);
+    margin: 0 auto;
+    padding: 0px 10px 12px;
+    border-radius: 20px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .hero-controls--desktop .qualifier-row__label {
+    font-size: 0.56rem;
+    color: rgba(190, 207, 232, 0.68);
+  }
+
+  .hero-controls--desktop .qualifier-row__controls {
+    grid-template-columns: minmax(0, 1.1fr) minmax(84px, 0.8fr) auto 1px minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .hero-controls--desktop .qualifier-select,
+  .hero-controls--desktop .qualifier-toggle {
+    min-height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(29, 43, 64, 0.9), rgba(17, 23, 35, 0.95));
+    box-shadow: inset 0 5px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(171, 189, 209, 0.14);
+  }
+
+  .hero-controls--desktop .qualifier-select {
+    padding: 0 30px 0 12px;
+    color: rgba(233, 241, 253, 0.92);
+    font-size: 0.74rem;
+  }
+
+  .hero-controls--desktop .qualifier-toggle {
+    padding: 0 10px;
+  }
+
+  .hero-controls--desktop .qualifier-toggle__text {
+    font-size: 0.58rem;
+  }
+
+  .hero-controls--desktop .team-filter__trigger {
+    min-height: 40px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(29, 43, 64, 0.9), rgba(17, 23, 35, 0.95));
+    box-shadow: inset 0 5px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(171, 189, 209, 0.14);
+  }
+
+  .hero-controls--desktop .team-filter__text {
+    font-size: 0.74rem;
+  }
+
+  .hero-controls--desktop .team-filter__menu {
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(17, 24, 37, 0.98), rgba(9, 15, 25, 0.98));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 18px 36px rgba(0, 0, 0, 0.3);
+  }
+
+  .hero-controls--desktop .rookies-mode-row,
   .hero-controls--desktop .category-row,
   .hero-controls--desktop .receiving-subfilters,
   .hero-controls--desktop .utility-row {
@@ -2366,8 +4213,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .page-title {
-    max-width: 12ch;
-    font-size: clamp(1.7rem, 4vw, 3.3rem);
+    max-width: 28ch;
+    font-size: clamp(1.7rem, 4vw, 3.7rem);
     line-height: 0.96;
     font-weight: 800;
     text-wrap: balance;
@@ -2379,7 +4226,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .category-row {
     display: flex;
     grid-template-columns: none;
-    gap: 10px;
+    gap: 13px;
   }
 
   .utility-row {
@@ -2438,8 +4285,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   /* Desktop control rows:
      the restored outer panel now carries the main chrome, so the category and
      subfilter rows stay lighter and centered inside that shared shell. */
+  .hero-controls--desktop .rookies-mode-row,
   .hero-controls--desktop .category-row,
-  .hero-controls--desktop .receiving-subfilters {
+  .hero-controls--desktop .receiving-subfilters,
+  .hero-controls--desktop .trade-entity-row {
     position: relative;
     width: min(100%, 560px);
     max-width: 100%;
@@ -2453,6 +4302,59 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     flex-wrap: nowrap;
   }
 
+  .hero-controls--desktop .rookies-mode-row {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .hero-controls--desktop .rookies-mode-row .top-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 0.76rem;
+    line-height: 1.08;
+  }
+
+  .hero-controls--desktop .trade-entity-bar {
+    gap: 10px;
+  }
+
+  .hero-controls--desktop .trade-entity-toggle {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .hero-controls--desktop .datahub-receiving-filter-shell {
+    flex: 0 0 auto;
+    width: 113px;
+    min-width: 113px;
+  }
+
+  .hero-controls--desktop .datahub-receiving-filter-inline {
+    /* Match the 37px min-height of sibling category chips so the row height
+       doesn't grow when the receiving slot switches to inline subfilters. */
+    min-height: 37px;
+    gap: 5px;
+    padding: 2px;
+    border-radius: 13px;
+    border-color: rgba(137, 160, 199, 0.22);
+    background:
+      linear-gradient(180deg, rgba(24, 37, 57, 0.96), rgba(12, 20, 33, 0.96));
+    box-shadow:
+      inset 0 4px 7px rgba(0, 0, 0, 0.24),
+      0 10px 18px rgba(0, 0, 0, 0.16);
+  }
+
+  .hero-controls--desktop .datahub-receiving-filter-chip {
+    /* min-height: 0 lets align-items: stretch fill the 37px inline container
+       without pushing it taller. The earlier 40px caused container to be
+       40px + 4px padding = 44px, expanding the row beyond chip height. */
+    min-height: 0;
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
   .hero-controls--desktop .category-row::before,
   .hero-controls--desktop .utility-row::before {
     content: none;
@@ -2462,13 +4364,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   .hero-controls--desktop .subfilter-chip,
   .hero-controls--desktop .mini-chip {
     overflow: hidden;
-    min-height: 44px;
+    min-height: 37px;
     padding: 0 4px;
-    min-width: 121px;
-    border-radius: 14px;
+    min-width: 113px;
+    border-radius: 12px;
     border-color: rgba(136, 162, 198, 0);
     background: linear-gradient(180deg, rgba(30, 42, 60, 0.9), rgba(16, 24, 38, 0.95));
-    color: rgba(216, 227, 244, 0.88);
+    color: rgb(98 105 116);
     box-shadow: inset 0 5px 4px rgba(0, 0, 0, 0.3), 0 0 0px 1px #abd1;
   }
 
@@ -2502,10 +4404,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .hero-controls--desktop .category-chip.is-active,
-  .hero-controls--desktop .subfilter-chip.is-active {
-    background:
-      radial-gradient(circle at 50% 0%, rgba(194, 240, 255, 0.14), transparent 50%),
-      linear-gradient(180deg, rgba(58, 86, 127, 0.98), rgba(28, 45, 74, 0.98));
+  .hero-controls--desktop .subfilter-chip.is-active,
+  .hero-controls--desktop .mini-chip.is-active {
+    background: radial-gradient(circle at 50% 0%, rgba(194, 240, 255, 0.05), transparent 90%),
+      linear-gradient(180deg, rgba(58, 86, 127, 0.58), rgba(28, 45, 74, 0.48));
     color: rgba(248, 251, 255, 0.98);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),
       inset 0 -1px 0 rgba(18, 31, 54, 0.28),
@@ -2513,16 +4415,41 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .hero-controls--desktop .category-chip__label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     letter-spacing: 0.005em;
   }
 
   .hero-controls--desktop .category-chip__meta {
-    color: rgba(196, 210, 235, 0.72);
+    color: rgb(146 161 187 / 72%);
   }
 
   .hero-controls--desktop .category-chip.is-active .category-chip__meta {
     color: rgba(235, 244, 255, 0.82);
+  }
+
+  .hero-controls--desktop .datahub-receiving-filter-inline .category-chip {
+    /* min-height: 0 overrides the 37px set by .hero-controls--desktop .category-chip.
+       Without this, inner WR/TE chips at 37px + 2px padding + 1px border on each side
+       of the container = 43px total, pushing the row 6px taller than sibling chips. */
+    min-height: 0;
+    min-width: 0;
+    width: auto;
+    padding-inline: 6px;
+  }
+
+  /* Trade Values desktop control sizing:
+     scopes the tighter chip/button sizing to the adp-values view only so the
+     stats desktop controls keep the current user-tuned dimensions. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .category-chip,
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .subfilter-chip,
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .mini-chip,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--desktop .category-chip,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--desktop .subfilter-chip,
+  body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--desktop .mini-chip {
+    overflow: hidden;
+    min-height: 44px;
+    padding: 0 12px;
+    min-width: 78px;
   }
 
   .receiving-subfilters {
@@ -2541,6 +4468,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     min-height: 40px;
     padding: 0 15px;
     font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    flex: 0 0 100px;
   }
 
   .hero-controls--desktop .mini-chip {
@@ -2548,34 +4477,26 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     padding: 0 17px;
     letter-spacing: 0.04em;
     font-weight: 700;
-    font-size: 0.78rem;
-  }
-
-  .hero-controls--desktop .mini-chip--pick-values {
-    background:
-      radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06), transparent 54%),
-      linear-gradient(180deg, rgba(48, 65, 88, 0.94), rgba(23, 34, 52, 0.98));
-    border-color: rgba(144, 170, 211, 0.2);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.09),
-      inset 0 -1px 0 rgba(37, 53, 78, 0.22),
-      0 10px 20px rgba(0, 0, 0, 0.16);
+    font-size: 0.85rem;
+    border: rgba(136, 162, 198, 0);
+    background: linear-gradient(180deg, rgb(29 43 64 / 90%), rgb(17 23 35 / 95%));
+    color: #fff5;
   }
 
   .hero-controls--desktop .mini-chip__icon {
-    width: 13px;
-    height: 13px;
-    opacity: 0.95;
+    width: 20px;
+    height: 20px;
+    opacity: 1;
   }
 
   .hero-controls--desktop .mini-chip--icon {
-    gap: 8px;
+    gap: 14px;
   }
 
   .hero-controls--desktop .mini-chip--icon .mini-chip__icon {
-    padding: 5px;
+    padding: 2px;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(124, 196, 255, 0.16), rgba(76, 108, 155, 0.08));
+    background: linear-gradient(180deg, rgb(94 109 122 / 87%), rgb(69 79 95 / 61%));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.12),
       inset 0 -1px 0 rgba(42, 58, 84, 0.18),
@@ -2642,13 +4563,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
-    width: min(100%, 524px);
+    width: min(100%, 556px);
     margin: 0 auto;
     padding: 8px 10px;
     border-radius: 22px;
-    background:
-      linear-gradient(180deg, rgba(16, 25, 38, 0.9), rgba(10, 16, 27, 0.96));
-    border: 1px solid rgba(130, 157, 195, 0.12);
+    background: linear-gradient(180deg, rgb(30 42 60 / 58%), rgb(27 35 48 / 29%));
+    border: 0px solid rgba(130, 157, 195, 0.12);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       0 12px 22px rgba(0, 0, 0, 0.14);
@@ -2744,13 +4664,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .nav-more-dropdown {
-    width: min(292px, calc(100vw - 32px));
-    padding: 11px;
+    width: min(192px, calc(100vw - 32px));
+    padding: 8px 7px;
   }
 
   .nav-more-item {
     grid-template-columns: 44px minmax(0, 1fr);
-    padding: 13px 14px;
+    padding: 7px 9px;
   }
 
   .nav-more-item-title {
@@ -2850,6 +4770,21 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
 
 }
 
+@media (min-width: 1280px) {
+  /* Wide desktop chart placement:
+     anchors the widget into the unused top-right hero space so the original
+     title, tabs, and controls stay on their pre-chart layout contract. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: block;
+    position: absolute;
+    top: 24px;
+    right: 22px;
+    z-index: 2;
+    width: 329px;
+    margin-top: 0;
+  }
+}
+
 /* ── Large Desktop Refinements ──────────────────────────────────────────── */
 
 @media (min-width: 960px) {
@@ -2874,7 +4809,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix {
   }
 
   .hero-shell {
-    padding: 18px 26px;
+    padding: 17px 26px;
+  }
+
+  /* Large desktop chart alignment:
+     match the chart widget's top edge to the nav shell by using the same
+     effective hero padding offset on the wider desktop hero shell. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    top: 13px;
+    right: 7px;
+    box-shadow: inset 0 5px 14px rgba(0, 0, 0, 0.43), 0 0 5px 3px #abd1;
+    border-radius: 25px;
   }
 
   .grid-shell {
@@ -3008,6 +4953,19 @@ body[data-page="datahub"] .stats-player-btn {
   cursor: pointer;
 }
 
+@media (min-width: 720px) {
+  /* Desktop table PLAYER column:
+     increase only the text size of the existing player trigger/static label;
+     column widths and table layout remain controlled by DataHub.js. */
+  body[data-page="datahub"] .stats-player-btn {
+    font-size: 0.88rem;
+  }
+}
+
+body[data-page="datahub"] .stats-player-btn--static {
+  cursor: default;
+}
+
 body[data-page="datahub"] .stats-player-btn::after {
   content: "";
   position: absolute;
@@ -3017,6 +4975,10 @@ body[data-page="datahub"] .stats-player-btn::after {
   height: 1px;
   background: rgba(144, 150, 208, 0.28);
   opacity: 1;
+}
+
+body[data-page="datahub"] .stats-player-btn--static::after {
+  opacity: 0;
 }
 
 body[data-page="datahub"] .stats-player-btn:focus-visible {
@@ -5758,7 +7720,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar-rank {
   max-height: 21px;
   border: 1px solid #fff2;
   border-radius: 6px;
-  background: #9a9ac854;
+  background: #9a9ac87a;
   margin-left: 10px;
   justify-content: center;
   box-shadow: inset 13px 4px 6px -4px #445b, inset 0 0 6px -1px;
@@ -7008,8 +8970,17 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
      Important notes: these selectors intentionally use the exact game-logs
      header structure and `!important` only where older DataHub rules were
      still affecting the rendered header contract. */
-  body[data-page="datahub"] #game-logs-modal .gamelogs-tab-pane {
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane:not(.hidden) {
     display: block !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane:not(.hidden) {
+    display: flex !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane.hidden,
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane.hidden {
+    display: none !important;
   }
 
   body[data-page="datahub"] #game-logs-modal .modal-content {
@@ -8226,5 +10197,179 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
     gap: 0.5rem;
     margin-top: 0.4rem;
     margin-bottom: 0.15rem;
+  }
+}
+
+/* DataHub Ownership tab header parity:
+   Targets: only the Ownership pane inside the DataHub Game Logs modal.
+   What it does: keeps the narrower Ownership modal width while matching the
+   regular Game Logs header stack: left POS/team chips, centered name, centered
+   vitals capsule, summary chips, then a scroll-only ownership body.
+   Important notes: this block intentionally lives last so it beats older
+   DataHub modal overrides without affecting shared Rosters/Stats modals. */
+body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane.hidden,
+body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane.hidden {
+  display: none !important;
+}
+
+body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane:not(.hidden) {
+  display: flex !important;
+  flex-direction: column;
+}
+
+body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane {
+  width: min(94vw, 500px);
+  max-width: 500px;
+  max-height: 64vh;
+  overflow: hidden;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipHeader {
+  position: relative;
+  flex: 0 0 auto;
+  text-align: center;
+  padding-top: 0.08rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipLeft {
+  position: absolute;
+  top: 0.1rem;
+  left: 0.75rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 7.8rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipPlayerName {
+  display: block;
+  max-width: min(16ch, calc(100% - 10.5rem));
+  margin: 0 auto 0.12rem;
+  overflow: hidden;
+  color: var(--datahub-gamelogs-text);
+  font-size: 1.5rem;
+  font-weight: 200;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipPlayerVitals {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane #glOwnershipPlayerVitals .player-vitals--modal {
+  max-width: 100%;
+  margin: 0.2rem auto 0.58rem;
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipSummaryRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipSummaryChips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-content: center;
+  gap: 0.78rem;
+  width: min(100%, 30rem);
+  margin: 0 auto;
+}
+
+body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane .ownership-summary-chip {
+  min-width: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 680px) {
+  /* Mobile Ownership tab fix:
+     Targets: the same DataHub Ownership pane at phone widths.
+     What it does: keeps the pane cleanly swapped in, prevents header overlap,
+     and leaves the league list as the modal's only scrolling region. */
+  body[data-page="datahub"] #game-logs-modal #gamelogs-tab-pane.hidden,
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane.hidden {
+    display: none !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane:not(.hidden) {
+    display: flex !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane {
+    width: min(96vw, 500px) !important;
+    max-width: 500px;
+    max-height: calc(66dvh - 1.4rem);
+    padding: 0.65rem 0.62rem 0.68rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipHeader {
+    padding-top: 0;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipLeft {
+    top: 0 !important;
+    left: 0 !important;
+    gap: 0.34rem !important;
+    max-width: 6.9rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipPlayerName {
+    max-width: min(15ch, calc(100% - 10.5rem)) !important;
+    margin: 0 auto 0.12rem !important;
+    font-size: 1.15rem !important;
+    line-height: 1.2;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane #glOwnershipPlayerVitals .player-vitals--modal {
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0 !important;
+    margin: 0.2rem auto 0.5rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipSummaryRow {
+    margin-bottom: 0.4rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipSummaryChips {
+    gap: 0.34rem !important;
+    width: 100% !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane .ownership-summary-chip {
+    min-width: 0 !important;
+    padding: 0.24rem 0.38rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane .ownership-summary-chip h4 {
+    font-size: 0.64rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane .ownership-summary-chip .chip-values {
+    gap: 0 !important;
+    font-size: 0.72rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane .ownership-summary-chip .chip-header-value {
+    font-size: 0.78rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
+    min-height: 0;
   }
 }
