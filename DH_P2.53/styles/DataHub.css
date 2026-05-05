@@ -2824,6 +2824,51 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Rankings & Career Stats TIER badges:
+   targets the rookie career TIER column only. The badge shape mirrors the FPTS
+   chip treatment, while icon/text color inherit from the existing TIER heat
+   classes applied by DataHub.js. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 52px;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  box-sizing: border-box;
+  border: 1px solid rgba(130, 214, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(102, 215, 255, 0.12), rgba(162, 127, 255, 0.06)),
+    rgba(255, 255, 255, 0.02);
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  color: currentColor;
+  stroke: currentColor;
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge-text {
+  color: currentColor;
+}
+
 .heat-cell--heat.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(212, 222, 240, 0.74);
   text-shadow: none;
@@ -2932,7 +2977,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
    body panes together so the TIER-column pill has clearance from the header/body
    boundary without changing sorted-table states. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) {
-  --rookie-tier-first-row-clearance: 6px;
+  --rookie-tier-first-row-clearance: 10px;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-vscroll-content {
@@ -2967,17 +3012,17 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
   min-height: 11px;
-  padding: 1px 2px 2px 2px;
+  padding: 2px 5px;
   transform: translate(-50%, -50%);
   border-radius: 4px;
   color: var(--rookie-tier-separator-color);
   font-size: 8px;
   font-weight: 500;
-  background: #3340;
+  background: rgba(51, 52, 68, 0.94);
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   text-shadow: -3px 0px 2px #334, 0 0 4px #334, 0 0 3px #334, 0 0 3px #334, 1px 1px 0px #000, 1px 1px 0px #000, 0 0 3px #334, 12px 0px 1px #334, -1px -1px 2px #334;
   pointer-events: none;
   white-space: nowrap;
@@ -2985,23 +3030,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
-  top: 6px;
-  box-shadow: inset 0px 5px 0px -1px #334f;
-}
-
-body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-icon {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 auto;
-  color: currentColor;
-  stroke: currentColor;
-  stroke-width: 1.5px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  vector-effect: non-scaling-stroke;
-  background: #334;
-  border-radius: 10px;
+  top: 9px;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
@@ -3748,6 +3777,19 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-height: 22px;
     padding: 0 6px;
     max-width: 54px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge {
+    gap: 2px;
+    width: 38px;
+    min-height: 22px;
+    padding: 0 4px;
+    font-size: 10px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge-icon {
+    width: 10px;
+    height: 10px;
   }
 
   .stats-table__group-header-icon {
