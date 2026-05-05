@@ -2194,12 +2194,12 @@ const MOBILE_COLUMN_WIDTHS = {
   // Rookie info columns on mobile:
   // tighten these four widths so the rookies career tables fit more cleanly
   // across the small-screen scroll pane without changing desktop sizing.
-  CFB: 72,
-  HT: 48,
-  WT: 50,
+  CFB: 64,
+  HT: 40,
+  WT: 42,
   "40dsh": 48,
   Gs: 42,
-  GRD: 62,
+  GRD: 50,
   TIER: 44,
   "OVR-RK": 60,
   "RD & PK#": 60,
