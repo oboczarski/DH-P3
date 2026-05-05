@@ -2931,9 +2931,8 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
    only the first tier shown in each Rankings & Career Stats table is lowered
    and has the RK-column divider removed, because that pill sits closest to the
    sticky table header. Later tier labels keep the normal divider alignment. */
-body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {
-  box-shadow: none;
-}
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {box-shadow: inset 0 1px 0px 0px var(--rookie-tier-separator-color),
+    inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);}
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-cell--rookie-tier-label .stats-table__cell-content {
   position: relative;
@@ -2943,12 +2942,12 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label {
   position: absolute;
   top: 1px;
-  left: 67%;
+  left: 229%;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0px;
+  gap: 4px;
   min-height: 11px;
   padding: 1px 2px 2px 2px;
   transform: translate(-50%, -50%);
@@ -2967,6 +2966,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
   top: 4px;
+  box-shadow: inset 0px 5px 0px -1px #334f;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-icon {
