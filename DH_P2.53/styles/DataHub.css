@@ -2972,30 +2972,10 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
     inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);
 }
 
-/* First-row tier label clearance:
-   when the first visible Rankings & Career Stats row has a tier pill, offset both
-   body panes together so the TIER-column pill has clearance from the header/body
-   boundary without changing sorted-table states. */
-body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) {
-  --rookie-tier-first-row-clearance: 10px;
-}
-
-body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-vscroll-content {
-  padding-top: var(--rookie-tier-first-row-clearance);
-}
-
-body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-frozen-body,
-body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-scroll-body-overlay {
-  top: var(--rookie-tier-first-row-clearance);
-}
-
-body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-frozen-body {
-  overflow: visible;
-}
-
 /* First visible TIER divider:
    keep the divider visible on the TIER cell that owns the tier pill while the
-   table-frame clearance above prevents the first pill from crowding the header. */
+   first visible divider label is positioned fully inside the clipped scroll
+   body overlay instead of relying on extra space above the row. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {box-shadow: inset 0 1px 0px 0px var(--rookie-tier-separator-color),
     inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);}
 
@@ -3031,6 +3011,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
   top: 2px;
+  transform: translateX(-50%);
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start-1 {
