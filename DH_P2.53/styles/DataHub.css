@@ -2927,6 +2927,14 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
     inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);
 }
 
+/* First visible tier label:
+   only the first tier shown in each Rankings & Career Stats table is lowered
+   and has the RK-column divider removed, because that pill sits closest to the
+   sticky table header. Later tier labels keep the normal divider alignment. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child > .stats-table__body-cell--rookie-tier-label {
+  box-shadow: none;
+}
+
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-cell--rookie-tier-label .stats-table__cell-content {
   position: relative;
   overflow: visible;
@@ -2957,7 +2965,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier
   filter: brightness(1.2) saturate(1.2);
 }
 
-body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__tier-divider-label--tier-1 {
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body-row--rookie-tier-start:first-child .stats-table__tier-divider-label {
   top: 5px;
 }
 
