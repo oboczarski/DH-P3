@@ -4006,7 +4006,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   /* Mobile compact pos badge: slightly smaller to fit the reduced POS column */
   body[data-page="datahub"] .dh-pos-badge {
-    width: 40px;
+    width: 38px;
     padding: 3px 4px 3px 2px;
     gap: 4px;
     font-size: 0.7rem;
