@@ -2839,7 +2839,8 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rook
   padding: 0 6px;
   border-radius: 7px;
   box-sizing: border-box;
-  border-bottom: 1px groove #5df9fc40;
+  border-bottom: 1px groove rgba(93, 249, 252, 0.27);
+  border-bottom-color: color-mix(in srgb, currentColor 27%, transparent);
   background: linear-gradient(180deg, rgba(102, 215, 255, 0.30), rgba(162, 127, 255, 0.2)),
     rgba(255, 255, 255, 0.02);
   color: inherit;
@@ -2849,6 +2850,10 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rook
   letter-spacing: 0;
   white-space: nowrap;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge--nr {
+  color: rgba(171, 186, 208, 0.46);
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__rookie-tier-badge-icon {
@@ -2970,6 +2975,22 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
   box-shadow:
     inset 0 1px 0px 0px var(--rookie-tier-separator-color),
     inset 0 9px 4px -6px var(--rookie-tier-separator-glow-color);
+}
+
+/* First visible tier-divider breathing room:
+   add a small amount of padding inside the clipped body panes, not above them,
+   so the first divider label can sit on the line without losing its top edge. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) {
+  --rookie-tier-first-row-clearance: 6px;
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-vscroll-content {
+  padding-bottom: var(--rookie-tier-first-row-clearance);
+}
+
+body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-frozen-body,
+body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-scroll-body-overlay {
+  padding-top: var(--rookie-tier-first-row-clearance);
 }
 
 /* First visible TIER divider:

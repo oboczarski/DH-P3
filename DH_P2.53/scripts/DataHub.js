@@ -867,7 +867,7 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   Gem: '<path d="M10.5 3 8 9l4 13 4-13-2.5-6" /><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z" /><path d="M2 9h20" />',
   Astroid: '<path d="M12.983 21.186a1 1 0 0 1-1.966 0 10 10 0 0 0-8.203-8.203 1 1 0 0 1 0-1.966 10 10 0 0 0 8.203-8.203 1 1 0 0 1 1.966 0 10 10 0 0 0 8.203 8.203 1 1 0 0 1 0 1.966 10 10 0 0 0-8.203 8.203" />',
   BadgePercent: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m15 9-6 6" /><path d="M9 9h.01" /><path d="M15 15h.01" />',
-  BadgeAlert: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" />',
+  BadgeMinus: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><line x1="8" x2="16" y1="12" y2="12" />',
   BadgeDollarSign: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" />',
   CircleDollarSign: '<circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" />',
   RulerDimensionLine: '<path d="M10 15v-3" /><path d="M14 15v-3" /><path d="M18 15v-3" /><path d="M2 8V4" /><path d="M22 6H2" /><path d="M22 8V4" /><path d="M6 15v-3" /><rect x="2" y="12" width="20" height="8" rx="2" />',
@@ -933,10 +933,10 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
 const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
   1: DATAHUB_LUCIDE_ICON_MARKUP.Gem,
   2: DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
-  3: DATAHUB_LUCIDE_ICON_MARKUP.Astroid,
-  4: DATAHUB_LUCIDE_ICON_MARKUP.Gauge,
+  3: DATAHUB_LUCIDE_ICON_MARKUP.Atom,
+  4: DATAHUB_LUCIDE_ICON_MARKUP.TrendingUp,
   5: DATAHUB_LUCIDE_ICON_MARKUP.ShieldBan,
-  6: DATAHUB_LUCIDE_ICON_MARKUP.BadgeAlert,
+  6: DATAHUB_LUCIDE_ICON_MARKUP.BadgeMinus,
   7: DATAHUB_LUCIDE_ICON_MARKUP.Trash2,
   8: DATAHUB_LUCIDE_ICON_MARKUP.Radiation,
 });
@@ -7319,11 +7319,15 @@ function createRookieCareerTierBadge(value) {
   const tier = getRookieTierStyleLevel(value);
   const badge = document.createElement("span");
   badge.className = `stats-table__rookie-tier-badge stats-table__rookie-tier-badge--tier-${tier}`;
+  if (!tier) {
+    badge.classList.add("stats-table__rookie-tier-badge--nr");
+  }
   badge.setAttribute("aria-label", tier ? `Tier ${tier}` : formatCellValue(value));
 
   // Rankings & Career Stats TIER badge:
   // use the requested tier-specific Lucide glyph and render the label as T#
-  // without the old T-# dash while preserving raw numeric data for sorting.
+  // without the old T-# dash. Unranked values render as plain NR with subdued
+  // color while preserving raw data for sorting.
   const iconMarkup = ROOKIE_CAREER_TIER_BADGE_ICONS[tier];
   if (iconMarkup) {
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -7339,7 +7343,7 @@ function createRookieCareerTierBadge(value) {
   text.className = "stats-table__rookie-tier-badge-text";
   text.textContent = tier
     ? `T${tier}`
-    : formatDisplayValue("TIER", value).replace(/^T-/, "T");
+    : String(formatCellValue(value)).replace(/^T-?/, "");
   badge.append(text);
 
   return badge;
