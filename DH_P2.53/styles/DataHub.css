@@ -2981,7 +2981,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
    add a small amount of padding inside the clipped body panes, not above them,
    so the first divider label can sit on the line without losing its top edge. */
 body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) {
-  --rookie-tier-first-row-clearance: 6px;
+  --rookie-tier-first-row-clearance: 2px;
 }
 
 body[data-page="datahub"][data-datahub-view="rookies-career"] .table-frame:has(.datahub-frozen-body .stats-table__body-row--rookie-tier-start:first-child) .datahub-vscroll-content {
