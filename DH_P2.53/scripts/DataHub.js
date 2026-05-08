@@ -1396,22 +1396,16 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
-const ROOKIE_PROSPECT_OVERVIEW_COLUMN_ICON_COLORS = Object.freeze({
-  TM: SHARED_COLUMN_ICON_COLORS.INFO,
-  AGE: SHARED_COLUMN_ICON_COLORS.INFO,
-});
-
 function createRookiesProspectOverviewGroup({ formatFamily = null } = {}) {
   return createDataHubColumnGroup({
     // Rookies Prospect Overview group:
     // TM and AGE now live with the draft/ranking fields in the exact requested
-    // order while retaining their Info-colored column icons inside this group.
+    // order and inherit the same column icon color as the rest of this group.
     label: "PROSPECT OVERVIEW",
     icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
     columns: ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-    columnIconColors: ROOKIE_PROSPECT_OVERVIEW_COLUMN_ICON_COLORS,
     formatFamily,
   });
 }
