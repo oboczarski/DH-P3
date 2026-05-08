@@ -1573,7 +1573,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 
 .controls-cluster {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .top-tabs {
@@ -1635,7 +1635,8 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 
 .category-chip__label {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 400;
 }
 
 .category-chip__meta {
@@ -3749,15 +3750,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] .hero-chart-toggle {
     position: absolute;
     top: 11px;
-    right: 6px;
+    right: 9px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
     gap: 2px;
     min-height: 30px;
-    padding: 0 5px;
+    padding: 0 6px 0 5px;
     border: 1px solid rgba(149, 177, 220, 0.18);
-    border-radius: 999px;
+    border-radius: 13px;
     background:
       linear-gradient(180deg, rgba(39, 54, 79, 0.9), rgba(18, 27, 42, 0.94));
     color: rgba(223, 234, 249, 0.88);
@@ -4103,7 +4104,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--mobile,
   body[data-page="datahub"][data-datahub-view="rookies-career"] .hero-controls--mobile,
   body[data-page="datahub"][data-datahub-view="rookies-trade"] .hero-controls--mobile {
-    min-height: 143px;
+    min-height: 133px;
     align-content: space-between;
   }
 
@@ -4271,14 +4272,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
-    gap: 5px;
+    gap: 6px;
+    margin-top: -3px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle {
-    min-height: 32px;
-    padding: 0 8px;
-    font-size: 0.6rem;
+    min-height: 33px;
+    padding: 0 15px;
+    font-size: 0.75rem;
     letter-spacing: 0.05em;
+    font-weight: 500;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell,
