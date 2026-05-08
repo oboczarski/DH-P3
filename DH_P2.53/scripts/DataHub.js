@@ -529,6 +529,17 @@ const ONE_QB_MARKET_DATA_COLUMNS = ["KTC 1QB", "1QB ADP", "1QB DIFF"];
 const SFLX_MARKET_DATA_COLUMNS = ["KTC SFLX", "SFLX ADP", "SFLX DIFF"];
 const MARKET_DATA_COLUMNS = [...ONE_QB_MARKET_DATA_COLUMNS, ...SFLX_MARKET_DATA_COLUMNS];
 const BLANK_PLACEHOLDER_COLUMNS = new Set();
+const ROOKIES_IDENTITY_COLUMNS = Object.freeze(["index", "PLAYER", "POS"]);
+const ROOKIES_PROSPECT_OVERVIEW_COLUMNS = Object.freeze([
+  "TM",
+  "AGE",
+  "TIER",
+  "RD & PK#",
+  "OVR_PK",
+  "RK",
+  "GRD",
+]);
+const HIDDEN_ROOKIE_RANK_COLUMNS = Object.freeze(["OVR-RK", "POS-RK"]);
 
 // Trade Values table layout:
 // this view intentionally stays compact and reuses one shared schema across all
@@ -545,16 +556,8 @@ const TRADE_VALUES_COLUMN_SET = [
   ...MARKET_DATA_COLUMNS,
 ];
 const ROOKIES_TRADE_COLUMN_SET = [
-  "RK",
-  "PLAYER",
-  "POS",
-  "TM",
-  "AGE",
-  "GRD",
-  "TIER",
-  "OVR-RK",
-  "RD & PK#",
-  "OVR_PK",
+  ...ROOKIES_IDENTITY_COLUMNS,
+  ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
   ...MARKET_DATA_COLUMNS,
 ];
 
@@ -694,16 +697,8 @@ const STATS_COLUMN_SETS = {
 // DataHub can keep column groups, widths, and separators stable.
 const ROOKIES_CAREER_COLUMN_SETS = {
   overview: [
-    "RK",
-    "PLAYER",
-    "POS",
-    "TM",
-    "AGE",
-    "TIER",
-    "GRD",
-    "POS-RK",
-    "RD & PK#",
-    "OVR_PK",
+    ...ROOKIES_IDENTITY_COLUMNS,
+    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     "CFB",
     "HT",
     "WT",
@@ -715,16 +710,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "IMP/OPP",
   ],
   passing: [
-    "RK",
-    "PLAYER",
-    "POS",
-    "TM",
-    "AGE",
-    "GRD",
-    "TIER",
-    "OVR-RK",
-    "RD & PK#",
-    "OVR_PK",
+    ...ROOKIES_IDENTITY_COLUMNS,
+    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     "Gs",
     "tYDS",
     "tTD",
@@ -752,16 +739,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "40dsh",
   ],
   rushing: [
-    "RK",
-    "PLAYER",
-    "POS",
-    "TM",
-    "AGE",
-    "GRD",
-    "TIER",
-    "OVR-RK",
-    "RD & PK#",
-    "OVR_PK",
+    ...ROOKIES_IDENTITY_COLUMNS,
+    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     "Gs",
     "tYDS",
     "tTD",
@@ -787,16 +766,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "40dsh",
   ],
   receiving: [
-    "RK",
-    "PLAYER",
-    "POS",
-    "TM",
-    "AGE",
-    "GRD",
-    "TIER",
-    "OVR-RK",
-    "RD & PK#",
-    "OVR_PK",
+    ...ROOKIES_IDENTITY_COLUMNS,
+    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     "Gs",
     "tYDS",
     "tTD",
@@ -838,6 +809,7 @@ const PAGE_VIEW_COLUMN_SETS = Object.freeze({
 // as "NA" until a future integration supplies live values.
 // ---------------------------------------------------------------------------
 const SOURCE_ALIASES = {
+  index: null,
   PLAYER: "NM",
   RK: "PRK_PPR",
   FPTS: "FPT_PPR",
@@ -927,9 +899,9 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   DraftMedal: '<path d="M8 2h8l-2 6h-4z" /><path d="M10 8 7 13" /><path d="m14 8 3 5" /><circle cx="12" cy="16" r="5" /><path d="M12 13v6" /><path d="M9.5 16h5" />',
 });
 
-// Rookie career tier badges:
+// Rookies tier badges:
 // each TIER value gets the requested icon while the badge inherits the existing
-// rookie-tier heat color through currentColor.
+// rookie-tier heat color through currentColor in both Rookies subviews.
 const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
   1: DATAHUB_LUCIDE_ICON_MARKUP.Gem,
   2: DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
@@ -946,6 +918,7 @@ const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
 // app are listed here — no full icon library is loaded or bundled.
 // ---------------------------------------------------------------------------
 const COLUMN_ICONS = {
+  index:     "M4 6h16M4 12h8M4 18h4", // Row index lines
   RK:        "M4 6h16M4 12h8M4 18h4", // Hash-like lines
   PLAYER:    "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", // User
   POS:       "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01", // Tag
@@ -1200,7 +1173,7 @@ const FROZEN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-      columns: ["RK", "PLAYER", "POS"],
+      columns: ROOKIES_IDENTITY_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
     }),
@@ -1210,7 +1183,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS"],
+        columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1219,7 +1192,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS"],
+        columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1228,7 +1201,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS"],
+        columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1237,7 +1210,7 @@ const FROZEN_GROUPS = Object.freeze({
       createDataHubColumnGroup({
         label: "GENERAL",
         icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-        columns: ["RK", "PLAYER", "POS"],
+        columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
       }),
@@ -1423,30 +1396,29 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
-// Rookie career scrollable General continuation:
-// TM and AGE follow the frozen RK/PLAYER/POS identity columns without becoming
-// sticky, while keeping the same General heading icon and column icon colors.
-const ROOKIE_CAREER_SCROLL_GENERAL_GROUP = createDataHubColumnGroup({
-  // Icon-only General continuation:
-  // show the General icon for scrollable TM/AGE, but omit visible group text so
-  // it reads as an extension of the frozen General group instead of a repeat.
-  label: "",
-  ariaLabel: "GENERAL",
-  icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
-  columns: ["TM", "AGE"],
-  groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
-  columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
-  formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.GENERAL,
+const ROOKIE_PROSPECT_OVERVIEW_COLUMN_ICON_COLORS = Object.freeze({
+  TM: SHARED_COLUMN_ICON_COLORS.INFO,
+  AGE: SHARED_COLUMN_ICON_COLORS.INFO,
 });
+
+function createRookiesProspectOverviewGroup({ formatFamily = null } = {}) {
+  return createDataHubColumnGroup({
+    // Rookies Prospect Overview group:
+    // TM and AGE now live with the draft/ranking fields in the exact requested
+    // order while retaining their Info-colored column icons inside this group.
+    label: "PROSPECT OVERVIEW",
+    icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+    columns: ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
+    groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
+    columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+    columnIconColors: ROOKIE_PROSPECT_OVERVIEW_COLUMN_ICON_COLORS,
+    formatFamily,
+  });
+}
+
 const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
   overview: Object.freeze([
-    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
-    createDataHubColumnGroup({
-      label: "PROSPECT OVERVIEW",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["TIER", "GRD", "POS-RK", "RD & PK#", "OVR_PK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+    createRookiesProspectOverviewGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
@@ -1467,13 +1439,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   passing: Object.freeze([
-    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
-    createDataHubColumnGroup({
-      label: "PROSPECT OVERVIEW",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+    createRookiesProspectOverviewGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
@@ -1518,13 +1484,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   rushing: Object.freeze([
-    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
-    createDataHubColumnGroup({
-      label: "PROSPECT OVERVIEW",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+    createRookiesProspectOverviewGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
@@ -1569,13 +1529,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   receiving: Object.freeze([
-    ROOKIE_CAREER_SCROLL_GENERAL_GROUP,
-    createDataHubColumnGroup({
-      label: "PROSPECT OVERVIEW",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
+    createRookiesProspectOverviewGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
@@ -1650,20 +1604,7 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   ]),
   "rookies-career": ROOKIES_CAREER_SCROLL_GROUPS,
   "rookies-trade": createCategoryMap(ROOKIES_TRADE_CATEGORY_KEYS, [
-    createDataHubColumnGroup({
-      label: "INFO",
-      icon: CURRENT_INFO_GROUP_ICON,
-      columns: ["TM", "AGE"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
-    }),
-    createDataHubColumnGroup({
-      label: "PROSPECT OVERVIEW",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-      columns: ["GRD", "TIER", "OVR-RK", "RD & PK#", "OVR_PK"],
-      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
-      columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
-    }),
+    createRookiesProspectOverviewGroup(),
     createDataHubColumnGroup({
       label: "1QB",
       icon: TRADE_VALUES_ONE_QB_GROUP_ICON,
@@ -1747,6 +1688,17 @@ function isDataHubRookiesView(pageView = state.activePageView) {
   return isDataHubRookiesCareerView(pageView) || isDataHubRookiesTradeView(pageView);
 }
 
+function isRookieProspectRankColumn(columnName) {
+  return columnName === RK_COLUMN && isDataHubRookiesView();
+}
+
+function isFormattedDataHubColumn(columnName) {
+  // Rookies RK heat:
+  // the new Prospect Overview RK column is formatted from OVR-RK values, while
+  // legacy non-Rookies RK remains the plain rendered row-order column.
+  return !NON_FORMATTED_COLUMNS.has(columnName) || isRookieProspectRankColumn(columnName);
+}
+
 function getActiveRookiesSubview() {
   return state.activeRookiesSubview === "rookies-trade"
     ? "rookies-trade"
@@ -1757,7 +1709,7 @@ function getStickyColumnCount(pageView = state.activePageView, category = state.
   if (pageView === "rookies-career") {
     // Rookie career sticky identity:
     // TM now scrolls inside Prospect Overview and Gs lives in Career Totals, so
-    // all rookie career categories freeze only rank, player, and position.
+    // all rookie career categories freeze only index, player, and position.
     return 3;
   }
 
@@ -1910,11 +1862,13 @@ function toggleDataHubReceivingFilter(key) {
 // ---------------------------------------------------------------------------
 // Table formatting and layout invariants.
 // ---------------------------------------------------------------------------
-// RK is a display-only rank column:
-// Most DataHub views treat RK as a rendered-order display column, while the
-// rookies-career views reuse it as the imported source rank field.
+// Rookies rank split:
+// `index` is the rendered row-order column used only by Rookies identity panes,
+// while RK is the Prospect Overview overall-rank field in Rookies tables.
+const INDEX_COLUMN = "index";
 const RK_COLUMN = "RK";
 const NON_FORMATTED_COLUMNS = new Set([
+  INDEX_COLUMN,
   RK_COLUMN,
   "PLAYER",
   "POS",
@@ -1926,7 +1880,7 @@ const NON_FORMATTED_COLUMNS = new Set([
   "G",
   ...BLANK_PLACEHOLDER_COLUMNS,
 ]);
-const NON_SORTABLE_COLUMNS = new Set([RK_COLUMN, ...BLANK_PLACEHOLDER_COLUMNS]);
+const NON_SORTABLE_COLUMNS = new Set([INDEX_COLUMN, RK_COLUMN, ...BLANK_PLACEHOLDER_COLUMNS]);
 const INVERTED_COLUMNS = new Set([
   RK_COLUMN,
   "ADP",
@@ -1960,6 +1914,7 @@ const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
   ...Object.values(ROOKIES_CAREER_COLUMN_SETS).flat(),
   ...ROOKIES_TRADE_COLUMN_SET,
+  ...HIDDEN_ROOKIE_RANK_COLUMNS,
   ...MARKET_DATA_COLUMNS,
   "VALUE",
   "ADP",
@@ -2022,7 +1977,10 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
   "FUM",
 ]);
 const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM", "CFB", "HT", "WT"]);
-const COLUMN_LABELS = Object.freeze({});
+const COLUMN_LABELS = Object.freeze({
+  index: "Index",
+  OVR_PK: "OVR-PK",
+});
 const GRID_TEXT_COLLATOR = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: "base",
@@ -2078,6 +2036,7 @@ const TRADE_ENTITY_FILTER_KEYS = Object.freeze(["vets", "rookies", "picks"]);
 const MOBILE_BREAKPOINT = 719;
 
 const COLUMN_WIDTHS = {
+  index: 78,
   RK: 78,
   PLAYER: 172,
   POS: 86,
@@ -2192,16 +2151,28 @@ const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
   "1QB DIFF": 118,
   "SFLX DIFF": 120,
 });
+const ROOKIES_CAREER_COLUMN_WIDTHS = Object.freeze({
+  ...COLUMN_WIDTHS,
+  // Rookies Prospect Overview widths:
+  // RK is now a combined overall + position-rank cell, while index keeps the
+  // old narrow row-order slot. Career and trade maps share these exact values.
+  index: COLUMN_WIDTHS.RK,
+  RK: 112,
+});
 const ROOKIES_TRADE_COLUMN_WIDTHS = Object.freeze({
   ...TRADE_VALUES_COLUMN_WIDTHS,
-  GRD: 104,
-  TIER: 96,
-  "OVR-RK": 110,
-  "RD & PK#": 118,
-  OVR_PK: 104,
+  index: ROOKIES_CAREER_COLUMN_WIDTHS.index,
+  TM: ROOKIES_CAREER_COLUMN_WIDTHS.TM,
+  AGE: ROOKIES_CAREER_COLUMN_WIDTHS.AGE,
+  TIER: ROOKIES_CAREER_COLUMN_WIDTHS.TIER,
+  "RD & PK#": ROOKIES_CAREER_COLUMN_WIDTHS["RD & PK#"],
+  OVR_PK: ROOKIES_CAREER_COLUMN_WIDTHS.OVR_PK,
+  RK: ROOKIES_CAREER_COLUMN_WIDTHS.RK,
+  GRD: ROOKIES_CAREER_COLUMN_WIDTHS.GRD,
 });
 
 const MOBILE_COLUMN_WIDTHS = {
+  index: 28,
   RK: 28,
   PLAYER: 75,
   POS: 64,
@@ -2322,13 +2293,24 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
   "1QB DIFF": 68,
   "SFLX DIFF": 70,
 });
+const ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS = Object.freeze({
+  ...MOBILE_COLUMN_WIDTHS,
+  // Mobile Rookies Prospect Overview widths:
+  // match career/trade layouts column-for-column while giving combined RK
+  // enough room for examples like "83 (QB · 24)" without clipping.
+  index: MOBILE_COLUMN_WIDTHS.RK,
+  RK: 82,
+});
 const ROOKIES_TRADE_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...TRADE_VALUES_MOBILE_COLUMN_WIDTHS,
-  GRD: 64,
-  TIER: 60,
-  "OVR-RK": 72,
-  "RD & PK#": 74,
-  OVR_PK: 66,
+  index: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.index,
+  TM: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.TM,
+  AGE: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.AGE,
+  TIER: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.TIER,
+  "RD & PK#": ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS["RD & PK#"],
+  OVR_PK: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.OVR_PK,
+  RK: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.RK,
+  GRD: ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS.GRD,
 });
 
 // ---------------------------------------------------------------------------
@@ -3504,32 +3486,13 @@ async function ensureDataHubRookieData() {
 }
 
 function buildRookieCareerRowsForCategory(category, rows) {
-  let receivingCategoryRank = 0;
-
-  return rows.map((row) => {
-    let categoryRankOverride = null;
-
-    // Rankings & Career Stats receiving RK:
-    // WT-Cr.csv combines WR and TE players, but its POS-RK field ranks each
-    // position separately. Build one W/T display rank from source order while
-    // preserving NR rows so their existing bottom-sort handling still applies.
-    if (category === "receiving" && !isRookieCareerUnrankedSourceRow(row)) {
-      receivingCategoryRank += 1;
-      categoryRankOverride = String(receivingCategoryRank);
-    }
-
-    return normalizeRow(buildRookieCareerSourceRow(category, row, { categoryRankOverride }));
-  });
+  return rows.map((row) => normalizeRow(buildRookieCareerSourceRow(category, row)));
 }
 
-function isRookieCareerUnrankedSourceRow(row) {
-  const sourceRank = getFirstUsableRookieValue(row?.["OVR-RK"], row?.["POS-RK"]);
-  return isRookieBottomSortValue(sourceRank);
-}
-
-function buildRookieCareerSourceRow(category, row, { categoryRankOverride = null } = {}) {
+function buildRookieCareerSourceRow(category, row) {
   const playerId = getRookiePlayerId(row);
   const playerLookup = playerId ? state.rookieProspectByPlayerId[playerId] : null;
+  const overallRank = getFirstUsableRookieValue(row["OVR-RK"], playerLookup?.["OVR-RK"]);
   const sourceRow = {
     SLPR_ID: playerId,
     PLAYER: getFirstUsableRookieValue(row.PLAYER, playerLookup?.PLAYER),
@@ -3547,7 +3510,11 @@ function buildRookieCareerSourceRow(category, row, { categoryRankOverride = null
     Gs: getFirstUsableRookieValue(row.Gs, playerLookup?.Gs),
     GRD: getFirstUsableRookieValue(row.GRD, playerLookup?.GRD),
     TIER: getFirstUsableRookieValue(row.TIER, playerLookup?.TIER),
-    "OVR-RK": getFirstUsableRookieValue(row["OVR-RK"], playerLookup?.["OVR-RK"]),
+    // Rookies Prospect Overview RK:
+    // RK is now the visible overall-rank column for every career category,
+    // while POS-RK is kept as hidden data for the parenthetical display.
+    RK: overallRank,
+    "OVR-RK": overallRank,
     "POS-RK": getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]),
     // Updated CFB draft fields:
     // carry round/pick and overall pick values into every rookies career
@@ -3563,15 +3530,8 @@ function buildRookieCareerSourceRow(category, row, { categoryRankOverride = null
   };
 
   if (category === "overview") {
-    sourceRow.RK = getFirstUsableRookieValue(row["OVR-RK"], playerLookup?.["OVR-RK"]);
     return sourceRow;
   }
-
-  // Rankings & Career Stats category RK:
-  // passing/rushing can keep POS-RK because they are single-position tables;
-  // receiving passes a combined W/T rank override because it includes WR + TE.
-  sourceRow.RK = categoryRankOverride
-    ?? getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]);
 
   if (category === "passing") {
     sourceRow.paATT = row.paATT;
@@ -3647,7 +3607,12 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
         AGE: getFirstUsableRookieValue(prospect?.AGE, row.AGE),
         GRD: sanitizeValue(prospect?.GRD),
         TIER: sanitizeValue(prospect?.TIER),
+        // Rookies Trade Values RK:
+        // override the KTC row rank with the joined prospect OVR-RK, and keep
+        // POS-RK hidden so the combined RK cell can append position rank detail.
+        RK: sanitizeValue(prospect?.["OVR-RK"]),
         "OVR-RK": sanitizeValue(prospect?.["OVR-RK"]),
+        "POS-RK": sanitizeValue(prospect?.["POS-RK"]),
         // Rookie Trade Values draft fields:
         // populate the Prospect Overview group from the CFB career lookup while
         // leaving KTC market data on the original trade row.
@@ -6171,6 +6136,10 @@ function getActiveColumnIconMarkup(columnName) {
     }
   }
 
+  if (columnName === RK_COLUMN && isDataHubRookiesView()) {
+    return COLUMN_ICONS["OVR-RK"];
+  }
+
   return COLUMN_ICONS[columnName];
 }
 
@@ -7413,8 +7382,12 @@ function restoreGridScrollPositions(refs, savedScroll = state.gridScroll) {
 }
 
 function isSortableColumn(columnName) {
+  if (columnName === INDEX_COLUMN) {
+    return false;
+  }
+
   if (columnName === RK_COLUMN) {
-    return state.activePageView === "rookies-career";
+    return isDataHubRookiesView();
   }
 
   return !NON_SORTABLE_COLUMNS.has(columnName);
@@ -7456,18 +7429,23 @@ function createHeaderCell(column, columnIconColor) {
   applyColumnStyle(th, column);
   th.setAttribute("aria-sort", getAriaSort(column.name));
 
-  // RK header handling:
-  // most DataHub views keep rank static, while rookies-career opts into source
-  // rank sorting so the same header cell can become interactive in that mode.
+  // Index/RK header handling:
+  // Rookies use an icon-only row-order index plus a separate sortable RK
+  // Prospect Overview column; non-Rookies keep their existing static RK header.
   const isSortable = isSortableColumn(column.name);
   const headerControl = document.createElement(isSortable ? "button" : "div");
   headerControl.className = "stats-table__head-button";
   if (isSortable) {
     headerControl.type = "button";
-    headerControl.setAttribute("aria-label", `Sort by ${column.name}`);
+    headerControl.setAttribute("aria-label", `Sort by ${getColumnLabel(column.name)}`);
     headerControl.addEventListener("click", () => handleHeaderSort(column.name));
   } else {
     headerControl.classList.add("stats-table__head-button--static");
+  }
+
+  if (column.name === INDEX_COLUMN) {
+    th.setAttribute("aria-label", "Row index");
+    headerControl.setAttribute("aria-label", "Row index");
   }
 
   // Column icon coloring:
@@ -7511,9 +7489,9 @@ function createHeaderCell(column, columnIconColor) {
 
 function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   const rawValue = row[column.name];
-  const value = column.name === RK_COLUMN
-    ? (state.activePageView === "rookies-career" ? rawValue : String(rowIndex + 1))
-    : rawValue;
+  const value = column.name === INDEX_COLUMN
+    ? String(rowIndex + 1)
+    : (column.name === RK_COLUMN && !isDataHubRookiesView() ? String(rowIndex + 1) : rawValue);
   const rookieTierSeparatorTier = column.name === "TIER"
     ? getRookieCareerTierSeparatorTier(row, rowIndex)
     : null;
@@ -7544,10 +7522,14 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   if (column.name === PLAYER_COLUMN) {
     content.append(createPlayerTriggerButton(row));
   } else if (column.name === RK_COLUMN) {
-    // RK display rank:
-    // rookies-career preserves the imported source rank text (including NR),
-    // while the other DataHub views continue to show rendered table order.
-    content.textContent = value;
+    // Rookies Prospect Overview RK:
+    // render OVR-RK as the main value and append POS-RK in smaller text. Legacy
+    // non-Rookies RK cells continue to show the current rendered row order.
+    if (isDataHubRookiesView()) {
+      content.append(createRookieProspectRankDisplay(row, value));
+    } else {
+      content.textContent = value;
+    }
   } else if (column.name === "TM") {
     // DataHub TM cell logo swap:
     // render the same team-logo treatment used by the local modal so the table
@@ -7566,11 +7548,11 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
     // dot + position abbreviation. Rendered for both desktop and mobile tables.
     content.append(createPosBadge(value));
   } else if (column.name === "TIER") {
-    // Rankings & Career Stats tier divider label:
-    // render the TIER value as the requested icon badge in rookie career tables,
-    // and keep the divider label anchored in the same cell for default RK sort.
-    if (isDataHubRookiesCareerView() && !isMissingValue(value)) {
-      content.append(createRookieCareerTierBadge(value));
+    // Rookies TIER badge:
+    // both Rookies subviews use the same icon badge; career rows also anchor
+    // the tier-divider label in this cell for the default RK sort.
+    if (isDataHubRookiesView() && !isMissingValue(value)) {
+      content.append(createRookieTierBadge(value));
     } else {
       content.textContent = formatDisplayValue(column.name, value);
     }
@@ -7601,7 +7583,31 @@ function createRookieCareerTierSeparatorLabel(tier) {
   return label;
 }
 
-function createRookieCareerTierBadge(value) {
+function createRookieProspectRankDisplay(row, value) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "stats-table__rookie-rk";
+
+  // Combined Rookies RK display:
+  // main text is OVR-RK; when POS-RK exists, append the requested compact
+  // position-qualified rank using hair spaces around the separator.
+  const main = document.createElement("span");
+  main.className = "stats-table__rookie-rk-main";
+  main.textContent = formatCellValue(value);
+  wrapper.append(main);
+
+  const position = String(row?.POS || "").trim().toUpperCase();
+  const posRank = row?.["POS-RK"];
+  if (!isMissingValue(value) && position && !isMissingValue(posRank)) {
+    const detail = document.createElement("span");
+    detail.className = "stats-table__rookie-rk-pos";
+    detail.textContent = `(${position}\u200A·\u200A${formatCellValue(posRank)})`;
+    wrapper.append(detail);
+  }
+
+  return wrapper;
+}
+
+function createRookieTierBadge(value) {
   const tier = getRookieTierStyleLevel(value);
   const badge = document.createElement("span");
   badge.className = `stats-table__rookie-tier-badge stats-table__rookie-tier-badge--tier-${tier}`;
@@ -7610,10 +7616,9 @@ function createRookieCareerTierBadge(value) {
   }
   badge.setAttribute("aria-label", tier ? `Tier ${tier}` : formatCellValue(value));
 
-  // Rankings & Career Stats TIER badge:
-  // use the requested tier-specific Lucide glyph and render the label as T#
-  // without the old T-# dash. Unranked values render as plain NR with subdued
-  // color while preserving raw data for sorting.
+  // Rookies TIER badge:
+  // use the tier-specific Lucide glyph and render the label as T# in both
+  // Rookies subviews while preserving raw data for sorting.
   const iconMarkup = ROOKIE_CAREER_TIER_BADGE_ICONS[tier];
   if (iconMarkup) {
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -8307,6 +8312,12 @@ function getActiveWidthMap() {
       : ROOKIES_TRADE_COLUMN_WIDTHS;
   }
 
+  if (state.activePageView === "rookies-career") {
+    return state.isCompactViewport
+      ? ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS
+      : ROOKIES_CAREER_COLUMN_WIDTHS;
+  }
+
   return state.isCompactViewport ? MOBILE_COLUMN_WIDTHS : COLUMN_WIDTHS;
 }
 
@@ -8466,7 +8477,7 @@ function getCellClassNames(columnName, value, row = null) {
 
   const missingValue = isMissingValue(value);
 
-  if (NON_FORMATTED_COLUMNS.has(columnName)) {
+  if (!isFormattedDataHubColumn(columnName)) {
     classes.push("plain-cell");
   } else {
     classes.push("formatted-cell");
@@ -8510,7 +8521,7 @@ function getCellClassNames(columnName, value, row = null) {
     return classes;
   }
 
-  if (!NON_FORMATTED_COLUMNS.has(columnName)) {
+  if (isFormattedDataHubColumn(columnName)) {
     const family = getFormattingFamily(columnName);
     const tier = getFormattingTier(columnName, value);
     classes.push("heat-cell", `heat-cell--${family}`, `heat-cell--tier-${tier}`);
@@ -8616,7 +8627,7 @@ function buildColumnFormatting(rows) {
   const columns = getActiveColumnSet();
 
   columns.forEach((columnName) => {
-    if (NON_FORMATTED_COLUMNS.has(columnName)) {
+    if (!isFormattedDataHubColumn(columnName)) {
       return;
     }
 
