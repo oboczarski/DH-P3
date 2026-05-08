@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub route cleanup: bump the cache so browsers pick up the single
-// lowercase DataHub page entrypoint and stop using the old aliases.
-const CACHE_NAME = 'DH2.6';
+// DataHub table controls: bump the cache so browsers pick up the updated
+// top-of-table sort dropdown and mobile meta-chip styling after deploy.
+const CACHE_NAME = 'DH2.7';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

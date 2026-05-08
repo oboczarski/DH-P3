@@ -725,12 +725,38 @@
            structure, and overlay loading/import affordance. -->
       <section class="grid-shell glass-panel">
         <div class="grid-shell__meta">
-          <div>
+          <div class="active-view-meta">
             <p class="meta-label">ACTIVE VIEW</p>
             <p id="active-view-label" class="meta-value">OVERVIEW (ALL)</p>
           </div>
           <div class="meta-pill-wrap">
-            <span id="sort-meta-pill" class="meta-pill">SORTED BY: FPTS</span>
+            <!-- DataHub table sort dropdown:
+                 Targets the top-of-table sort summary. The label is outside
+                 the chip, while DataHub.js turns the chip into a dropdown so
+                 users can sort without tapping table headers. -->
+            <div class="sort-meta-control" data-sort-meta-control>
+              <p id="sort-meta-label" class="meta-label sort-meta-label">SORTED BY</p>
+              <div class="sort-meta-dropdown">
+                <button
+                  id="sort-meta-pill"
+                  class="meta-pill meta-pill--button"
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="sort-meta-menu"
+                  aria-labelledby="sort-meta-label sort-meta-pill-label"
+                >
+                  <span id="sort-meta-pill-label" class="meta-pill__label">FPTS</span>
+                </button>
+                <div
+                  id="sort-meta-menu"
+                  class="sort-meta-menu"
+                  role="listbox"
+                  aria-labelledby="sort-meta-label"
+                  hidden
+                ></div>
+              </div>
+            </div>
             <span id="row-count" class="meta-count">0 rows</span>
           </div>
         </div>

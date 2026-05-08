@@ -2451,6 +2451,8 @@ const mainTitle = document.querySelector("#main-title");
 const activeViewLabel = document.querySelector("#active-view-label");
 const rowCount = document.querySelector("#row-count");
 const sortMetaPill = document.querySelector("#sort-meta-pill");
+const sortMetaControl = document.querySelector("[data-sort-meta-control]");
+const sortMetaMenu = document.querySelector("#sort-meta-menu");
 const chartToggleButton = document.querySelector("[data-chart-modal-toggle]");
 const chartModal = document.querySelector("#datahub-chart-modal");
 const chartModalOverlay = chartModal?.querySelector(".datahub-chart-modal__overlay");
@@ -2858,6 +2860,41 @@ function attachEventListeners() {
     });
   });
 
+  // Top-of-table sort dropdown:
+  // targets the DataHub grid meta chip and gives the same sort cycle as the
+  // table headers, so users can choose a sort column without horizontal table
+  // header taps. The listener stays page-local to this standalone bundle.
+  sortMetaPill?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSortMetaDropdown();
+  });
+
+  sortMetaPill?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowDown") {
+      return;
+    }
+
+    event.preventDefault();
+    openSortMetaDropdown({ focusSelected: true });
+  });
+
+  sortMetaMenu?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-sort-column]");
+    if (!(option instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const columnName = option.dataset.sortColumn;
+    if (!columnName) {
+      return;
+    }
+
+    applySortColumnCycle(columnName);
+    closeSortMetaDropdown({ restoreFocus: true });
+  });
+
+  sortMetaMenu?.addEventListener("keydown", handleSortMetaMenuKeydown);
+
   chartToggleButton?.addEventListener("click", () => {
     if (state.isChartModalOpen) {
       closeDataHubChartModal();
@@ -2873,6 +2910,10 @@ function attachEventListeners() {
   });
   chartModalOverlay?.addEventListener("click", closeDataHubChartModal);
   document.addEventListener("click", (event) => {
+    if (!event.target?.closest?.("[data-sort-meta-control]")) {
+      closeSortMetaDropdown();
+    }
+
     if (event.target?.closest?.("[data-team-filter-shell]")) {
       return;
     }
@@ -2883,6 +2924,7 @@ function attachEventListeners() {
       closeDataHubChartModal();
     }
     if (event.key === "Escape") {
+      closeSortMetaDropdown();
       closeAllDataHubTeamMenus();
     }
   });
@@ -6183,8 +6225,9 @@ function updateSortMetaPill() {
 
   const { column } = getResolvedSortState();
   const label = document.createElement("span");
+  label.id = "sort-meta-pill-label";
   label.className = "meta-pill__label";
-  label.textContent = `SORTED BY: ${getColumnLabel(column)}`;
+  label.textContent = getColumnLabel(column);
 
   const iconWrap = document.createElement("span");
   iconWrap.className = "meta-pill__icon";
@@ -6198,7 +6241,174 @@ function updateSortMetaPill() {
     iconWrap.append(sortIcon);
   }
 
-  sortMetaPill.replaceChildren(label, iconWrap);
+  const chevron = createSortMetaChevronIcon();
+
+  sortMetaPill.setAttribute("aria-label", `Sort table by ${getColumnLabel(column)}`);
+  sortMetaPill.replaceChildren(label, iconWrap, chevron);
+  renderSortMetaMenu();
+}
+
+function createSortMetaChevronIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.classList.add("meta-pill__chevron");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "m6 9 6 6 6-6");
+  svg.append(path);
+  return svg;
+}
+
+function getActiveSortableColumns() {
+  return getActiveColumnSet().filter((columnName) => isSortableColumn(columnName));
+}
+
+function renderSortMetaMenu() {
+  if (!sortMetaMenu) {
+    return;
+  }
+
+  const columns = getActiveSortableColumns();
+  const fragment = document.createDocumentFragment();
+
+  columns.forEach((columnName) => {
+    fragment.append(createSortMetaMenuOption(columnName));
+  });
+
+  if (!columns.length) {
+    const empty = document.createElement("div");
+    empty.className = "sort-meta-menu__empty";
+    empty.textContent = "No sortable columns";
+    fragment.append(empty);
+  }
+
+  sortMetaMenu.replaceChildren(fragment);
+}
+
+function createSortMetaMenuOption(columnName) {
+  const { column, direction } = getResolvedSortState();
+  const isActive = columnName === column;
+  const columnLabel = getColumnLabel(columnName);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "sort-meta-option";
+  button.dataset.sortColumn = columnName;
+  button.setAttribute("role", "option");
+  button.setAttribute("aria-selected", String(isActive));
+  button.classList.toggle("is-active", isActive);
+  button.setAttribute(
+    "aria-label",
+    isActive
+      ? `${columnLabel}, sorted ${direction === "asc" ? "ascending" : "descending"}`
+      : `Sort by ${columnLabel}`,
+  );
+
+  const label = document.createElement("span");
+  label.className = "sort-meta-option__label";
+  label.textContent = columnLabel;
+
+  const stateWrap = document.createElement("span");
+  stateWrap.className = "sort-meta-option__state";
+
+  // Sort dropdown option state:
+  // targets the active menu row only and reuses the same icon logic as the
+  // header/pill indicators so the direction shown in all three places matches.
+  if (isActive) {
+    const sortIcon = createSortIndicatorIcon(columnName);
+    if (sortIcon) {
+      sortIcon.classList.add("sort-meta-option__icon");
+      stateWrap.append(sortIcon);
+    }
+
+    const directionText = document.createElement("span");
+    directionText.className = "sort-meta-option__direction";
+    directionText.textContent = direction.toUpperCase();
+    stateWrap.append(directionText);
+  }
+
+  button.append(label, stateWrap);
+  return button;
+}
+
+function isSortMetaDropdownOpen() {
+  return Boolean(sortMetaMenu && sortMetaMenu.hidden === false);
+}
+
+function openSortMetaDropdown({ focusSelected = false } = {}) {
+  if (!sortMetaPill || !sortMetaMenu) {
+    return;
+  }
+
+  renderSortMetaMenu();
+  sortMetaMenu.hidden = false;
+  sortMetaPill.setAttribute("aria-expanded", "true");
+  sortMetaControl?.classList.add("is-open");
+
+  if (focusSelected) {
+    requestAnimationFrame(() => {
+      const selectedOption = sortMetaMenu.querySelector('[aria-selected="true"]');
+      const firstOption = sortMetaMenu.querySelector("[data-sort-column]");
+      (selectedOption || firstOption)?.focus?.();
+    });
+  }
+}
+
+function closeSortMetaDropdown({ restoreFocus = false } = {}) {
+  if (!sortMetaPill || !sortMetaMenu || sortMetaMenu.hidden) {
+    return;
+  }
+
+  sortMetaMenu.hidden = true;
+  sortMetaPill.setAttribute("aria-expanded", "false");
+  sortMetaControl?.classList.remove("is-open");
+
+  if (restoreFocus) {
+    sortMetaPill.focus?.();
+  }
+}
+
+function toggleSortMetaDropdown() {
+  if (isSortMetaDropdownOpen()) {
+    closeSortMetaDropdown();
+    return;
+  }
+
+  openSortMetaDropdown();
+}
+
+function handleSortMetaMenuKeydown(event) {
+  if (!sortMetaMenu) {
+    return;
+  }
+
+  const options = Array.from(sortMetaMenu.querySelectorAll("[data-sort-column]"));
+  if (!options.length) {
+    return;
+  }
+
+  const currentIndex = Math.max(0, options.indexOf(document.activeElement));
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeSortMetaDropdown({ restoreFocus: true });
+    return;
+  }
+
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    const direction = event.key === "ArrowDown" ? 1 : -1;
+    const nextIndex = (currentIndex + direction + options.length) % options.length;
+    options[nextIndex].focus();
+    return;
+  }
+
+  if (event.key === "Home" || event.key === "End") {
+    event.preventDefault();
+    const nextIndex = event.key === "Home" ? 0 : options.length - 1;
+    options[nextIndex].focus();
+  }
 }
 
 function createCategoryChipButton(category, isActive) {
@@ -7699,6 +7909,10 @@ function getOppositeSortDirection(direction) {
 }
 
 function handleHeaderSort(columnName) {
+  applySortColumnCycle(columnName);
+}
+
+function applySortColumnCycle(columnName) {
   if (!isSortableColumn(columnName)) {
     return;
   }

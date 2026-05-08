@@ -2248,6 +2248,13 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   margin: 0px 5px 12px 8px;
 }
 
+.active-view-meta,
+.sort-meta-control {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .meta-value {
   margin: 3px 0 0;
   font-size: 0.92rem;
@@ -2258,7 +2265,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .meta-pill-wrap {
   display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: end;
   justify-content: flex-start;
   gap: 8px;
 }
@@ -2280,9 +2287,37 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .meta-pill {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   gap: 6px;
   color: rgba(182, 244, 226, 0.88);
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
   box-shadow: inset 0 0 18px var(--success-glow);
+}
+
+.meta-pill--button {
+  min-width: 108px;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.meta-pill--button:hover,
+.meta-pill--button[aria-expanded="true"] {
+  border-color: rgba(151, 221, 255, 0.3);
+  color: rgba(214, 255, 243, 0.96);
+  background:
+    linear-gradient(180deg, rgba(129, 215, 255, 0.14), rgba(162, 127, 255, 0.08)),
+    rgba(10, 18, 30, 0.62);
+}
+
+.meta-pill--button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(151, 221, 255, 0.56),
+    0 0 0 6px rgba(92, 170, 255, 0.18),
+    inset 0 0 18px var(--success-glow);
 }
 
 .meta-pill__icon {
@@ -2297,6 +2332,136 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .meta-pill__sort-icon {
   width: 13px;
   height: 13px;
+}
+
+.meta-pill__chevron {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.meta-pill--button[aria-expanded="true"] .meta-pill__chevron {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+/* DataHub sort meta dropdown:
+   Targets the top-of-table sort chip only. The menu lists the active table's
+   sortable columns and stays scoped to the grid meta area so it cannot affect
+   hero filters, More navigation, or modal controls. */
+.sort-meta-dropdown {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.sort-meta-label {
+  justify-self: start;
+}
+
+.sort-meta-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 45;
+  display: grid;
+  gap: 4px;
+  width: min(270px, calc(100vw - 24px));
+  max-height: min(338px, 52vh);
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid rgba(151, 184, 229, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(22, 32, 50, 0.98), rgba(8, 14, 24, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 20px 44px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+}
+
+.sort-meta-menu[hidden] {
+  display: none !important;
+}
+
+.sort-meta-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(196, 212, 236, 0.82);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sort-meta-option:hover,
+.sort-meta-option:focus-visible {
+  outline: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(38, 55, 80, 0.72);
+  color: rgba(240, 247, 255, 0.96);
+}
+
+.sort-meta-option.is-active {
+  color: rgba(224, 255, 246, 0.98);
+  background:
+    linear-gradient(180deg, rgba(116, 239, 255, 0.13), rgba(114, 151, 255, 0.08)),
+    rgba(14, 27, 45, 0.86);
+  box-shadow:
+    inset 0 0 0 1px rgba(116, 239, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.sort-meta-option__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sort-meta-option__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 32px;
+  justify-content: flex-end;
+  color: rgb(90 245 209);
+}
+
+.sort-meta-option__icon {
+  width: 13px;
+  height: 13px;
+}
+
+.sort-meta-option__direction {
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+}
+
+.sort-meta-menu__empty {
+  padding: 10px;
+  color: rgba(177, 192, 215, 0.62);
+  font-size: 0.72rem;
+  text-align: center;
 }
 
 .grid-stage {
@@ -3809,6 +3974,68 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     justify-self: center;
     padding: 3px 13px;
     background: linear-gradient(180deg, rgb(92 108 157 / 34%), rgb(88 124 153 / 34%), rgb(101 89 158 / 20%));
+  }
+
+  /* Mobile grid meta labels:
+     Targets the ACTIVE VIEW and SORTED BY labels above the table only. The
+     labels become plain text while the active view value and sort value carry
+     the chip surfaces, matching the requested mobile hierarchy. */
+  .grid-shell__meta .meta-label {
+    justify-self: start;
+    margin-top: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: rgba(161, 169, 191, 0.74);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .grid-shell__meta {
+    align-items: end;
+    gap: 8px;
+    margin: 0 5px 10px 7px;
+  }
+
+  .active-view-meta {
+    justify-items: start;
+  }
+
+  .active-view-meta .meta-value {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    margin-top: 3px;
+    padding: 0 11px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+      rgba(10, 18, 30, 0.5);
+    color: rgba(233, 241, 255, 0.92);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    box-shadow:
+      inset 0 0 18px rgba(116, 239, 255, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .meta-pill-wrap {
+    gap: 6px;
+  }
+
+  .sort-meta-control {
+    justify-items: start;
+  }
+
+  .meta-pill--button {
+    min-width: 96px;
+  }
+
+  .sort-meta-menu {
+    width: min(246px, calc(100vw - 18px));
+    max-height: min(304px, 50vh);
   }
 
   /* Mobile hero order:
