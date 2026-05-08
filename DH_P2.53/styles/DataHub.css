@@ -4708,6 +4708,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-width: 113px;
   }
 
+  body[data-page="datahub"][data-datahub-view="stats"] .hero-controls--desktop .datahub-receiving-filter-shell,
+  body[data-page="datahub"][data-datahub-tab="rookies"] .hero-controls--desktop .datahub-receiving-filter-shell {
+    /* Desktop Stats/Rookies receiving category:
+       match the shell to sibling category-chip width so the centered row includes
+       the full Receiving button instead of letting the trigger overflow right. */
+    width: 127px;
+    min-width: 127px;
+  }
+
   .hero-controls--desktop .datahub-receiving-filter-inline {
     /* Match the 37px min-height of sibling category chips so the row height
        doesn't grow when the receiving slot switches to inline subfilters. */
