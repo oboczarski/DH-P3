@@ -2254,11 +2254,12 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .sort-meta-control {
   display: grid;
   gap: 4px;
+  grid-template-rows: 13px 28px;
   min-width: 0;
 }
 
 .meta-value {
-  margin: 3px 0 0;
+  margin: 0;
   font-size: 0.92rem;
   font-weight: 600;
   color: rgba(233, 241, 255, 0.9);
@@ -2276,6 +2277,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .meta-count {
   display: inline-flex;
   align-items: center;
+  height: 28px;
   min-height: 28px;
   padding: 0 9px;
   border-radius: 999px;
@@ -2300,6 +2302,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .meta-pill--button {
+  height: 28px;
   min-width: 108px;
   justify-content: center;
   cursor: pointer;
@@ -2352,6 +2355,25 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .meta-pill--button[aria-expanded="true"] .meta-pill__chevron {
   opacity: 1;
   transform: rotate(180deg);
+}
+
+/* DataHub grid meta active-view chip:
+   Targets the top-of-table Active View value so it lines up with the Sort By
+   control as a matching pill. The label remains outside the pill. */
+.active-view-meta .meta-value {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
+    rgba(10, 18, 30, 0.5);
+  box-shadow:
+    inset 0 0 18px rgba(116, 239, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 /* DataHub sort meta dropdown:
@@ -4036,22 +4058,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .active-view-meta .meta-value {
-    display: inline-flex;
-    align-items: center;
-    min-height: 28px;
-    margin-top: 3px;
-    padding: 0 11px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)),
-      rgba(10, 18, 30, 0.5);
     color: rgba(233, 241, 255, 0.92);
     font-size: 0.72rem;
     letter-spacing: 0.03em;
-    box-shadow:
-      inset 0 0 18px rgba(116, 239, 255, 0.14),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .meta-pill-wrap {
@@ -4265,6 +4274,27 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-width: 55px;
     white-space: nowrap;
     border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  /* Mobile tab-specific category labels:
+     Targets each DataHub tab family independently so Stats, Trade Values, and
+     Rookies control text can be tuned without leaking across tabs or desktop. */
+  body[data-page="datahub"][data-datahub-view="stats"] .hero-controls--mobile .category-chip__label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.7rem;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--mobile .category-chip__label {
+    display: block;
+    font-weight: 400;
+    font-size: 0.85rem;
+  }
+
+  body[data-page="datahub"][data-datahub-tab="rookies"] .hero-controls--mobile .category-chip__label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.7rem;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-row {
@@ -4637,6 +4667,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     flex-wrap: nowrap;
   }
 
+  /* Desktop Stats/Rookies category centering:
+     Targets only the Stats tab and Rookies top-tab category rows. The row
+     shrink-wraps to its actual buttons and is centered in the controls card,
+     avoiding the left-heavy spacing without changing Trade Values desktop. */
+  body[data-page="datahub"][data-datahub-view="stats"] .hero-controls--desktop .category-row,
+  body[data-page="datahub"][data-datahub-tab="rookies"] .hero-controls--desktop .category-row {
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
+    justify-content: center;
+  }
+
   .hero-controls--desktop .rookies-mode-row {
     flex-wrap: nowrap;
     gap: 10px;
@@ -4752,6 +4794,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .hero-controls--desktop .category-chip__label {
     font-size: 0.8rem;
     letter-spacing: -0.005em;
+  }
+
+  /* Desktop Trade Values category typography:
+     Targets only the Trade Val. & ADP tab so desktop label tuning does not
+     leak into Stats, Rookies, mobile controls, or the Rookies trade subview. */
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .category-chip__label {
+    font-size: 0.9rem;
+    letter-spacing: 0.005em;
+    font-weight: 600;
   }
 
   .hero-controls--desktop .category-chip__meta {
