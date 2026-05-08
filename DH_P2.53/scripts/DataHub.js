@@ -2884,6 +2884,12 @@ function attachEventListeners() {
       return;
     }
 
+    if (option.dataset.sortDefault === "true") {
+      applyDefaultSortState();
+      closeSortMetaDropdown({ restoreFocus: true });
+      return;
+    }
+
     const columnName = option.dataset.sortColumn;
     if (!columnName) {
       return;
@@ -6273,6 +6279,8 @@ function renderSortMetaMenu() {
   const columns = getActiveSortableColumns();
   const fragment = document.createDocumentFragment();
 
+  fragment.append(createSortMetaDefaultMenuOption());
+
   columns.forEach((columnName) => {
     fragment.append(createSortMetaMenuOption(columnName));
   });
@@ -6287,9 +6295,63 @@ function renderSortMetaMenu() {
   sortMetaMenu.replaceChildren(fragment);
 }
 
+function createSortMetaDefaultMenuOption() {
+  const defaultSort = createDefaultSort(state.activePageView);
+  const isActive = isDefaultSortActive();
+  const defaultLabel = getColumnLabel(defaultSort.column);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "sort-meta-option sort-meta-option--default";
+  button.dataset.sortColumn = defaultSort.column;
+  button.dataset.sortDefault = "true";
+  button.setAttribute("role", "option");
+  button.setAttribute("aria-selected", String(isActive));
+  button.classList.toggle("is-active", isActive);
+  button.setAttribute(
+    "aria-label",
+    `Default sort: ${defaultLabel}, ${defaultSort.direction === "asc" ? "ascending" : "descending"}`,
+  );
+
+  const label = document.createElement("span");
+  label.className = "sort-meta-option__label sort-meta-option__label--default";
+
+  const prefix = document.createElement("span");
+  prefix.className = "sort-meta-option__default-prefix";
+  prefix.textContent = "default:";
+
+  const value = document.createElement("span");
+  value.className = "sort-meta-option__default-value";
+  value.textContent = defaultLabel;
+
+  label.append(prefix, value);
+
+  const stateWrap = document.createElement("span");
+  stateWrap.className = "sort-meta-option__state";
+
+  // Sort dropdown default option:
+  // targets the first menu row only and always resets the table to the active
+  // view's baseline column/direction, without adding the "default:" prefix to
+  // the closed sort chip itself.
+  if (isActive) {
+    const sortIcon = createSortIndicatorIcon(defaultSort.column);
+    if (sortIcon) {
+      sortIcon.classList.add("sort-meta-option__icon");
+      stateWrap.append(sortIcon);
+    }
+  }
+
+  const directionText = document.createElement("span");
+  directionText.className = "sort-meta-option__direction";
+  directionText.textContent = defaultSort.direction.toUpperCase();
+  stateWrap.append(directionText);
+
+  button.append(label, stateWrap);
+  return button;
+}
+
 function createSortMetaMenuOption(columnName) {
   const { column, direction } = getResolvedSortState();
-  const isActive = columnName === column;
+  const isActive = columnName === column && !isDefaultSortActive();
   const columnLabel = getColumnLabel(columnName);
   const button = document.createElement("button");
   button.type = "button";
@@ -6334,6 +6396,20 @@ function createSortMetaMenuOption(columnName) {
 
 function isSortMetaDropdownOpen() {
   return Boolean(sortMetaMenu && sortMetaMenu.hidden === false);
+}
+
+function isDefaultSortActive() {
+  const defaultSort = createDefaultSort(state.activePageView);
+  return state.sort.column === defaultSort.column
+    && state.sort.direction === defaultSort.direction;
+}
+
+function applyDefaultSortState() {
+  // DataHub sort default reset:
+  // used by the menu-only "default:" row so the top option always returns the
+  // current table view to its configured baseline sort.
+  state.sort = createDefaultSort(state.activePageView);
+  applySortedRows();
 }
 
 function openSortMetaDropdown({ focusSelected = false } = {}) {

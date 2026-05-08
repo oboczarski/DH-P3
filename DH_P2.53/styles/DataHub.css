@@ -2431,11 +2431,42 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Sort dropdown default row:
+   Targets the first menu option only. It exposes the active table view's
+   configured default sort as `default: <stat>` without changing the closed
+   sort-chip label. */
+.sort-meta-option--default {
+  margin-bottom: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(18, 29, 48, 0.64);
+  box-shadow: inset 0 -1px 0 rgba(151, 184, 229, 0.13);
+}
+
+.sort-meta-option--default:not(.is-active) .sort-meta-option__state {
+  color: rgba(177, 192, 215, 0.62);
+}
+
 .sort-meta-option__label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sort-meta-option__label--default {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.sort-meta-option__default-prefix {
+  color: rgba(177, 192, 215, 0.72);
+  font-weight: 700;
+}
+
+.sort-meta-option__default-value {
+  color: inherit;
 }
 
 .sort-meta-option__state {
