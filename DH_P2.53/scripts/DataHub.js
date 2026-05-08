@@ -2299,7 +2299,7 @@ const ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS = Object.freeze({
   // match career/trade layouts column-for-column while giving combined RK
   // enough room for examples like "83 (QB · 24)" without clipping.
   index: MOBILE_COLUMN_WIDTHS.RK,
-  RK: 82,
+  RK: 42,
 });
 const ROOKIES_TRADE_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...TRADE_VALUES_MOBILE_COLUMN_WIDTHS,
