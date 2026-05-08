@@ -1505,7 +1505,7 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 .top-tab.is-active,
 .category-chip.is-active,
 .subfilter-chip.is-active {
-  border: 0px solid transparent;
+  border: 0px inset transparent;
   color: #f3f8ff;
   background:
     linear-gradient(180deg, rgba(133, 215, 255, 0.24), rgba(162, 127, 255, 0.16)),
@@ -1671,13 +1671,10 @@ body[data-page="datahub"] .mini-chip.is-active::before {
   min-height: 42px;
   padding: 2px;
   border-radius: 18px;
-  border: 1px solid rgba(129, 147, 184, 0.2);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.16)),
-    rgba(13, 19, 32, 0.74);
-  box-shadow:
-    inset 0 10px 16px rgba(255, 255, 255, 0.018),
-    0 8px 18px rgba(0, 0, 0, 0.18);
+  border: 0px solid rgba(129, 147, 184, 0.2);
+  background: linear-gradient(180deg, rgb(44 49 67), rgb(29 35 53)), rgb(15 16 19 / 74%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.28),
+    0 4px 7px rgba(0, 0, 0, 0.39);
 }
 
 .datahub-receiving-filter-shell.is-expanded .datahub-receiving-filter-trigger {
@@ -1705,17 +1702,21 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .datahub-receiving-filter-chip.category-chip {
   flex-direction: row;
   gap: 0;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgb(133 215 255 / 33%), rgb(124 75 255 / 28%)), rgba(11, 22, 39, 0.74);
 }
 
 /* DataHub Stats WR / TE nested filters:
    override only these two active rings so the in-place receiving subfilters
    use their own solid accent borders instead of the shared gradient border. */
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
-  background: #7297ff;
+  background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff7d);
+  padding: 1px 1px 1px 1px;
 }
 
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
-  background: #a453ff;
+  background: linear-gradient(135deg, rgb(156 102 255), rgb(92 23 255), rgb(139 30 252));
+  padding: 1px 1px 1px 1px;
 }
 
 .receiving-subfilters {
@@ -4240,13 +4241,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .datahub-receiving-filter-inline {
     min-height: 38px;
-    gap: 3px;
+    gap: 2px;
     padding: 2px;
     border-radius: 16px;
   }
 
   .datahub-receiving-filter-chip {
-    min-height: 34px;
+    min-height: 36px;
     padding-inline: 4px;
     font-size: 0.72rem;
   }
