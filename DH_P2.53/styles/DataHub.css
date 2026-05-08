@@ -4596,7 +4596,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     border-radius: 999px;
     flex-direction: row;
     gap: 4px;
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     white-space: nowrap;
     line-height: 1;
   }
@@ -4701,7 +4701,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     overflow: hidden;
     min-height: 37px;
     padding: 0 4px;
-    min-width: 113px;
+    min-width: 127px;
     border-radius: 12px;
     border-color: rgba(136, 162, 198, 0);
     background: linear-gradient(180deg, rgba(30, 42, 60, 0.9), rgba(16, 24, 38, 0.95));
@@ -4750,8 +4750,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .category-chip__label {
-    font-size: 0.7rem;
-    letter-spacing: 0.005em;
+    font-size: 0.8rem;
+    letter-spacing: -0.005em;
   }
 
   .hero-controls--desktop .category-chip__meta {
