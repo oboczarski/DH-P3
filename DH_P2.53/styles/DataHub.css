@@ -2950,11 +2950,12 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   fill: none;
 }
 
-/* Rookie career RK header icon:
-   targets the Rankings & Career Stats rookies subview only. The denser
-   laurel-wreath glyph gets a slightly lighter stroke and touch more room so
-   the added detail stays readable without affecting other table header icons. */
-body[data-page="datahub"][data-datahub-view="rookies-career"] [data-column-name="RK"] .stats-table__head-icon--rookie-career-rk {
+/* Rookie RK/TIER header icons:
+  target only the rookie-tab table headers. These denser Tabler glyphs use
+  the approved 18px footprint so both rookie views stay crisp without leaking
+  into non-rookie DataHub header icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RK"] .stats-table__head-icon--rookie-rk,
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
   width: 18px;
   height: 18px;
   stroke-width: 1.95px;
@@ -4024,7 +4025,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 13px;
   }
 
-  body[data-page="datahub"][data-datahub-view="rookies-career"] [data-column-name="RK"] .stats-table__head-icon--rookie-career-rk {
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RK"] .stats-table__head-icon--rookie-rk,
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
     width: 14px;
     height: 14px;
     stroke-width: 2.15px;

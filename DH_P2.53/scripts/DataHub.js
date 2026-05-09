@@ -899,11 +899,10 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   DraftMedal: '<path d="M8 2h8l-2 6h-4z" /><path d="M10 8 7 13" /><path d="m14 8 3 5" /><circle cx="12" cy="16" r="5" /><path d="M12 13v6" /><path d="M9.5 16h5" />',
 });
 
-// Rookie career RK header icon:
-// use the requested Tabler laurel-wreath rank glyph only in the Rankings &
-// Career Stats rookies subview, while keeping DataHub's existing helper-owned
-// outer <svg> wrapper and all other rookies RK header icons unchanged.
-const ROOKIE_CAREER_RK_HEADER_ICON_MARKUP = [
+// Rookie RK header icon:
+// use the requested Tabler laurel-wreath rank glyph across both rookie
+// subviews while keeping DataHub's helper-owned outer <svg> wrapper intact.
+const ROOKIE_RK_HEADER_ICON_MARKUP = [
   '<path d="M6.436 8a8.6 8.6 0 0 0 -.436 2.727c0 4.017 2.686 7.273 6 7.273s6 -3.256 6 -7.273a8.6 8.6 0 0 0 -.436 -2.727" />',
   '<path d="M14.5 21s-.682 -3 -2.5 -3s-2.5 3 -2.5 3" />',
   '<path d="M18.52 5.23c.292 1.666 -1.02 2.77 -1.02 2.77s-1.603 -.563 -1.895 -2.23c-.292 -1.666 1.02 -2.77 1.02 -2.77s1.603 .563 1.895 2.23" />',
@@ -913,6 +912,24 @@ const ROOKIE_CAREER_RK_HEADER_ICON_MARKUP = [
   '<path d="M2.906 12.14c1.281 1.266 3.016 .76 3.016 .76s.454 -1.772 -.828 -3.04c-1.281 -1.265 -3.016 -.76 -3.016 -.76s-.454 1.772 .828 3.04" />',
   '<path d="M5.48 5.23c-.292 1.666 1.02 2.77 1.02 2.77s1.603 -.563 1.895 -2.23c.292 -1.666 -1.02 -2.77 -1.02 -2.77s-1.603 .563 -1.895 2.23" />',
   '<path d="M11 9l1 -1v6" />',
+].join("");
+
+// Rookie TIER header icon:
+// the rookie-tab tables use the requested Tabler hierarchy glyph for the
+// TIER column header without altering non-rookie DataHub table headers.
+const ROOKIE_TIER_HEADER_ICON_MARKUP = [
+  '<path d="M10 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M10 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M18 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M2 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M14 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
+  '<path d="M5 17l2 -3" />',
+  '<path d="M9 10l2 -3" />',
+  '<path d="M13 7l2 3" />',
+  '<path d="M17 14l2 3" />',
+  '<path d="M15 14l-2 3" />',
+  '<path d="M9 14l2 3" />',
 ].join("");
 
 // Rookies tier badges:
@@ -6146,16 +6163,17 @@ function getActiveColumnIconMarkup(columnName) {
     }
   }
 
-  // Rookies RK header icon swap:
-  // only the Rankings & Career Stats rookies subview gets the requested
-  // laurel-wreath header icon; the rookie trade subview keeps the current
-  // OVR-RK arrow treatment so this change stays scoped to the requested table.
-  if (columnName === RK_COLUMN && isDataHubRookiesCareerView()) {
-    return ROOKIE_CAREER_RK_HEADER_ICON_MARKUP;
-  }
+  // Rookie header icon swaps:
+  // the rookie tab owns custom RK and TIER header glyphs so both subviews can
+  // share the requested Tabler icons without changing non-rookie table headers.
+  if (isDataHubRookiesView()) {
+    if (columnName === RK_COLUMN) {
+      return ROOKIE_RK_HEADER_ICON_MARKUP;
+    }
 
-  if (columnName === RK_COLUMN && isDataHubRookiesTradeView()) {
-    return COLUMN_ICONS["OVR-RK"];
+    if (columnName === "TIER") {
+      return ROOKIE_TIER_HEADER_ICON_MARKUP;
+    }
   }
 
   return COLUMN_ICONS[columnName];
@@ -7476,11 +7494,17 @@ function createHeaderCell(column, columnIconColor) {
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
     svg.classList.add("stats-table__head-icon");
-    if (column.name === RK_COLUMN && isDataHubRookiesCareerView()) {
-      // Rookie career RK header icon:
-      // the denser laurel-wreath markup needs a slightly lighter class hook so
-      // it stays legible at DataHub's compact header-icon size.
-      svg.classList.add("stats-table__head-icon--rookie-career-rk");
+    if (column.name === RK_COLUMN && isDataHubRookiesView()) {
+      // Rookie RK header icon:
+      // the denser laurel-wreath markup gets a dedicated class so both rookie
+      // subviews can keep the approved compact 18px treatment.
+      svg.classList.add("stats-table__head-icon--rookie-rk");
+    }
+    if (column.name === "TIER" && isDataHubRookiesView()) {
+      // Rookie TIER header icon:
+      // the hierarchy glyph is denser than the shared default icon, so it gets
+      // its own class hook for rookie-tab-only sizing and stroke tuning.
+      svg.classList.add("stats-table__head-icon--rookie-tier");
     }
     if (columnIconColor) {
       svg.style.setProperty("--column-icon-color", columnIconColor);
