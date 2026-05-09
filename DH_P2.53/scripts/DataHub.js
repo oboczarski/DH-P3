@@ -946,115 +946,179 @@ const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
   8: DATAHUB_LUCIDE_ICON_MARKUP.Radiation,
 });
 
+// Data Hub table headers + group headers:
+// keep all table-only icon swaps on a dedicated Tabler-style registry so the
+// page can upgrade its header visuals without changing non-table Lucide icons
+// such as nav buttons, modals, or rookie tier row badges.
+const DATAHUB_TABLE_TABLER_ICON_MARKUP = Object.freeze({
+  ListDetails: '<path d="M9 6h11" /><path d="M9 12h11" /><path d="M9 18h11" /><path d="M4 6h.01" /><path d="M4 12h.01" /><path d="M4 18h.01" />',
+  UserCircle: '<circle cx="12" cy="12" r="9" /><circle cx="12" cy="10" r="3" /><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855" />',
+  Tag: '<path d="M7 7h.01" /><path d="M3 12v-3a2 2 0 0 1 2 -2h4l9 9l-6 6l-9 -9z" />',
+  Home: '<path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />',
+  Calendar: '<path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" />',
+  Activity: '<path d="M3 12h4l3 7l4 -14l3 7h4" />',
+  InfoCircle: '<circle cx="12" cy="12" r="9" /><path d="M12 8h.01" /><path d="M12 11v5" />',
+  TargetArrow: '<circle cx="12" cy="12" r="8" /><path d="M12 12l7 -7" /><path d="M15 5h4v4" />',
+  Target: '<circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3" /><path d="M12 3v2" /><path d="M12 19v2" /><path d="M3 12h2" /><path d="M19 12h2" />',
+  Ruler: '<path d="M5 6h14" /><path d="M5 18h14" /><path d="M9 6v12" /><path d="M15 6v12" />',
+  Barbell: '<path d="M4 8v8" /><path d="M7 6v12" /><path d="M17 6v12" /><path d="M20 8v8" /><path d="M7 12h10" />',
+  Stopwatch: '<circle cx="12" cy="14" r="7" /><path d="M10 2h4" /><path d="M12 14l3 2" /><path d="M12 7v2" />',
+  Sparkles: '<path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z" /><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z" /><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z" />',
+  Hierarchy: '<path d="M10 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M14 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M10 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M12 7v3" /><path d="M8 14v1" /><path d="M16 14v1" /><path d="M12 14v3" /><path d="M8 10h8" />',
+  ArrowUpBar: '<path d="M5 5h14" /><path d="M12 19v-11" /><path d="M9 11l3 -3l3 3" />',
+  Ticket: '<path d="M15 5v2" /><path d="M15 17v2" /><path d="M5 9a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-2a2 2 0 0 0 0 -4z" />',
+  Medal: '<path d="M12 14m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M10 10l-2 -6l4 2l4 -2l-2 6" />',
+  CirclePlus: '<circle cx="12" cy="12" r="9" /><path d="M12 8v8" /><path d="M8 12h8" />',
+  Bolt: '<path d="M13 2l-8 12h6l-1 8l8 -12h-6l1 -8z" />',
+  CircleCheck: '<circle cx="12" cy="12" r="9" /><path d="M9 12l2 2l4 -4" />',
+  CurrencyDollar: '<path d="M12 3v18" /><path d="M15.5 7a3.5 3.5 0 0 0 -3.5 -1.5a3 3 0 0 0 0 6a3 3 0 1 1 0 6a3.5 3.5 0 0 1 -3.5 -1.5" />',
+  DollarBadge: '<path d="M7.5 4.5h9l3 3v9l-3 3h-9l-3 -3v-9z" /><path d="M12 7v10" /><path d="M15 9.5a2 2 0 0 0 -2 -1.5h-1a2 2 0 1 0 0 4h1a2 2 0 1 1 0 4h-1a2 2 0 0 1 -2 -1.5" />',
+  DollarCircle: '<circle cx="12" cy="12" r="9" /><path d="M12 7v10" /><path d="M15 9.5a2 2 0 0 0 -2 -1.5h-1a2 2 0 1 0 0 4h1a2 2 0 1 1 0 4h-1a2 2 0 0 1 -2 -1.5" />',
+  ChartHistogram: '<path d="M5 20v-8" /><path d="M10 20v-14" /><path d="M15 20v-5" /><path d="M20 20v-11" />',
+  Filter: '<path d="M4 6h16" /><path d="M7 12h10" /><path d="M10 18h4" />',
+  ChartLine: '<path d="M4 19h16" /><path d="M4 19v-14" /><path d="M7 14l4 -4l3 3l5 -6" />',
+  Shield: '<path d="M12 3l7 4v5c0 5 -3.5 7.5 -7 9c-3.5 -1.5 -7 -4 -7 -9v-5l7 -4z" />',
+  Sun: '<circle cx="12" cy="12" r="3" /><path d="M12 3v2" /><path d="M12 19v2" /><path d="M3 12h2" /><path d="M19 12h2" /><path d="M6.5 6.5l1.5 1.5" /><path d="M16 16l1.5 1.5" /><path d="M16 8l1.5 -1.5" /><path d="M6.5 17.5l1.5 -1.5" />',
+  Signal: '<path d="M4 20h.01" /><path d="M8 20v-4" /><path d="M12 20v-8" /><path d="M16 20v-12" /><path d="M20 20v-16" />',
+  Refresh: '<path d="M20 11a8 8 0 0 0 -15.5 -2" /><path d="M4 4v5h5" /><path d="M4 13a8 8 0 0 0 15.5 2" /><path d="M20 20v-5h-5" />',
+  ArrowsHorizontal: '<path d="M4 12h16" /><path d="M8 8l-4 4l4 4" /><path d="M16 8l4 4l-4 4" />',
+  ChartScatter: '<path d="M4 19h16" /><path d="M4 19v-14" /><circle cx="8" cy="14" r="1" /><circle cx="11" cy="10" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="18" cy="7" r="1" />',
+  Gauge: '<path d="M4 13a8 8 0 1 1 16 0" /><path d="M12 13l4 -4" />',
+  Focus: '<circle cx="12" cy="12" r="3" /><path d="M4 12h2" /><path d="M18 12h2" /><path d="M12 4v2" /><path d="M12 18v2" />',
+  Rotate: '<path d="M15 4.5a8 8 0 1 0 4 7.5" /><path d="M15 4v5h5" />',
+  Check: '<path d="M7 12l3 3l7 -7" />',
+  Route: '<circle cx="6" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><path d="M8 18h6a4 4 0 0 0 4 -4v-6" />',
+  MapPinCheck: '<path d="M12 21s6 -5.2 6 -10a6 6 0 1 0 -12 0c0 4.8 6 10 6 10z" /><path d="M10 11l1.5 1.5l2.5 -2.5" />',
+  CircleDot: '<circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="1" />',
+  Atom: '<circle cx="12" cy="12" r="1" /><path d="M20.2 20.2c2.04 -2.03 .02 -7.36 -4.5 -11.9c-4.54 -4.52 -9.87 -6.54 -11.9 -4.5c-2.04 2.03 -.02 7.36 4.5 11.9c4.54 4.52 9.87 6.54 11.9 4.5z" /><path d="M15.7 15.7c4.52 -4.54 6.54 -9.87 4.5 -11.9c-2.03 -2.04 -7.36 -.02 -11.9 4.5c-4.52 4.54 -6.54 9.87 -4.5 11.9c2.03 2.04 7.36 .02 11.9 -4.5z" />',
+  Heartbeat: '<path d="M3 12h4l3 -6l4 12l3 -6h4" />',
+  Split: '<path d="M5 5v4a3 3 0 0 0 3 3h11" /><path d="M5 19v-4a3 3 0 0 1 3 -3h11" /><path d="M15 5h4" /><path d="M15 19h4" />',
+  ArrowBarDown: '<path d="M12 4v13" /><path d="M8 13l4 4l4 -4" /><path d="M5 21h14" />',
+  AlertTriangle: '<path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.29 3.86l-7.5 13a2 2 0 0 0 1.71 3h14.98a2 2 0 0 0 1.71 -3l-7.5 -13a2 2 0 0 0 -3.42 0z" />',
+  HandGrab: '<path d="M7 12v-2a1 1 0 0 1 2 0v2" /><path d="M10 12v-3a1 1 0 0 1 2 0v3" /><path d="M13 12v-2a1 1 0 0 1 2 0v2" /><path d="M16 12v-1a1 1 0 0 1 2 0v3a6 6 0 0 1 -6 6h-1a6 6 0 0 1 -6 -6v-1a2 2 0 0 1 2 -2h9" />',
+  Gamepad: '<path d="M4 12l1.5 -3a2 2 0 0 1 1.8 -1h9.4a2 2 0 0 1 1.8 1l1.5 3a2 2 0 0 1 -1.8 3h-2.2l-2 -2h-4l-2 2h-2.2a2 2 0 0 1 -1.8 -3z" /><path d="M8 10v4" /><path d="M6 12h4" /><path d="M16 11h.01" /><path d="M18 13h.01" />',
+  Train: '<rect x="6" y="4" width="12" height="13" rx="2" /><path d="M6 11h12" /><path d="M10 15h.01" /><path d="M14 15h.01" /><path d="M8 17l-2 3" /><path d="M16 17l2 3" />',
+  Bomb: '<circle cx="11" cy="13" r="8" /><path d="M15 6l3 -3a2 2 0 0 1 3 3l-3 3" /><path d="M19 3l1 1" />',
+  Rocket: '<path d="M4.5 16.5c-1.5 1.2 -2 4.5 -2 4.5s3.3 -.5 4.5 -2l2 -2l-2.5 -2.5l-2 2z" /><path d="M14 10l-4 -4c2 -4 6 -4 10 -4c0 4 -1 8 -6 12z" /><path d="M12 12l5 5" />',
+  RouteAlt: '<circle cx="6" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><circle cx="18" cy="18" r="2" /><path d="M8 18h6a4 4 0 0 0 4 -4v-4" />',
+  ArrowsDiff: '<path d="M7 7h10" /><path d="M7 17h10" /><path d="M14 4l3 3l-3 3" /><path d="M10 14l-3 3l3 3" />',
+  PullRequest: '<circle cx="6" cy="6" r="2" /><circle cx="18" cy="18" r="2" /><path d="M6 8v8a4 4 0 0 0 4 4h6" /><path d="M14 6h4" /><path d="M16 4l2 2l-2 2" />',
+  PlaneDeparture: '<path d="M3 20h18" /><path d="M5 16l14 -5l-3 -3l-4 1l-3 -4l-2 1l1 4l-4 1z" />',
+  Percentage: '<path d="M17 7l-10 10" /><circle cx="7" cy="7" r="1" /><circle cx="17" cy="17" r="1" />',
+  TrendUp: '<path d="M4 17l6 -6l4 4l6 -8" /><path d="M14 7h6v6" />',
+  TrendUpDown: '<path d="M4 17l6 -6l4 4l6 -8" /><path d="M4 7l5 5l4 -4l3 3" />',
+});
+
 // ---------------------------------------------------------------------------
-// Lucide icon paths (24×24 viewBox, stroke-based). Only columns used in this
-// app are listed here — no full icon library is loaded or bundled.
+// Data Hub table column-header icons.
+// These stay on the current inline-SVG path contract, but now point to the
+// page-local Tabler-style registry so only the Data Hub table headers change.
 // ---------------------------------------------------------------------------
 const COLUMN_ICONS = {
-  index:     "M4 6h16M4 12h8M4 18h4", // Row index lines
-  RK:        "M4 6h16M4 12h8M4 18h4", // Hash-like lines
-  PLAYER:    "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", // User
-  POS:       "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01", // Tag
-  TM:        "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10", // Home/Building
-  AGE:       "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", // Calendar
-  G:         "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games played
-  Gs:        "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games started
-  CFB:       DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
-  HT:        "M21 6H3M21 18H3M8 6v12M16 6v12", // Ruler
-  WT:        "M7 6h10l2 4-2 8H7L5 10l2-4zM9.5 13h5", // Weight/scale
-  "40dsh":   DATAHUB_LUCIDE_ICON_MARKUP.ClockFading,
-  GRD:       DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-  TIER:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
-  "OVR-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
-  "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.DraftTicket,
-  OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.DraftMedal,
-  "POS-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
-  FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
-  PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
-  tYDS:      DATAHUB_LUCIDE_ICON_MARKUP.RulerDimensionLine,
-  tTD:       "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3", // CheckCircle
-  "KTC 1QB": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
-  "KTC SFLX": "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
-  "1QB ADP": DATAHUB_LUCIDE_ICON_MARKUP.TrendingUpDown,
-  "SFLX ADP": DATAHUB_LUCIDE_ICON_MARKUP.TrendingUpDown,
-  "1QB DIFF": DATAHUB_LUCIDE_ICON_MARKUP.Diff,
-  "SFLX DIFF": DATAHUB_LUCIDE_ICON_MARKUP.Diff,
-  VALUE:     "M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", // DollarSign
-  ADP:       "M18 20V10M12 20V4M6 20v-6", // BarChart2
-  "POS·ADP": "M3 6h18M7 12h10M11 18h2", // ListFilter (3 lines decreasing)
-  SNP:       "M22 12h-4l-3 9L9 3l-3 9H2", // Activity
-  "SNP%":    DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
-  "YDS(t)":  DATAHUB_LUCIDE_ICON_MARKUP.RulerDimensionLine,
-  "YPG(t)":  DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
-  OPP:       "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", // Shield/Opposition
-  IMP:       "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83", // Sun/Impact
-  "IMP/OPP": DATAHUB_LUCIDE_ICON_MARKUP.SignalHigh,
-  "CSTY%":   DATAHUB_LUCIDE_ICON_MARKUP.RefreshCw,
-  CL:        DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
-  paYDS:     DATAHUB_LUCIDE_ICON_MARKUP.ChevronsLeftRightEllipsis,
-  paTD:      "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3", // CheckCircle
-  "CMP%":    DATAHUB_LUCIDE_ICON_MARKUP.RefreshCcwDot,
-  paATT:     DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
-  "paATT_EFF": DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
-  paRTG:     DATAHUB_LUCIDE_ICON_MARKUP.Flame,
-  "EPA/DB":  DATAHUB_LUCIDE_ICON_MARKUP.LocateFixed,
-  CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
-  CMP:       "M20 6 9 17l-5-5", // Check
-  YPA:       DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
-  paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
-  ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
-  ruTD:      DATAHUB_LUCIDE_ICON_MARKUP.ArrowUp10,
-  pa1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
-  "IMP/G":   DATAHUB_LUCIDE_ICON_MARKUP.Fan,
-  pIMP:      "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8 12l3 3 5-5", // Target+check
-  "pIMP/A":  DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
-  "pIMP/ATT": DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
-  CAR:       DATAHUB_LUCIDE_ICON_MARKUP.Bus,
-  YPC:       DATAHUB_LUCIDE_ICON_MARKUP.Atom,
-  TTT:       DATAHUB_LUCIDE_ICON_MARKUP.ClockFading,
-  "PRS%":    DATAHUB_LUCIDE_ICON_MARKUP.SquareActivity,
-  "DP%":     DATAHUB_LUCIDE_ICON_MARKUP.Split,
-  SAC:       DATAHUB_LUCIDE_ICON_MARKUP.ArrowBigDownDash,
-  INT:       DATAHUB_LUCIDE_ICON_MARKUP.Tablets,
-  FUM:       "M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", // AlertCircle
-  FPOE:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
-  REC:       DATAHUB_LUCIDE_ICON_MARKUP.HandHelping,
-  recYDS:    DATAHUB_LUCIDE_ICON_MARKUP.Split,
-  TGT:       "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target circles
-  ELU:       "M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2 2 0 1 1 19 12H2", // Wind
-  "MTF/A":   DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
-  "YCO/A":   DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-  MTF:       DATAHUB_LUCIDE_ICON_MARKUP.Zap,
-  YCO:       DATAHUB_LUCIDE_ICON_MARKUP.TramFront,
-  "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
-  ru1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
-  RYOE:      DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
-  recTD:     DATAHUB_LUCIDE_ICON_MARKUP.CircleCheckBig,
-  rec1D:     DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
-  YAC:       DATAHUB_LUCIDE_ICON_MARKUP.Waypoints,
-  "TS%":     DATAHUB_LUCIDE_ICON_MARKUP.HandCoins,
-  YPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompareArrows,
-  TPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompare,
-  "1DRR":    DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestArrow,
-  recYPG:    DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
-  "AY%":     DATAHUB_LUCIDE_ICON_MARKUP.PlaneTakeoff,
-  AY:        DATAHUB_LUCIDE_ICON_MARKUP.PlaneTakeoff,
-  YPR:       DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
-  RR:        DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestDraft,
-  "IMP/RR":  DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
-  "TGT%":    DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
-  tgtQBR:    DATAHUB_LUCIDE_ICON_MARKUP.Flame,
-  "CTST%":   DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
-  "DROP%":   DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
-  "RZ Tgt":  "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target
-  ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
+  index:     DATAHUB_TABLE_TABLER_ICON_MARKUP.ListDetails,
+  RK:        DATAHUB_TABLE_TABLER_ICON_MARKUP.ListDetails,
+  PLAYER:    DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
+  POS:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Tag,
+  TM:        DATAHUB_TABLE_TABLER_ICON_MARKUP.Home,
+  AGE:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Calendar,
+  G:         DATAHUB_TABLE_TABLER_ICON_MARKUP.Activity,
+  Gs:        DATAHUB_TABLE_TABLER_ICON_MARKUP.Activity,
+  CFB:       DATAHUB_TABLE_TABLER_ICON_MARKUP.TargetArrow,
+  HT:        DATAHUB_TABLE_TABLER_ICON_MARKUP.Ruler,
+  WT:        DATAHUB_TABLE_TABLER_ICON_MARKUP.Barbell,
+  "40dsh":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Stopwatch,
+  GRD:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
+  TIER:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Hierarchy,
+  "OVR-RK":  DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowUpBar,
+  "RD & PK#": DATAHUB_TABLE_TABLER_ICON_MARKUP.Ticket,
+  OVR_PK:    DATAHUB_TABLE_TABLER_ICON_MARKUP.Medal,
+  "POS-RK":  DATAHUB_TABLE_TABLER_ICON_MARKUP.ListDetails,
+  FPTS:      DATAHUB_TABLE_TABLER_ICON_MARKUP.CirclePlus,
+  PPG:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Bolt,
+  tYDS:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Ruler,
+  tTD:       DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleCheck,
+  "KTC 1QB": DATAHUB_TABLE_TABLER_ICON_MARKUP.CurrencyDollar,
+  "KTC SFLX": DATAHUB_TABLE_TABLER_ICON_MARKUP.CurrencyDollar,
+  "1QB ADP": DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
+  "SFLX ADP": DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
+  "1QB DIFF": DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsDiff,
+  "SFLX DIFF": DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsDiff,
+  VALUE:     DATAHUB_TABLE_TABLER_ICON_MARKUP.CurrencyDollar,
+  ADP:       DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
+  "POS·ADP": DATAHUB_TABLE_TABLER_ICON_MARKUP.Filter,
+  SNP:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Activity,
+  "SNP%":    DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  "YDS(t)":  DATAHUB_TABLE_TABLER_ICON_MARKUP.Ruler,
+  "YPG(t)":  DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartLine,
+  OPP:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Shield,
+  IMP:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Sun,
+  "IMP/OPP": DATAHUB_TABLE_TABLER_ICON_MARKUP.Signal,
+  "CSTY%":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Refresh,
+  CL:        DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowUpBar,
+  paYDS:     DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsHorizontal,
+  paTD:      DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleCheck,
+  "CMP%":    DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  paATT:     DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartScatter,
+  "paATT_EFF": DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartScatter,
+  paRTG:     DATAHUB_TABLE_TABLER_ICON_MARKUP.Gauge,
+  "EPA/DB":  DATAHUB_TABLE_TABLER_ICON_MARKUP.Focus,
+  CPOE:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Rotate,
+  CMP:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Check,
+  YPA:       DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartLine,
+  paYPG:     DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartLine,
+  ruYDS:     DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
+  ruTD:      DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleCheck,
+  pa1D:      DATAHUB_TABLE_TABLER_ICON_MARKUP.MapPinCheck,
+  "IMP/G":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Gauge,
+  pIMP:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Target,
+  "pIMP/A":  DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleDot,
+  "pIMP/ATT": DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleDot,
+  CAR:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
+  YPC:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Atom,
+  TTT:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Stopwatch,
+  "PRS%":    DATAHUB_TABLE_TABLER_ICON_MARKUP.Heartbeat,
+  "DP%":     DATAHUB_TABLE_TABLER_ICON_MARKUP.Split,
+  SAC:       DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowBarDown,
+  INT:       DATAHUB_TABLE_TABLER_ICON_MARKUP.AlertTriangle,
+  FUM:       DATAHUB_TABLE_TABLER_ICON_MARKUP.AlertTriangle,
+  FPOE:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
+  REC:       DATAHUB_TABLE_TABLER_ICON_MARKUP.HandGrab,
+  recYDS:    DATAHUB_TABLE_TABLER_ICON_MARKUP.RouteAlt,
+  TGT:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Target,
+  ELU:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Atom,
+  "MTF/A":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Gamepad,
+  "YCO/A":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
+  MTF:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Bolt,
+  YCO:       DATAHUB_TABLE_TABLER_ICON_MARKUP.Train,
+  "EXPLSV%": DATAHUB_TABLE_TABLER_ICON_MARKUP.Bomb,
+  ru1D:      DATAHUB_TABLE_TABLER_ICON_MARKUP.MapPinCheck,
+  RYOE:      DATAHUB_TABLE_TABLER_ICON_MARKUP.Rocket,
+  recTD:     DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleCheck,
+  rec1D:     DATAHUB_TABLE_TABLER_ICON_MARKUP.MapPinCheck,
+  YAC:       DATAHUB_TABLE_TABLER_ICON_MARKUP.RouteAlt,
+  "TS%":     DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  YPRR:      DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsDiff,
+  TPRR:      DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsDiff,
+  "1DRR":    DATAHUB_TABLE_TABLER_ICON_MARKUP.PullRequest,
+  recYPG:    DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartLine,
+  "AY%":     DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  AY:        DATAHUB_TABLE_TABLER_ICON_MARKUP.PlaneDeparture,
+  YPR:       DATAHUB_TABLE_TABLER_ICON_MARKUP.ListDetails,
+  RR:        DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
+  "IMP/RR":  DATAHUB_TABLE_TABLER_ICON_MARKUP.CircleDot,
+  "TGT%":    DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  tgtQBR:    DATAHUB_TABLE_TABLER_ICON_MARKUP.Gauge,
+  "CTST%":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  "DROP%":   DATAHUB_TABLE_TABLER_ICON_MARKUP.Percentage,
+  "RZ Tgt":  DATAHUB_TABLE_TABLER_ICON_MARKUP.Target,
+  ruYPG:     DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartLine,
 };
 
 const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
   rushing: Object.freeze({
     // Rushing-category receiving subsection:
     // YAC intentionally uses a different icon here than the receiving table.
-    YAC: DATAHUB_LUCIDE_ICON_MARKUP.MoveDiagonal,
+    YAC: DATAHUB_TABLE_TABLER_ICON_MARKUP.RouteAlt,
   }),
 });
 
@@ -1067,14 +1131,14 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
 // per-category groups for either the Stats or Trade Values table mode.
 // ---------------------------------------------------------------------------
 const CURRENT_FROZEN_GROUP_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
-const CURRENT_INFO_GROUP_ICON = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>';
-const CURRENT_TRADE_FANTASY_GROUP_ICON = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
-const CURRENT_OVERVIEW_STATS_GROUP_ICON = "M18 20V10M12 20V4M6 20v-6";
-const CURRENT_RECEIVING_GROUP_ICON = '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>';
-const CURRENT_ADV_RUSHING_GROUP_ICON = '<path d="m10.586 5.414-5.172 5.172"/><path d="m18.586 13.414-5.172 5.172"/><path d="M6 12h12"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/><circle cx="20" cy="12" r="2"/><circle cx="4" cy="12" r="2"/>';
-const CURRENT_CEILING_GROUP_ICON = "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z";
-const TRADE_VALUES_ONE_QB_GROUP_ICON = DATAHUB_LUCIDE_ICON_MARKUP.BadgeDollarSign;
-const TRADE_VALUES_SFLX_GROUP_ICON = DATAHUB_LUCIDE_ICON_MARKUP.CircleDollarSign;
+const CURRENT_INFO_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.InfoCircle;
+const CURRENT_TRADE_FANTASY_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles;
+const CURRENT_OVERVIEW_STATS_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram;
+const CURRENT_RECEIVING_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.ArrowsDiff;
+const CURRENT_ADV_RUSHING_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.RouteAlt;
+const CURRENT_CEILING_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.Shield;
+const TRADE_VALUES_ONE_QB_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.DollarBadge;
+const TRADE_VALUES_SFLX_GROUP_ICON = DATAHUB_TABLE_TABLER_ICON_MARKUP.DollarCircle;
 
 // Stats group-header vs column-header icon colors:
 // keep these as separate constant maps even when they currently use the same
@@ -1187,7 +1251,7 @@ const FROZEN_GROUPS = Object.freeze({
   stats: Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
       columns: ["RK", "PLAYER", "POS"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1196,7 +1260,7 @@ const FROZEN_GROUPS = Object.freeze({
   "adp-values": Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
       columns: ["RK", "PLAYER", "POS"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1205,7 +1269,7 @@ const FROZEN_GROUPS = Object.freeze({
   "rookies-trade": Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
       columns: ROOKIES_IDENTITY_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1215,7 +1279,7 @@ const FROZEN_GROUPS = Object.freeze({
     overview: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1224,7 +1288,7 @@ const FROZEN_GROUPS = Object.freeze({
     passing: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1233,7 +1297,7 @@ const FROZEN_GROUPS = Object.freeze({
     rushing: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1242,7 +1306,7 @@ const FROZEN_GROUPS = Object.freeze({
     receiving: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.UserCircle,
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1262,7 +1326,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1285,35 +1349,35 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "PASSING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Crosshair,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.TargetArrow,
       columns: ["paATT", "CMP", "paYDS", "paTD", "pa1D", "SAC", "INT"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_PRODUCTION,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_PRODUCTION,
     }),
     createDataHubColumnGroup({
       label: "PASSING EFFICIENCY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkle,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Gauge,
       columns: ["CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "DP%", "paYPG", "pIMP/A"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_EFFICIENCY,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_EFFICIENCY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
       columns: ["ruYDS", "ruTD", "CAR", "YPC"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.RUSHING,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.RUSHING,
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["YDS(t)", "FUM", "IMP/G"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
@@ -1336,14 +1400,14 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "RUSHING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
       columns: ["CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO", "RYOE"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_PRODUCTION,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_PRODUCTION,
@@ -1364,7 +1428,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["YDS(t)", "FUM", "IMP/G"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
@@ -1387,14 +1451,14 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     }),
     createDataHubColumnGroup({
       label: "RECEIVING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.TrendingUp,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.TrendUp,
       columns: ["TGT", "REC", "recYDS", "recTD", "rec1D", "RR", "RZ Tgt"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_PRODUCTION,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_PRODUCTION,
@@ -1408,14 +1472,14 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
       columns: ["CAR", "ruYDS", "ruTD", "YPC"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RUSHING,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RUSHING,
     }),
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["SNP%", "IMP/G", "YDS(t)", "FUM"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
@@ -1435,7 +1499,7 @@ function createRookiesProspectOverviewGroup({ formatFamily = null } = {}) {
     // TM and AGE now live with the draft/ranking fields in the exact requested
     // order and inherit the same column icon color as the rest of this group.
     label: "PROSPECT OVERVIEW",
-    icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+    icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
     columns: ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1458,7 +1522,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
@@ -1471,7 +1535,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (PA+RU)",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
@@ -1479,7 +1543,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "PASSING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Crosshair,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.TargetArrow,
       columns: ["paATT", "CMP", "paYDS", "paTD", "pa1D", "pIMP", "INT", "SAC"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_PRODUCTION,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_PRODUCTION,
@@ -1487,7 +1551,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "PASSING EFFICIENCY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkle,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Gauge,
       columns: ["paATT_EFF", "CMP%", "YPA", "pIMP/ATT"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_EFFICIENCY,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_EFFICIENCY,
@@ -1495,7 +1559,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "RUSHING",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
       columns: ["ruYDS", "ruTD", "CAR", "YPC"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.RUSHING,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.RUSHING,
@@ -1516,7 +1580,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (RU+REC)",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
@@ -1524,7 +1588,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "RUSHING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Tractor,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Route,
       columns: ["CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.RUSHING_PRODUCTION,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.RUSHING_PRODUCTION,
@@ -1561,7 +1625,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (REC+RU)",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.ChartHistogram,
       columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
@@ -1569,7 +1633,7 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "RECEIVING PRODUCTION",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.TrendingUp,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.TrendUp,
       columns: ["TGT", "REC", "recYDS", "recTD", "rec1D", "RR", "YAC", "AY"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.RECEIVING_PRODUCTION,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.RECEIVING_PRODUCTION,
@@ -1606,7 +1670,7 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: DATAHUB_TABLE_TABLER_ICON_MARKUP.Sparkles,
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
