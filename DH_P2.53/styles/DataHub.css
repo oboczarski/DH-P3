@@ -2239,7 +2239,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 .grid-shell {
   margin-top: 14px;
-  padding: 10px 6px;
+  padding: 7px 6px;
 }
 
 .grid-shell__meta {
@@ -2254,7 +2254,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .active-view-meta,
 .sort-meta-control {
   display: grid;
-  gap: 4px;
+  gap: 1px;
   grid-template-rows: 13px 28px;
   min-width: 0;
 }
@@ -4098,12 +4098,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     color: rgba(161, 169, 191, 0.74);
     font-size: 0.58rem;
     letter-spacing: 0.14em;
+    margin-left: 3px;
   }
 
   .grid-shell__meta {
     align-items: end;
     gap: 8px;
-    margin: 0 5px 10px 7px;
+    margin: 0 22px 7px 17px;
   }
 
   .active-view-meta {
@@ -4122,6 +4123,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .sort-meta-control {
     justify-items: start;
+    margin-bottom: 1px;
   }
 
   .meta-pill--button {
