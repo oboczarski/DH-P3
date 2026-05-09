@@ -2950,6 +2950,16 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   fill: none;
 }
 
+/* Rookie career RK header icon:
+   targets the Rankings & Career Stats rookies subview only. The denser
+   laurel-wreath glyph gets a slightly lighter stroke and touch more room so
+   the added detail stays readable without affecting other table header icons. */
+body[data-page="datahub"][data-datahub-view="rookies-career"] [data-column-name="RK"] .stats-table__head-icon--rookie-career-rk {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.95px;
+}
+
 .stats-table__head-label {
   /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
@@ -3924,9 +3934,6 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     display: inline;
   }
 
-  .page-tab.is-active {
-  }
-
   .page-tab.is-active::after {
     left: 50%;
     right: auto;
@@ -4015,6 +4022,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .stats-table__head-icon {
     width: 13px;
     height: 13px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="rookies-career"] [data-column-name="RK"] .stats-table__head-icon--rookie-career-rk {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.15px;
   }
 
   .stats-table__sort-indicator {

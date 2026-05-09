@@ -899,6 +899,22 @@ const DATAHUB_LUCIDE_ICON_MARKUP = Object.freeze({
   DraftMedal: '<path d="M8 2h8l-2 6h-4z" /><path d="M10 8 7 13" /><path d="m14 8 3 5" /><circle cx="12" cy="16" r="5" /><path d="M12 13v6" /><path d="M9.5 16h5" />',
 });
 
+// Rookie career RK header icon:
+// use the requested Tabler laurel-wreath rank glyph only in the Rankings &
+// Career Stats rookies subview, while keeping DataHub's existing helper-owned
+// outer <svg> wrapper and all other rookies RK header icons unchanged.
+const ROOKIE_CAREER_RK_HEADER_ICON_MARKUP = [
+  '<path d="M6.436 8a8.6 8.6 0 0 0 -.436 2.727c0 4.017 2.686 7.273 6 7.273s6 -3.256 6 -7.273a8.6 8.6 0 0 0 -.436 -2.727" />',
+  '<path d="M14.5 21s-.682 -3 -2.5 -3s-2.5 3 -2.5 3" />',
+  '<path d="M18.52 5.23c.292 1.666 -1.02 2.77 -1.02 2.77s-1.603 -.563 -1.895 -2.23c-.292 -1.666 1.02 -2.77 1.02 -2.77s1.603 .563 1.895 2.23" />',
+  '<path d="M21.094 12.14c-1.281 1.266 -3.016 .76 -3.016 .76s-.454 -1.772 .828 -3.04c1.28 -1.266 3.016 -.76 3.016 -.76s.454 1.772 -.828 3.04" />',
+  '<path d="M17.734 18.826c-1.5 -.575 -1.734 -2.19 -1.734 -2.19s1.267 -1.038 2.767 -.462c1.5 .575 1.733 2.19 1.733 2.19s-1.267 1.038 -2.767 .462" />',
+  '<path d="M6.267 18.826c1.5 -.575 1.733 -2.19 1.733 -2.19s-1.267 -1.038 -2.767 -.462c-1.5 .575 -1.733 2.19 -1.733 2.19s1.267 1.038 2.767 .462" />',
+  '<path d="M2.906 12.14c1.281 1.266 3.016 .76 3.016 .76s.454 -1.772 -.828 -3.04c-1.281 -1.265 -3.016 -.76 -3.016 -.76s-.454 1.772 .828 3.04" />',
+  '<path d="M5.48 5.23c-.292 1.666 1.02 2.77 1.02 2.77s1.603 -.563 1.895 -2.23c.292 -1.666 -1.02 -2.77 -1.02 -2.77s-1.603 .563 -1.895 2.23" />',
+  '<path d="M11 9l1 -1v6" />',
+].join("");
+
 // Rookies tier badges:
 // each TIER value gets the requested icon while the badge inherits the existing
 // rookie-tier heat color through currentColor in both Rookies subviews.
@@ -6130,7 +6146,15 @@ function getActiveColumnIconMarkup(columnName) {
     }
   }
 
-  if (columnName === RK_COLUMN && isDataHubRookiesView()) {
+  // Rookies RK header icon swap:
+  // only the Rankings & Career Stats rookies subview gets the requested
+  // laurel-wreath header icon; the rookie trade subview keeps the current
+  // OVR-RK arrow treatment so this change stays scoped to the requested table.
+  if (columnName === RK_COLUMN && isDataHubRookiesCareerView()) {
+    return ROOKIE_CAREER_RK_HEADER_ICON_MARKUP;
+  }
+
+  if (columnName === RK_COLUMN && isDataHubRookiesTradeView()) {
     return COLUMN_ICONS["OVR-RK"];
   }
 
@@ -7452,6 +7476,12 @@ function createHeaderCell(column, columnIconColor) {
     svg.setAttribute("aria-hidden", "true");
     svg.setAttribute("focusable", "false");
     svg.classList.add("stats-table__head-icon");
+    if (column.name === RK_COLUMN && isDataHubRookiesCareerView()) {
+      // Rookie career RK header icon:
+      // the denser laurel-wreath markup needs a slightly lighter class hook so
+      // it stays legible at DataHub's compact header-icon size.
+      svg.classList.add("stats-table__head-icon--rookie-career-rk");
+    }
     if (columnIconColor) {
       svg.style.setProperty("--column-icon-color", columnIconColor);
     }
