@@ -2145,6 +2145,257 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
 }
 
 /* ============================================================================
+   Rosters Game Logs Modal — Career Stats table
+   Targets only the rosters modal Career view. This table is a full replacement
+   for the weekly/SZN table area and keeps SZN/TM horizontally sticky.
+   ============================================================================ */
+body[data-page="rosters"] #game-logs-modal .game-logs-career-view {
+  --career-season-col-width: 58px;
+  --career-team-col-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0.18rem 0.12rem 0.28rem;
+  box-sizing: border-box;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table-container {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid rgba(170, 170, 255, 0.24);
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(12, 15, 32, 0.78), rgba(7, 9, 21, 0.72));
+  box-shadow: 0 0 48px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-hscroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(154, 170, 255, 0.22) transparent;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-hscroll::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-hscroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(154, 170, 255, 0.18);
+  background-clip: padding-box;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 0.68rem;
+  color: rgba(223, 228, 255, 0.82);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-col--season {
+  width: var(--career-season-col-width);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-col--team {
+  width: var(--career-team-col-width);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-col--fantasy {
+  width: 152px;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-col--stat {
+  width: 52px;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table th,
+body[data-page="rosters"] #game-logs-modal .career-stats-table td {
+  height: 31px;
+  padding: 0.22rem 0.34rem;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(128, 138, 189, 0.12);
+  border-right: 1px solid rgba(128, 138, 189, 0.08);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table th:last-child,
+body[data-page="rosters"] #game-logs-modal .career-stats-table td:last-child {
+  border-right: 0;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header {
+  height: 26px;
+  padding: 0.18rem 0.42rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.54rem;
+  font-weight: 800;
+  color: rgba(188, 196, 232, 0.78);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(17, 20, 42, 0.62));
+  border-bottom: 1px solid rgba(170, 170, 255, 0.18);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-header {
+  height: 29px;
+  padding: 0.22rem 0.34rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: rgba(207, 214, 252, 0.82);
+  background: linear-gradient(180deg, rgba(16, 19, 39, 0.96), rgba(10, 12, 28, 0.96));
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--season,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--season {
+  color: #cfd6fc;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--fantasy,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--fantasy {
+  color: #b7adfe;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--passing,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--passing {
+  color: #ffb2d8;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--rushing,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--rushing {
+  color: #75e0b7;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--receiving,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--receiving {
+  color: #63b0de;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--total,
+body[data-page="rosters"] #game-logs-modal .career-stats-header--total {
+  color: #f2c879;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-cell {
+  color: rgba(228, 232, 255, 0.78);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: rgba(10, 12, 28, 0.52);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
+  background: rgba(20, 23, 48, 0.52);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-table tbody tr:hover .career-stats-cell {
+  background: rgba(118, 109, 255, 0.1);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-sticky-col--season,
+body[data-page="rosters"] #game-logs-modal .career-stats-sticky-col--team {
+  position: sticky;
+  z-index: 3;
+  background: linear-gradient(180deg, rgba(18, 21, 43, 0.98), rgba(9, 11, 26, 0.98));
+  box-shadow: 10px 0 16px rgba(0, 0, 0, 0.16);
+}
+
+body[data-page="rosters"] #game-logs-modal thead .career-stats-sticky-col--season,
+body[data-page="rosters"] #game-logs-modal thead .career-stats-sticky-col--team {
+  z-index: 5;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-sticky-col--season {
+  left: 0;
+  width: var(--career-season-col-width);
+  min-width: var(--career-season-col-width);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-sticky-col--team {
+  left: var(--career-season-col-width);
+  width: var(--career-team-col-width);
+  min-width: var(--career-team-col-width);
+}
+
+body[data-page="rosters"] #game-logs-modal tbody .career-stats-sticky-col--season,
+body[data-page="rosters"] #game-logs-modal tbody .career-stats-sticky-col--team {
+  color: #e2e7ff;
+  font-weight: 800;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-chip {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.28rem;
+  min-width: 132px;
+  padding: 0.18rem 0.36rem;
+  border: 1px solid rgba(170, 170, 255, 0.17);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(17, 20, 42, 0.3));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 12px rgba(0, 0, 0, 0.16);
+  line-height: 1;
+  color: rgba(226, 231, 255, 0.84);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-value,
+body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-rank,
+body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-pos-rank {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 0;
+  font-weight: 850;
+  line-height: 1;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-separator {
+  color: rgba(154, 163, 207, 0.48);
+  font-weight: 700;
+}
+
+body[data-page="rosters"] #game-logs-modal .stat-rank-variant-career sup.stat-rank-suffix-career {
+  top: 0;
+  margin-left: 0.02em;
+  font-size: 0.52rem;
+  line-height: 1;
+  vertical-align: super;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-empty {
+  width: min(100%, 460px);
+  min-height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4rem;
+  border: 1px solid rgba(170, 170, 255, 0.22);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(12, 15, 32, 0.72), rgba(7, 9, 21, 0.62));
+  color: rgba(202, 210, 246, 0.74);
+  font-size: 0.78rem;
+  font-style: italic;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+/* ============================================================================
    Game Logs Modal — Ownership tab: Exposure summary chip row
    Mirrors the Ownership page "Exposure" column display (count ⏐ pct%).
    Scoped to body[data-page="rosters"] so no styles leak to other pages.

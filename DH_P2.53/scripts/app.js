@@ -1263,11 +1263,12 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 // Tracks the in-flight ownership context request used by the Ownership tab inside
 // the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
 let ownershipContextLoadPromise = null;
 let ownershipContextLoadCacheKey = '';
+let careerStatsLoadPromise = null;
 
 // Expose state for dashboard/home reuse (sheet-only consumers)
 if (typeof window !== 'undefined') {
@@ -1370,6 +1371,34 @@ const PLAYER_STATS_CSV_PATHS = {
     seasonRanks: 'data/NFL-2025_Stats/SZN_RKs.csv',
     weeksDir: 'data/NFL-2025_Stats/Weeks'
 };
+// === Game Logs modal: Career Stats data source ===
+// Rosters-only Career view uses the shipped multi-season CSV. Keep this block self-contained
+// so the same table/data pattern can be ported later to another standalone page.
+const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
+const CAREER_STAT_SECTIONS_BY_POS = {
+    QB: [
+        { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
+        { id: 'passing', label: 'PASSING', tone: 'passing', stats: ['CMP', 'paATT', 'CMP%', 'paYDS', 'paTD', 'INT', 'paYPG'] },
+        { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
+        { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
+    ],
+    RB: [
+        { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
+        { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
+        { id: 'receiving', label: 'RECEIVING', tone: 'receiving', stats: ['TGT', 'REC', 'recYDS', 'YPR', 'recTD', 'recYPG'] },
+        { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
+    ],
+    WR: [
+        { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
+        { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
+        { id: 'receiving', label: 'RECEIVING', tone: 'receiving', stats: ['TGT', 'REC', 'recYDS', 'YPR', 'recTD', 'recYPG'] },
+        { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
+        { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
+    ]
+};
+CAREER_STAT_SECTIONS_BY_POS.TE = CAREER_STAT_SECTIONS_BY_POS.WR;
 const PLAYER_STATS_SOURCE_QUERY_PARAM = 'playerStatsSource';
 // UPDATE THIS: Total number of weeks to display in game logs (including unplayed weeks with projections)
 const MAX_DISPLAY_WEEKS = 18;
@@ -1551,7 +1580,8 @@ if (pageType === 'rosters') {
         }
         if (gameLogsCareerButton) {
             gameLogsCareerButton.addEventListener('click', () => {
-                setGameLogsCareerPlaceholderActive(true);
+                closeGameLogsSeasonMenu();
+                setGameLogsModalView('career');
             });
         }
         document.addEventListener('click', (event) => {
@@ -5933,6 +5963,270 @@ function renderGameLogsSeasonStatsView({
     container.appendChild(list);
 }
 
+function getCareerSectionsForPosition(position) {
+    // Rosters Game Logs modal Career view:
+    // selects the exact column groups for the player's fantasy position, with WR/TE
+    // sharing the same receiving-first table setup.
+    const normalizedPos = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    return CAREER_STAT_SECTIONS_BY_POS[normalizedPos] || CAREER_STAT_SECTIONS_BY_POS.WR;
+}
+
+function parseCareerStatsCsv(csvText) {
+    // Rosters Game Logs modal Career view:
+    // converts the shipped multi-season CSV into SLPR_ID-keyed row arrays so each
+    // modal open only has to filter by player id once after the cached fetch.
+    const parsed = parseCsv(csvText);
+    const rowsByPlayer = {};
+    parsed.rows.forEach((columns) => {
+        const row = {};
+        parsed.headers.forEach((header, index) => {
+            row[header] = columns[index] ?? '';
+        });
+        const playerId = String(row.SLPR_ID || '').trim();
+        if (!playerId) return;
+        if (!rowsByPlayer[playerId]) rowsByPlayer[playerId] = [];
+        rowsByPlayer[playerId].push(row);
+    });
+    Object.values(rowsByPlayer).forEach((rows) => {
+        rows.sort((a, b) => {
+            const seasonA = Number.parseInt(a.SZN, 10);
+            const seasonB = Number.parseInt(b.SZN, 10);
+            const safeA = Number.isFinite(seasonA) ? seasonA : -Infinity;
+            const safeB = Number.isFinite(seasonB) ? seasonB : -Infinity;
+            return safeB - safeA;
+        });
+    });
+    return rowsByPlayer;
+}
+
+async function ensureCareerStatsLoaded() {
+    // Rosters Game Logs modal Career view:
+    // fetches/parses the career CSV once per page session and reuses the in-flight
+    // promise if multiple modal renders request the data at the same time.
+    if (state.careerStatsByPlayer) return state.careerStatsByPlayer;
+    if (!careerStatsLoadPromise) {
+        careerStatsLoadPromise = fetchTextWithCache(buildAppStaticUrl(CAREER_STATS_CSV_PATH))
+            .then(parseCareerStatsCsv)
+            .then((rowsByPlayer) => {
+                state.careerStatsByPlayer = rowsByPlayer;
+                return rowsByPlayer;
+            })
+            .catch((error) => {
+                careerStatsLoadPromise = null;
+                state.careerStatsByPlayer = null;
+                throw error;
+            });
+    }
+    return careerStatsLoadPromise;
+}
+
+function getCareerHeaderLabel(statKey) {
+    // Rosters Game Logs modal Career view:
+    // strips the lowercase stat-family prefixes because the group header already
+    // communicates PASSING/RUSHING/RECEIVING/TOTAL context.
+    const labelMap = {
+        paATT: 'ATT',
+        paYDS: 'YDS',
+        paTD: 'TD',
+        paYPG: 'YPG',
+        ruYDS: 'YDS',
+        ruTD: 'TD',
+        ruYPG: 'YPG',
+        recYDS: 'YDS',
+        recTD: 'TD',
+        recYPG: 'YPG',
+        ttlYDS: 'YDS',
+        ttlTD: 'TD'
+    };
+    return labelMap[statKey] || statKey;
+}
+
+function formatCareerCellValue(row, statKey) {
+    // Rosters Game Logs modal Career view:
+    // keeps real zero values visible while replacing missing CSV values with the
+    // same polished empty marker used elsewhere in modal tables.
+    if (!row || !Object.prototype.hasOwnProperty.call(row, statKey)) return '—';
+    const value = row[statKey];
+    if (value === null || value === undefined) return '—';
+    const text = String(value).trim();
+    if (!text || text.toUpperCase() === 'NA' || text.toUpperCase() === 'N/A') return '—';
+    return text;
+}
+
+function parseCareerRankNumber(value) {
+    const text = String(value ?? '').replace(/,/g, '').trim();
+    if (!text || text.toUpperCase() === 'NA' || text.toUpperCase() === 'N/A') return null;
+    const match = text.match(/\d+/);
+    if (!match) return null;
+    const number = Number.parseInt(match[0], 10);
+    return Number.isFinite(number) ? number : null;
+}
+
+function formatCareerPosRankText(value) {
+    const text = String(value ?? '').trim();
+    if (!text || text.toUpperCase() === 'NA' || text.toUpperCase() === 'N/A') return '—';
+    return text
+        .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]*·[\s\u2000-\u200A\u202F\u205F\u3000]*/g, '·')
+        .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]+/g, '');
+}
+
+function appendCareerFantasyCellContent(cell, row, statKey, position) {
+    // Rosters Game Logs modal Career view:
+    // renders FPTS/PPG as ranked chips using the same conditional rank color helpers
+    // that power the existing Game Logs summary chips.
+    const isFpts = statKey === 'FPTS';
+    const valueText = formatCareerCellValue(row, statKey);
+    const overallRankNumber = parseCareerRankNumber(row[isFpts ? 'FPTS RK' : 'PPG RK']);
+    const posRankRaw = row[isFpts ? 'FPTS POS RK' : 'PPG POS RK'];
+    const posRankNumber = parseCareerRankNumber(posRankRaw);
+    const posRankText = formatCareerPosRankText(posRankRaw);
+    const posRankColor = getConditionalColorByRank(posRankNumber, position);
+    const overallRankColor = getRankColor(overallRankNumber);
+
+    const chip = document.createElement('span');
+    chip.className = 'career-stats-fantasy-chip';
+
+    const valueSegment = document.createElement('span');
+    valueSegment.className = 'career-stats-fantasy-value';
+    valueSegment.textContent = valueText;
+    if (posRankColor && posRankColor !== 'inherit') valueSegment.style.color = posRankColor;
+    chip.appendChild(valueSegment);
+
+    const separatorOne = document.createElement('span');
+    separatorOne.className = 'career-stats-fantasy-separator';
+    separatorOne.textContent = '|';
+    chip.appendChild(separatorOne);
+
+    const overallSegment = overallRankNumber !== null
+        ? createRankAnnotation(overallRankNumber, { wrapInParens: false, ordinal: true, variant: 'career' })
+        : document.createElement('span');
+    overallSegment.classList.add('career-stats-fantasy-rank');
+    if (overallRankNumber === null) overallSegment.textContent = '—';
+    if (overallRankColor && overallRankColor !== 'inherit') overallSegment.style.color = overallRankColor;
+    chip.appendChild(overallSegment);
+
+    const separatorTwo = document.createElement('span');
+    separatorTwo.className = 'career-stats-fantasy-separator';
+    separatorTwo.textContent = '|';
+    chip.appendChild(separatorTwo);
+
+    const posSegment = document.createElement('span');
+    posSegment.className = 'career-stats-fantasy-pos-rank';
+    posSegment.textContent = posRankText;
+    if (posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
+    chip.appendChild(posSegment);
+
+    cell.appendChild(chip);
+}
+
+async function renderGameLogsCareerStatsView({ container, player, requestSeq }) {
+    // Rosters Game Logs modal Career view:
+    // builds a dedicated, swappable career-stats table inside #modal-body so it
+    // fully replaces the weekly/SZN views when the Career button is selected.
+    if (!container) return;
+    const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
+    if (isStaleRequest()) return;
+    container.innerHTML = '';
+    container.classList.add('game-logs-career-view');
+
+    const renderEmptyState = (message) => {
+        container.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'career-stats-empty';
+        empty.textContent = message;
+        container.appendChild(empty);
+    };
+
+    let rowsByPlayer;
+    try {
+        rowsByPlayer = await ensureCareerStatsLoaded();
+    } catch (error) {
+        console.error('Failed to load career stats CSV', error);
+        renderEmptyState('Career stats are unavailable right now.');
+        return;
+    }
+    if (isStaleRequest()) return;
+
+    const playerId = String(player?.id || '').trim();
+    const careerRows = playerId ? (rowsByPlayer?.[playerId] || []) : [];
+    if (!careerRows.length) {
+        renderEmptyState('No career stats found for this player.');
+        return;
+    }
+
+    const position = (player?.pos || player?.position || careerRows[0]?.POS || 'WR').toUpperCase();
+    const sections = getCareerSectionsForPosition(position);
+    const columns = sections.flatMap((section) => section.stats.map((statKey) => ({
+        statKey,
+        section
+    })));
+
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'career-stats-table-container';
+    const hScroll = document.createElement('div');
+    hScroll.className = 'career-stats-hscroll';
+    const table = document.createElement('table');
+    table.className = 'career-stats-table';
+
+    const colgroup = document.createElement('colgroup');
+    columns.forEach(({ statKey }) => {
+        const col = document.createElement('col');
+        if (statKey === 'SZN') col.className = 'career-stats-col--season';
+        else if (statKey === 'TM') col.className = 'career-stats-col--team';
+        else if (statKey === 'FPTS' || statKey === 'PPG') col.className = 'career-stats-col--fantasy';
+        else col.className = 'career-stats-col--stat';
+        colgroup.appendChild(col);
+    });
+    table.appendChild(colgroup);
+
+    const thead = document.createElement('thead');
+    const groupRow = document.createElement('tr');
+    sections.forEach((section) => {
+        const th = document.createElement('th');
+        th.className = `career-stats-group-header career-stats-group-header--${section.tone || section.id}`;
+        th.colSpan = section.stats.length;
+        th.textContent = section.label;
+        groupRow.appendChild(th);
+    });
+    thead.appendChild(groupRow);
+
+    const headerRow = document.createElement('tr');
+    columns.forEach(({ statKey, section }) => {
+        const th = document.createElement('th');
+        th.className = `career-stats-header career-stats-header--${section.tone || section.id}`;
+        th.textContent = getCareerHeaderLabel(statKey);
+        if (statKey === 'SZN') th.classList.add('career-stats-sticky-col--season');
+        if (statKey === 'TM') th.classList.add('career-stats-sticky-col--team');
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    careerRows.forEach((row) => {
+        const tr = document.createElement('tr');
+        columns.forEach(({ statKey, section }) => {
+            const td = document.createElement('td');
+            td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
+            if (statKey === 'SZN') td.classList.add('career-stats-sticky-col--season');
+            if (statKey === 'TM') td.classList.add('career-stats-sticky-col--team');
+            if (statKey === 'FPTS' || statKey === 'PPG') {
+                td.classList.add('career-stats-cell--fantasy-chip');
+                appendCareerFantasyCellContent(td, row, statKey, position);
+            } else {
+                td.textContent = formatCareerCellValue(row, statKey);
+            }
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    hScroll.appendChild(table);
+    tableContainer.appendChild(hScroll);
+    container.appendChild(tableContainer);
+}
+
 async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
     if (isStaleRequest()) return;
@@ -6155,6 +6449,16 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             statGroupByKey
         });
         modalBody.appendChild(sznContainer);
+        if (pageType === 'rosters') {
+            // Rosters Game Logs modal Career view:
+            // append the career table beside the existing GL/SZN view containers so
+            // the view switcher can fully swap table modes without affecting Stats.
+            const careerContainer = document.createElement('div');
+            careerContainer.className = 'game-logs-career-view hidden';
+            modalBody.appendChild(careerContainer);
+            await renderGameLogsCareerStatsView({ container: careerContainer, player, requestSeq });
+            if (isStaleRequest()) return;
+        }
         if (statsKeyContainer) {
             statsKeyContainer.classList.add('hidden');
             modalBody.appendChild(statsKeyContainer);
@@ -6828,6 +7132,16 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         statGroupByKey
     });
     modalBody.appendChild(sznContainer);
+    if (pageType === 'rosters') {
+        // Rosters Game Logs modal Career view:
+        // append the career table beside the existing GL/SZN view containers so
+        // the view switcher can fully swap table modes without affecting Stats.
+        const careerContainer = document.createElement('div');
+        careerContainer.className = 'game-logs-career-view hidden';
+        modalBody.appendChild(careerContainer);
+        await renderGameLogsCareerStatsView({ container: careerContainer, player, requestSeq });
+        if (isStaleRequest()) return;
+    }
     if (statsKeyContainer) {
         statsKeyContainer.classList.add('hidden');
         modalBody.appendChild(statsKeyContainer);
@@ -10828,8 +11142,8 @@ function showTemporaryTooltip(element, message) {
     setTimeout(() => tooltip.remove(), 2400);
 }
 function setGameLogsCareerPlaceholderActive(isActive) {
-    // Rosters Game Logs modal Career placeholder:
-    // marks the future career-stats entry point without changing the active GL/SZN table yet.
+    // Rosters Game Logs modal Career view:
+    // keeps the Career button's active/pressed state in sync with the swappable table view.
     state.isGameLogsCareerPlaceholderActive = Boolean(isActive);
     if (gameLogsCareerButton) {
         gameLogsCareerButton.classList.toggle('is-active', state.isGameLogsCareerPlaceholderActive);
@@ -10870,11 +11184,18 @@ function setGameLogsSelectedSeason(season, { resetCareer = true } = {}) {
         });
     }
     if (resetCareer) {
-        setGameLogsCareerPlaceholderActive(false);
+        if (state.currentGameLogsView === 'career') {
+            setGameLogsModalView('gl');
+        } else {
+            setGameLogsCareerPlaceholderActive(false);
+        }
     }
 }
 function setGameLogsModalView(view) {
-    const normalizedView = view === 'szn' ? 'szn' : 'gl';
+    // Game Logs modal view switcher:
+    // treats Career as a true third table mode while preserving the existing
+    // GameLog/SZN behavior and footer overlay reset flow.
+    const normalizedView = view === 'career' ? 'career' : (view === 'szn' ? 'szn' : 'gl');
     try {
         const viewButtons = gameLogsModal?.querySelectorAll?.('.gamelogs-view-option');
         if (viewButtons && viewButtons.length) {
@@ -10889,6 +11210,8 @@ function setGameLogsModalView(view) {
             glNodes.forEach((node) => node.classList.toggle('hidden', normalizedView !== 'gl'));
             const sznNode = modalBody.querySelector('.game-logs-szn-view');
             if (sznNode) sznNode.classList.toggle('hidden', normalizedView !== 'szn');
+            const careerNode = modalBody.querySelector('.game-logs-career-view');
+            if (careerNode) careerNode.classList.toggle('hidden', normalizedView !== 'career');
         }
         statsKeyContainer?.classList.add('hidden');
         radarChartContainer?.classList.add('hidden');
@@ -10902,7 +11225,7 @@ function setGameLogsModalView(view) {
                 }
             });
         }
-        setGameLogsCareerPlaceholderActive(false);
+        setGameLogsCareerPlaceholderActive(normalizedView === 'career');
         state.currentGameLogsView = normalizedView;
     } catch (e) {
         // fail safely – view toggling is non-critical
