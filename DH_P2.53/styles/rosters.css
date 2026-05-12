@@ -2230,7 +2230,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table {
   border-spacing: 0;
   table-layout: fixed;
   font-size: 0.68rem;
-  font-family: var(--font-sans);
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
   color: rgba(223, 228, 255, 0.82);
 }
 
@@ -2266,6 +2266,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table td {
   white-space: nowrap;
   border-bottom: 1px solid rgba(128, 138, 189, 0.12);
   border-right: 1px solid rgba(128, 138, 189, 0.08);
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-table th:last-child,
@@ -2275,11 +2276,14 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table td:last-child {
 
 body[data-page="rosters"] #game-logs-modal .career-stats-table tbody tr {
   height: var(--career-body-row-height);
+  max-height: var(--career-body-row-height);
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-table tbody td {
   height: var(--career-body-row-height);
   max-height: var(--career-body-row-height);
+  padding-top: 0;
+  padding-bottom: 0;
   line-height: 1;
   vertical-align: middle;
 }
@@ -2366,7 +2370,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-header--total {
 body[data-page="rosters"] #game-logs-modal .career-stats-cell {
   color: rgba(228, 232, 255, 0.78);
   font-weight: 650;
-  font-variant-numeric: tabular-nums;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
   background: rgba(10, 12, 28, 0.52);
 }
 
@@ -2422,6 +2426,14 @@ body[data-page="rosters"] #game-logs-modal .career-stats-cell--fantasy-chip {
   vertical-align: middle;
 }
 
+body[data-page="rosters"] #game-logs-modal .career-stats-cell--fantasy-value {
+  color: rgba(226, 231, 255, 0.9);
+  font-size: 0.74rem;
+  font-weight: 900;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
+  letter-spacing: 0;
+}
+
 body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-chip {
   filter: brightness(1.2) saturate(1.2);
   display: inline-flex;
@@ -2447,6 +2459,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-value {
   min-width: 0;
   font-size: 0.74rem;
   font-weight: 900;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
   line-height: 1;
 }
 
@@ -2458,6 +2471,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-pos-rank {
   min-width: 0;
   font-size: 0.62rem;
   font-weight: 850;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
   line-height: 1;
 }
 
@@ -2474,10 +2488,11 @@ body[data-page="rosters"] #game-logs-modal .career-stats-fantasy-separator {
 body[data-page="rosters"] #game-logs-modal .stat-rank-variant-career sup.stat-rank-suffix-career {
   top: 0;
   margin-left: 0.02em;
-  font-size: 0.48em;
+  font-size: 0.9em;
+  font-weight: 500;
   line-height: 1;
   vertical-align: baseline;
-  transform: translateY(-0.12em);
+  transform: none;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-empty {

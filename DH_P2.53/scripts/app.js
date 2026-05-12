@@ -6083,8 +6083,8 @@ function getCareerDisplaySections(sections) {
     return (sections || []).flatMap((section) => {
         if (section?.id !== 'fantasy') return [section];
         return [
-            { id: 'fantasy-points', label: 'FANTASY POINTS', tone: 'fantasy', stats: ['FPTS_VALUE', 'FPTS_POS_RK', 'FPTS_OVR_RK'] },
-            { id: 'points-per-game', label: 'POINTS PER GAME', tone: 'fantasy', stats: ['PPG_VALUE', 'PPG_POS_RK', 'PPG_OVR_RK'] }
+            { id: 'fantasy-points', label: 'FANTASY POINTS', tone: 'fantasy', stats: ['FPTS_POS_RK', 'FPTS_VALUE', 'FPTS_OVR_RK'] },
+            { id: 'points-per-game', label: 'POINTS PER GAME', tone: 'fantasy', stats: ['PPG_POS_RK', 'PPG_VALUE', 'PPG_OVR_RK'] }
         ];
     });
 }
@@ -6190,12 +6190,25 @@ function appendCareerTeamCellContent(cell, row) {
     cell.appendChild(chip);
 }
 
-function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
+function getCareerFantasyValueMeta(row, statKey, position) {
     // Rosters Game Logs modal Career view:
-    // renders the split fantasy columns as compact chips: value, positional rank,
-    // and overall rank each get their own column while keeping existing rank colors.
+    // resolves fantasy value display/color from the paired positional-rank column
+    // so FPTS/PPG can render as regular cells instead of chips.
     const isFpts = statKey.startsWith('FPTS_');
     const valueKey = isFpts ? 'FPTS' : 'PPG';
+    const posRankKey = isFpts ? 'FPTS POS RK' : 'PPG POS RK';
+    const posRankNumber = parseCareerRankNumber(row?.[posRankKey]);
+    return {
+        value: formatCareerCellValue(row, valueKey),
+        color: getConditionalColorByRank(posRankNumber, position)
+    };
+}
+
+function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
+    // Rosters Game Logs modal Career view:
+    // renders rank-only fantasy columns as compact chips. FPTS/PPG values render
+    // as normal cells in the main row builder.
+    const isFpts = statKey.startsWith('FPTS_');
     const overallRankKey = isFpts ? 'FPTS RK' : 'PPG RK';
     const posRankKey = isFpts ? 'FPTS POS RK' : 'PPG POS RK';
     const overallRankNumber = parseCareerRankNumber(row[overallRankKey]);
@@ -6207,14 +6220,7 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
     const chip = document.createElement('span');
     chip.className = 'career-stats-fantasy-chip';
 
-    if (statKey.endsWith('_VALUE')) {
-        chip.classList.add('career-stats-fantasy-chip--value');
-        const valueSegment = document.createElement('span');
-        valueSegment.className = 'career-stats-fantasy-value';
-        valueSegment.textContent = formatCareerCellValue(row, valueKey);
-        if (posRankColor && posRankColor !== 'inherit') valueSegment.style.color = posRankColor;
-        chip.appendChild(valueSegment);
-    } else if (statKey.endsWith('_POS_RK')) {
+    if (statKey.endsWith('_POS_RK')) {
         chip.classList.add('career-stats-fantasy-chip--rank');
         const posSegment = document.createElement('span');
         posSegment.className = 'career-stats-fantasy-pos-rank';
@@ -6349,6 +6355,11 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
                 }
                 if (statKey === 'TM') {
                     appendCareerTeamCellContent(td, row);
+                } else if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') {
+                    td.classList.add('career-stats-cell--fantasy-value');
+                    const valueMeta = getCareerFantasyValueMeta(row, statKey, position);
+                    td.textContent = valueMeta.value;
+                    if (valueMeta.color && valueMeta.color !== 'inherit') td.style.color = valueMeta.color;
                 } else if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) {
                     td.classList.add('career-stats-cell--fantasy-chip');
                     appendCareerFantasySplitCellContent(td, row, statKey, position);
