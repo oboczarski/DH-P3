@@ -9211,8 +9211,16 @@ const DATAHUB_LEAGUE_COLOR_PALETTE = [
   "#93f4cf",
   "#f2bc8a",
 ];
+const DATAHUB_SLEEPER_DYNASTY_LEAGUE_TYPE = 2;
 const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
   "dynasty hub": "DH",
+  "ff d-league": "DL",
+  "the most important league": "TMIL",
+  "big boofers club bbc": "BBC",
+  "trade hoard eat league": "THE",
+  "dynasty footballers": "DFB",
+  "la leaguaaa dynasty est2024": "LLGA",
+  "la leaugaaa dynasty est2024": "LLGA",
 };
 const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
@@ -12692,6 +12700,22 @@ function getDataHubConsistencyBucket(points, thresholds) {
   return { ...DATAHUB_CONSISTENCY_BUCKET_STYLES.low, name: "low" };
 }
 
+// DataHub ownership league filtering:
+// targets the page-local Game Logs Ownership tab so DataHub matches the
+// dynasty-only league behavior from Rosters without depending on app.js.
+function getDataHubSleeperLeagueType(league) {
+  const parsedType = Number.parseInt(league?.settings?.type, 10);
+  return Number.isFinite(parsedType) ? parsedType : null;
+}
+
+function isDataHubDynastyLeague(league) {
+  return getDataHubSleeperLeagueType(league) === DATAHUB_SLEEPER_DYNASTY_LEAGUE_TYPE;
+}
+
+function filterDataHubDynastyLeagues(leagues) {
+  return Array.isArray(leagues) ? leagues.filter(isDataHubDynastyLeague) : [];
+}
+
 async function loadDataHubOwnershipContextForUser() {
   const cacheKey = String(state.userId || "").trim();
   if (!cacheKey) {
@@ -12707,8 +12731,21 @@ async function loadDataHubOwnershipContextForUser() {
   dataHubOwnershipContextLoadPromise = (async () => {
     const currentYear = new Date().getFullYear();
     const leagues = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${cacheKey}/leagues/nfl/${currentYear}`);
+    const dynastyLeagues = filterDataHubDynastyLeagues(leagues);
+    const sortedDynastyLeagues = [...dynastyLeagues].sort((left, right) => {
+      const leftName = String(left?.name || "");
+      const rightName = String(right?.name || "");
+      return leftName.localeCompare(rightName);
+    });
+
+    // DataHub ownership color reset:
+    // rebuild the league palette assignment from the same filtered/sorted league
+    // set each time user context changes so abbreviations stay deterministic.
+    dataHubAssignedLeagueColors.clear();
+    dataHubNextLeagueColorIndex = 0;
+
     const leaguePayloads = await Promise.allSettled(
-      (Array.isArray(leagues) ? leagues : []).map(async (league) => {
+      sortedDynastyLeagues.map(async (league) => {
         const [rosters, users] = await Promise.all([
           fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/league/${league.league_id}/rosters`),
           fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/league/${league.league_id}/users`),
@@ -12722,7 +12759,7 @@ async function loadDataHubOwnershipContextForUser() {
       if (result.status === "fulfilled") {
         hydratedLeagues.push(result.value);
       } else {
-        const fallbackName = Array.isArray(leagues) ? leagues[index]?.name : `League ${index + 1}`;
+        const fallbackName = sortedDynastyLeagues[index]?.name || `League ${index + 1}`;
         failures.push(fallbackName || `League ${index + 1}`);
       }
     });
@@ -12730,6 +12767,10 @@ async function loadDataHubOwnershipContextForUser() {
       cacheKey,
       leagues: hydratedLeagues,
       failures,
+      requestedLeagueCount: sortedDynastyLeagues.length,
+      emptyMessage: sortedDynastyLeagues.length
+        ? ""
+        : "No dynasty leagues found for this user right now.",
     };
     return state.ownershipContext;
   })()
@@ -12845,6 +12886,24 @@ function renderDataHubOwnershipPane(playerId) {
     }
     const rows = findDataHubOwnershipLeagueOwnerRows(playerId);
     const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+    const requestedLeagueCount = Number.isFinite(state.ownershipContext?.requestedLeagueCount)
+      ? state.ownershipContext.requestedLeagueCount
+      : 0;
+    const emptyMessage = typeof state.ownershipContext?.emptyMessage === "string"
+      ? state.ownershipContext.emptyMessage.trim()
+      : "";
+
+    if (!rows.length) {
+      const fallbackMessage = requestedLeagueCount > 0
+        ? "Unable to load dynasty league ownership data right now."
+        : "No dynasty leagues found for this user right now.";
+      bodyEl.innerHTML = `
+        <div class="ownership-modal-empty">${dataHubEscapeHtml(emptyMessage || fallbackMessage)}</div>
+        ${failures.length ? `<p class="ownership-modal-warning">Some leagues could not be loaded: ${failures.map((item) => dataHubEscapeHtml(item)).join(", ")}</p>` : ""}
+      `;
+      return;
+    }
+
     // DataHub Game Logs Ownership exposure summary:
     // counts leagues where the current user owns this player and calculates the
     // percent with the same all-leagues denominator used by the Rosters modal.
