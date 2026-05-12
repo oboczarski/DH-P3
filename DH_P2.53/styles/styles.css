@@ -4947,7 +4947,7 @@ body::before {
 #player-comparison-modal:not(.hidden) .modal-content {
   transform: scale(1);
   opacity: 1;
-  height: 638px;
+  height: 650px;
 }
 
 /* Ensure additional modals using the shared `.modal-content` baseline
