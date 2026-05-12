@@ -1951,6 +1951,11 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
   /* Rosters Game Logs modal desktop header:
      widens the player vitals, summary chips, and nav controls as one desktop-only
      group while leaving the mobile modal header sizing untouched. */
+  body[data-page="rosters"] #game-logs-modal {
+    --rosters-gamelogs-desktop-header-width: 532px;
+    --rosters-gamelogs-desktop-control-height: 30px;
+  }
+
   body[data-page="rosters"] #game-logs-modal #modal-player-name {
     margin-bottom: 0.02rem;
   }
@@ -1960,13 +1965,16 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
   }
 
   body[data-page="rosters"] #game-logs-modal .player-vitals--modal {
-    min-width: 560px;
+    box-sizing: border-box;
+    width: min(var(--rosters-gamelogs-desktop-header-width), 100%) !important;
+    min-width: 0;
     margin-top: 0.06rem;
-    padding: 5px 12px;
+    padding: 5px 22px;
   }
 
   body[data-page="rosters"] #game-logs-modal .player-vitals {
-    gap: 2.3rem;
+    justify-content: space-evenly;
+    gap: 0.8rem;
   }
 
   body[data-page="rosters"] #game-logs-modal .player-vitals__label {
@@ -1979,8 +1987,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
   }
 
   body[data-page="rosters"] #game-logs-modal #modal-summary-chips {
-    width: min(604px, 100%);
-    gap: 1.14rem;
+    width: min(var(--rosters-gamelogs-desktop-header-width), 100%);
+    gap: 0.96rem;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-summary-chip {
@@ -2000,28 +2008,62 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-nav-row {
-    width: min(604px, 100%);
-    gap: 0.78rem;
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
+    align-items: center;
+    width: min(var(--rosters-gamelogs-desktop-header-width), 100%);
+    gap: 0.56rem;
     flex-wrap: nowrap;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-controls {
-    gap: 0.48rem;
+    width: 100%;
+    height: var(--rosters-gamelogs-desktop-control-height);
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 0.56rem;
+  }
+
+  body[data-page="rosters"] #game-logs-modal .gamelogs-view-switcher {
+    align-items: stretch;
+    justify-self: stretch;
+    width: 100%;
+    height: var(--rosters-gamelogs-desktop-control-height);
+    box-sizing: border-box;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle,
   body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn,
   body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
-    font-size: 0.72rem;
+    min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    font-size: 0.76rem;
+    line-height: 1;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle {
-    width: 74px;
-    min-width: 74px;
+    height: var(--rosters-gamelogs-desktop-control-height);
+    width: 92px;
+    min-width: 92px;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn {
-    min-width: 82px;
+    height: var(--rosters-gamelogs-desktop-control-height);
+    width: 116px;
+    min-width: 116px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
