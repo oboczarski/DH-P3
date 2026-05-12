@@ -12748,6 +12748,36 @@ function hasDataHubOwnershipContextLoaded(cacheKey = String(state.userId || "").
   );
 }
 
+// DataHub Ownership exposure tiers:
+// targets the inline Ownership tab inside the DataHub Game Logs modal.
+// It mirrors the Rosters/Ownership count-based tier classes locally so DataHub
+// can render exposure colors without importing app.js or page-shared CSS.
+const DATAHUB_OWNERSHIP_EXPOSURE_CF_COUNT_TIERS = [
+  { minCount: 15, className: "ownership-exposure--tier-15" },
+  { minCount: 14, className: "ownership-exposure--tier-14" },
+  { minCount: 13, className: "ownership-exposure--tier-13" },
+  { minCount: 12, className: "ownership-exposure--tier-12" },
+  { minCount: 11, className: "ownership-exposure--tier-11" },
+  { minCount: 10, className: "ownership-exposure--tier-10" },
+  { minCount: 9, className: "ownership-exposure--tier-9" },
+  { minCount: 8, className: "ownership-exposure--tier-8" },
+  { minCount: 7, className: "ownership-exposure--tier-7" },
+  { minCount: 6, className: "ownership-exposure--tier-6" },
+  { minCount: 5, className: "ownership-exposure--tier-5" },
+  { minCount: 4, className: "ownership-exposure--tier-4" },
+  { minCount: 3, className: "ownership-exposure--tier-3" },
+  { minCount: 2, className: "ownership-exposure--tier-2" },
+  { minCount: 1, className: "ownership-exposure--tier-1" },
+];
+
+function getDataHubOwnershipExposureTierClassByCount(count) {
+  const safeCount = Number.isFinite(count)
+    ? Math.max(0, Math.round(count))
+    : 0;
+  const tierConfig = DATAHUB_OWNERSHIP_EXPOSURE_CF_COUNT_TIERS.find((tier) => safeCount >= tier.minCount);
+  return tierConfig?.className || "ownership-exposure--tier-1";
+}
+
 function renderDataHubOwnershipPane(playerId) {
   const nameEl = document.querySelector("#glOwnershipPlayerName");
   const leftEl = document.querySelector("#glOwnershipLeft");
@@ -12815,7 +12845,24 @@ function renderDataHubOwnershipPane(playerId) {
     }
     const rows = findDataHubOwnershipLeagueOwnerRows(playerId);
     const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
+    // DataHub Game Logs Ownership exposure summary:
+    // counts leagues where the current user owns this player and calculates the
+    // percent with the same all-leagues denominator used by the Rosters modal.
+    const ownedCount = rows.filter((row) => row.isUser).length;
+    const ownershipPct = rows.length > 0 ? Math.round((ownedCount / rows.length) * 100) : 0;
+    const exposureClass = ownedCount === 0
+      ? "ownership-exposure--tier-0"
+      : getDataHubOwnershipExposureTierClassByCount(ownedCount);
     bodyEl.innerHTML = `
+      <div class="gl-ownership-exposure-card">
+        <span class="gl-exposure-label">Exposure</span>
+        <div class="gl-exposure-values ownership-list-exposure ${exposureClass}">
+          <span class="ownership-exposure-count">${ownedCount}</span>
+          <span class="ownership-exposure-sep" aria-hidden="true">⏐</span>
+          <span class="ownership-exposure-pct">${ownershipPct}%</span>
+        </div>
+        <span class="gl-exposure-context">owned in ${ownedCount} of ${rows.length} leagues</span>
+      </div>
       <div class="ownership-modal-section-title">
         League Ownership
         <span class="ownership-modal-section-subtitle">${rows.length} league${rows.length === 1 ? "" : "s"}</span>

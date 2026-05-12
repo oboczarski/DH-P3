@@ -10647,6 +10647,146 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
   }
 }
 
+/* DataHub Game Logs Ownership exposure summary:
+   Targets: only the Ownership pane inside the DataHub Game Logs modal.
+   What it does: matches the Rosters modal count/pct Exposure card and color
+   tiers while keeping all variables and selectors local to the DataHub page.
+   Important notes: the tier variables are duplicated here intentionally so
+   DataHub does not depend on rosters.css, ownership.css, or shared app styles. */
+body[data-page="datahub"] {
+  --ownership-exp-c01-count: #0099ffe0;
+  --ownership-exp-c01-pct: #0099ff87;
+  --ownership-exp-c02-count: #45fd88;
+  --ownership-exp-c02-pct: #45fd8898;
+  --ownership-exp-c03-count: #45f7fd;
+  --ownership-exp-c03-pct: #45f7fd9a;
+  --ownership-exp-c04-count: #5441ff;
+  --ownership-exp-c04-pct: #7061facf;
+  --ownership-exp-c05-count: #a434f9;
+  --ownership-exp-c05-pct: #a434f9aa;
+  --ownership-exp-c06-count: #fd7f60;
+  --ownership-exp-c06-pct: #fd7f609a;
+  --ownership-exp-c07-count: #ff81f2;
+  --ownership-exp-c07-pct: #ff81f29a;
+  --ownership-exp-c08-count: #ff4837;
+  --ownership-exp-c08-pct: #ff6b6bd2;
+  --ownership-exp-c09-count: #d93223;
+  --ownership-exp-c09-pct: #d93223aa;
+  --ownership-exp-c10-count: #ff3c8d;
+  --ownership-exp-c10-pct: #f94d95c0;
+  --ownership-exp-c11-count: #b8004d;
+  --ownership-exp-c11-pct: #b8004d99;
+  --ownership-exp-c12-count: #ff00f7;
+  --ownership-exp-c12-pct: #ff00f7a8;
+  --ownership-exp-c13-count: #c000dd;
+  --ownership-exp-c13-pct: #c000dda8;
+  --ownership-exp-c14-count: #ff006f;
+  --ownership-exp-c14-pct: #ff006f99;
+  --ownership-exp-c15-count: #ff0000;
+  --ownership-exp-c15-pct: #ff0000a8;
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-ownership-exposure-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  width: fit-content;
+  max-width: 310px;
+  margin: 0.2rem auto 0.72rem;
+  padding: 0.42rem 1.1rem;
+  border: 1px solid rgba(156, 170, 242, 0.2);
+  border-radius: 13px;
+  background: linear-gradient(160deg, rgba(28, 34, 66, 0.02), rgba(16, 20, 48, 0.12));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 4px 18px rgba(8, 10, 30, 0.38);
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-label {
+  color: rgba(166, 176, 231, 0.6);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-context {
+  color: rgba(166, 176, 231, 0.45);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-wrap-mode: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-values.ownership-list-exposure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  font-variant-numeric: unset;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-values .ownership-exposure-count {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(120, 140, 230, 0.28);
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-values .ownership-exposure-sep {
+  align-self: center;
+  margin: 0 0.26rem;
+  color: rgba(166, 176, 231, 0.4);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+body[data-page="datahub"] #game-logs-modal .gl-exposure-values .ownership-exposure-pct {
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-0 .ownership-exposure-count,
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-0 .ownership-exposure-pct {
+  color: rgba(166, 176, 231, 0.6);
+}
+
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-count { color: var(--ownership-exp-c01-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-1 .ownership-exposure-pct { color: var(--ownership-exp-c01-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-2 .ownership-exposure-count { color: var(--ownership-exp-c02-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-2 .ownership-exposure-pct { color: var(--ownership-exp-c02-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-3 .ownership-exposure-count { color: var(--ownership-exp-c03-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-3 .ownership-exposure-pct { color: var(--ownership-exp-c03-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-4 .ownership-exposure-count { color: var(--ownership-exp-c04-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-4 .ownership-exposure-pct { color: var(--ownership-exp-c04-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-5 .ownership-exposure-count { color: var(--ownership-exp-c05-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-5 .ownership-exposure-pct { color: var(--ownership-exp-c05-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-6 .ownership-exposure-count { color: var(--ownership-exp-c06-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-6 .ownership-exposure-pct { color: var(--ownership-exp-c06-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-7 .ownership-exposure-count { color: var(--ownership-exp-c07-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-7 .ownership-exposure-pct { color: var(--ownership-exp-c07-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-8 .ownership-exposure-count { color: var(--ownership-exp-c08-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-8 .ownership-exposure-pct { color: var(--ownership-exp-c08-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-9 .ownership-exposure-count { color: var(--ownership-exp-c09-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-9 .ownership-exposure-pct { color: var(--ownership-exp-c09-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-10 .ownership-exposure-count { color: var(--ownership-exp-c10-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-10 .ownership-exposure-pct { color: var(--ownership-exp-c10-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-11 .ownership-exposure-count { color: var(--ownership-exp-c11-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-11 .ownership-exposure-pct { color: var(--ownership-exp-c11-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-12 .ownership-exposure-count { color: var(--ownership-exp-c12-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-12 .ownership-exposure-pct { color: var(--ownership-exp-c12-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-13 .ownership-exposure-count { color: var(--ownership-exp-c13-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-13 .ownership-exposure-pct { color: var(--ownership-exp-c13-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-14 .ownership-exposure-count { color: var(--ownership-exp-c14-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-14 .ownership-exposure-pct { color: var(--ownership-exp-c14-pct); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-count { color: var(--ownership-exp-c15-count); }
+body[data-page="datahub"] #game-logs-modal .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-pct { color: var(--ownership-exp-c15-pct); }
+
 /* DataHub Ownership tab header parity:
    Targets: only the Ownership pane inside the DataHub Game Logs modal.
    What it does: keeps the narrower Ownership modal width while matching the
