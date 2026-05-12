@@ -44,6 +44,11 @@ const leagueHubButton = document.getElementById('leagueHubButton');
 const researchButton = document.getElementById('researchButton');
 const startSitButton = document.getElementById('startSitButton');
 const gameLogsModal = document.getElementById('game-logs-modal');
+const gameLogsSeasonDropdown = document.querySelector('[data-gamelogs-season-dropdown]');
+const gameLogsSeasonToggle = document.getElementById('gamelogsSeasonToggle');
+const gameLogsSeasonLabel = document.getElementById('gamelogsSeasonLabel');
+const gameLogsSeasonMenu = document.getElementById('gamelogsSeasonMenu');
+const gameLogsCareerButton = document.getElementById('gamelogsCareerButton');
 const modalCloseBtn = document.querySelector('.modal-close-btn');
 const modalInfoBtns = document.querySelectorAll('.modal-info-btn');
 const statsKeyContainer = document.getElementById('stats-key-container');
@@ -1258,7 +1263,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 // Tracks the in-flight ownership context request used by the Ownership tab inside
 // the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
 let ownershipContextLoadPromise = null;
@@ -1529,6 +1534,33 @@ if (pageType === 'rosters') {
         });
         modalOverlay.addEventListener('click', () => closeModal());
 
+        // Rosters Game Logs modal season/career controls:
+        // the dropdown replaces the old 2025/2026 buttons, while Career is kept as a
+        // visible placeholder until the future career-stats table is implemented.
+        if (gameLogsSeasonToggle && gameLogsSeasonMenu) {
+            gameLogsSeasonToggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleGameLogsSeasonMenu();
+            });
+            gameLogsSeasonMenu.addEventListener('click', (event) => {
+                const option = event.target.closest('[data-gamelogs-season-value]');
+                if (!option) return;
+                setGameLogsSelectedSeason(option.dataset.gamelogsSeasonValue);
+                closeGameLogsSeasonMenu();
+            });
+        }
+        if (gameLogsCareerButton) {
+            gameLogsCareerButton.addEventListener('click', () => {
+                setGameLogsCareerPlaceholderActive(true);
+            });
+        }
+        document.addEventListener('click', (event) => {
+            if (!gameLogsSeasonDropdown || gameLogsSeasonMenu?.classList.contains('hidden')) return;
+            if (!gameLogsSeasonDropdown.contains(event.target)) {
+                closeGameLogsSeasonMenu();
+            }
+        });
+
         // GL/SZN view switcher (SZN replaces game logs table in-place)
         const viewSwitcher = gameLogsModal.querySelector('.gamelogs-view-switcher');
         if (viewSwitcher) {
@@ -1676,6 +1708,7 @@ if (pageType === 'rosters') {
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !gameLogsModal.classList.contains('hidden')) {
+                closeGameLogsSeasonMenu();
                 closeModal();
             }
         });
@@ -10794,6 +10827,52 @@ function showTemporaryTooltip(element, message) {
     setTimeout(() => tooltip.classList.add('is-hiding'), 2000);
     setTimeout(() => tooltip.remove(), 2400);
 }
+function setGameLogsCareerPlaceholderActive(isActive) {
+    // Rosters Game Logs modal Career placeholder:
+    // marks the future career-stats entry point without changing the active GL/SZN table yet.
+    state.isGameLogsCareerPlaceholderActive = Boolean(isActive);
+    if (gameLogsCareerButton) {
+        gameLogsCareerButton.classList.toggle('is-active', state.isGameLogsCareerPlaceholderActive);
+        gameLogsCareerButton.setAttribute('aria-pressed', state.isGameLogsCareerPlaceholderActive ? 'true' : 'false');
+    }
+}
+function closeGameLogsSeasonMenu() {
+    // Rosters Game Logs modal season dropdown:
+    // hides the custom menu and restores the collapsed aria state after selection/outside clicks.
+    if (gameLogsSeasonMenu) {
+        gameLogsSeasonMenu.classList.add('hidden');
+    }
+    if (gameLogsSeasonToggle) {
+        gameLogsSeasonToggle.setAttribute('aria-expanded', 'false');
+    }
+}
+function toggleGameLogsSeasonMenu() {
+    // Rosters Game Logs modal season dropdown:
+    // opens the styled season list in-place so the menu appearance is controlled by CSS.
+    if (!gameLogsSeasonMenu || !gameLogsSeasonToggle) return;
+    const shouldOpen = gameLogsSeasonMenu.classList.contains('hidden');
+    gameLogsSeasonMenu.classList.toggle('hidden', !shouldOpen);
+    gameLogsSeasonToggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+}
+function setGameLogsSelectedSeason(season, { resetCareer = true } = {}) {
+    // Rosters Game Logs modal season dropdown:
+    // stores the chosen season so the upcoming season/career data wiring has one source of truth.
+    const normalizedSeason = season === '2026' ? '2026' : '2025';
+    state.currentGameLogsSeason = normalizedSeason;
+    if (gameLogsSeasonLabel) {
+        gameLogsSeasonLabel.textContent = normalizedSeason;
+    }
+    if (gameLogsSeasonMenu) {
+        gameLogsSeasonMenu.querySelectorAll('[data-gamelogs-season-value]').forEach((option) => {
+            const isSelected = option.dataset.gamelogsSeasonValue === normalizedSeason;
+            option.classList.toggle('is-selected', isSelected);
+            option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+        });
+    }
+    if (resetCareer) {
+        setGameLogsCareerPlaceholderActive(false);
+    }
+}
 function setGameLogsModalView(view) {
     const normalizedView = view === 'szn' ? 'szn' : 'gl';
     try {
@@ -10823,6 +10902,7 @@ function setGameLogsModalView(view) {
                 }
             });
         }
+        setGameLogsCareerPlaceholderActive(false);
         state.currentGameLogsView = normalizedView;
     } catch (e) {
         // fail safely – view toggling is non-critical
@@ -10834,6 +10914,7 @@ function openModal() {
     statsKeyContainer.classList.add('hidden');
     if (radarChartContainer) radarChartContainer.classList.add('hidden');
     if (consistencyContainer) consistencyContainer.classList.add('hidden');
+    setGameLogsSelectedSeason(state.currentGameLogsSeason || '2025');
     setGameLogsModalView('gl');
 
     // Always reset to Game Logs tab when opening the modal

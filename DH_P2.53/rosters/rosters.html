@@ -322,9 +322,26 @@
         </div>
       </div>
       <div class="gamelogs-nav-row" aria-label="Game logs navigation">
-        <div class="gamelogs-season-tabs" role="group" aria-label="Season">
-          <button type="button" class="gamelogs-season-tab is-active" aria-pressed="true" data-gamelogs-season="2025">2025</button>
-          <button type="button" class="gamelogs-season-tab" aria-pressed="false" data-gamelogs-season="2026">2026</button>
+        <div class="gamelogs-season-controls" role="group" aria-label="Season and career">
+          <!-- Game Logs modal season controls: replaces the 2025/2026 button pair with a dropdown,
+               keeping this selector separate from the upcoming Career table placeholder. -->
+          <div class="gamelogs-season-dropdown" data-gamelogs-season-dropdown>
+            <button type="button" id="gamelogsSeasonToggle" class="gamelogs-season-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="gamelogsSeasonMenu">
+              <span id="gamelogsSeasonLabel">2025</span>
+              <i class="fa-solid fa-caret-down gamelogs-season-select-caret" aria-hidden="true"></i>
+            </button>
+            <div id="gamelogsSeasonMenu" class="gamelogs-season-menu hidden" role="listbox" aria-label="Select game logs season">
+              <button type="button" class="gamelogs-season-option is-selected" role="option" aria-selected="true" data-gamelogs-season-value="2025">
+                <span class="gamelogs-season-option-year">2025</span>
+                <span class="gamelogs-season-option-note">Active</span>
+              </button>
+              <button type="button" class="gamelogs-season-option" role="option" aria-selected="false" data-gamelogs-season-value="2026">
+                <span class="gamelogs-season-option-year">2026</span>
+                <span class="gamelogs-season-option-note">Placeholder</span>
+              </button>
+            </div>
+          </div>
+          <button type="button" id="gamelogsCareerButton" class="gamelogs-career-btn" aria-pressed="false" data-gamelogs-career-placeholder="true">Career</button>
         </div>
         <div class="gamelogs-view-switcher" role="group" aria-label="View">
           <button type="button" class="gamelogs-view-option is-active" aria-pressed="true" data-gamelogs-view="gl"><i class="fa-solid fa-clipboard-list"></i>GameLog</button>
