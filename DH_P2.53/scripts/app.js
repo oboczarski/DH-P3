@@ -1375,6 +1375,35 @@ const PLAYER_STATS_CSV_PATHS = {
 // Rosters-only Career view uses the shipped multi-season CSV. Keep this block self-contained
 // so the same table/data pattern can be ported later to another standalone page.
 const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
+const CAREER_STAT_GROUP_ICONS = {
+    // Rosters Game Logs modal Career view:
+    // mirrors the DataHub table group-header icon language without depending on
+    // the DataHub-only script bundle on the Rosters page.
+    season: {
+        color: '#888bff',
+        markup: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>'
+    },
+    fantasy: {
+        color: '#dfc689',
+        markup: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" />'
+    },
+    passing: {
+        color: '#fd8787',
+        markup: '<circle cx="12" cy="12" r="10" /><line x1="22" x2="18" y1="12" y2="12" /><line x1="6" x2="2" y1="12" y2="12" /><line x1="12" x2="12" y1="6" y2="2" /><line x1="12" x2="12" y1="22" y2="18" />'
+    },
+    rushing: {
+        color: '#1cffd3',
+        markup: '<path d="m10 11 11 .9a1 1 0 0 1 .8 1.1l-.665 4.158a1 1 0 0 1-.988.842H20" /><path d="M16 18h-5" /><path d="M18 5a1 1 0 0 0-1 1v5.573" /><path d="M3 4h8.129a1 1 0 0 1 .99.863L13 11.246" /><path d="M4 11V4" /><path d="M7 15h.01" /><path d="M8 10.1V4" /><circle cx="18" cy="18" r="2" /><circle cx="7" cy="15" r="5" />'
+    },
+    receiving: {
+        color: '#4289ff',
+        markup: '<g transform="rotate(-90 12 12)"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></g>'
+    },
+    total: {
+        color: '#8454ff',
+        markup: '<path d="M12 16v5" /><path d="M16 14v7" /><path d="M20 10v11" /><path d="m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15" /><path d="M4 18v3" /><path d="M8 14v7" />'
+    }
+};
 const CAREER_STAT_SECTIONS_BY_POS = {
     QB: [
         { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
@@ -6025,6 +6054,12 @@ function getCareerHeaderLabel(statKey) {
     // strips the lowercase stat-family prefixes because the group header already
     // communicates PASSING/RUSHING/RECEIVING/TOTAL context.
     const labelMap = {
+        FPTS_VALUE: 'FPTS',
+        FPTS_POS_RK: 'POS·RK',
+        FPTS_OVR_RK: 'OVR·RK',
+        PPG_VALUE: 'PPG',
+        PPG_POS_RK: 'POS·RK',
+        PPG_OVR_RK: 'OVR·RK',
         paATT: 'ATT',
         paYDS: 'YDS',
         paTD: 'TD',
@@ -6039,6 +6074,19 @@ function getCareerHeaderLabel(statKey) {
         ttlTD: 'TD'
     };
     return labelMap[statKey] || statKey;
+}
+
+function getCareerDisplaySections(sections) {
+    // Rosters Game Logs modal Career view:
+    // expands the source FANTASY section into two visible groups with three
+    // columns each: value, positional rank, and overall rank.
+    return (sections || []).flatMap((section) => {
+        if (section?.id !== 'fantasy') return [section];
+        return [
+            { id: 'fantasy-points', label: 'FANTASY POINTS', tone: 'fantasy', stats: ['FPTS_VALUE', 'FPTS_POS_RK', 'FPTS_OVR_RK'] },
+            { id: 'points-per-game', label: 'POINTS PER GAME', tone: 'fantasy', stats: ['PPG_VALUE', 'PPG_POS_RK', 'PPG_OVR_RK'] }
+        ];
+    });
 }
 
 function formatCareerCellValue(row, statKey) {
@@ -6070,51 +6118,119 @@ function formatCareerPosRankText(value) {
         .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]+/g, '');
 }
 
-function appendCareerFantasyCellContent(cell, row, statKey, position) {
+function appendCareerIconMarkup(svg, iconMarkup) {
     // Rosters Game Logs modal Career view:
-    // renders FPTS/PPG as ranked chips using the same conditional rank color helpers
-    // that power the existing Game Logs summary chips.
-    const isFpts = statKey === 'FPTS';
-    const valueText = formatCareerCellValue(row, statKey);
-    const overallRankNumber = parseCareerRankNumber(row[isFpts ? 'FPTS RK' : 'PPG RK']);
-    const posRankRaw = row[isFpts ? 'FPTS POS RK' : 'PPG POS RK'];
+    // appends the same path/html SVG icon formats used by the DataHub table.
+    if (!svg || !iconMarkup) return;
+    if (iconMarkup.startsWith('<')) {
+        svg.innerHTML = iconMarkup;
+        return;
+    }
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', iconMarkup);
+    svg.appendChild(path);
+}
+
+function createCareerGroupHeaderContent(section) {
+    // Rosters Game Logs modal Career view:
+    // wraps each group title with a DataHub-matched icon so the Career table
+    // visually follows the same column-group language.
+    const inner = document.createElement('div');
+    inner.className = 'career-stats-group-header-inner';
+    const iconConfig = CAREER_STAT_GROUP_ICONS[section?.tone || section?.id];
+    if (iconConfig?.markup) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        svg.classList.add('career-stats-group-header-icon');
+        appendCareerIconMarkup(svg, iconConfig.markup);
+        inner.appendChild(svg);
+    }
+    const label = document.createElement('span');
+    label.textContent = section?.label || '';
+    inner.appendChild(label);
+    return inner;
+}
+
+function getCareerTeamLogoKey(team) {
+    const teamKey = String(team || '').trim().toUpperCase();
+    const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar', LAR: 'lar' };
+    const knownTeams = new Set([
+        'ARI', 'ATL', 'BAL', 'BUF', 'CAR', 'CHI', 'CIN', 'CLE', 'DAL', 'DEN',
+        'DET', 'GB', 'HOU', 'IND', 'JAC', 'KC', 'LAC', 'LAR', 'LA', 'LV', 'MIA',
+        'MIN', 'NE', 'NO', 'NYG', 'NYJ', 'PHI', 'PIT', 'SEA', 'SF', 'TB', 'TEN',
+        'WAS', 'WSH'
+    ]);
+    if (!knownTeams.has(teamKey)) return null;
+    return logoKeyMap[teamKey] || teamKey.toLowerCase();
+}
+
+function appendCareerTeamCellContent(cell, row) {
+    // Rosters Game Logs modal Career view:
+    // renders the TM column as the NFL team logo where possible, with a text
+    // fallback for aggregate/missing teams such as 2TM or FA.
+    const teamText = formatCareerCellValue(row, 'TM');
+    const teamKey = teamText === '—' ? '' : teamText.toUpperCase();
+    const logoKey = getCareerTeamLogoKey(teamKey);
+    const chip = document.createElement('span');
+    chip.className = 'career-stats-team-logo-chip';
+    chip.dataset.team = teamKey || 'NA';
+    if (logoKey) {
+        const img = document.createElement('img');
+        img.src = `../assets/NFL_logos_svg/${logoKey}.svg`;
+        img.alt = teamKey;
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        chip.appendChild(img);
+    } else {
+        chip.textContent = teamText;
+        chip.classList.add('career-stats-team-logo-chip--text');
+    }
+    cell.appendChild(chip);
+}
+
+function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
+    // Rosters Game Logs modal Career view:
+    // renders the split fantasy columns as compact chips: value, positional rank,
+    // and overall rank each get their own column while keeping existing rank colors.
+    const isFpts = statKey.startsWith('FPTS_');
+    const valueKey = isFpts ? 'FPTS' : 'PPG';
+    const overallRankKey = isFpts ? 'FPTS RK' : 'PPG RK';
+    const posRankKey = isFpts ? 'FPTS POS RK' : 'PPG POS RK';
+    const overallRankNumber = parseCareerRankNumber(row[overallRankKey]);
+    const posRankRaw = row[posRankKey];
     const posRankNumber = parseCareerRankNumber(posRankRaw);
-    const posRankText = formatCareerPosRankText(posRankRaw);
     const posRankColor = getConditionalColorByRank(posRankNumber, position);
     const overallRankColor = getRankColor(overallRankNumber);
 
     const chip = document.createElement('span');
     chip.className = 'career-stats-fantasy-chip';
 
-    const valueSegment = document.createElement('span');
-    valueSegment.className = 'career-stats-fantasy-value';
-    valueSegment.textContent = valueText;
-    if (posRankColor && posRankColor !== 'inherit') valueSegment.style.color = posRankColor;
-    chip.appendChild(valueSegment);
-
-    const separatorOne = document.createElement('span');
-    separatorOne.className = 'career-stats-fantasy-separator';
-    separatorOne.textContent = '|';
-    chip.appendChild(separatorOne);
-
-    const overallSegment = overallRankNumber !== null
-        ? createRankAnnotation(overallRankNumber, { wrapInParens: false, ordinal: true, variant: 'career' })
-        : document.createElement('span');
-    overallSegment.classList.add('career-stats-fantasy-rank');
-    if (overallRankNumber === null) overallSegment.textContent = '—';
-    if (overallRankColor && overallRankColor !== 'inherit') overallSegment.style.color = overallRankColor;
-    chip.appendChild(overallSegment);
-
-    const separatorTwo = document.createElement('span');
-    separatorTwo.className = 'career-stats-fantasy-separator';
-    separatorTwo.textContent = '|';
-    chip.appendChild(separatorTwo);
-
-    const posSegment = document.createElement('span');
-    posSegment.className = 'career-stats-fantasy-pos-rank';
-    posSegment.textContent = posRankText;
-    if (posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
-    chip.appendChild(posSegment);
+    if (statKey.endsWith('_VALUE')) {
+        chip.classList.add('career-stats-fantasy-chip--value');
+        const valueSegment = document.createElement('span');
+        valueSegment.className = 'career-stats-fantasy-value';
+        valueSegment.textContent = formatCareerCellValue(row, valueKey);
+        if (posRankColor && posRankColor !== 'inherit') valueSegment.style.color = posRankColor;
+        chip.appendChild(valueSegment);
+    } else if (statKey.endsWith('_POS_RK')) {
+        chip.classList.add('career-stats-fantasy-chip--rank');
+        const posSegment = document.createElement('span');
+        posSegment.className = 'career-stats-fantasy-pos-rank';
+        posSegment.textContent = formatCareerPosRankText(posRankRaw);
+        if (posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
+        chip.appendChild(posSegment);
+    } else {
+        chip.classList.add('career-stats-fantasy-chip--rank');
+        const overallSegment = overallRankNumber !== null
+            ? createRankAnnotation(overallRankNumber, { wrapInParens: false, ordinal: true, variant: 'career' })
+            : document.createElement('span');
+        overallSegment.classList.add('career-stats-fantasy-rank');
+        if (overallRankNumber === null) overallSegment.textContent = '—';
+        if (overallRankColor && overallRankColor !== 'inherit') overallSegment.style.color = overallRankColor;
+        chip.appendChild(overallSegment);
+    }
 
     cell.appendChild(chip);
 }
@@ -6155,75 +6271,109 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
     }
 
     const position = (player?.pos || player?.position || careerRows[0]?.POS || 'WR').toUpperCase();
-    const sections = getCareerSectionsForPosition(position);
+    const sections = getCareerDisplaySections(getCareerSectionsForPosition(position));
     const columns = sections.flatMap((section) => section.stats.map((statKey) => ({
         statKey,
         section
     })));
+    const frozenSections = sections.filter((section) => section.id === 'season');
+    const scrollSections = sections.filter((section) => section.id !== 'season');
+    const frozenColumns = columns.filter(({ section }) => section.id === 'season');
+    const scrollColumns = columns.filter(({ section }) => section.id !== 'season');
 
     const tableContainer = document.createElement('div');
     tableContainer.className = 'career-stats-table-container';
+    tableContainer.dataset.rowCount = String(careerRows.length);
+    if (careerRows.length <= 3) {
+        tableContainer.classList.add('career-stats-table-container--short');
+    } else if (careerRows.length <= 5) {
+        tableContainer.classList.add('career-stats-table-container--medium');
+    }
+
+    const getColumnClass = (statKey) => {
+        if (statKey === 'SZN') return 'career-stats-col--season';
+        if (statKey === 'TM') return 'career-stats-col--team';
+        if (statKey === 'G') return 'career-stats-col--games';
+        if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') return 'career-stats-col--fantasy-value';
+        if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) return 'career-stats-col--fantasy-rank';
+        return 'career-stats-col--stat';
+    };
+
+    const buildCareerTablePane = (paneSections, paneColumns, paneClass) => {
+        const pane = document.createElement('div');
+        pane.className = paneClass;
+        const table = document.createElement('table');
+        table.className = 'career-stats-table';
+
+        const colgroup = document.createElement('colgroup');
+        paneColumns.forEach(({ statKey }) => {
+            const col = document.createElement('col');
+            col.className = getColumnClass(statKey);
+            colgroup.appendChild(col);
+        });
+        table.appendChild(colgroup);
+
+        const thead = document.createElement('thead');
+        const groupRow = document.createElement('tr');
+        paneSections.forEach((section, sectionIndex) => {
+            const th = document.createElement('th');
+            th.className = `career-stats-group-header career-stats-group-header--${section.tone || section.id}`;
+            if (sectionIndex > 0) th.classList.add('career-stats-group-header--group-start');
+            th.colSpan = section.stats.length;
+            th.appendChild(createCareerGroupHeaderContent(section));
+            groupRow.appendChild(th);
+        });
+        thead.appendChild(groupRow);
+
+        const headerRow = document.createElement('tr');
+        paneColumns.forEach(({ statKey, section }, columnIndex) => {
+            const th = document.createElement('th');
+            th.className = `career-stats-header career-stats-header--${section.tone || section.id}`;
+            if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
+                th.classList.add('career-stats-colgroup-start');
+            }
+            th.textContent = getCareerHeaderLabel(statKey);
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        careerRows.forEach((row) => {
+            const tr = document.createElement('tr');
+            paneColumns.forEach(({ statKey, section }, columnIndex) => {
+                const td = document.createElement('td');
+                td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
+                if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
+                    td.classList.add('career-stats-colgroup-start');
+                }
+                if (statKey === 'TM') {
+                    appendCareerTeamCellContent(td, row);
+                } else if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) {
+                    td.classList.add('career-stats-cell--fantasy-chip');
+                    appendCareerFantasySplitCellContent(td, row, statKey, position);
+                } else {
+                    td.textContent = formatCareerCellValue(row, statKey);
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        pane.appendChild(table);
+        return pane;
+    };
+
+    const frozenPane = buildCareerTablePane(frozenSections, frozenColumns, 'career-stats-frozen-pane');
+    const scrollPane = document.createElement('div');
+    scrollPane.className = 'career-stats-scroll-pane';
     const hScroll = document.createElement('div');
     hScroll.className = 'career-stats-hscroll';
-    const table = document.createElement('table');
-    table.className = 'career-stats-table';
+    hScroll.appendChild(buildCareerTablePane(scrollSections, scrollColumns, 'career-stats-scroll-table-wrap'));
+    scrollPane.appendChild(hScroll);
 
-    const colgroup = document.createElement('colgroup');
-    columns.forEach(({ statKey }) => {
-        const col = document.createElement('col');
-        if (statKey === 'SZN') col.className = 'career-stats-col--season';
-        else if (statKey === 'TM') col.className = 'career-stats-col--team';
-        else if (statKey === 'FPTS' || statKey === 'PPG') col.className = 'career-stats-col--fantasy';
-        else col.className = 'career-stats-col--stat';
-        colgroup.appendChild(col);
-    });
-    table.appendChild(colgroup);
-
-    const thead = document.createElement('thead');
-    const groupRow = document.createElement('tr');
-    sections.forEach((section) => {
-        const th = document.createElement('th');
-        th.className = `career-stats-group-header career-stats-group-header--${section.tone || section.id}`;
-        th.colSpan = section.stats.length;
-        th.textContent = section.label;
-        groupRow.appendChild(th);
-    });
-    thead.appendChild(groupRow);
-
-    const headerRow = document.createElement('tr');
-    columns.forEach(({ statKey, section }) => {
-        const th = document.createElement('th');
-        th.className = `career-stats-header career-stats-header--${section.tone || section.id}`;
-        th.textContent = getCareerHeaderLabel(statKey);
-        if (statKey === 'SZN') th.classList.add('career-stats-sticky-col--season');
-        if (statKey === 'TM') th.classList.add('career-stats-sticky-col--team');
-        headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-    careerRows.forEach((row) => {
-        const tr = document.createElement('tr');
-        columns.forEach(({ statKey, section }) => {
-            const td = document.createElement('td');
-            td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
-            if (statKey === 'SZN') td.classList.add('career-stats-sticky-col--season');
-            if (statKey === 'TM') td.classList.add('career-stats-sticky-col--team');
-            if (statKey === 'FPTS' || statKey === 'PPG') {
-                td.classList.add('career-stats-cell--fantasy-chip');
-                appendCareerFantasyCellContent(td, row, statKey, position);
-            } else {
-                td.textContent = formatCareerCellValue(row, statKey);
-            }
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-
-    hScroll.appendChild(table);
-    tableContainer.appendChild(hScroll);
+    tableContainer.appendChild(frozenPane);
+    tableContainer.appendChild(scrollPane);
     container.appendChild(tableContainer);
 }
 
