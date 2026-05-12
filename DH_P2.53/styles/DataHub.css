@@ -7086,6 +7086,207 @@ body[data-page="datahub"] .owner-none {
   background: rgba(20, 24, 42, 0.52);
 }
 
+/* DataHub ownership username prompt:
+   Targets: the inline Ownership tab body when no Sleeper username is ready.
+   What it does: replaces the old tooltip gate with a self-contained prompt to
+   enter a username or return to regular Game Logs.
+   Important note: every selector stays scoped to the DataHub modal so shared
+   inputs/buttons on other pages remain untouched. */
+body[data-page="datahub"] .ownership-username-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.72rem;
+  max-width: 380px;
+  margin: 0.08rem auto 0;
+  padding: 0.95rem 0.95rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(186, 197, 248, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(12, 18, 31, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 40px rgba(4, 8, 24, 0.28);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(153, 169, 248, 0.24);
+  background: rgba(118, 109, 255, 0.08);
+  color: #dfe6ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__badge-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  fill: none;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__title {
+  margin: 0;
+  text-align: center;
+  color: #eef3ff;
+  font-size: 0.96rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__copy {
+  margin: 0;
+  text-align: center;
+  color: var(--datahub-modal-text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__form {
+  width: min(100%, 340px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__label {
+  color: #cfd8ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  border: 1px solid rgba(186, 197, 248, 0.2);
+  border-radius: 12px;
+  background: rgba(7, 12, 22, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__field:focus-within {
+  border-color: rgba(127, 214, 255, 0.42);
+  background: rgba(10, 16, 29, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(108, 196, 255, 0.14),
+    0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__field-icon {
+  position: absolute;
+  left: 12px;
+  width: 15px;
+  height: 15px;
+  stroke: rgba(189, 206, 232, 0.76);
+  stroke-width: 1.9;
+  fill: none;
+  pointer-events: none;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px 0 37px;
+  border: 0;
+  background: transparent;
+  color: rgba(228, 235, 255, 0.95);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__input::placeholder {
+  color: rgba(177, 192, 215, 0.5);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__input:focus {
+  outline: none;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__status {
+  min-height: 1.05rem;
+  margin: 0;
+  text-align: center;
+  font-size: 0.71rem;
+  line-height: 1.45;
+  color: var(--datahub-modal-text-secondary);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__status[data-tone="loading"] {
+  color: #abd7ff;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__status[data-tone="error"] {
+  color: #ffabc9;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.48rem;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button {
+  appearance: none;
+  border: 1px solid rgba(186, 197, 248, 0.16);
+  border-radius: 11px;
+  padding: 0.62rem 0.92rem;
+  min-width: 144px;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button:disabled {
+  cursor: wait;
+  opacity: 0.64;
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button--primary {
+  color: #f4f7ff;
+  background: linear-gradient(135deg, rgba(84, 97, 255, 0.9), rgba(123, 74, 255, 0.84));
+  box-shadow: 0 14px 30px rgba(72, 66, 184, 0.26);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button--primary:hover:not(:disabled) {
+  border-color: rgba(165, 175, 255, 0.3);
+  box-shadow: 0 18px 34px rgba(72, 66, 184, 0.34);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button--secondary {
+  color: #d6defb;
+  background: rgba(18, 26, 43, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+body[data-page="datahub"] .ownership-username-prompt__button--secondary:hover:not(:disabled) {
+  border-color: rgba(186, 197, 248, 0.3);
+  background: rgba(26, 35, 58, 0.82);
+}
+
 body[data-page="datahub"] .ownership-modal-empty,
 body[data-page="datahub"] .ownership-modal-warning {
   text-align: center;
@@ -7464,6 +7665,27 @@ body[data-page="datahub"] .game-logs-loading-footer {
 
   body[data-page="datahub"] .ownership-league-owner {
     font-size: 0.71rem;
+  }
+
+  body[data-page="datahub"] .ownership-username-prompt {
+    padding: 0.82rem 0.74rem 0.9rem;
+  }
+
+  body[data-page="datahub"] .ownership-username-prompt__title {
+    font-size: 0.9rem;
+  }
+
+  body[data-page="datahub"] .ownership-username-prompt__copy {
+    font-size: 0.71rem;
+  }
+
+  body[data-page="datahub"] .ownership-username-prompt__actions {
+    flex-direction: column;
+  }
+
+  body[data-page="datahub"] .ownership-username-prompt__button {
+    width: 100%;
+    min-width: 0;
   }
 
   body[data-page="datahub"] .game-logs-loading-container {

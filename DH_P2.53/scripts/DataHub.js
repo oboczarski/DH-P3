@@ -9454,7 +9454,38 @@ function attachGameLogsModalListeners() {
   gameLogsModal.addEventListener("click", (event) => {
     if (event.target?.closest?.(".modal-close-btn")) {
       closeDataHubModal();
+      return;
     }
+
+    // DataHub ownership prompt escape hatch:
+    // keep the missing-username recovery entirely inside the local modal by
+    // letting users jump straight back to Game Logs without leaving DataHub.
+    if (event.target?.closest?.("[data-datahub-ownership-back]")) {
+      switchDataHubModalTab("gamelogs");
+    }
+  });
+  gameLogsModal.addEventListener("submit", (event) => {
+    const promptForm = event.target?.closest?.("[data-datahub-ownership-form]");
+    if (!(promptForm instanceof HTMLFormElement)) {
+      return;
+    }
+
+    // DataHub ownership username submit:
+    // intercept the inline prompt form so the ownership tab can resolve the
+    // Sleeper user locally without redirecting or depending on app.js.
+    event.preventDefault();
+    handleDataHubOwnershipUsernameSubmit(promptForm);
+  });
+  gameLogsModal.addEventListener("input", (event) => {
+    const promptInput = event.target?.closest?.("[data-datahub-ownership-input]");
+    if (!(promptInput instanceof HTMLInputElement)) {
+      return;
+    }
+
+    // DataHub ownership prompt status reset:
+    // clear stale validation text as soon as the user edits the username field
+    // so retries feel responsive inside the modal.
+    clearDataHubOwnershipPromptStatus(promptInput.form);
   });
   modalOverlay?.addEventListener("click", closeDataHubModal);
   document.addEventListener("keydown", (event) => {
@@ -9611,11 +9642,6 @@ function switchDataHubModalTab(tabKey) {
   if (!gameLogsPane || !ownershipPane) {
     return;
   }
-  if (tabKey === "ownership" && !state.userId) {
-    const ownershipTab = gameLogsModalTabs.find((tab) => tab.dataset.modalTab === "ownership");
-    showDataHubTemporaryTooltip(ownershipTab || document.body, "Please enter a Sleeper username to view Ownership data.");
-    return;
-  }
   gameLogsModalTabs.forEach((button) => {
     const isActive = button.dataset.modalTab === tabKey;
     button.classList.toggle("is-active", isActive);
@@ -9624,9 +9650,10 @@ function switchDataHubModalTab(tabKey) {
   if (tabKey === "ownership") {
     gameLogsPane.classList.add("hidden");
     ownershipPane.classList.remove("hidden");
-    if (state.currentGameLogsPlayer?.id) {
-      renderDataHubOwnershipPane(state.currentGameLogsPlayer.id);
-      if (!hasDataHubOwnershipContextLoaded()) {
+    const playerId = String(state.currentGameLogsPlayer?.id || "").trim();
+    if (playerId) {
+      renderDataHubOwnershipPane(playerId);
+      if (state.userId && !hasDataHubOwnershipContextLoaded()) {
         loadDataHubOwnershipContextForUser()
           .then(() => {
             if (state.currentGameLogsPlayer?.id) {
@@ -12789,6 +12816,180 @@ function hasDataHubOwnershipContextLoaded(cacheKey = String(state.userId || "").
   );
 }
 
+function isDataHubOwnershipPaneVisible() {
+  const ownershipPane = document.querySelector("#gamelogs-ownership-pane");
+  return Boolean(
+    gameLogsModal
+    && !gameLogsModal.classList.contains("hidden")
+    && ownershipPane
+    && !ownershipPane.classList.contains("hidden"),
+  );
+}
+
+// DataHub inline ownership prompt:
+// this replaces the old tooltip-only guard when no Sleeper username is stored,
+// keeping the recovery flow inside the local ownership pane.
+function renderDataHubOwnershipUsernamePrompt({ bodyEl, usernameValue = "" } = {}) {
+  if (!bodyEl) {
+    return;
+  }
+
+  bodyEl.innerHTML = `
+    <section class="ownership-username-prompt" aria-labelledby="datahubOwnershipPromptTitle">
+      <div class="ownership-username-prompt__badge">
+        <svg class="ownership-username-prompt__badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="m15 9-6 6"></path>
+          <path d="M9 9h.01"></path>
+          <path d="M15 15h.01"></path>
+        </svg>
+        <span>Ownership Access</span>
+      </div>
+      <h4 class="ownership-username-prompt__title" id="datahubOwnershipPromptTitle">Please enter a Sleeper username to view ownership data.</h4>
+      <p class="ownership-username-prompt__copy">Data Hub will use it to load your dynasty league exposure for this player, or you can jump right back to the regular game logs view.</p>
+      <form class="ownership-username-prompt__form" data-datahub-ownership-form novalidate>
+        <label class="ownership-username-prompt__label" for="datahubOwnershipUsernameInput">Sleeper Username</label>
+        <div class="ownership-username-prompt__field">
+          <svg class="ownership-username-prompt__field-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20a8 8 0 0 1 16 0"></path>
+          </svg>
+          <input
+            id="datahubOwnershipUsernameInput"
+            class="ownership-username-prompt__input"
+            data-datahub-ownership-input
+            type="text"
+            inputmode="text"
+            autocomplete="username"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Enter your Sleeper username"
+            value="${dataHubEscapeHtml(usernameValue)}"
+          />
+        </div>
+        <p class="ownership-username-prompt__status" data-datahub-ownership-status aria-live="polite" hidden></p>
+        <div class="ownership-username-prompt__actions">
+          <button type="submit" class="ownership-username-prompt__button ownership-username-prompt__button--primary" data-datahub-ownership-submit>
+            Load Ownership
+          </button>
+          <button type="button" class="ownership-username-prompt__button ownership-username-prompt__button--secondary" data-datahub-ownership-back>
+            Back to Game Logs
+          </button>
+        </div>
+      </form>
+    </section>
+  `;
+}
+
+function setDataHubOwnershipPromptPending(form, isPending) {
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+
+  form.classList.toggle("is-loading", isPending);
+  form.querySelectorAll("input, button").forEach((control) => {
+    control.disabled = Boolean(isPending);
+  });
+}
+
+function setDataHubOwnershipPromptStatus(form, message = "", tone = "") {
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+
+  const statusEl = form.querySelector("[data-datahub-ownership-status]");
+  if (!(statusEl instanceof HTMLElement)) {
+    return;
+  }
+
+  statusEl.textContent = message;
+  if (tone) {
+    statusEl.dataset.tone = tone;
+  } else {
+    delete statusEl.dataset.tone;
+  }
+  statusEl.hidden = !message;
+}
+
+function clearDataHubOwnershipPromptStatus(form) {
+  setDataHubOwnershipPromptStatus(form, "", "");
+}
+
+async function handleDataHubOwnershipUsernameSubmit(form) {
+  if (!(form instanceof HTMLFormElement)) {
+    return;
+  }
+
+  const usernameInput = form.querySelector("[data-datahub-ownership-input]");
+  if (!(usernameInput instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const username = String(usernameInput.value || "").trim();
+  if (!username) {
+    setDataHubOwnershipPromptStatus(form, "Enter a Sleeper username before loading ownership data.", "error");
+    usernameInput.focus();
+    return;
+  }
+
+  setDataHubOwnershipPromptPending(form, true);
+  setDataHubOwnershipPromptStatus(form, "Looking up your Sleeper leagues…", "loading");
+
+  let userId = "";
+  try {
+    const user = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${encodeURIComponent(username)}`);
+    userId = String(user?.user_id || "").trim();
+    if (!userId) {
+      throw new Error("missing-user-id");
+    }
+  } catch (error) {
+    const isMissingUser = String(error?.message || "").includes("404") || error?.message === "missing-user-id";
+    setDataHubOwnershipPromptPending(form, false);
+    setDataHubOwnershipPromptStatus(
+      form,
+      isMissingUser
+        ? "We couldn’t find that Sleeper username. Please try again."
+        : "We couldn’t verify that Sleeper username right now. Please try again.",
+      "error",
+    );
+    usernameInput.focus();
+    usernameInput.select();
+    return;
+  }
+
+  // DataHub ownership username hydration:
+  // store the confirmed Sleeper identity locally, then hydrate the ownership
+  // pane using the same page-local loading path as any previously known user.
+  state.username = username;
+  state.userId = userId;
+  state.ownershipContext = null;
+  dataHubOwnershipContextLoadPromise = null;
+  dataHubOwnershipContextLoadKey = "";
+  try {
+    localStorage.setItem("sleeper_username", username);
+  } catch (error) {}
+
+  const playerId = String(state.currentGameLogsPlayer?.id || "").trim();
+  if (!playerId) {
+    setDataHubOwnershipPromptPending(form, false);
+    setDataHubOwnershipPromptStatus(form, "Open a player card before loading ownership data.", "error");
+    return;
+  }
+
+  renderDataHubOwnershipPane(playerId);
+  try {
+    await loadDataHubOwnershipContextForUser();
+    if (isDataHubOwnershipPaneVisible() && state.currentGameLogsPlayer?.id === playerId) {
+      renderDataHubOwnershipPane(playerId);
+    }
+  } catch (error) {
+    const bodyEl = document.querySelector("#glOwnershipBody");
+    if (isDataHubOwnershipPaneVisible() && state.currentGameLogsPlayer?.id === playerId && bodyEl) {
+      bodyEl.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
+    }
+  }
+}
+
 // DataHub Ownership exposure tiers:
 // targets the inline Ownership tab inside the DataHub Game Logs modal.
 // It mirrors the Rosters/Ownership count-based tier classes locally so DataHub
@@ -12880,6 +13081,20 @@ function renderDataHubOwnershipPane(playerId) {
     }
   }
   if (bodyEl) {
+    if (!state.userId) {
+      const promptUsername = String(
+        document.querySelector("[data-datahub-ownership-input]")?.value
+        || state.username
+        || readStoredUsername()
+        || "",
+      ).trim();
+      renderDataHubOwnershipUsernamePrompt({
+        bodyEl,
+        usernameValue: promptUsername,
+      });
+      return;
+    }
+
     if (!hasDataHubOwnershipContextLoaded()) {
       bodyEl.innerHTML = '<div class="ownership-modal-empty">Ownership data is loading…</div>';
       return;
