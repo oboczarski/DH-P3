@@ -1952,7 +1952,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
      widens the player vitals, summary chips, and nav controls as one desktop-only
      group while leaving the mobile modal header sizing untouched. */
   body[data-page="rosters"] #game-logs-modal {
-    --rosters-gamelogs-desktop-header-width: 532px;
+    --rosters-gamelogs-desktop-header-width: 516px;
     --rosters-gamelogs-desktop-control-height: 30px;
   }
 
