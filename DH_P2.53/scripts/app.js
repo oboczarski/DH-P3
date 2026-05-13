@@ -6178,8 +6178,11 @@ function appendCareerTeamCellContent(cell, row) {
     chip.dataset.team = teamKey || 'NA';
     if (logoKey) {
         const img = document.createElement('img');
+        img.className = 'team-logo glow career-stats-team-logo';
         img.src = `../assets/NFL_logos_svg/${logoKey}.svg`;
         img.alt = teamKey;
+        img.width = 24;
+        img.height = 24;
         img.loading = 'lazy';
         img.decoding = 'async';
         chip.appendChild(img);
@@ -6221,14 +6224,14 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
     chip.className = 'career-stats-fantasy-chip';
 
     if (statKey.endsWith('_POS_RK')) {
-        chip.classList.add('career-stats-fantasy-chip--rank');
+        chip.classList.add('career-stats-fantasy-chip--rank', 'career-stats-fantasy-chip--pos-rank');
         const posSegment = document.createElement('span');
         posSegment.className = 'career-stats-fantasy-pos-rank';
         posSegment.textContent = formatCareerPosRankText(posRankRaw);
         if (posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
         chip.appendChild(posSegment);
     } else {
-        chip.classList.add('career-stats-fantasy-chip--rank');
+        chip.classList.add('career-stats-fantasy-chip--rank', 'career-stats-fantasy-chip--ovr-rank');
         const overallSegment = overallRankNumber !== null
             ? createRankAnnotation(overallRankNumber, { wrapInParens: false, ordinal: true, variant: 'career' })
             : document.createElement('span');
@@ -6301,7 +6304,8 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
         if (statKey === 'TM') return 'career-stats-col--team';
         if (statKey === 'G') return 'career-stats-col--games';
         if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') return 'career-stats-col--fantasy-value';
-        if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) return 'career-stats-col--fantasy-rank';
+        if (statKey.endsWith('_POS_RK')) return 'career-stats-col--fantasy-pos-rank';
+        if (statKey.endsWith('_OVR_RK')) return 'career-stats-col--fantasy-ovr-rank';
         return 'career-stats-col--stat';
     };
 
@@ -6354,6 +6358,7 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
                     td.classList.add('career-stats-colgroup-start');
                 }
                 if (statKey === 'TM') {
+                    td.classList.add('career-stats-cell--team');
                     appendCareerTeamCellContent(td, row);
                 } else if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') {
                     td.classList.add('career-stats-cell--fantasy-value');
