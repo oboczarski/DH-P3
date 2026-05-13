@@ -6144,10 +6144,12 @@ function createCareerGroupHeaderContent(section) {
     const iconConfig = CAREER_STAT_GROUP_ICONS[section?.id] || CAREER_STAT_GROUP_ICONS[section?.tone];
     if (iconConfig?.markup) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const sectionIdClass = String(section?.id || '').replace(/[^a-z0-9_-]/gi, '-');
         svg.setAttribute('viewBox', '0 0 24 24');
         svg.setAttribute('aria-hidden', 'true');
         svg.setAttribute('focusable', 'false');
         svg.classList.add('career-stats-group-header-icon');
+        if (sectionIdClass) svg.classList.add(`career-stats-group-header-icon--${sectionIdClass}`);
         appendCareerIconMarkup(svg, iconConfig.markup);
         inner.appendChild(svg);
     }
@@ -6331,7 +6333,9 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
         const groupRow = document.createElement('tr');
         paneSections.forEach((section, sectionIndex) => {
             const th = document.createElement('th');
+            const sectionIdClass = String(section?.id || '').replace(/[^a-z0-9_-]/gi, '-');
             th.className = `career-stats-group-header career-stats-group-header--${section.tone || section.id}`;
+            if (sectionIdClass) th.classList.add(`career-stats-group-header--${sectionIdClass}`);
             if (sectionIndex > 0) th.classList.add('career-stats-group-header--group-start');
             th.colSpan = section.stats.length;
             th.appendChild(createCareerGroupHeaderContent(section));

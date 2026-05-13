@@ -1921,8 +1921,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active)
 }
 
 body[data-page="rosters"] #game-logs-modal .gamelogs-view-option .gamelogs-view-icon {
-  width: 1.35em;
-  height: 1.35em;
+  width: 1.42em;
+  height: 1.42em;
   flex: 0 0 auto;
   color: currentColor;
 }
@@ -2146,6 +2146,13 @@ body[data-page="rosters"] #game-logs-modal .game-logs-career-view {
   --career-fantasy-pos-rank-col-width: 46px;
   --career-fantasy-ovr-rank-col-width: 38px;
   --career-team-logo-size: 29px;
+  /* Career table group-header icon sizing:
+     adjust these variables to tune individual column-group icons without
+     changing markup or shared table layout. */
+  --career-group-icon-size: 16px;
+  --career-group-icon-season-size: 16px;
+  --career-group-icon-fantasy-points-size: 16px;
+  --career-group-icon-points-per-game-size: 16px;
   --career-body-row-height: 31px;
   display: flex;
   align-items: flex-start;
@@ -2310,8 +2317,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-group-header-inner {
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon {
-  width: 16px;
-  height: 16px;
+  width: var(--career-group-icon-size);
+  height: var(--career-group-icon-size);
   flex: 0 0 auto;
   color: currentColor;
   stroke: currentColor;
@@ -2319,6 +2326,23 @@ body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon {
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--season {
+  width: 15px;
+  height: 15px;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
+  width: 16px;
+  height: 16px;
+  transform: translateY(-1px);
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
+  width: 16px;
+  height: 16px;
+  transform: translateY(-1px);
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-header {
@@ -2334,12 +2358,12 @@ body[data-page="rosters"] #game-logs-modal .career-stats-header {
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--season,
 body[data-page="rosters"] #game-logs-modal .career-stats-header--season {
-  color: #cfd6fc;
+  color: #9f91ff;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--fantasy,
 body[data-page="rosters"] #game-logs-modal .career-stats-header--fantasy {
-  color: #b7adfe;
+  color: #ac9a70bd;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--passing,
@@ -2360,6 +2384,18 @@ body[data-page="rosters"] #game-logs-modal .career-stats-header--receiving {
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--total,
 body[data-page="rosters"] #game-logs-modal .career-stats-header--total {
   color: #f2c879;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--season {
+  color: #897eff;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--fantasy-points {
+  color: #ac9a70bd;
+}
+
+body[data-page="rosters"] #game-logs-modal .career-stats-group-header--points-per-game {
+  color: #b2a68cde;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-cell {
@@ -2529,6 +2565,10 @@ body[data-page="rosters"] #game-logs-modal .career-stats-empty {
     --career-fantasy-pos-rank-col-width: 41px;
     --career-fantasy-ovr-rank-col-width: 34px;
     --career-team-logo-size: 24px;
+    --career-group-icon-size: 13px;
+    --career-group-icon-season-size: 13px;
+    --career-group-icon-fantasy-points-size: 13px;
+    --career-group-icon-points-per-game-size: 13px;
     padding-left: 0.02rem;
     padding-right: 0.02rem;
   }
@@ -2551,11 +2591,6 @@ body[data-page="rosters"] #game-logs-modal .career-stats-empty {
     height: 28px;
     font-size: 0.58rem;
     letter-spacing: 0.01em;
-  }
-
-  body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon {
-    width: 13px;
-    height: 13px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-header {
