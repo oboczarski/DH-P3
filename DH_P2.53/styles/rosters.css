@@ -1920,6 +1920,17 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active)
   opacity: 0.76;
 }
 
+body[data-page="rosters"] #game-logs-modal .gamelogs-view-option .gamelogs-view-icon {
+  width: 1.35em;
+  height: 1.35em;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active) .gamelogs-view-icon {
+  opacity: 0.76;
+}
+
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle:focus-visible,
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-option:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.24);

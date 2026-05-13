@@ -1377,15 +1377,23 @@ const PLAYER_STATS_CSV_PATHS = {
 const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
 const CAREER_STAT_GROUP_ICONS = {
     // Rosters Game Logs modal Career view:
-    // mirrors the DataHub table group-header icon language without depending on
-    // the DataHub-only script bundle on the Rosters page.
+    // stores self-contained column-group SVG markup so this table can be ported
+    // without depending on DataHub-only script bundles.
     season: {
         color: '#888bff',
-        markup: '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>'
+        markup: '<path stroke="none" d="M0 0h24v24H0z" fill="none" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M15 19l2 2l4 -4" /></g>'
+    },
+    'fantasy-points': {
+        color: '#dfc689',
+        markup: '<path stroke="none" d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" stroke="none" d="M19 19h-14c-.5 0 -.9 -.3 -1 -.8l-2 -10c0 -.4 .1 -.8 .5 -1.1c.4 -.2 .8 -.2 1.1 0l4.1 3.3l3.4 -5.1c.4 -.6 1.3 -.6 1.7 0l3.4 5.1l4.1 -3.3c.3 -.3 .8 -.3 1.1 0c.4 .2 .5 .6 .5 1.1l-2 10c0 .5 -.5 .8 -1 .8z" />'
+    },
+    'points-per-game': {
+        color: '#dfc689',
+        markup: '<path stroke="none" d="M0 0h24v24H0z" fill="none" /><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4l4 -6" /></g>'
     },
     fantasy: {
         color: '#dfc689',
-        markup: '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /><path d="M20 2v4" /><path d="M22 4h-4" /><circle cx="4" cy="20" r="2" />'
+        markup: '<path stroke="none" d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" stroke="none" d="M19 19h-14c-.5 0 -.9 -.3 -1 -.8l-2 -10c0 -.4 .1 -.8 .5 -1.1c.4 -.2 .8 -.2 1.1 0l4.1 3.3l3.4 -5.1c.4 -.6 1.3 -.6 1.7 0l3.4 5.1l4.1 -3.3c.3 -.3 .8 -.3 1.1 0c.4 .2 .5 .6 .5 1.1l-2 10c0 .5 -.5 .8 -1 .8z" />'
     },
     passing: {
         color: '#fd8787',
@@ -6116,7 +6124,7 @@ function formatCareerPosRankText(value) {
 
 function appendCareerIconMarkup(svg, iconMarkup) {
     // Rosters Game Logs modal Career view:
-    // appends the same path/html SVG icon formats used by the DataHub table.
+    // appends configured SVG path/html markup into the group-header icon shell.
     if (!svg || !iconMarkup) return;
     if (iconMarkup.startsWith('<')) {
         svg.innerHTML = iconMarkup;
@@ -6129,11 +6137,11 @@ function appendCareerIconMarkup(svg, iconMarkup) {
 
 function createCareerGroupHeaderContent(section) {
     // Rosters Game Logs modal Career view:
-    // wraps each group title with a DataHub-matched icon so the Career table
-    // visually follows the same column-group language.
+    // wraps each group title with its configured icon; lookup prefers the visible
+    // split-group id so Fantasy Points and Points Per Game can use different icons.
     const inner = document.createElement('div');
     inner.className = 'career-stats-group-header-inner';
-    const iconConfig = CAREER_STAT_GROUP_ICONS[section?.tone || section?.id];
+    const iconConfig = CAREER_STAT_GROUP_ICONS[section?.id] || CAREER_STAT_GROUP_ICONS[section?.tone];
     if (iconConfig?.markup) {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');
