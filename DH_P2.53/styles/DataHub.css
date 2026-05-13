@@ -2306,6 +2306,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   min-width: 108px;
   justify-content: center;
   cursor: pointer;
+  margin-top: 1px;
 }
 
 .meta-pill--button:hover,
@@ -4114,7 +4115,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill-wrap {
-    gap: 6px;
+    gap: 12px;
+  }
+
+  /* Mobile row-count chip alignment:
+     the Active View and Sorted By pills sit inside two-row grid controls, so
+     their 27px chips visually hang 3px below the wrapper. Match that same
+     baseline for the standalone row-count chip so all three top-of-table chips
+     align on one clean horizontal line without changing desktop layout. */
+  .grid-shell__meta .meta-count {
+    height: 27px;
+    min-height: 27px;
+    transform: translateY(3px);
+    width: 53px;
+    text-wrap-mode: nowrap;
+    padding: 0 2px;
+    justify-content: center;
+    letter-spacing: -0.02em;
   }
 
   .sort-meta-control {
