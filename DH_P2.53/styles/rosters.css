@@ -1921,8 +1921,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active)
 }
 
 body[data-page="rosters"] #game-logs-modal .gamelogs-view-option .gamelogs-view-icon {
-  width: 1.42em;
-  height: 1.42em;
+  width: 1.32em;
+  height: 1.32em;
   flex: 0 0 auto;
   color: currentColor;
 }
@@ -2325,20 +2325,22 @@ body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon {
   /* Career table desktop group icons:
      edit these three selectors for desktop only; mobile has its own block below. */
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--season {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     transform: translateY(-1px);
+    margin: -1px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     transform: translateY(-1px);
+    margin: -1px;
   }
 }
 
@@ -2420,8 +2422,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane tbody .care
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane tbody .career-stats-cell--szn {
-  font-size: 0.76rem;
-  font-weight: 680;
+  font-size: 0.8rem;
+  font-weight: 400;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--group-start,
@@ -2448,8 +2450,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-cell--team {
 
 body[data-page="rosters"] #game-logs-modal .career-stats-team-logo-chip img {
   display: block;
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   backface-visibility: hidden;
   transform: translateZ(0);
@@ -2605,19 +2607,19 @@ body[data-page="rosters"] #game-logs-modal .career-stats-empty {
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--season {
-    width: 13px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
     transform: translateY(-1px);
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
     transform: translateY(-1px);
   }
 
