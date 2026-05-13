@@ -2213,7 +2213,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane {
   z-index: 2;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(18, 21, 43, 0.98), rgba(9, 11, 26, 0.98));
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.28), 2px 0 0 rgba(225, 225, 255, 0.15);
+  box-shadow: inset -2px 0 1px rgba(225, 225, 255, 0.00);
+  border-right: 2px solid #3349;
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-scroll-pane {
@@ -2288,8 +2289,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table td {
   box-sizing: border-box;
   text-align: center;
   white-space: nowrap;
-  border-bottom: 1px solid rgba(128, 138, 189, 0.12);
-  border-right: 1px solid rgba(128, 138, 189, 0.08);
+  border-bottom: 0px solid rgba(128, 138, 189, 0.12);
+  border-right: 1px solid rgba(128, 138, 189, 0.03);
   font-family: 'Product Sans', 'Google Sans', var(--font-sans);
 }
 
@@ -2409,8 +2410,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane tbody .care
 
 body[data-page="rosters"] #game-logs-modal .career-stats-group-header--group-start,
 body[data-page="rosters"] #game-logs-modal .career-stats-colgroup-start {
-  border-left: 2px solid rgba(220, 226, 255, 0.16) !important;
-  box-shadow: inset 1px 0 0 rgba(0, 0, 0, 0.26);
+  border-left: 1px solid #334a;
+  box-shadow: inset 1px 0 1px rgba(200,200,200, 0.04);
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-team-logo-chip {
