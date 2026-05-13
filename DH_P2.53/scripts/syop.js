@@ -2159,6 +2159,463 @@
     `;
   }
 
+  // Positional Analysis revamp renderer:
+  // replaces the original reference-app stacking with a chart-first Research
+  // report while reusing the same private CSV state, controls, and tab mount.
+  function posdistRenderHeader() {
+    return `
+      <header class="posdist-page-header">
+        <div class="posdist-header-copy">
+          <span class="posdist-eyebrow">Research / Positional Supply</span>
+          <div class="posdist-title-row">
+            <h1>Positional Analysis</h1>
+            <span class="posdist-brand-pill">2007-2025</span>
+          </div>
+          <p class="posdist-brand-subtitle">How QB, RB, WR, and TE representation changes inside fantasy-points leaderboards as league personnel usage shifts.</p>
+        </div>
+        <div class="posdist-range-tabs" role="group" aria-label="Select fantasy points leaderboard range">
+          ${POSDIST_RANGE_OPTIONS.map((range) => `<button class="posdist-range-btn ${posdistState.selectedRange === range ? 'active' : ''}" type="button" data-posdist-range="${range}">${range}</button>`).join('')}
+        </div>
+      </header>
+    `;
+  }
+
+  function posdistStatChip(label, value, tone = 'neutral') {
+    return `
+      <div class="posdist-stat-chip ${tone}">
+        <div class="posdist-stat-label">${label}</div>
+        <div class="posdist-stat-value">${value}</div>
+      </div>
+    `;
+  }
+
+  function posdistRenderStatGrid(summary) {
+    return `
+      <div class="posdist-stat-grid" aria-label="Selected range summary">
+        ${posdistStatChip('Range', posdistState.selectedRange)}
+        ${posdistStatChip('2025 Leader', `${summary.leader.pos} ${summary.leader.value}`, 'hot')}
+        ${posdistStatChip('RB-WR Gap', posdistFmtDelta(summary.rbWrDiff), summary.rbWrDiff > 0 ? 'up' : summary.rbWrDiff < 0 ? 'down' : 'neutral')}
+        ${posdistStatChip('WR Since 2023', posdistFmtDelta(summary.wr2325), summary.wr2325 < 0 ? 'down' : summary.wr2325 > 0 ? 'up' : 'neutral')}
+      </div>
+    `;
+  }
+
+  function posdistPanelHeading(iconName, title, subtitle) {
+    return `
+      <div class="posdist-panel-heading">
+        <div class="posdist-heading-icon">${posdistIcon(iconName, 'posdist-icon posdist-icon-sm')}</div>
+        <div>
+          <h2 class="posdist-card-title">${title}</h2>
+          <p class="posdist-card-subtitle">${subtitle}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function posdistRenderPositionToggle(pos, current) {
+    const active = posdistState.activePositions.includes(pos);
+    const cfg = POSDIST_POS_CONFIG[pos];
+    return `
+      <button class="posdist-pos-toggle ${active ? '' : 'inactive'}" type="button" data-posdist-pos="${pos}" aria-pressed="${String(active)}">
+        <span class="posdist-pos-dot" style="color:${cfg.high}; background:linear-gradient(135deg, ${cfg.low}, ${cfg.high})"></span>
+        <span class="posdist-pos-name">${pos}</span>
+        <span class="posdist-pos-count">${current}</span>
+      </button>
+    `;
+  }
+
+  function posdistRenderMainChart(active, selectedRange) {
+    const width = 1460;
+    const height = 500;
+    const margin = { top: 42, right: 34, bottom: 54, left: 54 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const visibleSeries = active.series.filter((series) => posdistState.activePositions.includes(series.pos));
+    const maxValue = Math.max(...visibleSeries.flatMap((series) => series.values.map((point) => point.value)), 1);
+    const yMax = Math.max(posdistRangeSize(selectedRange) <= 12 ? 6 : 12, Math.ceil(maxValue + 2));
+    const tickStep = yMax <= 8 ? 1 : 2;
+    const yTicks = Array.from({ length: Math.floor(yMax / tickStep) + 1 }, (_, i) => i * tickStep);
+    const xScale = (index) => (index / (posdistState.years.length - 1)) * innerWidth;
+    const yScale = (value) => innerHeight - (value / yMax) * innerHeight;
+
+    const labelOffset = (yearIndex, pos) => {
+      const row = active.yearRows[yearIndex];
+      const value = row[pos];
+      const close = posdistState.activePositions
+        .map((p) => ({ pos: p, value: row[p] }))
+        .filter((item) => Math.abs(item.value - value) <= 0.45)
+        .sort((a, b) => POSDIST_POSITIONS.indexOf(a.pos) - POSDIST_POSITIONS.indexOf(b.pos));
+      const stackIndex = Math.max(0, close.findIndex((item) => item.pos === pos));
+      const y = yScale(value);
+      const direction = y < 32 ? 1 : -1;
+      return direction * (15 + stackIndex * 14);
+    };
+
+    const chartGlowId = `posdist-chart-glow-${posdistSlug(selectedRange)}`;
+    const defs = visibleSeries.flatMap((series) => series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      const id = posdistGradientId(selectedRange, series.pos, index);
+      return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}"><stop offset="0%" stop-color="${POSDIST_POS_CONFIG[series.pos][point.tier]}" /><stop offset="100%" stop-color="${POSDIST_POS_CONFIG[series.pos][next.tier]}" /></linearGradient>`;
+    })).join('');
+    const grid = yTicks.map((tick) => `<g transform="translate(0, ${yScale(tick)})"><line x2="${innerWidth}" stroke="rgba(255,255,255,0.05)" /><text x="-18" y="4" text-anchor="end" class="posdist-svg-text-dim" font-size="11">${tick}</text></g>`).join('');
+    const years = posdistState.years.map((year, index) => `<g transform="translate(${xScale(index)}, 0)"><line y1="0" y2="${innerHeight}" stroke="rgba(255,255,255,0.022)" stroke-dasharray="4 8" /><text y="${innerHeight + 32}" text-anchor="middle" class="posdist-svg-text-muted" font-size="11">${year}</text></g>`).join('');
+    const lines = visibleSeries.map((series) => `<g>${series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      return `<line x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}" stroke="url(#${posdistGradientId(selectedRange, series.pos, index)})" stroke-width="4.25" stroke-linecap="round" opacity="0.96" />`;
+    }).join('')}</g>`).join('');
+    const points = visibleSeries.map((series) => `<g>${series.values.map((point, index) => {
+      const color = POSDIST_POS_CONFIG[series.pos][point.tier];
+      const x = xScale(index);
+      const y = yScale(point.value);
+      return `<g><circle cx="${x}" cy="${y}" r="6" fill="rgba(0,0,0,0.9)" stroke="${color}" stroke-width="3" /><circle cx="${x}" cy="${y}" r="2" fill="${color}" /><text x="${x}" y="${y + labelOffset(index, series.pos)}" text-anchor="middle" class="posdist-svg-label" font-size="12" fill="${color}" style="paint-order:stroke;stroke:#08090d;stroke-width:5px;stroke-linejoin:round">${point.value}</text></g>`;
+    }).join('')}</g>`).join('');
+
+    return `
+      <div class="posdist-chart-scroll">
+        <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg posdist-main-chart" role="img" aria-label="${selectedRange} positional leaderboard count trend">
+          <defs>
+            <radialGradient id="${chartGlowId}" cx="50%" cy="18%" r="78%"><stop offset="0%" stop-color="rgba(0,221,250,0.14)" /><stop offset="56%" stop-color="rgba(168,85,247,0.035)" /><stop offset="100%" stop-color="rgba(0,0,0,0)" /></radialGradient>
+            ${defs}
+          </defs>
+          <rect x="0" y="0" width="${width}" height="${height}" rx="18" fill="url(#${chartGlowId})" opacity="0.9" />
+          <g transform="translate(${margin.left}, ${margin.top})">
+            ${grid}
+            ${years}
+            <text x="0" y="-16" fill="#67e8f9" font-size="11" font-weight="900">Count</text>
+            <text x="${innerWidth}" y="${innerHeight + 50}" text-anchor="end" fill="#52525b" font-size="10" font-weight="900">Year 2007-2025</text>
+            ${lines}
+            ${points}
+          </g>
+        </svg>
+      </div>
+    `;
+  }
+
+  function posdistRenderMiniLineChart(range) {
+    const model = posdistGetChartModel(range, posdistState.activePositions);
+    const width = 660;
+    const height = 218;
+    const margin = { top: 30, right: 18, bottom: 28, left: 28 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const maxValue = Math.max(...model.series.flatMap((series) => series.values.map((point) => point.value)), 1);
+    const yMax = Math.max(8, Math.ceil(maxValue + 1));
+    const xScale = (index) => (index / (posdistState.years.length - 1)) * innerWidth;
+    const yScale = (value) => innerHeight - (value / yMax) * innerHeight;
+    const rangeColor = POSDIST_GRID_RANGE_LABEL_COLORS[range] || '#ffffff';
+    const defs = model.series.flatMap((series) => series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      const id = posdistGradientId(range, series.pos, index, 'mini');
+      return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}"><stop offset="0%" stop-color="${POSDIST_POS_CONFIG[series.pos][point.tier]}" /><stop offset="100%" stop-color="${POSDIST_POS_CONFIG[series.pos][next.tier]}" /></linearGradient>`;
+    })).join('');
+    const lines = model.series.map((series) => `<g>${series.values.slice(0, -1).map((point, index) => `<line x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(series.values[index + 1].value)}" stroke="url(#${posdistGradientId(range, series.pos, index, 'mini')})" stroke-width="3" stroke-linecap="round" />`).join('')}</g>`).join('');
+    const endpoints = model.series.map((series) => {
+      const point = series.values[series.values.length - 1];
+      const color = POSDIST_POS_CONFIG[series.pos].high;
+      return `<g><circle cx="${xScale(series.values.length - 1)}" cy="${yScale(point.value)}" r="4.5" fill="#05060a" stroke="${color}" stroke-width="2" /><text x="${xScale(series.values.length - 1) - 8}" y="${yScale(point.value) - 8}" text-anchor="end" font-size="11" font-weight="900" fill="${color}" style="paint-order:stroke;stroke:#05060a;stroke-width:4px">${series.pos} ${point.value}</text></g>`;
+    }).join('');
+
+    return `
+      <div class="posdist-mini-card">
+        <div class="posdist-mini-head">
+          <div class="posdist-mini-title" style="color:${rangeColor}">${range}</div>
+          <div class="posdist-mini-pill">2007-2025</div>
+        </div>
+        <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg" role="img" aria-label="${range} mini trend chart">
+          <defs>${defs}</defs>
+          <g transform="translate(${margin.left}, ${margin.top})">
+            ${[0, 0.33, 0.66, 1].map((tick) => `<line x1="0" x2="${innerWidth}" y1="${tick * innerHeight}" y2="${tick * innerHeight}" stroke="rgba(255,255,255,.045)" />`).join('')}
+            ${posdistState.years.filter((_, index) => index % 3 === 0 || index === posdistState.years.length - 1).map((year) => {
+              const index = posdistState.years.indexOf(year);
+              return `<text x="${xScale(index)}" y="${innerHeight + 22}" text-anchor="middle" class="posdist-svg-text-muted" font-size="10">${year}</text>`;
+            }).join('')}
+            ${lines}
+            ${endpoints}
+          </g>
+        </svg>
+      </div>
+    `;
+  }
+
+  function posdistRenderChartPanel(active, summary) {
+    const body = posdistState.chartMode === 'grid'
+      ? `<div class="posdist-mini-grid">${POSDIST_GRID_RANGES.map(posdistRenderMiniLineChart).join('')}</div>`
+      : posdistRenderMainChart(active, posdistState.selectedRange);
+
+    return posdistPanel(`
+      <div class="posdist-chart-header">
+        <div class="posdist-chart-title-side">
+          <div class="posdist-heading-icon">${posdistIcon('LineChart', 'posdist-icon posdist-icon-sm')}</div>
+          <div>
+            <h2 class="posdist-card-title">Position Counts by Year</h2>
+            <p class="posdist-card-subtitle">${posdistState.chartMode === 'grid' ? 'Four range comparison: Top 60, Top 48, Top 36, and Top 24.' : 'Selected fantasy-points rank range, 2007-2025.'}</p>
+          </div>
+        </div>
+        <div class="posdist-chart-controls">
+          <button class="posdist-grid-toggle ${posdistState.chartMode === 'grid' ? 'active' : ''}" id="posdistGridToggle" type="button" aria-pressed="${String(posdistState.chartMode === 'grid')}">Grid</button>
+          <div class="posdist-pos-toggle-wrap">${POSDIST_POSITIONS.map((pos) => posdistRenderPositionToggle(pos, summary.current[pos])).join('')}</div>
+        </div>
+      </div>
+      ${body}
+    `, 'posdist-chart-panel');
+  }
+
+  function posdistRenderPersonnelInsights(allSummaries, selectedSummary) {
+    const top48Rb2024 = posdistValueForYear('Top 48', 'RB', 2024);
+    const top48Wr2024 = posdistValueForYear('Top 48', 'WR', 2024);
+    const top48Rb2025 = posdistValueForYear('Top 48', 'RB', 2025);
+    const top48Wr2025 = posdistValueForYear('Top 48', 'WR', 2025);
+    const top60Rb2025 = posdistValueForYear('Top 60', 'RB', 2025);
+    const top60Wr2025 = posdistValueForYear('Top 60', 'WR', 2025);
+    const top60 = allSummaries['Top 60'];
+
+    return posdistPanel(`
+      <div class="posdist-story-layout">
+        <div class="posdist-story-copy">
+          <span class="posdist-eyebrow">Personnel context</span>
+          <h2 class="posdist-story-title">Why RB Is Gaining Ground</h2>
+          <p>Heavier 12/13 personnel creates more RB-friendly environments because those packages run more often than 11 personnel. That helps RB opportunity while tightening WR volume: fewer WRs are on the field and the pass rate falls.</p>
+          <p>TE usage can rise in these groupings, but the fantasy boost is capped because the packages are still run-heavy. QBs are slightly pressured by lower pass volume. The dynasty implication is straightforward: top young RBs deserve more priority while this personnel trend continues.</p>
+        </div>
+        <div class="posdist-story-facts" aria-label="CSV backed personnel shift evidence">
+          <div class="posdist-story-fact"><span>2024 Top 48</span><strong>RB ${top48Rb2024} / WR ${top48Wr2024}</strong><em>First major flip in this file.</em></div>
+          <div class="posdist-story-fact"><span>2025 Top 48</span><strong>RB ${top48Rb2025} / WR ${top48Wr2025}</strong><em>Confirmation season.</em></div>
+          <div class="posdist-story-fact"><span>2025 Top 60</span><strong>RB ${top60Rb2025} / WR ${top60Wr2025}</strong><em>${top60?.rbWrDiff > 0 ? `RB leads by ${top60.rbWrDiff}.` : 'RB and WR remain tight.'}</em></div>
+        </div>
+      </div>
+      <div class="posdist-story-notes">
+        <span>2026 outlook: the trend is unlikely to reverse yet after the 2026 draft reinforced league interest in heavier TE usage.</span>
+        <span>${selectedSummary.range}: ${selectedSummary.read}.</span>
+      </div>
+    `, 'posdist-personnel-panel', false);
+  }
+
+  function posdistRenderPositionProfileCards(summary) {
+    return `<div class="posdist-profile-grid">${POSDIST_POSITIONS.map((pos) => {
+      const stat = summary.stats[pos];
+      const muted = !posdistState.activePositions.includes(pos);
+      const cfg = POSDIST_POS_CONFIG[pos];
+      const trendTone = stat.changeFromPrevious > 0 ? 'up' : stat.changeFromPrevious < 0 ? 'down' : 'neutral';
+      const sparkId = `posdist-spark-${pos}`;
+      const span = Math.max(1, stat.max - stat.min);
+      const sparkPoints = stat.values.map((value, i) => `${(i / (posdistState.years.length - 1)) * 220},${42 - ((value - stat.min) / span) * 34}`).join(' ');
+      return posdistPanel(`
+        <div class="posdist-profile-bar" style="background:linear-gradient(90deg, ${cfg.low}, ${cfg.mid}, ${cfg.high})"></div>
+        <div class="posdist-profile-header">
+          <div>
+            <div class="posdist-profile-pos" style="color:${cfg.high}">${pos}</div>
+            <div class="posdist-profile-sub">2025 count</div>
+          </div>
+          <div class="posdist-profile-badge ${trendTone}">${posdistFmtDelta(stat.changeFromPrevious)} YoY</div>
+        </div>
+        <div class="posdist-profile-row">
+          <strong>${stat.current}</strong>
+          <span>Avg ${posdistFmt(stat.avg)} / Peak ${stat.max}</span>
+        </div>
+        <svg viewBox="0 0 220 48" class="posdist-sparkline" role="img" aria-label="${pos} sparkline">
+          <defs><linearGradient id="${sparkId}" x1="0" x2="220" y1="0" y2="0"><stop offset="0" stop-color="${cfg.low}" /><stop offset=".5" stop-color="${cfg.mid}" /><stop offset="1" stop-color="${cfg.high}" /></linearGradient></defs>
+          <line x1="0" x2="220" y1="44" y2="44" stroke="rgba(255,255,255,.07)" />
+          <polyline fill="none" stroke="url(#${sparkId})" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${sparkPoints}" />
+          <circle cx="220" cy="${42 - ((stat.current - stat.min) / span) * 34}" r="4" fill="${cfg.high}" />
+        </svg>
+      `, `posdist-profile-panel posdist-profile-card ${muted ? 'muted' : ''}`, false);
+    }).join('')}</div>`;
+  }
+
+  function posdistRenderYoySwings(summary) {
+    const rows = posdistState.activePositions.map((pos) => ({ pos, changes: summary.stats[pos].values.slice(1).map((value, i) => value - summary.stats[pos].values[i]) }));
+    const maxAbs = Math.max(...rows.flatMap((row) => row.changes.map((value) => Math.abs(value))), 1);
+    const width = 760;
+    const laneHeight = 58;
+    const height = rows.length * laneHeight + 60;
+    const left = 54;
+    const right = 28;
+    const top = 30;
+    const innerWidth = width - left - right;
+    const step = innerWidth / Math.max(1, posdistState.years.length - 2);
+    const amp = 22;
+
+    return posdistPanel(`
+      ${posdistPanelHeading('Activity', 'Year-over-Year Swings', 'Single-season position-count changes. Biggest moves and 2025 are labeled.')}
+      <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg posdist-compact-chart" role="img" aria-label="Year-over-year position swings">
+        ${rows.map((row, rowIndex) => {
+          const y = top + 26 + rowIndex * laneHeight;
+          const biggest = row.changes.reduce((best, change, i) => Math.abs(change) > Math.abs(best.change) ? { change, i } : best, { change: 0, i: 0 });
+          return `<g>
+            <text x="16" y="${y + 4}" font-size="14" font-weight="900" fill="${POSDIST_POS_CONFIG[row.pos].high}">${row.pos}</text>
+            <line x1="${left}" x2="${width - right}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.11)" stroke-dasharray="4 7" />
+            ${row.changes.map((change, i) => {
+              const x = left + i * step;
+              const h = Math.max(3, (Math.abs(change) / maxAbs) * amp);
+              const positive = change >= 0;
+              const endY = positive ? y - h : y + h;
+              const color = positive ? POSDIST_POS_CONFIG[row.pos].high : POSDIST_POS_CONFIG[row.pos].low;
+              const year = posdistState.years[i + 1];
+              const important = i === biggest.i || year === 2025 || Math.abs(change) >= 3;
+              return `<g><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="${color}" stroke-width="${year === 2025 ? 6 : 4}" stroke-linecap="round" opacity="${change === 0 ? .24 : .9}" /><circle cx="${x}" cy="${endY}" r="${year === 2025 ? 5 : 3}" fill="#05060a" stroke="${color}" stroke-width="2" />${important ? `<text x="${x}" y="${positive ? endY - 8 : endY + 16}" text-anchor="middle" fill="#f4f4f5" font-size="10" font-weight="900" style="paint-order:stroke;stroke:#05060a;stroke-width:4px">${posdistFmtDelta(change)}</text>` : ''}</g>`;
+            }).join('')}
+          </g>`;
+        }).join('')}
+        <text x="${left}" y="${height - 12}" class="posdist-svg-text-muted" font-size="10">${posdistState.years[1]}</text>
+        <text x="${width - right}" y="${height - 12}" text-anchor="end" class="posdist-svg-text-muted" font-size="10">2025</text>
+      </svg>
+    `, 'posdist-yoy-panel posdist-span-7');
+  }
+
+  function posdistRenderRangeStability(summary) {
+    const rows = POSDIST_POSITIONS.map((pos) => ({ pos, stat: summary.stats[pos] })).sort((a, b) => b.stat.std - a.stat.std);
+    const maxStd = Math.max(...rows.map((row) => row.stat.std), 1);
+    const maxSpread = Math.max(...rows.map((row) => row.stat.spread), 1);
+
+    return posdistPanel(`
+      ${posdistPanelHeading('Gauge', 'Range Stability', 'Volatility, spread, average, and 2025 count for each position.')}
+      <div class="posdist-stability-grid">
+        ${rows.map(({ pos, stat }) => {
+          const stdPct = stat.std / maxStd;
+          const spreadPct = stat.spread / maxSpread;
+          const stdEnd = -132 + stdPct * 264;
+          const spreadEnd = -132 + spreadPct * 264;
+          return `<div class="posdist-stability-card">
+            <svg viewBox="0 0 132 104" class="posdist-stability-dial" role="img" aria-label="${pos} stability dial">
+              <path d="${posdistArcPath(66, 64, 38, -132, 132)}" stroke="rgba(255,255,255,.09)" stroke-width="10" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(66, 64, 38, -132, stdEnd)}" stroke="${POSDIST_POS_CONFIG[pos].high}" stroke-width="10" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(66, 64, 25, -132, 132)}" stroke="rgba(255,255,255,.06)" stroke-width="7" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(66, 64, 25, -132, spreadEnd)}" stroke="${POSDIST_POS_CONFIG[pos].mid}" stroke-width="7" fill="none" stroke-linecap="round" />
+              <circle cx="66" cy="64" r="22" fill="rgba(0,0,0,.55)" stroke="rgba(255,255,255,.08)" />
+              <text x="66" y="60" text-anchor="middle" font-size="17" font-weight="950" fill="${POSDIST_POS_CONFIG[pos].high}">${pos}</text>
+              <text x="66" y="80" text-anchor="middle" font-size="20" font-weight="950" fill="#fff">${stat.current}</text>
+            </svg>
+            <div class="posdist-stability-metrics">
+              <span>Std Dev <strong>${posdistFmt(stat.std)}</strong></span>
+              <span>Spread <strong>${stat.spread}</strong></span>
+              <span>Avg <strong>${posdistFmt(stat.avg)}</strong></span>
+              <span>YoY <strong>${posdistFmtDelta(stat.changeFromPrevious)}</strong></span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-stability-panel posdist-span-5');
+  }
+
+  function posdistRenderRbWrCrossover(summary) {
+    const rb = summary.stats.RB.values;
+    const wr = summary.stats.WR.values;
+    const diffs = posdistState.years.map((year, i) => ({ year, diff: rb[i] - wr[i] }));
+    const maxAbs = Math.max(...diffs.map((d) => Math.abs(d.diff)), 1);
+    const width = 760;
+    const height = 240;
+    const left = 42;
+    const right = 26;
+    const centerY = 118;
+    const amp = 78;
+    const step = (width - left - right) / (posdistState.years.length - 1);
+
+    return posdistPanel(`
+      ${posdistPanelHeading('Target', 'RB/WR Gap Tracker', 'Positive values mean RB has more players than WR in the selected range.')}
+      <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg posdist-compact-chart" role="img" aria-label="RB and WR gap tracker">
+        <line x1="${left - 10}" x2="${width - right + 10}" y1="${centerY}" y2="${centerY}" stroke="rgba(255,255,255,.14)" stroke-width="2" />
+        <text x="${left}" y="24" fill="#a7f3d0" font-size="10" font-weight="900">RB lead</text>
+        <text x="${left}" y="${height - 16}" fill="#93c5fd" font-size="10" font-weight="900">WR lead</text>
+        ${diffs.map((item, i) => {
+          const x = left + i * step;
+          const h = Math.abs(item.diff) / maxAbs * amp;
+          const positive = item.diff >= 0;
+          const color = positive ? '#00ff99' : '#4d79ff';
+          return `<g><line x1="${x}" x2="${x}" y1="${centerY}" y2="${positive ? centerY - h : centerY + h}" stroke="${color}" stroke-width="${item.year === 2025 ? 7 : 4}" stroke-linecap="round" opacity="${item.year === 2025 ? 1 : .72}" /><circle cx="${x}" cy="${positive ? centerY - h : centerY + h}" r="${item.year === 2025 ? 6 : 3.5}" fill="#05060a" stroke="${color}" stroke-width="2" />${(item.year === 2025 || Math.abs(item.diff) >= 5) ? `<text x="${x}" y="${positive ? centerY - h - 10 : centerY + h + 16}" text-anchor="middle" fill="#fff" font-size="10" font-weight="900" style="paint-order:stroke;stroke:#05060a;stroke-width:4px">${posdistFmtDelta(item.diff)}</text>` : ''}${(i % 3 === 0 || item.year === 2025) ? `<text x="${x}" y="${centerY + 24}" text-anchor="middle" class="posdist-svg-text-dim" font-size="9">${String(item.year).slice(2)}</text>` : ''}</g>`;
+        }).join('')}
+      </svg>
+    `, 'posdist-gap-panel posdist-span-7');
+  }
+
+  function posdistRenderHistoricalRange(summary) {
+    return posdistPanel(`
+      ${posdistPanelHeading('Layers3', '2025 vs Historical Range', 'Current count placed between each position floor and peak.')}
+      <div class="posdist-range-bars">
+        ${posdistState.activePositions.map((pos) => {
+          const stat = summary.stats[pos];
+          const span = Math.max(1, stat.max - stat.min);
+          const pct = ((stat.current - stat.min) / span) * 100;
+          return `<div class="posdist-range-bar-card">
+            <div class="posdist-range-bar-head"><strong style="color:${POSDIST_POS_CONFIG[pos].high}">${pos}</strong><span>${stat.current}</span></div>
+            <div class="posdist-range-track"><i style="left:${pct}%; background:${POSDIST_POS_CONFIG[pos].high}"></i></div>
+            <div class="posdist-range-bar-foot"><span>Floor ${stat.min} (${stat.worstYears})</span><span>Peak ${stat.max} (${stat.bestYears})</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-history-panel');
+  }
+
+  function posdistRenderBiggestMovers(summary) {
+    const movers = posdistState.activePositions.flatMap((pos) => {
+      const values = summary.stats[pos].values;
+      return values.slice(1).map((value, i) => ({ pos, from: posdistState.years[i], year: posdistState.years[i + 1], change: value - values[i], abs: Math.abs(value - values[i]) }));
+    }).sort((a, b) => b.abs - a.abs || b.change - a.change).slice(0, 6);
+
+    return posdistPanel(`
+      ${posdistPanelHeading('Zap', 'Largest YoY Moves', 'Top single-season count changes for visible positions.')}
+      <div class="posdist-movers-list">
+        ${movers.map((mover) => `<div class="posdist-mover-row">
+          <span class="posdist-mover-pos" style="color:${POSDIST_POS_CONFIG[mover.pos].high}">${mover.pos}</span>
+          <span class="posdist-mover-years">${mover.from} to ${mover.year}</span>
+          <strong class="posdist-mover-delta ${mover.change > 0 ? 'up' : 'down'}">${posdistFmtDelta(mover.change)}</strong>
+        </div>`).join('')}
+      </div>
+    `, 'posdist-movers-panel');
+  }
+
+  function posdistRenderRangeComparison(allSummaries) {
+    return posdistPanel(`
+      ${posdistPanelHeading('Layers3', '2025 Range Mix', 'How the current positional mix changes as the leaderboard window expands.')}
+      <div class="posdist-range-deck">
+        ${POSDIST_RANGE_OPTIONS_WIDE_FIRST.map((range) => {
+          const summary = allSummaries[range];
+          const total = POSDIST_POSITIONS.reduce((sum, pos) => sum + summary.current[pos], 0) || 1;
+          return `<div class="posdist-range-card ${range === posdistState.selectedRange ? 'is-selected' : ''}">
+            <div class="posdist-range-card-head"><div><div class="posdist-range-title">${range}</div><div class="posdist-range-read">${summary.read}</div></div></div>
+            <div class="posdist-range-stack">${POSDIST_POSITIONS.map((pos) => `<div class="posdist-range-stack-part ${posdistState.activePositions.includes(pos) ? '' : 'muted'}" style="width:${(summary.current[pos] / total) * 100}%; min-width:${summary.current[pos] > 0 ? 18 : 0}px; background:linear-gradient(90deg, ${POSDIST_POS_CONFIG[pos].low}, ${POSDIST_POS_CONFIG[pos].high})">${summary.current[pos] > 0 ? summary.current[pos] : ''}</div>`).join('')}</div>
+            <div class="posdist-range-pos-grid">${POSDIST_POSITIONS.map((pos) => `<div class="posdist-range-pos-cell ${posdistState.activePositions.includes(pos) ? '' : 'muted'}"><span style="color:${POSDIST_POS_CONFIG[pos].high}">${pos}</span><strong>${summary.current[pos]}</strong></div>`).join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-range-deck-panel posdist-span-12');
+  }
+
+  function posdistRenderFooter() {
+    return `
+      <footer class="posdist-footer-note">
+        ${posdistIcon('AlertTriangle', 'posdist-icon')}
+        <p>Source anomaly handled: <strong>Top 36 / TE / 2024 = -1</strong>. Visual calculations clamp negative counts to 0.</p>
+      </footer>
+    `;
+  }
+
+  function posdistRenderReady() {
+    const allSummaries = posdistGetAllSummaries();
+    const selectedSummary = allSummaries[posdistState.selectedRange];
+    const active = {
+      summary: selectedSummary,
+      ...posdistGetChartModel(posdistState.selectedRange, POSDIST_POSITIONS)
+    };
+
+    return `
+      ${posdistRenderHeader()}
+      ${posdistRenderStatGrid(selectedSummary)}
+      <main class="posdist-dashboard-stack">
+        ${posdistRenderChartPanel(active, selectedSummary)}
+        ${posdistRenderPersonnelInsights(allSummaries, selectedSummary)}
+        ${posdistRenderPositionProfileCards(selectedSummary)}
+        <div class="posdist-grid-12">
+          ${posdistRenderYoySwings(selectedSummary)}
+          ${posdistRenderRangeStability(selectedSummary)}
+          ${posdistRenderRbWrCrossover(selectedSummary)}
+          <div class="posdist-stack posdist-span-5">${posdistRenderHistoricalRange(selectedSummary)}${posdistRenderBiggestMovers(selectedSummary)}</div>
+          ${posdistRenderRangeComparison(allSummaries)}
+        </div>
+        ${posdistRenderFooter()}
+      </main>
+    `;
+  }
+
   function posdistRenderLoading() {
     return '<div class="posdist-loading-panel">Loading POS-DIST_2007-2025.csv...</div>';
   }

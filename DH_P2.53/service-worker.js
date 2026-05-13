@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis: bump the cache so browsers pick up the new
-// research tab, scoped dashboard styling, JS renderer, and CSV data after deploy.
-const CACHE_NAME = 'DH2.8-posdist';
+// Research Positional Analysis revamp: bump the cache so browsers pick up the
+// compact chart-first renderer, scoped dashboard styling, and CSV data.
+const CACHE_NAME = 'DH2.9-posdist-revamp';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
