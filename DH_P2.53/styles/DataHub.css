@@ -5328,6 +5328,71 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
 }
 
+@media (min-width: 1350px) and (max-width: 1465px) {
+  /* DataHub desktop nav squeeze (1465px → 1350px):
+     target only the desktop nav pills so the navbar starts tightening at the
+     requested breakpoint range without changing tabs, controls, chart layout,
+     or any mobile behavior. */
+  .header-shell--nav .nav-item {
+    flex: 0 0 calc(99px + ((100vw - 1350px) / 115) * 5);
+    width: calc(99px + ((100vw - 1350px) / 115) * 5);
+    min-width: calc(99px + ((100vw - 1350px) / 115) * 5);
+    justify-content: center;
+    padding-inline: calc(6px + ((100vw - 1350px) / 115) * 2);
+    gap: calc(5px + ((100vw - 1350px) / 115) * 1);
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1349px) {
+  /* DataHub desktop squeeze (1349px → 1200px):
+     target only the requested desktop chrome—the nav bar, page-tab bar,
+     controls card, and chart mount—so they all keep shrinking smoothly while
+     the chart stays present through the lower desktop range. */
+  .header-shell--nav .nav-item {
+    flex: 0 0 calc(90px + ((100vw - 1200px) / 149) * 9);
+    width: calc(90px + ((100vw - 1200px) / 149) * 9);
+    min-width: calc(90px + ((100vw - 1200px) / 149) * 9);
+    justify-content: center;
+    padding-inline: 5px;
+    gap: 4px;
+  }
+
+  /* Desktop nav icon/text sizing:
+     this only applies inside the requested 1349px-and-below desktop range so
+     the navbar can tighten without touching mobile or wider desktop layouts. */
+  .header-shell--nav .nav-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  .header-shell--nav .nav-item span {
+    font-size: 0.9rem;
+  }
+
+  .page-tabs {
+    width: calc(520px + ((100vw - 1200px) / 149) * 40);
+    max-width: 100%;
+  }
+
+  .hero-controls--desktop {
+    width: calc(547px + ((100vw - 1200px) / 149) * 23);
+    max-width: 100%;
+  }
+
+  /* Desktop chart retention:
+     keep the chart mounted in the 1200px–1349px desktop band and scale only
+     its panel width enough to avoid colliding with the narrowing tabs and
+     controls. */
+  body[data-page="datahub"] .datahub-chart-panel--desktop {
+    display: block;
+    position: absolute;
+    top: 13px;
+    right: 7px;
+    z-index: 2;
+    width: calc(240px + ((100vw - 1200px) / 149) * 89);
+  }
+}
+
 /* ── Accessibility: Reduced Motion ──────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

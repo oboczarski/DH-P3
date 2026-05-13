@@ -1906,6 +1906,20 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-season-option.is-selected .
   color: rgba(183, 196, 255, 0.76);
 }
 
+body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
+  /* Rosters Game Logs modal switcher:
+     keeps icon/text pairs tighter and makes inactive table views quieter. */
+  gap: 4px;
+}
+
+body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active) {
+  color: rgba(142, 150, 188, 0.54);
+}
+
+body[data-page="rosters"] #game-logs-modal .gamelogs-view-option:not(.is-active) i {
+  opacity: 0.76;
+}
+
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle:focus-visible,
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-option:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.24);
