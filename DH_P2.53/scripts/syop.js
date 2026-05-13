@@ -2173,9 +2173,6 @@
           </div>
           <p class="posdist-brand-subtitle">How QB, RB, WR, and TE representation changes inside fantasy-points leaderboards as league personnel usage shifts.</p>
         </div>
-        <div class="posdist-range-tabs" role="group" aria-label="Select fantasy points leaderboard range">
-          ${POSDIST_RANGE_OPTIONS.map((range) => `<button class="posdist-range-btn ${posdistState.selectedRange === range ? 'active' : ''}" type="button" data-posdist-range="${range}">${range}</button>`).join('')}
-        </div>
       </header>
     `;
   }
@@ -2342,6 +2339,9 @@
       ? `<div class="posdist-mini-grid">${POSDIST_GRID_RANGES.map(posdistRenderMiniLineChart).join('')}</div>`
       : posdistRenderMainChart(active, posdistState.selectedRange);
 
+    // Positional Analysis chart controls:
+    // keeps range filters, grid mode, and visible-position filters attached to
+    // the chart they control instead of separating them into the page header.
     return posdistPanel(`
       <div class="posdist-chart-header">
         <div class="posdist-chart-title-side">
@@ -2352,6 +2352,9 @@
           </div>
         </div>
         <div class="posdist-chart-controls">
+          <div class="posdist-range-tabs posdist-chart-range-tabs" role="group" aria-label="Select fantasy points leaderboard range">
+            ${POSDIST_RANGE_OPTIONS.map((range) => `<button class="posdist-range-btn ${posdistState.selectedRange === range ? 'active' : ''}" type="button" data-posdist-range="${range}">${range}</button>`).join('')}
+          </div>
           <button class="posdist-grid-toggle ${posdistState.chartMode === 'grid' ? 'active' : ''}" id="posdistGridToggle" type="button" aria-pressed="${String(posdistState.chartMode === 'grid')}">Grid</button>
           <div class="posdist-pos-toggle-wrap">${POSDIST_POSITIONS.map((pos) => posdistRenderPositionToggle(pos, summary.current[pos])).join('')}</div>
         </div>
@@ -2528,21 +2531,45 @@
   }
 
   function posdistRenderHistoricalRange(summary) {
+    const startAngle = -132;
+    const endAngle = 132;
+    const arcSpan = endAngle - startAngle;
+    const cx = 92;
+    const cy = 88;
+    const radius = 58;
+
     return posdistPanel(`
-      ${posdistPanelHeading('Layers3', '2025 vs Historical Range', 'Current count placed between each position floor and peak.')}
-      <div class="posdist-range-bars">
+      ${posdistPanelHeading('Gauge', '2025 vs Historical Range', 'Current count placed on each position floor-to-peak arc.')}
+      <div class="posdist-history-grid">
         ${posdistState.activePositions.map((pos) => {
           const stat = summary.stats[pos];
           const span = Math.max(1, stat.max - stat.min);
-          const pct = ((stat.current - stat.min) / span) * 100;
-          return `<div class="posdist-range-bar-card">
-            <div class="posdist-range-bar-head"><strong style="color:${POSDIST_POS_CONFIG[pos].high}">${pos}</strong><span>${stat.current}</span></div>
-            <div class="posdist-range-track"><i style="left:${pct}%; background:${POSDIST_POS_CONFIG[pos].high}"></i></div>
-            <div class="posdist-range-bar-foot"><span>Floor ${stat.min} (${stat.worstYears})</span><span>Peak ${stat.max} (${stat.bestYears})</span></div>
+          const pct = Math.max(0, Math.min(1, (stat.current - stat.min) / span));
+          const currentAngle = startAngle + pct * arcSpan;
+          const marker = posdistPolarToCartesian(cx, cy, radius, currentAngle);
+          const markerLabelY = Math.max(18, marker.y - 13);
+          const cfg = POSDIST_POS_CONFIG[pos];
+          return `<div class="posdist-history-card">
+            <svg viewBox="0 0 184 166" class="posdist-history-dial" role="img" aria-label="${pos} 2025 count against historical floor and peak">
+              <path d="${posdistArcPath(cx, cy, radius, startAngle, endAngle)}" stroke="rgba(255,255,255,.22)" stroke-width="14" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(cx, cy, radius, startAngle, currentAngle)}" stroke="${cfg.high}" stroke-width="14" fill="none" stroke-linecap="round" />
+              <circle cx="${marker.x}" cy="${marker.y}" r="8" fill="#05060a" stroke="${cfg.high}" stroke-width="4" />
+              <circle cx="${marker.x}" cy="${marker.y}" r="3.5" fill="${cfg.high}" />
+              <text x="${marker.x}" y="${markerLabelY}" text-anchor="middle" font-size="12" font-weight="950" fill="#fff" style="paint-order:stroke;stroke:#05060a;stroke-width:5px;stroke-linejoin:round">${stat.current}</text>
+              <circle cx="${cx}" cy="${cy}" r="31" fill="rgba(0,0,0,.52)" stroke="rgba(255,255,255,.08)" />
+              <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="18" font-weight="950" fill="${cfg.high}">${pos}</text>
+              <text x="${cx}" y="${cy + 19}" text-anchor="middle" font-size="19" font-weight="950" fill="#fff">${stat.current}</text>
+              <text x="28" y="150" text-anchor="middle" font-size="10" font-weight="900" fill="#a1a1aa">Floor ${stat.min}</text>
+              <text x="156" y="150" text-anchor="middle" font-size="10" font-weight="900" fill="#a1a1aa">Peak ${stat.max}</text>
+            </svg>
+            <div class="posdist-history-scale">
+              <span><strong>${stat.worstYears}</strong> floor year</span>
+              <span><strong>${stat.bestYears}</strong> peak year</span>
+            </div>
           </div>`;
         }).join('')}
       </div>
-    `, 'posdist-history-panel');
+    `, 'posdist-history-panel posdist-span-12');
   }
 
   function posdistRenderBiggestMovers(summary) {
@@ -2560,7 +2587,7 @@
           <strong class="posdist-mover-delta ${mover.change > 0 ? 'up' : 'down'}">${posdistFmtDelta(mover.change)}</strong>
         </div>`).join('')}
       </div>
-    `, 'posdist-movers-panel');
+    `, 'posdist-movers-panel posdist-span-5');
   }
 
   function posdistRenderRangeComparison(allSummaries) {
@@ -2608,7 +2635,8 @@
           ${posdistRenderYoySwings(selectedSummary)}
           ${posdistRenderRangeStability(selectedSummary)}
           ${posdistRenderRbWrCrossover(selectedSummary)}
-          <div class="posdist-stack posdist-span-5">${posdistRenderHistoricalRange(selectedSummary)}${posdistRenderBiggestMovers(selectedSummary)}</div>
+          ${posdistRenderBiggestMovers(selectedSummary)}
+          ${posdistRenderHistoricalRange(selectedSummary)}
           ${posdistRenderRangeComparison(allSummaries)}
         </div>
         ${posdistRenderFooter()}

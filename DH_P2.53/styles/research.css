@@ -2931,11 +2931,11 @@ body[data-page="research"] .posdist-error-panel {
 
 body[data-page="research"] .posdist-page-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 16px;
+  margin-bottom: 8px;
+  padding: 14px;
   border: 1px solid var(--posdist-border);
   border-radius: 20px;
   background:
@@ -3004,13 +3004,18 @@ body[data-page="research"] .posdist-brand-subtitle {
 
 body[data-page="research"] .posdist-range-tabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  grid-template-columns: repeat(6, minmax(54px, 1fr));
   gap: 6px;
-  min-width: min(520px, 42vw);
+  width: min(540px, 100%);
+  min-width: 0;
   padding: 6px;
   border: 1px solid var(--posdist-border);
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.36);
+}
+
+body[data-page="research"] .posdist-chart-range-tabs {
+  flex: 1 1 500px;
 }
 
 body[data-page="research"] .posdist-range-btn,
@@ -3225,9 +3230,9 @@ body[data-page="research"] .posdist-chart-icon-box {
 }
 
 body[data-page="research"] .posdist-chart-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(230px, 0.34fr) minmax(0, 1fr);
+  align-items: start;
   gap: 12px;
   margin-bottom: 10px;
   padding-bottom: 10px;
@@ -3246,9 +3251,13 @@ body[data-page="research"] .posdist-chart-title-side {
   min-width: 230px;
 }
 
+/* Positional Analysis chart controls:
+   this cluster owns range, view mode, and position filters for only the
+   chart panel, so range selection no longer floats away from the chart. */
 body[data-page="research"] .posdist-chart-controls {
   justify-content: flex-end;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 body[data-page="research"] .posdist-pos-toggle-wrap {
@@ -3722,6 +3731,58 @@ body[data-page="research"] .posdist-movers-list {
   gap: 8px;
 }
 
+body[data-page="research"] .posdist-history-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+body[data-page="research"] .posdist-history-card {
+  border-radius: 13px;
+  border: 1px solid var(--posdist-border-soft);
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255, 255, 255, 0.07), transparent 54%),
+    rgba(0, 0, 0, 0.24);
+  padding: 8px;
+}
+
+body[data-page="research"] .posdist-history-dial {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+body[data-page="research"] .posdist-history-scale {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+}
+
+body[data-page="research"] .posdist-history-scale span {
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.045);
+  padding: 6px;
+  color: var(--posdist-dim);
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 850;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+body[data-page="research"] .posdist-history-scale strong {
+  display: block;
+  color: #e4e4e7;
+  font-size: 10px;
+  line-height: 1.1;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 body[data-page="research"] .posdist-range-track {
   height: 9px;
   margin: 9px 0 8px;
@@ -3752,11 +3813,11 @@ body[data-page="research"] .posdist-range-bar-foot {
 }
 
 body[data-page="research"] .posdist-mover-row {
-  min-height: 42px;
+  min-height: 36px;
   border-radius: 12px;
   border: 1px solid var(--posdist-border-soft);
   background: rgba(0, 0, 0, 0.24);
-  padding: 8px 10px;
+  padding: 6px 10px;
 }
 
 body[data-page="research"] .posdist-mover-years {
@@ -3767,7 +3828,7 @@ body[data-page="research"] .posdist-mover-years {
 }
 
 body[data-page="research"] .posdist-mover-delta {
-  font-size: 21px;
+  font-size: 18px;
   line-height: 1;
   font-weight: 950;
   font-variant-numeric: tabular-nums;
@@ -3923,7 +3984,8 @@ body[data-page="research"] .posdist-icon-lg {
   }
 
   body[data-page="research"] .posdist-profile-grid,
-  body[data-page="research"] .posdist-range-deck {
+  body[data-page="research"] .posdist-range-deck,
+  body[data-page="research"] .posdist-history-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3949,12 +4011,17 @@ body[data-page="research"] .posdist-icon-lg {
 
   body[data-page="research"] .posdist-chart-header {
     align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   body[data-page="research"] .posdist-chart-controls {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  body[data-page="research"] .posdist-chart-range-tabs {
+    flex-basis: 100%;
+    width: 100%;
   }
 
   body[data-page="research"] .posdist-pos-toggle-wrap {
@@ -3985,12 +4052,14 @@ body[data-page="research"] .posdist-icon-lg {
 
   body[data-page="research"] .posdist-range-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
   body[data-page="research"] .posdist-stat-grid,
   body[data-page="research"] .posdist-profile-grid,
   body[data-page="research"] .posdist-mini-grid,
   body[data-page="research"] .posdist-stability-grid,
+  body[data-page="research"] .posdist-history-grid,
   body[data-page="research"] .posdist-range-deck {
     grid-template-columns: 1fr;
   }
@@ -4037,7 +4106,8 @@ body[data-page="research"] .posdist-icon-lg {
   }
 
   body[data-page="research"] .posdist-grid-toggle {
-    width: 100%;
+    width: auto;
+    flex: 1 1 100%;
   }
 
   body[data-page="research"] .posdist-pos-toggle {

@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis revamp: bump the cache so browsers pick up the
-// compact chart-first renderer, scoped dashboard styling, and CSV data.
-const CACHE_NAME = 'DH2.9-posdist-revamp';
+// Research Positional Analysis controls pass: bump the cache so browsers pick
+// up the chart-owned range filters and rebuilt historical gauge layout.
+const CACHE_NAME = 'DH2.9-posdist-controls';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
