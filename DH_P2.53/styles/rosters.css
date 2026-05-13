@@ -2438,8 +2438,8 @@ body[data-page="rosters"] #game-logs-modal .career-stats-cell--team {
 
 body[data-page="rosters"] #game-logs-modal .career-stats-team-logo-chip img {
   display: block;
-  width: var(--career-team-logo-size);
-  height: var(--career-team-logo-size);
+  width: 25px;
+  height: 25px;
   object-fit: contain;
   backface-visibility: hidden;
   transform: translateZ(0);
