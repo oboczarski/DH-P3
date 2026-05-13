@@ -322,9 +322,9 @@
         </div>
       </div>
       <div class="gamelogs-nav-row" aria-label="Game logs navigation">
-        <div class="gamelogs-season-controls" role="group" aria-label="Season and career">
+        <div class="gamelogs-season-controls" role="group" aria-label="Season">
           <!-- Game Logs modal season controls: replaces the 2025/2026 button pair with a dropdown,
-               keeping this selector separate from the upcoming Career table placeholder. -->
+               keeping the related GameLog view immediately beside it in the switcher. -->
           <div class="gamelogs-season-dropdown" data-gamelogs-season-dropdown>
             <button type="button" id="gamelogsSeasonToggle" class="gamelogs-season-toggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="gamelogsSeasonMenu">
               <span id="gamelogsSeasonLabel">2025</span>
@@ -341,11 +341,11 @@
               </button>
             </div>
           </div>
-          <button type="button" id="gamelogsCareerButton" class="gamelogs-career-btn" aria-pressed="false" data-gamelogs-career-placeholder="true">Career</button>
         </div>
         <div class="gamelogs-view-switcher" role="group" aria-label="View">
           <button type="button" class="gamelogs-view-option is-active" aria-pressed="true" data-gamelogs-view="gl"><i class="fa-solid fa-clipboard-list"></i>GameLog</button>
           <button type="button" class="gamelogs-view-option" aria-pressed="false" data-gamelogs-view="szn"><i class="fa-regular fa-chart-bar"></i>Season</button>
+          <button type="button" id="gamelogsCareerButton" class="gamelogs-view-option gamelogs-career-option" aria-pressed="false" data-gamelogs-view="career">Career</button>
         </div>
       </div>
     </div>

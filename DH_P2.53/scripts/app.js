@@ -1592,9 +1592,9 @@ if (pageType === 'rosters') {
         });
         modalOverlay.addEventListener('click', () => closeModal());
 
-        // Rosters Game Logs modal season/career controls:
-        // the dropdown replaces the old 2025/2026 buttons, while Career is kept as a
-        // visible placeholder until the future career-stats table is implemented.
+        // Rosters Game Logs modal season controls:
+        // the dropdown replaces the old 2025/2026 buttons; Career is handled as
+        // the rightmost option in the shared GL/SZN/Career switcher below.
         if (gameLogsSeasonToggle && gameLogsSeasonMenu) {
             gameLogsSeasonToggle.addEventListener('click', (event) => {
                 event.stopPropagation();
@@ -1607,12 +1607,6 @@ if (pageType === 'rosters') {
                 closeGameLogsSeasonMenu();
             });
         }
-        if (gameLogsCareerButton) {
-            gameLogsCareerButton.addEventListener('click', () => {
-                closeGameLogsSeasonMenu();
-                setGameLogsModalView('career');
-            });
-        }
         document.addEventListener('click', (event) => {
             if (!gameLogsSeasonDropdown || gameLogsSeasonMenu?.classList.contains('hidden')) return;
             if (!gameLogsSeasonDropdown.contains(event.target)) {
@@ -1620,13 +1614,15 @@ if (pageType === 'rosters') {
             }
         });
 
-        // GL/SZN view switcher (SZN replaces game logs table in-place)
+        // GL/SZN/Career view switcher:
+        // keeps all swappable modal table views in one segmented control.
         const viewSwitcher = gameLogsModal.querySelector('.gamelogs-view-switcher');
         if (viewSwitcher) {
             viewSwitcher.addEventListener('click', (e) => {
                 const btn = e.target.closest('.gamelogs-view-option');
                 if (!btn) return;
                 const view = btn.dataset.gamelogsView;
+                closeGameLogsSeasonMenu();
                 setGameLogsModalView(view);
             });
         }

@@ -1774,9 +1774,9 @@ body[data-page="rosters"] #bottom-menu-panel {
 }
 
 /* ============================================================================
-   Rosters Game Logs Modal — Season dropdown + Career placeholder
-   Targets only the rosters modal header controls. The Career button is visual
-   scaffolding for the future career-stats table and does not change table data yet.
+   Rosters Game Logs Modal — Season dropdown + view switcher
+   Targets only the rosters modal header controls. The season dropdown stays
+   beside the GL/SZN/Career switcher so GameLog remains closest to its season.
    ============================================================================ */
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-controls {
   display: inline-flex;
@@ -1817,8 +1817,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle {
   filter: brightness(1.46);
 }
 
-body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle::after,
-body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn::after {
+body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -1907,42 +1906,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-season-option.is-selected .
   color: rgba(183, 196, 255, 0.76);
 }
 
-body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn {
-  position: relative;
-  z-index: 0;
-  isolation: isolate;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 72px;
-  padding: 0.3rem 0.76rem;
-  border-radius: 10px;
-  border: 1px solid rgba(250, 250, 250, 0.1);
-  background: rgba(0, 0, 0, 0.02);
-  backdrop-filter: blur(1px) saturate(180%);
-  -webkit-backdrop-filter: blur(1px) saturate(180%);
-  box-shadow: 0 8px 32px rgba(31, 38, 105, 0.1), inset 0 6px 20px rgba(255, 255, 255, 0.013);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  user-select: none;
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-}
-
-body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn.is-active {
-  color: #9b9da6;
-  background: rgba(118, 109, 255, 0.10);
-  border-color: rgba(118, 109, 255, 0.30);
-  box-shadow: 0 0 12px rgba(118, 109, 255, 0.18), inset 0 0 12px rgba(118, 109, 255, 0.08);
-  filter: brightness(1.16) saturate(1.2);
-}
-
 body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle:focus-visible,
-body[data-page="rosters"] #game-logs-modal .gamelogs-season-option:focus-visible,
-body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
+body[data-page="rosters"] #game-logs-modal .gamelogs-season-option:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.24);
   outline-offset: 2px;
 }
@@ -2009,8 +1974,9 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-nav-row {
     display: grid;
-    grid-template-columns: 218px minmax(0, 1fr);
+    grid-template-columns: 92px minmax(0, 336px);
     align-items: center;
+    justify-content: center;
     width: min(var(--rosters-gamelogs-desktop-header-width), 100%);
     gap: 0.56rem;
     flex-wrap: nowrap;
@@ -2020,8 +1986,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
     width: 100%;
     height: var(--rosters-gamelogs-desktop-control-height);
     align-items: stretch;
-    justify-content: space-between;
-    gap: 0.56rem;
+    justify-content: center;
+    gap: 0;
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-view-switcher {
@@ -2033,7 +1999,6 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
   }
 
   body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle,
-  body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn,
   body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
     min-height: 0;
     height: 100%;
@@ -2051,14 +2016,6 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
     padding-bottom: 0;
   }
 
-  body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn {
-    height: var(--rosters-gamelogs-desktop-control-height);
-    width: 116px;
-    min-width: 116px;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-
   body[data-page="rosters"] #game-logs-modal .gamelogs-view-option {
     flex: 1 1 0;
     min-width: 0;
@@ -2069,8 +2026,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
 
 @media (hover: hover) and (pointer: fine) {
 
-  body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle:hover,
-  body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:hover {
+  body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle:hover {
     color: var(--color-text-primary);
     border-color: rgba(250, 250, 250, 0.18);
     background: rgba(255, 255, 255, 0.04);
@@ -2130,17 +2086,6 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
     padding: 0.32rem 0.38rem;
   }
 
-  body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn {
-    height: var(--rosters-gamelogs-mobile-control-height);
-    min-height: var(--rosters-gamelogs-mobile-control-height);
-    box-sizing: border-box;
-    min-width: 76px;
-    padding: 0 0.62rem;
-    border-radius: 7px;
-    font-size: 0.75rem;
-    letter-spacing: 0.02em;
-  }
-
   body[data-page="rosters"] #game-logs-modal .gamelogs-view-switcher {
     align-items: stretch;
     box-sizing: border-box;
@@ -2153,7 +2098,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-career-btn:focus-visible {
     height: 100%;
     min-height: 0;
     box-sizing: border-box;
-    width: clamp(4.35rem, 22vw, 5.3rem);
+    width: clamp(4.2rem, 19vw, 4.75rem);
     min-width: 0;
     padding-top: 0;
     padding-bottom: 0;

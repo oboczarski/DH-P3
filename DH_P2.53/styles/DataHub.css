@@ -4101,7 +4101,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .grid-shell__meta {
     align-items: end;
     gap: 8px;
-    margin: 0 22px 7px 17px;
+    margin: 0 17px 7px 17px;
   }
 
   .active-view-meta {
