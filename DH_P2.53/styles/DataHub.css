@@ -4450,6 +4450,42 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     padding: 28px 22px 36px;
   }
 
+  /* Desktop table meta row:
+     normalize the Active View, Sorted By, and row-count chips so the stacked
+     controls share one label gap and all three chips land on the same vertical
+     baseline. Mobile keeps its own row-count tuning below. */
+  .grid-shell__meta {
+    --datahub-grid-meta-chip-height: 27px;
+    --datahub-grid-meta-label-gap: 1px;
+  }
+
+  .grid-shell__meta .meta-label {
+    margin-top: 0;
+  }
+
+  .grid-shell__meta .active-view-meta,
+  .grid-shell__meta .sort-meta-control {
+    align-content: start;
+    row-gap: var(--datahub-grid-meta-label-gap);
+    grid-template-rows: auto var(--datahub-grid-meta-chip-height);
+  }
+
+  .grid-shell__meta .meta-pill-wrap {
+    align-items: flex-end;
+  }
+
+  .grid-shell__meta .active-view-meta .meta-value,
+  .grid-shell__meta .meta-pill--button,
+  .grid-shell__meta .meta-count {
+    height: var(--datahub-grid-meta-chip-height);
+    min-height: var(--datahub-grid-meta-chip-height);
+    box-sizing: border-box;
+  }
+
+  .grid-shell__meta .meta-pill--button {
+    margin-top: 0;
+  }
+
   /* Desktop hero layout:
      targets the branded left title lane plus the centered tabs/controls lane
      so the title sits under the Dynasty Hub lockup without any negative offset
