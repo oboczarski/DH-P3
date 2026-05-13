@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub table controls: bump the cache so browsers pick up the updated
-// top-of-table sort dropdown and mobile meta-chip styling after deploy.
-const CACHE_NAME = 'DH2.7';
+// Research Positional Analysis: bump the cache so browsers pick up the new
+// research tab, scoped dashboard styling, JS renderer, and CSV data after deploy.
+const CACHE_NAME = 'DH2.8-posdist';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -58,7 +58,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/dashboard.js',
   '/scripts/syop.js',
   '/scripts/dh-scramble.js',
-  '/scripts/contact.js'
+  '/scripts/contact.js',
+  '/data/research/POS-DIST_2007-2025.csv'
 ];
 
 // ============================================================================

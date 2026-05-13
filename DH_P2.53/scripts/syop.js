@@ -155,6 +155,68 @@
     showTable: false
   };
 
+  // Positional Analysis tab module:
+  // targets only #posdist-root on the Research page, loads the PosDist CSV, and
+  // keeps every class/function/data key prefixed so the dashboard cannot leak
+  // behavior or styling into SYOP, Draft, or other app pages.
+  const POSDIST_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
+  const POSDIST_RANGE_OPTIONS = ['Top 6', 'Top 12', 'Top 24', 'Top 36', 'Top 48', 'Top 60'];
+  const POSDIST_RANGE_OPTIONS_WIDE_FIRST = ['Top 60', 'Top 48', 'Top 36', 'Top 24', 'Top 12', 'Top 6'];
+  const POSDIST_GRID_RANGES = ['Top 60', 'Top 48', 'Top 36', 'Top 24'];
+  const POSDIST_DATA_URL = '../data/research/POS-DIST_2007-2025.csv';
+
+  const POSDIST_POSITION_COLORS = {
+    QB: { low: '#ff9a3d', high: '#ff4187' },
+    RB: { low: '#1ac2ff', high: '#06ff97' },
+    WR: { low: '#8153ff', high: '#0299fe' },
+    TE: { low: '#ff6bc8', high: '#7f2fff' }
+  };
+
+  const POSDIST_SYSTEM_PALETTES = {
+    A: ['#ff0aa5', '#fe26f7', '#d747ff', '#a74eff', '#7866ff', '#4d79ff', '#00a9f1', '#00ddfa'],
+    D: ['#00ff99', '#00ffcc', '#0099ff', '#0066ff', '#4c00ff', '#5d00ff', '#8f00ff', '#d200ff']
+  };
+
+  const POSDIST_GRID_RANGE_LABEL_COLORS = {
+    'Top 60': '#00DDFA',
+    'Top 48': '#7866FF',
+    'Top 36': '#FFB847',
+    'Top 24': '#00FF99'
+  };
+
+  const POSDIST_ICON_PATHS = {
+    Activity: '<path d="M22 12h-4l-3 8-6-16-3 8H2" />',
+    AlertTriangle: '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4" /><path d="M12 17h.01" />',
+    ArrowDownRight: '<path d="M7 7h10v10" /><path d="m7 17 10-10" />',
+    ArrowUpRight: '<path d="M7 17 17 7" /><path d="M7 7h10v10" />',
+    Gauge: '<path d="M4 14a8 8 0 0 1 16 0" /><path d="M12 14l4-4" /><path d="M5 19h14" />',
+    Layers3: '<path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="m3 13 9 5 9-5" /><path d="m3 18 9 5 9-5" />',
+    LineChart: '<path d="M3 3v18h18" /><path d="m7 15 4-4 3 3 5-7" />',
+    Minus: '<path d="M5 12h14" />',
+    Sparkles: '<path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z" />',
+    Target: '<circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" />',
+    Trophy: '<path d="M8 21h8" /><path d="M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M5 5H3v2a4 4 0 0 0 4 4" /><path d="M19 5h2v2a4 4 0 0 1-4 4" />',
+    Zap: '<path d="M13 2 3 14h8l-1 8 10-12h-8l1-8Z" />'
+  };
+
+  const POSDIST_POS_CONFIG = Object.fromEntries(POSDIST_POSITIONS.map((pos) => {
+    const base = POSDIST_POSITION_COLORS[pos];
+    return [pos, { ...base, mid: posdistBlendHex(base.low, base.high, 0.5) }];
+  }));
+
+  const posdistState = {
+    years: [],
+    posData: {},
+    selectedRange: 'Top 60',
+    activePositions: [...POSDIST_POSITIONS],
+    chartMode: 'single',
+    status: 'idle',
+    error: null
+  };
+
+  let posdistLoadPromise = null;
+  let posdistEventsBound = false;
+
   const { distributionByPosition: SYOP_DISTRIBUTION, summaryByPosition: SYOP_POSITION_SUMMARY } = buildSyopSummary();
 
   let resizeTimer = null;
@@ -1338,6 +1400,873 @@
     container.appendChild(chipsContainer);
   }
 
+  function posdistEscapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function posdistIcon(name, className = 'posdist-icon') {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}" aria-hidden="true">${POSDIST_ICON_PATHS[name] || ''}</svg>`;
+  }
+
+  function posdistSanitizeCount(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, n);
+  }
+
+  function posdistHexToRgb(hex) {
+    const clean = hex.replace('#', '');
+    return {
+      r: parseInt(clean.slice(0, 2), 16),
+      g: parseInt(clean.slice(2, 4), 16),
+      b: parseInt(clean.slice(4, 6), 16)
+    };
+  }
+
+  function posdistRgbToHex({ r, g, b }) {
+    const toHex = (v) => Math.round(v).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  function posdistBlendHex(a, b, amount = 0.5) {
+    const c1 = posdistHexToRgb(a);
+    const c2 = posdistHexToRgb(b);
+    return posdistRgbToHex({
+      r: c1.r + (c2.r - c1.r) * amount,
+      g: c1.g + (c2.g - c1.g) * amount,
+      b: c1.b + (c2.b - c1.b) * amount
+    });
+  }
+
+  function posdistMean(values) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  }
+
+  function posdistStdDev(values) {
+    const avg = posdistMean(values);
+    return Math.sqrt(posdistMean(values.map((value) => (value - avg) ** 2)));
+  }
+
+  function posdistFmt(value, digits = 1) {
+    return Number(value).toFixed(digits);
+  }
+
+  function posdistFmtDelta(value) {
+    if (value > 0) return `+${value}`;
+    if (value < 0) return String(value);
+    return '0';
+  }
+
+  function posdistRangeSize(range) {
+    return Number(String(range).replace('Top ', ''));
+  }
+
+  function posdistSlug(value) {
+    return String(value).replace(/[^a-zA-Z0-9]/g, '');
+  }
+
+  function posdistPolarToCartesian(cx, cy, r, angleDeg) {
+    const angleRad = ((angleDeg - 90) * Math.PI) / 180;
+    return { x: cx + (r * Math.cos(angleRad)), y: cy + (r * Math.sin(angleRad)) };
+  }
+
+  function posdistArcPath(cx, cy, r, startAngle, endAngle) {
+    const start = posdistPolarToCartesian(cx, cy, r, endAngle);
+    const end = posdistPolarToCartesian(cx, cy, r, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
+  }
+
+  function posdistPanel(inner, className = '', glow = true) {
+    return `<section class="posdist-panel ${className}">${glow ? '<div class="posdist-panel-glow" aria-hidden="true"></div>' : ''}<div class="posdist-panel-inner">${inner}</div></section>`;
+  }
+
+  function posdistSectionTitle(iconName, title, subtitle) {
+    return `
+      <div class="posdist-section-title-row">
+        <div class="posdist-section-title-label">
+          ${posdistIcon(iconName, 'posdist-icon posdist-icon-sm')}
+          <div>
+            <h2 class="posdist-card-title">${title}</h2>
+            <p class="posdist-card-subtitle">${subtitle}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Positional Analysis CSV parser:
+  // validates the fixed PosDist matrix and stores raw values so the UI can
+  // clamp impossible negatives visually without silently mutating source data.
+  function posdistParseCsv(text) {
+    const lines = text.trim().split(/\r?\n/).filter(Boolean);
+    if (!lines.length) throw new Error('CSV is empty.');
+    const headers = lines[0].split(',').map((cell) => cell.trim());
+    const years = headers.slice(2).map(Number).filter((year) => Number.isFinite(year));
+    const posData = {};
+
+    lines.slice(1).forEach((line) => {
+      const cells = line.split(',').map((cell) => cell.trim());
+      const range = cells[0];
+      const pos = cells[1];
+      if (!range || !pos) return;
+      if (!posData[range]) posData[range] = {};
+      posData[range][pos] = cells.slice(2).map((value) => Number(value));
+    });
+
+    POSDIST_RANGE_OPTIONS.forEach((range) => {
+      if (!posData[range]) throw new Error(`Missing range in CSV: ${range}`);
+      POSDIST_POSITIONS.forEach((pos) => {
+        if (!posData[range][pos]) throw new Error(`Missing ${range} / ${pos} row in CSV.`);
+      });
+    });
+
+    return { years, posData };
+  }
+
+  function posdistGetValues(range, pos) {
+    return (posdistState.posData[range]?.[pos] || []).map(posdistSanitizeCount);
+  }
+
+  function posdistGetRawValues(range, pos) {
+    return posdistState.posData[range]?.[pos] || [];
+  }
+
+  function posdistGetTiers(values) {
+    const sorted = values.map((value, index) => ({ value, index })).sort((a, b) => a.value - b.value || a.index - b.index);
+    const tiers = Array(values.length).fill('high');
+    sorted.forEach((item, sortedIndex) => {
+      tiers[item.index] = sortedIndex < 6 ? 'low' : sortedIndex < 12 ? 'mid' : 'high';
+    });
+    return tiers;
+  }
+
+  function posdistYearsMatching(values, target) {
+    return posdistState.years.filter((_, index) => values[index] === target).join(', ');
+  }
+
+  function posdistRankHighToLow(current, values) {
+    return 1 + values.filter((value) => value > current).length;
+  }
+
+  function posdistValueForYear(range, pos, year) {
+    const index = posdistState.years.indexOf(year);
+    if (index < 0) return 0;
+    return posdistGetValues(range, pos)[index] ?? 0;
+  }
+
+  function posdistGetPositionStats(range, pos) {
+    const values = posdistGetValues(range, pos);
+    const current = values[values.length - 1] ?? 0;
+    const previous = values[values.length - 2] ?? 0;
+    const avg = posdistMean(values);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const yoyRecords = values.slice(1).map((value, i) => ({ pos, from: posdistState.years[i], year: posdistState.years[i + 1], value, change: value - values[i] }));
+    const biggestJump = [...yoyRecords].sort((a, b) => b.change - a.change)[0];
+    const biggestDrop = [...yoyRecords].sort((a, b) => a.change - b.change)[0];
+    const threeYearRecords = values.slice(2).map((value, i) => ({ from: posdistState.years[i], year: posdistState.years[i + 2], change: value - values[i] }));
+    const worstThreeYear = [...threeYearRecords].sort((a, b) => a.change - b.change)[0];
+
+    return {
+      pos,
+      values,
+      current,
+      previous,
+      changeFromPrevious: current - previous,
+      avg,
+      min,
+      max,
+      bestYears: posdistYearsMatching(values, max),
+      worstYears: posdistYearsMatching(values, min),
+      std: posdistStdDev(values),
+      spread: max - min,
+      rank: posdistRankHighToLow(current, values),
+      recent3Avg: posdistMean(values.slice(-3)),
+      biggestJump,
+      biggestDrop,
+      worstThreeYear,
+      vsAverage: current - avg,
+      vsPeak: current - max,
+      vsFloor: current - min
+    };
+  }
+
+  function posdistGetRangeSummary(range) {
+    const stats = Object.fromEntries(POSDIST_POSITIONS.map((pos) => [pos, posdistGetPositionStats(range, pos)]));
+    const current = Object.fromEntries(POSDIST_POSITIONS.map((pos) => [pos, stats[pos].current]));
+    const sortedCurrent = POSDIST_POSITIONS.map((pos) => ({ pos, value: current[pos] })).sort((a, b) => b.value - a.value);
+    const leader = sortedCurrent[0];
+    const rb = posdistGetValues(range, 'RB');
+    const wr = posdistGetValues(range, 'WR');
+    const qb = posdistGetValues(range, 'QB');
+    const firstRbOverWrIndex = posdistState.years.findIndex((_, i) => rb[i] > wr[i]);
+    const firstRbOverWr = firstRbOverWrIndex >= 0 ? posdistState.years[firstRbOverWrIndex] : null;
+    const wrThreeYear = wr.slice(2).map((value, i) => ({ from: posdistState.years[i], year: posdistState.years[i + 2], change: value - wr[i] }));
+    const wrWorstThreeYear = [...wrThreeYear].sort((a, b) => a.change - b.change)[0];
+    const idx2023 = posdistState.years.indexOf(2023);
+    const wr2325 = idx2023 >= 0 ? (wr[wr.length - 1] ?? 0) - wr[idx2023] : 0;
+    const wr2325IsWorst = wrWorstThreeYear?.from === 2023 && wrWorstThreeYear?.year === 2025;
+    const rbMax = Math.max(...rb);
+    const wrMin = Math.min(...wr);
+    const qbCurrentLeader = current.QB === Math.max(...POSDIST_POSITIONS.map((pos) => current[pos]));
+
+    let qbLeadSince = null;
+    if (qbCurrentLeader) {
+      for (let i = posdistState.years.length - 1; i >= 0; i -= 1) {
+        const maxAtYear = Math.max(...POSDIST_POSITIONS.map((pos) => posdistGetValues(range, pos)[i]));
+        if (qb[i] !== maxAtYear) {
+          qbLeadSince = posdistState.years[i + 1] ?? posdistState.years[0];
+          break;
+        }
+      }
+      if (!qbLeadSince) qbLeadSince = posdistState.years[0];
+    }
+
+    const parts = [];
+    if (current.RB > current.WR && firstRbOverWr === 2025) parts.push('first RB > WR season');
+    else if (current.RB > current.WR) parts.push(`RB > WR; first crossover ${firstRbOverWr}`);
+    else if (current.WR > current.RB) parts.push('WR still ahead of RB');
+    else parts.push('RB and WR tied');
+    if (current.WR === wrMin) parts.push('WR dataset low');
+    if (current.RB === rbMax) parts.push('RB dataset high/tie');
+    if (wr2325IsWorst) parts.push('worst WR 3-year drop');
+
+    return { range, size: posdistRangeSize(range), stats, current, leader, rbWrDiff: current.RB - current.WR, firstRbOverWr, wr2325, wr2325IsWorst, wrWorstThreeYear, rbMax, wrMin, qbLeadSince, read: parts.join(' - ') };
+  }
+
+  function posdistGetAllSummaries() {
+    return Object.fromEntries(POSDIST_RANGE_OPTIONS.map((range) => [range, posdistGetRangeSummary(range)]));
+  }
+
+  function posdistGetChartModel(range, activePositions) {
+    const series = POSDIST_POSITIONS.filter((pos) => activePositions.includes(pos)).map((pos) => {
+      const values = posdistGetValues(range, pos);
+      const tiers = posdistGetTiers(values);
+      return {
+        pos,
+        values: values.map((value, index) => ({
+          year: posdistState.years[index],
+          value,
+          rawValue: posdistGetRawValues(range, pos)[index],
+          tier: tiers[index]
+        }))
+      };
+    });
+    const yearRows = posdistState.years.map((year, index) => {
+      const row = { year };
+      POSDIST_POSITIONS.forEach((pos) => { row[pos] = posdistGetValues(range, pos)[index]; });
+      return row;
+    });
+    return { series, yearRows };
+  }
+
+  function posdistGradientId(range, pos, index, prefix = 'grad') {
+    return `posdist-${prefix}-${posdistSlug(range)}-${pos}-${index}`;
+  }
+
+  function posdistRenderHeader() {
+    return `
+      <header class="posdist-page-header">
+        <div class="posdist-header-inner">
+          <div class="posdist-brand-row">
+            <div class="posdist-brand-icon">${posdistIcon('Sparkles', 'posdist-icon posdist-icon-lg')}</div>
+            <div>
+              <div class="posdist-brand-title-line">
+                <h1>Positional Analysis</h1>
+                <span class="posdist-brand-pill">2007-2025</span>
+              </div>
+              <p class="posdist-brand-subtitle">A one-page trend engine for positional density, crossovers, volatility, and peak/floor context inside fantasy-points rank ranges.</p>
+            </div>
+          </div>
+          <div class="posdist-range-tabs" role="group" aria-label="Select fantasy points leaderboard range">
+            ${POSDIST_RANGE_OPTIONS.map((range) => `<button class="posdist-range-btn ${posdistState.selectedRange === range ? 'active' : ''}" type="button" data-posdist-range="${range}">${range}</button>`).join('')}
+          </div>
+        </div>
+      </header>
+    `;
+  }
+
+  function posdistStatChip(label, value, tone = 'neutral') {
+    return `<div class="posdist-stat-chip ${tone}"><div class="posdist-stat-label">${label}</div><div class="posdist-stat-value">${value}</div></div>`;
+  }
+
+  function posdistRenderStatGrid(summary) {
+    return `
+      <div class="posdist-stat-grid">
+        ${posdistStatChip('Selected Range', posdistState.selectedRange)}
+        ${posdistStatChip('2025 Leader', `${summary.leader.pos} ${summary.leader.value}`, 'hot')}
+        ${posdistStatChip('RB minus WR', posdistFmtDelta(summary.rbWrDiff), summary.rbWrDiff > 0 ? 'up' : summary.rbWrDiff < 0 ? 'down' : 'neutral')}
+        ${posdistStatChip('WR 2023 to 2025', posdistFmtDelta(summary.wr2325), summary.wr2325 < 0 ? 'down' : summary.wr2325 > 0 ? 'up' : 'neutral')}
+      </div>
+    `;
+  }
+
+  function posdistRenderPersonnelInsights(allSummaries) {
+    const top48Rb2024 = posdistValueForYear('Top 48', 'RB', 2024);
+    const top48Wr2024 = posdistValueForYear('Top 48', 'WR', 2024);
+    const top48Rb2025 = posdistValueForYear('Top 48', 'RB', 2025);
+    const top48Wr2025 = posdistValueForYear('Top 48', 'WR', 2025);
+    const top60Rb2025 = posdistValueForYear('Top 60', 'RB', 2025);
+    const top60Wr2025 = posdistValueForYear('Top 60', 'WR', 2025);
+    const top60 = allSummaries['Top 60'];
+    const cards = [
+      { title: 'Core Shift', body: 'Increased 12/13 personnel has pushed the league toward more RB-friendly environments.' },
+      { title: 'Positional Impact', body: '12/13 personnel &uarr; = RB &uarr; | WR &darr; | TE &nearr; | QB &searr;' },
+      { title: 'Biggest Winner', body: 'RBs benefit the most because 12/13 personnel carries a higher rush rate than 11 personnel.' },
+      { title: 'Biggest Loser', body: 'WRs are hit hardest because fewer WRs are on the field and pass rate drops.' },
+      { title: 'TE Impact', body: 'TEs gain usage, but the boost is capped because these packages are still more run-heavy.' },
+      { title: 'QB Impact', body: 'QBs are slightly hurt, mainly from lower pass volume.' },
+      { title: '2024 Breakout', body: `Top 48 flipped to RB ${top48Rb2024} vs WR ${top48Wr2024}, the first major RB-over-WR signal in this file.` },
+      { title: '2025 Confirmation', body: `Top 48 held at RB ${top48Rb2025} vs WR ${top48Wr2025}; Top 60 moved to RB ${top60Rb2025} vs WR ${top60Wr2025}.` },
+      { title: 'RB vs WR Relationship', body: top60?.rbWrDiff > 0 ? `RB and WR are moving inversely: RB now leads WR by ${top60.rbWrDiff} in Top 60.` : 'RB and WR trends are moving inversely as heavier personnel rises.' },
+      { title: 'Dynasty Takeaway', body: 'The market is still slow to adjust. Top young RBs deserve higher priority while this personnel trend continues.' },
+      { title: '2026 Outlook', body: 'The trend is unlikely to reverse yet, especially after the 2026 draft reinforced the league interest in heavier TE usage.' }
+    ];
+
+    return posdistPanel(`
+      ${posdistSectionTitle('Sparkles', 'Personnel Trend Thesis', 'Editorial context layered on top of the CSV-backed positional leaderboard counts.')}
+      <div class="posdist-personnel-grid">
+        ${cards.map((card, index) => `
+          <article class="posdist-personnel-card">
+            <div class="posdist-personnel-index">${String(index + 1).padStart(2, '0')}</div>
+            <h3>${card.title}</h3>
+            <p>${card.body}</p>
+          </article>
+        `).join('')}
+      </div>
+    `, 'posdist-personnel-panel', false);
+  }
+
+  function posdistRenderInsightCards(summary) {
+    const cards = [
+      { title: '2025 Leader', value: `${summary.leader.pos} ${summary.leader.value}`, body: `${summary.leader.pos} owns ${summary.leader.value} of ${summary.size} available slots.`, icon: 'Trophy', tone: 'neutral' },
+      { title: 'RB vs WR Gap', value: posdistFmtDelta(summary.rbWrDiff), body: summary.rbWrDiff > 0 ? `RB is ahead of WR by ${summary.rbWrDiff}. ${summary.firstRbOverWr === 2025 ? 'This is the first RB-over-WR season in this range.' : `First RB-over-WR season: ${summary.firstRbOverWr}.`}` : summary.rbWrDiff < 0 ? `WR remains ahead of RB by ${Math.abs(summary.rbWrDiff)}.` : 'RB and WR are tied.', icon: 'Layers3', tone: summary.rbWrDiff > 0 ? 'up' : summary.rbWrDiff < 0 ? 'down' : 'neutral' },
+      { title: 'WR 2023 to 2025', value: posdistFmtDelta(summary.wr2325), body: summary.wr2325IsWorst ? `Worst three-season WR drop in the 2007-2025 dataset for ${summary.range}.` : `WR changed by ${posdistFmtDelta(summary.wr2325)} from 2023 to 2025.`, icon: 'ArrowDownRight', tone: summary.wr2325 < 0 ? 'down' : 'up' },
+      { title: 'RB Current Level', value: `${summary.current.RB}/${summary.rbMax}`, body: summary.current.RB === summary.rbMax ? `RB is at or tied with its historical high for ${summary.range}.` : `RB is ${summary.rbMax - summary.current.RB} below its historical high.`, icon: 'Zap', tone: summary.current.RB === summary.rbMax ? 'hot' : 'neutral' }
+    ];
+    return `<div class="posdist-grid-4">${cards.map((card) => posdistPanel(`
+      <div class="posdist-insight-top">
+        <div><div class="posdist-insight-label">${card.title}</div><div class="posdist-insight-value">${card.value}</div></div>
+        <div class="posdist-insight-icon ${card.tone}">${posdistIcon(card.icon, 'posdist-icon')}</div>
+      </div>
+      <p class="posdist-insight-body">${card.body}</p>
+    `, 'posdist-insight-card', false)).join('')}</div>`;
+  }
+
+  function posdistRenderPositionToggle(pos, current) {
+    const active = posdistState.activePositions.includes(pos);
+    const cfg = POSDIST_POS_CONFIG[pos];
+    return `
+      <button class="posdist-pos-toggle ${active ? '' : 'inactive'}" type="button" data-posdist-pos="${pos}" aria-pressed="${String(active)}">
+        <span class="posdist-pos-toggle-bar" style="background: linear-gradient(90deg, ${cfg.low}, ${cfg.mid}, ${cfg.high})"></span>
+        <span class="posdist-pos-toggle-content">
+          <span class="posdist-pos-dot" style="color: ${cfg.high}; background: linear-gradient(135deg, ${cfg.low}, ${cfg.high})"></span>
+          <span class="posdist-pos-name">${pos}</span>
+          <span class="posdist-pos-count">${current}</span>
+        </span>
+      </button>
+    `;
+  }
+
+  function posdistRenderMainChart(active, selectedRange) {
+    const width = 1460;
+    const height = 560;
+    const margin = { top: 54, right: 34, bottom: 58, left: 54 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const visibleSeries = active.series.filter((series) => posdistState.activePositions.includes(series.pos));
+    const maxValue = Math.max(...visibleSeries.flatMap((series) => series.values.map((point) => point.value)), 1);
+    const yMax = Math.max(posdistRangeSize(selectedRange) <= 12 ? 6 : 12, Math.ceil(maxValue + 2));
+    const tickStep = yMax <= 8 ? 1 : 2;
+    const yTicks = Array.from({ length: Math.floor(yMax / tickStep) + 1 }, (_, i) => i * tickStep);
+    const xScale = (index) => (index / (posdistState.years.length - 1)) * innerWidth;
+    const yScale = (value) => innerHeight - (value / yMax) * innerHeight;
+
+    const labelOffset = (yearIndex, pos) => {
+      const row = active.yearRows[yearIndex];
+      const value = row[pos];
+      const close = posdistState.activePositions
+        .map((p) => ({ pos: p, value: row[p] }))
+        .filter((item) => Math.abs(item.value - value) <= 0.45)
+        .sort((a, b) => POSDIST_POSITIONS.indexOf(a.pos) - POSDIST_POSITIONS.indexOf(b.pos));
+      const stackIndex = Math.max(0, close.findIndex((item) => item.pos === pos));
+      const y = yScale(value);
+      const direction = y < 34 ? 1 : -1;
+      return direction * (17 + stackIndex * 15);
+    };
+
+    const chartGlowId = `posdist-chart-glow-${posdistSlug(selectedRange)}`;
+    const defs = visibleSeries.flatMap((series) => series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      const id = posdistGradientId(selectedRange, series.pos, index);
+      return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}"><stop offset="0%" stop-color="${POSDIST_POS_CONFIG[series.pos][point.tier]}" /><stop offset="100%" stop-color="${POSDIST_POS_CONFIG[series.pos][next.tier]}" /></linearGradient>`;
+    })).join('');
+    const grid = yTicks.map((tick) => `<g transform="translate(0, ${yScale(tick)})"><line x2="${innerWidth}" stroke="rgba(255,255,255,0.045)" stroke-width="1" /><text x="-18" y="4" text-anchor="end" class="posdist-svg-text-dim" font-size="11">${tick}</text></g>`).join('');
+    const years = posdistState.years.map((year, index) => `<g transform="translate(${xScale(index)}, 0)"><line y1="0" y2="${innerHeight}" stroke="rgba(255,255,255,0.022)" stroke-dasharray="4 8" /><text y="${innerHeight + 34}" text-anchor="middle" class="posdist-svg-text-muted" font-size="11">${year}</text></g>`).join('');
+    const lines = visibleSeries.map((series) => `<g>${series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      return `<line x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}" stroke="url(#${posdistGradientId(selectedRange, series.pos, index)})" stroke-width="4.5" stroke-linecap="round" opacity="0.95" />`;
+    }).join('')}</g>`).join('');
+    const points = visibleSeries.map((series) => `<g>${series.values.map((point, index) => {
+      const color = POSDIST_POS_CONFIG[series.pos][point.tier];
+      const x = xScale(index);
+      const y = yScale(point.value);
+      return `<g><circle cx="${x}" cy="${y}" r="6.5" fill="rgba(0,0,0,0.9)" stroke="${color}" stroke-width="3" /><circle cx="${x}" cy="${y}" r="2" fill="${color}" opacity="0.9" /><text x="${x}" y="${y + labelOffset(index, series.pos)}" text-anchor="middle" class="posdist-svg-label" font-size="13" fill="${color}" style="paint-order:stroke;stroke:#08090d;stroke-width:6px;stroke-linejoin:round">${point.value}</text></g>`;
+    }).join('')}</g>`).join('');
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg" role="img" aria-label="${selectedRange} positional leaderboard count trend">
+        <defs>
+          <radialGradient id="${chartGlowId}" cx="50%" cy="18%" r="78%"><stop offset="0%" stop-color="rgba(0,221,250,0.14)" /><stop offset="55%" stop-color="rgba(168,85,247,0.035)" /><stop offset="100%" stop-color="rgba(0,0,0,0)" /></radialGradient>
+          ${defs}
+        </defs>
+        <rect x="0" y="0" width="${width}" height="${height}" rx="28" fill="url(#${chartGlowId})" opacity="0.9" />
+        <g transform="translate(${margin.left}, ${margin.top})">
+          ${grid}
+          ${years}
+          <text x="0" y="-18" fill="#67e8f9" font-size="11" font-weight="950" letter-spacing=".28em" text-transform="uppercase">Count</text>
+          <text x="${innerWidth}" y="${innerHeight + 52}" text-anchor="end" fill="#52525b" font-size="10" font-weight="950" letter-spacing=".28em">Year 2007-2025</text>
+          ${lines}
+          ${points}
+        </g>
+      </svg>
+    `;
+  }
+
+  function posdistRenderMiniLineChart(range) {
+    const model = posdistGetChartModel(range, posdistState.activePositions);
+    const width = 660;
+    const height = 245;
+    const margin = { top: 42, right: 18, bottom: 30, left: 28 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    const maxValue = Math.max(...model.series.flatMap((series) => series.values.map((point) => point.value)), 1);
+    const yMax = Math.max(8, Math.ceil(maxValue + 1));
+    const xScale = (index) => (index / (posdistState.years.length - 1)) * innerWidth;
+    const yScale = (value) => innerHeight - (value / yMax) * innerHeight;
+    const rangeColor = POSDIST_GRID_RANGE_LABEL_COLORS[range] || '#ffffff';
+    const defs = model.series.flatMap((series) => series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      const id = posdistGradientId(range, series.pos, index, 'mini');
+      return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}"><stop offset="0%" stop-color="${POSDIST_POS_CONFIG[series.pos][point.tier]}" /><stop offset="100%" stop-color="${POSDIST_POS_CONFIG[series.pos][next.tier]}" /></linearGradient>`;
+    })).join('');
+    const lines = model.series.map((series) => `<g>${series.values.slice(0, -1).map((point, index) => {
+      const next = series.values[index + 1];
+      return `<line x1="${xScale(index)}" y1="${yScale(point.value)}" x2="${xScale(index + 1)}" y2="${yScale(next.value)}" stroke="url(#${posdistGradientId(range, series.pos, index, 'mini')})" stroke-width="3.25" stroke-linecap="round" />`;
+    }).join('')}</g>`).join('');
+    const labels = model.series.map((series) => `<g>${series.values.map((point, index) => {
+      const color = POSDIST_POS_CONFIG[series.pos][point.tier];
+      return `<g><circle cx="${xScale(index)}" cy="${yScale(point.value)}" r="4" fill="#05060a" stroke="${color}" stroke-width="2" /><text x="${xScale(index)}" y="${yScale(point.value) - 8}" text-anchor="middle" font-size="10" font-weight="950" fill="${color}" style="paint-order:stroke;stroke:#05060a;stroke-width:4px">${point.value}</text></g>`;
+    }).join('')}</g>`).join('');
+
+    return `
+      <div class="posdist-mini-card">
+        <div class="posdist-mini-head">
+          <div class="posdist-mini-title" style="color:${rangeColor}; text-shadow:0 0 24px ${rangeColor}33">${range}</div>
+          <div class="posdist-mini-pill">2007-2025</div>
+        </div>
+        <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg" role="img" aria-label="${range} mini trend chart">
+          <defs>${defs}</defs>
+          <g transform="translate(${margin.left}, ${margin.top})">
+            ${[0, 0.25, 0.5, 0.75, 1].map((tick) => `<line x1="0" x2="${innerWidth}" y1="${tick * innerHeight}" y2="${tick * innerHeight}" stroke="rgba(255,255,255,.045)" />`).join('')}
+            ${posdistState.years.map((year, index) => `<text x="${xScale(index)}" y="${innerHeight + 22}" text-anchor="middle" class="posdist-svg-text-muted" font-size="11">${year}</text>`).join('')}
+            ${lines}
+            ${labels}
+          </g>
+        </svg>
+      </div>
+    `;
+  }
+
+  function posdistRenderChartPanel(active, summary) {
+    const body = posdistState.chartMode === 'grid'
+      ? `<div class="posdist-mini-grid">${POSDIST_GRID_RANGES.map(posdistRenderMiniLineChart).join('')}</div>`
+      : posdistRenderMainChart(active, posdistState.selectedRange);
+
+    return posdistPanel(`
+      <div class="posdist-chart-header">
+        <div class="posdist-chart-title-side">
+          <button class="posdist-grid-toggle ${posdistState.chartMode === 'grid' ? 'active' : ''}" id="posdistGridToggle" type="button" aria-pressed="${String(posdistState.chartMode === 'grid')}">Grid</button>
+          <div class="posdist-chart-icon-box">${posdistIcon('LineChart', 'posdist-icon posdist-icon-sm')}</div>
+          <div>
+            <h2 class="posdist-card-title">Global Tier Supply Dynamics</h2>
+            <p class="posdist-card-subtitle">${posdistState.chartMode === 'grid' ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.' : 'Position counts inside the selected fantasy-points rank range.'}</p>
+          </div>
+        </div>
+        <div class="posdist-pos-toggle-wrap">${POSDIST_POSITIONS.map((pos) => posdistRenderPositionToggle(pos, summary.current[pos])).join('')}</div>
+      </div>
+      ${body}
+    `, 'posdist-chart-panel');
+  }
+
+  function posdistRenderPositionProfileCards(summary) {
+    return `<div class="posdist-grid-4">${POSDIST_POSITIONS.map((pos) => {
+      const stat = summary.stats[pos];
+      const muted = !posdistState.activePositions.includes(pos);
+      const cfg = POSDIST_POS_CONFIG[pos];
+      const trendTone = stat.changeFromPrevious > 0 ? 'up' : stat.changeFromPrevious < 0 ? 'down' : 'neutral';
+      const trendIcon = stat.changeFromPrevious > 0 ? 'ArrowUpRight' : stat.changeFromPrevious < 0 ? 'ArrowDownRight' : 'Minus';
+      const sparkId = `posdist-spark-${pos}`;
+      const sparkPoints = stat.values.map((value, i) => `${(i / (posdistState.years.length - 1)) * 260},${46 - ((value - stat.min) / Math.max(1, stat.max - stat.min)) * 38}`).join(' ');
+      const sparkCircles = stat.values.map((value, i) => `<circle cx="${(i / (posdistState.years.length - 1)) * 260}" cy="${46 - ((value - stat.min) / Math.max(1, stat.max - stat.min)) * 38}" r="${i === posdistState.years.length - 1 ? 4 : 1.7}" fill="${i === posdistState.years.length - 1 ? cfg.high : 'rgba(255,255,255,.45)'}" />`).join('');
+      return posdistPanel(`
+        <div class="posdist-profile-bar" style="background:linear-gradient(90deg, ${cfg.low}, ${cfg.mid}, ${cfg.high})"></div>
+        <div class="posdist-profile-header">
+          <div><div class="posdist-profile-pos" style="color:${cfg.high}">${pos}</div><div class="posdist-profile-sub">2025 position file</div></div>
+          <div class="posdist-profile-badge ${trendTone}">${posdistIcon(trendIcon, 'posdist-icon posdist-icon-sm')} ${posdistFmtDelta(stat.changeFromPrevious)} YoY</div>
+        </div>
+        <div class="posdist-profile-metrics">
+          <div class="posdist-profile-box big"><div class="posdist-profile-box-label">Current</div><div class="posdist-profile-box-value">${stat.current}</div><div class="posdist-profile-rank">Rank #${stat.rank} of ${posdistState.years.length}</div></div>
+          <div class="posdist-profile-side"><div class="posdist-profile-box"><div class="posdist-profile-box-label">Avg</div><div class="posdist-profile-box-value">${posdistFmt(stat.avg)}</div></div><div class="posdist-profile-box"><div class="posdist-profile-box-label">Peak</div><div class="posdist-profile-box-value">${stat.max}</div></div></div>
+        </div>
+        <svg viewBox="0 0 260 52" class="posdist-sparkline" role="img" aria-label="${pos} sparkline">
+          <defs><linearGradient id="${sparkId}" x1="0" x2="260" y1="0" y2="0"><stop offset="0" stop-color="${cfg.low}" /><stop offset=".5" stop-color="${cfg.mid}" /><stop offset="1" stop-color="${cfg.high}" /></linearGradient></defs>
+          <line x1="0" x2="260" y1="48" y2="48" stroke="rgba(255,255,255,.07)" />
+          <polyline fill="none" stroke="url(#${sparkId})" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${sparkPoints}" />
+          ${sparkCircles}
+        </svg>
+      `, `posdist-profile-panel posdist-profile-card ${muted ? 'muted' : ''}`);
+    }).join('')}</div>`;
+  }
+
+  function posdistRenderThesisPanel(summary) {
+    const lines = [
+      summary.firstRbOverWr === 2025 && summary.rbWrDiff > 0 ? `${summary.range}: 2025 is the first RB-over-WR season in this range.` : summary.rbWrDiff > 0 ? `${summary.range}: RB is ahead of WR; crossover first appeared in ${summary.firstRbOverWr}.` : `${summary.range}: WR still holds the RB/WR edge.`,
+      summary.wr2325IsWorst ? `WR's 2023 to 2025 move is the worst three-year WR drop for this range.` : `WR's 2023 to 2025 move is ${posdistFmtDelta(summary.wr2325)} for this range.`,
+      summary.current.RB === summary.rbMax ? `RB is at/tied with its historical high in ${summary.range}.` : `RB is ${summary.rbMax - summary.current.RB} below its historical high.`
+    ];
+    return posdistPanel(`
+      <div class="posdist-thesis-layout">
+        <div><div class="posdist-thesis-kicker">Selected-range thesis</div><div class="posdist-thesis-title">${summary.range} read</div></div>
+        <div class="posdist-thesis-cards">${lines.map((line, i) => `<div class="posdist-thesis-card"><div class="posdist-thesis-card-label" style="color:${POSDIST_SYSTEM_PALETTES.A[i * 2]}">Signal ${i + 1}</div><p>${line}</p></div>`).join('')}</div>
+      </div>
+    `, 'posdist-thesis-panel posdist-span-12');
+  }
+
+  function posdistRenderMomentumStreams(summary) {
+    const rows = POSDIST_POSITIONS.map((pos) => ({ pos, changes: summary.stats[pos].values.slice(1).map((value, i) => value - summary.stats[pos].values[i]) }));
+    const maxAbs = Math.max(...rows.flatMap((row) => row.changes.map((value) => Math.abs(value))), 1);
+    const width = 1080;
+    const laneHeight = 108;
+    const height = rows.length * laneHeight + 70;
+    const left = 72;
+    const right = 34;
+    const top = 44;
+    const innerWidth = width - left - right;
+    const step = innerWidth / 17;
+    const amp = 42;
+
+    return posdistPanel(`
+      ${posdistSectionTitle('Activity', 'Momentum Streams', 'Single-season slot changes by position. Tall spikes show major supply shocks; 2025 is emphasized at the far right.')}
+      <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg" role="img" aria-label="Momentum streams">
+        <defs>${POSDIST_POSITIONS.map((pos) => `<linearGradient id="posdist-momentum-${pos}" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="${POSDIST_POS_CONFIG[pos].low}" /><stop offset="50%" stop-color="${POSDIST_POS_CONFIG[pos].mid}" /><stop offset="100%" stop-color="${POSDIST_POS_CONFIG[pos].high}" /></linearGradient>`).join('')}</defs>
+        ${posdistState.years.slice(1).map((year, i) => (i % 2 === 0 || year === 2025) ? `<text x="${left + i * step}" y="24" text-anchor="middle" class="posdist-svg-text-dim" font-size="10">${year}</text>` : '').join('')}
+        ${rows.map((row, rowIndex) => {
+          const y = top + 38 + rowIndex * laneHeight;
+          const biggest = row.changes.reduce((best, change, i) => Math.abs(change) > Math.abs(best.change) ? { change, i } : best, { change: 0, i: 0 });
+          return `<g>
+            <rect x="0" y="${y - 45}" width="${width}" height="92" rx="22" fill="rgba(255,255,255,0.018)" stroke="rgba(255,255,255,0.035)" />
+            <text x="22" y="${y + 5}" font-size="18" font-weight="950" fill="${POSDIST_POS_CONFIG[row.pos].high}">${row.pos}</text>
+            <text x="22" y="${y + 25}" fill="#3f3f46" font-size="9" font-weight="950" letter-spacing=".16em">YoY slots</text>
+            <line x1="${left - 8}" x2="${width - right + 8}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.11)" stroke-dasharray="5 8" />
+            ${row.changes.map((change, i) => {
+              const x = left + i * step;
+              const h = Math.max(4, (Math.abs(change) / maxAbs) * amp);
+              const positive = change >= 0;
+              const endY = positive ? y - h : y + h;
+              const color = positive ? POSDIST_POS_CONFIG[row.pos].high : POSDIST_POS_CONFIG[row.pos].low;
+              const important = Math.abs(change) >= 3 || i === 17 || i === biggest.i;
+              return `<g><line x1="${x}" x2="${x}" y1="${y}" y2="${endY}" stroke="${color}" stroke-width="${i === 17 ? 7 : 5}" stroke-linecap="round" opacity="${change === 0 ? .25 : .9}" /><circle cx="${x}" cy="${endY}" r="${i === 17 ? 6 : 4}" fill="#05060a" stroke="${color}" stroke-width="2.25" />${important ? `<text x="${x}" y="${positive ? endY - 10 : endY + 18}" text-anchor="middle" fill="#f4f4f5" font-size="11" font-weight="950" style="paint-order:stroke;stroke:#05060a;stroke-width:4px">${posdistFmtDelta(change)}</text>` : ''}</g>`;
+            }).join('')}
+          </g>`;
+        }).join('')}
+      </svg>
+    `, 'posdist-momentum-panel posdist-span-7');
+  }
+
+  function posdistRenderVolatilityOrbit(summary) {
+    const rows = POSDIST_POSITIONS.map((pos) => ({ pos, stat: summary.stats[pos] })).sort((a, b) => b.stat.std - a.stat.std);
+    const maxStd = Math.max(...rows.map((row) => row.stat.std), 1);
+    const maxSpread = Math.max(...rows.map((row) => row.stat.spread), 1);
+
+    return posdistPanel(`
+      ${posdistSectionTitle('Sparkles', 'Volatility Orbit Board', 'A compact volatility profile: outer arc = standard deviation, inner pulse = total historical spread.')}
+      <div class="posdist-orbit-grid">
+        ${rows.map((row, index) => {
+          const { pos, stat } = row;
+          const stdPct = stat.std / maxStd;
+          const spreadPct = stat.spread / maxSpread;
+          const stdEnd = -132 + stdPct * 264;
+          const spreadEnd = -132 + spreadPct * 264;
+          const trendTone = stat.changeFromPrevious > 0 ? 'tone-up' : stat.changeFromPrevious < 0 ? 'tone-down' : 'tone-neutral';
+          return `<div class="posdist-orbit-card">
+            <div class="posdist-orbit-rank">#${index + 1}</div>
+            <svg viewBox="0 0 190 148" class="posdist-chart-svg" role="img" aria-label="${pos} volatility dial">
+              <path d="${posdistArcPath(95, 92, 58, -132, 132)}" stroke="rgba(255,255,255,.08)" stroke-width="12" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(95, 92, 58, -132, stdEnd)}" stroke="${POSDIST_POS_CONFIG[pos].high}" stroke-width="12" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(95, 92, 39, -132, 132)}" stroke="rgba(255,255,255,.055)" stroke-width="8" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(95, 92, 39, -132, spreadEnd)}" stroke="${POSDIST_POS_CONFIG[pos].mid}" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.85" />
+              <circle cx="95" cy="92" r="31" fill="rgba(0,0,0,.55)" stroke="rgba(255,255,255,.08)" />
+              <text x="95" y="82" text-anchor="middle" font-size="20" font-weight="950" fill="${POSDIST_POS_CONFIG[pos].high}">${pos}</text>
+              <text x="95" y="104" text-anchor="middle" fill="#fff" font-size="20" font-weight="950">s ${posdistFmt(stat.std)}</text>
+              <text x="95" y="124" text-anchor="middle" fill="#52525b" font-size="10" font-weight="950" letter-spacing=".12em">spread ${stat.spread}</text>
+            </svg>
+            <div class="posdist-orbit-stats">
+              <div class="posdist-orbit-stat"><div class="posdist-orbit-stat-label">Avg</div><div class="posdist-orbit-stat-value">${posdistFmt(stat.avg)}</div></div>
+              <div class="posdist-orbit-stat"><div class="posdist-orbit-stat-label">Now</div><div class="posdist-orbit-stat-value" style="color:#fff">${stat.current}</div></div>
+              <div class="posdist-orbit-stat"><div class="posdist-orbit-stat-label">YoY</div><div class="posdist-orbit-stat-value ${trendTone}">${posdistFmtDelta(stat.changeFromPrevious)}</div></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-volatility-panel posdist-span-5');
+  }
+
+  function posdistRenderRbWrCrossover(summary) {
+    const rb = summary.stats.RB.values;
+    const wr = summary.stats.WR.values;
+    const diffs = posdistState.years.map((year, i) => ({ year, diff: rb[i] - wr[i] }));
+    const maxAbs = Math.max(...diffs.map((d) => Math.abs(d.diff)), 1);
+    const width = 620;
+    const height = 260;
+    const left = 34;
+    const right = 18;
+    const centerY = 125;
+    const amp = 82;
+    const step = (width - left - right) / (posdistState.years.length - 1);
+    return posdistPanel(`
+      ${posdistSectionTitle('Target', 'RB / WR Crossover Meter', 'Positive means RB has more players than WR. Negative means WR has more players than RB.')}
+      <svg viewBox="0 0 ${width} ${height}" class="posdist-chart-svg" role="img" aria-label="RB and WR crossover meter">
+        <line x1="${left - 8}" x2="${width - right + 8}" y1="${centerY}" y2="${centerY}" stroke="rgba(255,255,255,.10)" stroke-width="2" />
+        <text x="${left}" y="28" fill="#a7f3d0" font-size="10" font-weight="950" letter-spacing=".14em">RB Lead</text>
+        <text x="${left}" y="236" fill="#93c5fd" font-size="10" font-weight="950" letter-spacing=".14em">WR Lead</text>
+        ${diffs.map((item, i) => {
+          const x = left + i * step;
+          const h = Math.abs(item.diff) / maxAbs * amp;
+          const positive = item.diff >= 0;
+          const color = positive ? '#00ff99' : '#4d79ff';
+          return `<g><line x1="${x}" x2="${x}" y1="${centerY}" y2="${positive ? centerY - h : centerY + h}" stroke="${color}" stroke-width="${item.year === 2025 ? 7 : 4}" stroke-linecap="round" opacity="${item.year === 2025 ? 1 : .72}" /><circle cx="${x}" cy="${positive ? centerY - h : centerY + h}" r="${item.year === 2025 ? 6 : 3.5}" fill="#05060a" stroke="${color}" stroke-width="2" />${(item.year === 2025 || Math.abs(item.diff) >= 5) ? `<text x="${x}" y="${positive ? centerY - h - 12 : centerY + h + 18}" text-anchor="middle" fill="#fff" font-size="11" font-weight="950">${posdistFmtDelta(item.diff)}</text>` : ''}<text x="${x}" y="154" text-anchor="middle" class="posdist-svg-text-dim" font-size="9">${String(item.year).slice(2)}</text></g>`;
+        }).join('')}
+      </svg>
+    `, 'posdist-crossover-panel posdist-span-7');
+  }
+
+  function posdistRenderPeakGauges(summary) {
+    return posdistPanel(`
+      ${posdistSectionTitle('Gauge', 'Peak / Floor Dial Board', 'Each dial places 2025 between the historical floor and peak for the selected range.')}
+      <div class="posdist-gauge-grid">
+        ${posdistState.activePositions.map((pos) => {
+          const stat = summary.stats[pos];
+          const pct = stat.max === stat.min ? 1 : (stat.current - stat.min) / Math.max(1, stat.max - stat.min);
+          const endAngle = -132 + pct * 264;
+          return `<div class="posdist-gauge-card">
+            <svg viewBox="0 0 180 138" class="posdist-chart-svg" role="img" aria-label="${pos} peak floor dial">
+              <path d="${posdistArcPath(90, 96, 58, -132, 132)}" stroke="rgba(255,255,255,.08)" stroke-width="14" fill="none" stroke-linecap="round" />
+              <path d="${posdistArcPath(90, 96, 58, -132, endAngle)}" stroke="${POSDIST_POS_CONFIG[pos].high}" stroke-width="14" fill="none" stroke-linecap="round" />
+              <circle cx="90" cy="96" r="40" fill="rgba(0,0,0,.50)" stroke="rgba(255,255,255,.08)" />
+              <text x="90" y="84" text-anchor="middle" font-size="20" font-weight="950" fill="${POSDIST_POS_CONFIG[pos].high}">${pos}</text>
+              <text x="90" y="108" text-anchor="middle" fill="#fff" font-size="26" font-weight="950">${stat.current}</text>
+              <text x="34" y="130" text-anchor="middle" fill="#52525b" font-size="10" font-weight="950">${stat.min}</text>
+              <text x="146" y="130" text-anchor="middle" fill="#52525b" font-size="10" font-weight="950">${stat.max}</text>
+            </svg>
+            <div class="posdist-gauge-meta"><div>Floor <span>${stat.worstYears}</span></div><div>Peak <span>${stat.bestYears}</span></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-gauge-panel');
+  }
+
+  function posdistRenderBiggestMovers(summary) {
+    const movers = posdistState.activePositions.flatMap((pos) => {
+      const values = summary.stats[pos].values;
+      return values.slice(1).map((value, i) => ({ pos, from: posdistState.years[i], year: posdistState.years[i + 1], change: value - values[i], abs: Math.abs(value - values[i]) }));
+    }).sort((a, b) => b.abs - a.abs || b.change - a.change).slice(0, 8);
+
+    return posdistPanel(`
+      ${posdistSectionTitle('Zap', 'Biggest Shock Moves', 'Largest single-season jumps and drops among visible positions.')}
+      <div class="posdist-movers-list">
+        ${movers.map((mover, index) => `<div class="posdist-mover-row">
+          <div class="posdist-mover-strip" style="background:linear-gradient(180deg, ${POSDIST_POS_CONFIG[mover.pos].low}, ${POSDIST_POS_CONFIG[mover.pos].high})"></div>
+          <div class="posdist-mover-inner">
+            <div class="posdist-mover-left"><div class="posdist-mover-rank">#${index + 1}</div><div class="posdist-mover-pos" style="color:${POSDIST_POS_CONFIG[mover.pos].high}">${mover.pos}</div><div><div class="posdist-mover-years">${mover.from} to ${mover.year}</div><div class="posdist-mover-sub">absolute move: ${mover.abs}</div></div></div>
+            <div class="posdist-mover-delta ${mover.change > 0 ? 'up' : 'down'}">${posdistFmtDelta(mover.change)}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    `, 'posdist-movers-panel');
+  }
+
+  function posdistRenderRangeComparison(allSummaries) {
+    return posdistPanel(`
+      ${posdistSectionTitle('Layers3', 'Range Comparison Deck', 'How the 2025 positional mix changes as the window expands from elite-only to deeper leaderboards.')}
+      <div class="posdist-range-deck">
+        ${POSDIST_RANGE_OPTIONS_WIDE_FIRST.map((range, rangeIndex) => {
+          const summary = allSummaries[range];
+          const total = POSDIST_POSITIONS.reduce((sum, pos) => sum + summary.current[pos], 0) || 1;
+          return `<div class="posdist-range-card">
+            <div class="posdist-range-card-head"><div><div class="posdist-range-title">${range}</div><div class="posdist-range-read">${summary.read}</div></div><div class="posdist-range-leader-pill" style="background:${POSDIST_SYSTEM_PALETTES.D[rangeIndex + 1]}">${summary.leader.pos} ${summary.leader.value}</div></div>
+            <div class="posdist-range-stack">${POSDIST_POSITIONS.map((pos) => `<div class="posdist-range-stack-part" style="width:${(summary.current[pos] / total) * 100}%; min-width:${summary.current[pos] > 0 ? 20 : 0}px; background:linear-gradient(90deg, ${POSDIST_POS_CONFIG[pos].low}, ${POSDIST_POS_CONFIG[pos].high})">${summary.current[pos] > 0 ? summary.current[pos] : ''}</div>`).join('')}</div>
+            <div class="posdist-range-pos-grid">${POSDIST_POSITIONS.map((pos) => `<div class="posdist-range-pos-cell"><div class="posdist-range-pos-name" style="color:${POSDIST_POS_CONFIG[pos].high}">${pos}</div><div class="posdist-range-pos-count">${summary.current[pos]}</div></div>`).join('')}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `, 'posdist-range-deck-panel posdist-span-12');
+  }
+
+  function posdistRenderFooter() {
+    return `
+      <footer class="posdist-footer-note">
+        <div class="posdist-footer-inner">
+          <div class="posdist-footer-left">${posdistIcon('AlertTriangle', 'posdist-icon')}<p>Source anomaly handled: the file contains an impossible value for <strong>Top 36 / TE / 2024 = -1</strong>. Visual calculations clamp negative counts to 0 so the dashboard never displays an impossible player count.</p></div>
+          <div class="posdist-footer-tags"><span>Line labels on every active point</span><span>Position filter toggles</span><span>No heat maps</span><span>Low 6 / Mid 6 / High 7 gradient tiering</span></div>
+        </div>
+      </footer>
+    `;
+  }
+
+  function posdistRenderReady() {
+    const allSummaries = posdistGetAllSummaries();
+    const selectedSummary = allSummaries[posdistState.selectedRange];
+    const active = {
+      summary: selectedSummary,
+      ...posdistGetChartModel(posdistState.selectedRange, POSDIST_POSITIONS)
+    };
+
+    return `
+      ${posdistRenderHeader()}
+      ${posdistRenderStatGrid(selectedSummary)}
+      <main class="posdist-dashboard-stack">
+        ${posdistRenderPersonnelInsights(allSummaries)}
+        ${posdistRenderInsightCards(selectedSummary)}
+        ${posdistRenderChartPanel(active, selectedSummary)}
+        ${posdistRenderPositionProfileCards(selectedSummary)}
+        <div class="posdist-grid-12">
+          ${posdistRenderThesisPanel(selectedSummary)}
+          ${posdistRenderMomentumStreams(selectedSummary)}
+          ${posdistRenderVolatilityOrbit(selectedSummary)}
+          ${posdistRenderRbWrCrossover(selectedSummary)}
+          <div class="posdist-stack posdist-span-5">${posdistRenderPeakGauges(selectedSummary)}${posdistRenderBiggestMovers(selectedSummary)}</div>
+          ${posdistRenderRangeComparison(allSummaries)}
+        </div>
+        ${posdistRenderFooter()}
+      </main>
+    `;
+  }
+
+  function posdistRenderLoading() {
+    return '<div class="posdist-loading-panel">Loading POS-DIST_2007-2025.csv...</div>';
+  }
+
+  function posdistRenderError(error) {
+    return `<div class="posdist-error-panel"><strong>Unable to load POS-DIST_2007-2025.csv.</strong><br />The Positional Analysis tab expects the CSV at <code>${POSDIST_DATA_URL}</code> inside the published app folder.<br /><br />Error: ${posdistEscapeHtml(error?.message || error)}</div>`;
+  }
+
+  async function ensurePosdistData() {
+    if (posdistState.status === 'ready') return;
+    if (posdistLoadPromise) return posdistLoadPromise;
+
+    posdistState.status = 'loading';
+    posdistState.error = null;
+    const csvUrl = new URL(POSDIST_DATA_URL, window.location.href);
+    posdistLoadPromise = fetch(csvUrl, { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`CSV request failed: ${response.status}`);
+        return response.text();
+      })
+      .then((text) => {
+        const parsed = posdistParseCsv(text);
+        posdistState.years = parsed.years;
+        posdistState.posData = parsed.posData;
+        posdistState.status = 'ready';
+      })
+      .catch((error) => {
+        posdistState.status = 'error';
+        posdistState.error = error;
+        throw error;
+      })
+      .finally(() => {
+        posdistLoadPromise = null;
+      });
+
+    return posdistLoadPromise;
+  }
+
+  function renderPosdistDashboard() {
+    const root = document.getElementById('posdist-root');
+    if (!root) return;
+
+    if (posdistState.status === 'ready') {
+      root.innerHTML = posdistRenderReady();
+      return;
+    }
+
+    if (posdistState.status === 'error') {
+      root.innerHTML = posdistRenderError(posdistState.error);
+      return;
+    }
+
+    root.innerHTML = posdistRenderLoading();
+    ensurePosdistData()
+      .then(() => {
+        if (document.body.dataset.page === PAGE_ID) renderPosdistDashboard();
+      })
+      .catch(() => {
+        if (document.body.dataset.page === PAGE_ID) renderPosdistDashboard();
+      });
+  }
+
+  function setPosdistSelectedRange(range) {
+    if (!POSDIST_RANGE_OPTIONS.includes(range)) return;
+    posdistState.selectedRange = range;
+    renderPosdistDashboard();
+  }
+
+  function togglePosdistPosition(pos) {
+    if (!POSDIST_POSITIONS.includes(pos)) return;
+    if (posdistState.activePositions.includes(pos)) {
+      if (posdistState.activePositions.length === 1) return;
+      posdistState.activePositions = posdistState.activePositions.filter((item) => item !== pos);
+    } else {
+      posdistState.activePositions = [...posdistState.activePositions, pos].sort((a, b) => POSDIST_POSITIONS.indexOf(a) - POSDIST_POSITIONS.indexOf(b));
+    }
+    renderPosdistDashboard();
+  }
+
+  function setupPosdistEvents() {
+    const root = document.getElementById('posdist-root');
+    if (!root || posdistEventsBound) return;
+    posdistEventsBound = true;
+
+    // Positional Analysis interactions:
+    // use one delegated listener on the tab mount so range, position, and grid
+    // controls stay scoped to the Research tab and survive dashboard re-renders.
+    root.addEventListener('click', (event) => {
+      const rangeButton = event.target.closest('.posdist-range-btn');
+      if (rangeButton && root.contains(rangeButton)) {
+        setPosdistSelectedRange(rangeButton.dataset.posdistRange);
+        return;
+      }
+
+      const posButton = event.target.closest('.posdist-pos-toggle');
+      if (posButton && root.contains(posButton)) {
+        togglePosdistPosition(posButton.dataset.posdistPos);
+        return;
+      }
+
+      const gridButton = event.target.closest('#posdistGridToggle');
+      if (gridButton && root.contains(gridButton)) {
+        posdistState.chartMode = posdistState.chartMode === 'grid' ? 'single' : 'grid';
+        renderPosdistDashboard();
+      }
+    });
+  }
+
   function handleResize() {
     if (document.body.dataset.page !== PAGE_ID) return;
     if (resizeTimer) {
@@ -1349,6 +2278,9 @@
       renderGauges();
       renderDraftOverall();
       renderDraftPositional();
+      if (posdistState.status === 'ready') {
+        renderPosdistDashboard();
+      }
     }, 180);
   }
 
@@ -1393,6 +2325,8 @@
         if (tab.dataset.target === 'draft-tab-panel') {
           renderDraftOverall();
           renderDraftPositional();
+        } else if (tab.dataset.target === 'positional-analysis-tab-panel') {
+          renderPosdistDashboard();
         } else {
           renderSunburst();
           renderBarChart();
@@ -1434,6 +2368,16 @@
   function init() {
     if (document.body.dataset.page !== PAGE_ID) return;
     applyUsernameFromQuery();
+    setupPosdistEvents();
+    // Positional Analysis data is primed in the background so SYOP remains
+    // the immediate first render while the CSV is ready when the user opens
+    // the new Research tab.
+    ensurePosdistData().catch(() => {
+      const activeTab = document.querySelector('.syop-tab.active');
+      if (activeTab?.dataset.target === 'positional-analysis-tab-panel') {
+        renderPosdistDashboard();
+      }
+    });
     setupTabs();
     renderSunburst();
     renderBarChart();
