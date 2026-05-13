@@ -10479,7 +10479,7 @@ body[data-page="datahub"] #game-logs-modal .modal-info-btn {
     linear-gradient(180deg, rgba(17, 24, 40, 0.92), rgba(8, 13, 24, 0.98)) padding-box,
     linear-gradient(135deg, rgba(115, 244, 255, 0.12), rgba(91, 127, 255, 0.12), rgba(219, 109, 255, 0.15)) border-box;
   box-shadow: var(--datahub-gamelogs-control-shadow);
-  color: var(--datahub-gamelogs-text-soft);
+  color: rgb(121 133 155);
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-modal-tab.is-active,

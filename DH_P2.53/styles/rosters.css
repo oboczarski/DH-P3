@@ -2255,7 +2255,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-col--stat {
 
 body[data-page="rosters"] #game-logs-modal .career-stats-table th,
 body[data-page="rosters"] #game-logs-modal .career-stats-table td {
-  padding: 0.22rem 0.34rem;
+  padding: 0.02rem 0.34rem;
   box-sizing: border-box;
   text-align: center;
   white-space: nowrap;
