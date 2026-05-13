@@ -1711,6 +1711,13 @@ if (pageType === 'rosters') {
                     'consistency': consistencyContainer
                 };
 
+                if (state.currentGameLogsView === 'career') {
+                    // Rosters Game Logs modal footer:
+                    // footer panels should behave like the GameLog table is selected,
+                    // so exit Career before opening or toggling any footer panel.
+                    setGameLogsModalView('gl');
+                }
+
                 // Special handling for game-logs - can't be toggled off
                 if (targetPanel === 'game-logs') {
                     // Hide all overlay panels to show game logs underneath
@@ -6346,7 +6353,9 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
         const headerRow = document.createElement('tr');
         paneColumns.forEach(({ statKey, section }, columnIndex) => {
             const th = document.createElement('th');
+            const sectionIdClass = String(section?.id || '').replace(/[^a-z0-9_-]/gi, '-');
             th.className = `career-stats-header career-stats-header--${section.tone || section.id}`;
+            if (sectionIdClass) th.classList.add(`career-stats-header--${sectionIdClass}`);
             if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
                 th.classList.add('career-stats-colgroup-start');
             }
@@ -6365,7 +6374,10 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
                 if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
                     td.classList.add('career-stats-colgroup-start');
                 }
-                if (statKey === 'TM') {
+                if (statKey === 'SZN') {
+                    td.classList.add('career-stats-cell--szn');
+                    td.textContent = formatCareerCellValue(row, statKey);
+                } else if (statKey === 'TM') {
                     td.classList.add('career-stats-cell--team');
                     appendCareerTeamCellContent(td, row);
                 } else if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') {
