@@ -2432,6 +2432,7 @@ const state = {
   leagues: [],
   gameLogsDataLoaded: false,
   gameLogsDataPromise: null,
+  careerStatsByPlayer: null,
   playerSeasonStats: Object.create(null),
   playerSeasonRanks: Object.create(null),
   playerWeeklyStats: Object.create(null),
@@ -8905,6 +8906,66 @@ const DATAHUB_TEAM_LOGO_KEY_MAP = Object.freeze({
   JAX: "jax",
   LA: "lar",
 });
+const DATAHUB_CAREER_STATS_CSV_PATH = "../data/NFL16-25/NFL-PlayerData_16-25.csv";
+const DATAHUB_CAREER_GROUP_ICONS = Object.freeze({
+  // DataHub game logs Career table:
+  // local group icon markup keeps the self-contained modal independent from
+  // app.js while preserving the same stat-section visual language.
+  season: {
+    color: "#888bff",
+    markup: '<path d="M11.5 21h-5.5a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M15 19l2 2l4 -4" />',
+  },
+  "fantasy-points": {
+    color: "#dfc689",
+    filled: true,
+    markup: '<path d="M19 19h-14c-.5 0 -.9 -.3 -1 -.8l-2 -10c0 -.4 .1 -.8 .5 -1.1c.4 -.2 .8 -.2 1.1 0l4.1 3.3l3.4 -5.1c.4 -.6 1.3 -.6 1.7 0l3.4 5.1l4.1 -3.3c.3 -.3 .8 -.3 1.1 0c.4 .2 .5 .6 .5 1.1l-2 10c0 .5 -.5 .8 -1 .8z" />',
+  },
+  "points-per-game": {
+    color: "#a8ceff",
+    markup: '<path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4l4 -6" />',
+  },
+  passing: {
+    color: "#fd8787",
+    markup: '<circle cx="12" cy="12" r="10" /><line x1="22" x2="18" y1="12" y2="12" /><line x1="6" x2="2" y1="12" y2="12" /><line x1="12" x2="12" y1="6" y2="2" /><line x1="12" x2="12" y1="22" y2="18" />',
+  },
+  rushing: {
+    color: "#1cffd3",
+    markup: CURRENT_ADV_RUSHING_GROUP_ICON,
+  },
+  receiving: {
+    color: "#4289ff",
+    markup: CURRENT_RECEIVING_GROUP_ICON,
+  },
+  total: {
+    color: "#8454ff",
+    markup: CURRENT_OVERVIEW_STATS_GROUP_ICON,
+  },
+});
+const DATAHUB_CAREER_WR_TE_SECTIONS = Object.freeze([
+  { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
+  { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
+  { id: "receiving", label: "RECEIVING", tone: "receiving", stats: ["TGT", "REC", "recYDS", "YPR", "recTD", "recYPG"] },
+  { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
+  { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
+]);
+const DATAHUB_CAREER_STAT_SECTIONS_BY_POS = Object.freeze({
+  QB: Object.freeze([
+    { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
+    { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
+    { id: "passing", label: "PASSING", tone: "passing", stats: ["CMP", "paATT", "CMP%", "paYDS", "paTD", "INT", "paYPG"] },
+    { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
+    { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
+  ]),
+  RB: Object.freeze([
+    { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
+    { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
+    { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
+    { id: "receiving", label: "RECEIVING", tone: "receiving", stats: ["TGT", "REC", "recYDS", "YPR", "recTD", "recYPG"] },
+    { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
+  ]),
+  WR: DATAHUB_CAREER_WR_TE_SECTIONS,
+  TE: DATAHUB_CAREER_WR_TE_SECTIONS,
+});
 const DATAHUB_STATS_KEY_SECTIONS = [
   {
     id: "fantasy",
@@ -9266,6 +9327,7 @@ const DATAHUB_RANK_COLOR_THRESHOLDS = [
 let dataHubGameLogsRequestSeq = 0;
 let dataHubRadarChartInstance = null;
 let dataHubCurveSvg = null;
+let dataHubCareerStatsLoadPromise = null;
 let dataHubOwnershipContextLoadPromise = null;
 let dataHubOwnershipContextLoadKey = "";
 const dataHubAssignedLeagueColors = new Map();
@@ -9530,8 +9592,7 @@ function attachGameLogsModalListeners() {
         consistency: consistencyContainer,
       };
       if (panel === "game-logs") {
-        Object.values(overlays).forEach((node) => node?.classList.add("hidden"));
-        modalInfoButtons.forEach((entry) => entry.classList.toggle("active", entry === button));
+        setDataHubGameLogsView("gl");
         return;
       }
       const target = overlays[panel];
@@ -9539,6 +9600,9 @@ function attachGameLogsModalListeners() {
         return;
       }
       const isOpen = !target.classList.contains("hidden");
+      if (state.currentGameLogsView === "career") {
+        setDataHubGameLogsView("gl");
+      }
       Object.values(overlays).forEach((node) => node?.classList.add("hidden"));
       modalInfoButtons.forEach((entry) => entry.classList.remove("active"));
       if (isOpen) {
@@ -9615,7 +9679,10 @@ function closeDataHubModal() {
 }
 
 function setDataHubGameLogsView(view) {
-  const normalizedView = view === "szn" ? "szn" : "gl";
+  // DataHub game logs modal view switcher:
+  // treats Career as a third swappable table mode while keeping the page-local
+  // footer overlays and ownership tab independent from app.js behavior.
+  const normalizedView = view === "career" ? "career" : (view === "szn" ? "szn" : "gl");
   state.currentGameLogsView = normalizedView;
   gameLogsViewButtons.forEach((button) => {
     const isActive = button.dataset.gamelogsView === normalizedView;
@@ -9627,6 +9694,9 @@ function setDataHubGameLogsView(view) {
   });
   modalBody?.querySelectorAll(".game-logs-szn-view").forEach((node) => {
     node.classList.toggle("hidden", normalizedView !== "szn");
+  });
+  modalBody?.querySelectorAll(".game-logs-career-view").forEach((node) => {
+    node.classList.toggle("hidden", normalizedView !== "career");
   });
   statsKeyContainer?.classList.add("hidden");
   radarChartContainer?.classList.add("hidden");
@@ -10146,7 +10216,431 @@ async function fetchDataHubText(url, options = {}) {
   }
 }
 
-function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
+function getDataHubCareerSectionsForPosition(position) {
+  // DataHub game logs Career table:
+  // resolves the position-specific stat groups locally so this modal does not
+  // depend on the Rosters/app.js career implementation.
+  const normalizedPos = String(position || "").trim().toUpperCase();
+  return DATAHUB_CAREER_STAT_SECTIONS_BY_POS[normalizedPos] || DATAHUB_CAREER_STAT_SECTIONS_BY_POS.WR;
+}
+
+function getDataHubCareerDisplaySections(sections) {
+  // DataHub game logs Career table:
+  // expands the source Fantasy group into the requested FPTS and PPG rank/value
+  // groups while leaving the source CSV columns untouched.
+  return (sections || []).flatMap((section) => {
+    if (section?.id !== "fantasy") {
+      return [section];
+    }
+    return [
+      { id: "fantasy-points", label: "FANTASY POINTS", tone: "fantasy", stats: ["FPTS_POS_RK", "FPTS_VALUE", "FPTS_OVR_RK"] },
+      { id: "points-per-game", label: "POINTS PER GAME", tone: "fantasy", stats: ["PPG_POS_RK", "PPG_VALUE", "PPG_OVR_RK"] },
+    ];
+  });
+}
+
+function parseDataHubCareerStatsRows(rows) {
+  // DataHub game logs Career table:
+  // converts the shipped multi-season CSV into SLPR_ID-keyed arrays once, then
+  // keeps each player's seasons sorted newest-to-oldest for modal rendering.
+  const rowsByPlayer = Object.create(null);
+  rows.forEach((row) => {
+    const playerId = String(row.SLPR_ID || "").trim();
+    if (!playerId) {
+      return;
+    }
+    if (!rowsByPlayer[playerId]) {
+      rowsByPlayer[playerId] = [];
+    }
+    rowsByPlayer[playerId].push(row);
+  });
+  Object.values(rowsByPlayer).forEach((playerRows) => {
+    playerRows.sort((left, right) => {
+      const leftSeason = Number.parseInt(left.SZN, 10);
+      const rightSeason = Number.parseInt(right.SZN, 10);
+      const safeLeft = Number.isFinite(leftSeason) ? leftSeason : -Infinity;
+      const safeRight = Number.isFinite(rightSeason) ? rightSeason : -Infinity;
+      return safeRight - safeLeft;
+    });
+  });
+  return rowsByPlayer;
+}
+
+async function ensureDataHubCareerStatsLoaded() {
+  // DataHub game logs Career table:
+  // fetches the local career CSV once per DataHub session and shares the
+  // in-flight promise across fast modal interactions.
+  if (state.careerStatsByPlayer) {
+    return state.careerStatsByPlayer;
+  }
+  if (!dataHubCareerStatsLoadPromise) {
+    dataHubCareerStatsLoadPromise = fetchDataHubText(new URL(DATAHUB_CAREER_STATS_CSV_PATH, window.location.href))
+      .then((csvText) => parseDataHubCareerStatsRows(parseCsv(csvText)))
+      .then((rowsByPlayer) => {
+        state.careerStatsByPlayer = rowsByPlayer;
+        return rowsByPlayer;
+      })
+      .catch((error) => {
+        state.careerStatsByPlayer = null;
+        dataHubCareerStatsLoadPromise = null;
+        throw error;
+      });
+  }
+  return dataHubCareerStatsLoadPromise;
+}
+
+function getDataHubCareerHeaderLabel(statKey) {
+  const labelMap = {
+    FPTS_VALUE: "FPTS",
+    FPTS_POS_RK: "POS·RK",
+    FPTS_OVR_RK: "OVR·RK",
+    PPG_VALUE: "PPG",
+    PPG_POS_RK: "POS·RK",
+    PPG_OVR_RK: "OVR·RK",
+    paATT: "ATT",
+    paYDS: "YDS",
+    paTD: "TD",
+    paYPG: "YPG",
+    ruYDS: "YDS",
+    ruTD: "TD",
+    ruYPG: "YPG",
+    recYDS: "YDS",
+    recTD: "TD",
+    recYPG: "YPG",
+    ttlYDS: "YDS",
+    ttlTD: "TD",
+  };
+  return labelMap[statKey] || statKey;
+}
+
+function formatDataHubCareerCellValue(row, statKey) {
+  // DataHub game logs Career table:
+  // preserves real zeroes from the CSV while normalizing empty-ish values into
+  // the same muted dash used by the DataHub modal tables.
+  if (!row || !Object.prototype.hasOwnProperty.call(row, statKey)) {
+    return "—";
+  }
+  const text = String(row[statKey] ?? "").trim();
+  if (!text || text.toUpperCase() === "NA" || text.toUpperCase() === "N/A") {
+    return "—";
+  }
+  return text;
+}
+
+function parseDataHubCareerRankNumber(value) {
+  const text = String(value ?? "").replace(/,/g, "").trim();
+  if (!text || text.toUpperCase() === "NA" || text.toUpperCase() === "N/A") {
+    return null;
+  }
+  const match = text.match(/\d+/);
+  if (!match) {
+    return null;
+  }
+  const number = Number.parseInt(match[0], 10);
+  return Number.isFinite(number) ? number : null;
+}
+
+function formatDataHubCareerPosRankText(value) {
+  const text = String(value ?? "").trim();
+  if (!text || text.toUpperCase() === "NA" || text.toUpperCase() === "N/A") {
+    return "—";
+  }
+  return text
+    .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]*·[\s\u2000-\u200A\u202F\u205F\u3000]*/g, "·")
+    .replace(/[\s\u2000-\u200A\u202F\u205F\u3000]+/g, "");
+}
+
+function createDataHubCareerGroupHeaderContent(section) {
+  // DataHub game logs Career table:
+  // renders the group icon and label using DataHub-local SVG markup so each
+  // section can match the Data Hub table style without shared CSS/JS imports.
+  const inner = document.createElement("div");
+  inner.className = "career-stats-group-header-inner";
+  const iconConfig = DATAHUB_CAREER_GROUP_ICONS[section?.id] || DATAHUB_CAREER_GROUP_ICONS[section?.tone];
+  if (iconConfig?.markup) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const sectionIdClass = String(section?.id || "").replace(/[^a-z0-9_-]/gi, "-");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.classList.add("career-stats-group-header-icon");
+    if (sectionIdClass) {
+      svg.classList.add(`career-stats-group-header-icon--${sectionIdClass}`);
+    }
+    if (iconConfig.filled) {
+      svg.classList.add("career-stats-group-header-icon--filled");
+    }
+    svg.style.setProperty("--career-group-icon-color", iconConfig.color || "currentColor");
+    appendDataHubIconMarkup(svg, iconConfig.markup);
+    inner.append(svg);
+  }
+  const label = document.createElement("span");
+  label.textContent = section?.label || "";
+  inner.append(label);
+  return inner;
+}
+
+function getDataHubCareerTeamLogoKey(team) {
+  const teamKey = String(team || "").trim().toUpperCase();
+  const knownTeams = new Set([
+    "ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN",
+    "DET", "GB", "HOU", "IND", "JAC", "JAX", "KC", "LAC", "LAR", "LA",
+    "LV", "MIA", "MIN", "NE", "NO", "NYG", "NYJ", "PHI", "PIT", "SEA",
+    "SF", "TB", "TEN", "WAS", "WSH",
+  ]);
+  if (!knownTeams.has(teamKey)) {
+    return null;
+  }
+  return getDataHubNormalizedTeamLogoKey(teamKey);
+}
+
+function appendDataHubCareerTeamCellContent(cell, row) {
+  // DataHub game logs Career table:
+  // renders the TM column as the local NFL logo when the CSV team is a single
+  // franchise, with text fallback for aggregate values like 2TM or FA.
+  const teamText = formatDataHubCareerCellValue(row, "TM");
+  const teamKey = teamText === "—" ? "" : teamText.toUpperCase();
+  const logoKey = getDataHubCareerTeamLogoKey(teamKey);
+  const chip = document.createElement("span");
+  chip.className = "career-stats-team-logo-chip";
+  chip.dataset.team = teamKey || "NA";
+  if (logoKey) {
+    const img = document.createElement("img");
+    img.className = "team-logo glow career-stats-team-logo";
+    img.src = `../assets/NFL_logos_svg/${logoKey}.svg`;
+    img.alt = teamKey;
+    img.width = 24;
+    img.height = 24;
+    img.loading = "lazy";
+    img.decoding = "async";
+    chip.append(img);
+  } else {
+    chip.textContent = teamText;
+    chip.classList.add("career-stats-team-logo-chip--text");
+  }
+  cell.append(chip);
+}
+
+function getDataHubCareerFantasyValueMeta(row, statKey, position) {
+  const isFpts = statKey.startsWith("FPTS");
+  const valueKey = isFpts ? "FPTS" : "PPG";
+  const posRankKey = isFpts ? "FPTS POS RK" : "PPG POS RK";
+  const posRankNumber = parseDataHubCareerRankNumber(row?.[posRankKey]);
+  return {
+    value: formatDataHubCareerCellValue(row, valueKey),
+    color: getDataHubConditionalColorByRank(posRankNumber, position),
+  };
+}
+
+function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position) {
+  // DataHub game logs Career table:
+  // keeps FPTS/PPG values as regular cells while rendering rank-only columns as
+  // compact Data Hub chips with the same conditional rank color helpers.
+  const isFpts = statKey.startsWith("FPTS");
+  const overallRankKey = isFpts ? "FPTS RK" : "PPG RK";
+  const posRankKey = isFpts ? "FPTS POS RK" : "PPG POS RK";
+  const overallRankNumber = parseDataHubCareerRankNumber(row?.[overallRankKey]);
+  const posRankRaw = row?.[posRankKey];
+  const posRankNumber = parseDataHubCareerRankNumber(posRankRaw);
+  const posRankColor = getDataHubConditionalColorByRank(posRankNumber, position);
+  const overallRankColor = getDataHubRankColor(overallRankNumber);
+  const chip = document.createElement("span");
+  chip.className = "career-stats-fantasy-chip";
+
+  if (statKey.endsWith("_POS_RK")) {
+    chip.classList.add("career-stats-fantasy-chip--rank", "career-stats-fantasy-chip--pos-rank");
+    const posSegment = document.createElement("span");
+    posSegment.className = "career-stats-fantasy-pos-rank";
+    posSegment.textContent = formatDataHubCareerPosRankText(posRankRaw);
+    if (posRankColor && posRankColor !== "inherit") {
+      posSegment.style.color = posRankColor;
+    }
+    chip.append(posSegment);
+  } else {
+    chip.classList.add("career-stats-fantasy-chip--rank", "career-stats-fantasy-chip--ovr-rank");
+    const rankSegment = overallRankNumber !== null
+      ? createDataHubRankAnnotation(overallRankNumber, { wrapInParens: false, ordinal: true, variant: "career" })
+      : document.createElement("span");
+    rankSegment.classList.add("career-stats-fantasy-rank");
+    if (overallRankNumber === null) {
+      rankSegment.textContent = "—";
+    }
+    if (overallRankColor && overallRankColor !== "inherit") {
+      rankSegment.style.color = overallRankColor;
+    }
+    chip.append(rankSegment);
+  }
+
+  cell.append(chip);
+}
+
+function getDataHubCareerColumnClass(statKey) {
+  if (statKey === "SZN") return "career-stats-col--season";
+  if (statKey === "TM") return "career-stats-col--team";
+  if (statKey === "G") return "career-stats-col--games";
+  if (statKey === "FPTS_VALUE" || statKey === "PPG_VALUE") return "career-stats-col--fantasy-value";
+  if (statKey.endsWith("_POS_RK")) return "career-stats-col--fantasy-pos-rank";
+  if (statKey.endsWith("_OVR_RK")) return "career-stats-col--fantasy-ovr-rank";
+  return "career-stats-col--stat";
+}
+
+async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
+  // DataHub game logs Career table:
+  // builds a dedicated table replacement inside #modal-body so Career, GameLog,
+  // and Season remain separate modal views with no shared-page dependencies.
+  if (!container) {
+    return;
+  }
+  const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== dataHubGameLogsRequestSeq;
+  if (isStaleRequest()) {
+    return;
+  }
+  container.innerHTML = "";
+  container.classList.add("game-logs-career-view");
+
+  const renderEmptyState = (message) => {
+    container.innerHTML = "";
+    const empty = document.createElement("div");
+    empty.className = "career-stats-empty";
+    empty.textContent = message;
+    container.append(empty);
+  };
+
+  let rowsByPlayer;
+  try {
+    rowsByPlayer = await ensureDataHubCareerStatsLoaded();
+  } catch (error) {
+    console.error("Failed to load DataHub career stats CSV.", error);
+    renderEmptyState("Career stats are unavailable right now.");
+    return;
+  }
+  if (isStaleRequest()) {
+    return;
+  }
+
+  const playerId = String(player?.id || "").trim();
+  const careerRows = playerId ? (rowsByPlayer?.[playerId] || []) : [];
+  if (!careerRows.length) {
+    renderEmptyState("No career stats found for this player.");
+    return;
+  }
+
+  const position = String(player?.pos || player?.position || careerRows[0]?.POS || "WR").trim().toUpperCase();
+  const sections = getDataHubCareerDisplaySections(getDataHubCareerSectionsForPosition(position));
+  const columns = sections.flatMap((section) => section.stats.map((statKey) => ({ statKey, section })));
+  const frozenSections = sections.filter((section) => section.id === "season");
+  const scrollSections = sections.filter((section) => section.id !== "season");
+  const frozenColumns = columns.filter(({ section }) => section.id === "season");
+  const scrollColumns = columns.filter(({ section }) => section.id !== "season");
+
+  const tableContainer = document.createElement("div");
+  tableContainer.className = "career-stats-table-container";
+  tableContainer.dataset.rowCount = String(careerRows.length);
+  if (careerRows.length <= 3) {
+    tableContainer.classList.add("career-stats-table-container--short");
+  } else if (careerRows.length <= 5) {
+    tableContainer.classList.add("career-stats-table-container--medium");
+  }
+
+  const buildCareerTablePane = (paneSections, paneColumns, paneClass) => {
+    const pane = document.createElement("div");
+    pane.className = paneClass;
+    const table = document.createElement("table");
+    table.className = "career-stats-table";
+
+    const colgroup = document.createElement("colgroup");
+    paneColumns.forEach(({ statKey }) => {
+      const col = document.createElement("col");
+      col.className = getDataHubCareerColumnClass(statKey);
+      colgroup.append(col);
+    });
+    table.append(colgroup);
+
+    const thead = document.createElement("thead");
+    const groupRow = document.createElement("tr");
+    paneSections.forEach((section, sectionIndex) => {
+      const th = document.createElement("th");
+      const sectionIdClass = String(section?.id || "").replace(/[^a-z0-9_-]/gi, "-");
+      th.className = `career-stats-group-header career-stats-group-header--${section.tone || section.id}`;
+      if (sectionIdClass) {
+        th.classList.add(`career-stats-group-header--${sectionIdClass}`);
+      }
+      if (sectionIndex > 0) {
+        th.classList.add("career-stats-group-header--group-start");
+      }
+      th.colSpan = section.stats.length;
+      th.append(createDataHubCareerGroupHeaderContent(section));
+      groupRow.append(th);
+    });
+    thead.append(groupRow);
+
+    const headerRow = document.createElement("tr");
+    paneColumns.forEach(({ statKey, section }, columnIndex) => {
+      const th = document.createElement("th");
+      const sectionIdClass = String(section?.id || "").replace(/[^a-z0-9_-]/gi, "-");
+      th.className = `career-stats-header career-stats-header--${section.tone || section.id}`;
+      if (sectionIdClass) {
+        th.classList.add(`career-stats-header--${sectionIdClass}`);
+      }
+      if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
+        th.classList.add("career-stats-colgroup-start");
+      }
+      th.textContent = getDataHubCareerHeaderLabel(statKey);
+      headerRow.append(th);
+    });
+    thead.append(headerRow);
+    table.append(thead);
+
+    const tbody = document.createElement("tbody");
+    careerRows.forEach((row) => {
+      const tr = document.createElement("tr");
+      paneColumns.forEach(({ statKey, section }, columnIndex) => {
+        const td = document.createElement("td");
+        td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
+        if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
+          td.classList.add("career-stats-colgroup-start");
+        }
+        if (statKey === "SZN") {
+          td.classList.add("career-stats-cell--szn");
+          td.textContent = formatDataHubCareerCellValue(row, statKey);
+        } else if (statKey === "TM") {
+          td.classList.add("career-stats-cell--team");
+          appendDataHubCareerTeamCellContent(td, row);
+        } else if (statKey === "FPTS_VALUE" || statKey === "PPG_VALUE") {
+          td.classList.add("career-stats-cell--fantasy-value");
+          const valueMeta = getDataHubCareerFantasyValueMeta(row, statKey, position);
+          td.textContent = valueMeta.value;
+          if (valueMeta.color && valueMeta.color !== "inherit") {
+            td.style.color = valueMeta.color;
+          }
+        } else if (statKey.startsWith("FPTS_") || statKey.startsWith("PPG_")) {
+          td.classList.add("career-stats-cell--fantasy-chip");
+          appendDataHubCareerFantasyRankCellContent(td, row, statKey, position);
+        } else {
+          td.textContent = formatDataHubCareerCellValue(row, statKey);
+        }
+        tr.append(td);
+      });
+      tbody.append(tr);
+    });
+    table.append(tbody);
+    pane.append(table);
+    return pane;
+  };
+
+  const frozenPane = buildCareerTablePane(frozenSections, frozenColumns, "career-stats-frozen-pane");
+  const scrollPane = document.createElement("div");
+  scrollPane.className = "career-stats-scroll-pane";
+  const hScroll = document.createElement("div");
+  hScroll.className = "career-stats-hscroll";
+  hScroll.append(buildCareerTablePane(scrollSections, scrollColumns, "career-stats-scroll-table-wrap"));
+  scrollPane.append(hScroll);
+
+  tableContainer.append(frozenPane, scrollPane);
+  container.append(tableContainer);
+}
+
+async function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
   if (requestSeq !== dataHubGameLogsRequestSeq) {
     return;
   }
@@ -10167,9 +10661,16 @@ function renderDataHubGameLogs(gameLogs, player, playerRanks, requestSeq) {
   renderDataHubModalHeader(player, playerRanks);
   const tableNode = renderDataHubGameLogsTable(gameLogs, player, playerRanks);
   const seasonNode = renderDataHubSeasonStatsView(player, gameLogs, playerRanks);
+  const careerNode = document.createElement("div");
+  careerNode.className = "game-logs-career-view hidden";
   modalBody?.replaceChildren();
   if (tableNode) modalBody?.appendChild(tableNode);
   if (seasonNode) modalBody?.appendChild(seasonNode);
+  modalBody?.appendChild(careerNode);
+  await renderDataHubCareerStatsView({ container: careerNode, player, requestSeq });
+  if (requestSeq !== dataHubGameLogsRequestSeq) {
+    return;
+  }
   if (statsKeyContainer) {
     statsKeyContainer.classList.add("hidden");
     modalBody?.appendChild(statsKeyContainer);

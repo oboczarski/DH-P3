@@ -11300,3 +11300,582 @@ body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
     min-height: 0;
   }
 }
+
+/* ============================================================================
+   DataHub Game Logs Modal — Career Stats table
+   Targets: only the self-contained DataHub game logs modal Career view.
+   What it does: adds the multi-season career table as a full replacement for
+   GL/SZN content, with a separate frozen Season pane and DataHub-styled scroll
+   pane so horizontal stats never move behind SZN/TM/G.
+   ============================================================================ */
+body[data-page="datahub"] #game-logs-modal .datahub-modal-icon--filled,
+body[data-page="datahub"] #game-logs-modal .datahub-modal-icon--filled * {
+  fill: currentColor;
+  stroke: none;
+}
+
+@media (min-width: 869px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
+    width: 18.1rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+    width: 5.6rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+    flex-wrap: nowrap;
+    gap: 0.48rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+    width: 4.15rem !important;
+    padding-left: 0.32rem;
+    padding-right: 0.32rem;
+    font-size: 0.64rem;
+  }
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body:has(.game-logs-career-view:not(.hidden)) {
+  overflow: hidden;
+}
+
+body[data-page="datahub"] #game-logs-modal .game-logs-career-view {
+  --career-season-col-width: 52px;
+  --career-team-col-width: 44px;
+  --career-games-col-width: 34px;
+  --career-stat-col-width: 42px;
+  --career-fantasy-value-col-width: 50px;
+  --career-fantasy-pos-rank-col-width: 48px;
+  --career-fantasy-ovr-rank-col-width: 39px;
+  --career-team-logo-size: 27px;
+  --career-body-row-height: 31px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0.08rem 0.1rem 0.28rem;
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table-container {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 18, 31, 0.88), rgba(5, 9, 17, 0.96)) padding-box,
+    linear-gradient(145deg, rgba(115, 244, 255, 0.12), rgba(91, 127, 255, 0.1), rgba(219, 109, 255, 0.12)) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 42px rgba(0, 0, 0, 0.28);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table-container--medium {
+  --career-body-row-height: 36px;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table-container--short {
+  --career-body-row-height: 40px;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  border-right: 1px solid rgba(136, 156, 214, 0.28);
+  background:
+    linear-gradient(180deg, rgba(17, 24, 40, 0.98), rgba(8, 13, 24, 0.99));
+  box-shadow:
+    8px 0 22px rgba(0, 0, 0, 0.14),
+    inset -1px 0 0 rgba(255, 255, 255, 0.035);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-scroll-pane {
+  min-width: 0;
+  overflow: hidden;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-hscroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 165, 227, 0.46) transparent;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-hscroll::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-hscroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(115, 244, 255, 0.42), rgba(91, 127, 255, 0.48), rgba(219, 109, 255, 0.42));
+  background-clip: padding-box;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table {
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
+  font-size: 0.68rem;
+  color: rgba(225, 233, 249, 0.9);
+  background: transparent;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--season {
+  width: var(--career-season-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--team {
+  width: var(--career-team-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--games {
+  width: var(--career-games-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--fantasy-value {
+  width: var(--career-fantasy-value-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--fantasy-pos-rank {
+  width: var(--career-fantasy-pos-rank-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--fantasy-ovr-rank {
+  width: var(--career-fantasy-ovr-rank-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-col--stat {
+  width: var(--career-stat-col-width);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table th,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table td {
+  box-sizing: border-box;
+  padding: 0.22rem 0.3rem;
+  border-right: 1px solid rgba(143, 162, 215, 0.045);
+  border-bottom: 0;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table th:last-child,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table td:last-child {
+  border-right: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr {
+  height: var(--career-body-row-height);
+  max-height: var(--career-body-row-height);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table tbody td {
+  height: var(--career-body-row-height);
+  max-height: var(--career-body-row-height);
+  padding-top: 0;
+  padding-bottom: 0;
+  vertical-align: middle;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header {
+  height: 31px;
+  padding: 0.18rem 0.36rem;
+  border-bottom: 1px solid rgba(160, 182, 238, 0.16);
+  background:
+    linear-gradient(180deg, rgba(31, 42, 64, 0.92), rgba(12, 18, 31, 0.96));
+  color: rgba(175, 200, 235, 0.7);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(91, 127, 255, 0.12);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--career-group-icon-color, currentColor);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.35px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--filled,
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--filled * {
+  fill: currentColor;
+  stroke: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-header {
+  height: 28px;
+  padding: 0.18rem 0.24rem;
+  background:
+    linear-gradient(180deg, rgba(23, 33, 55, 0.98), rgba(9, 14, 25, 0.98));
+  color: rgba(214, 227, 252, 0.86);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--season,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--season {
+  color: #9f9dff;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--fantasy-points,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--fantasy-points {
+  color: #dfc689;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--points-per-game,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--points-per-game {
+  color: #a8ceff;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--passing,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--passing {
+  color: #ffa0a0;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--rushing,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--rushing {
+  color: #5ce0c6;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--receiving,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--receiving {
+  color: #4a86e8;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--total,
+body[data-page="datahub"] #game-logs-modal .career-stats-header--total {
+  color: #b692ff;
+}
+
+/* Career table specificity guard:
+   Targets older generic #modal-body table rules in DataHub.css.
+   What it does: keeps Career headers/cells on their own DataHub styling even
+   though the modal has broad th/td/hover rules for the weekly game-log table. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header {
+  height: 31px;
+  padding: 0.18rem 0.36rem;
+  border-bottom: 1px solid rgba(160, 182, 238, 0.16);
+  background:
+    linear-gradient(180deg, rgba(31, 42, 64, 0.92), rgba(12, 18, 31, 0.96));
+  color: rgba(175, 200, 235, 0.7);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header {
+  height: 28px;
+  padding: 0.18rem 0.24rem;
+  background:
+    linear-gradient(180deg, rgba(23, 33, 55, 0.98), rgba(9, 14, 25, 0.98));
+  color: rgba(214, 227, 252, 0.86);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--season,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--season {
+  color: #9f9dff;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--fantasy-points,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--fantasy-points {
+  color: #dfc689;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--points-per-game,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--points-per-game {
+  color: #a8ceff;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--passing,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--passing {
+  color: #ffa0a0;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--rushing,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--rushing {
+  color: #5ce0c6;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--receiving,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--receiving {
+  color: #4a86e8;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header--total,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header--total {
+  color: #b692ff;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-cell {
+  --career-cell-bg: rgba(10, 15, 26, 0.66);
+  background: var(--career-cell-bg);
+  color: rgba(225, 233, 249, 0.9);
+  font-weight: 650;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell {
+  background: var(--career-cell-bg);
+  color: rgba(225, 233, 249, 0.9);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
+  --career-cell-bg: rgba(18, 25, 42, 0.64);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
+  --career-cell-bg: rgba(18, 25, 42, 0.64);
+  background: var(--career-cell-bg);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr:hover .career-stats-cell {
+  background: var(--career-cell-bg);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr:hover .career-stats-cell {
+  background: var(--career-cell-bg);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane tbody .career-stats-cell {
+  color: rgba(235, 241, 255, 0.94);
+  font-weight: 800;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane tbody .career-stats-cell--szn {
+  color: #dfe7ff;
+  font-size: 0.78rem;
+  font-weight: 450;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-group-header--group-start,
+body[data-page="datahub"] #game-logs-modal .career-stats-colgroup-start {
+  border-left: 1px solid rgba(160, 182, 238, 0.18);
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.035);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-cell--team {
+  padding-left: 0.04rem;
+  padding-right: 0.04rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-team-logo-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-team-logo-chip img {
+  display: block;
+  width: var(--career-team-logo-size);
+  height: var(--career-team-logo-size);
+  object-fit: contain;
+  transform: translateZ(0);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-team-logo-chip--text {
+  width: auto;
+  min-width: 26px;
+  height: 19px;
+  padding: 0 0.16rem;
+  border: 1px solid rgba(155, 178, 236, 0.14);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(17, 24, 40, 0.76), rgba(8, 13, 24, 0.92));
+  color: rgba(214, 227, 252, 0.78);
+  font-size: 0.56rem;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-cell--fantasy-value {
+  color: rgba(226, 235, 255, 0.94);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-cell--fantasy-chip {
+  padding: 0.12rem 0.08rem;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 2px);
+  min-width: 0;
+  height: 21px;
+  padding: 0 0.16rem;
+  border: 1px solid rgba(155, 178, 236, 0.16);
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(20, 29, 48, 0.82), rgba(9, 14, 25, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 16px rgba(0, 0, 0, 0.16);
+  color: rgba(226, 235, 255, 0.84);
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip--ovr-rank {
+  border-color: rgba(170, 170, 255, 0.07);
+  background:
+    linear-gradient(181deg, rgb(176 184 231 / 0%), rgb(41 43 60 / 21%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-rank,
+body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-pos-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  font-family: 'Product Sans', 'Google Sans', var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-rank.stat-rank-annotation {
+  align-items: center;
+  line-height: 1;
+}
+
+body[data-page="datahub"] #game-logs-modal .stat-rank-variant-career sup.stat-rank-suffix-career {
+  top: 0;
+  margin-left: 0.02em;
+  font-size: 0.86em;
+  font-weight: 500;
+  line-height: 1;
+  vertical-align: baseline;
+  transform: none;
+}
+
+body[data-page="datahub"] #game-logs-modal .career-stats-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 460px);
+  min-height: 168px;
+  padding: 1.4rem;
+  border: 1px solid rgba(155, 178, 236, 0.18);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(12, 18, 32, 0.82), rgba(6, 9, 17, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 16px 34px rgba(0, 0, 0, 0.22);
+  color: rgba(202, 214, 246, 0.76);
+  font-size: 0.78rem;
+  font-style: italic;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  body[data-page="datahub"] #game-logs-modal .game-logs-career-view {
+    --career-season-col-width: 42px;
+    --career-team-col-width: 34px;
+    --career-games-col-width: 24px;
+    --career-stat-col-width: 34px;
+    --career-fantasy-value-col-width: 43px;
+    --career-fantasy-pos-rank-col-width: 42px;
+    --career-fantasy-ovr-rank-col-width: 34px;
+    --career-team-logo-size: 23px;
+    padding-left: 0.02rem;
+    padding-right: 0.02rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-table-container--medium {
+    --career-body-row-height: 34px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-table-container--short {
+    --career-body-row-height: 37px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table th,
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table td {
+    padding-left: 0.17rem;
+    padding-right: 0.17rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header {
+    height: 28px;
+    font-size: 0.57rem;
+    letter-spacing: 0.01em;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-group-header {
+    height: 28px;
+    padding-left: 0.18rem;
+    padding-right: 0.18rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-header {
+    font-size: 0.56rem;
+    letter-spacing: -0.035em;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-header {
+    height: 28px;
+    padding-left: 0.16rem;
+    padding-right: 0.16rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-cell--fantasy-value {
+    font-size: 0.68rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip {
+    padding-left: 0.12rem;
+    padding-right: 0.12rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-rank,
+  body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-pos-rank {
+    font-size: 0.58rem;
+  }
+}
