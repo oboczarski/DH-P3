@@ -9518,10 +9518,31 @@ function closeDataHubGameLogsSeasonMenu() {
   gameLogsSeasonToggle?.setAttribute("aria-expanded", "false");
 }
 
+function syncDataHubGameLogsSeasonToggleState(view = state.currentGameLogsView) {
+  // DataHub Game Logs modal season dropdown:
+  // marks the year selector as active only for the year-backed GameLog/Season
+  // views, and visually disables it when Career is selected.
+  if (!gameLogsSeasonToggle) {
+    return;
+  }
+  const normalizedView = view === "career" ? "career" : (view === "szn" ? "szn" : "gl");
+  const isYearBackedView = normalizedView === "gl" || normalizedView === "szn";
+  gameLogsSeasonToggle.classList.toggle("is-active", isYearBackedView);
+  gameLogsSeasonToggle.classList.toggle("is-disabled", !isYearBackedView);
+  gameLogsSeasonToggle.setAttribute("aria-disabled", isYearBackedView ? "false" : "true");
+  if (!isYearBackedView) {
+    closeDataHubGameLogsSeasonMenu();
+  }
+}
+
 function toggleDataHubGameLogsSeasonMenu() {
   // DataHub Game Logs modal season dropdown:
   // opens the styled 2025/2026 menu in the same nav row as the view switcher.
   if (!gameLogsSeasonMenu || !gameLogsSeasonToggle) {
+    return;
+  }
+  if (gameLogsSeasonToggle.getAttribute("aria-disabled") === "true") {
+    closeDataHubGameLogsSeasonMenu();
     return;
   }
   const shouldOpen = gameLogsSeasonMenu.classList.contains("hidden");
@@ -9798,6 +9819,7 @@ function setDataHubGameLogsView(view) {
   // footer overlays and ownership tab independent from app.js behavior.
   const normalizedView = view === "career" ? "career" : (view === "szn" ? "szn" : "gl");
   state.currentGameLogsView = normalizedView;
+  syncDataHubGameLogsSeasonToggleState(normalizedView);
   gameLogsViewButtons.forEach((button) => {
     const isActive = button.dataset.gamelogsView === normalizedView;
     button.classList.toggle("is-active", isActive);

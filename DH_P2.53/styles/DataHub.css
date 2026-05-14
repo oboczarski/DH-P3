@@ -11656,13 +11656,22 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell {
   color: rgba(225, 233, 249, 0.9);
 }
 
+/* DataHub Career row striping guard:
+   Targets both the frozen Season pane and the horizontal stats pane.
+   What it does: applies the same row background with enough specificity to
+   override broad weekly game-log tbody striping rules. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr:nth-child(odd) > .career-stats-cell {
+  --career-cell-bg: rgba(10, 15, 26, 0.66);
+  background: var(--career-cell-bg) !important;
+}
+
 body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
   --career-cell-bg: rgba(18, 25, 42, 0.64);
 }
 
 body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
   --career-cell-bg: rgba(18, 25, 42, 0.64);
-  background: var(--career-cell-bg);
+  background: var(--career-cell-bg) !important;
 }
 
 body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr:hover .career-stats-cell {
@@ -11670,7 +11679,7 @@ body[data-page="datahub"] #game-logs-modal .career-stats-table tbody tr:hover .c
 }
 
 body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr:hover .career-stats-cell {
-  background: var(--career-cell-bg);
+  background: var(--career-cell-bg) !important;
 }
 
 body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane tbody .career-stats-cell {
@@ -11944,6 +11953,23 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle[aria-expanded
     inset 0 0 24px rgba(91, 127, 255, 0.08);
 }
 
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle.is-active {
+  color: var(--datahub-gamelogs-text);
+  box-shadow:
+    var(--datahub-gamelogs-control-shadow),
+    var(--datahub-gamelogs-accent-glow),
+    inset 0 0 24px rgba(91, 127, 255, 0.08);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle.is-disabled {
+  color: rgba(153, 167, 206, 0.42);
+  cursor: default;
+  filter: grayscale(0.28) brightness(0.78);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-select-caret {
   position: absolute;
   top: 50%;
@@ -11959,6 +11985,11 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-season-select-caret {
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle[aria-expanded="true"] .gamelogs-season-select-caret {
   color: rgba(226, 236, 255, 0.9);
   transform: translateY(-50%) rotate(180deg);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle.is-disabled .gamelogs-season-select-caret {
+  color: rgba(153, 167, 206, 0.36);
+  transform: translateY(-50%);
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-menu {
@@ -12059,7 +12090,7 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell > * {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle:hover {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle:not(.is-disabled):hover {
     color: var(--datahub-gamelogs-text);
     box-shadow:
       var(--datahub-gamelogs-control-shadow),
