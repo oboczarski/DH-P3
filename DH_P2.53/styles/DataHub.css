@@ -11879,3 +11879,259 @@ body[data-page="datahub"] #game-logs-modal .career-stats-empty {
     font-size: 0.58rem;
   }
 }
+
+/* DataHub Game Logs modal season dropdown:
+   Targets: the season selector and view switcher in the DataHub modal header.
+   What it does: ports the Rosters dropdown pattern to DataHub while keeping the
+   control row on one line and keeping dropdown/switcher heights uniform. */
+body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+  --datahub-gamelogs-nav-control-height: 30px;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 0.64rem !important;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-controls {
+  display: inline-flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  height: var(--datahub-gamelogs-nav-control-height);
+  min-width: 0;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-dropdown {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  min-width: 72px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0 1.3rem 0 0.52rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(17, 24, 40, 0.92), rgba(8, 13, 24, 0.98)) padding-box,
+    linear-gradient(135deg, rgba(115, 244, 255, 0.12), rgba(91, 127, 255, 0.12), rgba(219, 109, 255, 0.15)) border-box;
+  box-shadow: var(--datahub-gamelogs-control-shadow);
+  color: var(--datahub-gamelogs-text-soft);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  transition: color 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle[aria-expanded="true"] {
+  color: var(--datahub-gamelogs-text);
+  box-shadow:
+    var(--datahub-gamelogs-control-shadow),
+    var(--datahub-gamelogs-accent-glow),
+    inset 0 0 24px rgba(91, 127, 255, 0.08);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-select-caret {
+  position: absolute;
+  top: 50%;
+  right: 0.46rem;
+  width: 0.72rem;
+  height: 0.72rem;
+  color: rgba(190, 204, 239, 0.72);
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: color 0.16s ease, transform 0.16s ease;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle[aria-expanded="true"] .gamelogs-season-select-caret {
+  color: rgba(226, 236, 255, 0.9);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-menu {
+  position: absolute;
+  top: calc(100% + 0.34rem);
+  left: 50%;
+  z-index: 160;
+  min-width: 124px;
+  padding: 0.24rem;
+  border: 1px solid rgba(154, 177, 234, 0.22);
+  border-radius: 11px;
+  background:
+    linear-gradient(180deg, rgba(17, 24, 40, 0.98), rgba(7, 11, 21, 0.99));
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.44),
+    0 0 22px rgba(91, 127, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  transform: translateX(-50%);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.34rem 0.42rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(202, 214, 246, 0.72);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-option.is-selected {
+  color: #e2ebff;
+  border-color: rgba(115, 244, 255, 0.18);
+  background: rgba(91, 127, 255, 0.13);
+  box-shadow: inset 0 0 14px rgba(91, 127, 255, 0.08);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-option-year {
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-option-note {
+  color: rgba(178, 193, 232, 0.58);
+  font-size: 0.48rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-season-option.is-selected .gamelogs-season-option-note {
+  color: rgba(195, 212, 255, 0.78);
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
+  height: var(--datahub-gamelogs-nav-control-height) !important;
+  align-items: stretch !important;
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] #game-logs-modal .gamelogs-view-option {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+}
+
+/* DataHub Career row-height lock:
+   Targets: matching body rows in the frozen and scroll panes.
+   What it does: prevents chip/logo contents and generic modal table rules from
+   stretching one pane differently than the other before JS applies final sync. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody tr,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table tbody td {
+  height: var(--career-body-row-height);
+  min-height: var(--career-body-row-height);
+  max-height: var(--career-body-row-height);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell {
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell > * {
+  max-height: calc(var(--career-body-row-height) - 2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle:hover {
+    color: var(--datahub-gamelogs-text);
+    box-shadow:
+      var(--datahub-gamelogs-control-shadow),
+      0 0 18px rgba(91, 127, 255, 0.16);
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-option:hover {
+    color: #eef4ff;
+    border-color: rgba(169, 191, 248, 0.18);
+    background: rgba(255, 255, 255, 0.045);
+  }
+}
+
+@media (min-width: 641px) {
+  /* DataHub Career desktop group icons:
+     edit these selectors for desktop only; mobile has its own controls below. */
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--season {
+    width: 16px;
+    height: 16px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
+    width: 16px;
+    height: 16px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-nav-row {
+    --datahub-gamelogs-nav-control-height: 26px;
+    gap: 0.4rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle {
+    width: 64px;
+    min-width: 64px;
+    padding-right: 1.18rem;
+    padding-left: 0.42rem;
+    border-radius: 7px;
+    font-size: 0.7rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-select-caret {
+    right: 0.38rem;
+    width: 0.64rem;
+    height: 0.64rem;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-menu {
+    left: 0;
+    min-width: 112px;
+    transform: none;
+  }
+
+  /* DataHub Career mobile group icons:
+     edit these selectors for mobile only; desktop has its own controls above. */
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--season {
+    width: 13px;
+    height: 13px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
+    width: 13px;
+    height: 13px;
+  }
+
+  body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
+    width: 13px;
+    height: 13px;
+  }
+}

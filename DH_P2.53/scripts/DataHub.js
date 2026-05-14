@@ -2492,8 +2492,12 @@ const gameLogsModalTabs = Array.from(
 const gameLogsViewButtons = Array.from(
   document.querySelectorAll("#game-logs-modal .gamelogs-view-option"),
 );
-const gameLogsSeasonButtons = Array.from(
-  document.querySelectorAll("#game-logs-modal .gamelogs-season-tab"),
+const gameLogsSeasonDropdown = document.querySelector("#game-logs-modal [data-gamelogs-season-dropdown]");
+const gameLogsSeasonToggle = document.querySelector("#game-logs-modal [data-gamelogs-season-toggle]");
+const gameLogsSeasonLabel = document.querySelector("#game-logs-modal [data-gamelogs-season-label]");
+const gameLogsSeasonMenu = document.querySelector("#game-logs-modal [data-gamelogs-season-menu]");
+const gameLogsSeasonOptions = Array.from(
+  document.querySelectorAll("#game-logs-modal [data-gamelogs-season-value]"),
 );
 const modalInfoButtons = Array.from(
   document.querySelectorAll("#game-logs-modal .modal-info-btn"),
@@ -9506,6 +9510,99 @@ function buildDataHubModalRankCache(rows) {
   return cache;
 }
 
+function closeDataHubGameLogsSeasonMenu() {
+  // DataHub Game Logs modal season dropdown:
+  // collapses the page-local season menu and keeps aria-expanded in sync with
+  // the visible dropdown state.
+  gameLogsSeasonMenu?.classList.add("hidden");
+  gameLogsSeasonToggle?.setAttribute("aria-expanded", "false");
+}
+
+function toggleDataHubGameLogsSeasonMenu() {
+  // DataHub Game Logs modal season dropdown:
+  // opens the styled 2025/2026 menu in the same nav row as the view switcher.
+  if (!gameLogsSeasonMenu || !gameLogsSeasonToggle) {
+    return;
+  }
+  const shouldOpen = gameLogsSeasonMenu.classList.contains("hidden");
+  gameLogsSeasonMenu.classList.toggle("hidden", !shouldOpen);
+  gameLogsSeasonToggle.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+}
+
+function setDataHubSelectedGameLogsSeason(season, { resetCareer = true } = {}) {
+  // DataHub Game Logs modal season dropdown:
+  // tracks the selected season label locally. 2026 remains a placeholder and
+  // does not change the loaded 2025 game-log/career data source.
+  const normalizedSeason = season === "2026" ? "2026" : DATAHUB_GAME_LOGS_YEAR;
+  state.currentModalSeason = normalizedSeason;
+  if (gameLogsSeasonLabel) {
+    gameLogsSeasonLabel.textContent = normalizedSeason;
+  }
+  gameLogsSeasonOptions.forEach((option) => {
+    const isSelected = option.dataset.gamelogsSeasonValue === normalizedSeason;
+    option.classList.toggle("is-selected", isSelected);
+    option.setAttribute("aria-selected", isSelected ? "true" : "false");
+  });
+  if (resetCareer && state.currentGameLogsView === "career") {
+    setDataHubGameLogsView("gl");
+  }
+}
+
+function syncDataHubCareerRowHeights() {
+  // DataHub Career table row alignment:
+  // after the Career view is visible, measure matching body rows in the frozen
+  // and horizontal panes and lock both sides to the same pixel height.
+  const careerNode = modalBody?.querySelector(".game-logs-career-view:not(.hidden)");
+  if (!careerNode) {
+    return;
+  }
+  const frozenRows = Array.from(careerNode.querySelectorAll(".career-stats-frozen-pane tbody tr"));
+  const scrollRows = Array.from(careerNode.querySelectorAll(".career-stats-scroll-table-wrap tbody tr"));
+  if (!frozenRows.length || !scrollRows.length) {
+    return;
+  }
+  [...frozenRows, ...scrollRows].forEach((row) => {
+    row.style.height = "";
+    row.style.minHeight = "";
+    row.style.maxHeight = "";
+    row.querySelectorAll("td").forEach((cell) => {
+      cell.style.height = "";
+      cell.style.minHeight = "";
+      cell.style.maxHeight = "";
+    });
+  });
+  window.requestAnimationFrame(() => {
+    const visibleCareerNode = modalBody?.querySelector(".game-logs-career-view:not(.hidden)");
+    if (!visibleCareerNode) {
+      return;
+    }
+    const visibleFrozenRows = Array.from(visibleCareerNode.querySelectorAll(".career-stats-frozen-pane tbody tr"));
+    const visibleScrollRows = Array.from(visibleCareerNode.querySelectorAll(".career-stats-scroll-table-wrap tbody tr"));
+    const rowCount = Math.min(visibleFrozenRows.length, visibleScrollRows.length);
+    for (let index = 0; index < rowCount; index += 1) {
+      const frozenRow = visibleFrozenRows[index];
+      const scrollRow = visibleScrollRows[index];
+      const rowHeight = Math.ceil(Math.max(
+        frozenRow.getBoundingClientRect().height,
+        scrollRow.getBoundingClientRect().height,
+      ));
+      if (!Number.isFinite(rowHeight) || rowHeight <= 0) {
+        continue;
+      }
+      [frozenRow, scrollRow].forEach((row) => {
+        row.style.height = `${rowHeight}px`;
+        row.style.minHeight = `${rowHeight}px`;
+        row.style.maxHeight = `${rowHeight}px`;
+        row.querySelectorAll("td").forEach((cell) => {
+          cell.style.height = `${rowHeight}px`;
+          cell.style.minHeight = `${rowHeight}px`;
+          cell.style.maxHeight = `${rowHeight}px`;
+        });
+      });
+    }
+  });
+}
+
 function attachGameLogsModalListeners() {
   if (!gameLogsModal || gameLogsModal.dataset.datahubWired) {
     return;
@@ -9516,6 +9613,21 @@ function attachGameLogsModalListeners() {
   gameLogsModal.addEventListener("click", (event) => {
     if (event.target?.closest?.(".modal-close-btn")) {
       closeDataHubModal();
+      return;
+    }
+
+    const seasonToggle = event.target?.closest?.("[data-gamelogs-season-toggle]");
+    if (seasonToggle) {
+      event.preventDefault();
+      toggleDataHubGameLogsSeasonMenu();
+      return;
+    }
+
+    const seasonOption = event.target?.closest?.("[data-gamelogs-season-value]");
+    if (seasonOption) {
+      event.preventDefault();
+      setDataHubSelectedGameLogsSeason(seasonOption.dataset.gamelogsSeasonValue || DATAHUB_GAME_LOGS_YEAR);
+      closeDataHubGameLogsSeasonMenu();
       return;
     }
 
@@ -9550,9 +9662,23 @@ function attachGameLogsModalListeners() {
     clearDataHubOwnershipPromptStatus(promptInput.form);
   });
   modalOverlay?.addEventListener("click", closeDataHubModal);
+  document.addEventListener("click", (event) => {
+    if (!gameLogsSeasonDropdown?.contains(event.target)) {
+      closeDataHubGameLogsSeasonMenu();
+    }
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && gameLogsModal && !gameLogsModal.classList.contains("hidden")) {
+      if (gameLogsSeasonMenu && !gameLogsSeasonMenu.classList.contains("hidden")) {
+        closeDataHubGameLogsSeasonMenu();
+        return;
+      }
       closeDataHubModal();
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (state.currentGameLogsView === "career") {
+      syncDataHubCareerRowHeights();
     }
   });
   gameLogsModalTabs.forEach((tab) => {
@@ -9566,21 +9692,6 @@ function attachGameLogsModalListeners() {
   gameLogsViewButtons.forEach((button) => {
     button.addEventListener("click", () => {
       setDataHubGameLogsView(button.dataset.gamelogsView);
-    });
-  });
-  gameLogsSeasonButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const season = button.dataset.gamelogsSeason;
-      if (season !== DATAHUB_GAME_LOGS_YEAR) {
-        showDataHubTemporaryTooltip(button, `${season} game logs are not available in DataHub yet.`);
-        return;
-      }
-      gameLogsSeasonButtons.forEach((entry) => {
-        const isActive = entry === button;
-        entry.classList.toggle("is-active", isActive);
-        entry.setAttribute("aria-pressed", isActive ? "true" : "false");
-      });
-      state.currentModalSeason = season;
     });
   });
   modalInfoButtons.forEach((button) => {
@@ -9629,6 +9740,8 @@ function openDataHubModal() {
   statsKeyContainer?.classList.add("hidden");
   radarChartContainer?.classList.add("hidden");
   consistencyContainer?.classList.add("hidden");
+  setDataHubSelectedGameLogsSeason(DATAHUB_GAME_LOGS_YEAR, { resetCareer: false });
+  closeDataHubGameLogsSeasonMenu();
   setDataHubGameLogsView("gl");
   switchDataHubModalTab("gamelogs");
   modalInfoButtons.forEach((button) => {
@@ -9644,6 +9757,7 @@ function closeDataHubModal() {
   gameLogsModal.classList.add("hidden");
   gameLogsModal.classList.remove("loading");
   gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
+  closeDataHubGameLogsSeasonMenu();
   modalBody?.classList.remove("loading");
   modalBody?.replaceChildren();
   statsKeyContainer?.classList.add("hidden");
@@ -9704,6 +9818,9 @@ function setDataHubGameLogsView(view) {
   modalInfoButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.panel === "game-logs");
   });
+  if (normalizedView === "career") {
+    syncDataHubCareerRowHeights();
+  }
 }
 
 function switchDataHubModalTab(tabKey) {
