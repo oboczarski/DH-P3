@@ -12108,18 +12108,21 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell > * {
   /* DataHub Career desktop group icons:
      edit these selectors for desktop only; mobile has its own controls below. */
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--season {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
+    transform: translateY(-1px);
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-1px);
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+    transform: translateY(-1px);
   }
 }
 
