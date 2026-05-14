@@ -10622,7 +10622,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-szn-value-percent {
 }
 
 body[data-page="datahub"] #game-logs-modal #modal-body {
-  border: 1px solid transparent;
+  border: 0px solid transparent;
   background:
     linear-gradient(180deg, rgba(13, 20, 33, 0.94), rgba(6, 10, 18, 0.98)) padding-box,
     linear-gradient(145deg, rgba(115, 244, 255, 0.1), rgba(91, 127, 255, 0.08), rgba(219, 109, 255, 0.1)) border-box;
@@ -10957,7 +10957,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
     color: #8086b0;
     overflow-x: auto;
     overflow-y: auto;
-    border-radius: 8px;
+    border-radius: 10px;
     max-height: 45.2vh;
     height: 45.2vh;
     scrollbar-width: none;
@@ -11746,10 +11746,9 @@ body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip {
   min-width: 0;
   height: 21px;
   padding: 0 0.16rem;
-  border: 1px solid rgba(155, 178, 236, 0.16);
+  border: 0px solid rgba(155, 178, 236, 0.16);
   border-radius: 7px;
-  background:
-    linear-gradient(180deg, rgba(20, 29, 48, 0.82), rgba(9, 14, 25, 0.92));
+  background: linear-gradient(180deg, rgb(26 36 57 / 90%), rgb(28 35 50 / 92%));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 8px 16px rgba(0, 0, 0, 0.16);
@@ -12127,17 +12126,17 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell > * {
   /* DataHub Career mobile group icons:
      edit these selectors for mobile only; desktop has its own controls above. */
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--season {
-    width: 13px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--fantasy-points {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-group-header-icon--points-per-game {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
 }
