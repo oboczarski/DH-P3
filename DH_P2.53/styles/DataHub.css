@@ -336,6 +336,7 @@ body::after {
 
 .nav-item.is-active .nav-icon {
   opacity: 1;
+  color: rgb(126, 214, 255);
   stroke: rgb(126, 214, 255);
   stroke-width: 2px;
   filter: drop-shadow(0 0 6px rgba(126, 214, 255, 0.4));
