@@ -1800,7 +1800,7 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-season-toggle {
   width: 68px;
   min-width: 68px;
   padding: 0.3rem 1.28rem 0.3rem 0.52rem;
-  border-radius: 10px;
+  border-radius: 14px;
   border: 1px solid rgba(250, 250, 250, 0.1);
   background: rgba(0, 0, 0, 0.02);
   backdrop-filter: blur(1px) saturate(180%);
@@ -2295,7 +2295,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-group-header {
   font-size: 0.72rem;
   font-weight: 800;
   color: rgba(188, 196, 232, 0.78);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(17, 20, 42, 0.62));
+  background: linear-gradient(180deg, rgb(108 119 139 / 20%), rgb(20 23 49 / 62%));
   border-bottom: 1px solid rgba(170, 170, 255, 0.18);
 }
 
@@ -2348,8 +2348,7 @@ body[data-page="rosters"] #game-logs-modal .career-stats-header {
   height: 29px;
   padding: 0.2rem 0.28rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.58rem;
+  font-size: 0.65rem;
   font-weight: 800;
   color: rgba(207, 214, 252, 0.82);
   background: linear-gradient(180deg, rgb(66 68 82 / 42%), rgb(26 29 54 / 96%));
@@ -2409,11 +2408,11 @@ body[data-page="rosters"] #game-logs-modal .career-stats-cell {
   color: rgba(228, 232, 255, 0.78);
   font-weight: 650;
   font-family: 'Product Sans', 'Google Sans', var(--font-sans);
-  background: rgba(10, 12, 28, 0.52);
+  background: linear-gradient(180deg, rgb(81 83 110 / 41%), rgb(33 35 53 / 96%));
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-table tbody tr:nth-child(even) .career-stats-cell {
-  background: rgba(20, 23, 48, 0.52);
+  background: linear-gradient(180deg, rgb(76 78 103 / 42%), rgb(40 42 66 / 63%));
 }
 
 body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane tbody .career-stats-cell {
