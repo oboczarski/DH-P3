@@ -20,7 +20,7 @@
   };
 
   const SUNBURST_NODES = [
-    { id: 'root', parent: null, label: 'SYOP Averages', subtitle: 'SYOP[ႽO] • BRKOUT[BO]', value: 51.6 },
+    { id: 'root', parent: null, label: 'SYOP Averages', subtitle: 'SYOP[ႽP] • BRKOUT[BO]', value: 51.6 },
     { id: 'qb', parent: 'root', label: 'QB', subtitle: 'Quarterbacks', value: 16.46, series: 'QB' },
     { id: 'qb-prime-lambda', parent: 'qb', label: 'Prime Λ', subtitle: '7.2 yrs', value: 6.5, abbr: 'ꜱᴘᴧ', stat: '7.2' },
     { id: 'qb-breakout-lambda', parent: 'qb', label: 'Breakout Λ', subtitle: '2.3 yrs', value: 2.49, abbr: 'ʙᴏᴧ', stat: '2.3' },
