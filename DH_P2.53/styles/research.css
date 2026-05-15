@@ -279,6 +279,14 @@ body[data-page="research"] .research-meta-pos--threshold {
   font-weight: 500;
 }
 
+body[data-page="research"] .research-meta-value--threshold {
+  font-weight: 500;
+}
+
+body[data-page="research"] .research-meta-benchmark-digit {
+  font-weight: 500;
+}
+
 body[data-page="research"] .research-meta-separator {
   display: inline-block;
   margin-inline: 0.32rem;
@@ -1095,7 +1103,8 @@ body[data-page="research"] .research-meta-separator {
   }
 
   .syop-hero-meta-item .meta-label {
-    font-size: 0.64rem;
+    font-size: 0.74rem;
+    font-weight: 600;
   }
 
   .syop-tab {
