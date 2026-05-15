@@ -5,6 +5,10 @@
    page keeps the same navy base color before the fixed starfield fully paints. */
 body[data-page="research"] {
   background-color: #07111f;
+  --research-meta-pos-qb: #fcd4dfd4;
+  --research-meta-pos-rb: #91e5d8;
+  --research-meta-pos-wr: #a6d5ff;
+  --research-meta-pos-te: #8c83eb;
 }
 
 body[data-page="research"] .research-header-shell {
@@ -251,6 +255,33 @@ body[data-page="research"] .app-header {
   font-weight: 300;
   font-size: 0.72rem;
   line-height: 1.24;
+}
+
+/* Research hero chip position accents: keep the requested tinting, threshold
+   emphasis, and separator spacing scoped only to the two SYOP intro chips. */
+body[data-page="research"] .research-meta-pos--qb {
+  color: var(--research-meta-pos-qb);
+}
+
+body[data-page="research"] .research-meta-pos--rb {
+  color: var(--research-meta-pos-rb);
+}
+
+body[data-page="research"] .research-meta-pos--wr {
+  color: var(--research-meta-pos-wr);
+}
+
+body[data-page="research"] .research-meta-pos--te {
+  color: var(--research-meta-pos-te);
+}
+
+body[data-page="research"] .research-meta-pos--threshold {
+  font-weight: 500;
+}
+
+body[data-page="research"] .research-meta-separator {
+  display: inline-block;
+  margin-inline: 0.32rem;
 }
 
 .syop-tabs {
