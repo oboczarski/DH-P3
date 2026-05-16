@@ -1710,11 +1710,19 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 /* DataHub Stats WR / TE nested filters:
    override only these two active rings so the in-place receiving subfilters
    use their own solid accent borders instead of the shared gradient border. */
-body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
-  background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff);
-  padding: 1px 1px 1px 1px;
-}
-
+   body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active {
+       border: 0px inset transparent;
+       color: #7591ff;
+   }
+   body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
+     background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff);
+     padding: 1px 1px 1px 1px;
+    }
+    
+    body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active {
+        border: 0px inset transparent;
+        color: #a179ff;
+    }
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
   background: linear-gradient(135deg, rgb(156 102 255), rgb(92 23 255), rgb(139 30 252));
   padding: 1px 1px 1px 1px;
