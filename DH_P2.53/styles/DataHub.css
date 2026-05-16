@@ -1714,7 +1714,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
        border: 0px inset transparent;
        color: #7591ff;
        font-size: 13px;
-       font-weight: 500;
+       font-weight: 600;
        text-shadow: 1px 1px 0px #223;
    }
    body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
