@@ -1713,6 +1713,9 @@ body[data-page="datahub"] .mini-chip.is-active::before {
    body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active {
        border: 0px inset transparent;
        color: #7591ff;
+       font-size: 13px;
+       font-weight: 500;
+       text-shadow: 1px 1px 0px #223;
    }
    body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
      background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff);
@@ -1722,6 +1725,9 @@ body[data-page="datahub"] .mini-chip.is-active::before {
     body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active {
         border: 0px inset transparent;
         color: #a179ff;
+        font-size: 14px;
+        font-weight: 600;
+        text-shadow: 1px 1px 0px #223;
     }
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="TE"].is-active::before {
   background: linear-gradient(135deg, rgb(156 102 255), rgb(92 23 255), rgb(139 30 252));
