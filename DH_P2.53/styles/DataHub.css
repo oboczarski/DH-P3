@@ -1470,7 +1470,7 @@ body[data-page="datahub"] .datahub-chart-modal__close:focus-visible {
 .mini-chip:hover,
 .subfilter-chip:hover,
 .overlay-card__button:hover {
-  transform: translateY(-1px);
+  transform: translateY(0px);
   border-color: rgba(159, 215, 255, 0.38);
 }
 
@@ -1703,7 +1703,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 .datahub-receiving-filter-chip.category-chip {
   flex-direction: row;
   gap: 0;
-  border-radius: 13px;
+  border-radius: 14px;
   background: linear-gradient(180deg, rgb(133 215 255 / 33%), rgb(124 75 255 / 28%)), rgba(11, 22, 39, 0.74);
 }
 
@@ -1711,7 +1711,7 @@ body[data-page="datahub"] .mini-chip.is-active::before {
    override only these two active rings so the in-place receiving subfilters
    use their own solid accent borders instead of the shared gradient border. */
 body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="WR"].is-active::before {
-  background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff7d);
+  background: linear-gradient(135deg, #6d65e4, #7872ff, #729aff);
   padding: 1px 1px 1px 1px;
 }
 
