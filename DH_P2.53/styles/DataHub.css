@@ -276,7 +276,7 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 0px;
   min-width: 0;
   padding: 4px 0px 6px;
   border: 1px solid transparent;
@@ -327,9 +327,9 @@ body::after {
 }
 
 .nav-icon {
-  width: 22px;
-  height: 22px;
-  stroke-width: 2.2px;
+  width: 24px;
+  height: 24px;
+  stroke-width: 2px;
   opacity: 0.8;
   transition: opacity 200ms ease, stroke-width 200ms ease;
 }
@@ -3902,7 +3902,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     display: flex;
     grid-template-columns: none;
     align-items: stretch;
-    gap: 2px;
+    gap: 0px;
     width: 100%;
     padding: 0px 0 0px;
     margin: 0 0px 2px 0px;
@@ -3933,11 +3933,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 3px 8px 8px;
+    padding: 3px 7px 8px;
     border-radius: 16px;
     font-size: 0.8rem;
     line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     text-align: center;
   }
 
@@ -3961,8 +3961,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"] .nav-icon--leaguehub-tabler {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     stroke-width: 1.95;
   }
 
@@ -3980,7 +3980,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     white-space: nowrap;
     font-size: 0.75rem;
     line-height: 1;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.05em;
   }
 
   .page-tab__label--adp > span {
