@@ -796,9 +796,10 @@ body[data-page="datahub"] .datahub-top60-chart__header h2 {
   font-size: 16px;
   line-height: 1.2;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: rgb(145 155 178 / 99%);
-  word-spacing: 0.12em;
+  word-spacing: 0.04em;
+  text-wrap-mode: nowrap;
 }
 
 body[data-page="datahub"] .datahub-top60-chart__body {
@@ -5206,7 +5207,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     display: flex;
     align-items: center;
     min-width: 0;
-    padding: 3px 8px;
+    padding: 3px 4px;
     justify-self: center;
     margin-top: 0px;
   }
@@ -5225,8 +5226,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .nav-item {
     flex: 0 0 auto;
     flex-direction: row;
-    gap: clamp(5px, 0.7vw, 7px);
-    padding: 8px clamp(10px, 1.1vw, 14px);
+    gap: clamp(5px, 0.7vw, 5px);
+    padding: 8px clamp(10px, 1.1vw, 16px) 8px clamp(10px, 1.1vw, 12px);
     min-width: auto;
     border-radius: 999px;
     min-height: 51px;
@@ -5354,6 +5355,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .page-tab {
     font-size: 0.86rem;
     padding: 9px 18px 11px;
+    text-wrap-mode: nowrap;
   }
 
 }
@@ -5424,7 +5426,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .header-shell--nav .nav-item {
     flex: 0 0 calc(99px + ((100vw - 1350px) / 115) * 5);
     width: calc(99px + ((100vw - 1350px) / 115) * 5);
-    min-width: calc(99px + ((100vw - 1350px) / 115) * 5);
+    min-width: calc(99px + ((118vw - 1350px) / 115) * 5);
     justify-content: center;
     padding-inline: calc(6px + ((100vw - 1350px) / 115) * 2);
     gap: calc(5px + ((100vw - 1350px) / 115) * 1);
