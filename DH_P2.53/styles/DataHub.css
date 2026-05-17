@@ -343,16 +343,13 @@ body::after {
 }
 
 /* DataHub LeagueHub nav icon:
-   Targets only the requested Tabler chart-arcs glyph in the DataHub mobile and
+   Targets only the requested Solar LeagueHub glyph in the DataHub mobile and
    desktop nav bars. Keep this hook isolated so future LeagueHub icon sizing or
-   stroke changes do not affect Home/Rosters/DataHub/Research/More icons. */
-body[data-page="datahub"] .nav-icon--leaguehub-tabler {
+   fill changes do not affect Home/Rosters/DataHub/Research/More icons. */
+body[data-page="datahub"] .nav-icon--leaguehub-solar {
   flex: 0 0 auto;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: currentColor;
+  stroke: none;
 }
 
 .nav-item span {
@@ -3952,18 +3949,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile-only icon tuning:
-     Gives the Solar Stats tab and Tabler LeagueHub nav icons their own mobile
-     sizing/stroke hooks without changing the shared DataHub icon classes. */
+     Gives the Solar Stats tab and Solar LeagueHub nav icons their own mobile
+     sizing hooks without changing the shared DataHub icon classes. */
   body[data-page="datahub"] .tab-icon--stats-solar {
     width: 22px;
     height: 22px;
     stroke-width: 1.7px;
   }
 
-  body[data-page="datahub"] .nav-icon--leaguehub-tabler {
+  body[data-page="datahub"] .nav-icon--leaguehub-solar {
     width: 24px;
     height: 24px;
-    stroke-width: 1.95;
   }
 
   .page-tab__text,
@@ -5261,7 +5257,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Desktop-only icon tuning:
-     Keeps the requested Solar Stats tab and Tabler LeagueHub nav icons easy to
+     Keeps the requested Solar Stats tab and Solar LeagueHub nav icons easy to
      adjust on desktop without affecting the rest of the page-tab/nav glyphs. */
   body[data-page="datahub"] .tab-icon--stats-solar {
     width: 18px;
@@ -5269,10 +5265,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     stroke-width: 1.5;
   }
 
-  body[data-page="datahub"] .nav-icon--leaguehub-tabler {
+  body[data-page="datahub"] .nav-icon--leaguehub-solar {
     width: clamp(16px, 0.9vw + 17px, 25px);
     height: clamp(16px, 0.9vw + 16px, 24px);
-    stroke-width: 1.95;
   }
 
   .brand-lockup {
