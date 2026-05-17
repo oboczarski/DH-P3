@@ -4097,11 +4097,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile grid meta labels:
-     Targets the ACTIVE VIEW and SORTED BY labels above the table only. The
-     labels become plain text while the active view value and sort value carry
-     the chip surfaces, matching the requested mobile hierarchy. */
+      Targets the ACTIVE VIEW and SORTED BY labels above the table only. The
+      labels become plain text while the active view value and sort value carry
+      the chip surfaces. Mobile Safari was intermittently tearing the SORTED BY
+      text after repeated tab switches when the label still inherited the global
+      negative offset inside a 9px grid row, so this block also normalizes the
+      label row sizing and paint layer for the table meta controls only. */
   .grid-shell__meta .meta-label {
+    display: block;
     justify-self: start;
+    margin-top: 0;
     margin-bottom: 0;
     padding: 0;
     border: 0;
@@ -4109,24 +4114,41 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     background: none;
     color: rgba(161, 169, 191, 0.74);
     font-size: 0.5rem;
+    line-height: 1;
     letter-spacing: 0.1em;
     margin-left: 3px;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .grid-shell__meta {
+    --datahub-grid-meta-chip-height: 27px;
+    --datahub-grid-meta-label-gap: 1px;
     align-items: end;
     gap: 8px;
     margin: 0 17px 7px 17px;
   }
 
-  .active-view-meta {
+  .grid-shell__meta .active-view-meta,
+  .grid-shell__meta .sort-meta-control {
+    align-content: start;
     justify-items: start;
+    row-gap: 3px;
+    grid-template-rows: auto var(--datahub-grid-meta-chip-height);
   }
 
-  .active-view-meta .meta-value {
+  .grid-shell__meta .active-view-meta .meta-value {
     color: rgb(182 200 233 / 87%);
     font-size: 0.72rem;
     letter-spacing: 0.03em;
+  }
+
+  .grid-shell__meta .active-view-meta .meta-value,
+  .grid-shell__meta .meta-pill--button,
+  .grid-shell__meta .meta-count {
+    height: var(--datahub-grid-meta-chip-height);
+    min-height: var(--datahub-grid-meta-chip-height);
+    box-sizing: border-box;
   }
 
   .meta-pill-wrap {
@@ -4134,14 +4156,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile row-count chip alignment:
-     the Active View and Sorted By pills sit inside two-row grid controls, so
-     their 27px chips visually hang 3px below the wrapper. Match that same
-     baseline for the standalone row-count chip so all three top-of-table chips
-     align on one clean horizontal line without changing desktop layout. */
+     the meta controls now share one explicit chip row, so the standalone row
+     counter can sit on that same baseline without the old translateY shim. */
   .grid-shell__meta .meta-count {
-    height: 27px;
-    min-height: 27px;
-    transform: translateY(3px);
+    transform: none;
     width: 53px;
     text-wrap-mode: nowrap;
     padding: 0 2px;
@@ -4151,11 +4169,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .sort-meta-control {
     justify-items: start;
-    margin-bottom: 1px;
+    margin-bottom: 0;
   }
 
   .meta-pill--button {
     min-width: 78px;
+    margin-top: 0;
   }
 
   .sort-meta-menu {
