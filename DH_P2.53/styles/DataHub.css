@@ -4063,7 +4063,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .stats-table__fpts-chip {
     min-height: 22px;
     padding: 0 6px;
-    max-width: 54px;
+    max-width: 46px;
   }
 
   body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-tier-badge {
