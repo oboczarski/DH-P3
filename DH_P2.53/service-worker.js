@@ -26,7 +26,7 @@
 // ============================================================================
 // DataHub table controls: bump the cache so browsers pick up the updated
 // top-of-table sort dropdown and mobile meta-chip styling after deploy.
-const CACHE_NAME = 'DH2.725';
+const CACHE_NAME = 'DH2.72';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
