@@ -3009,6 +3009,28 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] 
   stroke-width: 0;
 }
 
+/* Rookies RD/PK column header icon:
+   desktop-specific hook for the requested filled Material-style round/pick
+   icon without affecting PK# or other draft icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RD & PK#"] .stats-table__head-icon--rookie-rd-pk {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Rookies PK# column header icon:
+   desktop-specific hook for the requested filled Material-style pick-number
+   icon without affecting RD/PK or other draft icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 .stats-table__head-label {
   /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
@@ -4093,6 +4115,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     width: 14px;
     height: 14px;
     stroke-width: 2.15px;
+  }
+
+  /* Mobile Rookies RD/PK header icon:
+     scoped separately so the round/pick Material icon can be adjusted without
+     changing PK# or non-rookie table headers. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RD & PK#"] .stats-table__head-icon--rookie-rd-pk {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Mobile Rookies PK# header icon:
+     scoped separately so the pick-number Material icon can be adjusted without
+     changing RD/PK or non-rookie table headers. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
+    width: 14px;
+    height: 14px;
   }
 
   .stats-table__sort-indicator {
