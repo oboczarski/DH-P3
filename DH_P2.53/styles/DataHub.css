@@ -2905,6 +2905,12 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   fill: none;
 }
 
+.stats-table__group-header-icon--material-filled {
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* ── Column header row ─────────────────────────────────────────────────── */
 .stats-table thead th.stats-table__header-cell {
   position: sticky;
@@ -2984,14 +2990,23 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 /* Rookie RK/TIER header icons:
-  target only the rookie-tab table headers. These denser Tabler glyphs use
-  the approved 18px footprint so both rookie views stay crisp without leaking
-  into non-rookie DataHub header icons. */
+  target only the rookie-tab table headers. These custom glyphs use the
+  approved 18px footprint so both rookie views stay crisp without leaking into
+  non-rookie DataHub header icons. */
 body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RK"] .stats-table__head-icon--rookie-rk,
 body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
   width: 18px;
   height: 18px;
   stroke-width: 1.95px;
+}
+
+/* Rookies TIER material icon:
+   the requested Material-style path is filled instead of stroke-drawn, so this
+   scoped rule keeps it visible without changing other DataHub column icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
 }
 
 .stats-table__head-label {
@@ -3005,7 +3020,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] 
 
 /* Rookies index header:
    targets only the Rookies row-order column so its header remains icon-only on
-   desktop and mobile while the new Prospect Overview RK header can show text. */
+   desktop and mobile while the Prospect Ranks RK header can show text. */
 body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="index"] .stats-table__head-label {
   display: none;
 }
@@ -3147,7 +3162,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-tier-
 }
 
 /* Rookies combined RK cell:
-   targets the new Prospect Overview RK display. The overall rank stays primary
+   targets the Prospect Ranks RK display. The overall rank stays primary
    and the appended position rank is smaller/secondary without affecting other
    table rank columns. */
 body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk {
@@ -3380,7 +3395,7 @@ body[data-page="datahub"][data-datahub-view="rookies-career"] .stats-table__body
 /* Rankings & Career Stats group heat colors:
    targets only the DataHub rookies career view families emitted by
    DataHub.js. Each column group keeps the same percentile tier math but uses a
-   distinct palette so Prospect Overview, totals, passing, rushing, receiving,
+   distinct palette so Prospect Ranks, totals, passing, rushing, receiving,
    and info columns are visually separated. */
 body[data-page="datahub"] .heat-cell--career-info {
   --career-heat-0: rgba(208, 218, 234, 0.72);

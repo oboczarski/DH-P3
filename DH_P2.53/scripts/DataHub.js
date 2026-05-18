@@ -530,14 +530,21 @@ const SFLX_MARKET_DATA_COLUMNS = ["KTC SFLX", "SFLX ADP", "SFLX DIFF"];
 const MARKET_DATA_COLUMNS = [...ONE_QB_MARKET_DATA_COLUMNS, ...SFLX_MARKET_DATA_COLUMNS];
 const BLANK_PLACEHOLDER_COLUMNS = new Set();
 const ROOKIES_IDENTITY_COLUMNS = Object.freeze(["index", "PLAYER", "POS"]);
-const ROOKIES_PROSPECT_OVERVIEW_COLUMNS = Object.freeze([
-  "TM",
-  "AGE",
-  "TIER",
-  "RD & PK#",
-  "OVR_PK",
-  "RK",
-  "GRD",
+const ROOKIES_DRAFT_COLUMNS = Object.freeze(["TM", "RD & PK#", "OVR_PK"]);
+const ROOKIES_DRAFT_WITH_AGE_COLUMNS = Object.freeze(["TM", "AGE", "RD & PK#", "OVR_PK"]);
+const ROOKIES_PROSPECT_RANK_COLUMNS = Object.freeze(["TIER", "RK", "GRD"]);
+const ROOKIES_OVERVIEW_INFO_COLUMNS = Object.freeze(["AGE", "CFB", "HT", "WT", "40dsh"]);
+const ROOKIES_CAREER_TOTAL_COLUMNS = Object.freeze(["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"]);
+// Rookies layout groups:
+// the default overview keeps AGE in Info, while every other Rookies table
+// keeps AGE in Draft so the requested Draft/Prospect Ranks split stays stable.
+const ROOKIES_OVERVIEW_LEAD_COLUMNS = Object.freeze([
+  ...ROOKIES_DRAFT_COLUMNS,
+  ...ROOKIES_PROSPECT_RANK_COLUMNS,
+]);
+const ROOKIES_STANDARD_LEAD_COLUMNS = Object.freeze([
+  ...ROOKIES_DRAFT_WITH_AGE_COLUMNS,
+  ...ROOKIES_PROSPECT_RANK_COLUMNS,
 ]);
 const HIDDEN_ROOKIE_RANK_COLUMNS = Object.freeze(["OVR-RK", "POS-RK"]);
 
@@ -557,7 +564,7 @@ const TRADE_VALUES_COLUMN_SET = [
 ];
 const ROOKIES_TRADE_COLUMN_SET = [
   ...ROOKIES_IDENTITY_COLUMNS,
-  ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
+  ...ROOKIES_STANDARD_LEAD_COLUMNS,
   ...MARKET_DATA_COLUMNS,
 ];
 
@@ -698,25 +705,14 @@ const STATS_COLUMN_SETS = {
 const ROOKIES_CAREER_COLUMN_SETS = {
   overview: [
     ...ROOKIES_IDENTITY_COLUMNS,
-    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
-    "CFB",
-    "HT",
-    "WT",
-    "40dsh",
-    "Gs",
-    "tYDS",
-    "tTD",
-    "OPP",
-    "IMP/OPP",
+    ...ROOKIES_OVERVIEW_LEAD_COLUMNS,
+    ...ROOKIES_OVERVIEW_INFO_COLUMNS,
+    ...ROOKIES_CAREER_TOTAL_COLUMNS,
   ],
   passing: [
     ...ROOKIES_IDENTITY_COLUMNS,
-    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
-    "Gs",
-    "tYDS",
-    "tTD",
-    "OPP",
-    "IMP/OPP",
+    ...ROOKIES_STANDARD_LEAD_COLUMNS,
+    ...ROOKIES_CAREER_TOTAL_COLUMNS,
     "paATT",
     "CMP",
     "paYDS",
@@ -740,12 +736,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
   ],
   rushing: [
     ...ROOKIES_IDENTITY_COLUMNS,
-    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
-    "Gs",
-    "tYDS",
-    "tTD",
-    "OPP",
-    "IMP/OPP",
+    ...ROOKIES_STANDARD_LEAD_COLUMNS,
+    ...ROOKIES_CAREER_TOTAL_COLUMNS,
     "CAR",
     "ruYDS",
     "ruTD",
@@ -767,12 +759,8 @@ const ROOKIES_CAREER_COLUMN_SETS = {
   ],
   receiving: [
     ...ROOKIES_IDENTITY_COLUMNS,
-    ...ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
-    "Gs",
-    "tYDS",
-    "tTD",
-    "OPP",
-    "IMP/OPP",
+    ...ROOKIES_STANDARD_LEAD_COLUMNS,
+    ...ROOKIES_CAREER_TOTAL_COLUMNS,
     "TGT",
     "REC",
     "recYDS",
@@ -914,23 +902,17 @@ const ROOKIE_RK_HEADER_ICON_MARKUP = [
   '<path d="M11 9l1 -1v6" />',
 ].join("");
 
+const DATAHUB_MATERIAL_SYMBOL_VIEW_BOX = "0 -960 960 960";
+
 // Rookie TIER header icon:
-// the rookie-tab tables use the requested Tabler hierarchy glyph for the
-// TIER column header without altering non-rookie DataHub table headers.
-const ROOKIE_TIER_HEADER_ICON_MARKUP = [
-  '<path d="M10 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M10 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M18 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M2 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M14 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />',
-  '<path d="M5 17l2 -3" />',
-  '<path d="M9 10l2 -3" />',
-  '<path d="M13 7l2 3" />',
-  '<path d="M17 14l2 3" />',
-  '<path d="M15 14l-2 3" />',
-  '<path d="M9 14l2 3" />',
-].join("");
+// the rookie-tab tables use the requested filled Material-style hierarchy path
+// and get a separate viewBox/fill treatment from the default stroke icons.
+const ROOKIE_TIER_HEADER_ICON_MARKUP = '<path d="M187.06-71.87q-52.6 0-89.4-36.81-36.79-36.82-36.79-89.41 0-40.38 22.86-72.48t58.57-45.3v-83.41q0-52.49 36.75-89.24 36.74-36.74 89.23-36.74H434.5v-119.11q-35.48-13.43-58.1-45.39-22.62-31.95-22.62-72.15 0-52.59 36.82-89.41 36.83-36.81 89.43-36.81 52.6 0 89.39 36.81 36.8 36.82 36.8 89.41 0 40.29-22.62 72.32-22.62 32.02-58.34 45.22v119.11h166.46q52.49 0 89.23 36.74 36.75 36.75 36.75 89.24v83.41q35.71 13.2 58.57 45.3 22.86 32.1 22.86 72.48 0 52.59-36.82 89.41-36.82 36.81-89.42 36.81-52.61 0-89.4-36.81-36.79-36.82-36.79-89.41 0-39.95 22.5-71.91 22.5-31.96 57.73-45.39v-83.89q0-14.97-10.12-25.09-10.13-10.13-25.09-10.13H525.26v118.87q35.72 13.2 58.34 45.22 22.62 32.03 22.62 72.32 0 52.59-36.82 89.41-36.83 36.81-89.43 36.81-52.6 0-89.39-36.81-36.8-36.82-36.8-89.41 0-40.2 22.62-72.15 22.62-31.96 58.1-45.39V-434.5H268.28q-14.96 0-25.09 10.13-10.12 10.12-10.12 25.09v83.89Q268.3-301.96 290.8-270t22.5 71.91q0 52.59-36.82 89.41-36.82 36.81-89.42 36.81Zm.07-88.61q16 0 26.78-10.82 10.79-10.83 10.79-26.83 0-16-10.83-26.78-10.82-10.79-26.83-10.79-16 0-26.78 10.83-10.78 10.82-10.78 26.83 0 16 10.82 26.78 10.83 10.78 26.83 10.78Zm292.91 0q16 0 26.79-10.82 10.78-10.83 10.78-26.83 0-16-10.83-26.78-10.82-10.79-26.82-10.79t-26.79 10.83q-10.78 10.82-10.78 26.83 0 16 10.83 26.78 10.82 10.78 26.82 10.78Zm292.92 0q16 0 26.78-10.82 10.78-10.83 10.78-26.83 0-16-10.82-26.78-10.83-10.79-26.83-10.79-16 0-26.78 10.83-10.79 10.82-10.79 26.83 0 16 10.83 26.78 10.82 10.78 26.83 10.78ZM480.04-724.3q16 0 26.79-10.83 10.78-10.82 10.78-26.83 0-16-10.83-26.78-10.82-10.78-26.82-10.78t-26.79 10.82q-10.78 10.83-10.78 26.83 0 16 10.83 26.78 10.82 10.79 26.82 10.79Z" />';
+
+// Rookies Draft group icon:
+// this uses the requested filled Material-style path for the Draft column
+// group only, without changing the default 24x24 stroke group icons.
+const ROOKIE_DRAFT_GROUP_ICON_MARKUP = '<path d="M162.87-554.02v311.15-474.26 163.11Zm409.8 437.37q15.68 0 26.29-10.61 10.61-10.6 10.61-26.28 0-15.68-10.61-26.29-10.61-10.6-26.29-10.6-15.67 0-26.28 10.6-10.61 10.61-10.61 26.29t10.61 26.28q10.61 10.61 26.28 10.61Zm233.79-400.48q15.68 0 26.28-10.61 10.61-10.6 10.61-26.28 0-15.68-10.61-26.29-10.6-10.6-26.28-10.6-15.68 0-26.29 10.6-10.6 10.61-10.6 26.29t10.6 26.28q10.61 10.61 26.29 10.61Zm-400-2.39q18.19 0 30.65-12.46 12.46-12.45 12.46-30.65t-12.46-30.65q-12.46-12.46-30.65-12.46H284.54q-18.19 0-30.65 12.46-12.46 12.45-12.46 30.65t12.46 30.65q12.46 12.46 30.65 12.46h121.92Zm0 165.26q18.19 0 30.65-12.46 12.46-12.45 12.46-30.65t-12.46-30.65q-12.46-12.46-30.65-12.46H284.54q-18.19 0-30.65 12.46-12.46 12.45-12.46 30.65t12.46 30.65q12.46 12.46 30.65 12.46h121.92ZM162.87-151.87q-37.78 0-64.39-26.61t-26.61-64.39v-474.26q0-37.78 26.61-64.39t64.39-26.61h679.76q19.15 0 32.33 13.17 13.17 13.18 13.17 32.33t-13.17 32.33q-13.18 13.17-32.33 13.17H162.87v474.26h165.98q19.15 0 32.32 13.17 13.18 13.18 13.18 32.33t-13.18 32.33q-13.17 13.17-32.32 13.17H162.87Zm322.65 85.53q-35.95-35.91-35.95-87.2 0-39.72 22.5-71.08t57.5-44.08v-82.69q0-19.15 13.17-32.33 13.17-13.17 32.33-13.17h188.28v-41.98q-35-12.72-57.5-44.08-22.5-31.35-22.5-71.07 0-51.3 35.95-87.2 35.96-35.91 87.16-35.91 51.19 0 87.15 35.91 35.96 35.9 35.96 87.2 0 39.72-22.5 71.07-22.5 31.36-57.5 44.08v82.7q0 19.15-13.18 32.32-13.17 13.18-32.32 13.18H615.78v41.97q35 12.72 57.5 44.08t22.5 71.08q0 51.29-35.95 87.2-35.96 35.91-87.16 35.91-51.19 0-87.15-35.91Z" />';
 
 // Rookies tier badges:
 // each TIER value gets the requested icon while the badge inherits the existing
@@ -1165,6 +1147,8 @@ function createDataHubColumnGroup({
   label,
   ariaLabel = label,
   icon,
+  iconViewBox = "0 0 24 24",
+  iconClassName = "",
   columns,
   groupIconColor,
   columnIconColor = groupIconColor,
@@ -1175,6 +1159,8 @@ function createDataHubColumnGroup({
     label,
     ariaLabel,
     icon,
+    iconViewBox,
+    iconClassName,
     columns: Object.freeze([...columns]),
     groupIconColor,
     columnIconColor,
@@ -1429,14 +1415,33 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
-function createRookiesProspectOverviewGroup({ formatFamily = null } = {}) {
+function createRookiesDraftGroup({
+  columns = ROOKIES_DRAFT_WITH_AGE_COLUMNS,
+  formatFamily = null,
+} = {}) {
   return createDataHubColumnGroup({
-    // Rookies Prospect Overview group:
-    // TM and AGE now live with the draft/ranking fields in the exact requested
-    // order and inherit the same column icon color as the rest of this group.
-    label: "PROSPECT OVERVIEW",
+    // Rookies Draft group:
+    // targets the rookie-tab tables and owns only team/age/draft-capital
+    // columns, letting the Prospect Ranks columns move into their own group.
+    label: "DRAFT",
+    icon: ROOKIE_DRAFT_GROUP_ICON_MARKUP,
+    iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+    iconClassName: "stats-table__group-header-icon--material-filled",
+    columns,
+    groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
+    columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+    formatFamily,
+  });
+}
+
+function createRookiesProspectRanksGroup({ formatFamily = null } = {}) {
+  return createDataHubColumnGroup({
+    // Rookies Prospect Ranks group:
+    // isolates tier, overall/position rank, and grade so every Rookies table
+    // can share the requested Prospect Ranks label and ordering.
+    label: "PROSPECT RANKS",
     icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-    columns: ROOKIES_PROSPECT_OVERVIEW_COLUMNS,
+    columns: ROOKIES_PROSPECT_RANK_COLUMNS,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
     formatFamily,
@@ -1445,13 +1450,17 @@ function createRookiesProspectOverviewGroup({ formatFamily = null } = {}) {
 
 const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
   overview: Object.freeze([
-    createRookiesProspectOverviewGroup({
+    createRookiesDraftGroup({
+      columns: ROOKIES_DRAFT_COLUMNS,
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
+    }),
+    createRookiesProspectRanksGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "INFO",
       icon: CURRENT_INFO_GROUP_ICON,
-      columns: ["CFB", "HT", "WT", "40dsh", "Gs"],
+      columns: ROOKIES_OVERVIEW_INFO_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.INFO,
@@ -1459,20 +1468,23 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "CAREER TOTALS",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ROOKIES_CAREER_TOTAL_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
     }),
   ]),
   passing: Object.freeze([
-    createRookiesProspectOverviewGroup({
+    createRookiesDraftGroup({
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
+    }),
+    createRookiesProspectRanksGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (PA+RU)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ROOKIES_CAREER_TOTAL_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
@@ -1511,13 +1523,16 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   rushing: Object.freeze([
-    createRookiesProspectOverviewGroup({
+    createRookiesDraftGroup({
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
+    }),
+    createRookiesProspectRanksGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (RU+REC)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ROOKIES_CAREER_TOTAL_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
@@ -1556,13 +1571,16 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     }),
   ]),
   receiving: Object.freeze([
-    createRookiesProspectOverviewGroup({
+    createRookiesDraftGroup({
+      formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
+    }),
+    createRookiesProspectRanksGroup({
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PROSPECT,
     }),
     createDataHubColumnGroup({
       label: "CAREER TOTALS (REC+RU)",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["Gs", "tYDS", "tTD", "OPP", "IMP/OPP"],
+      columns: ROOKIES_CAREER_TOTAL_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.CAREER_TOTALS,
@@ -1631,7 +1649,8 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
   ]),
   "rookies-career": ROOKIES_CAREER_SCROLL_GROUPS,
   "rookies-trade": createCategoryMap(ROOKIES_TRADE_CATEGORY_KEYS, [
-    createRookiesProspectOverviewGroup(),
+    createRookiesDraftGroup(),
+    createRookiesProspectRanksGroup(),
     createDataHubColumnGroup({
       label: "1QB",
       icon: TRADE_VALUES_ONE_QB_GROUP_ICON,
@@ -1721,7 +1740,7 @@ function isRookieProspectRankColumn(columnName) {
 
 function isFormattedDataHubColumn(columnName) {
   // Rookies RK heat:
-  // the new Prospect Overview RK column is formatted from OVR-RK values, while
+  // the Prospect Ranks RK column is formatted from OVR-RK values, while
   // legacy non-Rookies RK remains the plain rendered row-order column.
   return !NON_FORMATTED_COLUMNS.has(columnName) || isRookieProspectRankColumn(columnName);
 }
@@ -1735,7 +1754,7 @@ function getActiveRookiesSubview() {
 function getStickyColumnCount(pageView = state.activePageView, category = state.activeCategory) {
   if (pageView === "rookies-career") {
     // Rookie career sticky identity:
-    // TM now scrolls inside Prospect Overview and Gs lives in Career Totals, so
+    // TM now scrolls inside Draft and Gs lives in Career Totals, so
     // all rookie career categories freeze only index, player, and position.
     return 3;
   }
@@ -1891,7 +1910,7 @@ function toggleDataHubReceivingFilter(key) {
 // ---------------------------------------------------------------------------
 // Rookies rank split:
 // `index` is the rendered row-order column used only by Rookies identity panes,
-// while RK is the Prospect Overview overall-rank field in Rookies tables.
+// while RK is the Prospect Ranks overall-rank field in Rookies tables.
 const INDEX_COLUMN = "index";
 const RK_COLUMN = "RK";
 const NON_FORMATTED_COLUMNS = new Set([
@@ -2006,7 +2025,8 @@ const LOWER_IS_BETTER_SORT_COLUMNS = new Set([
 const TEXT_SORT_COLUMNS = new Set(["PLAYER", "POS", "TM", "CFB", "HT", "WT"]);
 const COLUMN_LABELS = Object.freeze({
   index: "Index",
-  OVR_PK: "OVR-PK",
+  "RD & PK#": "RD/PK",
+  OVR_PK: "PK#",
 });
 const GRID_TEXT_COLLATOR = new Intl.Collator(undefined, {
   numeric: true,
@@ -2180,7 +2200,7 @@ const TRADE_VALUES_COLUMN_WIDTHS = Object.freeze({
 });
 const ROOKIES_CAREER_COLUMN_WIDTHS = Object.freeze({
   ...COLUMN_WIDTHS,
-  // Rookies Prospect Overview widths:
+  // Rookies Draft/Prospect Ranks widths:
   // RK is now a combined overall + position-rank cell, while index keeps the
   // old narrow row-order slot. Career and trade maps share these exact values.
   index: COLUMN_WIDTHS.RK,
@@ -2323,7 +2343,7 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
 });
 const ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...MOBILE_COLUMN_WIDTHS,
-  // Mobile Rookies Prospect Overview widths:
+  // Mobile Rookies Draft/Prospect Ranks widths:
   // match career/trade layouts column-for-column while giving combined RK
   // enough room for examples like "83 (QB · 24)" without clipping.
   index: MOBILE_COLUMN_WIDTHS.RK,
@@ -3543,7 +3563,7 @@ function buildRookieCareerSourceRow(category, row) {
     Gs: getFirstUsableRookieValue(row.Gs, playerLookup?.Gs),
     GRD: getFirstUsableRookieValue(row.GRD, playerLookup?.GRD),
     TIER: getFirstUsableRookieValue(row.TIER, playerLookup?.TIER),
-    // Rookies Prospect Overview RK:
+    // Rookies Prospect Ranks RK:
     // RK is now the visible overall-rank column for every career category,
     // while POS-RK is kept as hidden data for the parenthetical display.
     RK: overallRank,
@@ -3551,7 +3571,7 @@ function buildRookieCareerSourceRow(category, row) {
     "POS-RK": getFirstUsableRookieValue(row["POS-RK"], playerLookup?.["POS-RK"]),
     // Updated CFB draft fields:
     // carry round/pick and overall pick values into every rookies career
-    // category so Prospect Overview columns stay populated after category
+    // category so Draft columns stay populated after category
     // switches.
     "RD & PK#": getFirstUsableRookieValue(row["RD & PK#"], playerLookup?.["RD & PK#"]),
     OVR_PK: getFirstUsableRookieValue(row.OVR_PK, playerLookup?.OVR_PK),
@@ -3647,7 +3667,7 @@ function buildRookieTradeRowsBase(tradeRowsBase, rookieProspectByPlayerId) {
         "OVR-RK": sanitizeValue(prospect?.["OVR-RK"]),
         "POS-RK": sanitizeValue(prospect?.["POS-RK"]),
         // Rookie Trade Values draft fields:
-        // populate the Prospect Overview group from the CFB career lookup while
+        // populate the Draft group from the CFB career lookup while
         // leaving KTC market data on the original trade row.
         "RD & PK#": sanitizeValue(prospect?.["RD & PK#"]),
         OVR_PK: sanitizeValue(prospect?.OVR_PK),
@@ -7005,7 +7025,7 @@ function buildColumnIconColorMap(groups) {
   groups.forEach((group) => {
     group.columns.forEach((columnName) => {
       // Group header exceptions:
-      // some rookie columns, like TM inside Prospect Overview, need a per-column
+      // some rookie columns, like TM inside Draft, need a per-column
       // header icon color while still belonging to a different group header.
       const color = group.columnIconColors?.[columnName]
         || group.columnIconColor
@@ -7473,7 +7493,7 @@ function createHeaderCell(column, columnIconColor) {
 
   // Index/RK header handling:
   // Rookies use an icon-only row-order index plus a separate sortable RK
-  // Prospect Overview column; non-Rookies keep their existing static RK header.
+  // Prospect Ranks column; non-Rookies keep their existing static RK header.
   const isSortable = isSortableColumn(column.name);
   const headerControl = document.createElement(isSortable ? "button" : "div");
   headerControl.className = "stats-table__head-button";
@@ -7508,8 +7528,9 @@ function createHeaderCell(column, columnIconColor) {
     }
     if (column.name === "TIER" && isDataHubRookiesView()) {
       // Rookie TIER header icon:
-      // the hierarchy glyph is denser than the shared default icon, so it gets
-      // its own class hook for rookie-tab-only sizing and stroke tuning.
+      // the requested Material-style hierarchy glyph uses a non-24x24 viewBox
+      // and filled path, so it gets a rookie-tab-only sizing/fill hook.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--rookie-tier");
     }
     if (columnIconColor) {
@@ -7576,7 +7597,7 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
   if (column.name === PLAYER_COLUMN) {
     content.append(createPlayerTriggerButton(row));
   } else if (column.name === RK_COLUMN) {
-    // Rookies Prospect Overview RK:
+    // Rookies Prospect Ranks RK:
     // render OVR-RK as the main value and append POS-RK in smaller text. Legacy
     // non-Rookies RK cells continue to show the current rendered row order.
     if (isDataHubRookiesView()) {
@@ -7923,10 +7944,13 @@ function buildGroupHeaderRow(columns, groups) {
 
     if (group.icon) {
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.setAttribute("viewBox", group.iconViewBox || "0 0 24 24");
       svg.setAttribute("aria-hidden", "true");
       svg.setAttribute("focusable", "false");
       svg.classList.add("stats-table__group-header-icon");
+      if (group.iconClassName) {
+        svg.classList.add(...String(group.iconClassName).split(/\s+/).filter(Boolean));
+      }
       const groupIconColor = group.groupIconColor || group.iconColor;
       if (groupIconColor) {
         svg.style.setProperty("--group-icon-color", groupIconColor);
