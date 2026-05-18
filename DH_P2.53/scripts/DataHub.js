@@ -926,6 +926,12 @@ const ROOKIE_PK_NUMBER_HEADER_ICON_MARKUP = '<path d="M480-112.35 354.09-70.46q-
 const ROOKIE_HT_HEADER_ICON_MARKUP = '<path d="M320.89-103.97q-74.43-32.1-129.63-87.29-55.19-55.2-87.29-129.63-32.1-74.44-32.1-159.11 0-84.67 32.1-159.11 32.1-74.43 87.29-129.63 55.2-55.19 129.63-87.29 74.44-32.1 159.11-32.1 84.67 0 159.11 32.1 74.43 32.1 129.63 87.29 55.19 55.2 87.29 129.63 32.1 74.44 32.1 159.11 0 84.67-32.1 159.11-32.1 74.43-87.29 129.63-55.2 55.19-129.63 87.29-74.44 32.1-159.11 32.1-84.67 0-159.11-32.1Zm116-274.96-32.41-32.42q-11.96-11.95-30.03-11.83-18.08.11-30.04 12.07-11.95 11.96-11.95 29.91 0 17.96 11.95 29.92l103.52 103.76q13.68 13.67 32.07 13.67t32.07-13.67l103.28-103.52Q627.3-363 627.42-381.2q.12-18.19-12.07-30.15-11.96-11.95-30.15-11.83-18.2.11-30.16 12.07l-32.17 32.18v-202.14l32.17 32.18q11.96 11.96 30.16 11.96 18.19 0 30.15-11.96 11.95-11.96 11.95-30.15 0-18.2-11.95-30.16L512.07-712.48q-13.68-13.67-32.07-13.67t-32.07 13.67L344.41-608.96q-11.95 11.96-11.95 30.04 0 18.07 11.95 30.03 11.96 12.19 30.16 12.07 18.19-.11 30.15-12.07l32.17-32.18v202.14Z" />';
 const ROOKIE_WT_HEADER_ICON_MARKUP = '<path d="M117.37-111.87q-19.15 0-32.33-13.17-13.17-13.18-13.17-32.33t13.17-32.33q13.18-13.17 32.33-13.17H434.5V-645.8q-25.04-9.48-43.33-27.88-18.28-18.41-27.76-43.45H245.74L351.67-468.7q5.72 12.44 6.84 25.61 1.12 13.18-1.12 26.61-9 47.2-51.65 73.27-42.65 26.08-88.37 26.08-45.72 0-88.37-26.08-42.65-26.07-51.65-73.27-2.24-13.43-1.12-26.61 1.12-13.17 6.84-25.61l106.17-248.43h-31.87q-19.15 0-32.33-13.17-13.17-13.18-13.17-32.33t13.17-32.33q13.18-13.17 32.33-13.17h206.04q13.2-35.48 44.92-57.74 31.71-22.26 71.67-22.26t71.67 22.26q31.72 22.26 44.92 57.74h206.04q19.15 0 32.33 13.17 13.17 13.18 13.17 32.33t-13.17 32.33q-13.18 13.17-32.33 13.17h-31.87L876.93-468.7q5.72 12.44 6.84 25.61 1.12 13.18-1.12 26.61-9 47.2-51.65 73.27-42.65 26.08-88.37 26.08-45.72 0-88.37-26.08-42.65-26.07-51.65-73.27-2.24-13.43-1.12-26.61 1.12-13.17 6.84-25.61l105.93-248.43H596.59q-9.48 25.04-27.76 43.45-18.29 18.4-43.33 27.88v442.93h317.13q19.15 0 32.33 13.17 13.17 13.18 13.17 32.33t-13.17 32.33q-13.18 13.17-32.33 13.17H117.37Zm553.85-334.35h142.82l-71.41-165.63-71.41 165.63Zm-525.02 0h142.82l-71.65-165.63-71.17 165.63ZM480-724.3q16.28 0 27.18-11.15 10.91-11.14 10.91-27.18 0-16.28-10.91-27.19-10.9-10.9-27.18-10.9-16.04 0-27.07 10.9-11.02 10.91-11.02 27.19 0 16.04 11.02 27.18Q463.96-724.3 480-724.3Z" />';
 
+// DataHub shared filled header icons:
+// CFB and MTF use requested Material-style paths, while YCO/A reuses the
+// former MTF Zap glyph below so every affected table keeps a local inline SVG.
+const CFB_HEADER_ICON_MARKUP = '<path d="M115.22-723.96v-92.65q0-12.43 10.81-19.27 10.82-6.84 22.25-1.12l91.89 46.33q12.44 5.95 12.44 20.39 0 14.43-12.44 20.39l-91.89 46.32q-11.43 5.72-22.25-1.11-10.81-6.84-10.81-19.28Zm607.41 0v-92.65q0-12.43 10.82-19.27 10.81-6.84 22.25-1.12l91.89 46.33q12.43 5.95 12.43 20.39 0 14.43-12.43 20.39l-91.89 46.32q-11.44 5.72-22.25-1.11-10.82-6.84-10.82-19.28Zm-286.7-41.43v-92.65q0-12.44 10.82-19.28 10.82-6.83 22.25-1.12l91.89 46.33q12.44 5.96 12.44 20.39 0 14.44-12.44 20.39L469-745q-11.43 5.72-22.25-1.12t-10.82-19.27ZM331.22-78.2Q222.7-88 146.8-118.05q-75.89-30.06-75.89-76.45V-560q0-27.15 32.46-50.45 32.46-23.29 87.89-40.87 55.44-17.57 129.99-27.67 74.55-10.1 158.75-10.1t158.75 10.1q74.55 10.1 129.99 27.67 55.43 17.58 87.89 40.87 32.46 23.3 32.46 50.45v365.5q0 47.15-76.39 76.85-76.4 29.69-185.16 39.98-10.19 1-17.91-6.22-7.72-7.22-7.72-17.41v-54.87q0-50.96-35.48-86.44-35.47-35.48-86.43-35.48-50.96 0-86.43 35.48-35.48 35.48-35.48 86.44v53.63q0 10.95-7.96 18.15-7.96 7.19-18.91 6.19ZM480-523.59q93.41 0 160.92-10.78 67.51-10.78 108.56-24.83-8.13-6.43-80.78-22.66-72.66-16.23-188.7-16.23-116.04 0-188.81 16.23-72.78 16.23-80.67 22.66 41.05 14.05 108.56 24.83 67.51 10.78 160.92 10.78Z" />';
+const MTF_HEADER_ICON_MARKUP = '<path d="m720.24-175.11-32.17 32.18q-12.68 12.67-31.33 12.67t-32.33-13.67q-12.67-12.68-12.79-31.83-.12-19.15 12.55-31.83l31.42-32.17-31.18-31.17q-12.67-12.68-12.67-31.33t12.67-32.33q13.44-13.67 32.21-13.79 18.77-.12 32.45 13.55l31.17 31.18 31.17-31.94q12.68-13.67 31.45-13.67t32.44 13.67q13.68 13.68 13.56 32.45-.12 18.77-13.79 32.44l-30.94 30.94 31.94 31.93q13.67 13.68 13.17 31.95t-14.17 31.95q-13.68 12.67-31.95 13.05-18.27.38-31.71-13.05l-31.17-31.18ZM263.6-211.14q10.66-10.66 10.66-26.23 0-15.56-10.66-26.23-10.67-10.66-26.23-10.66-15.57 0-26.23 10.66-10.66 10.67-10.66 26.23 0 15.57 10.66 26.23t26.23 10.66q15.56 0 26.23-10.66Zm-26.23 99.27q-52.39 0-88.95-36.55-36.55-36.56-36.55-88.95t36.55-88.95q36.56-36.55 88.95-36.55 36.76 0 67.62 19.78 30.86 19.79 46.29 53.59 36.61-10.28 59.92-40.13 23.3-29.85 23.3-67.98v-164.78q0-84.44 59.34-143.77 59.33-59.34 143.77-59.34h35.24l-26.63-26.63q-13.2-13.2-12.58-31.49.62-18.29 14.53-32.21 13.68-13.67 32.45-13.67 18.77 0 32.45 13.67l103 103.76q13.67 13.68 13.67 32.07t-13.67 32.07l-104 103.76q-12.68 12.67-31.57 12.93-18.89.26-33.28-13.89-13.2-12.44-13.2-30.99 0-18.55 12.44-31.75l26.63-26.63h-35.48q-46.65 0-79.38 32.73t-32.73 79.38v164.78q0 74.2-47.96 130.29-47.95 56.1-121.15 69.58-12.72 38.44-45.53 62.15-32.82 23.72-73.49 23.72Zm2.15-543.72-32.17 32.18q-12.68 12.67-31.33 12.67t-32.32-13.67q-12.68-12.68-12.8-31.83-.12-19.15 12.56-31.83l31.41-32.17-31.17-31.17q-12.68-12.68-12.68-31.33t12.68-32.33q13.43-13.67 32.2-13.79 18.77-.12 32.45 13.56l31.17 31.17 31.18-31.94q12.67-13.67 31.44-13.67 18.77 0 32.45 13.67 13.67 13.68 13.55 32.45-.12 18.77-13.79 32.45l-30.94 30.93 31.94 31.94q13.67 13.67 13.17 31.94-.5 18.27-14.17 31.95-13.68 12.67-31.95 13.05-18.27.38-31.7-13.05l-31.18-31.18Z" />';
+
 // Rookies tier badges:
 // each TIER value gets the requested icon while the badge inherits the existing
 // rookie-tier heat color through currentColor in both Rookies subviews.
@@ -953,7 +959,7 @@ const COLUMN_ICONS = {
   AGE:       "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", // Calendar
   G:         "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games played
   Gs:        "M22 12h-4l-3 9L9 3l-3 9H2", // Activity/Games started
-  CFB:       DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
+  CFB:       CFB_HEADER_ICON_MARKUP,
   HT:        "M21 6H3M21 18H3M8 6v12M16 6v12", // Ruler
   WT:        "M7 6h10l2 4-2 8H7L5 10l2-4zM9.5 13h5", // Weight/scale
   "40dsh":   DATAHUB_LUCIDE_ICON_MARKUP.ClockFading,
@@ -1017,8 +1023,8 @@ const COLUMN_ICONS = {
   TGT:       "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target circles
   ELU:       "M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2 2 0 1 1 19 12H2", // Wind
   "MTF/A":   DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
-  "YCO/A":   DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
-  MTF:       DATAHUB_LUCIDE_ICON_MARKUP.Zap,
+  "YCO/A":   DATAHUB_LUCIDE_ICON_MARKUP.Zap,
+  MTF:       MTF_HEADER_ICON_MARKUP,
   YCO:       DATAHUB_LUCIDE_ICON_MARKUP.TramFront,
   "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
   ru1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
@@ -1438,7 +1444,7 @@ function createRookiesDraftGroup({
     label: "DRAFT",
     icon: ROOKIE_DRAFT_GROUP_ICON_MARKUP,
     iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
-    iconClassName: "stats-table__group-header-icon--material-filled",
+    iconClassName: "stats-table__group-header-icon--material-filled stats-table__group-header-icon--rookie-draft",
     columns,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
@@ -2112,8 +2118,11 @@ const COLUMN_WIDTHS = {
   GRD: 98,
   TIER: 90,
   "OVR-RK": 104,
-  "RD & PK#": 112,
-  OVR_PK: 96,
+  // Rookies Draft column widths:
+  // these keys still match the raw CSV fields, but the visible headers are now
+  // shorter RD/PK and PK#, so the table should not keep the old wide headers.
+  "RD & PK#": 96,
+  OVR_PK: 78,
   "POS-RK": 100,
   FPTS: 110,
   PPG: 92,
@@ -2248,8 +2257,11 @@ const MOBILE_COLUMN_WIDTHS = {
   GRD: 48,
   TIER: 46,
   "OVR-RK": 60,
-  "RD & PK#": 64,
-  OVR_PK: 60,
+  // Mobile Rookies Draft column widths:
+  // reduce the draft-pick headers after the visible labels changed to RD/PK
+  // and PK#, keeping small-screen Draft groups from taking excess width.
+  "RD & PK#": 54,
+  OVR_PK: 48,
   "POS-RK": 60,
   FPTS: 48,
   PPG: 46,
@@ -7586,6 +7598,26 @@ function createHeaderCell(column, columnIconColor) {
       if (column.name === "WT") {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
+    }
+    if (column.name === "CFB") {
+      // CFB column header icon:
+      // the requested filled glyph uses the Material viewBox and its own class
+      // so Info-group sizing can be adjusted without touching HT/WT or 40dsh.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--cfb-material");
+    }
+    if (column.name === "MTF") {
+      // MTF column header icon:
+      // all DataHub tables that show Missed Tackles Forced get the new filled
+      // icon and a dedicated sizing class for desktop/mobile tuning.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--mtf-material");
+    }
+    if (column.name === "YCO/A") {
+      // YCO/A column header icon:
+      // reuses the former MTF Zap stroke glyph and gets an individual hook so
+      // its size can be tuned independently from MTF/A and YCO.
+      svg.classList.add("stats-table__head-icon--yco-a");
     }
     if (columnIconColor) {
       svg.style.setProperty("--column-icon-color", columnIconColor);
