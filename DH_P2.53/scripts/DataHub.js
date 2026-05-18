@@ -1094,6 +1094,11 @@ const SHARED_COLUMN_ICON_COLORS = Object.freeze({
   OVERVIEW_STATS: "#6E35FF",
 });
 
+// Rookies Draft column icon color:
+// TM and AGE need to match the already-approved RD/PK and PK# purple without
+// changing those tuned icons or relying on one shared group-wide edit point.
+const ROOKIES_DRAFT_PICK_COLUMN_ICON_COLOR = "#be75ff";
+
 const PASSING_GROUP_HEADER_ICON_COLORS = Object.freeze({
   PASSING_PRODUCTION: "#fd8787",
   PASSING_EFFICIENCY: "#ff2782",
@@ -1448,6 +1453,10 @@ function createRookiesDraftGroup({
     columns,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.INFO,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.INFO,
+    columnIconColors: {
+      TM: ROOKIES_DRAFT_PICK_COLUMN_ICON_COLOR,
+      AGE: ROOKIES_DRAFT_PICK_COLUMN_ICON_COLOR,
+    },
     formatFamily,
   });
 }
@@ -2265,8 +2274,8 @@ const MOBILE_COLUMN_WIDTHS = {
   "POS-RK": 60,
   FPTS: 48,
   PPG: 46,
-  tYDS: 62,
-  tTD: 52,
+  tYDS: 47,
+  tTD: 44,
   "KTC 1QB": 60,
   "KTC SFLX": 60,
   "1QB ADP": 60,
@@ -7585,6 +7594,22 @@ function createHeaderCell(column, columnIconColor) {
       if (column.name === "OVR_PK") {
         svg.classList.add("stats-table__head-icon--rookie-pk-number");
       }
+    }
+    if (column.name === "TM" && isDataHubRookiesView()) {
+      // Rookies Draft TM header icon:
+      // TM belongs to Draft in every rookie table and gets its own class/color
+      // hook so edits do not affect AGE, RD/PK, PK#, or other TM icons.
+      svg.classList.add("stats-table__head-icon--rookie-draft-tm");
+    }
+    if (
+      column.name === "AGE"
+      && isDataHubRookiesView()
+      && (isDataHubRookiesTradeView() || state.activeCategory !== "overview")
+    ) {
+      // Rookies Draft AGE header icon:
+      // AGE is in Draft for rookie subviews outside the career overview, while
+      // overview keeps AGE in Info; this class only targets the Draft cases.
+      svg.classList.add("stats-table__head-icon--rookie-draft-age");
     }
     if ((column.name === "HT" || column.name === "WT") && isDataHubRookiesView()) {
       // Rookie Info column header icons:

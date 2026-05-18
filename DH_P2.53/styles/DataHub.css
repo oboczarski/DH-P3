@@ -2906,7 +2906,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .stats-table__group-header-icon--material-filled {
-  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  fill: #e276fe;
   stroke: none;
   stroke-width: 0;
 }
@@ -3023,7 +3023,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] 
 body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RD & PK#"] .stats-table__head-icon--rookie-rd-pk {
   width: 18px;
   height: 18px;
-  fill: var(--column-icon-color, rgb(98 135 183));
+  fill: #be75ff;
   stroke: none;
   stroke-width: 0;
 }
@@ -3034,9 +3034,29 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RD & PK
 body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
   width: 20px;
   height: 20px;
-  fill: var(--column-icon-color, rgb(98 135 183));
+  fill: #be75ff;
   stroke: none;
   stroke-width: 0;
+}
+
+/* Rookies Draft TM column header icon:
+   separate color/size hook so the TM Draft icon can match RD/PK and PK#
+   without changing AGE, RD/PK, PK#, or non-rookie TM icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TM"] .stats-table__head-icon--rookie-draft-tm {
+  width: 15px;
+  height: 15px;
+  color: #be75ff;
+  stroke: #be75ff;
+}
+
+/* Rookies Draft AGE column header icon:
+   separate color/size hook for the Draft AGE cases only; overview AGE remains
+   an Info-group icon and does not receive this class. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="AGE"] .stats-table__head-icon--rookie-draft-age {
+  width: 15px;
+  height: 15px;
+  color: #be75ff;
+  stroke: #be75ff;
 }
 
 /* Rookies HT column header icon:
@@ -4192,6 +4212,21 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
     width: 17px;
     height: 16px;
+  }
+
+  /* Mobile Rookies Draft TM header icon:
+     mobile-only size hook for TM so edits do not affect AGE or draft-pick
+     Material icons. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TM"] .stats-table__head-icon--rookie-draft-tm {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* Mobile Rookies Draft AGE header icon:
+     mobile-only size hook for AGE only when it belongs to the Draft group. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="AGE"] .stats-table__head-icon--rookie-draft-age {
+    width: 13px;
+    height: 13px;
   }
 
   /* Mobile Rookies HT header icon:
