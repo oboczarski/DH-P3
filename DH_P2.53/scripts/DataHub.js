@@ -700,8 +700,8 @@ const STATS_COLUMN_SETS = {
 };
 // Rookie career table schemas:
 // these page-local column sets mirror the requested college-career layouts,
-// while duplicate source stats like passing ATT get unique internal keys so
-// DataHub can keep column groups, widths, and separators stable.
+// while keeping each visible metric in exactly one group so DataHub can keep
+// column groups, widths, and separators stable.
 const ROOKIES_CAREER_COLUMN_SETS = {
   overview: [
     ...ROOKIES_IDENTITY_COLUMNS,
@@ -721,7 +721,6 @@ const ROOKIES_CAREER_COLUMN_SETS = {
     "pIMP",
     "INT",
     "SAC",
-    "paATT_EFF",
     "CMP%",
     "YPA",
     "pIMP/ATT",
@@ -802,7 +801,6 @@ const SOURCE_ALIASES = {
   RK: "PRK_PPR",
   FPTS: "FPT_PPR",
   G: "GM",
-  "paATT_EFF": "paATT",
   "KTC 1QB": null,
   "KTC SFLX": null,
   "1QB ADP": null,
@@ -995,7 +993,6 @@ const COLUMN_ICONS = {
   paTD:      "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3", // CheckCircle
   "CMP%":    DATAHUB_LUCIDE_ICON_MARKUP.RefreshCcwDot,
   paATT:     DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
-  "paATT_EFF": DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
   paRTG:     DATAHUB_LUCIDE_ICON_MARKUP.Flame,
   "EPA/DB":  DATAHUB_LUCIDE_ICON_MARKUP.LocateFixed,
   CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
@@ -1527,7 +1524,10 @@ const ROOKIES_CAREER_SCROLL_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "PASSING EFFICIENCY",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkle,
-      columns: ["paATT_EFF", "CMP%", "YPA", "pIMP/ATT"],
+      // Rookies Passing Efficiency:
+      // ATT belongs only in Passing Production, so this group starts at CMP%
+      // and no longer repeats the same source attempts column under an alias.
+      columns: ["CMP%", "YPA", "pIMP/ATT"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.PASSING_EFFICIENCY,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.PASSING_EFFICIENCY,
       formatFamily: ROOKIE_CAREER_FORMATTING_FAMILIES.PASSING_EFFICIENCY,
@@ -2159,7 +2159,6 @@ const COLUMN_WIDTHS = {
   paTD: 90,
   "CMP%": 92,
   paATT: 96,
-  "paATT_EFF": 96,
   paRTG: 98,
   "EPA/DB": 96,
   CPOE: 94,
@@ -2298,7 +2297,6 @@ const MOBILE_COLUMN_WIDTHS = {
   paTD: 50,
   "CMP%": 58,
   paATT: 56,
-  "paATT_EFF": 58,
   paRTG: 56,
   "EPA/DB": 58,
   CPOE: 53,
@@ -2376,6 +2374,18 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
 });
 const ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...MOBILE_COLUMN_WIDTHS,
+  // Mobile Rookies Passing Production widths:
+  // these override only the Rookies tab so ATT/YDS/TD/1D do not inherit the
+  // wider NFL Stats mobile widths while the main Stats passing table is left
+  // unchanged. Values mirror similarly short rookie columns after scroll scale.
+  paATT: 46,
+  CMP: 46,
+  paYDS: 50,
+  paTD: 40,
+  pa1D: 42,
+  pIMP: 46,
+  INT: 42,
+  SAC: 42,
   // Mobile Rookies Draft/Prospect Ranks widths:
   // match career/trade layouts column-for-column while giving combined RK
   // enough room for examples like "83 (QB · 24)" without clipping.
@@ -3628,7 +3638,6 @@ function buildRookieCareerSourceRow(category, row) {
     sourceRow.pIMP = row.pIMP;
     sourceRow.INT = row.INT;
     sourceRow.SAC = row.SAC;
-    sourceRow["paATT_EFF"] = row.paATT;
     sourceRow["CMP%"] = row["CMP%"];
     sourceRow.YPA = row.YPA;
     sourceRow["pIMP/ATT"] = row["pIMP/ATT"];
@@ -8026,10 +8035,6 @@ function getColumnLabel(columnName) {
 
   if (!isDataHubRookiesCareerView()) {
     return baseLabel;
-  }
-
-  if (columnName === "paATT_EFF") {
-    return "ATT";
   }
 
   return baseLabel.replace(/^(pa|ru|rec)/, "");
