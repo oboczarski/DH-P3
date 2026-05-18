@@ -3031,6 +3031,28 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"
   stroke-width: 0;
 }
 
+/* Rookies HT column header icon:
+   desktop-specific hook for the requested filled Material-style height icon
+   without affecting WT or other Info group icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="HT"] .stats-table__head-icon--rookie-ht {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Rookies WT column header icon:
+   desktop-specific hook for the requested filled Material-style weight icon
+   without affecting HT or other Info group icons. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .stats-table__head-icon--rookie-wt {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 .stats-table__head-label {
   /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
@@ -4129,6 +4151,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      scoped separately so the pick-number Material icon can be adjusted without
      changing RD/PK or non-rookie table headers. */
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Mobile Rookies HT header icon:
+     scoped separately so the height Material icon can be adjusted without
+     changing WT or non-rookie table headers. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="HT"] .stats-table__head-icon--rookie-ht {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Mobile Rookies WT header icon:
+     scoped separately so the weight Material icon can be adjusted without
+     changing HT or non-rookie table headers. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .stats-table__head-icon--rookie-wt {
     width: 14px;
     height: 14px;
   }
