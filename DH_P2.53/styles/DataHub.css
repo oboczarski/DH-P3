@@ -3082,9 +3082,10 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .s
   stroke-width: 0;
 }
 
-/* CFB column header icon:
-   uses the requested filled Material-style glyph with its own desktop sizing
-   hook so it can be adjusted without affecting AGE, HT, WT, or 40dsh. */
+/* TM / CFB column header icons:
+  both columns share the same filled Material-style glyph and sizing hook so
+  TM now renders through the exact same table-icon treatment as CFB. */
+body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
 body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
   width: 18px;
   height: 18px;
@@ -4246,9 +4247,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 16px;
   }
 
-  /* Mobile CFB header icon:
-     individual sizing hook for the filled CFB glyph in compact rookie tables. */
-  body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
+    /* Mobile TM / CFB header icons:
+      keep the shared filled glyph sizing aligned for both columns in compact
+      DataHub tables without changing HT, WT, or 40dsh. */
+    body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
+    body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
     width: 15px;
     height: 15px;
   }
