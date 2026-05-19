@@ -307,6 +307,7 @@ body::after {
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     0 4px 12px rgba(44, 109, 214, 0.2),
     0 0 20px rgba(114, 151, 255, 0.1);
+  gap: 1px !important;
 }
 
 .nav-item.is-active::before {
@@ -5466,7 +5467,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: clamp(16px, 0.9vw + 16px, 24px);
     fill: var(--datahub-leaguehub-desktop-fill, currentColor);
   }
-
+@media (min-width: 1200px) and (max-width: 1349px) {
+  body[data-page="datahub"] .app-header--desktop .nav-icon--leaguehub-filled {
+  width: clamp(16px, 0.9vw + 17px, 20px);
+  height: clamp(16px, 0.9vw + 16px, 20px);
+  fill: var(--datahub-leaguehub-desktop-fill, currentColor);
+  }
+}
   .brand-lockup {
     gap: clamp(4px, 0vw, 3px);
   }
@@ -5618,10 +5625,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .header-shell--nav .nav-item {
     flex: 0 0 calc(99px + ((100vw - 1350px) / 115) * 5);
     width: calc(99px + ((100vw - 1350px) / 115) * 5);
-    min-width: calc(99px + ((118vw - 1350px) / 115) * 5);
+    min-width: calc(74px + ((118vw - 1350px) / 115) * 13);
     justify-content: center;
     padding-inline: calc(6px + ((100vw - 1350px) / 115) * 2);
-    gap: calc(5px + ((100vw - 1350px) / 115) * 1);
+    gap: 3px;
   }
 }
 
@@ -5635,7 +5642,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     width: calc(90px + ((100vw - 1200px) / 149) * 9);
     min-width: calc(90px + ((100vw - 1200px) / 149) * 9);
     justify-content: center;
-    padding-inline: 5px;
+    padding-inline: 3px;
     gap: 4px;
   }
 
@@ -5645,6 +5652,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .header-shell--nav .nav-icon {
     width: 21px;
     height: 21px;
+    margin-bottom: 1px;
   }
 
   .header-shell--nav .nav-item span {
