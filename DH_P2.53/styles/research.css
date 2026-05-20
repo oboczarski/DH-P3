@@ -299,7 +299,7 @@ body[data-page="research"] .research-meta-separator {
   justify-content: center;
   gap: 0.3rem;
   padding: 0.18rem;
-  border-radius: 12px;
+  border-radius: 17px;
   background: rgb(12 15 28 / 10%);
   border: 1px solid rgba(132, 146, 255, 0.16);
   box-shadow: 0 10px 18px rgba(5, 8, 16, 0.36);
@@ -308,7 +308,7 @@ body[data-page="research"] .research-meta-separator {
 .syop-tab {
   flex: 1 1 200px;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 0.42rem 0.6rem;
   background: transparent;
   color: rgba(182, 185, 214, 0.85);
@@ -713,17 +713,17 @@ body[data-page="research"] .syop-sunburst-metric-label {
    style, and tracking so visual tuning does not require chart JS changes. */
 body[data-page="research"] .syop-sunburst-metric-base--sp {
   fill: #c7ffda;
-  font-weight: 600;
+  font-weight: 400;
   font-style: normal;
   letter-spacing: 0.01em;
-  text-shadow: 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%);
+  text-shadow: 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%);
 }
 
 body[data-page="research"] .syop-sunburst-metric-base--bo {
-  fill: #272b2f;
-  font-weight: 500;
+  fill: #dae3ec;
+  font-weight: 400;
   font-style: normal;
-  text-shadow: 0px 0px 1px rgb(101 193 255 / 66%), 1px 1px 1px rgb(101 193 255 / 66%);
+  text-shadow: 0px 0px 1px rgb(101 193 255 / 46%), 1px 1px 1px rgb(101 193 255 / 36%);
 }
 
 /* SYOP Sunburst suffix glyphs: Lambda/Mode color, relative size, and SP/BO
@@ -731,7 +731,7 @@ body[data-page="research"] .syop-sunburst-metric-base--bo {
 body[data-page="research"] .syop-sunburst-metric-suffix {
   --syop-sunburst-suffix-gap: 0px;
   baseline-shift: -8%;
-  font-size: max(calc(24px * var(--syop-sunburst-scale, 1)), 16px);
+  font-size: max(calc(23px * var(--syop-sunburst-scale, 1)), 16px);
   font-weight: 600;
   letter-spacing: 0;
   transform: translateX(var(--syop-sunburst-suffix-gap));
@@ -747,12 +747,12 @@ body[data-page="research"] .syop-sunburst-metric-label--bo .syop-sunburst-metric
 
 body[data-page="research"] .syop-sunburst-metric-suffix--lambda {
   fill: #F5FBFF;
-  text-shadow: 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%);
+  text-shadow: 1px 1px 1px rgb(0 138 231 / 36%), 1px 1px 1px rgb(0 138 231 / 35%), 1px 1px 1px rgb(0 138 231 / 36%);
 }
 
 body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   fill: #f1c1c1;
-  text-shadow: -1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%);
+  text-shadow: 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%), 1px 1px 1px rgb(61 0 255 / 46%);
 }
 
 .syop-empty-state {

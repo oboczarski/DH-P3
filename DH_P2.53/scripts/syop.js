@@ -13,10 +13,10 @@
     accentA: '#3BE4E4',
     accentB: '#7C83FF',
     accentC: '#FF75D1',
-    qb: '#6311ee',
-    rb: '#730fff',
-    wr: '#8021ff',
-    te: '#922fff'
+    qb: '#6000ff',
+    rb: '#690fff',
+    wr: '#7621ff',
+    te: '#842fff'
   };
 
   const SUNBURST_NODES = [
@@ -472,8 +472,8 @@
         fill: colors.text,
         'text-anchor': 'middle',
         'dominant-baseline': 'middle',
-        'font-size': fontSize(22, 16),
-        'font-weight': '800',
+        'font-size': fontSize(26, 20),
+        'font-weight': '600',
         'paint-order': 'stroke',
         stroke: textStroke,
         'stroke-width': Math.max(0.45, 0.6 * scale).toFixed(3),
