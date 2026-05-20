@@ -3158,6 +3158,58 @@ body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rut
   stroke-width: 0;
 }
 
+/* KTC 1QB column header icon:
+   filled Material-style value-cycle glyph with its own desktop sizing hook so
+   1QB KTC can be tuned without touching KTC SFLX or market-adp icons. */
+body[data-page="datahub"] [data-column-name="KTC 1QB"] .stats-table__head-icon--ktc-1qb-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* KTC SFLX column header icon:
+   filled Material-style value-cycle glyph with a separate desktop hook from
+   KTC 1QB so the two market columns can be adjusted independently. */
+body[data-page="datahub"] [data-column-name="KTC SFLX"] .stats-table__head-icon--ktc-sflx-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* CMP% column header icon:
+   filled Material-style glyph for completion rate with an individual desktop
+   hook so it does not share sizing with KTC, TS%, or other percent columns. */
+body[data-page="datahub"] [data-column-name="CMP%"] .stats-table__head-icon--cmp-percent-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* TS% column header icon:
+   moved former CMP% stroke glyph gets its own desktop size hook without
+   changing CMP% or the other receiving-efficiency icons. */
+body[data-page="datahub"] [data-column-name="TS%"] .stats-table__head-icon--ts-percent {
+  width: 16px;
+  height: 16px;
+}
+
+/* CSTY% column header icon:
+   filled Material-style consistency-cycle glyph with an individual desktop
+   hook separate from FPOE and CL in the same column group. */
+body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--csty-percent-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 .stats-table__head-label {
   /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
@@ -4344,6 +4396,46 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact sizing hook for the filled rushing-touchdown glyph without
      changing other touchdown header icons. */
   body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile KTC 1QB header icon:
+     compact size hook for the filled value-cycle glyph, scoped separately from
+     KTC SFLX for independent mobile tuning. */
+  body[data-page="datahub"] [data-column-name="KTC 1QB"] .stats-table__head-icon--ktc-1qb-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile KTC SFLX header icon:
+     compact size hook for the filled value-cycle glyph without sharing edits
+     with the KTC 1QB column. */
+  body[data-page="datahub"] [data-column-name="KTC SFLX"] .stats-table__head-icon--ktc-sflx-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile CMP% header icon:
+     compact hook for the filled completion-rate glyph without changing KTC or
+     TS% header icon sizing. */
+  body[data-page="datahub"] [data-column-name="CMP%"] .stats-table__head-icon--cmp-percent-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile TS% header icon:
+     compact hook for the moved former CMP% stroke glyph without changing the
+     new filled CMP% icon. */
+  body[data-page="datahub"] [data-column-name="TS%"] .stats-table__head-icon--ts-percent {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Mobile CSTY% header icon:
+     compact hook for the filled consistency-cycle glyph separate from the rest
+     of the ceiling-and-consistency group. */
+  body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--csty-percent-material {
     width: 15px;
     height: 15px;
   }
