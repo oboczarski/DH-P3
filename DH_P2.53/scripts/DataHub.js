@@ -584,6 +584,7 @@ const STATS_COLUMN_SETS = {
     "OPP",
     "IMP",
     "IMP/OPP",
+    "FPOE",
     "CSTY%",
     "CL",
   ],
@@ -1088,6 +1089,7 @@ const SHARED_GROUP_HEADER_ICON_COLORS = Object.freeze({
   INFO: "#888bff",
   FANTASY: "#dfc689",
   OVERVIEW_STATS: "#8454ff",
+  CEILING: "#ff6752",
 });
 
 const SHARED_COLUMN_ICON_COLORS = Object.freeze({
@@ -1095,6 +1097,7 @@ const SHARED_COLUMN_ICON_COLORS = Object.freeze({
   INFO: "#828be2",
   FANTASY: "#ac9a70",
   OVERVIEW_STATS: "#6E35FF",
+  CEILING: "#fd6759",
 });
 
 // Rookies Draft column icon color:
@@ -1282,9 +1285,19 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "OVERVIEW STATS",
       icon: CURRENT_OVERVIEW_STATS_GROUP_ICON,
-      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP", "CSTY%", "CL"],
+      columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
+    }),
+    createDataHubColumnGroup({
+      label: "CEILING & CONSISTENCY",
+      icon: CURRENT_CEILING_GROUP_ICON,
+      // Stats overview ceiling group:
+      // mirrors the Passing/Rushing/Receiving group so default overview keeps
+      // FPOE, consistency, and ceiling under the same header treatment.
+      columns: ["FPOE", "CSTY%", "CL"],
+      groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.CEILING,
+      columnIconColor: SHARED_COLUMN_ICON_COLORS.CEILING,
     }),
   ]),
   passing: Object.freeze([
