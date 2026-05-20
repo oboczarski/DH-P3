@@ -712,19 +712,18 @@ body[data-page="research"] .syop-sunburst-metric-label {
 /* SYOP Sunburst metric base letters: CSS owns the SP/BO color, weight,
    style, and tracking so visual tuning does not require chart JS changes. */
 body[data-page="research"] .syop-sunburst-metric-base--sp {
-  fill: #93DDF4;
+  fill: #c7ffda;
   font-weight: 600;
   font-style: normal;
   letter-spacing: 0.01em;
-  text-shadow: 0 0 4px rgba(147, 221, 244, 0.52);
+  text-shadow: 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%);
 }
 
 body[data-page="research"] .syop-sunburst-metric-base--bo {
-  fill: #7b77f7;
+  fill: #272b2f;
   font-weight: 500;
   font-style: normal;
-  letter-spacing: -0.05em;
-  text-shadow: 0 0 4px rgba(215, 167, 245, 0.46);
+  text-shadow: 0px 0px 1px rgb(101 193 255 / 66%), 1px 1px 1px rgb(101 193 255 / 66%);
 }
 
 /* SYOP Sunburst suffix glyphs: Lambda/Mode color, relative size, and SP/BO
@@ -748,12 +747,12 @@ body[data-page="research"] .syop-sunburst-metric-label--bo .syop-sunburst-metric
 
 body[data-page="research"] .syop-sunburst-metric-suffix--lambda {
   fill: #F5FBFF;
-  text-shadow: 0px 0px 3px rgb(0 138 231 / 96%), 0px 0px 3px rgb(0 138 231 / 96%), 0px 0px 4px rgb(0 138 231 / 96%);
+  text-shadow: 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%), 1px 1px 1px rgb(0 138 231 / 96%);
 }
 
 body[data-page="research"] .syop-sunburst-metric-suffix--mode {
-  fill: #5900ff;
-  text-shadow: 0 0 4px rgba(174, 183, 232, 0.46);
+  fill: #f1c1c1;
+  text-shadow: -1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%), 1px 1px 1px rgb(61 0 255 / 96%);
 }
 
 .syop-empty-state {
