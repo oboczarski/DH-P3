@@ -381,24 +381,7 @@
     return text.replace(/\s*yrs?\.?/gi, '').trim();
   }
 
-  const SUNBURST_METRIC_TONES = {
-    sp: {
-      baseFill: '#67E8F9',
-      suffixFill: '#F5FBFF',
-      baseWeight: '400',
-      fontStyle: 'normal',
-      letterSpacing: '0.01em',
-      suffixGap: 1
-    },
-    bo: {
-      baseFill: '#FF8AC9',
-      suffixFill: '#FFD166',
-      baseWeight: '400',
-      fontStyle: 'normal',
-      letterSpacing: '0.01em',
-      suffixGap: 1.6
-    }
-  };
+  const SYOP_CHART_FONT_FAMILY = '"Product Sans", "Google Sans", "Quicksand"';
 
   function getSunburstMetricParts(abbr) {
     if (typeof abbr !== 'string') return null;
@@ -406,8 +389,9 @@
     if (chars.length < 3) return null;
     const base = chars.slice(0, -1).join('');
     const suffix = chars[chars.length - 1];
-    if (base === 'ꜱᴘ') return { kind: 'sp', base, suffix };
-    if (base === 'ʙᴏ') return { kind: 'bo', base, suffix };
+    const baseKind = base === 'ꜱᴘ' ? 'sp' : base === 'ʙᴏ' ? 'bo' : null;
+    const suffixKind = suffix === 'ᴧ' ? 'lambda' : suffix === 'ϻ' ? 'mode' : null;
+    if (baseKind && suffixKind) return { baseKind, suffixKind, base, suffix };
     return null;
   }
 
@@ -445,6 +429,7 @@
       width: String(size),
       height: String(size),
       class: 'syop-sunburst-svg',
+      style: `--syop-sunburst-scale: ${scale};`,
       role: 'img',
       'aria-labelledby': 'syop-infographic-heading'
     });
@@ -492,7 +477,7 @@
         'paint-order': 'stroke',
         stroke: textStroke,
         'stroke-width': Math.max(0.45, 0.6 * scale).toFixed(3),
-        'font-family': '"Quicksand", "Product Sans", sans-serif'
+        'font-family': SYOP_CHART_FONT_FAMILY
       });
       text.appendChild(document.createTextNode(segment.node.label));
       const subtitleText = stripYearSuffix(segment.node.subtitle);
@@ -503,7 +488,7 @@
           'font-size': fontSize(15, 13),
           'font-weight': '700',
           fill: colors.text,
-          'font-family': '"Quicksand", "Product Sans", sans-serif'
+          'font-family': SYOP_CHART_FONT_FAMILY
         }, document.createTextNode(subtitleText));
         text.appendChild(subtitle);
       }
@@ -525,41 +510,26 @@
       const center = labelAt(cx, cy, radius, mid);
       const metricAbbr = segment.node.abbr || segment.node.label;
       const metricParts = getSunburstMetricParts(metricAbbr);
-      const metricTone = metricParts ? SUNBURST_METRIC_TONES[metricParts.kind] : null;
       const label = createSVG('text', {
         x: center.x,
         y: center.y - 2 * scale,
-        class: metricParts ? `syop-sunburst-metric-label syop-sunburst-metric-label--${metricParts.kind}` : 'syop-sunburst-metric-label',
-        fill: metricTone?.baseFill || labelAccent,
+        class: metricParts ? `syop-sunburst-metric-label syop-sunburst-metric-label--${metricParts.baseKind} syop-sunburst-metric-label--${metricParts.suffixKind}` : 'syop-sunburst-metric-label',
+        fill: labelAccent,
         'text-anchor': 'middle',
         'dominant-baseline': 'middle',
-        'font-size': fontSize(21, 15),
-        'font-weight': metricTone?.baseWeight || '400',
         'paint-order': 'stroke',
         stroke: textStroke,
-        'stroke-width': Math.max(0.4, 0.6 * scale).toFixed(3),
-        'font-family': '"Quicksand", "Product Sans", sans-serif'
+        'stroke-width': Math.max(0.4, 0.6 * scale).toFixed(3)
       });
 
-      // SYOP Sunburst metric labels: split the SP/BO base from the Lambda/Mode
-      // suffix so the suffix can read larger while SP and BO get distinct tones.
-      if (metricParts && metricTone) {
+      // SYOP Sunburst metric labels: JS only splits label parts into semantic
+      // classes; CSS owns base/suffix colors, sizing, weight, and spacing.
+      if (metricParts) {
         label.appendChild(createSVG('tspan', {
-          class: `syop-sunburst-metric-base syop-sunburst-metric-base--${metricParts.kind}`,
-          fill: metricTone.baseFill,
-          'font-size': fontSize(21, 15),
-          'font-weight': metricTone.baseWeight,
-          'font-style': metricTone.fontStyle,
-          'letter-spacing': metricTone.letterSpacing
+          class: `syop-sunburst-metric-base syop-sunburst-metric-base--${metricParts.baseKind}`
         }, document.createTextNode(metricParts.base)));
         label.appendChild(createSVG('tspan', {
-          class: `syop-sunburst-metric-suffix syop-sunburst-metric-suffix--${metricParts.kind}`,
-          fill: metricTone.suffixFill,
-          dx: `${metricTone.suffixGap * scale}`,
-          'font-size': fontSize(27, 18),
-          'font-weight': '900',
-          'baseline-shift': '-8%',
-          'letter-spacing': '0'
+          class: `syop-sunburst-metric-suffix syop-sunburst-metric-suffix--${metricParts.suffixKind}`
         }, document.createTextNode(metricParts.suffix)));
       } else {
         label.appendChild(document.createTextNode(metricAbbr));
@@ -577,7 +547,7 @@
           'paint-order': 'stroke',
           stroke: textStroke,
           'stroke-width': Math.max(0.42, 0.65 * scale).toFixed(3),
-          'font-family': '"Quicksand", "Product Sans", sans-serif'
+          'font-family': SYOP_CHART_FONT_FAMILY
         }, document.createTextNode(stat)));
       }
       svg.appendChild(label);
@@ -603,7 +573,7 @@
       'paint-order': 'stroke',
       stroke: textStroke,
       'stroke-width': Math.max(0.45, 0.64 * scale).toFixed(3),
-      'font-family': '"Quicksand", "Product Sans", sans-serif'
+      'font-family': SYOP_CHART_FONT_FAMILY
     }, document.createTextNode('Λ | Mean'));
     svg.appendChild(titleTop);
 
@@ -617,13 +587,13 @@
       'paint-order': 'stroke',
       stroke: textStroke,
       'stroke-width': Math.max(0.45, 0.64 * scale).toFixed(3),
-      'font-family': '"Quicksand", "Product Sans", sans-serif'
+      'font-family': SYOP_CHART_FONT_FAMILY
     }, document.createTextNode('ϻ | Mode'));
     svg.appendChild(titleBottom);
 
     if (root?.subtitle) { svg.appendChild(createSVG('text', { x: cx, y: cy + 29 * scale, fill: colors.subtext, 'font-size': '11px', 'font-weight': '400',
         'text-anchor': 'middle',
-        'font-family': '"Quicksand", "Product Sans", sans-serif'
+        'font-family': SYOP_CHART_FONT_FAMILY
       }, document.createTextNode(root.subtitle)));
     }
 

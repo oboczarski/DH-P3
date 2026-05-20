@@ -690,8 +690,7 @@ body[data-page="research"] .research-meta-separator {
 
 .syop-chart svg text,
 .syop-sunburst-svg text {
-  font-family: inherit;
-  font-variant-numeric: tabular-nums;
+  font-family: Product Sans, Google Sans;
 }
 
 .syop-sunburst-svg {
@@ -701,18 +700,60 @@ body[data-page="research"] .research-meta-separator {
   margin: 0 auto;
 }
 
-/* SYOP Sunburst metric label accents: cool SP and warm BO styling only targets
-   the generated Sunburst SVG labels, keeping the rest of Research untouched. */
+/* SYOP Sunburst metric label accents: scoped only to generated chart labels so
+   SP/BO base styles and Lambda/Mode suffix styles do not affect other text. */
 body[data-page="research"] .syop-sunburst-metric-label {
-  text-rendering: geometricPrecision;
+  filter: drop-shadow(0 0 3px rgba(245, 251, 255, 0.28));
+  font-size: max(calc(21px * var(--syop-sunburst-scale, 1)), 15px);
+  font-weight: 400;
+  transform: translateY(-6px);
 }
 
-body[data-page="research"] .syop-sunburst-metric-label--sp {
-  filter: drop-shadow(0 0 4px rgba(103, 232, 249, 0.58));
+/* SYOP Sunburst metric base letters: CSS owns the SP/BO color, weight,
+   style, and tracking so visual tuning does not require chart JS changes. */
+body[data-page="research"] .syop-sunburst-metric-base--sp {
+  fill: #93DDF4;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 4px rgba(147, 221, 244, 0.52);
 }
 
-body[data-page="research"] .syop-sunburst-metric-label--bo {
-  filter: drop-shadow(0 0 4px rgba(255, 138, 201, 0.5));
+body[data-page="research"] .syop-sunburst-metric-base--bo {
+  fill: #7b77f7;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: -0.05em;
+  text-shadow: 0 0 4px rgba(215, 167, 245, 0.46);
+}
+
+/* SYOP Sunburst suffix glyphs: Lambda/Mode color, relative size, and SP/BO
+   offset are CSS-driven while the SVG keeps semantic classes only. */
+body[data-page="research"] .syop-sunburst-metric-suffix {
+  --syop-sunburst-suffix-gap: 0px;
+  baseline-shift: -8%;
+  font-size: max(calc(24px * var(--syop-sunburst-scale, 1)), 16px);
+  font-weight: 600;
+  letter-spacing: 0;
+  transform: translateX(var(--syop-sunburst-suffix-gap));
+}
+
+body[data-page="research"] .syop-sunburst-metric-label--sp .syop-sunburst-metric-suffix {
+  --syop-sunburst-suffix-gap: calc(1px * var(--syop-sunburst-scale, 1));
+}
+
+body[data-page="research"] .syop-sunburst-metric-label--bo .syop-sunburst-metric-suffix {
+  --syop-sunburst-suffix-gap: calc(1.35px * var(--syop-sunburst-scale, 1));
+}
+
+body[data-page="research"] .syop-sunburst-metric-suffix--lambda {
+  fill: #F5FBFF;
+  text-shadow: 0px 0px 3px rgb(0 138 231 / 96%), 0px 0px 3px rgb(0 138 231 / 96%), 0px 0px 4px rgb(0 138 231 / 96%);
+}
+
+body[data-page="research"] .syop-sunburst-metric-suffix--mode {
+  fill: #5900ff;
+  text-shadow: 0 0 4px rgba(174, 183, 232, 0.46);
 }
 
 .syop-empty-state {
