@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub table controls: bump the cache so browsers pick up the updated
-// top-of-table sort dropdown and mobile meta-chip styling after deploy.
-const CACHE_NAME = 'DH2.72';
+// SYOP Bar Graph Revamp: bump the cache so browsers pick up the brand-new
+// Liquid Glass cylinder tracks, neon position gradients, and glowing tooltips.
+const CACHE_NAME = 'DH2.73';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

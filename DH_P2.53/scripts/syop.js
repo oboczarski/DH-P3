@@ -2,6 +2,9 @@
   const PAGE_ID = 'research';
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
+  // Target: Brand-aligned colors for Dynasty Hub positions and visual panels.
+  // We use glowing, high-contrast neon values for position identification:
+  // QB = Rose Pink, RB = Mint/Teal, WR = Sky Blue, TE = Purple.
   const colors = {
     bg: '#0B0E16',
     panel: 'rgba(18, 21, 38, 0.78)',
@@ -13,10 +16,10 @@
     accentA: '#3BE4E4',
     accentB: '#7C83FF',
     accentC: '#FF75D1',
-    qb: '#6000ff',
-    rb: '#690fff',
-    wr: '#7621ff',
-    te: '#842fff'
+    qb: '#FF3A75',
+    rb: '#00EBD3',
+    wr: '#58A7FF',
+    te: '#B469FF'
   };
 
   const SUNBURST_NODES = [
@@ -65,34 +68,28 @@
     { key: 'TE', percentKey: 'TE %', label: 'Tight Ends', color: colors.te }
   ];
 
+  // Target: Liquid Glass gradient stops for the bar chart.
+  // Gradients run bottom-to-top (0% is bottom with lower opacity, 100% is top with high opacity).
   const BAR_GRADIENTS = {
     QB: [
-      { offset: '0%', color: '#FFF2F8', opacity: 0.24 },
-      { offset: '34%', color: '#FF8AB9', opacity: 0.36 },
-      { offset: '70%', color: '#FF3A75', opacity: 0.64 },
-      { offset: '100%', color: '#C01B56', opacity: 0.8 }
+      { offset: '0%', color: '#50031d', opacity: 0.35 },
+      { offset: '100%', color: '#FF3A75', opacity: 0.95 }
     ],
     RB: [
-      { offset: '0%', color: '#EBFFFB', opacity: 0.22 },
-      { offset: '32%', color: '#60F6E2', opacity: 0.34 },
-      { offset: '70%', color: '#00EBD3', opacity: 0.62 },
-      { offset: '100%', color: '#009E8B', opacity: 0.8 }
+      { offset: '0%', color: '#003d36', opacity: 0.35 },
+      { offset: '100%', color: '#00EBD3', opacity: 0.95 }
     ],
     WR: [
-      { offset: '0%', color: '#EFF6FF', opacity: 0.22 },
-      { offset: '32%', color: '#92C8FF', opacity: 0.38 },
-      { offset: '70%', color: '#58A7FF', opacity: 0.64 },
-      { offset: '100%', color: '#236FDD', opacity: 0.82 }
+      { offset: '0%', color: '#0d244f', opacity: 0.35 },
+      { offset: '100%', color: '#58A7FF', opacity: 0.95 }
     ],
     TE: [
-      { offset: '0%', color: '#F8F0FF', opacity: 0.22 },
-      { offset: '32%', color: '#CFA6FF', opacity: 0.4 },
-      { offset: '70%', color: '#B469FF', opacity: 0.66 },
-      { offset: '100%', color: '#712DCC', opacity: 0.84 }
+      { offset: '0%', color: '#2e0066', opacity: 0.35 },
+      { offset: '100%', color: '#B469FF', opacity: 0.95 }
     ],
     DEFAULT: [
-      { offset: '0%', color: '#8F97FF', opacity: 0.2 },
-      { offset: '100%', color: '#5C4BFF', opacity: 0.54 }
+      { offset: '0%', color: '#201066', opacity: 0.35 },
+      { offset: '100%', color: '#7C83FF', opacity: 0.95 }
     ]
   };
 
@@ -103,10 +100,11 @@
     TE: 42
   };
 
+  // Target: Average SYOP gauges. Corrected WR and RB color mapping properties.
   const GAUGES = [
     { key: 'QB', value: 7.22, color: colors.qb },
-    { key: 'RB', value: 3.39, color: colors.wr },
-    { key: 'WR', value: 4.9, color: colors.rb },
+    { key: 'RB', value: 3.39, color: colors.rb },
+    { key: 'WR', value: 4.9, color: colors.wr },
     { key: 'TE', value: 4.0, color: colors.te }
   ];
 
@@ -691,14 +689,17 @@
     drawSyopBarChart(plot, activeConfig, distribution, tooltip, container);
   }
 
+  // Target: Draw the premium Liquid Glass bar chart for the selected position.
+  // We render cylinder channels (tracks), liquid fills with top & vertical glossy highlights,
+  // and transparent interactive overlays to ensure massive touch targets on mobile.
   function drawSyopBarChart(plotContainer, config, distribution, tooltip, rootContainer) {
     const containerWidth = plotContainer.clientWidth || plotContainer.parentElement?.clientWidth || 320;
     const isCompact = window.innerWidth < 720 || containerWidth < 360;
     const width = Math.max(280, containerWidth);
     const height = isCompact ? 240 : 300;
     const margin = isCompact
-      ? { top: 20, right: 16, bottom: 64, left: 44 }
-      : { top: 26, right: 20, bottom: 74, left: 48 };
+      ? { top: 20, right: 16, bottom: 64, left: 46 }
+      : { top: 26, right: 20, bottom: 74, left: 54 };
 
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
@@ -747,6 +748,7 @@
     defs.appendChild(gradient);
     svg.appendChild(defs);
 
+    // Grid backdrop (very clean transparent rectangle)
     svg.appendChild(createSVG('rect', {
       x: margin.left,
       y: margin.top,
@@ -757,6 +759,7 @@
 
     const axisGroup = createSVG('g');
 
+    // Horizontal grid lines and tick labels
     for (let tick = 0; tick <= yMax; tick += tickStep) {
       const y = scaleY(tick);
       axisGroup.appendChild(createSVG('line', {
@@ -767,50 +770,44 @@
         class: 'syop-bar-grid'
       }));
       axisGroup.appendChild(createSVG('text', {
-        x: margin.left - 8,
+        x: margin.left - 10,
         y: y + 4,
         class: 'syop-bar-tick-label'
       }, document.createTextNode(`${tick}%`)));
     }
 
-    axisGroup.appendChild(createSVG('line', {
-      x1: margin.left,
-      x2: margin.left,
-      y1: margin.top,
-      y2: margin.top + chartHeight,
-      class: 'syop-bar-axis'
-    }));
-
+    // Grounding bottom axis line (no left axis line, as per clean aesthetics)
     axisGroup.appendChild(createSVG('line', {
       x1: margin.left,
       x2: margin.left + chartWidth,
       y1: margin.top + chartHeight,
       y2: margin.top + chartHeight,
-      class: 'syop-bar-axis'
+      class: 'syop-bar-axis-bottom'
     }));
 
+    // Y-Axis Title
     const axisTitleY = createSVG('text', {
-      x: margin.left - 35,
+      x: margin.left - 38,
       y: margin.top + chartHeight / 2,
       class: 'syop-bar-axis-title syop-bar-axis-title-y',
-      transform: `rotate(-90 ${margin.left - 35} ${margin.top + chartHeight / 2})`
+      transform: `rotate(-90 ${margin.left - 38} ${margin.top + chartHeight / 2})`
     }, document.createTextNode('% of position'));
-
     axisGroup.appendChild(axisTitleY);
 
+    // X-Axis Title
     const axisTitleX = createSVG('text', {
       x: margin.left + chartWidth / 2,
-      y: margin.top + chartHeight + 30,
+      y: margin.top + chartHeight + (isCompact ? 34 : 40),
       class: 'syop-bar-axis-title syop-bar-axis-title-x'
-    }, document.createTextNode('SYOP'));
-
+    }, document.createTextNode('SYOP (Significant Years of Production)'));
     axisGroup.appendChild(axisTitleX);
 
     svg.appendChild(axisGroup);
 
+    // Render bars and glass styling
     const bandWidth = chartWidth / Math.max(distribution.length, 1);
-    const barWidth = Math.max(10, bandWidth * 0.64);
-
+    // Keep 50% ratio so gaps are equal to bar widths, Clamp minimum to 12px for thin screens
+    const barWidth = Math.max(12, bandWidth * 0.50);
     const gradientStroke = (gradientStops[gradientStops.length - 1] || {}).color || config.color;
 
     distribution.forEach((entry, index) => {
@@ -818,21 +815,84 @@
       const barHeight = Math.max(0, margin.top + chartHeight - scaleY(value));
       const x = margin.left + index * bandWidth + (bandWidth - barWidth) / 2;
       const y = scaleY(value);
+
+      // 1. Background Cylinder Glass Track
+      const track = createSVG('rect', {
+        x,
+        y: margin.top,
+        width: barWidth,
+        height: chartHeight,
+        rx: barWidth / 2,
+        class: 'syop-bar-track'
+      });
+      svg.appendChild(track);
+
+      // 2. Liquid Fill Bar
       const rect = createSVG('rect', {
         x,
         y,
         width: barWidth,
         height: barHeight,
-        rx: 6,
+        rx: barWidth / 2,
         class: 'syop-bar-rect',
         style: `--bar-stroke: ${gradientStroke}; fill: url(#${gradientId});`,
-        tabindex: '0',
-        role: 'button',
-        'aria-label': `${config.key} ${Math.round(value * 10) / 10}%`
+        tabindex: '-1', // Focus is handled by the interactive cover instead
+        'pointer-events': 'none'
       });
-      attachBarInteractions(rect, config, value, tooltip, rootContainer, gradientStroke);
       svg.appendChild(rect);
 
+      // 3. Vertical Gloss Strip overlay (light source from top-left)
+      if (barHeight > 4) {
+        const glossX = x + barWidth * 0.12;
+        const glossWidth = barWidth * 0.16;
+        const glossHeight = barHeight - 4;
+        const glossRect = createSVG('rect', {
+          x: glossX,
+          y: y + 2,
+          width: glossWidth,
+          height: glossHeight,
+          rx: glossWidth / 2,
+          class: 'syop-bar-gloss-vertical',
+          fill: '#ffffff',
+          opacity: '0.18',
+          style: 'pointer-events: none;'
+        });
+        svg.appendChild(glossRect);
+      }
+
+      // 4. Top Curve Gloss reflection
+      if (barHeight > barWidth) {
+        const topHighlight = createSVG('ellipse', {
+          cx: x + barWidth / 2,
+          cy: y + barWidth * 0.22,
+          rx: barWidth * 0.20,
+          ry: barWidth * 0.10,
+          class: 'syop-bar-gloss-top',
+          fill: '#ffffff',
+          opacity: '0.25',
+          style: 'pointer-events: none;'
+        });
+        svg.appendChild(topHighlight);
+      }
+
+      // 5. Invisible Interactive Cover (provides massive touch/hover targets)
+      const bandX = margin.left + index * bandWidth;
+      const interactiveCover = createSVG('rect', {
+        x: bandX,
+        y: margin.top,
+        width: bandWidth,
+        height: chartHeight,
+        fill: 'transparent',
+        class: 'syop-bar-interactive-cover',
+        style: 'cursor: pointer; outline: none;',
+        tabindex: '0',
+        role: 'button',
+        'aria-label': `${config.key} bucket ${entry.bucket}: ${Math.round(value * 10) / 10}%`
+      });
+      attachBarInteractions(interactiveCover, rect, config, value, tooltip, rootContainer, gradientStroke);
+      svg.appendChild(interactiveCover);
+
+      // X-Axis Labels (Bucket numbers)
       const labelX = margin.left + index * bandWidth + bandWidth / 2;
       svg.appendChild(createSVG('text', {
         x: labelX,
@@ -844,28 +904,32 @@
     plotContainer.appendChild(svg);
   }
 
-  function attachBarInteractions(element, config, percentage, tooltip, rootContainer, accentColor) {
+  // Target: Bar hover/tap interactions.
+  // Adds active states to the visual liquid fill rect element, sets up the glass tooltip properties,
+  // and positions the tooltip instantly above the bar.
+  function attachBarInteractions(element, rectElement, config, percentage, tooltip, rootContainer, accentColor) {
     if (!tooltip) return;
     const color = accentColor || config.color;
     const formattedPercent = `${Math.round(percentage * 10) / 10}%`;
 
     const hideTooltip = () => {
-      element.classList.remove('active');
+      rectElement.classList.remove('active');
       tooltip.classList.remove('visible');
     };
 
     const showTooltip = () => {
-      element.classList.add('active');
+      rectElement.classList.add('active');
       tooltip.innerHTML = '';
       tooltip.style.setProperty('--tooltip-accent', color);
       tooltip.appendChild(createEl('div', { class: 'tooltip-name' }, config.key));
       tooltip.appendChild(createEl('div', { class: 'tooltip-meta' }, formattedPercent));
 
       const rootRect = rootContainer.getBoundingClientRect();
-      const barRect = element.getBoundingClientRect();
+      const barRect = rectElement.getBoundingClientRect();
       const containerWidth = rootRect.width;
       let left = barRect.left - rootRect.left + barRect.width / 2;
       left = Math.max(20, Math.min(containerWidth - 20, left));
+      // Position tooltip relative to the top of the actual liquid fill bar, not the full height of the track!
       const top = barRect.top - rootRect.top - 8;
       tooltip.style.left = `${left}px`;
       tooltip.style.top = `${top}px`;
