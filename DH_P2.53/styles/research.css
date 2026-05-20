@@ -1393,7 +1393,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0rem;
   padding: 0.85rem 0.85rem 1rem;
   border-radius: 20px;
   background:
@@ -1433,13 +1433,13 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 1rem;
+  gap: 0rem;
 }
 
 .syop-violin-title-block {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0rem;
 }
 
 .syop-violin-title {
@@ -1498,14 +1498,14 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
 }
 
 .syop-bar-area {
-  fill: rgba(8, 12, 24, 0.08);
-  stroke: rgba(148, 162, 255, 0.1);
-  stroke-width: 1px;
+  fill: rgba(228, 212, 224, 0.005);
+  stroke: rgba(148, 162, 255, 0);
+  stroke-width: 0px;
 }
 
 .syop-bar-grid {
-  stroke: rgba(255, 255, 255, 0.05);
-  stroke-width: 1;
+  stroke: rgba(255, 255, 255, 0.00);
+  stroke-width: 0px;
 }
 
 .syop-bar-axis {
@@ -1521,9 +1521,9 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
 }
 
 .syop-bar-axis-title {
-  font-size: 0.62rem;
+  font-size: 0.8rem;
   fill: rgba(176, 186, 226, 0.82);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-anchor: middle;
 }
@@ -1534,8 +1534,8 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
 
 .syop-bar-axis-title-x {
   text-anchor: middle;
-  font-size: 0.72rem;
-  font-weight: 700 !important;
+  font-size: 0.82rem;
+  font-weight: 500 !important;
 }
 
 .syop-bar-x-label {
@@ -1543,14 +1543,15 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   fill: rgba(186, 194, 230, 0.88);
   letter-spacing: 0.06em;
   text-anchor: middle;
+  transform: translateY(-5px);
 }
 
 .syop-bar-rect {
   fill: var(--bar-fill, rgba(124, 131, 255, 0.28));
   stroke: var(--bar-stroke, rgba(124, 131, 255, 0.6));
-  stroke-width: 1.6;
+  stroke-width: 0.6px;
   cursor: pointer;
-  opacity: 0.88;
+  opacity: 1;
   transition: transform 0.18s ease, stroke-width 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
   filter: drop-shadow(0 12px 18px rgba(5, 9, 24, 0.32));
 }
@@ -1672,7 +1673,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
 
 @media (max-width: 920px) {
   .syop-violin-panel {
-    padding: 0.8rem 0.85rem 0.95rem;
+    padding: 0.5rem 0.65rem;
   }
 }
 

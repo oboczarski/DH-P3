@@ -67,10 +67,10 @@
 
   const BAR_GRADIENTS = {
     QB: [
-      { offset: '0%', color: '#FFF2F8', opacity: 0.24 },
-      { offset: '34%', color: '#FF8AB9', opacity: 0.36 },
-      { offset: '70%', color: '#FF3A75', opacity: 0.64 },
-      { offset: '100%', color: '#C01B56', opacity: 0.8 }
+      { offset: '0%', color: '#ff906e', opacity: 0.14 },
+      { offset: '34%', color: '#ff4187', opacity: 0.26 },
+      { offset: '70%', color: '#FF3A75', opacity: 0.34 },
+      { offset: '100%', color: '#FF3A75', opacity: 0.5 }
     ],
     RB: [
       { offset: '0%', color: '#EBFFFB', opacity: 0.22 },
