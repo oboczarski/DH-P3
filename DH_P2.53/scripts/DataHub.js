@@ -931,6 +931,14 @@ const ROOKIE_WT_HEADER_ICON_MARKUP = '<path d="M117.37-111.87q-19.15 0-32.33-13.
 const CFB_HEADER_ICON_MARKUP = '<path d="M115.22-723.96v-92.65q0-12.43 10.81-19.27 10.82-6.84 22.25-1.12l91.89 46.33q12.44 5.95 12.44 20.39 0 14.43-12.44 20.39l-91.89 46.32q-11.43 5.72-22.25-1.11-10.81-6.84-10.81-19.28Zm607.41 0v-92.65q0-12.43 10.82-19.27 10.81-6.84 22.25-1.12l91.89 46.33q12.43 5.95 12.43 20.39 0 14.43-12.43 20.39l-91.89 46.32q-11.44 5.72-22.25-1.11-10.82-6.84-10.82-19.28Zm-286.7-41.43v-92.65q0-12.44 10.82-19.28 10.82-6.83 22.25-1.12l91.89 46.33q12.44 5.96 12.44 20.39 0 14.44-12.44 20.39L469-745q-11.43 5.72-22.25-1.12t-10.82-19.27ZM331.22-78.2Q222.7-88 146.8-118.05q-75.89-30.06-75.89-76.45V-560q0-27.15 32.46-50.45 32.46-23.29 87.89-40.87 55.44-17.57 129.99-27.67 74.55-10.1 158.75-10.1t158.75 10.1q74.55 10.1 129.99 27.67 55.43 17.58 87.89 40.87 32.46 23.3 32.46 50.45v365.5q0 47.15-76.39 76.85-76.4 29.69-185.16 39.98-10.19 1-17.91-6.22-7.72-7.22-7.72-17.41v-54.87q0-50.96-35.48-86.44-35.47-35.48-86.43-35.48-50.96 0-86.43 35.48-35.48 35.48-35.48 86.44v53.63q0 10.95-7.96 18.15-7.96 7.19-18.91 6.19ZM480-523.59q93.41 0 160.92-10.78 67.51-10.78 108.56-24.83-8.13-6.43-80.78-22.66-72.66-16.23-188.7-16.23-116.04 0-188.81 16.23-72.78 16.23-80.67 22.66 41.05 14.05 108.56 24.83 67.51 10.78 160.92 10.78Z" />';
 const MTF_HEADER_ICON_MARKUP = '<path d="m720.24-175.11-32.17 32.18q-12.68 12.67-31.33 12.67t-32.33-13.67q-12.67-12.68-12.79-31.83-.12-19.15 12.55-31.83l31.42-32.17-31.18-31.17q-12.67-12.68-12.67-31.33t12.67-32.33q13.44-13.67 32.21-13.79 18.77-.12 32.45 13.55l31.17 31.18 31.17-31.94q12.68-13.67 31.45-13.67t32.44 13.67q13.68 13.68 13.56 32.45-.12 18.77-13.79 32.44l-30.94 30.94 31.94 31.93q13.67 13.68 13.17 31.95t-14.17 31.95q-13.68 12.67-31.95 13.05-18.27.38-31.71-13.05l-31.17-31.18ZM263.6-211.14q10.66-10.66 10.66-26.23 0-15.56-10.66-26.23-10.67-10.66-26.23-10.66-15.57 0-26.23 10.66-10.66 10.67-10.66 26.23 0 15.57 10.66 26.23t26.23 10.66q15.56 0 26.23-10.66Zm-26.23 99.27q-52.39 0-88.95-36.55-36.55-36.56-36.55-88.95t36.55-88.95q36.56-36.55 88.95-36.55 36.76 0 67.62 19.78 30.86 19.79 46.29 53.59 36.61-10.28 59.92-40.13 23.3-29.85 23.3-67.98v-164.78q0-84.44 59.34-143.77 59.33-59.34 143.77-59.34h35.24l-26.63-26.63q-13.2-13.2-12.58-31.49.62-18.29 14.53-32.21 13.68-13.67 32.45-13.67 18.77 0 32.45 13.67l103 103.76q13.67 13.68 13.67 32.07t-13.67 32.07l-104 103.76q-12.68 12.67-31.57 12.93-18.89.26-33.28-13.89-13.2-12.44-13.2-30.99 0-18.55 12.44-31.75l26.63-26.63h-35.48q-46.65 0-79.38 32.73t-32.73 79.38v164.78q0 74.2-47.96 130.29-47.95 56.1-121.15 69.58-12.72 38.44-45.53 62.15-32.82 23.72-73.49 23.72Zm2.15-543.72-32.17 32.18q-12.68 12.67-31.33 12.67t-32.32-13.67q-12.68-12.68-12.8-31.83-.12-19.15 12.56-31.83l31.41-32.17-31.17-31.17q-12.68-12.68-12.68-31.33t12.68-32.33q13.43-13.67 32.2-13.79 18.77-.12 32.45 13.56l31.17 31.17 31.18-31.94q12.67-13.67 31.44-13.67 18.77 0 32.45 13.67 13.67 13.68 13.55 32.45-.12 18.77-13.79 32.45l-30.94 30.93 31.94 31.94q13.67 13.67 13.17 31.94-.5 18.27-14.17 31.95-13.68 12.67-31.95 13.05-18.27.38-31.7-13.05l-31.18-31.18Z" />';
 
+// DataHub receiving/rushing header icon swaps:
+// these filled Material-style paths are used anywhere the matching column
+// appears, while CSS gives each column an independent desktop/mobile size hook.
+const YPR_HEADER_ICON_MARKUP = '<path d="M529.59-165.04q-13.18-13.18-13.18-32.33v-263.52L323.83-653.24v44.5q0 19.15-13.18 32.33-13.17 13.17-32.32 13.17-19.16 0-32.33-13.17-13.17-13.18-13.17-32.33v-153.89q0-19.15 13.17-32.33 13.17-13.17 32.33-13.17h153.89q19.15 0 32.32 13.17 13.18 13.18 13.18 32.33t-13.18 32.33q-13.17 13.17-32.32 13.17h-44.5l193.35 193.59q12.43 12.43 19.39 29.08 6.95 16.66 6.95 34.81v262.28q0 19.15-13.17 32.33-13.17 13.17-32.33 13.17-19.15 0-32.32-13.17Z" />';
+const YAC_HEADER_ICON_MARKUP = '<path d="M447.67-457.48q-13.17-13.17-13.17-32.32v-224.29L287.35-567.7q-12.68 12.92-31.45 13.3-18.77.38-32.2-13.3-12.68-12.67-12.68-31.82t12.68-31.83l224.47-224.48q6.72-6.71 14.8-9.69 8.07-2.98 17.03-2.98t17.15 2.98q8.2 2.98 14.92 9.69l224.47 224.48q12.68 12.68 12.8 31.33.12 18.65-12.8 32.32-13.67 13.68-32.32 13.68t-32.33-13.68L525.5-714.09v224.29q0 19.15-13.17 32.32Q499.15-444.3 480-444.3t-32.33-13.18Zm0 201.44q-13.17-13.18-13.17-32.33v-30.43q0-19.16 13.17-32.33Q460.85-364.3 480-364.3t32.33 13.17q13.17 13.17 13.17 32.33v30.43q0 19.15-13.17 32.33-13.18 13.17-32.33 13.17t-32.33-13.17Zm0 171q-13.17-13.18-13.17-32.33t13.17-32.33q13.18-13.17 32.33-13.17t32.33 13.17q13.17 13.18 13.17 32.33t-13.17 32.33Q499.15-71.87 480-71.87t-32.33-13.17Z" />';
+const CTST_HEADER_ICON_MARKUP = '<path d="m298.7-777.57-21.77-64q-4.47-12.91 1.86-25.46 6.34-12.56 20.01-17.04 12.92-4.47 25.47 2.12 12.56 6.6 17.03 19.52l21.77 63.23q4.47 12.92-2.24 25.47-6.72 12.56-19.63 17.03-13.68 4.48-25.85-1.35-12.18-5.84-16.65-19.52Zm147-52.43v-60q0-14.67 9.81-24.49 9.82-9.81 24.49-9.81 14.67 0 24.49 9.81 9.81 9.82 9.81 24.49v60q0 14.67-9.81 24.49-9.82 9.81-24.49 9.81-14.67 0-24.49-9.81-9.81-9.82-9.81-24.49Zm152 30.57 21-63q4.47-12.92 16.65-19.14 12.17-6.21 25.85-1.73 12.91 4.47 19.63 17.15 6.71 12.67 2.24 25.58l-21.77 63q-4.47 12.92-17.03 19.52-12.55 6.59-25.47 2.12-12.91-4.48-19.25-17.54-6.33-13.05-1.85-25.96Zm63.19 730.54q-34.96-5.24-61.29-28.22-26.34-22.98-37.34-55.93l-33.76-106q-11.72-36.68-.52-72.61 11.19-35.94 40.54-59.42l48.52 151.05q2 8 9 11.5t15 1.5q8-2 11-9t1-15l-80.32-254.02q-13.24-42.2 2.74-82.89 15.97-40.7 54.41-61.7l14-7.76q16.91-8.96 34.95-3.62 18.03 5.34 26.98 22.25l160.64 298.72q3.8 7.61 11.03 11.79 7.23 4.18 15.6 4.18 9.56 1.68 16.01 10.44 6.44 8.76 4.44 19.04l-31.8 213.68q-2.48 19.15-17.27 29.7-14.8 10.56-33.95 8.08L660.89-68.89Zm-361.02 0L130.26-43.13q-19.15 2.48-33.94-8.08-14.8-10.55-17.28-29.7L46.52-289.8q-2-10.29 4.45-19.05 6.44-8.76 16.01-10.43 8.37 0 15.6-4.19 7.22-4.18 11.03-11.79l161.35-303.5q8.95-16.91 26.99-22.25 18.03-5.34 34.94 3.62l14 7.76q38.44 21 54.41 61.7 15.98 40.69 2.74 82.89l-81.08 254.02q-2 8 1 15t11 9q8 2 15-1.5t9-11.5l48.52-151.81q30.11 23.48 41.3 59.8 11.2 36.31-.52 72.99l-33.76 106q-11 32.95-37.34 55.93-26.33 22.98-61.29 28.22Z" />';
+const RUTD_HEADER_ICON_MARKUP = '<path d="m480-381 70.5 42.65q12.67 7.96 25.11-.74 12.43-8.69 8.96-23.37L566-443l62.98-54.7q11.43-10.19 6.84-24.37-4.6-14.17-20.28-15.41L533-544l-32.37-76.26q-5.72-13.91-20.63-13.91t-20.63 13.91L427-544l-82.54 6.52q-15.68 1.24-20.28 15.41-4.59 14.18 6.84 24.37L394-443l-18.57 80.54q-3.47 14.68 8.96 23.37 12.44 8.7 25.11.74L480-381ZM344.8-151.87H242.87q-37.78 0-64.39-26.61t-26.61-64.39V-344.8l-70.54-71.55q-12.68-13.43-19.4-29.97-6.71-16.53-6.71-33.68t6.71-33.68q6.72-16.54 19.4-29.97l70.54-71.55v-101.93q0-37.78 26.61-64.39t64.39-26.61H344.8l71.55-70.54q13.67-12.68 30.08-19.4 16.42-6.71 33.57-6.71t33.57 6.71q16.41 6.72 30.08 19.4l71.55 70.54h101.93q37.78 0 64.39 26.61t26.61 64.39v101.93l70.54 71.55q12.68 13.67 19.4 30.08 6.71 16.42 6.71 33.57t-6.71 33.57q-6.72 16.41-19.4 30.08l-70.54 71.55v101.93q0 37.78-26.61 64.39t-64.39 26.61H615.2l-71.55 70.54q-13.43 12.68-29.97 19.4-16.53 6.71-33.68 6.71t-33.68-6.71q-16.54-6.72-29.97-19.4l-71.55-70.54Zm38.55-91L480-146.22l96.65-96.65h140.48v-140.48L813.78-480l-96.65-96.65v-140.48H576.65L480-813.78l-96.65 96.65H242.87v140.48L146.22-480l96.65 96.65v140.48h140.48ZM480-480Z" />';
+
 // Rookies tier badges:
 // each TIER value gets the requested icon while the badge inherits the existing
 // rookie-tier heat color through currentColor in both Rookies subviews.
@@ -1001,7 +1009,7 @@ const COLUMN_ICONS = {
   YPA:       DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
   paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
   ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
-  ruTD:      DATAHUB_LUCIDE_ICON_MARKUP.ArrowUp10,
+  ruTD:      RUTD_HEADER_ICON_MARKUP,
   pa1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
   "IMP/G":   DATAHUB_LUCIDE_ICON_MARKUP.Fan,
   pIMP:      "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8 12l3 3 5-5", // Target+check
@@ -1029,7 +1037,7 @@ const COLUMN_ICONS = {
   RYOE:      DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
   recTD:     DATAHUB_LUCIDE_ICON_MARKUP.CircleCheckBig,
   rec1D:     DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
-  YAC:       DATAHUB_LUCIDE_ICON_MARKUP.Waypoints,
+  YAC:       YAC_HEADER_ICON_MARKUP,
   "TS%":     DATAHUB_LUCIDE_ICON_MARKUP.HandCoins,
   YPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompareArrows,
   TPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompare,
@@ -1037,24 +1045,21 @@ const COLUMN_ICONS = {
   recYPG:    DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
   "AY%":     DATAHUB_LUCIDE_ICON_MARKUP.PlaneTakeoff,
   AY:        DATAHUB_LUCIDE_ICON_MARKUP.PlaneTakeoff,
-  YPR:       DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
+  YPR:       YPR_HEADER_ICON_MARKUP,
   RR:        DATAHUB_LUCIDE_ICON_MARKUP.GitPullRequestDraft,
   "IMP/RR":  DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
   "TGT%":    DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
   tgtQBR:    DATAHUB_LUCIDE_ICON_MARKUP.Flame,
-  "CTST%":   DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
+  "CTST%":   CTST_HEADER_ICON_MARKUP,
   "DROP%":   DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
   "RZ Tgt":  "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target
   ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
 };
 
-const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
-  rushing: Object.freeze({
-    // Rushing-category receiving subsection:
-    // YAC intentionally uses a different icon here than the receiving table.
-    YAC: DATAHUB_LUCIDE_ICON_MARKUP.MoveDiagonal,
-  }),
-});
+// Stats column icon overrides:
+// kept as an explicit extension point, but currently empty because YAC now uses
+// the requested icon anywhere that column appears across DataHub tables.
+const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({});
 
 // ---------------------------------------------------------------------------
 // Column group definitions per view. Each group has a label and lists the
@@ -7647,6 +7652,34 @@ function createHeaderCell(column, columnIconColor) {
       // reuses the former MTF Zap stroke glyph and gets an individual hook so
       // its size can be tuned independently from MTF/A and YCO.
       svg.classList.add("stats-table__head-icon--yco-a");
+    }
+    if (column.name === "YPR") {
+      // YPR column header icon:
+      // uses the requested filled Material-style yards-per-reception glyph and
+      // a dedicated class for desktop/mobile size tuning.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--ypr-material");
+    }
+    if (column.name === "YAC") {
+      // YAC column header icon:
+      // applies the requested filled Material-style yards-after-catch glyph in
+      // every table where YAC appears, including stats-category subsections.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--yac-material");
+    }
+    if (column.name === "CTST%") {
+      // CTST% column header icon:
+      // uses the requested filled Material-style contested-catch glyph with an
+      // isolated sizing hook so it does not affect other percent headers.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--ctst-material");
+    }
+    if (column.name === "ruTD") {
+      // ruTD column header icon:
+      // swaps the rushing-touchdown header to the requested filled
+      // Material-style badge icon across all DataHub tables.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--rutd-material");
     }
     if (columnIconColor) {
       svg.style.setProperty("--column-icon-color", columnIconColor);

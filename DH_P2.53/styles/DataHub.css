@@ -3114,6 +3114,50 @@ body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yc
   stroke-width: 3px;
 }
 
+/* YPR column header icon:
+   filled Material-style icon for yards per reception with an individual
+   desktop size/color hook separate from other receiving headers. */
+body[data-page="datahub"] [data-column-name="YPR"] .stats-table__head-icon--ypr-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* YAC column header icon:
+   filled Material-style icon for yards after catch with an individual
+   desktop size/color hook that applies anywhere YAC appears. */
+body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* CTST% column header icon:
+   filled Material-style icon for contested-catch rate with its own desktop
+   sizing hook so other percentage headers are untouched. */
+body[data-page="datahub"] [data-column-name="CTST%"] .stats-table__head-icon--ctst-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* ruTD column header icon:
+   filled Material-style icon for rushing touchdowns with an individual
+   desktop size/color hook separate from passing/receiving TD headers. */
+body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 .stats-table__head-label {
   /* no flex: 1 — label sizes to content so icon+label center together */
   display: block;
@@ -4270,6 +4314,38 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a {
     width: 14px;
     height: 14px;
+  }
+
+  /* Mobile YPR header icon:
+     compact sizing hook for the filled yards-per-reception glyph without
+     changing YAC, CTST%, or other receiving headers. */
+  body[data-page="datahub"] [data-column-name="YPR"] .stats-table__head-icon--ypr-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile YAC header icon:
+     compact sizing hook for the filled yards-after-catch glyph wherever the
+     YAC column appears in DataHub mobile tables. */
+  body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile CTST% header icon:
+     compact sizing hook for the filled contested-catch glyph without changing
+     the shared percentage-icon defaults. */
+  body[data-page="datahub"] [data-column-name="CTST%"] .stats-table__head-icon--ctst-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile ruTD header icon:
+     compact sizing hook for the filled rushing-touchdown glyph without
+     changing other touchdown header icons. */
+  body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+    width: 15px;
+    height: 15px;
   }
 
   .stats-table__sort-indicator {
