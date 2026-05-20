@@ -701,6 +701,20 @@ body[data-page="research"] .research-meta-separator {
   margin: 0 auto;
 }
 
+/* SYOP Sunburst metric label accents: cool SP and warm BO styling only targets
+   the generated Sunburst SVG labels, keeping the rest of Research untouched. */
+body[data-page="research"] .syop-sunburst-metric-label {
+  text-rendering: geometricPrecision;
+}
+
+body[data-page="research"] .syop-sunburst-metric-label--sp {
+  filter: drop-shadow(0 0 4px rgba(103, 232, 249, 0.58));
+}
+
+body[data-page="research"] .syop-sunburst-metric-label--bo {
+  filter: drop-shadow(0 0 4px rgba(255, 138, 201, 0.5));
+}
+
 .syop-empty-state {
   margin: 2rem auto;
   text-align: center;

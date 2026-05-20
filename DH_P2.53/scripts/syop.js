@@ -381,6 +381,36 @@
     return text.replace(/\s*yrs?\.?/gi, '').trim();
   }
 
+  const SUNBURST_METRIC_TONES = {
+    sp: {
+      baseFill: '#67E8F9',
+      suffixFill: '#F5FBFF',
+      baseWeight: '400',
+      fontStyle: 'normal',
+      letterSpacing: '0.01em',
+      suffixGap: 1
+    },
+    bo: {
+      baseFill: '#FF8AC9',
+      suffixFill: '#FFD166',
+      baseWeight: '400',
+      fontStyle: 'normal',
+      letterSpacing: '0.01em',
+      suffixGap: 1.6
+    }
+  };
+
+  function getSunburstMetricParts(abbr) {
+    if (typeof abbr !== 'string') return null;
+    const chars = Array.from(abbr.trim());
+    if (chars.length < 3) return null;
+    const base = chars.slice(0, -1).join('');
+    const suffix = chars[chars.length - 1];
+    if (base === 'ꜱᴘ') return { kind: 'sp', base, suffix };
+    if (base === 'ʙᴏ') return { kind: 'bo', base, suffix };
+    return null;
+  }
+
   const labelAccent = '#9096C0';
 
   function renderSunburst() {
@@ -493,20 +523,48 @@
       const mid = (segment.a0 + segment.a1) / 2;
       const radius = (inner2 + outer2) / 2;
       const center = labelAt(cx, cy, radius, mid);
+      const metricAbbr = segment.node.abbr || segment.node.label;
+      const metricParts = getSunburstMetricParts(metricAbbr);
+      const metricTone = metricParts ? SUNBURST_METRIC_TONES[metricParts.kind] : null;
       const label = createSVG('text', {
         x: center.x,
         y: center.y - 2 * scale,
-        fill: labelAccent,
+        class: metricParts ? `syop-sunburst-metric-label syop-sunburst-metric-label--${metricParts.kind}` : 'syop-sunburst-metric-label',
+        fill: metricTone?.baseFill || labelAccent,
         'text-anchor': 'middle',
         'dominant-baseline': 'middle',
-        'font-size': fontSize(22, 15),
-        'font-weight': '400',
+        'font-size': fontSize(21, 15),
+        'font-weight': metricTone?.baseWeight || '400',
         'paint-order': 'stroke',
         stroke: textStroke,
         'stroke-width': Math.max(0.4, 0.6 * scale).toFixed(3),
         'font-family': '"Quicksand", "Product Sans", sans-serif'
       });
-      label.appendChild(document.createTextNode(segment.node.abbr || segment.node.label));
+
+      // SYOP Sunburst metric labels: split the SP/BO base from the Lambda/Mode
+      // suffix so the suffix can read larger while SP and BO get distinct tones.
+      if (metricParts && metricTone) {
+        label.appendChild(createSVG('tspan', {
+          class: `syop-sunburst-metric-base syop-sunburst-metric-base--${metricParts.kind}`,
+          fill: metricTone.baseFill,
+          'font-size': fontSize(21, 15),
+          'font-weight': metricTone.baseWeight,
+          'font-style': metricTone.fontStyle,
+          'letter-spacing': metricTone.letterSpacing
+        }, document.createTextNode(metricParts.base)));
+        label.appendChild(createSVG('tspan', {
+          class: `syop-sunburst-metric-suffix syop-sunburst-metric-suffix--${metricParts.kind}`,
+          fill: metricTone.suffixFill,
+          dx: `${metricTone.suffixGap * scale}`,
+          'font-size': fontSize(27, 18),
+          'font-weight': '900',
+          'baseline-shift': '-8%',
+          'letter-spacing': '0'
+        }, document.createTextNode(metricParts.suffix)));
+      } else {
+        label.appendChild(document.createTextNode(metricAbbr));
+      }
+
       const statRaw = segment.node.stat || (segment.node.subtitle ? segment.node.subtitle.replace(/[^0-9.]+/g, '') : '');
       const stat = stripYearSuffix(statRaw);
       if (stat) {
