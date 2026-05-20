@@ -699,10 +699,12 @@
     const containerWidth = plotContainer.clientWidth || plotContainer.parentElement?.clientWidth || 320;
     const isCompact = window.innerWidth < 720 || containerWidth < 360;
     const width = Math.max(280, containerWidth);
-    const height = isCompact ? 240 : 300;
+    // SYOP tab bar-chart SVG: keep the generated viewBox tight around the
+    // x-axis labels/title so the chart card does not render dead space below.
+    const height = isCompact ? 226 : 280;
     const margin = isCompact
-      ? { top: 20, right: 16, bottom: 64, left: 44 }
-      : { top: 26, right: 20, bottom: 74, left: 48 };
+      ? { top: 20, right: 16, bottom: 44, left: 44 }
+      : { top: 26, right: 20, bottom: 48, left: 48 };
 
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
