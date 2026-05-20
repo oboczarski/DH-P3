@@ -65,6 +65,10 @@
     { key: 'TE', percentKey: 'TE %', label: 'Tight Ends', color: colors.te }
   ];
 
+  // SYOP bar-chart gradients: QB establishes the translation pattern from a
+  // simple 2-color reference gradient into SVG stops — a tuned lead color,
+  // the exact reference endpoint at the mid stop, then a slightly deeper tail
+  // color for the final stops using the same opacity ramp.
   const BAR_GRADIENTS = {
     QB: [
       { offset: '0%', color: '#ff906e', opacity: 0.14 },
@@ -73,22 +77,22 @@
       { offset: '100%', color: '#FF3A75', opacity: 0.5 }
     ],
     RB: [
-      { offset: '0%', color: '#EBFFFB', opacity: 0.22 },
-      { offset: '32%', color: '#60F6E2', opacity: 0.34 },
-      { offset: '70%', color: '#00EBD3', opacity: 0.62 },
-      { offset: '100%', color: '#009E8B', opacity: 0.8 }
+      { offset: '0%', color: '#26ccff', opacity: 0.14 },
+      { offset: '34%', color: '#45ffd0', opacity: 0.26 },
+      { offset: '70%', color: '#05efb4', opacity: 0.34 },
+      { offset: '100%', color: '#05efb4', opacity: 0.5 }
     ],
     WR: [
-      { offset: '0%', color: '#EFF6FF', opacity: 0.22 },
-      { offset: '32%', color: '#92C8FF', opacity: 0.38 },
-      { offset: '70%', color: '#58A7FF', opacity: 0.64 },
-      { offset: '100%', color: '#236FDD', opacity: 0.82 }
+      { offset: '0%', color: '#8b5fff', opacity: 0.14 },
+      { offset: '34%', color: '#0299fe', opacity: 0.26 },
+      { offset: '70%', color: '#028eea', opacity: 0.34 },
+      { offset: '100%', color: '#028eea', opacity: 0.5 }
     ],
     TE: [
-      { offset: '0%', color: '#F8F0FF', opacity: 0.22 },
-      { offset: '32%', color: '#CFA6FF', opacity: 0.4 },
-      { offset: '70%', color: '#B469FF', opacity: 0.66 },
-      { offset: '100%', color: '#712DCC', opacity: 0.84 }
+      { offset: '0%', color: '#ff74d2', opacity: 0.14 },
+      { offset: '34%', color: '#7f2fff', opacity: 0.26 },
+      { offset: '70%', color: '#7429ed', opacity: 0.34 },
+      { offset: '100%', color: '#7429ed', opacity: 0.5 }
     ],
     DEFAULT: [
       { offset: '0%', color: '#8F97FF', opacity: 0.2 },

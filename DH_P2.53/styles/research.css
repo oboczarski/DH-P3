@@ -1434,6 +1434,9 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   align-items: center;
   justify-content: flex-start;
   gap: 0rem;
+  margin-bottom: -8px;
+  border-bottom: 1px solid #3349;
+  padding-bottom: 3px;
 }
 
 .syop-violin-title-block {
