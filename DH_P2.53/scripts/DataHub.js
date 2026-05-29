@@ -383,26 +383,38 @@ const DATAHUB_ROOKIES_CHART_TEMPLATE = `
   </div>
 `;
 
+const DATAHUB_ROOKIES_TEAM_LOGO_KEY_MAP = Object.freeze({
+  WSH: "was",
+  WAS: "was",
+  JAC: "jax",
+  JAX: "jax",
+  LA: "lar",
+});
+
 // Rookies hero chart reference data:
-// these constants preserve the standalone prospect tier-map layout so the
-// DataHub rookies tab can use the same geometry and rendering behavior.
+// targets the rookies-tab tier-map widget only. Grades are rounded up to whole
+// numbers here, and each player carries a team abbreviation so the chart can
+// render the matching local NFL logo inside the player orb.
 const DATAHUB_ROOKIES_CHART_PLAYERS = Object.freeze([
-  { name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB" },
-  { name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB" },
-  { name: "Carnell Tate", grade: 89, tier: 2, pos: "WR" },
-  { name: "Makai Lemon", grade: 88, tier: 2, pos: "WR" },
-  { name: "Jordyn Tyson", grade: 87, tier: 2, pos: "WR" },
-  { name: "KC Concepcion", grade: 84, tier: 3, pos: "WR" },
-  { name: "Kenyon Sadiq", grade: 80, tier: 3, pos: "TE" },
-  { name: "Omar Cooper", grade: 81, tier: 3, pos: "WR" },
-  { name: "Denzel Boston", grade: 80, tier: 3, pos: "WR" },
-  { name: "Jadarian Price", grade: 74, tier: 4, pos: "RB" },
-  { name: "Ty Simpson", grade: 76, tier: 4, pos: "QB" },
-  { name: "Eli Stowers", grade: 77, tier: 4, pos: "TE" },
-  { name: "Mike Washington", grade: 73, tier: 4, pos: "RB" },
-  { name: "Jonah Coleman", grade: 72, tier: 4, pos: "RB" },
-  { name: "Elijah Sarratt", grade: 75, tier: 4, pos: "WR" },
-  { name: "Emmett Johnson", grade: 70, tier: 4, pos: "RB" },
+  { rank: 1, sleeperId: "13287", name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB", team: "ARI" },
+  { rank: 2, sleeperId: "13269", name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB", team: "LV" },
+  { rank: 3, sleeperId: "13279", name: "Carnell Tate", grade: 89, tier: 2, pos: "WR", team: "TEN" },
+  { rank: 4, sleeperId: "13281", name: "Jordyn Tyson", grade: 88, tier: 2, pos: "WR", team: "NO" },
+  { rank: 5, sleeperId: "13294", name: "Makai Lemon", grade: 87, tier: 2, pos: "WR", team: "PHI" },
+  { rank: 6, sleeperId: "13298", name: "KC Concepcion", grade: 84, tier: 3, pos: "WR", team: "CLE" },
+  { rank: 7, sleeperId: "13330", name: "Kenyon Sadiq", grade: 82, tier: 3, pos: "TE", team: "NYJ" },
+  { rank: 8, sleeperId: "13276", name: "Omar Cooper Jr.", grade: 82, tier: 3, pos: "WR", team: "NYJ" },
+  { rank: 9, sleeperId: "13417", name: "De'Zhaun Stribling", grade: 81, tier: 3, pos: "WR", team: "SF" },
+  { rank: 10, sleeperId: "13286", name: "Jadarian Price", grade: 79, tier: 3, pos: "RB", team: "SEA" },
+  { rank: 11, sleeperId: "13349", name: "Eli Stowers", grade: 79, tier: 3, pos: "TE", team: "PHI" },
+  { rank: 12, sleeperId: "13301", name: "Antonio Williams", grade: 77, tier: 4, pos: "WR", team: "WAS" },
+  { rank: 13, sleeperId: "13346", name: "Denzel Boston", grade: 76, tier: 4, pos: "WR", team: "CLE" },
+  { rank: 14, sleeperId: "13345", name: "Jonah Coleman", grade: 75, tier: 4, pos: "RB", team: "DEN" },
+  { rank: 15, sleeperId: "13274", name: "Germie Bernard", grade: 74, tier: 4, pos: "WR", team: "PIT" },
+  { rank: 16, sleeperId: "13296", name: "Caleb Douglas", grade: 73, tier: 4, pos: "WR", team: "MIA" },
+  { rank: 17, sleeperId: "13311", name: "Chris Bell", grade: 73, tier: 4, pos: "WR", team: "MIA" },
+  { rank: 18, sleeperId: "13414", name: "Kaelon Black", grade: 72, tier: 4, pos: "RB", team: "SF" },
+  { rank: 19, sleeperId: "13285", name: "Malachi Fields", grade: 72, tier: 4, pos: "WR", team: "NYG" },
 ]);
 
 const DATAHUB_ROOKIES_TIER_LABELS = Object.freeze({
@@ -417,36 +429,38 @@ const DATAHUB_ROOKIES_REFERENCE_CENTER_X = 600;
 const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
 const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   centerNodeRadius: 102,
-  centerScale: 0.955,
-  outerScale: 1.08,
+  centerScale: 0.94,
+  outerScale: 1.04,
   backdropInset: 18,
-  chartPadding: { top: 12, right: 10, bottom: 10, left: 10 },
+  chartPadding: { top: 14, right: 12, bottom: 12, left: 12 },
   coreOrbit3Radius: 170,
   coreRingInnerRadius: 128,
   bands: {
-    2: { radius: 214, width: 76, nodeRadius: 58, angles: [0, 106, 180, 276] },
-    3: { radius: 324, width: 74, nodeRadius: 52, angles: [56, 140, 228, 318] },
+    2: { radius: 218, width: 70, nodeRadius: 57, angles: [315, 45, 135, 225] },
+    3: { radius: 318, width: 74, nodeRadius: 48, angles: [72, 108, 180, 252, 288, 0] },
     4: {
-      radius: 434,
-      width: 72,
-      nodeRadius: 46,
-      angles: [34, 72, 126, 180, 234, 288, 326],
+      radius: 442,
+      width: 76,
+      nodeRadius: 42,
+      angles: [330, 30, 75, 105, 150, 210, 255, 285],
     },
   },
-  radialOffsets: {
-    "Jonah Coleman": 34,
-    "Emmett Johnson": 34,
-  },
+  radialOffsets: {},
 });
 
 const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
   const tierIndices = { 2: 0, 3: 0, 4: 0 };
 
   return DATAHUB_ROOKIES_CHART_PLAYERS.map((player) => {
+    const basePlayer = {
+      ...player,
+      shortName: formatDataHubRookiesShortName(player.name, player.tier === 1),
+      teamLogoSrc: getDataHubRookiesTeamLogoSrc(player.team),
+    };
+
     if (player.tier === 1) {
       return {
-        ...player,
-        shortName: formatDataHubRookiesShortName(player.name),
+        ...basePlayer,
         angle: 0,
         x: DATAHUB_ROOKIES_REFERENCE_CENTER_X,
         y: DATAHUB_ROOKIES_REFERENCE_CENTER_Y,
@@ -465,8 +479,7 @@ const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
     );
 
     return {
-      ...player,
-      shortName: formatDataHubRookiesShortName(player.name),
+      ...basePlayer,
       angle,
       x: point.x,
       y: point.y,
@@ -4926,9 +4939,29 @@ function dataHubIsVisiblePaint(paint) {
   return parts.length < 4 || parts[3] > 0.002;
 }
 
-function formatDataHubRookiesShortName(name) {
+function getDataHubRookiesTeamLogoSrc(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  const normalizedKey = DATAHUB_ROOKIES_TEAM_LOGO_KEY_MAP[teamKey] || teamKey.toLowerCase();
+  return `../assets/NFL_logos_svg/${normalizedKey}.svg`;
+}
+
+function formatDataHubRookiesShortName(name, includeInitial = true) {
   const parts = String(name || "").trim().split(" ").filter(Boolean);
-  return parts.length <= 1 ? String(name || "") : `${parts[0][0]}. ${parts[parts.length - 1]}`;
+  if (parts.length <= 1) {
+    return String(name || "");
+  }
+
+  // Rookies chart name chips:
+  // keep suffix names like "Omar Cooper Jr." readable in the compact orb chip
+  // instead of collapsing to "O. Jr."; outer nodes use last-name chips to keep
+  // the larger team logos readable without causing side-cluster overlap.
+  const suffixes = new Set(["jr.", "sr.", "ii", "iii", "iv", "v"]);
+  const lastPart = parts[parts.length - 1].toLowerCase();
+  const finalName = suffixes.has(lastPart)
+    ? `${parts[parts.length - 2]} ${parts[parts.length - 1]}`
+    : parts[parts.length - 1];
+
+  return includeInitial ? `${parts[0][0]}. ${finalName}` : finalName;
 }
 
 function dataHubPolarToCartesian(cx, cy, radius, angleFromTop) {
@@ -5260,6 +5293,32 @@ function readDataHubRookiesChartTheme(shellEl, echartsApi) {
           },
         },
       },
+      team: {
+        gap: {
+          center: dataHubCssNum(styles, "--chart-name-logo-gap-center", 4),
+          outer: dataHubCssNum(styles, "--chart-name-logo-gap-outer", 2.4),
+        },
+        logo: {
+          center: {
+            factor: dataHubCssNum(styles, "--chart-name-logo-size-factor-center", 0.48),
+            min: dataHubCssNum(styles, "--chart-name-logo-size-min-center", 14),
+            max: dataHubCssNum(styles, "--chart-name-logo-size-max-center", 18),
+          },
+          outer: {
+            factor: dataHubCssNum(styles, "--chart-name-logo-size-factor-outer", 0.68),
+            min: dataHubCssNum(styles, "--chart-name-logo-size-min-outer", 10),
+            max: dataHubCssNum(styles, "--chart-name-logo-size-max-outer", 14.2),
+          },
+          opacity: dataHubCssNum(styles, "--chart-name-logo-opacity", 0.98),
+          shadowColor: dataHubCssVar(styles, "--chart-name-logo-shadow-color", "rgba(0,0,0,0.68)"),
+          shadowBlur: {
+            center: dataHubCssNum(styles, "--chart-name-logo-shadow-blur-center", 5.2),
+            outer: dataHubCssNum(styles, "--chart-name-logo-shadow-blur-outer", 3.2),
+          },
+          wellFill: dataHubCssVar(styles, "--chart-name-logo-well-fill", "rgba(255,255,255,0.09)"),
+          wellStroke: dataHubCssVar(styles, "--chart-name-logo-well-stroke", "rgba(255,255,255,0.18)"),
+        },
+      },
       grade: {
         center: {
           weight: dataHubCssNum(styles, "--chart-grade-font-weight-center", 400),
@@ -5343,6 +5402,7 @@ function computeDataHubRookiesChartLayout(width, height, theme) {
     const posTheme = isCenter ? theme.type.pos.center : theme.type.pos.outer;
     const gradeTheme = isCenter ? theme.type.grade.center : theme.type.grade.outer;
     const nameTheme = isCenter ? theme.type.name.center : theme.type.name.outer;
+    const teamLogoTheme = isCenter ? theme.type.team.logo.center : theme.type.team.logo.outer;
     const nodeRadius = player.nodeRadius * scale * (
       isCenter ? DATAHUB_ROOKIES_GEOMETRY.centerScale : DATAHUB_ROOKIES_GEOMETRY.outerScale
     );
@@ -5350,6 +5410,23 @@ function computeDataHubRookiesChartLayout(width, height, theme) {
       + (isCenter ? 0 : posTheme.bumpByTier[player.tier] || 0);
     const gradeFontSize = dataHubClamp(nodeRadius * gradeTheme.factor, gradeTheme.min, gradeTheme.max)
       + (isCenter ? 0 : gradeTheme.bumpByTier[player.tier] || 0);
+    const nameFontSize = isCenter
+      ? dataHubClamp(nodeRadius * nameTheme.factor, nameTheme.min, nameTheme.max)
+      : getDataHubRookiesOuterNameSize(player.shortName, nodeRadius, nameTheme);
+    const teamLogoSize = dataHubClamp(
+      nodeRadius * teamLogoTheme.factor,
+      teamLogoTheme.min,
+      teamLogoTheme.max,
+    );
+    const nameLogoGap = isCenter ? theme.type.team.gap.center : theme.type.team.gap.outer;
+    const nameChipPadding = isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer;
+    const nameTextWidth = player.shortName.length * nameFontSize * (isCenter ? 0.54 : 0.55);
+    const nameChipWidth = nameChipPadding[3] + nameTextWidth + nameLogoGap + teamLogoSize + nameChipPadding[1];
+    const nameChipHeight = (
+      Math.max(nameFontSize * (isCenter ? 1.15 : 1.12), teamLogoSize)
+      + nameChipPadding[0]
+      + nameChipPadding[2]
+    );
     const posGap = isCenter ? theme.type.stackGap.center : theme.type.stackGap.outer;
     const posSeparation = Math.round((
       (posFontSize * (isCenter ? 0.58 : 0.54))
@@ -5376,12 +5453,15 @@ function computeDataHubRookiesChartLayout(width, height, theme) {
       ),
       innerRadius: isCenter ? Math.max(14, nodeRadius - Math.max(4, 14 * scale)) : 0,
       posFontSize,
+      teamLogoSize,
+      nameLogoGap,
+      nameTextWidth,
+      nameChipWidth,
+      nameChipHeight,
       gradeFontSize,
       posSeparation,
       gradeOffsetY: isCenter ? -nodeRadius * 0.01 : nodeRadius * 0.04,
-      nameFontSize: isCenter
-        ? dataHubClamp(nodeRadius * nameTheme.factor, nameTheme.min, nameTheme.max)
-        : getDataHubRookiesOuterNameSize(player.shortName, nodeRadius, nameTheme),
+      nameFontSize,
       nameOffsetY: isCenter
         ? nodeRadius * 0.73
         : player.tier === 4
@@ -5732,6 +5812,8 @@ function buildDataHubRookiesTextLayer({
   borderRadius,
   shadowBlur,
   shadowColor,
+  textAlign = "center",
+  textVerticalAlign = "middle",
 }) {
   return {
     type: "text",
@@ -5755,9 +5837,115 @@ function buildDataHubRookiesTextLayer({
       ...(borderRadius ? { borderRadius } : {}),
       ...(shadowBlur ? { shadowBlur } : {}),
       ...(shadowColor ? { shadowColor } : {}),
-      textAlign: "center",
-      textVerticalAlign: "middle",
+      textAlign,
+      textVerticalAlign,
     },
+  };
+}
+
+function buildDataHubRookiesImageLayer({
+  x,
+  y,
+  width,
+  height,
+  image,
+  opacity,
+  shadowBlur,
+  shadowColor,
+}) {
+  return {
+    type: "image",
+    silent: true,
+    style: {
+      image,
+      x: x - width / 2,
+      y: y - height / 2,
+      width,
+      height,
+      opacity,
+      shadowBlur,
+      shadowColor,
+    },
+  };
+}
+
+function buildDataHubRookiesNameChipGroup(item, x, y, theme, isCenter, echartsApi) {
+  const chipPadding = isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer;
+  const chipX = x - item.nameChipWidth / 2;
+  const chipY = y + item.nameOffsetY - item.nameChipHeight / 2;
+  const textX = chipX + chipPadding[3];
+  const imageX = textX + item.nameTextWidth + item.nameLogoGap + item.teamLogoSize / 2;
+  const imageY = chipY + item.nameChipHeight / 2;
+  const chipColor = item.color;
+
+  // Rookies chart name chip:
+  // draws the player short name and larger team logo together at the bottom of
+  // each orb so team identity is readable without crowding the POS/grade stack.
+  return {
+    type: "group",
+    silent: true,
+    children: [
+      {
+        type: "rect",
+        silent: true,
+        shape: {
+          x: chipX,
+          y: chipY,
+          width: item.nameChipWidth,
+          height: item.nameChipHeight,
+          r: theme.nodes.nameChip.borderRadius,
+        },
+        style: {
+          fill: isCenter ? theme.nodes.nameChip.bg.center : theme.nodes.nameChip.bg.outer,
+          stroke: dataHubAlpha(
+            echartsApi,
+            chipColor,
+            isCenter ? theme.nodes.nameChip.borderAlpha.center : theme.nodes.nameChip.borderAlpha.outer,
+          ),
+          lineWidth: theme.nodes.nameChip.borderWidth,
+          shadowBlur: isCenter ? theme.nodes.nameChip.shadowBlur.center : theme.nodes.nameChip.shadowBlur.outer,
+          shadowColor: dataHubAlpha(
+            echartsApi,
+            chipColor,
+            isCenter ? theme.nodes.nameChip.shadowAlpha.center : theme.nodes.nameChip.shadowAlpha.outer,
+          ),
+        },
+      },
+      buildDataHubRookiesTextLayer({
+        x: textX,
+        y: chipY + item.nameChipHeight / 2,
+        text: item.shortName,
+        fill: theme.text.name,
+        font: `${theme.type.name.weight} ${item.nameFontSize}px ${theme.fontFamily}`,
+        textAlign: "left",
+      }),
+      {
+        type: "circle",
+        silent: true,
+        shape: {
+          cx: imageX,
+          cy: imageY,
+          r: item.teamLogoSize * 0.62,
+        },
+        style: {
+          fill: theme.type.team.logo.wellFill,
+          stroke: theme.type.team.logo.wellStroke,
+          lineWidth: Math.max(0.35, item.teamLogoSize * 0.045),
+        },
+      },
+      buildDataHubRookiesImageLayer({
+        x: imageX,
+        y: imageY,
+        width: item.teamLogoSize,
+        height: item.teamLogoSize,
+        image: item.teamLogoSrc,
+        opacity: theme.type.team.logo.opacity,
+        shadowBlur: isCenter
+          ? theme.type.team.logo.shadowBlur.center
+          : theme.type.team.logo.shadowBlur.outer,
+        shadowColor: theme.type.team.logo.shadowColor,
+      }),
+    ],
   };
 }
 
@@ -6004,28 +6192,7 @@ function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
             offsetY: gradeShadow.offsetY * 0.32,
           } : null,
         }),
-        buildDataHubRookiesTextLayer({
-          x,
-          y: y + item.nameOffsetY,
-          text: item.shortName,
-          fill: theme.text.name,
-          font: `${theme.type.name.weight} ${item.nameFontSize}px ${theme.fontFamily}`,
-          padding: isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer,
-          backgroundColor: isCenter ? theme.nodes.nameChip.bg.center : theme.nodes.nameChip.bg.outer,
-          borderColor: dataHubAlpha(
-            echartsApi,
-            item.color,
-            isCenter ? theme.nodes.nameChip.borderAlpha.center : theme.nodes.nameChip.borderAlpha.outer,
-          ),
-          borderWidth: theme.nodes.nameChip.borderWidth,
-          borderRadius: theme.nodes.nameChip.borderRadius,
-          shadowBlur: isCenter ? theme.nodes.nameChip.shadowBlur.center : theme.nodes.nameChip.shadowBlur.outer,
-          shadowColor: dataHubAlpha(
-            echartsApi,
-            item.color,
-            isCenter ? theme.nodes.nameChip.shadowAlpha.center : theme.nodes.nameChip.shadowAlpha.outer,
-          ),
-        }),
+        buildDataHubRookiesNameChipGroup(item, x, y, theme, isCenter, echartsApi),
       );
 
       return {
@@ -6037,11 +6204,18 @@ function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
     tooltip: {
       formatter(params) {
         const item = players[params.dataIndex];
+        const safeName = dataHubEscapeHtml(item.name);
+        const safeTeam = dataHubEscapeHtml(item.team);
+        const safePos = dataHubEscapeHtml(item.pos);
+        const safeLogo = dataHubEscapeHtml(item.teamLogoSrc);
 
         return `
-          <div style="font-family:${theme.fontFamily}; min-width:128px;">
-            <div style="font-size:13px; font-weight:700; margin-bottom:5px;">${item.name}</div>
-            <div style="font-size:11px; color:${theme.tooltip.muted};">${theme.tiers[item.tier].label} · ${item.pos}</div>
+          <div style="font-family:${theme.fontFamily}; min-width:148px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px;">
+              <div style="font-size:13px; font-weight:700;">${safeName}</div>
+              <img src="${safeLogo}" alt="${safeTeam}" width="18" height="18" style="display:block; object-fit:contain; filter:drop-shadow(0 0 5px rgba(255,255,255,0.18));" />
+            </div>
+            <div style="font-size:11px; color:${theme.tooltip.muted};">#${item.rank} · ${theme.tiers[item.tier].label} · ${safePos} · ${safeTeam}</div>
             <div style="margin-top:6px; font-size:12px; font-weight:700;">Grade: ${item.grade}</div>
           </div>
         `;
