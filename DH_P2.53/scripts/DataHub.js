@@ -386,23 +386,28 @@ const DATAHUB_ROOKIES_CHART_TEMPLATE = `
 // Rookies hero chart reference data:
 // these constants preserve the standalone prospect tier-map layout so the
 // DataHub rookies tab can use the same geometry and rendering behavior.
+// This targets the 2026 rookie prospect grades tier map chart in the rookies tab.
+// It maps player data including rounded up prospect grades and teams for NFL logo lookups.
 const DATAHUB_ROOKIES_CHART_PLAYERS = Object.freeze([
-  { name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB" },
-  { name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB" },
-  { name: "Carnell Tate", grade: 89, tier: 2, pos: "WR" },
-  { name: "Makai Lemon", grade: 88, tier: 2, pos: "WR" },
-  { name: "Jordyn Tyson", grade: 87, tier: 2, pos: "WR" },
-  { name: "KC Concepcion", grade: 84, tier: 3, pos: "WR" },
-  { name: "Kenyon Sadiq", grade: 80, tier: 3, pos: "TE" },
-  { name: "Omar Cooper", grade: 81, tier: 3, pos: "WR" },
-  { name: "Denzel Boston", grade: 80, tier: 3, pos: "WR" },
-  { name: "Jadarian Price", grade: 74, tier: 4, pos: "RB" },
-  { name: "Ty Simpson", grade: 76, tier: 4, pos: "QB" },
-  { name: "Eli Stowers", grade: 77, tier: 4, pos: "TE" },
-  { name: "Mike Washington", grade: 73, tier: 4, pos: "RB" },
-  { name: "Jonah Coleman", grade: 72, tier: 4, pos: "RB" },
-  { name: "Elijah Sarratt", grade: 75, tier: 4, pos: "WR" },
-  { name: "Emmett Johnson", grade: 70, tier: 4, pos: "RB" },
+  { name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB", team: "ARI" },
+  { name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB", team: "LV" },
+  { name: "Carnell Tate", grade: 89, tier: 2, pos: "WR", team: "TEN" },
+  { name: "Jordyn Tyson", grade: 88, tier: 2, pos: "WR", team: "NO" },
+  { name: "Makai Lemon", grade: 87, tier: 2, pos: "WR", team: "PHI" },
+  { name: "KC Concepcion", grade: 84, tier: 3, pos: "WR", team: "CLE" },
+  { name: "Kenyon Sadiq", grade: 82, tier: 3, pos: "TE", team: "NYJ" },
+  { name: "Omar Cooper Jr.", grade: 82, tier: 3, pos: "WR", team: "NYJ" },
+  { name: "De'Zhaun Stribling", grade: 81, tier: 3, pos: "WR", team: "SF" },
+  { name: "Jadarian Price", grade: 79, tier: 3, pos: "RB", team: "SEA" }, // rounded up from 78.5
+  { name: "Eli Stowers", grade: 79, tier: 3, pos: "TE", team: "PHI" }, // rounded up from 78.5
+  { name: "Antonio Williams", grade: 77, tier: 4, pos: "WR", team: "WAS" }, // rounded up from 76.5
+  { name: "Denzel Boston", grade: 76, tier: 4, pos: "WR", team: "CLE" }, // rounded up from 75.5
+  { name: "Jonah Coleman", grade: 75, tier: 4, pos: "RB", team: "DEN" }, // rounded up from 75.0
+  { name: "Germie Bernard", grade: 74, tier: 4, pos: "WR", team: "PIT" },
+  { name: "Caleb Douglas", grade: 73, tier: 4, pos: "WR", team: "MIA" },
+  { name: "Chris Bell", grade: 73, tier: 4, pos: "WR", team: "MIA" },
+  { name: "Kaelon Black", grade: 72, tier: 4, pos: "RB", team: "SF" },
+  { name: "Malachi Fields", grade: 72, tier: 4, pos: "WR", team: "NYG" },
 ]);
 
 const DATAHUB_ROOKIES_TIER_LABELS = Object.freeze({
@@ -415,6 +420,8 @@ const DATAHUB_ROOKIES_TIER_LABELS = Object.freeze({
 const DATAHUB_ROOKIES_TIER_KEYS = Object.freeze([2, 3, 4]);
 const DATAHUB_ROOKIES_REFERENCE_CENTER_X = 600;
 const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
+// This targets the layout spacing and coordinate mappings of the rookies chart bands.
+// It offsets player node placement angles to prevent overlaps.
 const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   centerNodeRadius: 102,
   centerScale: 0.955,
@@ -424,19 +431,16 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreOrbit3Radius: 170,
   coreRingInnerRadius: 128,
   bands: {
-    2: { radius: 214, width: 76, nodeRadius: 58, angles: [0, 106, 180, 276] },
-    3: { radius: 324, width: 74, nodeRadius: 52, angles: [56, 140, 228, 318] },
+    2: { radius: 214, width: 76, nodeRadius: 58, angles: [30, 120, 210, 300] },
+    3: { radius: 324, width: 74, nodeRadius: 52, angles: [15, 75, 135, 195, 255, 315] },
     4: {
       radius: 434,
       width: 72,
       nodeRadius: 46,
-      angles: [34, 72, 126, 180, 234, 288, 326],
+      angles: [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5],
     },
   },
-  radialOffsets: {
-    "Jonah Coleman": 34,
-    "Emmett Johnson": 34,
-  },
+  radialOffsets: {},
 });
 
 const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
@@ -4926,9 +4930,17 @@ function dataHubIsVisiblePaint(paint) {
   return parts.length < 4 || parts[3] > 0.002;
 }
 
+// This targets the player name formatting on the rookies chart.
+// It shortens names to "F. Last" format, while preserving suffixes like "Jr." appropriately.
 function formatDataHubRookiesShortName(name) {
   const parts = String(name || "").trim().split(" ").filter(Boolean);
-  return parts.length <= 1 ? String(name || "") : `${parts[0][0]}. ${parts[parts.length - 1]}`;
+  if (parts.length <= 1) return String(name || "");
+  const suffixes = new Set(["jr.", "sr.", "ii", "iii", "iv", "v"]);
+  const last = parts[parts.length - 1];
+  if (parts.length > 2 && suffixes.has(last.toLowerCase().replace(/[^a-z]/g, ''))) {
+    return `${parts[0][0]}. ${parts[parts.length - 2]} ${last}`;
+  }
+  return `${parts[0][0]}. ${last}`;
 }
 
 function dataHubPolarToCartesian(cx, cy, radius, angleFromTop) {
@@ -5951,23 +5963,47 @@ function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
         isCenter ? theme.nodes.rim.inner.width.center : theme.nodes.rim.inner.width.outer,
       );
 
+      // Targets the position labels inside the custom ECharts rookie prospect nodes.
+      // It appends a bullet separator and centers a custom NFL team logo to the right.
+      const textStr = `${item.pos} •`;
+      const textWidth = item.posFontSize * 1.62;
+      const logoSize = Math.round(item.posFontSize * 1.15);
+      const logoGap = Math.round(item.posFontSize * 0.32);
+      const totalWidth = textWidth + logoGap + logoSize;
+
+      const textX = x - (logoGap + logoSize) / 2;
+      const logoX = textX + (textWidth / 2) + logoGap;
+      const logoY = posTextY - logoSize / 2;
+      const logoSrc = getDataHubControlTeamLogoSrc(item.team);
+
       children.push(
         buildDataHubRookiesTextLayer({
-          x: x + underlay.offsetX,
+          x: textX + underlay.offsetX,
           y: posTextY + underlay.offsetY,
-          text: item.pos,
+          text: textStr,
           fill: underlay.color,
           font: `${posTheme.weight} ${item.posFontSize + underlay.bump}px ${theme.fontFamily}`,
           shadow: posShadowStyle,
         }),
         buildDataHubRookiesTextLayer({
-          x,
+          x: textX,
           y: posTextY,
-          text: item.pos,
+          text: textStr,
           fill: item.posColor,
           font: `${posTheme.weight} ${item.posFontSize}px ${theme.fontFamily}`,
           shadow: posShadowStyle,
         }),
+        {
+          type: "image",
+          style: {
+            image: logoSrc,
+            x: logoX,
+            y: logoY,
+            width: logoSize,
+            height: logoSize,
+          },
+          silent: true,
+        }
       );
 
       if (isCenter) {
