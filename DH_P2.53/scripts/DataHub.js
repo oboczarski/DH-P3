@@ -437,12 +437,12 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreRingInnerRadius: 128,
   bands: {
     2: { radius: 218, width: 70, nodeRadius: 57, angles: [315, 45, 135, 225] },
-    3: { radius: 318, width: 74, nodeRadius: 48, angles: [72, 108, 180, 252, 288, 0] },
+    3: { radius: 304, width: 74, nodeRadius: 48, angles: [72, 108, 180, 252, 288, 0] },
     4: {
-      radius: 442,
+      radius: 456,
       width: 76,
       nodeRadius: 42,
-      angles: [330, 30, 75, 105, 150, 210, 255, 285],
+      angles: [330, 30, 60, 120, 150, 210, 240, 300],
     },
   },
   radialOffsets: {},
@@ -5300,15 +5300,15 @@ function readDataHubRookiesChartTheme(shellEl, echartsApi) {
         },
         logo: {
           center: {
-            factor: dataHubCssNum(styles, "--chart-name-logo-size-factor-center", 0.48),
-            min: dataHubCssNum(styles, "--chart-name-logo-size-min-center", 14),
-            max: dataHubCssNum(styles, "--chart-name-logo-size-max-center", 18),
+            factor: dataHubCssNum(styles, "--chart-name-logo-size-factor-center", 0.58),
+            min: dataHubCssNum(styles, "--chart-name-logo-size-min-center", 16),
+            max: dataHubCssNum(styles, "--chart-name-logo-size-max-center", 21),
           },
-          outer: {
-            factor: dataHubCssNum(styles, "--chart-name-logo-size-factor-outer", 0.68),
-            min: dataHubCssNum(styles, "--chart-name-logo-size-min-outer", 10),
-            max: dataHubCssNum(styles, "--chart-name-logo-size-max-outer", 14.2),
-          },
+          tiers: dataHubBuildTierMap((tier) => ({
+            factor: dataHubCssNum(styles, `--chart-name-logo-size-factor-tier-${tier}`, 0.68),
+            min: dataHubCssNum(styles, `--chart-name-logo-size-min-tier-${tier}`, 10),
+            max: dataHubCssNum(styles, `--chart-name-logo-size-max-tier-${tier}`, 14.2),
+          })),
           opacity: dataHubCssNum(styles, "--chart-name-logo-opacity", 0.98),
           shadowColor: dataHubCssVar(styles, "--chart-name-logo-shadow-color", "rgba(0,0,0,0.68)"),
           shadowBlur: {
@@ -5380,7 +5380,33 @@ function getDataHubRookiesOuterNameSize(shortName, nodeRadius, nameTheme) {
   return Math.max(nameTheme.floor, size);
 }
 
-function computeDataHubRookiesChartLayout(width, height, theme) {
+function getDataHubRookiesNameTextWidth(echartsApi, text, font, fontSize) {
+  const measuredWidth = echartsApi?.format?.getTextRect?.(String(text || ""), font)?.width;
+  if (Number.isFinite(measuredWidth) && measuredWidth > 0) {
+    return measuredWidth;
+  }
+
+  // Rookies chart name chip measurement:
+  // gives the text/logo layout a proportional fallback instead of raw string
+  // length, preventing names with narrow letters from leaving oversized gaps.
+  return Array.from(String(text || "")).reduce((width, character) => {
+    if (character === " " || character === "." || character === "'") {
+      return width + fontSize * 0.24;
+    }
+
+    if ("ilIjtfr".includes(character)) {
+      return width + fontSize * 0.32;
+    }
+
+    if ("mwMW".includes(character)) {
+      return width + fontSize * 0.74;
+    }
+
+    return width + fontSize * 0.52;
+  }, 0);
+}
+
+function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
   const { chartPadding } = DATAHUB_ROOKIES_GEOMETRY;
   const availableWidth = width - chartPadding.left - chartPadding.right;
   const availableHeight = height - chartPadding.top - chartPadding.bottom;
@@ -5402,7 +5428,9 @@ function computeDataHubRookiesChartLayout(width, height, theme) {
     const posTheme = isCenter ? theme.type.pos.center : theme.type.pos.outer;
     const gradeTheme = isCenter ? theme.type.grade.center : theme.type.grade.outer;
     const nameTheme = isCenter ? theme.type.name.center : theme.type.name.outer;
-    const teamLogoTheme = isCenter ? theme.type.team.logo.center : theme.type.team.logo.outer;
+    const teamLogoTheme = isCenter
+      ? theme.type.team.logo.center
+      : theme.type.team.logo.tiers[player.tier];
     const nodeRadius = player.nodeRadius * scale * (
       isCenter ? DATAHUB_ROOKIES_GEOMETRY.centerScale : DATAHUB_ROOKIES_GEOMETRY.outerScale
     );
@@ -5420,7 +5448,13 @@ function computeDataHubRookiesChartLayout(width, height, theme) {
     );
     const nameLogoGap = isCenter ? theme.type.team.gap.center : theme.type.team.gap.outer;
     const nameChipPadding = isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer;
-    const nameTextWidth = player.shortName.length * nameFontSize * (isCenter ? 0.54 : 0.55);
+    const nameFont = `${theme.type.name.weight} ${nameFontSize}px ${theme.fontFamily}`;
+    const nameTextWidth = getDataHubRookiesNameTextWidth(
+      echartsApi,
+      player.shortName,
+      nameFont,
+      nameFontSize,
+    );
     const nameChipWidth = nameChipPadding[3] + nameTextWidth + nameLogoGap + teamLogoSize + nameChipPadding[1];
     const nameChipHeight = (
       Math.max(nameFontSize * (isCenter ? 1.15 : 1.12), teamLogoSize)
@@ -6248,10 +6282,10 @@ function createDataHubRookiesChartWidget(widgetRoot, widgetKey, chartConfig) {
     };
   }
 
-  const chart = echartsApi.init(chartEl, null, {
-    renderer: "canvas",
-    useDirtyRect: true,
-  });
+  // Rookies chart renderer:
+  // SVG keeps the tier-map text and local SVG team logos crisp when users zoom;
+  // this static 19-node widget is light enough to avoid table performance risk.
+  const chart = echartsApi.init(chartEl, null, { renderer: "svg" });
   let themeCache = null;
   let lastWidth = 0;
   let lastHeight = 0;
@@ -6289,7 +6323,7 @@ function createDataHubRookiesChartWidget(widgetRoot, widgetKey, chartConfig) {
     lastHeight = height;
 
     const theme = getTheme(forceTheme);
-    const layout = computeDataHubRookiesChartLayout(width, height, theme);
+    const layout = computeDataHubRookiesChartLayout(width, height, theme, echartsApi);
     const connectorPaths = buildDataHubRookiesConnectorPaths(layout, theme);
 
     syncShellAtmosphere(layout);

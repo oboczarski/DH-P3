@@ -1079,12 +1079,18 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
   --chart-name-font-long-reduction: 1.1;
   --chart-name-logo-gap-center: 4;
   --chart-name-logo-gap-outer: 2.4;
-  --chart-name-logo-size-factor-center: 0.48;
-  --chart-name-logo-size-min-center: 14;
-  --chart-name-logo-size-max-center: 18;
-  --chart-name-logo-size-factor-outer: 0.68;
-  --chart-name-logo-size-min-outer: 10;
-  --chart-name-logo-size-max-outer: 14.2;
+  --chart-name-logo-size-factor-center: 0.58;
+  --chart-name-logo-size-min-center: 16;
+  --chart-name-logo-size-max-center: 21;
+  --chart-name-logo-size-factor-tier-2: 0.82;
+  --chart-name-logo-size-min-tier-2: 13.2;
+  --chart-name-logo-size-max-tier-2: 16.2;
+  --chart-name-logo-size-factor-tier-3: 0.78;
+  --chart-name-logo-size-min-tier-3: 11.6;
+  --chart-name-logo-size-max-tier-3: 14.6;
+  --chart-name-logo-size-factor-tier-4: 0.56;
+  --chart-name-logo-size-min-tier-4: 8.6;
+  --chart-name-logo-size-max-tier-4: 11.2;
   --chart-name-logo-opacity: 0.98;
   --chart-name-logo-shadow-color: rgba(2, 4, 12, 0.78);
   --chart-name-logo-shadow-blur-center: 5.2;
@@ -1194,7 +1200,7 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --tier-4-band-fill: rgba(255, 79, 95, 0.014);
 
   /* Rookies chart band dashes:
-     controls only the canvas-generated tier rings and keeps the decorative
+     controls only the ECharts-generated tier rings and keeps the decorative
      linework static, avoiding animation cost on the table-heavy page. */
   --chart-band-dash-a-min: 0.75;
   --chart-band-dash-a-scale: 1;
@@ -1204,9 +1210,9 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --chart-band-ring-line-min: 9;
   --chart-band-ring-line-scale: 13;
   
-  /* Rookies chart canvas atmosphere:
+  /* Rookies chart atmosphere:
      keeps the richer orb treatment local to this widget while staying static
-     and canvas-based for inexpensive rendering. */
+     and inexpensive for the surrounding table-heavy page. */
   --chart-outer-backdrop-fill: rgba(3, 8, 20, 0.13);
   --chart-outer-backdrop-stroke: rgba(178, 203, 255, 0.018);
   --chart-outer-accent-stroke: rgba(166, 184, 255, 0.07);
