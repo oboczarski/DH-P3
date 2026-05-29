@@ -427,6 +427,10 @@ const DATAHUB_ROOKIES_TIER_LABELS = Object.freeze({
 const DATAHUB_ROOKIES_TIER_KEYS = Object.freeze([2, 3, 4]);
 const DATAHUB_ROOKIES_REFERENCE_CENTER_X = 600;
 const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
+
+// Rookies chart orbit geometry:
+// keeps the tier ring centerlines evenly spaced while mirroring the side-pair
+// angles so the left/right green and red nodes read as lightly paired clusters.
 const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   centerNodeRadius: 102,
   centerScale: 0.94,
@@ -437,12 +441,12 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreRingInnerRadius: 128,
   bands: {
     2: { radius: 218, width: 70, nodeRadius: 57, angles: [315, 45, 135, 225] },
-    3: { radius: 304, width: 74, nodeRadius: 48, angles: [72, 108, 180, 252, 288, 0] },
+    3: { radius: 337, width: 74, nodeRadius: 48, angles: [73, 107, 180, 253, 287, 0] },
     4: {
       radius: 456,
       width: 76,
       nodeRadius: 42,
-      angles: [330, 30, 60, 120, 150, 210, 240, 300],
+      angles: [330, 30, 62, 118, 150, 210, 242, 298],
     },
   },
   radialOffsets: {},
@@ -5496,13 +5500,16 @@ function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
       posSeparation,
       gradeOffsetY: isCenter ? -nodeRadius * 0.01 : nodeRadius * 0.04,
       nameFontSize,
+      // Rookies chart name chips:
+      // drops each chip toward the lower rim so the player name/logo strip
+      // stops competing with the grade text in the center of the orb.
       nameOffsetY: isCenter
-        ? nodeRadius * 0.73
+        ? nodeRadius * 0.82
         : player.tier === 4
-          ? nodeRadius * 0.81
+          ? nodeRadius * 1.02
           : player.tier === 3
-            ? nodeRadius * 0.75
-            : nodeRadius * 0.68,
+            ? nodeRadius * 0.9
+            : nodeRadius * 0.8,
     };
   });
 
@@ -5522,6 +5529,15 @@ function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
   dataHubExpandBounds(bounds, center.x, center.y, DATAHUB_ROOKIES_GEOMETRY.coreOrbit3Radius * scale);
   players.forEach((player) => {
     dataHubExpandBounds(bounds, player.x, player.y, player.haloRadius);
+
+    // Rookies chart chip fit:
+    // includes the lowered name/logo chip in the fit bounds so the chart can
+    // shift as a group instead of letting bottom or side chips clip.
+    const chipCenterY = player.y + player.nameOffsetY;
+    bounds.minX = Math.min(bounds.minX, player.x - player.nameChipWidth / 2);
+    bounds.maxX = Math.max(bounds.maxX, player.x + player.nameChipWidth / 2);
+    bounds.minY = Math.min(bounds.minY, chipCenterY - player.nameChipHeight / 2);
+    bounds.maxY = Math.max(bounds.maxY, chipCenterY + player.nameChipHeight / 2);
   });
 
   let shiftX = 0;
