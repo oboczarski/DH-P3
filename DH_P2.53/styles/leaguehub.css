@@ -235,14 +235,14 @@ body[data-page="leaguehub"] .leaguehub-trades-status {
   align-self: stretch;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 0.52rem 0.66rem;
   border-radius: var(--leaguehub-trade-radius-lg);
   border: 1px solid rgba(152, 179, 255, 0.18);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
     rgba(9, 15, 31, 0.58);
-  color: rgba(234, 241, 255, 0.86);
+  color: rgb(0 22 67 / 86%);
   font-size: 0.72rem;
   line-height: 1.3;
 }
@@ -310,7 +310,7 @@ body[data-page="leaguehub"] .leaguehub-trades-search-wrap input {
   color: #f2f7ff;
   font-size: 0.82rem;
   font-weight: 500;
-  padding: 0 0.72rem;
+  padding: 9px 1px;
   appearance: none;
 }
 
@@ -324,6 +324,7 @@ body[data-page="leaguehub"] .leaguehub-trades-select-wrap::after {
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap {
   gap: 0.42rem;
   padding: 0 0.66rem 0 0.72rem;
+  font-size: 5px !important;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap i {
@@ -333,6 +334,8 @@ body[data-page="leaguehub"] .leaguehub-trades-search-wrap i {
 
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap input {
   padding-left: 0;
+  font-size: 13px !important;
+  font-weight: 400 !important;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select-wrap select:focus,
@@ -2405,7 +2408,7 @@ body[data-page="leaguehub"] .app-header {
     justify-content: center;
     align-items: stretch;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1095px;
     margin: 0 auto;
     padding: 0.1rem 0rem 0.8rem 0rem;
     background: linear-gradient(180deg, rgba(11, 11, 18, 0.05) 10%, transparent 100%);
@@ -2590,7 +2593,7 @@ body[data-page="leaguehub"] .leaguehub-panel--trades {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-shell {
-  width: min(100%, 1180px);
+  width: min(100%, 980px);
   margin-inline: auto;
   gap: 0.72rem;
 }
@@ -2611,10 +2614,10 @@ body[data-page="leaguehub"] .leaguehub-trades-empty {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-toolbar {
-  padding: 0.72rem 0.78rem 0.76rem;
+  padding: 1.12rem 0.98rem 0.46rem;
   display: flex;
   flex-direction: column;
-  gap: 0.52rem;
+  gap: 1.22rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-toolbar-head {
@@ -2625,7 +2628,7 @@ body[data-page="leaguehub"] .leaguehub-trades-toolbar-head {
 
 body[data-page="leaguehub"] .leaguehub-trades-heading h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.3rem;
   line-height: 1.1;
   color: #f8fbff;
 }
@@ -2634,16 +2637,17 @@ body[data-page="leaguehub"] .leaguehub-trades-status {
   min-height: 0;
   padding: 0.44rem 0.58rem;
   border-radius: 12px;
-  border: 1px solid rgba(149, 173, 242, 0.16);
-  background: rgba(10, 16, 31, 0.58);
-  color: rgba(235, 241, 255, 0.84);
+  border: 0px solid rgba(149, 173, 242, 0.16);
+  background: linear-gradient(33deg, rgb(68 80 109 / 67%), #7400ff63);
+  color: rgb(168 170 174 / 84%);
   font-size: 0.68rem;
   line-height: 1.24;
+  font-style: italic;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(118px, auto);
+  display: contents;
+  grid-template-columns: minmax(0, 1fr) minmax(18px, auto);
   grid-template-areas:
     "member scope"
     "search search";
@@ -2653,7 +2657,7 @@ body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters {
 body[data-page="leaguehub"] .leaguehub-trades-control {
   display: flex;
   flex-direction: column;
-  gap: 0.26rem;
+  gap: 0.46rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-control--member {
@@ -2670,7 +2674,7 @@ body[data-page="leaguehub"] .leaguehub-trades-control--scope {
 
 body[data-page="leaguehub"] .leaguehub-trades-control label,
 body[data-page="leaguehub"] .leaguehub-trades-control-label {
-  font-size: 0.56rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2681,21 +2685,24 @@ body[data-page="leaguehub"] .leaguehub-trades-select-wrap,
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap,
 body[data-page="leaguehub"] .leaguehub-trades-scope-summary {
   min-height: 2.28rem;
-  border-radius: 12px;
-  border: 1px solid rgba(149, 173, 242, 0.14);
-  background: rgba(10, 16, 31, 0.62);
+  border-radius: 22px;
+  border: 1px solid rgb(143 143 143 / 41%);
+  background: linear-gradient(33deg, rgb(108 127 171 / 31%), #8a90ae61);
   box-shadow: none;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select-wrap select,
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap input,
 body[data-page="leaguehub"] .leaguehub-trades-scope-summary {
-  font-size: 0.8rem;
+  font-size: 1.2rem;
+  text-align: center;
+  FONT-WEIGHT: 600;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select-wrap select,
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap input {
-  padding: 0 0.72rem;
+  max-height: 44px;
+  min-height: 44px;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select-wrap::after {
@@ -2703,22 +2710,26 @@ body[data-page="leaguehub"] .leaguehub-trades-select-wrap::after {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap {
-  padding: 0 0.66rem 0 0.68rem;
-  gap: 0.42rem;
+  gap: 0.02rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-search-wrap i {
-  font-size: 0.74rem;
+  font-size: 0.84rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-scope-summary {
   justify-content: flex-end;
-  padding: 0 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+  padding: 0.72rem;
+  font-size: 0.92rem;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid #fff1;
+  letter-spacing: 1px;
   text-overflow: ellipsis;
+  justify-content: center;
+  background: linear-gradient(33deg, rgb(101 108 125 / 31%), #6200ff45);
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-empty {
@@ -2735,7 +2746,7 @@ body[data-page="leaguehub"] .leaguehub-trades-empty {
    can sit centered underneath instead of being pushed into a loose multi-panel stack. */
 body[data-page="leaguehub"] .leaguehub-trades-layout {
   display: grid;
-  gap: 0.78rem;
+  gap: 1.78rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-analytics {
@@ -2743,14 +2754,13 @@ body[data-page="leaguehub"] .leaguehub-trades-analytics {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-module {
-  padding: 0.7rem 0.76rem 0.76rem;
+  padding: 0.5rem 0.76rem 0.56rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-module-header {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.24rem;
+  align-items: baseline;
+  gap: 0.44rem;
   margin-bottom: 0.48rem;
 }
 
@@ -2841,9 +2851,9 @@ body[data-page="leaguehub"] .leaguehub-trades-table {
 
 body[data-page="leaguehub"] .leaguehub-trades-table th,
 body[data-page="leaguehub"] .leaguehub-trades-table td {
-  padding: 0.42rem 0.48rem;
+  padding: 0.4rem 0.28rem;
   font-size: 0.72rem;
-  line-height: 1.16;
+  line-height: 1;
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -2854,7 +2864,8 @@ body[data-page="leaguehub"] .leaguehub-trades-table th {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-table .is-numeric {
-  text-align: right;
+  text-align: center;
+  max-width: 1px !important;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-team-cell {
@@ -2864,7 +2875,7 @@ body[data-page="leaguehub"] .leaguehub-trades-team-cell {
 body[data-page="leaguehub"] .leaguehub-trades-team-cell strong {
   display: block;
   color: #ffffff;
-  font-size: 0.79rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -2889,7 +2900,7 @@ body[data-page="leaguehub"] .leaguehub-trades-feed-stage {
   flex-direction: column;
   gap: 0.7rem;
   min-width: 0;
-  width: min(100%, 940px);
+  width: stretch;
   margin-inline: auto;
 }
 
