@@ -421,7 +421,7 @@ const DATAHUB_ROOKIES_TIER_KEYS = Object.freeze([2, 3, 4]);
 const DATAHUB_ROOKIES_REFERENCE_CENTER_X = 600;
 const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
 // This targets the layout spacing and coordinate mappings of the rookies chart bands.
-// It offsets player node placement angles to prevent overlaps.
+// It maps the player nodes into a horizontally elongated oval configuration matching the layout reference.
 const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   centerNodeRadius: 102,
   centerScale: 0.955,
@@ -431,13 +431,13 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreOrbit3Radius: 170,
   coreRingInnerRadius: 128,
   bands: {
-    2: { radius: 214, width: 76, nodeRadius: 58, angles: [30, 120, 210, 300] },
-    3: { radius: 324, width: 74, nodeRadius: 52, angles: [15, 75, 135, 195, 255, 315] },
+    2: { radius: 214, width: 76, nodeRadius: 58, angles: [45, 135, 225, 315] },
+    3: { radius: 324, width: 74, nodeRadius: 52, angles: [0, 75, 105, 180, 255, 285] },
     4: {
       radius: 434,
       width: 72,
       nodeRadius: 46,
-      angles: [22.5, 67.5, 112.5, 157.5, 202.5, 247.5, 292.5, 337.5],
+      angles: [30, 60, 120, 150, 210, 240, 300, 330],
     },
   },
   radialOffsets: {},
@@ -5964,46 +5964,24 @@ function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
       );
 
       // Targets the position labels inside the custom ECharts rookie prospect nodes.
-      // It appends a bullet separator and centers a custom NFL team logo to the right.
-      const textStr = `${item.pos} •`;
-      const textWidth = item.posFontSize * 1.62;
-      const logoSize = Math.round(item.posFontSize * 1.15);
-      const logoGap = Math.round(item.posFontSize * 0.32);
-      const totalWidth = textWidth + logoGap + logoSize;
-
-      const textX = x - (logoGap + logoSize) / 2;
-      const logoX = textX + (textWidth / 2) + logoGap;
-      const logoY = posTextY - logoSize / 2;
-      const logoSrc = getDataHubControlTeamLogoSrc(item.team);
-
+      // Reset to render only centered item.pos text.
       children.push(
         buildDataHubRookiesTextLayer({
-          x: textX + underlay.offsetX,
+          x: x + underlay.offsetX,
           y: posTextY + underlay.offsetY,
-          text: textStr,
+          text: item.pos,
           fill: underlay.color,
           font: `${posTheme.weight} ${item.posFontSize + underlay.bump}px ${theme.fontFamily}`,
           shadow: posShadowStyle,
         }),
         buildDataHubRookiesTextLayer({
-          x: textX,
+          x,
           y: posTextY,
-          text: textStr,
+          text: item.pos,
           fill: item.posColor,
           font: `${posTheme.weight} ${item.posFontSize}px ${theme.fontFamily}`,
           shadow: posShadowStyle,
         }),
-        {
-          type: "image",
-          style: {
-            image: logoSrc,
-            x: logoX,
-            y: logoY,
-            width: logoSize,
-            height: logoSize,
-          },
-          silent: true,
-        }
       );
 
       if (isCenter) {
@@ -6040,28 +6018,77 @@ function buildDataHubRookiesNodeSeries(players, theme, echartsApi) {
             offsetY: gradeShadow.offsetY * 0.32,
           } : null,
         }),
+      // Targets the player name chip underneath the orb.
+      // We manually construct the rounded rectangle, player name text, and team logo
+      // to keep the logo nicely aligned inside the capsule background.
+      const nameLogoSize = isCenter ? 18 : 12;
+      const namePaddingLeft = isCenter ? 8 : 6;
+      const namePaddingRight = isCenter ? 8 : 6;
+      const nameLogoGap = isCenter ? 6 : 4;
+      const nameTextWidth = item.shortName.length * item.nameFontSize * 0.58;
+      const nameTotalWidth = namePaddingLeft + nameTextWidth + nameLogoGap + nameLogoSize + namePaddingRight;
+      const nameChipHeight = Math.max(nameLogoSize, item.nameFontSize) + (isCenter ? 6 : 4);
+
+      const nameRectX = x - nameTotalWidth / 2;
+      const nameRectY = y + item.nameOffsetY - nameChipHeight / 2;
+
+      const nameTextX = nameRectX + namePaddingLeft + nameTextWidth / 2;
+      const nameTextY = nameRectY + nameChipHeight / 2;
+
+      const nameLogoX = nameRectX + namePaddingLeft + nameTextWidth + nameLogoGap;
+      const nameLogoY = nameRectY + (nameChipHeight - nameLogoSize) / 2;
+
+      const nameLogoSrc = getDataHubControlTeamLogoSrc(item.team);
+
+      children.push(
+        // Capsule Background Rect
+        {
+          type: "rect",
+          shape: {
+            x: nameRectX,
+            y: nameRectY,
+            width: nameTotalWidth,
+            height: nameChipHeight,
+            r: nameChipHeight / 2,
+          },
+          style: {
+            fill: isCenter ? theme.nodes.nameChip.bg.center : theme.nodes.nameChip.bg.outer,
+            stroke: dataHubAlpha(
+              echartsApi,
+              item.color,
+              isCenter ? theme.nodes.nameChip.borderAlpha.center : theme.nodes.nameChip.borderAlpha.outer,
+            ),
+            lineWidth: theme.nodes.nameChip.borderWidth,
+            shadowBlur: isCenter ? theme.nodes.nameChip.shadowBlur.center : theme.nodes.nameChip.shadowBlur.outer,
+            shadowColor: dataHubAlpha(
+              echartsApi,
+              item.color,
+              isCenter ? theme.nodes.nameChip.shadowAlpha.center : theme.nodes.nameChip.shadowAlpha.outer,
+            ),
+          },
+          silent: true,
+        },
+        // Player Short Name Text
         buildDataHubRookiesTextLayer({
-          x,
-          y: y + item.nameOffsetY,
+          x: nameTextX,
+          y: nameTextY,
           text: item.shortName,
           fill: theme.text.name,
           font: `${theme.type.name.weight} ${item.nameFontSize}px ${theme.fontFamily}`,
-          padding: isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer,
-          backgroundColor: isCenter ? theme.nodes.nameChip.bg.center : theme.nodes.nameChip.bg.outer,
-          borderColor: dataHubAlpha(
-            echartsApi,
-            item.color,
-            isCenter ? theme.nodes.nameChip.borderAlpha.center : theme.nodes.nameChip.borderAlpha.outer,
-          ),
-          borderWidth: theme.nodes.nameChip.borderWidth,
-          borderRadius: theme.nodes.nameChip.borderRadius,
-          shadowBlur: isCenter ? theme.nodes.nameChip.shadowBlur.center : theme.nodes.nameChip.shadowBlur.outer,
-          shadowColor: dataHubAlpha(
-            echartsApi,
-            item.color,
-            isCenter ? theme.nodes.nameChip.shadowAlpha.center : theme.nodes.nameChip.shadowAlpha.outer,
-          ),
         }),
+        // Team Logo
+        {
+          type: "image",
+          style: {
+            image: nameLogoSrc,
+            x: nameLogoX,
+            y: nameLogoY,
+            width: nameLogoSize,
+            height: nameLogoSize,
+          },
+          silent: true,
+        }
+      );
       );
 
       return {
