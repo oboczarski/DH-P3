@@ -898,6 +898,39 @@
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function getPlayerAge(playerInfo, asOfDate = new Date()) {
+      if (!playerInfo) return null;
+
+      const birthDateValue = playerInfo.birth_date;
+      if (birthDateValue) {
+        const birthDate = new Date(`${birthDateValue}T00:00:00Z`);
+        const asOf = asOfDate instanceof Date ? asOfDate : new Date(asOfDate);
+        const birthTime = birthDate.getTime();
+        const asOfTime = asOf.getTime();
+        if (Number.isFinite(birthTime) && Number.isFinite(asOfTime) && asOfTime > birthTime) {
+          const age = (asOfTime - birthTime) / (365.2425 * 24 * 60 * 60 * 1000);
+          return age > 0 ? age : null;
+        }
+      }
+
+      const sleeperAge = Number(playerInfo.age);
+      return Number.isFinite(sleeperAge) && sleeperAge > 0 ? sleeperAge : null;
+    }
+
+    function averageNumbers(values) {
+      const validValues = (values || []).filter((value) => Number.isFinite(value));
+      if (!validValues.length) return null;
+      return validValues.reduce((sum, value) => sum + value, 0) / validValues.length;
+    }
+
+    function averagePlayerAge(playerIds = [], asOfDate = new Date()) {
+      return averageNumbers(
+        playerIds
+          .map((playerId) => getPlayerAge(state.players[playerId], asOfDate))
+          .filter((age) => Number.isFinite(age)),
+      );
+    }
+
     function formatRecordLine(wins, losses, ties) {
       return ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
     }
@@ -1283,6 +1316,7 @@
       const slotSequence = Array.isArray(radarSlots) && radarSlots.length
         ? radarSlots
         : buildRadarSlots(leagueInfo?.roster_positions || []);
+      const ageAsOfDate = new Date();
 
       const teams = (Array.isArray(rosters) ? rosters : []).map((roster) => {
         const owner = userMap[roster.owner_id] || userMap[roster.co_owner_id];
@@ -1362,6 +1396,13 @@
         const totalValue = Object.values(overallPositional).reduce((sum, value) => sum + value, 0);
         const startersValueTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.value ?? 0), 0);
         const starterPpgTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.ppg ?? 0), 0);
+        const starterPlayerCount = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.players?.length ?? 0), 0);
+        const starterPpgPerPlayer = starterPlayerCount > 0 ? starterPpgTotal / starterPlayerCount : 0;
+        // LeagueHub roster age summaries:
+        // target the summary-card strip and use Sleeper player birth dates from the
+        // current roster/player source; empty starter slots and missing ages are ignored.
+        const teamAvgAge = averagePlayerAge(roster.players || [], ageAsOfDate);
+        const startersAvgAge = averagePlayerAge(starterIds, ageAsOfDate);
 
         const settings = roster.settings || {};
         const wins = toNumber(settings.wins);
@@ -1417,6 +1458,10 @@
           totalValue,
           startersValueTotal,
           starterPpgTotal,
+          starterPlayerCount,
+          starterPpgPerPlayer,
+          teamAvgAge,
+          startersAvgAge,
           wins,
           losses,
           ties,
@@ -1778,6 +1823,18 @@
       return remainder ? `${initial} ${remainder}`.trim() : initial;
     }
 
+    function formatAge(value) {
+      return Number.isFinite(value) ? value.toFixed(1) : '—';
+    }
+
+    function formatStarterPpgValue(totalPpg, perPlayerPpg) {
+      return `<span class="chip-value-primary">${formatPpg(totalPpg)}</span><span class="chip-value-detail" aria-label="${formatPpg(perPlayerPpg)} average per starter">(<span class="chip-value-detail-number">${formatPpg(perPlayerPpg)}</span><span class="chip-value-detail-suffix">avg</span>)</span>`;
+    }
+
+    function formatStarterPpgLeagueAverage(totalPpg, perPlayerPpg) {
+      return `League Avg: ${formatPpg(totalPpg)} | <span class="chip-avg-ppg"><span class="chip-avg-ppg-number">${formatPpg(perPlayerPpg)}</span><span class="chip-avg-ppg-suffix">avg</span></span>`;
+    }
+
     // Analyzer summary chips:
     // combine current-roster analysis with preserved standings context so ownership/value
     // reflects the current league, while ranking and total FPTS remain tied to the completed season.
@@ -1813,6 +1870,20 @@
         (team) => team.isUserTeam,
       );
 
+      const teamAvgAgeRank = computeRank(
+        [...teams]
+          .filter((team) => Number.isFinite(team.teamAvgAge))
+          .sort((a, b) => a.teamAvgAge - b.teamAvgAge),
+        (team) => team.isUserTeam,
+      );
+
+      const startersAvgAgeRank = computeRank(
+        [...teams]
+          .filter((team) => Number.isFinite(team.startersAvgAge))
+          .sort((a, b) => a.startersAvgAge - b.startersAvgAge),
+        (team) => team.isUserTeam,
+      );
+
       const rankingValue = overallRank ? `#${overallRank}` : '—';
       const rankingMetaParts = [];
       if (standingsUserTeam.record) rankingMetaParts.push(standingsUserTeam.record);
@@ -1834,6 +1905,9 @@
       const avgStarterPpg = teams.length
         ? teams.reduce((s, t) => s + (t.starterPpgTotal || 0), 0) / teams.length
         : 0;
+      const avgStarterPpgPerPlayer = averageNumbers(teams.map((t) => t.starterPpgPerPlayer)) ?? 0;
+      const avgTeamAge = averageNumbers(teams.map((t) => t.teamAvgAge));
+      const avgStartersAge = averageNumbers(teams.map((t) => t.startersAvgAge));
       const avgTopScorerFpts = (() => {
         const valid = teams.filter((t) => t.topScorer?.total > 0);
         return valid.length ? valid.reduce((s, t) => s + t.topScorer.total, 0) / valid.length : null;
@@ -1856,35 +1930,51 @@
           label: 'TTL Team Value',
           value: formatNumber(userTeam.totalValue),
           meta: totalValueRank ? `Rank ${totalValueRank}/${totalTeams}` : 'KTC',
-          avg: `Avg: ${formatNumber(avgTotalValue)}`,
+          avg: `League Avg: ${formatNumber(avgTotalValue)}`,
           accent: totalValueRank ? getRankColor(totalValueRank, totalTeams) : undefined,
         },
         {
           label: 'Starter Value',
           value: formatNumber(userTeam.startersValueTotal),
           meta: starterValueRank ? `Rank ${starterValueRank}/${totalTeams}` : 'Rank NA',
-          avg: `Avg: ${formatNumber(avgStarterValue)}`,
+          avg: `League Avg: ${formatNumber(avgStarterValue)}`,
           accent: starterValueRank ? getRankColor(starterValueRank, totalTeams) : undefined,
         },
         {
           label: 'Total FPTS',
           value: standingsUserTeam.totalFpts.toFixed(1),
           meta: fptsRank ? `Rank ${fptsRank}/${totalTeams}` : 'Rank NA',
-          avg: `Avg: ${avgTotalFpts.toFixed(1)}`,
+          avg: `League Avg: ${avgTotalFpts.toFixed(1)}`,
           accent: fptsRank ? getRankColor(fptsRank, totalTeams) : undefined,
         },
         {
           label: 'Starter PPG',
-          value: userTeam.starterPpgTotal.toFixed(1),
+          value: formatStarterPpgValue(userTeam.starterPpgTotal, userTeam.starterPpgPerPlayer),
+          valueClassName: 'chip-value--compound',
           meta: starterPpgRank ? `Rank ${starterPpgRank}/${totalTeams}` : 'Rank NA',
-          avg: `Avg: ${avgStarterPpg.toFixed(1)}`,
+          avg: formatStarterPpgLeagueAverage(avgStarterPpg, avgStarterPpgPerPlayer),
           accent: starterPpgRank ? getRankColor(starterPpgRank, totalTeams) : undefined,
+          className: 'analyzer-chip--starter-ppg',
+        },
+        {
+          label: 'Team Avg Age',
+          value: formatAge(userTeam.teamAvgAge),
+          meta: teamAvgAgeRank ? `Rank ${teamAvgAgeRank}/${totalTeams}` : 'Rank NA',
+          avg: `League Avg: ${formatAge(avgTeamAge)}`,
+          accent: teamAvgAgeRank ? getRankColor(teamAvgAgeRank, totalTeams) : undefined,
+        },
+        {
+          label: 'Starters Avg Age',
+          value: formatAge(userTeam.startersAvgAge),
+          meta: startersAvgAgeRank ? `Rank ${startersAvgAgeRank}/${totalTeams}` : 'Rank NA',
+          avg: `League Avg: ${formatAge(avgStartersAge)}`,
+          accent: startersAvgAgeRank ? getRankColor(startersAvgAgeRank, totalTeams) : undefined,
         },
         {
           label: 'Top Scorer',
           value: topScorer?.name ? abbreviateFirstName(topScorer.name) : '—',
           meta: topScorerMeta,
-          avg: avgTopScorerFpts != null ? `Avg: ${avgTopScorerFpts.toFixed(1)}` : null,
+          avg: avgTopScorerFpts != null ? `League Avg: ${avgTopScorerFpts.toFixed(1)}` : null,
           accent: topScorer?.total ? 'var(--color-accent-secondary)' : undefined,
           className: 'analyzer-chip--top-scorer',
         },
@@ -1894,7 +1984,7 @@
         .map((chip) => `
           <article class="analyzer-chip${chip.className ? ` ${chip.className}` : ''}">
             <span class="chip-label">${chip.label}</span>
-            <span class="chip-value"${chip.accent ? ` style="color: ${chip.accent};"` : ''}>${chip.value}</span>
+            <span class="chip-value${chip.valueClassName ? ` ${chip.valueClassName}` : ''}"${chip.accent ? ` style="color: ${chip.accent};"` : ''}>${chip.value}</span>
             <span class="chip-meta">${chip.meta}</span>
             ${chip.avg ? `<span class="chip-avg">${chip.avg}</span>` : ''}
           </article>
