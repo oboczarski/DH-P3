@@ -1827,8 +1827,20 @@
       return Number.isFinite(value) ? value.toFixed(1) : '—';
     }
 
+    // LeagueHub summary value markup:
+    // targets the summary-card strip so visual prefixes/suffixes can be styled
+    // independently without changing the underlying numeric text content.
+    function formatRankingValue(rank) {
+      return rank ? `<span class="chip-value-prefix">#</span><span class="chip-value-number">${rank}</span>` : '—';
+    }
+
+    function formatNumberWithSuffixMarkup(value, suffixClassName = 'chip-value-suffix') {
+      const formatted = formatNumber(value);
+      return formatted.replace(/([kMB])$/, `<span class="${suffixClassName}">$1</span>`);
+    }
+
     function formatStarterPpgValue(totalPpg, perPlayerPpg) {
-      return `<span class="chip-value-primary">${formatPpg(totalPpg)}</span><span class="chip-value-detail" aria-label="${formatPpg(perPlayerPpg)} average per starter">(<span class="chip-value-detail-number">${formatPpg(perPlayerPpg)}</span><span class="chip-value-detail-suffix">avg</span>)</span>`;
+      return `<span class="chip-value-primary">${formatPpg(totalPpg)}</span><span class="chip-value-divider"> | </span><span class="chip-value-detail" aria-label="${formatPpg(perPlayerPpg)} average per starter"><span class="chip-value-detail-number">${formatPpg(perPlayerPpg)}</span><span class="chip-value-detail-suffix">avg</span></span>`;
     }
 
     function formatLeagueAverage(valueMarkup) {
@@ -1836,7 +1848,7 @@
     }
 
     function formatStarterPpgLeagueAverage(totalPpg, perPlayerPpg) {
-      return `<span class="chip-avg-label">League Avg: </span><span class="chip-avg-value">${formatPpg(totalPpg)}</span><span class="chip-avg-separator"> | </span><span class="chip-avg-ppg"><span class="chip-avg-ppg-number">${formatPpg(perPlayerPpg)}</span><span class="chip-avg-ppg-suffix">avg</span></span>`;
+      return `<span class="chip-avg-label">League Avg: </span><span class="chip-avg-value">${formatPpg(totalPpg)}</span><span class="chip-avg-separator"> | </span><span class="chip-avg-ppg"><span class="chip-avg-ppg-number">${formatPpg(perPlayerPpg)}</span></span>`;
     }
 
     // Analyzer summary chips:
@@ -1888,7 +1900,7 @@
         (team) => team.isUserTeam,
       );
 
-      const rankingValue = overallRank ? `#${overallRank}` : '—';
+      const rankingValue = formatRankingValue(overallRank);
       const rankingMetaParts = [];
       if (standingsUserTeam.record) rankingMetaParts.push(standingsUserTeam.record);
       if (totalTeams) rankingMetaParts.push(`${totalTeams} Teams`);
@@ -1929,20 +1941,23 @@
           value: rankingValue,
           meta: rankingMeta,
           accent: overallRank ? getRankColor(overallRank, totalTeams) : undefined,
+          className: 'analyzer-chip--ranking',
         },
         {
           label: 'TTL Team Value',
-          value: formatNumber(userTeam.totalValue),
+          value: formatNumberWithSuffixMarkup(userTeam.totalValue),
           meta: totalValueRank ? `Rank ${totalValueRank}/${totalTeams}` : 'KTC',
-          avg: formatLeagueAverage(formatNumber(avgTotalValue)),
+          avg: formatLeagueAverage(formatNumberWithSuffixMarkup(avgTotalValue, 'chip-avg-value-suffix')),
           accent: totalValueRank ? getRankColor(totalValueRank, totalTeams) : undefined,
+          className: 'analyzer-chip--total-value analyzer-chip--value-card',
         },
         {
           label: 'Starter Value',
-          value: formatNumber(userTeam.startersValueTotal),
+          value: formatNumberWithSuffixMarkup(userTeam.startersValueTotal),
           meta: starterValueRank ? `Rank ${starterValueRank}/${totalTeams}` : 'Rank NA',
-          avg: formatLeagueAverage(formatNumber(avgStarterValue)),
+          avg: formatLeagueAverage(formatNumberWithSuffixMarkup(avgStarterValue, 'chip-avg-value-suffix')),
           accent: starterValueRank ? getRankColor(starterValueRank, totalTeams) : undefined,
+          className: 'analyzer-chip--starter-value analyzer-chip--value-card',
         },
         {
           label: 'Total FPTS',
@@ -1950,6 +1965,7 @@
           meta: fptsRank ? `Rank ${fptsRank}/${totalTeams}` : 'Rank NA',
           avg: formatLeagueAverage(avgTotalFpts.toFixed(1)),
           accent: fptsRank ? getRankColor(fptsRank, totalTeams) : undefined,
+          className: 'analyzer-chip--total-fpts',
         },
         {
           label: 'Starter PPG',
@@ -1966,7 +1982,7 @@
           meta: teamAvgAgeRank ? `Rank ${teamAvgAgeRank}/${totalTeams}` : 'Rank NA',
           avg: formatLeagueAverage(formatAge(avgTeamAge)),
           accent: teamAvgAgeRank ? getRankColor(teamAvgAgeRank, totalTeams) : undefined,
-          className: 'analyzer-chip--avg-age',
+          className: 'analyzer-chip--avg-age analyzer-chip--team-avg-age',
         },
         {
           label: 'Starters Avg Age',
@@ -1974,7 +1990,7 @@
           meta: startersAvgAgeRank ? `Rank ${startersAvgAgeRank}/${totalTeams}` : 'Rank NA',
           avg: formatLeagueAverage(formatAge(avgStartersAge)),
           accent: startersAvgAgeRank ? getRankColor(startersAvgAgeRank, totalTeams) : undefined,
-          className: 'analyzer-chip--avg-age',
+          className: 'analyzer-chip--avg-age analyzer-chip--starters-avg-age',
         },
         {
           label: 'Top Scorer',
