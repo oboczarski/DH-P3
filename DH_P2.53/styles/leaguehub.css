@@ -208,7 +208,7 @@ body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-detail-numbe
 body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-detail-suffix {
   font-size: 0.68rem;
   font-weight: 600;
-  color: inherit;
+  color: #7e88af;
 }
 
 body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-value {
