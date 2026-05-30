@@ -1405,7 +1405,7 @@ body[data-page="leaguehub"] .app-header {
      mobile/tablet full-width scrolling behavior. */
   body[data-page="leaguehub"] .analyzer-standings {
     width: min(100%, 410px);
-    max-width: 580px;
+    max-width: 552px;
     margin-left: auto;
     margin-right: auto;
     min-height: 620px;
