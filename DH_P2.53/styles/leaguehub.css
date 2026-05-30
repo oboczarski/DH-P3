@@ -137,7 +137,7 @@ body[data-page="leaguehub"] .analyzer-chip .chip-label {
 }
 
 body[data-page="leaguehub"] .analyzer-chip .chip-value {
-  font-size: 1.3rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-primary);
 }
@@ -152,7 +152,7 @@ body[data-page="leaguehub"] .analyzer-chip .chip-meta {
 
 body[data-page="leaguehub"] .analyzer-chip--top-scorer .chip-value {
   font-size: 0.96rem;
-  line-height: 1.2;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
