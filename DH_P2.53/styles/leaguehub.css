@@ -1070,7 +1070,7 @@ body[data-page="leaguehub"] .app-header {
 
 @media (max-width: 640px) {
   body[data-page="leaguehub"] .analyzer-chip {
-    min-height: 100px;
+    min-height: 95px;
   }
 
   body[data-page="leaguehub"] .analyzer-table {
