@@ -931,6 +931,23 @@
       );
     }
 
+    // LeagueHub derived lineup age helpers:
+    // targets summary cards and league-table age columns so those values use the
+    // same starter selection as the Starting Lineup Overview chart toggles.
+    function getDerivedLineupPlayerIds(lineup) {
+      return (lineup?.assignments || [])
+        .map((assignment) => assignment?.player?.id)
+        .filter(Boolean);
+    }
+
+    function countDerivedLineupPlayers(lineup) {
+      return getDerivedLineupPlayerIds(lineup).length;
+    }
+
+    function averageDerivedLineupAge(lineup, asOfDate = new Date()) {
+      return averagePlayerAge(getDerivedLineupPlayerIds(lineup), asOfDate);
+    }
+
     function formatRecordLine(wins, losses, ties) {
       return ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
     }
@@ -1003,6 +1020,12 @@
             break;
           case 'championships':
             result = compareOptionalNumbers(a.championships, b.championships, sortDirection);
+            break;
+          case 'teamAvgAge':
+            result = compareOptionalNumbers(a.teamAvgAge, b.teamAvgAge, sortDirection);
+            break;
+          case 'startersAvgAge':
+            result = compareOptionalNumbers(a.startersAvgAge, b.startersAvgAge, sortDirection);
             break;
           default:
             result = 0;
@@ -1394,15 +1417,20 @@
         };
 
         const totalValue = Object.values(overallPositional).reduce((sum, value) => sum + value, 0);
-        const startersValueTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.value ?? 0), 0);
-        const starterPpgTotal = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.ppg ?? 0), 0);
-        const starterPlayerCount = SLOT_ORDER.reduce((sum, slot) => sum + (startersBySlot[slot]?.players?.length ?? 0), 0);
+        // LeagueHub summary starters:
+        // reuse the chart-derived lineups so Starter Value follows the Value toggle,
+        // while Starter PPG and its per-player average follow the PPG toggle.
+        const derivedValueLineup = derivedLineups.value;
+        const derivedPpgLineup = derivedLineups.ppg;
+        const startersValueTotal = Number(derivedValueLineup?.totals?.value) || 0;
+        const starterPpgTotal = Number(derivedPpgLineup?.totals?.ppg) || 0;
+        const starterPlayerCount = countDerivedLineupPlayers(derivedPpgLineup);
         const starterPpgPerPlayer = starterPlayerCount > 0 ? starterPpgTotal / starterPlayerCount : 0;
         // LeagueHub roster age summaries:
         // target the summary-card strip and use Sleeper player birth dates from the
-        // current roster/player source; empty starter slots and missing ages are ignored.
+        // current roster/player source; starter age follows the value-derived chart lineup.
         const teamAvgAge = averagePlayerAge(roster.players || [], ageAsOfDate);
-        const startersAvgAge = averagePlayerAge(starterIds, ageAsOfDate);
+        const startersAvgAge = averageDerivedLineupAge(derivedValueLineup, ageAsOfDate);
 
         const settings = roster.settings || {};
         const wins = toNumber(settings.wins);
@@ -1901,10 +1929,12 @@
       );
 
       const rankingValue = formatRankingValue(overallRank);
-      const rankingMetaParts = [];
-      if (standingsUserTeam.record) rankingMetaParts.push(standingsUserTeam.record);
-      if (totalTeams) rankingMetaParts.push(`${totalTeams} Teams`);
-      const rankingMeta = rankingMetaParts.length ? rankingMetaParts.join(' • ') : '—';
+      // Ranking chip context:
+      // presents the season record in the same meta row used by rank labels, and
+      // moves team count into the footer row so the card matches the other summaries.
+      const rankingRecord = standingsUserTeam.record || '—';
+      const rankingMeta = `<span class="chip-meta-label">Record </span><span class="chip-meta-value">${escapeHtml(rankingRecord)}</span>`;
+      const rankingTeamCount = totalTeams ? String(totalTeams) : '—';
 
       // Summary chip averages:
       // compute league-wide averages for each metric so each chip can show a contextual
@@ -1940,6 +1970,7 @@
           label: 'Ranking',
           value: rankingValue,
           meta: rankingMeta,
+          avg: `<span class="chip-avg-label">Teams: </span><span class="chip-avg-value">${rankingTeamCount}</span>`,
           accent: overallRank ? getRankColor(overallRank, totalTeams) : undefined,
           className: 'analyzer-chip--ranking',
         },
@@ -2677,11 +2708,21 @@
 
     function renderStandings(teams) {
       const careerStatsByOwner = state.careerStatsByOwner || {};
+      const currentTeamsByOwner = new Map(
+        (state.teams || [])
+          .map((team) => [team.roster?.owner_id, team])
+          .filter(([ownerId]) => Boolean(ownerId)),
+      );
+
+      // League table roster-age columns:
+      // standings rows are based on the completed season snapshot, so attach current
+      // processed roster metrics by owner to keep ages aligned with summary cards.
       const standings = sortTeamsByStandings(teams).map((team, index) => {
         const careerStats = team.roster?.owner_id ? careerStatsByOwner[team.roster.owner_id] : null;
         const careerWins = careerStats?.hasData ? careerStats.wins : null;
         const careerLosses = careerStats?.hasData ? careerStats.losses : null;
         const careerTies = careerStats?.hasData ? careerStats.ties : null;
+        const ageSourceTeam = (team.roster?.owner_id && currentTeamsByOwner.get(team.roster.owner_id)) || team;
 
         return {
           seasonRank: index + 1,
@@ -2701,6 +2742,8 @@
           careerTies,
           careerWinPctValue: careerStats?.hasData ? computeWinPct(careerWins, careerLosses, careerTies) : null,
           championships: careerStats?.hasData ? careerStats.championships : null,
+          teamAvgAge: Number.isFinite(ageSourceTeam?.teamAvgAge) ? ageSourceTeam.teamAvgAge : null,
+          startersAvgAge: Number.isFinite(ageSourceTeam?.startersAvgAge) ? ageSourceTeam.startersAvgAge : null,
         };
       });
 
@@ -2769,9 +2812,11 @@
               <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
               <td data-label="PF">${team.pf.toFixed(1)}</td>
               <td data-label="PA">${team.pa.toFixed(1)}</td>
-              <td data-label="Career REC" class="analyzer-standings-career-start">${careerRecord}</td>
+              <td data-label="Champ" class="analyzer-standings-career-champ-cell analyzer-standings-career-start">${renderCareerChampionships(careerStats)}</td>
+              <td data-label="Career REC" class="analyzer-standings-career-rec-cell">${careerRecord}</td>
               <td data-label="Career WIN %" class="analyzer-standings-career-pct-cell">${careerWinPct}</td>
-              <td data-label="Champ" class="analyzer-standings-career-champ-cell">${renderCareerChampionships(careerStats)}</td>
+              <td data-label="Team Avg Age" class="analyzer-standings-age-cell analyzer-standings-team-age-start">${formatAge(team.teamAvgAge)}</td>
+              <td data-label="Starters Avg Age" class="analyzer-standings-age-cell">${formatAge(team.startersAvgAge)}</td>
             </tr>
           `;
         })

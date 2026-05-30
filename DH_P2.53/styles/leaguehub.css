@@ -180,6 +180,8 @@ body[data-page="leaguehub"] .analyzer-chip .chip-value-prefix,
 body[data-page="leaguehub"] .analyzer-chip .chip-value-suffix,
 body[data-page="leaguehub"] .analyzer-chip .chip-avg-value-suffix {
   color: #7e88af;
+  font-size: 0.84em;
+  line-height: 1;
 }
 
 body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-primary {
@@ -571,11 +573,15 @@ body[data-page="leaguehub"] .analyzer-standings-rec {
   text-align-last: center;
 }
 
+body[data-page="leaguehub"] .analyzer-standings-career-start,
+body[data-page="leaguehub"] .analyzer-standings-team-age-start {
+  border-left: 1px solid rgb(101 111 164 / 20%);
+}
+
 body[data-page="leaguehub"] .analyzer-standings-col-career-rec,
-body[data-page="leaguehub"] .analyzer-standings-career-start {
+body[data-page="leaguehub"] .analyzer-standings-career-rec-cell {
   width: 4.2rem;
   min-width: 4.2rem;
-  border-left: 1px solid rgb(101 111 164 / 20%);
   text-align-last: center;
 }
 
@@ -588,9 +594,31 @@ body[data-page="leaguehub"] .analyzer-standings-career-pct-cell {
 
 body[data-page="leaguehub"] .analyzer-standings-col-career-champ,
 body[data-page="leaguehub"] .analyzer-standings-career-champ-cell {
-  max-width: 9rem;
-  min-width: 5rem;
+  width: 3.6rem;
+  min-width: 3.6rem;
+  max-width: 4.25rem;
   text-align-last: center;
+}
+
+/* League table Team Age columns:
+   keeps the two new age metrics compact while preserving the grouped-column
+   divider between career history and current roster age data. */
+body[data-page="leaguehub"] .analyzer-standings-col-age,
+body[data-page="leaguehub"] .analyzer-standings-age-cell {
+  width: 3.55rem;
+  min-width: 3.55rem;
+  max-width: 3.85rem;
+  text-align: center;
+  text-align-last: center;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-col-age {
+  white-space: normal;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-col-age .analyzer-standings-sort {
+  line-height: 1.05;
+  white-space: normal;
 }
 
 body[data-page="leaguehub"] .analyzer-standings-team {
@@ -604,7 +632,8 @@ body[data-page="leaguehub"] .analyzer-standings-team-name {
   min-width: 0;
 }
 
-body[data-page="leaguehub"] .analyzer-standings-career-group {
+body[data-page="leaguehub"] .analyzer-standings-career-group,
+body[data-page="leaguehub"] .analyzer-standings-team-age-group {
   border-left: 1px solid rgb(101 111 164 / 20%);
 }
 
@@ -1017,7 +1046,7 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
   }
 
   body[data-page="leaguehub"] .analyzer-standings-col-career-rec,
-  body[data-page="leaguehub"] .analyzer-standings-career-start {
+  body[data-page="leaguehub"] .analyzer-standings-career-rec-cell {
     width: 2.85rem;
     min-width: 2.75rem;
   }
@@ -1030,8 +1059,16 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="leaguehub"] .analyzer-standings-col-career-champ,
   body[data-page="leaguehub"] .analyzer-standings-career-champ-cell {
-    max-width: 8.75rem;
-    min-width: 4.85rem;
+    width: 3.25rem;
+    min-width: 3.25rem;
+    max-width: 3.55rem;
+  }
+
+  body[data-page="leaguehub"] .analyzer-standings-col-age,
+  body[data-page="leaguehub"] .analyzer-standings-age-cell {
+    width: 3.15rem;
+    min-width: 3.15rem;
+    max-width: 3.35rem;
   }
 
   body[data-page="leaguehub"] .analyzer-standings-team-name {
@@ -1198,6 +1235,12 @@ body[data-page="leaguehub"] .app-header {
     align-self: start;
     font-size: 0.86rem;
     line-height: 1.08;
+  }
+
+  body[data-page="leaguehub"] .analyzer-chip .chip-value-prefix,
+  body[data-page="leaguehub"] .analyzer-chip .chip-value-suffix,
+  body[data-page="leaguehub"] .analyzer-chip .chip-avg-value-suffix {
+    font-size: 0.84em;
   }
 
   body[data-page="leaguehub"] .analyzer-chip .chip-meta {
@@ -1603,6 +1646,14 @@ body[data-page="leaguehub"] .analyzer-chip .chip-avg-ppg {
 body[data-page="leaguehub"] .analyzer-chip .chip-avg-separator {
   color: #7e88af;
   font-size: 0.66rem;
+}
+
+/* Summary chip league-average values:
+   boosts only the numeric footer values on non-ranking cards so labels keep
+   their lighter hierarchy while the values read more clearly. */
+body[data-page="leaguehub"] .analyzer-chip:not(.analyzer-chip--ranking) .chip-avg-value,
+body[data-page="leaguehub"] .analyzer-chip:not(.analyzer-chip--ranking) .chip-avg-ppg-number {
+  font-weight: 700;
 }
 
 /* Top-scorer chip: smaller font for the avg line to match the condensed chip-meta. */
