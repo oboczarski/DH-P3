@@ -508,7 +508,9 @@ body[data-page="leaguehub"] .analyzer-table thead .analyzer-table-group-row + tr
   text-align: center;
   background: #93a2c010;
   border-bottom: 1px solid #abe2;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: -0.05em;
 }
 
 body[data-page="leaguehub"] .analyzer-standings-header p {
@@ -1008,8 +1010,9 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
   body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(4),
   body[data-page="leaguehub"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
   body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(5) {
-    width: 3rem;
-    min-width: 3rem;
+    width: 2.1rem;
+    min-width: 3.1rem;
+    text-align: center;
   }
 
   body[data-page="leaguehub"] .analyzer-standings-header {
@@ -1030,8 +1033,8 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="leaguehub"] .analyzer-standings-col-rec,
   body[data-page="leaguehub"] .analyzer-standings-rec {
-    width: 2.75rem;
-    min-width: 2.75rem;
+    width: 2.85rem;
+    min-width: 2.85rem;
   }
 
   body[data-page="leaguehub"] .analyzer-table thead .analyzer-table-group-row th {
@@ -1059,16 +1062,16 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
 
   body[data-page="leaguehub"] .analyzer-standings-col-career-champ,
   body[data-page="leaguehub"] .analyzer-standings-career-champ-cell {
-    width: 3.25rem;
-    min-width: 3.25rem;
-    max-width: 3.55rem;
+    width: 4.25rem;
+    min-width: 4.25rem;
+    max-width: 5.55rem;
   }
 
   body[data-page="leaguehub"] .analyzer-standings-col-age,
   body[data-page="leaguehub"] .analyzer-standings-age-cell {
-    width: 3.15rem;
-    min-width: 3.15rem;
-    max-width: 3.35rem;
+    width: 4.25rem;
+    min-width: 4.25rem;
+    max-width: 4.15rem;
   }
 
   body[data-page="leaguehub"] .analyzer-standings-team-name {
@@ -1308,7 +1311,7 @@ body[data-page="leaguehub"] .app-header {
 
   body[data-page="leaguehub"] .analyzer-table th,
   body[data-page="leaguehub"] .analyzer-table td {
-    padding: 0.55rem 0.2rem 0.3rem;
+    padding: 1.55rem 0.3rem 0.3rem;
     padding-top: 0.5rem !important;
     padding-bottom: 0.45rem !important;
   }
