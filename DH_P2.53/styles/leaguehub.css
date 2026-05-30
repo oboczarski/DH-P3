@@ -1220,9 +1220,9 @@ body[data-page="leaguehub"] .app-header {
   }
 
   body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value--compound {
-    gap: 0.07rem;
+    gap: 0.13rem;
     font-size: 0.75rem;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-divider {
