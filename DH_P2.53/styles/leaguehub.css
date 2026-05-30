@@ -190,7 +190,7 @@ body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-divider {
   flex: 0 0 auto;
   color: #7e88af;
   font-size: 0.92rem;
-  font-weight: 700;
+  font-weight: 300;
 }
 
 body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-detail {
@@ -1222,10 +1222,11 @@ body[data-page="leaguehub"] .app-header {
   body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value--compound {
     gap: 0.07rem;
     font-size: 0.75rem;
+    justify-content: space-between;
   }
 
   body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-divider {
-    font-size: 0.66rem;
+    font-size: 0.8rem;
   }
 
   body[data-page="leaguehub"] .analyzer-chip--starter-ppg .chip-value-detail-number {
