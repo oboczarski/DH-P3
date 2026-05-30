@@ -441,7 +441,7 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreRingInnerRadius: 128,
   bands: {
     2: { radius: 218, width: 70, nodeRadius: 57, angles: [315, 45, 135, 225] },
-    3: { radius: 337, width: 74, nodeRadius: 48, angles: [73, 107, 180, 253, 287, 0] },
+    3: { radius: 337, width: 74, nodeRadius: 48, angles: [74, 106, 180, 254, 286, 0] },
     4: {
       radius: 456,
       width: 76,
