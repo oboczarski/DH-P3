@@ -620,7 +620,7 @@ body[data-page="leaguehub"] .analyzer-standings-col-age {
 
 body[data-page="leaguehub"] .analyzer-standings-col-age .analyzer-standings-sort {
   line-height: 1.05;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 body[data-page="leaguehub"] .analyzer-standings-team {
