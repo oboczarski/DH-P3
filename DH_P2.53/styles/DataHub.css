@@ -2953,6 +2953,18 @@ body[data-page="datahub"] .stats-table__group-header-icon--rookie-draft {
   height: 19px;
 }
 
+/* DataHub Ceiling group header icon:
+   Targets the filled Material-style Ceiling & Consistency group glyph.
+   What it does: uses the group accent color for the filled path while leaving
+   the default stroke-based group icons unchanged. */
+body[data-page="datahub"] .stats-table__group-header-icon--ceiling-material {
+  width: 19px;
+  height: 19px;
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* ── Column header row ─────────────────────────────────────────────────── */
 .stats-table thead th.stats-table__header-cell {
   position: sticky;
@@ -3113,6 +3125,23 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .s
   fill: var(--column-icon-color, rgb(98 135 183));
   stroke: none;
   stroke-width: 0;
+}
+
+/* DataHub Material stat column header icons:
+   Targets the filled TIER, G/Gs, OPP, IMP/OPP, tTD, and 40dsh replacements in
+   any DataHub table that renders those stat columns. This stays page-scoped so
+   other app pages keep their existing icon treatment. */
+body[data-page="datahub"] .stats-table__head-icon--datahub-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
+  width: 17px;
+  height: 17px;
 }
 
 /* TM / CFB column header icons:
@@ -4374,6 +4403,19 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .stats-table__head-icon--rookie-wt {
     width: 16px;
     height: 16px;
+  }
+
+  /* Mobile DataHub Material stat column header icons:
+     keeps the filled TIER, G/Gs, OPP, IMP/OPP, tTD, and 40dsh glyphs compact
+     inside mobile DataHub table columns without affecting desktop sizing. */
+  body[data-page="datahub"] .stats-table__head-icon--datahub-material {
+    width: 16px;
+    height: 16px;
+  }
+
+  body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
+    width: 15px;
+    height: 15px;
   }
 
     /* Mobile TM / CFB header icons:
