@@ -2351,12 +2351,12 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 .player-row .roster-card-watermark {
   position: absolute;
   top: 50%;
-  right: -8px;
-  transform: translateY(-50%);
-  width: 62px;
-  height: 62px;
+  right: 0px;
+  transform: translateY(-62%);
+  width: 55px;
+  height: 55px;
   object-fit: contain;
-  opacity: 0.05;
+  opacity: 0.065;
   pointer-events: none;
   z-index: 0;
   user-select: none;
