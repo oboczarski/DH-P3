@@ -2360,13 +2360,13 @@ const MOBILE_COLUMN_WIDTHS = {
   paRTG: 56,
   "EPA/DB": 58,
   CPOE: 53,
-  CMP: 52,
+  CMP: 48,
   YPA: 50,
   paYPG: 56,
   ruYPG: 54,
   ruYDS: 54,
   ruTD: 48,
-  pa1D: 52,
+  pa1D: 50,
   "IMP/G": 52,
   pIMP: 52,
   "pIMP/A": 62,
@@ -2426,11 +2426,11 @@ const TRADE_VALUES_MOBILE_COLUMN_WIDTHS = Object.freeze({
   // tighten only the 1QB / SFLX market columns so the shorter trade-values
   // schema fits more comfortably on mobile without affecting the Stats view.
   "KTC 1QB": 63,
-  "KTC SFLX": 68,
-  "1QB ADP": 62,
-  "SFLX ADP": 66,
-  "1QB DIFF": 64,
-  "SFLX DIFF": 66,
+  "KTC SFLX": 66,
+  "1QB ADP": 61,
+  "SFLX ADP": 64,
+  "1QB DIFF": 63,
+  "SFLX DIFF": 65,
 });
 const ROOKIES_CAREER_MOBILE_COLUMN_WIDTHS = Object.freeze({
   ...MOBILE_COLUMN_WIDTHS,
