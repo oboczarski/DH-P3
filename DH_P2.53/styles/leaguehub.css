@@ -520,15 +520,57 @@ body[data-page="leaguehub"] .analyzer-standings-header p {
 }
 
 body[data-page="leaguehub"] .analyzer-standings-table-wrapper {
-  overflow-x: auto;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
   border: 1px solid #abd2;
   border-radius: 11px;
+}
+
+/* Analyzer split standings table:
+   freezes the SZN Standings group as a separate table, while only the right-side
+   metric table scrolls horizontally so moving content never passes behind SZN. */
+body[data-page="leaguehub"] .analyzer-standings-frozen-shell {
+  flex: 0 0 auto;
+  max-width: 58%;
+  overflow: hidden;
+  background: rgba(13, 14, 35, 0.96);
+  position: relative;
+  z-index: 2;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-scroll-shell {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 138, 189, 0.32) transparent;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-scroll-shell::-webkit-scrollbar {
+  height: 6px;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-scroll-shell::-webkit-scrollbar-thumb {
+  background: rgba(128, 138, 189, 0.32);
+  border-radius: 999px;
 }
 
 body[data-page="leaguehub"] .analyzer-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-frozen-table {
+  width: auto;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-scroll-table {
+  width: 100%;
+  min-width: max-content;
 }
 
 body[data-page="leaguehub"] .analyzer-table thead tr {
@@ -568,10 +610,23 @@ body[data-page="leaguehub"] .analyzer-standings-rank {
   text-align-last: center;
 }
 
+body[data-page="leaguehub"] .analyzer-standings-col-team,
+body[data-page="leaguehub"] .analyzer-standings-team-cell {
+  min-width: 7.25rem;
+  max-width: 7.25rem;
+}
+
 body[data-page="leaguehub"] .analyzer-standings-col-rec,
 body[data-page="leaguehub"] .analyzer-standings-rec {
   width: 3.4rem;
   min-width: 3.4rem;
+  text-align-last: center;
+}
+
+body[data-page="leaguehub"] .analyzer-standings-col-points,
+body[data-page="leaguehub"] .analyzer-standings-points-cell {
+  min-width: 3.1rem;
+  text-align: center;
   text-align-last: center;
 }
 
@@ -632,6 +687,11 @@ body[data-page="leaguehub"] .analyzer-standings-team {
 
 body[data-page="leaguehub"] .analyzer-standings-team-name {
   min-width: 0;
+  display: inline-block;
+  max-width: 6.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 
 body[data-page="leaguehub"] .analyzer-standings-career-group,
@@ -1006,10 +1066,8 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
 @media (max-width: 640px) {
   /* Analyzer mobile standings widths:
      narrows the career REC/WIN% columns slightly while giving PF/PA a bit more room. */
-  body[data-page="leaguehub"] #analyzerStandingsTable thead tr:last-child th:nth-child(4),
-  body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(4),
-  body[data-page="leaguehub"] #analyzerStandingsTable thead tr:last-child th:nth-child(5),
-  body[data-page="leaguehub"] #analyzerStandingsTable tbody td:nth-child(5) {
+  body[data-page="leaguehub"] .analyzer-standings-col-points,
+  body[data-page="leaguehub"] .analyzer-standings-points-cell {
     width: 2.1rem;
     min-width: 3.1rem;
     text-align: center;
@@ -1029,6 +1087,12 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
   body[data-page="leaguehub"] .analyzer-standings-rank {
     width: 1.7rem;
     min-width: 1.7rem;
+  }
+
+  body[data-page="leaguehub"] .analyzer-standings-col-team,
+  body[data-page="leaguehub"] .analyzer-standings-team-cell {
+    min-width: 7.25rem;
+    max-width: 7.25rem;
   }
 
   body[data-page="leaguehub"] .analyzer-standings-col-rec,

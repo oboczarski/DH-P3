@@ -20,7 +20,9 @@
       overallCanvas: document.getElementById('overallValueChart'),
       radarCanvas: document.getElementById('radarChart'),
       standingsTable: document.getElementById('analyzerStandingsTable'),
+      standingsFrozenTable: document.getElementById('analyzerStandingsFrozenTable'),
       standingsBody: document.getElementById('standingsTableBody'),
+      standingsFrozenBody: document.getElementById('standingsFrozenBody'),
       leaderboardBody: document.getElementById('leaderboardTableBody'),
       leaderboardFilters: document.querySelectorAll('.analyzer-filter-group .filter-chip'),
     };
@@ -558,10 +560,10 @@
       });
     });
 
-    // Analyzer league table sorting:
-    // cycles each sortable header through high-to-low, low-to-high, then reset
-    // without changing the underlying season-standings source data.
-    elements.standingsTable?.addEventListener('click', (event) => {
+    // Analyzer split league table sorting:
+    // cycles sortable headers in both the frozen SZN table and the horizontal
+    // scroll table through high-to-low, low-to-high, then reset.
+    const handleStandingsSortClick = (event) => {
       const sortButton = event.target.closest('.analyzer-standings-sort');
       if (!sortButton) return;
 
@@ -583,7 +585,11 @@
 
       state.standingsSort = nextSort;
       renderStandings(state.standingsTeams);
-    });
+    };
+    elements.standingsFrozenTable?.addEventListener('click', handleStandingsSortClick);
+    elements.standingsTable?.addEventListener('click', handleStandingsSortClick);
+
+    window.addEventListener('resize', syncStandingsSplitRowHeights);
 
     const normalizedInitialUsername = normalizeLeagueUsername(initialUsername);
     const storedUsername = normalizeLeagueUsername(elements.usernameInput?.value);
@@ -1037,23 +1043,26 @@
     }
 
     function syncStandingsSortHeaders() {
-      if (!elements.standingsTable) return;
+      const standingsTables = [elements.standingsFrozenTable, elements.standingsTable].filter(Boolean);
+      if (!standingsTables.length) return;
       const activeKey = state.standingsSort?.key || null;
       const activeDirection = state.standingsSort?.direction || null;
 
-      elements.standingsTable.querySelectorAll('th[data-sort-key]').forEach((headerCell) => {
-        const headerKey = headerCell.dataset.sortKey || null;
-        const isActive = activeKey && activeKey === headerKey;
-        const ariaSort = isActive
-          ? (activeDirection === 'asc' ? 'ascending' : 'descending')
-          : 'none';
-        headerCell.setAttribute('aria-sort', ariaSort);
+      standingsTables.forEach((standingsTable) => {
+        standingsTable.querySelectorAll('th[data-sort-key]').forEach((headerCell) => {
+          const headerKey = headerCell.dataset.sortKey || null;
+          const isActive = activeKey && activeKey === headerKey;
+          const ariaSort = isActive
+            ? (activeDirection === 'asc' ? 'ascending' : 'descending')
+            : 'none';
+          headerCell.setAttribute('aria-sort', ariaSort);
 
-        const button = headerCell.querySelector('.analyzer-standings-sort');
-        if (!button) return;
+          const button = headerCell.querySelector('.analyzer-standings-sort');
+          if (!button) return;
 
-        button.classList.toggle('is-active', Boolean(isActive));
-        button.dataset.sortDirection = isActive ? activeDirection : 'none';
+          button.classList.toggle('is-active', Boolean(isActive));
+          button.dataset.sortDirection = isActive ? activeDirection : 'none';
+        });
       });
     }
 
@@ -2706,6 +2715,37 @@
         .replace(/'/g, '&#39;');
     }
 
+    // Analyzer split standings row sync:
+    // targets the frozen SZN Standings table and the horizontal-scroll table so
+    // their grouped headers and rows keep identical heights after rendering.
+    function syncStandingsSplitRowHeights() {
+      if (!elements.standingsFrozenTable || !elements.standingsTable) return;
+
+      const frozenRows = [
+        ...elements.standingsFrozenTable.querySelectorAll('thead tr'),
+        ...elements.standingsFrozenTable.querySelectorAll('tbody tr'),
+      ];
+      const scrollRows = [
+        ...elements.standingsTable.querySelectorAll('thead tr'),
+        ...elements.standingsTable.querySelectorAll('tbody tr'),
+      ];
+      const pairCount = Math.min(frozenRows.length, scrollRows.length);
+
+      [...frozenRows, ...scrollRows].forEach((row) => {
+        row.style.height = '';
+      });
+
+      for (let index = 0; index < pairCount; index += 1) {
+        const frozenRow = frozenRows[index];
+        const scrollRow = scrollRows[index];
+        const maxHeight = Math.max(frozenRow.offsetHeight, scrollRow.offsetHeight);
+        if (maxHeight > 0) {
+          frozenRow.style.height = `${maxHeight}px`;
+          scrollRow.style.height = `${maxHeight}px`;
+        }
+      }
+    }
+
     function renderStandings(teams) {
       const careerStatsByOwner = state.careerStatsByOwner || {};
       const currentTeamsByOwner = new Map(
@@ -2795,7 +2835,10 @@
 
       const sortedStandings = sortRenderedStandingsRows(standings);
 
-      elements.standingsBody.innerHTML = sortedStandings
+      // Analyzer split standings rows:
+      // renders SZN rank/team in the frozen table and every horizontally
+      // scrollable metric in the paired table so no moving cells sit behind SZN.
+      const renderedRows = sortedStandings
         .map((team) => {
           const careerStats = team.careerStats;
           const careerRecord = careerStats?.hasData
@@ -2805,24 +2848,41 @@
             ? formatWinPctDisplay(careerStats.wins, careerStats.losses, careerStats.ties)
             : '—';
 
-          return `
+          return {
+            frozen: `
             <tr>
               <td data-label="RK" class="analyzer-standings-rank">${team.seasonRank}</td>
-              <td data-label="Team" class="analyzer-standings-section-divider-right">${renderStandingsTeamCell(team)}</td>
+              <td data-label="Team" class="analyzer-standings-team-cell analyzer-standings-section-divider-right">${renderStandingsTeamCell(team)}</td>
+            </tr>
+          `,
+            scroll: `
+            <tr>
               <td data-label="REC" class="analyzer-standings-rec">${team.record}</td>
-              <td data-label="PF">${team.pf.toFixed(1)}</td>
-              <td data-label="PA">${team.pa.toFixed(1)}</td>
+              <td data-label="PF" class="analyzer-standings-points-cell">${team.pf.toFixed(1)}</td>
+              <td data-label="PA" class="analyzer-standings-points-cell">${team.pa.toFixed(1)}</td>
               <td data-label="Champ" class="analyzer-standings-career-champ-cell analyzer-standings-career-start">${renderCareerChampionships(careerStats)}</td>
               <td data-label="Career REC" class="analyzer-standings-career-rec-cell">${careerRecord}</td>
               <td data-label="Career WIN %" class="analyzer-standings-career-pct-cell">${careerWinPct}</td>
               <td data-label="Team Avg Age" class="analyzer-standings-age-cell analyzer-standings-team-age-start">${formatAge(team.teamAvgAge)}</td>
               <td data-label="Starters Avg Age" class="analyzer-standings-age-cell">${formatAge(team.startersAvgAge)}</td>
             </tr>
-          `;
+          `,
+          };
         })
-        .join('');
+        .reduce((acc, row) => {
+          acc.frozen.push(row.frozen);
+          acc.scroll.push(row.scroll);
+          return acc;
+        }, { frozen: [], scroll: [] });
+
+      if (elements.standingsFrozenBody) {
+        elements.standingsFrozenBody.innerHTML = renderedRows.frozen.join('');
+      }
+      elements.standingsBody.innerHTML = renderedRows.scroll.join('');
 
       syncStandingsSortHeaders();
+      syncStandingsSplitRowHeights();
+      requestAnimationFrame(syncStandingsSplitRowHeights);
     }
 
     function computeWinPct(wins, losses, ties) {
