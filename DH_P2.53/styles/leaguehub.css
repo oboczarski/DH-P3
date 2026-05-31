@@ -368,6 +368,15 @@ body[data-page="leaguehub"] .analyzer-chart {
   height: 400px;
 }
 
+/* LeagueHub chart canvas quality:
+   keeps Chart.js canvases pinned to the container size while JS renders them
+   at a higher internal DPR for sharper desktop zoom and Retina displays. */
+body[data-page="leaguehub"] .analyzer-chart canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 body[data-page="leaguehub"] .analyzer-chart--radar {
   min-height: 336px;
   padding: 0;

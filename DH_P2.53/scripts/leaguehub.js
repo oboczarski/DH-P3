@@ -213,6 +213,50 @@
       return fontString.replace(match[0], `${rounded % 1 === 0 ? rounded.toFixed(0) : rounded}px`);
     };
 
+    // LeagueHub chart raster quality:
+    // Chart.js defaults to the browser DPR, which can look soft on desktop when users
+    // zoom in. These helpers render LeagueHub canvases at a higher internal pixel
+    // ratio while keeping the same CSS size, then refresh that ratio after zoom/resize.
+    function getAnalyzerChartDevicePixelRatio() {
+      const rawRatio = Number(window.devicePixelRatio) || 1;
+      const desktopMinRatio = 2.5;
+      const mobileMinRatio = 2;
+      const maxRatio = 3;
+      const minRatio = window.matchMedia('(max-width: 640px)').matches
+        ? mobileMinRatio
+        : desktopMinRatio;
+      return Math.min(maxRatio, Math.max(rawRatio, minRatio));
+    }
+
+    function applyAnalyzerChartRenderQuality(options = {}) {
+      return {
+        ...options,
+        devicePixelRatio: getAnalyzerChartDevicePixelRatio(),
+        resizeDelay: 80,
+      };
+    }
+
+    let chartResolutionFrame = null;
+    function refreshAnalyzerChartResolution() {
+      const nextRatio = getAnalyzerChartDevicePixelRatio();
+      Object.values(state.charts || {}).forEach((chart) => {
+        if (!chart) return;
+        chart.options.devicePixelRatio = nextRatio;
+        chart.resize();
+        chart.update('none');
+      });
+    }
+
+    function scheduleAnalyzerChartResolutionRefresh() {
+      if (chartResolutionFrame !== null) {
+        cancelAnimationFrame(chartResolutionFrame);
+      }
+      chartResolutionFrame = requestAnimationFrame(() => {
+        chartResolutionFrame = null;
+        refreshAnalyzerChartResolution();
+      });
+    }
+
     const barTotalsPlugin = {
       id: 'analyzerBarTotals',
       afterDatasetsDraw(chart, args, options) {
@@ -589,7 +633,11 @@
     elements.standingsFrozenTable?.addEventListener('click', handleStandingsSortClick);
     elements.standingsTable?.addEventListener('click', handleStandingsSortClick);
 
-    window.addEventListener('resize', syncStandingsSplitRowHeights);
+    window.addEventListener('resize', () => {
+      syncStandingsSplitRowHeights();
+      scheduleAnalyzerChartResolutionRefresh();
+    });
+    window.visualViewport?.addEventListener?.('resize', scheduleAnalyzerChartResolutionRefresh);
 
     const normalizedInitialUsername = normalizeLeagueUsername(initialUsername);
     const storedUsername = normalizeLeagueUsername(elements.usernameInput?.value);
@@ -2078,10 +2126,12 @@
       if (teamLabels.length) {
         state.charts.lineup.data.labels = teamLabels;
       }
-      state.charts.lineup.options = buildLineupOptions(
-        metricConfig.max,
-        state.currentLineupMetric,
-        state.teams || [],
+      state.charts.lineup.options = applyAnalyzerChartRenderQuality(
+        buildLineupOptions(
+          metricConfig.max,
+          state.currentLineupMetric,
+          state.teams || [],
+        ),
       );
       state.charts.lineup.update();
     }
@@ -2286,7 +2336,7 @@
       return new Chart(canvas, {
         type: 'bar',
         data: { labels, datasets },
-        options,
+        options: applyAnalyzerChartRenderQuality(options),
       });
     }
 
@@ -2636,7 +2686,7 @@
             },
           ],
         },
-        options: {
+        options: applyAnalyzerChartRenderQuality({
           responsive: true,
           maintainAspectRatio: false,
           interaction: {
@@ -2702,7 +2752,7 @@
               offset: radarLabelOffset,
             },
           },
-        },
+        }),
       });
     }
 
