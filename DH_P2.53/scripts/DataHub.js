@@ -929,6 +929,10 @@ const OPP_HEADER_ICON_MARKUP = '<path d="M240-100q-58 0-99-41t-41-99q0-58 41-99t
 const IMP_OPP_HEADER_ICON_MARKUP = '<path d="m421-340 31 30q12 12 28 12t28-12l31-30h41q17 0 28.5-11.5T620-380v-41l30-31q12-12 12-28t-12-28l-30-31v-41q0-17-11.5-28.5T580-620h-41l-38-37q-9-9-21-9t-21 9l-38 37h-41q-17 0-28.5 11.5T340-580v41l-30 31q-12 12-12 28t12 28l30 31v41q0 17 11.5 28.5T380-340h41Zm-75 180H240q-33 0-56.5-23.5T160-240v-106l-77-78q-11-12-17-26.5T60-480q0-15 6-29.5T83-536l77-78v-106q0-33 23.5-56.5T240-800h106l78-77q12-11 26.5-17t29.5-6q15 0 29.5 6t26.5 17l78 77h106q33 0 56.5 23.5T800-720v106l77 78q11 12 17 26.5t6 29.5q0 15-6 29.5T877-424l-77 78v106q0 33-23.5 56.5T720-160H614l-78 77q-12 11-26.5 17T480-60q-15 0-29.5-6T424-83l-78-77Zm34-80 100 100 100-100h140v-140l100-100-100-100v-140H580L480-820 380-720H240v140L140-480l100 100v140h140Zm100-240Z" />';
 const TTD_HEADER_ICON_MARKUP = '<path d="m200-531-100-57q-9-5-14.5-14.5T80-623v-114q0-11 5.5-20.5T100-772l100-57q9-5 20-5t20 5l100 57q9 5 14.5 14.5T360-737v114q0 11-5.5 20.5T340-588l-100 57q-9 5-20 5t-20-5Zm460 91v-142l100 59q19 11 29.5 29t10.5 40v188q0 22-10.5 40T760-197l-160 93q-19 11-40 11t-40-11l-160-93q-19-11-29.5-29T320-266v-188q0-22 10.5-40t29.5-29l100-59v142q0 42 29 71t71 29q42 0 71-29t29-71Zm-60-200v200q0 17-11.5 28.5T560-400q-17 0-28.5-11.5T520-440v-400q0-17 11.5-28.5T560-880h245q24 0 36 21t-2 41l-24 36q-7 10-7 22t7 22l24 36q14 20 2 41t-36 21H600Z" />';
 const FORTY_DASH_HEADER_ICON_MARKUP = '<path d="M574.5-774.5Q560-789 560-810t14.5-35.5Q589-860 610-860t35.5 14.5Q660-831 660-810t-14.5 35.5Q631-760 610-760t-35.5-14.5Zm0 660Q560-129 560-150t14.5-35.5Q589-200 610-200t35.5 14.5Q660-171 660-150t-14.5 35.5Q631-100 610-100t-35.5-14.5Zm160-520Q720-649 720-670t14.5-35.5Q749-720 770-720t35.5 14.5Q820-691 820-670t-14.5 35.5Q791-620 770-620t-35.5-14.5Zm0 380Q720-269 720-290t14.5-35.5Q749-340 770-340t35.5 14.5Q820-311 820-290t-14.5 35.5Q791-240 770-240t-35.5-14.5Zm60-190Q780-459 780-480t14.5-35.5Q809-530 830-530t35.5 14.5Q880-501 880-480t-14.5 35.5Q851-430 830-430t-35.5-14.5ZM184.5-750Q289-863 441-878q16-2 27.5 9.5T480-840q0 16-10.5 28T443-798q-121 14-202 104t-81 214q0 125 81 214.5T443-162q16 2 26.5 14t10.5 28q0 17-11.5 28.5T441-82Q288-97 184-210T80-480q0-157 104.5-270Zm239 326.5Q400-447 400-480q0-5 .5-10.5T403-501l-55-55q-11-11-11-28t11-28q11-11 28-11t28 11l55 55q4-1 21-3 33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400q-33 0-56.5-23.5Z" />';
+const AGE_HEADER_ICON_MARKUP = '<path d="M760-80H640q-17 0-28.5-11.5T600-120q0-17 11.5-28.5T640-160h120v-400H200v120q0 17-11.5 28.5T160-400q-17 0-28.5-11.5T120-440v-280q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80Zm-393-80H80q-17 0-28.5-11.5T40-200q0-17 11.5-28.5T80-240h287l-75-76q-11-11-11.5-27.5T292-372q11-11 28-11t28 11l144 144q12 12 12 28t-12 28L348-28q-11 11-27.5 11.5T292-28q-11-11-11-28t11-28l75-76Z" />';
+const GRD_HEADER_ICON_MARKUP = '<path d="M21,8c-1.45,0-2.26,1.44-1.93,2.51l-3.55,3.56c-0.3-0.09-0.74-0.09-1.04,0l-2.55-2.55C12.27,10.45,11.46,9,10,9 c-1.45,0-2.27,1.44-1.93,2.52l-4.56,4.55C2.44,15.74,1,16.55,1,18c0,1.1,0.9,2,2,2c1.45,0,2.26-1.44,1.93-2.51l4.55-4.56 c0.3,0.09,0.74,0.09,1.04,0l2.55,2.55C12.73,16.55,13.54,18,15,18c1.45,0,2.27-1.44,1.93-2.52l3.56-3.55 C21.56,12.26,23,11.45,23,10C23,8.9,22.1,8,21,8z"/><polygon points="15,9 15.94,6.93 18,6 15.94,5.07 15,3 14.08,5.07 12,6 14.08,6.93"/><polygon points="3.5,11 4,9 6,8.5 4,8 3.5,6 3,8 1,8.5 3,9"/>';
+const FANTASY_GROUP_ICON_MARKUP = '<path d="M0 0h24v24H0z" fill="none"/><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/>';
+const PROSPECT_RANKS_GROUP_ICON_MARKUP = '<path d="M160-200h160v-320H160v320Zm240 0h160v-560H400v560Zm240 0h160v-240H640v240Zm-560 0v-320q0-33 23.5-56.5T160-600h160v-160q0-33 23.5-56.5T400-840h160q33 0 56.5 23.5T640-760v240h160q33 0 56.5 23.5T880-440v240q0 33-23.5 56.5T800-120H160q-33 0-56.5-23.5T80-200Z" />';
 
 // Rookies Draft group icon:
 // this uses the requested filled Material-style path for the Draft column
@@ -958,7 +962,7 @@ const MTF_HEADER_ICON_MARKUP = '<path d="m720.24-175.11-32.17 32.18q-12.68 12.67
 // these filled Material-style paths are used anywhere the matching column
 // appears, while CSS gives each column an independent desktop/mobile size hook.
 const YPR_HEADER_ICON_MARKUP = '<path d="M529.59-165.04q-13.18-13.18-13.18-32.33v-263.52L323.83-653.24v44.5q0 19.15-13.18 32.33-13.17 13.17-32.32 13.17-19.16 0-32.33-13.17-13.17-13.18-13.17-32.33v-153.89q0-19.15 13.17-32.33 13.17-13.17 32.33-13.17h153.89q19.15 0 32.32 13.17 13.18 13.18 13.18 32.33t-13.18 32.33q-13.17 13.17-32.32 13.17h-44.5l193.35 193.59q12.43 12.43 19.39 29.08 6.95 16.66 6.95 34.81v262.28q0 19.15-13.17 32.33-13.17 13.17-32.33 13.17-19.15 0-32.32-13.17Z" />';
-const YAC_HEADER_ICON_MARKUP = '<path d="M447.67-457.48q-13.17-13.17-13.17-32.32v-224.29L287.35-567.7q-12.68 12.92-31.45 13.3-18.77.38-32.2-13.3-12.68-12.67-12.68-31.82t12.68-31.83l224.47-224.48q6.72-6.71 14.8-9.69 8.07-2.98 17.03-2.98t17.15 2.98q8.2 2.98 14.92 9.69l224.47 224.48q12.68 12.68 12.8 31.33.12 18.65-12.8 32.32-13.67 13.68-32.32 13.68t-32.33-13.68L525.5-714.09v224.29q0 19.15-13.17 32.32Q499.15-444.3 480-444.3t-32.33-13.18Zm0 201.44q-13.17-13.18-13.17-32.33v-30.43q0-19.16 13.17-32.33Q460.85-364.3 480-364.3t32.33 13.17q13.17 13.17 13.17 32.33v30.43q0 19.15-13.17 32.33-13.18 13.17-32.33 13.17t-32.33-13.17Zm0 171q-13.17-13.18-13.17-32.33t13.17-32.33q13.18-13.17 32.33-13.17t32.33 13.17q13.17 13.18 13.17 32.33t-13.17 32.33Q499.15-71.87 480-71.87t-32.33-13.17Z" />';
+const YAC_HEADER_ICON_MARKUP = '<path d="M440-280q-14-127-102.5-214.5T124-597q-18-2-31-14t-13-29q0-17 12-28.5t29-9.5q117 11 212.5 77T480-428q38-81 100-143.5T719-680H600q-17 0-28.5-11.5T560-720q0-17 11.5-28.5T600-760h200q17 0 28.5 11.5T840-720v200q0 17-11.5 28.5T800-480q-17 0-28.5-11.5T760-520v-92q-93 57-160 141t-80 191h40q17 0 28.5 11.5T600-240q0 17-11.5 28.5T560-200H400q-17 0-28.5-11.5T360-240q0-17 11.5-28.5T400-280h40Z" />';
 const CTST_HEADER_ICON_MARKUP = '<path d="m298.7-777.57-21.77-64q-4.47-12.91 1.86-25.46 6.34-12.56 20.01-17.04 12.92-4.47 25.47 2.12 12.56 6.6 17.03 19.52l21.77 63.23q4.47 12.92-2.24 25.47-6.72 12.56-19.63 17.03-13.68 4.48-25.85-1.35-12.18-5.84-16.65-19.52Zm147-52.43v-60q0-14.67 9.81-24.49 9.82-9.81 24.49-9.81 14.67 0 24.49 9.81 9.81 9.82 9.81 24.49v60q0 14.67-9.81 24.49-9.82 9.81-24.49 9.81-14.67 0-24.49-9.81-9.81-9.82-9.81-24.49Zm152 30.57 21-63q4.47-12.92 16.65-19.14 12.17-6.21 25.85-1.73 12.91 4.47 19.63 17.15 6.71 12.67 2.24 25.58l-21.77 63q-4.47 12.92-17.03 19.52-12.55 6.59-25.47 2.12-12.91-4.48-19.25-17.54-6.33-13.05-1.85-25.96Zm63.19 730.54q-34.96-5.24-61.29-28.22-26.34-22.98-37.34-55.93l-33.76-106q-11.72-36.68-.52-72.61 11.19-35.94 40.54-59.42l48.52 151.05q2 8 9 11.5t15 1.5q8-2 11-9t1-15l-80.32-254.02q-13.24-42.2 2.74-82.89 15.97-40.7 54.41-61.7l14-7.76q16.91-8.96 34.95-3.62 18.03 5.34 26.98 22.25l160.64 298.72q3.8 7.61 11.03 11.79 7.23 4.18 15.6 4.18 9.56 1.68 16.01 10.44 6.44 8.76 4.44 19.04l-31.8 213.68q-2.48 19.15-17.27 29.7-14.8 10.56-33.95 8.08L660.89-68.89Zm-361.02 0L130.26-43.13q-19.15 2.48-33.94-8.08-14.8-10.55-17.28-29.7L46.52-289.8q-2-10.29 4.45-19.05 6.44-8.76 16.01-10.43 8.37 0 15.6-4.19 7.22-4.18 11.03-11.79l161.35-303.5q8.95-16.91 26.99-22.25 18.03-5.34 34.94 3.62l14 7.76q38.44 21 54.41 61.7 15.98 40.69 2.74 82.89l-81.08 254.02q-2 8 1 15t11 9q8 2 15-1.5t9-11.5l48.52-151.81q30.11 23.48 41.3 59.8 11.2 36.31-.52 72.99l-33.76 106q-11 32.95-37.34 55.93-26.33 22.98-61.29 28.22Z" />';
 const RUTD_HEADER_ICON_MARKUP = '<path d="m480-381 70.5 42.65q12.67 7.96 25.11-.74 12.43-8.69 8.96-23.37L566-443l62.98-54.7q11.43-10.19 6.84-24.37-4.6-14.17-20.28-15.41L533-544l-32.37-76.26q-5.72-13.91-20.63-13.91t-20.63 13.91L427-544l-82.54 6.52q-15.68 1.24-20.28 15.41-4.59 14.18 6.84 24.37L394-443l-18.57 80.54q-3.47 14.68 8.96 23.37 12.44 8.7 25.11.74L480-381ZM344.8-151.87H242.87q-37.78 0-64.39-26.61t-26.61-64.39V-344.8l-70.54-71.55q-12.68-13.43-19.4-29.97-6.71-16.53-6.71-33.68t6.71-33.68q6.72-16.54 19.4-29.97l70.54-71.55v-101.93q0-37.78 26.61-64.39t64.39-26.61H344.8l71.55-70.54q13.67-12.68 30.08-19.4 16.42-6.71 33.57-6.71t33.57 6.71q16.41 6.72 30.08 19.4l71.55 70.54h101.93q37.78 0 64.39 26.61t26.61 64.39v101.93l70.54 71.55q12.68 13.67 19.4 30.08 6.71 16.42 6.71 33.57t-6.71 33.57q-6.72 16.41-19.4 30.08l-70.54 71.55v101.93q0 37.78-26.61 64.39t-64.39 26.61H615.2l-71.55 70.54q-13.43 12.68-29.97 19.4-16.53 6.71-33.68 6.71t-33.68-6.71q-16.54-6.72-29.97-19.4l-71.55-70.54Zm38.55-91L480-146.22l96.65-96.65h140.48v-140.48L813.78-480l-96.65-96.65v-140.48H576.65L480-813.78l-96.65 96.65H242.87v140.48L146.22-480l96.65 96.65v140.48h140.48ZM480-480Z" />';
 
@@ -993,14 +997,14 @@ const COLUMN_ICONS = {
   PLAYER:    "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", // User
   POS:       "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01", // Tag
   TM:        TEAM_HEADER_ICON_MARKUP, // Filled team icon for team headers
-  AGE:       "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z", // Calendar
+  AGE:       AGE_HEADER_ICON_MARKUP,
   G:         GAMES_HEADER_ICON_MARKUP,
   Gs:        GAMES_HEADER_ICON_MARKUP,
   CFB:       CFB_HEADER_ICON_MARKUP,
   HT:        "M21 6H3M21 18H3M8 6v12M16 6v12", // Ruler
   WT:        "M7 6h10l2 4-2 8H7L5 10l2-4zM9.5 13h5", // Weight/scale
   "40dsh":   FORTY_DASH_HEADER_ICON_MARKUP,
-  GRD:       DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+  GRD:       GRD_HEADER_ICON_MARKUP,
   TIER:      TIER_HEADER_ICON_MARKUP,
   "OVR-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
   "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.DraftTicket,
@@ -1310,7 +1314,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: FANTASY_GROUP_ICON_MARKUP,
+      iconClassName: "stats-table__group-header-icon--fantasy-material",
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1345,7 +1350,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: FANTASY_GROUP_ICON_MARKUP,
+      iconClassName: "stats-table__group-header-icon--fantasy-material",
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1398,7 +1404,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: FANTASY_GROUP_ICON_MARKUP,
+      iconClassName: "stats-table__group-header-icon--fantasy-material",
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1451,7 +1458,8 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: FANTASY_GROUP_ICON_MARKUP,
+      iconClassName: "stats-table__group-header-icon--fantasy-material",
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1524,7 +1532,9 @@ function createRookiesProspectRanksGroup({ formatFamily = null } = {}) {
     // isolates tier, overall/position rank, and grade so every Rookies table
     // can share the requested Prospect Ranks label and ordering.
     label: "PROSPECT RANKS",
-    icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+    icon: PROSPECT_RANKS_GROUP_ICON_MARKUP,
+    iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+    iconClassName: "stats-table__group-header-icon--prospect-ranks",
     columns: ROOKIES_PROSPECT_RANK_COLUMNS,
     groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
     columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -1711,7 +1721,8 @@ const PAGE_VIEW_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "FANTASY",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.Sparkles,
+      icon: FANTASY_GROUP_ICON_MARKUP,
+      iconClassName: "stats-table__group-header-icon--fantasy-material",
       columns: ["FPTS", "PPG"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.FANTASY,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.FANTASY,
@@ -7884,7 +7895,7 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
-    if (["TIER", "G", "Gs", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
+    if (["TIER", "AGE", "G", "Gs", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
       // DataHub filled Material stat column icons:
       // these requested 960-viewBox paths apply to every matching DataHub
       // table column while CSS keeps the visual treatment page-scoped.
@@ -7892,6 +7903,9 @@ function createHeaderCell(column, columnIconColor) {
       svg.classList.add("stats-table__head-icon--datahub-material");
       if (column.name === "TIER") {
         svg.classList.add("stats-table__head-icon--tier-material");
+      }
+      if (column.name === "AGE") {
+        svg.classList.add("stats-table__head-icon--age-material");
       }
       if (column.name === "G") {
         svg.classList.add("stats-table__head-icon--games-material");
@@ -7945,6 +7959,12 @@ function createHeaderCell(column, columnIconColor) {
       // every table where YAC appears, including stats-category subsections.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--yac-material");
+    }
+    if (column.name === "GRD") {
+      // GRD column header icon:
+      // uses the requested 24px filled prospect-grade glyph anywhere the
+      // DataHub grade column appears, without changing the Prospect group icon.
+      svg.classList.add("stats-table__head-icon--grd-material");
     }
     if (column.name === "CTST%") {
       // CTST% column header icon:

@@ -2965,6 +2965,28 @@ body[data-page="datahub"] .stats-table__group-header-icon--ceiling-material {
   stroke-width: 0;
 }
 
+/* DataHub Fantasy group header icon:
+   uses the former Prospect Ranks sparkle cluster only for Fantasy groups,
+   while retaining each group's accent color and avoiding broader leakage. */
+body[data-page="datahub"] .stats-table__group-header-icon--fantasy-material {
+  width: 19px;
+  height: 19px;
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Rookies Prospect Ranks group header icon:
+   uses the requested filled 960-viewBox bar-rank glyph only for Prospect
+   Ranks, separate from the Fantasy sparkle-cluster icon. */
+body[data-page="datahub"] .stats-table__group-header-icon--prospect-ranks {
+  width: 19px;
+  height: 19px;
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* ── Column header row ─────────────────────────────────────────────────── */
 .stats-table thead th.stats-table__header-cell {
   position: sticky;
@@ -3091,7 +3113,9 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="AGE"] .
   width: 15px;
   height: 15px;
   color: #be75ff;
-  stroke: #be75ff;
+  fill: var(--column-icon-color, #be75ff);
+  stroke: none;
+  stroke-width: 0;
 }
 
 /* Rookies HT column header icon:
@@ -3117,10 +3141,18 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .s
 }
 
 /* DataHub Material stat column header icons:
-   Targets the filled TIER, G/Gs, OPP, IMP/OPP, tTD, and 40dsh replacements in
-   any DataHub table that renders those stat columns. This stays page-scoped so
-   other app pages keep their existing icon treatment. */
+   Targets the filled TIER, AGE, G/Gs, OPP, IMP/OPP, tTD, and 40dsh
+   replacements in any DataHub table that renders those stat columns. This
+   stays page-scoped so other app pages keep their existing icon treatment. */
 body[data-page="datahub"] .stats-table__head-icon--datahub-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+body[data-page="datahub"] [data-column-name="AGE"] .stats-table__head-icon--age-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3131,6 +3163,17 @@ body[data-page="datahub"] .stats-table__head-icon--datahub-material {
 body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
   width: 17px;
   height: 17px;
+}
+
+/* GRD column header icon:
+   applies the requested filled 24px prospect-grade glyph to the GRD column
+   wherever DataHub renders it, separate from the Prospect Ranks group header. */
+body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
 }
 
 /* TM / CFB column header icons:
@@ -4376,6 +4419,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="AGE"] .stats-table__head-icon--rookie-draft-age {
     width: 13px;
     height: 13px;
+    fill: var(--column-icon-color, #be75ff);
+    stroke: none;
+    stroke-width: 0;
   }
 
   /* Mobile Rookies HT header icon:
@@ -4395,14 +4441,27 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile DataHub Material stat column header icons:
-     keeps the filled TIER, G/Gs, OPP, IMP/OPP, tTD, and 40dsh glyphs compact
-     inside mobile DataHub table columns without affecting desktop sizing. */
+     keeps the filled TIER, AGE, G/Gs, OPP, IMP/OPP, tTD, and 40dsh glyphs
+     compact inside mobile DataHub table columns without affecting desktop sizing. */
   body[data-page="datahub"] .stats-table__head-icon--datahub-material {
     width: 16px;
     height: 16px;
   }
 
+  body[data-page="datahub"] [data-column-name="AGE"] .stats-table__head-icon--age-material {
+    width: 16px;
+    height: 16px;
+  }
+
   body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile GRD header icon:
+     compact sizing hook for the filled prospect-grade glyph without changing
+     the separate Prospect Ranks group header icon. */
+  body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-material {
     width: 15px;
     height: 15px;
   }
@@ -4548,6 +4607,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      keeps the Draft group glyph independently adjustable from the other
      group icons after switching it to a filled Material-style path. */
   body[data-page="datahub"] .stats-table__group-header-icon--rookie-draft {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile DataHub Fantasy group header icon:
+     keeps the filled sparkle cluster aligned with compact mobile group headers
+     without changing other DataHub group icon sizing. */
+  body[data-page="datahub"] .stats-table__group-header-icon--fantasy-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile Rookies Prospect Ranks group header icon:
+     keeps the filled bar-rank glyph aligned with the compact mobile group
+     header size without affecting other DataHub group icons. */
+  body[data-page="datahub"] .stats-table__group-header-icon--prospect-ranks {
     width: 15px;
     height: 15px;
   }
