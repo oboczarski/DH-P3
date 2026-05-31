@@ -3043,24 +3043,13 @@ body[data-page="datahub"] .stats-table__group-header-icon--ceiling-material {
   fill: none;
 }
 
-/* Rookie RK/TIER header icons:
-  target only the rookie-tab table headers. These custom glyphs use the
-  approved 18px footprint so both rookie views stay crisp without leaking into
-  non-rookie DataHub header icons. */
-body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RK"] .stats-table__head-icon--rookie-rk,
-body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
+/* Rookie RK header icon:
+  targets only the rookie-tab ranking header so both rookie views keep the
+  approved compact RK glyph without changing other DataHub table headers. */
+body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="RK"] .stats-table__head-icon--rookie-rk {
   width: 18px;
   height: 18px;
   stroke-width: 1.95px;
-}
-
-/* Rookies TIER material icon:
-   the requested Material-style path is filled instead of stroke-drawn, so this
-   scoped rule keeps it visible without changing other DataHub column icons. */
-body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="TIER"] .stats-table__head-icon--rookie-tier {
-  fill: var(--column-icon-color, rgb(98 135 183));
-  stroke: none;
-  stroke-width: 0;
 }
 
 /* Rookies RD/PK column header icon:
@@ -3145,8 +3134,8 @@ body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40
 }
 
 /* TM / CFB column header icons:
-  both columns share the same filled Material-style glyph and sizing hook so
-  TM now renders through the exact same table-icon treatment as CFB. */
+  both columns use filled 960-viewBox glyphs and the same DataHub-only sizing
+  hook, while JS keeps their actual team and CFB glyph paths separate. */
 body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
 body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
   width: 18px;
