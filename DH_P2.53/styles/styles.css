@@ -2351,8 +2351,8 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 .player-row .roster-card-watermark {
   position: absolute;
   top: 50%;
-  right: 0px;
-  transform: translateY(-62%);
+  right: 3px;
+  transform: translateY(-67%);
   width: 55px;
   height: 55px;
   object-fit: contain;
