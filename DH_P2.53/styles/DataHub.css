@@ -2957,8 +2957,8 @@ body[data-page="datahub"] .stats-table__group-header-icon--rookie-draft {
    applies the requested filled player-cluster glyph to every General table
    group while leaving non-DataHub group icons untouched. */
 body[data-page="datahub"] .stats-table__group-header-icon--general-material {
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   fill: var(--group-icon-color, rgb(225 129 117 / 74%));
   stroke: none;
   stroke-width: 0;
@@ -3179,8 +3179,8 @@ body[data-page="datahub"] .stats-table__head-icon--datahub-material {
      desktop-only sizing/fill hook so PLAYER can be tuned without affecting
      POS, other material icons, or mobile icon sizing. */
   body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
@@ -3190,8 +3190,8 @@ body[data-page="datahub"] .stats-table__head-icon--datahub-material {
      desktop-only sizing/fill hook so POS can be tuned without affecting
      PLAYER, other material icons, or mobile icon sizing. */
   body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
@@ -4573,8 +4573,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      mobile-only sizing/fill hook so PLAYER can be tuned without changing the
      desktop PLAYER icon or any other DataHub header icon. */
   body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
@@ -4584,15 +4584,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      mobile-only sizing/fill hook so POS can be tuned without changing the
      desktop POS icon, PLAYER, or other DataHub header icons. */
   body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
   }
 
   body[data-page="datahub"] [data-column-name="FPTS"] .stats-table__head-icon--fpts-material {
-    width: 16px;
+    width: 15px;
     height: 16px;
   }
 
@@ -4619,8 +4619,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
       DataHub tables without changing HT, WT, or 40dsh. */
     body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
     body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
+    margin-bottom: 0px;
   }
 
   /* Mobile MTF header icon:
@@ -4810,8 +4811,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      headers without changing other DataHub group icon sizing. */
   body[data-page="datahub"] .stats-table__group-header-icon--general-material,
   body[data-page="datahub"] .stats-table__group-header-icon--overview-stats-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile DataHub Fantasy group header icon:
