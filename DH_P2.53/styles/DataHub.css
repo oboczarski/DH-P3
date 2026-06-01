@@ -3666,16 +3666,16 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] [data-column-name="YPR"] .stats-table__head-icon--ypr-material {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
   }
 
   body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
