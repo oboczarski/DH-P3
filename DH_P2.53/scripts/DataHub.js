@@ -929,10 +929,15 @@ const OPP_HEADER_ICON_MARKUP = '<path d="M240-100q-58 0-99-41t-41-99q0-58 41-99t
 const IMP_OPP_HEADER_ICON_MARKUP = '<path d="m421-340 31 30q12 12 28 12t28-12l31-30h41q17 0 28.5-11.5T620-380v-41l30-31q12-12 12-28t-12-28l-30-31v-41q0-17-11.5-28.5T580-620h-41l-38-37q-9-9-21-9t-21 9l-38 37h-41q-17 0-28.5 11.5T340-580v41l-30 31q-12 12-12 28t12 28l30 31v41q0 17 11.5 28.5T380-340h41Zm-75 180H240q-33 0-56.5-23.5T160-240v-106l-77-78q-11-12-17-26.5T60-480q0-15 6-29.5T83-536l77-78v-106q0-33 23.5-56.5T240-800h106l78-77q12-11 26.5-17t29.5-6q15 0 29.5 6t26.5 17l78 77h106q33 0 56.5 23.5T800-720v106l77 78q11 12 17 26.5t6 29.5q0 15-6 29.5T877-424l-77 78v106q0 33-23.5 56.5T720-160H614l-78 77q-12 11-26.5 17T480-60q-15 0-29.5-6T424-83l-78-77Zm34-80 100 100 100-100h140v-140l100-100-100-100v-140H580L480-820 380-720H240v140L140-480l100 100v140h140Zm100-240Z" />';
 const TTD_HEADER_ICON_MARKUP = '<path d="m200-531-100-57q-9-5-14.5-14.5T80-623v-114q0-11 5.5-20.5T100-772l100-57q9-5 20-5t20 5l100 57q9 5 14.5 14.5T360-737v114q0 11-5.5 20.5T340-588l-100 57q-9 5-20 5t-20-5Zm460 91v-142l100 59q19 11 29.5 29t10.5 40v188q0 22-10.5 40T760-197l-160 93q-19 11-40 11t-40-11l-160-93q-19-11-29.5-29T320-266v-188q0-22 10.5-40t29.5-29l100-59v142q0 42 29 71t71 29q42 0 71-29t29-71Zm-60-200v200q0 17-11.5 28.5T560-400q-17 0-28.5-11.5T520-440v-400q0-17 11.5-28.5T560-880h245q24 0 36 21t-2 41l-24 36q-7 10-7 22t7 22l24 36q14 20 2 41t-36 21H600Z" />';
 const FORTY_DASH_HEADER_ICON_MARKUP = '<path d="M574.5-774.5Q560-789 560-810t14.5-35.5Q589-860 610-860t35.5 14.5Q660-831 660-810t-14.5 35.5Q631-760 610-760t-35.5-14.5Zm0 660Q560-129 560-150t14.5-35.5Q589-200 610-200t35.5 14.5Q660-171 660-150t-14.5 35.5Q631-100 610-100t-35.5-14.5Zm160-520Q720-649 720-670t14.5-35.5Q749-720 770-720t35.5 14.5Q820-691 820-670t-14.5 35.5Q791-620 770-620t-35.5-14.5Zm0 380Q720-269 720-290t14.5-35.5Q749-340 770-340t35.5 14.5Q820-311 820-290t-14.5 35.5Q791-240 770-240t-35.5-14.5Zm60-190Q780-459 780-480t14.5-35.5Q809-530 830-530t35.5 14.5Q880-501 880-480t-14.5 35.5Q851-430 830-430t-35.5-14.5ZM184.5-750Q289-863 441-878q16-2 27.5 9.5T480-840q0 16-10.5 28T443-798q-121 14-202 104t-81 214q0 125 81 214.5T443-162q16 2 26.5 14t10.5 28q0 17-11.5 28.5T441-82Q288-97 184-210T80-480q0-157 104.5-270Zm239 326.5Q400-447 400-480q0-5 .5-10.5T403-501l-55-55q-11-11-11-28t11-28q11-11 28-11t28 11l55 55q4-1 21-3 33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400q-33 0-56.5-23.5Z" />';
-const AGE_HEADER_ICON_MARKUP = '<path d="M760-80H640q-17 0-28.5-11.5T600-120q0-17 11.5-28.5T640-160h120v-400H200v120q0 17-11.5 28.5T160-400q-17 0-28.5-11.5T120-440v-280q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80Zm-393-80H80q-17 0-28.5-11.5T40-200q0-17 11.5-28.5T80-240h287l-75-76q-11-11-11.5-27.5T292-372q11-11 28-11t28 11l144 144q12 12 12 28t-12 28L348-28q-11 11-27.5 11.5T292-28q-11-11-11-28t11-28l75-76Z" />';
+const AGE_HEADER_ICON_MARKUP = '<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v187q0 17-11.5 28.5T800-493q-17 0-28.5-11.5T760-533v-27H200v400h232q17 0 28.5 11.5T472-120q0 17-11.5 28.5T432-80H200Zm378.5-18.5Q520-157 520-240t58.5-141.5Q637-440 720-440t141.5 58.5Q920-323 920-240T861.5-98.5Q803-40 720-40T578.5-98.5ZM740-248v-92q0-8-6-14t-14-6q-8 0-14 6t-6 14v91q0 8 3 15.5t9 13.5l61 61q6 6 14 6t14-6q6-6 6-14t-6-14l-61-61Z" />';
+const PPG_HEADER_ICON_MARKUP = '<path d="M177-169Q97-214 48.5-297T0-480q0-100 49.5-183.5T184-795q20-11 38 2t18 36q0 10-6 21t-16 16q-64 38-101 101.5T80-480q0 75 37 138.5T218-240q10 5 16 16t6 22q0 23-19 35t-44-2Zm423 49q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T240-480q0-75 28.5-140.5t77-114q48.5-48.5 114-77T600-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T960-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T600-120Zm0-360Zm0 280q117 0 198.5-81.5T880-480q0-117-81.5-198.5T600-760q-117 0-198.5 81.5T320-480q0 117 81.5 198.5T600-200Zm28.5-131.5Q640-343 640-360v-80h80q17 0 28.5-11.5T760-480q0-17-11.5-28.5T720-520h-80v-80q0-17-11.5-28.5T600-640q-17 0-28.5 11.5T560-600v80h-80q-17 0-28.5 11.5T440-480q0 17 11.5 28.5T480-440h80v80q0 17 11.5 28.5T600-320q17 0 28.5-11.5Z" />';
+const PLAYER_HEADER_ICON_MARKUP = '<path d="M367-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47ZM160-240v-32q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v32q0 33-23.5 56.5T720-160H240q-33 0-56.5-23.5T160-240Z" />';
+const POSITION_HEADER_ICON_MARKUP = '<path d="M856-390 570-104q-12 12-27 18t-30 6q-15 0-30-6t-27-18L103-457q-11-11-17-25.5T80-513v-287q0-33 23.5-56.5T160-880h287q16 0 31 6.5t26 17.5l352 353q12 12 17.5 27t5.5 30q0 15-5.5 29.5T856-390ZM260-640q25 0 42.5-17.5T320-700q0-25-17.5-42.5T260-760q-25 0-42.5 17.5T200-700q0 25 17.5 42.5T260-640Z" />';
 const GRD_HEADER_ICON_MARKUP = '<path d="M21,8c-1.45,0-2.26,1.44-1.93,2.51l-3.55,3.56c-0.3-0.09-0.74-0.09-1.04,0l-2.55-2.55C12.27,10.45,11.46,9,10,9 c-1.45,0-2.27,1.44-1.93,2.52l-4.56,4.55C2.44,15.74,1,16.55,1,18c0,1.1,0.9,2,2,2c1.45,0,2.26-1.44,1.93-2.51l4.55-4.56 c0.3,0.09,0.74,0.09,1.04,0l2.55,2.55C12.73,16.55,13.54,18,15,18c1.45,0,2.27-1.44,1.93-2.52l3.56-3.55 C21.56,12.26,23,11.45,23,10C23,8.9,22.1,8,21,8z"/><polygon points="15,9 15.94,6.93 18,6 15.94,5.07 15,3 14.08,5.07 12,6 14.08,6.93"/><polygon points="3.5,11 4,9 6,8.5 4,8 3.5,6 3,8 1,8.5 3,9"/>';
 const FANTASY_GROUP_ICON_MARKUP = '<path d="M0 0h24v24H0z" fill="none"/><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/>';
-const PROSPECT_RANKS_GROUP_ICON_MARKUP = '<path d="M160-200h160v-320H160v320Zm240 0h160v-560H400v560Zm240 0h160v-240H640v240Zm-560 0v-320q0-33 23.5-56.5T160-600h160v-160q0-33 23.5-56.5T400-840h160q33 0 56.5 23.5T640-760v240h160q33 0 56.5 23.5T880-440v240q0 33-23.5 56.5T800-120H160q-33 0-56.5-23.5T80-200Z" />';
+const PROSPECT_RANKS_GROUP_ICON_MARKUP = '<path d="M120-120q-17 0-28.5-11.5T80-160v-400q0-17 11.5-28.5T120-600h140q17 0 28.5 11.5T300-560v400q0 17-11.5 28.5T260-120H120Zm290 0q-17 0-28.5-11.5T370-160v-640q0-17 11.5-28.5T410-840h140q17 0 28.5 11.5T590-800v640q0 17-11.5 28.5T550-120H410Zm290 0q-17 0-28.5-11.5T660-160v-320q0-17 11.5-28.5T700-520h140q17 0 28.5 11.5T880-480v320q0 17-11.5 28.5T840-120H700Z" />';
+const GENERAL_GROUP_ICON_MARKUP = AGE_HEADER_ICON_MARKUP;
+const OVERVIEW_STATS_GROUP_ICON_MARKUP = '<path d="M252.5-313.5Q305-240 391-213q18 6 29.5 22.5T432-154q0 29-24.5 46t-53.5 7q-124-41-199-145T80-480q0-130 75-234t199-145q29-10 53.5 7t24.5 46q0 20-11.5 36.5T391-747q-86 27-138.5 100.5T200-480q0 93 52.5 166.5ZM762-198q-32 33-72.5 57.5T605-101q-29 10-53.5-7T527-154q0-20 11.5-36.5T568-213q31-10 59.5-27.5T679-281q23-24 40-51.5t28-59.5q6-18 22.5-29.5T806-433q29 0 46 24.5t7 53.5q-15 44-39.5 84T762-198Zm0-564q33 33 57.5 73t39.5 84q10 29-7 53.5T806-527q-20 0-36.5-11.5T747-568q-11-32-28-59.5T679-679q-23-23-51.5-40.5T568-747q-18-6-29.5-22.5T527-806q0-29 24.5-46t53.5-7q44 15 84.5 39.5T762-762Z" />';
 
 // Rookies Draft group icon:
 // this uses the requested filled Material-style path for the Draft column
@@ -994,8 +999,8 @@ const ROOKIE_CAREER_TIER_BADGE_ICONS = Object.freeze({
 const COLUMN_ICONS = {
   index:     "M4 6h16M4 12h8M4 18h4", // Row index lines
   RK:        "M4 6h16M4 12h8M4 18h4", // Hash-like lines
-  PLAYER:    "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", // User
-  POS:       "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01", // Tag
+  PLAYER:    PLAYER_HEADER_ICON_MARKUP,
+  POS:       POSITION_HEADER_ICON_MARKUP,
   TM:        TEAM_HEADER_ICON_MARKUP, // Filled team icon for team headers
   AGE:       AGE_HEADER_ICON_MARKUP,
   G:         GAMES_HEADER_ICON_MARKUP,
@@ -1011,7 +1016,7 @@ const COLUMN_ICONS = {
   OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.DraftMedal,
   "POS-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
   FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
-  PPG:       DATAHUB_LUCIDE_ICON_MARKUP.Bolt,
+  PPG:       PPG_HEADER_ICON_MARKUP,
   tYDS:      DATAHUB_LUCIDE_ICON_MARKUP.RulerDimensionLine,
   tTD:       TTD_HEADER_ICON_MARKUP,
   "KTC 1QB": KTC_HEADER_ICON_MARKUP,
@@ -1103,7 +1108,6 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({});
 // The scrollable pane uses the
 // per-category groups for either the Stats or Trade Values table mode.
 // ---------------------------------------------------------------------------
-const CURRENT_FROZEN_GROUP_ICON = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
 const CURRENT_INFO_GROUP_ICON = '<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>';
 const CURRENT_TRADE_FANTASY_GROUP_ICON = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z";
 const CURRENT_OVERVIEW_STATS_GROUP_ICON = "M18 20V10M12 20V4M6 20v-6";
@@ -1239,7 +1243,9 @@ const FROZEN_GROUPS = Object.freeze({
   stats: Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: GENERAL_GROUP_ICON_MARKUP,
+      iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+      iconClassName: "stats-table__group-header-icon--general-material",
       columns: ["RK", "PLAYER", "POS"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1248,7 +1254,9 @@ const FROZEN_GROUPS = Object.freeze({
   "adp-values": Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: GENERAL_GROUP_ICON_MARKUP,
+      iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+      iconClassName: "stats-table__group-header-icon--general-material",
       columns: ["RK", "PLAYER", "POS"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1257,7 +1265,9 @@ const FROZEN_GROUPS = Object.freeze({
   "rookies-trade": Object.freeze([
     createDataHubColumnGroup({
       label: "GENERAL",
-      icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+      icon: GENERAL_GROUP_ICON_MARKUP,
+      iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+      iconClassName: "stats-table__group-header-icon--general-material",
       columns: ROOKIES_IDENTITY_COLUMNS,
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1267,7 +1277,9 @@ const FROZEN_GROUPS = Object.freeze({
     overview: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: GENERAL_GROUP_ICON_MARKUP,
+        iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+        iconClassName: "stats-table__group-header-icon--general-material",
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1276,7 +1288,9 @@ const FROZEN_GROUPS = Object.freeze({
     passing: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: GENERAL_GROUP_ICON_MARKUP,
+        iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+        iconClassName: "stats-table__group-header-icon--general-material",
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1285,7 +1299,9 @@ const FROZEN_GROUPS = Object.freeze({
     rushing: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: GENERAL_GROUP_ICON_MARKUP,
+        iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+        iconClassName: "stats-table__group-header-icon--general-material",
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1294,7 +1310,9 @@ const FROZEN_GROUPS = Object.freeze({
     receiving: Object.freeze([
       createDataHubColumnGroup({
         label: "GENERAL",
-        icon: DATAHUB_LUCIDE_ICON_MARKUP.CircleUser,
+        icon: GENERAL_GROUP_ICON_MARKUP,
+        iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+        iconClassName: "stats-table__group-header-icon--general-material",
         columns: ROOKIES_IDENTITY_COLUMNS,
         groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.GENERAL,
         columnIconColor: SHARED_COLUMN_ICON_COLORS.GENERAL,
@@ -1322,7 +1340,9 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
     createDataHubColumnGroup({
       label: "OVERVIEW STATS",
-      icon: CURRENT_OVERVIEW_STATS_GROUP_ICON,
+      icon: OVERVIEW_STATS_GROUP_ICON_MARKUP,
+      iconViewBox: DATAHUB_MATERIAL_SYMBOL_VIEW_BOX,
+      iconClassName: "stats-table__group-header-icon--overview-stats-material",
       columns: ["G", "SNP%", "YDS(t)", "YPG(t)", "OPP", "IMP", "IMP/OPP"],
       groupIconColor: SHARED_GROUP_HEADER_ICON_COLORS.OVERVIEW_STATS,
       columnIconColor: SHARED_COLUMN_ICON_COLORS.OVERVIEW_STATS,
@@ -7895,12 +7915,18 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
-    if (["TIER", "AGE", "G", "Gs", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
+    if (["PLAYER", "POS", "TIER", "AGE", "G", "Gs", "PPG", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
       // DataHub filled Material stat column icons:
       // these requested 960-viewBox paths apply to every matching DataHub
       // table column while CSS keeps the visual treatment page-scoped.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--datahub-material");
+      if (column.name === "PLAYER") {
+        svg.classList.add("stats-table__head-icon--player-material");
+      }
+      if (column.name === "POS") {
+        svg.classList.add("stats-table__head-icon--position-material");
+      }
       if (column.name === "TIER") {
         svg.classList.add("stats-table__head-icon--tier-material");
       }
@@ -7912,6 +7938,9 @@ function createHeaderCell(column, columnIconColor) {
       }
       if (column.name === "Gs") {
         svg.classList.add("stats-table__head-icon--games-started-material");
+      }
+      if (column.name === "PPG") {
+        svg.classList.add("stats-table__head-icon--ppg-material");
       }
       if (column.name === "OPP") {
         svg.classList.add("stats-table__head-icon--opp-material");
