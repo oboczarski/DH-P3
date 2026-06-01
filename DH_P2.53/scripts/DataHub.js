@@ -972,7 +972,7 @@ const MTF_HEADER_ICON_MARKUP = '<path d="M323.59-274.5q-19.16 0-32.33-13.17-13.1
 const REC_HEADER_ICON_MARKUP = '<path d="m575-87-255-72v-361h64q7 0 14 1.5t14 3.5l277 103q14 5 22.5 18t8.5 27q0 21-14.5 34T672-320H567q-5 0-7.5-.5T553-323l-45-17q-8-3-16 1t-10 11q-2 8 1 15t11 10l59 21q2 1 6 1.5t7 .5h274q32 0 56 23t24 57L625-89q-10 4-24.5 4.5T575-87ZM80-160v-280q0-33 23.5-56.5T160-520q33 0 56.5 23.5T240-440v280q0 33-23.5 56.5T160-80q-33 0-56.5-23.5T80-160Zm477-471 199-198q11-11 27.5-11.5T812-829q11 11 11 28t-11 28L585-546q-12 12-28 12t-28-12L415-660q-12-12-11.5-28t12.5-28q12-11 28-11.5t28 11.5l85 85Z" />';
 const CMP_HEADER_ICON_MARKUP = '<path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />';
 const PASS_REC_TD_HEADER_ICON_MARKUP = '<path d="m438-454.63-56.33-55.57q-11.71-11.71-29.05-11.71t-29.82 12.48q-11.71 11.71-11.71 29.43t11.71 29.43l83.13 83.14q13.68 13.67 32.07 13.67t32.07-13.67L637.2-534.57q12.47-12.47 12.09-29.43-.38-16.96-12.09-29.43-12.48-12.48-29.82-12.86-17.34-.38-29.81 12.09L438-454.63ZM320.26-84.02l-57.28-97.05-108.81-23.76q-16.91-3.47-27.22-17.65-10.32-14.17-8.32-31.32l11-111.57-74.04-85.04Q44.15-463.09 44.15-480t11.44-29.59l74.04-85.04-11-111.57q-2-17.15 8.32-31.32 10.31-14.18 27.22-17.65l108.81-23.76 57.28-97.05q8.96-14.67 24.99-19.89 16.03-5.22 31.95 1.5L480-850.85l102.8-43.52q15.92-6.72 31.95-1.5t24.99 19.89l57.28 97.05 108.81 23.76q16.91 3.47 27.22 17.65 10.32 14.17 8.32 31.32l-11 111.57 74.04 85.04q11.44 12.68 11.44 29.59t-11.44 29.59l-74.04 85.04 11 111.57q2 17.15-8.32 31.32-10.31 14.18-27.22 17.65l-108.81 23.76-57.28 97.05q-8.96 14.67-24.99 19.89-16.03 5.22-31.95-1.5L480-109.15 377.2-65.63q-15.92 6.72-31.95 1.5t-24.99-19.89Zm58.94-81.57L480-209.35l102.8 43.76 55.29-95.04 108.56-25.52-9.52-111.05 72.8-82.8-72.8-84.8 9.52-111.05-108.56-23.52-57.29-95.04L480-750.65l-102.8-43.76-55.29 95.04-108.56 23.52 9.52 111.05-72.8 84.8 72.8 82.8-9.52 113.05 108.56 23.52 57.29 95.04ZM480-480Z" />';
-const PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP = '<path d="m438-454.63-56.33-55.57q-11.71-11.71-29.05-11.71t-29.82 12.48q-11.71 11.71-11.71 29.43t11.71 29.43l83.13 83.14q13.68 13.67 32.07 13.67t32.07-13.67L637.2-534.57q12.47-12.47 12.09-29.43-.38-16.96-12.09-29.43-12.48-12.48-29.82-12.86-17.34-.38-29.81 12.09L438-454.63ZM320.26-84.02l-57.28-97.05-108.81-23.76q-16.91-3.47-27.22-17.65-10.32-14.17-8.32-31.32l11-111.57-74.04-85.04Q44.15-463.09 44.15-480t11.44-29.59l74.04-85.04-11-111.57q-2-17.15 8.32-31.32 10.31-14.18 27.22-17.65l108.81-23.76 57.28-97.05q8.96-14.67 24.99-19.89 16.03-5.22 31.95 1.5L480-850.85l102.8-43.52q15.92-6.72 31.95-1.5t24.99 19.89l57.28 97.05 108.81 23.76q16.91 3.47 27.22 17.65 10.32 14.17 8.32 31.32l-11 111.57 74.04 85.04q11.44 12.68 11.44 29.59t-11.44 29.59l-74.04 85.04 11 111.57q2 17.15-8.32 31.32-10.31 14.18-27.22 17.65l-108.81 23.76-57.28 97.05q-8.96 14.67-24.99 19.89-16.03 5.22-31.95-1.5L480-109.15 377.2-65.63q-15.92 6.72-31.95 1.5t-24.99-19.89Zm58.94-81.57L480-209.35l102.8 43.76 55.29-95.04 108.56-25.52-9.52-111.05 72.8-82.8-72.8-84.8 9.52-111.05-108.56-23.52-57.29-95.04L480-750.65l-102.8-43.76-55.29 95.04-108.56 23.52 9.52 111.05-72.8 84.8 72.8 82.8-9.52 113.05 108.56 23.52 57.29 95.04ZM480-480Z" />';
+const PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP = '<path d="M451.53-59.93q-13.79-4.48-26.23-13.68L188.17-251.46q-17.15-12.67-26.72-31.97-9.58-19.3-9.58-40.87v-475.22q0-37.78 26.61-64.39t64.39-26.61h474.26q37.78 0 64.39 26.61t26.61 64.39v475.22q0 21.57-9.58 40.87-9.57 19.3-26.72 31.97L534.7-73.61q-12.44 9.2-26.23 13.68-13.8 4.47-28.47 4.47-14.67 0-28.47-4.47ZM480-146.22l237.13-177.85v-475.45H242.87v475.45L480-146.22Zm-42-332.32-54.8-54.81q-12.48-12.48-29.44-12.1-16.96.38-29.43 12.1-12.48 12.48-12.86 29.82-.38 17.33 12.1 29.81l82.6 82.37q13.63 13.44 31.81 13.44 18.17 0 31.85-13.44L637.2-558.48q12.47-12.48 12.09-29.43-.38-16.96-12.09-29.44-12.48-12.48-29.82-12.86-17.34-.38-29.81 12.1L438-478.54Zm42-320.98H242.87h474.26H480Z" />';
 
 // DataHub receiving/rushing header icon swaps:
 // these filled Material-style paths are used anywhere the matching column
@@ -1078,10 +1078,10 @@ const COLUMN_ICONS = {
   REC:       REC_HEADER_ICON_MARKUP,
   recYDS:    DATAHUB_LUCIDE_ICON_MARKUP.Split,
   TGT:       "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target circles
-  ELU:       DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
-  "MTF/A":   MTF_A_HEADER_ICON_MARKUP,
-  "YCO/A":   YCO_A_HEADER_ICON_MARKUP,
-  MTF:       MTF_HEADER_ICON_MARKUP,
+  ELU:       YCO_A_HEADER_ICON_MARKUP,
+  "MTF/A":   DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
+  "YCO/A":   MTF_HEADER_ICON_MARKUP,
+  MTF:       MTF_A_HEADER_ICON_MARKUP,
   YCO:       YCO_HEADER_ICON_MARKUP,
   "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
   ru1D:      PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
@@ -8024,22 +8024,22 @@ function createHeaderCell(column, columnIconColor) {
     }
     if (column.name === "MTF") {
       // MTF column header icon:
-      // all DataHub tables that show Missed Tackles Forced get the new filled
-      // icon and a dedicated sizing class for desktop/mobile tuning.
+      // uses the restored former MTF filled glyph with a dedicated sizing
+      // class so it stays independently tunable on desktop and mobile.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--mtf-material");
     }
-    if (column.name === "MTF/A") {
-      // MTF/A column header icon:
-      // uses the former MTF filled glyph with its own hook so missed-tackle
-      // rate sizing stays independent from the new MTF column icon.
+    if (column.name === "ELU") {
+      // ELU column header icon:
+      // now uses the current YCO/A filled glyph, with its own hook so elusive
+      // rating sizing can be adjusted separately from YCO/A and MTF.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
-      svg.classList.add("stats-table__head-icon--mtf-a-material");
+      svg.classList.add("stats-table__head-icon--elu-material");
     }
     if (column.name === "YCO/A") {
       // YCO/A column header icon:
-      // uses the requested filled lightning glyph and gets an individual hook
-      // so its size can be tuned independently from MTF/A and YCO.
+      // now uses the current MTF filled glyph and gets an individual hook so
+      // its size can be tuned independently from ELU, MTF, and YCO.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--yco-a-material");
     }

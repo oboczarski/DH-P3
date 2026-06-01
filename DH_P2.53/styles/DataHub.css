@@ -3266,9 +3266,20 @@ body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-
 }
 
 /* MTF column header icon:
-   filled Material-style icon applies anywhere the MTF column appears, while
-   keeping sizing separate from MTF/A and other rushing headers. */
+   restored filled Material-style icon applies anywhere the MTF column appears,
+   while keeping sizing separate from ELU, YCO/A, and other rushing headers. */
 body[data-page="datahub"] [data-column-name="MTF"] .stats-table__head-icon--mtf-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* ELU column header icon:
+   uses the current YCO/A filled glyph with its own desktop/base hook so
+   elusive-rating changes do not affect YCO/A, MTF, or MTF/A. */
+body[data-page="datahub"] [data-column-name="ELU"] .stats-table__head-icon--elu-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3298,20 +3309,9 @@ body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-
   stroke-width: 0;
 }
 
-/* MTF/A column header icon:
-   uses the former filled MTF glyph with a dedicated hook so it can be tuned
-   separately from the new MTF and other rushing-efficiency icons. */
-body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
-  width: 18px;
-  height: 18px;
-  fill: var(--column-icon-color, rgb(98 135 183));
-  stroke: none;
-  stroke-width: 0;
-}
-
 /* YCO/A column header icon:
-   uses the requested filled lightning glyph with a dedicated size hook for all
-   YCO/A tables without changing MTF, MTF/A, or YCO. */
+   uses the current MTF filled glyph with a dedicated size hook for all YCO/A
+   tables without changing ELU, MTF, MTF/A, or YCO. */
 body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
   width: 18px;
   height: 18px;
@@ -3641,7 +3641,7 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     stroke-width: 0;
   }
 
-  body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
+  body[data-page="datahub"] [data-column-name="ELU"] .stats-table__head-icon--elu-material {
     width: 18px;
     height: 18px;
     fill: var(--column-icon-color, rgb(98 135 183));
@@ -4957,17 +4957,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile MTF header icon:
-     individual sizing hook for the filled Missed Tackles Forced glyph wherever
-     the column appears in compact DataHub tables. */
+     individual sizing hook for the restored filled Missed Tackles Forced glyph
+     wherever the column appears in compact DataHub tables. */
   body[data-page="datahub"] [data-column-name="MTF"] .stats-table__head-icon--mtf-material {
     width: 15px;
     height: 15px;
   }
 
-  /* Mobile MTF/A header icon:
-     compact hook for the former MTF filled glyph without changing MTF or other
-     rushing-efficiency mobile icons. */
-  body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
+  /* Mobile ELU header icon:
+     compact hook for the current YCO/A filled glyph without changing YCO/A,
+     MTF, or other rushing-efficiency mobile icons. */
+  body[data-page="datahub"] [data-column-name="ELU"] .stats-table__head-icon--elu-material {
     width: 15px;
     height: 15px;
   }
@@ -4987,8 +4987,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile YCO/A header icon:
-     individual sizing hook for the filled lightning glyph so it can be tuned
-     without changing MTF/A, YCO, or other rushing-efficiency headers. */
+     individual sizing hook for the current MTF filled glyph so it can be tuned
+     without changing ELU, MTF, YCO, or other rushing-efficiency headers. */
   body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
     width: 15px;
     height: 15px;
