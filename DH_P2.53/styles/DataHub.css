@@ -3010,14 +3010,28 @@ body[data-page="datahub"] .stats-table__group-header-icon--prospect-ranks {
 }
 
 /* DataHub Receiving / Receiving Efficiency group header icon:
-   targets the filled Material-style glyph used by both group labels so this
-   shared receiving group header can be tuned apart from other group icons. */
-body[data-page="datahub"] .stats-table__group-header-icon--receiving-efficiency-material {
+   targets the two-layer Material-style composite shared by both group labels
+   so it can be tuned apart from other group icons. */
+body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
   width: 19px;
   height: 19px;
   fill: var(--group-icon-color, rgb(225 129 117 / 74%));
   stroke: none;
   stroke-width: 0;
+  overflow: visible;
+}
+
+/* DataHub Receiving group icon layers:
+   separate layer hooks let the existing glyph and added glyph be tuned without
+   changing any other group icon or each other. */
+body[data-page="datahub"] .stats-table__group-header-icon-layer--receiving-existing {
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  opacity: 0.95;
+}
+
+body[data-page="datahub"] .stats-table__group-header-icon-layer--receiving-added {
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  opacity: 0.72;
 }
 
 /* ── Column header row ─────────────────────────────────────────────────── */
@@ -3309,6 +3323,17 @@ body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-
   stroke-width: 0;
 }
 
+/* TGT column header icon:
+   filled Material target-direction glyph with its own hook separate from
+   RZ Tgt and other receiving-production icons. */
+body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* YCO/A column header icon:
    uses the current MTF filled glyph with a dedicated size hook for all YCO/A
    tables without changing ELU, MTF, MTF/A, or YCO. */
@@ -3431,9 +3456,20 @@ body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1
 }
 
 /* RZ Tgt column header icon:
-   filled red-zone target glyph with its own hook separate from TGT, RR, and
-   other receiving-production icons. */
+   updated filled red-zone target glyph with its own hook separate from TGT,
+   RR, and other receiving-production icons. */
 body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* EPA/DB column header icon:
+   filled Material-style badge glyph with an isolated hook for passing
+   efficiency tables and no impact on CPOE, CMP%, or other rate icons. */
+body[data-page="datahub"] [data-column-name="EPA/DB"] .stats-table__head-icon--epa-db-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3577,6 +3613,14 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     stroke-width: 0;
   }
 
+  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
   body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
     width: 18px;
     height: 18px;
@@ -3687,6 +3731,19 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="EPA/DB"] .stats-table__head-icon--epa-db-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
+    width: 19px;
+    height: 19px;
   }
 
   /* Desktop 40dsh header icon:
@@ -4986,6 +5043,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 15px;
   }
 
+  /* Mobile TGT header icon:
+     compact Material target sizing scoped separately from RZ Tgt and desktop. */
+  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Mobile YCO/A header icon:
      individual sizing hook for the current MTF filled glyph so it can be tuned
      without changing ELU, MTF, YCO, or other rushing-efficiency headers. */
@@ -5075,9 +5139,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile RZ Tgt header icon:
-     compact hook for the filled red-zone target glyph without changing TGT or
-     route-run related icons. */
+     compact hook for the updated filled red-zone target glyph without changing
+     TGT or route-run related icons. */
   body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile EPA/DB header icon:
+     compact Material badge sizing isolated from desktop and neighboring
+     passing-efficiency columns. */
+  body[data-page="datahub"] [data-column-name="EPA/DB"] .stats-table__head-icon--epa-db-material {
     width: 15px;
     height: 15px;
   }
@@ -5188,9 +5260,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile Receiving / Receiving Efficiency group header icon:
-     compact filled glyph used by both receiving group labels, scoped separately
-     from Fantasy, Prospect, and Overview group icons. */
-  body[data-page="datahub"] .stats-table__group-header-icon--receiving-efficiency-material {
+     compact two-layer glyph used by both receiving group labels, scoped
+     separately from Fantasy, Prospect, and Overview group icons. */
+  body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
     width: 15px;
     height: 15px;
   }
