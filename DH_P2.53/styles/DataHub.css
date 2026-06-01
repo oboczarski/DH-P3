@@ -2954,7 +2954,7 @@ body[data-page="datahub"] .stats-table__group-header-icon--rookie-draft {
 }
 
 /* DataHub General group header icon:
-   applies the requested filled calendar/clock glyph to every General table
+   applies the requested filled player-cluster glyph to every General table
    group while leaving non-DataHub group icons untouched. */
 body[data-page="datahub"] .stats-table__group-header-icon--general-material {
   width: 19px;
@@ -2965,7 +2965,7 @@ body[data-page="datahub"] .stats-table__group-header-icon--general-material {
 }
 
 /* DataHub Overview Stats group header icon:
-   applies the requested filled split-radar glyph only to the Overview Stats
+   applies the requested filled segmented-chart glyph only to the Overview Stats
    group header and keeps the default stroke icons unchanged elsewhere. */
 body[data-page="datahub"] .stats-table__group-header-icon--overview-stats-material {
   width: 19px;
@@ -3163,7 +3163,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="WT"] .s
 }
 
 /* DataHub Material stat column header icons:
-   Targets the filled PLAYER, POS, TIER, AGE, G/Gs, PPG, OPP, IMP/OPP, tTD,
+   Targets the filled TIER, AGE, G/Gs, FPTS, OPP, IMP/OPP, tTD,
    and 40dsh replacements in any DataHub table that renders those columns.
    This stays page-scoped so other app pages keep their existing icon treatment. */
 body[data-page="datahub"] .stats-table__head-icon--datahub-material {
@@ -3174,9 +3174,31 @@ body[data-page="datahub"] .stats-table__head-icon--datahub-material {
   stroke-width: 0;
 }
 
-body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material,
-body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material,
-body[data-page="datahub"] [data-column-name="PPG"] .stats-table__head-icon--ppg-material {
+@media (min-width: 720px) {
+  /* Desktop PLAYER column header icon:
+     desktop-only sizing/fill hook so PLAYER can be tuned without affecting
+     POS, other material icons, or mobile icon sizing. */
+  body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  /* Desktop POS column header icon:
+     desktop-only sizing/fill hook so POS can be tuned without affecting
+     PLAYER, other material icons, or mobile icon sizing. */
+  body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+}
+
+body[data-page="datahub"] [data-column-name="FPTS"] .stats-table__head-icon--fpts-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3231,6 +3253,28 @@ body[data-page="datahub"] [data-column-name="MTF"] .stats-table__head-icon--mtf-
   stroke-width: 0;
 }
 
+/* CMP column header icon:
+   filled completion glyph for passing completions with an individual desktop
+   hook separate from REC and CMP%. */
+body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* REC column header icon:
+   filled completion glyph for receptions with an individual desktop hook
+   separate from CMP and the receiving group icons. */
+body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* YCO/A column header icon:
    reuses the former MTF Zap stroke glyph with a dedicated size hook for all
    YCO/A tables without changing MTF, MTF/A, or YCO. */
@@ -3277,6 +3321,50 @@ body[data-page="datahub"] [data-column-name="CTST%"] .stats-table__head-icon--ct
    filled Material-style icon for rushing touchdowns with an individual
    desktop size/color hook separate from passing/receiving TD headers. */
 body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Passing touchdown column header icon:
+   targets paTD only, including rookie passing tables where the label displays
+   as TD, while leaving ruTD on its existing rushing icon. */
+body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Receiving touchdown column header icon:
+   targets recTD only, including rookie receiving tables where the label
+   displays as TD, while leaving ruTD unaffected. */
+body[data-page="datahub"] [data-column-name="recTD"] .stats-table__head-icon--rectd-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Passing first-down column header icon:
+   targets pa1D only so rookie passing 1D headers can use the requested icon
+   without changing ru1D. */
+body[data-page="datahub"] [data-column-name="pa1D"] .stats-table__head-icon--pa1d-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Receiving first-down column header icon:
+   targets rec1D only so rookie receiving 1D headers can use the requested icon
+   without changing ru1D. */
+body[data-page="datahub"] [data-column-name="rec1D"] .stats-table__head-icon--rec1d-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -4473,7 +4561,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile DataHub Material stat column header icons:
-     keeps the filled PLAYER, POS, TIER, AGE, G/Gs, PPG, OPP, IMP/OPP, tTD,
+     keeps the filled TIER, AGE, G/Gs, FPTS, OPP, IMP/OPP, tTD,
      and 40dsh glyphs compact inside mobile DataHub table columns without
      affecting desktop sizing. */
   body[data-page="datahub"] .stats-table__head-icon--datahub-material {
@@ -4481,9 +4569,29 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 16px;
   }
 
-  body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material,
-  body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material,
-  body[data-page="datahub"] [data-column-name="PPG"] .stats-table__head-icon--ppg-material {
+  /* Mobile PLAYER column header icon:
+     mobile-only sizing/fill hook so PLAYER can be tuned without changing the
+     desktop PLAYER icon or any other DataHub header icon. */
+  body[data-page="datahub"] [data-column-name="PLAYER"] .stats-table__head-icon--player-material {
+    width: 16px;
+    height: 16px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  /* Mobile POS column header icon:
+     mobile-only sizing/fill hook so POS can be tuned without changing the
+     desktop POS icon, PLAYER, or other DataHub header icons. */
+  body[data-page="datahub"] [data-column-name="POS"] .stats-table__head-icon--position-material {
+    width: 16px;
+    height: 16px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="FPTS"] .stats-table__head-icon--fpts-material {
     width: 16px;
     height: 16px;
   }
@@ -4519,6 +4627,20 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      individual sizing hook for the filled Missed Tackles Forced glyph wherever
      the column appears in compact DataHub tables. */
   body[data-page="datahub"] [data-column-name="MTF"] .stats-table__head-icon--mtf-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile CMP header icon:
+     compact completion glyph sizing for CMP only, separate from REC and CMP%. */
+  body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile REC header icon:
+     compact completion glyph sizing for REC only, separate from CMP. */
+  body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
     width: 15px;
     height: 15px;
   }
@@ -4559,6 +4681,38 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact sizing hook for the filled rushing-touchdown glyph without
      changing other touchdown header icons. */
   body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile passing TD header icon:
+     compact paTD sizing for passing-production TD labels without affecting
+     ruTD or recTD. */
+  body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile receiving TD header icon:
+     compact recTD sizing for receiving-production TD labels without affecting
+     ruTD or paTD. */
+  body[data-page="datahub"] [data-column-name="recTD"] .stats-table__head-icon--rectd-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile passing first-down header icon:
+     compact pa1D sizing for passing-production 1D labels without affecting
+     ru1D or rec1D. */
+  body[data-page="datahub"] [data-column-name="pa1D"] .stats-table__head-icon--pa1d-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile receiving first-down header icon:
+     compact rec1D sizing for receiving-production 1D labels without affecting
+     ru1D or pa1D. */
+  body[data-page="datahub"] [data-column-name="rec1D"] .stats-table__head-icon--rec1d-material {
     width: 15px;
     height: 15px;
   }

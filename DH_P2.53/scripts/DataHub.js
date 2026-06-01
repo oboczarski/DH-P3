@@ -930,14 +930,14 @@ const IMP_OPP_HEADER_ICON_MARKUP = '<path d="m421-340 31 30q12 12 28 12t28-12l31
 const TTD_HEADER_ICON_MARKUP = '<path d="m200-531-100-57q-9-5-14.5-14.5T80-623v-114q0-11 5.5-20.5T100-772l100-57q9-5 20-5t20 5l100 57q9 5 14.5 14.5T360-737v114q0 11-5.5 20.5T340-588l-100 57q-9 5-20 5t-20-5Zm460 91v-142l100 59q19 11 29.5 29t10.5 40v188q0 22-10.5 40T760-197l-160 93q-19 11-40 11t-40-11l-160-93q-19-11-29.5-29T320-266v-188q0-22 10.5-40t29.5-29l100-59v142q0 42 29 71t71 29q42 0 71-29t29-71Zm-60-200v200q0 17-11.5 28.5T560-400q-17 0-28.5-11.5T520-440v-400q0-17 11.5-28.5T560-880h245q24 0 36 21t-2 41l-24 36q-7 10-7 22t7 22l24 36q14 20 2 41t-36 21H600Z" />';
 const FORTY_DASH_HEADER_ICON_MARKUP = '<path d="M574.5-774.5Q560-789 560-810t14.5-35.5Q589-860 610-860t35.5 14.5Q660-831 660-810t-14.5 35.5Q631-760 610-760t-35.5-14.5Zm0 660Q560-129 560-150t14.5-35.5Q589-200 610-200t35.5 14.5Q660-171 660-150t-14.5 35.5Q631-100 610-100t-35.5-14.5Zm160-520Q720-649 720-670t14.5-35.5Q749-720 770-720t35.5 14.5Q820-691 820-670t-14.5 35.5Q791-620 770-620t-35.5-14.5Zm0 380Q720-269 720-290t14.5-35.5Q749-340 770-340t35.5 14.5Q820-311 820-290t-14.5 35.5Q791-240 770-240t-35.5-14.5Zm60-190Q780-459 780-480t14.5-35.5Q809-530 830-530t35.5 14.5Q880-501 880-480t-14.5 35.5Q851-430 830-430t-35.5-14.5ZM184.5-750Q289-863 441-878q16-2 27.5 9.5T480-840q0 16-10.5 28T443-798q-121 14-202 104t-81 214q0 125 81 214.5T443-162q16 2 26.5 14t10.5 28q0 17-11.5 28.5T441-82Q288-97 184-210T80-480q0-157 104.5-270Zm239 326.5Q400-447 400-480q0-5 .5-10.5T403-501l-55-55q-11-11-11-28t11-28q11-11 28-11t28 11l55 55q4-1 21-3 33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400q-33 0-56.5-23.5Z" />';
 const AGE_HEADER_ICON_MARKUP = '<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v187q0 17-11.5 28.5T800-493q-17 0-28.5-11.5T760-533v-27H200v400h232q17 0 28.5 11.5T472-120q0 17-11.5 28.5T432-80H200Zm378.5-18.5Q520-157 520-240t58.5-141.5Q637-440 720-440t141.5 58.5Q920-323 920-240T861.5-98.5Q803-40 720-40T578.5-98.5ZM740-248v-92q0-8-6-14t-14-6q-8 0-14 6t-6 14v91q0 8 3 15.5t9 13.5l61 61q6 6 14 6t14-6q6-6 6-14t-6-14l-61-61Z" />';
-const PPG_HEADER_ICON_MARKUP = '<path d="M177-169Q97-214 48.5-297T0-480q0-100 49.5-183.5T184-795q20-11 38 2t18 36q0 10-6 21t-16 16q-64 38-101 101.5T80-480q0 75 37 138.5T218-240q10 5 16 16t6 22q0 23-19 35t-44-2Zm423 49q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T240-480q0-75 28.5-140.5t77-114q48.5-48.5 114-77T600-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T960-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T600-120Zm0-360Zm0 280q117 0 198.5-81.5T880-480q0-117-81.5-198.5T600-760q-117 0-198.5 81.5T320-480q0 117 81.5 198.5T600-200Zm28.5-131.5Q640-343 640-360v-80h80q17 0 28.5-11.5T760-480q0-17-11.5-28.5T720-520h-80v-80q0-17-11.5-28.5T600-640q-17 0-28.5 11.5T560-600v80h-80q-17 0-28.5 11.5T440-480q0 17 11.5 28.5T480-440h80v80q0 17 11.5 28.5T600-320q17 0 28.5-11.5Z" />';
+const FPTS_HEADER_ICON_MARKUP = '<path d="M440-440v120q0 17 11.5 28.5T480-280q17 0 28.5-11.5T520-320v-120h120q17 0 28.5-11.5T680-480q0-17-11.5-28.5T640-520H520v-120q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v120H320q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440h120Zm40 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480v320q0 33-23.5 56.5T800-80H480Z" />';
 const PLAYER_HEADER_ICON_MARKUP = '<path d="M367-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47ZM160-240v-32q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v32q0 33-23.5 56.5T720-160H240q-33 0-56.5-23.5T160-240Z" />';
 const POSITION_HEADER_ICON_MARKUP = '<path d="M856-390 570-104q-12 12-27 18t-30 6q-15 0-30-6t-27-18L103-457q-11-11-17-25.5T80-513v-287q0-33 23.5-56.5T160-880h287q16 0 31 6.5t26 17.5l352 353q12 12 17.5 27t5.5 30q0 15-5.5 29.5T856-390ZM260-640q25 0 42.5-17.5T320-700q0-25-17.5-42.5T260-760q-25 0-42.5 17.5T200-700q0 25 17.5 42.5T260-640Z" />';
 const GRD_HEADER_ICON_MARKUP = '<path d="M21,8c-1.45,0-2.26,1.44-1.93,2.51l-3.55,3.56c-0.3-0.09-0.74-0.09-1.04,0l-2.55-2.55C12.27,10.45,11.46,9,10,9 c-1.45,0-2.27,1.44-1.93,2.52l-4.56,4.55C2.44,15.74,1,16.55,1,18c0,1.1,0.9,2,2,2c1.45,0,2.26-1.44,1.93-2.51l4.55-4.56 c0.3,0.09,0.74,0.09,1.04,0l2.55,2.55C12.73,16.55,13.54,18,15,18c1.45,0,2.27-1.44,1.93-2.52l3.56-3.55 C21.56,12.26,23,11.45,23,10C23,8.9,22.1,8,21,8z"/><polygon points="15,9 15.94,6.93 18,6 15.94,5.07 15,3 14.08,5.07 12,6 14.08,6.93"/><polygon points="3.5,11 4,9 6,8.5 4,8 3.5,6 3,8 1,8.5 3,9"/>';
 const FANTASY_GROUP_ICON_MARKUP = '<path d="M0 0h24v24H0z" fill="none"/><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/>';
 const PROSPECT_RANKS_GROUP_ICON_MARKUP = '<path d="M120-120q-17 0-28.5-11.5T80-160v-400q0-17 11.5-28.5T120-600h140q17 0 28.5 11.5T300-560v400q0 17-11.5 28.5T260-120H120Zm290 0q-17 0-28.5-11.5T370-160v-640q0-17 11.5-28.5T410-840h140q17 0 28.5 11.5T590-800v640q0 17-11.5 28.5T550-120H410Zm290 0q-17 0-28.5-11.5T660-160v-320q0-17 11.5-28.5T700-520h140q17 0 28.5 11.5T880-480v320q0 17-11.5 28.5T840-120H700Z" />';
-const GENERAL_GROUP_ICON_MARKUP = AGE_HEADER_ICON_MARKUP;
-const OVERVIEW_STATS_GROUP_ICON_MARKUP = '<path d="M252.5-313.5Q305-240 391-213q18 6 29.5 22.5T432-154q0 29-24.5 46t-53.5 7q-124-41-199-145T80-480q0-130 75-234t199-145q29-10 53.5 7t24.5 46q0 20-11.5 36.5T391-747q-86 27-138.5 100.5T200-480q0 93 52.5 166.5ZM762-198q-32 33-72.5 57.5T605-101q-29 10-53.5-7T527-154q0-20 11.5-36.5T568-213q31-10 59.5-27.5T679-281q23-24 40-51.5t28-59.5q6-18 22.5-29.5T806-433q29 0 46 24.5t7 53.5q-15 44-39.5 84T762-198Zm0-564q33 33 57.5 73t39.5 84q10 29-7 53.5T806-527q-20 0-36.5-11.5T747-568q-11-32-28-59.5T679-679q-23-23-51.5-40.5T568-747q-18-6-29.5-22.5T527-806q0-29 24.5-46t53.5-7q44 15 84.5 39.5T762-762Z" />';
+const GENERAL_GROUP_ICON_MARKUP = '<path d="M480-520q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM240-356q0-21 10.5-39.5T279-425q45-26 95-40.5T480-480q56 0 106 14.5t95 40.5q18 11 28.5 29.5T720-356q0 32-22 54t-54 22H316q-32 0-54-22t-22-54Zm431-475q-15-8-21.5-23.5t.5-31.5q7-16 22-22t30 2q65 34 116 85.5T904-704q8 15 3 31t-21 23q-16 7-31.5.5T831-671q-28-51-68.5-91.5T671-831Zm-382 0q-51 28-91.5 68.5T129-671q-8 15-23.5 21.5T74-650q-16-7-21-23t3-31q35-64 86-115.5T258-905q15-8 30.5-2.5T311-886q7 16 0 31.5T289-831ZM129-289q28 51 68.5 91.5T289-129q15 8 22 23.5t0 31.5q-7 16-23 21.5T256-55q-64-34-115.5-86T55-258q-8-15-2.5-30.5T74-311q16-7 31.5 0t23.5 22Zm702 0q8-15 23.5-22t31.5 0q16 7 22 22.5t-2 30.5q-34 65-85.5 116T704-56q-15 8-31 3t-23-21q-7-16-.5-31.5T671-129q51-28 91.5-68.5T831-289Z" />';
+const OVERVIEW_STATS_GROUP_ICON_MARKUP = '<path d="M521-830q0-20 15-32t34-8q115 26 196.5 108.5T872-564q4 17-7.5 30.5T833-520H602q-4 0-7-2t-5-6q-9-21-25-37.5T529-591q-4-2-6-4.5t-2-6.5v-228ZM389-91q-134-31-221-139T81-480q0-142 87-249.5T389-869q20-5 36 8.5t16 34.5v226q0 1-6 8-34 14-54 44.5T361-480q0 37 20 66.5t54 43.5q2 1 6 8v228q0 21-16 34.5T389-91Zm176 2q-17 4-30.5-7.5T521-126v-233q0-4 2-7t6-5q20-9 36-25t25-36q1-2 11-8h232q18 0 30 15t8 34q-25 115-108 196.5T565-89Z" />';
 
 // Rookies Draft group icon:
 // this uses the requested filled Material-style path for the Draft column
@@ -958,10 +958,17 @@ const ROOKIE_WT_HEADER_ICON_MARKUP = '<path d="M117.37-111.87q-19.15 0-32.33-13.
 
 // DataHub shared filled header icons:
 // TM keeps the team glyph, while every DataHub CFB column gets the requested
-// shield/check glyph through the normal column-icon map.
+// graduation-cap glyph through the normal column-icon map.
 const TEAM_HEADER_ICON_MARKUP = '<path d="M115.22-723.96v-92.65q0-12.43 10.81-19.27 10.82-6.84 22.25-1.12l91.89 46.33q12.44 5.95 12.44 20.39 0 14.43-12.44 20.39l-91.89 46.32q-11.43 5.72-22.25-1.11-10.81-6.84-10.81-19.28Zm607.41 0v-92.65q0-12.43 10.82-19.27 10.81-6.84 22.25-1.12l91.89 46.33q12.43 5.95 12.43 20.39 0 14.43-12.43 20.39l-91.89 46.32q-11.44 5.72-22.25-1.11-10.82-6.84-10.82-19.28Zm-286.7-41.43v-92.65q0-12.44 10.82-19.28 10.82-6.83 22.25-1.12l91.89 46.33q12.44 5.96 12.44 20.39 0 14.44-12.44 20.39L469-745q-11.43 5.72-22.25-1.12t-10.82-19.27ZM331.22-78.2Q222.7-88 146.8-118.05q-75.89-30.06-75.89-76.45V-560q0-27.15 32.46-50.45 32.46-23.29 87.89-40.87 55.44-17.57 129.99-27.67 74.55-10.1 158.75-10.1t158.75 10.1q74.55 10.1 129.99 27.67 55.43 17.58 87.89 40.87 32.46 23.3 32.46 50.45v365.5q0 47.15-76.39 76.85-76.4 29.69-185.16 39.98-10.19 1-17.91-6.22-7.72-7.22-7.72-17.41v-54.87q0-50.96-35.48-86.44-35.47-35.48-86.43-35.48-50.96 0-86.43 35.48-35.48 35.48-35.48 86.44v53.63q0 10.95-7.96 18.15-7.96 7.19-18.91 6.19ZM480-523.59q93.41 0 160.92-10.78 67.51-10.78 108.56-24.83-8.13-6.43-80.78-22.66-72.66-16.23-188.7-16.23-116.04 0-188.81 16.23-72.78 16.23-80.67 22.66 41.05 14.05 108.56 24.83 67.51 10.78 160.92 10.78Z" />';
-const CFB_HEADER_ICON_MARKUP = '<path d="M455-64q-12-4-23-12L192-256q-15-11-23.5-28t-8.5-36v-480q0-33 23.5-56.5T240-880h480q33 0 56.5 23.5T800-800v480q0 19-8.5 36T768-256L528-76q-11 8-23 12t-25 4q-13 0-25-4Zm-17-410-56-56q-12-12-28-11.5T326-530q-12 12-12.5 28.5T325-473l85 85q12 12 28 12t28-12l170-170q12-12 11.5-28T636-614q-12-12-28.5-12.5T579-615L438-474Z" />';
+const CFB_HEADER_ICON_MARKUP = '<path d="M840-320v-236L518-381q-18 10-38 10t-38-10L104-565q-11-6-15.5-15T84-600q0-11 4.5-20t15.5-15l338-184q9-5 18.5-7.5T480-829q10 0 19.5 2.5T518-819l381 208q10 5 15.5 14.5T920-576v256q0 17-11.5 28.5T880-280q-17 0-28.5-11.5T840-320ZM442-141 242-249q-20-11-31-30t-11-41v-152l242 131q18 10 38 10t38-10l242-131v152q0 22-11 41t-31 30L518-141q-9 5-18.5 7.5T480-131q-10 0-19.5-2.5T442-141Z" />';
 const MTF_HEADER_ICON_MARKUP = '<path d="m720.24-175.11-32.17 32.18q-12.68 12.67-31.33 12.67t-32.33-13.67q-12.67-12.68-12.79-31.83-.12-19.15 12.55-31.83l31.42-32.17-31.18-31.17q-12.67-12.68-12.67-31.33t12.67-32.33q13.44-13.67 32.21-13.79 18.77-.12 32.45 13.55l31.17 31.18 31.17-31.94q12.68-13.67 31.45-13.67t32.44 13.67q13.68 13.68 13.56 32.45-.12 18.77-13.79 32.44l-30.94 30.94 31.94 31.93q13.67 13.68 13.17 31.95t-14.17 31.95q-13.68 12.67-31.95 13.05-18.27.38-31.71-13.05l-31.17-31.18ZM263.6-211.14q10.66-10.66 10.66-26.23 0-15.56-10.66-26.23-10.67-10.66-26.23-10.66-15.57 0-26.23 10.66-10.66 10.67-10.66 26.23 0 15.57 10.66 26.23t26.23 10.66q15.56 0 26.23-10.66Zm-26.23 99.27q-52.39 0-88.95-36.55-36.55-36.56-36.55-88.95t36.55-88.95q36.56-36.55 88.95-36.55 36.76 0 67.62 19.78 30.86 19.79 46.29 53.59 36.61-10.28 59.92-40.13 23.3-29.85 23.3-67.98v-164.78q0-84.44 59.34-143.77 59.33-59.34 143.77-59.34h35.24l-26.63-26.63q-13.2-13.2-12.58-31.49.62-18.29 14.53-32.21 13.68-13.67 32.45-13.67 18.77 0 32.45 13.67l103 103.76q13.67 13.68 13.67 32.07t-13.67 32.07l-104 103.76q-12.68 12.67-31.57 12.93-18.89.26-33.28-13.89-13.2-12.44-13.2-30.99 0-18.55 12.44-31.75l26.63-26.63h-35.48q-46.65 0-79.38 32.73t-32.73 79.38v164.78q0 74.2-47.96 130.29-47.95 56.1-121.15 69.58-12.72 38.44-45.53 62.15-32.82 23.72-73.49 23.72Zm2.15-543.72-32.17 32.18q-12.68 12.67-31.33 12.67t-32.32-13.67q-12.68-12.68-12.8-31.83-.12-19.15 12.56-31.83l31.41-32.17-31.17-31.17q-12.68-12.68-12.68-31.33t12.68-32.33q13.43-13.67 32.2-13.79 18.77-.12 32.45 13.56l31.17 31.17 31.18-31.94q12.67-13.67 31.44-13.67 18.77 0 32.45 13.67 13.67 13.68 13.55 32.45-.12 18.77-13.79 32.45l-30.94 30.93 31.94 31.94q13.67 13.67 13.17 31.94-.5 18.27-14.17 31.95-13.68 12.67-31.95 13.05-18.27.38-31.7-13.05l-31.18-31.18Z" />';
+
+// DataHub passing/receiving production header icons:
+// these filled Material paths target only the named stat columns, keeping
+// rushing TD and rushing first-down icons on their existing mappings.
+const COMPLETION_RECEPTION_HEADER_ICON_MARKUP = '<path d="M399-160q-134 0-227.5-93T78-480q0-134 93.5-227T399-800h161q134 0 227.5 93T881-480q0 134-93.5 227T560-160H399Zm24-253-85-85q-11-12-27.5-12T282-498q-12 12-12 28.5t12 27.5l99 99q18 18 43 18t42-18l212-212q12-11 12-28t-12-28q-12-12-28.5-12T621-611L423-413Z" />';
+const PASS_REC_TD_HEADER_ICON_MARKUP = '<path d="m438-452-58-57q-11-11-27.5-11T324-508q-11 11-11 28t11 28l86 86q12 12 28 12t28-12l170-170q12-12 11.5-28T636-592q-12-12-28.5-12.5T579-593L438-452ZM326-90l-58-98-110-24q-15-3-24-15.5t-7-27.5l11-113-75-86q-10-11-10-26t10-26l75-86-11-113q-2-15 7-27.5t24-15.5l110-24 58-98q8-13 22-17.5t28 1.5l104 44 104-44q14-6 28-1.5t22 17.5l58 98 110 24q15 3 24 15.5t7 27.5l-11 113 75 86q10 11 10 26t-10 26l-75 86 11 113q2 15-7 27.5T802-212l-110 24-58 98q-8 13-22 17.5T584-74l-104-44-104 44q-14 6-28 1.5T326-90Z" />';
+const PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP = '<path d="m438-540-28-28q-12-12-28-12t-28 12q-12 12-12 28.5t12 28.5l56 57q12 12 28 12t28-12l142-142q12-12 12-28.5T608-653q-12-12-28.5-12T551-653L438-540Zm362-12q0 45-17.5 94.5t-51 103Q698-301 648-244T533-127q-11 10-25 15t-28 5q-14 0-28-5t-25-15q-65-60-115-117t-83.5-110.5q-33.5-53.5-51-103T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552Z" />';
 
 // DataHub receiving/rushing header icon swaps:
 // these filled Material-style paths are used anywhere the matching column
@@ -1015,8 +1022,8 @@ const COLUMN_ICONS = {
   "RD & PK#": DATAHUB_LUCIDE_ICON_MARKUP.DraftTicket,
   OVR_PK:    DATAHUB_LUCIDE_ICON_MARKUP.DraftMedal,
   "POS-RK":  DATAHUB_LUCIDE_ICON_MARKUP.ListStart,
-  FPTS:      DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
-  PPG:       PPG_HEADER_ICON_MARKUP,
+  FPTS:      FPTS_HEADER_ICON_MARKUP,
+  PPG:       DATAHUB_LUCIDE_ICON_MARKUP.CircleFadingPlus,
   tYDS:      DATAHUB_LUCIDE_ICON_MARKUP.RulerDimensionLine,
   tTD:       TTD_HEADER_ICON_MARKUP,
   "KTC 1QB": KTC_HEADER_ICON_MARKUP,
@@ -1038,18 +1045,18 @@ const COLUMN_ICONS = {
   "CSTY%":   CSTY_HEADER_ICON_MARKUP,
   CL:        DATAHUB_LUCIDE_ICON_MARKUP.ArrowUpToLine,
   paYDS:     DATAHUB_LUCIDE_ICON_MARKUP.ChevronsLeftRightEllipsis,
-  paTD:      "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3", // CheckCircle
+  paTD:      PASS_REC_TD_HEADER_ICON_MARKUP,
   "CMP%":    CMP_PERCENT_HEADER_ICON_MARKUP,
   paATT:     DATAHUB_LUCIDE_ICON_MARKUP.ChartScatter,
   paRTG:     DATAHUB_LUCIDE_ICON_MARKUP.Flame,
   "EPA/DB":  DATAHUB_LUCIDE_ICON_MARKUP.LocateFixed,
   CPOE:      DATAHUB_LUCIDE_ICON_MARKUP.RedoDot,
-  CMP:       "M20 6 9 17l-5-5", // Check
+  CMP:       COMPLETION_RECEPTION_HEADER_ICON_MARKUP,
   YPA:       DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
   paYPG:     DATAHUB_LUCIDE_ICON_MARKUP.BowArrow,
   ruYDS:     DATAHUB_LUCIDE_ICON_MARKUP.Route,
   ruTD:      RUTD_HEADER_ICON_MARKUP,
-  pa1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
+  pa1D:      PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
   "IMP/G":   DATAHUB_LUCIDE_ICON_MARKUP.Fan,
   pIMP:      "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM8 12l3 3 5-5", // Target+check
   "pIMP/A":  DATAHUB_LUCIDE_ICON_MARKUP.CircleDotDashed,
@@ -1063,7 +1070,7 @@ const COLUMN_ICONS = {
   INT:       DATAHUB_LUCIDE_ICON_MARKUP.Tablets,
   FUM:       "M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z", // AlertCircle
   FPOE:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
-  REC:       DATAHUB_LUCIDE_ICON_MARKUP.HandHelping,
+  REC:       COMPLETION_RECEPTION_HEADER_ICON_MARKUP,
   recYDS:    DATAHUB_LUCIDE_ICON_MARKUP.Split,
   TGT:       "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z", // Target circles
   ELU:       "M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2 2 0 1 1 19 12H2", // Wind
@@ -1074,8 +1081,8 @@ const COLUMN_ICONS = {
   "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
   ru1D:      DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
   RYOE:      DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
-  recTD:     DATAHUB_LUCIDE_ICON_MARKUP.CircleCheckBig,
-  rec1D:     DATAHUB_LUCIDE_ICON_MARKUP.MapPinCheckInside,
+  recTD:     PASS_REC_TD_HEADER_ICON_MARKUP,
+  rec1D:     PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
   YAC:       YAC_HEADER_ICON_MARKUP,
   "TS%":     DATAHUB_LUCIDE_ICON_MARKUP.RefreshCcwDot,
   YPRR:      DATAHUB_LUCIDE_ICON_MARKUP.GitCompareArrows,
@@ -7915,18 +7922,26 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
-    if (["PLAYER", "POS", "TIER", "AGE", "G", "Gs", "PPG", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
+    if (column.name === "PLAYER") {
+      // DataHub PLAYER column header icon:
+      // PLAYER gets its own class instead of the shared Material class so
+      // desktop and mobile CSS can be tuned without affecting any other icon.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--player-material");
+    }
+    if (column.name === "POS") {
+      // DataHub POS column header icon:
+      // POS gets its own class instead of the shared Material class so
+      // desktop and mobile CSS can be tuned without affecting PLAYER or others.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--position-material");
+    }
+    if (["TIER", "AGE", "G", "Gs", "FPTS", "OPP", "IMP/OPP", "tTD", "40dsh"].includes(column.name)) {
       // DataHub filled Material stat column icons:
       // these requested 960-viewBox paths apply to every matching DataHub
       // table column while CSS keeps the visual treatment page-scoped.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--datahub-material");
-      if (column.name === "PLAYER") {
-        svg.classList.add("stats-table__head-icon--player-material");
-      }
-      if (column.name === "POS") {
-        svg.classList.add("stats-table__head-icon--position-material");
-      }
       if (column.name === "TIER") {
         svg.classList.add("stats-table__head-icon--tier-material");
       }
@@ -7939,8 +7954,8 @@ function createHeaderCell(column, columnIconColor) {
       if (column.name === "Gs") {
         svg.classList.add("stats-table__head-icon--games-started-material");
       }
-      if (column.name === "PPG") {
-        svg.classList.add("stats-table__head-icon--ppg-material");
+      if (column.name === "FPTS") {
+        svg.classList.add("stats-table__head-icon--fpts-material");
       }
       if (column.name === "OPP") {
         svg.classList.add("stats-table__head-icon--opp-material");
@@ -7961,6 +7976,20 @@ function createHeaderCell(column, columnIconColor) {
       // COLUMN_ICONS keeps their actual team and CFB glyph paths separate.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--cfb-material");
+    }
+    if (column.name === "CMP") {
+      // CMP column header icon:
+      // uses the requested filled completion glyph with a dedicated hook so
+      // passing-completion edits do not affect REC or CMP%.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--cmp-material");
+    }
+    if (column.name === "REC") {
+      // REC column header icon:
+      // uses the same requested filled completion glyph with its own hook so
+      // receiving-catch sizing can be adjusted independently from CMP.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--rec-material");
     }
     if (column.name === "MTF") {
       // MTF column header icon:
@@ -8008,6 +8037,30 @@ function createHeaderCell(column, columnIconColor) {
       // Material-style badge icon across all DataHub tables.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--rutd-material");
+    }
+    if (column.name === "paTD" || column.name === "recTD") {
+      // Passing/receiving TD column header icons:
+      // paTD and recTD share the requested filled badge glyph, while ruTD
+      // remains handled by its separate rushing-touchdown block above.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      if (column.name === "paTD") {
+        svg.classList.add("stats-table__head-icon--patd-material");
+      }
+      if (column.name === "recTD") {
+        svg.classList.add("stats-table__head-icon--rectd-material");
+      }
+    }
+    if (column.name === "pa1D" || column.name === "rec1D") {
+      // Passing/receiving first-down column header icons:
+      // pa1D and rec1D share the requested filled pin-check glyph, while ru1D
+      // keeps its existing rushing-first-down icon and styling.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      if (column.name === "pa1D") {
+        svg.classList.add("stats-table__head-icon--pa1d-material");
+      }
+      if (column.name === "rec1D") {
+        svg.classList.add("stats-table__head-icon--rec1d-material");
+      }
     }
     if (column.name === "KTC 1QB") {
       // KTC 1QB column header icon:
