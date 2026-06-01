@@ -3009,6 +3009,17 @@ body[data-page="datahub"] .stats-table__group-header-icon--prospect-ranks {
   stroke-width: 0;
 }
 
+/* DataHub Receiving / Receiving Efficiency group header icon:
+   targets the filled Material-style glyph used by both group labels so this
+   shared receiving group header can be tuned apart from other group icons. */
+body[data-page="datahub"] .stats-table__group-header-icon--receiving-efficiency-material {
+  width: 19px;
+  height: 19px;
+  fill: var(--group-icon-color, rgb(225 129 117 / 74%));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* ── Column header row ─────────────────────────────────────────────────── */
 .stats-table thead th.stats-table__header-cell {
   position: sticky;
@@ -3287,13 +3298,37 @@ body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-
   stroke-width: 0;
 }
 
+/* MTF/A column header icon:
+   uses the former filled MTF glyph with a dedicated hook so it can be tuned
+   separately from the new MTF and other rushing-efficiency icons. */
+body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* YCO/A column header icon:
-   reuses the former MTF Zap stroke glyph with a dedicated size hook for all
+   uses the requested filled lightning glyph with a dedicated size hook for all
    YCO/A tables without changing MTF, MTF/A, or YCO. */
-body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a {
-  width: 16px;
-  height: 16px;
-  stroke-width: 3px;
+body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* YCO column header icon:
+   filled after-contact glyph with a dedicated desktop/base hook separate from
+   YCO/A and rushing production group icons. */
+body[data-page="datahub"] [data-column-name="YCO"] .stats-table__head-icon--yco-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
 }
 
 /* YPR column header icon:
@@ -3342,7 +3377,7 @@ body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rut
 
 /* Passing touchdown column header icon:
    targets paTD only, including rookie passing tables where the label displays
-   as TD, while leaving ruTD on its existing rushing icon. */
+   as TD, while leaving ruTD on its separate rushing icon. */
 body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
   width: 18px;
   height: 18px;
@@ -3363,8 +3398,8 @@ body[data-page="datahub"] [data-column-name="recTD"] .stats-table__head-icon--re
 }
 
 /* Passing first-down column header icon:
-   targets pa1D only so rookie passing 1D headers can use the requested icon
-   without changing ru1D. */
+   targets pa1D only while sharing the requested first-down glyph with ru1D
+   and rec1D through separate per-column hooks. */
 body[data-page="datahub"] [data-column-name="pa1D"] .stats-table__head-icon--pa1d-material {
   width: 18px;
   height: 18px;
@@ -3374,9 +3409,31 @@ body[data-page="datahub"] [data-column-name="pa1D"] .stats-table__head-icon--pa1
 }
 
 /* Receiving first-down column header icon:
-   targets rec1D only so rookie receiving 1D headers can use the requested icon
-   without changing ru1D. */
+   targets rec1D only while sharing the requested first-down glyph with ru1D
+   and pa1D through separate per-column hooks. */
 body[data-page="datahub"] [data-column-name="rec1D"] .stats-table__head-icon--rec1d-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* Rushing first-down column header icon:
+   targets ru1D only while sharing the same filled first-down glyph as pa1D and
+   rec1D, preserving independent desktop/mobile tuning. */
+body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1d-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* RZ Tgt column header icon:
+   filled red-zone target glyph with its own hook separate from TGT, RR, and
+   other receiving-production icons. */
+body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3434,6 +3491,214 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   fill: var(--column-icon-color, rgb(98 135 183));
   stroke: none;
   stroke-width: 0;
+}
+
+@media (min-width: 720px) {
+  /* Desktop DataHub Material column icons:
+     each rule targets one stat key so desktop edits stay isolated from mobile
+     and from neighboring Material header icons. */
+  body[data-page="datahub"] [data-column-name="TIER"] .stats-table__head-icon--tier-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="G"] .stats-table__head-icon--games-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="Gs"] .stats-table__head-icon--games-started-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="OPP"] .stats-table__head-icon--opp-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="tTD"] .stats-table__head-icon--ttd-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="FPTS"] .stats-table__head-icon--fpts-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="AGE"] .stats-table__head-icon--age-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="recTD"] .stats-table__head-icon--rectd-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1d-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="pa1D"] .stats-table__head-icon--pa1d-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="rec1D"] .stats-table__head-icon--rec1d-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--tm-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="MTF"] .stats-table__head-icon--mtf-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="YCO"] .stats-table__head-icon--yco-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="YPR"] .stats-table__head-icon--ypr-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  /* Desktop 40dsh header icon:
+     remains individually scoped because its compact timer glyph was already
+     tuned slightly smaller than the other Material headers. */
+  body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
+    width: 17px;
+    height: 17px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
 }
 
 .stats-table__head-label {
@@ -4581,6 +4846,46 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 16px;
   }
 
+  /* Mobile TIER header icon:
+     isolated Material hook so tier icon alignment can be edited without
+     changing desktop or any other mobile header icon. */
+  body[data-page="datahub"] [data-column-name="TIER"] .stats-table__head-icon--tier-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile G header icon:
+     isolated games-played hook separate from Gs, desktop, and other calendar
+     Material icons. */
+  body[data-page="datahub"] [data-column-name="G"] .stats-table__head-icon--games-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile Gs header icon:
+     isolated games-started hook separate from G, desktop, and other calendar
+     Material icons. */
+  body[data-page="datahub"] [data-column-name="Gs"] .stats-table__head-icon--games-started-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile OPP header icon:
+     separate opportunity glyph hook so mobile edits do not affect desktop or
+     IMP/OPP sizing. */
+  body[data-page="datahub"] [data-column-name="OPP"] .stats-table__head-icon--opp-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile tTD header icon:
+     separate total-touchdown glyph hook so mobile edits do not affect desktop
+     or individual paTD/recTD/ruTD headers. */
+  body[data-page="datahub"] [data-column-name="tTD"] .stats-table__head-icon--ttd-material {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Mobile PLAYER column header icon:
      mobile-only sizing/fill hook so PLAYER can be tuned without changing the
      desktop PLAYER icon or any other DataHub header icon. */
@@ -4659,6 +4964,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 15px;
   }
 
+  /* Mobile MTF/A header icon:
+     compact hook for the former MTF filled glyph without changing MTF or other
+     rushing-efficiency mobile icons. */
+  body[data-page="datahub"] [data-column-name="MTF/A"] .stats-table__head-icon--mtf-a-material {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Mobile CMP header icon:
      compact completion glyph sizing for CMP only, separate from REC and CMP%. */
   body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
@@ -4674,9 +4987,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile YCO/A header icon:
-     individual sizing hook for the moved Zap glyph so it can be tuned without
-     changing the new MTF icon or other rushing-efficiency headers. */
-  body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a {
+     individual sizing hook for the filled lightning glyph so it can be tuned
+     without changing MTF/A, YCO, or other rushing-efficiency headers. */
+  body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile YCO header icon:
+     individual sizing hook for the filled after-contact glyph without changing
+     YCO/A or other rushing-production headers. */
+  body[data-page="datahub"] [data-column-name="YCO"] .stats-table__head-icon--yco-material {
     width: 14px;
     height: 14px;
   }
@@ -4741,6 +5062,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact rec1D sizing for receiving-production 1D labels without affecting
      ru1D or pa1D. */
   body[data-page="datahub"] [data-column-name="rec1D"] .stats-table__head-icon--rec1d-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile rushing first-down header icon:
+     compact ru1D hook for the shared first-down badge while keeping pa1D and
+     rec1D independently adjustable. */
+  body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1d-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile RZ Tgt header icon:
+     compact hook for the filled red-zone target glyph without changing TGT or
+     route-run related icons. */
+  body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
     width: 15px;
     height: 15px;
   }
@@ -4846,6 +5183,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      keeps the filled sparkle cluster aligned with compact mobile group headers
      without changing other DataHub group icon sizing. */
   body[data-page="datahub"] .stats-table__group-header-icon--fantasy-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile Receiving / Receiving Efficiency group header icon:
+     compact filled glyph used by both receiving group labels, scoped separately
+     from Fantasy, Prospect, and Overview group icons. */
+  body[data-page="datahub"] .stats-table__group-header-icon--receiving-efficiency-material {
     width: 15px;
     height: 15px;
   }
