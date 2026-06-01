@@ -543,7 +543,7 @@ body[data-page="leaguehub"] .analyzer-standings-frozen-shell {
   flex: 0 0 auto;
   max-width: 58%;
   overflow: hidden;
-  background: rgba(13, 14, 35, 0.96);
+  background: #ffffff02;
   position: relative;
   z-index: 2;
 }
