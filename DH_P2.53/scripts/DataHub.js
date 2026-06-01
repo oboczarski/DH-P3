@@ -7970,10 +7970,17 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--40dsh-material");
       }
     }
-    if (column.name === "CFB" || column.name === "TM") {
-      // TM/CFB column header icons:
-      // both columns use the same DataHub Material viewBox/fill class, while
-      // COLUMN_ICONS keeps their actual team and CFB glyph paths separate.
+    if (column.name === "TM") {
+      // TM column header icon:
+      // gives Team its own Material header class so desktop/mobile CSS edits
+      // do not affect CFB or other filled DataHub column icons.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--tm-material");
+    }
+    if (column.name === "CFB") {
+      // CFB column header icon:
+      // keeps the college glyph on a separate class from TM so each header can
+      // be sized and nudged independently on desktop and mobile.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--cfb-material");
     }

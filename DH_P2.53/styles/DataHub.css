@@ -3230,16 +3230,28 @@ body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-
   stroke-width: 0;
 }
 
-/* TM / CFB column header icons:
-  both columns use filled 960-viewBox glyphs and the same DataHub-only sizing
-  hook, while JS keeps their actual team and CFB glyph paths separate. */
-body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
-body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
-  width: 18px;
-  height: 18px;
-  fill: var(--column-icon-color, rgb(98 135 183));
-  stroke: none;
-  stroke-width: 0;
+@media (min-width: 720px) {
+  /* Desktop TM column header icon:
+    desktop-only Team hook separated from CFB so size/position changes never
+    carry over to the college-football column icon or mobile sizing. */
+  body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--tm-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  /* Desktop CFB column header icon:
+    desktop-only college-football hook separated from TM so either icon can be
+    adjusted without changing the other or mobile sizing. */
+  body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
 }
 
 /* MTF column header icon:
@@ -4614,13 +4626,27 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 15px;
   }
 
-    /* Mobile TM / CFB header icons:
-      keep the shared filled glyph sizing aligned for both columns in compact
-      DataHub tables without changing HT, WT, or 40dsh. */
-    body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--cfb-material,
-    body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
+  /* Mobile TM header icon:
+     mobile-only Team hook separated from CFB, with the requested 2px bottom
+     nudge so it can be aligned without changing desktop or CFB styling. */
+  body[data-page="datahub"] [data-column-name="TM"] .stats-table__head-icon--tm-material {
     width: 16px;
     height: 16px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+    margin-bottom: 2px;
+  }
+
+  /* Mobile CFB header icon:
+     compact college-football sizing separated from TM so future mobile edits
+     do not affect the Team icon or desktop styles. */
+  body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
+    width: 16px;
+    height: 16px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
     margin-bottom: 0px;
   }
 
