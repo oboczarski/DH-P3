@@ -5337,8 +5337,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact two-layer glyph used by both receiving group labels, scoped
      separately from Fantasy, Prospect, and Overview group icons. */
   body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
   }
 
   /* Mobile Rookies Prospect Ranks group header icon:
