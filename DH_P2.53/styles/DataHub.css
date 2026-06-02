@@ -134,7 +134,7 @@ body::after {
   z-index: 1;
   width: min(100%, 1680px);
   margin: 0 auto;
-  padding: 11px 5px 28px;
+  padding: 11px 6px 28px;
 }
 
 .glass-panel {
@@ -2309,7 +2309,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 .grid-shell {
   margin-top: 14px;
-  padding: 7px 4px;
+  padding: 7px 6px;
 }
 
 .grid-shell__meta {
