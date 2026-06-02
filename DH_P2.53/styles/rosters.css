@@ -2178,6 +2178,36 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table-container--short 
   --career-body-row-height: 41px;
 }
 
+/* ── Rosters: gamelogs-modal-tab font size ───────────────────────────────────
+   Scoped so mobile and desktop can be tuned independently of styles.css shared
+   defaults and independently from the DataHub page. */
+body[data-page="rosters"] .gamelogs-modal-tab {
+  /* Mobile baseline: matches global default so nothing visually changes. */
+  font-size: 0.72rem;
+}
+
+@media (min-width: 869px) {
+  body[data-page="rosters"] .gamelogs-modal-tab {
+    /* Desktop: slightly bigger than mobile. */
+    font-size: 0.78rem;
+  }
+}
+
+/* ── Rosters: gamelogs-modal-tab icon (Font Awesome <i>) ─────────────────────
+   Dedicated rule so icon size is separate from the shared .gamelogs-modal-tab i
+   rule in styles.css and independent of DataHub icon rules. */
+body[data-page="rosters"] .gamelogs-modal-tab i {
+  /* Mobile baseline: matches global default. */
+  font-size: 0.68rem;
+}
+
+@media (min-width: 869px) {
+  body[data-page="rosters"] .gamelogs-modal-tab i {
+    /* Desktop: a touch bigger for better visual balance. */
+    font-size: 0.8rem;
+  }
+}
+
 body[data-page="rosters"] #game-logs-modal .career-stats-frozen-pane {
   position: relative;
   z-index: 2;
@@ -2581,11 +2611,19 @@ body[data-page="rosters"] #game-logs-modal .career-stats-empty {
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-table-container--medium {
-    --career-body-row-height: 34px;
+    /* Mobile medium (5–7 rows): bumped up so shorter tables get more breathing room. */
+    --career-body-row-height: 37px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-table-container--short {
-    --career-body-row-height: 38px;
+    /* Mobile short (≤4 rows): roomiest rows for the smallest tables. */
+    --career-body-row-height: 42px;
+  }
+
+  /* Mobile full (10 rows): a noticeable reduction so the max-row rosters table
+     doesn’t overflow on small screens. More aggressive than DataHub’s version. */
+  body[data-page="rosters"] #game-logs-modal .career-stats-table-container--full {
+    --career-body-row-height: 27px;
   }
 
   body[data-page="rosters"] #game-logs-modal .career-stats-table th,

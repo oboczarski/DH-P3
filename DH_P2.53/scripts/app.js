@@ -6306,8 +6306,14 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
     const tableContainer = document.createElement('div');
     tableContainer.className = 'career-stats-table-container';
     tableContainer.dataset.rowCount = String(careerRows.length);
-    // Career table row-height tier: ≤4 rows → short (biggest rows), ≤7 → medium, 8+ → default (smallest rows).
-    if (careerRows.length <= 4) {
+    // Career table row-height tiers (mobile-first):
+    //   ≥10 rows → --full  (most compact, only 10 is the max)
+    //   ≤4  rows → --short (roomiest)
+    //   ≤7  rows → --medium
+    //   8-9 rows → default (no class, sweet-spot height)
+    if (careerRows.length >= 10) {
+        tableContainer.classList.add('career-stats-table-container--full');
+    } else if (careerRows.length <= 4) {
         tableContainer.classList.add('career-stats-table-container--short');
     } else if (careerRows.length <= 7) {
         tableContainer.classList.add('career-stats-table-container--medium');

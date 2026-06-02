@@ -7015,6 +7015,23 @@ body[data-page="datahub"] .gamelogs-modal-tab i {
   font-size: 0.7rem;
 }
 
+/* DataHub: gamelogs-modal-tab SVG icon — dedicated rule, separate from the
+   general #game-logs-modal .datahub-modal-icon rule so tab icons can be sized
+   independently. Also independent from any Rosters icon rules. */
+body[data-page="datahub"] .gamelogs-modal-tab .datahub-modal-icon {
+  /* Mobile baseline. */
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@media (min-width: 869px) {
+  body[data-page="datahub"] .gamelogs-modal-tab .datahub-modal-icon {
+    /* Desktop: a touch bigger for better visual balance at larger viewport. */
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+}
+
 body[data-page="datahub"] .gamelogs-modal-tab.is-active {
   background: linear-gradient(155deg, rgba(120, 134, 214, 0.3), rgba(55, 63, 111, 0.22));
   color: #dce4ff;
@@ -12710,14 +12727,22 @@ body[data-page="datahub"] #game-logs-modal .career-stats-table-container {
     0 20px 42px rgba(0, 0, 0, 0.28);
 }
 
-/* Career table row height: medium tier (5–7 rows) — a touch bigger than default. */
+/* Career table row height: medium tier (5–7 rows) — bigger than default so shorter tables don’t look cramped. */
 body[data-page="datahub"] #game-logs-modal .career-stats-table-container--medium {
-  --career-body-row-height: 33px;
+  --career-body-row-height: 36px;
 }
 
-/* Career table row height: short tier (≤4 rows) — a little bigger than medium. */
+/* Career table row height: short tier (≤4 rows) — roomiest rows for the smallest tables. */
 body[data-page="datahub"] #game-logs-modal .career-stats-table-container--short {
-  --career-body-row-height: 36px;
+  --career-body-row-height: 40px;
+}
+
+/* Career table row height: full tier (10 rows, mobile-only) — a touch smaller than the 8–9 default
+   so the max-row table fits without rows looking too tall on small screens. */
+@media (max-width: 640px) {
+  body[data-page="datahub"] #game-logs-modal .career-stats-table-container--full {
+    --career-body-row-height: 28px;
+  }
 }
 
 body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane {
