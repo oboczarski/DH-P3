@@ -5207,6 +5207,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     stroke: none;
     stroke-width: 0;
     margin-bottom: 2px;
+    transform: translateX(1px);
   }
 
   /* Mobile CFB header icon:
@@ -5491,8 +5492,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .stats-table__sort-indicator {
-    right: 0px;
-    width: 13px;
+    right: -1px;
+    width: 12px;
     height: 13px;
   }
 

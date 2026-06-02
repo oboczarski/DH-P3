@@ -2372,9 +2372,9 @@ const ROOKIES_TRADE_COLUMN_WIDTHS = Object.freeze({
 
 const MOBILE_COLUMN_WIDTHS = {
   index: 28,
-  RK: 28,
+  RK: 23,
   PLAYER: 75,
-  POS: 55,
+  POS: 54,
   TM: 39,
   AGE: 44,
   // Rookie info columns on mobile:
@@ -2385,9 +2385,9 @@ const MOBILE_COLUMN_WIDTHS = {
   WT: 42,
   "40dsh": 48,
   Gs: 42,
-  GRD: 48,
-  TIER: 46,
-  "OVR-RK": 60,
+  GRD: 46,
+  TIER: 43,
+  "OVR-RK": 58,
   // Mobile Rookies Draft column widths:
   // reduce the draft-pick headers after the visible labels changed to RD/PK
   // and PK#, keeping small-screen Draft groups from taking excess width.
