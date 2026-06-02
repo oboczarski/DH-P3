@@ -5382,8 +5382,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   /* Mobile RYOE header icon:
      compact filled Material rushing-over-expected glyph scoped only to RYOE. */
   body[data-page="datahub"] [data-column-name="RYOE"] .stats-table__head-icon--ryoe-material {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
   }
 
   /* Mobile ruTD header icon:
