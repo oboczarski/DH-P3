@@ -7052,7 +7052,11 @@ body[data-page="datahub"] .gamelogs-modal-tab.is-active {
    Scoped to min-width: 869px so mobile and desktop can be tuned independently. */
 @media (min-width: 869px) {
   body[data-page="datahub"] .gamelogs-modal-tab {
-    font-size: 0.72rem;
+    font-size: 1.02rem !important;
+    gap: 0.42rem;
+    padding: 0.5rem 4.42rem 0.5rem 3.72rem !important;
+    font-weight: 400;
+    letter-spacing: 0.04em;
   }
 }
 
