@@ -2374,7 +2374,7 @@ const MOBILE_COLUMN_WIDTHS = {
   index: 28,
   RK: 28,
   PLAYER: 75,
-  POS: 56,
+  POS: 55,
   TM: 39,
   AGE: 44,
   // Rookie info columns on mobile:
@@ -2391,8 +2391,8 @@ const MOBILE_COLUMN_WIDTHS = {
   // Mobile Rookies Draft column widths:
   // reduce the draft-pick headers after the visible labels changed to RD/PK
   // and PK#, keeping small-screen Draft groups from taking excess width.
-  "RD & PK#": 52,
-  OVR_PK: 44,
+  "RD & PK#": 50,
+  OVR_PK: 42,
   "POS-RK": 60,
   FPTS: 48,
   PPG: 46,
