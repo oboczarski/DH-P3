@@ -8716,14 +8716,14 @@ body[data-page="datahub"] .ownership-modal-section-title {
   gap: 0.15rem;
   margin-bottom: 0.38rem;
   text-align: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   color: #d9deff;
 }
 
 body[data-page="datahub"] .ownership-modal-section-subtitle {
-  font-size: 0.64rem;
+  font-size: 0.74rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -8741,8 +8741,8 @@ body[data-page="datahub"] .ownership-league-row {
   align-items: center;
   justify-content: space-between;
   gap: 0.70rem;
-  padding: 0.62rem 0.82rem;
-  border-radius: 10px;
+  padding: 0.62rem 0.75rem;
+  border-radius: 13px;
   border: 1px solid transparent;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 150ms ease, opacity 180ms ease;
   box-shadow: var(--datahub-gamelogs-control-shadow);
@@ -8768,7 +8768,7 @@ body[data-page="datahub"] .ownership-league-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--datahub-gamelogs-text-soft);
+  color: rgb(163 184 222 / 78%);
   font-size: 0.72rem;
   font-weight: 500;
 }
@@ -8776,7 +8776,7 @@ body[data-page="datahub"] .ownership-league-name {
 body[data-page="datahub"] .ownership-league-owner {
   text-align: right;
   font-size: 0.76rem;
-  font-weight: 600;
+  font-weight: 300;
   color: var(--datahub-gamelogs-text);
   transition: color 180ms ease;
 }
@@ -8790,9 +8790,9 @@ body[data-page="datahub"] .owner-you {
 }
 
 body[data-page="datahub"] .owner-you .ownership-league-owner {
-  color: #36f7da;
+  color: #61d6ff;
   text-shadow: 0 0 8px rgba(54, 247, 218, 0.36);
-  font-weight: 700;
+  font-weight: 400;
 }
 
 body[data-page="datahub"] .owner-other {
@@ -9415,7 +9415,7 @@ body[data-page="datahub"] .game-logs-loading-footer {
   }
 
   body[data-page="datahub"] .ownership-league-owner {
-    font-size: 0.71rem;
+    font-size: 0.75rem;
   }
 
   body[data-page="datahub"] .ownership-username-prompt {
@@ -12668,7 +12668,7 @@ body[data-page="datahub"] #game-logs-modal .gl-ownership-exposure-card {
   gap: 0.42rem;
   width: fit-content;
   max-width: 310px;
-  margin: 0.2rem auto 0.72rem;
+  margin: 0rem auto 0.42rem;
   padding: 0.42rem 1.1rem;
   border: 1px solid rgba(156, 170, 242, 0.2);
   border-radius: 13px;
