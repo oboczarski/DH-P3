@@ -2183,13 +2183,14 @@ body[data-page="rosters"] #game-logs-modal .career-stats-table-container--short 
    defaults and independently from the DataHub page. */
 body[data-page="rosters"] .gamelogs-modal-tab {
   /* Mobile baseline: matches global default so nothing visually changes. */
-  font-size: 0.72rem;
+  font-size: 0.82rem;
 }
 
 @media (min-width: 869px) {
   body[data-page="rosters"] .gamelogs-modal-tab {
     /* Desktop: slightly bigger than mobile. */
-    font-size: 0.78rem;
+    font-size: 0.92rem;
+    padding: 0.3rem 2.9rem;
   }
 }
 
@@ -2198,13 +2199,13 @@ body[data-page="rosters"] .gamelogs-modal-tab {
    rule in styles.css and independent of DataHub icon rules. */
 body[data-page="rosters"] .gamelogs-modal-tab i {
   /* Mobile baseline: matches global default. */
-  font-size: 0.68rem;
+  font-size: 0.88rem;
 }
 
 @media (min-width: 869px) {
   body[data-page="rosters"] .gamelogs-modal-tab i {
     /* Desktop: a touch bigger for better visual balance. */
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 }
 
