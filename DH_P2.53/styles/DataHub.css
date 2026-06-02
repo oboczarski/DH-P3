@@ -7031,6 +7031,14 @@ body[data-page="datahub"] .gamelogs-modal-tab.is-active {
   }
 }
 
+/* Desktop-specific font size for the game logs modal tabs.
+   Scoped to min-width: 869px so mobile and desktop can be tuned independently. */
+@media (min-width: 869px) {
+  body[data-page="datahub"] .gamelogs-modal-tab {
+    font-size: 0.72rem;
+  }
+}
+
 body[data-page="datahub"] #game-logs-modal .modal-content,
 body[data-page="datahub"] #game-logs-modal .ownership-modal-content {
   position: relative;
@@ -12675,7 +12683,8 @@ body[data-page="datahub"] #game-logs-modal .game-logs-career-view {
   --career-fantasy-pos-rank-col-width: 48px;
   --career-fantasy-ovr-rank-col-width: 39px;
   --career-team-logo-size: 27px;
-  --career-body-row-height: 31px;
+  /* Career table default row height (8–10 rows / mobile-first max): reduced 1px from previous value. */
+  --career-body-row-height: 30px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -12701,12 +12710,14 @@ body[data-page="datahub"] #game-logs-modal .career-stats-table-container {
     0 20px 42px rgba(0, 0, 0, 0.28);
 }
 
+/* Career table row height: medium tier (5–7 rows) — a touch bigger than default. */
 body[data-page="datahub"] #game-logs-modal .career-stats-table-container--medium {
-  --career-body-row-height: 36px;
+  --career-body-row-height: 33px;
 }
 
+/* Career table row height: short tier (≤4 rows) — a little bigger than medium. */
 body[data-page="datahub"] #game-logs-modal .career-stats-table-container--short {
-  --career-body-row-height: 40px;
+  --career-body-row-height: 36px;
 }
 
 body[data-page="datahub"] #game-logs-modal .career-stats-frozen-pane {

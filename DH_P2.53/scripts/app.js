@@ -6306,9 +6306,10 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
     const tableContainer = document.createElement('div');
     tableContainer.className = 'career-stats-table-container';
     tableContainer.dataset.rowCount = String(careerRows.length);
-    if (careerRows.length <= 3) {
+    // Career table row-height tier: ≤4 rows → short (biggest rows), ≤7 → medium, 8+ → default (smallest rows).
+    if (careerRows.length <= 4) {
         tableContainer.classList.add('career-stats-table-container--short');
-    } else if (careerRows.length <= 5) {
+    } else if (careerRows.length <= 7) {
         tableContainer.classList.add('career-stats-table-container--medium');
     }
 
