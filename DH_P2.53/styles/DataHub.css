@@ -3580,6 +3580,7 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
+    transform: translateY(0px);
   }
 
   body[data-page="datahub"] [data-column-name="Gs"] .stats-table__head-icon--games-started-material {
@@ -3615,7 +3616,7 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] [data-column-name="AGE"] .stats-table__head-icon--age-material {
-    width: 18px;
+    width: 17px;
     height: 18px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
@@ -3720,6 +3721,7 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
+    transform: translateY(-1px);
   }
 
   body[data-page="datahub"] [data-column-name="CFB"] .stats-table__head-icon--cfb-material {
@@ -5100,9 +5102,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
-    width: 17px;
+    width: 18px;
     height: 18px;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
 
   /* Mobile REC header icon:
