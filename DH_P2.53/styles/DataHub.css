@@ -4127,11 +4127,11 @@ body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk {
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   max-width: 100%;
   overflow: hidden;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: normal;
 }
 
 body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk-main {
@@ -4142,8 +4142,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk-ma
 
 body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk-pos {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: overlay;
   font-size: 0.8em;
   font-weight: 700;
   color: rgba(226, 235, 250, 0.72);
