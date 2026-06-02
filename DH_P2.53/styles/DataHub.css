@@ -8740,12 +8740,12 @@ body[data-page="datahub"] .ownership-league-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.7rem;
-  padding: 0.52rem 0.62rem;
-  border-radius: 12px;
-  border: 1px solid rgba(186, 197, 248, 0.2);
-  background: linear-gradient(145deg, rgba(61, 76, 139, 0.58), rgba(104, 123, 151, 0.18));
-  box-shadow: inset 0 11px 13px -8px rgba(204, 221, 255, 0.2);
+  gap: 0.70rem;
+  padding: 0.62rem 0.82rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 150ms ease, opacity 180ms ease;
+  box-shadow: var(--datahub-gamelogs-control-shadow);
 }
 
 body[data-page="datahub"] .ownership-league-meta {
@@ -8757,9 +8757,10 @@ body[data-page="datahub"] .ownership-league-meta {
 }
 
 body[data-page="datahub"] .ownership-league-abbr {
-  font-size: 0.73rem;
-  font-weight: 720;
+  font-size: 0.74rem;
+  font-weight: 800;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 body[data-page="datahub"] .ownership-league-name {
@@ -8767,30 +8768,73 @@ body[data-page="datahub"] .ownership-league-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #d2dbfb;
-  font-size: 0.74rem;
+  color: var(--datahub-gamelogs-text-soft);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 body[data-page="datahub"] .ownership-league-owner {
   text-align: right;
   font-size: 0.76rem;
-  font-weight: 670;
-  color: #eef2ff;
+  font-weight: 600;
+  color: var(--datahub-gamelogs-text);
+  transition: color 180ms ease;
 }
 
 body[data-page="datahub"] .owner-you {
-  border-color: rgba(101, 236, 191, 0.36);
-  background: linear-gradient(145deg, rgba(61, 76, 139, 0.58), rgba(97, 0, 255, 0.75));
+  background: linear-gradient(180deg, rgba(23, 37, 60, 0.94), rgba(11, 19, 36, 0.98)) padding-box, var(--datahub-gamelogs-accent-border) border-box;
+  box-shadow:
+    var(--datahub-gamelogs-control-shadow),
+    var(--datahub-gamelogs-accent-glow),
+    inset 0 0 16px rgba(91, 127, 255, 0.08);
+}
+
+body[data-page="datahub"] .owner-you .ownership-league-owner {
+  color: #36f7da;
+  text-shadow: 0 0 8px rgba(54, 247, 218, 0.36);
+  font-weight: 700;
 }
 
 body[data-page="datahub"] .owner-other {
-  border-color: rgba(147, 161, 239, 0.32);
+  background: linear-gradient(180deg, rgba(18, 26, 43, 0.85), rgba(10, 15, 27, 0.95)) padding-box, linear-gradient(135deg, rgba(115, 244, 255, 0.12), rgba(91, 127, 255, 0.12), rgba(219, 109, 255, 0.15)) border-box;
 }
 
 body[data-page="datahub"] .owner-none {
-  opacity: 0.92;
-  border-color: rgba(189, 197, 238, 0.2);
-  background: rgba(20, 24, 42, 0.52);
+  background: rgba(10, 14, 24, 0.36) padding-box, rgba(128, 138, 189, 0.1) border-box;
+  box-shadow: none;
+  opacity: 0.72;
+}
+
+body[data-page="datahub"] .owner-none .ownership-league-name {
+  color: var(--datahub-gamelogs-text-muted);
+}
+
+body[data-page="datahub"] .owner-none .ownership-league-owner {
+  color: var(--datahub-gamelogs-text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] .ownership-league-row.owner-you:hover {
+    transform: translateY(-1.5px);
+    box-shadow:
+      var(--datahub-gamelogs-control-shadow),
+      0 0 24px rgba(115, 244, 255, 0.24),
+      0 0 38px rgba(91, 127, 255, 0.45);
+  }
+  body[data-page="datahub"] .ownership-league-row.owner-other:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, rgba(23, 31, 56, 0.92), rgba(13, 20, 36, 0.98)) padding-box, linear-gradient(135deg, rgba(115, 244, 255, 0.2), rgba(91, 127, 255, 0.2), rgba(219, 109, 255, 0.24)) border-box;
+    box-shadow:
+      var(--datahub-gamelogs-control-shadow),
+      0 0 16px rgba(91, 127, 255, 0.16);
+  }
+  body[data-page="datahub"] .ownership-league-row.owner-none:hover {
+    opacity: 0.9;
+    transform: translateY(-0.5px);
+    background: rgba(10, 14, 24, 0.48) padding-box, rgba(128, 138, 189, 0.18) border-box;
+  }
 }
 
 /* DataHub ownership username prompt:
