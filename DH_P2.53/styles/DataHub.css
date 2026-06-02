@@ -3644,17 +3644,18 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button {
     --payds-yard-line-width: 10px;
     --payds-yard-line-left: calc(50% - 23px);
-    --payds-yard-line-top: 30px;
-    --payds-yard-line-weight: 1.5px;
+    --payds-yard-line-top: 27px;
+    --payds-yard-line-weight: 2.5px;
     --payds-yard-line-opacity: 0.82;
   }
 
   body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
+    margin-bottom: 1px;
   }
 
   body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
@@ -5092,16 +5093,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact rotated passing-yards glyph plus mobile-only dotted yard-line
      positioning for the shared paYDS key used by rookie YDS labels. */
   body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button {
-    --payds-yard-line-width: 12px;
-    --payds-yard-line-left: calc(50% - 20px);
-    --payds-yard-line-top: 25px;
-    --payds-yard-line-weight: 1.25px;
-    --payds-yard-line-opacity: 0.82;
+    --payds-yard-line-width: 10px;
+    --payds-yard-line-left: calc(50% - 18px);
+    --payds-yard-line-top: 21px;
+    --payds-yard-line-weight: 2px;
+    --payds-yard-line-opacity: 0.72;
   }
 
   body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 18px;
+    margin-bottom: 2px;
   }
 
   /* Mobile REC header icon:
