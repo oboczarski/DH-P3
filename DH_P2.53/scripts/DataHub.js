@@ -2392,7 +2392,7 @@ const MOBILE_COLUMN_WIDTHS = {
   // reduce the draft-pick headers after the visible labels changed to RD/PK
   // and PK#, keeping small-screen Draft groups from taking excess width.
   "RD & PK#": 50,
-  OVR_PK: 42,
+  OVR_PK: 41,
   "POS-RK": 60,
   FPTS: 48,
   PPG: 46,
