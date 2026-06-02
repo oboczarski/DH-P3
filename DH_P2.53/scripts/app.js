@@ -9293,11 +9293,16 @@ function renderOwnershipMode() {
 /* Ownership page Exposure column conditional-format tier map:
    - targets ONLY the Exposure column in default Ownership% view
    - tier selection is based ONLY on ownership count
-   - supports 15 tiers: count 1..15 (15+ stays in tier-15)
+   - supports 20 tiers: count 1..20 (20+ stays in tier-20)
    - count and percent always share the same tier hue (percent is dimmer in CSS)
    IMPORTANT: keep this list sorted high -> low by minCount.
    To change count cutoffs, edit minCount values below. */
 const OWNERSHIP_EXPOSURE_CF_COUNT_TIERS = [
+    { minCount: 20, className: 'ownership-exposure--tier-20' },
+    { minCount: 19, className: 'ownership-exposure--tier-19' },
+    { minCount: 18, className: 'ownership-exposure--tier-18' },
+    { minCount: 17, className: 'ownership-exposure--tier-17' },
+    { minCount: 16, className: 'ownership-exposure--tier-16' },
     { minCount: 15, className: 'ownership-exposure--tier-15' },
     { minCount: 14, className: 'ownership-exposure--tier-14' },
     { minCount: 13, className: 'ownership-exposure--tier-13' },
@@ -10323,11 +10328,12 @@ function renderOwnershipModalLeagueOwnerList(playerId) {
     const failures = Array.isArray(state.ownershipContext?.failures) ? state.ownershipContext.failures : [];
 
     // Ownership modal body rows mirror the reference branch style:
-    // league meta on the left + concise owner value on the right (`You` when owned by current user).
+    // league meta on the left + concise owner value on the right (user's username when owned by current user).
+    const currentUsername = (typeof usernameInput?.value === 'string' && usernameInput.value.trim()) || (typeof localStorage !== 'undefined' ? (localStorage.getItem('sleeper_username') || '').trim() : '') || 'You';
     ownershipModalBody.innerHTML = `
         <div class="ownership-modal-league-list">
             ${rows.map((row) => {
-                const ownerText = row.missing ? 'Unrostered' : (row.isUser ? 'You' : row.ownerDisplay);
+                const ownerText = row.missing ? 'Unrostered' : (row.isUser ? currentUsername : row.ownerDisplay);
                 const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
                 const abbrColor = getLeagueColor(row.leagueAbbr);
                 return `
@@ -10479,7 +10485,8 @@ function renderOwnershipInGameLogsPane(playerId) {
             </div>
             <div class="ownership-modal-league-list">
                 ${rows.map((row) => {
-                    const ownerText = row.missing ? 'Unrostered' : (row.isUser ? 'You' : row.ownerDisplay);
+                    const currentUsername = (typeof usernameInput?.value === 'string' && usernameInput.value.trim()) || (typeof localStorage !== 'undefined' ? (localStorage.getItem('sleeper_username') || '').trim() : '') || 'You';
+                    const ownerText = row.missing ? 'Unrostered' : (row.isUser ? currentUsername : row.ownerDisplay);
                     const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
                     const abbrColor = typeof getLeagueColor === 'function' ? getLeagueColor(row.leagueAbbr) : '#cad1fa';
                     return `

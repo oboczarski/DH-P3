@@ -14367,6 +14367,11 @@ async function handleDataHubOwnershipUsernameSubmit(form) {
 // It mirrors the Rosters/Ownership count-based tier classes locally so DataHub
 // can render exposure colors without importing app.js or page-shared CSS.
 const DATAHUB_OWNERSHIP_EXPOSURE_CF_COUNT_TIERS = [
+  { minCount: 20, className: "ownership-exposure--tier-20" },
+  { minCount: 19, className: "ownership-exposure--tier-19" },
+  { minCount: 18, className: "ownership-exposure--tier-18" },
+  { minCount: 17, className: "ownership-exposure--tier-17" },
+  { minCount: 16, className: "ownership-exposure--tier-16" },
   { minCount: 15, className: "ownership-exposure--tier-15" },
   { minCount: 14, className: "ownership-exposure--tier-14" },
   { minCount: 13, className: "ownership-exposure--tier-13" },
@@ -14515,7 +14520,7 @@ function renderDataHubOwnershipPane(playerId) {
       </div>
       <div class="ownership-modal-league-list">
         ${rows.map((row) => {
-          const ownerText = row.missing ? "Unrostered" : (row.isUser ? "You" : row.ownerDisplay);
+          const ownerText = row.missing ? "Unrostered" : (row.isUser ? (state.username || "You") : row.ownerDisplay);
           const ownerClass = row.missing ? "owner-none" : (row.isUser ? "owner-you" : "owner-other");
           return `
             <article class="ownership-league-row ${ownerClass}">

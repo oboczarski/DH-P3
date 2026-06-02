@@ -2709,22 +2709,32 @@ body[data-page="rosters"] {
   --ownership-exp-c06-pct: #fd7f609a;
   --ownership-exp-c07-count: #ff81f2;
   --ownership-exp-c07-pct: #ff81f29a;
-  --ownership-exp-c08-count: #ff4837;
-  --ownership-exp-c08-pct: #ff6b6bd2;
-  --ownership-exp-c09-count: #d93223;
-  --ownership-exp-c09-pct: #d93223aa;
-  --ownership-exp-c10-count: #ff3c8d;
-  --ownership-exp-c10-pct: #f94d95c0;
-  --ownership-exp-c11-count: #b8004d;
-  --ownership-exp-c11-pct: #b8004d99;
-  --ownership-exp-c12-count: #ff00f7;
-  --ownership-exp-c12-pct: #ff00f7a8;
-  --ownership-exp-c13-count: #c000dd;
-  --ownership-exp-c13-pct: #c000dda8;
-  --ownership-exp-c14-count: #ff006f;
-  --ownership-exp-c14-pct: #ff006f99;
-  --ownership-exp-c15-count: #ff0000;
-  --ownership-exp-c15-pct: #ff0000a8;
+  --ownership-exp-c08-count: #9e89f9;
+  --ownership-exp-c08-pct: #9e89f9a8;
+  --ownership-exp-c09-count: #b689f9;
+  --ownership-exp-c09-pct: #b689f9a8;
+  --ownership-exp-c10-count: #cf81ff;
+  --ownership-exp-c10-pct: #cf81ffa8;
+  --ownership-exp-c11-count: #e981ff;
+  --ownership-exp-c11-pct: #e981ffa8;
+  --ownership-exp-c12-count: #ff63ef;
+  --ownership-exp-c12-pct: #ff63efd2;
+  --ownership-exp-c13-count: #ff5db5;
+  --ownership-exp-c13-pct: #d93223aa;
+  --ownership-exp-c14-count: #ff3c8d;
+  --ownership-exp-c14-pct: #f94d95c0;
+  --ownership-exp-c15-count: #c000dd;
+  --ownership-exp-c15-pct: #c000dda8;
+  --ownership-exp-c16-count: #ff00f7;
+  --ownership-exp-c16-pct: #ff00f7a8;
+  --ownership-exp-c17-count: #ff006f;
+  --ownership-exp-c17-pct: #ff006f99;
+  --ownership-exp-c18-count: #b8004d;
+  --ownership-exp-c18-pct: #b8004d99;
+  --ownership-exp-c19-count: #ff0000;
+  --ownership-exp-c19-pct: #ff0000a8;
+  --ownership-exp-c20-count: #ff0000;
+  --ownership-exp-c20-pct: #ff0000a8;
 }
 
 /* Exposure summary row: horizontal layout — LABEL  count⏐pct%  context */
@@ -2848,5 +2858,20 @@ body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-14 .
 
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-count { color: var(--ownership-exp-c15-count); }
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-15 .ownership-exposure-pct  { color: var(--ownership-exp-c15-pct); }
+
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-16 .ownership-exposure-count { color: var(--ownership-exp-c16-count); }
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-16 .ownership-exposure-pct  { color: var(--ownership-exp-c16-pct); }
+
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-17 .ownership-exposure-count { color: var(--ownership-exp-c17-count); }
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-17 .ownership-exposure-pct  { color: var(--ownership-exp-c17-pct); }
+
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-18 .ownership-exposure-count { color: var(--ownership-exp-c18-count); }
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-18 .ownership-exposure-pct  { color: var(--ownership-exp-c18-pct); }
+
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-19 .ownership-exposure-count { color: var(--ownership-exp-c19-count); }
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-19 .ownership-exposure-pct  { color: var(--ownership-exp-c19-pct); }
+
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-20 .ownership-exposure-count { color: var(--ownership-exp-c20-count); }
+body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-20 .ownership-exposure-pct  { color: var(--ownership-exp-c20-pct); }
 
 /* ============================================================================
