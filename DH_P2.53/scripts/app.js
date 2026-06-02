@@ -10333,7 +10333,7 @@ function renderOwnershipModalLeagueOwnerList(playerId) {
     ownershipModalBody.innerHTML = `
         <div class="ownership-modal-league-list">
             ${rows.map((row) => {
-                const ownerText = row.missing ? 'Unrostered' : (row.isUser ? currentUsername : row.ownerDisplay);
+                const ownerText = row.missing ? 'Unrostered' : (row.isUser && !row.ownerDisplay.startsWith('Roster ') ? row.ownerDisplay : (row.isUser ? currentUsername : row.ownerDisplay));
                 const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
                 const abbrColor = getLeagueColor(row.leagueAbbr);
                 return `
@@ -10486,7 +10486,7 @@ function renderOwnershipInGameLogsPane(playerId) {
             <div class="ownership-modal-league-list">
                 ${rows.map((row) => {
                     const currentUsername = (typeof usernameInput?.value === 'string' && usernameInput.value.trim()) || (typeof localStorage !== 'undefined' ? (localStorage.getItem('sleeper_username') || '').trim() : '') || 'You';
-                    const ownerText = row.missing ? 'Unrostered' : (row.isUser ? currentUsername : row.ownerDisplay);
+                    const ownerText = row.missing ? 'Unrostered' : (row.isUser && !row.ownerDisplay.startsWith('Roster ') ? row.ownerDisplay : (row.isUser ? currentUsername : row.ownerDisplay));
                     const ownerClass = row.missing ? 'owner-none' : (row.isUser ? 'owner-you' : 'owner-other');
                     const abbrColor = typeof getLeagueColor === 'function' ? getLeagueColor(row.leagueAbbr) : '#cad1fa';
                     return `

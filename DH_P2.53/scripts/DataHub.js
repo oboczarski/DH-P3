@@ -10806,6 +10806,9 @@ async function bootstrapDataHubUserContext() {
   try {
     const user = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${encodeURIComponent(username)}`);
     state.userId = user?.user_id || "";
+    if (user?.user_id) {
+      state.username = user.display_name || user.username || username;
+    }
     if (queryUsername) {
       try {
         localStorage.setItem("sleeper_username", username);
@@ -14308,9 +14311,13 @@ async function handleDataHubOwnershipUsernameSubmit(form) {
   setDataHubOwnershipPromptStatus(form, "Looking up your Sleeper leagues…", "loading");
 
   let userId = "";
+  let resolvedUsername = username;
   try {
     const user = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/user/${encodeURIComponent(username)}`);
     userId = String(user?.user_id || "").trim();
+    if (user?.user_id) {
+      resolvedUsername = user.display_name || user.username || username;
+    }
     if (!userId) {
       throw new Error("missing-user-id");
     }
@@ -14332,7 +14339,7 @@ async function handleDataHubOwnershipUsernameSubmit(form) {
   // DataHub ownership username hydration:
   // store the confirmed Sleeper identity locally, then hydrate the ownership
   // pane using the same page-local loading path as any previously known user.
-  state.username = username;
+  state.username = resolvedUsername;
   state.userId = userId;
   state.ownershipContext = null;
   dataHubOwnershipContextLoadPromise = null;
@@ -14520,7 +14527,7 @@ function renderDataHubOwnershipPane(playerId) {
       </div>
       <div class="ownership-modal-league-list">
         ${rows.map((row) => {
-          const ownerText = row.missing ? "Unrostered" : (row.isUser ? (state.username || "You") : row.ownerDisplay);
+          const ownerText = row.missing ? "Unrostered" : (row.isUser && !row.ownerDisplay.startsWith("Roster ") ? row.ownerDisplay : (row.isUser ? (state.username || "You") : row.ownerDisplay));
           const ownerClass = row.missing ? "owner-none" : (row.isUser ? "owner-you" : "owner-other");
           return `
             <article class="ownership-league-row ${ownerClass}">
