@@ -5282,7 +5282,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      mobile icon and dotted-line positioning remain unchanged. */
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="paYDS"] .stats-table__head-button {
     --payds-yard-line-width: 10px;
-    --payds-yard-line-left: calc(51% - 14px);
+    --payds-yard-line-left: calc(53% - 14px);
     --payds-yard-line-top: 21px;
     --payds-yard-line-weight: 2px;
     --payds-yard-line-opacity: 0.72;
@@ -5306,8 +5306,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact Passing Production crosshair sizing scoped separately from RZ Tgt
      and desktop. */
   body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-production {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     fill: none;
     stroke: var(--column-icon-color, rgb(98 135 183));
     stroke-width: 2.4px;
