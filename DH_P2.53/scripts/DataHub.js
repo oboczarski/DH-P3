@@ -972,6 +972,9 @@ const MTF_HEADER_ICON_MARKUP = '<path d="M323.59-274.5q-19.16 0-32.33-13.17-13.1
 const REC_HEADER_ICON_MARKUP = '<path d="m575-87-255-72v-361h64q7 0 14 1.5t14 3.5l277 103q14 5 22.5 18t8.5 27q0 21-14.5 34T672-320H567q-5 0-7.5-.5T553-323l-45-17q-8-3-16 1t-10 11q-2 8 1 15t11 10l59 21q2 1 6 1.5t7 .5h274q32 0 56 23t24 57L625-89q-10 4-24.5 4.5T575-87ZM80-160v-280q0-33 23.5-56.5T160-520q33 0 56.5 23.5T240-440v280q0 33-23.5 56.5T160-80q-33 0-56.5-23.5T80-160Zm477-471 199-198q11-11 27.5-11.5T812-829q11 11 11 28t-11 28L585-546q-12 12-28 12t-28-12L415-660q-12-12-11.5-28t12.5-28q12-11 28-11.5t28 11.5l85 85Z" />';
 const CMP_HEADER_ICON_MARKUP = '<path d="m424-408-86-86q-11-11-28-11t-28 11q-11 11-11 28t11 28l114 114q12 12 28 12t28-12l226-226q11-11 11-28t-11-28q-11-11-28-11t-28 11L424-408Zm56 328q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />';
 const PAYDS_HEADER_ICON_MARKUP = '<path d="M520-748q-57 51-88.5 119.5T400-484q0 91 43.5 170.5T565-186q14 9 19.5 24.5T582-131q-8 15-23 20.5t-29-2.5q-98-59-154-157.5T320-484q0-91 36-172.5T458-800h-98q-17 0-28.5-11.5T320-840q0-17 11.5-28.5T360-880h200q17 0 28.5 11.5T600-840v200q0 17-11.5 28.5T560-600q-17 0-28.5-11.5T520-640v-108Z" />';
+const DROP_PERCENT_HEADER_ICON_MARKUP = '<path d="M462.97-94q-8.08-2.98-14.8-9.7L340.59-211.28q-12.92-12.92-12.92-31.57t12.68-32.32q13.67-13.68 32.44-13.68 18.78 0 32.45 13.68l29.26 29.26v-156.18q-69-15.43-114.5-71.01-45.5-55.57-45.5-129.29 0-85.39 60.05-145.45 60.06-60.05 145.45-60.05 85.39 0 145.45 60.05 60.05 60.06 60.05 145.45 0 73.72-45.5 129.29-45.5 55.58-114.5 71.01v156.18l30.26-30.02q12.91-12.68 31.45-12.8 18.53-.12 32.2 13.56 12.92 12.91 12.92 31.94t-12.92 31.95L511.83-103.7q-6.72 6.72-14.8 9.7-8.07 2.98-17.03 2.98T462.97-94Zm98.2-427.22q33.33-33.32 33.33-81.17t-33.33-81.18q-33.32-33.32-81.17-33.32t-81.17 33.32q-33.33 33.33-33.33 81.18 0 47.85 33.33 81.17 33.32 33.33 81.17 33.33t81.17-33.33ZM480-602.39Z" />';
+const PRS_PERCENT_HEADER_ICON_MARKUP = '<path d="M71.87-717.13q0-37.78 26.61-64.39t64.39-26.61h634.26q37.78 0 64.39 26.61t26.61 64.39v71.63q0 19.15-13.17 32.33Q861.78-600 842.63-600t-32.33-13.17q-13.17-13.18-13.17-32.33v-71.63H162.87v71.63q0 19.15-13.17 32.33Q136.52-600 117.37-600t-32.33-13.17q-13.17-13.18-13.17-32.33v-71.63Zm91 565.26q-37.78 0-64.39-26.61t-26.61-64.39v-71.63q0-19.15 13.17-32.33Q98.22-360 117.37-360t32.33 13.17q13.17 13.18 13.17 32.33v71.63h634.26v-71.63q0-19.15 13.17-32.33Q823.48-360 842.63-360t32.33 13.17q13.17 13.18 13.17 32.33v71.63q0 37.78-26.61 64.39t-64.39 26.61H162.87ZM421-285.5q10-5.5 15-16.5l124-248 44 88q5 11 15 16.5t21 5.5h208.13q17 0 28.5-11.5t11.5-28.5q0-17-11.5-28.5t-28.5-11.5H665l-69-138q-5-11-15-15.5t-21-4.5q-11 0-21 4.5T524-658L400-410l-44-88q-5-11-15-16.5t-21-5.5H111.87q-17 0-28.5 11.5T71.87-480q0 17 11.5 28.5t28.5 11.5H295l69 138q5 11 15 16.5t21 5.5q11 0 21-5.5ZM480-480Z" />';
+const RYOE_HEADER_ICON_MARKUP = '<path d="M239.98-478.07q27.43-68.86 65.61-132.26 38.17-63.39 86.08-120.02l-53.19-11q-22.63-4.48-44.26 2.24-21.63 6.72-37.79 22.87L132.59-592.39q-16.92 16.91-12.82 40.66 4.1 23.75 26.49 33.19l93.72 40.47Zm601.87-400.04q-106.72-3.33-203.06 41.72-96.33 45.04-171.81 120.52-49.44 49.43-87.01 106.75-37.58 57.32-65.77 120.75-5.96 14.67-5.6 30.09.36 15.41 11.55 26.61l124.52 124.52q11.2 11.19 26.61 11.55 15.42.36 30.09-5.83 63.2-28.44 120.63-65.9 57.44-37.45 106.87-86.89 75.48-75.48 120.52-171.69 45.05-96.22 41.72-202.94 0-9.19-4.36-18.15-4.36-8.96-11.08-15.67-6.71-6.72-15.67-11.08t-18.15-4.36Zm-277 248.32q0-32.67 22.52-55.19 22.52-22.52 55.3-22.52 32.79 0 55.31 22.52 22.52 22.52 22.52 55.19 0 32.66-22.52 55.18-22.52 22.52-55.31 22.52-32.78 0-55.3-22.52-22.52-22.52-22.52-55.18Zm-73.78 402.57 40.23 93.96q9.44 22.63 33.19 27.11t40.9-12.68l123.85-123.84q16.15-16.16 22.87-38.17 6.72-22.01 2.24-44.64l-10.24-53.19q-57.39 47.91-120.4 85.96-63.01 38.06-132.64 65.49Zm-339.35-90.3q37.39-37.39 90.26-37.77 52.87-.38 90.26 37.01 37.39 37.39 37.39 90.26 0 52.87-37.39 90.26-50.39 50.39-119.72 60.11-69.32 9.72-139.15 18.24 8.52-69.83 18.62-139.16 10.1-69.32 59.73-118.95Z" />';
 const PASS_REC_TD_HEADER_ICON_MARKUP = '<path d="m438-454.63-56.33-55.57q-11.71-11.71-29.05-11.71t-29.82 12.48q-11.71 11.71-11.71 29.43t11.71 29.43l83.13 83.14q13.68 13.67 32.07 13.67t32.07-13.67L637.2-534.57q12.47-12.47 12.09-29.43-.38-16.96-12.09-29.43-12.48-12.48-29.82-12.86-17.34-.38-29.81 12.09L438-454.63ZM320.26-84.02l-57.28-97.05-108.81-23.76q-16.91-3.47-27.22-17.65-10.32-14.17-8.32-31.32l11-111.57-74.04-85.04Q44.15-463.09 44.15-480t11.44-29.59l74.04-85.04-11-111.57q-2-17.15 8.32-31.32 10.31-14.18 27.22-17.65l108.81-23.76 57.28-97.05q8.96-14.67 24.99-19.89 16.03-5.22 31.95 1.5L480-850.85l102.8-43.52q15.92-6.72 31.95-1.5t24.99 19.89l57.28 97.05 108.81 23.76q16.91 3.47 27.22 17.65 10.32 14.17 8.32 31.32l-11 111.57 74.04 85.04q11.44 12.68 11.44 29.59t-11.44 29.59l-74.04 85.04 11 111.57q2 17.15-8.32 31.32-10.31 14.18-27.22 17.65l-108.81 23.76-57.28 97.05q-8.96 14.67-24.99 19.89-16.03 5.22-31.95-1.5L480-109.15 377.2-65.63q-15.92 6.72-31.95 1.5t-24.99-19.89Zm58.94-81.57L480-209.35l102.8 43.76 55.29-95.04 108.56-25.52-9.52-111.05 72.8-82.8-72.8-84.8 9.52-111.05-108.56-23.52-57.29-95.04L480-750.65l-102.8-43.76-55.29 95.04-108.56 23.52 9.52 111.05-72.8 84.8 72.8 82.8-9.52 113.05 108.56 23.52 57.29 95.04ZM480-480Z" />';
 const PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP = '<path d="M451.53-59.93q-13.79-4.48-26.23-13.68L188.17-251.46q-17.15-12.67-26.72-31.97-9.58-19.3-9.58-40.87v-475.22q0-37.78 26.61-64.39t64.39-26.61h474.26q37.78 0 64.39 26.61t26.61 64.39v475.22q0 21.57-9.58 40.87-9.57 19.3-26.72 31.97L534.7-73.61q-12.44 9.2-26.23 13.68-13.8 4.47-28.47 4.47-14.67 0-28.47-4.47ZM480-146.22l237.13-177.85v-475.45H242.87v475.45L480-146.22Zm-42-332.32-54.8-54.81q-12.48-12.48-29.44-12.1-16.96.38-29.43 12.1-12.48 12.48-12.86 29.82-.38 17.33 12.1 29.81l82.6 82.37q13.63 13.44 31.81 13.44 18.17 0 31.85-13.44L637.2-558.48q12.47-12.48 12.09-29.43-.38-16.96-12.09-29.44-12.48-12.48-29.82-12.86-17.34-.38-29.81 12.1L438-478.54Zm42-320.98H242.87h474.26H480Z" />';
 
@@ -1072,7 +1075,7 @@ const COLUMN_ICONS = {
   CAR:       DATAHUB_LUCIDE_ICON_MARKUP.Bus,
   YPC:       DATAHUB_LUCIDE_ICON_MARKUP.Atom,
   TTT:       DATAHUB_LUCIDE_ICON_MARKUP.ClockFading,
-  "PRS%":    DATAHUB_LUCIDE_ICON_MARKUP.SquareActivity,
+  "PRS%":    PRS_PERCENT_HEADER_ICON_MARKUP,
   "DP%":     DATAHUB_LUCIDE_ICON_MARKUP.Split,
   SAC:       DATAHUB_LUCIDE_ICON_MARKUP.ArrowBigDownDash,
   INT:       DATAHUB_LUCIDE_ICON_MARKUP.Tablets,
@@ -1080,7 +1083,7 @@ const COLUMN_ICONS = {
   FPOE:      DATAHUB_LUCIDE_ICON_MARKUP.LayersPlus,
   REC:       REC_HEADER_ICON_MARKUP,
   recYDS:    DATAHUB_LUCIDE_ICON_MARKUP.Split,
-  TGT:       TGT_HEADER_ICON_MARKUP,
+  TGT:       DATAHUB_LUCIDE_ICON_MARKUP.Crosshair,
   ELU:       YCO_A_HEADER_ICON_MARKUP,
   "MTF/A":   DATAHUB_LUCIDE_ICON_MARKUP.Joystick,
   "YCO/A":   MTF_HEADER_ICON_MARKUP,
@@ -1088,7 +1091,7 @@ const COLUMN_ICONS = {
   YCO:       YCO_HEADER_ICON_MARKUP,
   "EXPLSV%": DATAHUB_LUCIDE_ICON_MARKUP.Bomb,
   ru1D:      PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
-  RYOE:      DATAHUB_LUCIDE_ICON_MARKUP.Rocket,
+  RYOE:      RYOE_HEADER_ICON_MARKUP,
   recTD:     PASS_REC_TD_HEADER_ICON_MARKUP,
   rec1D:     PASS_REC_FIRST_DOWN_HEADER_ICON_MARKUP,
   YAC:       YAC_HEADER_ICON_MARKUP,
@@ -1105,7 +1108,7 @@ const COLUMN_ICONS = {
   "TGT%":    DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
   tgtQBR:    DATAHUB_LUCIDE_ICON_MARKUP.Flame,
   "CTST%":   CTST_HEADER_ICON_MARKUP,
-  "DROP%":   DATAHUB_LUCIDE_ICON_MARKUP.BadgePercent,
+  "DROP%":   DROP_PERCENT_HEADER_ICON_MARKUP,
   "RZ Tgt":  RZ_TGT_HEADER_ICON_MARKUP,
   ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
 };
@@ -8020,6 +8023,18 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--cmp-material");
     }
+    if (column.name === "SAC") {
+      // SAC column header icon:
+      // keeps the stroke sack glyph but adds an individual desktop/mobile CSS
+      // hook so sack sizing can be changed without affecting other columns.
+      svg.classList.add("stats-table__head-icon--sac");
+    }
+    if (column.name === "CPOE") {
+      // CPOE column header icon:
+      // keeps the stroke expected-completion glyph and isolates its responsive
+      // sizing from PRS%, EPA/DB, and other passing-efficiency headers.
+      svg.classList.add("stats-table__head-icon--cpoe");
+    }
     if (column.name === "paYDS") {
       // paYDS/YDS column header icon:
       // the shared paYDS data key also renders as YDS in rookie Passing
@@ -8036,10 +8051,9 @@ function createHeaderCell(column, columnIconColor) {
     }
     if (column.name === "TGT") {
       // TGT column header icon:
-      // uses the requested filled Material target-direction glyph and its own
-      // hook so target sizing stays independent from RZ Tgt.
-      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
-      svg.classList.add("stats-table__head-icon--tgt-material");
+      // now uses the same stroke crosshair glyph as the Passing Production
+      // group icon, with a separate hook from RZ Tgt and other target columns.
+      svg.classList.add("stats-table__head-icon--tgt-production");
     }
     if (column.name === "MTF") {
       // MTF column header icon:
@@ -8083,6 +8097,12 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--yac-material");
     }
+    if (column.name === "AY") {
+      // AY column header icon:
+      // keeps the existing stroke air-yards glyph while giving AY its own
+      // desktop/mobile size hook separate from AY% and other receiving stats.
+      svg.classList.add("stats-table__head-icon--ay");
+    }
     if (column.name === "GRD") {
       // GRD column header icon:
       // uses the requested 24px filled prospect-grade glyph anywhere the
@@ -8095,6 +8115,27 @@ function createHeaderCell(column, columnIconColor) {
       // isolated sizing hook so it does not affect other percent headers.
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--ctst-material");
+    }
+    if (column.name === "DROP%") {
+      // DROP% column header icon:
+      // uses the requested filled Material-style dropped-pass glyph anywhere
+      // DROP% appears, with a dedicated class for responsive tuning.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--drop-percent-material");
+    }
+    if (column.name === "PRS%") {
+      // PRS% column header icon:
+      // uses the requested filled Material-style pressure-rate glyph and stays
+      // independent from CPOE, SAC, and other passing-efficiency columns.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--prs-percent-material");
+    }
+    if (column.name === "RYOE") {
+      // RYOE column header icon:
+      // swaps in the requested filled Material-style rushing-over-expected
+      // glyph without touching the other rushing production icons.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--ryoe-material");
     }
     if (column.name === "ruTD") {
       // ruTD column header icon:
@@ -8597,6 +8638,18 @@ function buildGroupHeaderRow(columns, groups) {
       svg.classList.add("stats-table__group-header-icon");
       if (group.iconClassName) {
         svg.classList.add(...String(group.iconClassName).split(/\s+/).filter(Boolean));
+      }
+      if (group.label === "INFO") {
+        // INFO group header icon:
+        // render-time class keeps every Info group adjustable in CSS without
+        // changing each group definition or affecting non-Info group icons.
+        svg.classList.add("stats-table__group-header-icon--info");
+      }
+      if (group.label === "RECEIVING PRODUCTION") {
+        // Receiving Production group header icon:
+        // gives this specific group label its own responsive CSS hook separate
+        // from Receiving Efficiency and generic receiving icons.
+        svg.classList.add("stats-table__group-header-icon--receiving-production");
       }
       const groupIconColor = group.groupIconColor || group.iconColor;
       if (groupIconColor) {

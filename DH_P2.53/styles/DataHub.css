@@ -3021,6 +3021,22 @@ body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-m
   overflow: visible;
 }
 
+/* DataHub INFO group header icon:
+   render-time class for every INFO group so desktop/mobile size changes can be
+   made independently from generic group icons. */
+body[data-page="datahub"] .stats-table__group-header-icon--info {
+  width: 19px;
+  height: 19px;
+}
+
+/* DataHub Receiving Production group header icon:
+   targets only the RECEIVING PRODUCTION group label, separate from Receiving
+   Efficiency and the shared composite receiving group icon. */
+body[data-page="datahub"] .stats-table__group-header-icon--receiving-production {
+  width: 19px;
+  height: 19px;
+}
+
 /* DataHub Receiving group icon layers:
    separate layer hooks let the existing glyph and added glyph be tuned without
    changing any other group icon or each other. */
@@ -3312,6 +3328,22 @@ body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-
   stroke-width: 0;
 }
 
+/* SAC column header icon:
+   existing stroke glyph with a dedicated responsive sizing hook so sack-icon
+   changes do not affect other stroke-based passing columns. */
+body[data-page="datahub"] [data-column-name="SAC"] .stats-table__head-icon--sac {
+  width: 15px;
+  height: 15px;
+}
+
+/* CPOE column header icon:
+   existing stroke glyph with an isolated hook apart from PRS%, EPA/DB, and
+   other passing-efficiency columns. */
+body[data-page="datahub"] [data-column-name="CPOE"] .stats-table__head-icon--cpoe {
+  width: 15px;
+  height: 15px;
+}
+
 /* paYDS/YDS column header icon:
    uses the requested filled passing-yards glyph, rotated horizontally, with a
    CSS-drawn dotted yard line that stays scoped to the shared paYDS data key. */
@@ -3357,14 +3389,14 @@ body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-
 }
 
 /* TGT column header icon:
-   filled Material target-direction glyph with its own hook separate from
-   RZ Tgt and other receiving-production icons. */
-body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+   uses the Passing Production crosshair stroke glyph with its own hook
+   separate from RZ Tgt and other receiving-production icons. */
+body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-production {
   width: 18px;
   height: 18px;
-  fill: var(--column-icon-color, rgb(98 135 183));
-  stroke: none;
-  stroke-width: 0;
+  fill: none;
+  stroke: var(--column-icon-color, rgb(98 135 183));
+  stroke-width: 2.4px;
 }
 
 /* YCO/A column header icon:
@@ -3411,10 +3443,51 @@ body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-
   stroke-width: 0;
 }
 
+/* AY column header icon:
+   existing stroke air-yards glyph with desktop/mobile hooks separate from AY%
+   and the rest of the receiving efficiency columns. */
+body[data-page="datahub"] [data-column-name="AY"] .stats-table__head-icon--ay {
+  width: 15px;
+  height: 15px;
+}
+
 /* CTST% column header icon:
    filled Material-style icon for contested-catch rate with its own desktop
    sizing hook so other percentage headers are untouched. */
 body[data-page="datahub"] [data-column-name="CTST%"] .stats-table__head-icon--ctst-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* DROP% column header icon:
+   requested filled Material-style drop-rate glyph with an isolated hook so it
+   does not inherit BadgePercent sizing from other percentage columns. */
+body[data-page="datahub"] [data-column-name="DROP%"] .stats-table__head-icon--drop-percent-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* PRS% column header icon:
+   requested filled Material-style pressure-rate glyph with a separate hook
+   from CPOE, SAC, and DP%. */
+body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs-percent-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
+/* RYOE column header icon:
+   requested filled Material-style rushing-over-expected glyph scoped only to
+   the RYOE column. */
+body[data-page="datahub"] [data-column-name="RYOE"] .stats-table__head-icon--ryoe-material {
   width: 18px;
   height: 18px;
   fill: var(--column-icon-color, rgb(98 135 183));
@@ -3639,6 +3712,22 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     stroke-width: 0;
   }
 
+  /* Desktop SAC header icon:
+     desktop sizing hook keeps SAC unchanged while making it independently
+     adjustable from mobile and other stroke icons. */
+  body[data-page="datahub"] [data-column-name="SAC"] .stats-table__head-icon--sac {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Desktop CPOE header icon:
+     desktop sizing hook keeps CPOE unchanged while separating it from mobile
+     and adjacent passing-efficiency icons. */
+  body[data-page="datahub"] [data-column-name="CPOE"] .stats-table__head-icon--cpoe {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Desktop paYDS/YDS header icon:
      desktop-only controls for the rotated passing-yards glyph and dotted yard
      line so mobile positioning can be tuned separately. */
@@ -3659,6 +3748,23 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     margin-bottom: 1px;
   }
 
+  /* Desktop Rookies paYDS/YDS header icon:
+     rookies-only override for the shorter YDS label so stats-tab paYDS keeps
+     its exact current icon and dotted-line positioning. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="paYDS"] .stats-table__head-button {
+    --payds-yard-line-width: 10px;
+    --payds-yard-line-left: calc(50% - 18px);
+    --payds-yard-line-top: 27px;
+    --payds-yard-line-weight: 2.5px;
+    --payds-yard-line-opacity: 0.82;
+  }
+
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
+    width: 19px;
+    height: 19px;
+    margin-bottom: 1px;
+  }
+
   body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
     width: 18px;
     height: 18px;
@@ -3667,12 +3773,12 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     stroke-width: 0;
   }
 
-  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-production {
     width: 18px;
     height: 18px;
-    fill: var(--column-icon-color, rgb(98 135 183));
-    stroke: none;
-    stroke-width: 0;
+    fill: none;
+    stroke: var(--column-icon-color, rgb(98 135 183));
+    stroke-width: 2.4px;
   }
 
   body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
@@ -3780,6 +3886,38 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
     stroke-width: 0;
   }
 
+  /* Desktop AY header icon:
+     desktop sizing hook keeps AY unchanged while mobile can be bumped without
+     affecting AY% or other receiving-production headers. */
+  body[data-page="datahub"] [data-column-name="AY"] .stats-table__head-icon--ay {
+    width: 15px;
+    height: 15px;
+  }
+
+  body[data-page="datahub"] [data-column-name="DROP%"] .stats-table__head-icon--drop-percent-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs-percent-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  body[data-page="datahub"] [data-column-name="RYOE"] .stats-table__head-icon--ryoe-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
   body[data-page="datahub"] [data-column-name="RZ Tgt"] .stats-table__head-icon--rz-tgt-material {
     width: 18px;
     height: 18px;
@@ -3799,6 +3937,22 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
     width: 23px;
     height: 23px;
+  }
+
+  /* Desktop INFO group header icon:
+     desktop-only hook keeps the current 19px size while mobile can be adjusted
+     independently. */
+  body[data-page="datahub"] .stats-table__group-header-icon--info {
+    width: 19px;
+    height: 19px;
+  }
+
+  /* Desktop Receiving Production group header icon:
+     desktop-only hook for the group label's stroke icon, separate from the
+     Receiving Efficiency composite group icon. */
+  body[data-page="datahub"] .stats-table__group-header-icon--receiving-production {
+    width: 19px;
+    height: 19px;
   }
 
   /* Desktop 40dsh header icon:
@@ -5090,6 +5244,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 16px;
   }
 
+  /* Mobile SAC header icon:
+     mobile-only +1px bump from the generic stroke icon size, isolated from
+     desktop and other passing-production columns. */
+  body[data-page="datahub"] [data-column-name="SAC"] .stats-table__head-icon--sac {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile CPOE header icon:
+     mobile-only +1px bump from the generic stroke icon size, separate from
+     desktop and neighboring passing-efficiency icons. */
+  body[data-page="datahub"] [data-column-name="CPOE"] .stats-table__head-icon--cpoe {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Mobile paYDS/YDS header icon:
      compact rotated passing-yards glyph plus mobile-only dotted yard-line
      positioning for the shared paYDS key used by rookie YDS labels. */
@@ -5107,6 +5277,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     margin-bottom: 3px;
   }
 
+  /* Mobile Rookies paYDS/YDS header icon:
+     rookies-only controls for the shorter YDS label so the stats-tab paYDS
+     mobile icon and dotted-line positioning remain unchanged. */
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="paYDS"] .stats-table__head-button {
+    --payds-yard-line-width: 10px;
+    --payds-yard-line-left: calc(51% - 14px);
+    --payds-yard-line-top: 21px;
+    --payds-yard-line-weight: 2px;
+    --payds-yard-line-opacity: 0.72;
+  }
+
+  body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
+    width: 18px;
+    height: 18px;
+    margin-bottom: 3px;
+  }
+
   /* Mobile REC header icon:
      compact completion glyph sizing for REC only, separate from CMP. */
   body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
@@ -5116,10 +5303,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Mobile TGT header icon:
-     compact Material target sizing scoped separately from RZ Tgt and desktop. */
-  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
+     compact Passing Production crosshair sizing scoped separately from RZ Tgt
+     and desktop. */
+  body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-production {
     width: 16px;
     height: 16px;
+    fill: none;
+    stroke: var(--column-icon-color, rgb(98 135 183));
+    stroke-width: 2.4px;
   }
 
   /* Mobile YCO/A header icon:
@@ -5157,6 +5348,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     rotate: 90deg;
   }
 
+  /* Mobile AY header icon:
+     mobile-only +1px bump from the generic stroke icon size, isolated from
+     desktop and AY% styling. */
+  body[data-page="datahub"] [data-column-name="AY"] .stats-table__head-icon--ay {
+    width: 15px;
+    height: 15px;
+  }
+
   /* Mobile CTST% header icon:
      compact sizing hook for the filled contested-catch glyph without changing
      the shared percentage-icon defaults. */
@@ -5164,6 +5363,27 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     width: 15px;
     height: 15px;
     transform: translateY(-1.5px);
+  }
+
+  /* Mobile DROP% header icon:
+     compact filled Material drop-rate glyph scoped only to DROP%. */
+  body[data-page="datahub"] [data-column-name="DROP%"] .stats-table__head-icon--drop-percent-material {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Mobile PRS% header icon:
+     compact filled Material pressure-rate glyph scoped only to PRS%. */
+  body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs-percent-material {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Mobile RYOE header icon:
+     compact filled Material rushing-over-expected glyph scoped only to RYOE. */
+  body[data-page="datahub"] [data-column-name="RYOE"] .stats-table__head-icon--ryoe-material {
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile ruTD header icon:
@@ -5341,6 +5561,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
     width: 19px;
     height: 19px;
+  }
+
+  /* Mobile INFO group header icon:
+     mobile-only +1px bump from the generic group icon size while desktop INFO
+     remains on its separate desktop hook. */
+  body[data-page="datahub"] .stats-table__group-header-icon--info {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Mobile Receiving Production group header icon:
+     mobile-only +1px bump for RECEIVING PRODUCTION, separate from the
+     Receiving Efficiency composite group icon. */
+  body[data-page="datahub"] .stats-table__group-header-icon--receiving-production {
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile Rookies Prospect Ranks group header icon:
