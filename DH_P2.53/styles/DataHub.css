@@ -4873,7 +4873,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-height: 34px;
     padding: 0 0px 0 0px;
     /* smaller gap on mobile to keep tight columns */
-    gap: 3px;
+    gap: 2px;
   }
 
   /* Mobile sorted-column header:
@@ -4911,6 +4911,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="OVR_PK"] .stats-table__head-icon--rookie-pk-number {
     width: 17px;
     height: 16px;
+    margin-right: -2px;
   }
 
   /* Mobile Rookies Draft TM header icon:
@@ -4924,11 +4925,6 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   /* Mobile Rookies Draft AGE header icon:
      mobile-only size hook for AGE only when it belongs to the Draft group. */
   body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="AGE"] .stats-table__head-icon--rookie-draft-age {
-    width: 13px;
-    height: 13px;
-    fill: var(--column-icon-color, #be75ff);
-    stroke: none;
-    stroke-width: 0;
   }
 
   /* Mobile Rookies HT header icon:
@@ -4970,6 +4966,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] [data-column-name="G"] .stats-table__head-icon--games-material {
     width: 15px;
     height: 15px;
+    transform: translateY(-1px);
   }
 
   /* Mobile Gs header icon:
@@ -4978,22 +4975,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] [data-column-name="Gs"] .stats-table__head-icon--games-started-material {
     width: 15px;
     height: 15px;
+    transform: translateY(-1px);
   }
 
   /* Mobile OPP header icon:
      separate opportunity glyph hook so mobile edits do not affect desktop or
      IMP/OPP sizing. */
   body[data-page="datahub"] [data-column-name="OPP"] .stats-table__head-icon--opp-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile tTD header icon:
      separate total-touchdown glyph hook so mobile edits do not affect desktop
      or individual paTD/recTD/ruTD headers. */
   body[data-page="datahub"] [data-column-name="tTD"] .stats-table__head-icon--ttd-material {
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
   }
 
   /* Mobile PLAYER column header icon:
@@ -5020,13 +5018,14 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"] [data-column-name="FPTS"] .stats-table__head-icon--fpts-material {
-    width: 15px;
+    width: 16px;
     height: 16px;
   }
 
   body[data-page="datahub"] [data-column-name="AGE"] .stats-table__head-icon--age-material {
     width: 15px;
     height: 15px;
+    transform: translateY(-1px);
   }
 
   body[data-page="datahub"] [data-column-name="40dsh"] .stats-table__head-icon--40dsh-material {
@@ -5038,8 +5037,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact sizing hook for the filled prospect-grade glyph without changing
      the separate Prospect Ranks group header icon. */
   body[data-page="datahub"] [data-column-name="GRD"] .stats-table__head-icon--grd-material {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
 
   /* Mobile TM header icon:
@@ -5085,8 +5084,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   /* Mobile CMP header icon:
      compact completion glyph sizing for CMP only, separate from REC and CMP%. */
   body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile paYDS/YDS header icon:
@@ -5125,8 +5124,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      individual sizing hook for the current MTF filled glyph so it can be tuned
      without changing ELU, MTF, YCO, or other rushing-efficiency headers. */
   body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
+    transform: translateX(2px);
   }
 
   /* Mobile YCO header icon:
@@ -5141,17 +5141,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact sizing hook for the filled yards-per-reception glyph without
      changing YAC, CTST%, or other receiving headers. */
   body[data-page="datahub"] [data-column-name="YPR"] .stats-table__head-icon--ypr-material {
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
   }
 
   /* Mobile YAC header icon:
      compact sizing hook for the filled yards-after-catch glyph wherever the
      YAC column appears in DataHub mobile tables. */
   body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
-    width: 17px;
-    height: 18px;
-    margin-right: 0px;
+    width: 19px;
+    height: 19px;
+    transform: translateY(-1px);
     rotate: 90deg;
   }
 
@@ -5161,30 +5161,31 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] [data-column-name="CTST%"] .stats-table__head-icon--ctst-material {
     width: 15px;
     height: 15px;
+    transform: translateY(-1.5px);
   }
 
   /* Mobile ruTD header icon:
      compact sizing hook for the filled rushing-touchdown glyph without
      changing other touchdown header icons. */
   body[data-page="datahub"] [data-column-name="ruTD"] .stats-table__head-icon--rutd-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile passing TD header icon:
      compact paTD sizing for passing-production TD labels without affecting
      ruTD or recTD. */
   body[data-page="datahub"] [data-column-name="paTD"] .stats-table__head-icon--patd-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile receiving TD header icon:
      compact recTD sizing for receiving-production TD labels without affecting
      ruTD or paTD. */
   body[data-page="datahub"] [data-column-name="recTD"] .stats-table__head-icon--rectd-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile passing first-down header icon:
@@ -5320,16 +5321,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      headers without changing other DataHub group icon sizing. */
   body[data-page="datahub"] .stats-table__group-header-icon--general-material,
   body[data-page="datahub"] .stats-table__group-header-icon--overview-stats-material {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   /* Mobile DataHub Fantasy group header icon:
      keeps the filled sparkle cluster aligned with compact mobile group headers
      without changing other DataHub group icon sizing. */
   body[data-page="datahub"] .stats-table__group-header-icon--fantasy-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile Receiving / Receiving Efficiency group header icon:
