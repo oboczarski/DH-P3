@@ -3026,12 +3026,12 @@ body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-m
    changing any other group icon or each other. */
 body[data-page="datahub"] .stats-table__group-header-icon-layer--receiving-existing {
   fill: var(--group-icon-color, rgb(225 129 117 / 74%));
-  opacity: 0.95;
+  opacity: 0.86;
 }
 
 body[data-page="datahub"] .stats-table__group-header-icon-layer--receiving-added {
   fill: var(--group-icon-color, rgb(225 129 117 / 74%));
-  opacity: 0.72;
+  opacity: 0.86;
 }
 
 /* ── Column header row ─────────────────────────────────────────────────── */
