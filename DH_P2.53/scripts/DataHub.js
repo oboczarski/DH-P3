@@ -2386,8 +2386,8 @@ const MOBILE_COLUMN_WIDTHS = {
   "40dsh": 48,
   Gs: 42,
   GRD: 46,
-  TIER: 43,
-  "OVR-RK": 58,
+  TIER: 42,
+  "OVR-RK": 55,
   // Mobile Rookies Draft column widths:
   // reduce the draft-pick headers after the visible labels changed to RD/PK
   // and PK#, keeping small-screen Draft groups from taking excess width.
