@@ -3691,8 +3691,8 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1d-material {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
@@ -3747,8 +3747,8 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
-    width: 18px;
-    height: 18px;
+    width: 21px;
+    height: 21px;
     fill: var(--column-icon-color, rgb(98 135 183));
     stroke: none;
     stroke-width: 0;
@@ -3795,8 +3795,8 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] .stats-table__group-header-icon--receiving-composite-material {
-    width: 22px;
-    height: 22px;
+    width: 23px;
+    height: 23px;
   }
 
   /* Desktop 40dsh header icon:
@@ -5078,8 +5078,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact hook for the current YCO/A filled glyph without changing YCO/A,
      MTF, or other rushing-efficiency mobile icons. */
   body[data-page="datahub"] [data-column-name="ELU"] .stats-table__head-icon--elu-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile CMP header icon:
@@ -5111,29 +5111,30 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] [data-column-name="REC"] .stats-table__head-icon--rec-material {
     width: 15px;
     height: 15px;
+    margin-bottom: 1px;
   }
 
   /* Mobile TGT header icon:
      compact Material target sizing scoped separately from RZ Tgt and desktop. */
   body[data-page="datahub"] [data-column-name="TGT"] .stats-table__head-icon--tgt-material {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile YCO/A header icon:
      individual sizing hook for the current MTF filled glyph so it can be tuned
      without changing ELU, MTF, YCO, or other rushing-efficiency headers. */
   body[data-page="datahub"] [data-column-name="YCO/A"] .stats-table__head-icon--yco-a-material {
-    width: 15px;
-    height: 15px;
+    width: 19px;
+    height: 19px;
   }
 
   /* Mobile YCO header icon:
      individual sizing hook for the filled after-contact glyph without changing
      YCO/A or other rushing-production headers. */
   body[data-page="datahub"] [data-column-name="YCO"] .stats-table__head-icon--yco-material {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   /* Mobile YPR header icon:
@@ -5148,8 +5149,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact sizing hook for the filled yards-after-catch glyph wherever the
      YAC column appears in DataHub mobile tables. */
   body[data-page="datahub"] [data-column-name="YAC"] .stats-table__head-icon--yac-material {
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 18px;
+    margin-right: 0px;
+    rotate: 90deg;
   }
 
   /* Mobile CTST% header icon:
@@ -5204,8 +5207,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      compact ru1D hook for the shared first-down badge while keeping pa1D and
      rec1D independently adjustable. */
   body[data-page="datahub"] [data-column-name="ru1D"] .stats-table__head-icon--ru1d-material {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
   }
 
   /* Mobile RZ Tgt header icon:
