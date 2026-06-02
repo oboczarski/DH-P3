@@ -3312,6 +3312,39 @@ body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-
   stroke-width: 0;
 }
 
+/* paYDS/YDS column header icon:
+   uses the requested filled passing-yards glyph, rotated horizontally, with a
+   CSS-drawn dotted yard line that stays scoped to the shared paYDS data key. */
+body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button {
+  --payds-yard-line-width: 14px;
+  --payds-yard-line-left: calc(50% - 23px);
+  --payds-yard-line-top: 30px;
+  --payds-yard-line-weight: 1.5px;
+}
+
+body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button::after {
+  content: "";
+  position: absolute;
+  left: var(--payds-yard-line-left);
+  top: var(--payds-yard-line-top);
+  width: var(--payds-yard-line-width);
+  border-bottom: var(--payds-yard-line-weight) dotted var(--column-icon-color, rgb(98 135 183));
+  opacity: var(--payds-yard-line-opacity, 0.82);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+  transform: rotate(90deg);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 /* REC column header icon:
    filled completion glyph for receptions with an individual desktop hook
    separate from CMP and the receiving group icons. */
@@ -3598,6 +3631,25 @@ body[data-page="datahub"] [data-column-name="CSTY%"] .stats-table__head-icon--cs
   }
 
   body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
+    width: 18px;
+    height: 18px;
+    fill: var(--column-icon-color, rgb(98 135 183));
+    stroke: none;
+    stroke-width: 0;
+  }
+
+  /* Desktop paYDS/YDS header icon:
+     desktop-only controls for the rotated passing-yards glyph and dotted yard
+     line so mobile positioning can be tuned separately. */
+  body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button {
+    --payds-yard-line-width: 14px;
+    --payds-yard-line-left: calc(50% - 23px);
+    --payds-yard-line-top: 30px;
+    --payds-yard-line-weight: 1.5px;
+    --payds-yard-line-opacity: 0.82;
+  }
+
+  body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
     width: 18px;
     height: 18px;
     fill: var(--column-icon-color, rgb(98 135 183));
@@ -5032,6 +5084,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   /* Mobile CMP header icon:
      compact completion glyph sizing for CMP only, separate from REC and CMP%. */
   body[data-page="datahub"] [data-column-name="CMP"] .stats-table__head-icon--cmp-material {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Mobile paYDS/YDS header icon:
+     compact rotated passing-yards glyph plus mobile-only dotted yard-line
+     positioning for the shared paYDS key used by rookie YDS labels. */
+  body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-button {
+    --payds-yard-line-width: 12px;
+    --payds-yard-line-left: calc(50% - 20px);
+    --payds-yard-line-top: 25px;
+    --payds-yard-line-weight: 1.25px;
+    --payds-yard-line-opacity: 0.82;
+  }
+
+  body[data-page="datahub"] [data-column-name="paYDS"] .stats-table__head-icon--payds-material {
     width: 15px;
     height: 15px;
   }
