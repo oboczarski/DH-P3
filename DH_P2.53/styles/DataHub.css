@@ -9510,13 +9510,13 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container {
 body[data-page="datahub"] .gamelogs-modal-tab {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
-  padding: 0.5rem 2.42rem;
+  gap: 0.5rem;
+  padding: 0.5rem 2.4rem;
   border: none;
   border-radius: 12px;
   background: transparent;
   color: rgba(200, 210, 255, 0.58);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.04em;
   cursor: pointer;
