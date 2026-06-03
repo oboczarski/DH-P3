@@ -1151,7 +1151,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   }
 
   .syop-hero-meta-item {
-    padding: 0.25rem 0.52rem;
+    padding: 0.25rem 0rem;
     font-size: 0.7rem;
     min-height: 24px;
   }
@@ -1707,4 +1707,18 @@ body[data-page="research"] #secondary-header-row .view-switcher {
 body[data-page="research"] #secondary-header-row {
   justify-content: center;
   gap: 0.75rem;
+}
+.meta-tits {
+    display: inline-block;
+    color: #9096c0;
+    transform: rotate(90deg) !important;
+    font-size: 12px;
+}
+.meta-slut {
+  color: #fff;
+  color: #95a0af;
+  font-weight: 600;
+  font-size: 0.76rem;
+  border-radius: 2px;
+  border-bottom: 2px dotted #fff1;
 }
