@@ -1717,8 +1717,18 @@ body[data-page="research"] #secondary-header-row {
 .meta-slut {
   color: #fff;
   color: #95a0af;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.76rem;
   border-radius: 2px;
-  border-bottom: 2px dotted #fff1;
+  border-bottom: 1px dotted #fff1;
+  text-shadow: 1px 1px 0px #9999;
+}
+.meta-almost {
+  color: #ecf4ffa8;
+  font-size: 14px;
+  display: inline-block;
+  padding: 0px 4px 0 3px;
+  font-weight: 400;
+  transform: translateY(1px);
+  transform: scale3d(1.4, 1.4, 1.4);
 }
