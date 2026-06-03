@@ -10461,12 +10461,14 @@ body[data-page="datahub"] .modal-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.24rem;
+  gap: 0.2rem;
   margin-top: 0.4rem;
   margin-bottom: 0.15rem;
   font-size: 0.75rem;
+  border: 0px solid #aaf2;
   line-height: 0.75rem;
   color: var(--color-text-tertiary);
+  border-radius: 10px;
 }
 
 body[data-page="datahub"] .modal-info-btn {
@@ -10479,7 +10481,7 @@ body[data-page="datahub"] .modal-info-btn {
   gap: 0.2rem;
   text-wrap-mode: nowrap;
   letter-spacing: -0.03em;
-  min-width: 53px;
+  min-width: 55px;
 }
 
 body[data-page="datahub"] .modal-info-btn.active {
@@ -11107,7 +11109,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
-    height: 582px !important;
+    height: 579px !important;
   }
 
   body[data-page="datahub"] .modal-body {
@@ -11286,7 +11288,7 @@ body[data-page="datahub"] .weekly-chart-x-axis > span.axis-week-missed {
 @media (max-width: 680px) {
   body[data-page="datahub"] #game-logs-modal .modal-content {
     width: 686px;
-    max-width: 90%;
+    max-width: 93%;
     padding: 0.65rem 0.85rem 0.25rem 0.85rem;
   }
 
