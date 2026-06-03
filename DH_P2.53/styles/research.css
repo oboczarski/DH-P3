@@ -5,7 +5,7 @@
    page keeps the same navy base color before the fixed starfield fully paints. */
 body[data-page="research"] {
   background-color: #07111f;
-  --research-meta-pos-qb: #fcd4dfd4;
+  --research-meta-pos-qb: #f0bddfd4;
   --research-meta-pos-rb: #91e5d8;
   --research-meta-pos-wr: #a6d5ff;
   --research-meta-pos-te: #8c83eb;
@@ -1710,10 +1710,10 @@ body[data-page="research"] #secondary-header-row {
 }
 .meta-tits {
     display: inline-block;
-    color: #868aa6;
+    color: #868aa6e0;
     transform: rotate(90deg) translateY(-1px) translateX(17px) scale(1.5) scaleX(1.3);
     font-size: 14px;
-    text-shadow: 0 0 3px #868aa6;
+    text-shadow: 0 0 3px #969ab1;
 }
 .meta-slut {
   color: #fff;
