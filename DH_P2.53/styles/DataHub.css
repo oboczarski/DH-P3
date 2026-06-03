@@ -8710,7 +8710,7 @@ body[data-page="datahub"] .ownership-modal-section-title {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  margin-bottom: 0.38rem;
+  margin-bottom: 0.58rem;
   text-align: center;
   font-size: 0.95rem;
   font-weight: 400;
@@ -8786,8 +8786,8 @@ body[data-page="datahub"] .owner-you {
 }
 
 body[data-page="datahub"] .owner-you .ownership-league-owner {
-  color: #61d6ff;
-  text-shadow: 0 0 8px rgba(54, 247, 218, 0.36);
+  color: #acf1ff;
+  text-shadow: 0 0 8px rgb(68 218 254 / 55%);
   font-weight: 400;
   font-size: 0.8rem;
 }
@@ -12891,7 +12891,7 @@ body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
   body[data-page="datahub"] #game-logs-modal #gamelogs-ownership-pane {
     width: min(96vw, 500px) !important;
     max-width: 500px;
-    max-height: calc(74dvh - 1.4rem);
+    max-height: calc(81dvh - 1.4rem);
     padding: 0.65rem 0.62rem 0.68rem !important;
   }
 
@@ -12917,7 +12917,7 @@ body[data-page="datahub"] #game-logs-modal #glOwnershipBody {
     width: 100% !important;
     max-width: 100%;
     min-width: 0 !important;
-    margin: 0.2rem auto 0.5rem !important;
+    margin: 0.6rem auto 0.5rem !important;
   }
 
   body[data-page="datahub"] #game-logs-modal #glOwnershipSummaryRow {
