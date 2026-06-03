@@ -14588,12 +14588,16 @@ function findDataHubOwnershipLeagueOwnerRows(playerId) {
         missing: true,
       };
     }
-    const owner = usersById.get(roster.owner_id) || null;
+    const isUserOwner = roster.owner_id === state.userId || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId));
+    const realOwnerId = isUserOwner ? state.userId : roster.owner_id;
+    const owner = usersById.get(realOwnerId) || null;
+    const ownerDisplay = owner?.display_name || owner?.username || (isUserOwner ? (state.username || "You") : `Roster ${roster.roster_id}`);
+
     return {
       leagueName: league?.name || "League",
       leagueAbbr: getDataHubLeagueAbbr(league?.name || "League"),
-      ownerDisplay: owner?.display_name || owner?.username || `Roster ${roster.roster_id}`,
-      isUser: roster.owner_id === state.userId || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId)),
+      ownerDisplay,
+      isUser: isUserOwner,
       missing: false,
     };
   });

@@ -10201,13 +10201,14 @@ function findOwnershipLeagueOwnerRows(playerId) {
         }
 
         const roster = rostersWithPlayer[0];
-        const owner = usersById.get(roster.owner_id) || null;
-        const ownerDisplay = owner?.display_name || owner?.username || `Roster ${roster.roster_id}`;
-        const teamName = owner?.metadata?.team_name || null;
         const isUserOwner = Boolean(
             roster.owner_id === state.userId
             || (Array.isArray(roster.co_owners) && roster.co_owners.includes(state.userId))
         );
+        const realOwnerId = isUserOwner ? state.userId : roster.owner_id;
+        const owner = usersById.get(realOwnerId) || null;
+        const ownerDisplay = owner?.display_name || owner?.username || (isUserOwner ? (state.username || 'You') : `Roster ${roster.roster_id}`);
+        const teamName = owner?.metadata?.team_name || null;
 
         return {
             leagueId: league.league_id,
