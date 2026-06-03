@@ -11107,7 +11107,7 @@ body[data-page="datahub"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="datahub"] #game-logs-modal:not(.hidden) .modal-content {
-    height: 579px !important;
+    height: 582px !important;
   }
 
   body[data-page="datahub"] .modal-body {
