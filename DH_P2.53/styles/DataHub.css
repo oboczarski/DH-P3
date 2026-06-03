@@ -8729,7 +8729,7 @@ body[data-page="datahub"] .ownership-modal-section-subtitle {
 body[data-page="datahub"] .ownership-modal-league-list {
   display: flex;
   flex-direction: column;
-  gap: 0.48rem;
+  gap: 0.4rem;
 }
 
 body[data-page="datahub"] .ownership-league-row {
@@ -8737,7 +8737,7 @@ body[data-page="datahub"] .ownership-league-row {
   align-items: center;
   justify-content: space-between;
   gap: 0.70rem;
-  padding: 0.62rem 0.75rem;
+  padding: 0.75rem 0.75rem;
   border-radius: 13px;
   border: 1px solid transparent;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 150ms ease, opacity 180ms ease;
