@@ -431,6 +431,9 @@ const DATAHUB_ROOKIES_REFERENCE_CENTER_Y = 600;
 // Rookies chart orbit geometry:
 // keeps the tier ring centerlines evenly spaced while mirroring the side-pair
 // angles so the left/right green and red nodes read as lightly paired clusters.
+// The angle arrays are fixed physical orb slots. startSlotIndex only chooses
+// which fixed slot receives the first ranked player in that tier, preserving
+// clockwise rank order without moving the orbs themselves.
 const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   centerNodeRadius: 102,
   centerScale: 0.94,
@@ -441,12 +444,13 @@ const DATAHUB_ROOKIES_GEOMETRY = Object.freeze({
   coreRingInnerRadius: 128,
   bands: {
     2: { radius: 218, width: 70, nodeRadius: 57, angles: [315, 45, 135, 225] },
-    3: { radius: 337, width: 74, nodeRadius: 48, angles: [74, 106, 180, 254, 286, 0] },
+    3: { radius: 337, width: 74, nodeRadius: 48, angles: [74, 106, 180, 254, 286, 0], startSlotIndex: 3 },
     4: {
       radius: 456,
       width: 76,
       nodeRadius: 42,
       angles: [330, 30, 62, 118, 150, 210, 242, 298],
+      startSlotIndex: 5,
     },
   },
   radialOffsets: {},
@@ -473,7 +477,8 @@ const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
     }
 
     const band = DATAHUB_ROOKIES_GEOMETRY.bands[player.tier];
-    const angle = band.angles[tierIndices[player.tier]++];
+    const slotIndex = (tierIndices[player.tier]++ + (band.startSlotIndex || 0)) % band.angles.length;
+    const angle = band.angles[slotIndex];
     const radius = band.radius + (DATAHUB_ROOKIES_GEOMETRY.radialOffsets[player.name] || 0);
     const point = dataHubPolarToCartesian(
       DATAHUB_ROOKIES_REFERENCE_CENTER_X,
