@@ -23,6 +23,12 @@
 # =============================================================================
 
 [[redirects]]
+  from = "https://dynastyhub.netlify.app/service-worker.js"
+  to = "/legacy-service-worker.js"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "https://dynastyhub.netlify.app/*"
   to = "https://dynastyhub.pro/:splat"
   status = 301

@@ -26,7 +26,7 @@
 // ============================================================================
 // SYOP Bar Graph Revamp: bump the cache so browsers pick up the brand-new
 // Liquid Glass cylinder tracks, neon position gradients, and glowing tooltips.
-const CACHE_NAME = 'DH2.971';
+const CACHE_NAME = 'DH2.972';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
