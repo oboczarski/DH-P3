@@ -1020,14 +1020,14 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
   --border: rgba(255, 255, 255, 0.01);
   --border-soft: rgba(146, 180, 255, 0.08);
   --text: rgba(255, 255, 255, 0.97);
-  --tier-1: #cbd7ff;
+  --tier-1: #8fd8ff;
   --tier-2: #613dff;
   --tier-3: #00e2b8;
-  --tier-4: #ff4f5f;
-  --tier-1-rgb: 203, 215, 255;
+  --tier-4: #ff7a59;
+  --tier-1-rgb: 143, 216, 255;
   --tier-2-rgb: 97, 61, 255;
   --tier-3-rgb: 0, 226, 184;
-  --tier-4-rgb: 255, 79, 95;
+  --tier-4-rgb: 255, 122, 89;
   --core-x: 54%;
   --core-y: 62%;
   --chart-font-family: "Product Sans", "Google Sans", sans-serif;
@@ -1066,6 +1066,30 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
   --chart-grade-font-bump-tier-2: 5;
   --chart-grade-font-bump-tier-3: 2.5;
   --chart-grade-font-bump-tier-4: 0;
+
+  /* Rookies chart last-name typography:
+     these tier-specific controls feed the rank/name/logo chips. Keep the older
+     center/outer values below as fallbacks for future compatibility. */
+  --chart-name-font-weight-tier-1: 400;
+  --chart-name-font-factor-tier-1: 0.34;
+  --chart-name-font-min-tier-1: 12;
+  --chart-name-font-max-tier-1: 12;
+  --chart-name-font-floor-tier-1: 0;
+  --chart-name-font-weight-tier-2: 400;
+  --chart-name-font-factor-tier-2: 0.51;
+  --chart-name-font-min-tier-2: 5.9;
+  --chart-name-font-max-tier-2: 8.1;
+  --chart-name-font-floor-tier-2: 5.35;
+  --chart-name-font-weight-tier-3: 400;
+  --chart-name-font-factor-tier-3: 0.51;
+  --chart-name-font-min-tier-3: 5.9;
+  --chart-name-font-max-tier-3: 8.1;
+  --chart-name-font-floor-tier-3: 5.35;
+  --chart-name-font-weight-tier-4: 400;
+  --chart-name-font-factor-tier-4: 0.51;
+  --chart-name-font-min-tier-4: 5.9;
+  --chart-name-font-max-tier-4: 8.1;
+  --chart-name-font-floor-tier-4: 5.35;
   --chart-name-font-factor-center: 0.34;
   --chart-name-font-min-center: 12;
   --chart-name-font-max-center: 12;
@@ -1091,6 +1115,30 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
   --chart-name-logo-size-factor-tier-4: 0.56;
   --chart-name-logo-size-min-tier-4: 8.6;
   --chart-name-logo-size-max-tier-4: 11.2;
+
+  /* Rookies chart rank typography:
+     controls #rank size and weight separately for each tier inside the name
+     chip, independent from the last-name text variables above. */
+  --chart-name-rank-gap: 2.2;
+  --chart-name-rank-color: rgba(226, 244, 255, 0.88);
+  --chart-name-rank-shadow-color: rgba(1, 7, 18, 0.72);
+  --chart-name-rank-shadow-blur: 1.6;
+  --chart-name-rank-font-weight-tier-1: 700;
+  --chart-name-rank-font-factor-tier-1: 0.92;
+  --chart-name-rank-font-min-tier-1: 10;
+  --chart-name-rank-font-max-tier-1: 12;
+  --chart-name-rank-font-weight-tier-2: 700;
+  --chart-name-rank-font-factor-tier-2: 0.86;
+  --chart-name-rank-font-min-tier-2: 5.35;
+  --chart-name-rank-font-max-tier-2: 8.2;
+  --chart-name-rank-font-weight-tier-3: 700;
+  --chart-name-rank-font-factor-tier-3: 0.86;
+  --chart-name-rank-font-min-tier-3: 5.35;
+  --chart-name-rank-font-max-tier-3: 8.2;
+  --chart-name-rank-font-weight-tier-4: 700;
+  --chart-name-rank-font-factor-tier-4: 0.86;
+  --chart-name-rank-font-min-tier-4: 5.35;
+  --chart-name-rank-font-max-tier-4: 8.2;
   --chart-name-logo-opacity: 0.98;
   --chart-name-logo-shadow-color: rgba(2, 4, 12, 0.78);
   --chart-name-logo-shadow-blur-center: 5.2;
@@ -1102,7 +1150,7 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] {
   border: 1px solid var(--border);
   background:
     radial-gradient(circle at 22% 18%, rgba(0, 226, 184, 0.08), transparent 30%),
-    radial-gradient(circle at 88% 6%, rgba(255, 79, 95, 0.08), transparent 28%),
+    radial-gradient(circle at 88% 6%, rgba(255, 122, 89, 0.08), transparent 28%),
     transparent;
   box-shadow:
     0 24px 72px rgba(0, 0, 0, 0.0042),
@@ -1196,8 +1244,8 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --tier-2-band-fill: rgba(97, 61, 255, 0.018);
   --tier-3-band-stroke: rgba(0, 226, 184, 0.18);
   --tier-3-band-fill: rgba(0, 226, 184, 0.012);
-  --tier-4-band-stroke: rgba(255, 79, 95, 0.18);
-  --tier-4-band-fill: rgba(255, 79, 95, 0.014);
+  --tier-4-band-stroke: rgba(255, 122, 89, 0.2);
+  --tier-4-band-fill: rgba(255, 122, 89, 0.014);
 
   /* Rookies chart band dashes:
      controls only the ECharts-generated tier rings and keeps the decorative
@@ -1244,7 +1292,7 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --connector-tier-3-color: #00e2b8;
   --connector-tier-3-width-min: 1;
   --connector-tier-3-width-scale: 4.6;
-  --connector-tier-4-color: #ff4f5f;
+  --connector-tier-4-color: #ff7a59;
   --connector-tier-4-width-min: 1;
   --connector-tier-4-width-scale: 3.8;
   --chart-node-halo-opacity-center: 0.11;
@@ -1265,7 +1313,7 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --chart-node-shell-fill-center: rgba(255, 255, 255, 0.08);
   --chart-node-fill-tier-2: rgba(97, 61, 255, 0.3);
   --chart-node-fill-tier-3: rgba(0, 226, 184, 0.22);
-  --chart-node-fill-tier-4: rgba(255, 79, 95, 0.22);
+  --chart-node-fill-tier-4: rgba(255, 122, 89, 0.24);
   --chart-node-sphere-shadow-fill: rgba(2, 5, 16, 0.66);
   --chart-node-sphere-shadow-offset-center: 0.08;
   --chart-node-sphere-shadow-offset-outer: 0.12;
@@ -1308,12 +1356,12 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   --chart-node-glint-size-outer: 0.12;
   --chart-node-glint-alpha-center: 0.38;
   --chart-node-glint-alpha-outer: 0.62;
-  --chart-node-inner-fill-center: rgba(18, 24, 44, 0.46);
-  --chart-node-inner-stroke-center: rgba(221, 232, 255, 0.24);
+  --chart-node-inner-fill-center: rgba(12, 30, 58, 0.52);
+  --chart-node-inner-stroke-center: rgba(196, 235, 255, 0.32);
   --chart-node-inner-stroke-width-center: 1;
-  --chart-center-gradient-stop-1: rgba(249, 252, 255, 0.98);
-  --chart-center-gradient-stop-2: rgba(195, 207, 245, 0.96);
-  --chart-center-gradient-stop-4: rgba(35, 41, 68, 1);
+  --chart-center-gradient-stop-1: rgba(244, 253, 255, 0.98);
+  --chart-center-gradient-stop-2: rgba(147, 210, 255, 0.96);
+  --chart-center-gradient-stop-4: rgba(13, 27, 72, 1);
   --chart-name-chip-padding-center: 1 5 3 5;
   --chart-name-chip-padding-outer: 1 3 2 3;
   --chart-name-chip-bg-center: rgba(8, 13, 28, 0.56);
@@ -1360,12 +1408,12 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
   background:
     radial-gradient(
       circle at var(--core-x) var(--core-y),
-      rgba(203, 215, 255, 0.12) 0,
+      rgba(143, 216, 255, 0.12) 0,
       rgba(97, 61, 255, 0.07) 16%,
       transparent 44%
     ),
     radial-gradient(circle at 22% 26%, rgba(0, 226, 184, 0.07), transparent 22%),
-    radial-gradient(circle at 82% 78%, rgba(255, 79, 95, 0.055), transparent 26%),
+    radial-gradient(circle at 82% 78%, rgba(255, 122, 89, 0.058), transparent 26%),
     linear-gradient(180deg, rgba(5, 9, 24, 0.16), rgba(7, 10, 28, 0.2));
   box-shadow:
     0 16px 18px rgba(0, 0, 0, 0.34),
@@ -1421,7 +1469,7 @@ body[data-page="datahub"] .datahub-top60-chart[data-chart-view="rookies"] .datah
     radial-gradient(
       circle at var(--core-x) var(--core-y),
       rgba(255, 255, 255, 0.08) 0,
-      rgba(203, 215, 255, 0.12) 12%,
+      rgba(143, 216, 255, 0.12) 12%,
       rgba(0, 226, 184, 0.04) 26%,
       transparent 44%
     ),

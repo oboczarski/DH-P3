@@ -458,7 +458,7 @@ const DATAHUB_ROOKIES_REFERENCE_PLAYERS = (() => {
   return DATAHUB_ROOKIES_CHART_PLAYERS.map((player) => {
     const basePlayer = {
       ...player,
-      shortName: formatDataHubRookiesShortName(player.name, player.tier === 1),
+      shortName: formatDataHubRookiesShortName(player.name, false),
       teamLogoSrc: getDataHubRookiesTeamLogoSrc(player.team),
     };
 
@@ -5083,6 +5083,18 @@ function dataHubBuildTierMap(builder) {
   };
 }
 
+// Rookies chart tier typography:
+// builds a full 1-4 map for label settings that need separate center, Tier 2,
+// Tier 3, and Tier 4 CSS controls instead of the older center/outer split.
+function dataHubBuildRookiesAllTierMap(builder) {
+  return {
+    1: builder(1),
+    2: builder(2),
+    3: builder(3),
+    4: builder(4),
+  };
+}
+
 function readDataHubRookiesChartTheme(shellEl, echartsApi) {
   const styles = getComputedStyle(shellEl);
   const tierColor = (tier) => dataHubCssVar(styles, `--tier-${tier}`);
@@ -5327,6 +5339,33 @@ function readDataHubRookiesChartTheme(shellEl, echartsApi) {
           center: dataHubCssNum(styles, "--chart-name-chip-shadow-alpha-center", 0.3),
           outer: dataHubCssNum(styles, "--chart-name-chip-shadow-alpha-outer", 0.32),
         },
+        rank: {
+          gap: dataHubCssNum(styles, "--chart-name-rank-gap", 2),
+          color: dataHubCssVar(styles, "--chart-name-rank-color", "rgba(255,255,255,0.82)"),
+          shadowColor: dataHubCssVar(styles, "--chart-name-rank-shadow-color", "rgba(0,0,0,0.6)"),
+          shadowBlur: dataHubCssNum(styles, "--chart-name-rank-shadow-blur", 1.6),
+          // Rookies chart rank labels:
+          // lets each tier independently tune rank size and weight from CSS
+          // while retaining the shared rank color/shadow controls.
+          tiers: dataHubBuildRookiesAllTierMap((tier) => ({
+            weight: dataHubCssNum(styles, `--chart-name-rank-font-weight-tier-${tier}`, 700),
+            factor: dataHubCssNum(
+              styles,
+              `--chart-name-rank-font-factor-tier-${tier}`,
+              tier === 1 ? 0.92 : 0.86,
+            ),
+            min: dataHubCssNum(
+              styles,
+              `--chart-name-rank-font-min-tier-${tier}`,
+              tier === 1 ? 10 : 5.35,
+            ),
+            max: dataHubCssNum(
+              styles,
+              `--chart-name-rank-font-max-tier-${tier}`,
+              tier === 1 ? 12 : 8.2,
+            ),
+          })),
+        },
       },
     },
     type: {
@@ -5438,22 +5477,40 @@ function readDataHubRookiesChartTheme(shellEl, echartsApi) {
         },
       },
       name: {
-        weight: dataHubCssNum(styles, "--chart-name-font-weight", 400),
-        center: {
-          factor: dataHubCssNum(styles, "--chart-name-font-factor-center", 0.34),
-          min: dataHubCssNum(styles, "--chart-name-font-min-center", 11),
-          max: dataHubCssNum(styles, "--chart-name-font-max-center", 14.2),
-        },
-        outer: {
-          factor: dataHubCssNum(styles, "--chart-name-font-factor-outer", 0.5),
-          min: dataHubCssNum(styles, "--chart-name-font-min-outer", 6),
-          max: dataHubCssNum(styles, "--chart-name-font-max-outer", 8.5),
-          floor: dataHubCssNum(styles, "--chart-name-font-floor-outer", 5.7),
+        // Rookies chart last-name labels:
+        // exposes font size and weight per tier so label hierarchy can be tuned
+        // without changing the rank or team-logo sizing rules.
+        tiers: dataHubBuildRookiesAllTierMap((tier) => ({
+          weight: dataHubCssNum(styles, `--chart-name-font-weight-tier-${tier}`, 400),
+          factor: dataHubCssNum(
+            styles,
+            `--chart-name-font-factor-tier-${tier}`,
+            tier === 1
+              ? dataHubCssNum(styles, "--chart-name-font-factor-center", 0.34)
+              : dataHubCssNum(styles, "--chart-name-font-factor-outer", 0.5),
+          ),
+          min: dataHubCssNum(
+            styles,
+            `--chart-name-font-min-tier-${tier}`,
+            tier === 1
+              ? dataHubCssNum(styles, "--chart-name-font-min-center", 11)
+              : dataHubCssNum(styles, "--chart-name-font-min-outer", 6),
+          ),
+          max: dataHubCssNum(
+            styles,
+            `--chart-name-font-max-tier-${tier}`,
+            tier === 1
+              ? dataHubCssNum(styles, "--chart-name-font-max-center", 14.2)
+              : dataHubCssNum(styles, "--chart-name-font-max-outer", 8.5),
+          ),
+          floor: dataHubCssNum(styles, `--chart-name-font-floor-tier-${tier}`, (
+            tier === 1 ? 0 : dataHubCssNum(styles, "--chart-name-font-floor-outer", 5.7)
+          )),
           midCutoff: dataHubCssNum(styles, "--chart-name-font-mid-cutoff", 10),
           midReduction: dataHubCssNum(styles, "--chart-name-font-mid-reduction", 0.5),
           longCutoff: dataHubCssNum(styles, "--chart-name-font-long-cutoff", 13),
           longReduction: dataHubCssNum(styles, "--chart-name-font-long-reduction", 0.9),
-        },
+        })),
       },
     },
   };
@@ -5518,7 +5575,8 @@ function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
     const isCenter = player.tier === 1;
     const posTheme = isCenter ? theme.type.pos.center : theme.type.pos.outer;
     const gradeTheme = isCenter ? theme.type.grade.center : theme.type.grade.outer;
-    const nameTheme = isCenter ? theme.type.name.center : theme.type.name.outer;
+    const nameTheme = theme.type.name.tiers[player.tier];
+    const rankTheme = theme.nodes.nameChip.rank.tiers[player.tier];
     const teamLogoTheme = isCenter
       ? theme.type.team.logo.center
       : theme.type.team.logo.tiers[player.tier];
@@ -5539,16 +5597,38 @@ function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
     );
     const nameLogoGap = isCenter ? theme.type.team.gap.center : theme.type.team.gap.outer;
     const nameChipPadding = isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer;
-    const nameFont = `${theme.type.name.weight} ${nameFontSize}px ${theme.fontFamily}`;
+    const nameFont = `${nameTheme.weight} ${nameFontSize}px ${theme.fontFamily}`;
+    const rankFontSize = dataHubClamp(
+      nameFontSize * rankTheme.factor,
+      rankTheme.min,
+      rankTheme.max,
+    );
+    const rankFont = `${rankTheme.weight} ${rankFontSize}px ${theme.fontFamily}`;
+    const rankLabel = `#${player.rank}`;
+    const rankTextWidth = getDataHubRookiesNameTextWidth(
+      echartsApi,
+      rankLabel,
+      rankFont,
+      rankFontSize,
+    );
     const nameTextWidth = getDataHubRookiesNameTextWidth(
       echartsApi,
       player.shortName,
       nameFont,
       nameFontSize,
     );
-    const nameChipWidth = nameChipPadding[3] + nameTextWidth + nameLogoGap + teamLogoSize + nameChipPadding[1];
+    const nameRankGap = theme.nodes.nameChip.rank.gap;
+    const nameChipWidth = (
+      nameChipPadding[3]
+      + rankTextWidth
+      + nameRankGap
+      + nameTextWidth
+      + nameLogoGap
+      + teamLogoSize
+      + nameChipPadding[1]
+    );
     const nameChipHeight = (
-      Math.max(nameFontSize * (isCenter ? 1.15 : 1.12), teamLogoSize)
+      Math.max(nameFontSize * (isCenter ? 1.15 : 1.12), rankFontSize * 1.1, teamLogoSize)
       + nameChipPadding[0]
       + nameChipPadding[2]
     );
@@ -5580,6 +5660,12 @@ function computeDataHubRookiesChartLayout(width, height, theme, echartsApi) {
       posFontSize,
       teamLogoSize,
       nameLogoGap,
+      nameRankGap,
+      rankLabel,
+      rankFontSize,
+      rankFontWeight: rankTheme.weight,
+      rankTextWidth,
+      nameFontWeight: nameTheme.weight,
       nameTextWidth,
       nameChipWidth,
       nameChipHeight,
@@ -6010,14 +6096,15 @@ function buildDataHubRookiesNameChipGroup(item, x, y, theme, isCenter, echartsAp
   const chipPadding = isCenter ? theme.nodes.nameChip.padding.center : theme.nodes.nameChip.padding.outer;
   const chipX = x - item.nameChipWidth / 2;
   const chipY = y + item.nameOffsetY - item.nameChipHeight / 2;
-  const textX = chipX + chipPadding[3];
+  const rankX = chipX + chipPadding[3];
+  const textX = rankX + item.rankTextWidth + item.nameRankGap;
   const imageX = textX + item.nameTextWidth + item.nameLogoGap + item.teamLogoSize / 2;
   const imageY = chipY + item.nameChipHeight / 2;
   const chipColor = item.color;
 
   // Rookies chart name chip:
-  // draws the player short name and larger team logo together at the bottom of
-  // each orb so team identity is readable without crowding the POS/grade stack.
+  // draws rank, last-name label, and team logo together at the bottom of each
+  // orb so player order and team identity are readable without grade overlap.
   return {
     type: "group",
     silent: true,
@@ -6049,11 +6136,25 @@ function buildDataHubRookiesNameChipGroup(item, x, y, theme, isCenter, echartsAp
         },
       },
       buildDataHubRookiesTextLayer({
+        x: rankX,
+        y: chipY + item.nameChipHeight / 2,
+        text: item.rankLabel,
+        fill: theme.nodes.nameChip.rank.color,
+        font: `${item.rankFontWeight} ${item.rankFontSize}px ${theme.fontFamily}`,
+        textAlign: "left",
+        shadow: {
+          color: theme.nodes.nameChip.rank.shadowColor,
+          blur: theme.nodes.nameChip.rank.shadowBlur,
+          offsetX: 0,
+          offsetY: 0.5,
+        },
+      }),
+      buildDataHubRookiesTextLayer({
         x: textX,
         y: chipY + item.nameChipHeight / 2,
         text: item.shortName,
         fill: theme.text.name,
-        font: `${theme.type.name.weight} ${item.nameFontSize}px ${theme.fontFamily}`,
+        font: `${item.nameFontWeight} ${item.nameFontSize}px ${theme.fontFamily}`,
         textAlign: "left",
       }),
       {
