@@ -2739,7 +2739,15 @@ const PAGE_ROUTES = Object.freeze({
   contact: "../contact/contact.html",
 });
 
-const TROPHY_ROOM_HOST = "dynastyhub-trophyroom.netlify.app";
+const TROPHY_ROOM_HOST = "trophyroom.dynastyhub.pro";
+
+function buildTrophyRoomUserUrl(parsedUrl, username) {
+  // DataHub Trophy Room menu: route known Sleeper users directly to their clean Trophy Room profile URL.
+  parsedUrl.pathname = `/user/${encodeURIComponent(username)}`;
+  parsedUrl.search = "";
+  parsedUrl.hash = "";
+  return parsedUrl.toString();
+}
 
 // Data Hub intentionally mirrors the Stats page KTC + ADP wiring locally so
 // this page stays standalone and does not rely on app.js startup state.
@@ -3287,8 +3295,7 @@ function buildExternalUrl(rawUrl) {
     return parsed.toString();
   }
 
-  parsed.searchParams.set("user", username);
-  return parsed.toString();
+  return buildTrophyRoomUserUrl(parsed, username);
 }
 
 function openMoreDropdown(toggle) {

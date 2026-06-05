@@ -4372,7 +4372,14 @@ function stabilizeDashboardBrandLogo() {
   if (!homeMenu) return;
 
   const homeMenuToggle = document.getElementById('homeMenuToggle');
-  const TROPHY_ROOM_HOST = 'dynastyhub-trophyroom.netlify.app';
+  const TROPHY_ROOM_HOST = 'trophyroom.dynastyhub.pro';
+  const buildTrophyRoomUserUrl = (parsedUrl, username) => {
+    // Dashboard Trophy Room menu: keep users on the new production subdomain and open their clean profile route.
+    parsedUrl.pathname = `/user/${encodeURIComponent(username)}`;
+    parsedUrl.search = '';
+    parsedUrl.hash = '';
+    return parsedUrl.toString();
+  };
   const readStoredUsername = () => {
     const input = document.getElementById('usernameInput');
     const inputValue = typeof input?.value === 'string' ? input.value.trim() : '';
@@ -4397,8 +4404,7 @@ function stabilizeDashboardBrandLogo() {
     if (parsed.hostname !== TROPHY_ROOM_HOST) return rawUrl;
     const username = readStoredUsername();
     if (!username) return rawUrl;
-    parsed.searchParams.set('user', username);
-    return parsed.toString();
+    return buildTrophyRoomUserUrl(parsed, username);
   };
   const closeHomeMenu = () => {
     if (!homeMenu.classList.contains('hidden')) {

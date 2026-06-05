@@ -255,7 +255,14 @@ function suppressFocusTemporary(ms) {
     __suppressFocusUntil = Date.now() + (ms || __suppressFocusMs);
 }
 (function installExternalNavHelpers() {
-    const TROPHY_ROOM_HOST = 'dynastyhub-trophyroom.netlify.app';
+    const TROPHY_ROOM_HOST = 'trophyroom.dynastyhub.pro';
+    const buildTrophyRoomUserUrl = (parsedUrl, username) => {
+        // Trophy Room sister-app navigation: send connected users to their clean profile route on the production subdomain.
+        parsedUrl.pathname = `/user/${encodeURIComponent(username)}`;
+        parsedUrl.search = '';
+        parsedUrl.hash = '';
+        return parsedUrl.toString();
+    };
     const readStoredUsername = () => {
         const inputValue = typeof usernameInput?.value === 'string' ? usernameInput.value.trim() : '';
         if (inputValue) return inputValue;
@@ -276,8 +283,7 @@ function suppressFocusTemporary(ms) {
         if (parsed.hostname !== TROPHY_ROOM_HOST) return rawUrl;
         const username = readStoredUsername();
         if (!username) return rawUrl;
-        parsed.searchParams.set('user', username);
-        return parsed.toString();
+        return buildTrophyRoomUserUrl(parsed, username);
     };
 })();
 const LEAGUE_CONNECTED_PAGES = new Set(['rosters', 'ownership', 'leaguehub']);
@@ -421,7 +427,7 @@ function ensureLeagueUsernameGate() {
                                         <i class="fa-solid fa-percent" aria-hidden="true"></i>
                                         <span class="nav-label">Ownership</span>
                                     </button>
-                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="https://dynastyhub-trophyroom.netlify.app/" role="menuitem">
+                                    <button class="league-username-gate__more-item" type="button" data-gate-menu-url="https://trophyroom.dynastyhub.pro/" role="menuitem">
                                         <i class="fa-solid fa-trophy" aria-hidden="true"></i>
                                         <span class="nav-label">Trophy Room</span>
                                     </button>
