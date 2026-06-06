@@ -2874,768 +2874,1238 @@ body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-19 .
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-20 .ownership-exposure-count { color: var(--ownership-exp-c20-count); }
 body[data-page="rosters"] .ownership-list-exposure.ownership-exposure--tier-20 .ownership-exposure-pct  { color: var(--ownership-exp-c20-pct); }
 
-/* ============================================================================
-   Rosters Page Complete Visual Overhaul & Redesign
-   Targets: All visual elements on rosters page (headers, switchers, filters, columns, cards, watermarks, pick-rows, legend, trade simulator)
-   Scope: Scoped strictly under body[data-page="rosters"] to prevent leaks.
-   Important notes: Sizing, spacing, gaps, and layouts are untouched. No animations.
-   ============================================================================ */
 
-/* ── 1. Global Themes & Custom Variables ── */
+/* =============================================================================
+   DYNASTY HUB — ROSTERS PAGE VISUAL REDESIGN v4.0 (PREMIUM COSMIC GLASSMOPRHISM)
+   Scope   : body[data-page="rosters"] — zero leakage to other pages
+   Layout  : untouched (no sizing / spacing / gap changes)
+   Motion  : none
+   Strategy: cosmic background radial gradients, repeating grid texture,
+             iridescent border-box gradient techniques, focus-within glowing
+             unified input wells, 3D embossed typography, and position-themed
+             glow filters.
+   ============================================================================= */
+
+/* ── 0. DESIGN SYSTEM VARIABLES ── */
 body[data-page="rosters"] {
-  --color-roster-bg-dark: #060810;
-  --color-roster-bg-light: #111528;
-  --color-roster-panel-bg: rgba(18, 23, 42, 0.85);
-  --color-roster-panel-border: rgba(154, 170, 255, 0.16);
-  --color-roster-text-primary: rgba(238, 243, 255, 0.96);
-  --color-roster-text-secondary: rgba(189, 206, 232, 0.76);
-  --color-roster-text-tertiary: rgba(144, 150, 192, 0.65);
-  --color-roster-glow: rgba(118, 109, 255, 0.2);
+  /* Surface colors */
+  --r-bg-void: #04050a;
+  --r-bg-surface: rgba(12, 15, 30, 0.45);
+  --r-bg-panel: rgba(14, 18, 36, 0.85);
+  --r-bg-well: rgba(6, 8, 16, 0.8);
+  
+  /* Text styling */
+  --r-text-hi: #eef0ff;
+  --r-text-mid: #a0a7d0;
+  --r-text-lo: #5f6690;
+  
+  /* Accent violet */
+  --r-vio: #7B6EFF;
+  --r-vio-glow: rgba(123, 110, 255, 0.45);
+  --r-vio-border: rgba(123, 110, 255, 0.3);
 
-  background: radial-gradient(circle at 50% 50%, var(--color-roster-bg-light), var(--color-roster-bg-dark)) !important;
-  color: var(--color-roster-text-primary) !important;
+  /* Curated Position Colors (matching DataHub modal pos tags) */
+  --r-qb: #ff3a75;
+  --r-qb-glow: rgba(255, 58, 117, 0.35);
+  --r-qb-border: rgba(255, 58, 117, 0.38);
+  --r-qb-bg: rgba(255, 58, 117, 0.05);
+
+  --r-rb: #00ebc7;
+  --r-rb-glow: rgba(0, 235, 199, 0.35);
+  --r-rb-border: rgba(0, 235, 199, 0.35);
+  --r-rb-bg: rgba(0, 235, 199, 0.04);
+
+  --r-wr: #58a7ff;
+  --r-wr-glow: rgba(88, 167, 255, 0.35);
+  --r-wr-border: rgba(88, 167, 255, 0.35);
+  --r-wr-bg: rgba(88, 167, 255, 0.05);
+
+  --r-te: #b469ff;
+  --r-te-glow: rgba(180, 105, 255, 0.35);
+  --r-te-border: rgba(180, 105, 255, 0.35);
+  --r-te-bg: rgba(180, 105, 255, 0.05);
+
+  --r-flx: #ffd700;
+  --r-flx-glow: rgba(255, 215, 0, 0.3);
+  --r-flx-border: rgba(255, 215, 0, 0.3);
+
+  --r-star: #ffd700;
+  --r-star-glow: rgba(255, 215, 0, 0.4);
+
+  /* Iridescent borders (DataHub style) */
+  --r-iris: linear-gradient(135deg, rgba(115, 244, 255, 0.2) 0%, rgba(123, 110, 255, 0.2) 50%, rgba(219, 109, 255, 0.2) 100%);
+  --r-iris-active: linear-gradient(135deg, #74efff 0%, #7297ff 52%, #d97dff 100%);
 }
 
-/* ── 2. Fixed Header & App Header Overhaul ── */
+/* ── 1. CUSTOM ROSTER BACKGROUND (BEHIND STARFIELD) ── */
+body[data-page="rosters"] {
+  background-color: var(--r-bg-void) !important;
+}
+
+body[data-page="rosters"] #starfield {
+  background: var(--r-bg-void) !important;
+  isolation: isolate !important;
+}
+
+/* Cosmic vignette overlay */
+body[data-page="rosters"] #starfield::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(ellipse 70vw 60vh at 15% 15%, rgba(123, 110, 255, 0.14), transparent 70%),
+    radial-gradient(ellipse 60vw 50vh at 85% 20%, rgba(0, 235, 199, 0.08), transparent 70%),
+    radial-gradient(ellipse 80vw 60vh at 50% 110%, rgba(255, 58, 117, 0.07), transparent 70%),
+    linear-gradient(180deg, #05060f 0%, #03040a 100%) !important;
+  background-repeat: no-repeat !important;
+}
+
+/* High-tech grid overlay texture */
+body[data-page="rosters"] #starfield::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.003) 0px, rgba(255, 255, 255, 0.003) 1px, transparent 1px, transparent 30px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.003) 0px, rgba(255, 255, 255, 0.003) 1px, transparent 1px, transparent 30px),
+    radial-gradient(circle at 50% 50%, rgba(123, 110, 255, 0.02), transparent 75%) !important;
+  opacity: 0.95 !important;
+  background-repeat: repeat !important;
+}
+
+/* Hide legacy noise overlay */
+body[data-page="rosters"] #noise-overlay {
+  display: none !important;
+}
+
+/* ── 2. APP HEADER OVERHAUL ── */
 body[data-page="rosters"] .app-header {
-  background: linear-gradient(165deg, rgba(22, 28, 52, 0.88), rgba(8, 10, 20, 0.94)) !important;
-  border: 1px solid var(--color-roster-panel-border) !important;
-  backdrop-filter: blur(12px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
-  box-shadow: 0 16px 40px rgba(3, 5, 14, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-  border-radius: 14px !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.005)) padding-box,
+    var(--r-iris) border-box !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important;
+  border-radius: 16px !important;
+  position: relative !important;
 }
 
-/* ── 3. Username bar, League Select & Inline Search Overhaul ── */
-body[data-page="rosters"] #usernameInput,
-body[data-page="rosters"] #rosterSearchInput,
-body[data-page="rosters"] #leagueSelect {
-  background: rgba(6, 8, 18, 0.65) !important;
-  border: 1px solid rgba(154, 170, 255, 0.22) !important;
-  border-radius: 8px !important;
-  color: #e2e8ff !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  font-family: 'Product Sans', system-ui, sans-serif !important;
+/* Header divider */
+body[data-page="rosters"] #contextual-controls .header-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Desktop header branding text gradient */
+body[data-page="rosters"] .roster-brand-name {
   font-weight: 300 !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  background: linear-gradient(130deg, #f0f3ff 0%, #a2a8d3 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  text-shadow: none !important;
 }
 
-body[data-page="rosters"] #usernameInput:focus,
-body[data-page="rosters"] #rosterSearchInput:focus,
-body[data-page="rosters"] #leagueSelect:focus {
-  border-color: #766dff !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45), 0 0 10px rgba(118, 109, 255, 0.45) !important;
-  outline: none !important;
-}
-
-/* Roster Inline Search custom background cleanup */
+/* ── 3. GLOWING INPUT WELLS (COHESIVE INTEGRATION) ── */
+/* Strip legacy overlapping borders/backgrounds */
+body[data-page="rosters"] .username-area::before,
 body[data-page="rosters"] .roster-inline-search::before {
   display: none !important;
 }
 
+/* Style the container wrappers as dark inset wells */
+body[data-page="rosters"] .username-area,
+body[data-page="rosters"] .custom-select-wrapper,
 body[data-page="rosters"] .roster-inline-search {
+  background: var(--r-bg-well) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.03) !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+/* Focus-within state glows the entire container wrapper */
+body[data-page="rosters"] .username-area:focus-within,
+body[data-page="rosters"] .custom-select-wrapper:focus-within,
+body[data-page="rosters"] .roster-inline-search:focus-within {
+  border-color: rgba(123, 110, 255, 0.6) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(123, 110, 255, 0.3) !important;
+}
+
+/* Remove default styling on inputs themselves */
+body[data-page="rosters"] #usernameInput,
+body[data-page="rosters"] #rosterSearchInput,
+body[data-page="rosters"] #leagueSelect {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  color: var(--r-text-hi) !important;
+  font-family: "Product Sans", system-ui, sans-serif !important;
+  font-size: 0.95rem !important;
+  font-weight: 300 !important;
+  padding: 0 12px !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
+body[data-page="rosters"] #usernameInput::placeholder,
+body[data-page="rosters"] #rosterSearchInput::placeholder {
+  color: var(--r-text-lo) !important;
+  font-weight: 300 !important;
+}
+
+/* Custom enter button inside username bar */
 body[data-page="rosters"] .roster-username-submit--inset {
   border: none !important;
-  border-left: 1px solid rgba(154, 170, 255, 0.22) !important;
-  background: linear-gradient(160deg, rgba(118, 109, 255, 0.3), rgba(41, 46, 92, 0.45)) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  border-radius: 0 8px 8px 0 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(180deg, rgba(123, 110, 255, 0.2), rgba(123, 110, 255, 0.04)) !important;
+  color: #b0b8ff !important;
+  font-family: "Product Sans", system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+  padding: 0 16px !important;
+  border-radius: 0 9px 9px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.25s ease !important;
 }
 
 body[data-page="rosters"] .roster-username-submit--inset:hover {
-  background: linear-gradient(160deg, rgba(118, 109, 255, 0.5), rgba(52, 58, 117, 0.55)) !important;
+  background: linear-gradient(180deg, rgba(123, 110, 255, 0.35), rgba(123, 110, 255, 0.15)) !important;
   color: #fff !important;
-  border-left-color: rgba(154, 170, 255, 0.35) !important;
 }
 
-/* ── 4. Navigation Buttons & Dropdowns Overhaul ── */
+body[data-page="rosters"] .username-area:focus-within .roster-username-submit--inset {
+  border-left-color: rgba(123, 110, 255, 0.6) !important;
+}
+
+/* Dropdown arrow on select wrapper */
+body[data-page="rosters"] .custom-select-wrapper::after {
+  color: rgba(148, 163, 230, 0.5) !important;
+  font-size: 0.6rem !important;
+  right: 12px !important;
+}
+
+body[data-page="rosters"] #leagueSelect {
+  padding-right: 28px !important;
+}
+
+body[data-page="rosters"] .roster-search-icon {
+  color: rgba(123, 110, 255, 0.5) !important;
+  align-self: center !important;
+  margin-left: 12px !important;
+}
+
+body[data-page="rosters"] #rosterSearchInput {
+  padding-left: 8px !important;
+}
+
+/* ── 4. NAVIGATION BUTTONS OVERHAUL ── */
 body[data-page="rosters"] .nav-button {
-  background: rgba(22, 28, 52, 0.35) !important;
-  border: 1px solid rgba(154, 170, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-radius: 8px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-  transition: all 0.2s ease !important;
+  color: rgba(189, 206, 232, 0.6) !important;
+  font-family: "Product Sans", system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.04em !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 body[data-page="rosters"] .nav-button:hover {
-  background: rgba(118, 109, 255, 0.12) !important;
-  border-color: rgba(118, 109, 255, 0.4) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 12px rgba(118, 109, 255, 0.2) !important;
+  background: rgba(123, 110, 255, 0.08) !important;
+  border-color: rgba(123, 110, 255, 0.3) !important;
+  color: var(--r-text-hi) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 12px rgba(123, 110, 255, 0.15) !important;
 }
 
 body[data-page="rosters"] .nav-button.active {
-  background: linear-gradient(155deg, rgba(118, 109, 255, 0.25), rgba(41, 46, 92, 0.25)) !important;
-  border-color: rgba(118, 109, 255, 0.45) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 16px rgba(118, 109, 255, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(123, 110, 255, 0.25) 0%, rgba(123, 110, 255, 0.04) 100%) padding-box,
+    var(--r-iris-active) border-box !important;
+  border: 1px solid transparent !important;
   color: #fff !important;
+  text-shadow: 0 0 8px rgba(118, 109, 255, 0.4) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 16px rgba(118, 109, 255, 0.35) !important;
 }
 
+body[data-page="rosters"] .nav-button.active i {
+  filter: drop-shadow(0 0 6px rgba(123, 110, 255, 0.6)) !important;
+}
+
+/* Nav More Dropdown menu */
 body[data-page="rosters"] .nav-more-dropdown {
-  background: rgba(10, 13, 28, 0.96) !important;
-  border: 1px solid rgba(154, 170, 255, 0.22) !important;
-  border-radius: 10px !important;
-  backdrop-filter: blur(15px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(15px) saturate(150%) !important;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5) !important;
+  background: rgba(8, 10, 20, 0.98) !important;
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  background:
+    linear-gradient(165deg, rgba(14, 18, 36, 0.98), rgba(6, 8, 16, 0.99)) padding-box,
+    var(--r-iris) border-box !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
 body[data-page="rosters"] .nav-more-item {
-  color: var(--color-roster-text-secondary) !important;
-  transition: all 0.2s ease !important;
+  color: var(--r-text-mid) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
+  border-radius: 8px !important;
+  transition: all 0.25s ease !important;
 }
 
 body[data-page="rosters"] .nav-more-item:hover {
-  background: rgba(118, 109, 255, 0.12) !important;
+  background: rgba(123, 110, 255, 0.1) !important;
+  border-color: rgba(123, 110, 255, 0.35) !important;
   color: #fff !important;
 }
 
-/* ── 5. View Switchers & Dropdowns Overhaul ── */
+/* ── 5. VIEW SWITCHERS OVERHAUL ── */
 body[data-page="rosters"] .view-switcher,
 body[data-page="rosters"] .compact-switcher {
-  background: rgba(6, 8, 18, 0.65) !important;
-  border: 1px solid rgba(154, 170, 255, 0.24) !important;
+  background: rgba(5, 7, 14, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.03) !important;
   border-radius: 12px !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-  padding: 2px !important;
+  padding: 3px !important;
 }
 
 body[data-page="rosters"] .view-switcher button,
 body[data-page="rosters"] .compact-switcher button {
   background: transparent !important;
   border: 1px solid transparent !important;
-  border-radius: 9px !important;
-  color: rgba(189, 206, 232, 0.65) !important;
-  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  color: rgba(189, 206, 232, 0.55) !important;
+  font-family: "Product Sans", system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.02em !important;
+  transition: all 0.25s ease !important;
 }
 
-/* Switcher button hover */
 body[data-page="rosters"] .view-switcher button:hover,
 body[data-page="rosters"] .compact-switcher button:hover {
   color: #fff !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
-/* Active states for switchers with curated color palettes */
+/* Positional View active */
 body[data-page="rosters"] #positionalViewBtn.active,
 body[data-page="rosters"] .compact-switcher button[id="positionalViewBtn"].active {
-  background: linear-gradient(155deg, rgba(66, 194, 255, 0.22), rgba(16, 40, 70, 0.25)) !important;
-  border-color: rgba(66, 194, 255, 0.45) !important;
-  box-shadow: 0 0 10px rgba(66, 194, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  color: #fff !important;
+  background: rgba(0, 235, 199, 0.12) !important;
+  border: 1px solid rgba(0, 235, 199, 0.4) !important;
+  color: #84ffec !important;
+  box-shadow: 0 0 8px rgba(0, 235, 199, 0.25) !important;
+  text-shadow: 0 0 4px rgba(0, 235, 199, 0.4) !important;
 }
 
+/* Condensed View active */
 body[data-page="rosters"] #condensedViewBtn.active,
 body[data-page="rosters"] .compact-switcher button[id="condensedViewBtn"].active {
-  background: linear-gradient(155deg, rgba(255, 158, 89, 0.22), rgba(70, 40, 16, 0.25)) !important;
-  border-color: rgba(255, 158, 89, 0.45) !important;
-  box-shadow: 0 0 10px rgba(255, 158, 89, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  color: #fff !important;
+  background: rgba(255, 58, 117, 0.12) !important;
+  border: 1px solid rgba(255, 58, 117, 0.4) !important;
+  color: #ff91b6 !important;
+  box-shadow: 0 0 8px rgba(255, 58, 117, 0.25) !important;
+  text-shadow: 0 0 4px rgba(255, 58, 117, 0.4) !important;
 }
 
+/* Lineup View active */
 body[data-page="rosters"] #lineupViewBtn.active,
 body[data-page="rosters"] .compact-switcher button[id="lineupViewBtn"].active {
-  background: linear-gradient(155deg, rgba(118, 109, 255, 0.22), rgba(30, 25, 70, 0.25)) !important;
-  border-color: rgba(118, 109, 255, 0.45) !important;
-  box-shadow: 0 0 10px rgba(118, 109, 255, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  color: #fff !important;
+  background: rgba(123, 110, 255, 0.12) !important;
+  border: 1px solid rgba(123, 110, 255, 0.4) !important;
+  color: #ddbeff !important;
+  box-shadow: 0 0 8px rgba(123, 110, 255, 0.25) !important;
+  text-shadow: 0 0 4px rgba(123, 110, 255, 0.4) !important;
 }
 
-/* Mobile Dropdown View Switcher */
+/* Mobile dropdown switch toggle */
 body[data-page="rosters"] .view-dropdown-toggle {
-  background: rgba(18, 22, 40, 0.45) !important;
-  border: 1px solid rgba(154, 170, 255, 0.22) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
+  background: rgba(5, 7, 14, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
 }
 
 body[data-page="rosters"] .view-dropdown-menu {
-  background: rgba(12, 15, 30, 0.97) !important;
-  border: 1px solid rgba(154, 170, 255, 0.22) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+  background: rgba(8, 10, 20, 0.98) !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(165deg, rgba(14, 18, 36, 0.98), rgba(6, 8, 16, 0.99)) padding-box,
+    var(--r-iris) border-box !important;
+  border-radius: 10px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
 }
 
-body[data-page="rosters"] .view-dropdown-option:hover {
-  background: rgba(118, 109, 255, 0.12) !important;
-  color: #fff !important;
+/* ── 6. POSITION FILTER BUTTONS ── */
+body[data-page="rosters"] #positional-filters {
+  background: rgba(5, 7, 14, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 12px !important;
+  padding: 3px !important;
 }
 
-body[data-page="rosters"] .view-dropdown-option.active {
-  background: rgba(118, 109, 255, 0.2) !important;
-  border-color: rgba(118, 109, 255, 0.35) !important;
-  color: #fff !important;
-}
-
-/* ── 6. Position Filter Buttons Overhaul ── */
 body[data-page="rosters"] .filter-btn {
-  background: rgba(18, 22, 40, 0.45) !important;
-  border: 1px solid rgba(154, 170, 255, 0.16) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: rgba(189, 206, 232, 0.6) !important;
+  font-family: "Product Sans", system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
   border-radius: 8px !important;
-  color: rgba(189, 206, 232, 0.72) !important;
-  transition: all 0.2s ease !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+  transition: all 0.25s ease !important;
 }
 
 body[data-page="rosters"] .filter-btn:hover {
-  border-color: rgba(154, 170, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   color: #fff !important;
 }
 
-/* Active position states styling to match game logs modal tags */
-body[data-page="rosters"] .filter-btn[data-position="QB"].active {
-  background: rgba(255, 58, 117, 0.18) !important;
-  border-color: rgba(255, 58, 117, 0.6) !important;
-  box-shadow: 0 0 12px rgba(255, 58, 117, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+body[data-page="rosters"] .filter-btn.active[data-position="QB"] {
+  background: var(--r-qb-bg) !important;
+  border-color: var(--r-qb-border) !important;
   color: #ff91b6 !important;
-  text-shadow: 0 0 6px rgba(255, 58, 117, 0.5) !important;
+  box-shadow:
+    0 0 12px var(--r-qb-glow),
+    inset 0 0 8px rgba(255, 58, 117, 0.1) !important;
+  text-shadow: 0 0 6px var(--r-qb) !important;
 }
-body[data-page="rosters"] .filter-btn[data-position="RB"].active {
-  background: rgba(0, 235, 199, 0.14) !important;
-  border-color: rgba(0, 235, 199, 0.6) !important;
-  box-shadow: 0 0 12px rgba(0, 235, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+
+body[data-page="rosters"] .filter-btn.active[data-position="RB"] {
+  background: var(--r-rb-bg) !important;
+  border-color: var(--r-rb-border) !important;
   color: #84ffec !important;
-  text-shadow: 0 0 6px rgba(0, 235, 199, 0.5) !important;
+  box-shadow:
+    0 0 12px var(--r-rb-glow),
+    inset 0 0 8px rgba(0, 235, 199, 0.1) !important;
+  text-shadow: 0 0 6px var(--r-rb) !important;
 }
-body[data-page="rosters"] .filter-btn[data-position="WR"].active {
-  background: rgba(88, 167, 255, 0.16) !important;
-  border-color: rgba(88, 167, 255, 0.6) !important;
-  box-shadow: 0 0 12px rgba(88, 167, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+
+body[data-page="rosters"] .filter-btn.active[data-position="WR"] {
+  background: var(--r-wr-bg) !important;
+  border-color: var(--r-wr-border) !important;
   color: #a4d1ff !important;
-  text-shadow: 0 0 6px rgba(88, 167, 255, 0.5) !important;
+  box-shadow:
+    0 0 12px var(--r-wr-glow),
+    inset 0 0 8px rgba(88, 167, 255, 0.1) !important;
+  text-shadow: 0 0 6px var(--r-wr) !important;
 }
-body[data-page="rosters"] .filter-btn[data-position="TE"].active {
-  background: rgba(180, 105, 255, 0.16) !important;
-  border-color: rgba(180, 105, 255, 0.6) !important;
-  box-shadow: 0 0 12px rgba(180, 105, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+
+body[data-page="rosters"] .filter-btn.active[data-position="TE"] {
+  background: var(--r-te-bg) !important;
+  border-color: var(--r-te-border) !important;
   color: #ddbeff !important;
-  text-shadow: 0 0 6px rgba(180, 105, 255, 0.5) !important;
+  box-shadow:
+    0 0 12px var(--r-te-glow),
+    inset 0 0 8px rgba(180, 105, 255, 0.1) !important;
+  text-shadow: 0 0 6px var(--r-te) !important;
 }
-body[data-page="rosters"] .filter-btn[data-position="FLX"].active {
-  background: rgba(255, 215, 0, 0.1) !important;
-  border-color: rgba(255, 215, 0, 0.5) !important;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+
+body[data-page="rosters"] .filter-btn.active[data-position="FLX"] {
+  background: rgba(255, 215, 0, 0.08) !important;
+  border-color: var(--r-flx-border) !important;
   color: #ffe169 !important;
-  text-shadow: 0 0 6px rgba(255, 215, 0, 0.4) !important;
+  box-shadow:
+    0 0 12px var(--r-flx-glow),
+    inset 0 0 8px rgba(255, 215, 0, 0.08) !important;
+  text-shadow: 0 0 6px var(--r-flx) !important;
 }
-body[data-page="rosters"] .filter-btn[data-position="STAR"].active {
-  background: linear-gradient(135deg, rgba(180, 105, 255, 0.22), rgba(255, 215, 0, 0.12)) !important;
-  border-color: #ffd700e5 !important;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+
+body[data-page="rosters"] .filter-btn.active[data-position="STAR"] {
+  background: linear-gradient(135deg, rgba(180, 105, 255, 0.18), rgba(255, 215, 0, 0.08)) !important;
+  border-color: #ffd700 !important;
   color: #fff !important;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6) !important;
+  box-shadow:
+    0 0 16px var(--r-star-glow),
+    inset 0 0 10px rgba(180, 105, 255, 0.1) !important;
+  text-shadow: 0 0 8px #ffd700 !important;
+}
+
+/* Remove filter button active dot overlay */
+body[data-page="rosters"] .filter-btn.active::after {
+  display: none !important;
 }
 
 /* Subtle filter action buttons */
 body[data-page="rosters"] .control-button-subtle,
 body[data-page="rosters"] .compare-search-toggle {
-  background: rgba(18, 22, 40, 0.45) !important;
-  border: 1px solid rgba(154, 170, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-radius: 8px !important;
-  color: rgba(189, 206, 232, 0.72) !important;
-  transition: all 0.2s ease !important;
+  color: rgba(189, 206, 232, 0.6) !important;
+  transition: all 0.25s ease !important;
 }
 
 body[data-page="rosters"] .control-button-subtle:hover,
 body[data-page="rosters"] .compare-search-toggle:hover {
-  border-color: rgba(154, 170, 255, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
   color: #fff !important;
-  background: rgba(26, 32, 58, 0.6) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* ── 7. Team Header Items Overhaul ── */
+body[data-page="rosters"] .compare-search-popover {
+  background: rgba(8, 10, 20, 0.98) !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(165deg, rgba(14, 18, 36, 0.98), rgba(6, 8, 16, 0.99)) padding-box,
+    var(--r-iris) border-box !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Start Sit Analyzer Button */
+body[data-page="rosters"] .start-sit-button {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: rgba(189, 206, 232, 0.6) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  transition: all 0.25s ease !important;
+}
+
+body[data-page="rosters"] .start-sit-button:hover {
+  background: rgba(123, 110, 255, 0.08) !important;
+  border-color: rgba(123, 110, 255, 0.3) !important;
+  color: var(--r-text-hi) !important;
+}
+
+body[data-page="rosters"] .start-sit-button.active {
+  background:
+    linear-gradient(180deg, rgba(123, 110, 255, 0.25) 0%, rgba(123, 110, 255, 0.04) 100%) padding-box,
+    var(--r-iris-active) border-box !important;
+  border: 1px solid transparent !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 16px rgba(118, 109, 255, 0.35) !important;
+}
+
+/* ── 7. TEAM COLUMNS & HEADERS ── */
+body[data-page="rosters"] .team-card {
+  background:
+    linear-gradient(180deg, rgba(12, 15, 30, 0.35), rgba(5, 6, 10, 0.6)) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
 body[data-page="rosters"] .team-header-item {
-  background: linear-gradient(180deg, rgba(22, 28, 52, 0.92), rgba(11, 14, 25, 0.96)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.18) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.005)) padding-box,
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(123, 110, 255, 0.12)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   color: #e2e8ff !important;
-  backdrop-filter: blur(8px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  backdrop-filter: blur(12px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
   font-family: 'Product Sans', system-ui, sans-serif !important;
   font-weight: 400 !important;
   letter-spacing: 0.02em !important;
 }
 
 body[data-page="rosters"] .team-header-item:hover {
-  border-color: rgba(118, 109, 255, 0.45) !important;
-  box-shadow: 0 0 12px rgba(118, 109, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(123, 110, 255, 0.35) !important;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)) padding-box,
+    linear-gradient(145deg, rgba(123, 110, 255, 0.35), rgba(66, 194, 255, 0.2)) border-box !important;
+  box-shadow:
+    0 0 15px rgba(123, 110, 255, 0.2),
+    0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Highlight team columns selected for comparison */
+/* Selected Team Card comparison glow */
 body[data-page="rosters"] .team-header-item:has(.team-compare-checkbox.selected) {
-  border-color: rgba(118, 109, 255, 0.65) !important;
-  box-shadow: 0 0 16px rgba(118, 109, 255, 0.3), inset 0 0 12px rgba(118, 109, 255, 0.15) !important;
+  border-color: rgba(123, 110, 255, 0.6) !important;
+  background:
+    linear-gradient(155deg, rgba(123, 110, 255, 0.15), rgba(10, 12, 24, 0.8)) padding-box,
+    linear-gradient(145deg, rgba(123, 110, 255, 0.6), rgba(66, 194, 255, 0.3)) border-box !important;
+  box-shadow:
+    0 0 20px rgba(123, 110, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 body[data-page="rosters"] .roster-column:has(.team-compare-checkbox.selected) .team-card {
-  border-color: rgba(118, 109, 255, 0.45) !important;
-  box-shadow: 0 0 20px rgba(118, 109, 255, 0.15), inset 0 0 15px rgba(118, 109, 255, 0.06) !important;
+  border-color: rgba(123, 110, 255, 0.35) !important;
+  box-shadow:
+    0 0 24px rgba(123, 110, 255, 0.18),
+    inset 0 0 18px rgba(123, 110, 255, 0.05) !important;
 }
 
 body[data-page="rosters"] .team-compare-checkbox {
-  border: 1px solid rgba(154, 170, 255, 0.4) !important;
-  background: rgba(6, 8, 18, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
 body[data-page="rosters"] .team-compare-checkbox.selected {
-  border-color: #766dff !important;
-  background-color: #766dff !important;
-  box-shadow: 0 0 8px rgba(118, 109, 255, 0.6) !important;
+  border-color: #9e94ff !important;
+  background-color: var(--r-vio) !important;
+  box-shadow: 0 0 8px rgba(123, 110, 255, 0.6) !important;
 }
 
 body[data-page="rosters"] .team-record-champ {
   color: #ffdf7e !important;
-  filter: drop-shadow(0 0 5px rgba(255, 223, 126, 0.8)) !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6) !important;
+  filter: drop-shadow(0 0 6px rgba(255, 223, 126, 0.7)) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* ── 8. Team Card Containers & Section Headers Overhaul ── */
-body[data-page="rosters"] .team-card {
-  background: linear-gradient(180deg, rgba(20, 24, 46, 0.45), rgba(8, 10, 19, 0.65)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.08) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-}
-
+/* ── 8. GLOSSY POSITION HEADERS (h3) ── */
 body[data-page="rosters"] .roster-section h3 {
-  background: linear-gradient(to bottom, rgba(26, 32, 58, 0.55), rgba(12, 15, 30, 0.75)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.16) !important;
+  border: 1px solid transparent !important;
   border-radius: 6px !important;
   font-family: 'Product Sans', system-ui, sans-serif !important;
-  letter-spacing: 1px !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  text-shadow: none !important;
+  overflow: hidden !important;
 }
 
-/* Category header colors (QB, RB, WR, TE, Starters, Bench) */
 body[data-page="rosters"] .qb-section h3 {
-  color: #ff7ea5 !important;
-  border: 1px solid rgba(255, 58, 117, 0.5) !important;
-  background: linear-gradient(180deg, rgba(255, 58, 117, 0.18), rgba(25, 12, 20, 0.45)) !important;
-  text-shadow: 0 0 5px rgba(255, 58, 117, 0.4) !important;
-  box-shadow: inset 0 0 8px rgba(255, 58, 117, 0.08) !important;
+  color: #ff91b6 !important;
+  border-color: var(--r-qb-border) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 58, 117, 0.22) 0%, rgba(255, 58, 117, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(255, 58, 117, 0.5) 0%, rgba(255, 58, 117, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(255, 58, 117, 0.6) !important;
 }
+
 body[data-page="rosters"] .rb-section h3 {
-  color: #6effeb !important;
-  border: 1px solid rgba(0, 235, 199, 0.5) !important;
-  background: linear-gradient(180deg, rgba(0, 235, 199, 0.15), rgba(8, 25, 22, 0.45)) !important;
-  text-shadow: 0 0 5px rgba(0, 235, 199, 0.4) !important;
-  box-shadow: inset 0 0 8px rgba(0, 235, 199, 0.08) !important;
+  color: #84ffec !important;
+  border-color: var(--r-rb-border) !important;
+  background:
+    linear-gradient(90deg, rgba(0, 235, 199, 0.22) 0%, rgba(0, 235, 199, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(0, 235, 199, 0.5) 0%, rgba(0, 235, 199, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(0, 235, 199, 0.5) !important;
 }
+
 body[data-page="rosters"] .wr-section h3 {
-  color: #92c5ff !important;
-  border: 1px solid rgba(88, 167, 255, 0.5) !important;
-  background: linear-gradient(180deg, rgba(88, 167, 255, 0.18), rgba(12, 20, 30, 0.45)) !important;
-  text-shadow: 0 0 5px rgba(88, 167, 255, 0.4) !important;
-  box-shadow: inset 0 0 8px rgba(88, 167, 255, 0.08) !important;
+  color: #a4d1ff !important;
+  border-color: var(--r-wr-border) !important;
+  background:
+    linear-gradient(90deg, rgba(88, 167, 255, 0.22) 0%, rgba(88, 167, 255, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(88, 167, 255, 0.5) 0%, rgba(88, 167, 255, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(88, 167, 255, 0.5) !important;
 }
+
 body[data-page="rosters"] .te-section h3 {
-  color: #dcbbff !important;
-  border: 1px solid rgba(180, 105, 255, 0.5) !important;
-  background: linear-gradient(180deg, rgba(180, 105, 255, 0.18), rgba(20, 12, 30, 0.45)) !important;
-  text-shadow: 0 0 5px rgba(180, 105, 255, 0.4) !important;
-  box-shadow: inset 0 0 8px rgba(180, 105, 255, 0.08) !important;
+  color: #ddbeff !important;
+  border-color: var(--r-te-border) !important;
+  background:
+    linear-gradient(90deg, rgba(180, 105, 255, 0.22) 0%, rgba(180, 105, 255, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(180, 105, 255, 0.5) 0%, rgba(180, 105, 255, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(180, 105, 255, 0.5) !important;
 }
+
 body[data-page="rosters"] .starters-section h3 {
   color: #9effe8 !important;
-  border: 1px solid rgba(105, 255, 225, 0.4) !important;
-  background: linear-gradient(180deg, rgba(105, 255, 225, 0.15), rgba(10, 25, 22, 0.35)) !important;
-  box-shadow: inset 0 0 12px rgba(105, 255, 225, 0.1) !important;
+  border-color: rgba(105, 255, 225, 0.4) !important;
+  background:
+    linear-gradient(90deg, rgba(105, 255, 225, 0.22) 0%, rgba(105, 255, 225, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(105, 255, 225, 0.4) 0%, rgba(105, 255, 225, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(105, 255, 225, 0.5) !important;
 }
+
 body[data-page="rosters"] .bench-section h3 {
   color: #ff9eeb !important;
-  border: 1px solid rgba(255, 51, 234, 0.4) !important;
-  background: linear-gradient(180deg, rgba(255, 51, 234, 0.15), rgba(25, 10, 24, 0.35)) !important;
-  box-shadow: inset 0 0 12px rgba(255, 51, 234, 0.1) !important;
+  border-color: rgba(255, 51, 234, 0.4) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 51, 234, 0.22) 0%, rgba(255, 51, 234, 0.04) 100%) padding-box,
+    linear-gradient(90deg, rgba(255, 51, 234, 0.4) 0%, rgba(255, 51, 234, 0.1) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(255, 51, 234, 0.5) !important;
 }
+
 body[data-page="rosters"] .taxi-section h3 {
   color: #cbd2ff !important;
-  border: 1px solid rgba(154, 170, 255, 0.3) !important;
-  background: linear-gradient(180deg, rgba(154, 170, 255, 0.12), rgba(12, 14, 25, 0.35)) !important;
-  box-shadow: inset 0 0 12px rgba(154, 170, 255, 0.05) !important;
+  border-color: rgba(154, 170, 255, 0.3) !important;
+  background:
+    linear-gradient(90deg, rgba(154, 170, 255, 0.18) 0%, rgba(154, 170, 255, 0.03) 100%) padding-box,
+    linear-gradient(90deg, rgba(154, 170, 255, 0.3) 0%, rgba(154, 170, 255, 0.05) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(154, 170, 255, 0.4) !important;
 }
+
 body[data-page="rosters"] .picks-section h3 {
   color: #ffd782 !important;
-  border: 1px solid rgba(255, 215, 130, 0.3) !important;
-  background: linear-gradient(180deg, rgba(255, 215, 130, 0.12), rgba(25, 20, 12, 0.35)) !important;
-  box-shadow: inset 0 0 12px rgba(255, 215, 130, 0.05) !important;
+  border-color: rgba(255, 215, 130, 0.3) !important;
+  background:
+    linear-gradient(90deg, rgba(255, 215, 130, 0.18) 0%, rgba(255, 215, 130, 0.03) 100%) padding-box,
+    linear-gradient(90deg, rgba(255, 215, 130, 0.3) 0%, rgba(255, 215, 130, 0.05) 100%) border-box !important;
+  text-shadow: 0 0 8px rgba(255, 215, 130, 0.4) !important;
 }
 
-/* ── 9. Player Cards & Pick Row Items Overhaul (3D Panels) ── */
+/* ── 9. PLAYER ROW & PICK ROW CARDS (3D PANELS) ── */
 body[data-page="rosters"] .player-row,
 body[data-page="rosters"] .pick-row {
-  background: linear-gradient(165deg, rgba(24, 30, 52, 0.55), rgba(10, 13, 24, 0.75)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.14) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(175deg, rgba(20, 24, 44, 0.6) 0%, rgba(10, 12, 22, 0.8) 60%, rgba(5, 6, 12, 0.9) 100%) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 10px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.25s ease !important;
 }
 
+/* Top highlight sheen line inside cards */
+body[data-page="rosters"] .player-row::before,
+body[data-page="rosters"] .pick-row::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0; left: 8px; right: 8px !important;
+  height: 1px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+/* Hover lift and glow effects */
 body[data-page="rosters"] .player-row:hover,
 body[data-page="rosters"] .pick-row:hover {
-  border-color: rgba(154, 170, 255, 0.38) !important;
-  background: linear-gradient(165deg, rgba(28, 35, 62, 0.65), rgba(13, 17, 30, 0.85)) !important;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  background:
+    linear-gradient(175deg, rgba(26, 31, 56, 0.7) 0%, rgba(14, 16, 32, 0.85) 60%, rgba(8, 10, 20, 0.95) 100%) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.04)) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 20px rgba(0, 0, 0, 0.45) !important;
 }
 
-/* Position-based card glows and borders */
+/* Curated Left-Side glows + iridescent borders by position */
 body[data-page="rosters"] .qb-section .player-row {
-  border-color: rgba(255, 58, 117, 0.25) !important;
-  box-shadow: inset 0 0 8px rgba(255, 58, 117, 0.08), 0 3px 8px rgba(0, 0, 0, 0.12) !important;
+  background:
+    linear-gradient(95deg, rgba(255, 58, 117, 0.06) 0%, rgba(12, 15, 30, 0.6) 25%, rgba(6, 8, 15, 0.85) 100%) padding-box,
+    linear-gradient(135deg, rgba(255, 58, 117, 0.2) 0%, rgba(255, 255, 255, 0.02) 100%) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 12px rgba(255, 58, 117, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 body[data-page="rosters"] .qb-section .player-row:hover {
-  border-color: rgba(255, 58, 117, 0.45) !important;
-  box-shadow: inset 0 0 12px rgba(255, 58, 117, 0.15), 0 0 10px rgba(255, 58, 117, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  background:
+    linear-gradient(95deg, rgba(255, 58, 117, 0.12) 0%, rgba(18, 22, 42, 0.7) 25%, rgba(8, 10, 18, 0.92) 100%) padding-box,
+    linear-gradient(135deg, rgba(255, 58, 117, 0.5) 0%, rgba(123, 110, 255, 0.1) 100%) border-box !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 15px rgba(255, 58, 117, 0.22) !important;
 }
 
 body[data-page="rosters"] .rb-section .player-row {
-  border-color: rgba(0, 235, 199, 0.2) !important;
-  box-shadow: inset 0 0 8px rgba(0, 235, 199, 0.06), 0 3px 8px rgba(0, 0, 0, 0.12) !important;
+  background:
+    linear-gradient(95deg, rgba(0, 235, 199, 0.05) 0%, rgba(12, 15, 30, 0.6) 25%, rgba(6, 8, 15, 0.85) 100%) padding-box,
+    linear-gradient(135deg, rgba(0, 235, 199, 0.18) 0%, rgba(255, 255, 255, 0.02) 100%) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 12px rgba(0, 235, 199, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 body[data-page="rosters"] .rb-section .player-row:hover {
-  border-color: rgba(0, 235, 199, 0.4) !important;
-  box-shadow: inset 0 0 12px rgba(0, 235, 199, 0.12), 0 0 10px rgba(0, 235, 199, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  background:
+    linear-gradient(95deg, rgba(0, 235, 199, 0.1) 0%, rgba(18, 22, 42, 0.7) 25%, rgba(8, 10, 18, 0.92) 100%) padding-box,
+    linear-gradient(135deg, rgba(0, 235, 199, 0.45) 0%, rgba(123, 110, 255, 0.1) 100%) border-box !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 15px rgba(0, 235, 199, 0.2) !important;
 }
 
 body[data-page="rosters"] .wr-section .player-row {
-  border-color: rgba(88, 167, 255, 0.2) !important;
-  box-shadow: inset 0 0 8px rgba(88, 167, 255, 0.06), 0 3px 8px rgba(0, 0, 0, 0.12) !important;
+  background:
+    linear-gradient(95deg, rgba(88, 167, 255, 0.05) 0%, rgba(12, 15, 30, 0.6) 25%, rgba(6, 8, 15, 0.85) 100%) padding-box,
+    linear-gradient(135deg, rgba(88, 167, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 100%) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 12px rgba(88, 167, 255, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 body[data-page="rosters"] .wr-section .player-row:hover {
-  border-color: rgba(88, 167, 255, 0.42) !important;
-  box-shadow: inset 0 0 12px rgba(88, 167, 255, 0.12), 0 0 10px rgba(88, 167, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  background:
+    linear-gradient(95deg, rgba(88, 167, 255, 0.1) 0%, rgba(18, 22, 42, 0.7) 25%, rgba(8, 10, 18, 0.92) 100%) padding-box,
+    linear-gradient(135deg, rgba(88, 167, 255, 0.45) 0%, rgba(123, 110, 255, 0.1) 100%) border-box !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 15px rgba(88, 167, 255, 0.2) !important;
 }
 
 body[data-page="rosters"] .te-section .player-row {
-  border-color: rgba(180, 105, 255, 0.2) !important;
-  box-shadow: inset 0 0 8px rgba(180, 105, 255, 0.06), 0 3px 8px rgba(0, 0, 0, 0.12) !important;
+  background:
+    linear-gradient(95deg, rgba(180, 105, 255, 0.05) 0%, rgba(12, 15, 30, 0.6) 25%, rgba(6, 8, 15, 0.85) 100%) padding-box,
+    linear-gradient(135deg, rgba(180, 105, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 100%) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 12px rgba(180, 105, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 body[data-page="rosters"] .te-section .player-row:hover {
-  border-color: rgba(180, 105, 255, 0.42) !important;
-  box-shadow: inset 0 0 12px rgba(180, 105, 255, 0.12), 0 0 10px rgba(180, 105, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  background:
+    linear-gradient(95deg, rgba(180, 105, 255, 0.1) 0%, rgba(18, 22, 42, 0.7) 25%, rgba(8, 10, 18, 0.92) 100%) padding-box,
+    linear-gradient(135deg, rgba(180, 105, 255, 0.45) 0%, rgba(123, 110, 255, 0.1) 100%) border-box !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 15px rgba(180, 105, 255, 0.2) !important;
 }
 
-/* Selected/Trade/Elevator card highlights */
+/* Active trade simulation selected player highlight */
 body[data-page="rosters"] .player-row.player-selected,
 body[data-page="rosters"] .pick-row.player-selected {
-  border-color: #766dff !important;
-  box-shadow: 0 0 14px rgba(118, 109, 255, 0.45), inset 0 0 8px rgba(118, 109, 255, 0.25) !important;
+  border-color: rgba(123, 110, 255, 0.65) !important;
+  background:
+    linear-gradient(175deg, rgba(24, 20, 60, 0.7) 0%, rgba(10, 8, 28, 0.85) 60%, rgba(6, 5, 18, 0.95) 100%) padding-box,
+    linear-gradient(135deg, rgba(123, 110, 255, 0.7) 0%, rgba(66, 194, 255, 0.4) 100%) border-box !important;
+  box-shadow:
+    inset 0 0 14px rgba(123, 110, 255, 0.25),
+    0 0 20px rgba(123, 110, 255, 0.35),
+    0 6px 18px rgba(0, 0, 0, 0.45) !important;
 }
 
-/* Start Sit Mode Specific Overrides */
-body[data-page="rosters"] .start-sit-column[data-position="QB"] .player-row {
-  border-color: rgba(255, 58, 117, 0.32) !important;
-  box-shadow: inset 0 0 10px rgba(255, 58, 117, 0.12), 0 2px 6px rgba(0,0,0,0.15) !important;
-}
-body[data-page="rosters"] .start-sit-column[data-position="RB"] .player-row {
-  border-color: rgba(0, 235, 199, 0.25) !important;
-  box-shadow: inset 0 0 10px rgba(0, 235, 199, 0.08), 0 2px 6px rgba(0,0,0,0.15) !important;
-}
-body[data-page="rosters"] .start-sit-column[data-position="WR"] .player-row {
-  border-color: rgba(88, 167, 255, 0.25) !important;
-  box-shadow: inset 0 0 10px rgba(88, 167, 255, 0.08), 0 2px 6px rgba(0,0,0,0.15) !important;
-}
-body[data-page="rosters"] .start-sit-column[data-position="TE"] .player-row {
-  border-color: rgba(180, 105, 255, 0.25) !important;
-  box-shadow: inset 0 0 10px rgba(180, 105, 255, 0.08), 0 2px 6px rgba(0,0,0,0.15) !important;
-}
-
-/* Holographic team logo watermark */
+/* Holographic team logo watermark inside player rows */
 body[data-page="rosters"] .player-row .roster-card-watermark {
   opacity: 0.045 !important;
-  filter: grayscale(100%) brightness(1.2) contrast(1.1) !important;
+  filter: grayscale(1) brightness(1.5) contrast(1.15) !important;
+  transition: opacity 0.25s ease, filter 0.25s ease !important;
 }
 body[data-page="rosters"] .player-row:hover .roster-card-watermark {
-  opacity: 0.075 !important;
-  filter: grayscale(100%) brightness(1.4) contrast(1.15) !important;
+  opacity: 0.08 !important;
+  filter: grayscale(1) brightness(1.8) contrast(1.25) !important;
 }
 
-/* ── 10. Player Card Metadata & Values Overhaul ── */
-body[data-page="rosters"] .player-tag {
-  color: #05070e !important;
-  font-weight: 800 !important;
-  border-radius: 4px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
-}
-
+/* ── 10. PLAYER NAME & META TYPOGRAPHY ── */
 body[data-page="rosters"] .player-name {
-  color: #e8ecff !important;
+  color: var(--r-text-hi) !important;
   font-family: 'Google Sans', system-ui, sans-serif !important;
-  font-weight: 400 !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.015em !important;
+  /* 3D embossed typographic depth text shadow stack */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12),
+    0 -1px 0 rgba(0, 0, 0, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.6) !important;
 }
 
 body[data-page="rosters"] .player-name-clickable {
-  text-decoration-color: rgba(144, 148, 193, 0.3) !important;
+  text-decoration-color: rgba(123, 110, 255, 0.2) !important;
 }
 body[data-page="rosters"] .player-name-clickable:hover {
   color: #fff !important;
-  text-decoration-color: rgba(154, 170, 255, 0.8) !important;
+  text-decoration-color: rgba(123, 110, 255, 0.8) !important;
 }
 
 body[data-page="rosters"] .player-meta-line {
-  color: rgba(189, 206, 232, 0.72) !important;
+  color: var(--r-text-mid) !important;
   font-family: 'Product Sans', system-ui, sans-serif !important;
+  font-weight: 400 !important;
 }
 
+/* Glowing Position Badges inside cards */
+body[data-page="rosters"] .player-tag {
+  font-weight: 700 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid transparent !important;
+}
+
+body[data-page="rosters"] .qb-section .player-tag {
+  background: rgba(255, 58, 117, 0.15) !important;
+  border-color: rgba(255, 58, 117, 0.35) !important;
+  color: #ff91b6 !important;
+}
+body[data-page="rosters"] .rb-section .player-tag {
+  background: rgba(0, 235, 199, 0.12) !important;
+  border-color: rgba(0, 235, 199, 0.35) !important;
+  color: #84ffec !important;
+}
+body[data-page="rosters"] .wr-section .player-tag {
+  background: rgba(88, 167, 255, 0.12) !important;
+  border-color: rgba(88, 167, 255, 0.35) !important;
+  color: #a4d1ff !important;
+}
+body[data-page="rosters"] .te-section .player-tag {
+  background: rgba(180, 105, 255, 0.12) !important;
+  border-color: rgba(180, 105, 255, 0.35) !important;
+  color: #ddbeff !important;
+}
+
+/* Inset Value Line Pillar */
 body[data-page="rosters"] .player-value-line {
-  background: rgba(12, 15, 30, 0.75) !important;
+  background: var(--r-bg-well) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.02) !important;
   border-radius: 6px !important;
-  border: 1px solid rgba(154, 170, 255, 0.08) !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35) !important;
 }
 
 body[data-page="rosters"] .player-value-line .value {
   color: #edf3ff !important;
-  filter: brightness(1.15) !important;
   font-weight: 500 !important;
+  filter: brightness(1.15) !important;
 }
 
-/* ── 11. Condensed View Card Overrides ── */
+/* ── 11. CONDENSED VIEW CARD OVERRIDES ── */
 body[data-page="rosters"] .player-row.player-row-condensed {
-  padding-bottom: 2px !important;
-}
-body[data-page="rosters"] .player-row-condensed .player-value-line {
-  background: rgba(8, 10, 22, 0.8) !important;
-  border-radius: 4px !important;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4) !important;
+  background:
+    linear-gradient(175deg, rgba(16, 20, 38, 0.65) 0%, rgba(8, 10, 20, 0.85) 100%) padding-box,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)) border-box !important;
 }
 
-/* ── 12. Bottom Menu Panel Overhaul ── */
+/* ── 12. DRAFT PICK CARDS ── */
+body[data-page="rosters"] .pick-row {
+  background:
+    linear-gradient(95deg, rgba(255, 215, 0, 0.05) 0%, rgba(10, 12, 22, 0.85) 25%, rgba(6, 7, 14, 0.95) 100%) padding-box,
+    linear-gradient(135deg, rgba(255, 215, 0, 0.18) 0%, rgba(255, 255, 255, 0.02) 100%) border-box !important;
+  border-color: rgba(255, 215, 0, 0.15) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 0, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+body[data-page="rosters"] .pick-row:hover {
+  background:
+    linear-gradient(95deg, rgba(255, 215, 0, 0.1) 0%, rgba(18, 22, 42, 0.72) 25%, rgba(8, 10, 18, 0.95) 100%) padding-box,
+    linear-gradient(135deg, rgba(255, 215, 0, 0.5) 0%, rgba(123, 110, 255, 0.1) 100%) border-box !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 15px rgba(255, 215, 0, 0.2) !important;
+}
+
+body[data-page="rosters"] .pick-label {
+  color: #ffe4a0 !important;
+  font-family: 'Product Sans', system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.1),
+    0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+body[data-page="rosters"] .pick-ktc {
+  color: var(--r-text-mid) !important;
+}
+
+body[data-page="rosters"] .pick-ktc .value {
+  color: #fff !important;
+}
+
+/* ── 13. START / SIT PREVIEW COLUMN ── */
+body[data-page="rosters"] .start-sit-column[data-position="QB"] .player-row {
+  border-color: rgba(255, 58, 117, 0.28) !important;
+  box-shadow: inset 0 0 12px rgba(255, 58, 117, 0.1), 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+body[data-page="rosters"] .start-sit-column[data-position="RB"] .player-row {
+  border-color: rgba(0, 235, 199, 0.22) !important;
+  box-shadow: inset 0 0 12px rgba(0, 235, 199, 0.08), 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+body[data-page="rosters"] .start-sit-column[data-position="WR"] .player-row {
+  border-color: rgba(88, 167, 255, 0.22) !important;
+  box-shadow: inset 0 0 12px rgba(88, 167, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+body[data-page="rosters"] .start-sit-column[data-position="TE"] .player-row {
+  border-color: rgba(180, 105, 255, 0.22) !important;
+  box-shadow: inset 0 0 12px rgba(180, 105, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── 14. FLOATING GLASS CAPSULE BOTTOM PANEL ── */
+/* Make outer fixed container fully transparent to remove full-width block */
 body[data-page="rosters"] #bottom-menu-panel {
-  background: linear-gradient(to top, rgba(6, 8, 15, 0.96), rgba(18, 22, 40, 0.86)) !important;
-  border-top: 1px solid rgba(154, 170, 255, 0.18) !important;
-  backdrop-filter: blur(15px) !important;
-  -webkit-backdrop-filter: blur(15px) !important;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.55) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 16px !important;
+}
+
+/* Floating capsule inner menu */
+body[data-page="rosters"] .bottom-menu-panel-inner {
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.005)) padding-box,
+    linear-gradient(135deg, rgba(115, 244, 255, 0.15) 0%, rgba(123, 110, 255, 0.15) 50%, rgba(219, 109, 255, 0.15) 100%) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  padding: 8px 12px !important;
+  pointer-events: auto !important;
 }
 
 body[data-page="rosters"] .mobile-league-nav-panel {
-  background: rgba(6, 8, 16, 0.65) !important;
-  border: 1px solid rgba(128, 138, 189, 0.25) !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
-  border-radius: 12px !important;
-}
-
-body[data-page="rosters"] .watchlist-panel-btn {
-  background: linear-gradient(155deg, rgba(118, 109, 255, 0.35), rgba(41, 46, 92, 0.5)) !important;
-  border: 1px solid rgba(118, 109, 255, 0.45) !important;
-  color: #fff !important;
+  background: rgba(5, 7, 14, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5) !important;
   border-radius: 10px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 10px rgba(118, 109, 255, 0.25) !important;
-  transition: all 0.2s ease !important;
-}
-body[data-page="rosters"] .watchlist-panel-btn:hover {
-  background: linear-gradient(155deg, rgba(118, 109, 255, 0.5), rgba(52, 58, 117, 0.6)) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 15px rgba(118, 109, 255, 0.45) !important;
 }
 
-/* ── 13. Trade Simulator & Start/Sit Overlay Panel Overhaul ── */
+/* Watchlist button pill shape */
+body[data-page="rosters"] .watchlist-panel-btn {
+  background:
+    linear-gradient(155deg, rgba(123, 110, 255, 0.25) 0%, rgba(123, 110, 255, 0.05) 100%) padding-box,
+    linear-gradient(135deg, rgba(123, 110, 255, 0.45), rgba(66, 194, 255, 0.3)) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 10px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(123, 110, 255, 0.15) !important;
+  transition: all 0.25s ease !important;
+}
+
+body[data-page="rosters"] .watchlist-panel-btn:hover {
+  background:
+    linear-gradient(155deg, rgba(123, 110, 255, 0.35), rgba(123, 110, 255, 0.15)) padding-box,
+    linear-gradient(135deg, rgba(123, 110, 255, 0.7), rgba(66, 194, 255, 0.5)) border-box !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 18px rgba(123, 110, 255, 0.3) !important;
+}
+
+body[data-page="rosters"] .watchlist-badge {
+  background: var(--r-qb) !important;
+  box-shadow: 0 0 8px rgba(255, 58, 117, 0.6) !important;
+  color: #fff !important;
+}
+
+/* ── 15. TRADE SIMULATOR / OVERLAY PANEL ── */
 body[data-page="rosters"] .trade-container.glass-panel {
-  background: linear-gradient(165deg, rgba(22, 28, 48, 0.96), rgba(8, 10, 19, 0.98)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.25) !important;
-  backdrop-filter: blur(15px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(15px) saturate(130%) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-  border-radius: 16px !important;
+  background:
+    linear-gradient(165deg, rgba(14, 18, 32, 0.95), rgba(6, 8, 14, 0.99)) padding-box,
+    var(--r-iris) border-box !important;
+  border: 1px solid transparent !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4) !important;
+  border-radius: 18px !important;
+}
+
+body[data-page="rosters"] .trade-assets {
+  background: rgba(5, 7, 14, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 10px !important;
 }
 
 body[data-page="rosters"] .trade-header h3 {
-  color: #eef3ff !important;
+  color: var(--r-text-hi) !important;
   font-family: 'Product Sans', system-ui, sans-serif !important;
   font-weight: 500 !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
 }
 
-body[data-page="rosters"] #collapseTradeButton {
-  background: rgba(6, 8, 16, 0.6) !important;
-  border: 1px solid rgba(128, 138, 189, 0.25) !important;
-  color: #bbc1e6 !important;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3) !important;
+body[data-page="rosters"] .trade-asset-chip {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
 }
-body[data-page="rosters"] #collapseTradeButton:hover {
-  border-color: rgba(118, 109, 255, 0.5) !important;
+
+body[data-page="rosters"] .trade-asset-chip .ktc {
   color: #fff !important;
 }
 
 body[data-page="rosters"] #clearTradeButton,
 body[data-page="rosters"] #closeTradeButton,
 body[data-page="rosters"] #comparePlayersButton {
-  background: rgba(18, 22, 40, 0.5) !important;
-  border: 1px solid rgba(154, 170, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: 8px !important;
   color: rgba(189, 206, 232, 0.75) !important;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+  transition: all 0.25s ease !important;
 }
+
 body[data-page="rosters"] #clearTradeButton:hover,
 body[data-page="rosters"] #closeTradeButton:hover,
 body[data-page="rosters"] #comparePlayersButton:hover {
-  border-color: rgba(154, 170, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
   color: #fff !important;
-  background: rgba(26, 32, 58, 0.65) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 body[data-page="rosters"] #showTradeButton {
-  background: linear-gradient(155deg, rgba(118, 109, 255, 0.85), rgba(66, 194, 255, 0.85)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background:
+    linear-gradient(180deg, rgba(123, 110, 255, 0.85), rgba(123, 110, 255, 0.5)) padding-box,
+    linear-gradient(135deg, #74efff, #d97dff) border-box !important;
+  border: 1.5px solid transparent !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 25px rgba(118, 109, 255, 0.35) !important;
+  box-shadow:
+    0 10px 25px rgba(123, 110, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   color: #fff !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
 }
 
-/* ── 14. Legend Section Overhaul ── */
+/* ── 16. LEGEND SECTION OVERHAUL ── */
 body[data-page="rosters"] .legend-section {
-  background: linear-gradient(165deg, rgba(22, 28, 52, 0.75), rgba(8, 10, 19, 0.85)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.2) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(6px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(120%) !important;
+  background:
+    linear-gradient(165deg, rgba(14, 18, 36, 0.85), rgba(6, 8, 16, 0.95)) padding-box,
+    var(--r-iris) border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(10px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(120%) !important;
 }
 
 body[data-page="rosters"] .legend-section h3 {
   border: none !important;
   background: transparent !important;
-  color: #e2e8ff !important;
+  color: var(--r-text-hi) !important;
   font-family: 'Product Sans', system-ui, sans-serif !important;
   font-weight: 500 !important;
   letter-spacing: 0.05em !important;
-  text-align: left !important;
-  padding: 0 0.5rem !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  padding: 0 4px !important;
 }
 
 body[data-page="rosters"] .legend-card {
-  background: linear-gradient(165deg, rgba(24, 30, 52, 0.5), rgba(10, 13, 24, 0.7)) !important;
-  border: 1px solid rgba(154, 170, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: 8px !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02) !important;
 }
 
 body[data-page="rosters"] .legend-pos {
-  background-color: rgba(118, 109, 255, 0.35) !important;
+  background-color: rgba(123, 110, 255, 0.25) !important;
+  border: 1px solid rgba(123, 110, 255, 0.4) !important;
   color: #fff !important;
   border-radius: 4px !important;
 }
 
 body[data-page="rosters"] .legend-name {
-  color: #e8ecff !important;
-  font-family: 'Google Sans', system-ui, sans-serif !important;
-  font-weight: 400 !important;
-}
-
-body[data-page="rosters"] .legend-meta {
-  color: rgba(189, 206, 232, 0.72) !important;
+  color: var(--r-text-hi) !important;
 }
 
 body[data-page="rosters"] .legend-bottom-bg {
-  background: rgba(12, 15, 30, 0.75) !important;
+  background: var(--r-bg-well) !important;
   border-radius: 6px !important;
-  border: 1px solid rgba(154, 170, 255, 0.08) !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 
 body[data-page="rosters"] .legend-footnote {
-  color: rgba(144, 150, 192, 0.6) !important;
-  font-family: 'Product Sans', system-ui, sans-serif !important;
-  font-size: 0.56rem !important;
+  color: var(--r-text-lo) !important;
 }
 
-/* ── 15. Loading Overlay Overhaul ── */
+/* ── 17. LOADING OVERLAY ── */
 body[data-page="rosters"] .loading-overlay {
-  background: rgba(4, 6, 12, 0.85) !important;
-  backdrop-filter: blur(10px) saturate(130%) !important;
-  -webkit-backdrop-filter: blur(10px) saturate(130%) !important;
+  background: rgba(4, 5, 10, 0.9) !important;
+  backdrop-filter: blur(15px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(130%) !important;
 }
 
 body[data-page="rosters"] .loading-spinner {
-  border-top-color: #766dff !important;
-  border-right-color: rgba(118, 109, 255, 0.15) !important;
-  border-bottom-color: rgba(118, 109, 255, 0.15) !important;
-  border-left-color: rgba(118, 109, 255, 0.15) !important;
+  border-top-color: var(--r-vio) !important;
+  border-right-color: rgba(123, 110, 255, 0.15) !important;
+  border-bottom-color: rgba(123, 110, 255, 0.15) !important;
+  border-left-color: rgba(123, 110, 255, 0.15) !important;
+  box-shadow: 0 0 16px rgba(123, 110, 255, 0.25) !important;
 }
 
 body[data-page="rosters"] .loading-logo {
-  filter: drop-shadow(0 0 15px rgba(118, 109, 255, 0.4)) !important;
+  filter: drop-shadow(0 0 20px rgba(123, 110, 255, 0.45)) !important;
 }
 
-body[data-page="rosters"] .loading-text {
-  color: #e2e8ff !important;
-  text-shadow: 0 0 8px rgba(118, 109, 255, 0.3) !important;
-  font-family: 'Product Sans', system-ui, sans-serif !important;
-  font-weight: 300 !important;
+body[data-page="rosters"] .loading-text span {
+  color: var(--r-text-hi) !important;
+  text-shadow: 0 0 8px rgba(123, 110, 255, 0.3) !important;
 }
 
-/* ── 16. Shared Modal Variables & Visual Overrides (inspired by DataHub) ── */
-body[data-page="rosters"] {
-  --datahub-modal-text-primary: rgba(238, 243, 255, 0.96);
-  --datahub-modal-text-secondary: rgba(189, 206, 232, 0.76);
-  --datahub-modal-text-tertiary: rgba(144, 150, 192, 0.7);
-  --datahub-modal-border: rgba(128, 138, 189, 0.2);
-  --datahub-modal-border-strong: rgba(183, 194, 246, 0.18);
-  --datahub-modal-panel-bg: rgba(18, 24, 39, 0.86);
-  --datahub-modal-panel-bg-strong: rgba(13, 17, 28, 0.94);
-  --datahub-modal-chip-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
-    rgba(9, 14, 24, 0.5);
-  --datahub-modal-card-shadow:
-    0 8px 32px rgba(31, 38, 105, 0.16),
-    inset 0 6px 20px rgba(255, 255, 255, 0.015);
-}
-
-/* Modals glass container style overrides */
+/* ── 18. PREMIUM GLASS MODALS (inspired by DataHub) ── */
 body[data-page="rosters"] #game-logs-modal .modal-content,
 body[data-page="rosters"] #game-logs-modal .ownership-modal-content,
 body[data-page="rosters"] #watchlist-modal .modal-content,
 body[data-page="rosters"] #ownershipPlayerModal .modal-content,
 body[data-page="rosters"] #player-comparison-modal .modal-content {
   border-radius: 18px !important;
-  border: 1px solid var(--datahub-modal-border-strong) !important;
+  border: 1px solid transparent !important;
   background:
-    linear-gradient(165deg, rgba(30, 40, 63, 0.92), rgba(10, 15, 26, 0.9)),
-    rgba(11, 15, 23, 0.96) !important;
+    linear-gradient(165deg, rgba(14, 20, 36, 0.96) 0%, rgba(6, 9, 16, 0.99) 100%) padding-box,
+    linear-gradient(145deg, rgba(115, 244, 255, 0.25) 0%, rgba(123, 110, 255, 0.25) 50%, rgba(219, 109, 255, 0.25) 100%) border-box !important;
   box-shadow:
-    0 28px 65px rgba(4, 8, 24, 0.65),
-    inset 0 0 28px rgba(120, 100, 255, 0.08) !important;
+    0 36px 90px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 32px rgba(123, 110, 255, 0.1) !important;
+  backdrop-filter: blur(28px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(140%) !important;
 }
 
 body[data-page="rosters"] .gamelogs-modal-tabs {
-  border: 1px solid var(--datahub-modal-border) !important;
-  background: rgba(9, 14, 24, 0.62) !important;
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(5, 7, 14, 0.8) !important;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 body[data-page="rosters"] .gamelogs-modal-tab.is-active {
-  background: linear-gradient(155deg, rgba(120, 134, 214, 0.32), rgba(55, 63, 111, 0.24)) !important;
-  color: #dce4ff !important;
-  border-color: rgba(154, 170, 255, 0.24) !important;
-  box-shadow: 0 0 10px rgba(110, 90, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(155deg, rgba(123, 110, 255, 0.25), rgba(41, 46, 92, 0.2)) !important;
+  color: #fff !important;
+  border-color: rgba(123, 110, 255, 0.4) !important;
+  box-shadow:
+    0 0 12px rgba(123, 110, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Modals position badges */
 body[data-page="rosters"] .modal-pos-tag.QB {
-  color: #ff3a75c0 !important;
-  box-shadow: inset 0 0 10px rgba(255, 58, 117, 0.12), var(--datahub-modal-card-shadow) !important;
+  color: #ff91b6 !important;
+  text-shadow: 0 0 6px var(--r-qb) !important;
 }
 body[data-page="rosters"] .modal-pos-tag.RB {
-  color: #36f7da8f !important;
-  text-shadow: 0px 0px 7px rgba(131, 255, 236, 0.6) !important;
-  box-shadow: inset 0 0 8px rgba(0, 235, 199, 0.12), var(--datahub-modal-card-shadow) !important;
+  color: #84ffec !important;
+  text-shadow: 0 0 6px var(--r-rb) !important;
 }
 body[data-page="rosters"] .modal-pos-tag.WR {
-  color: #58a7ffca !important;
-  box-shadow: inset 0 0 10px rgba(88, 167, 255, 0.18), var(--datahub-modal-card-shadow) !important;
+  color: #a4d1ff !important;
+  text-shadow: 0 0 6px var(--r-wr) !important;
 }
 body[data-page="rosters"] .modal-pos-tag.TE {
-  color: #b469ffca !important;
-  box-shadow: inset 0 0 10px rgba(180, 105, 255, 0.18), var(--datahub-modal-card-shadow) !important;
+  color: #ddbeff !important;
+  text-shadow: 0 0 6px var(--r-te) !important;
 }
-
