@@ -159,7 +159,7 @@
   --pos-tx: #808ea3;
   /* · · Other vars · · */
   --panel-border-radius: 12px;
-  --card-border-radius: 8px;
+  --card-border-radius: 10px;
   --glow-strength: 0.6;
   /* FIXED: give it a value so parsing continues */
   /* · · Orb 3 (shared) — using lengths so gradient center = orb center · · */
@@ -2239,7 +2239,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   padding: 0.0rem 0;
   position: relative;
   border: 1px solid var(--color-panel-border);
-  border-radius: 5px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
@@ -2310,17 +2310,17 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 /* · · Card Box Shadows by POS · · */
 .qb-section .player-row {
-  box-shadow: inset 0 0 9px #FF3A7542;
+  box-shadow: inset 0 0 9px #FF3A7522;
   /* QB border */
 }
 
 .rb-section .player-row {
-  box-shadow: inset 0 0 15px #00EBC715;
+  box-shadow: inset 0 0 11px #00EBC716;
   /* RB border */
 }
 
 .wr-section .player-row {
-  box-shadow: inset 0 0 15px #58A7FF20;
+  box-shadow: inset 0 0 11px #58A7FF16;
   /* WR border */
 }
 
@@ -2586,41 +2586,52 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   justify-content: center;
   font-size: 0.6rem;
   font-weight: 700;
-  min-width: 23px;
-  min-height: 14px;
+  margin: 1px;
+  min-width: 22px;
+  min-height: 16px;
   border-radius: 5px;
   color: var(--color-text-primary);
   line-height: 1;
-  border: 0px solid rgba(128, 138, 189, 0.3);
+  border: 0px solid;
   background-color: rgba(20, 28, 58, 0.15);
   background-image: linear-gradient(rgb(59 65 78 / 28%), rgb(40 47 55 / 69%) 35%);
   position: relative;
   overflow: hidden;
+  border-bottom: 1px groove;
+  border-bottom-color: color-mix(in srgb, #45ffcd 17%, #fff 5%) !important;
+  background: linear-gradient(180deg, rgb(47 52 64 / 28%), rgb(77 67 102 / 2%)), rgb(18 19 26 / 55%);
+  box-shadow: 0px -2px 5px 0px #fff2, 0 0px 3px #0000;
 }
 
 /* Position-specific tag colors (QB/RB/WR/TE) */
 .player-tag[data-pos="QB"] {
-  color: var(--pos-qb);
+  color: #d1708db8;
   border-color: #FF3A7500;
-  background-color: #FF3A7515;
+  background-color: #FF3A7505;
+  border-bottom: 1px groove;
+  border-bottom-color: color-mix(in srgb, #FF3A75 9%, #fff 9%) !important;
 }
 
 .player-tag[data-pos="RB"] {
-  color: var(--pos-rb);
-  border-color: #00EBC799;
-  background-color: #00EBC714;
+  color: #76d4c6ca;
+  border-color: #00EBC700;
+  background-color: #00EBC705;
 }
 
 .player-tag[data-pos="WR"] {
   color: var(--pos-wr);
   border-color: #58A7FF99;
-  background-color: #58A7FF16;
+  background-color: #58A7FF11;
+  border-bottom: 1px groove;
+  border-bottom-color: color-mix(in srgb, #2877FF 17%, #fff 15%) !important;
 }
 
 .player-tag[data-pos="TE"] {
   color: var(--pos-te);
   border-color: #B469FF99;
-  background-color: #B469FF16;
+  background-color: #B469FF08;
+  border-bottom: 1px groove;
+  border-bottom-color: color-mix(in srgb, #B469FF 9%, #fff 8%) !important;
 }
 
 .player-tag[data-pos="BN"] {
