@@ -6453,6 +6453,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     modalHeaderLeftContainer.className = 'modal-header-left-container';
     const posTag = document.createElement('div');
     posTag.className = `player-tag modal-pos-tag ${player.pos}`;
+    posTag.dataset.pos = player.pos;
     posTag.textContent = player.pos;
     modalHeaderLeftContainer.appendChild(posTag);
     // Stats page modal header team source:
@@ -7530,6 +7531,7 @@ function renderPlayerComparison(players) {
         tagsRow.className = 'player-header-tags';
         const posTag = document.createElement('div');
         posTag.className = `player-tag modal-pos-tag ${player.pos}`;
+        posTag.dataset.pos = player.pos;
         posTag.textContent = player.pos;
         const teamKey = (player.team || fullPlayer?.team || 'FA').toUpperCase();
         const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
@@ -8454,7 +8456,7 @@ function createPlayerRow(player, teamName) {
         ? `<span class="player-pos-rank condensed-pos-rank" style="color: ${effectivePosRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>`
         : '';
     const playerTagHtml = !isCondensedView
-        ? `<div class="player-tag" style="background-color: ${TAG_COLORS[displaySlot] || 'var(--pos-bn)'};">${displaySlot}</div>`
+        ? `<div class="player-tag" data-pos="${displaySlot}">${displaySlot}</div>`
         : '';
     const condensedTeamTagHtml = isCondensedView
         ? `<span class="condensed-team-tag">${teamTagHTML}</span>`
@@ -8711,7 +8713,7 @@ function renderStartSitPreview() {
                         <div class="trade-asset-chip start-sit-chip">
                             <div class="start-sit-chip-body">
                                 <span class="start-sit-name">
-                                    <span class="start-sit-inline-tag player-tag" style="background-color: ${tagColor};">${selection.pos}</span>
+                                    <span class="start-sit-inline-tag player-tag" data-pos="${selection.pos}">${selection.pos}</span>
                                     <span class="start-sit-name-text">${escapeHtml(selection.label)}</span>
                                 </span>
                                 <span class="start-sit-metric"><span class="start-sit-metric-value" style="color: ${ppgColor};">${ppgText}</span><span class="start-sit-metric-unit">PPG</span><span class="start-sit-metric-sep">•</span><span class="start-sit-rank"><span class="start-sit-rank-pos" style="color: ${posColor};">${posForColor}</span><span class="start-sit-rank-dot">·</span><span class="start-sit-rank-number" style="color: ${rankColor};">${rankNumberDisplay}</span></span></span>
@@ -8882,8 +8884,7 @@ function renderTradeBlock() {
         if (assets.length > 0) {
             assets.forEach(asset => {
                 const ktcColor = getKtcColor(asset.ktc);
-                const tagColor = TAG_COLORS[asset.pos] || 'var(--pos-bn)';
-                assetsHTML += `<div class="trade-asset-chip"><span class="player-tag" style="background-color: ${tagColor};">${asset.pos || 'DP'}</span><span>${asset.label}</span><span class="ktc" style="color: ${ktcColor}">(${asset.ktc})</span></div>`;
+                assetsHTML += `<div class="trade-asset-chip"><span class="player-tag" data-pos="${asset.pos || 'DP'}">${asset.pos || 'DP'}</span><span>${asset.label}</span><span class="ktc" style="color: ${ktcColor}">(${asset.ktc})</span></div>`;
             });
         } else {
             assetsHTML = `<span class="text-xs text-slate-500 p-2">Select assets...</span>`;
@@ -10284,7 +10285,7 @@ function renderOwnershipModalHeaderSummary(playerId) {
         const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
         const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
         ownershipModalHeaderLeft.innerHTML = `
-            <div class="player-tag modal-pos-tag ${summary.pos}">${summary.pos}</div>
+            <div class="player-tag modal-pos-tag ${summary.pos}" data-pos="${summary.pos}">${summary.pos}</div>
             <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
                 ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
             </div>
@@ -10406,7 +10407,7 @@ function renderOwnershipInGameLogsPane(playerId) {
         const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
         const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
         leftEl.innerHTML = `
-            <div class="player-tag modal-pos-tag ${summary.pos}">${summary.pos}</div>
+            <div class="player-tag modal-pos-tag ${summary.pos}" data-pos="${summary.pos}">${summary.pos}</div>
             <div class="player-tag modal-team-logo-chip" data-team="${teamKey}">
                 ${teamKey !== 'FA' ? `<img class="team-logo glow" src="../assets/NFL_logos_svg/${normalizedKey}.svg" alt="${teamKey}" width="24" height="24" loading="eager">` : '<span>FA</span>'}
             </div>
