@@ -2356,7 +2356,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   width: 70px;
   height: 70px;
   object-fit: contain;
-  opacity: 0.06;
+  opacity: 0.04;
   pointer-events: none;
   z-index: 0;
   user-select: none;
