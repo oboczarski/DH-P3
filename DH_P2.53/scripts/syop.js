@@ -22,25 +22,25 @@
   const SUNBURST_NODES = [
     { id: 'root', parent: null, label: 'SYOP Averages', subtitle: 'SYOP[ႽP] • BRKOUT[BO]', value: 51.6 },
     { id: 'qb', parent: 'root', label: 'QB', subtitle: 'Quarterbacks', value: 16.46, series: 'QB' },
-    { id: 'qb-prime-lambda', parent: 'qb', label: 'Prime Λ', subtitle: '7.2 yrs', value: 6.5, abbr: 'ꜱᴘᴧ', stat: '7.2' },
-    { id: 'qb-breakout-lambda', parent: 'qb', label: 'Breakout Λ', subtitle: '2.3 yrs', value: 2.49, abbr: 'ʙᴏᴧ', stat: '2.3' },
-    { id: 'qb-prime-mode', parent: 'qb', label: 'Prime M', subtitle: '6.0 yrs', value: 5.35, abbr: 'ꜱᴘϻ', stat: '6.0' },
-    { id: 'qb-baseline-mode', parent: 'qb', label: 'Baseline M', subtitle: '1.0 yrs', value: 2.1, abbr: 'ʙᴏϻ', stat: '1.0' },
+    { id: 'qb-prime-lambda', parent: 'qb', label: 'Prime Λ', subtitle: '7.2 yrs', value: 6.5, abbr: 'SPᴧ', stat: '7.2' },
+    { id: 'qb-breakout-lambda', parent: 'qb', label: 'Breakout Λ', subtitle: '2.3 yrs', value: 2.49, abbr: 'BOᴧ', stat: '2.3' },
+    { id: 'qb-prime-mode', parent: 'qb', label: 'Prime M', subtitle: '6.0 yrs', value: 5.35, abbr: 'SPϻ', stat: '6.0' },
+    { id: 'qb-baseline-mode', parent: 'qb', label: 'Baseline M', subtitle: '1.0 yrs', value: 2.1, abbr: 'BOϻ', stat: '1.0' },
     { id: 'rb', parent: 'root', label: 'RB', subtitle: 'Running Backs', value: 9.8, series: 'RB' },
-    { id: 'rb-prime-lambda', parent: 'rb', label: 'Prime Λ', subtitle: '3.4 yrs', value: 3.31, abbr: 'ꜱᴘᴧ', stat: '3.4' },
-    { id: 'rb-breakout-lambda', parent: 'rb', label: 'Breakout Λ', subtitle: '2.2 yrs', value: 2.5, abbr: 'ʙᴏᴧ', stat: '2.2' },
-    { id: 'rb-prime-mode', parent: 'rb', label: 'Prime M', subtitle: '0.7 yrs', value: 1.89, abbr: 'ꜱᴘϻ', stat: '0.7' },
-    { id: 'rb-baseline-mode', parent: 'rb', label: 'Baseline M', subtitle: '1.7 yrs', value: 2.1, abbr: 'ʙᴏϻ', stat: '1.7' },
+    { id: 'rb-prime-lambda', parent: 'rb', label: 'Prime Λ', subtitle: '3.4 yrs', value: 3.31, abbr: 'SPᴧ', stat: '3.4' },
+    { id: 'rb-breakout-lambda', parent: 'rb', label: 'Breakout Λ', subtitle: '2.2 yrs', value: 2.5, abbr: 'BOᴧ', stat: '2.2' },
+    { id: 'rb-prime-mode', parent: 'rb', label: 'Prime M', subtitle: '0.7 yrs', value: 1.89, abbr: 'SPϻ', stat: '0.7' },
+    { id: 'rb-baseline-mode', parent: 'rb', label: 'Baseline M', subtitle: '1.7 yrs', value: 2.1, abbr: 'BOϻ', stat: '1.7' },
     { id: 'wr', parent: 'root', label: 'WR', subtitle: 'Wide Receivers', value: 12.82, series: 'WR' },
-    { id: 'wr-prime-lambda', parent: 'wr', label: 'Prime Λ', subtitle: '4.9 yrs', value: 4.92, abbr: 'ꜱᴘᴧ', stat: '4.9' },
-    { id: 'wr-breakout-lambda', parent: 'wr', label: 'Breakout Λ', subtitle: '2.9 yrs', value: 2.84, abbr: 'ʙᴏᴧ', stat: '2.9' },
-    { id: 'wr-prime-mode', parent: 'wr', label: 'Prime M', subtitle: '3.0 yrs', value: 3, abbr: 'ꜱᴘϻ', stat: '3.0' },
-    { id: 'wr-baseline-mode', parent: 'wr', label: 'Baseline M', subtitle: '2.0 yrs', value: 2, abbr: 'ʙᴏϻ', stat: '2.0' },
+    { id: 'wr-prime-lambda', parent: 'wr', label: 'Prime Λ', subtitle: '4.9 yrs', value: 4.92, abbr: 'SPᴧ', stat: '4.9' },
+    { id: 'wr-breakout-lambda', parent: 'wr', label: 'Breakout Λ', subtitle: '2.9 yrs', value: 2.84, abbr: 'BOᴧ', stat: '2.9' },
+    { id: 'wr-prime-mode', parent: 'wr', label: 'Prime M', subtitle: '3.0 yrs', value: 3, abbr: 'SPϻ', stat: '3.0' },
+    { id: 'wr-baseline-mode', parent: 'wr', label: 'Baseline M', subtitle: '2.0 yrs', value: 2, abbr: 'BOϻ', stat: '2.0' },
     { id: 'te', parent: 'root', label: 'TE', subtitle: 'Tight Ends', value: 12.5, series: 'TE' },
-    { id: 'te-prime-lambda', parent: 'te', label: 'Prime Λ', subtitle: '4.0 yrs', value: 4.01, abbr: 'ꜱᴘᴧ', stat: '4.0' },
-    { id: 'te-breakout-lambda', parent: 'te', label: 'Breakout Λ', subtitle: '3.5 yrs', value: 3.49, abbr: 'ʙᴏᴧ', stat: '3.5' },
-    { id: 'te-prime-mode', parent: 'te', label: 'Prime M', subtitle: '2.0 yrs', value: 2, abbr: 'ꜱᴘϻ', stat: '2.0' },
-    { id: 'te-baseline-mode', parent: 'te', label: 'Baseline M', subtitle: '3.0 yrs', value: 3, abbr: 'ʙᴏϻ', stat: '3.0' }
+    { id: 'te-prime-lambda', parent: 'te', label: 'Prime Λ', subtitle: '4.0 yrs', value: 4.01, abbr: 'SPᴧ', stat: '4.0' },
+    { id: 'te-breakout-lambda', parent: 'te', label: 'Breakout Λ', subtitle: '3.5 yrs', value: 3.49, abbr: 'BOᴧ', stat: '3.5' },
+    { id: 'te-prime-mode', parent: 'te', label: 'Prime M', subtitle: '2.0 yrs', value: 2, abbr: 'SPϻ', stat: '2.0' },
+    { id: 'te-baseline-mode', parent: 'te', label: 'Baseline M', subtitle: '3.0 yrs', value: 3, abbr: 'BOϻ', stat: '3.0' }
   ];
 
   const SYOP_DATA = [
@@ -393,7 +393,7 @@
     if (chars.length < 3) return null;
     const base = chars.slice(0, -1).join('');
     const suffix = chars[chars.length - 1];
-    const baseKind = base === 'ꜱᴘ' ? 'sp' : base === 'ʙᴏ' ? 'bo' : null;
+    const baseKind = base === 'SP' ? 'sp' : base === 'BO' ? 'bo' : null;
     const suffixKind = suffix === 'ᴧ' ? 'lambda' : suffix === 'ϻ' ? 'mode' : null;
     if (baseKind && suffixKind) return { baseKind, suffixKind, base, suffix };
     return null;
@@ -421,8 +421,8 @@
     const outer1 = 178 * scale;
     const inner2 = 184 * scale;
     const outer2 = 284 * scale;
-    const ring1Opacity = 0.9;
-    const ring2Opacity = 0.5;
+    const ring1Opacity = 0.75;
+    const ring2Opacity = 0.45;
     const centerRadius = 94 * scale;
     const textStroke = 'rgba(11, 14, 22, 0.68)';
     const fontSize = (value, floor = 12) => Math.max(value * scale, floor);
@@ -476,7 +476,7 @@
         fill: colors.text,
         'text-anchor': 'middle',
         'dominant-baseline': 'middle',
-        'font-size': fontSize(26, 20),
+        'font-size': fontSize(26, 24),
         'font-weight': '600',
         'paint-order': 'stroke',
         stroke: textStroke,
@@ -571,7 +571,7 @@
       x: cx,
       y: cy - 30 * scale,
       fill: colors.text,
-      'font-size': fontSize(23, 17),
+      'font-size': fontSize(23, 21),
       'font-weight': '800',
       'text-anchor': 'middle',
       'paint-order': 'stroke',
@@ -585,7 +585,7 @@
       x: cx,
       y: cy + 0 * scale,
       fill: colors.text,
-      'font-size': fontSize(23, 17),
+      'font-size': fontSize(23, 21),
       'font-weight': '800',
       'text-anchor': 'middle',
       'paint-order': 'stroke',
