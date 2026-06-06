@@ -231,7 +231,7 @@ body[data-page="research"] .app-header {
   align-items: center;
   padding: 0.16rem 0.55rem;
   min-height: 11px;
-  border-radius: 999px;
+  border-radius: 15px;
   background: rgba(16, 20, 34, 0.32);
   border: 1px solid rgba(132, 146, 255, 0.22);
   color: rgba(226, 232, 240, 0.9);
@@ -261,18 +261,22 @@ body[data-page="research"] .app-header {
    emphasis, and separator spacing scoped only to the two SYOP intro chips. */
 body[data-page="research"] .research-meta-pos--qb {
   color: var(--research-meta-pos-qb);
+  font-weight: 400;
 }
 
 body[data-page="research"] .research-meta-pos--rb {
   color: var(--research-meta-pos-rb);
+  font-weight: 400;
 }
 
 body[data-page="research"] .research-meta-pos--wr {
   color: var(--research-meta-pos-wr);
+  font-weight: 400;
 }
 
 body[data-page="research"] .research-meta-pos--te {
   color: var(--research-meta-pos-te);
+  font-weight: 400;
 }
 
 body[data-page="research"] .research-meta-pos--threshold {
@@ -284,7 +288,7 @@ body[data-page="research"] .research-meta-value--threshold {
 }
 
 body[data-page="research"] .research-meta-benchmark-digit {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 body[data-page="research"] .research-meta-separator {
@@ -690,7 +694,7 @@ body[data-page="research"] .research-meta-separator {
 
 .syop-chart svg text,
 .syop-sunburst-svg text {
-  font-family: Product Sans, Google Sans;
+  font-family: 'Product Sans';
 }
 
 .syop-sunburst-svg {
@@ -704,8 +708,8 @@ body[data-page="research"] .research-meta-separator {
    SP/BO base styles and Lambda/Mode suffix styles do not affect other text. */
 body[data-page="research"] .syop-sunburst-metric-label {
   filter: drop-shadow(0 0 3px rgba(245, 251, 255, 0.28));
-  font-size: max(calc(21px * var(--syop-sunburst-scale, 1)), 15px);
-  font-weight: 400;
+  font-size: max(calc(24px * var(--syop-sunburst-scale, 1)), 15px);
+  font-weight: 200;
   transform: translateY(-6px);
 }
 
@@ -713,16 +717,17 @@ body[data-page="research"] .syop-sunburst-metric-label {
    style, and tracking so visual tuning does not require chart JS changes. */
 body[data-page="research"] .syop-sunburst-metric-base--sp {
   fill: #c7ffda;
-  font-weight: 400;
-  font-style: normal;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-size: 13px;
   text-shadow: 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%), 1px 1px 1px rgb(61 0 255 / 36%);
 }
 
 body[data-page="research"] .syop-sunburst-metric-base--bo {
   fill: #dae3ec;
-  font-weight: 400;
-  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-size: 13px;
   text-shadow: 0px 0px 1px rgb(101 193 255 / 46%), 1px 1px 1px rgb(101 193 255 / 36%);
 }
 
@@ -730,8 +735,8 @@ body[data-page="research"] .syop-sunburst-metric-base--bo {
    offset are CSS-driven while the SVG keeps semantic classes only. */
 body[data-page="research"] .syop-sunburst-metric-suffix {
   --syop-sunburst-suffix-gap: 0px;
-  baseline-shift: -8%;
-  font-size: max(calc(23px * var(--syop-sunburst-scale, 1)), 16px);
+  baseline-shift: 6%;
+  font-size: max(calc(26px * var(--syop-sunburst-scale, 1)), 16px);
   font-weight: 600;
   letter-spacing: 0;
   transform: translateX(var(--syop-sunburst-suffix-gap));
@@ -1118,7 +1123,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
 
 @media (max-width: 540px) {
   .syop-hero {
-    padding: 0.24rem 0.35rem 0.3rem;
+    padding: 0.24rem 0.4rem 0.3rem;
   }
 
   .syop-hero h1 {
@@ -1147,7 +1152,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   }
 
   .syop-hero-meta {
-    gap: 0.24rem;
+    gap: 0.34rem;
   }
 
   .syop-hero-meta-item {
@@ -1710,16 +1715,15 @@ body[data-page="research"] #secondary-header-row {
 }
 .meta-tits {
     display: inline-block;
-    color: #868aa6e0;
-    transform: rotate(90deg) translateY(-1px) translateX(17px) scale(1.5) scaleX(1.3);
+    color: #6a71a0d4;
+    transform: rotate(90deg) translateY(871%) translateX(17px) scale(1.6) scaleY(1.3);
     font-size: 14px;
-    text-shadow: 0 0 3px #969ab1;
 }
 .meta-slut {
   color: #fff;
   color: #95a0af;
   font-weight: 500;
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   border-radius: 2px;
   border-bottom: 1px dotted #fff1;
   text-shadow: 1px 1px 0px #9999;
@@ -1735,9 +1739,10 @@ body[data-page="research"] #secondary-header-row {
 }
 .meta-chk {
     color: #6a6e8e;
-    font-size: 11px;
+    font-size: 10px;
     display: inline-block;
-    padding: 0px 4px 0 3px;
+    padding: 0px 3px 0 3px;
     font-weight: 700;
     transform: translatex(1px);
+    filter: opacity(0.6) contrast(1);
 }
