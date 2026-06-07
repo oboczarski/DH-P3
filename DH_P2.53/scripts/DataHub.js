@@ -7400,7 +7400,7 @@ function syncStatsQualifierControls(mount) {
     statOptions,
     state.statsFilters.qualifierStat,
     qualifiersActive,        // true = is-filtering accent ring
-    qualifiersActive ? null : "STAT", // null = use actual value; string = placeholder
+    null, // null = always show the selected value (no placeholder)
   );
 
   const thresholdOptions = getStatsQualifierThresholds(
@@ -7427,7 +7427,7 @@ function syncStatsQualifierControls(mount) {
     thresholdOptions,
     state.statsFilters.qualifierThreshold,
     qualifiersActive,
-    qualifiersActive ? null : "MIN",
+    null, // null = always show the selected value
   );
 
   // --- Team filter (multi-select) ---
@@ -7453,6 +7453,10 @@ function syncStatsQualifierControls(mount) {
   mount.qualifierStatShell?.classList.toggle("is-filtering", qualifiersActive);
   mount.qualifierThresholdShell?.classList.toggle("is-filtering", qualifiersActive);
 
+  // Apply inactive dimming when Show All is ON.
+  mount.qualifierStatShell?.classList.toggle("is-dimmed", !qualifiersActive);
+  mount.qualifierThresholdShell?.classList.toggle("is-dimmed", !qualifiersActive);
+
   // Active state on the Show All toggle label.
   mount.qualifierShowAll?.closest(".qualifier-toggle")?.classList.toggle("is-active", state.statsFilters.showAll);
 }
@@ -7461,9 +7465,8 @@ function syncStatsQualifierControls(mount) {
 // - Populates the menu with <button role="option"> items.
 // - Sets the trigger label to the selected value or a placeholder.
 // - Marks the selected option with is-active class.
-// - Sets data-placeholder on the trigger for CSS placeholder coloring.
 // - Sets data-open on the shell so the chevron CSS animation works.
-function syncQualifierCustomDropdown(shell, trigger, valueEl, menu, options, selectedValue, isFiltering, placeholder) {
+function syncQualifierCustomDropdown(shell, trigger, valueEl, menu, options, selectedValue, isFiltering) {
   if (!trigger || !valueEl || !menu) {
     return;
   }
@@ -7484,12 +7487,8 @@ function syncQualifierCustomDropdown(shell, trigger, valueEl, menu, options, sel
   });
   menu.replaceChildren(fragment);
 
-  // Show placeholder text when showAll is ON; otherwise show the real value.
-  const isPlaceholder = placeholder !== null && placeholder !== undefined;
-  trigger.dataset.placeholder = String(isPlaceholder);
-  valueEl.textContent = isPlaceholder
-    ? placeholder
-    : (options.find((o) => o.value === selectedValue)?.label || selectedValue);
+  // Set the trigger label to the selected value.
+  valueEl.textContent = options.find((o) => o.value === selectedValue)?.label || selectedValue;
 }
 
 function syncTeamFilterControl(mount, options) {

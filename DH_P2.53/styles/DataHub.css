@@ -1986,11 +1986,10 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Placeholder text color — shown when showAll is ON */
-.qualifier-trigger[data-placeholder="true"] .qualifier-trigger__value {
-  color: rgba(171, 186, 209, 0.52);
-  font-weight: 500;
-  letter-spacing: 0.06em;
+/* Inactive styling when Show All is ON */
+.qualifier-field.is-dimmed .qualifier-trigger {
+  opacity: 0.52;
+  color: rgba(171, 186, 209, 0.62);
 }
 
 /* Chevron arrow on the qualifier trigger button */
@@ -6394,12 +6393,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Desktop qualifier trigger replaces native select — same sizing/visual rules */
-  .hero-controls--desktop .qualifier-trigger {
+  .hero-controls--desktop .qualifier-trigger,
+  .hero-controls--desktop .qualifier-toggle {
     min-height: 40px;
     border-radius: 14px;
-    padding: 0 32px 0 12px;
     background: linear-gradient(180deg, rgba(29, 43, 64, 0.9), rgba(17, 23, 35, 0.95));
     box-shadow: inset 0 5px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(171, 189, 209, 0.14);
+  }
+
+  .hero-controls--desktop .qualifier-trigger {
+    padding: 0 32px 0 12px;
     color: rgba(233, 241, 253, 0.92);
     font-size: 0.74rem;
   }
