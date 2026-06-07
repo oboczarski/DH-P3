@@ -1857,7 +1857,8 @@ function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.d
     qualifierStat: config.defaultStat,
     qualifierThreshold: String(config.defaultThreshold),
     showAll: Boolean(config.defaultShowAll),
-    team: "",
+    // Multi-select team filter: empty array means "All Teams".
+    teams: [],
   };
 }
 
@@ -2709,9 +2710,22 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   receivingSubfilters: root.querySelector("[data-receiving-subfilters]"),
   tradeEntityRow: root.querySelector("[data-trade-entity-row]"),
   qualifierRow: root.querySelector("[data-qualifier-row]"),
+  // Legacy native selects are replaced by custom dropdowns below.
+  // These refs are kept null-safe in case old HTML is still present.
   qualifierStat: root.querySelector("[data-qualifier-stat]"),
   qualifierThreshold: root.querySelector("[data-qualifier-threshold]"),
   qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
+  // Custom qualifier stat dropdown (replaces native <select>):
+  qualifierStatShell: root.querySelector("[data-qualifier-stat-shell]"),
+  qualifierStatTrigger: root.querySelector("[data-qualifier-stat-trigger]"),
+  qualifierStatValue: root.querySelector("[data-qualifier-stat-value]"),
+  qualifierStatMenu: root.querySelector("[data-qualifier-stat-menu]"),
+  // Custom qualifier threshold dropdown:
+  qualifierThresholdShell: root.querySelector("[data-qualifier-threshold-shell]"),
+  qualifierThresholdTrigger: root.querySelector("[data-qualifier-threshold-trigger]"),
+  qualifierThresholdValue: root.querySelector("[data-qualifier-threshold-value]"),
+  qualifierThresholdMenu: root.querySelector("[data-qualifier-threshold-menu]"),
+  // Team filter (multi-select):
   teamFilterShell: root.querySelector("[data-team-filter-shell]"),
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
   teamFilterValue: root.querySelector("[data-team-filter-value]"),
@@ -2883,9 +2897,17 @@ function attachEventListeners() {
       categoryRow,
       receivingSubfilters,
       tradeEntityRow,
+      // Legacy native select refs (null with new HTML but kept for safety):
       qualifierStat,
       qualifierThreshold,
       qualifierShowAll,
+      // Custom qualifier dropdown refs:
+      qualifierStatShell,
+      qualifierStatTrigger,
+      qualifierStatMenu,
+      qualifierThresholdShell,
+      qualifierThresholdTrigger,
+      qualifierThresholdMenu,
       teamFilterShell,
       teamFilterToggle,
       teamFilterMenu,
@@ -2893,6 +2915,207 @@ function attachEventListeners() {
       playerSearch,
     } = mount;
 
+    // ------------------------------------------------------------------
+    // Custom qualifier stat dropdown: trigger click opens/closes the menu.
+    // ------------------------------------------------------------------
+    qualifierStatTrigger?.addEventListener("click", () => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const isOpen = qualifierStatMenu?.hidden === false;
+      // Close all other custom menus first.
+      closeAllQualifierMenus();
+      closeAllDataHubTeamMenus();
+
+      if (!isOpen && qualifierStatMenu) {
+        qualifierStatMenu.hidden = false;
+        if (qualifierStatShell) {
+          qualifierStatShell.dataset.open = "true";
+        }
+        qualifierStatTrigger.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    // Stat menu option click: pick the stat.
+    // If showAll was ON, automatically turn it OFF so the filter activates.
+    qualifierStatMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const option = event.target.closest("[data-qualifier-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const nextStat = option.dataset.qualifierOption;
+      if (!isAllowedStatsQualifierStat(state.activeCategory, nextStat)) {
+        return;
+      }
+
+      // If Show All was ON, selecting a stat implicitly turns it OFF.
+      if (state.statsFilters.showAll) {
+        state.statsFilters.showAll = false;
+      }
+      state.statsFilters.qualifierStat = nextStat;
+      state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(state.activeCategory, nextStat);
+      closeAllQualifierMenus();
+      syncUiState();
+      refreshGrid();
+    });
+
+    // ------------------------------------------------------------------
+    // Custom qualifier threshold dropdown.
+    // ------------------------------------------------------------------
+    qualifierThresholdTrigger?.addEventListener("click", () => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const isOpen = qualifierThresholdMenu?.hidden === false;
+      closeAllQualifierMenus();
+      closeAllDataHubTeamMenus();
+
+      if (!isOpen && qualifierThresholdMenu) {
+        qualifierThresholdMenu.hidden = false;
+        if (qualifierThresholdShell) {
+          qualifierThresholdShell.dataset.open = "true";
+        }
+        qualifierThresholdTrigger.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    // Threshold menu option click: pick the threshold value.
+    // If showAll was ON, turn it OFF so the filter activates.
+    qualifierThresholdMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const option = event.target.closest("[data-qualifier-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      // If Show All was ON, selecting a threshold implicitly turns it OFF.
+      if (state.statsFilters.showAll) {
+        state.statsFilters.showAll = false;
+      }
+      state.statsFilters.qualifierThreshold = option.dataset.qualifierOption;
+      closeAllQualifierMenus();
+      syncUiState();
+      refreshGrid();
+    });
+
+    // ------------------------------------------------------------------
+    // Legacy native select listeners (kept in case old HTML still present).
+    // ------------------------------------------------------------------
+    qualifierStat?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const nextStat = event.target.value;
+      if (!isAllowedStatsQualifierStat(state.activeCategory, nextStat)) {
+        return;
+      }
+
+      if (state.statsFilters.showAll) {
+        state.statsFilters.showAll = false;
+      }
+      state.statsFilters.qualifierStat = nextStat;
+      state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(state.activeCategory, nextStat);
+      syncUiState();
+      refreshGrid();
+    });
+
+    qualifierThreshold?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      if (state.statsFilters.showAll) {
+        state.statsFilters.showAll = false;
+      }
+      state.statsFilters.qualifierThreshold = event.target.value;
+      syncUiState();
+      refreshGrid();
+    });
+
+    qualifierShowAll?.addEventListener("change", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      state.statsFilters.showAll = Boolean(event.target.checked);
+      syncUiState();
+      refreshGrid();
+    });
+
+    // ------------------------------------------------------------------
+    // Team filter trigger: toggles the menu open/close.
+    // ------------------------------------------------------------------
+    teamFilterToggle?.addEventListener("click", () => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const shouldOpen = teamFilterMenu?.hidden !== false;
+      closeAllDataHubTeamMenus();
+      closeAllQualifierMenus();
+      if (teamFilterMenu) {
+        teamFilterMenu.hidden = !shouldOpen;
+      }
+      if (teamFilterShell) {
+        teamFilterShell.dataset.open = String(shouldOpen);
+      }
+      teamFilterToggle.setAttribute("aria-expanded", String(shouldOpen));
+    });
+
+    // Team filter menu click: handles both team option toggle and Clear All.
+    // Multi-select: the menu stays open after each team selection so the user
+    // can pick multiple teams without reopening. Close on outside-click only.
+    teamFilterMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      // Handle "Clear All" button click.
+      const clearBtn = event.target.closest("[data-team-filter-clear]");
+      if (clearBtn instanceof HTMLButtonElement) {
+        state.statsFilters.teams = [];
+        closeAllDataHubTeamMenus();
+        syncUiState();
+        refreshGrid();
+        return;
+      }
+
+      // Handle individual team option click (toggle in/out of selected set).
+      const option = event.target.closest("[data-team-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const teamValue = option.dataset.teamOption || "";
+      if (!state.statsFilters.teams) {
+        state.statsFilters.teams = [];
+      }
+
+      const idx = state.statsFilters.teams.indexOf(teamValue);
+      if (idx === -1) {
+        // Add team to selection.
+        state.statsFilters.teams = [...state.statsFilters.teams, teamValue];
+      } else {
+        // Remove team from selection (toggle off).
+        state.statsFilters.teams = state.statsFilters.teams.filter((t) => t !== teamValue);
+      }
+
+    });
+
+    // Targets: Rookies view sub-tabs (Rookie Career / Rookie Values).
+    // What it does: Registers click event listener on the rookies mode switcher container.
+    // Notes: Resolves subview, updates states/columns, resets receiving subfilters, and refreshes the grid.
     rookiesModeRow?.addEventListener("click", (event) => {
       const button = event.target.closest("[data-rookies-subview]");
       if (!(button instanceof HTMLButtonElement) || state.activePageTab !== "rookies") {
@@ -3129,16 +3352,26 @@ function attachEventListeners() {
     }
   });
   chartModalOverlay?.addEventListener("click", closeDataHubChartModal);
+
+  // Targets: Global/document-wide clicks.
+  // What it does: Closes custom dropdowns (sort dropdown, team filters, and qualifier filters) when clicking outside.
+  // Notes: Added safety checks to prevent premature closure when clicking inside their respective shells.
   document.addEventListener("click", (event) => {
     if (!event.target?.closest?.("[data-sort-meta-control]")) {
       closeSortMetaDropdown();
     }
 
-    if (event.target?.closest?.("[data-team-filter-shell]")) {
-      return;
+    if (!event.target?.closest?.("[data-team-filter-shell]")) {
+      closeAllDataHubTeamMenus();
     }
-    closeAllDataHubTeamMenus();
+
+    if (!event.target?.closest?.("[data-qualifier-stat-shell]") && !event.target?.closest?.("[data-qualifier-threshold-shell]")) {
+      closeAllQualifierMenus();
+    }
   });
+
+  // Targets: Global escape keypress.
+  // What it does: Closes all modals and active dropdown menus when Escape is pressed.
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.isChartModalOpen) {
       closeDataHubChartModal();
@@ -3146,6 +3379,7 @@ function attachEventListeners() {
     if (event.key === "Escape") {
       closeSortMetaDropdown();
       closeAllDataHubTeamMenus();
+      closeAllQualifierMenus();
     }
   });
 
@@ -7139,6 +7373,8 @@ function syncStatsQualifierControls(mount) {
     if (mount.teamFilterToggle) {
       mount.teamFilterToggle.setAttribute("aria-expanded", "false");
     }
+    // Close qualifier custom menus if view changes
+    closeAllQualifierMenus();
     return;
   }
 
@@ -7152,13 +7388,19 @@ function syncStatsQualifierControls(mount) {
     label: statKey,
   }));
   const qualifiersActive = !state.statsFilters.showAll;
-  syncQualifierSelectOptions(
-    mount.qualifierStat,
-    qualifiersActive
-      ? statOptions
-      : [{ value: "__show-all__", label: "NA" }],
-    qualifiersActive ? state.statsFilters.qualifierStat : "__show-all__",
-    !qualifiersActive,
+
+  // --- Stat custom dropdown ---
+  // Always interactive, even when showAll is ON.
+  // When showAll is ON, show "STAT" placeholder; otherwise show selected value.
+  syncQualifierCustomDropdown(
+    mount.qualifierStatShell,
+    mount.qualifierStatTrigger,
+    mount.qualifierStatValue,
+    mount.qualifierStatMenu,
+    statOptions,
+    state.statsFilters.qualifierStat,
+    qualifiersActive,        // true = is-filtering accent ring
+    qualifiersActive ? null : "STAT", // null = use actual value; string = placeholder
   );
 
   const thresholdOptions = getStatsQualifierThresholds(
@@ -7176,52 +7418,78 @@ function syncStatsQualifierControls(mount) {
     );
   }
 
-  syncQualifierSelectOptions(
-    mount.qualifierThreshold,
-    qualifiersActive
-      ? thresholdOptions
-      : [{ value: "__show-all__", label: "-" }],
-    qualifiersActive ? state.statsFilters.qualifierThreshold : "__show-all__",
-    !qualifiersActive,
+  // --- Threshold custom dropdown ---
+  syncQualifierCustomDropdown(
+    mount.qualifierThresholdShell,
+    mount.qualifierThresholdTrigger,
+    mount.qualifierThresholdValue,
+    mount.qualifierThresholdMenu,
+    thresholdOptions,
+    state.statsFilters.qualifierThreshold,
+    qualifiersActive,
+    qualifiersActive ? null : "MIN",
   );
 
+  // --- Team filter (multi-select) ---
   const teamOptions = getDataHubTeamOptions();
-  if (!teamOptions.some((option) => option.value === state.statsFilters.team)) {
-    state.statsFilters.team = "";
+  // Clean up any selected teams that are no longer in the options list.
+  if (state.statsFilters.teams) {
+    const validTeamValues = new Set(teamOptions.map((o) => o.value));
+    state.statsFilters.teams = state.statsFilters.teams.filter((t) => validTeamValues.has(t));
+  } else {
+    state.statsFilters.teams = [];
   }
   syncTeamFilterControl(mount, teamOptions);
 
+  // --- Show All toggle ---
   if (mount.qualifierShowAll instanceof HTMLInputElement) {
     mount.qualifierShowAll.checked = state.statsFilters.showAll;
   }
 
   mount.qualifierRow.dataset.showAll = String(state.statsFilters.showAll);
   mount.qualifierRow.dataset.qualifierActive = String(qualifiersActive);
-  mount.qualifierStat?.closest(".qualifier-field")?.classList.toggle("is-filtering", qualifiersActive);
-  mount.qualifierThreshold?.closest(".qualifier-field")?.classList.toggle("is-filtering", qualifiersActive);
-  mount.qualifierStat?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
-  mount.qualifierThreshold?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
+
+  // Apply active accent ring to stat/threshold shells when filtering is active.
+  mount.qualifierStatShell?.classList.toggle("is-filtering", qualifiersActive);
+  mount.qualifierThresholdShell?.classList.toggle("is-filtering", qualifiersActive);
+
+  // Active state on the Show All toggle label.
   mount.qualifierShowAll?.closest(".qualifier-toggle")?.classList.toggle("is-active", state.statsFilters.showAll);
 }
 
-function syncQualifierSelectOptions(select, options, selectedValue, isDisabled = false) {
-  if (!(select instanceof HTMLSelectElement)) {
+// Syncs a custom qualifier dropdown (stat or threshold):
+// - Populates the menu with <button role="option"> items.
+// - Sets the trigger label to the selected value or a placeholder.
+// - Marks the selected option with is-active class.
+// - Sets data-placeholder on the trigger for CSS placeholder coloring.
+// - Sets data-open on the shell so the chevron CSS animation works.
+function syncQualifierCustomDropdown(shell, trigger, valueEl, menu, options, selectedValue, isFiltering, placeholder) {
+  if (!trigger || !valueEl || !menu) {
     return;
   }
 
+  // Build menu options.
   const fragment = document.createDocumentFragment();
   options.forEach((optionConfig) => {
-    const option = document.createElement("option");
-    option.value = optionConfig.value;
-    option.textContent = optionConfig.label;
-    fragment.append(option);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "qualifier-menu__option";
+    btn.dataset.qualifierOption = optionConfig.value;
+    btn.setAttribute("role", "option");
+    const isActive = optionConfig.value === selectedValue;
+    btn.setAttribute("aria-selected", String(isActive));
+    btn.classList.toggle("is-active", isActive);
+    btn.textContent = optionConfig.label;
+    fragment.append(btn);
   });
+  menu.replaceChildren(fragment);
 
-  select.replaceChildren(fragment);
-  select.disabled = isDisabled;
-  select.value = options.some((option) => option.value === selectedValue)
-    ? selectedValue
-    : (options[0]?.value || "");
+  // Show placeholder text when showAll is ON; otherwise show the real value.
+  const isPlaceholder = placeholder !== null && placeholder !== undefined;
+  trigger.dataset.placeholder = String(isPlaceholder);
+  valueEl.textContent = isPlaceholder
+    ? placeholder
+    : (options.find((o) => o.value === selectedValue)?.label || selectedValue);
 }
 
 function syncTeamFilterControl(mount, options) {
@@ -7229,14 +7497,33 @@ function syncTeamFilterControl(mount, options) {
     return;
   }
 
+  const selectedTeams = state.statsFilters.teams || [];
   const fragment = document.createDocumentFragment();
+
+  // Clear All button: only shown when at least one team is selected.
+  // Clicking it empties the selection and refreshes the grid.
+  if (selectedTeams.length > 0) {
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "team-filter__clear";
+    clearBtn.dataset.teamFilterClear = "";
+    clearBtn.setAttribute("aria-label", "Clear team filter");
+    clearBtn.innerHTML = `
+      <span>Clear All</span>
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+        <path d="M12 4L4 12M4 4l8 8" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>`;
+    fragment.append(clearBtn);
+  }
+
+  // Team option rows — clicking toggles in/out of the selected set (multi-select).
   options.forEach((optionConfig) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "team-filter__option";
     button.dataset.teamOption = optionConfig.value;
     button.setAttribute("role", "option");
-    const isSelected = optionConfig.value === state.statsFilters.team;
+    const isSelected = selectedTeams.includes(optionConfig.value);
     button.setAttribute("aria-selected", String(isSelected));
     button.classList.toggle("is-active", isSelected);
     button.append(buildTeamFilterContent(optionConfig));
@@ -7245,12 +7532,43 @@ function syncTeamFilterControl(mount, options) {
 
   mount.teamFilterMenu.replaceChildren(fragment);
 
-  const activeOption = options.find((option) => option.value === state.statsFilters.team)
-    || options[0]
-    || { value: "", label: "All Teams" };
-  mount.teamFilterValue.replaceChildren(buildTeamFilterContent(activeOption, { compact: true }));
-  mount.teamFilterShell?.classList.toggle("is-selected", Boolean(state.statsFilters.team));
+  // Build the trigger label: "All Teams" / logo+abbr for 1 / count badge for 2+.
+  mount.teamFilterValue.replaceChildren(buildTeamFilterTriggerLabel(selectedTeams, options));
+  mount.teamFilterShell?.classList.toggle("is-selected", selectedTeams.length > 0);
   mount.teamFilterToggle.setAttribute("aria-expanded", String(mount.teamFilterMenu.hidden === false));
+}
+
+// Builds the trigger label content for the team filter:
+// - Empty: "All Teams" text
+// - 1 selected: team logo + abbreviation
+// - 2+: count badge (e.g. "3 Teams")
+function buildTeamFilterTriggerLabel(selectedTeams, allOptions) {
+  const wrapper = document.createElement("span");
+  wrapper.className = "team-filter__content";
+
+  if (!selectedTeams || selectedTeams.length === 0) {
+    const text = document.createElement("span");
+    text.className = "team-filter__text";
+    text.textContent = "All Teams";
+    wrapper.append(text);
+    return wrapper;
+  }
+
+  if (selectedTeams.length === 1) {
+    const team = selectedTeams[0];
+    const option = allOptions.find((o) => o.value === team) || { value: team, label: team };
+    return buildTeamFilterContent(option, { compact: true });
+  }
+
+  // 2+ teams: show a count badge.
+  const badge = document.createElement("span");
+  badge.className = "team-filter__count";
+  badge.textContent = String(selectedTeams.length);
+  const text = document.createElement("span");
+  text.className = "team-filter__text";
+  text.textContent = "Teams";
+  wrapper.append(badge, text);
+  return wrapper;
 }
 
 function buildTeamFilterContent(optionConfig, options = {}) {
@@ -7295,6 +7613,31 @@ function closeAllDataHubTeamMenus() {
     }
   });
 }
+
+// Closes all custom qualifier (stat + threshold) menus across all mounts.
+function closeAllQualifierMenus() {
+  controlMounts.forEach((mount) => {
+    if (mount.qualifierStatMenu) {
+      mount.qualifierStatMenu.hidden = true;
+    }
+    if (mount.qualifierStatShell) {
+      mount.qualifierStatShell.dataset.open = "false";
+    }
+    if (mount.qualifierStatTrigger) {
+      mount.qualifierStatTrigger.setAttribute("aria-expanded", "false");
+    }
+    if (mount.qualifierThresholdMenu) {
+      mount.qualifierThresholdMenu.hidden = true;
+    }
+    if (mount.qualifierThresholdShell) {
+      mount.qualifierThresholdShell.dataset.open = "false";
+    }
+    if (mount.qualifierThresholdTrigger) {
+      mount.qualifierThresholdTrigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
 
 // Desktop-only glint positioning for the top page tabs. This depends on the
 // actual rendered tab widths, so it is recalculated on load, resize, and when
@@ -8965,11 +9308,12 @@ function matchesStatsQualifierFilter(row) {
 }
 
 function matchesStatsTeamFilter(row) {
-  if (!state.statsFilters.team) {
+  // Multi-select: empty array means no filter applied (show all teams).
+  if (!state.statsFilters.teams || !state.statsFilters.teams.length) {
     return true;
   }
 
-  return String(row.TM || "").trim() === state.statsFilters.team;
+  return state.statsFilters.teams.includes(String(row.TM || "").trim());
 }
 
 function matchesTradeEntityFilters(row) {
