@@ -1858,6 +1858,7 @@ function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.d
     qualifierThreshold: String(config.defaultThreshold),
     showAll: Boolean(config.defaultShowAll),
     team: "",
+    teams: [],
   };
 }
 
@@ -1941,6 +1942,37 @@ function isAllowedStatsQualifierStat(category = state.activeCategory, qualifierS
 
 function formatQualifierThresholdLabel(qualifierStat, threshold) {
   return qualifierStat === "SNP%" ? `${threshold}%` : String(threshold);
+}
+
+function getSelectedStatsTeams() {
+  // DataHub Stats team multi-select:
+  // supports the new `teams` array while tolerating any legacy single-team
+  // value until the next sync writes the normalized state.
+  const rawTeams = Array.isArray(state.statsFilters.teams)
+    ? state.statsFilters.teams
+    : [state.statsFilters.team];
+  return [...new Set(
+    rawTeams
+      .map((team) => String(team || "").trim())
+      .filter(Boolean),
+  )];
+}
+
+function setSelectedStatsTeams(teams) {
+  // DataHub Stats team multi-select:
+  // all team filtering reads from this array; the legacy string is cleared so
+  // old single-team state cannot fight the current multi-select menu.
+  state.statsFilters.teams = [...new Set(
+    (Array.isArray(teams) ? teams : [teams])
+      .map((team) => String(team || "").trim())
+      .filter(Boolean),
+  )];
+  state.statsFilters.team = "";
+}
+
+function syncSelectedStatsTeamsToOptions(options) {
+  const validTeams = new Set(options.map((option) => option.value).filter(Boolean));
+  setSelectedStatsTeams(getSelectedStatsTeams().filter((team) => validTeams.has(team)));
 }
 
 function getDataHubTeamOptions() {
@@ -2711,6 +2743,14 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   qualifierRow: root.querySelector("[data-qualifier-row]"),
   qualifierStat: root.querySelector("[data-qualifier-stat]"),
   qualifierThreshold: root.querySelector("[data-qualifier-threshold]"),
+  qualifierStatShell: root.querySelector('[data-qualifier-dropdown="stat"]'),
+  qualifierThresholdShell: root.querySelector('[data-qualifier-dropdown="threshold"]'),
+  qualifierStatToggle: root.querySelector('[data-qualifier-toggle="stat"]'),
+  qualifierThresholdToggle: root.querySelector('[data-qualifier-toggle="threshold"]'),
+  qualifierStatValue: root.querySelector('[data-qualifier-value="stat"]'),
+  qualifierThresholdValue: root.querySelector('[data-qualifier-value="threshold"]'),
+  qualifierStatMenu: root.querySelector('[data-qualifier-menu="stat"]'),
+  qualifierThresholdMenu: root.querySelector('[data-qualifier-menu="threshold"]'),
   qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
   teamFilterShell: root.querySelector("[data-team-filter-shell]"),
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
@@ -2885,6 +2925,10 @@ function attachEventListeners() {
       tradeEntityRow,
       qualifierStat,
       qualifierThreshold,
+      qualifierStatToggle,
+      qualifierThresholdToggle,
+      qualifierStatMenu,
+      qualifierThresholdMenu,
       qualifierShowAll,
       teamFilterShell,
       teamFilterToggle,
@@ -3005,6 +3049,68 @@ function attachEventListeners() {
       refreshGrid();
     });
 
+    qualifierStatToggle?.addEventListener("click", () => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      toggleDataHubQualifierMenu(mount, "stat");
+    });
+
+    qualifierThresholdToggle?.addEventListener("click", () => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      toggleDataHubQualifierMenu(mount, "threshold");
+    });
+
+    qualifierStatMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const option = event.target.closest("[data-qualifier-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const nextStat = option.dataset.qualifierOption;
+      if (!isAllowedStatsQualifierStat(state.activeCategory, nextStat)) {
+        return;
+      }
+
+      // DataHub Min Qualifiers stat dropdown:
+      // choosing an option exits Show All and lets the existing is-filtering
+      // active border apply exactly as the current qualifier UI defines it.
+      state.statsFilters.showAll = false;
+      state.statsFilters.qualifierStat = nextStat;
+      state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(state.activeCategory, nextStat);
+      closeAllDataHubQualifierMenus();
+      syncUiState();
+      refreshGrid();
+    });
+
+    qualifierThresholdMenu?.addEventListener("click", (event) => {
+      if (state.activePageView !== "stats") {
+        return;
+      }
+
+      const option = event.target.closest("[data-qualifier-option]");
+      if (!(option instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      // DataHub Min Qualifiers threshold dropdown:
+      // threshold selection also exits Show All so the qualifier fields regain
+      // their existing active gradient-border state.
+      state.statsFilters.showAll = false;
+      state.statsFilters.qualifierThreshold = option.dataset.qualifierOption || "";
+      closeAllDataHubQualifierMenus();
+      syncUiState();
+      refreshGrid();
+    });
+
     qualifierStat?.addEventListener("change", (event) => {
       if (state.activePageView !== "stats") {
         return;
@@ -3015,6 +3121,7 @@ function attachEventListeners() {
         return;
       }
 
+      state.statsFilters.showAll = false;
       state.statsFilters.qualifierStat = nextStat;
       state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(state.activeCategory, nextStat);
       syncUiState();
@@ -3026,6 +3133,7 @@ function attachEventListeners() {
         return;
       }
 
+      state.statsFilters.showAll = false;
       state.statsFilters.qualifierThreshold = event.target.value;
       syncUiState();
       refreshGrid();
@@ -3048,6 +3156,7 @@ function attachEventListeners() {
 
       const shouldOpen = teamFilterMenu?.hidden !== false;
       closeAllDataHubTeamMenus();
+      closeAllDataHubQualifierMenus();
       if (teamFilterMenu) {
         teamFilterMenu.hidden = !shouldOpen;
       }
@@ -3062,13 +3171,29 @@ function attachEventListeners() {
         return;
       }
 
+      event.stopPropagation();
+      const clearButton = event.target.closest("[data-team-filter-clear]");
+      if (clearButton instanceof HTMLButtonElement) {
+        setSelectedStatsTeams([]);
+        syncUiState();
+        refreshGrid();
+        return;
+      }
+
       const option = event.target.closest("[data-team-option]");
       if (!(option instanceof HTMLButtonElement)) {
         return;
       }
 
-      state.statsFilters.team = option.dataset.teamOption || "";
-      closeAllDataHubTeamMenus();
+      // DataHub NFL team multi-select:
+      // options toggle in place and the menu remains open so users can select
+      // multiple teams before dismissing the dropdown.
+      const nextTeam = option.dataset.teamOption || "";
+      const selectedTeams = getSelectedStatsTeams();
+      const nextTeams = selectedTeams.includes(nextTeam)
+        ? selectedTeams.filter((team) => team !== nextTeam)
+        : [...selectedTeams, nextTeam];
+      setSelectedStatsTeams(nextTeams);
       syncUiState();
       refreshGrid();
     });
@@ -3134,10 +3259,13 @@ function attachEventListeners() {
       closeSortMetaDropdown();
     }
 
-    if (event.target?.closest?.("[data-team-filter-shell]")) {
-      return;
+    if (!event.target?.closest?.("[data-team-filter-shell]")) {
+      closeAllDataHubTeamMenus();
     }
-    closeAllDataHubTeamMenus();
+
+    if (!event.target?.closest?.("[data-qualifier-dropdown]")) {
+      closeAllDataHubQualifierMenus();
+    }
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.isChartModalOpen) {
@@ -3146,6 +3274,7 @@ function attachEventListeners() {
     if (event.key === "Escape") {
       closeSortMetaDropdown();
       closeAllDataHubTeamMenus();
+      closeAllDataHubQualifierMenus();
     }
   });
 
@@ -7133,12 +7262,26 @@ function syncStatsQualifierControls(mount) {
     if (mount.teamFilterMenu) {
       mount.teamFilterMenu.hidden = true;
     }
+    if (mount.qualifierStatMenu) {
+      mount.qualifierStatMenu.hidden = true;
+    }
+    if (mount.qualifierThresholdMenu) {
+      mount.qualifierThresholdMenu.hidden = true;
+    }
     if (mount.teamFilterShell) {
       mount.teamFilterShell.dataset.open = "false";
+    }
+    if (mount.qualifierStatShell) {
+      mount.qualifierStatShell.dataset.open = "false";
+    }
+    if (mount.qualifierThresholdShell) {
+      mount.qualifierThresholdShell.dataset.open = "false";
     }
     if (mount.teamFilterToggle) {
       mount.teamFilterToggle.setAttribute("aria-expanded", "false");
     }
+    mount.qualifierStatToggle?.setAttribute("aria-expanded", "false");
+    mount.qualifierThresholdToggle?.setAttribute("aria-expanded", "false");
     return;
   }
 
@@ -7154,12 +7297,16 @@ function syncStatsQualifierControls(mount) {
   const qualifiersActive = !state.statsFilters.showAll;
   syncQualifierSelectOptions(
     mount.qualifierStat,
-    qualifiersActive
-      ? statOptions
-      : [{ value: "__show-all__", label: "NA" }],
-    qualifiersActive ? state.statsFilters.qualifierStat : "__show-all__",
-    !qualifiersActive,
+    statOptions,
+    state.statsFilters.qualifierStat,
   );
+  syncQualifierDropdownControl(mount, {
+    kind: "stat",
+    options: statOptions,
+    selectedValue: state.statsFilters.qualifierStat,
+    inactivePlaceholder: "Set Stat",
+    qualifiersActive,
+  });
 
   const thresholdOptions = getStatsQualifierThresholds(
     state.activeCategory,
@@ -7178,17 +7325,19 @@ function syncStatsQualifierControls(mount) {
 
   syncQualifierSelectOptions(
     mount.qualifierThreshold,
-    qualifiersActive
-      ? thresholdOptions
-      : [{ value: "__show-all__", label: "-" }],
-    qualifiersActive ? state.statsFilters.qualifierThreshold : "__show-all__",
-    !qualifiersActive,
+    thresholdOptions,
+    state.statsFilters.qualifierThreshold,
   );
+  syncQualifierDropdownControl(mount, {
+    kind: "threshold",
+    options: thresholdOptions,
+    selectedValue: state.statsFilters.qualifierThreshold,
+    inactivePlaceholder: "Set Min",
+    qualifiersActive,
+  });
 
   const teamOptions = getDataHubTeamOptions();
-  if (!teamOptions.some((option) => option.value === state.statsFilters.team)) {
-    state.statsFilters.team = "";
-  }
+  syncSelectedStatsTeamsToOptions(teamOptions);
   syncTeamFilterControl(mount, teamOptions);
 
   if (mount.qualifierShowAll instanceof HTMLInputElement) {
@@ -7202,9 +7351,10 @@ function syncStatsQualifierControls(mount) {
   mount.qualifierStat?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
   mount.qualifierThreshold?.closest(".qualifier-field")?.classList.toggle("is-dimmed", !qualifiersActive);
   mount.qualifierShowAll?.closest(".qualifier-toggle")?.classList.toggle("is-active", state.statsFilters.showAll);
+  mount.qualifierShowAll?.closest(".qualifier-toggle")?.classList.toggle("is-dimmed", !state.statsFilters.showAll);
 }
 
-function syncQualifierSelectOptions(select, options, selectedValue, isDisabled = false) {
+function syncQualifierSelectOptions(select, options, selectedValue) {
   if (!(select instanceof HTMLSelectElement)) {
     return;
   }
@@ -7218,10 +7368,49 @@ function syncQualifierSelectOptions(select, options, selectedValue, isDisabled =
   });
 
   select.replaceChildren(fragment);
-  select.disabled = isDisabled;
+  select.disabled = false;
   select.value = options.some((option) => option.value === selectedValue)
     ? selectedValue
     : (options[0]?.value || "");
+}
+
+function syncQualifierDropdownControl(mount, config) {
+  const {
+    kind,
+    options,
+    selectedValue,
+    inactivePlaceholder,
+    qualifiersActive,
+  } = config;
+  const menu = kind === "stat" ? mount.qualifierStatMenu : mount.qualifierThresholdMenu;
+  const valueEl = kind === "stat" ? mount.qualifierStatValue : mount.qualifierThresholdValue;
+  const toggle = kind === "stat" ? mount.qualifierStatToggle : mount.qualifierThresholdToggle;
+
+  if (!menu || !valueEl || !toggle) {
+    return;
+  }
+
+  const selectedOption = options.find((option) => option.value === selectedValue)
+    || options[0]
+    || { value: "", label: inactivePlaceholder };
+  valueEl.textContent = qualifiersActive ? selectedOption.label : inactivePlaceholder;
+
+  const fragment = document.createDocumentFragment();
+  options.forEach((optionConfig) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "qualifier-menu__option";
+    button.dataset.qualifierOption = optionConfig.value;
+    button.setAttribute("role", "option");
+    const isSelected = qualifiersActive && optionConfig.value === selectedValue;
+    button.setAttribute("aria-selected", String(isSelected));
+    button.classList.toggle("is-active", isSelected);
+    button.textContent = optionConfig.label;
+    fragment.append(button);
+  });
+
+  menu.replaceChildren(fragment);
+  toggle.setAttribute("aria-expanded", String(menu.hidden === false));
 }
 
 function syncTeamFilterControl(mount, options) {
@@ -7229,28 +7418,75 @@ function syncTeamFilterControl(mount, options) {
     return;
   }
 
+  const selectedTeams = getSelectedStatsTeams();
+  const selectedTeamSet = new Set(selectedTeams);
   const fragment = document.createDocumentFragment();
-  options.forEach((optionConfig) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "team-filter__option";
-    button.dataset.teamOption = optionConfig.value;
-    button.setAttribute("role", "option");
-    const isSelected = optionConfig.value === state.statsFilters.team;
-    button.setAttribute("aria-selected", String(isSelected));
-    button.classList.toggle("is-active", isSelected);
-    button.append(buildTeamFilterContent(optionConfig));
-    fragment.append(button);
-  });
+  mount.teamFilterMenu.setAttribute("aria-multiselectable", "true");
+
+  const clearButton = document.createElement("button");
+  clearButton.type = "button";
+  clearButton.className = "team-filter__clear";
+  clearButton.dataset.teamFilterClear = "true";
+  clearButton.disabled = selectedTeams.length === 0;
+  clearButton.textContent = selectedTeams.length ? "Clear Teams" : "No Teams Selected";
+  fragment.append(clearButton);
+
+  options
+    .filter((optionConfig) => optionConfig.value)
+    .forEach((optionConfig) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "team-filter__option";
+      button.dataset.teamOption = optionConfig.value;
+      button.setAttribute("role", "option");
+      const isSelected = selectedTeamSet.has(optionConfig.value);
+      button.setAttribute("aria-selected", String(isSelected));
+      button.classList.toggle("is-active", isSelected);
+      button.append(buildTeamFilterContent(optionConfig));
+      fragment.append(button);
+    });
 
   mount.teamFilterMenu.replaceChildren(fragment);
 
-  const activeOption = options.find((option) => option.value === state.statsFilters.team)
-    || options[0]
-    || { value: "", label: "All Teams" };
-  mount.teamFilterValue.replaceChildren(buildTeamFilterContent(activeOption, { compact: true }));
-  mount.teamFilterShell?.classList.toggle("is-selected", Boolean(state.statsFilters.team));
+  mount.teamFilterValue.replaceChildren(buildTeamFilterSummary(selectedTeams, options));
+  mount.teamFilterShell?.classList.toggle("is-selected", selectedTeams.length > 0);
   mount.teamFilterToggle.setAttribute("aria-expanded", String(mount.teamFilterMenu.hidden === false));
+}
+
+function buildTeamFilterSummary(selectedTeams, options) {
+  // DataHub team filter summary:
+  // no selection reads as All Teams; one selection keeps the normal logo label;
+  // multi-select collapses into a compact count plus a small logo stack.
+  if (!selectedTeams.length) {
+    return buildTeamFilterContent({ value: "", label: "All Teams" }, { compact: true });
+  }
+
+  if (selectedTeams.length === 1) {
+    const activeOption = options.find((option) => option.value === selectedTeams[0])
+      || { value: selectedTeams[0], label: selectedTeams[0] };
+    return buildTeamFilterContent(activeOption, { compact: true });
+  }
+
+  const wrapper = document.createElement("span");
+  wrapper.className = "team-filter__content team-filter__content--multi";
+  const logoStack = document.createElement("span");
+  logoStack.className = "team-filter__logo-stack";
+  selectedTeams.slice(0, 3).forEach((team) => {
+    const logo = document.createElement("img");
+    logo.className = "team-logo glow team-filter__logo team-filter__logo--stacked";
+    logo.src = getDataHubControlTeamLogoSrc(team);
+    logo.alt = team;
+    logo.width = 16;
+    logo.height = 16;
+    logo.loading = "lazy";
+    logoStack.append(logo);
+  });
+
+  const label = document.createElement("span");
+  label.className = "team-filter__text";
+  label.textContent = `${selectedTeams.length} Teams`;
+  wrapper.append(logoStack, label);
+  return wrapper;
 }
 
 function buildTeamFilterContent(optionConfig, options = {}) {
@@ -7280,6 +7516,44 @@ function buildTeamFilterContent(optionConfig, options = {}) {
   wrapper.append(label);
 
   return wrapper;
+}
+
+function toggleDataHubQualifierMenu(mount, kind) {
+  // DataHub custom qualifier menus:
+  // opening a stat or threshold menu only changes dropdown visibility; active
+  // qualifier styling remains controlled by the existing is-filtering class.
+  const menu = kind === "stat" ? mount.qualifierStatMenu : mount.qualifierThresholdMenu;
+  const shell = kind === "stat" ? mount.qualifierStatShell : mount.qualifierThresholdShell;
+  const toggle = kind === "stat" ? mount.qualifierStatToggle : mount.qualifierThresholdToggle;
+  if (!menu || !shell || !toggle) {
+    return;
+  }
+
+  const shouldOpen = menu.hidden !== false;
+  closeAllDataHubQualifierMenus();
+  closeAllDataHubTeamMenus();
+  menu.hidden = !shouldOpen;
+  shell.dataset.open = String(shouldOpen);
+  toggle.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeAllDataHubQualifierMenus() {
+  controlMounts.forEach((mount) => {
+    if (mount.qualifierStatMenu) {
+      mount.qualifierStatMenu.hidden = true;
+    }
+    if (mount.qualifierThresholdMenu) {
+      mount.qualifierThresholdMenu.hidden = true;
+    }
+    if (mount.qualifierStatShell) {
+      mount.qualifierStatShell.dataset.open = "false";
+    }
+    if (mount.qualifierThresholdShell) {
+      mount.qualifierThresholdShell.dataset.open = "false";
+    }
+    mount.qualifierStatToggle?.setAttribute("aria-expanded", "false");
+    mount.qualifierThresholdToggle?.setAttribute("aria-expanded", "false");
+  });
 }
 
 function closeAllDataHubTeamMenus() {
@@ -8965,11 +9239,12 @@ function matchesStatsQualifierFilter(row) {
 }
 
 function matchesStatsTeamFilter(row) {
-  if (!state.statsFilters.team) {
+  const selectedTeams = getSelectedStatsTeams();
+  if (!selectedTeams.length) {
     return true;
   }
 
-  return String(row.TM || "").trim() === state.statsFilters.team;
+  return selectedTeams.includes(String(row.TM || "").trim());
 }
 
 function matchesTradeEntityFilters(row) {

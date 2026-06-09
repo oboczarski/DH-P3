@@ -437,13 +437,38 @@
             </div>
 
             <div class="qualifier-row__controls">
-              <label class="qualifier-field qualifier-field--stat" aria-label="Qualifying Stat">
-                <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
-              </label>
+              <!-- DataHub custom qualifier dropdown:
+                   keeps the existing qualifier-field active/dim classes while
+                   replacing native select chrome with a page-local menu. -->
+              <div class="qualifier-field qualifier-field--stat" data-qualifier-dropdown="stat" aria-label="Qualifying Stat">
+                <select data-qualifier-stat class="qualifier-native-select" aria-label="Qualifying Stat" tabindex="-1" aria-hidden="true"></select>
+                <button
+                  type="button"
+                  class="qualifier-select"
+                  data-qualifier-toggle="stat"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="Qualifying Stat"
+                >
+                  <span class="qualifier-select__value" data-qualifier-value="stat">Set Stat</span>
+                </button>
+                <div class="qualifier-menu" data-qualifier-menu="stat" role="listbox" hidden></div>
+              </div>
 
-              <label class="qualifier-field qualifier-field--threshold" aria-label="Threshold">
-                <select data-qualifier-threshold class="qualifier-select" aria-label="Threshold"></select>
-              </label>
+              <div class="qualifier-field qualifier-field--threshold" data-qualifier-dropdown="threshold" aria-label="Threshold">
+                <select data-qualifier-threshold class="qualifier-native-select" aria-label="Threshold" tabindex="-1" aria-hidden="true"></select>
+                <button
+                  type="button"
+                  class="qualifier-select"
+                  data-qualifier-toggle="threshold"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="Threshold"
+                >
+                  <span class="qualifier-select__value" data-qualifier-value="threshold">Set Min</span>
+                </button>
+                <div class="qualifier-menu" data-qualifier-menu="threshold" role="listbox" hidden></div>
+              </div>
 
               <label class="qualifier-toggle" aria-label="Show All">
                 <input data-qualifier-show-all type="checkbox" class="qualifier-toggle__input" />
@@ -619,13 +644,38 @@
             </div>
 
             <div class="qualifier-row__controls">
-              <label class="qualifier-field qualifier-field--stat" aria-label="Qualifying Stat">
-                <select data-qualifier-stat class="qualifier-select" aria-label="Qualifying Stat"></select>
-              </label>
+              <!-- DataHub custom qualifier dropdown:
+                   duplicated for the mobile mount so both layouts keep the
+                   same custom menu behavior without moving DOM. -->
+              <div class="qualifier-field qualifier-field--stat" data-qualifier-dropdown="stat" aria-label="Qualifying Stat">
+                <select data-qualifier-stat class="qualifier-native-select" aria-label="Qualifying Stat" tabindex="-1" aria-hidden="true"></select>
+                <button
+                  type="button"
+                  class="qualifier-select"
+                  data-qualifier-toggle="stat"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="Qualifying Stat"
+                >
+                  <span class="qualifier-select__value" data-qualifier-value="stat">Set Stat</span>
+                </button>
+                <div class="qualifier-menu" data-qualifier-menu="stat" role="listbox" hidden></div>
+              </div>
 
-              <label class="qualifier-field qualifier-field--threshold" aria-label="Threshold">
-                <select data-qualifier-threshold class="qualifier-select" aria-label="Threshold"></select>
-              </label>
+              <div class="qualifier-field qualifier-field--threshold" data-qualifier-dropdown="threshold" aria-label="Threshold">
+                <select data-qualifier-threshold class="qualifier-native-select" aria-label="Threshold" tabindex="-1" aria-hidden="true"></select>
+                <button
+                  type="button"
+                  class="qualifier-select"
+                  data-qualifier-toggle="threshold"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-label="Threshold"
+                >
+                  <span class="qualifier-select__value" data-qualifier-value="threshold">Set Min</span>
+                </button>
+                <div class="qualifier-menu" data-qualifier-menu="threshold" role="listbox" hidden></div>
+              </div>
 
               <label class="qualifier-toggle" aria-label="Show All">
                 <input data-qualifier-show-all type="checkbox" class="qualifier-toggle__input" />
