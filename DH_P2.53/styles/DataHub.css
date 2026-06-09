@@ -1950,6 +1950,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .qualifier-field.is-dimmed .qualifier-select {
   opacity: 0.52;
   color: rgba(171, 186, 209, 0.62);
+  font-style: italic;
+  font-weight: 400;
 }
 
 .qualifier-field::after {
@@ -2027,7 +2029,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   right: 0;
   z-index: 42;
   display: grid;
-  gap: 4px;
+  gap: 2px;
   min-width: max-content;
   padding: 8px;
   border: 1px solid rgba(145, 173, 214, 0.16);
@@ -5977,7 +5979,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .qualifier-menu {
     top: calc(100% + 4px);
-    padding: 6px;
+    padding: 2px;
     border-radius: 14px;
   }
 
@@ -5990,8 +5992,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .qualifier-menu__option::after {
     right: 9px;
-    width: 6px;
-    height: 6px;
+    width: 9px;
+    height: 9px;
   }
 
   .qualifier-field::after {
