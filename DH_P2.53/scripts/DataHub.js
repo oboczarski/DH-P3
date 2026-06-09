@@ -7428,7 +7428,7 @@ function syncTeamFilterControl(mount, options) {
   clearButton.className = "team-filter__clear";
   clearButton.dataset.teamFilterClear = "true";
   clearButton.disabled = selectedTeams.length === 0;
-  clearButton.textContent = selectedTeams.length ? "Clear Teams" : "All Teams";
+  clearButton.textContent = selectedTeams.length ? "CLEAR / Show All" : "All Teams";
   fragment.append(clearButton);
 
   options

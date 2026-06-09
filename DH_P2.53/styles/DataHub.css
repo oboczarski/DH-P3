@@ -2321,7 +2321,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   display: grid;
   gap: 4px;
   max-height: 238px;
-  padding: 8px;
+  padding: 4px;
   overflow: auto;
   border: 1px solid rgba(145, 173, 214, 0.16);
   border-radius: 16px;
@@ -2410,8 +2410,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   color: rgba(231, 240, 255, 0.88);
   font: inherit;
   font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.11em;
+  font-weight: 400;
+  letter-spacing: 0em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -6080,6 +6080,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     min-height: 27px;
     font-size: 0.54rem;
     letter-spacing: 0.08em;
+    text-wrap-style: balance;
   }
 
   .datahub-receiving-filter-inline {
