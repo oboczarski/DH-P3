@@ -94,6 +94,7 @@
     <div class="syop-tabs" role="tablist" aria-label="Research dashboards">
       <button class="syop-tab active" id="syop-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="syop-tab-panel">Career Length Analytics — SYOP</button>
       <button class="syop-tab" id="draft-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="draft-tab-panel">NFL Draft &mdash; Player Hit Rates</button>
+      <button class="syop-tab" id="posdist-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="posdist-tab-panel">Positional Analysis</button>
     </div>
 
     <div class="syop-tab-panels">
@@ -216,10 +217,384 @@
         </div>
         <div class="draft-pill">HIT RATE &bull; All Positions &amp; By Position</div>
       </section>
+
+      <section class="syop-section syop-tab-panel posdist-tab-panel" id="posdist-tab-panel" role="tabpanel" aria-labelledby="posdist-tab-button" hidden>
+        <div class="posdist-tooltip" id="posdist-tooltip" role="tooltip" aria-hidden="true"></div>
+        <section class="posdist-root" id="posdist-chart-canvas" aria-labelledby="posdist-heading">
+          <header class="posdist-hero">
+            <div class="posdist-hero-copy">
+              <span class="posdist-kicker"><span class="posdist-kicker-dot"></span> WR/RB position distribution canvas</span>
+              <h2 class="posdist-title" id="posdist-heading">Fantasy scoring structure:<br />WR vs RB distribution</h2>
+              <p class="posdist-hero-text">Cleaned canvas using the 2007&ndash;2025 position-count file. The four views below calculate WR/RB distribution directly from the local player-level CSV.</p>
+            </div>
+            <div class="posdist-hero-stats" aria-label="Positional analysis summary">
+              <div class="posdist-hero-stat">
+                <span class="posdist-hero-stat-label">Default Range</span>
+                <span class="posdist-hero-stat-value">2014 &rarr; Latest CSV Year</span>
+              </div>
+              <div class="posdist-hero-stat">
+                <span class="posdist-hero-stat-label">Source</span>
+                <span class="posdist-hero-stat-value">Local CSV Only</span>
+              </div>
+            </div>
+          </header>
+
+          <div class="posdist-chart-grid" aria-label="WR/RB distribution charts">
+            <article class="posdist-chart-card posdist-chart-card--mini">
+              <div class="posdist-chart-header posdist-chart-header--mini">
+                <div class="posdist-chart-title-block posdist-chart-title-block--mini">
+                  <h3 class="posdist-chart-title posdist-chart-title--mini">Mini Year Grid</h3>
+                  <p class="posdist-chart-desc posdist-chart-desc--mini">One mini chart per year. Lines show cumulative WR/RB counts at T6, T12, T24, T36, T48, and T60.</p>
+                </div>
+                <div class="posdist-chart-badge posdist-chart-badge--mini">2007&ndash;2025</div>
+              </div>
+              <div class="posdist-chart-body posdist-chart-body--mini">
+                <div id="posdist-mini-year-grid" class="posdist-chart-fit posdist-chart-fit--mini" role="img" aria-label="Mini yearly WR and RB count line chart grid"></div>
+              </div>
+            </article>
+
+            <article class="posdist-chart-card posdist-chart-card--g1">
+              <div class="posdist-chart-header posdist-chart-header--g1">
+                <div class="posdist-chart-title-block posdist-chart-title-block--g1">
+                  <h3 class="posdist-chart-title posdist-chart-title--g1">G1 Rounded Spline Lines</h3>
+                  <p class="posdist-chart-desc posdist-chart-desc--g1">Six lines: WR T12, WR T36, WR T60, RB T12, RB T36, and RB T60. Every point includes a marker and label.</p>
+                </div>
+                <div class="posdist-chart-badge posdist-chart-badge--g1">Data labels on</div>
+              </div>
+              <div class="posdist-chart-body posdist-chart-body--g1">
+                <div id="posdist-g1-line-chart" class="posdist-chart-fit posdist-chart-fit--g1" role="img" aria-label="G1 WR and RB rounded spline line chart"></div>
+              </div>
+            </article>
+
+            <article class="posdist-chart-card posdist-chart-card--combo">
+              <div class="posdist-chart-header posdist-chart-header--combo">
+                <div class="posdist-chart-title-block posdist-chart-title-block--combo">
+                  <h3 class="posdist-chart-title posdist-chart-title--combo">Combined Count Bars + Difference Markers</h3>
+                  <p class="posdist-chart-desc posdist-chart-desc--combo">Bars show WR/RB counts. Markers above the bars show WR-RB differences for T12, T36, and T60.</p>
+                </div>
+                <div class="posdist-year-controls" aria-label="Combined chart year range">
+                  <label class="posdist-year-control posdist-year-control--min" for="posdist-year-min">
+                    <span class="posdist-year-label">Min Year</span>
+                    <select class="posdist-year-select posdist-year-select--min" id="posdist-year-min"></select>
+                  </label>
+                  <label class="posdist-year-control posdist-year-control--max" for="posdist-year-max">
+                    <span class="posdist-year-label">Max Year</span>
+                    <select class="posdist-year-select posdist-year-select--max" id="posdist-year-max"></select>
+                  </label>
+                </div>
+              </div>
+              <div class="posdist-chart-body posdist-chart-body--combo">
+                <div id="posdist-combo-g1-g2" class="posdist-chart-fit posdist-chart-fit--combo" role="img" aria-label="Combined WR/RB count bars and difference markers"></div>
+                <div class="posdist-legend posdist-legend--combo" aria-label="Combined chart legend">
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--wr12"></i>WR T12</span>
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--rb12"></i>RB T12</span>
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--wr36"></i>WR T36</span>
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--rb36"></i>RB T36</span>
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--wr60"></i>WR T60</span>
+                  <span class="posdist-legend-item"><i class="posdist-swatch posdist-swatch--rb60"></i>RB T60</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="posdist-chart-card posdist-chart-card--g2">
+              <div class="posdist-chart-header posdist-chart-header--g2">
+                <div class="posdist-chart-title-block posdist-chart-title-block--g2">
+                  <h3 class="posdist-chart-title posdist-chart-title--g2">G2 Difference Lines</h3>
+                  <p class="posdist-chart-desc posdist-chart-desc--g2">Negative means more WR than RB. Positive means more RB than WR. Each range keeps its own WR/RB color split.</p>
+                </div>
+                <div class="posdist-chart-badge posdist-chart-badge--g2">Min -16 &bull; Max 6</div>
+              </div>
+              <div class="posdist-chart-body posdist-chart-body--g2">
+                <div id="posdist-g2-three-lines" class="posdist-chart-fit posdist-chart-fit--g2" role="img" aria-label="G2 WR/RB difference line chart"></div>
+              </div>
+            </article>
+          </div>
+
+          <p class="posdist-source-note" id="posdist-source-note">Source: POS-DIST_2007-2025.csv. Player-level CSV is loaded at runtime, then WR/RB distributions are calculated directly in vanilla JavaScript.</p>
+        </section>
+
+        <section class="posdist-infographic" aria-labelledby="posdist-rb-heading">
+          <header class="posdist-infographic-hero">
+            <div class="posdist-infographic-copy">
+              <span class="posdist-infographic-kicker"><span class="posdist-infographic-kicker-dot"></span> Dynasty Strategic Blueprint</span>
+              <h2 class="posdist-infographic-title" id="posdist-rb-heading">The Running Back Renaissance</h2>
+              <p class="posdist-infographic-text">Detailed strategic breakdown and analytical canvas exploring the structural NFL paradigm shift. Offensive coordinators are abandoning spread-out 11 alignments to weaponize size, leaving outdated wide-receiver-first dynasty formulas incomplete.</p>
+            </div>
+            <div class="posdist-meta-stack">
+              <div class="posdist-meta-stack-item">
+                <span class="posdist-meta-stack-label">Current Meta Formula</span>
+                <span class="posdist-meta-stack-value">12/13 Personnel &uarr; = RB &uarr;</span>
+              </div>
+              <div class="posdist-meta-stack-item">
+                <span class="posdist-meta-stack-label">Definitive Era Pivot</span>
+                <span class="posdist-meta-stack-value posdist-meta-stack-value--green">2025 Tier Sweep Verified</span>
+              </div>
+            </div>
+          </header>
+
+          <div class="posdist-main-grid">
+            <section class="posdist-left-column">
+              <article class="posdist-info-card posdist-info-card--theory">
+                <h3 class="posdist-info-title"><span class="posdist-icon" data-posdist-icon="shield-alert"></span>The Positional Paradigm Transition</h3>
+                <div class="posdist-copy-stack">
+                  <p>The NFL is always adjusting. Defensive coordinators build rosters to counter the offensive structures they see most often, then offensive coordinators adjust again to attack those defenses. That cycle never stops.</p>
+                  <p>For more than a decade, the league moved heavily toward pass-first football. Offenses lived in 11 personnel, spread the field with three wide receivers, and forced defenses to get smaller, faster, and more comfortable playing nickel as a base package. Dynasty strategy followed that same direction. Wide receiver became the position most managers wanted to build around because of longevity, stability, and the pass-heavy scoring environment.</p>
+                  <p class="posdist-quote">That logic still has merit, but it is no longer complete. The league has started shifting back toward heavier offensive personnel, especially 12 and 13 personnel. That change has a direct effect on positional opportunity, fantasy scoring distribution, and dynasty roster construction.</p>
+                </div>
+                <div class="posdist-personnel-summary">
+                  <div class="posdist-personnel-chip posdist-personnel-chip--spread">
+                    <span class="posdist-personnel-chip-label">11 Personnel</span>
+                    <span class="posdist-personnel-chip-value">1 RB | 1 TE | 3 WR</span>
+                    <span class="posdist-personnel-chip-note">Spread-first layout</span>
+                  </div>
+                  <div class="posdist-personnel-chip posdist-personnel-chip--heavy">
+                    <span class="posdist-personnel-chip-label">12 Personnel</span>
+                    <span class="posdist-personnel-chip-value">1 RB | 2 TE | 2 WR</span>
+                    <span class="posdist-personnel-chip-note">Extra run surface</span>
+                  </div>
+                  <div class="posdist-personnel-chip posdist-personnel-chip--jumbo">
+                    <span class="posdist-personnel-chip-label">13 Personnel</span>
+                    <span class="posdist-personnel-chip-value">1 RB | 3 TE | 1 WR</span>
+                    <span class="posdist-personnel-chip-note">Maximum blocking unit</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="posdist-info-card posdist-info-card--simulator">
+                <div class="posdist-simulator-header">
+                  <div>
+                    <span class="posdist-section-label">Tactical Simulation</span>
+                    <h3 class="posdist-info-title posdist-info-title--simulator">Personnel Alignment Field Visualizer</h3>
+                  </div>
+                  <div class="posdist-simulator-buttons" role="group" aria-label="Personnel alignment">
+                    <button class="posdist-simulator-button" type="button" id="posdist-btn-pers-11" data-personnel="11">11 Spread</button>
+                    <button class="posdist-simulator-button" type="button" id="posdist-btn-pers-12" data-personnel="12">12 Heavy</button>
+                    <button class="posdist-simulator-button" type="button" id="posdist-btn-pers-13" data-personnel="13">13 Jumbo</button>
+                  </div>
+                </div>
+                <p class="posdist-simulator-intro">Toggle structures above to see how the field shape changes. As tighter personnel packages increase, wide receivers are shifted wider or benched entirely while heavier structures create leverage near the line of scrimmage.</p>
+                <div class="posdist-field" aria-label="Personnel field visualization">
+                  <div class="posdist-field-yardline posdist-field-yardline--one"></div>
+                  <div class="posdist-field-yardline posdist-field-yardline--two"></div>
+                  <div class="posdist-field-yardline posdist-field-yardline--three"></div>
+                  <div class="posdist-field-label posdist-field-label--top">Scrimmage Surface</div>
+                  <div class="posdist-field-label posdist-field-label--bottom">Backfield Target Launch</div>
+                  <div id="posdist-tactical-field-grid" class="posdist-field-grid"></div>
+                </div>
+                <div class="posdist-simulator-readout">
+                  <div class="posdist-formula-display" id="posdist-shift-formula-display">Select a personnel style above...</div>
+                  <div class="posdist-simulator-stats">
+                    <div id="posdist-sim-stat-rb" class="posdist-simulator-stat"></div>
+                    <div id="posdist-sim-stat-wr" class="posdist-simulator-stat"></div>
+                    <div id="posdist-sim-stat-te" class="posdist-simulator-stat"></div>
+                    <div id="posdist-sim-stat-qb" class="posdist-simulator-stat"></div>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section class="posdist-right-column">
+              <article class="posdist-info-card posdist-info-card--milestones">
+                <div class="posdist-card-title-row">
+                  <div>
+                    <span class="posdist-section-label">Historical Analysis</span>
+                    <h3 class="posdist-info-title">Verified Historical Milestones</h3>
+                  </div>
+                  <span class="posdist-icon-badge"><span class="posdist-icon" data-posdist-icon="crown"></span></span>
+                </div>
+                <p class="posdist-card-text">Running backs are operating at a level of dominance we have not seen in over 2+ decades. The historical metrics below demonstrate the clear shift in ranking structures.</p>
+                <div class="posdist-overall-banner">
+                  <span class="posdist-overall-icon">🏆</span>
+                  <div>
+                    <h4>Overall</h4>
+                    <p><strong>2025 was the first time in over 2 decades</strong> where running backs surpassed wide receivers in scoring across every single major ranking tier in the exact same year.</p>
+                    <div class="posdist-tier-tags">
+                      <span>Top 12</span><span>Top 24</span><span>Top 36</span><span>Top 48</span><span>Top 60</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="posdist-milestone-stack">
+                  <article class="posdist-milestone-card posdist-milestone-card--top60">
+                    <div class="posdist-milestone-card-head"><span>Top 60</span><em>Two-Decade High</em></div>
+                    <ul>
+                      <li>Two-decade wide receiver representation lows in 2024 and again in 2025.</li>
+                      <li>First time in 2+ decades with more RBs than WRs inside the top 60 in 2025.</li>
+                      <li>Absolute two-decade high for RBs secured in 2025.</li>
+                    </ul>
+                  </article>
+                  <article class="posdist-milestone-card posdist-milestone-card--top48">
+                    <div class="posdist-milestone-card-head"><span>Top 48</span><em>2008 Peak Tied</em></div>
+                    <ul>
+                      <li>Two-decade WR lows hit in 2024 and repeated in 2025.</li>
+                      <li>First time in 2+ decades with more RB than WR in 2024 and again in 2025.</li>
+                      <li>Highest RB count since 2008 set in 2024 and tied in 2025.</li>
+                    </ul>
+                  </article>
+                  <article class="posdist-milestone-card posdist-milestone-card--top36">
+                    <div class="posdist-milestone-card-head"><span>Top 36</span><em>WR Crater</em></div>
+                    <ul>
+                      <li>Wide receivers cratered to a clear two-decade low in 2025.</li>
+                      <li>Running backs tied the massive 2010 high-water mark in 2025.</li>
+                      <li>More RBs than WRs for the second consecutive season.</li>
+                    </ul>
+                  </article>
+                  <article class="posdist-milestone-card posdist-milestone-card--top24">
+                    <div class="posdist-milestone-card-head"><span>Top 24</span><em>2-Decade Low WR Tied</em></div>
+                    <ul>
+                      <li>Tied two-decade wide receiver representation lows in both 2024 and 2025.</li>
+                      <li>More running backs than wide receivers two years in a row.</li>
+                    </ul>
+                  </article>
+                </div>
+              </article>
+            </section>
+          </div>
+
+          <section class="posdist-section-card posdist-section-card--matrix">
+            <div class="posdist-section-heading">
+              <span class="posdist-section-label">Deep Dive Positional Analysis</span>
+              <h3>How Heavier Structures Redistribute Tactical Opportunity</h3>
+              <p>When offenses move away from 11 personnel and increase 12/13 personnel, there are fewer wide receivers on the field, more tight ends attached to formations, more blocking surfaces, and a greater ability to run efficiently without becoming predictable.</p>
+            </div>
+            <div class="posdist-position-grid">
+              <article class="posdist-position-card posdist-position-card--rb">
+                <div class="posdist-position-card-head"><span>Running Backs</span><span class="posdist-icon" data-posdist-icon="trending-up"></span></div>
+                <p>Running backs are the biggest winners from heavier personnel. More 12 and 13 personnel generally means more run-friendly offensive structures, better blocking angles, better red-zone leverage, and more value concentrated in high-end workhorse backs.</p>
+                <div class="posdist-benefit-box">
+                  <strong>Beneficial Impacts</strong>
+                  <ul><li>More rushing volume</li><li>Better rushing efficiency</li><li>More sustainable drives</li><li>More red-zone rushing chances</li><li>More team commitment to the run game</li></ul>
+                </div>
+                <small>Volume &amp; environment sensitive</small>
+              </article>
+              <article class="posdist-position-card posdist-position-card--wr">
+                <div class="posdist-position-card-head"><span>Wide Receivers</span><span class="posdist-icon" data-posdist-icon="trending-down"></span></div>
+                <p>Wide receivers are the position most negatively affected by the shift. In 11 personnel, three WRs are on the field. In 12, that drops to two. In 13, it drops to one, reducing route availability, snap availability, and target opportunity for WR depth.</p>
+                <p class="posdist-position-note">This does not kill elite wide receivers. True alpha target earners still matter. But the WR3/WR4 types become more fragile when offenses play heavier.</p>
+                <small>Inverse environment correlation</small>
+              </article>
+              <article class="posdist-position-card posdist-position-card--te">
+                <div class="posdist-position-card-head"><span>Tight Ends</span><span class="posdist-icon" data-posdist-icon="shield"></span></div>
+                <p>Tight ends benefit from heavier personnel, but the fantasy boost is more complicated than it is for running backs. More TE snaps can create more paths to relevance for versatile players, but the extra snaps may spread across TE2 and TE3 roles.</p>
+                <p class="posdist-position-note">The real-world benefit is clearer than the fantasy-scoring benefit unless the player also commands meaningful targets.</p>
+                <small>Real-world vs fantasy split</small>
+              </article>
+              <article class="posdist-position-card posdist-position-card--qb">
+                <div class="posdist-position-card-head"><span>Quarterbacks</span><span class="posdist-icon" data-posdist-icon="zap"></span></div>
+                <p>Quarterbacks are affected less dramatically. Heavier personnel can reduce raw pass volume, but it can also improve play-action efficiency, create easier reads, force heavier defensive packages, and help offenses stay balanced.</p>
+                <p class="posdist-position-note">The lost volume can be offset by better efficiency and protection.</p>
+                <small>Secondary offsets applied</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="posdist-section-card posdist-section-card--te-role">
+            <div class="posdist-two-column">
+              <div class="posdist-copy-stack">
+                <h3>Role-Based TE Differences</h3>
+                <p>There is also a role-based difference. Heavier personnel packages are often built for versatility, not just receiving volume. Tight ends can run routes, stay attached as blockers, chip edge rushers, help in pass protection, or create run/pass ambiguity before the snap.</p>
+                <p>In lighter personnel, running backs are more often used as extra blockers in pass protection. In heavier 12 and 13 personnel, the additional tight end can fill more of that responsibility, but those snaps do not always turn into routes and targets.</p>
+              </div>
+              <div class="posdist-formula-card">
+                <h3>The Positional Formula</h3>
+                <p>So the TE position does benefit, but not as cleanly as RB. The biggest real-world benefit goes to offenses. The biggest fantasy benefit goes to running backs. Tight ends rise directionally because they are on the field more often, but the fantasy scoring impact is less direct unless the player is also commanding meaningful target volume.</p>
+                <div><span>TE Fantasy Boost: Complex</span><strong>12/13 Personnel &uarr; = RB &uarr;</strong></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="posdist-section-card posdist-section-card--timeline">
+            <div class="posdist-section-heading">
+              <span class="posdist-section-label">Meta Progression Tracking</span>
+              <h3>Chronological Evolution Blueprint</h3>
+              <p>Trace the progression from initial unnoticed indicators to a complete structural fantasy takeover.</p>
+            </div>
+            <div class="posdist-timeline-grid">
+              <article class="posdist-timeline-card posdist-timeline-card--one">
+                <span class="posdist-timeline-number">01</span>
+                <h4>2022 - 2023: Rumblings</h4>
+                <p>Things began taking shape slowly in 2022 and early 2023, but there was not enough data to draw major dynasty conclusions. Small spikes in RB production and heavier personnel usage remained within historical norms.</p>
+                <p>The shift became more meaningful late in 2023 and into 2024. The WR edge was no longer as significant as expected.</p>
+              </article>
+              <article class="posdist-timeline-card posdist-timeline-card--two">
+                <span class="posdist-timeline-number">02</span>
+                <h4>2024: Trend Set</h4>
+                <p>By early-to-mid 2024, the trend was no longer ignorable. Running backs gained ground and outnumbered wide receivers inside the top 48 for the first time in over two decades.</p>
+                <p>Within the top 24, wide receivers tied their lowest representation of the last 20 years while RBs claimed more total slots across top 24, top 36, and top 48.</p>
+              </article>
+              <article class="posdist-timeline-card posdist-timeline-card--three">
+                <span class="posdist-timeline-number">03</span>
+                <h4>2025: Breakout &amp; Changing of the Tide</h4>
+                <p>What happened in 2025 was not a simple anomaly. Running backs outscored wide receivers across every major ranking tier in the same year: top 12, top 24, top 36, top 48, and top 60.</p>
+                <p>This shows the environment shifted beyond elite RBs at the top; RB2s and flex plays also outproduced their WR counterparts throughout the ranks.</p>
+              </article>
+              <article class="posdist-timeline-card posdist-timeline-card--four">
+                <span class="posdist-timeline-number">04</span>
+                <h4>2026: Outlook</h4>
+                <p>The draft supported the shift by loading up on tight ends built to create heavier offensive structures. That points toward continued RB and WR production trajectories while the league adjusts.</p>
+                <p>While the NFL will eventually adjust down the road, 2026 is in line to be the peak so far.</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="posdist-strategy-grid">
+            <article class="posdist-section-card posdist-section-card--traps">
+              <div class="posdist-card-title-row">
+                <div><span class="posdist-section-label">Tactical Caution</span><h3>Challenging Outdated Fantasy Traps</h3></div>
+                <span class="posdist-warning-tag">Avoid Static Rules</span>
+              </div>
+              <p>The fantasy market is still clinging to outdated rules like always building around wide receivers due to longevity, while also asking managers to evaluate players in shorter windows.</p>
+              <div class="posdist-inner-note">
+                <h4>Do not fall for misleading traps</h4>
+                <p>The biggest dynasty edge is adaptability. Static rules are dangerous. Always build around WR, never pay up for RB, and RBs are replaceable can be useful in specific cases, but the environment has changed.</p>
+              </div>
+              <p>In the current NFL meta, top young running backs should be prioritized more aggressively because they are benefiting from both individual talent and league-wide structural support.</p>
+              <p class="posdist-final-note">For 2026, the leverage is clear, and heavily favored on the ground.</p>
+            </article>
+            <article class="posdist-section-card posdist-section-card--takeaway">
+              <div class="posdist-card-title-row">
+                <div><span class="posdist-section-label">Strategic Summary</span><h3>Dynasty Takeaway</h3></div>
+                <span class="posdist-success-tag">Active Adaptation</span>
+              </div>
+              <p>This matters most in trades. Many dynasty managers are still valuing players through an older positional lens. That creates buying opportunities on some elite RBs and selling opportunities on WRs.</p>
+              <h4>Dynasty Takeaway Summary</h4>
+              <p>The goal is not to overreact. The goal is to adjust before the rest of the league fully catches up.</p>
+              <p class="posdist-final-note">While the NFL will eventually adjust down the road, 2026 certainly is in line to be the peak so far.</p>
+              <div class="posdist-meta-core"><strong>Meta Core:</strong> Adaptability over static rules. RBs are insulated by real NFL schemes.</div>
+            </article>
+          </section>
+
+          <section class="posdist-section-card posdist-section-card--regression">
+            <div class="posdist-card-title-row">
+              <div><span class="posdist-section-label">Eventual Regressions</span><h3>When This Could Reverse</h3></div>
+              <span class="posdist-cycle-tag">Cyclical Reality</span>
+            </div>
+            <div class="posdist-copy-stack">
+              <p>This will not last forever.</p>
+              <p>The NFL is cyclical. Defenses will adjust. Roster construction will change again. Offensive coordinators will eventually find new ways to exploit the counters defenses create. At some point, the meta will shift away from this RB-friendly environment.</p>
+              <p>That reversal could begin as early as 2028, but it is impossible to tell at this time, especially with the shift still being relatively new.</p>
+              <p class="posdist-final-note">Right now, the data points in one direction: heavier personnel is rising, RBs are benefiting, WR depth is being squeezed, and the dynasty market still has room to adjust.</p>
+            </div>
+          </section>
+
+          <section class="posdist-section-card posdist-section-card--moving-forward">
+            <div class="posdist-section-heading">
+              <span class="posdist-section-label">Moving Forward</span>
+              <h3>The Ground Leverage Thesis</h3>
+            </div>
+            <div class="posdist-moving-grid">
+              <p>Running backs are not just back. They are in a position we have not seen in at least the past two decades.</p>
+              <p>This is not nostalgia. It is not one random scoring spike. It is not just a few elite players carrying the position.</p>
+              <p>The NFL environment has changed. Offenses are using more size, more tight ends, and more run-friendly structures to counter defenses built to stop spread passing attacks. That has pushed more opportunity toward running backs while pulling opportunity away from wide receiver depth.</p>
+            </div>
+            <p class="posdist-thesis">That is why this matters for dynasty. The RB revival is not only about production after the fact. It is about understanding the structural reason behind the production before the market fully catches up. For dynasty, the takeaway is clear: while this trend continues, top young RBs should be valued as premium build-around assets.</p>
+          </section>
+        </section>
+      </section>
     </div>
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
 <script defer src="../scripts/syop.js?v=20260520-syop-css-controls"></script>
+<script defer src="../scripts/posdist.js?v=20260610-positional-analysis"></script>
 </body>
 </html>

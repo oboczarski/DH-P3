@@ -1378,12 +1378,28 @@
       window.clearTimeout(resizeTimer);
     }
     resizeTimer = window.setTimeout(() => {
-      renderSunburst();
-      renderBarChart();
-      renderGauges();
+      const activePanel = document.querySelector('.syop-tab-panel.active');
+      renderActivePanel(activePanel?.id);
+    }, 180);
+  }
+
+  function renderActivePanel(target) {
+    if (target === 'draft-tab-panel') {
       renderDraftOverall();
       renderDraftPositional();
-    }, 180);
+      return;
+    }
+
+    if (target === 'posdist-tab-panel') {
+      // Research Positional Analysis tab: notify the isolated posdist renderer
+      // after the hidden panel becomes visible so SVGs measure real widths.
+      window.dispatchEvent(new CustomEvent('research:posdist-visible'));
+      return;
+    }
+
+    renderSunburst();
+    renderBarChart();
+    renderGauges();
   }
 
   function setupTabs() {
@@ -1423,16 +1439,7 @@
         tab.focus();
       }
 
-      window.requestAnimationFrame(() => {
-        if (tab.dataset.target === 'draft-tab-panel') {
-          renderDraftOverall();
-          renderDraftPositional();
-        } else {
-          renderSunburst();
-          renderBarChart();
-          renderGauges();
-        }
-      });
+      window.requestAnimationFrame(() => renderActivePanel(tab.dataset.target));
     };
 
     tabs.forEach((tab, index) => {
@@ -1469,11 +1476,6 @@
     if (document.body.dataset.page !== PAGE_ID) return;
     applyUsernameFromQuery();
     setupTabs();
-    renderSunburst();
-    renderBarChart();
-    renderGauges();
-    renderDraftOverall();
-    renderDraftPositional();
     window.addEventListener('resize', handleResize);
   }
 

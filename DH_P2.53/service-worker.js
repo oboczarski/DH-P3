@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// SYOP Bar Graph Revamp: bump the cache so browsers pick up the brand-new
-// Liquid Glass cylinder tracks, neon position gradients, and glowing tooltips.
-const CACHE_NAME = 'DH2.972';
+// Research Positional Analysis tab: bump the cache so browsers pick up the
+// new scoped posdist script, Research markup, and chart/mobile styling.
+const CACHE_NAME = 'DH2.973';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -57,6 +57,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/leaguehub.js',
   '/scripts/dashboard.js',
   '/scripts/syop.js',
+  '/scripts/posdist.js',
   '/scripts/dh-scramble.js',
   '/scripts/contact.js'
 ];
