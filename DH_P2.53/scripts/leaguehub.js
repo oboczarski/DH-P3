@@ -12,6 +12,11 @@
       usernameInput: document.getElementById('usernameInput'),
       leagueSelect: document.getElementById('leagueSelect'),
       loading: document.getElementById('loading'),
+      analysisTab: document.getElementById('leagueAnalysisTab'),
+      tradesTab: document.getElementById('leagueTradesTab'),
+      tabButtons: document.querySelectorAll('.leaguehub-tab-button'),
+      analysisPanel: document.getElementById('leagueAnalysisPanel'),
+      tradesPanel: document.getElementById('leagueTradesPanel'),
       summaryStats: document.getElementById('summaryStats'),
       content: document.getElementById('infographicContent'),
       lineupToggle: document.querySelectorAll('#lineup-panel .toggle-option'),
@@ -25,6 +30,35 @@
       standingsFrozenBody: document.getElementById('standingsFrozenBody'),
       leaderboardBody: document.getElementById('leaderboardTableBody'),
       leaderboardFilters: document.querySelectorAll('.analyzer-filter-group .filter-chip'),
+      tradesStatus: document.getElementById('leagueTradesStatus'),
+      tradesEmptyState: document.getElementById('leagueTradesEmptyState'),
+      tradesAnalytics: document.getElementById('leagueTradesAnalytics'),
+      tradesSummaryCards: document.getElementById('leagueTradesSummaryCards'),
+      tradesAnalysisHeading: document.getElementById('leagueTradesAnalysisHeading'),
+      tradesAnalysisSubheading: document.getElementById('leagueTradesAnalysisSubheading'),
+      tradesAnalysisTable: document.getElementById('leagueTradesAnalysisTable'),
+      tradesAnalysisHead: document.getElementById('leagueTradesAnalysisHead'),
+      tradesAnalysisBody: document.getElementById('leagueTradesAnalysisBody'),
+      tradesFeed: document.getElementById('leagueTradesFeed'),
+      tradesFeedMeta: document.getElementById('leagueTradesFeedMeta'),
+      tradesSearchInput: document.getElementById('leagueTradesSearch'),
+      tradeSelects: {
+        member: {
+          button: document.getElementById('leagueTradesMemberButton'),
+          value: document.getElementById('leagueTradesMemberValue'),
+          menu: document.getElementById('leagueTradesMemberMenu'),
+        },
+        season: {
+          button: document.getElementById('leagueTradesSeasonButton'),
+          value: document.getElementById('leagueTradesSeasonValue'),
+          menu: document.getElementById('leagueTradesSeasonMenu'),
+        },
+        asset: {
+          button: document.getElementById('leagueTradesAssetButton'),
+          value: document.getElementById('leagueTradesAssetValue'),
+          menu: document.getElementById('leagueTradesAssetMenu'),
+        },
+      },
     };
 
     const SLOT_ORDER = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
@@ -81,6 +115,14 @@
 
     const RADAR_SLOT_TYPES = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
     const RADAR_FLEX_ELIGIBLE = ['RB', 'WR', 'TE'];
+    const TRADE_FETCH_LEGS = Array.from({ length: 19 }, (_, index) => index);
+    const TRADE_ASSET_OPTIONS = [
+      { value: 'ALL', label: 'All Assets' },
+      { value: 'player', label: 'Players' },
+      { value: 'pick', label: 'Draft Picks' },
+      { value: 'faab', label: 'FAAB' },
+    ];
+    const TRADE_CAREER_CSV_URL = new URL('../data/NFL16-25/NFL-PlayerData_16-25.csv', window.location.href).toString();
 
     const radarBackgroundPlugin = {
       id: 'analyzerRadarBackground',
@@ -476,6 +518,8 @@
       leagueHistoryCache: {},
       careerStatsCache: {},
       careerStatsByOwner: {},
+      textCache: {},
+      tradeCareerStatsBySeason: null,
       charts: {
         lineup: null,
         overall: null,
@@ -491,6 +535,22 @@
       leaderboards: { ALL: [], QB: [], RB: [], WR: [], TE: [] },
       activeLeaderboard: 'ALL',
       radarSlots: [],
+      trades: {
+        activeTab: 'analysis',
+        requestToken: 0,
+        isLoading: false,
+        loadedLeagueId: null,
+        selectedMember: 'ALL',
+        selectedSeason: 'ALL',
+        selectedAssetType: 'ALL',
+        searchTerm: '',
+        archiveCache: {},
+        currentMembers: [],
+        currentMemberMap: {},
+        seasonBundles: [],
+        allTrades: [],
+        openSelect: null,
+      },
     };
 
     const normalizeLeagueUsername = (value) => String(value || '').trim().toLowerCase();
@@ -562,6 +622,39 @@
       }
     });
 
+    elements.tabButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setActiveLeagueHubTab(button.dataset.leaguehubTab);
+      });
+      button.addEventListener('keydown', handleLeagueHubTabKeydown);
+    });
+
+    elements.tradesSearchInput?.addEventListener('input', () => {
+      state.trades.searchTerm = elements.tradesSearchInput.value || '';
+      renderTradeWorkspace();
+    });
+
+    // LeagueHub trade filters:
+    // uses custom listbox controls so the archive avoids native dropdown styling
+    // while keeping filter state local to this page.
+    wireTradeSelect('member', (value) => {
+      state.trades.selectedMember = value || 'ALL';
+      renderTradeWorkspace();
+    });
+    wireTradeSelect('season', (value) => {
+      state.trades.selectedSeason = value || 'ALL';
+      renderTradeWorkspace();
+    });
+    wireTradeSelect('asset', (value) => {
+      state.trades.selectedAssetType = value || 'ALL';
+      renderTradeWorkspace();
+    });
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest?.('.leaguehub-trades-select')) {
+        closeTradeSelect();
+      }
+    });
+
     elements.lineupToggle.forEach((button) => {
       button.addEventListener('click', () => {
         const metric = button.dataset.metric;
@@ -603,6 +696,9 @@
         renderLeagueLeaders();
       });
     });
+
+    populateTradeAssetFilter();
+    setActiveLeagueHubTab('analysis', { skipTradeLoad: true });
 
     // Analyzer split league table sorting:
     // cycles sortable headers in both the frozen SZN table and the horizontal
@@ -707,6 +803,1146 @@
       elements.summaryStats.classList.add('hidden');
     }
 
+    function handleLeagueHubTabKeydown(event) {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const tabOrder = ['analysis', 'trades'];
+      const currentIndex = tabOrder.indexOf(state.trades.activeTab);
+      let nextIndex = currentIndex === -1 ? 0 : currentIndex;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        nextIndex = (nextIndex + 1) % tabOrder.length;
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        nextIndex = (nextIndex - 1 + tabOrder.length) % tabOrder.length;
+      } else if (event.key === 'Home') {
+        nextIndex = 0;
+      } else if (event.key === 'End') {
+        nextIndex = tabOrder.length - 1;
+      }
+      setActiveLeagueHubTab(tabOrder[nextIndex]);
+      const nextButton = tabOrder[nextIndex] === 'trades' ? elements.tradesTab : elements.analysisTab;
+      nextButton?.focus();
+    }
+
+    // LeagueHub tab workspace:
+    // toggles only the wrapper panels, leaving the existing analysis DOM mounted
+    // and lazy-loading trade history only when the trades tab is opened.
+    async function setActiveLeagueHubTab(nextTab, { skipTradeLoad = false } = {}) {
+      const tabName = nextTab === 'trades' ? 'trades' : 'analysis';
+      state.trades.activeTab = tabName;
+      const isAnalysis = tabName === 'analysis';
+
+      elements.analysisTab?.classList.toggle('active', isAnalysis);
+      elements.analysisTab?.setAttribute('aria-selected', isAnalysis ? 'true' : 'false');
+      elements.analysisTab?.setAttribute('tabindex', isAnalysis ? '0' : '-1');
+      elements.tradesTab?.classList.toggle('active', !isAnalysis);
+      elements.tradesTab?.setAttribute('aria-selected', !isAnalysis ? 'true' : 'false');
+      elements.tradesTab?.setAttribute('tabindex', !isAnalysis ? '0' : '-1');
+      elements.analysisPanel?.classList.toggle('hidden', !isAnalysis);
+      elements.analysisPanel?.setAttribute('aria-hidden', isAnalysis ? 'false' : 'true');
+      elements.tradesPanel?.classList.toggle('hidden', isAnalysis);
+      elements.tradesPanel?.setAttribute('aria-hidden', isAnalysis ? 'true' : 'false');
+
+      if (!isAnalysis && !skipTradeLoad && state.currentLeagueId) {
+        await ensureTradeArchiveLoaded();
+      }
+    }
+
+    function wireTradeSelect(type, onSelect) {
+      const select = elements.tradeSelects?.[type];
+      if (!select?.button || !select?.menu) return;
+      select.button.addEventListener('click', () => {
+        const shouldOpen = state.trades.openSelect !== type;
+        closeTradeSelect();
+        if (shouldOpen) openTradeSelect(type);
+      });
+      select.button.addEventListener('keydown', (event) => {
+        if (!['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+        event.preventDefault();
+        openTradeSelect(type);
+        const options = [...select.menu.querySelectorAll('[role="option"]')];
+        const selected = options.find((option) => option.getAttribute('aria-selected') === 'true') || options[0];
+        selected?.focus();
+      });
+      select.menu.addEventListener('click', (event) => {
+        const option = event.target.closest('[role="option"]');
+        if (!option) return;
+        commitTradeSelectOption(select, option, onSelect);
+      });
+      select.menu.addEventListener('keydown', (event) => {
+        const options = [...select.menu.querySelectorAll('[role="option"]')];
+        const currentIndex = options.indexOf(document.activeElement);
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeTradeSelect();
+          select.button.focus();
+          return;
+        }
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          const option = document.activeElement?.closest?.('[role="option"]');
+          if (option) {
+            commitTradeSelectOption(select, option, onSelect);
+            select.button.focus();
+          }
+          return;
+        }
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        const nextIndex = event.key === 'ArrowDown'
+          ? Math.min(options.length - 1, currentIndex + 1)
+          : Math.max(0, currentIndex - 1);
+        options[nextIndex]?.focus();
+      });
+    }
+
+    function commitTradeSelectOption(select, option, onSelect) {
+      // Trade Archive custom dropdown commit:
+      // synchronizes filter state, visible button text, and ARIA-selected state
+      // because these controls are custom listboxes rather than native selects.
+      const value = option.dataset.value || 'ALL';
+      onSelect(value);
+      select.value.textContent = option.querySelector('span')?.textContent?.trim()
+        || option.textContent?.trim()
+        || '';
+      select.menu.querySelectorAll('[role="option"]').forEach((menuOption) => {
+        const isSelected = menuOption === option;
+        menuOption.classList.toggle('is-selected', isSelected);
+        menuOption.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      });
+      closeTradeSelect();
+    }
+
+    function openTradeSelect(type) {
+      const select = elements.tradeSelects?.[type];
+      if (!select?.button || !select?.menu) return;
+      state.trades.openSelect = type;
+      select.button.setAttribute('aria-expanded', 'true');
+      select.menu.classList.remove('hidden');
+    }
+
+    function closeTradeSelect() {
+      const openType = state.trades.openSelect;
+      if (openType) {
+        const select = elements.tradeSelects?.[openType];
+        select?.button?.setAttribute('aria-expanded', 'false');
+        select?.menu?.classList.add('hidden');
+      }
+      state.trades.openSelect = null;
+    }
+
+    function renderTradeSelectOptions(type, options, selectedValue) {
+      const select = elements.tradeSelects?.[type];
+      if (!select?.menu || !select?.value) return;
+      const selected = options.find((option) => option.value === selectedValue) || options[0];
+      select.value.textContent = selected?.label || '';
+      select.menu.innerHTML = options.map((option) => {
+        const isSelected = option.value === selectedValue;
+        return `
+          <button type="button" class="leaguehub-trades-select-option${isSelected ? ' is-selected' : ''}"
+            role="option" aria-selected="${isSelected ? 'true' : 'false'}" data-value="${escapeHtml(option.value)}"
+            tabindex="-1">
+            <span>${escapeHtml(option.label)}</span>
+            ${option.meta ? `<small>${escapeHtml(option.meta)}</small>` : ''}
+          </button>`;
+      }).join('');
+    }
+
+    function populateTradeAssetFilter() {
+      renderTradeSelectOptions('asset', TRADE_ASSET_OPTIONS, state.trades.selectedAssetType || 'ALL');
+    }
+
+    function populateTradeMemberFilter() {
+      const options = [
+        { value: 'ALL', label: 'All Leaguemates', meta: 'Every completed trade' },
+        ...state.trades.currentMembers.map((member) => ({
+          value: member.ownerId,
+          label: member.teamName,
+          meta: member.displayName,
+        })),
+      ];
+      const validValues = new Set(options.map((option) => option.value));
+      if (!validValues.has(state.trades.selectedMember)) state.trades.selectedMember = 'ALL';
+      renderTradeSelectOptions('member', options, state.trades.selectedMember);
+    }
+
+    function populateTradeSeasonFilter() {
+      const options = [
+        { value: 'ALL', label: 'All Seasons', meta: `${state.trades.seasonBundles.length || 0} linked seasons` },
+        ...state.trades.seasonBundles.map((bundle) => ({
+          value: String(bundle.season),
+          label: String(bundle.season),
+          meta: `${bundle.trades.length} trade${bundle.trades.length === 1 ? '' : 's'}`,
+        })),
+      ];
+      const validValues = new Set(options.map((option) => option.value));
+      if (!validValues.has(state.trades.selectedSeason)) state.trades.selectedSeason = 'ALL';
+      renderTradeSelectOptions('season', options, state.trades.selectedSeason);
+    }
+
+    function setTradeStatus(message) {
+      if (elements.tradesStatus) elements.tradesStatus.textContent = message || '';
+    }
+
+    function setTradeEmptyState(message = '') {
+      if (!elements.tradesEmptyState) return;
+      elements.tradesEmptyState.textContent = message;
+      elements.tradesEmptyState.classList.toggle('hidden', !message);
+    }
+
+    function clearTradeArchiveUi() {
+      elements.tradesAnalytics?.classList.add('hidden');
+      elements.tradesSummaryCards?.classList.add('hidden');
+      if (elements.tradesSummaryCards) elements.tradesSummaryCards.innerHTML = '';
+      if (elements.tradesAnalysisHead) elements.tradesAnalysisHead.innerHTML = '';
+      if (elements.tradesAnalysisBody) elements.tradesAnalysisBody.innerHTML = '';
+      if (elements.tradesFeed) elements.tradesFeed.innerHTML = '';
+      if (elements.tradesFeedMeta) elements.tradesFeedMeta.textContent = 'No trades loaded yet.';
+    }
+
+    function resetTradeArchiveForLeague(leagueInfo, users = [], rosters = []) {
+      state.trades.requestToken += 1;
+      state.trades.isLoading = false;
+      state.trades.loadedLeagueId = null;
+      state.trades.selectedMember = 'ALL';
+      state.trades.selectedSeason = 'ALL';
+      state.trades.selectedAssetType = 'ALL';
+      state.trades.searchTerm = '';
+      state.trades.seasonBundles = [];
+      state.trades.allTrades = [];
+      state.trades.currentMembers = buildCurrentTradeMembers(rosters, users);
+      state.trades.currentMemberMap = state.trades.currentMembers.reduce((acc, member) => {
+        acc[member.ownerId] = member;
+        return acc;
+      }, {});
+      if (elements.tradesSearchInput) elements.tradesSearchInput.value = '';
+      populateTradeMemberFilter();
+      populateTradeSeasonFilter();
+      populateTradeAssetFilter();
+      clearTradeArchiveUi();
+      setTradeEmptyState('');
+      setTradeStatus(leagueInfo?.name
+        ? `Trade archive ready for ${leagueInfo.name}. Open League Trades to load completed Sleeper deals.`
+        : 'Select a league to load the trade archive.');
+    }
+
+    function buildCurrentTradeMembers(rosters = [], users = []) {
+      const userMap = {};
+      (Array.isArray(users) ? users : []).forEach((user) => {
+        if (user?.user_id) userMap[String(user.user_id)] = user;
+      });
+      const seen = new Set();
+      return (Array.isArray(rosters) ? rosters : [])
+        .map((roster) => {
+          const ownerId = roster?.owner_id || roster?.co_owner_id;
+          if (!ownerId) return null;
+          const ownerKey = String(ownerId);
+          if (seen.has(ownerKey)) return null;
+          seen.add(ownerKey);
+          const user = userMap[ownerKey] || {};
+          const displayName = user.display_name || user.username || `Manager ${ownerKey}`;
+          const rawTeamName = roster?.metadata?.team_name;
+          const teamName = typeof rawTeamName === 'string' && rawTeamName.trim() ? rawTeamName.trim() : displayName;
+          return {
+            ownerId: ownerKey,
+            rosterId: String(roster?.roster_id ?? ''),
+            teamName,
+            displayName,
+            label: teamName === displayName ? teamName : `${teamName} · ${displayName}`,
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.teamName.localeCompare(b.teamName));
+    }
+
+    async function ensureTradeArchiveLoaded() {
+      const leagueId = state.currentLeagueId;
+      const leagueInfo = state.leagues.find((league) => league.league_id === leagueId);
+      if (!leagueId || !leagueInfo) {
+        setTradeStatus('Select a league to load the trade archive.');
+        return;
+      }
+
+      if (state.trades.loadedLeagueId === leagueId) {
+        renderTradeWorkspace();
+        return;
+      }
+
+      if (state.trades.archiveCache[leagueId]) {
+        hydrateTradeArchiveFromCache(leagueId, state.trades.archiveCache[leagueId]);
+        renderTradeWorkspace();
+        return;
+      }
+
+      if (state.trades.isLoading) return;
+      state.trades.isLoading = true;
+      const requestToken = state.trades.requestToken + 1;
+      state.trades.requestToken = requestToken;
+      clearTradeArchiveUi();
+      setTradeStatus('Loading trade archive...');
+      setTradeEmptyState('Loading completed Sleeper trade history across linked seasons...');
+
+      try {
+        await ensureTradeCareerStats();
+        const leagueHistory = await fetchAnalyzerLeagueHistory(leagueInfo);
+        const seasonBundles = [];
+
+        for (let index = 0; index < leagueHistory.length; index += 1) {
+          if (requestToken !== state.trades.requestToken || leagueId !== state.currentLeagueId) return;
+          const historyLeague = leagueHistory[index];
+          setTradeStatus(`Loading trade archive... ${index + 1}/${leagueHistory.length} seasons scanned.`);
+          seasonBundles.push(await fetchTradeSeasonBundle(historyLeague));
+        }
+
+        if (requestToken !== state.trades.requestToken || leagueId !== state.currentLeagueId) return;
+        const archive = buildTradeArchivePayload(seasonBundles);
+        state.trades.archiveCache[leagueId] = archive;
+        hydrateTradeArchiveFromCache(leagueId, archive);
+        setTradeEmptyState(archive.allTrades.length ? '' : 'No completed Sleeper trades were found in this linked league history.');
+      } catch (error) {
+        console.error('Trade archive load failed:', error);
+        setTradeStatus('Trade archive failed to load.');
+        setTradeEmptyState(`Failed to load trade history: ${error.message}`);
+      } finally {
+        if (requestToken === state.trades.requestToken) {
+          state.trades.isLoading = false;
+        }
+        renderTradeWorkspace();
+      }
+    }
+
+    function hydrateTradeArchiveFromCache(leagueId, archive) {
+      state.trades.loadedLeagueId = leagueId;
+      state.trades.seasonBundles = archive?.seasonBundles || [];
+      state.trades.allTrades = archive?.allTrades || [];
+      populateTradeSeasonFilter();
+      setTradeStatus(state.trades.allTrades.length
+        ? `Loaded ${state.trades.allTrades.length} completed trades across ${state.trades.seasonBundles.length} linked seasons.`
+        : 'No completed Sleeper trades were found in the linked archive.');
+    }
+
+    function buildTradeArchivePayload(seasonBundles = []) {
+      const orderedSeasonBundles = [...seasonBundles].sort((a, b) => Number(b.season) - Number(a.season));
+      return {
+        seasonBundles: orderedSeasonBundles,
+        allTrades: orderedSeasonBundles
+          .flatMap((bundle) => bundle.trades || [])
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+      };
+    }
+
+    async function fetchTradeSeasonBundle(historyLeague) {
+      const [rosters, users, transactionLists] = await Promise.all([
+        fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/rosters`),
+        fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/users`),
+        Promise.all(
+          TRADE_FETCH_LEGS.map((leg) =>
+            fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/transactions/${leg}`)
+              .catch(() => []),
+          ),
+        ),
+      ]);
+
+      const rosterContext = buildTradeRosterContext(rosters, users);
+      const dedupedTrades = new Map();
+      (transactionLists || []).flat().forEach((transaction) => {
+        if (!transaction || transaction.type !== 'trade' || transaction.status !== 'complete') return;
+        const transactionId = String(transaction.transaction_id || '');
+        if (!transactionId || dedupedTrades.has(transactionId)) return;
+        const normalized = normalizeTradeTransaction(transaction, historyLeague, rosterContext);
+        if (normalized) dedupedTrades.set(transactionId, normalized);
+      });
+
+      return {
+        season: String(historyLeague?.season || ''),
+        leagueId: String(historyLeague?.league_id || ''),
+        leagueName: historyLeague?.name || `Season ${historyLeague?.season || ''}`,
+        trades: Array.from(dedupedTrades.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+      };
+    }
+
+    function buildTradeRosterContext(rosters = [], users = []) {
+      const userMap = {};
+      (Array.isArray(users) ? users : []).forEach((user) => {
+        if (user?.user_id) userMap[String(user.user_id)] = user;
+      });
+      const rostersById = {};
+      (Array.isArray(rosters) ? rosters : []).forEach((roster) => {
+        const ownerId = roster?.owner_id || roster?.co_owner_id || null;
+        const ownerKey = ownerId ? String(ownerId) : '';
+        const user = ownerKey ? userMap[ownerKey] : null;
+        const displayName = user?.display_name || user?.username || (ownerKey ? `Manager ${ownerKey}` : `Roster ${roster?.roster_id}`);
+        const rawTeamName = roster?.metadata?.team_name;
+        const teamName = typeof rawTeamName === 'string' && rawTeamName.trim() ? rawTeamName.trim() : displayName;
+        rostersById[String(roster?.roster_id)] = {
+          rosterId: String(roster?.roster_id ?? ''),
+          ownerId: ownerKey,
+          displayName,
+          teamName,
+          label: teamName === displayName ? teamName : `${teamName} · ${displayName}`,
+        };
+      });
+      return { rostersById, userMap };
+    }
+
+    function normalizeTradeTransaction(transaction, historyLeague, rosterContext) {
+      const txRosterIds = collectTradeRosterIds(transaction);
+      if (!txRosterIds.length) return null;
+
+      const tradeSides = new Map();
+      const movements = [];
+      const season = String(historyLeague?.season || '');
+      const createdAt = Number(transaction?.created) || 0;
+
+      const getOrCreateSide = (rosterId) => {
+        const rosterKey = String(rosterId);
+        if (!tradeSides.has(rosterKey)) {
+          const rosterMeta = rosterContext.rostersById[rosterKey] || null;
+          tradeSides.set(rosterKey, {
+            rosterId: rosterKey,
+            ownerId: rosterMeta?.ownerId || '',
+            teamName: rosterMeta?.teamName || `Roster ${rosterKey}`,
+            displayName: rosterMeta?.displayName || `Roster ${rosterKey}`,
+            label: rosterMeta?.label || `Roster ${rosterKey}`,
+            outgoingAssets: [],
+            incomingAssets: [],
+            receivedPlayers: 0,
+            sentPlayers: 0,
+            receivedPicks: 0,
+            sentPicks: 0,
+            receivedFaab: 0,
+            sentFaab: 0,
+            receivedFpts: 0,
+            sentFpts: 0,
+            receivedPpgValues: [],
+          });
+        }
+        return tradeSides.get(rosterKey);
+      };
+
+      const addAssetCount = (side, direction, asset) => {
+        const prefix = direction === 'received' ? 'received' : 'sent';
+        if (asset.type === 'player') {
+          side[`${prefix}Players`] += 1;
+          const fpts = Number(asset.stats?.fpts);
+          const ppg = Number(asset.stats?.ppg);
+          if (Number.isFinite(fpts)) side[`${prefix}Fpts`] += fpts;
+          if (prefix === 'received' && Number.isFinite(ppg)) side.receivedPpgValues.push(ppg);
+        } else if (asset.type === 'pick') {
+          side[`${prefix}Picks`] += 1;
+        } else if (asset.type === 'faab') {
+          side[`${prefix}Faab`] += 1;
+        }
+      };
+
+      const registerMovement = (fromRosterId, toRosterId, asset) => {
+        if (!Number.isFinite(fromRosterId)) return;
+        const sender = getOrCreateSide(fromRosterId);
+        const receiver = Number.isFinite(toRosterId) ? getOrCreateSide(toRosterId) : null;
+        sender.outgoingAssets.push(asset);
+        addAssetCount(sender, 'sent', asset);
+        if (receiver) {
+          receiver.incomingAssets.push(asset);
+          addAssetCount(receiver, 'received', asset);
+        }
+        movements.push({
+          asset,
+          fromRosterId: String(fromRosterId),
+          toRosterId: Number.isFinite(toRosterId) ? String(toRosterId) : '',
+          fromOwnerId: sender.ownerId || '',
+          toOwnerId: receiver?.ownerId || '',
+          fromTeamName: sender.teamName,
+          toTeamName: receiver?.teamName || '',
+        });
+      };
+
+      txRosterIds.forEach((rosterId) => getOrCreateSide(rosterId));
+      const addMap = transaction?.adds || {};
+      const dropMap = transaction?.drops || {};
+
+      Object.entries(addMap).forEach(([playerId, toRosterIdValue]) => {
+        const toRosterId = parseTradeRosterId(toRosterIdValue);
+        const fromRosterId = parseTradeRosterId(dropMap?.[playerId]);
+        const fallbackFromRosterId = !Number.isFinite(fromRosterId) && txRosterIds.length === 2
+          ? txRosterIds.find((candidateId) => candidateId !== toRosterId)
+          : fromRosterId;
+        if (!Number.isFinite(fallbackFromRosterId)) return;
+        registerMovement(fallbackFromRosterId, toRosterId, buildTradePlayerAsset(playerId, season, createdAt));
+      });
+
+      (Array.isArray(transaction?.draft_picks) ? transaction.draft_picks : []).forEach((pick) => {
+        const fromRosterId = parseTradeRosterId(pick?.previous_owner_id);
+        const toRosterId = parseTradeRosterId(pick?.owner_id);
+        if (!Number.isFinite(fromRosterId)) return;
+        registerMovement(fromRosterId, toRosterId, buildTradePickAsset(pick, rosterContext));
+      });
+
+      (Array.isArray(transaction?.waiver_budget) ? transaction.waiver_budget : []).forEach((budgetMove) => {
+        const fromRosterId = parseTradeRosterId(budgetMove?.sender ?? budgetMove?.sender_id ?? budgetMove?.sender_roster_id ?? budgetMove?.from);
+        const toRosterId = parseTradeRosterId(budgetMove?.receiver ?? budgetMove?.receiver_id ?? budgetMove?.receiver_roster_id ?? budgetMove?.to);
+        if (!Number.isFinite(fromRosterId)) return;
+        registerMovement(fromRosterId, toRosterId, buildTradeFaabAsset(budgetMove));
+      });
+
+      if (!movements.length) return null;
+      const sides = Array.from(tradeSides.values())
+        .map((side) => ({
+          ...side,
+          incomingAssets: side.incomingAssets.sort(sortTradeAssets),
+          outgoingAssets: side.outgoingAssets.sort(sortTradeAssets),
+          receivedAvgPpg: averageNumbers(side.receivedPpgValues),
+        }))
+        .sort((a, b) => txRosterIds.indexOf(Number(a.rosterId)) - txRosterIds.indexOf(Number(b.rosterId)));
+      const participantOwnerIds = sides.map((side) => side.ownerId).filter(Boolean);
+      const participantsLabel = sides.map((side) => side.teamName).join(' vs ');
+      const searchTokens = [
+        season,
+        historyLeague?.name,
+        participantsLabel,
+        ...sides.flatMap((side) => [side.teamName, side.displayName, side.label]),
+        ...movements.flatMap((movement) => movement.asset.searchTokens || []),
+      ].join(' ').toLowerCase();
+
+      return {
+        id: String(transaction.transaction_id || `${historyLeague?.league_id}-${createdAt}`),
+        season,
+        leagueId: String(historyLeague?.league_id || ''),
+        createdAt,
+        dateLabel: formatTradeDate(createdAt),
+        participantsLabel,
+        participantOwnerIds,
+        sides,
+        movements,
+        searchTokens,
+        assetTypes: Array.from(new Set(movements.map((movement) => movement.asset.type))),
+        assetCount: movements.length,
+      };
+    }
+
+    function collectTradeRosterIds(transaction) {
+      const rosterIds = new Set();
+      const registerRosterId = (value) => {
+        const parsed = parseTradeRosterId(value);
+        if (Number.isFinite(parsed)) rosterIds.add(parsed);
+      };
+      (Array.isArray(transaction?.roster_ids) ? transaction.roster_ids : []).forEach(registerRosterId);
+      Object.values(transaction?.adds || {}).forEach(registerRosterId);
+      Object.values(transaction?.drops || {}).forEach(registerRosterId);
+      (Array.isArray(transaction?.draft_picks) ? transaction.draft_picks : []).forEach((pick) => {
+        registerRosterId(pick?.owner_id);
+        registerRosterId(pick?.previous_owner_id);
+      });
+      (Array.isArray(transaction?.waiver_budget) ? transaction.waiver_budget : []).forEach((budgetMove) => {
+        registerRosterId(budgetMove?.sender ?? budgetMove?.sender_id ?? budgetMove?.sender_roster_id ?? budgetMove?.from);
+        registerRosterId(budgetMove?.receiver ?? budgetMove?.receiver_id ?? budgetMove?.receiver_roster_id ?? budgetMove?.to);
+      });
+      return Array.from(rosterIds);
+    }
+
+    function parseTradeRosterId(value) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function buildTradePlayerAsset(playerId, season, createdAt) {
+      const playerInfo = state.players[playerId] || {};
+      const careerRow = state.tradeCareerStatsBySeason?.[season]?.[playerId] || null;
+      const position = (careerRow?.pos || playerInfo.position || 'PLYR').toUpperCase();
+      const title = careerRow?.name || formatPlayerName(playerInfo);
+      const tradeAge = getPlayerAge(playerInfo, createdAt ? new Date(createdAt) : new Date());
+      const age = Number.isFinite(tradeAge) ? tradeAge : careerRow?.age;
+      const team = careerRow?.team || playerInfo.team || '--';
+      return {
+        type: 'player',
+        sortOrder: 0,
+        id: String(playerId),
+        badge: position,
+        title,
+        subtitle: `${position} | ${team}`,
+        stats: careerRow ? { ...careerRow, age } : { age: Number.isFinite(age) ? age : null },
+        hasSeasonData: Boolean(careerRow),
+        searchTokens: [title, position, team, season, playerId].filter(Boolean),
+      };
+    }
+
+    function buildTradePickAsset(pick, rosterContext) {
+      const round = Number.parseInt(pick?.round, 10) || 0;
+      const season = String(pick?.season || '');
+      const roundLabel = round ? ordinal(round) : 'Pick';
+      const ktcLabel = `${season} Mid ${roundLabel}`;
+      const originRosterId = String(pick?.roster_id ?? '');
+      const origin = rosterContext?.rostersById?.[originRosterId];
+      return {
+        type: 'pick',
+        sortOrder: 1,
+        badge: `R${round || '?'}`,
+        title: `${season} ${roundLabel} Round Pick`,
+        subtitle: origin ? `Origin | ${origin.teamName}` : 'Draft pick',
+        ktc: getKtcValue(ktcLabel),
+        searchTokens: [
+          `${season} ${roundLabel}`,
+          ktcLabel,
+          `${season} round ${round}`,
+          `${season} r${round}`,
+          origin?.teamName,
+          origin?.displayName,
+          'draft pick',
+          'pick',
+        ].filter(Boolean),
+      };
+    }
+
+    function buildTradeFaabAsset(budgetMove) {
+      const amount = toNumber(budgetMove?.amount ?? budgetMove?.budget ?? budgetMove?.waiver_budget ?? budgetMove?.value ?? 0);
+      return {
+        type: 'faab',
+        sortOrder: 2,
+        badge: 'FAAB',
+        title: `$${amount.toLocaleString()} FAAB`,
+        subtitle: 'Waiver budget transfer',
+        amount,
+        searchTokens: [`${amount}`, 'faab', 'waiver budget'],
+      };
+    }
+
+    function sortTradeAssets(a, b) {
+      const orderDiff = (a?.sortOrder ?? 99) - (b?.sortOrder ?? 99);
+      if (orderDiff !== 0) return orderDiff;
+      const ppgDiff = (Number(b?.stats?.ppg) || 0) - (Number(a?.stats?.ppg) || 0);
+      if (ppgDiff !== 0) return ppgDiff;
+      const ktcDiff = (Number(b?.ktc) || 0) - (Number(a?.ktc) || 0);
+      if (ktcDiff !== 0) return ktcDiff;
+      return String(a?.title || '').localeCompare(String(b?.title || ''));
+    }
+
+    function renderTradeWorkspace() {
+      if (!elements.tradesPanel) return;
+      if (state.trades.loadedLeagueId !== state.currentLeagueId) {
+        elements.tradesAnalytics?.classList.add('hidden');
+        if (state.trades.isLoading) {
+          setTradeEmptyState('Loading completed Sleeper trade history across linked seasons...');
+        }
+        return;
+      }
+      if (!state.trades.allTrades.length) {
+        elements.tradesAnalytics?.classList.add('hidden');
+        if (elements.tradesFeed) elements.tradesFeed.innerHTML = '';
+        if (elements.tradesFeedMeta) elements.tradesFeedMeta.textContent = 'No completed trades found.';
+        if (!state.trades.isLoading) setTradeEmptyState('No completed Sleeper trades were found in this linked league history.');
+        return;
+      }
+
+      renderTradeAnalytics();
+      renderTradeFeed();
+    }
+
+    function getFilteredTrades() {
+      const selectedOwnerId = state.trades.selectedMember;
+      const selectedSeason = state.trades.selectedSeason;
+      const selectedAssetType = state.trades.selectedAssetType;
+      const searchTerm = (state.trades.searchTerm || '').trim().toLowerCase();
+      return state.trades.allTrades.filter((trade) => {
+        if (selectedOwnerId && selectedOwnerId !== 'ALL' && !trade.participantOwnerIds.includes(String(selectedOwnerId))) {
+          return false;
+        }
+        if (selectedSeason && selectedSeason !== 'ALL' && String(trade.season) !== String(selectedSeason)) {
+          return false;
+        }
+        if (selectedAssetType && selectedAssetType !== 'ALL' && !trade.assetTypes.includes(selectedAssetType)) {
+          return false;
+        }
+        if (searchTerm && !trade.searchTokens.includes(searchTerm)) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    function renderTradeAnalytics() {
+      const currentMembers = state.trades.currentMembers || [];
+      if (!currentMembers.length) {
+        elements.tradesAnalytics?.classList.add('hidden');
+        return;
+      }
+      elements.tradesAnalytics?.classList.remove('hidden');
+      if (state.trades.selectedMember && state.trades.selectedMember !== 'ALL') {
+        renderSelectedMemberTradeAnalytics(state.trades.selectedMember);
+      } else {
+        renderAllMemberTradeAnalytics(currentMembers);
+      }
+    }
+
+    function setTradeAnalyticsColumns(columns) {
+      if (!elements.tradesAnalysisTable) return;
+      const colgroup = elements.tradesAnalysisTable.querySelector('colgroup');
+      if (colgroup) {
+        colgroup.innerHTML = columns.map((column) => `<col style="width:${column.width}">`).join('');
+      }
+      const minWidth = columns.reduce((sum, column) => sum + column.pxWidth, 0);
+      elements.tradesAnalysisTable.style.minWidth = `${minWidth}px`;
+    }
+
+    function renderAllMemberTradeAnalytics(currentMembers) {
+      const visibleTrades = getFilteredTrades();
+      setTradeAnalyticsColumns([
+        { width: '44px', pxWidth: 44 },
+        { width: '170px', pxWidth: 170 },
+        { width: '64px', pxWidth: 64 },
+        { width: '72px', pxWidth: 72 },
+        { width: '72px', pxWidth: 72 },
+        { width: '82px', pxWidth: 82 },
+        { width: '82px', pxWidth: 82 },
+      ]);
+      const rows = currentMembers.map((member) => {
+        const memberTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(member.ownerId));
+        const memberSides = memberTrades.map((trade) => getTradeSideForOwner(trade, member.ownerId)).filter(Boolean);
+        return {
+          member,
+          tradeCount: memberTrades.length,
+          playersIn: memberSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
+          picksIn: memberSides.reduce((sum, side) => sum + side.receivedPicks, 0),
+          fptsIn: memberSides.reduce((sum, side) => sum + side.receivedFpts, 0),
+          avgPpgIn: averageNumbers(memberSides.flatMap((side) => side.receivedPpgValues || [])),
+        };
+      }).sort((a, b) => b.tradeCount - a.tradeCount || b.playersIn - a.playersIn || a.member.teamName.localeCompare(b.member.teamName));
+
+      elements.tradesSummaryCards?.classList.add('hidden');
+      if (elements.tradesSummaryCards) elements.tradesSummaryCards.innerHTML = '';
+      if (elements.tradesAnalysisHeading) elements.tradesAnalysisHeading.textContent = 'Trade activity';
+      if (elements.tradesAnalysisSubheading) {
+        elements.tradesAnalysisSubheading.textContent = `${visibleTrades.length} trade${visibleTrades.length === 1 ? '' : 's'} match the current filters.`;
+      }
+      if (elements.tradesAnalysisHead) {
+        elements.tradesAnalysisHead.innerHTML = `
+          <tr>
+            <th scope="col" class="is-numeric">RK</th>
+            <th scope="col">Team</th>
+            <th scope="col" class="is-numeric">Trades</th>
+            <th scope="col" class="is-numeric">Players In</th>
+            <th scope="col" class="is-numeric">Picks In</th>
+            <th scope="col" class="is-numeric">FPTS In</th>
+            <th scope="col" class="is-numeric">Avg PPG</th>
+          </tr>`;
+      }
+      if (elements.tradesAnalysisBody) {
+        elements.tradesAnalysisBody.innerHTML = rows.map((row, index) => `
+          <tr>
+            <td class="is-numeric">${index + 1}</td>
+            <td class="leaguehub-trades-team-cell"><strong>${escapeHtml(row.member.teamName)}</strong><span>${escapeHtml(row.member.displayName)}</span></td>
+            <td class="is-numeric">${row.tradeCount}</td>
+            <td class="is-numeric">${row.playersIn}</td>
+            <td class="is-numeric">${row.picksIn}</td>
+            <td class="is-numeric">${formatOptionalNumber(row.fptsIn, 1)}</td>
+            <td class="is-numeric">${formatOptionalNumber(row.avgPpgIn, 1)}</td>
+          </tr>`).join('');
+      }
+    }
+
+    function renderSelectedMemberTradeAnalytics(selectedOwnerId) {
+      const selectedMember = state.trades.currentMemberMap[selectedOwnerId];
+      const visibleTrades = getFilteredTrades();
+      const selectedTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(String(selectedOwnerId)));
+      const selectedSides = selectedTrades.map((trade) => getTradeSideForOwner(trade, selectedOwnerId)).filter(Boolean);
+      const partnerStats = new Map();
+
+      selectedTrades.forEach((trade) => {
+        const touchedPartners = new Set();
+        (trade.movements || []).forEach((movement) => {
+          const fromOwnerKey = String(movement.fromOwnerId || '');
+          const toOwnerKey = String(movement.toOwnerId || '');
+          const isIncoming = toOwnerKey === String(selectedOwnerId) && fromOwnerKey && fromOwnerKey !== String(selectedOwnerId);
+          const isOutgoing = fromOwnerKey === String(selectedOwnerId) && toOwnerKey && toOwnerKey !== String(selectedOwnerId);
+          if (!isIncoming && !isOutgoing) return;
+          const partnerKey = isIncoming ? fromOwnerKey : toOwnerKey;
+          const partnerLabel = isIncoming ? movement.fromTeamName : movement.toTeamName;
+          if (!partnerStats.has(partnerKey)) {
+            partnerStats.set(partnerKey, {
+              partnerKey,
+              partnerLabel,
+              tradeCount: 0,
+              playersIn: 0,
+              playersOut: 0,
+              picksIn: 0,
+              picksOut: 0,
+            });
+          }
+          const stats = partnerStats.get(partnerKey);
+          touchedPartners.add(partnerKey);
+          if (movement.asset.type === 'player') stats[isIncoming ? 'playersIn' : 'playersOut'] += 1;
+          if (movement.asset.type === 'pick') stats[isIncoming ? 'picksIn' : 'picksOut'] += 1;
+        });
+        touchedPartners.forEach((partnerKey) => {
+          const stats = partnerStats.get(partnerKey);
+          if (stats) stats.tradeCount += 1;
+        });
+      });
+
+      const totals = {
+        trades: selectedTrades.length,
+        partners: partnerStats.size,
+        playersIn: selectedSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
+        playersOut: selectedSides.reduce((sum, side) => sum + side.sentPlayers, 0),
+        picksIn: selectedSides.reduce((sum, side) => sum + side.receivedPicks, 0),
+        fptsIn: selectedSides.reduce((sum, side) => sum + side.receivedFpts, 0),
+        avgPpgIn: averageNumbers(selectedSides.flatMap((side) => side.receivedPpgValues || [])),
+      };
+      const summaryCards = [
+        { label: 'Trades', value: totals.trades, meta: `${totals.partners} partner${totals.partners === 1 ? '' : 's'}` },
+        { label: 'Players In', value: totals.playersIn, meta: `${totals.playersOut} sent` },
+        { label: 'Picks In', value: totals.picksIn, meta: 'Draft assets received' },
+        { label: 'FPTS In', value: formatOptionalNumber(totals.fptsIn, 1), meta: 'Trade-season production' },
+        { label: 'Avg PPG In', value: formatOptionalNumber(totals.avgPpgIn, 1), meta: 'Player assets only' },
+      ];
+
+      if (elements.tradesSummaryCards) {
+        elements.tradesSummaryCards.classList.remove('hidden');
+        elements.tradesSummaryCards.innerHTML = summaryCards.map((card) => `
+          <article class="leaguehub-trades-summary-card">
+            <span class="leaguehub-trades-summary-label">${escapeHtml(card.label)}</span>
+            <span class="leaguehub-trades-summary-value">${escapeHtml(card.value)}</span>
+            <span class="leaguehub-trades-summary-meta">${escapeHtml(card.meta)}</span>
+          </article>`).join('');
+      }
+      if (elements.tradesAnalysisHeading) elements.tradesAnalysisHeading.textContent = selectedMember?.teamName || 'Selected leaguemate';
+      if (elements.tradesAnalysisSubheading) {
+        elements.tradesAnalysisSubheading.textContent = `${selectedTrades.length} completed trade${selectedTrades.length === 1 ? '' : 's'} in the current filter view.`;
+      }
+      setTradeAnalyticsColumns([
+        { width: '170px', pxWidth: 170 },
+        { width: '64px', pxWidth: 64 },
+        { width: '72px', pxWidth: 72 },
+        { width: '72px', pxWidth: 72 },
+        { width: '64px', pxWidth: 64 },
+        { width: '64px', pxWidth: 64 },
+      ]);
+      if (elements.tradesAnalysisHead) {
+        elements.tradesAnalysisHead.innerHTML = `
+          <tr>
+            <th scope="col">Partner</th>
+            <th scope="col" class="is-numeric">Trades</th>
+            <th scope="col" class="is-numeric">Players In</th>
+            <th scope="col" class="is-numeric">Players Out</th>
+            <th scope="col" class="is-numeric">Picks In</th>
+            <th scope="col" class="is-numeric">Picks Out</th>
+          </tr>`;
+      }
+      if (elements.tradesAnalysisBody) {
+        const rows = Array.from(partnerStats.values()).sort((a, b) => b.tradeCount - a.tradeCount || a.partnerLabel.localeCompare(b.partnerLabel));
+        elements.tradesAnalysisBody.innerHTML = rows.length ? rows.map((row) => `
+          <tr>
+            <td class="leaguehub-trades-partner-cell"><span class="leaguehub-trades-partner-name">${escapeHtml(row.partnerLabel || '—')}</span></td>
+            <td class="is-numeric">${row.tradeCount}</td>
+            <td class="is-numeric">${row.playersIn}</td>
+            <td class="is-numeric">${row.playersOut}</td>
+            <td class="is-numeric">${row.picksIn}</td>
+            <td class="is-numeric">${row.picksOut}</td>
+          </tr>`).join('') : '<tr><td colspan="6" class="leaguehub-trades-empty-cell">No partner rows match these filters.</td></tr>';
+      }
+    }
+
+    function renderTradeFeed() {
+      if (!elements.tradesFeed || !elements.tradesFeedMeta) return;
+      const selectedMember = state.trades.selectedMember !== 'ALL'
+        ? state.trades.currentMemberMap[state.trades.selectedMember]
+        : null;
+      const filteredTrades = getFilteredTrades();
+      const bundles = state.trades.seasonBundles
+        .filter((bundle) => state.trades.selectedSeason === 'ALL' || String(bundle.season) === String(state.trades.selectedSeason))
+        .map((bundle) => ({
+          ...bundle,
+          trades: filteredTrades.filter((trade) => String(trade.season) === String(bundle.season)),
+        }))
+        .filter((bundle) => bundle.trades.length || state.trades.selectedSeason !== 'ALL');
+      const totalTrades = bundles.reduce((sum, bundle) => sum + bundle.trades.length, 0);
+
+      if (!totalTrades) {
+        elements.tradesFeed.innerHTML = '';
+        elements.tradesFeedMeta.textContent = 'No completed trades match the current filters.';
+        setTradeEmptyState('No completed trades match the selected leaguemate, season, asset, or search filters.');
+        return;
+      }
+
+      setTradeEmptyState('');
+      elements.tradesFeedMeta.textContent = `${totalTrades} completed trade${totalTrades === 1 ? '' : 's'} shown across ${bundles.length} season${bundles.length === 1 ? '' : 's'}.`;
+      elements.tradesFeed.innerHTML = bundles.map((bundle) => renderTradeSeasonBundle(bundle, selectedMember)).join('');
+    }
+
+    function renderTradeSeasonBundle(seasonBundle, selectedMember) {
+      return `
+        <section class="leaguehub-trades-season">
+          <header class="leaguehub-trades-season-head">
+            <div class="leaguehub-trades-season-label">
+              <span class="leaguehub-trades-season-tag">${escapeHtml(seasonBundle.season)}</span>
+              <span class="leaguehub-trades-season-name">${escapeHtml(seasonBundle.leagueName || `Season ${seasonBundle.season}`)}</span>
+            </div>
+            <span class="leaguehub-trades-season-count">${seasonBundle.trades.length} trade${seasonBundle.trades.length === 1 ? '' : 's'}</span>
+          </header>
+          ${seasonBundle.trades.length
+            ? seasonBundle.trades.map((trade) => renderTradeCard(trade)).join('')
+            : `<p class="leaguehub-trade-empty-note">No completed trades${selectedMember ? ` involving ${escapeHtml(selectedMember.teamName)}` : ''} in ${escapeHtml(seasonBundle.season)}.</p>`}
+        </section>`;
+    }
+
+    function renderTradeCard(trade) {
+      const renderSides = getTradeRenderSides(trade);
+      const isMultiRoster = renderSides.length > 2;
+      return `
+        <article class="leaguehub-trade-entry">
+          <header class="leaguehub-trade-entry-head">
+            <p class="leaguehub-trade-entry-stamp">${escapeHtml(trade.dateLabel)} | ${trade.assetCount} asset${trade.assetCount === 1 ? '' : 's'} | ${escapeHtml(trade.season)}</p>
+            <h4 class="leaguehub-trade-entry-title">${escapeHtml(renderSides.map((side) => side.teamName).join(' vs '))}</h4>
+          </header>
+          <div class="leaguehub-trade-entry-body ${isMultiRoster ? 'is-multi-team' : ''}">
+            ${renderSides.map((side, index) => renderTradeSide(side, index)).join('')}
+          </div>
+        </article>`;
+    }
+
+    function getTradeRenderSides(trade) {
+      const selectedOwnerId = state.trades.selectedMember;
+      if (!selectedOwnerId || selectedOwnerId === 'ALL') return trade.sides;
+      const selectedIndex = trade.sides.findIndex((side) => side.ownerId === String(selectedOwnerId));
+      if (selectedIndex <= 0) return trade.sides;
+      return [
+        trade.sides[selectedIndex],
+        ...trade.sides.filter((side, index) => index !== selectedIndex),
+      ];
+    }
+
+    function renderTradeSide(side, index) {
+      const selectedOwnerId = state.trades.selectedMember;
+      const isSelected = selectedOwnerId !== 'ALL' && side.ownerId === String(selectedOwnerId);
+      const visibleAssets = getVisibleAssetsForSide(side);
+      const avgPpg = averageNumbers(visibleAssets.filter((asset) => asset.type === 'player').map((asset) => asset.stats?.ppg));
+      const totalFpts = visibleAssets.reduce((sum, asset) => sum + (Number(asset.stats?.fpts) || 0), 0);
+      const sideClass = `${index % 2 === 0 ? 'is-primary' : 'is-secondary'}${isSelected ? ' is-selected-member' : ''}`;
+      const meta = [
+        side.receivedPlayers ? `${side.receivedPlayers} player${side.receivedPlayers === 1 ? '' : 's'}` : '',
+        side.receivedPicks ? `${side.receivedPicks} pick${side.receivedPicks === 1 ? '' : 's'}` : '',
+        side.receivedFaab ? `${side.receivedFaab} FAAB` : '',
+      ].filter(Boolean).join(' | ') || 'No visible receives';
+
+      return `
+        <section class="leaguehub-trade-package ${sideClass}">
+          <header class="leaguehub-trade-package-head">
+            <div class="leaguehub-trade-package-title">
+              <strong>${escapeHtml(side.teamName)}</strong>
+              <span>${escapeHtml(meta)}</span>
+            </div>
+            <div class="leaguehub-trade-package-total">
+              ${isSelected ? '<span class="leaguehub-trade-selected-pill">Selected Team</span>' : ''}
+              <span class="leaguehub-trade-package-total-label">Received</span>
+              <span class="leaguehub-trade-package-total-value">${formatOptionalNumber(avgPpg, 1)} PPG</span>
+              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(totalFpts, 1)} FPTS</span>
+            </div>
+          </header>
+          <div class="leaguehub-trade-package-assets">
+            ${visibleAssets.length
+              ? visibleAssets.map((asset) => renderTradeAsset(asset)).join('')
+              : '<p class="leaguehub-trade-empty-note">No visible assets match the current filters.</p>'}
+          </div>
+        </section>`;
+    }
+
+    function getVisibleAssetsForSide(side) {
+      const assetType = state.trades.selectedAssetType;
+      const searchTerm = (state.trades.searchTerm || '').trim().toLowerCase();
+      const incomingAssets = side.incomingAssets || [];
+      const filtered = incomingAssets.filter((asset) => {
+        if (assetType && assetType !== 'ALL' && asset.type !== assetType) return false;
+        if (searchTerm && !(asset.searchTokens || []).join(' ').toLowerCase().includes(searchTerm)) return false;
+        return true;
+      });
+      if (filtered.length || assetType !== 'ALL') return filtered;
+      return searchTerm ? incomingAssets : filtered;
+    }
+
+    function renderTradeAsset(asset) {
+      if (asset.type === 'player') return renderTradePlayerAsset(asset);
+      if (asset.type === 'pick') return renderTradePickAsset(asset);
+      return renderTradeFaabAsset(asset);
+    }
+
+    function renderTradePlayerAsset(asset) {
+      const stats = asset.stats || {};
+      const pos = String(asset.badge || '').toUpperCase();
+      const ppgColor = getTradePositionRankColor(stats.ppgPosRank, pos);
+      const fptsColor = getTradePositionRankColor(stats.fptsPosRank, pos);
+      const ppgOverallColor = getTradeOverallRankColor(stats.ppgOverallRank);
+      const fptsOverallColor = getTradeOverallRankColor(stats.fptsOverallRank);
+      const ageColor = getTradeAgeColor(pos, stats.age);
+      return `
+        <div class="leaguehub-trade-asset-row is-player">
+          <span class="leaguehub-trade-asset-badge ${pos}">${escapeHtml(pos || 'PLYR')}</span>
+          <div class="leaguehub-trade-asset-content">
+            <div class="leaguehub-trade-asset-line">
+              <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
+              <span class="leaguehub-trade-asset-main" style="color:${ppgColor}">${formatOptionalNumber(stats.ppg, 1)} PPG</span>
+            </div>
+            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}${asset.hasSeasonData ? '' : ' | No season data'}</div>
+            <div class="leaguehub-trade-stat-grid">
+              ${renderTradeMetricChip('FPTS', formatOptionalNumber(stats.fpts, 1), fptsColor)}
+              ${renderTradeMetricChip('FPTS RK', formatRankText(stats.fptsOverallRank), fptsOverallColor)}
+              ${renderTradeMetricChip('PPG RK', formatRankText(stats.ppgOverallRank), ppgOverallColor)}
+              ${renderTradeMetricChip('POS FPTS', stats.fptsPosRankText || '—', fptsColor)}
+              ${renderTradeMetricChip('POS PPG', stats.ppgPosRankText || '—', ppgColor)}
+              ${renderTradeMetricChip('AGE', formatOptionalNumber(stats.age, 1), ageColor)}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderTradePickAsset(asset) {
+      const ktcColor = getTradeKtcColor(asset.ktc);
+      return `
+        <div class="leaguehub-trade-asset-row is-pick">
+          <span class="leaguehub-trade-asset-badge is-pick">${escapeHtml(asset.badge)}</span>
+          <div class="leaguehub-trade-asset-content">
+            <div class="leaguehub-trade-asset-line">
+              <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
+              <span class="leaguehub-trade-asset-main" style="color:${ktcColor}">${formatNumber(Number(asset.ktc) || 0)} KTC</span>
+            </div>
+            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderTradeFaabAsset(asset) {
+      return `
+        <div class="leaguehub-trade-asset-row is-faab">
+          <span class="leaguehub-trade-asset-badge is-faab">FAAB</span>
+          <div class="leaguehub-trade-asset-content">
+            <div class="leaguehub-trade-asset-line">
+              <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
+            </div>
+            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderTradeMetricChip(label, value, color) {
+      return `
+        <span class="leaguehub-trade-stat-chip">
+          <small>${escapeHtml(label)}</small>
+          <strong style="color:${color || 'inherit'}">${escapeHtml(value)}</strong>
+        </span>`;
+    }
+
+    function getTradeSideForOwner(trade, ownerId) {
+      const ownerKey = String(ownerId || '');
+      return (trade?.sides || []).find((side) => side.ownerId === ownerKey) || null;
+    }
+
+    function formatTradeDate(timestamp) {
+      if (!Number.isFinite(Number(timestamp)) || Number(timestamp) <= 0) return 'Unknown date';
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(new Date(Number(timestamp)));
+    }
+
+    function formatOptionalNumber(value, decimals = 1) {
+      return Number.isFinite(value) ? value.toFixed(decimals) : '—';
+    }
+
+    function formatRankText(rank) {
+      return Number.isFinite(rank) && rank > 0 ? `#${rank}` : '—';
+    }
+
+    function getTradeOverallRankColor(rank) {
+      if (!Number.isFinite(rank) || rank <= 0) return 'rgba(213, 221, 248, 0.72)';
+      const thresholds = [
+        { v: 24, c: '#8BEBCDbb' },
+        { v: 48, c: '#97EBE3ab' },
+        { v: 72, c: '#7dd1ffaa' },
+        { v: 96, c: '#48a6ffaa' },
+        { v: 120, c: '#957cffbb' },
+        { v: 156, c: '#a642ffbb' },
+        { v: 180, c: '#cf60ffcc' },
+        { v: 204, c: '#ff6fe1cc' },
+        { v: 250, c: '#ff2eb2' },
+      ];
+      for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.c;
+      }
+      return rank >= 300 ? '#656565' : '#ff0080';
+    }
+
+    function getTradePositionRankColor(rank, position) {
+      if (!Number.isFinite(rank) || rank <= 0) return 'rgba(213, 221, 248, 0.72)';
+      const thresholds = position === 'WR'
+        ? [
+          { v: 12, c: '#51CBA5' },
+          { v: 24, c: '#34aabf' },
+          { v: 36, c: '#4798fc' },
+          { v: 48, c: '#957CFF' },
+          { v: 60, c: '#FF6FE1' },
+          { v: 72, c: '#FF2EB9' },
+        ]
+        : [
+          { v: 8, c: '#51CBA5' },
+          { v: 16, c: '#34aabf' },
+          { v: 24, c: '#4798fc' },
+          { v: 32, c: '#957CFF' },
+          { v: 44, c: '#FF6FE1' },
+          { v: 60, c: '#FF2EB2' },
+        ];
+      for (const threshold of thresholds) {
+        if (rank <= threshold.v) return threshold.c;
+      }
+      return '#767693';
+    }
+
+    function getTradeKtcColor(value) {
+      const scale = [
+        { v: 9000, c: '#72edd0B3' },
+        { v: 8000, c: '#58d5ceB3' },
+        { v: 7000, c: '#5bdae8B3' },
+        { v: 6000, c: '#6eb4ebB3' },
+        { v: 5000, c: '#848bffB3' },
+        { v: 4000, c: '#964effB3' },
+        { v: 3000, c: '#ee42ffB3' },
+        { v: 2000, c: '#d032aaB3' },
+        { v: 0, c: '#f94ea4B3' },
+      ];
+      const numeric = Number(value) || 0;
+      for (const tier of scale) {
+        if (numeric >= tier.v) return tier.c;
+      }
+      return '#e0e6ed';
+    }
+
+    function getTradeAgeColor(position, age) {
+      if (!Number.isFinite(age) || age <= 0) return 'rgba(213, 221, 248, 0.72)';
+      const scale = position === 'QB'
+        ? [
+          { v: 25.5, c: '#00ffc4' },
+          { v: 28, c: '#85fff3' },
+          { v: 31, c: '#48a6ff' },
+          { v: 36, c: '#a642ff' },
+          { v: 44, c: '#ff6fe1' },
+        ]
+        : position === 'RB'
+          ? [
+            { v: 22.5, c: '#00ffc4' },
+            { v: 24, c: '#85fff3' },
+            { v: 26, c: '#7dd1ff' },
+            { v: 28, c: '#957cff' },
+            { v: 31, c: '#ff6fe1' },
+          ]
+          : [
+            { v: 22.5, c: '#00ffc4' },
+            { v: 25, c: '#85fff3' },
+            { v: 27, c: '#7dd1ff' },
+            { v: 30, c: '#957cff' },
+            { v: 33, c: '#ff6fe1' },
+          ];
+      for (const tier of scale) {
+        if (age <= tier.v) return tier.c;
+      }
+      return '#ff6fe1';
+    }
+
     async function fetchWithCache(url) {
       if (state.cache[url]) {
         return state.cache[url];
@@ -718,6 +1954,104 @@
       const data = await response.json();
       state.cache[url] = data;
       return data;
+    }
+
+    async function fetchTextWithCache(url) {
+      if (state.textCache[url]) {
+        return state.textCache[url];
+      }
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+      }
+      const text = await response.text();
+      state.textCache[url] = text;
+      return text;
+    }
+
+    function parseCsvRows(csvText) {
+      if (!csvText) return [];
+      const rows = [];
+      let current = '';
+      let row = [];
+      let inQuotes = false;
+
+      for (let index = 0; index < csvText.length; index += 1) {
+        const char = csvText[index];
+        const nextChar = csvText[index + 1];
+
+        if (inQuotes) {
+          if (char === '"' && nextChar === '"') {
+            current += '"';
+            index += 1;
+          } else if (char === '"') {
+            inQuotes = false;
+          } else {
+            current += char;
+          }
+          continue;
+        }
+
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          row.push(current);
+          current = '';
+        } else if (char === '\n') {
+          row.push(current);
+          rows.push(row);
+          row = [];
+          current = '';
+        } else if (char !== '\r') {
+          current += char;
+        }
+      }
+
+      if (current || row.length) {
+        row.push(current);
+        rows.push(row);
+      }
+
+      const headers = (rows.shift() || []).map((header) => header.trim());
+      return rows
+        .filter((values) => values.some((value) => String(value || '').trim()))
+        .map((values) => headers.reduce((acc, header, index) => {
+          acc[header] = values[index] !== undefined ? String(values[index]).trim() : '';
+          return acc;
+        }, {}));
+    }
+
+    async function ensureTradeCareerStats() {
+      if (state.tradeCareerStatsBySeason) return state.tradeCareerStatsBySeason;
+      const csvText = await fetchTextWithCache(TRADE_CAREER_CSV_URL);
+      const bySeason = {};
+
+      parseCsvRows(csvText).forEach((row) => {
+        const season = String(row.SZN || '').trim();
+        const playerId = String(row.SLPR_ID || '').trim();
+        if (!season || !playerId) return;
+        if (!bySeason[season]) bySeason[season] = {};
+        bySeason[season][playerId] = {
+          playerId,
+          season,
+          name: row.PLAYER || '',
+          pos: String(row.POS || '').toUpperCase(),
+          team: row.TM || '',
+          games: parseOptionalNumber(row.G),
+          fpts: parseOptionalNumber(row.FPTS),
+          ppg: parseOptionalNumber(row.PPG),
+          fptsOverallRank: parseOptionalNumber(row['FPTS RK']),
+          ppgOverallRank: parseOptionalNumber(row['PPG RK']),
+          fptsPosRankText: normalizeTradePosRankText(row['FPTS POS RK']),
+          ppgPosRankText: normalizeTradePosRankText(row['PPG POS RK']),
+          fptsPosRank: parsePosRankNumber(row['FPTS POS RK']),
+          ppgPosRank: parsePosRankNumber(row['PPG POS RK']),
+          age: parseOptionalNumber(row.Age),
+        };
+      });
+
+      state.tradeCareerStatsBySeason = bySeason;
+      return bySeason;
     }
 
     async function fetchSleeperPlayers() {
@@ -950,6 +2284,26 @@
     function toNumber(value) {
       const parsed = Number(value);
       return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function parseOptionalNumber(value) {
+      const cleaned = String(value ?? '').replace(/,/g, '').trim();
+      if (!cleaned || cleaned === '-' || cleaned.toUpperCase() === 'NA') return null;
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function parsePosRankNumber(value) {
+      const match = String(value ?? '').match(/(\d+)/);
+      if (!match) return null;
+      const parsed = Number.parseInt(match[1], 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function normalizeTradePosRankText(value) {
+      const text = String(value ?? '').replace(/[\u202f\u00a0]/g, ' ').trim();
+      if (!text || text === '-' || text.toUpperCase() === 'NA') return '—';
+      return text.replace(/\s*·\s*/g, '·').replace(/\s+/g, '');
     }
 
     function getPlayerAge(playerInfo, asOfDate = new Date()) {
@@ -1336,6 +2690,8 @@
           fetchAnalyzerCareerStats(leagueInfo),
         ]);
 
+        resetTradeArchiveForLeague(leagueInfo, users, rosters);
+
         const radarSlots = buildRadarSlots(leagueInfo.roster_positions || []);
         const processed = processLeagueData(rosters, users, tradedPicks, leagueInfo, radarSlots);
         const [standingsRosters, standingsUsers] = standingsData;
@@ -1365,6 +2721,9 @@
           // already visible
         } else {
           elements.summaryStats.classList.remove('hidden');
+        }
+        if (state.trades.activeTab === 'trades') {
+          await ensureTradeArchiveLoaded();
         }
         return true;
       } catch (error) {

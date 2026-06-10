@@ -178,10 +178,30 @@
         </div>
       </div>
 
-      <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
+      <!-- LeagueHub workspace tabs:
+           separates the new League Trades archive from the existing League Analysis
+           surface without changing analyzer chart/table IDs or their render targets. -->
+      <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
+        <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
+          <button type="button" id="leagueAnalysisTab" class="leaguehub-tab-button active" role="tab"
+            aria-selected="true" aria-controls="leagueAnalysisPanel" data-leaguehub-tab="analysis">
+            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+            <span class="leaguehub-tab-label">League Analysis</span>
+          </button>
+          <button type="button" id="leagueTradesTab" class="leaguehub-tab-button" role="tab" aria-selected="false"
+            aria-controls="leagueTradesPanel" data-leaguehub-tab="trades" tabindex="-1">
+            <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+            <span class="leaguehub-tab-label">League Trades</span>
+          </button>
+        </div>
       </section>
 
-      <section id="infographicContent" class="analyzer-content hidden">
+      <section id="leagueAnalysisPanel" class="leaguehub-panel leaguehub-panel--analysis" role="tabpanel"
+        aria-labelledby="leagueAnalysisTab">
+        <section id="summaryStats" class="analyzer-summary-grid hidden" aria-live="polite" aria-label="Team summary">
+        </section>
+
+        <section id="infographicContent" class="analyzer-content hidden">
         <div class="analyzer-panels-grid">
           <article class="analyzer-panel glass-panel" id="lineup-panel">
             <header class="analyzer-panel-header">
@@ -357,6 +377,113 @@
               </table>
             </div>
           </div>
+        </section>
+      </section>
+      </section>
+
+      <!-- League trades workspace:
+           hosts the custom filters, analytics, and season-grouped archive while
+           keeping all trade behavior scoped to the LeagueHub page. -->
+      <section id="leagueTradesPanel" class="leaguehub-panel leaguehub-panel--trades hidden" role="tabpanel"
+        aria-labelledby="leagueTradesTab" aria-hidden="true">
+        <section class="leaguehub-trades-shell" aria-labelledby="leagueTradesHeading">
+          <section class="leaguehub-trades-toolbar" aria-label="Trade archive controls">
+            <div class="leaguehub-trades-toolbar-head">
+              <div class="leaguehub-trades-heading">
+                <span class="leaguehub-trades-kicker">Sleeper transaction history</span>
+                <h2 id="leagueTradesHeading">Trade Archive</h2>
+              </div>
+              <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
+                Select a league to load the trade archive.
+              </div>
+            </div>
+
+            <div class="leaguehub-trades-toolbar-filters">
+              <div class="leaguehub-trades-control leaguehub-trades-control--member">
+                <span class="leaguehub-trades-control-label" id="leagueTradesMemberLabel">Leaguemate</span>
+                <div class="leaguehub-trades-select" data-trade-select="member">
+                  <button type="button" id="leagueTradesMemberButton" class="leaguehub-trades-select-button"
+                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesMemberLabel leagueTradesMemberValue">
+                    <span id="leagueTradesMemberValue">All Leaguemates</span>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                  </button>
+                  <div id="leagueTradesMemberMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                    aria-labelledby="leagueTradesMemberLabel"></div>
+                </div>
+              </div>
+
+              <div class="leaguehub-trades-control leaguehub-trades-control--season">
+                <span class="leaguehub-trades-control-label" id="leagueTradesSeasonLabelText">Season</span>
+                <div class="leaguehub-trades-select" data-trade-select="season">
+                  <button type="button" id="leagueTradesSeasonButton" class="leaguehub-trades-select-button"
+                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesSeasonLabelText leagueTradesSeasonValue">
+                    <span id="leagueTradesSeasonValue">All Seasons</span>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                  </button>
+                  <div id="leagueTradesSeasonMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                    aria-labelledby="leagueTradesSeasonLabelText"></div>
+                </div>
+              </div>
+
+              <div class="leaguehub-trades-control leaguehub-trades-control--asset">
+                <span class="leaguehub-trades-control-label" id="leagueTradesAssetLabel">Assets</span>
+                <div class="leaguehub-trades-select" data-trade-select="asset">
+                  <button type="button" id="leagueTradesAssetButton" class="leaguehub-trades-select-button"
+                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesAssetLabel leagueTradesAssetValue">
+                    <span id="leagueTradesAssetValue">All Assets</span>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                  </button>
+                  <div id="leagueTradesAssetMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                    aria-labelledby="leagueTradesAssetLabel"></div>
+                </div>
+              </div>
+
+              <div class="leaguehub-trades-control leaguehub-trades-control--search">
+                <label for="leagueTradesSearch">Search</label>
+                <div class="leaguehub-trades-search-wrap">
+                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                  <input id="leagueTradesSearch" type="search" inputmode="search" autocomplete="off"
+                    placeholder="Search players, picks, teams..." />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="leagueTradesAnalytics" class="leaguehub-trades-analytics hidden" aria-live="polite">
+            <article class="leaguehub-trades-module">
+              <header class="leaguehub-trades-module-header">
+                <div>
+                  <span class="leaguehub-trades-kicker">Archive summary</span>
+                  <h3 id="leagueTradesAnalysisHeading">League trade activity</h3>
+                </div>
+                <p id="leagueTradesAnalysisSubheading" class="leaguehub-trades-module-subheading">
+                  Current-member trade volume and asset movement.
+                </p>
+              </header>
+              <div id="leagueTradesSummaryCards" class="leaguehub-trades-summary-grid hidden"
+                aria-label="Selected manager trade summary"></div>
+              <div class="leaguehub-trades-table-wrap">
+                <table id="leagueTradesAnalysisTable" class="leaguehub-trades-table">
+                  <colgroup></colgroup>
+                  <thead id="leagueTradesAnalysisHead"></thead>
+                  <tbody id="leagueTradesAnalysisBody"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <div id="leagueTradesEmptyState" class="leaguehub-trades-empty hidden" aria-live="polite"></div>
+
+          <section class="leaguehub-trades-feed-stage" aria-labelledby="leagueTradesFeedHeading">
+            <div class="leaguehub-trades-feed-head">
+              <div>
+                <span class="leaguehub-trades-kicker">Season timeline</span>
+                <h3 id="leagueTradesFeedHeading">Trades</h3>
+              </div>
+              <p id="leagueTradesFeedMeta" class="leaguehub-trades-feed-meta">No trades loaded yet.</p>
+            </div>
+            <div id="leagueTradesFeed" class="leaguehub-trades-feed" aria-live="polite"></div>
+          </section>
         </section>
       </section>
     </main>
