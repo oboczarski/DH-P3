@@ -1886,12 +1886,12 @@
     const host = document.getElementById('pos-analysis-summary-chips');
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
-    const diffLabel = `${summary.range.toUpperCase()} DIFF`;
+    const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR DIFF`;
     const chips = [
       { label: 'Selected range', value: summary.range, tone: '' },
-      { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down' },
+      { label: 'RB · 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down' },
       { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down' },
-      { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down' }
+      { label: 'WR · 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down' }
     ];
     host.innerHTML = chips.map((chip) => (
       `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span>${escapePosAnalysisHtml(chip.label)}</span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`
