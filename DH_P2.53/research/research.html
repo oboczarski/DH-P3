@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=20260520-syop-css-controls" />
+<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -94,6 +94,7 @@
     <div class="syop-tabs" role="tablist" aria-label="Research dashboards">
       <button class="syop-tab active" id="syop-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="syop-tab-panel">Career Length Analytics — SYOP</button>
       <button class="syop-tab" id="draft-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="draft-tab-panel">NFL Draft &mdash; Player Hit Rates</button>
+      <button class="syop-tab" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="positional-analysis-tab-panel">Positional Analysis</button>
     </div>
 
     <div class="syop-tab-panels">
@@ -216,10 +217,242 @@
         </div>
         <div class="draft-pill">HIT RATE &bull; All Positions &amp; By Position</div>
       </section>
+
+      <section class="syop-section syop-tab-panel pos-analysis-panel" id="positional-analysis-tab-panel" role="tabpanel" aria-labelledby="positional-analysis-tab-button" hidden>
+        <!-- Positional Analysis tab shell: all child ids/classes are unique to Research
+             so the imported PosDist experience cannot affect other pages. -->
+        <div class="pos-analysis-root" id="pos-analysis-root">
+          <section class="pos-analysis-hero" aria-labelledby="pos-analysis-heading">
+            <div class="pos-analysis-hero-copy">
+              <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span> Positional supply dashboard</span>
+              <h1 id="pos-analysis-heading">Positional Analysis <span>2007 &ndash; 2025</span></h1>
+              <p>Historical fantasy-point rank supply by position, counted directly from the local player CSV for each season and selected ranking tier.</p>
+            </div>
+            <div class="pos-analysis-source-card" aria-label="Positional Analysis data source">
+              <span>Data mode</span>
+              <strong>Individual player CSV</strong>
+              <small>Manual distribution counts by year</small>
+            </div>
+          </section>
+
+          <section class="pos-analysis-card pos-analysis-card--top" id="pos-analysis-global-panel" aria-labelledby="pos-analysis-global-title">
+            <div class="pos-analysis-card-head">
+              <div>
+                <span class="pos-analysis-eyebrow">Positional Supply</span>
+                <h2 id="pos-analysis-global-title">Top 60 positional supply</h2>
+                <p id="pos-analysis-global-subtitle">Position counts inside the selected fantasy-points rank range.</p>
+              </div>
+              <div class="pos-analysis-mode-toggle" role="group" aria-label="Positional supply chart mode">
+                <button class="pos-analysis-mode-btn is-active" type="button" data-pos-analysis-mode="single" aria-pressed="true">Single range</button>
+                <button class="pos-analysis-mode-btn" type="button" data-pos-analysis-mode="grid" aria-pressed="false">Grid view</button>
+              </div>
+            </div>
+            <div class="pos-analysis-control-row">
+              <div class="pos-analysis-range-row" id="pos-analysis-range-buttons" role="group" aria-label="Select fantasy point rank range"></div>
+              <div class="pos-analysis-position-row" id="pos-analysis-position-buttons" role="group" aria-label="Toggle positions"></div>
+            </div>
+            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--supply">
+              <div class="pos-analysis-chart-host" id="pos-analysis-global-chart" role="img" aria-label="Positional supply line chart"></div>
+            </div>
+            <div class="pos-analysis-stat-grid" id="pos-analysis-summary-chips" aria-label="Selected range summary"></div>
+          </section>
+
+          <section class="pos-analysis-card pos-analysis-profile-section" aria-labelledby="pos-analysis-profiles-title">
+            <div class="pos-analysis-card-head pos-analysis-card-head--compact">
+              <div>
+                <span class="pos-analysis-eyebrow">Position profiles</span>
+                <h2 id="pos-analysis-profiles-title">Selected-Range Position Cards</h2>
+                <p>Current count, sample rank, historical average, and peak for each active position.</p>
+              </div>
+            </div>
+            <div class="pos-analysis-profile-grid" id="pos-analysis-position-profiles"></div>
+          </section>
+
+          <section class="pos-analysis-card" aria-labelledby="pos-analysis-mini-title">
+            <div class="pos-analysis-card-head">
+              <div>
+                <span class="pos-analysis-eyebrow">Year grid</span>
+                <h2 id="pos-analysis-mini-title">Mini Line Graph Grid by Year</h2>
+                <p>Each mini chart compares cumulative WR/RB counts across fantasy-point ranking tiers.</p>
+              </div>
+            </div>
+            <div class="pos-analysis-mini-grid" id="pos-analysis-mini-year-grid" aria-label="Mini line graphs by year"></div>
+          </section>
+
+          <section class="pos-analysis-card" aria-labelledby="pos-analysis-g1-title">
+            <div class="pos-analysis-card-head">
+              <div>
+                <span class="pos-analysis-eyebrow">G1</span>
+                <h2 id="pos-analysis-g1-title">Rounded Spline Supply Lines</h2>
+                <p>WR/RB supply across T12, T36, and T60 with major peaks and valleys labeled.</p>
+              </div>
+            </div>
+            <div class="pos-analysis-chart-scroll">
+              <div class="pos-analysis-chart-host" id="pos-analysis-g1-line-chart" role="img" aria-label="WR and RB supply rounded spline line chart"></div>
+            </div>
+          </section>
+
+          <section class="pos-analysis-card" aria-labelledby="pos-analysis-combo-title">
+            <div class="pos-analysis-card-head pos-analysis-card-head--with-controls">
+              <div>
+                <span class="pos-analysis-eyebrow">Counts + gap</span>
+                <h2 id="pos-analysis-combo-title">Combined Count Bars + Difference Markers</h2>
+                <p>Bars show WR/RB counts; markers show the WR minus RB gap.</p>
+              </div>
+              <div class="pos-analysis-year-controls" aria-label="Combined chart year range">
+                <label for="pos-analysis-min-year">Min year</label>
+                <select id="pos-analysis-min-year"></select>
+                <label for="pos-analysis-max-year">Max year</label>
+                <select id="pos-analysis-max-year"></select>
+              </div>
+            </div>
+            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--wide">
+              <div class="pos-analysis-chart-host" id="pos-analysis-combo-chart" role="img" aria-label="Combined WR and RB count bars with difference markers"></div>
+            </div>
+          </section>
+
+          <section class="pos-analysis-card" aria-labelledby="pos-analysis-g2-title">
+            <div class="pos-analysis-card-head">
+              <div>
+                <span class="pos-analysis-eyebrow">G2</span>
+                <h2 id="pos-analysis-g2-title">Three-Line Difference View</h2>
+                <p>Negative values mean more WR than RB. Positive values mean more RB than WR.</p>
+              </div>
+            </div>
+            <div class="pos-analysis-chart-scroll">
+              <div class="pos-analysis-chart-host" id="pos-analysis-g2-line-chart" role="img" aria-label="RB minus WR difference lines"></div>
+            </div>
+          </section>
+
+          <section class="pos-analysis-infographic" id="pos-analysis-infographic" aria-labelledby="pos-analysis-infographic-title">
+            <header class="pos-analysis-info-hero">
+              <div>
+                <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span> Dynasty strategic blueprint</span>
+                <h2 id="pos-analysis-infographic-title">The Running Back Renaissance</h2>
+                <p>Structural NFL personnel shifts are creating a measurable fantasy supply change: RB representation is rising across the major tiers while WR depth is being squeezed.</p>
+              </div>
+              <div class="pos-analysis-info-stat-stack">
+                <div>
+                  <span>Current meta formula</span>
+                  <strong>12/13 personnel &uarr; = RB &uarr;</strong>
+                </div>
+                <div>
+                  <span>Definitive era pivot</span>
+                  <strong>2025 tier sweep verified</strong>
+                </div>
+              </div>
+            </header>
+
+            <div class="pos-analysis-info-grid">
+              <article class="pos-analysis-info-card pos-analysis-info-card--wide">
+                <span class="pos-analysis-eyebrow">Paradigm transition</span>
+                <h3>The Positional Paradigm Transition</h3>
+                <p>The league spent more than a decade spreading the field with 11 personnel, three wide receivers, and lighter defensive responses. Dynasty strategy followed by prioritizing wide receivers for longevity and stability.</p>
+                <p>That logic still has merit, but it is no longer complete. The rise of heavier 12 and 13 personnel creates more run surfaces, changes route availability, and shifts fantasy opportunity toward running backs.</p>
+                <div class="pos-analysis-personnel-formulas" aria-label="Offensive personnel formulas">
+                  <div><span>11 personnel</span><strong>1 RB | 1 TE | 3 WR</strong><small>Spread-first layout</small></div>
+                  <div><span>12 personnel</span><strong>1 RB | 2 TE | 2 WR</strong><small>Extra run-surface</small></div>
+                  <div><span>13 personnel</span><strong>1 RB | 3 TE | 1 WR</strong><small>Maximum blocking unit</small></div>
+                </div>
+              </article>
+
+              <article class="pos-analysis-info-card pos-analysis-milestone-card">
+                <span class="pos-analysis-eyebrow">Historical analysis</span>
+                <h3>Verified Historical Milestones</h3>
+                <p>2025 was the first season in this 2007-2025 sample where RBs surpassed WRs across every major tracked ranking tier in the same year.</p>
+                <div class="pos-analysis-tier-list">
+                  <div><strong>Top 60</strong><span>RBs moved ahead of WRs in 2025 after WR lows in 2024 and 2025.</span></div>
+                  <div><strong>Top 48</strong><span>RBs outnumbered WRs in back-to-back seasons, 2024 and 2025.</span></div>
+                  <div><strong>Top 36</strong><span>WRs hit a two-decade low while RBs tied a major high-water mark.</span></div>
+                  <div><strong>Top 24</strong><span>WR representation tied two-decade lows in both 2024 and 2025.</span></div>
+                </div>
+              </article>
+            </div>
+
+            <section class="pos-analysis-simulator" aria-labelledby="pos-analysis-simulator-title">
+              <div class="pos-analysis-simulator-head">
+                <div>
+                  <span class="pos-analysis-eyebrow">Tactical simulation</span>
+                  <h3 id="pos-analysis-simulator-title">Personnel Alignment Field Visualizer</h3>
+                </div>
+                <div class="pos-analysis-personnel-buttons" role="group" aria-label="Choose personnel structure">
+                  <button type="button" data-pos-analysis-personnel="11">11 Spread</button>
+                  <button type="button" data-pos-analysis-personnel="12">12 Heavy</button>
+                  <button type="button" data-pos-analysis-personnel="13">13 Jumbo</button>
+                </div>
+              </div>
+              <p>Toggle structures to see how the field shape changes as tighter personnel packages increase.</p>
+              <div class="pos-analysis-field">
+                <div class="pos-analysis-field-label pos-analysis-field-label--top">Scrimmage surface</div>
+                <div class="pos-analysis-field-label pos-analysis-field-label--bottom">Backfield target launch</div>
+                <div class="pos-analysis-field-grid" id="pos-analysis-field-grid"></div>
+              </div>
+              <div class="pos-analysis-simulator-copy" id="pos-analysis-shift-copy">Select a personnel style above.</div>
+              <div class="pos-analysis-sim-stats">
+                <div id="pos-analysis-sim-rb"></div>
+                <div id="pos-analysis-sim-wr"></div>
+                <div id="pos-analysis-sim-te"></div>
+                <div id="pos-analysis-sim-qb"></div>
+              </div>
+            </section>
+
+            <section class="pos-analysis-position-matrix" aria-labelledby="pos-analysis-matrix-title">
+              <div class="pos-analysis-info-card">
+                <span class="pos-analysis-eyebrow">Deep dive</span>
+                <h3 id="pos-analysis-matrix-title">How Heavier Structures Redistribute Opportunity</h3>
+                <p>When offenses reduce three-WR formations and increase 12/13 personnel, snap availability, route availability, blocking surfaces, and red-zone structure shift by position.</p>
+              </div>
+              <div class="pos-analysis-matrix-grid">
+                <article><span>Running Backs</span><p>More rushing volume, better blocking angles, longer drives, and more red-zone rushing paths concentrate value in high-end workhorse backs.</p></article>
+                <article><span>Wide Receivers</span><p>Elite target earners still matter, but WR3/WR4 profiles lose route and snap certainty as heavier packages replace spread looks.</p></article>
+                <article><span>Tight Ends</span><p>TE snaps rise directionally, though fantasy value can spread across blockers, chips, attached routes, and secondary role players.</p></article>
+                <article><span>Quarterbacks</span><p>Raw passing volume can dip, but heavier structures can improve play-action efficiency, protection, and easier reads.</p></article>
+              </div>
+            </section>
+
+            <section class="pos-analysis-timeline" aria-labelledby="pos-analysis-timeline-title">
+              <span class="pos-analysis-eyebrow">Meta progression</span>
+              <h3 id="pos-analysis-timeline-title">Chronological Evolution Blueprint</h3>
+              <div class="pos-analysis-timeline-grid">
+                <article><span>01</span><strong>2022-2023: Rumblings</strong><p>Early movement narrowed the WR edge but remained inside normal volatility.</p></article>
+                <article><span>02</span><strong>2024: Trend set</strong><p>RBs began gaining across the mid tiers while WR depth showed real compression.</p></article>
+                <article><span>03</span><strong>2025: Breakout</strong><p>RBs cleared WRs across Top 12, Top 24, Top 36, Top 48, and Top 60.</p></article>
+                <article><span>04</span><strong>2026: Outlook</strong><p>The current thesis is adaptability: adjust before the market fully prices the structure.</p></article>
+              </div>
+            </section>
+
+            <section class="pos-analysis-takeaway-grid">
+              <article class="pos-analysis-info-card">
+                <span class="pos-analysis-eyebrow">Tactical caution</span>
+                <h3>Challenging Static Fantasy Rules</h3>
+                <p>Static rules like always building around WRs or never paying for RBs are useful only in specific environments. The current environment has changed enough to require a more flexible dynasty lens.</p>
+              </article>
+              <article class="pos-analysis-info-card">
+                <span class="pos-analysis-eyebrow">Strategic summary</span>
+                <h3>Dynasty Takeaway</h3>
+                <p>The goal is not to overreact. The goal is to adjust before the rest of the league fully catches up, especially where RBs are supported by both talent and structure.</p>
+              </article>
+              <article class="pos-analysis-info-card">
+                <span class="pos-analysis-eyebrow">Eventual regressions</span>
+                <h3>When This Could Reverse</h3>
+                <p>The NFL is cyclical. Defenses will adjust, offensive coordinators will counter again, and this RB-friendly environment will eventually move into a different phase.</p>
+              </article>
+              <article class="pos-analysis-info-card">
+                <span class="pos-analysis-eyebrow">Moving forward</span>
+                <h3>The Ground Leverage Thesis</h3>
+                <p>The RB revival matters because it has a structural reason behind it. While the trend continues, premium young RBs deserve to be treated as build-around assets.</p>
+              </article>
+            </section>
+          </section>
+
+          <div class="pos-analysis-tooltip" id="pos-analysis-tooltip" role="tooltip" aria-hidden="true"></div>
+          <p class="pos-analysis-source-note">Source: POS-DIST_2007-2025.csv. Charts count player rows from the individual CSV; no pre-counted distribution table is used.</p>
+        </div>
+      </section>
     </div>
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=20260520-syop-css-controls"></script>
+<script defer src="../scripts/syop.js?v=20260612-pos-analysis"></script>
 </body>
 </html>

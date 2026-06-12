@@ -159,6 +159,49 @@
     showTable: false
   };
 
+  // Positional Analysis tab:
+  // - targets only the new Research tab panel and its unique .pos-analysis-* DOM
+  // - loads the local POS-DIST CSV directly, not Sheets/proxies
+  // - keeps chart state separate from SYOP/Draft renderers so tab changes do not
+  //   leak behavior into the existing Research views.
+  const POS_ANALYSIS_CSV_PATH = '../data/POS-DIST_2007-2015/POS-DIST_2007-2025.csv';
+  const POS_ANALYSIS_YEARS = Array.from({ length: 19 }, (_, index) => 2007 + index);
+  const POS_ANALYSIS_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
+  const POS_ANALYSIS_RANGE_OPTIONS = ['Top 6', 'Top 12', 'Top 24', 'Top 36', 'Top 48', 'Top 60'];
+  const POS_ANALYSIS_GRID_RANGES = ['Top 60', 'Top 48', 'Top 36', 'Top 24'];
+  const POS_ANALYSIS_CUTS = {
+    'Top 6': 6,
+    'Top 12': 12,
+    'Top 24': 24,
+    'Top 36': 36,
+    'Top 48': 48,
+    'Top 60': 60
+  };
+  const POS_ANALYSIS_POS_CONFIG = {
+    QB: { label: 'Quarterbacks', low: '#ff9a3d', mid: '#ff6d62', high: '#ff4187' },
+    RB: { label: 'Running Backs', low: '#1ac2ff', mid: '#10e7cb', high: '#06ff97' },
+    WR: { label: 'Wide Receivers', low: '#8153ff', mid: '#4276ff', high: '#0299fe' },
+    TE: { label: 'Tight Ends', low: '#ff6bc8', mid: '#bf4be4', high: '#7f2fff' }
+  };
+  const POS_ANALYSIS_RANGE_COLORS = {
+    12: { RB: '#00ad87', WR: '#0467c1' },
+    36: { RB: '#00ffc6', WR: '#2c9cff' },
+    60: { RB: '#6afff6', WR: '#6ab7fc' }
+  };
+  const POS_ANALYSIS_STATE = {
+    rows: [],
+    counts: null,
+    loaded: false,
+    loadingPromise: null,
+    interactionsBound: false,
+    range: 'Top 60',
+    mode: 'single',
+    activePositions: ['QB', 'RB', 'WR', 'TE'],
+    minYear: 2014,
+    maxYear: 2025,
+    personnel: '12'
+  };
+
   const { distributionByPosition: SYOP_DISTRIBUTION, summaryByPosition: SYOP_POSITION_SUMMARY } = buildSyopSummary();
 
   let resizeTimer = null;
@@ -1372,17 +1415,933 @@
     container.appendChild(chipsContainer);
   }
 
+  function getPosAnalysisRoot() {
+    return document.getElementById('pos-analysis-root');
+  }
+
+  function escapePosAnalysisHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+  }
+
+  function escapePosAnalysisAttr(value) {
+    return escapePosAnalysisHtml(value).replace(/`/g, '&#96;');
+  }
+
+  function posAnalysisNumber(value) {
+    const number = Number(String(value ?? '').replace(/,/g, '').trim());
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function parsePosAnalysisCSV(text) {
+    const rows = [];
+    let row = [];
+    let value = '';
+    let inQuotes = false;
+
+    for (let index = 0; index < text.length; index += 1) {
+      const char = text[index];
+      const next = text[index + 1];
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          value += '"';
+          index += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        row.push(value);
+        value = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && next === '\n') index += 1;
+        row.push(value);
+        if (row.some((cell) => String(cell).trim() !== '')) rows.push(row);
+        row = [];
+        value = '';
+      } else {
+        value += char;
+      }
+    }
+
+    if (value.length || row.length) {
+      row.push(value);
+      if (row.some((cell) => String(cell).trim() !== '')) rows.push(row);
+    }
+
+    return rows;
+  }
+
+  async function loadPosAnalysisRows() {
+    const response = await fetch(POS_ANALYSIS_CSV_PATH, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Could not load ${POS_ANALYSIS_CSV_PATH}: ${response.status}`);
+    }
+
+    const csvRows = parsePosAnalysisCSV(await response.text());
+    if (!csvRows.length) throw new Error('CSV is empty.');
+
+    const header = csvRows[0].map((heading) => String(heading).trim());
+    const columnIndex = Object.fromEntries(header.map((heading, index) => [heading, index]));
+    const requiredColumns = ['YEAR', 'Player', 'POS', 'FPTS RK', 'FPTS'];
+    const missingColumns = requiredColumns.filter((column) => !(column in columnIndex));
+    if (missingColumns.length) {
+      throw new Error(`CSV missing required columns: ${missingColumns.join(', ')}`);
+    }
+
+    return csvRows.slice(1).map((csvRow) => ({
+      year: posAnalysisNumber(csvRow[columnIndex.YEAR]),
+      player: String(csvRow[columnIndex.Player] ?? '').trim(),
+      pos: String(csvRow[columnIndex.POS] ?? '').trim().toUpperCase(),
+      rank: posAnalysisNumber(csvRow[columnIndex['FPTS RK']]),
+      fpts: posAnalysisNumber(csvRow[columnIndex.FPTS])
+    })).filter((row) => row.year && row.pos && Number.isFinite(row.rank));
+  }
+
+  function computePosAnalysisCounts(rows) {
+    const rowsByYear = new Map();
+    POS_ANALYSIS_YEARS.forEach((year) => rowsByYear.set(year, []));
+    rows.forEach((row) => {
+      if (!rowsByYear.has(row.year)) rowsByYear.set(row.year, []);
+      rowsByYear.get(row.year).push(row);
+    });
+
+    const sortedRowsByYear = new Map();
+    POS_ANALYSIS_YEARS.forEach((year) => {
+      sortedRowsByYear.set(year, (rowsByYear.get(year) || []).slice().sort((a, b) => (
+        a.rank - b.rank
+        || (Number.isFinite(b.fpts) ? b.fpts : 0) - (Number.isFinite(a.fpts) ? a.fpts : 0)
+        || String(a.player).localeCompare(String(b.player))
+      )));
+    });
+
+    const counts = {};
+    POS_ANALYSIS_RANGE_OPTIONS.forEach((range) => {
+      counts[range] = Object.fromEntries(POS_ANALYSIS_POSITIONS.map((pos) => [pos, []]));
+      const cut = POS_ANALYSIS_CUTS[range];
+      POS_ANALYSIS_YEARS.forEach((year) => {
+        const topRows = (sortedRowsByYear.get(year) || []).slice(0, cut);
+        POS_ANALYSIS_POSITIONS.forEach((pos) => {
+          counts[range][pos].push(topRows.filter((row) => row.pos === pos).length);
+        });
+      });
+    });
+
+    return counts;
+  }
+
+  function ensurePosAnalysisData() {
+    if (POS_ANALYSIS_STATE.loaded) return Promise.resolve(POS_ANALYSIS_STATE.rows);
+    if (POS_ANALYSIS_STATE.loadingPromise) return POS_ANALYSIS_STATE.loadingPromise;
+
+    POS_ANALYSIS_STATE.loadingPromise = loadPosAnalysisRows().then((rows) => {
+      POS_ANALYSIS_STATE.rows = rows;
+      POS_ANALYSIS_STATE.counts = computePosAnalysisCounts(rows);
+      POS_ANALYSIS_STATE.loaded = true;
+      return rows;
+    });
+
+    return POS_ANALYSIS_STATE.loadingPromise;
+  }
+
+  function posAnalysisValues(range, pos) {
+    return (POS_ANALYSIS_STATE.counts?.[range]?.[pos] || []).map((value) => {
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.max(0, number) : 0;
+    });
+  }
+
+  function formatPosAnalysisDelta(value) {
+    if (!Number.isFinite(value)) return 'NA';
+    if (value > 0) return `+${value}`;
+    if (value < 0) return String(value);
+    return '0';
+  }
+
+  function meanPosAnalysis(values) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  }
+
+  function rankPosAnalysisHighToLow(current, values) {
+    return 1 + values.filter((value) => value > current).length;
+  }
+
+  function posAnalysisYearsMatching(values, target) {
+    return POS_ANALYSIS_YEARS.filter((_, index) => values[index] === target).join(', ');
+  }
+
+  function getPosAnalysisTiers(values) {
+    const tiers = Array(values.length).fill('high');
+    values
+      .map((value, index) => ({ value, index }))
+      .sort((a, b) => a.value - b.value || a.index - b.index)
+      .forEach((item, index) => {
+        tiers[item.index] = index < 6 ? 'low' : index < 12 ? 'mid' : 'high';
+      });
+    return tiers;
+  }
+
+  function getPosAnalysisPositionStats(range, pos) {
+    const values = posAnalysisValues(range, pos);
+    const current = values.at(-1) ?? 0;
+    const previous = values.at(-2) ?? current;
+    const avg = meanPosAnalysis(values);
+    const min = values.length ? Math.min(...values) : 0;
+    const max = values.length ? Math.max(...values) : 0;
+    return {
+      pos,
+      values,
+      current,
+      previous,
+      changeFromPrevious: current - previous,
+      avg,
+      min,
+      max,
+      bestYears: posAnalysisYearsMatching(values, max),
+      worstYears: posAnalysisYearsMatching(values, min),
+      rank: rankPosAnalysisHighToLow(current, values),
+      vsAverage: current - avg
+    };
+  }
+
+  function getPosAnalysisRangeSummary(range) {
+    const stats = Object.fromEntries(POS_ANALYSIS_POSITIONS.map((pos) => [pos, getPosAnalysisPositionStats(range, pos)]));
+    const current = Object.fromEntries(POS_ANALYSIS_POSITIONS.map((pos) => [pos, stats[pos].current]));
+    const rbValues = posAnalysisValues(range, 'RB');
+    const wrValues = posAnalysisValues(range, 'WR');
+    const year2020Index = POS_ANALYSIS_YEARS.indexOf(2020);
+    const latestIndex = POS_ANALYSIS_YEARS.indexOf(2025);
+    return {
+      range,
+      stats,
+      current,
+      rbWrDiff: (current.RB || 0) - (current.WR || 0),
+      rb2020To2025: (rbValues[latestIndex] || 0) - (rbValues[year2020Index] || 0),
+      wr2020To2025: (wrValues[latestIndex] || 0) - (wrValues[year2020Index] || 0)
+    };
+  }
+
+  function posAnalysisSmoothPath(points, smoothing = 0.18) {
+    if (!points.length) return '';
+    let d = `M ${points[0][0].toFixed(2)} ${points[0][1].toFixed(2)}`;
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const p0 = points[index - 1] || points[index];
+      const p1 = points[index];
+      const p2 = points[index + 1];
+      const p3 = points[index + 2] || p2;
+      const cp1x = p1[0] + (p2[0] - p0[0]) * smoothing;
+      const cp1y = p1[1] + (p2[1] - p0[1]) * smoothing;
+      const cp2x = p2[0] - (p3[0] - p1[0]) * smoothing;
+      const cp2y = p2[1] - (p3[1] - p1[1]) * smoothing;
+      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+    }
+    return d;
+  }
+
+  function posAnalysisRectsOverlap(a, b) {
+    return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+  }
+
+  function placePosAnalysisLabels(candidates, bounds) {
+    const placed = [];
+    candidates.forEach((candidate) => {
+      const fontSize = candidate.fontSize || 10;
+      const width = Math.max(14, String(candidate.text).length * fontSize * 0.62 + 8);
+      const height = fontSize + 7;
+      const offsets = candidate.offsets || [[0, -12], [0, 15], [-16, -12], [16, 15], [0, -28], [0, 30]];
+      let chosen = null;
+
+      for (const offset of offsets) {
+        const x = Math.max(bounds.left + width / 2, Math.min(bounds.right - width / 2, candidate.x + offset[0]));
+        const y = Math.max(bounds.top + height, Math.min(bounds.bottom - 2, candidate.y + offset[1]));
+        const rect = {
+          left: x - width / 2,
+          right: x + width / 2,
+          top: y - height + 2,
+          bottom: y + 3
+        };
+        if (!placed.some((label) => posAnalysisRectsOverlap(rect, label.rect))) {
+          chosen = { x, y, rect, width, height };
+          break;
+        }
+      }
+
+      if (!chosen && candidate.force) {
+        const fallback = offsets[offsets.length - 1] || [0, -12];
+        const x = Math.max(bounds.left + width / 2, Math.min(bounds.right - width / 2, candidate.x + fallback[0]));
+        const y = Math.max(bounds.top + height, Math.min(bounds.bottom - 2, candidate.y + fallback[1]));
+        chosen = {
+          x,
+          y,
+          rect: { left: x - width / 2, right: x + width / 2, top: y - height + 2, bottom: y + 3 },
+          width,
+          height
+        };
+      }
+
+      if (chosen) {
+        placed.push({ ...candidate, ...chosen });
+      }
+    });
+    return placed;
+  }
+
+  function renderPosAnalysisTextLabels(labels, className = 'pos-analysis-svg-value-label') {
+    return labels.map((label) => (
+      `<text class="${className}" x="${label.x.toFixed(1)}" y="${label.y.toFixed(1)}" text-anchor="middle" fill="${label.color}" font-size="${label.fontSize || 10}" font-weight="800">${escapePosAnalysisHtml(label.text)}</text>`
+    )).join('');
+  }
+
+  function renderPosAnalysisLabelPills(labels) {
+    return labels.map((label) => (
+      `<g class="pos-analysis-label-pill"><rect x="${label.rect.left.toFixed(1)}" y="${label.rect.top.toFixed(1)}" width="${label.width.toFixed(1)}" height="${label.height.toFixed(1)}" rx="5" fill="rgba(5,7,17,.78)" stroke="${label.color}" stroke-opacity=".38"/><text x="${label.x.toFixed(1)}" y="${label.y.toFixed(1)}" text-anchor="middle" fill="${label.color}" font-size="${label.fontSize || 9}" font-weight="900">${escapePosAnalysisHtml(label.text)}</text></g>`
+    )).join('');
+  }
+
+  function attachPosAnalysisTooltips(host) {
+    const tooltip = document.getElementById('pos-analysis-tooltip');
+    if (!host || !tooltip) return;
+
+    const show = (event, target) => {
+      tooltip.innerHTML = target.dataset.posAnalysisTip || '';
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY - 12}px`;
+      tooltip.classList.add('is-visible');
+      tooltip.setAttribute('aria-hidden', 'false');
+    };
+    const move = (event) => {
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY - 12}px`;
+    };
+    const hide = () => {
+      tooltip.classList.remove('is-visible');
+      tooltip.setAttribute('aria-hidden', 'true');
+    };
+
+    host.querySelectorAll('[data-pos-analysis-tip]').forEach((node) => {
+      node.addEventListener('mouseenter', (event) => show(event, node));
+      node.addEventListener('mousemove', move);
+      node.addEventListener('focus', (event) => {
+        const rect = node.getBoundingClientRect();
+        show({ clientX: rect.left + rect.width / 2, clientY: rect.top }, node);
+      });
+      node.addEventListener('mouseleave', hide);
+      node.addEventListener('blur', hide);
+      node.addEventListener('touchstart', (event) => {
+        const touch = event.touches?.[0];
+        if (touch) show(touch, node);
+      }, { passive: true });
+    });
+  }
+
+  function setPosAnalysisMessage(message, tone = 'loading') {
+    const root = getPosAnalysisRoot();
+    if (!root) return;
+    const safeMessage = escapePosAnalysisHtml(message);
+    root.querySelectorAll('.pos-analysis-chart-host, .pos-analysis-mini-grid, .pos-analysis-profile-grid, .pos-analysis-stat-grid').forEach((node) => {
+      node.innerHTML = `<div class="pos-analysis-message pos-analysis-message--${tone}">${safeMessage}</div>`;
+    });
+  }
+
+  function refreshPosAnalysisControls() {
+    const root = getPosAnalysisRoot();
+    if (!root || !POS_ANALYSIS_STATE.counts) return;
+    const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
+    const rangeHost = document.getElementById('pos-analysis-range-buttons');
+    const positionHost = document.getElementById('pos-analysis-position-buttons');
+
+    if (rangeHost) {
+      rangeHost.innerHTML = POS_ANALYSIS_RANGE_OPTIONS.map((range) => (
+        `<button class="pos-analysis-range-btn${POS_ANALYSIS_STATE.range === range ? ' is-active' : ''}" type="button" data-pos-analysis-range="${range}" aria-pressed="${POS_ANALYSIS_STATE.range === range}">${range}</button>`
+      )).join('');
+      rangeHost.querySelectorAll('[data-pos-analysis-range]').forEach((button) => {
+        button.addEventListener('click', () => {
+          POS_ANALYSIS_STATE.range = button.dataset.posAnalysisRange;
+          renderPosAnalysisAll();
+        });
+      });
+    }
+
+    if (positionHost) {
+      positionHost.innerHTML = POS_ANALYSIS_POSITIONS.map((pos) => {
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const active = POS_ANALYSIS_STATE.activePositions.includes(pos);
+        const current = summary.current[pos] ?? 0;
+        return `<button class="pos-analysis-pos-btn${active ? ' is-active' : ''}" type="button" data-pos-analysis-position="${pos}" aria-pressed="${active}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><span class="pos-analysis-pos-dot"></span><span class="pos-analysis-pos-name">${pos}</span><span class="pos-analysis-pos-current">${current}</span></button>`;
+      }).join('');
+      positionHost.querySelectorAll('[data-pos-analysis-position]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const pos = button.dataset.posAnalysisPosition;
+          if (POS_ANALYSIS_STATE.activePositions.includes(pos) && POS_ANALYSIS_STATE.activePositions.length > 1) {
+            POS_ANALYSIS_STATE.activePositions = POS_ANALYSIS_STATE.activePositions.filter((item) => item !== pos);
+          } else if (!POS_ANALYSIS_STATE.activePositions.includes(pos)) {
+            POS_ANALYSIS_STATE.activePositions.push(pos);
+          }
+          renderPosAnalysisAll();
+        });
+      });
+    }
+
+    root.querySelectorAll('[data-pos-analysis-mode]').forEach((button) => {
+      const active = button.dataset.posAnalysisMode === POS_ANALYSIS_STATE.mode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  function refreshPosAnalysisYearControls() {
+    const minSelect = document.getElementById('pos-analysis-min-year');
+    const maxSelect = document.getElementById('pos-analysis-max-year');
+    if (!minSelect || !maxSelect) return;
+
+    const options = POS_ANALYSIS_YEARS.map((year) => `<option value="${year}">${year}</option>`).join('');
+    if (!minSelect.options.length) minSelect.innerHTML = options;
+    if (!maxSelect.options.length) maxSelect.innerHTML = options;
+
+    minSelect.value = String(POS_ANALYSIS_STATE.minYear);
+    maxSelect.value = String(POS_ANALYSIS_STATE.maxYear);
+    minSelect.onchange = () => {
+      POS_ANALYSIS_STATE.minYear = Number(minSelect.value) || 2014;
+      if (POS_ANALYSIS_STATE.minYear > POS_ANALYSIS_STATE.maxYear) {
+        POS_ANALYSIS_STATE.maxYear = POS_ANALYSIS_STATE.minYear;
+      }
+      renderPosAnalysisAll();
+    };
+    maxSelect.onchange = () => {
+      POS_ANALYSIS_STATE.maxYear = Number(maxSelect.value) || 2025;
+      if (POS_ANALYSIS_STATE.maxYear < POS_ANALYSIS_STATE.minYear) {
+        POS_ANALYSIS_STATE.minYear = POS_ANALYSIS_STATE.maxYear;
+      }
+      renderPosAnalysisAll();
+    };
+  }
+
+  function renderPosAnalysisSummaryChips() {
+    const host = document.getElementById('pos-analysis-summary-chips');
+    if (!host) return;
+    const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
+    const chips = [
+      { label: 'Selected range', value: summary.range, tone: '' },
+      { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down' },
+      { label: 'RB minus WR', value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down' },
+      { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down' }
+    ];
+    host.innerHTML = chips.map((chip) => (
+      `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span>${escapePosAnalysisHtml(chip.label)}</span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`
+    )).join('');
+  }
+
+  function renderPosAnalysisGlobalChart() {
+    const title = document.getElementById('pos-analysis-global-title');
+    const subtitle = document.getElementById('pos-analysis-global-subtitle');
+    if (title) title.textContent = POS_ANALYSIS_STATE.mode === 'grid' ? 'Four-range supply comparison' : `${POS_ANALYSIS_STATE.range} positional supply`;
+    if (subtitle) {
+      subtitle.textContent = POS_ANALYSIS_STATE.mode === 'grid'
+        ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
+        : 'Position counts inside the selected fantasy-points rank range.';
+    }
+
+    if (POS_ANALYSIS_STATE.mode === 'grid') {
+      renderPosAnalysisGlobalGrid();
+    } else {
+      renderPosAnalysisGlobalSingle();
+    }
+    renderPosAnalysisSummaryChips();
+  }
+
+  function renderPosAnalysisGlobalSingle() {
+    const host = document.getElementById('pos-analysis-global-chart');
+    if (!host) return;
+    const range = POS_ANALYSIS_STATE.range;
+    const active = POS_ANALYSIS_STATE.activePositions;
+    const compact = window.innerWidth < 640;
+    const w = 1200;
+    const h = compact ? 456 : 472;
+    const m = { l: 52, r: 72, t: 34, b: 58 };
+    const plotW = w - m.l - m.r;
+    const plotH = h - m.t - m.b;
+    const maxValue = Math.max(...active.flatMap((pos) => posAnalysisValues(range, pos)), 0);
+    const yMax = Math.max(POS_ANALYSIS_CUTS[range] <= 12 ? 6 : 12, Math.ceil((maxValue + 2) / 2) * 2);
+    const x = (index) => m.l + index / (POS_ANALYSIS_YEARS.length - 1) * plotW;
+    const y = (value) => m.t + plotH - value / yMax * plotH;
+    const labels = [];
+
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapePosAnalysisAttr(range)} positional supply">`;
+    svg += '<defs>';
+    active.forEach((pos) => {
+      const values = posAnalysisValues(range, pos);
+      const tiers = getPosAnalysisTiers(values);
+      for (let index = 0; index < values.length - 1; index += 1) {
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
+        svg += `<linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="${x(index)}" y1="${y(values[index])}" x2="${x(index + 1)}" y2="${y(values[index + 1])}"><stop offset="0%" stop-color="${config[tiers[index]]}"/><stop offset="100%" stop-color="${config[tiers[index + 1]]}"/></linearGradient>`;
+      }
+    });
+    svg += '</defs><rect class="pos-analysis-plot-bg" x="0" y="0" width="1200" height="' + h + '" rx="22"/>';
+
+    for (let tick = 0; tick <= yMax; tick += Math.max(1, Math.ceil(yMax / 6))) {
+      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 12}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+    }
+    POS_ANALYSIS_YEARS.forEach((year, index) => {
+      const xx = x(index);
+      svg += `<line class="pos-analysis-year-grid-line" x1="${xx}" x2="${xx}" y1="${m.t}" y2="${h - m.b}"/>`;
+      if (index % 2 === 0 || index === POS_ANALYSIS_YEARS.length - 1) {
+        svg += `<text class="pos-analysis-axis-label" x="${xx}" y="${h - 24}" text-anchor="middle">${year}</text>`;
+      }
+    });
+
+    active.forEach((pos, posIndex) => {
+      const values = posAnalysisValues(range, pos);
+      const config = POS_ANALYSIS_POS_CONFIG[pos];
+      const tiers = getPosAnalysisTiers(values);
+      const points = values.map((value, index) => [x(index), y(value)]);
+      for (let index = 0; index < values.length - 1; index += 1) {
+        const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
+        svg += `<line class="pos-analysis-supply-segment" x1="${points[index][0]}" y1="${points[index][1]}" x2="${points[index + 1][0]}" y2="${points[index + 1][1]}" stroke="url(#${gradientId})"/>`;
+      }
+      values.forEach((value, index) => {
+        const labelOffset = [-16, 16, -30, 30][posIndex % 4];
+        labels.push({
+          x: points[index][0],
+          y: points[index][1],
+          text: String(value),
+          color: config[tiers[index]],
+          fontSize: compact ? 9 : 10,
+          offsets: [[0, labelOffset], [0, -labelOffset], [-16, labelOffset], [16, -labelOffset], [0, labelOffset * 1.6]]
+        });
+        const tip = `<strong>${pos} · ${POS_ANALYSIS_YEARS[index]}</strong><br>${range} count: ${value}`;
+        svg += `<circle class="pos-analysis-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 5.5 : 3.4}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+      });
+      const lastPoint = points.at(-1);
+      svg += `<text class="pos-analysis-series-label" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
+    });
+
+    svg += renderPosAnalysisTextLabels(placePosAnalysisLabels(labels, {
+      left: m.l - 4,
+      right: w - m.r + 26,
+      top: m.t - 4,
+      bottom: h - m.b + 12
+    }));
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}</text></svg>`;
+    host.innerHTML = svg;
+    attachPosAnalysisTooltips(host);
+  }
+
+  function renderPosAnalysisGlobalGrid() {
+    const host = document.getElementById('pos-analysis-global-chart');
+    if (!host) return;
+    const active = POS_ANALYSIS_STATE.activePositions;
+    const panelW = 560;
+    const panelH = 228;
+    const gap = 18;
+    const w = panelW * 2 + gap;
+    const h = panelH * 2 + gap;
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Four range supply comparison">`;
+
+    POS_ANALYSIS_GRID_RANGES.forEach((range, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const ox = col * (panelW + gap);
+      const oy = row * (panelH + gap);
+      const m = { l: 34, r: 42, t: 34, b: 36 };
+      const plotW = panelW - m.l - m.r;
+      const plotH = panelH - m.t - m.b;
+      const maxValue = Math.max(8, ...active.flatMap((pos) => posAnalysisValues(range, pos))) + 2;
+      const x = (pointIndex) => ox + m.l + pointIndex / (POS_ANALYSIS_YEARS.length - 1) * plotW;
+      const y = (value) => oy + m.t + plotH - value / maxValue * plotH;
+      svg += `<rect class="pos-analysis-small-plot-bg" x="${ox}" y="${oy}" width="${panelW}" height="${panelH}" rx="22"/><text class="pos-analysis-small-title" x="${ox + 18}" y="${oy + 24}">${range}</text>`;
+      [0, Math.floor(maxValue / 2), maxValue].forEach((tick) => {
+        svg += `<line class="pos-analysis-grid-line" x1="${ox + m.l}" x2="${ox + panelW - m.r}" y1="${y(tick)}" y2="${y(tick)}"/>`;
+      });
+      active.forEach((pos) => {
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const points = posAnalysisValues(range, pos).map((value, pointIndex) => [x(pointIndex), y(value)]);
+        svg += `<path class="pos-analysis-mini-line" d="${posAnalysisSmoothPath(points, 0.18)}" fill="none" stroke="${config.high}" stroke-width="3"/>`;
+        const lastPoint = points.at(-1);
+        svg += `<text class="pos-analysis-small-series-label" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
+      });
+    });
+
+    svg += '</svg>';
+    host.innerHTML = svg;
+  }
+
+  function renderPosAnalysisProfiles() {
+    const host = document.getElementById('pos-analysis-position-profiles');
+    if (!host) return;
+    const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
+    host.innerHTML = POS_ANALYSIS_POSITIONS.map((pos) => {
+      const stat = summary.stats[pos];
+      const config = POS_ANALYSIS_POS_CONFIG[pos];
+      const active = POS_ANALYSIS_STATE.activePositions.includes(pos);
+      const trendClass = stat.changeFromPrevious >= 0 ? 'up' : 'down';
+      return `<article class="pos-analysis-profile-card${active ? '' : ' is-muted'}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div><strong>${pos}</strong><span>${escapePosAnalysisHtml(config.label)}</span></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div></article>`;
+    }).join('');
+  }
+
+  function renderPosAnalysisMiniYearGrid() {
+    const host = document.getElementById('pos-analysis-mini-year-grid');
+    if (!host) return;
+    const cuts = [6, 12, 24, 36, 48, 60];
+    const maxY = 30;
+    host.innerHTML = POS_ANALYSIS_YEARS.map((year) => {
+      const width = 250;
+      const height = 162;
+      const m = { l: 34, r: 14, t: 28, b: 34 };
+      const plotW = width - m.l - m.r;
+      const plotH = height - m.t - m.b;
+      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
+      const x = (index) => m.l + index / (cuts.length - 1) * plotW;
+      const y = (value) => m.t + plotH - value / maxY * plotH;
+      const wr = cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex]);
+      const rb = cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex]);
+      const wrPoints = wr.map((value, index) => [x(index), y(value)]);
+      const rbPoints = rb.map((value, index) => [x(index), y(value)]);
+      let svg = `<svg viewBox="0 0 ${width} ${height}" aria-label="${year} WR and RB cumulative counts">`;
+      [0, 15, 30].forEach((tick) => {
+        svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${width - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-mini-axis-label" x="${m.l - 7}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`;
+      });
+      cuts.forEach((cut, index) => {
+        if ([12, 36, 60].includes(cut)) {
+          svg += `<text class="pos-analysis-mini-axis-label" x="${x(index)}" y="${height - 12}" text-anchor="middle">T${cut}</text>`;
+        }
+      });
+      svg += `<path d="${posAnalysisSmoothPath(wrPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_RANGE_COLORS[60].WR}"/><path d="${posAnalysisSmoothPath(rbPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_RANGE_COLORS[60].RB}"/>`;
+      wrPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_RANGE_COLORS[60].WR}"/>`; });
+      rbPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_RANGE_COLORS[60].RB}"/>`; });
+      svg += `<text class="pos-analysis-mini-year" x="14" y="18">${year}</text><text class="pos-analysis-mini-legend" x="72" y="18" fill="${POS_ANALYSIS_RANGE_COLORS[60].WR}">WR ${wr.at(-1)}</text><text class="pos-analysis-mini-legend" x="126" y="18" fill="${POS_ANALYSIS_RANGE_COLORS[60].RB}">RB ${rb.at(-1)}</text></svg>`;
+      return `<article class="pos-analysis-mini-card">${svg}</article>`;
+    }).join('');
+  }
+
+  function getPosAnalysisTurnIndexes(values) {
+    const turns = [];
+    for (let index = 1; index < values.length - 1; index += 1) {
+      let prevDiff = values[index] - values[index - 1];
+      let nextDiff = values[index + 1] - values[index];
+      if (prevDiff === 0) {
+        for (let scan = index - 1; scan > 0 && prevDiff === 0; scan -= 1) {
+          prevDiff = values[index] - values[scan - 1];
+        }
+      }
+      if (nextDiff === 0) {
+        for (let scan = index + 1; scan < values.length - 1 && nextDiff === 0; scan += 1) {
+          nextDiff = values[scan + 1] - values[index];
+        }
+      }
+      if (prevDiff * nextDiff < 0) turns.push(index);
+    }
+    return turns;
+  }
+
+  function renderPosAnalysisG1Lines() {
+    const host = document.getElementById('pos-analysis-g1-line-chart');
+    if (!host) return;
+    const w = 1120;
+    const h = 430;
+    const m = { l: 46, r: 102, t: 34, b: 52 };
+    const plotW = w - m.l - m.r;
+    const plotH = h - m.t - m.b;
+    const series = [['12', 'WR'], ['36', 'WR'], ['60', 'WR'], ['12', 'RB'], ['36', 'RB'], ['60', 'RB']];
+    const allValues = series.flatMap(([cut, pos]) => posAnalysisValues(`Top ${cut}`, pos));
+    const yMax = Math.max(27, Math.ceil((Math.max(...allValues, 0) + 2) / 5) * 5);
+    const x = (year) => m.l + (year - POS_ANALYSIS_YEARS[0]) / (POS_ANALYSIS_YEARS.at(-1) - POS_ANALYSIS_YEARS[0]) * plotW;
+    const y = (value) => m.t + plotH - value / yMax * plotH;
+    const labels = [];
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="G1 rounded spline WR and RB supply lines">`;
+
+    for (let tick = 0; tick <= yMax; tick += 5) {
+      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+    }
+    POS_ANALYSIS_YEARS.forEach((year) => {
+      svg += `<text class="pos-analysis-axis-label" x="${x(year)}" y="${h - 18}" text-anchor="middle">${year}</text>`;
+    });
+
+    series.forEach(([cut, pos], seriesIndex) => {
+      const color = POS_ANALYSIS_RANGE_COLORS[cut][pos];
+      const values = posAnalysisValues(`Top ${cut}`, pos);
+      const points = values.map((value, index) => [x(POS_ANALYSIS_YEARS[index]), y(value)]);
+      const dash = seriesIndex % 3 === 1 ? '8 5' : seriesIndex % 3 === 2 ? '2 6' : '';
+      svg += `<path class="pos-analysis-g1-line" d="${posAnalysisSmoothPath(points, 0.2)}" fill="none" stroke="${color}" stroke-width="2.9" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
+      points.forEach((point, index) => {
+        const tip = `<strong>${pos} T${cut} · ${POS_ANALYSIS_YEARS[index]}</strong><br>Count: ${values[index]}`;
+        svg += `<circle class="pos-analysis-point" cx="${point[0]}" cy="${point[1]}" r="3.8" fill="#050711" stroke="${color}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+      });
+      getPosAnalysisTurnIndexes(values).forEach((index) => {
+        const vertical = [-20, 20, -34, 34, -48, 48][seriesIndex % 6];
+        labels.push({
+          x: points[index][0],
+          y: points[index][1],
+          text: `T${cut} ${values[index]}`,
+          color,
+          fontSize: 8.5,
+          force: true,
+          offsets: [[0, vertical], [-20, vertical], [20, -vertical], [0, vertical * 1.35], [-28, -vertical]]
+        });
+      });
+      const last = points.at(-1);
+      svg += `<text class="pos-analysis-series-label" x="${last[0] + 9}" y="${last[1] + 4}" fill="${color}">${pos} T${cut}</text>`;
+    });
+
+    svg += renderPosAnalysisLabelPills(placePosAnalysisLabels(labels, {
+      left: m.l,
+      right: w - m.r + 74,
+      top: m.t,
+      bottom: h - m.b + 8
+    }));
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">WR/RB count lines · rounded spline with peak/valley labels</text></svg>`;
+    host.innerHTML = svg;
+    attachPosAnalysisTooltips(host);
+  }
+
+  function renderPosAnalysisCombo() {
+    const host = document.getElementById('pos-analysis-combo-chart');
+    if (!host) return;
+    const years = POS_ANALYSIS_YEARS.filter((year) => year >= POS_ANALYSIS_STATE.minYear && year <= POS_ANALYSIS_STATE.maxYear);
+    const groupW = 128;
+    const w = 70 + years.length * groupW + 34;
+    const h = 640;
+    const markerTop = 42;
+    const markerBottom = 142;
+    const barTop = 166;
+    const barBottom = 530;
+    const barMax = 30;
+    const cuts = ['12', '36', '60'];
+    const allGaps = years.flatMap((year) => {
+      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
+      return cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex] - POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex]);
+    });
+    const gapMin = Math.min(-10, Math.min(...allGaps, 0) - 1);
+    const gapMax = Math.max(12, Math.max(...allGaps, 0) + 1);
+    const gapY = (value) => markerTop + (markerBottom - markerTop) - (value - gapMin) / (gapMax - gapMin) * (markerBottom - markerTop);
+    const gapZero = gapY(0);
+    const barY = (value) => barTop + (barBottom - barTop) - value / barMax * (barBottom - barTop);
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Combined WR and RB count bars with difference markers">`;
+
+    [0, 5, 10, 15, 20, 25, 30].forEach((tick) => {
+      svg += `<line class="pos-analysis-grid-line" x1="52" x2="${w - 22}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-axis-label" x="42" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
+    });
+    [gapMin, 0, gapMax].forEach((tick) => {
+      svg += `<line class="pos-analysis-marker-grid" x1="52" x2="${w - 22}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-axis-label" x="42" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
+    });
+
+    years.forEach((year, yearOffset) => {
+      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
+      const gx = 58 + yearOffset * groupW + 14;
+      cuts.forEach((cut, cutIndex) => {
+        const cx = gx + cutIndex * 34;
+        const wr = POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex];
+        const rb = POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex];
+        const gap = wr - rb;
+        const wrColor = POS_ANALYSIS_RANGE_COLORS[cut].WR;
+        const rbColor = POS_ANALYSIS_RANGE_COLORS[cut].RB;
+        const gapColor = gap >= 0 ? wrColor : rbColor;
+        const markerX = cx + 15;
+        const markerY = gapY(gap);
+        const tip = `<strong>${year} · T${cut}</strong><br>WR ${wr} · RB ${rb}<br>WR-RB gap: ${formatPosAnalysisDelta(gap)}`;
+        svg += `<line class="pos-analysis-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-gap-marker" cx="${markerX}" cy="${markerY}" r="5.5" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${cx}" y="${barY(wr)}" width="13" height="${barBottom - barY(wr)}" rx="6" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${cx + 16}" y="${barY(rb)}" width="13" height="${barBottom - barY(rb)}" rx="6" fill="${rbColor}"/><text class="pos-analysis-cut-label" x="${markerX}" y="${h - 54}" text-anchor="middle">T${cut}</text>`;
+      });
+      svg += `<text class="pos-analysis-year-label" x="${gx + 49}" y="${h - 25}" text-anchor="middle">${year}</text>`;
+    });
+
+    svg += '<text class="pos-analysis-chart-title" x="52" y="25">Bars = WR/RB counts · Markers = WR-RB gap</text></svg>';
+    host.innerHTML = svg;
+    attachPosAnalysisTooltips(host);
+  }
+
+  function renderPosAnalysisG2Lines() {
+    const host = document.getElementById('pos-analysis-g2-line-chart');
+    if (!host) return;
+    const w = 1120;
+    const h = 410;
+    const m = { l: 48, r: 88, t: 34, b: 52 };
+    const plotW = w - m.l - m.r;
+    const plotH = h - m.t - m.b;
+    const minY = -16;
+    const maxY = 8;
+    const x = (year) => m.l + (year - POS_ANALYSIS_YEARS[0]) / (POS_ANALYSIS_YEARS.at(-1) - POS_ANALYSIS_YEARS[0]) * plotW;
+    const y = (value) => m.t + plotH - (value - minY) / (maxY - minY) * plotH;
+    const zeroY = y(0);
+    const ranges = [['12', ''], ['36', '8 6'], ['60', '2 6']];
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="RB minus WR difference lines"><defs><clipPath id="pos-analysis-g2-pos-clip"><rect x="${m.l}" y="${m.t}" width="${plotW}" height="${Math.max(0, zeroY - m.t)}"/></clipPath><clipPath id="pos-analysis-g2-neg-clip"><rect x="${m.l}" y="${zeroY}" width="${plotW}" height="${Math.max(0, h - m.b - zeroY)}"/></clipPath></defs>`;
+
+    [-16, -12, -8, -4, 0, 4, 8].forEach((tick) => {
+      svg += `<line class="${tick === 0 ? 'pos-analysis-zero-line' : 'pos-analysis-grid-line'}" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+    });
+
+    ranges.forEach(([cut, dash]) => {
+      const rbColor = POS_ANALYSIS_RANGE_COLORS[cut].RB;
+      const wrColor = POS_ANALYSIS_RANGE_COLORS[cut].WR;
+      const wr = posAnalysisValues(`Top ${cut}`, 'WR');
+      const rb = posAnalysisValues(`Top ${cut}`, 'RB');
+      const points = POS_ANALYSIS_YEARS.map((year, index) => {
+        const value = rb[index] - wr[index];
+        return [x(year), y(value), value];
+      });
+      const d = posAnalysisSmoothPath(points.map((point) => [point[0], point[1]]), 0.2);
+      svg += `<path d="${d}" class="pos-analysis-g2-line" stroke="${rbColor}" ${dash ? `stroke-dasharray="${dash}"` : ''} clip-path="url(#pos-analysis-g2-pos-clip)"/><path d="${d}" class="pos-analysis-g2-line" stroke="${wrColor}" ${dash ? `stroke-dasharray="${dash}"` : ''} clip-path="url(#pos-analysis-g2-neg-clip)"/>`;
+      points.forEach((point, index) => {
+        const value = point[2];
+        const color = value >= 0 ? rbColor : wrColor;
+        const tip = `<strong>T${cut} · ${POS_ANALYSIS_YEARS[index]}</strong><br>RB-WR gap: ${formatPosAnalysisDelta(value)}`;
+        svg += `<circle class="pos-analysis-g2-dot" cx="${point[0]}" cy="${point[1]}" r="3.2" fill="#050711" stroke="${color}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
+      });
+      const last = points.at(-1);
+      svg += `<text class="pos-analysis-series-label" x="${last[0] + 8}" y="${last[1] + 4}" fill="${last[2] >= 0 ? rbColor : wrColor}">T${cut}</text>`;
+    });
+
+    POS_ANALYSIS_YEARS.forEach((year) => {
+      svg += `<text class="pos-analysis-axis-label" x="${x(year)}" y="${h - 18}" text-anchor="middle">${year}</text>`;
+    });
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">Negative = WR edge · Positive = RB edge</text></svg>`;
+    host.innerHTML = svg;
+    attachPosAnalysisTooltips(host);
+  }
+
+  function setupPosAnalysisInteractions() {
+    const root = getPosAnalysisRoot();
+    if (!root || POS_ANALYSIS_STATE.interactionsBound) return;
+
+    root.querySelectorAll('[data-pos-analysis-mode]').forEach((button) => {
+      button.addEventListener('click', () => {
+        POS_ANALYSIS_STATE.mode = button.dataset.posAnalysisMode || 'single';
+        renderPosAnalysisAll();
+      });
+    });
+
+    root.querySelectorAll('[data-pos-analysis-personnel]').forEach((button) => {
+      button.addEventListener('click', () => {
+        POS_ANALYSIS_STATE.personnel = button.dataset.posAnalysisPersonnel || '12';
+        renderPosAnalysisPersonnel();
+      });
+    });
+
+    POS_ANALYSIS_STATE.interactionsBound = true;
+  }
+
+  function posAnalysisPlayer(label, x, y, type, note = '') {
+    return `<div class="pos-analysis-field-player pos-analysis-field-player--${type}" style="left:${x}%;bottom:${y}%"><strong>${escapePosAnalysisHtml(label)}</strong>${note ? `<span>${escapePosAnalysisHtml(note)}</span>` : ''}</div>`;
+  }
+
+  function renderPosAnalysisPersonnel() {
+    const field = document.getElementById('pos-analysis-field-grid');
+    const copy = document.getElementById('pos-analysis-shift-copy');
+    const rbStat = document.getElementById('pos-analysis-sim-rb');
+    const wrStat = document.getElementById('pos-analysis-sim-wr');
+    const teStat = document.getElementById('pos-analysis-sim-te');
+    const qbStat = document.getElementById('pos-analysis-sim-qb');
+    if (!field || !copy || !rbStat || !wrStat || !teStat || !qbStat) return;
+
+    const root = getPosAnalysisRoot();
+    root?.querySelectorAll('[data-pos-analysis-personnel]').forEach((button) => {
+      const active = button.dataset.posAnalysisPersonnel === POS_ANALYSIS_STATE.personnel;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+
+    let players = '<div class="pos-analysis-line-of-scrimmage"></div><div class="pos-analysis-linemen"><span>LT</span><span>LG</span><span>C</span><span>RG</span><span>RT</span></div>';
+    if (POS_ANALYSIS_STATE.personnel === '11') {
+      players += [
+        posAnalysisPlayer('QB', 50, 24, 'qb', 'Shotgun'),
+        posAnalysisPlayer('RB', 42, 24, 'rb', 'Offset'),
+        posAnalysisPlayer('TE', 68, 44, 'te', 'Inline'),
+        posAnalysisPlayer('WR1', 12, 44, 'wr', 'X'),
+        posAnalysisPlayer('WR2', 88, 40, 'wr', 'Z'),
+        posAnalysisPlayer('WR3', 26, 40, 'wr', 'Slot')
+      ].join('');
+      copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
+      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume compromised</strong>';
+      wrStat.innerHTML = '<span>WR opportunity</span><strong>Max route availability</strong>';
+      teStat.innerHTML = '<span>TE role</span><strong>Receiving focused</strong>';
+      qbStat.innerHTML = '<span>QB protection</span><strong>Vulnerable pocket</strong>';
+    } else if (POS_ANALYSIS_STATE.personnel === '13') {
+      players += [
+        posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
+        posAnalysisPlayer('RB', 50, 14, 'rb', 'Power'),
+        posAnalysisPlayer('TE1', 68, 44, 'te', 'Inline'),
+        posAnalysisPlayer('TE2', 74, 38, 'te', 'Wing'),
+        posAnalysisPlayer('TE3', 32, 44, 'te', 'Inline'),
+        posAnalysisPlayer('WR1', 12, 44, 'wr', 'Isolated')
+      ].join('');
+      copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
+      rbStat.innerHTML = '<span>RB opportunity</span><strong>Peak leverage</strong>';
+      wrStat.innerHTML = '<span>WR opportunity</span><strong>WR2/WR3 benched</strong>';
+      teStat.innerHTML = '<span>TE role</span><strong>Triple snap expansion</strong>';
+      qbStat.innerHTML = '<span>QB protection</span><strong>Secure pocket</strong>';
+    } else {
+      players += [
+        posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
+        posAnalysisPlayer('RB', 50, 14, 'rb', 'Workhorse'),
+        posAnalysisPlayer('TE1', 68, 44, 'te', 'Inline'),
+        posAnalysisPlayer('TE2', 32, 44, 'te', 'Inline'),
+        posAnalysisPlayer('WR1', 12, 44, 'wr', 'X'),
+        posAnalysisPlayer('WR2', 88, 40, 'wr', 'Z')
+      ].join('');
+      copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
+      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume & routes up</strong>';
+      wrStat.innerHTML = '<span>WR opportunity</span><strong>WR3 compressed</strong>';
+      teStat.innerHTML = '<span>TE role</span><strong>Two on-field TEs</strong>';
+      qbStat.innerHTML = '<span>QB protection</span><strong>Extra inline help</strong>';
+    }
+
+    field.innerHTML = players;
+  }
+
+  function renderPosAnalysisAll() {
+    if (!POS_ANALYSIS_STATE.loaded || !POS_ANALYSIS_STATE.counts) return;
+    refreshPosAnalysisControls();
+    refreshPosAnalysisYearControls();
+    renderPosAnalysisGlobalChart();
+    renderPosAnalysisProfiles();
+    renderPosAnalysisMiniYearGrid();
+    renderPosAnalysisG1Lines();
+    renderPosAnalysisCombo();
+    renderPosAnalysisG2Lines();
+    renderPosAnalysisPersonnel();
+  }
+
+  function renderPositionalAnalysis() {
+    const root = getPosAnalysisRoot();
+    if (!root) return;
+    setupPosAnalysisInteractions();
+    renderPosAnalysisPersonnel();
+
+    if (!POS_ANALYSIS_STATE.loaded) {
+      setPosAnalysisMessage('Loading positional analysis CSV...');
+      ensurePosAnalysisData()
+        .then(() => renderPosAnalysisAll())
+        .catch((error) => {
+          console.error(error);
+          POS_ANALYSIS_STATE.loadingPromise = null;
+          setPosAnalysisMessage(`Failed to load positional analysis CSV: ${error.message}`, 'error');
+        });
+      return;
+    }
+
+    renderPosAnalysisAll();
+  }
+
   function handleResize() {
     if (document.body.dataset.page !== PAGE_ID) return;
     if (resizeTimer) {
       window.clearTimeout(resizeTimer);
     }
     resizeTimer = window.setTimeout(() => {
-      renderSunburst();
-      renderBarChart();
-      renderGauges();
-      renderDraftOverall();
-      renderDraftPositional();
+      const activeTarget = document.querySelector('.syop-tab.active')?.dataset.target;
+      if (activeTarget === 'draft-tab-panel') {
+        renderDraftOverall();
+        renderDraftPositional();
+      } else if (activeTarget === 'positional-analysis-tab-panel') {
+        renderPositionalAnalysis();
+      } else {
+        renderSunburst();
+        renderBarChart();
+        renderGauges();
+      }
     }, 180);
   }
 
@@ -1427,6 +2386,8 @@
         if (tab.dataset.target === 'draft-tab-panel') {
           renderDraftOverall();
           renderDraftPositional();
+        } else if (tab.dataset.target === 'positional-analysis-tab-panel') {
+          renderPositionalAnalysis();
         } else {
           renderSunburst();
           renderBarChart();
@@ -1474,6 +2435,8 @@
     renderGauges();
     renderDraftOverall();
     renderDraftPositional();
+    setupPosAnalysisInteractions();
+    renderPosAnalysisPersonnel();
     window.addEventListener('resize', handleResize);
   }
 
