@@ -92,13 +92,14 @@
   </div>
   <main class="container mx-auto syop-main" id="content">
     <div class="syop-tabs" role="tablist" aria-label="Research dashboards">
-      <button class="syop-tab active" id="syop-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="syop-tab-panel">Career Length Analytics — SYOP</button>
+      <!-- Research default tab: keep Positional Analysis selected first for faster chart QA while retaining normal tab accessibility state. -->
+      <button class="syop-tab" id="syop-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="syop-tab-panel">Career Length Analytics — SYOP</button>
       <button class="syop-tab" id="draft-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="draft-tab-panel">NFL Draft &mdash; Player Hit Rates</button>
-      <button class="syop-tab" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="positional-analysis-tab-panel">Positional Analysis</button>
+      <button class="syop-tab active" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="positional-analysis-tab-panel">Positional Analysis</button>
     </div>
 
     <div class="syop-tab-panels">
-      <section class="syop-section syop-tab-panel active" id="syop-tab-panel" role="tabpanel" aria-labelledby="syop-tab-button">
+      <section class="syop-section syop-tab-panel" id="syop-tab-panel" role="tabpanel" aria-labelledby="syop-tab-button" hidden>
         <section class="syop-hero">
           <div class="syop-hero-intro">
             <div class="syop-pill">Dynasty Hub Research • SYOP</div>
@@ -218,7 +219,7 @@
         <div class="draft-pill">HIT RATE &bull; All Positions &amp; By Position</div>
       </section>
 
-      <section class="syop-section syop-tab-panel pos-analysis-panel" id="positional-analysis-tab-panel" role="tabpanel" aria-labelledby="positional-analysis-tab-button" hidden>
+      <section class="syop-section syop-tab-panel pos-analysis-panel active" id="positional-analysis-tab-panel" role="tabpanel" aria-labelledby="positional-analysis-tab-button">
         <!-- Positional Analysis tab shell: all child ids/classes are unique to Research
              so the imported PosDist experience cannot affect other pages. -->
         <div class="pos-analysis-root" id="pos-analysis-root">

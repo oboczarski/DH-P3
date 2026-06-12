@@ -2208,21 +2208,37 @@ body[data-page="research"] .pos-analysis-tier-stack-segment:focus-visible {
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-label {
-  fill: rgba(5, 7, 17, 0.92);
-  stroke: rgba(255, 255, 255, 0.22);
-  stroke-width: 1px;
-  font-size: 7.6px;
+  fill: #f8fbff;
+  stroke: rgba(4, 7, 18, 0.92);
+  stroke-width: 1.5px;
+  font-size: 7.2px;
+  font-weight: 950;
+}
+
+body[data-page="research"] .pos-analysis-tier-stack-label-badge rect {
+  fill: rgba(4, 7, 18, 0.46);
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 0.8px;
+}
+
+body[data-page="research"] .pos-analysis-tier-stack-label-range {
+  font-size: 6.4px;
+  letter-spacing: 0.06em;
+}
+
+body[data-page="research"] .pos-analysis-tier-stack-label-count {
+  font-size: 9.2px;
   font-weight: 950;
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-year-label {
   fill: rgba(245, 247, 255, 0.9);
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 900;
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-pos-label {
-  font-size: 8.5px;
+  font-size: 9.4px;
   font-weight: 950;
 }
 
@@ -3384,7 +3400,19 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-tier-stack-label {
-    font-size: 6.7px;
+    font-size: 6.4px;
+  }
+
+  body[data-page="research"] .pos-analysis-tier-stack-label-range {
+    font-size: 5.8px;
+  }
+
+  body[data-page="research"] .pos-analysis-tier-stack-label-count {
+    font-size: 8.1px;
+  }
+
+  body[data-page="research"] .pos-analysis-tier-stack-year-label {
+    font-size: 9.6px;
   }
 
   body[data-page="research"] .pos-analysis-supply-value-label {
