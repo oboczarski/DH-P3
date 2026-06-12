@@ -2732,7 +2732,7 @@ body[data-page="research"] .pos-analysis-overall-banner i {
 body[data-page="research"] .pos-analysis-overall-banner div {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.32rem;
+  gap: 1.02rem;
   margin-top: 0.52rem;
 }
 
@@ -2741,8 +2741,8 @@ body[data-page="research"] .pos-analysis-overall-banner em {
   border-radius: 7px;
   background: rgba(0, 0, 0, 0.34);
   color: var(--pos-analysis-gold);
-  padding: 0.2rem 0.38rem;
-  font-size: 0.58rem;
+  padding: 0.3rem 0.58rem;
+  font-size: 0.78rem;
   font-style: normal;
   font-weight: 900;
 }
