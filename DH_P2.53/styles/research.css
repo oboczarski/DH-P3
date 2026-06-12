@@ -1807,7 +1807,7 @@ body[data-page="research"] .pos-analysis-card p,
 body[data-page="research"] .pos-analysis-info-card p,
 body[data-page="research"] .pos-analysis-simulator p,
 body[data-page="research"] .pos-analysis-info-hero p {
-  margin: 0.35rem 0 0;
+  margin: 0.15rem 0 0;
   color: var(--pos-analysis-sub);
   font-size: 0.82rem;
   line-height: 1.52;
@@ -1846,7 +1846,7 @@ body[data-page="research"] .pos-analysis-card-head {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  padding: 0.95rem 1rem 0.65rem;
+  padding: 0.45rem 1.6rem 0.35rem;
 }
 
 body[data-page="research"] .pos-analysis-card-head--compact {
@@ -1862,7 +1862,7 @@ body[data-page="research"] .pos-analysis-info-hero h2,
 body[data-page="research"] .pos-analysis-info-card h3,
 body[data-page="research"] .pos-analysis-simulator h3,
 body[data-page="research"] .pos-analysis-timeline h3 {
-  margin: 0.28rem 0 0;
+  margin: 0.18rem 0 0;
   color: #fff;
   font-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
   line-height: 1.04;
@@ -1884,12 +1884,12 @@ body[data-page="research"] .pos-analysis-personnel-buttons {
 body[data-page="research"] .pos-analysis-chart-toggles {
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: 1.5rem;
 }
 
 body[data-page="research"] .pos-analysis-mode-toggle {
   flex: 0 0 auto;
-  padding: 0.28rem;
+  padding: 0.18rem;
   border: 1px solid var(--pos-analysis-line-soft);
   border-radius: 13px;
   background: rgba(0, 0, 0, 0.26);
@@ -1906,7 +1906,7 @@ body[data-page="research"] .pos-analysis-personnel-buttons button {
 }
 
 body[data-page="research"] .pos-analysis-mode-btn {
-  padding: 0.44rem 0.62rem;
+  padding: 0.54rem 0.82rem;
   border-radius: 10px;
   background: transparent;
   color: var(--pos-analysis-muted);
@@ -1917,13 +1917,13 @@ body[data-page="research"] .pos-analysis-mode-btn {
 }
 
 body[data-page="research"] .pos-analysis-mode-btn.is-active {
-  background: var(--pos-analysis-cyan);
+  background: linear-gradient(135deg, #b13ce2, #34acd3);
   color: #06101c;
   box-shadow: 0 0 24px rgba(103, 232, 249, 0.24);
 }
 
 body[data-page="research"] .pos-analysis-position-view-toggle .pos-analysis-mode-btn.is-active {
-  background: linear-gradient(135deg, var(--pos-analysis-gold), var(--pos-analysis-green));
+  background: linear-gradient(135deg, #3ce2af, #5e34d3);
   box-shadow: 0 0 24px rgba(226, 177, 60, 0.22);
 }
 
@@ -1953,6 +1953,9 @@ body[data-page="research"] .pos-analysis-range-row {
 body[data-page="research"] .pos-analysis-position-row {
   flex: 0 1 auto;
   margin-left: auto;
+  background: rgba(0, 0, 0, 0);
+  border: 1px solid #0001;
+  gap: 10px;
 }
 
 body[data-page="research"] .pos-analysis-range-btn {
@@ -1978,9 +1981,9 @@ body[data-page="research"] .pos-analysis-pos-btn {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.38rem;
-  padding: 0.5rem 0.62rem;
-  border-radius: 13px;
+  gap: 0.68rem;
+  padding: 0.5rem 1.22rem;
+  border-radius: 11px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(0, 0, 0, 0.2);
   color: #e9ecf9;
@@ -2031,7 +2034,7 @@ body[data-page="research"] .pos-analysis-chart-scroll {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.1rem 1rem 0.9rem;
+  padding: 0.1rem 0rem 0.7rem;
   scrollbar-width: thin;
 }
 
@@ -2057,7 +2060,7 @@ body[data-page="research"] .pos-analysis-mini-card svg {
 }
 
 body[data-page="research"] .pos-analysis-plot-bg {
-  fill: rgba(0, 0, 0, 0.2);
+  fill: rgba(230, 240, 250, 0.01);
 }
 
 body[data-page="research"] .pos-analysis-small-plot-bg {
@@ -2066,13 +2069,13 @@ body[data-page="research"] .pos-analysis-small-plot-bg {
 }
 
 body[data-page="research"] .pos-analysis-grid-line {
-  stroke: rgba(255, 255, 255, 0.075);
-  stroke-width: 1;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 1px;
 }
 
 body[data-page="research"] .pos-analysis-year-grid-line {
   stroke: rgba(255, 255, 255, 0.035);
-  stroke-width: 1;
+  stroke-width: 0;
 }
 
 body[data-page="research"] .pos-analysis-marker-grid {
@@ -2087,9 +2090,9 @@ body[data-page="research"] .pos-analysis-zero-line {
 
 body[data-page="research"] .pos-analysis-axis-label,
 body[data-page="research"] .pos-analysis-mini-axis-label {
-  fill: rgba(173, 181, 214, 0.74);
+  fill: rgba(255, 255, 255, 0.68);
   font-family: 'Product Sans', 'Google Sans', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -2184,12 +2187,13 @@ body[data-page="research"] .pos-analysis-matrix-grid,
 body[data-page="research"] .pos-analysis-timeline-grid,
 body[data-page="research"] .pos-analysis-takeaway-grid {
   display: grid;
-  gap: 0.65rem;
+  gap: 0rem;
 }
 
 body[data-page="research"] .pos-analysis-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 0 1rem 1rem;
+  gap: 10px;
 }
 
 body[data-page="research"] .pos-analysis-stat-chip {
@@ -2347,13 +2351,16 @@ body[data-page="research"] .pos-analysis-profile-spark-base {
 
 body[data-page="research"] .pos-analysis-mini-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 0 1rem 1rem;
+  padding: 0 1rem 0.7rem;
 }
 
 body[data-page="research"] .pos-analysis-mini-card {
-  border: 1px solid var(--pos-analysis-line-soft);
-  border-radius: 13px;
-  background: rgba(0, 0, 0, 0.22);
+  border-top: 0px solid rgb(255 255 255 / 4%);
+  border-radius: 0px;
+  background: rgba(230, 230, 250, 0.0051);
+  border-bottom: 1px solid rgb(255 255 255 / 1%);
+  border-left: 1px solid rgb(255 255 255 / 1%);
+  border-right: 1px solid rgb(255 255 255 / 1%);
 }
 
 body[data-page="research"] .pos-analysis-mini-year {
