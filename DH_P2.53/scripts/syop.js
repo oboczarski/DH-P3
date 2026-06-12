@@ -2271,10 +2271,10 @@
         posAnalysisPlayer('WR3', 26, 40, 'wr', 'Slot')
       ].join('');
       copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
-      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume compromised</strong>';
+      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume decreased</strong>';
       wrStat.innerHTML = '<span>WR opportunity</span><strong>Max route availability</strong>';
-      teStat.innerHTML = '<span>TE role</span><strong>Receiving focused</strong>';
-      qbStat.innerHTML = '<span>QB protection</span><strong>Vulnerable pocket</strong>';
+      teStat.innerHTML = '<span>TE role</span><strong>1 Receiving focused TE</strong>';
+      qbStat.innerHTML = '<span>QB protection</span><strong>Varied</strong>';
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
       players += [
         posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),

@@ -2957,7 +2957,7 @@ body[data-page="research"] .pos-analysis-simulator-copy strong {
 
 body[data-page="research"] .pos-analysis-sim-stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
   padding: 0.6rem;
 }
@@ -3451,4 +3451,9 @@ body[data-page="research"] #secondary-header-row {
     font-weight: 700;
     transform: translatex(1px);
     filter: opacity(0.6) contrast(1);
+}
+.pos-a-intro {
+  font-size: 15px;
+  font-weight: 500;
+  color: #aab;
 }
