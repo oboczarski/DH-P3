@@ -480,7 +480,7 @@ body[data-page="leaguehub"] .leaguehub-trades-season {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.52rem;
+  gap: 1.22rem;
   padding-left: 0.72rem;
 }
 
@@ -611,7 +611,7 @@ body[data-page="leaguehub"] .leaguehub-trade-entry-title {
 
 body[data-page="leaguehub"] .leaguehub-trade-entry-body {
   display: grid;
-  gap: 0.52rem;
+  gap: 0.32rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-package {
