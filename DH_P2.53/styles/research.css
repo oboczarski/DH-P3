@@ -1787,6 +1787,42 @@ body[data-page="research"] .pos-analysis-kicker-dot {
   box-shadow: 0 0 16px rgba(103, 232, 249, 0.72);
 }
 
+/* Positional Analysis local inline SVG icons: mirrors the DataHub page's
+   self-contained icon approach while keeping every selector Research-scoped. */
+body[data-page="research"] .pos-analysis-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+body[data-page="research"] .pos-analysis-icon-shell,
+body[data-page="research"] .pos-analysis-button-icon,
+body[data-page="research"] .pos-analysis-pos-icon,
+body[data-page="research"] .pos-analysis-profile-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon-shell,
+body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon-shell {
+  width: 1.08rem;
+  height: 1.08rem;
+  color: var(--pos-analysis-cyan);
+  filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.28));
+}
+
+body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
 body[data-page="research"] .pos-analysis-hero h1 {
   margin: 0.45rem 0 0.16rem;
   color: #fff;
@@ -1906,6 +1942,10 @@ body[data-page="research"] .pos-analysis-personnel-buttons button {
 }
 
 body[data-page="research"] .pos-analysis-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
   padding: 0.54rem 0.82rem;
   border-radius: 10px;
   background: transparent;
@@ -1914,6 +1954,16 @@ body[data-page="research"] .pos-analysis-mode-btn {
   font-weight: 900;
   letter-spacing: 0.11em;
   text-transform: uppercase;
+}
+
+body[data-page="research"] .pos-analysis-mode-btn .pos-analysis-button-icon {
+  width: 0.88rem;
+  height: 0.88rem;
+}
+
+body[data-page="research"] .pos-analysis-mode-btn .pos-analysis-icon {
+  width: 0.82rem;
+  height: 0.82rem;
 }
 
 body[data-page="research"] .pos-analysis-mode-btn.is-active {
@@ -2020,6 +2070,21 @@ body[data-page="research"] .pos-analysis-pos-name {
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.1em;
+}
+
+body[data-page="research"] .pos-analysis-pos-icon {
+  width: 1.12rem;
+  height: 1.12rem;
+  border-radius: 999px;
+  color: var(--pos-high);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pos-high) 38%, transparent);
+}
+
+body[data-page="research"] .pos-analysis-pos-icon .pos-analysis-icon {
+  width: 0.68rem;
+  height: 0.68rem;
+  stroke-width: 2.25;
 }
 
 body[data-page="research"] .pos-analysis-pos-current {
@@ -2327,6 +2392,32 @@ body[data-page="research"] .pos-analysis-profile-card small {
   text-transform: uppercase;
 }
 
+body[data-page="research"] .pos-analysis-stat-chip .pos-analysis-stat-chip-label {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-width: 0;
+  color: var(--pos-analysis-muted);
+}
+
+body[data-page="research"] .pos-analysis-stat-chip .pos-analysis-stat-chip-label > span {
+  display: inline;
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-stat-chip .pos-analysis-icon--chip {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--pos-analysis-cyan);
+  stroke-width: 2.2;
+}
+
 body[data-page="research"] .pos-analysis-stat-chip strong {
   display: block;
   margin-top: 0.25rem;
@@ -2375,6 +2466,29 @@ body[data-page="research"] .pos-analysis-profile-top {
   margin-bottom: 0.54rem;
 }
 
+body[data-page="research"] .pos-analysis-profile-id {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.48rem;
+  min-width: 0;
+}
+
+body[data-page="research"] .pos-analysis-profile-card .pos-analysis-profile-icon {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--pos-high);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pos-high) 30%, transparent);
+}
+
+body[data-page="research"] .pos-analysis-profile-icon .pos-analysis-icon {
+  width: 1.02rem;
+  height: 1.02rem;
+}
+
 body[data-page="research"] .pos-analysis-profile-top strong {
   display: block;
   color: var(--pos-high);
@@ -2386,6 +2500,9 @@ body[data-page="research"] .pos-analysis-profile-top strong {
 
 body[data-page="research"] .pos-analysis-trend-pill {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
   padding: 0.22rem 0.42rem;
   border-radius: 999px;
   border: 1px solid var(--pos-analysis-line-soft);
@@ -2395,6 +2512,12 @@ body[data-page="research"] .pos-analysis-trend-pill {
   font-style: normal;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+body[data-page="research"] .pos-analysis-trend-pill .pos-analysis-icon {
+  width: 0.68rem;
+  height: 0.68rem;
+  stroke-width: 2.5;
 }
 
 body[data-page="research"] .pos-analysis-trend-pill--up {
@@ -2623,6 +2746,31 @@ body[data-page="research"] .pos-analysis-timeline-grid span {
   text-transform: uppercase;
 }
 
+body[data-page="research"] .pos-analysis-info-stat-stack > div > span,
+body[data-page="research"] .pos-analysis-personnel-formulas div > span,
+body[data-page="research"] .pos-analysis-matrix-grid .pos-analysis-matrix-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+body[data-page="research"] .pos-analysis-info-stat-stack .pos-analysis-icon-shell,
+body[data-page="research"] .pos-analysis-personnel-formulas .pos-analysis-icon-shell,
+body[data-page="research"] .pos-analysis-matrix-grid .pos-analysis-icon-shell {
+  display: inline-grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  color: var(--pos-analysis-cyan);
+}
+
+body[data-page="research"] .pos-analysis-info-stat-stack .pos-analysis-icon,
+body[data-page="research"] .pos-analysis-personnel-formulas .pos-analysis-icon,
+body[data-page="research"] .pos-analysis-matrix-grid .pos-analysis-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
 body[data-page="research"] .pos-analysis-info-stat-stack strong {
   display: block;
   margin-top: 0.16rem;
@@ -2742,8 +2890,18 @@ body[data-page="research"] .pos-analysis-overall-banner p strong {
 
 body[data-page="research"] .pos-analysis-overall-banner i {
   display: inline-flex;
+  vertical-align: -0.16rem;
   margin-right: 0.22rem;
   font-style: normal;
+}
+
+body[data-page="research"] .pos-analysis-overall-banner i .pos-analysis-icon-shell {
+  color: var(--pos-analysis-gold);
+}
+
+body[data-page="research"] .pos-analysis-overall-banner i .pos-analysis-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 body[data-page="research"] .pos-analysis-overall-banner div {
@@ -2824,6 +2982,10 @@ body[data-page="research"] .pos-analysis-personnel-buttons {
 }
 
 body[data-page="research"] .pos-analysis-personnel-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
   padding: 0.42rem 0.58rem;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.04);
@@ -2831,6 +2993,16 @@ body[data-page="research"] .pos-analysis-personnel-buttons button {
   font-size: 0.68rem;
   font-weight: 900;
   white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-personnel-buttons .pos-analysis-button-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+body[data-page="research"] .pos-analysis-personnel-buttons .pos-analysis-icon {
+  width: 0.78rem;
+  height: 0.78rem;
 }
 
 body[data-page="research"] .pos-analysis-personnel-buttons button.is-active {
@@ -2991,6 +3163,30 @@ body[data-page="research"] .pos-analysis-sim-stats span {
   text-transform: uppercase;
 }
 
+body[data-page="research"] .pos-analysis-sim-stats .pos-analysis-sim-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+body[data-page="research"] .pos-analysis-sim-stats .pos-analysis-sim-stat-label > span {
+  display: inline;
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-sim-stats .pos-analysis-icon--sim {
+  width: 0.82rem;
+  height: 0.82rem;
+  color: var(--pos-analysis-gold);
+}
+
 body[data-page="research"] .pos-analysis-sim-stats strong {
   display: block;
   margin-top: 0.12rem;
@@ -3009,6 +3205,17 @@ body[data-page="research"] .pos-analysis-matrix-grid {
 
 body[data-page="research"] .pos-analysis-matrix-grid article span {
   color: var(--pos-analysis-gold);
+}
+
+body[data-page="research"] .pos-analysis-matrix-grid article .pos-analysis-matrix-title {
+  color: var(--pos-analysis-gold);
+}
+
+body[data-page="research"] .pos-analysis-matrix-grid article .pos-analysis-matrix-title .pos-analysis-icon-shell {
+  border-radius: 8px;
+  background: rgba(226, 177, 60, 0.08);
+  color: var(--pos-analysis-gold);
+  box-shadow: inset 0 0 0 1px rgba(226, 177, 60, 0.16);
 }
 
 body[data-page="research"] .pos-analysis-matrix-grid article p,
@@ -3191,6 +3398,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-mode-btn {
     flex: 1 1 0;
     text-align: center;
+    gap: 0.3rem;
   }
 
   body[data-page="research"] .pos-analysis-hero h1 {
@@ -3218,6 +3426,16 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-pos-btn {
     padding: 0.4rem 0.46rem;
     gap: 0.28rem;
+  }
+
+  body[data-page="research"] .pos-analysis-pos-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  body[data-page="research"] .pos-analysis-pos-icon .pos-analysis-icon {
+    width: 0.6rem;
+    height: 0.6rem;
   }
 
   body[data-page="research"] .pos-analysis-chart-scroll {
@@ -3276,6 +3494,18 @@ body[data-page="research"] .pos-analysis-source-note {
     letter-spacing: 0.12em;
   }
 
+  body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon-shell,
+  body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon-shell {
+    width: 0.92rem;
+    height: 0.92rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon,
+  body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+
   body[data-page="research"] .pos-analysis-card h2,
   body[data-page="research"] .pos-analysis-info-hero h2,
   body[data-page="research"] .pos-analysis-info-card h3,
@@ -3309,6 +3539,19 @@ body[data-page="research"] .pos-analysis-source-note {
     flex: 1 0 auto;
     padding: 0.38rem 0.52rem;
     font-size: 0.58rem;
+    gap: 0.25rem;
+  }
+
+  body[data-page="research"] .pos-analysis-mode-btn .pos-analysis-button-icon,
+  body[data-page="research"] .pos-analysis-personnel-buttons .pos-analysis-button-icon {
+    width: 0.72rem;
+    height: 0.72rem;
+  }
+
+  body[data-page="research"] .pos-analysis-mode-btn .pos-analysis-icon,
+  body[data-page="research"] .pos-analysis-personnel-buttons .pos-analysis-icon {
+    width: 0.62rem;
+    height: 0.62rem;
   }
 
   body[data-page="research"] .pos-analysis-control-row {
@@ -3356,6 +3599,17 @@ body[data-page="research"] .pos-analysis-source-note {
     padding: 0.64rem 0.66rem 0.42rem;
   }
 
+  body[data-page="research"] .pos-analysis-profile-card .pos-analysis-profile-icon {
+    width: 1.44rem;
+    height: 1.44rem;
+    border-radius: 8px;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-icon .pos-analysis-icon {
+    width: 0.82rem;
+    height: 0.82rem;
+  }
+
   body[data-page="research"] .pos-analysis-profile-sparkline {
     height: 2.8rem;
   }
@@ -3366,6 +3620,15 @@ body[data-page="research"] .pos-analysis-source-note {
 
   body[data-page="research"] .pos-analysis-stat-chip strong {
     font-size: 1.12rem;
+  }
+
+  body[data-page="research"] .pos-analysis-stat-chip .pos-analysis-icon--chip,
+  body[data-page="research"] .pos-analysis-sim-stats .pos-analysis-icon--sim,
+  body[data-page="research"] .pos-analysis-info-stat-stack .pos-analysis-icon,
+  body[data-page="research"] .pos-analysis-personnel-formulas .pos-analysis-icon,
+  body[data-page="research"] .pos-analysis-matrix-grid .pos-analysis-icon {
+    width: 0.68rem;
+    height: 0.68rem;
   }
 
   body[data-page="research"] .pos-analysis-info-card,

@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis-fix" />
+<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis-icons" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -225,7 +225,7 @@
         <div class="pos-analysis-root" id="pos-analysis-root">
           <section class="pos-analysis-hero" aria-labelledby="pos-analysis-heading">
             <div class="pos-analysis-hero-copy">
-              <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span> Positional supply dashboard</span>
+              <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="radar" aria-hidden="true"></span> Positional supply dashboard</span>
               <h1 id="pos-analysis-heading">Positional Analysis <span>2007 &ndash; 2025</span></h1>
               <p>Historical fantasy-point rank supply by position across every season and selected ranking tier.</p>
             </div>
@@ -234,18 +234,18 @@
           <section class="pos-analysis-card pos-analysis-card--top" id="pos-analysis-global-panel" aria-labelledby="pos-analysis-global-title">
             <div class="pos-analysis-card-head">
               <div>
-                <span class="pos-analysis-eyebrow">Positional Supply</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="line-chart" aria-hidden="true"></span> Positional Supply</span>
                 <h2 id="pos-analysis-global-title">Top 60 positional supply</h2>
                 <p id="pos-analysis-global-subtitle">Position counts inside the selected fantasy-points rank range.</p>
               </div>
               <div class="pos-analysis-chart-toggles">
                 <div class="pos-analysis-mode-toggle" role="group" aria-label="Positional supply chart mode">
-                  <button class="pos-analysis-mode-btn is-active" type="button" data-pos-analysis-mode="single" aria-pressed="true">Single range</button>
-                  <button class="pos-analysis-mode-btn" type="button" data-pos-analysis-mode="grid" aria-pressed="false">Grid view</button>
+                  <button class="pos-analysis-mode-btn is-active" type="button" data-pos-analysis-mode="single" aria-pressed="true"><span class="pos-analysis-button-icon" data-pos-analysis-icon="line-chart" aria-hidden="true"></span><span>Single range</span></button>
+                  <button class="pos-analysis-mode-btn" type="button" data-pos-analysis-mode="grid" aria-pressed="false"><span class="pos-analysis-button-icon" data-pos-analysis-icon="grid" aria-hidden="true"></span><span>Grid view</span></button>
                 </div>
                 <div class="pos-analysis-mode-toggle pos-analysis-position-view-toggle" role="group" aria-label="Positional supply position view">
-                  <button class="pos-analysis-mode-btn" type="button" data-pos-analysis-position-view="all" aria-pressed="false">ALL POS</button>
-                  <button class="pos-analysis-mode-btn is-active" type="button" data-pos-analysis-position-view="rbWr" aria-pressed="true">RB vs WR</button>
+                  <button class="pos-analysis-mode-btn" type="button" data-pos-analysis-position-view="all" aria-pressed="false"><span class="pos-analysis-button-icon" data-pos-analysis-icon="users" aria-hidden="true"></span><span>ALL POS</span></button>
+                  <button class="pos-analysis-mode-btn is-active" type="button" data-pos-analysis-position-view="rbWr" aria-pressed="true"><span class="pos-analysis-button-icon" data-pos-analysis-icon="split" aria-hidden="true"></span><span>RB vs WR</span></button>
                 </div>
               </div>
             </div>
@@ -262,7 +262,7 @@
           <section class="pos-analysis-card pos-analysis-profile-section" aria-labelledby="pos-analysis-profiles-title">
             <div class="pos-analysis-card-head pos-analysis-card-head--compact">
               <div>
-                <span class="pos-analysis-eyebrow">Position profiles</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="cards" aria-hidden="true"></span> Position profiles</span>
                 <h2 id="pos-analysis-profiles-title">Selected-Range Position Cards</h2>
                 <p>Current count, sample rank, historical average, and peak for each active position.</p>
               </div>
@@ -273,7 +273,7 @@
           <section class="pos-analysis-card" aria-labelledby="pos-analysis-mini-title">
             <div class="pos-analysis-card-head">
               <div>
-                <span class="pos-analysis-eyebrow">Year grid</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="calendar" aria-hidden="true"></span> Year grid</span>
                 <h2 id="pos-analysis-mini-title">Mini Line Graph Grid by Year</h2>
                 <p>Each mini chart compares cumulative WR/RB counts across fantasy-point ranking tiers.</p>
               </div>
@@ -284,7 +284,7 @@
           <section class="pos-analysis-card" aria-labelledby="pos-analysis-g1-title">
             <div class="pos-analysis-card-head">
               <div>
-                <span class="pos-analysis-eyebrow">G1</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="stack" aria-hidden="true"></span> G1</span>
                 <h2 id="pos-analysis-g1-title">RB / WR Tier Stack by Year</h2>
                 <p>Two stacked bars per year show WR and RB supply across T12, T36, and T60.</p>
               </div>
@@ -297,7 +297,7 @@
           <section class="pos-analysis-card" aria-labelledby="pos-analysis-combo-title">
             <div class="pos-analysis-card-head pos-analysis-card-head--with-controls">
               <div>
-                <span class="pos-analysis-eyebrow">Counts + gap</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="bar-gap" aria-hidden="true"></span> Counts + gap</span>
                 <h2 id="pos-analysis-combo-title">Combined Count Bars + Difference Markers</h2>
                 <p>Bars show WR/RB counts; markers show the WR minus RB gap.</p>
               </div>
@@ -316,17 +316,17 @@
           <section class="pos-analysis-infographic" id="pos-analysis-infographic" aria-labelledby="pos-analysis-infographic-title">
             <header class="pos-analysis-info-hero">
               <div>
-                <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span> Dynasty strategic blueprint</span>
+                <span class="pos-analysis-kicker"><span class="pos-analysis-kicker-dot"></span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="strategy" aria-hidden="true"></span> Dynasty strategic blueprint</span>
                 <h2 id="pos-analysis-infographic-title">The Running Back Renaissance</h2>
                 <p>Structural NFL personnel shifts are creating a measurable fantasy supply change: RB representation is rising across the major tiers while WR depth is being squeezed.</p>
               </div>
               <div class="pos-analysis-info-stat-stack">
                 <div>
-                  <span>Current meta formula</span>
+                  <span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="formula" aria-hidden="true"></span> Current meta formula</span>
                   <strong>12/13 personnel &uarr; = RB &uarr;</strong>
                 </div>
                 <div>
-                  <span>Definitive era pivot</span>
+                  <span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="trophy" aria-hidden="true"></span> Definitive era pivot</span>
                   <strong>2025 tier sweep verified</strong>
                 </div>
               </div>
@@ -335,29 +335,29 @@
             <div class="pos-analysis-info-layout">
               <div class="pos-analysis-info-left">
                 <article class="pos-analysis-info-card pos-analysis-info-card--wide">
-                  <span class="pos-analysis-eyebrow">Paradigm transition</span>
+                  <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="switch" aria-hidden="true"></span> Paradigm transition</span>
                   <h3>The Positional Paradigm Transition</h3>
                   <p>The NFL is always adjusting. Defensive coordinators build rosters to counter the offensive structures they see most often, then offensive coordinators adjust again to attack those defenses. That cycle never stops.</p>
                   <p>For more than a decade, the league moved heavily toward pass-first football. Offenses lived in 11 personnel, spread the field with three wide receivers, and forced defenses to get smaller, faster, and more comfortable playing nickel as a base package.</p>
                   <p>Dynasty strategy followed that same direction. Wide receiver became the position most managers wanted to build around because of longevity, stability, and the pass-heavy scoring environment.</p>
                   <blockquote>That logic still has merit, but it is no longer complete. The league has started shifting back toward heavier offensive personnel, especially 12 and 13 personnel. That change has a direct effect on positional opportunity, fantasy scoring distribution, and dynasty roster construction.</blockquote>
                   <div class="pos-analysis-personnel-formulas" aria-label="Offensive personnel formulas">
-                    <div><span>11 personnel</span><strong>1 RB | 1 TE | 3 WR</strong><small>Spread-first layout</small></div>
-                    <div><span>12 personnel</span><strong>1 RB | 2 TE | 2 WR</strong><small>Extra run-surface</small></div>
-                    <div><span>13 personnel</span><strong>1 RB | 3 TE | 1 WR</strong><small>Maximum blocking unit</small></div>
+                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="spread" aria-hidden="true"></span> 11 personnel</span><strong>1 RB | 1 TE | 3 WR</strong><small>Spread-first layout</small></div>
+                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="heavy" aria-hidden="true"></span> 12 personnel</span><strong>1 RB | 2 TE | 2 WR</strong><small>Extra run-surface</small></div>
+                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="jumbo" aria-hidden="true"></span> 13 personnel</span><strong>1 RB | 3 TE | 1 WR</strong><small>Maximum blocking unit</small></div>
                   </div>
                 </article>
 
                 <section class="pos-analysis-simulator" aria-labelledby="pos-analysis-simulator-title">
                   <div class="pos-analysis-simulator-head">
                     <div>
-                      <span class="pos-analysis-eyebrow">Tactical simulation</span>
+                      <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="field" aria-hidden="true"></span> Tactical simulation</span>
                       <h3 id="pos-analysis-simulator-title">Personnel Alignment Field Visualizer</h3>
                     </div>
                     <div class="pos-analysis-personnel-buttons" role="group" aria-label="Choose personnel structure">
-                      <button type="button" data-pos-analysis-personnel="11">11 Spread</button>
-                      <button type="button" data-pos-analysis-personnel="12">12 Heavy</button>
-                      <button type="button" data-pos-analysis-personnel="13">13 Jumbo</button>
+                      <button type="button" data-pos-analysis-personnel="11"><span class="pos-analysis-button-icon" data-pos-analysis-icon="spread" aria-hidden="true"></span><span>11 Spread</span></button>
+                      <button type="button" data-pos-analysis-personnel="12"><span class="pos-analysis-button-icon" data-pos-analysis-icon="heavy" aria-hidden="true"></span><span>12 Heavy</span></button>
+                      <button type="button" data-pos-analysis-personnel="13"><span class="pos-analysis-button-icon" data-pos-analysis-icon="jumbo" aria-hidden="true"></span><span>13 Jumbo</span></button>
                     </div>
                   </div>
                   <p>Toggle structures to see how the field shape changes. As tighter personnel packages increase, wide receivers are shifted outside or removed while heavy personnel adds leverage at the line.</p>
@@ -378,11 +378,11 @@
 
               <!-- Positional Analysis infographic: exact reference historical milestone content. -->
               <article class="pos-analysis-info-card pos-analysis-milestone-card">
-                <span class="pos-analysis-eyebrow">Historical analysis</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="milestone" aria-hidden="true"></span> Historical analysis</span>
                 <h3>Breaking Through the Decades</h3>
                 <p> <span class="pos-a-intro">  Ladies and gentlemen, running backs are not just 'all the way back'. THEY HAVE ALREADY SURPASSED! Running backs are operating at level of dominance we have not seen in <strong> OVER 2+ DECADES</strong>!</span> These historical breakthroughs help tell a portion of the tale, demonstrating the shift in ranking structures:</p>
                 <div class="pos-analysis-overall-banner">
-                  <i aria-hidden="true">🏆</i>
+                  <i aria-hidden="true"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="trophy"></span></i>
                   <span>OVERALL</span>
                   <p><strong>2025 was the first time in over 2 decades</strong> where running backs surpassed wide receivers in scoring across <strong>every single major ranking tier</strong> in the exact same year:</p>
                   <div><em>Top 12</em><em>Top 24</em><em>Top 36</em><em>Top 48</em><em>Top 60</em></div>
@@ -431,13 +431,13 @@
             <!-- Positional Analysis infographic: exact reference tactical opportunity content. -->
             <section class="pos-analysis-position-matrix" aria-labelledby="pos-analysis-matrix-title">
               <div class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Deep Dive Positional Analysis</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="network" aria-hidden="true"></span> Deep Dive Positional Analysis</span>
                 <h3 id="pos-analysis-matrix-title">How Heavier Structures Redistribute Tactical Opportunity</h3>
                 <p>When offenses move away from 11 personnel and increase 12/13 personnel, the structure of the field changes. There are fewer wide receivers on the field, more tight ends attached to formations, more blocking surfaces, and a greater ability to run efficiently without becoming predictable.</p>
               </div>
               <div class="pos-analysis-matrix-grid">
                 <article>
-                  <span>Running Backs</span>
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="runner" aria-hidden="true"></span> Running Backs</span>
                   <p>Running backs are the biggest winners from heavier personnel. More 12 and 13 personnel generally means more run-friendly offensive structures. Extra tight ends create better blocking angles, allow offenses to attack lighter defensive boxes, and help teams stay multiple without tipping run or pass as clearly. That matters because the RB position is volume-sensitive and environment-sensitive.</p>
                   <ul>
                     <li>More rushing volume</li>
@@ -450,19 +450,19 @@
                   <small>VOLUME &amp; ENVIRONMENT SENSITIVE</small>
                 </article>
                 <article>
-                  <span>Wide Receivers</span>
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="route" aria-hidden="true"></span> Wide Receivers</span>
                   <p>Wide receivers are the position most negatively affected by the shift. In 11 personnel, three wide receivers are on the field. In 12 personnel, that drops to two. In 13 personnel, it drops to one. That alone reduces route availability, snap availability, and target opportunity for WR depth across the league.</p>
                   <p>This does not kill elite wide receivers. True alpha target earners still matter. But it does compress the position. The WR3/WR4 types on NFL teams become more fragile for fantasy because they are no longer guaranteed the same route volume when offenses are willing to play heavier.</p>
                   <small>INVERSE ENVIRONMENT CORRELATION</small>
                 </article>
                 <article>
-                  <span>Tight Ends</span>
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="shield" aria-hidden="true"></span> Tight Ends</span>
                   <p>Tight ends also benefit from the league’s heavier personnel trend, but the fantasy boost is more complicated than it is for running backs. More 12 and 13 personnel means more tight ends on the field. This increases overall TE snaps and creates more paths to relevance for athletic, versatile, or formation-flexible players.</p>
                   <p>However, adding tight ends to the field does not automatically mean fantasy production becomes more concentrated. In many cases, the extra snaps are spread across TE2 and TE3 types rather than flowing heavily to one primary fantasy option.</p>
                   <small>REAL-WORLD VS FANTASY SPLIT</small>
                 </article>
                 <article>
-                  <span>Quarterbacks</span>
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="helmet" aria-hidden="true"></span> Quarterbacks</span>
                   <p>Quarterbacks are affected by heavier personnel, but usually less dramatically. More 12 and 13 personnel can reduce raw pass volume, which slightly lowers the overall fantasy ceiling for quarterbacks. Fewer three-WR formations generally means fewer spread-out passing looks and fewer plays designed purely around volume.</p>
                   <p>At the same time, heavier personnel can also help quarterbacks in other ways. It can improve play-action efficiency, create easier reads, force defenses into heavier packages, and help offenses stay balanced. That can offset some of the lost volume.</p>
                   <small>SECONDARY OFFSETS APPLIED</small>
@@ -472,13 +472,13 @@
 
             <section class="pos-analysis-te-role" aria-labelledby="pos-analysis-te-role-title">
               <article class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Role-based TE differences</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="shield" aria-hidden="true"></span> Role-based TE differences</span>
                 <h3 id="pos-analysis-te-role-title">Tight End Utility Is Not Always Fantasy Concentration</h3>
                 <p>There is also a role-based difference. Heavier personnel packages are often built for versatility, not just receiving volume. Tight ends can run routes, stay attached as blockers, chip edge rushers, help in pass protection, or create run/pass ambiguity before the snap. That real-life value matters, but it does not always translate cleanly to fantasy points.</p>
                 <p>In lighter personnel, running backs are more often used as extra blockers in pass protection. In heavier 12 and 13 personnel, the additional tight end can fill more of that responsibility. That helps the offense function, but it can cap the fantasy impact for the position if those snaps are not turning into routes and targets.</p>
               </article>
               <article class="pos-analysis-info-card pos-analysis-formula-card">
-                <span class="pos-analysis-eyebrow">The positional formula</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="formula" aria-hidden="true"></span> The positional formula</span>
                 <h3>RB Benefit Is Cleaner Than TE Benefit</h3>
                 <p>"So the TE position does benefit, but not as cleanly as RB. The biggest real-world benefit goes to offenses. The biggest fantasy benefit goes to running backs. Tight ends rise directionally because they are on the field more often, but the fantasy scoring impact is less direct unless the player is also commanding meaningful target volume."</p>
                 <div class="pos-analysis-formula-note"><span>TE Fantasy Boost: Complex</span> <strong>12/13 Personnel &uarr; = RB &uarr;</strong></div>
@@ -487,7 +487,7 @@
 
             <!-- Positional Analysis infographic: exact reference chronological evolution content. -->
             <section class="pos-analysis-timeline" aria-labelledby="pos-analysis-timeline-title">
-              <span class="pos-analysis-eyebrow">Meta Progression Tracking</span>
+              <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="timeline" aria-hidden="true"></span> Meta Progression Tracking</span>
               <h3 id="pos-analysis-timeline-title">Chronological Evolution Blueprint</h3>
               <p>Trace the chronological progression from initial unnoticed indicators to a complete, structural fantasy takeover.</p>
               <div class="pos-analysis-timeline-grid">
@@ -525,28 +525,28 @@
 
             <section class="pos-analysis-takeaway-grid">
               <article class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Tactical caution</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="warning" aria-hidden="true"></span> Tactical caution</span>
                 <h3>Challenging Outdated Fantasy Traps</h3>
                 <p>The fantasy market is still clinging to rules like always building around wide receivers for longevity while also telling managers to think in shorter competitive windows.</p>
                 <p>The biggest dynasty edge is adaptability. Static rules like always build around WR, never pay for RB, or RBs are replaceable can be useful in specific cases, but the environment has changed enough to require a more flexible lens.</p>
                 <p>In the current meta, top young running backs should be prioritized more aggressively because they are benefiting from both individual talent and league-wide structural support.</p>
               </article>
               <article class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Strategic summary</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="strategy" aria-hidden="true"></span> Strategic summary</span>
                 <h3>Dynasty Takeaway</h3>
                 <p>This matters most in trades. Many dynasty managers are still valuing players through an older positional lens, which creates buying opportunities on some elite RBs and selling opportunities on some WRs.</p>
                 <p>The goal is not to overreact. The goal is to adjust before the rest of the league fully catches up.</p>
                 <p>While the NFL will eventually adjust, the current leverage is clear and heavily favored on the ground.</p>
               </article>
               <article class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Eventual regressions</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="cycle" aria-hidden="true"></span> Eventual regressions</span>
                 <h3>When This Could Reverse</h3>
                 <p>This will not last forever. The NFL is cyclical. Defenses will adjust, roster construction will change again, and offensive coordinators will eventually find new ways to exploit the counters defenses create.</p>
                 <p>That reversal could begin as early as 2028, but it is impossible to know at this stage because the current shift is still relatively new.</p>
                 <p>Right now, the data points in one direction: heavier personnel is rising, RBs are benefiting, WR depth is being squeezed, and the dynasty market still has room to adjust.</p>
               </article>
               <article class="pos-analysis-info-card">
-                <span class="pos-analysis-eyebrow">Moving forward</span>
+                <span class="pos-analysis-eyebrow"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="ground" aria-hidden="true"></span> Moving forward</span>
                 <h3>The Ground Leverage Thesis</h3>
                 <p>Running backs are not just back. They are in a position this sample has not shown in at least the past two decades.</p>
                 <p>This is not nostalgia, not one random scoring spike, and not just a few elite players carrying the position. The NFL environment has changed.</p>
@@ -563,6 +563,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=20260612-pos-analysis-fix"></script>
+<script defer src="../scripts/syop.js?v=20260612-pos-analysis-icons"></script>
 </body>
 </html>

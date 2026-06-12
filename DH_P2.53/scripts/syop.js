@@ -203,6 +203,44 @@
     personnel: '12'
   };
 
+  // Positional Analysis icon system:
+  // - mirrors DataHub's local inline-SVG approach instead of adding a shared icon dependency
+  // - targets only .pos-analysis-* UI elements through hydrated data attributes or direct render helpers
+  // - keeps all icons decorative/aria-hidden so chart and control labels remain the accessible names.
+  const POS_ANALYSIS_ICON_PATHS = {
+    radar: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8l5 3"/><path d="M4 12h3"/><path d="M17 12h3"/>',
+    'line-chart': '<path d="M3 19h18"/><path d="M5 16l4-5 4 3 6-8"/><circle cx="9" cy="11" r="1.4"/><circle cx="13" cy="14" r="1.4"/><circle cx="19" cy="6" r="1.4"/>',
+    grid: '<rect x="4" y="4" width="6" height="6" rx="1.2"/><rect x="14" y="4" width="6" height="6" rx="1.2"/><rect x="4" y="14" width="6" height="6" rx="1.2"/><rect x="14" y="14" width="6" height="6" rx="1.2"/>',
+    users: '<path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="7" r="3.5"/><path d="M20 20v-1.2a3 3 0 0 0-2.2-2.9"/><path d="M15.5 4.4a3.2 3.2 0 0 1 0 5.2"/>',
+    split: '<path d="M5 4v5a4 4 0 0 0 4 4h10"/><path d="M16 10l3 3-3 3"/><path d="M5 20v-3a4 4 0 0 1 4-4"/>',
+    cards: '<rect x="5" y="6" width="14" height="12" rx="2"/><path d="M8 10h8"/><path d="M8 14h5"/><path d="M3 9V7a3 3 0 0 1 3-3h9"/>',
+    calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 10h16"/><path d="M8 14h2"/><path d="M14 14h2"/>',
+    stack: '<path d="M5 19V9"/><path d="M12 19V5"/><path d="M19 19v-7"/><path d="M3 19h18"/><path d="M5 13h4"/><path d="M12 11h4"/><path d="M19 16h2"/>',
+    'bar-gap': '<path d="M4 20V9"/><path d="M8 20V5"/><path d="M16 20v-7"/><path d="M20 20V8"/><path d="M3 20h18"/><path d="M11 9h2"/><path d="M11 15h2"/>',
+    strategy: '<path d="M4 18l6-6 4 4 6-8"/><path d="M14 8h6v6"/><circle cx="7" cy="18" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="17" cy="16" r="2"/>',
+    formula: '<path d="M5 7h14"/><path d="M5 12h8"/><path d="M5 17h14"/><path d="M16 10l3 2-3 2"/>',
+    trophy: '<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5a2 2 0 0 0 2 4h1"/><path d="M16 6h3a2 2 0 0 1-2 4h-1"/><path d="M12 12v5"/><path d="M8 20h8"/><path d="M10 17h4"/>',
+    switch: '<path d="M5 7h11"/><path d="M13 4l3 3-3 3"/><path d="M19 17H8"/><path d="M11 14l-3 3 3 3"/>',
+    spread: '<path d="M4 17h16"/><circle cx="12" cy="17" r="1.4"/><circle cx="6" cy="10" r="1.4"/><circle cx="18" cy="10" r="1.4"/><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/>',
+    heavy: '<path d="M4 17h16"/><circle cx="12" cy="17" r="1.4"/><circle cx="8" cy="10" r="1.4"/><circle cx="16" cy="10" r="1.4"/><rect x="9" y="5" width="6" height="4" rx="1.2"/>',
+    jumbo: '<path d="M4 17h16"/><circle cx="12" cy="18" r="1.4"/><rect x="5" y="8" width="4" height="4" rx="1"/><rect x="10" y="6" width="4" height="4" rx="1"/><rect x="15" y="8" width="4" height="4" rx="1"/>',
+    field: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M4 12h16"/><circle cx="12" cy="12" r="2"/>',
+    milestone: '<path d="M5 19h14"/><path d="M7 19V8l5-3 5 3v11"/><path d="M9 11h6"/><path d="M9 15h6"/>',
+    network: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><circle cx="12" cy="12" r="2"/><path d="M8 7.5l2.5 3"/><path d="M16 7.5l-2.5 3"/><path d="M8 16.5l2.5-3"/><path d="M16 16.5l-2.5-3"/>',
+    runner: '<circle cx="12" cy="4" r="2"/><path d="M10 9l4 2 3-2"/><path d="M14 11l-2 4 4 5"/><path d="M10 9l-3 4"/><path d="M12 15l-5 4"/>',
+    route: '<path d="M4 18c5 0 4-12 10-12h5"/><path d="M16 3l3 3-3 3"/><circle cx="4" cy="18" r="2"/><circle cx="10" cy="11" r="1.4"/>',
+    shield: '<path d="M12 3l7 3v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-5"/>',
+    helmet: '<path d="M4 13a8 8 0 0 1 15.6-2.5"/><path d="M19 11v5h-5l-2-3H8v5H6a2 2 0 0 1-2-2v-3"/><path d="M14 16h5"/>',
+    timeline: '<path d="M5 4v16"/><circle cx="5" cy="6" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="5" cy="18" r="2"/><path d="M9 6h10"/><path d="M9 12h7"/><path d="M9 18h10"/>',
+    warning: '<path d="M12 4l9 16H3L12 4Z"/><path d="M12 9v5"/><path d="M12 17h.01"/>',
+    cycle: '<path d="M20 12a8 8 0 0 1-13.5 5.8"/><path d="M4 12A8 8 0 0 1 17.5 6.2"/><path d="M7 18H4v-3"/><path d="M17 6h3v3"/>',
+    ground: '<path d="M4 18c4-4 12-4 16 0"/><path d="M6 14c3-2 9-2 12 0"/><path d="M8 10c2-1 6-1 8 0"/><path d="M12 4v4"/>',
+    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/>',
+    diff: '<path d="M4 8h16"/><path d="M4 16h16"/><path d="M8 4v8"/><path d="M16 12v8"/>',
+    'trend-up': '<path d="M4 16l5-5 4 4 7-8"/><path d="M15 7h5v5"/>',
+    'trend-down': '<path d="M4 8l5 5 4-4 7 8"/><path d="M15 17h5v-5"/>'
+  };
+
   const { distributionByPosition: SYOP_DISTRIBUTION, summaryByPosition: SYOP_POSITION_SUMMARY } = buildSyopSummary();
 
   let resizeTimer = null;
@@ -1420,6 +1458,25 @@
     return document.getElementById('pos-analysis-root');
   }
 
+  function posAnalysisIcon(name, extraClass = '') {
+    const paths = POS_ANALYSIS_ICON_PATHS[name] || POS_ANALYSIS_ICON_PATHS.target;
+    const className = `pos-analysis-icon${extraClass ? ` ${extraClass}` : ''}`;
+    return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+  }
+
+  function hydratePosAnalysisIcons(root = getPosAnalysisRoot()) {
+    if (!root) return;
+    root.querySelectorAll('[data-pos-analysis-icon]').forEach((node) => {
+      if (node.dataset.posAnalysisIconReady === 'true') return;
+      const iconName = node.dataset.posAnalysisIcon || 'target';
+      const iconClass = node.classList.contains('pos-analysis-button-icon')
+        ? 'pos-analysis-icon--button'
+        : 'pos-analysis-icon--shell';
+      node.innerHTML = posAnalysisIcon(iconName, iconClass);
+      node.dataset.posAnalysisIconReady = 'true';
+    });
+  }
+
   function escapePosAnalysisHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({
       '&': '&amp;',
@@ -1564,6 +1621,15 @@
 
   function getPosAnalysisPositionControlPositions() {
     return POS_ANALYSIS_STATE.positionView === 'rbWr' ? ['RB', 'WR'] : POS_ANALYSIS_POSITIONS;
+  }
+
+  function getPosAnalysisPositionIcon(pos) {
+    return {
+      QB: 'helmet',
+      RB: 'runner',
+      WR: 'route',
+      TE: 'shield'
+    }[pos] || 'target';
   }
 
   function getPosAnalysisDynamicDomain(range, positions) {
@@ -1839,7 +1905,7 @@
         const config = POS_ANALYSIS_POS_CONFIG[pos];
         const active = POS_ANALYSIS_STATE.activePositions.includes(pos);
         const current = summary.current[pos] ?? 0;
-        return `<button class="pos-analysis-pos-btn${active ? ' is-active' : ''}" type="button" data-pos-analysis-position="${pos}" aria-pressed="${active}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><span class="pos-analysis-pos-dot"></span><span class="pos-analysis-pos-name">${pos}</span><span class="pos-analysis-pos-current">${current}</span></button>`;
+        return `<button class="pos-analysis-pos-btn${active ? ' is-active' : ''}" type="button" data-pos-analysis-position="${pos}" aria-pressed="${active}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><span class="pos-analysis-pos-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--pos')}</span><span class="pos-analysis-pos-name">${pos}</span><span class="pos-analysis-pos-current">${current}</span></button>`;
       }).join('');
       positionHost.querySelectorAll('[data-pos-analysis-position]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -1901,13 +1967,13 @@
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
     const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR DIFF`;
     const chips = [
-      { label: 'Selected range', value: summary.range, tone: '' },
-      { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down' },
-      { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down' },
-      { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down' }
+      { label: 'Selected range', value: summary.range, tone: '', icon: 'target' },
+      { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
+      { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
+      { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
     ];
     host.innerHTML = chips.map((chip) => (
-      `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span>${escapePosAnalysisHtml(chip.label)}</span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`
+      `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span class="pos-analysis-stat-chip-label">${posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip')}<span>${escapePosAnalysisHtml(chip.label)}</span></span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`
     )).join('');
   }
 
@@ -2084,7 +2150,7 @@
       const stat = summary.stats[pos];
       const config = POS_ANALYSIS_POS_CONFIG[pos];
       const trendClass = stat.changeFromPrevious >= 0 ? 'up' : 'down';
-      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div><strong>${pos}</strong><span>2025 position file</span></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
+      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong><span>2025 position file</span></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
     }).join('');
   }
 
@@ -2285,6 +2351,10 @@
     return `<div class="pos-analysis-field-player pos-analysis-field-player--${type}" style="left:${x}%;bottom:${y}%"><strong>${escapePosAnalysisHtml(label)}</strong>${note ? `<span>${escapePosAnalysisHtml(note)}</span>` : ''}</div>`;
   }
 
+  function renderPosAnalysisSimStat(icon, label, value) {
+    return `<span class="pos-analysis-sim-stat-label">${posAnalysisIcon(icon, 'pos-analysis-icon--sim')}<span>${escapePosAnalysisHtml(label)}</span></span><strong>${escapePosAnalysisHtml(value)}</strong>`;
+  }
+
   function renderPosAnalysisPersonnel() {
     const field = document.getElementById('pos-analysis-field-grid');
     const copy = document.getElementById('pos-analysis-shift-copy');
@@ -2312,10 +2382,10 @@
         posAnalysisPlayer('WR3', 26, 40, 'wr', 'Slot')
       ].join('');
       copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
-      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume decreased</strong>';
-      wrStat.innerHTML = '<span>WR opportunity</span><strong>Max route availability</strong>';
-      teStat.innerHTML = '<span>TE role</span><strong>1 Receiving focused TE</strong>';
-      qbStat.innerHTML = '<span>QB protection</span><strong>Varied</strong>';
+      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume decreased');
+      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'Max route availability');
+      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', '1 Receiving focused TE');
+      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Varied');
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
       players += [
         posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
@@ -2326,10 +2396,10 @@
         posAnalysisPlayer('WR1', 12, 44, 'wr', 'Isolated')
       ].join('');
       copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
-      rbStat.innerHTML = '<span>RB opportunity</span><strong>Peak leverage</strong>';
-      wrStat.innerHTML = '<span>WR opportunity</span><strong>WR2/WR3 benched</strong>';
-      teStat.innerHTML = '<span>TE role</span><strong>Triple snap expansion</strong>';
-      qbStat.innerHTML = '<span>QB protection</span><strong>Secure pocket</strong>';
+      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Peak leverage');
+      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'WR2/WR3 benched');
+      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', 'Triple snap expansion');
+      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Secure pocket');
     } else {
       players += [
         posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
@@ -2340,10 +2410,10 @@
         posAnalysisPlayer('WR2', 88, 40, 'wr', 'Z')
       ].join('');
       copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
-      rbStat.innerHTML = '<span>RB opportunity</span><strong>Volume & routes up</strong>';
-      wrStat.innerHTML = '<span>WR opportunity</span><strong>WR3 compressed</strong>';
-      teStat.innerHTML = '<span>TE role</span><strong>Two on-field TEs</strong>';
-      qbStat.innerHTML = '<span>QB protection</span><strong>Extra inline help</strong>';
+      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume & routes up');
+      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'WR3 compressed');
+      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', 'Two on-field TEs');
+      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Extra inline help');
     }
 
     field.innerHTML = players;
@@ -2364,6 +2434,7 @@
   function renderPositionalAnalysis() {
     const root = getPosAnalysisRoot();
     if (!root) return;
+    hydratePosAnalysisIcons(root);
     setupPosAnalysisInteractions();
     renderPosAnalysisPersonnel();
 
