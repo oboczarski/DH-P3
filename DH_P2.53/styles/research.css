@@ -2274,7 +2274,7 @@ body[data-page="research"] .pos-analysis-matrix-grid,
 body[data-page="research"] .pos-analysis-timeline-grid,
 body[data-page="research"] .pos-analysis-takeaway-grid {
   display: grid;
-  gap: 0rem;
+  gap: 1rem;
 }
 
 body[data-page="research"] .pos-analysis-stat-grid {
@@ -2438,7 +2438,8 @@ body[data-page="research"] .pos-analysis-profile-spark-base {
 
 body[data-page="research"] .pos-analysis-mini-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 0 1rem 0.7rem;
+  padding: 0 0.5rem 0.7rem;
+  gap: 0rem;
 }
 
 body[data-page="research"] .pos-analysis-mini-card {
@@ -3168,6 +3169,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-chart-toggles {
     width: 100%;
     justify-content: stretch;
+    gap: 0.6rem;
   }
 
   body[data-page="research"] .pos-analysis-mode-btn {
@@ -3226,6 +3228,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-timeline-grid,
   body[data-page="research"] .pos-analysis-takeaway-grid {
     gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   body[data-page="research"] .pos-analysis-info-card p,
@@ -3270,11 +3273,13 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-matrix-grid,
   body[data-page="research"] .pos-analysis-timeline-grid,
   body[data-page="research"] .pos-analysis-sim-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   body[data-page="research"] .pos-analysis-mini-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-inline: 0rem;
+    gap: 0rem;
   }
 
   body[data-page="research"] .pos-analysis-mode-toggle,
