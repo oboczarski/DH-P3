@@ -2657,6 +2657,22 @@ body[data-page="research"] .pos-analysis-tier-list span {
   line-height: 1.4;
 }
 
+body[data-page="research"] .pos-analysis-tier-list ul {
+  margin: 0.48rem 0 0;
+  padding-left: 1rem;
+  color: var(--pos-analysis-sub);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+body[data-page="research"] .pos-analysis-tier-list li + li {
+  margin-top: 0.18rem;
+}
+
+body[data-page="research"] .pos-analysis-tier-list li::marker {
+  color: rgba(226, 177, 60, 0.78);
+}
+
 body[data-page="research"] .pos-analysis-simulator-head {
   display: flex;
   align-items: flex-start;
@@ -2905,6 +2921,14 @@ body[data-page="research"] .pos-analysis-formula-card strong {
 body[data-page="research"] .pos-analysis-timeline-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 0.75rem;
+}
+
+body[data-page="research"] .pos-analysis-timeline > p {
+  max-width: 42rem;
+  margin: 0.28rem 0 0;
+  color: var(--pos-analysis-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 body[data-page="research"] .pos-analysis-timeline-grid article span {
