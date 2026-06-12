@@ -161,10 +161,10 @@
 
   // Positional Analysis tab:
   // - targets only the new Research tab panel and its unique .pos-analysis-* DOM
-  // - loads the local POS-DIST CSV directly, not Sheets/proxies
+  // - loads the historical player-level dataset directly, not Sheets/proxies
   // - keeps chart state separate from SYOP/Draft renderers so tab changes do not
   //   leak behavior into the existing Research views.
-  const POS_ANALYSIS_CSV_PATH = '../data/POS-DIST_2007-2015/POS-DIST_2007-2025.csv';
+  const POS_ANALYSIS_DATA_PATH = '../data/POS-DIST_2007-2015/POS-DIST_2007-2025.csv';
   const POS_ANALYSIS_YEARS = Array.from({ length: 19 }, (_, index) => 2007 + index);
   const POS_ANALYSIS_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
   const POS_ANALYSIS_RANGE_OPTIONS = ['Top 6', 'Top 12', 'Top 24', 'Top 36', 'Top 48', 'Top 60'];
@@ -196,7 +196,8 @@
     interactionsBound: false,
     range: 'Top 60',
     mode: 'single',
-    activePositions: ['QB', 'RB', 'WR', 'TE'],
+    positionView: 'rbWr',
+    activePositions: ['RB', 'WR'],
     minYear: 2014,
     maxYear: 2025,
     personnel: '12'
@@ -1477,20 +1478,20 @@
   }
 
   async function loadPosAnalysisRows() {
-    const response = await fetch(POS_ANALYSIS_CSV_PATH, { cache: 'no-store' });
+    const response = await fetch(POS_ANALYSIS_DATA_PATH, { cache: 'no-store' });
     if (!response.ok) {
-      throw new Error(`Could not load ${POS_ANALYSIS_CSV_PATH}: ${response.status}`);
+      throw new Error(`Could not load positional analysis data: ${response.status}`);
     }
 
     const csvRows = parsePosAnalysisCSV(await response.text());
-    if (!csvRows.length) throw new Error('CSV is empty.');
+    if (!csvRows.length) throw new Error('Dataset is empty.');
 
     const header = csvRows[0].map((heading) => String(heading).trim());
     const columnIndex = Object.fromEntries(header.map((heading, index) => [heading, index]));
     const requiredColumns = ['YEAR', 'Player', 'POS', 'FPTS RK', 'FPTS'];
     const missingColumns = requiredColumns.filter((column) => !(column in columnIndex));
     if (missingColumns.length) {
-      throw new Error(`CSV missing required columns: ${missingColumns.join(', ')}`);
+      throw new Error(`Dataset missing required columns: ${missingColumns.join(', ')}`);
     }
 
     return csvRows.slice(1).map((csvRow) => ({
@@ -1553,6 +1554,40 @@
       const number = Number(value);
       return Number.isFinite(number) ? Math.max(0, number) : 0;
     });
+  }
+
+  function getPosAnalysisDisplayPositions() {
+    const allowed = POS_ANALYSIS_STATE.positionView === 'rbWr' ? ['RB', 'WR'] : POS_ANALYSIS_POSITIONS;
+    const active = allowed.filter((pos) => POS_ANALYSIS_STATE.activePositions.includes(pos));
+    return active.length ? active : allowed;
+  }
+
+  function getPosAnalysisPositionControlPositions() {
+    return POS_ANALYSIS_STATE.positionView === 'rbWr' ? ['RB', 'WR'] : POS_ANALYSIS_POSITIONS;
+  }
+
+  function getPosAnalysisDynamicDomain(range, positions) {
+    const values = positions.flatMap((pos) => posAnalysisValues(range, pos));
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const min = minValue <= 3 ? 0 : Math.max(0, minValue - 1);
+    const max = maxValue + 1;
+    return { min, max: Math.max(max, min + 1) };
+  }
+
+  function getPosAnalysisMiniYears() {
+    return POS_ANALYSIS_YEARS.filter((year) => year >= 2011 && year <= 2025);
+  }
+
+  function posAnalysisTickValues(min, max, targetCount = 6) {
+    const span = Math.max(1, max - min);
+    const step = Math.max(1, Math.ceil(span / targetCount));
+    const ticks = [];
+    for (let value = min; value <= max; value += step) {
+      ticks.push(value);
+    }
+    if (!ticks.includes(max)) ticks.push(max);
+    return ticks;
   }
 
   function formatPosAnalysisDelta(value) {
@@ -1640,6 +1675,25 @@
       d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
     }
     return d;
+  }
+
+  function renderPosAnalysisProfileSparkline(pos, range) {
+    const values = posAnalysisValues(range, pos);
+    const config = POS_ANALYSIS_POS_CONFIG[pos];
+    const width = 260;
+    const height = 62;
+    const m = { l: 6, r: 9, t: 8, b: 8 };
+    const plotW = width - m.l - m.r;
+    const plotH = height - m.t - m.b;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = Math.max(1, max - min);
+    const x = (index) => m.l + index / Math.max(1, values.length - 1) * plotW;
+    const y = (value) => m.t + plotH - (value - min) / span * plotH;
+    const points = values.map((value, index) => [x(index), y(value)]);
+    const last = points.at(-1) || [width - m.r, height / 2];
+    const lastValue = values.at(-1) ?? 0;
+    return `<svg class="pos-analysis-profile-sparkline" viewBox="0 0 ${width} ${height}" aria-label="${escapePosAnalysisAttr(pos)} ${escapePosAnalysisAttr(range)} historical sparkline"><line class="pos-analysis-profile-spark-base" x1="${m.l}" x2="${width - m.r}" y1="${height - m.b}" y2="${height - m.b}"/><path d="${posAnalysisSmoothPath(points, 0.16)}" fill="none" stroke="${config.high}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="4.2" fill="${config.high}" stroke="#050711" stroke-width="2"/><title>${pos} ${range}: ${lastValue} in 2025</title></svg>`;
   }
 
   function posAnalysisRectsOverlap(a, b) {
@@ -1767,7 +1821,8 @@
     }
 
     if (positionHost) {
-      positionHost.innerHTML = POS_ANALYSIS_POSITIONS.map((pos) => {
+      const controlPositions = getPosAnalysisPositionControlPositions();
+      positionHost.innerHTML = controlPositions.map((pos) => {
         const config = POS_ANALYSIS_POS_CONFIG[pos];
         const active = POS_ANALYSIS_STATE.activePositions.includes(pos);
         const current = summary.current[pos] ?? 0;
@@ -1776,7 +1831,8 @@
       positionHost.querySelectorAll('[data-pos-analysis-position]').forEach((button) => {
         button.addEventListener('click', () => {
           const pos = button.dataset.posAnalysisPosition;
-          if (POS_ANALYSIS_STATE.activePositions.includes(pos) && POS_ANALYSIS_STATE.activePositions.length > 1) {
+          const activeControlCount = controlPositions.filter((item) => POS_ANALYSIS_STATE.activePositions.includes(item)).length;
+          if (POS_ANALYSIS_STATE.activePositions.includes(pos) && activeControlCount > 1) {
             POS_ANALYSIS_STATE.activePositions = POS_ANALYSIS_STATE.activePositions.filter((item) => item !== pos);
           } else if (!POS_ANALYSIS_STATE.activePositions.includes(pos)) {
             POS_ANALYSIS_STATE.activePositions.push(pos);
@@ -1788,6 +1844,12 @@
 
     root.querySelectorAll('[data-pos-analysis-mode]').forEach((button) => {
       const active = button.dataset.posAnalysisMode === POS_ANALYSIS_STATE.mode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+
+    root.querySelectorAll('[data-pos-analysis-position-view]').forEach((button) => {
+      const active = button.dataset.posAnalysisPositionView === POS_ANALYSIS_STATE.positionView;
       button.classList.toggle('is-active', active);
       button.setAttribute('aria-pressed', String(active));
     });
@@ -1838,11 +1900,14 @@
   function renderPosAnalysisGlobalChart() {
     const title = document.getElementById('pos-analysis-global-title');
     const subtitle = document.getElementById('pos-analysis-global-subtitle');
-    if (title) title.textContent = POS_ANALYSIS_STATE.mode === 'grid' ? 'Four-range supply comparison' : `${POS_ANALYSIS_STATE.range} positional supply`;
+    const viewLabel = POS_ANALYSIS_STATE.positionView === 'rbWr' ? 'RB vs WR' : 'all-position';
+    if (title) title.textContent = POS_ANALYSIS_STATE.mode === 'grid' ? `Four-range ${viewLabel} comparison` : `${POS_ANALYSIS_STATE.range} ${viewLabel} supply`;
     if (subtitle) {
       subtitle.textContent = POS_ANALYSIS_STATE.mode === 'grid'
         ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
-        : 'Position counts inside the selected fantasy-points rank range.';
+        : POS_ANALYSIS_STATE.positionView === 'rbWr'
+          ? 'Running back and wide receiver counts inside the selected fantasy-points rank range.'
+          : 'Position counts inside the selected fantasy-points rank range.';
     }
 
     if (POS_ANALYSIS_STATE.mode === 'grid') {
@@ -1857,7 +1922,7 @@
     const host = document.getElementById('pos-analysis-global-chart');
     if (!host) return;
     const range = POS_ANALYSIS_STATE.range;
-    const active = POS_ANALYSIS_STATE.activePositions;
+    const active = getPosAnalysisDisplayPositions();
     const compact = window.innerWidth < 640;
     const w = 1200;
     const h = compact ? 456 : 472;
@@ -1865,9 +1930,13 @@
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
     const maxValue = Math.max(...active.flatMap((pos) => posAnalysisValues(range, pos)), 0);
-    const yMax = Math.max(POS_ANALYSIS_CUTS[range] <= 12 ? 6 : 12, Math.ceil((maxValue + 2) / 2) * 2);
+    const domain = POS_ANALYSIS_STATE.positionView === 'rbWr'
+      ? getPosAnalysisDynamicDomain(range, active)
+      : { min: 0, max: Math.max(POS_ANALYSIS_CUTS[range] <= 12 ? 6 : 12, Math.ceil((maxValue + 2) / 2) * 2) };
+    const yMin = domain.min;
+    const yMax = domain.max;
     const x = (index) => m.l + index / (POS_ANALYSIS_YEARS.length - 1) * plotW;
-    const y = (value) => m.t + plotH - value / yMax * plotH;
+    const y = (value) => m.t + plotH - (value - yMin) / Math.max(1, yMax - yMin) * plotH;
     const labels = [];
 
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapePosAnalysisAttr(range)} positional supply">`;
@@ -1883,9 +1952,9 @@
     });
     svg += '</defs><rect class="pos-analysis-plot-bg" x="0" y="0" width="1200" height="' + h + '" rx="22"/>';
 
-    for (let tick = 0; tick <= yMax; tick += Math.max(1, Math.ceil(yMax / 6))) {
+    posAnalysisTickValues(yMin, yMax, 6).forEach((tick) => {
       svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 12}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
-    }
+    });
     POS_ANALYSIS_YEARS.forEach((year, index) => {
       const xx = x(index);
       svg += `<line class="pos-analysis-year-grid-line" x1="${xx}" x2="${xx}" y1="${m.t}" y2="${h - m.b}"/>`;
@@ -1926,7 +1995,8 @@
       top: m.t - 4,
       bottom: h - m.b + 12
     }));
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}</text></svg>`;
+    const scaleLabel = POS_ANALYSIS_STATE.positionView === 'rbWr' ? ` · dynamic scale ${yMin}-${yMax}` : '';
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}${scaleLabel}</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -1934,7 +2004,7 @@
   function renderPosAnalysisGlobalGrid() {
     const host = document.getElementById('pos-analysis-global-chart');
     if (!host) return;
-    const active = POS_ANALYSIS_STATE.activePositions;
+    const active = getPosAnalysisDisplayPositions();
     const panelW = 560;
     const panelH = 228;
     const gap = 18;
@@ -1950,11 +2020,13 @@
       const m = { l: 34, r: 42, t: 34, b: 36 };
       const plotW = panelW - m.l - m.r;
       const plotH = panelH - m.t - m.b;
-      const maxValue = Math.max(8, ...active.flatMap((pos) => posAnalysisValues(range, pos))) + 2;
+      const domain = POS_ANALYSIS_STATE.positionView === 'rbWr'
+        ? getPosAnalysisDynamicDomain(range, active)
+        : { min: 0, max: Math.max(8, ...active.flatMap((pos) => posAnalysisValues(range, pos))) + 2 };
       const x = (pointIndex) => ox + m.l + pointIndex / (POS_ANALYSIS_YEARS.length - 1) * plotW;
-      const y = (value) => oy + m.t + plotH - value / maxValue * plotH;
+      const y = (value) => oy + m.t + plotH - (value - domain.min) / Math.max(1, domain.max - domain.min) * plotH;
       svg += `<rect class="pos-analysis-small-plot-bg" x="${ox}" y="${oy}" width="${panelW}" height="${panelH}" rx="22"/><text class="pos-analysis-small-title" x="${ox + 18}" y="${oy + 24}">${range}</text>`;
-      [0, Math.floor(maxValue / 2), maxValue].forEach((tick) => {
+      [domain.min, Math.round((domain.min + domain.max) / 2), domain.max].forEach((tick) => {
         svg += `<line class="pos-analysis-grid-line" x1="${ox + m.l}" x2="${ox + panelW - m.r}" y1="${y(tick)}" y2="${y(tick)}"/>`;
       });
       active.forEach((pos) => {
@@ -1977,9 +2049,8 @@
     host.innerHTML = POS_ANALYSIS_POSITIONS.map((pos) => {
       const stat = summary.stats[pos];
       const config = POS_ANALYSIS_POS_CONFIG[pos];
-      const active = POS_ANALYSIS_STATE.activePositions.includes(pos);
       const trendClass = stat.changeFromPrevious >= 0 ? 'up' : 'down';
-      return `<article class="pos-analysis-profile-card${active ? '' : ' is-muted'}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div><strong>${pos}</strong><span>${escapePosAnalysisHtml(config.label)}</span></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div></article>`;
+      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div><strong>${pos}</strong><span>2025 position file</span></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
     }).join('');
   }
 
@@ -1988,7 +2059,7 @@
     if (!host) return;
     const cuts = [6, 12, 24, 36, 48, 60];
     const maxY = 30;
-    host.innerHTML = POS_ANALYSIS_YEARS.map((year) => {
+    host.innerHTML = getPosAnalysisMiniYears().map((year) => {
       const width = 250;
       const height = 162;
       const m = { l: 34, r: 14, t: 28, b: 34 };
@@ -2051,7 +2122,6 @@
     const yMax = Math.max(27, Math.ceil((Math.max(...allValues, 0) + 2) / 5) * 5);
     const x = (year) => m.l + (year - POS_ANALYSIS_YEARS[0]) / (POS_ANALYSIS_YEARS.at(-1) - POS_ANALYSIS_YEARS[0]) * plotW;
     const y = (value) => m.t + plotH - value / yMax * plotH;
-    const labels = [];
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="G1 rounded spline WR and RB supply lines">`;
 
     for (let tick = 0; tick <= yMax; tick += 5) {
@@ -2071,29 +2141,11 @@
         const tip = `<strong>${pos} T${cut} · ${POS_ANALYSIS_YEARS[index]}</strong><br>Count: ${values[index]}`;
         svg += `<circle class="pos-analysis-point" cx="${point[0]}" cy="${point[1]}" r="3.8" fill="#050711" stroke="${color}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
       });
-      getPosAnalysisTurnIndexes(values).forEach((index) => {
-        const vertical = [-20, 20, -34, 34, -48, 48][seriesIndex % 6];
-        labels.push({
-          x: points[index][0],
-          y: points[index][1],
-          text: `T${cut} ${values[index]}`,
-          color,
-          fontSize: 8.5,
-          force: true,
-          offsets: [[0, vertical], [-20, vertical], [20, -vertical], [0, vertical * 1.35], [-28, -vertical]]
-        });
-      });
       const last = points.at(-1);
       svg += `<text class="pos-analysis-series-label" x="${last[0] + 9}" y="${last[1] + 4}" fill="${color}">${pos} T${cut}</text>`;
     });
 
-    svg += renderPosAnalysisLabelPills(placePosAnalysisLabels(labels, {
-      left: m.l,
-      right: w - m.r + 74,
-      top: m.t,
-      bottom: h - m.b + 8
-    }));
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">WR/RB count lines · rounded spline with peak/valley labels</text></svg>`;
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">WR/RB count lines · rounded spline with data points</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -2102,53 +2154,63 @@
     const host = document.getElementById('pos-analysis-combo-chart');
     if (!host) return;
     const years = POS_ANALYSIS_YEARS.filter((year) => year >= POS_ANALYSIS_STATE.minYear && year <= POS_ANALYSIS_STATE.maxYear);
-    const groupW = 128;
-    const w = 70 + years.length * groupW + 34;
-    const h = 640;
+    const container = host.closest('.pos-analysis-chart-scroll');
+    const w = Math.max(360, Math.floor((container?.clientWidth || host.clientWidth || 1120) - 24));
+    const h = 560;
+    const m = { l: 46, r: 24 };
     const markerTop = 42;
-    const markerBottom = 142;
-    const barTop = 166;
-    const barBottom = 530;
-    const barMax = 30;
+    const markerBottom = 128;
+    const barTop = 154;
+    const barBottom = 492;
+    const barMax = 26;
     const cuts = ['12', '36', '60'];
-    const allGaps = years.flatMap((year) => {
+    const allGaps = POS_ANALYSIS_YEARS.flatMap((year) => {
       const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
       return cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex] - POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex]);
     });
-    const gapMin = Math.min(-10, Math.min(...allGaps, 0) - 1);
+    const gapMin = Math.min(-16, Math.min(...allGaps, 0) - 1);
     const gapMax = Math.max(12, Math.max(...allGaps, 0) + 1);
     const gapY = (value) => markerTop + (markerBottom - markerTop) - (value - gapMin) / (gapMax - gapMin) * (markerBottom - markerTop);
     const gapZero = gapY(0);
-    const barY = (value) => barTop + (barBottom - barTop) - value / barMax * (barBottom - barTop);
+    const barY = (value) => barTop + (barBottom - barTop) - Math.min(value, barMax) / barMax * (barBottom - barTop);
+    const plotW = Math.max(1, w - m.l - m.r);
+    const groupW = plotW / Math.max(1, years.length);
+    const barW = Math.max(3.5, Math.min(10, groupW * 0.14));
+    const barGap = Math.max(1.8, barW * 0.45);
+    const rangeSpread = Math.min(groupW * 0.78, Math.max(18, groupW * 0.66));
+    const showAllYears = groupW >= 38;
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Combined WR and RB count bars with difference markers">`;
 
-    [0, 5, 10, 15, 20, 25, 30].forEach((tick) => {
-      svg += `<line class="pos-analysis-grid-line" x1="52" x2="${w - 22}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-axis-label" x="42" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
+    [0, 5, 10, 15, 20, 26].forEach((tick) => {
+      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 10}" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
     [gapMin, 0, gapMax].forEach((tick) => {
-      svg += `<line class="pos-analysis-marker-grid" x1="52" x2="${w - 22}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-axis-label" x="42" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
+      svg += `<line class="pos-analysis-marker-grid" x1="${m.l}" x2="${w - m.r}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 10}" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
 
     years.forEach((year, yearOffset) => {
       const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
-      const gx = 58 + yearOffset * groupW + 14;
+      const yearCenter = m.l + yearOffset * groupW + groupW / 2;
       cuts.forEach((cut, cutIndex) => {
-        const cx = gx + cutIndex * 34;
+        const markerX = yearCenter + (cutIndex - 1) * rangeSpread / 2;
         const wr = POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex];
         const rb = POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex];
         const gap = wr - rb;
         const wrColor = POS_ANALYSIS_RANGE_COLORS[cut].WR;
         const rbColor = POS_ANALYSIS_RANGE_COLORS[cut].RB;
         const gapColor = gap >= 0 ? wrColor : rbColor;
-        const markerX = cx + 15;
         const markerY = gapY(gap);
         const tip = `<strong>${year} · T${cut}</strong><br>WR ${wr} · RB ${rb}<br>WR-RB gap: ${formatPosAnalysisDelta(gap)}`;
-        svg += `<line class="pos-analysis-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-gap-marker" cx="${markerX}" cy="${markerY}" r="5.5" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${cx}" y="${barY(wr)}" width="13" height="${barBottom - barY(wr)}" rx="6" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${cx + 16}" y="${barY(rb)}" width="13" height="${barBottom - barY(rb)}" rx="6" fill="${rbColor}"/><text class="pos-analysis-cut-label" x="${markerX}" y="${h - 54}" text-anchor="middle">T${cut}</text>`;
+        const wrX = markerX - barW - barGap / 2;
+        const rbX = markerX + barGap / 2;
+        svg += `<line class="pos-analysis-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/><text class="pos-analysis-cut-label" x="${markerX}" y="${h - 54}" text-anchor="middle">T${cut}</text>`;
       });
-      svg += `<text class="pos-analysis-year-label" x="${gx + 49}" y="${h - 25}" text-anchor="middle">${year}</text>`;
+      if (showAllYears || yearOffset % 2 === 0 || yearOffset === years.length - 1) {
+        svg += `<text class="pos-analysis-year-label" x="${yearCenter}" y="${h - 25}" text-anchor="middle">${year}</text>`;
+      }
     });
 
-    svg += '<text class="pos-analysis-chart-title" x="52" y="25">Bars = WR/RB counts · Markers = WR-RB gap</text></svg>';
+    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="25">Bars = WR/RB counts · Markers = WR-RB gap · Count scale max = 26</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -2209,6 +2271,16 @@
     root.querySelectorAll('[data-pos-analysis-mode]').forEach((button) => {
       button.addEventListener('click', () => {
         POS_ANALYSIS_STATE.mode = button.dataset.posAnalysisMode || 'single';
+        renderPosAnalysisAll();
+      });
+    });
+
+    root.querySelectorAll('[data-pos-analysis-position-view]').forEach((button) => {
+      button.addEventListener('click', () => {
+        POS_ANALYSIS_STATE.positionView = button.dataset.posAnalysisPositionView || 'rbWr';
+        POS_ANALYSIS_STATE.activePositions = POS_ANALYSIS_STATE.positionView === 'all'
+          ? POS_ANALYSIS_POSITIONS.slice()
+          : ['RB', 'WR'];
         renderPosAnalysisAll();
       });
     });
@@ -2311,13 +2383,13 @@
     renderPosAnalysisPersonnel();
 
     if (!POS_ANALYSIS_STATE.loaded) {
-      setPosAnalysisMessage('Loading positional analysis CSV...');
+      setPosAnalysisMessage('Loading positional analysis data...');
       ensurePosAnalysisData()
         .then(() => renderPosAnalysisAll())
         .catch((error) => {
           console.error(error);
           POS_ANALYSIS_STATE.loadingPromise = null;
-          setPosAnalysisMessage(`Failed to load positional analysis CSV: ${error.message}`, 'error');
+          setPosAnalysisMessage('Failed to load positional analysis data.', 'error');
         });
       return;
     }
