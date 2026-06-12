@@ -123,6 +123,13 @@
       { value: 'faab', label: 'FAAB' },
     ];
     const TRADE_CAREER_CSV_URL = new URL('../data/NFL16-25/NFL-PlayerData_16-25.csv', window.location.href).toString();
+    // Trade Archive 2026 handling:
+    // 2026 trades happen before local 2026 production exists, so player rows use
+    // completed 2025 stats while package/player primary values remain KTC.
+    const TRADE_KTC_PRIMARY_SEASONS = new Set(['2026']);
+    const TRADE_PRODUCTION_FALLBACK_SEASONS = {
+      2026: '2025',
+    };
 
     const radarBackgroundPlugin = {
       id: 'analyzerRadarBackground',
@@ -1343,9 +1350,20 @@
       return Number.isFinite(parsed) ? parsed : null;
     }
 
+    function getTradeProductionSeason(season) {
+      const tradeSeason = String(season || '');
+      return TRADE_PRODUCTION_FALLBACK_SEASONS[tradeSeason] || tradeSeason;
+    }
+
+    function isKtcPrimaryTradeSeason(season) {
+      return TRADE_KTC_PRIMARY_SEASONS.has(String(season || ''));
+    }
+
     function buildTradePlayerAsset(playerId, season, createdAt) {
       const playerInfo = state.players[playerId] || {};
-      const careerRow = state.tradeCareerStatsBySeason?.[season]?.[playerId] || null;
+      const tradeSeason = String(season || '');
+      const productionSeason = getTradeProductionSeason(tradeSeason);
+      const careerRow = state.tradeCareerStatsBySeason?.[productionSeason]?.[playerId] || null;
       const position = (careerRow?.pos || playerInfo.position || 'PLYR').toUpperCase();
       const title = careerRow?.name || formatPlayerName(playerInfo);
       const tradeAge = getPlayerAge(playerInfo, createdAt ? new Date(createdAt) : new Date());
@@ -1358,9 +1376,14 @@
         badge: position,
         title,
         subtitle: `${position} | ${team}`,
+        ktc: getKtcValue(playerId),
+        tradeSeason,
+        productionSeason,
+        usesProductionFallback: productionSeason !== tradeSeason,
+        isKtcPrimary: isKtcPrimaryTradeSeason(tradeSeason),
         stats: careerRow ? { ...careerRow, age } : { age: Number.isFinite(age) ? age : null },
         hasSeasonData: Boolean(careerRow),
-        searchTokens: [title, position, team, season, playerId].filter(Boolean),
+        searchTokens: [title, position, team, tradeSeason, productionSeason, playerId].filter(Boolean),
       };
     }
 
@@ -1677,22 +1700,29 @@
             <span class="leaguehub-trades-season-count">${seasonBundle.trades.length} trade${seasonBundle.trades.length === 1 ? '' : 's'}</span>
           </header>
           ${seasonBundle.trades.length
-            ? seasonBundle.trades.map((trade) => renderTradeCard(trade)).join('')
+            ? seasonBundle.trades.map((trade, index) => renderTradeCard(trade, index)).join('')
             : `<p class="leaguehub-trade-empty-note">No completed trades${selectedMember ? ` involving ${escapeHtml(selectedMember.teamName)}` : ''} in ${escapeHtml(seasonBundle.season)}.</p>`}
         </section>`;
     }
 
-    function renderTradeCard(trade) {
+    function renderTradeCard(trade, index = 0) {
       const renderSides = getTradeRenderSides(trade);
       const isMultiRoster = renderSides.length > 2;
+      // Trade card separator:
+      // adds a visible divider before later cards in a season without changing
+      // the transaction content or analysis-side DOM.
+      const divider = index > 0
+        ? '<div class="leaguehub-trade-entry-divider" aria-hidden="true"><span></span></div>'
+        : '';
       return `
         <article class="leaguehub-trade-entry">
+          ${divider}
           <header class="leaguehub-trade-entry-head">
             <p class="leaguehub-trade-entry-stamp">${escapeHtml(trade.dateLabel)} | ${trade.assetCount} asset${trade.assetCount === 1 ? '' : 's'} | ${escapeHtml(trade.season)}</p>
             <h4 class="leaguehub-trade-entry-title">${escapeHtml(renderSides.map((side) => side.teamName).join(' vs '))}</h4>
           </header>
           <div class="leaguehub-trade-entry-body ${isMultiRoster ? 'is-multi-team' : ''}">
-            ${renderSides.map((side, index) => renderTradeSide(side, index)).join('')}
+            ${renderSides.map((side, sideIndex) => renderTradeSide(side, sideIndex, trade)).join('')}
           </div>
         </article>`;
     }
@@ -1708,18 +1738,30 @@
       ];
     }
 
-    function renderTradeSide(side, index) {
+    function renderTradeSide(side, index, trade) {
       const selectedOwnerId = state.trades.selectedMember;
       const isSelected = selectedOwnerId !== 'ALL' && side.ownerId === String(selectedOwnerId);
       const visibleAssets = getVisibleAssetsForSide(side);
       const avgPpg = averageNumbers(visibleAssets.filter((asset) => asset.type === 'player').map((asset) => asset.stats?.ppg));
       const totalFpts = visibleAssets.reduce((sum, asset) => sum + (Number(asset.stats?.fpts) || 0), 0);
+      const totalKtc = visibleAssets.reduce((sum, asset) => sum + (Number(asset.ktc) || 0), 0);
+      const isKtcPrimary = isKtcPrimaryTradeSeason(trade?.season);
+      const productionSeason = getTradeProductionSeason(trade?.season);
       const sideClass = `${index % 2 === 0 ? 'is-primary' : 'is-secondary'}${isSelected ? ' is-selected-member' : ''}`;
       const meta = [
         side.receivedPlayers ? `${side.receivedPlayers} player${side.receivedPlayers === 1 ? '' : 's'}` : '',
         side.receivedPicks ? `${side.receivedPicks} pick${side.receivedPicks === 1 ? '' : 's'}` : '',
         side.receivedFaab ? `${side.receivedFaab} FAAB` : '',
       ].filter(Boolean).join(' | ') || 'No visible receives';
+      const packageTotal = isKtcPrimary
+        ? `
+              <span class="leaguehub-trade-package-total-label">Received Value</span>
+              <span class="leaguehub-trade-package-total-value" style="color:${getTradeKtcColor(totalKtc)}">${formatNumber(totalKtc)} KTC</span>
+              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(avgPpg, 1)} ${escapeHtml(productionSeason)} PPG</span>`
+        : `
+              <span class="leaguehub-trade-package-total-label">Received</span>
+              <span class="leaguehub-trade-package-total-value">${formatOptionalNumber(avgPpg, 1)} PPG</span>
+              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(totalFpts, 1)} FPTS</span>`;
 
       return `
         <section class="leaguehub-trade-package ${sideClass}">
@@ -1730,9 +1772,7 @@
             </div>
             <div class="leaguehub-trade-package-total">
               ${isSelected ? '<span class="leaguehub-trade-selected-pill">Selected Team</span>' : ''}
-              <span class="leaguehub-trade-package-total-label">Received</span>
-              <span class="leaguehub-trade-package-total-value">${formatOptionalNumber(avgPpg, 1)} PPG</span>
-              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(totalFpts, 1)} FPTS</span>
+              ${packageTotal}
             </div>
           </header>
           <div class="leaguehub-trade-package-assets">
@@ -1770,15 +1810,22 @@
       const ppgOverallColor = getTradeOverallRankColor(stats.ppgOverallRank);
       const fptsOverallColor = getTradeOverallRankColor(stats.fptsOverallRank);
       const ageColor = getTradeAgeColor(pos, stats.age);
+      const mainValueColor = asset.isKtcPrimary ? getTradeKtcColor(asset.ktc) : ppgColor;
+      const mainValue = asset.isKtcPrimary
+        ? `${formatNumber(Number(asset.ktc) || 0)} KTC`
+        : `${formatOptionalNumber(stats.ppg, 1)} PPG`;
+      const seasonDataNote = asset.usesProductionFallback
+        ? ` | ${asset.productionSeason} stats`
+        : asset.hasSeasonData ? '' : ' | No season data';
       return `
         <div class="leaguehub-trade-asset-row is-player">
           <span class="leaguehub-trade-asset-badge ${pos}">${escapeHtml(pos || 'PLYR')}</span>
           <div class="leaguehub-trade-asset-content">
             <div class="leaguehub-trade-asset-line">
               <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
-              <span class="leaguehub-trade-asset-main" style="color:${ppgColor}">${formatOptionalNumber(stats.ppg, 1)} PPG</span>
+              <span class="leaguehub-trade-asset-main" style="color:${mainValueColor}">${escapeHtml(mainValue)}</span>
             </div>
-            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}${asset.hasSeasonData ? '' : ' | No season data'}</div>
+            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}${escapeHtml(seasonDataNote)}</div>
             <div class="leaguehub-trade-stat-grid">
               ${renderTradeMetricChip('FPTS', formatOptionalNumber(stats.fpts, 1), fptsColor)}
               ${renderTradeMetricChip('FPTS RK', formatRankText(stats.fptsOverallRank), fptsOverallColor)}
