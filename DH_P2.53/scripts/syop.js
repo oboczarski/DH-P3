@@ -1886,10 +1886,11 @@
     const host = document.getElementById('pos-analysis-summary-chips');
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
+    const diffLabel = `${summary.range.toUpperCase()} DIFF`;
     const chips = [
       { label: 'Selected range', value: summary.range, tone: '' },
       { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down' },
-      { label: 'RB minus WR', value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down' },
+      { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down' },
       { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down' }
     ];
     host.innerHTML = chips.map((chip) => (
@@ -1900,8 +1901,10 @@
   function renderPosAnalysisGlobalChart() {
     const title = document.getElementById('pos-analysis-global-title');
     const subtitle = document.getElementById('pos-analysis-global-subtitle');
-    const viewLabel = POS_ANALYSIS_STATE.positionView === 'rbWr' ? 'RB vs WR' : 'all-position';
-    if (title) title.textContent = POS_ANALYSIS_STATE.mode === 'grid' ? `Four-range ${viewLabel} comparison` : `${POS_ANALYSIS_STATE.range} ${viewLabel} supply`;
+    const viewTitle = POS_ANALYSIS_STATE.positionView === 'rbWr'
+      ? 'Positional Supply: RB vs WR Tier Pressure'
+      : 'Positional Supply: All Positions';
+    if (title) title.textContent = viewTitle;
     if (subtitle) {
       subtitle.textContent = POS_ANALYSIS_STATE.mode === 'grid'
         ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
@@ -1940,26 +1943,16 @@
     const labels = [];
 
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapePosAnalysisAttr(range)} positional supply">`;
-    svg += '<defs>';
-    active.forEach((pos) => {
-      const values = posAnalysisValues(range, pos);
-      const tiers = getPosAnalysisTiers(values);
-      for (let index = 0; index < values.length - 1; index += 1) {
-        const config = POS_ANALYSIS_POS_CONFIG[pos];
-        const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
-        svg += `<linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="${x(index)}" y1="${y(values[index])}" x2="${x(index + 1)}" y2="${y(values[index + 1])}"><stop offset="0%" stop-color="${config[tiers[index]]}"/><stop offset="100%" stop-color="${config[tiers[index + 1]]}"/></linearGradient>`;
-      }
-    });
-    svg += '</defs><rect class="pos-analysis-plot-bg" x="0" y="0" width="1200" height="' + h + '" rx="22"/>';
+    svg += '<rect class="pos-analysis-plot-bg" x="0" y="0" width="1200" height="' + h + '" rx="22"/>';
 
     posAnalysisTickValues(yMin, yMax, 6).forEach((tick) => {
-      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 12}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+      svg += `<line class="pos-analysis-supply-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-supply-axis-label" x="${m.l - 12}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
     POS_ANALYSIS_YEARS.forEach((year, index) => {
       const xx = x(index);
-      svg += `<line class="pos-analysis-year-grid-line" x1="${xx}" x2="${xx}" y1="${m.t}" y2="${h - m.b}"/>`;
+      svg += `<line class="pos-analysis-supply-year-line" x1="${xx}" x2="${xx}" y1="${m.t}" y2="${h - m.b}"/>`;
       if (index % 2 === 0 || index === POS_ANALYSIS_YEARS.length - 1) {
-        svg += `<text class="pos-analysis-axis-label" x="${xx}" y="${h - 24}" text-anchor="middle">${year}</text>`;
+        svg += `<text class="pos-analysis-supply-axis-label" x="${xx}" y="${h - 24}" text-anchor="middle">${year}</text>`;
       }
     });
 
@@ -1968,10 +1961,7 @@
       const config = POS_ANALYSIS_POS_CONFIG[pos];
       const tiers = getPosAnalysisTiers(values);
       const points = values.map((value, index) => [x(index), y(value)]);
-      for (let index = 0; index < values.length - 1; index += 1) {
-        const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
-        svg += `<line class="pos-analysis-supply-segment" x1="${points[index][0]}" y1="${points[index][1]}" x2="${points[index + 1][0]}" y2="${points[index + 1][1]}" stroke="url(#${gradientId})"/>`;
-      }
+      svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothPath(points, 0.28)}" stroke="${config.high}" stroke-width="4.4" fill="none"/>`;
       values.forEach((value, index) => {
         const labelOffset = [-16, 16, -30, 30][posIndex % 4];
         labels.push({
@@ -1979,14 +1969,14 @@
           y: points[index][1],
           text: String(value),
           color: config[tiers[index]],
-          fontSize: compact ? 9 : 10,
+          fontSize: compact ? 9 : 12,
           offsets: [[0, labelOffset], [0, -labelOffset], [-16, labelOffset], [16, -labelOffset], [0, labelOffset * 1.6]]
         });
         const tip = `<strong>${pos} · ${POS_ANALYSIS_YEARS[index]}</strong><br>${range} count: ${value}`;
-        svg += `<circle class="pos-analysis-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 5.5 : 3.4}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+        svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 5.5 : 3.4}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
       });
       const lastPoint = points.at(-1);
-      svg += `<text class="pos-analysis-series-label" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
+      svg += `<text class="pos-analysis-supply-series-label" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
     });
 
     svg += renderPosAnalysisTextLabels(placePosAnalysisLabels(labels, {
@@ -1994,9 +1984,9 @@
       right: w - m.r + 26,
       top: m.t - 4,
       bottom: h - m.b + 12
-    }));
+    }), 'pos-analysis-supply-value-label');
     const scaleLabel = POS_ANALYSIS_STATE.positionView === 'rbWr' ? ` · dynamic scale ${yMin}-${yMax}` : '';
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}${scaleLabel}</text></svg>`;
+    svg += `<text class="pos-analysis-supply-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}${scaleLabel}</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -2025,16 +2015,20 @@
         : { min: 0, max: Math.max(8, ...active.flatMap((pos) => posAnalysisValues(range, pos))) + 2 };
       const x = (pointIndex) => ox + m.l + pointIndex / (POS_ANALYSIS_YEARS.length - 1) * plotW;
       const y = (value) => oy + m.t + plotH - (value - domain.min) / Math.max(1, domain.max - domain.min) * plotH;
-      svg += `<rect class="pos-analysis-small-plot-bg" x="${ox}" y="${oy}" width="${panelW}" height="${panelH}" rx="22"/><text class="pos-analysis-small-title" x="${ox + 18}" y="${oy + 24}">${range}</text>`;
+      const xLabelIndexes = [0, Math.floor((POS_ANALYSIS_YEARS.length - 1) / 2), POS_ANALYSIS_YEARS.length - 1];
+      svg += `<rect class="pos-analysis-small-plot-bg" x="${ox}" y="${oy}" width="${panelW}" height="${panelH}" rx="22"/><text class="pos-analysis-supply-grid-title" x="${ox + 18}" y="${oy + 24}">${range}</text>`;
       [domain.min, Math.round((domain.min + domain.max) / 2), domain.max].forEach((tick) => {
-        svg += `<line class="pos-analysis-grid-line" x1="${ox + m.l}" x2="${ox + panelW - m.r}" y1="${y(tick)}" y2="${y(tick)}"/>`;
+        svg += `<line class="pos-analysis-supply-grid-line" x1="${ox + m.l}" x2="${ox + panelW - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-supply-grid-axis-label" x="${ox + m.l - 8}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`;
+      });
+      xLabelIndexes.forEach((pointIndex) => {
+        svg += `<text class="pos-analysis-supply-grid-axis-label" x="${x(pointIndex)}" y="${oy + panelH - 12}" text-anchor="middle">${POS_ANALYSIS_YEARS[pointIndex]}</text>`;
       });
       active.forEach((pos) => {
         const config = POS_ANALYSIS_POS_CONFIG[pos];
         const points = posAnalysisValues(range, pos).map((value, pointIndex) => [x(pointIndex), y(value)]);
-        svg += `<path class="pos-analysis-mini-line" d="${posAnalysisSmoothPath(points, 0.18)}" fill="none" stroke="${config.high}" stroke-width="3"/>`;
+        svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothPath(points, 0.28)}" fill="none" stroke="${config.high}" stroke-width="2.8"/>`;
         const lastPoint = points.at(-1);
-        svg += `<text class="pos-analysis-small-series-label" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
+        svg += `<text class="pos-analysis-supply-series-label" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
       });
     });
 
@@ -2074,7 +2068,7 @@
       const rbPoints = rb.map((value, index) => [x(index), y(value)]);
       let svg = `<svg viewBox="0 0 ${width} ${height}" aria-label="${year} WR and RB cumulative counts">`;
       [0, 15, 30].forEach((tick) => {
-        svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${width - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-mini-axis-label" x="${m.l - 7}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`;
+        svg += `<line class="pos-analysis-mini-grid-line" x1="${m.l}" x2="${width - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-mini-axis-label" x="${m.l - 7}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`;
       });
       cuts.forEach((cut, index) => {
         if ([12, 36, 60].includes(cut)) {
@@ -2089,63 +2083,58 @@
     }).join('');
   }
 
-  function getPosAnalysisTurnIndexes(values) {
-    const turns = [];
-    for (let index = 1; index < values.length - 1; index += 1) {
-      let prevDiff = values[index] - values[index - 1];
-      let nextDiff = values[index + 1] - values[index];
-      if (prevDiff === 0) {
-        for (let scan = index - 1; scan > 0 && prevDiff === 0; scan -= 1) {
-          prevDiff = values[index] - values[scan - 1];
-        }
-      }
-      if (nextDiff === 0) {
-        for (let scan = index + 1; scan < values.length - 1 && nextDiff === 0; scan += 1) {
-          nextDiff = values[scan + 1] - values[index];
-        }
-      }
-      if (prevDiff * nextDiff < 0) turns.push(index);
-    }
-    return turns;
-  }
-
-  function renderPosAnalysisG1Lines() {
-    const host = document.getElementById('pos-analysis-g1-line-chart');
+  function renderPosAnalysisTierStackBars() {
+    const host = document.getElementById('pos-analysis-tier-stack-chart');
     if (!host) return;
-    const w = 1120;
-    const h = 430;
-    const m = { l: 46, r: 102, t: 34, b: 52 };
+    const compact = window.innerWidth < 640;
+    const w = 1180;
+    const h = compact ? 392 : 430;
+    const m = { l: 46, r: 28, t: 38, b: 60 };
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
-    const series = [['12', 'WR'], ['36', 'WR'], ['60', 'WR'], ['12', 'RB'], ['36', 'RB'], ['60', 'RB']];
-    const allValues = series.flatMap(([cut, pos]) => posAnalysisValues(`Top ${cut}`, pos));
-    const yMax = Math.max(27, Math.ceil((Math.max(...allValues, 0) + 2) / 5) * 5);
-    const x = (year) => m.l + (year - POS_ANALYSIS_YEARS[0]) / (POS_ANALYSIS_YEARS.at(-1) - POS_ANALYSIS_YEARS[0]) * plotW;
+    const yMax = Math.max(30, Math.ceil((Math.max(...['WR', 'RB'].flatMap((pos) => posAnalysisValues('Top 60', pos)), 0) + 2) / 5) * 5);
     const y = (value) => m.t + plotH - value / yMax * plotH;
-    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="G1 rounded spline WR and RB supply lines">`;
+    const groupW = plotW / POS_ANALYSIS_YEARS.length;
+    const barW = Math.min(18, Math.max(11, groupW * 0.18));
+    const pairGap = Math.min(12, Math.max(7, groupW * 0.12));
+    const labelCutoff = compact ? 14 : 12;
+    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="RB and WR stacked tier supply bars">`;
 
     for (let tick = 0; tick <= yMax; tick += 5) {
-      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
+      svg += `<line class="pos-analysis-tier-stack-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-tier-stack-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
     }
-    POS_ANALYSIS_YEARS.forEach((year) => {
-      svg += `<text class="pos-analysis-axis-label" x="${x(year)}" y="${h - 18}" text-anchor="middle">${year}</text>`;
-    });
 
-    series.forEach(([cut, pos], seriesIndex) => {
-      const color = POS_ANALYSIS_RANGE_COLORS[cut][pos];
-      const values = posAnalysisValues(`Top ${cut}`, pos);
-      const points = values.map((value, index) => [x(POS_ANALYSIS_YEARS[index]), y(value)]);
-      const dash = seriesIndex % 3 === 1 ? '8 5' : seriesIndex % 3 === 2 ? '2 6' : '';
-      svg += `<path class="pos-analysis-g1-line" d="${posAnalysisSmoothPath(points, 0.2)}" fill="none" stroke="${color}" stroke-width="2.9" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
-      points.forEach((point, index) => {
-        const tip = `<strong>${pos} T${cut} · ${POS_ANALYSIS_YEARS[index]}</strong><br>Count: ${values[index]}`;
-        svg += `<circle class="pos-analysis-point" cx="${point[0]}" cy="${point[1]}" r="3.8" fill="#050711" stroke="${color}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+    POS_ANALYSIS_YEARS.forEach((year, yearIndex) => {
+      const yearCenter = m.l + yearIndex * groupW + groupW / 2;
+      ['WR', 'RB'].forEach((pos, posOffset) => {
+        const x0 = yearCenter + (posOffset === 0 ? -(barW + pairGap) / 2 : pairGap / 2);
+        const top12 = POS_ANALYSIS_STATE.counts['Top 12'][pos][yearIndex];
+        const top36 = POS_ANALYSIS_STATE.counts['Top 36'][pos][yearIndex];
+        const top60 = POS_ANALYSIS_STATE.counts['Top 60'][pos][yearIndex];
+        const segments = [
+          { cut: '12', label: 'T12', from: 0, to: top12, value: top12 },
+          { cut: '36', label: 'T36', from: top12, to: top36, value: top36 },
+          { cut: '60', label: 'T60', from: top36, to: top60, value: top60 }
+        ];
+        svg += `<g class="pos-analysis-tier-stack-bar" aria-label="${pos} ${year} tier stack">`;
+        segments.forEach((segment) => {
+          const y1 = y(segment.to);
+          const y2 = y(segment.from);
+          const segmentH = Math.max(0, y2 - y1);
+          const fill = POS_ANALYSIS_RANGE_COLORS[segment.cut][pos];
+          const tip = `<strong>${pos} ${segment.label} · ${year}</strong><br>Cumulative count: ${segment.value}<br>Segment count: ${segment.to - segment.from}`;
+          svg += `<rect class="pos-analysis-tier-stack-segment" x="${x0}" y="${y1}" width="${barW}" height="${segmentH}" fill="${fill}" rx="${segment.cut === '60' ? Math.min(5, barW / 2) : 0}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
+          if (segmentH >= labelCutoff) {
+            const label = compact ? `${segment.label} ${segment.value}` : `${segment.label} ${segment.value}`;
+            svg += `<text class="pos-analysis-tier-stack-label" x="${x0 + barW / 2}" y="${y1 + segmentH / 2 + 3}" text-anchor="middle">${label}</text>`;
+          }
+        });
+        svg += `</g><text class="pos-analysis-tier-stack-pos-label" x="${x0 + barW / 2}" y="${h - 34}" text-anchor="middle" fill="${POS_ANALYSIS_POS_CONFIG[pos].high}">${pos}</text>`;
       });
-      const last = points.at(-1);
-      svg += `<text class="pos-analysis-series-label" x="${last[0] + 9}" y="${last[1] + 4}" fill="${color}">${pos} T${cut}</text>`;
+      svg += `<text class="pos-analysis-tier-stack-year-label" x="${yearCenter}" y="${h - 16}" text-anchor="middle">${year}</text>`;
     });
 
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">WR/RB count lines · rounded spline with data points</text></svg>`;
+    svg += `<text class="pos-analysis-tier-stack-chart-title" x="${m.l}" y="24">Stack height = Top 60 total · section labels show cumulative T12, T36, and T60 counts</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -2156,12 +2145,11 @@
     const years = POS_ANALYSIS_YEARS.filter((year) => year >= POS_ANALYSIS_STATE.minYear && year <= POS_ANALYSIS_STATE.maxYear);
     const container = host.closest('.pos-analysis-chart-scroll');
     const w = Math.max(360, Math.floor((container?.clientWidth || host.clientWidth || 1120) - 24));
-    const h = 560;
+    const h = 462;
     const m = { l: 46, r: 24 };
-    const markerTop = 42;
-    const markerBottom = 128;
-    const barTop = 154;
-    const barBottom = 492;
+    const markerTop = 34;
+    const barTop = 112;
+    const barBottom = 396;
     const barMax = 26;
     const cuts = ['12', '36', '60'];
     const allGaps = POS_ANALYSIS_YEARS.flatMap((year) => {
@@ -2170,29 +2158,32 @@
     });
     const gapMin = Math.min(-16, Math.min(...allGaps, 0) - 1);
     const gapMax = Math.max(12, Math.max(...allGaps, 0) + 1);
-    const gapY = (value) => markerTop + (markerBottom - markerTop) - (value - gapMin) / (gapMax - gapMin) * (markerBottom - markerTop);
-    const gapZero = gapY(0);
     const barY = (value) => barTop + (barBottom - barTop) - Math.min(value, barMax) / barMax * (barBottom - barTop);
+    const gapMinY = barY(barMax);
+    const gapMaxY = markerTop;
+    const gapY = (value) => gapMinY - (value - gapMin) / (gapMax - gapMin) * (gapMinY - gapMaxY);
+    const gapZero = gapY(0);
     const plotW = Math.max(1, w - m.l - m.r);
     const groupW = plotW / Math.max(1, years.length);
-    const barW = Math.max(3.5, Math.min(10, groupW * 0.14));
-    const barGap = Math.max(1.8, barW * 0.45);
-    const rangeSpread = Math.min(groupW * 0.78, Math.max(18, groupW * 0.66));
+    const clusterW = groupW * 0.82;
+    const rangeStep = Math.min(clusterW / 2, Math.max(18, groupW * 0.31));
+    const barW = Math.max(3.5, Math.min(9.5, rangeStep * 0.25));
+    const barGap = Math.max(1, Math.min(1.4, barW * 0.12));
     const showAllYears = groupW >= 38;
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Combined WR and RB count bars with difference markers">`;
 
     [0, 5, 10, 15, 20, 26].forEach((tick) => {
-      svg += `<line class="pos-analysis-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 10}" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
+      svg += `<line class="pos-analysis-combo-count-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-combo-axis-label" x="${m.l - 10}" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
-    [gapMin, 0, gapMax].forEach((tick) => {
-      svg += `<line class="pos-analysis-marker-grid" x1="${m.l}" x2="${w - m.r}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 10}" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
+    [0, gapMax].forEach((tick) => {
+      svg += `<line class="pos-analysis-combo-gap-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-combo-axis-label" x="${m.l - 10}" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
 
     years.forEach((year, yearOffset) => {
       const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
       const yearCenter = m.l + yearOffset * groupW + groupW / 2;
       cuts.forEach((cut, cutIndex) => {
-        const markerX = yearCenter + (cutIndex - 1) * rangeSpread / 2;
+        const markerX = yearCenter + (cutIndex - 1) * rangeStep;
         const wr = POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex];
         const rb = POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex];
         const gap = wr - rb;
@@ -2203,63 +2194,17 @@
         const tip = `<strong>${year} · T${cut}</strong><br>WR ${wr} · RB ${rb}<br>WR-RB gap: ${formatPosAnalysisDelta(gap)}`;
         const wrX = markerX - barW - barGap / 2;
         const rbX = markerX + barGap / 2;
-        svg += `<line class="pos-analysis-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/><text class="pos-analysis-cut-label" x="${markerX}" y="${h - 54}" text-anchor="middle">T${cut}</text>`;
+        svg += `<line class="pos-analysis-combo-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-combo-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-combo-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/><text class="pos-analysis-combo-cut-label" x="${markerX}" y="${h - 48}" text-anchor="middle">T${cut}</text>`;
       });
       if (showAllYears || yearOffset % 2 === 0 || yearOffset === years.length - 1) {
-        svg += `<text class="pos-analysis-year-label" x="${yearCenter}" y="${h - 25}" text-anchor="middle">${year}</text>`;
+        svg += `<text class="pos-analysis-combo-year-label" x="${yearCenter}" y="${h - 20}" text-anchor="middle">${year}</text>`;
       }
     });
 
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="25">Bars = WR/RB counts · Markers = WR-RB gap · Count scale max = 26</text></svg>`;
-    host.innerHTML = svg;
-    attachPosAnalysisTooltips(host);
-  }
-
-  function renderPosAnalysisG2Lines() {
-    const host = document.getElementById('pos-analysis-g2-line-chart');
-    if (!host) return;
-    const w = 1120;
-    const h = 410;
-    const m = { l: 48, r: 88, t: 34, b: 52 };
-    const plotW = w - m.l - m.r;
-    const plotH = h - m.t - m.b;
-    const minY = -16;
-    const maxY = 8;
-    const x = (year) => m.l + (year - POS_ANALYSIS_YEARS[0]) / (POS_ANALYSIS_YEARS.at(-1) - POS_ANALYSIS_YEARS[0]) * plotW;
-    const y = (value) => m.t + plotH - (value - minY) / (maxY - minY) * plotH;
-    const zeroY = y(0);
-    const ranges = [['12', ''], ['36', '8 6'], ['60', '2 6']];
-    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="RB minus WR difference lines"><defs><clipPath id="pos-analysis-g2-pos-clip"><rect x="${m.l}" y="${m.t}" width="${plotW}" height="${Math.max(0, zeroY - m.t)}"/></clipPath><clipPath id="pos-analysis-g2-neg-clip"><rect x="${m.l}" y="${zeroY}" width="${plotW}" height="${Math.max(0, h - m.b - zeroY)}"/></clipPath></defs>`;
-
-    [-16, -12, -8, -4, 0, 4, 8].forEach((tick) => {
-      svg += `<line class="${tick === 0 ? 'pos-analysis-zero-line' : 'pos-analysis-grid-line'}" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
-    });
-
-    ranges.forEach(([cut, dash]) => {
-      const rbColor = POS_ANALYSIS_RANGE_COLORS[cut].RB;
-      const wrColor = POS_ANALYSIS_RANGE_COLORS[cut].WR;
-      const wr = posAnalysisValues(`Top ${cut}`, 'WR');
-      const rb = posAnalysisValues(`Top ${cut}`, 'RB');
-      const points = POS_ANALYSIS_YEARS.map((year, index) => {
-        const value = rb[index] - wr[index];
-        return [x(year), y(value), value];
-      });
-      const d = posAnalysisSmoothPath(points.map((point) => [point[0], point[1]]), 0.2);
-      svg += `<path d="${d}" class="pos-analysis-g2-line" stroke="${rbColor}" ${dash ? `stroke-dasharray="${dash}"` : ''} clip-path="url(#pos-analysis-g2-pos-clip)"/><path d="${d}" class="pos-analysis-g2-line" stroke="${wrColor}" ${dash ? `stroke-dasharray="${dash}"` : ''} clip-path="url(#pos-analysis-g2-neg-clip)"/>`;
-      points.forEach((point, index) => {
-        const value = point[2];
-        const color = value >= 0 ? rbColor : wrColor;
-        const tip = `<strong>T${cut} · ${POS_ANALYSIS_YEARS[index]}</strong><br>RB-WR gap: ${formatPosAnalysisDelta(value)}`;
-        svg += `<circle class="pos-analysis-g2-dot" cx="${point[0]}" cy="${point[1]}" r="3.2" fill="#050711" stroke="${color}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
-      });
-      const last = points.at(-1);
-      svg += `<text class="pos-analysis-series-label" x="${last[0] + 8}" y="${last[1] + 4}" fill="${last[2] >= 0 ? rbColor : wrColor}">T${cut}</text>`;
-    });
-
-    POS_ANALYSIS_YEARS.forEach((year) => {
-      svg += `<text class="pos-analysis-axis-label" x="${x(year)}" y="${h - 18}" text-anchor="middle">${year}</text>`;
-    });
-    svg += `<text class="pos-analysis-chart-title" x="${m.l}" y="22">Negative = WR edge · Positive = RB edge</text></svg>`;
+    const comboTitle = w < 620
+      ? 'Bars = counts · Markers = WR-RB gap'
+      : 'Bars = WR/RB counts · Markers = WR-RB gap · Count scale max = 26';
+    svg += `<text class="pos-analysis-combo-chart-title" x="${m.l}" y="23">${comboTitle}</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }
@@ -2370,9 +2315,8 @@
     renderPosAnalysisGlobalChart();
     renderPosAnalysisProfiles();
     renderPosAnalysisMiniYearGrid();
-    renderPosAnalysisG1Lines();
+    renderPosAnalysisTierStackBars();
     renderPosAnalysisCombo();
-    renderPosAnalysisG2Lines();
     renderPosAnalysisPersonnel();
   }
 

@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis-polish" />
+<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis-fix" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -284,12 +284,12 @@
             <div class="pos-analysis-card-head">
               <div>
                 <span class="pos-analysis-eyebrow">G1</span>
-                <h2 id="pos-analysis-g1-title">Rounded Spline Supply Lines</h2>
-                <p>WR/RB supply across T12, T36, and T60 with rounded spline lines and visible data points.</p>
+                <h2 id="pos-analysis-g1-title">RB / WR Tier Stack by Year</h2>
+                <p>Two stacked bars per year show WR and RB supply across T12, T36, and T60.</p>
               </div>
             </div>
             <div class="pos-analysis-chart-scroll">
-              <div class="pos-analysis-chart-host" id="pos-analysis-g1-line-chart" role="img" aria-label="WR and RB supply rounded spline line chart"></div>
+              <div class="pos-analysis-chart-host" id="pos-analysis-tier-stack-chart" role="img" aria-label="WR and RB tier stack bar chart"></div>
             </div>
           </section>
 
@@ -309,19 +309,6 @@
             </div>
             <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--wide">
               <div class="pos-analysis-chart-host" id="pos-analysis-combo-chart" role="img" aria-label="Combined WR and RB count bars with difference markers"></div>
-            </div>
-          </section>
-
-          <section class="pos-analysis-card" aria-labelledby="pos-analysis-g2-title">
-            <div class="pos-analysis-card-head">
-              <div>
-                <span class="pos-analysis-eyebrow">G2</span>
-                <h2 id="pos-analysis-g2-title">Three-Line Difference View</h2>
-                <p>Negative values mean more WR than RB. Positive values mean more RB than WR.</p>
-              </div>
-            </div>
-            <div class="pos-analysis-chart-scroll">
-              <div class="pos-analysis-chart-host" id="pos-analysis-g2-line-chart" role="img" aria-label="RB minus WR difference lines"></div>
             </div>
           </section>
 
@@ -388,60 +375,59 @@
                 </section>
               </div>
 
-              <!-- Positional Analysis infographic: reference-aligned historical milestone content. -->
+              <!-- Positional Analysis infographic: exact reference historical milestone content. -->
               <article class="pos-analysis-info-card pos-analysis-milestone-card">
                 <span class="pos-analysis-eyebrow">Historical analysis</span>
                 <h3>Verified Historical Milestones</h3>
-                <p>Running backs are not just all the way back. They are operating at a level of dominance this sample has not seen in more than two decades. The milestone stack below shows why the shift is not only a Top 12 superstar spike.</p>
+                <p>Ladies and gentlemen, running backs are not just all the way back. Running backs are operating at a level of dominance we have not seen in over <strong>2+ decades</strong>! Behold the historical metrics below demonstrating the clear shift in ranking structures:</p>
                 <div class="pos-analysis-overall-banner">
-                  <span>Overall</span>
-                  <strong>2025 tier sweep verified</strong>
-                  <p>2025 was the first year in the tracked sample where running backs surpassed wide receivers across every single major ranking tier in the same season.</p>
+                  <i aria-hidden="true">🏆</i>
+                  <span>OVERALL</span>
+                  <p><strong>2025 was the first time in over 2 decades</strong> where running backs surpassed wide receivers in scoring across <strong>every single major ranking tier</strong> in the exact same year:</p>
                   <div><em>Top 12</em><em>Top 24</em><em>Top 36</em><em>Top 48</em><em>Top 60</em></div>
                 </div>
                 <div class="pos-analysis-tier-list">
                   <div>
-                    <strong>Top 60</strong>
-                    <b>Two-decade high</b>
+                    <strong>TOP 60</strong>
+                    <b>Two-Decade High</b>
                     <ul>
-                      <li>Wide receiver representation hit two-decade lows in 2024 and then again in 2025.</li>
-                      <li>2025 was the first time in more than two decades with more RBs than WRs inside the Top 60.</li>
-                      <li>Running backs secured the absolute sample high at the broadest fantasy-starter range.</li>
+                      <li>Two-decade wide receiver representation lows in <strong>2024 &amp; then again in 2025</strong>.</li>
+                      <li>First time in <strong>2+ decades</strong> with more RBs than WRs inside the top 60 in 2025.</li>
+                      <li>Absolute two-decade high for RBs secured in 2025.</li>
                     </ul>
                   </div>
                   <div>
-                    <strong>Top 48</strong>
-                    <b>2008 peak tied</b>
+                    <strong>TOP 48</strong>
+                    <b>2008 Peak Tied</b>
                     <ul>
-                      <li>Wide receiver lows arrived in 2024 and repeated in 2025.</li>
-                      <li>RBs outnumbered WRs in back-to-back years, first in 2024 and again in 2025.</li>
-                      <li>The RB count reached its highest point since 2008 in 2024, then tied that level in 2025.</li>
-                      <li>The second consecutive RB-over-WR year confirms the shift reached beyond only elite RB1 finishes.</li>
+                      <li>Two-decade WR lows hit in 2024 and repeating in 2025.</li>
+                      <li>First time in <strong>2+ decades</strong> with more RB than WR in 2024 &amp; again in 2025.</li>
+                      <li>Highest running back count since <strong>2008</strong> set in 2024 and tied in 2025.</li>
+                      <li>More RBs than WRs back-to-back years (2024 &amp; 2025).</li>
                     </ul>
                   </div>
                   <div>
-                    <strong>Top 36</strong>
-                    <b>WR crater</b>
+                    <strong>TOP 36</strong>
+                    <b>WR Crater</b>
                     <ul>
-                      <li>Wide receivers fell to a clear sample low in 2025.</li>
-                      <li>Running backs tied the 2010 high-water mark in 2025.</li>
-                      <li>RBs outnumbered WRs for the second consecutive season, covering high-end starters and premium flex finishes.</li>
+                      <li>Wide receivers cratered to a clear <strong>2-decade low</strong> in 2025.</li>
+                      <li>Tied the massive <strong>2010</strong> high-water mark for running backs in 2025.</li>
+                      <li>More running backs than wide receivers for the second consecutive season (2024 &amp; 2025).</li>
                     </ul>
                   </div>
                   <div>
-                    <strong>Top 24</strong>
-                    <b>WR low tied</b>
+                    <strong>TOP 24</strong>
+                    <b>2-Decade Low WR Tied</b>
                     <ul>
-                      <li>Wide receiver representation tied sample lows in both 2024 and 2025.</li>
-                      <li>Running backs held the positional edge for two straight seasons inside the fantasy impact core.</li>
-                      <li>The 2025 sweep matters because the same positional pressure appears at every major ranking cut.</li>
+                      <li>Tied 2-decade wide receiver representation lows in both 2024 and 2025.</li>
+                      <li>More running backs than wide receivers 2 years in a row (2024 &amp; 2025).</li>
                     </ul>
                   </div>
                 </div>
               </article>
             </div>
 
-            <!-- Positional Analysis infographic: tactical opportunity redistribution content from the updated reference. -->
+            <!-- Positional Analysis infographic: exact reference tactical opportunity content. -->
             <section class="pos-analysis-position-matrix" aria-labelledby="pos-analysis-matrix-title">
               <div class="pos-analysis-info-card">
                 <span class="pos-analysis-eyebrow">Deep Dive Positional Analysis</span>
@@ -451,8 +437,7 @@
               <div class="pos-analysis-matrix-grid">
                 <article>
                   <span>Running Backs</span>
-                  <p>Running backs are the biggest winners from heavier personnel. More 12 and 13 personnel generally means more run-friendly offensive structures. Extra tight ends create better blocking angles, allow offenses to attack lighter defensive boxes, and help teams stay multiple without tipping run or pass as clearly.</p>
-                  <p>That matters because the RB position is both volume-sensitive and environment-sensitive. Better blocking surfaces, longer drives, and more red-zone access all compound for the backs who already have meaningful roles.</p>
+                  <p>Running backs are the biggest winners from heavier personnel. More 12 and 13 personnel generally means more run-friendly offensive structures. Extra tight ends create better blocking angles, allow offenses to attack lighter defensive boxes, and help teams stay multiple without tipping run or pass as clearly. That matters because the RB position is volume-sensitive and environment-sensitive.</p>
                   <ul>
                     <li>More rushing volume</li>
                     <li>Better rushing efficiency</li>
@@ -461,28 +446,25 @@
                     <li>More team commitment to the run game</li>
                     <li>More value concentrated in high-end workhorse backs</li>
                   </ul>
-                  <small>Volume &amp; environment sensitive</small>
+                  <small>VOLUME &amp; ENVIRONMENT SENSITIVE</small>
                 </article>
                 <article>
                   <span>Wide Receivers</span>
-                  <p>Wide receivers are the position most negatively affected by the shift. In 11 personnel, three wide receivers are on the field. In 12 personnel, that drops to two. In 13 personnel, it drops to one.</p>
-                  <p>That alone reduces route availability, snap availability, and target opportunity for WR depth across the league. This does not kill elite wide receivers. True alpha target earners still matter.</p>
-                  <p>But it does compress the position. The WR3/WR4 types on NFL teams become more fragile for fantasy because they are no longer guaranteed the same route volume when offenses are willing to play heavier.</p>
-                  <small>Inverse environment correlation</small>
+                  <p>Wide receivers are the position most negatively affected by the shift. In 11 personnel, three wide receivers are on the field. In 12 personnel, that drops to two. In 13 personnel, it drops to one. That alone reduces route availability, snap availability, and target opportunity for WR depth across the league.</p>
+                  <p>This does not kill elite wide receivers. True alpha target earners still matter. But it does compress the position. The WR3/WR4 types on NFL teams become more fragile for fantasy because they are no longer guaranteed the same route volume when offenses are willing to play heavier.</p>
+                  <small>INVERSE ENVIRONMENT CORRELATION</small>
                 </article>
                 <article>
                   <span>Tight Ends</span>
-                  <p>Tight ends also benefit from the league's heavier personnel trend, but the fantasy boost is more complicated than it is for running backs. More 12 and 13 personnel means more tight ends on the field.</p>
-                  <p>This increases overall TE snaps and creates more paths to relevance for athletic, versatile, or formation-flexible players. However, adding tight ends to the field does not automatically mean fantasy production becomes more concentrated.</p>
-                  <p>In many cases, the extra snaps are spread across TE2 and TE3 types rather than flowing heavily to one primary fantasy option.</p>
-                  <small>Real-world vs fantasy split</small>
+                  <p>Tight ends also benefit from the league’s heavier personnel trend, but the fantasy boost is more complicated than it is for running backs. More 12 and 13 personnel means more tight ends on the field. This increases overall TE snaps and creates more paths to relevance for athletic, versatile, or formation-flexible players.</p>
+                  <p>However, adding tight ends to the field does not automatically mean fantasy production becomes more concentrated. In many cases, the extra snaps are spread across TE2 and TE3 types rather than flowing heavily to one primary fantasy option.</p>
+                  <small>REAL-WORLD VS FANTASY SPLIT</small>
                 </article>
                 <article>
                   <span>Quarterbacks</span>
-                  <p>Quarterbacks are affected by heavier personnel, but usually less dramatically. More 12 and 13 personnel can reduce raw pass volume, which slightly lowers the overall fantasy ceiling for quarterbacks.</p>
-                  <p>Fewer three-WR formations generally means fewer spread-out passing looks and fewer plays designed purely around volume. At the same time, heavier personnel can improve play-action efficiency, create easier reads, force defenses into heavier packages, and help offenses stay balanced.</p>
-                  <p>Those offsets can soften the lost volume, but the cleanest fantasy benefit still flows through the ground game.</p>
-                  <small>Secondary offsets applied</small>
+                  <p>Quarterbacks are affected by heavier personnel, but usually less dramatically. More 12 and 13 personnel can reduce raw pass volume, which slightly lowers the overall fantasy ceiling for quarterbacks. Fewer three-WR formations generally means fewer spread-out passing looks and fewer plays designed purely around volume.</p>
+                  <p>At the same time, heavier personnel can also help quarterbacks in other ways. It can improve play-action efficiency, create easier reads, force defenses into heavier packages, and help offenses stay balanced. That can offset some of the lost volume.</p>
+                  <small>SECONDARY OFFSETS APPLIED</small>
                 </article>
               </div>
             </section>
@@ -491,55 +473,51 @@
               <article class="pos-analysis-info-card">
                 <span class="pos-analysis-eyebrow">Role-based TE differences</span>
                 <h3 id="pos-analysis-te-role-title">Tight End Utility Is Not Always Fantasy Concentration</h3>
-                <p>There is also a role-based difference. Heavier personnel packages are often built for versatility, not just receiving volume. Tight ends can run routes, stay attached as blockers, chip edge rushers, help in pass protection, or create run/pass ambiguity before the snap.</p>
-                <p>That real-life value matters, but it does not always translate cleanly to fantasy points. In lighter personnel, running backs are more often used as extra blockers in pass protection. In heavier 12 and 13 personnel, the additional tight end can fill more of that responsibility.</p>
-                <p>That helps the offense function, but it can cap the fantasy impact for the position if those snaps are not turning into routes and targets.</p>
+                <p>There is also a role-based difference. Heavier personnel packages are often built for versatility, not just receiving volume. Tight ends can run routes, stay attached as blockers, chip edge rushers, help in pass protection, or create run/pass ambiguity before the snap. That real-life value matters, but it does not always translate cleanly to fantasy points.</p>
+                <p>In lighter personnel, running backs are more often used as extra blockers in pass protection. In heavier 12 and 13 personnel, the additional tight end can fill more of that responsibility. That helps the offense function, but it can cap the fantasy impact for the position if those snaps are not turning into routes and targets.</p>
               </article>
               <article class="pos-analysis-info-card pos-analysis-formula-card">
                 <span class="pos-analysis-eyebrow">The positional formula</span>
                 <h3>RB Benefit Is Cleaner Than TE Benefit</h3>
-                <p>"The TE position does benefit, but not as cleanly as RB. The biggest real-world benefit goes to offenses. The biggest fantasy benefit goes to running backs. Tight ends rise directionally because they are on the field more often, but the fantasy scoring impact is less direct unless the player is also commanding meaningful target volume."</p>
-                <strong>12/13 personnel &uarr; = RB &uarr;</strong>
+                <p>"So the TE position does benefit, but not as cleanly as RB. The biggest real-world benefit goes to offenses. The biggest fantasy benefit goes to running backs. Tight ends rise directionally because they are on the field more often, but the fantasy scoring impact is less direct unless the player is also commanding meaningful target volume."</p>
+                <div class="pos-analysis-formula-note"><span>TE Fantasy Boost: Complex</span> <strong>12/13 Personnel &uarr; = RB &uarr;</strong></div>
               </article>
             </section>
 
-            <!-- Positional Analysis infographic: reference-aligned chronological evolution content. -->
+            <!-- Positional Analysis infographic: exact reference chronological evolution content. -->
             <section class="pos-analysis-timeline" aria-labelledby="pos-analysis-timeline-title">
               <span class="pos-analysis-eyebrow">Meta Progression Tracking</span>
               <h3 id="pos-analysis-timeline-title">Chronological Evolution Blueprint</h3>
-              <p>Trace the chronological progression from initial unnoticed indicators to a complete structural fantasy shift.</p>
+              <p>Trace the chronological progression from initial unnoticed indicators to a complete, structural fantasy takeover.</p>
               <div class="pos-analysis-timeline-grid">
                 <article>
                   <span>01</span>
-                  <strong>2022-2023: Rumblings</strong>
-                  <p>Things began taking shape slowly in 2022 and early 2023, but there was not enough data to draw any major dynasty conclusions. Small spikes in RB production and heavier personnel usage remained within historical norms.</p>
-                  <p>There was nothing yet to indicate those fluctuations were anything more than typical season-to-season volatility.</p>
-                  <p>Late 2023 into 2024 became more meaningful. After the 2023 season, positional analysis still leaned toward WR as the better long-term dynasty build, but not by as much as expected. The important part was that the WR edge was no longer significant.</p>
+                  <strong>2022 - 2023: Rumblings</strong>
+                  <p>Things began taking shape slowly in 2022 and early 2023, but there wasn’t enough data to draw any major dynasty conclusions. While there were small spikes in RB production and heavier personnel usage, the evidence remained well within historical norms. There was nothing to indicate these fluctuations were anything more than typical season-to-season volatility.</p>
+                  <p>The shift became much more meaningful late in 2023 and into 2024. After the 2023 season, our positional analysis still leaned toward wide receiver as the better long-term dynasty build. The data supported WR, but not by as much as expected. That was the important part. The WR edge was no longer significant.</p>
                 </article>
                 <article>
                   <span>02</span>
                   <strong>2024: Trend Set</strong>
-                  <p>By early-to-mid 2024, the trend was no longer something to ignore. The league's transition to heavier personnel started showing its first undeniable statistical anomalies.</p>
-                  <p>The old consensus spent a decade preaching that wide receivers were the safest dynasty foundation. In 2024, those foundations began to crack as the ground game started weaponizing itself.</p>
-                  <p><b>The Top 48 Shift:</b> For the first time in over two decades, RBs gained massive ground and outnumbered WRs inside the Top 48 fantasy scorers, reaching the highest RB count since 2008.</p>
-                  <p><b>The Squeeze at the Top:</b> Inside the Top 24, wide receivers tied their lowest representation of the sample while RBs claimed more total slots across Top 24, Top 36, and Top 48 formats in the same season.</p>
-                  <p><b>Top 60 Erosion:</b> Even while WRs still held a Top 60 lead in 2024, they hit a staggering low in overall presence. 2024 was the setup, but only the spark.</p>
+                  <p>By early-to-mid 2024, the trend was no longer something to ignore. 2024 was the first year the trend began gaining real ground, as the league's transition to heavier personnel started showing its first undeniable statistical anomalies. The old consensus spent a decade preaching that wide receivers were the only safe foundation for a dynasty build. In 2024, those foundations quietly began to crack as the ground game started weaponizing itself.</p>
+                  <p><b>The Top 48 Shift:</b> For the first time in over two decades, running backs gained massive ground, outnumbering wide receivers inside the top 48 fantasy scorers. This marked a significant shift in the landscape, resulting in the highest number of running back finishes in the top 48 since 2008.</p>
+                  <p><b>The Squeeze at the Top:</b> Within the Top 24, wide receivers plummeted, tying their lowest representation of the last 20 years. This aligned with a broader historical shift, as RBs claimed more total slots than WRs across the Top 24, Top 36, and Top 48 formats in the same season—a quiet coup unseen in over two decades.</p>
+                  <p><b>Top 60 Erosion:</b> Despite still holding a lead over RBs inside the Top 60, WRs hit a staggering two-decade low in overall presence. 2024 proved that a massive structural shift was actively forming under our feet. But while 2024 was the setup, it was merely the spark.</p>
                 </article>
                 <article>
                   <span>03</span>
-                  <strong>2025: Breakout &amp; Changing of the Tide</strong>
-                  <p>2025 was not just another statistical outlier. Fantasy football occasionally gets years where a tiny handful of legendary backs inflate the Top 12 rankings. That is an anomaly.</p>
-                  <p>What happened in 2024 and fully arrived in 2025 was different. It was a structural change in the fantasy landscape at a level this sample had not shown in more than two decades.</p>
-                  <p>For the first time in the tracked sample, RBs outscored WRs across every single major ranking tier in the exact same year: Top 12, Top 24, Top 36, Top 48, and Top 60.</p>
-                  <p>That is the ultimate milestone because it proves the shift was not just about elite superstars winning at the top. It reached RB2s, flex plays, and the deeper fantasy roster ranges too.</p>
+                  <strong>2025: The Breakout &amp; Changing of the Tide</strong>
+                  <p>Ladies and gentlemen, running backs are not just back. They are operating at a level of dominance we have not seen in over 2+ decades! 2025 was without a doubt the changing of the tid. Let’s address the elephant in the room: in fantasy football, we occasionally see statistical outliers. We have all seen years where a tiny handful of legendary, superhuman running backs have massive seasons and temporarily inflate the Top 12 rankings. That is an anomaly.</p>
+                  <p>What happened a bit in 2024 but completely in 2025 was not an anomaly. It was a complete, structural change in the Fantasy Football Landscape the likes of which we have not seen in over 20+ years.</p>
+                  <p>For the first time in over two decades, running backs outscored wide receivers across every single major ranking tier in the exact same year: the Top 12, Top 24, Top 36, Top 48, and Top 60 . This is the ultimate milestone. When running backs outperform wide receivers across all ranges, it means the entire league-wide environment has shifted. This isn't just about the elite superstars winning at the top; it proves that the running backs down the fantasy roster—the RB2s, and flex plays—are ALSO out producing their wide receiver counterparts throughout the ranks.</p>
                 </article>
                 <article>
                   <span>04</span>
                   <strong>2026: Outlook</strong>
-                  <p>If you were waiting for a sign that the running back renaissance could continue, the NFL's roster-building direction supplied it. The draft did not merely confirm the trend; it supported the same heavy-personnel direction that created the shift.</p>
-                  <p>In a weaker pass-catching TE class but stronger blocking-TE class, the league selected a record number of tight ends. That is a clear signal that teams want more size, blocking surfaces, and formation multiplicity.</p>
-                  <p>These players are not only oversized receivers. Many are physical blockers and versatile pieces built to stress the line of scrimmage, force defenses into heavier responses, and support 12 and 13 personnel structures.</p>
-                  <p>The NFL will eventually adjust, but the current blueprint points toward another RB-friendly season before defensive answers and dynasty market pricing fully catch up.</p>
+                  <p>If you were waiting for a sign to fully commit to the running back renaissance, the NFL didn’t just drop a hint—they shattered the glass. The draft wasn’t a mere confirmation of a trend continuing; it was a historic sledgehammer to old-school fantasy gospel.</p>
+                  <p>In a lackluster pass-catching TE Class, but strong blocking-TE Class, The NFL just selected THE ALL-TIME RECORD number of tight ends in the Draft.. Let that sink in. This isn’t a subtle structural tweak. Of all TE draft classes, to break the record # of TE taken.. Is nothing short of a league-wide declaration of war on light defensive packages.</p>
+                  <p>And again, make no mistake: this wasn’t a class of oversized wide receivers. These are physical monsters, elite blockers, and athletic freaks built specifically to dominate the line of scrimmage. Best believe, NFL front offices did not load up on this heavy-hitting archetype to spread the field. They drafted them to force defenses into mismatches, lock into 12 and 13 personnel, and bully opponents.</p>
+                  <p>This is an absolute guarantee for RB &amp; WR production to continue on their trajectories.. likely even surpassing historical numbers from 2025. The draft didn't just support the shift—it slammed the door shut on the idea that this RB revival is a temporary fad. The blueprint for 2026 is locked in. While the NFL will eventually adjust down the road, 2026 certainly is in line to be the peak so far.</p>
                 </article>
               </div>
             </section>
@@ -584,6 +562,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=20260612-pos-analysis-polish"></script>
+<script defer src="../scripts/syop.js?v=20260612-pos-analysis-fix"></script>
 </body>
 </html>
