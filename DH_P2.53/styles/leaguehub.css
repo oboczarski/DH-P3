@@ -460,6 +460,7 @@ body[data-page="leaguehub"] .leaguehub-trades-partner-name {
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  justify-self: start;
 }
 
 /* Trade Activity summary density:
