@@ -1578,7 +1578,7 @@
             <th scope="col">Team</th>
             <th scope="col" class="is-numeric">Trades</th>
             <th scope="col" class="is-numeric">League Share</th>
-            <th scope="col" class="is-numeric">AVG per Year</th>
+            <th scope="col" class="is-numeric">Trades/Year (AVG)</th>
             <th scope="col">Top Trade Partner</th>
             <th scope="col" class="is-numeric">Players In</th>
             <th scope="col" class="is-numeric">Picks In</th>
