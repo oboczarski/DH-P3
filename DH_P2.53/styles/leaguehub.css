@@ -981,12 +981,12 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
 
   body[data-page="leaguehub"] .leaguehub-trade-asset-line {
     align-items: flex-start;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.06rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trade-stat-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
