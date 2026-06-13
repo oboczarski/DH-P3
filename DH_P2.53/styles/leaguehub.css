@@ -463,6 +463,15 @@ body[data-page="leaguehub"] .leaguehub-trades-partner-name {
   justify-self: start;
 }
 
+body[data-page="leaguehub"] .leaguehub-trades-top-partner-cell span {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Trade Activity summary density:
    the team display name used to duplicate many usernames, so the JS now renders
    one name only; this leftover selector stays harmless for older cached markup. */

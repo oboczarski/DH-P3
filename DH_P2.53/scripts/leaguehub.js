@@ -1506,21 +1506,50 @@
 
     function renderAllMemberTradeAnalytics(currentMembers) {
       const visibleTrades = getFilteredTrades();
+      const visibleSeasonCount = state.trades.selectedSeason !== 'ALL'
+        ? 1
+        : Math.max(1, state.trades.seasonBundles.length || new Set(visibleTrades.map((trade) => trade.season)).size || 1);
       setTradeAnalyticsColumns([
-        { width: '44px', pxWidth: 44 },
-        { width: '170px', pxWidth: 170 },
+        { width: '36px', pxWidth: 36 },
+        { width: '136px', pxWidth: 136 },
+        { width: '52px', pxWidth: 52 },
+        { width: '78px', pxWidth: 78 },
+        { width: '76px', pxWidth: 76 },
+        { width: '150px', pxWidth: 150 },
+        { width: '62px', pxWidth: 62 },
+        { width: '56px', pxWidth: 56 },
+        { width: '70px', pxWidth: 70 },
         { width: '64px', pxWidth: 64 },
-        { width: '72px', pxWidth: 72 },
-        { width: '72px', pxWidth: 72 },
-        { width: '82px', pxWidth: 82 },
-        { width: '82px', pxWidth: 82 },
       ]);
       const rows = currentMembers.map((member) => {
         const memberTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(member.ownerId));
         const memberSides = memberTrades.map((trade) => getTradeSideForOwner(trade, member.ownerId)).filter(Boolean);
+        const partnerCounts = new Map();
+        // Trade Activity partner summary:
+        // counts each partner once per trade so the Top Trade Partner column
+        // reflects transaction frequency, not the number of assets moved.
+        memberTrades.forEach((trade) => {
+          const partnerOwnerIds = new Set((trade.participantOwnerIds || [])
+            .map((ownerId) => String(ownerId || ''))
+            .filter((ownerId) => ownerId && ownerId !== String(member.ownerId)));
+          partnerOwnerIds.forEach((partnerOwnerId) => {
+            const partnerSide = (trade.sides || []).find((side) => side.ownerId === partnerOwnerId);
+            const partnerMember = state.trades.currentMemberMap[partnerOwnerId];
+            const label = partnerMember?.teamName || partnerSide?.teamName || partnerSide?.displayName || 'Unknown';
+            const current = partnerCounts.get(partnerOwnerId) || { label, count: 0 };
+            current.label = current.label || label;
+            current.count += 1;
+            partnerCounts.set(partnerOwnerId, current);
+          });
+        });
+        const topPartner = Array.from(partnerCounts.values())
+          .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))[0] || null;
         return {
           member,
           tradeCount: memberTrades.length,
+          leagueShare: visibleTrades.length ? (memberTrades.length / visibleTrades.length) * 100 : 0,
+          avgPerYear: visibleSeasonCount ? memberTrades.length / visibleSeasonCount : 0,
+          topPartnerLabel: topPartner ? `${topPartner.label} (${topPartner.count})` : '—',
           playersIn: memberSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
           picksIn: memberSides.reduce((sum, side) => sum + side.receivedPicks, 0),
           fptsIn: memberSides.reduce((sum, side) => sum + side.receivedFpts, 0),
@@ -1540,6 +1569,9 @@
             <th scope="col" class="is-numeric">RK</th>
             <th scope="col">Team</th>
             <th scope="col" class="is-numeric">Trades</th>
+            <th scope="col" class="is-numeric">League Share</th>
+            <th scope="col" class="is-numeric">AVG per Year</th>
+            <th scope="col">Top Trade Partner</th>
             <th scope="col" class="is-numeric">Players In</th>
             <th scope="col" class="is-numeric">Picks In</th>
             <th scope="col" class="is-numeric">FPTS In</th>
@@ -1552,6 +1584,9 @@
             <td class="is-numeric">${index + 1}</td>
             <td class="leaguehub-trades-team-cell"><strong>${escapeHtml(row.member.teamName)}</strong></td>
             <td class="is-numeric">${row.tradeCount}</td>
+            <td class="is-numeric">${formatOptionalNumber(row.leagueShare, 1)}%</td>
+            <td class="is-numeric">${formatOptionalNumber(row.avgPerYear, 1)}</td>
+            <td class="leaguehub-trades-top-partner-cell"><span>${escapeHtml(row.topPartnerLabel)}</span></td>
             <td class="is-numeric">${row.playersIn}</td>
             <td class="is-numeric">${row.picksIn}</td>
             <td class="is-numeric">${formatOptionalNumber(row.fptsIn, 1)}</td>
