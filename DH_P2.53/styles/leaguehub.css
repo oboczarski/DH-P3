@@ -448,7 +448,7 @@ body[data-page="leaguehub"] .leaguehub-trades-table .is-numeric {
 body[data-page="leaguehub"] .leaguehub-trades-team-cell,
 body[data-page="leaguehub"] .leaguehub-trades-partner-cell {
   min-width: 0;
-  text-align: left;
+  text-align: left !important;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-team-cell strong,
@@ -468,8 +468,10 @@ body[data-page="leaguehub"] .leaguehub-trades-top-partner-cell span {
   overflow: hidden;
   max-width: 100%;
   text-align: center;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 10px;
+  color: #889;
+  font-variant: no-common-ligatures;
 }
 
 /* Trade Activity summary density:
