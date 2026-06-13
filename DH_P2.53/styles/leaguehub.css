@@ -463,15 +463,30 @@ body[data-page="leaguehub"] .leaguehub-trades-partner-name {
   justify-self: start;
 }
 
-body[data-page="leaguehub"] .leaguehub-trades-top-partner-cell span {
-  display: block;
+body[data-page="leaguehub"] .leaguehub-trades-top-partner-text {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.18rem;
   overflow: hidden;
   max-width: 100%;
-  text-align: center;
-  white-space: nowrap;
-  font-size: 10px;
   color: #889;
+  font-size: 10px;
   font-variant: no-common-ligatures;
+  white-space: nowrap;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-top-partner-name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-top-partner-count {
+  flex: 0 0 auto;
+  color: #889;
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 
 /* Trade Activity summary density:

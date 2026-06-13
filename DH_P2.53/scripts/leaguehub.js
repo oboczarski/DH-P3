@@ -1547,15 +1547,23 @@
         return {
           member,
           tradeCount: memberTrades.length,
-          leagueShare: visibleTrades.length ? (memberTrades.length / visibleTrades.length) * 100 : 0,
+          leagueShare: 0,
           avgPerYear: visibleSeasonCount ? memberTrades.length / visibleSeasonCount : 0,
-          topPartnerLabel: topPartner ? `${topPartner.label} (${topPartner.count})` : '—',
+          topPartnerName: topPartner?.label || '—',
+          topPartnerCount: topPartner?.count || null,
           playersIn: memberSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
           picksIn: memberSides.reduce((sum, side) => sum + side.receivedPicks, 0),
           fptsIn: memberSides.reduce((sum, side) => sum + side.receivedFpts, 0),
           avgPpgIn: averageNumbers(memberSides.flatMap((side) => side.receivedPpgValues || [])),
         };
       }).sort((a, b) => b.tradeCount - a.tradeCount || b.playersIn - a.playersIn || a.member.teamName.localeCompare(b.member.teamName));
+      const totalTradeParticipations = rows.reduce((sum, row) => sum + row.tradeCount, 0);
+      rows.forEach((row) => {
+        // League Share:
+        // percentage of the displayed Trades column total, not unique league
+        // transactions, so the visible shares add up to 100%.
+        row.leagueShare = totalTradeParticipations ? (row.tradeCount / totalTradeParticipations) * 100 : 0;
+      });
 
       elements.tradesSummaryCards?.classList.add('hidden');
       if (elements.tradesSummaryCards) elements.tradesSummaryCards.innerHTML = '';
@@ -1586,7 +1594,12 @@
             <td class="is-numeric">${row.tradeCount}</td>
             <td class="is-numeric">${formatOptionalNumber(row.leagueShare, 1)}%</td>
             <td class="is-numeric">${formatOptionalNumber(row.avgPerYear, 1)}</td>
-            <td class="leaguehub-trades-top-partner-cell"><span>${escapeHtml(row.topPartnerLabel)}</span></td>
+            <td class="leaguehub-trades-top-partner-cell">
+              <span class="leaguehub-trades-top-partner-text">
+                <span class="leaguehub-trades-top-partner-name">${escapeHtml(row.topPartnerName)}</span>
+                ${row.topPartnerCount ? `<span class="leaguehub-trades-top-partner-count">(${row.topPartnerCount})</span>` : ''}
+              </span>
+            </td>
             <td class="is-numeric">${row.playersIn}</td>
             <td class="is-numeric">${row.picksIn}</td>
             <td class="is-numeric">${formatOptionalNumber(row.fptsIn, 1)}</td>
