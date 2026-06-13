@@ -124,7 +124,7 @@ body[data-page="leaguehub"] .leaguehub-trade-entry {
   position: relative;
   overflow: hidden;
   border-radius: var(--lh-trade-radius-xl);
-  border: 1px solid rgb(113 40 255 / 30%);
+  border: 1px solid rgb(54 59 68);
   background: radial-gradient(circle at top left, rgba(141, 202, 255, 0.09), transparent 42%),
     radial-gradient(circle at bottom right, rgba(111, 245, 209, 0.07), transparent 34%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
@@ -193,10 +193,14 @@ body[data-page="leaguehub"] .leaguehub-trades-feed-meta {
 
 body[data-page="leaguehub"] .leaguehub-trades-status {
   max-width: 390px;
-  padding: 0.48rem 0.62rem;
+  padding: 0.28rem 1.12rem;
   border-radius: 12px;
   border: 1px solid rgba(149, 181, 255, 0.16);
-  background: rgba(8, 13, 29, 0.58);
+  background: linear-gradient(-2deg, #2239, #3345, #7784);
+  color: #778;
+  text-transform: capitalize;
+  font-style: italic;
+  letter-spacing: 0.02em;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters {
@@ -924,6 +928,8 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
   body[data-page="leaguehub"] .leaguehub-trades-status {
     max-width: none;
     width: 100%;
+    font-size: 0.74rem;
+    font-weight: 300;
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters {
