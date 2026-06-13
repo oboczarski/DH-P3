@@ -426,7 +426,7 @@ body[data-page="leaguehub"] .leaguehub-trades-table {
 
 body[data-page="leaguehub"] .leaguehub-trades-table th,
 body[data-page="leaguehub"] .leaguehub-trades-table td {
-  padding: 0.34rem 0.46rem;
+  padding: 0.34rem 0.65rem;
   border-bottom: 1px solid rgba(151, 180, 246, 0.1);
   text-align: center;
   vertical-align: middle;
@@ -435,9 +435,9 @@ body[data-page="leaguehub"] .leaguehub-trades-table td {
 
 body[data-page="leaguehub"] .leaguehub-trades-table th {
   color: rgba(207, 219, 255, 0.62);
-  font-size: 0.54rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
 }
 
@@ -485,8 +485,7 @@ body[data-page="leaguehub"] .leaguehub-trades-top-partner-name {
 body[data-page="leaguehub"] .leaguehub-trades-top-partner-count {
   flex: 0 0 auto;
   color: #889;
-  font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 /* Trade Activity summary density:
