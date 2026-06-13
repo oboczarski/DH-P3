@@ -428,6 +428,8 @@ body[data-page="leaguehub"] .leaguehub-trades-table th,
 body[data-page="leaguehub"] .leaguehub-trades-table td {
   padding: 0.34rem 0.46rem;
   border-bottom: 1px solid rgba(151, 180, 246, 0.1);
+  text-align: center;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
@@ -440,19 +442,18 @@ body[data-page="leaguehub"] .leaguehub-trades-table th {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-table .is-numeric {
-  text-align: right;
+  text-align: center;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-team-cell,
 body[data-page="leaguehub"] .leaguehub-trades-partner-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
   min-width: 0;
+  text-align: left;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-team-cell strong,
 body[data-page="leaguehub"] .leaguehub-trades-partner-name {
+  display: block;
   overflow: hidden;
   color: #fff;
   font-weight: 800;
