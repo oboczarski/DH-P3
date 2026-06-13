@@ -809,6 +809,7 @@ body[data-page="leaguehub"] .leaguehub-trade-asset-name {
   line-height: 1.16;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding-left: 5px;
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-asset-main {
@@ -817,12 +818,11 @@ body[data-page="leaguehub"] .leaguehub-trade-asset-main {
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
-  padding: 4px 4px;
+  padding: 6px 5px;
   border-radius: 7px;
-  border: 1px solid #334;
-  transform: translateZ(0);
+  border: 0px solid #334;
   background: linear-gradient(180deg, rgb(75 79 87 / 28%), rgb(30 33 39 / 38%));
-  margin-right: 4px;
+  margin-right: 25px;
   margin-top: 3px;
 }
 
@@ -832,6 +832,7 @@ body[data-page="leaguehub"] .leaguehub-trade-asset-subtitle {
   font-size: 0.6rem;
   font-weight: 700;
   line-height: 1.2;
+  padding-left: 6px;
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-stat-grid {
@@ -985,7 +986,7 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
 
   body[data-page="leaguehub"] .leaguehub-trade-asset-row {
     gap: 0.56rem;
-    padding: 0.16rem 0.35rem;
+    padding: 0.2rem 0.35rem 0.3rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trade-asset-line {
