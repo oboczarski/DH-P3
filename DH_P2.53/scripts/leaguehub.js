@@ -1550,7 +1550,7 @@
         elements.tradesAnalysisBody.innerHTML = rows.map((row, index) => `
           <tr>
             <td class="is-numeric">${index + 1}</td>
-            <td class="leaguehub-trades-team-cell"><strong>${escapeHtml(row.member.teamName)}</strong><span>${escapeHtml(row.member.displayName)}</span></td>
+            <td class="leaguehub-trades-team-cell"><strong>${escapeHtml(row.member.teamName)}</strong></td>
             <td class="is-numeric">${row.tradeCount}</td>
             <td class="is-numeric">${row.playersIn}</td>
             <td class="is-numeric">${row.picksIn}</td>
