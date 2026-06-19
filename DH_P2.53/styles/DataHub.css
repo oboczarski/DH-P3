@@ -2531,19 +2531,18 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 
 .search-shell__clear {
   position: absolute;
-  right: 4px;
+  right: 2px;
   top: 50%;
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 37px;
+  height: 30px;
   padding: 0;
-  border: 1px solid rgba(178, 207, 241, 0.18);
+  border: 0px solid rgba(178, 207, 241, 0.18);
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(226, 238, 255, 0.12), rgba(138, 159, 194, 0.04)),
-    rgba(19, 29, 45, 0.88);
-  color: rgba(210, 224, 243, 0.78);
+  background: linear-gradient(180deg, rgba(226, 238, 255, 0.05), rgba(138, 159, 194, 0.4)),
+    rgba(19, 29, 45, 0.08);
+  color: rgb(36 40 46);
   cursor: pointer;
   transform: translateY(-50%);
   box-shadow:
@@ -2573,8 +2572,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .search-shell__clear svg {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   pointer-events: none;
 }
 
@@ -6044,7 +6043,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     border-radius: 12px;
     font-size: 0.6rem;
     letter-spacing: 0.03em;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 0px solid rgba(255, 255, 255, 0.22);
   }
 
   .qualifier-menu {
