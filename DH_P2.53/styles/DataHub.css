@@ -12849,8 +12849,8 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-view-option.is-active {
     overflow-x: auto;
     overflow-y: auto;
     border-radius: 10px;
-    max-height: 40.9vh;
-    height: 40.9vh;
+    max-height: 45.2vh;
+    height: 45.2vh;
     scrollbar-width: none;
     overscroll-behavior: contain;
     flex: none;
