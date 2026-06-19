@@ -3097,19 +3097,15 @@ function attachEventListeners() {
     playerSearch?.addEventListener("search", handlePlayerSearchInput);
 
     // DataHub search clear:
-    // clears the active player search on mobile and desktop, keeps input focus
-    // stable, and reuses the normal grid refresh path instead of forking filter logic.
+    // clears on pointerdown so touch/mobile taps cannot lose the clear action
+    // before a synthetic click fires; click remains for keyboard/mouse fallback.
     playerSearchClear?.addEventListener("pointerdown", (event) => {
       event.preventDefault();
+      clearDataHubPlayerSearch(playerSearch);
     });
-    playerSearchClear?.addEventListener("click", () => {
-      if (!state.searchText && !playerSearch?.value) {
-        return;
-      }
-      state.searchText = "";
-      syncSearchInputs();
-      refreshGrid();
-      focusDataHubSearchInput(playerSearch);
+    playerSearchClear?.addEventListener("click", (event) => {
+      event.preventDefault();
+      clearDataHubPlayerSearch(playerSearch);
     });
 
     qualifierStatToggle?.addEventListener("click", () => {
@@ -7035,6 +7031,21 @@ function syncSearchClearButtons() {
   });
 }
 
+function clearDataHubPlayerSearch(sourceInput = null) {
+  if (!state.searchText && !sourceInput?.value) {
+    return false;
+  }
+
+  // DataHub player search clear:
+  // reset the shared search state once, then let the existing sync/refresh
+  // pipeline update both desktop and mobile inputs plus the rendered table.
+  state.searchText = "";
+  syncSearchInputs();
+  refreshGrid();
+  focusDataHubSearchInput(sourceInput);
+  return true;
+}
+
 function focusDataHubSearchInput(input) {
   if (!(input instanceof HTMLInputElement)) {
     return;
@@ -8964,7 +8975,7 @@ function createRookieTierBadge(value) {
 }
 
 function createPlayerTriggerButton(row) {
-  const playerLabel = formatDisplayValue(PLAYER_COLUMN, row.PLAYER);
+  const playerLabel = formatPlayerColumnDisplayValue(row);
   if (!canOpenDataHubGameLogs(row)) {
     const text = document.createElement("span");
     text.className = "stats-player-btn stats-player-btn--static";
@@ -8981,6 +8992,37 @@ function createPlayerTriggerButton(row) {
     openDataHubGameLogs(row, button);
   });
   return button;
+}
+
+function formatPlayerColumnDisplayValue(row) {
+  const formattedValue = formatCellValue(row?.PLAYER);
+  if (!state.isCompactViewport) {
+    return formattedValue;
+  }
+
+  if (isTradeValuePickRow(row)) {
+    return abbreviateTradePickYear(formattedValue);
+  }
+
+  return abbreviatePlayerName(formattedValue);
+}
+
+function isTradeValuePickRow(row) {
+  const meta = row?.__meta || {};
+  return meta.tradeEntityType === "pick"
+    || meta.pos === "RDP"
+    || String(row?.POS || "").trim().toUpperCase() === "RDP";
+}
+
+function abbreviateTradePickYear(label) {
+  if (isMissingValue(label)) {
+    return "NA";
+  }
+
+  // Mobile Trade Values pick labels:
+  // preserve pick bucket text while shortening a leading four-digit season to
+  // YY so "2027 Mid 1st" renders as "27 Mid 1st" instead of "2. Mid 1st".
+  return String(label).trim().replace(/^20(\d{2})(?=\s+)/, "$1");
 }
 
 function createDataHubTableTeamLogo(value) {

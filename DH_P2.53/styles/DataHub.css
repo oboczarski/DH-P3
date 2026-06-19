@@ -1875,12 +1875,12 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .trade-entity-bar {
   display: grid;
   grid-template-columns:
-    minmax(66px, 1.14fr)
-    minmax(46px, 0.82fr)
+    minmax(88px, 1.2fr)
+    minmax(74px, 1fr)
     1px
-    minmax(43px, 0.78fr)
-    minmax(58px, 1fr)
-    minmax(76px, 1.34fr);
+    minmax(46px, 0.66fr)
+    minmax(56px, 0.82fr)
+    minmax(66px, 0.96fr);
   align-items: center;
   gap: 5px;
   width: min(100%, 548px);
@@ -1901,9 +1901,17 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   text-transform: uppercase;
 }
 
+.trade-market-toggle {
+  font-size: 0.72rem;
+  letter-spacing: 0.035em;
+  font-weight: 650;
+}
+
 .trade-entity-toggle--entity {
   font-size: 0.62rem;
   letter-spacing: 0.035em;
+  max-width: 80px;
+  justify-self: center;
 }
 
 /* Trade Values control divider:
@@ -1922,17 +1930,17 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
    differentiates Vets/Rookies/Pick Values from the KTC/ADP market toggles,
    which intentionally keep the default DataHub active gradient. */
 body[data-page="datahub"] .trade-entity-toggle[data-trade-entity-toggle].is-active {
-  color: #fff0c7;
+  color: #d7e1ff;
   background:
-    linear-gradient(180deg, rgba(255, 199, 106, 0.24), rgba(45, 230, 166, 0.12)),
-    rgba(18, 24, 31, 0.78);
+    linear-gradient(180deg, rgba(122, 148, 255, 0.2), rgba(153, 119, 255, 0.12)),
+    rgba(16, 24, 42, 0.82);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.17),
-    0 3px 9px rgba(35, 177, 119, 0.14);
+    0 3px 9px rgba(94, 122, 220, 0.14);
 }
 
 body[data-page="datahub"] .trade-entity-toggle[data-trade-entity-toggle].is-active::before {
-  background: linear-gradient(135deg, #ffc76a, #2ee6a6);
+  background: linear-gradient(135deg, #7794ff, #a173ff);
 }
 
 /* Stats qualifier row:
@@ -6267,13 +6275,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
     grid-template-columns:
-      minmax(60px, 1.16fr)
-      minmax(42px, 0.8fr)
+      minmax(86px, 1.2fr)
+      minmax(74px, 1fr)
       1px
-      minmax(40px, 0.78fr)
-      minmax(54px, 1fr)
-      minmax(70px, 1.3fr);
-    gap: 4px;
+      minmax(46px, 0.64fr)
+      minmax(56px, 0.78fr)
+      minmax(66px, 0.92fr);
+    gap: 3px;
     margin-top: -3px;
     width: 100%;
   }
@@ -6281,14 +6289,19 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle {
     min-height: 33px;
     padding: 0 4px;
-    font-size: 0.58rem;
     letter-spacing: 0.035em;
     font-weight: 500;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-toggle {
+    font-size: 0.64rem;
+    letter-spacing: 0.025em;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle--entity {
     font-size: 0.52rem;
     letter-spacing: 0.03em;
+    max-width: 72px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-divider {
@@ -6935,27 +6948,32 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      sizes all five toggles plus the divider inside the existing control panel
      so adding KTC/ADP visibility controls does not wrap or overlap. */
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-bar {
-    width: min(100%, 552px);
+    width: min(100%, 514px);
     grid-template-columns:
-      minmax(80px, 1.14fr)
-      minmax(62px, 0.82fr)
+      minmax(132px, 1.2fr)
+      minmax(94px, 0.84fr)
       1px
-      minmax(58px, 0.78fr)
-      minmax(72px, 1fr)
-      minmax(100px, 1.34fr);
-    gap: 6px;
+      minmax(60px, 0.64fr)
+      minmax(72px, 0.76fr)
+      minmax(80px, 0.86fr);
+    gap: 7px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle {
     min-width: 0;
     padding: 0 8px;
-    font-size: 0.66rem;
     line-height: 1;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
-    font-size: 0.6rem;
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-market-toggle {
+    font-size: 0.76rem;
     letter-spacing: 0.035em;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
+    font-size: 0.58rem;
+    letter-spacing: 0.035em;
+    max-width: 80px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-divider {
@@ -6963,18 +6981,33 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle[data-trade-entity-toggle].is-active {
-    color: #fff0c7;
+    color: #d7e1ff;
     background:
-      linear-gradient(180deg, rgba(255, 199, 106, 0.24), rgba(45, 230, 166, 0.12)),
-      rgba(18, 24, 31, 0.78);
+      linear-gradient(180deg, rgba(122, 148, 255, 0.2), rgba(153, 119, 255, 0.12)),
+      rgba(16, 24, 42, 0.82);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.17),
-      0 0 0 1px rgba(255, 199, 106, 0.18),
+      0 0 0 1px rgba(126, 149, 255, 0.18),
       0 0 5px rgba(16, 22, 26, 0.7);
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle[data-trade-entity-toggle].is-active::before {
-    background: linear-gradient(135deg, #ffc76a, #2ee6a6);
+    background: linear-gradient(135deg, #7794ff, #a173ff);
+  }
+
+  /* Desktop search clear:
+     applies the requested larger clear target only to the desktop DataHub
+     search mount so mobile clear-button styling remains unchanged. */
+  body[data-page="datahub"] .hero-controls--desktop .search-shell__clear {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    color: rgb(88 95 105);
+  }
+
+  body[data-page="datahub"] .hero-controls--desktop .search-shell__clear svg {
+    width: 22px;
+    height: 22px;
   }
 
   .search-shell {
