@@ -2759,10 +2759,14 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   tradeEntityToggles: Array.from(root.querySelectorAll("[data-trade-entity-toggle]")),
   rookiesModeButtons: Array.from(root.querySelectorAll("[data-rookies-subview]")),
   playerSearch: root.querySelector("[data-player-search]"),
+  playerSearchClear: root.querySelector("[data-player-search-clear]"),
 }));
 const playerSearchInputs = controlMounts
   .map(({ playerSearch }) => playerSearch)
   .filter((input) => input instanceof HTMLInputElement);
+const playerSearchClearButtons = controlMounts
+  .map(({ playerSearchClear }) => playerSearchClear)
+  .filter((button) => button instanceof HTMLButtonElement);
 let hasWarnedMissingEcharts = false;
 // DataHub navigation stays fully page-local: these buttons and the shared More
 // dropdown are wired here instead of relying on app.js so the page remains a
@@ -2935,6 +2939,7 @@ function attachEventListeners() {
       teamFilterMenu,
       rookiesModeButtons,
       playerSearch,
+      playerSearchClear,
     } = mount;
 
     rookiesModeRow?.addEventListener("click", (event) => {
@@ -3043,10 +3048,31 @@ function attachEventListeners() {
       refreshGrid();
     });
 
-    playerSearch?.addEventListener("input", (event) => {
+    // DataHub search input:
+    // route all native input/search events through the same state update so the
+    // custom clear buttons and duplicated desktop/mobile fields stay mirrored.
+    const handlePlayerSearchInput = (event) => {
       state.searchText = event.target.value;
       syncSearchInputs(playerSearch);
       refreshGrid();
+    };
+    playerSearch?.addEventListener("input", handlePlayerSearchInput);
+    playerSearch?.addEventListener("search", handlePlayerSearchInput);
+
+    // DataHub search clear:
+    // clears the active player search on mobile and desktop, keeps input focus
+    // stable, and reuses the normal grid refresh path instead of forking filter logic.
+    playerSearchClear?.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+    });
+    playerSearchClear?.addEventListener("click", () => {
+      if (!state.searchText && !playerSearch?.value) {
+        return;
+      }
+      state.searchText = "";
+      syncSearchInputs();
+      refreshGrid();
+      focusDataHubSearchInput(playerSearch);
     });
 
     qualifierStatToggle?.addEventListener("click", () => {
@@ -6877,6 +6903,30 @@ function syncSearchInputs(sourceInput = null) {
     }
     if (input.value !== state.searchText) {
       input.value = state.searchText;
+    }
+  });
+  syncSearchClearButtons();
+}
+
+function syncSearchClearButtons() {
+  const hasSearchText = state.searchText.length > 0;
+  playerSearchClearButtons.forEach((button) => {
+    button.hidden = !hasSearchText;
+    button.disabled = !hasSearchText;
+    button.setAttribute("aria-hidden", hasSearchText ? "false" : "true");
+  });
+}
+
+function focusDataHubSearchInput(input) {
+  if (!(input instanceof HTMLInputElement)) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    try {
+      input.focus({ preventScroll: true });
+    } catch (error) {
+      input.focus();
     }
   });
 }

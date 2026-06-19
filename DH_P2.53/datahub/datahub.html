@@ -512,7 +512,7 @@
               <span>KEY</span>
             </button>
 
-            <label class="search-shell" for="player-search-desktop">
+            <div class="search-shell">
               <svg
                 class="search-shell__icon"
                 viewBox="0 0 24 24"
@@ -530,9 +530,25 @@
                 type="search"
                 inputmode="search"
                 placeholder="Search players..."
+                aria-label="Search players"
                 autocomplete="off"
               />
-            </label>
+              <!-- DataHub search clear control:
+                   provides a browser-independent clear action for the duplicated
+                   desktop/mobile search inputs while DataHub.js keeps state synced. -->
+              <button
+                type="button"
+                class="search-shell__clear"
+                data-player-search-clear
+                aria-label="Clear player search"
+                aria-hidden="true"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7 7l10 10M17 7L7 17" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -719,7 +735,7 @@
               <span>KEY</span>
             </button>
 
-            <label class="search-shell" for="player-search-mobile">
+            <div class="search-shell">
               <svg
                 class="search-shell__icon"
                 viewBox="0 0 24 24"
@@ -737,9 +753,25 @@
                 type="search"
                 inputmode="search"
                 placeholder="Search players..."
+                aria-label="Search players"
                 autocomplete="off"
               />
-            </label>
+              <!-- DataHub mobile search clear control:
+                   keeps the clear affordance available on real mobile devices
+                   instead of relying on native browser search-input UI. -->
+              <button
+                type="button"
+                class="search-shell__clear"
+                data-player-search-clear
+                aria-label="Clear player search"
+                aria-hidden="true"
+                hidden
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7 7l10 10M17 7L7 17" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 

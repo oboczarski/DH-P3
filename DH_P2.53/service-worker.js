@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// SYOP Bar Graph Revamp: bump the cache so browsers pick up the brand-new
-// Liquid Glass cylinder tracks, neon position gradients, and glowing tooltips.
-const CACHE_NAME = 'DH2.972';
+// DataHub search clear button: bump the cache so browsers pick up the custom
+// mobile search affordance and the paired DataHub script/style updates.
+const CACHE_NAME = 'DH2.973';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
