@@ -12785,7 +12785,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar-fill {
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-szn-bar-rank {
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+    text-shadow: 1px 1px 0px #000;
 }
 
 body[data-page="datahub"] #game-logs-modal .modal-footer {
