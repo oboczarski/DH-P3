@@ -1870,6 +1870,13 @@ function createDefaultTradeEntityFilterState() {
   };
 }
 
+function createDefaultTradeMarketColumnFilterState() {
+  return {
+    ktc: true,
+    adp: true,
+  };
+}
+
 function isDataHubStatsFamilyView(pageView = state.activePageView) {
   return DATAHUB_STATS_FAMILY_VIEWS.has(pageView);
 }
@@ -2020,9 +2027,9 @@ function getTradeEntityBucket(pos, primaryExperience, fallbackExperience) {
   return experience === 0 ? "rookie" : "vet";
 }
 
-// Trade Values entity controls:
+// Trade Values visibility/entity controls:
 // keep the adp-values-only toggle row mirrored across both control mounts so
-// vets, rookies, and picks can be filtered independently without touching Stats.
+// market columns and entity buckets can be controlled without touching Stats.
 function syncTradeEntityControls(mount) {
   if (!mount.tradeEntityRow) {
     return;
@@ -2033,6 +2040,13 @@ function syncTradeEntityControls(mount) {
   if (!isTradeValuesView) {
     return;
   }
+
+  mount.tradeMarketToggles.forEach((button) => {
+    const filterKey = button.dataset.tradeMarketToggle;
+    const isActive = Boolean(state.tradeMarketColumnFilters[filterKey]);
+    button.setAttribute("aria-pressed", String(isActive));
+    button.classList.toggle("is-active", isActive);
+  });
 
   mount.tradeEntityToggles.forEach((button) => {
     const filterKey = button.dataset.tradeEntityToggle;
@@ -2266,6 +2280,7 @@ const CATEGORY_FILTERS = {
 };
 const RECEIVING_SUBFILTER_KEYS = Object.freeze(["WR", "TE"]);
 const TRADE_ENTITY_FILTER_KEYS = Object.freeze(["vets", "rookies", "picks"]);
+const TRADE_MARKET_COLUMN_FILTER_KEYS = Object.freeze(["ktc", "adp"]);
 
 const MOBILE_BREAKPOINT = 719;
 
@@ -2599,6 +2614,10 @@ const state = {
   // keep the three adp-values row filters in page-local state so desktop and
   // mobile controls stay mirrored while tab switches preserve the session.
   tradeEntityFilters: createDefaultTradeEntityFilterState(),
+  // Trade Values market-column toggles:
+  // keep KTC and ADP visibility in page-local state. DIFF columns are derived
+  // from both sources, so they hide whenever either market source is disabled.
+  tradeMarketColumnFilters: createDefaultTradeMarketColumnFilterState(),
   searchText: "",
   rawSeasonRows: [],
   statsRowsBase: [],
@@ -2756,6 +2775,7 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
   teamFilterValue: root.querySelector("[data-team-filter-value]"),
   teamFilterMenu: root.querySelector("[data-team-filter-menu]"),
+  tradeMarketToggles: Array.from(root.querySelectorAll("[data-trade-market-toggle]")),
   tradeEntityToggles: Array.from(root.querySelectorAll("[data-trade-entity-toggle]")),
   rookiesModeButtons: Array.from(root.querySelectorAll("[data-rookies-subview]")),
   playerSearch: root.querySelector("[data-player-search]"),
@@ -3027,6 +3047,23 @@ function attachEventListeners() {
 
     tradeEntityRow?.addEventListener("click", (event) => {
       if (state.activePageView !== "adp-values") {
+        return;
+      }
+
+      const marketButton = event.target.closest("[data-trade-market-toggle]");
+      if (marketButton instanceof HTMLButtonElement) {
+        const filterKey = marketButton.dataset.tradeMarketToggle;
+        if (!TRADE_MARKET_COLUMN_FILTER_KEYS.includes(filterKey)) {
+          return;
+        }
+
+        // Trade Values market-column toggles:
+        // hide KTC or ADP column families directly in the table schema. DIFF
+        // columns depend on both markets and are removed by the column helper
+        // whenever either source is toggled off.
+        state.tradeMarketColumnFilters[filterKey] = !state.tradeMarketColumnFilters[filterKey];
+        syncUiState();
+        refreshGrid();
         return;
       }
 
@@ -6798,12 +6835,74 @@ function resizeDataHubHeroCharts() {
 
 function getActiveColumnSet() {
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
-  return viewSets[state.activeCategory] || viewSets[getDefaultCategory(state.activePageView)] || PAGE_VIEW_COLUMN_SETS.stats.overview;
+  const columns = viewSets[state.activeCategory]
+    || viewSets[getDefaultCategory(state.activePageView)]
+    || PAGE_VIEW_COLUMN_SETS.stats.overview;
+  return getVisibleTradeMarketColumns(columns);
 }
 
 function getActiveColumnGroups() {
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
-  return viewGroups[state.activeCategory] || viewGroups[getDefaultCategory(state.activePageView)] || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
+  const groups = viewGroups[state.activeCategory]
+    || viewGroups[getDefaultCategory(state.activePageView)]
+    || PAGE_VIEW_COLUMN_GROUPS.stats.overview;
+  return getVisibleTradeMarketColumnGroups(groups);
+}
+
+function shouldFilterTradeMarketColumns(pageView = state.activePageView) {
+  return pageView === "adp-values";
+}
+
+function isTradeMarketColumnVisible(columnName) {
+  if (!shouldFilterTradeMarketColumns()) {
+    return true;
+  }
+
+  if (KTC_COLUMNS.has(columnName)) {
+    return Boolean(state.tradeMarketColumnFilters.ktc);
+  }
+
+  if (ADP_COLUMNS.has(columnName)) {
+    return Boolean(state.tradeMarketColumnFilters.adp);
+  }
+
+  if (DIFF_COLUMNS.has(columnName)) {
+    return Boolean(state.tradeMarketColumnFilters.ktc && state.tradeMarketColumnFilters.adp);
+  }
+
+  return true;
+}
+
+function getVisibleTradeMarketColumns(columns) {
+  if (!shouldFilterTradeMarketColumns()) {
+    return columns;
+  }
+
+  return columns.filter((columnName) => isTradeMarketColumnVisible(columnName));
+}
+
+function getVisibleTradeMarketColumnGroups(groups) {
+  if (!shouldFilterTradeMarketColumns()) {
+    return groups;
+  }
+
+  // Trade Values market column groups:
+  // mirror the active column visibility inside the group headers so colspan,
+  // group separators, icon colors, and body cells all remain aligned.
+  return groups
+    .map((group) => ({
+      ...group,
+      columns: group.columns.filter((columnName) => isTradeMarketColumnVisible(columnName)),
+    }))
+    .filter((group) => group.columns.length > 0);
+}
+
+function getTradeMarketColumnStateKey() {
+  if (!shouldFilterTradeMarketColumns()) {
+    return "market:all";
+  }
+
+  return `market:ktc-${state.tradeMarketColumnFilters.ktc ? "on" : "off"}:adp-${state.tradeMarketColumnFilters.adp ? "on" : "off"}`;
 }
 
 function getActiveFrozenColumnGroups() {
@@ -6887,13 +6986,32 @@ function getActiveViewLabelText() {
     || "";
 }
 
+function getActiveDefaultSort(pageView = state.activePageView) {
+  const configuredDefault = createDefaultSort(pageView);
+  const activeColumns = getActiveColumnSet();
+  if (activeColumns.includes(configuredDefault.column) && isSortableColumn(configuredDefault.column)) {
+    return configuredDefault;
+  }
+
+  const fallbackColumns = pageView === "adp-values"
+    ? ["SFLX ADP", "1QB ADP", "KTC SFLX", "KTC 1QB", "PPG", "FPTS", "RK", "PLAYER"]
+    : activeColumns;
+  const fallbackColumn = fallbackColumns.find((columnName) =>
+    activeColumns.includes(columnName) && isSortableColumn(columnName),
+  );
+
+  return fallbackColumn
+    ? { column: fallbackColumn, direction: getInitialSortDirection(fallbackColumn) }
+    : configuredDefault;
+}
+
 function ensureValidActiveSort() {
   const activeColumns = getActiveColumnSet();
   if (activeColumns.includes(state.sort.column) && isSortableColumn(state.sort.column)) {
     return;
   }
 
-  state.sort = createDefaultSort(state.activePageView);
+  state.sort = getActiveDefaultSort(state.activePageView);
 }
 
 function syncSearchInputs(sourceInput = null) {
@@ -7011,7 +7129,7 @@ function renderSortMetaMenu() {
 }
 
 function createSortMetaDefaultMenuOption() {
-  const defaultSort = createDefaultSort(state.activePageView);
+  const defaultSort = getActiveDefaultSort(state.activePageView);
   const isActive = isDefaultSortActive();
   const defaultLabel = getColumnLabel(defaultSort.column);
   const button = document.createElement("button");
@@ -7114,7 +7232,7 @@ function isSortMetaDropdownOpen() {
 }
 
 function isDefaultSortActive() {
-  const defaultSort = createDefaultSort(state.activePageView);
+  const defaultSort = getActiveDefaultSort(state.activePageView);
   return state.sort.column === defaultSort.column
     && state.sort.direction === defaultSort.direction;
 }
@@ -7123,7 +7241,7 @@ function applyDefaultSortState() {
   // DataHub sort default reset:
   // used by the menu-only "default:" row so the top option always returns the
   // current table view to its configured baseline sort.
-  state.sort = createDefaultSort(state.activePageView);
+  state.sort = getActiveDefaultSort(state.activePageView);
   applySortedRows();
 }
 
@@ -7721,6 +7839,7 @@ function getGridShellKey() {
   return [
     state.activePageView,
     state.activeCategory,
+    getTradeMarketColumnStateKey(),
     state.isCompactViewport ? "compact" : "regular",
   ].join("|");
 }
@@ -9216,7 +9335,7 @@ function applySortColumnCycle(columnName) {
   // DataHub table sort cycle:
   // most columns use preferred -> opposite -> reset-to-view-default, while the
   // active view's default column cycles default -> opposite -> default.
-  const defaultSort = createDefaultSort(state.activePageView);
+  const defaultSort = getActiveDefaultSort(state.activePageView);
 
   if (columnName === defaultSort.column) {
     if (state.sort.column === columnName && state.sort.direction === defaultSort.direction) {
@@ -9501,7 +9620,7 @@ function filterRowsForActiveSort(rows, sortColumn) {
 function getActiveSortColumn() {
   const columns = getActiveColumnSet();
   if (!columns.includes(state.sort.column) || !isSortableColumn(state.sort.column)) {
-    return createDefaultSort(state.activePageView).column;
+    return getActiveDefaultSort(state.activePageView).column;
   }
 
   return state.sort.column;

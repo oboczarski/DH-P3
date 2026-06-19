@@ -384,20 +384,38 @@
             ></div>
           </div>
 
-          <!-- Trade Values entity controls:
-               this middle row is only used by the adp-values view and lets the
-               user independently include or exclude vets, rookies, and picks. -->
+          <!-- Trade Values visibility/entity controls:
+               this middle row is only used by the adp-values view. The market
+               toggles hide KTC/ADP column families, while the entity toggles
+               continue to include or exclude vets, rookies, and picks. -->
           <div
             data-trade-entity-row
             class="trade-entity-row"
             role="group"
-            aria-label="Trade values entity filters"
+            aria-label="Trade values column and entity filters"
             hidden
           >
             <div class="trade-entity-bar">
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-market-toggle"
+                data-trade-market-toggle="ktc"
+                aria-pressed="true"
+              >
+                KTC Values
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-market-toggle"
+                data-trade-market-toggle="adp"
+                aria-pressed="true"
+              >
+                ADP
+              </button>
+              <span class="trade-entity-divider" aria-hidden="true"></span>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="vets"
                 aria-pressed="true"
               >
@@ -405,7 +423,7 @@
               </button>
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="rookies"
                 aria-pressed="true"
               >
@@ -413,7 +431,7 @@
               </button>
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="picks"
                 aria-pressed="true"
               >
@@ -607,20 +625,38 @@
             ></div>
           </div>
 
-          <!-- Trade Values entity controls:
+          <!-- Trade Values visibility/entity controls:
                duplicated in the mobile mount so the adp-values view can keep
-               the same entity-filter behavior without moving controls in JS. -->
+               the same column and entity-filter behavior without moving
+               controls in JS. -->
           <div
             data-trade-entity-row
             class="trade-entity-row"
             role="group"
-            aria-label="Trade values entity filters"
+            aria-label="Trade values column and entity filters"
             hidden
           >
             <div class="trade-entity-bar">
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-market-toggle"
+                data-trade-market-toggle="ktc"
+                aria-pressed="true"
+              >
+                KTC Values
+              </button>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-market-toggle"
+                data-trade-market-toggle="adp"
+                aria-pressed="true"
+              >
+                ADP
+              </button>
+              <span class="trade-entity-divider" aria-hidden="true"></span>
+              <button
+                type="button"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="vets"
                 aria-pressed="true"
               >
@@ -628,7 +664,7 @@
               </button>
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="rookies"
                 aria-pressed="true"
               >
@@ -636,7 +672,7 @@
               </button>
               <button
                 type="button"
-                class="mini-chip mini-chip--ghost trade-entity-toggle"
+                class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
                 data-trade-entity-toggle="picks"
                 aria-pressed="true"
               >
