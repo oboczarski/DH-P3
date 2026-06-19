@@ -6184,8 +6184,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .category-chip,
   body[data-page="datahub"][data-datahub-view="rookies-trade"] .category-chip {
-    flex: 0 0 auto;
-    min-width: 55px;
+    flex: 1 1 auto;
+    min-width: 45px;
+    width: 68px;
     white-space: nowrap;
     border: 1px solid rgba(255, 255, 255, 0.14);
   }
@@ -6202,7 +6203,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--mobile .category-chip__label {
     display: block;
     font-weight: 400;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
   body[data-page="datahub"][data-datahub-tab="rookies"] .hero-controls--mobile .category-chip__label {
