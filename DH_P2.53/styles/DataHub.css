@@ -6281,7 +6281,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
       minmax(46px, 0.64fr)
       minmax(56px, 0.78fr)
       minmax(66px, 0.92fr);
-    gap: 3px;
+    gap: 4px;
     margin-top: -3px;
     width: 100%;
   }
@@ -6294,7 +6294,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-toggle {
-    font-size: 0.64rem;
+    font-size: 0.7rem;
     letter-spacing: 0.025em;
   }
 
@@ -6305,7 +6305,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-divider {
-    min-height: 24px;
+    min-height: 34px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .utility-row .search-shell,
