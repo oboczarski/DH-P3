@@ -1948,8 +1948,8 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 .qualifier-field.is-dimmed .qualifier-select {
-  opacity: 0.52;
-  color: rgba(171, 186, 209, 0.62);
+  opacity: 0.72;
+  color: rgba(171, 186, 209, 0.5);
   font-style: italic;
   font-weight: 400;
 }
