@@ -1924,102 +1924,39 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 }
 
 /* Trade Values toggle controls:
-   keeps the KTC/ADP column toggles visually separate from the entity filters.
-   DataHub.js still treats every control as a button, but CSS gives market
-   toggles a Stats Show All-style switch and entity toggles the compact checked
-   pill treatment from the mobile reference. */
+   KTC/ADP use the same visible switch anatomy as the Stats Show All qualifier
+   toggle, while the entity filters keep the compact checked pill treatment. */
 body[data-page="datahub"] .hero-controls .trade-entity-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  position: relative;
-  line-height: 1;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 body[data-page="datahub"] .hero-controls .trade-market-toggle {
-  --trade-market-height: 29px;
-  --trade-market-switch-width: 22px;
-  --trade-market-switch-height: 14px;
-  --trade-market-thumb-size: 10px;
-  --trade-market-switch-left: 4px;
-  --trade-market-label-gap: 4px;
-  --trade-market-pad-right: 5px;
-  min-height: var(--trade-market-height);
-  padding:
-    0
-    var(--trade-market-pad-right)
-    0
-    calc(var(--trade-market-switch-left) + var(--trade-market-switch-width) + var(--trade-market-label-gap));
-  border: 0 solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(10, 18, 30, 0.64);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 10px 24px rgba(0, 0, 0, 0.16);
-  color: rgba(183, 198, 223, 0.86);
+  appearance: none;
+  justify-content: flex-start;
+  font: inherit;
 }
 
-body[data-page="datahub"] .hero-controls .trade-market-toggle:hover {
-  transform: none;
-  border-color: transparent;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04)),
-    rgba(13, 22, 36, 0.7);
-  color: rgba(239, 246, 255, 0.96);
+/* Trade Values KTC/ADP buttons reuse the Stats Show All qualifier-toggle
+   classes, so these rules only handle text overflow and button-driven state. */
+.trade-market-toggle__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-body[data-page="datahub"] .hero-controls .trade-market-toggle::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: var(--trade-market-switch-left);
-  width: var(--trade-market-switch-width);
-  height: var(--trade-market-switch-height);
-  border-radius: 999px;
-  background: rgba(120, 137, 164, 0.34);
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(121, 146, 186, 0.12);
-  pointer-events: none;
-  transform: translateY(-50%);
-  transition: background 160ms ease, box-shadow 160ms ease;
-  z-index: 0;
-}
-
-body[data-page="datahub"] .hero-controls .trade-market-toggle::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: calc(var(--trade-market-switch-left) + 2px);
-  width: var(--trade-market-thumb-size);
-  height: var(--trade-market-thumb-size);
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(246, 250, 255, 0.96), rgba(176, 196, 227, 0.92));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
-  pointer-events: none;
-  transform: translateY(-50%);
-  transition: left 160ms ease;
-  z-index: 1;
-}
-
-body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active {
-  box-shadow:
-    0 0 16px rgba(116, 239, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  color: rgba(240, 247, 255, 0.96);
-}
-
-body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active::after {
+body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active .qualifier-toggle__switch {
   background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
   box-shadow:
     0 0 0 1px rgba(124, 208, 255, 0.16),
     0 0 14px rgba(116, 239, 255, 0.12);
 }
 
-body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active::before {
-  left: calc(var(--trade-market-switch-left) + var(--trade-market-switch-width) - var(--trade-market-thumb-size) - 2px);
+body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active .qualifier-toggle__thumb {
+  transform: translateX(12px);
 }
 
 body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity {
@@ -2028,8 +1965,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity {
   --trade-entity-indicator-height: 18px;
   --trade-entity-indicator-right: 1px;
   --trade-entity-pad-left: 7px;
-  --trade-entity-pad-right: 23px;
-  --trade-entity-check-size: 11px;
+  --trade-entity-pad-right: 24px;
   min-height: var(--trade-entity-height);
   padding: 0 var(--trade-entity-pad-right) 0 var(--trade-entity-pad-left);
   border: 1px solid rgba(170, 221, 255, 0.53);
@@ -2053,12 +1989,20 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity:hover {
   color: rgba(239, 246, 255, 0.96);
 }
 
-body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::before {
+body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::before,
+body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   content: none;
 }
 
-body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
-  content: "";
+.trade-entity-toggle__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trade-entity-toggle__indicator {
   position: absolute;
   top: 50%;
   right: var(--trade-entity-indicator-right);
@@ -2068,8 +2012,8 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   height: var(--trade-entity-indicator-height);
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(210, 221, 238, 0.58), rgba(118, 137, 168, 0.46));
-  color: #e6ecff;
-  font-size: var(--trade-entity-check-size);
+  color: transparent;
+  font-size: 11px;
   line-height: 1;
   box-shadow:
     inset 0 0 0 1px rgba(214, 230, 255, 0.12),
@@ -2089,9 +2033,9 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
     0 7px 10px rgba(0, 0, 0, 0.24);
 }
 
-body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active::after {
-  content: "✔︎";
+body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active .trade-entity-toggle__indicator {
   background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
+  color: #e6ecff;
   box-shadow:
     0 0 0 1px rgba(124, 208, 255, 0.16),
     0 0 14px rgba(116, 239, 255, 0.12);
@@ -6309,6 +6253,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     transform: translateX(10px);
   }
 
+  body[data-page="datahub"] .hero-controls .trade-market-toggle.is-active .qualifier-toggle__thumb {
+    transform: translateX(10px);
+  }
+
   .qualifier-toggle__text {
     font-size: 0.52rem;
     letter-spacing: 0.06em;
@@ -6435,15 +6383,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
     grid-template-columns:
-      minmax(95px, 1.32fr)
-      minmax(58px, 0.82fr)
-      4px
-      minmax(54px, 0.82fr)
-      minmax(68px, 1.04fr)
-      minmax(71px, 1.08fr);
+      112px
+      70px
+      1px
+      54px
+      68px
+      71px;
     gap: 1px;
     margin-top: -3px;
-    width: 100%;
+    width: calc(100% + 26px);
+    margin-inline: -13px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle {
@@ -6452,15 +6401,6 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-toggle {
-    --trade-market-height: 29px;
-    --trade-market-switch-width: 22px;
-    --trade-market-switch-height: 14px;
-    --trade-market-thumb-size: 10px;
-    --trade-market-switch-left: 4px;
-    --trade-market-label-gap: 4px;
-    --trade-market-pad-right: 5px;
-    font-size: 0.65rem;
-    letter-spacing: 0;
     font-weight: 700;
   }
 
@@ -6470,8 +6410,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --trade-entity-indicator-height: 18px;
     --trade-entity-indicator-right: 1px;
     --trade-entity-pad-left: 7px;
-    --trade-entity-pad-right: 23px;
-    --trade-entity-check-size: 11px;
+    --trade-entity-pad-right: 24px;
     font-size: 0.60rem;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -7126,11 +7065,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     max-width: 100%;
     grid-template-columns:
       136px
-      88px
+      84px
       1px
-      82px
-      102px
-      118px;
+      88px
+      108px
+      126px;
     gap: 8px;
   }
 
@@ -7139,32 +7078,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     line-height: 1;
   }
 
-  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-market-toggle {
-    --trade-market-height: 36px;
-    --trade-market-switch-width: 28px;
-    --trade-market-switch-height: 16px;
-    --trade-market-thumb-size: 12px;
-    --trade-market-switch-left: 10px;
-    --trade-market-label-gap: 7px;
-    --trade-market-pad-right: 12px;
-    min-height: var(--trade-market-height);
-    padding:
-      0
-      var(--trade-market-pad-right)
-      0
-      calc(var(--trade-market-switch-left) + var(--trade-market-switch-width) + var(--trade-market-label-gap));
-    font-size: 0.76rem;
-    letter-spacing: 0.02em;
-  }
-
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
     --trade-entity-height: 32px;
     --trade-entity-indicator-width: 20px;
     --trade-entity-indicator-height: 18px;
     --trade-entity-indicator-right: 2px;
     --trade-entity-pad-left: 12px;
-    --trade-entity-pad-right: 28px;
-    --trade-entity-check-size: 11px;
+    --trade-entity-pad-right: 30px;
     min-height: var(--trade-entity-height);
     padding: 0 var(--trade-entity-pad-right) 0 var(--trade-entity-pad-left);
     font-size: 0.7rem;
