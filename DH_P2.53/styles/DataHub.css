@@ -6945,17 +6945,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   /* Desktop Trade Values visibility/entity row:
-     sizes all five toggles plus the divider inside the existing control panel
-     so adding KTC/ADP visibility controls does not wrap or overlap. */
+     gives KTC/ADP the flexible space and keeps the original three toggles in
+     fixed 80px tracks, preventing dead space between capped entity buttons. */
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-bar {
-    width: min(100%, 514px);
+    width: min(100%, 552px);
     grid-template-columns:
-      minmax(132px, 1.2fr)
-      minmax(94px, 0.84fr)
+      minmax(0, 1.35fr)
+      minmax(0, 0.95fr)
       1px
-      minmax(60px, 0.64fr)
-      minmax(72px, 0.76fr)
-      minmax(80px, 0.86fr);
+      80px
+      80px
+      80px;
     gap: 7px;
   }
 
