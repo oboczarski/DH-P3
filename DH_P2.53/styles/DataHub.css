@@ -6390,7 +6390,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
       minmax(70px, 1.17fr);
     gap: 3px;
     margin-top: -3px;
-    width: calc(100% + 5px);
+    width: 100%;
     margin-inline: -13px;
   }
 
