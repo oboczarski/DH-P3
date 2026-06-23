@@ -1944,7 +1944,7 @@ body[data-page="datahub"] .hero-controls .trade-market-toggle {
    classes, so these rules only handle text overflow and button-driven state. */
 .trade-market-toggle__text {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
 }
 
@@ -2300,8 +2300,8 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
 
 .qualifier-toggle__text {
   font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -6693,7 +6693,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .qualifier-toggle__text {
-    font-size: 0.58rem;
+    font-size: 0.85rem;
   }
 
   .hero-controls--desktop .team-filter__trigger {
@@ -7059,13 +7059,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-bar {
     width: max-content;
     max-width: 100%;
-    grid-template-columns: 116px
-      76px
-      17px
-      79px
-      97px
-      117px;
-    gap: 10px;
+    grid-template-columns: 138px
+      85px
+      13px
+      70px
+      90px
+      108px;
+    gap: 8px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle {
@@ -7075,17 +7075,17 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
     --trade-entity-height: 32px;
-    --trade-entity-indicator-width: 35px;
-    --trade-entity-indicator-height: 29px;
-    --trade-entity-indicator-right: 1px;
-    --trade-entity-pad-left: 12px;
+    --trade-entity-indicator-width: 21px;
+    --trade-entity-indicator-height: 21px;
+    --trade-entity-indicator-right: 6px;
+    --trade-entity-pad-left: 10px;
     --trade-entity-pad-right: 30px;
     --trade-entity-indicator-font-size: 15px;
     min-height: var(--trade-entity-height);
     padding: 0 var(--trade-entity-pad-right) 0 var(--trade-entity-pad-left);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-size: 0.85rem;
+    font-weight: 400;
+    letter-spacing: 0em;
     max-width: none;
   }
 
