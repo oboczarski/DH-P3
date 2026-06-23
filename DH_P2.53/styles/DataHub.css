@@ -6231,10 +6231,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .qualifier-toggle {
-    min-height: 30px;
-    padding: 0 7px;
+    min-height: 28px;
+    padding: 0 6px;
     gap: 4px;
-    border-radius: 12px;
+    border-radius: 10px;
   }
 
   .qualifier-toggle__switch {
@@ -6382,12 +6382,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
-    grid-template-columns: 97px
-      61px
+    grid-template-columns: 95px
+      60px
       4px
-      54px
+      53px
       68px
-      71px;
+      73px;
     gap: 3px;
     margin-top: -3px;
     width: calc(100% + 12px);
