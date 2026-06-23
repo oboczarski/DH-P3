@@ -26,7 +26,7 @@
 // ============================================================================
 // DataHub search clear button: bump the cache so browsers pick up the custom
 // mobile search affordance and the paired DataHub script/style updates.
-const CACHE_NAME = 'DH2.973A';
+const CACHE_NAME = 'DH3.01A';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
