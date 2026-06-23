@@ -7169,7 +7169,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     max-width: 100%;
     grid-template-columns: 231px
       13px
-      284px;
+      auto;
     align-items: center;
     gap: 8px;
   }
@@ -7199,9 +7199,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-filter-group {
-    grid-template-columns: 66px 86px 112px;
-    gap: 6px;
-    padding: 3px;
+    grid-template-columns: 61fr 80fr 96fr;
+    gap: 2px;
+    padding: 3px 9px 3px 4px;
     border-color: rgba(145, 190, 230, 0.22);
   }
 
@@ -7209,7 +7209,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --trade-entity-height: 32px;
     --trade-entity-indicator-width: 21px;
     --trade-entity-indicator-height: 21px;
-    --trade-entity-indicator-right: 6px;
+    --trade-entity-indicator-right: 0px;
     --trade-entity-pad-left: 10px;
     --trade-entity-pad-right: 30px;
     --trade-entity-indicator-font-size: 15px;
