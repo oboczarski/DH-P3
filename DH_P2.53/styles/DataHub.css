@@ -1968,25 +1968,23 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity {
   --trade-entity-pad-right: 24px;
   min-height: var(--trade-entity-height);
   padding: 0 var(--trade-entity-pad-right) 0 var(--trade-entity-pad-left);
-  border: 1px solid rgba(170, 221, 255, 0.53);
+  border: 1px solid rgba(170, 221, 255, 0.19);
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(191, 210, 243, 0.1), rgba(13, 15, 18, 0.08)),
-    rgba(13, 17, 24, 0.26);
+  background: linear-gradient(180deg, rgb(191 210 243 / 7%), rgba(13, 15, 18, 0.15)), rgba(13, 17, 24, 0);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 7px 10px rgba(0, 0, 0, 0.2);
-  color: rgba(188, 204, 228, 0.9);
+  color: rgb(188 204 228 / 67%);
   font-weight: 700;
 }
 
 body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity:hover {
   transform: none;
-  border-color: rgba(177, 232, 255, 0.64);
+  border-color: rgba(177, 232, 255, 0.14);
+  font-weight: 800;
   background:
     linear-gradient(180deg, rgba(207, 225, 255, 0.16), rgba(26, 32, 44, 0.14)),
     rgba(16, 23, 34, 0.34);
-  color: rgba(239, 246, 255, 0.96);
 }
 
 body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::before,
@@ -2011,7 +2009,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   width: var(--trade-entity-indicator-width);
   height: var(--trade-entity-indicator-height);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(210, 221, 238, 0.58), rgba(118, 137, 168, 0.46));
+  background: radial-gradient(#fff0 0%, #fff2 65%, #0000 73%);
   color: transparent;
   font-size: var(--trade-entity-indicator-font-size);
   line-height: 1;
@@ -2021,15 +2019,13 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   opacity: 0.68;
   pointer-events: none;
   transform: translateY(-50%);
+  border: 1px solid #fff9;
 }
 
 body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active {
-  background:
-    linear-gradient(180deg, rgba(191, 210, 243, 0.17), rgba(13, 15, 18, 0.15)),
-    rgba(13, 17, 24, 0);
-  color: rgba(188, 204, 228, 0.96);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+  background: linear-gradient(180deg, rgb(191 210 243 / 7%), rgba(13, 15, 18, 0.15)), rgba(13, 17, 24, 0);
+  color: rgb(213 225 244 / 96%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 7px 10px rgba(0, 0, 0, 0.24);
 }
 
@@ -6385,12 +6381,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     grid-template-columns: 95px
       60px
       4px
-      53px
-      68px
-      73px;
+      51px
+      65px
+      70px;
     gap: 3px;
     margin-top: -3px;
-    width: calc(100% + 12px);
+    width: calc(100% + 5px);
     margin-inline: -13px;
   }
 
@@ -6405,15 +6401,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle--entity {
     --trade-entity-height: 22px;
-    --trade-entity-indicator-width: 20px;
-    --trade-entity-indicator-height: 18px;
-    --trade-entity-indicator-right: 1px;
+    --trade-entity-indicator-width: 17px;
+    --trade-entity-indicator-height: 17px;
+    --trade-entity-indicator-right: 2px;
     --trade-entity-pad-left: 7px;
     --trade-entity-pad-right: 24px;
     --trade-entity-indicator-font-size: 11px;
     font-size: 0.60rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-weight: 500;
+    letter-spacing: 0em;
     max-width: none;
   }
 
