@@ -1879,9 +1879,7 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
     minmax(88px, 1.2fr)
     minmax(74px, 1fr)
     1px
-    minmax(46px, 0.66fr)
-    minmax(56px, 0.82fr)
-    minmax(66px, 0.96fr);
+    minmax(176px, 2.44fr);
   align-items: center;
   gap: 5px;
   width: min(100%, 548px);
@@ -1922,6 +1920,31 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
   border-radius: 999px;
   background: linear-gradient(180deg, transparent, rgba(172, 195, 232, 0.46), transparent);
   box-shadow: 0 0 12px rgba(116, 239, 255, 0.1);
+}
+
+/* Trade Values entity filter group:
+   holds Vets, Rookies, and Pick Values in one bordered sub-bar so these row
+   filters are visually separate from the KTC/ADP market toggles. */
+.trade-entity-filter-group {
+  display: grid;
+  grid-template-columns:
+    minmax(46px, 0.66fr)
+    minmax(56px, 0.82fr)
+    minmax(66px, 0.96fr);
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 2px;
+  border: 1px solid rgba(145, 190, 230, 0.2);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(190, 209, 241, 0.07), rgba(8, 13, 22, 0.09)),
+    rgba(5, 10, 18, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(76, 98, 136, 0.08);
 }
 
 /* Trade Values toggle controls:
@@ -6387,9 +6410,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     grid-template-columns: minmax(95px, 1.58fr)
       minmax(60px, 1fr)
       4px
-      minmax(51px, 0.85fr)
-      minmax(65px, 1.08fr)
-      minmax(70px, 1.17fr);
+      minmax(192px, 3.1fr);
     gap: 3px;
     margin-top: -3px;
     width: 100%;
@@ -6403,6 +6424,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-toggle {
     font-weight: 700;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-filter-group {
+    grid-template-columns: minmax(49px, 0.85fr)
+      minmax(63px, 1.08fr)
+      minmax(68px, 1.17fr);
+    gap: 2px;
+    padding: 2px;
+    border-color: rgba(145, 190, 230, 0.22);
+    background:
+      linear-gradient(180deg, rgba(190, 209, 241, 0.08), rgba(8, 13, 22, 0.12)),
+      rgba(5, 10, 18, 0.1);
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle--entity {
@@ -7068,15 +7101,20 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     grid-template-columns: 138px
       85px
       13px
-      70px
-      90px
-      108px;
+      284px;
     gap: 8px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle {
     min-width: 0;
     line-height: 1;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-filter-group {
+    grid-template-columns: 66px 86px 112px;
+    gap: 6px;
+    padding: 3px;
+    border-color: rgba(145, 190, 230, 0.22);
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
