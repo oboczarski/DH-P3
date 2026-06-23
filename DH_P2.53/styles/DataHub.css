@@ -1998,6 +1998,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   overflow: visible;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1;
 }
 
 .trade-entity-toggle__indicator {
@@ -2301,6 +2302,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
   font-weight: 500;
   letter-spacing: 0em;
   text-transform: uppercase;
+  line-height: 1;
 }
 
 .qualifier-toggle.is-active {
@@ -6227,7 +6229,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .qualifier-toggle {
     min-height: 28px;
     padding: 0 6px;
-    gap: 4px;
+    gap: 6px;
     border-radius: 10px;
   }
 
