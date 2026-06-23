@@ -7170,6 +7170,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     grid-template-columns: 231px
       13px
       284px;
+    align-items: center;
     gap: 8px;
   }
 
@@ -7178,15 +7179,18 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     line-height: 1;
   }
 
+  /* Desktop Trade Values label reset:
+     keeps the Focus/Assets labels available for mobile while returning the
+     desktop control row to the previous unlabeled single-line layout. */
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-control-group {
-    gap: 5px;
+    display: flex;
+    align-items: center;
+    align-self: center;
+    gap: 0;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-control-group__label {
-    padding-inline: 5px;
-    font-size: 0.54rem;
-    letter-spacing: 0.16em;
-    color: rgba(190, 207, 232, 0.64);
+    display: none;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-market-filter-controls {
@@ -7218,6 +7222,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-divider {
+    align-self: center;
     min-height: 28px;
   }
 
