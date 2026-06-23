@@ -6255,8 +6255,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .qualifier-row__label {
-    font-size: 0.5rem;
-    letter-spacing: 0.16em;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
   }
 
   .qualifier-row__controls {
@@ -6305,7 +6305,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .qualifier-toggle {
-    min-height: 28px;
+    min-height: 30px;
     padding: 0 6px;
     gap: 4px;
     border-radius: 10px;
@@ -6484,8 +6484,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-control-group__label {
-    padding-inline: 3px;
-    font-size: 0.5rem;
+    padding-inline: 4px;
+    font-size: 0.55rem;
     letter-spacing: 0.12em;
     color: rgba(185, 202, 227, 0.6);
     margin: 0 0 2px 1px;
@@ -6505,10 +6505,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     padding: 1px 5px 1px 2px;
     border-color: rgba(145, 190, 230, 0.22);
     background: linear-gradient(180deg, rgb(103 109 119 / 20%), rgb(13 15 18 / 28%)), rgba(13, 17, 24, 0);
+    margin-top: 1px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle--entity {
-    --trade-entity-height: 24px;
+    --trade-entity-height: 25px;
     --trade-entity-indicator-width: 17px;
     --trade-entity-indicator-height: 17px;
     --trade-entity-indicator-right: 3px;
