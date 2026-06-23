@@ -1744,11 +1744,11 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 
 .category-chip__meta {
   display: block;
-  margin-top: 2px;
+  margin-top: 1px;
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   color: rgba(187, 206, 232, 0.62);
-   margin-bottom: -3px;
+   margin-bottom: -2px;
 }
 
 .category-chip.is-active .category-chip__meta {
