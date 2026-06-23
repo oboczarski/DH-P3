@@ -134,7 +134,7 @@ body::after {
   z-index: 1;
   width: min(100%, 1680px);
   margin: 0 auto;
-  padding: 11px 6px 28px;
+  padding: 6px 6px 28px;
 }
 
 .glass-panel {
@@ -166,7 +166,7 @@ body::after {
 .app-header {
   position: relative;
   z-index: 10;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .app-header--desktop {
@@ -705,7 +705,7 @@ body[data-page="datahub"] .tab-icon--stats-solar {
 
 .hero-shell {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   padding: 10px 10px 14px;
   /* DataHub hero overflow:
      the shared glass-panel shell clips by default, but the Stats team filter
@@ -2760,6 +2760,13 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
 .grid-shell {
   margin-top: 14px;
   padding: 7px 6px;
+}
+
+@media (max-width: 719px) {
+  .grid-shell {
+    margin-top: 11px;
+    padding: 7px 6px;
+    }
 }
 
 .grid-shell__meta {
@@ -5267,7 +5274,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .hero-shell {
     position: relative;
-    padding-top: 18px;
+    padding-top: 12px;
   }
 
   /* Mobile chart trigger:
@@ -5275,13 +5282,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      without changing the title's normal flow or adding extra vertical space. */
   body[data-page="datahub"] .hero-chart-toggle {
     position: absolute;
-    top: 11px;
-    right: 9px;
+    top: 8px;
+    right: 11px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
     gap: 1px;
-    min-height: 26px;
+    min-height: 24px;
     padding: 0 6px 0 4px;
     border: 0px solid rgba(149, 177, 220, 0.18);
     border-radius: 22px;
