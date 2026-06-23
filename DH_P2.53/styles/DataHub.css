@@ -2013,7 +2013,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(210, 221, 238, 0.58), rgba(118, 137, 168, 0.46));
   color: transparent;
-  font-size: 11px;
+  font-size: var(--trade-entity-indicator-font-size);
   line-height: 1;
   box-shadow:
     inset 0 0 0 1px rgba(214, 230, 255, 0.12),
@@ -6382,16 +6382,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
-    grid-template-columns:
-      112px
-      70px
-      1px
+    grid-template-columns: 97px
+      61px
+      4px
       54px
       68px
       71px;
-    gap: 1px;
+    gap: 3px;
     margin-top: -3px;
-    width: calc(100% + 26px);
+    width: calc(100% + 12px);
     margin-inline: -13px;
   }
 
@@ -6411,6 +6410,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --trade-entity-indicator-right: 1px;
     --trade-entity-pad-left: 7px;
     --trade-entity-pad-right: 24px;
+    --trade-entity-indicator-font-size: 11px;
     font-size: 0.60rem;
     font-weight: 700;
     letter-spacing: 0.01em;
@@ -7063,14 +7063,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-bar {
     width: max-content;
     max-width: 100%;
-    grid-template-columns:
-      136px
-      84px
-      1px
-      88px
-      108px
-      126px;
-    gap: 8px;
+    grid-template-columns: 116px
+      76px
+      17px
+      79px
+      97px
+      117px;
+    gap: 10px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle {
@@ -7080,11 +7079,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
     --trade-entity-height: 32px;
-    --trade-entity-indicator-width: 20px;
-    --trade-entity-indicator-height: 18px;
-    --trade-entity-indicator-right: 2px;
+    --trade-entity-indicator-width: 35px;
+    --trade-entity-indicator-height: 29px;
+    --trade-entity-indicator-right: 1px;
     --trade-entity-pad-left: 12px;
     --trade-entity-pad-right: 30px;
+    --trade-entity-indicator-font-size: 15px;
     min-height: var(--trade-entity-height);
     padding: 0 var(--trade-entity-pad-right) 0 var(--trade-entity-pad-left);
     font-size: 0.7rem;
