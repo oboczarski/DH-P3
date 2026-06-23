@@ -6307,7 +6307,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   .qualifier-toggle {
     min-height: 28px;
     padding: 0 6px;
-    gap: 6px;
+    gap: 4px;
     border-radius: 10px;
   }
 
@@ -6461,9 +6461,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
        keep the 390px control proportions as minimums, then let wider mobile
        layouts distribute extra room across the buttons instead of leaving a
        blank pocket at the right side of the row. */
-    grid-template-columns: minmax(152px, 2.58fr)
+    grid-template-columns: minmax(158px, 2.58fr)
       4px
-      minmax(190px, 3.1fr);
+      minmax(192px, 3.1fr);
     gap: 3px;
     margin-top: -3px;
     width: 100%;
@@ -6501,7 +6501,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     grid-template-columns: minmax(49px, 0.85fr)
       minmax(63px, 1.08fr)
       minmax(68px, 1.17fr);
-    gap: 1px;
+    gap: 0px;
     padding: 1px 5px 1px 2px;
     border-color: rgba(145, 190, 230, 0.22);
     background: linear-gradient(180deg, rgb(103 109 119 / 20%), rgb(13 15 18 / 28%)), rgba(13, 17, 24, 0);
