@@ -6376,12 +6376,16 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-bar {
-    grid-template-columns: 95px
-      60px
+    /* Mobile Trade Values toggle row:
+       keep the 390px control proportions as minimums, then let wider mobile
+       layouts distribute extra room across the buttons instead of leaving a
+       blank pocket at the right side of the row. */
+    grid-template-columns: minmax(95px, 1.58fr)
+      minmax(60px, 1fr)
       4px
-      51px
-      65px
-      70px;
+      minmax(51px, 0.85fr)
+      minmax(65px, 1.08fr)
+      minmax(70px, 1.17fr);
     gap: 3px;
     margin-top: -3px;
     width: calc(100% + 5px);
