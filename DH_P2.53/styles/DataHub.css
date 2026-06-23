@@ -2023,7 +2023,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
 }
 
 body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active {
-  background: linear-gradient(180deg, rgb(191 210 243 / 7%), rgba(13, 15, 18, 0.15)), rgba(13, 17, 24, 0);
+  background: linear-gradient(180deg, rgb(103 109 119 / 20%), rgb(13 15 18 / 28%)), rgba(13, 17, 24, 0);
   color: rgb(213 225 244 / 96%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 7px 10px rgba(0, 0, 0, 0.24);
@@ -2250,9 +2250,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
   padding: 0 10px;
   border: 0px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(10, 18, 30, 0.64);
+  background: linear-gradient(180deg, rgb(238 240 248 / 10%), rgb(224 229 238 / 6%)), rgba(10, 18, 30, 0.64);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 10px 24px rgba(0, 0, 0, 0.16);
@@ -2643,9 +2641,9 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
 
 .search-shell__icon {
   position: absolute;
-  left: 12px;
-  width: 13px;
-  height: 13px;
+  left: 9px;
+  width: 16px;
+  height: 17px;
   fill: rgba(189, 206, 232, 0.72);
   pointer-events: none;
 }
@@ -6400,10 +6398,10 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-toggle--entity {
-    --trade-entity-height: 22px;
+    --trade-entity-height: 24px;
     --trade-entity-indicator-width: 17px;
     --trade-entity-indicator-height: 17px;
-    --trade-entity-indicator-right: 2px;
+    --trade-entity-indicator-right: 3px;
     --trade-entity-pad-left: 7px;
     --trade-entity-pad-right: 24px;
     --trade-entity-indicator-font-size: 11px;
