@@ -1744,11 +1744,11 @@ body[data-page="datahub"] .mini-chip.is-active::before {
 
 .category-chip__meta {
   display: block;
-  margin-top: 3px;
+  margin-top: 2px;
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   color: rgba(187, 206, 232, 0.62);
-  margin-bottom: -5px;
+   margin-bottom: -3px;
 }
 
 .category-chip.is-active .category-chip__meta {
@@ -6371,7 +6371,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-tab="rookies"] .hero-controls--mobile .category-chip__label {
     display: block;
-    font-weight: 400;
+    font-weight: 500;
     font-size: 0.75rem;
   }
 
