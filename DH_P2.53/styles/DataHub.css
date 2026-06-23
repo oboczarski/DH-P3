@@ -2300,8 +2300,8 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
 
 .qualifier-toggle__text {
   font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  letter-spacing: 0em;
   text-transform: uppercase;
 }
 
@@ -2327,7 +2327,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
 }
 
 .qualifier-toggle.is-active .qualifier-toggle__text {
-  color: rgba(240, 247, 255, 0.96);
+  color: rgba(240, 247, 255, 0.85);
 }
 
 .qualifier-toggle__input:checked + .qualifier-toggle__switch {
@@ -6693,7 +6693,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .qualifier-toggle__text {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 
   .hero-controls--desktop .team-filter__trigger {
