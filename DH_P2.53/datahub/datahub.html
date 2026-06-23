@@ -396,60 +396,70 @@
             hidden
           >
             <div class="trade-entity-bar">
-              <button
-                type="button"
-                class="qualifier-toggle trade-entity-toggle trade-market-toggle"
-                data-trade-market-toggle="ktc"
-                aria-pressed="true"
-              >
-                <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
-                  <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
-                </span>
-                <span class="qualifier-toggle__text trade-market-toggle__text">KTC Values</span>
-              </button>
-              <button
-                type="button"
-                class="qualifier-toggle trade-entity-toggle trade-market-toggle"
-                data-trade-market-toggle="adp"
-                aria-pressed="true"
-              >
-                <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
-                  <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
-                </span>
-                <span class="qualifier-toggle__text trade-market-toggle__text">ADP</span>
-              </button>
+              <!-- Trade Values market filter group:
+                   labels the KTC/ADP column-family toggles as the Focus controls. -->
+              <div class="trade-control-group trade-market-filter-group" role="group" aria-label="Trade values focus filters">
+                <span class="trade-control-group__label">Focus</span>
+                <div class="trade-market-filter-controls">
+                  <button
+                    type="button"
+                    class="qualifier-toggle trade-entity-toggle trade-market-toggle"
+                    data-trade-market-toggle="ktc"
+                    aria-pressed="true"
+                  >
+                    <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
+                      <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
+                    </span>
+                    <span class="qualifier-toggle__text trade-market-toggle__text">KTC Values</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="qualifier-toggle trade-entity-toggle trade-market-toggle"
+                    data-trade-market-toggle="adp"
+                    aria-pressed="true"
+                  >
+                    <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
+                      <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
+                    </span>
+                    <span class="qualifier-toggle__text trade-market-toggle__text">ADP</span>
+                  </button>
+                </div>
+              </div>
               <span class="trade-entity-divider" aria-hidden="true"></span>
               <!-- Trade Values entity filter group:
                    wraps Vets, Rookies, and Pick Values in their own bordered
                    sub-bar so they read as separate row filters from KTC/ADP. -->
-              <div class="trade-entity-filter-group" role="group" aria-label="Trade values entity filters">
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="vets"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Vets</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="rookies"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Rookies</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="picks"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Pick Values</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
+              <div class="trade-control-group trade-entity-filter-shell" role="group" aria-label="Trade values asset filters">
+                <span class="trade-control-group__label">Assets</span>
+                <div class="trade-entity-filter-group" role="group" aria-label="Trade values asset filters">
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="vets"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Vets</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="rookies"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Rookies</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="picks"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Pick Values</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -651,60 +661,70 @@
             hidden
           >
             <div class="trade-entity-bar">
-              <button
-                type="button"
-                class="qualifier-toggle trade-entity-toggle trade-market-toggle"
-                data-trade-market-toggle="ktc"
-                aria-pressed="true"
-              >
-                <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
-                  <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
-                </span>
-                <span class="qualifier-toggle__text trade-market-toggle__text">KTC Values</span>
-              </button>
-              <button
-                type="button"
-                class="qualifier-toggle trade-entity-toggle trade-market-toggle"
-                data-trade-market-toggle="adp"
-                aria-pressed="true"
-              >
-                <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
-                  <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
-                </span>
-                <span class="qualifier-toggle__text trade-market-toggle__text">ADP</span>
-              </button>
+              <!-- Trade Values market filter group:
+                   labels the KTC/ADP column-family toggles as the Focus controls. -->
+              <div class="trade-control-group trade-market-filter-group" role="group" aria-label="Trade values focus filters">
+                <span class="trade-control-group__label">Focus</span>
+                <div class="trade-market-filter-controls">
+                  <button
+                    type="button"
+                    class="qualifier-toggle trade-entity-toggle trade-market-toggle"
+                    data-trade-market-toggle="ktc"
+                    aria-pressed="true"
+                  >
+                    <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
+                      <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
+                    </span>
+                    <span class="qualifier-toggle__text trade-market-toggle__text">KTC Values</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="qualifier-toggle trade-entity-toggle trade-market-toggle"
+                    data-trade-market-toggle="adp"
+                    aria-pressed="true"
+                  >
+                    <span class="qualifier-toggle__switch trade-market-toggle__switch" aria-hidden="true">
+                      <span class="qualifier-toggle__thumb trade-market-toggle__thumb"></span>
+                    </span>
+                    <span class="qualifier-toggle__text trade-market-toggle__text">ADP</span>
+                  </button>
+                </div>
+              </div>
               <span class="trade-entity-divider" aria-hidden="true"></span>
               <!-- Trade Values entity filter group:
                    wraps Vets, Rookies, and Pick Vals. in their own bordered
                    sub-bar so they stay visually separate from KTC/ADP. -->
-              <div class="trade-entity-filter-group" role="group" aria-label="Trade values entity filters">
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="vets"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Vets</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="rookies"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Rookies</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
-                <button
-                  type="button"
-                  class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
-                  data-trade-entity-toggle="picks"
-                  aria-pressed="true"
-                >
-                  <span class="trade-entity-toggle__text">Pick Vals.</span>
-                  <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
-                </button>
+              <div class="trade-control-group trade-entity-filter-shell" role="group" aria-label="Trade values asset filters">
+                <span class="trade-control-group__label">Assets</span>
+                <div class="trade-entity-filter-group" role="group" aria-label="Trade values asset filters">
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="vets"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Vets</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="rookies"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Rookies</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="mini-chip mini-chip--ghost trade-entity-toggle trade-entity-toggle--entity"
+                    data-trade-entity-toggle="picks"
+                    aria-pressed="true"
+                  >
+                    <span class="trade-entity-toggle__text">Pick Vals.</span>
+                    <span class="trade-entity-toggle__indicator" aria-hidden="true">✔︎</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

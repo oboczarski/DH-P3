@@ -1876,11 +1876,10 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .trade-entity-bar {
   display: grid;
   grid-template-columns:
-    minmax(88px, 1.2fr)
-    minmax(74px, 1fr)
+    minmax(167px, 2.2fr)
     1px
     minmax(176px, 2.44fr);
-  align-items: center;
+  align-items: end;
   gap: 5px;
   width: min(100%, 548px);
   margin-inline: auto;
@@ -1916,26 +1915,63 @@ body[data-page="datahub"] .datahub-receiving-filter-chip[data-receiving-filter="
 .trade-entity-divider {
   width: 1px;
   min-height: 25px;
+  align-self: end;
   justify-self: center;
   border-radius: 999px;
   background: linear-gradient(180deg, transparent, rgba(172, 195, 232, 0.46), transparent);
   box-shadow: 0 0 12px rgba(116, 239, 255, 0.1);
 }
 
+/* Trade Values grouped labels:
+   labels the market-column controls as Focus and the entity filters as Assets
+   without changing the underlying toggle buttons that DataHub.js syncs. */
+.trade-control-group {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-self: end;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.trade-control-group__label {
+  display: block;
+  min-width: 0;
+  padding-inline: 4px;
+  font-size: 0.52rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(185, 202, 227, 0.66);
+  white-space: nowrap;
+}
+
+.trade-market-filter-controls,
+.trade-entity-filter-group {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.trade-market-filter-controls {
+  grid-template-columns:
+    minmax(88px, 1.2fr)
+    minmax(74px, 1fr);
+  gap: 5px;
+}
+
 /* Trade Values entity filter group:
    holds Vets, Rookies, and Pick Values in one bordered sub-bar so these row
    filters are visually separate from the KTC/ADP market toggles. */
 .trade-entity-filter-group {
-  display: grid;
   grid-template-columns:
     minmax(46px, 0.66fr)
     minmax(56px, 0.82fr)
     minmax(66px, 0.96fr);
-  align-items: center;
   gap: 4px;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
   padding: 2px;
   border: 1px solid rgba(145, 190, 230, 0.2);
   border-radius: 999px;
@@ -6200,6 +6236,24 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     gap: 5px;
   }
 
+  /* Mobile Stats qualifier divider:
+     adds the requested inline rule after the Min Qualifiers label only on the
+     Stats mobile control mount, keeping desktop and other tabs unchanged. */
+  body[data-page="datahub"][data-datahub-view="stats"] .hero-controls--mobile .qualifier-row__header {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="stats"] .hero-controls--mobile .qualifier-row__header::after {
+    content: "";
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(172, 195, 232, 0.42), rgba(116, 239, 255, 0.18), transparent);
+    box-shadow: 0 0 10px rgba(116, 239, 255, 0.08);
+  }
+
   .qualifier-row__label {
     font-size: 0.5rem;
     letter-spacing: 0.16em;
@@ -6407,10 +6461,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
        keep the 390px control proportions as minimums, then let wider mobile
        layouts distribute extra room across the buttons instead of leaving a
        blank pocket at the right side of the row. */
-    grid-template-columns: minmax(95px, 1.58fr)
-      minmax(60px, 1fr)
+    grid-template-columns: minmax(152px, 2.58fr)
       4px
-      minmax(192px, 3.1fr);
+      minmax(190px, 3.1fr);
     gap: 3px;
     margin-top: -3px;
     width: 100%;
@@ -6424,6 +6477,23 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-toggle {
     font-weight: 700;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-control-group {
+    gap: 2px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-control-group__label {
+    padding-inline: 3px;
+    font-size: 0.46rem;
+    letter-spacing: 0.12em;
+    color: rgba(185, 202, 227, 0.6);
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .trade-market-filter-controls {
+    grid-template-columns: minmax(91px, 1.58fr)
+      minmax(58px, 1fr);
+    gap: 3px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .trade-entity-filter-group {
@@ -7096,8 +7166,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-bar {
     width: max-content;
     max-width: 100%;
-    grid-template-columns: 138px
-      85px
+    grid-template-columns: 231px
       13px
       284px;
     gap: 8px;
@@ -7106,6 +7175,22 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle {
     min-width: 0;
     line-height: 1;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-control-group {
+    gap: 5px;
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-control-group__label {
+    padding-inline: 5px;
+    font-size: 0.54rem;
+    letter-spacing: 0.16em;
+    color: rgba(190, 207, 232, 0.64);
+  }
+
+  body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-market-filter-controls {
+    grid-template-columns: 138px 85px;
+    gap: 8px;
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-filter-group {
