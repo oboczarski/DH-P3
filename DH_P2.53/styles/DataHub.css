@@ -5318,8 +5318,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      without changing the title's normal flow or adding extra vertical space. */
   body[data-page="datahub"] .hero-chart-toggle {
     position: absolute;
-    top: 8px;
-    right: 11px;
+    top: 7px;
+    right: 12px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
@@ -7206,8 +7206,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   body[data-page="datahub"][data-datahub-view="adp-values"] .hero-controls--desktop .trade-entity-toggle--entity {
-    --trade-entity-height: 32px;
-    --trade-entity-indicator-width: 21px;
+    --trade-entity-height: 31px;
+    --trade-entity-indicator-width: 23px;
     --trade-entity-indicator-height: 21px;
     --trade-entity-indicator-right: 0px;
     --trade-entity-pad-left: 10px;
