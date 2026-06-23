@@ -1997,7 +1997,7 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity::after {
 .trade-entity-toggle__text {
   display: block;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -6258,8 +6258,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .qualifier-toggle__text {
-    font-size: 0.52rem;
-    letter-spacing: 0.06em;
+    font-size: 0.6rem;
+    letter-spacing: -0.02em;
   }
 
   .team-filter__trigger {
