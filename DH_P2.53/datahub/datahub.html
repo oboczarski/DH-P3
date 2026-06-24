@@ -554,6 +554,33 @@
               <span>KEY</span>
             </button>
 
+            <!-- DataHub comparison modal trigger:
+                 opens the lazy React comparison island only after DataHub has
+                 loaded, so React never adds upfront cost to the main table. -->
+            <button
+              type="button"
+              class="mini-chip mini-chip--icon mini-chip--compare"
+              data-comparison-modal-open
+              aria-label="Open player comparison"
+              aria-disabled="true"
+              disabled
+            >
+              <svg
+                class="mini-chip__icon mini-chip__icon--compare"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="5" cy="6" r="3"></circle>
+                <path d="M12 6h5a2 2 0 0 1 2 2v7"></path>
+                <path d="m15 9-3-3 3-3"></path>
+                <circle cx="19" cy="18" r="3"></circle>
+                <path d="M12 18H7a2 2 0 0 1-2-2V9"></path>
+                <path d="m9 15 3 3-3 3"></path>
+              </svg>
+              <span>COMPARE</span>
+            </button>
+
             <div class="search-shell">
               <svg
                 class="search-shell__icon"
@@ -819,6 +846,33 @@
               <span>KEY</span>
             </button>
 
+            <!-- DataHub mobile comparison trigger:
+                 mirrors the desktop Compare action while keeping the lazy
+                 React modal launch page-local to this DataHub bundle. -->
+            <button
+              type="button"
+              class="mini-chip mini-chip--icon mini-chip--compare"
+              data-comparison-modal-open
+              aria-label="Open player comparison"
+              aria-disabled="true"
+              disabled
+            >
+              <svg
+                class="mini-chip__icon mini-chip__icon--compare"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="5" cy="6" r="3"></circle>
+                <path d="M12 6h5a2 2 0 0 1 2 2v7"></path>
+                <path d="m15 9-3-3 3-3"></path>
+                <circle cx="19" cy="18" r="3"></circle>
+                <path d="M12 18H7a2 2 0 0 1-2-2V9"></path>
+                <path d="m9 15 3 3-3 3"></path>
+              </svg>
+              <span>COMPARE</span>
+            </button>
+
             <div class="search-shell">
               <svg
                 class="search-shell__icon"
@@ -1009,6 +1063,11 @@
         </span>
       </button>
     </div>
+
+    <!-- Lazy React comparison mount:
+         DataHub.js leaves this empty until the Compare chip is opened, then
+         mounts the player comparison component into this page-local root. -->
+    <div id="datahub-comparison-modal-root"></div>
 
     <!-- Mobile chart modal:
          this shared popup shell hosts the active Stats or Trade Values chart

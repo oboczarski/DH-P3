@@ -2651,6 +2651,12 @@ const state = {
     mobile: null,
   },
   isChartModalOpen: false,
+  // DataHub comparison modal:
+  // tracks the lazy React island lifecycle separately from the existing chart
+  // and game-log modals so opening Compare does not affect other modal flows.
+  isComparisonModalOpen: false,
+  isComparisonModalOpening: false,
+  comparisonModalTriggerButton: null,
   ktcSheetData: {
     "1-QB": createEmptyKtcSheetStore(),
     SFLX: createEmptyKtcSheetStore(),
@@ -2713,6 +2719,8 @@ const chartModalCloseButton = chartModal?.querySelector("[data-chart-modal-close
 const chartDesktopPanel = document.querySelector("[data-chart-panel='desktop']");
 const chartDesktopRoot = document.querySelector("[data-chart-widget='desktop']");
 const chartMobileRoot = document.querySelector("[data-chart-widget='mobile']");
+const comparisonModalRoot = document.querySelector("#datahub-comparison-modal-root");
+const comparisonOpenButtons = Array.from(document.querySelectorAll("[data-comparison-modal-open]"));
 const overlay = document.querySelector("#datahub-page-loading");
 const overlayTitle = document.querySelector("#overlay-title");
 const overlayDescription = document.querySelector("#overlay-description");
@@ -2838,6 +2846,8 @@ const ROOKIE_CSV_URLS_BY_CATEGORY = Object.freeze({
 
 let supplementalDataPromise = null;
 let rookieDataPromise = null;
+let dataHubComparisonModulePromise = null;
+let dataHubComparisonReactRoot = null;
 
 let activeMoreToggle = null;
 let moreCloseTimer = 0;
@@ -3305,6 +3315,15 @@ function attachEventListeners() {
       return;
     }
     openDataHubChartModal();
+  });
+
+  comparisonOpenButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled || state.isComparisonModalOpening) {
+        return;
+      }
+      openDataHubComparisonModal(button);
+    });
   });
 
   chartModal?.addEventListener("click", (event) => {
@@ -4455,6 +4474,7 @@ function syncUiState() {
   mainTitle.textContent = getDataHubHeroTitle();
   activeViewLabel.textContent = getActiveViewLabelText();
   updateSortMetaPill();
+  syncComparisonControls();
   document.body.dataset.datahubView = state.activePageView;
   document.body.dataset.datahubTab = state.activePageTab;
 
@@ -4481,6 +4501,21 @@ function syncUiState() {
 
   syncSearchInputs();
   syncDataHubChartUi();
+}
+
+function syncComparisonControls() {
+  const canOpenComparison = Boolean(comparisonModalRoot && state.statsRowsBase.length);
+  comparisonOpenButtons.forEach((button) => {
+    const isDisabled = !canOpenComparison || state.isComparisonModalOpening;
+    button.disabled = isDisabled;
+    button.setAttribute("aria-disabled", String(isDisabled));
+    button.classList.toggle("is-loading", state.isComparisonModalOpening);
+    if (state.isComparisonModalOpening) {
+      button.setAttribute("aria-busy", "true");
+    } else {
+      button.removeAttribute("aria-busy");
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -6820,6 +6855,419 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
   if (restoreFocus && state.isCompactViewport) {
     chartToggleButton?.focus?.();
   }
+}
+
+const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
+const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
+const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
+  "fpts",
+  "pass_yd",
+  "pass_td",
+  "pass_att",
+  "pass_cmp",
+  "cmp_pct",
+  "pass_int",
+  "pass_sack",
+  "rush_att",
+  "rush_yd",
+  "rush_td",
+  "ypc",
+  "rush_yac",
+  "yco_per_att",
+  "mtf",
+  "mtf_per_att",
+  "rec_tgt",
+  "rec",
+  "rec_yd",
+  "rec_td",
+  "rr",
+  "ypr",
+  "yprr",
+  "ts_per_rr",
+  "first_down_rec_rate",
+  "snp_pct",
+  "yds_total",
+  "imp",
+  "fpoe",
+  "epa_per_db",
+  "cpoe",
+  "ttt",
+]);
+const DATAHUB_COMPARISON_SEASON_STAT_KEYS = Object.freeze([
+  "fpts",
+  "ppg",
+  "games_played",
+  "snp_pct",
+  "yds_total",
+  "imp",
+  "imp_per_g",
+  "fpoe",
+  "csty_pct",
+  "ceiling",
+  "pass_att",
+  "pass_cmp",
+  "cmp_pct",
+  "pass_yd",
+  "pass_td",
+  "pass_int",
+  "pass_sack",
+  "pass_rtg",
+  "epa_per_db",
+  "cpoe",
+  "ttt",
+  "rush_att",
+  "rush_yd",
+  "rush_td",
+  "ypc",
+  "rush_yac",
+  "yco_per_att",
+  "mtf",
+  "mtf_per_att",
+  "rec_tgt",
+  "rec",
+  "rec_yd",
+  "rec_td",
+  "rr",
+  "ypr",
+  "yprr",
+  "ts_per_rr",
+  "first_down_rec_rate",
+]);
+
+async function ensureDataHubComparisonModule() {
+  if (!dataHubComparisonModulePromise) {
+    // DataHub comparison React island:
+    // import React, ReactDOM, and the local component bundle only from the
+    // Compare click path so the main DataHub page has zero upfront React cost.
+    dataHubComparisonModulePromise = Promise.all([
+      import(DATAHUB_COMPARISON_REACT_URL),
+      import(DATAHUB_COMPARISON_REACT_DOM_URL),
+      import("./datahub-comparison/DataHubComparisonModal.js"),
+    ])
+      .then(([reactModule, reactDomModule, comparisonModule]) => {
+        const React = reactModule.default || reactModule;
+        const ReactDOMClient = reactDomModule.default || reactDomModule;
+        const Component = comparisonModule.createDataHubComparisonModal(React);
+        return { React, ReactDOMClient, Component };
+      })
+      .catch((error) => {
+        dataHubComparisonModulePromise = null;
+        throw error;
+      });
+  }
+
+  return dataHubComparisonModulePromise;
+}
+
+async function ensureDataHubComparisonStatsData() {
+  // Comparison stats hydration:
+  // reuse the existing game-log data loader so weekly CSV parsing, live stat
+  // overrides, and stat-value semantics stay aligned with the current modal.
+  await ensureDataHubGameLogsData();
+}
+
+function getDataHubComparisonReactRoot(ReactDOMClient) {
+  if (!comparisonModalRoot || !ReactDOMClient?.createRoot) {
+    return null;
+  }
+
+  if (!dataHubComparisonReactRoot) {
+    dataHubComparisonReactRoot = ReactDOMClient.createRoot(comparisonModalRoot);
+  }
+
+  return dataHubComparisonReactRoot;
+}
+
+async function openDataHubComparisonModal(triggerButton = null) {
+  if (!comparisonModalRoot || state.isComparisonModalOpening || !state.statsRowsBase.length) {
+    return;
+  }
+
+  state.isComparisonModalOpening = true;
+  state.comparisonModalTriggerButton = triggerButton || document.activeElement;
+  syncComparisonControls();
+
+  try {
+    const [comparisonModule] = await Promise.all([
+      ensureDataHubComparisonModule(),
+      ensureDataHubComparisonStatsData(),
+    ]);
+    const payload = buildDataHubComparisonPayload();
+    if (!payload.defaults.selectedPlayerIds.length) {
+      throw new Error("No eligible players are available for comparison.");
+    }
+
+    const root = getDataHubComparisonReactRoot(comparisonModule.ReactDOMClient);
+    if (!root) {
+      throw new Error("Unable to mount the comparison modal.");
+    }
+
+    state.isComparisonModalOpen = true;
+    document.body.classList.add("datahub-comparison-modal-open");
+    root.render(comparisonModule.React.createElement(comparisonModule.Component, {
+      payload,
+      onClose: closeDataHubComparisonModal,
+    }));
+  } catch (error) {
+    console.error("Unable to open DataHub comparison modal.", error);
+    showDataHubComparisonLoadError(error);
+  } finally {
+    state.isComparisonModalOpening = false;
+    syncComparisonControls();
+  }
+}
+
+function closeDataHubComparisonModal({ restoreFocus = true } = {}) {
+  state.isComparisonModalOpen = false;
+  document.body.classList.remove("datahub-comparison-modal-open");
+  if (dataHubComparisonReactRoot) {
+    dataHubComparisonReactRoot.render(null);
+  } else {
+    comparisonModalRoot?.replaceChildren();
+  }
+
+  const triggerButton = state.comparisonModalTriggerButton;
+  state.comparisonModalTriggerButton = null;
+  if (restoreFocus && triggerButton?.focus) {
+    triggerButton.focus();
+  }
+}
+
+function showDataHubComparisonLoadError(error) {
+  if (!comparisonModalRoot) {
+    return;
+  }
+
+  state.isComparisonModalOpen = true;
+  document.body.classList.add("datahub-comparison-modal-open");
+  if (dataHubComparisonReactRoot) {
+    dataHubComparisonReactRoot.render(null);
+  }
+  comparisonModalRoot.replaceChildren();
+
+  // Comparison load error:
+  // create a tiny non-React fallback only when the lazy import/data path fails,
+  // so users get a dismissible modal instead of a silent dead Compare button.
+  const shell = document.createElement("div");
+  shell.className = "dh-compare-modal dh-compare-modal--error";
+  const overlayEl = document.createElement("div");
+  overlayEl.className = "dh-compare-modal__overlay";
+  const dialog = document.createElement("section");
+  dialog.className = "dh-compare-modal__dialog dh-compare-modal__dialog--error";
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-label", "Comparison unavailable");
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.className = "dh-compare-close";
+  closeButton.setAttribute("aria-label", "Close comparison");
+  closeButton.textContent = "×";
+  const title = document.createElement("h2");
+  title.textContent = "Comparison unavailable";
+  const message = document.createElement("p");
+  message.className = "dh-compare-error-message";
+  message.textContent = error?.message || "The player comparison modal could not be loaded.";
+  dialog.append(closeButton, title, message);
+  shell.append(overlayEl, dialog);
+  comparisonModalRoot.append(shell);
+  overlayEl.addEventListener("click", closeDataHubComparisonModal);
+  closeButton.addEventListener("click", closeDataHubComparisonModal);
+  closeButton.focus();
+}
+
+function buildDataHubComparisonPayload() {
+  const players = buildDataHubComparisonPlayers();
+  const defaultPlayers = getDefaultComparisonPlayers(players);
+
+  return {
+    revision: Date.now(),
+    maxPlayers: 3,
+    weeks: Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => index + 1),
+    defaults: {
+      mode: "weekly",
+      weeklyStat: "fpts",
+      selectedPlayerIds: defaultPlayers.map((player) => player.id),
+    },
+    statCatalog: {
+      weekly: [...DATAHUB_COMPARISON_WEEKLY_STAT_KEYS],
+      season: [...DATAHUB_COMPARISON_SEASON_STAT_KEYS],
+    },
+    players,
+  };
+}
+
+function buildDataHubComparisonPlayers() {
+  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
+  return state.statsRowsBase
+    .map((row) => buildDataHubComparisonPlayer(row, combinedWeeklyStats))
+    .filter(Boolean)
+    .sort((left, right) => {
+      const leftFpts = Number.isFinite(left.fpts) ? left.fpts : -Infinity;
+      const rightFpts = Number.isFinite(right.fpts) ? right.fpts : -Infinity;
+      if (leftFpts !== rightFpts) {
+        return rightFpts - leftFpts;
+      }
+      return left.name.localeCompare(right.name);
+    });
+}
+
+function buildDataHubComparisonPlayer(row, combinedWeeklyStats) {
+  const meta = row?.__meta || {};
+  const playerId = String(meta.playerId || row?.SLPR_ID || "").trim();
+  const pos = String(meta.pos || row?.POS || "").trim().toUpperCase();
+  if (!playerId || !pos || pos === "RDP" || !meta.hasGameLogsSupport) {
+    return null;
+  }
+
+  const name = String(meta.displayName || meta.name || row.PLAYER || "").trim();
+  const fullName = String(meta.fullName || name).trim();
+  const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
+  const seasonStats = buildDataHubComparisonSeasonStats(playerId, row);
+  const weeklySeries = buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats);
+
+  return {
+    id: playerId,
+    name,
+    fullName,
+    pos,
+    team,
+    teamLogoSrc: getDataHubComparisonTeamLogoSrc(team),
+    age: Number.isFinite(meta.age) ? meta.age : toComparableNumber(row.AGE),
+    rank: Number.isFinite(meta.rank) ? meta.rank : toComparableNumber(row.RK),
+    fpts: Number.isFinite(seasonStats.fpts) ? seasonStats.fpts : meta.fpts,
+    ppg: Number.isFinite(seasonStats.ppg) ? seasonStats.ppg : meta.ppg,
+    hasGameLogsSupport: Boolean(meta.hasGameLogsSupport),
+    searchText: [name, fullName, pos, team].filter(Boolean).join(" ").toLowerCase(),
+    seasonStats,
+    weeklySeries,
+  };
+}
+
+function getDataHubComparisonTeamLogoSrc(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  if (!teamKey || teamKey === "FA" || teamKey === "UD" || isMissingValue(teamKey) || /\d+(?:ST|ND|RD|TH)$/.test(teamKey)) {
+    return "";
+  }
+
+  return getDataHubTeamLogoSrc(teamKey);
+}
+
+function buildDataHubComparisonSeasonStats(playerId, row) {
+  const sourceStats = state.playerSeasonStats?.[playerId] || {};
+  const meta = row?.__meta || {};
+  const stats = {};
+
+  Object.entries(sourceStats).forEach(([key, value]) => {
+    if (Number.isFinite(value)) {
+      stats[key] = value;
+    }
+  });
+
+  setDataHubComparisonStat(stats, "fpts", sourceStats.fpts_ppr, sourceStats.fpt_ppr, sourceStats.fpts, meta.fpts, row.FPTS);
+  setDataHubComparisonStat(stats, "ppg", sourceStats.ppg, meta.ppg, row.PPG);
+  setDataHubComparisonStat(stats, "games_played", sourceStats.games_played, meta.gmPlayed, row.G);
+  setDataHubComparisonStat(stats, "yds_total", sourceStats.yds_total, row["YDS(t)"]);
+  setDataHubComparisonStat(stats, "imp_per_g", sourceStats.imp_per_g, row["IMP/G"]);
+  setDataHubComparisonStat(stats, "csty_pct", sourceStats.csty_pct, row["CSTY%"]);
+  setDataHubComparisonStat(stats, "ceiling", sourceStats.ceiling, row.CL);
+
+  DATAHUB_COMPARISON_SEASON_STAT_KEYS.forEach((key) => {
+    if (stats[key] === undefined) {
+      setDataHubComparisonStat(stats, key, row[getDataHubComparisonRowAlias(key)]);
+    }
+  });
+
+  return stats;
+}
+
+function getDataHubComparisonRowAlias(statKey) {
+  const aliases = {
+    pass_att: "paATT",
+    pass_cmp: "CMP",
+    cmp_pct: "CMP%",
+    pass_yd: "paYDS",
+    pass_td: "paTD",
+    pass_int: "INT",
+    pass_sack: "SAC",
+    pass_rtg: "paRTG",
+    rush_att: "CAR",
+    rush_yd: "ruYDS",
+    rush_td: "ruTD",
+    rush_yac: "YCO",
+    rec_tgt: "TGT",
+    rec_yd: "recYDS",
+    rec_td: "recTD",
+    ts_per_rr: "TS%",
+    first_down_rec_rate: "1DRR",
+    games_played: "G",
+    fpts: "FPTS",
+    ppg: "PPG",
+    yds_total: "YDS(t)",
+    imp_per_g: "IMP/G",
+    csty_pct: "CSTY%",
+    ceiling: "CL",
+  };
+  return aliases[statKey] || statKey;
+}
+
+function setDataHubComparisonStat(target, key, ...values) {
+  const value = values
+    .map((entry) => toComparableNumber(entry))
+    .find((entry) => Number.isFinite(entry));
+  if (Number.isFinite(value)) {
+    target[key] = value;
+  }
+}
+
+function buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats) {
+  return Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
+    const week = index + 1;
+    const sourceStats = combinedWeeklyStats?.[week]?.[playerId] || null;
+    const stats = {};
+    if (sourceStats) {
+      DATAHUB_COMPARISON_WEEKLY_STAT_KEYS.forEach((statKey) => {
+        const value = getDataHubGameLogStatValue(statKey, sourceStats);
+        if (Number.isFinite(value)) {
+          stats[statKey] = value;
+        }
+      });
+    }
+
+    return {
+      week,
+      opponent: sourceStats?.opponent || "",
+      stats,
+    };
+  });
+}
+
+function getDefaultComparisonPlayers(players) {
+  const groupsByPosition = new Map();
+  players
+    .filter((player) => player.hasGameLogsSupport && Number.isFinite(player.fpts))
+    .forEach((player) => {
+      const group = groupsByPosition.get(player.pos) || [];
+      group.push(player);
+      groupsByPosition.set(player.pos, group);
+    });
+
+  const rankedGroups = Array.from(groupsByPosition.values())
+    .map((group) => group.sort((left, right) => right.fpts - left.fpts))
+    .filter((group) => group.length >= 2)
+    .sort((left, right) => {
+      if (left[0].fpts !== right[0].fpts) {
+        return right[0].fpts - left[0].fpts;
+      }
+      return right[1].fpts - left[1].fpts;
+    });
+
+  if (rankedGroups.length) {
+    return rankedGroups[0].slice(0, 2);
+  }
+
+  return players
+    .filter((player) => player.hasGameLogsSupport)
+    .slice(0, 2);
 }
 
 function resizeDataHubHeroCharts() {
