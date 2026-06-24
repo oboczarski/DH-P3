@@ -2651,6 +2651,16 @@ const state = {
     mobile: null,
   },
   isChartModalOpen: false,
+  // DataHub player comparison modal:
+  // owns the lazy React module/style promises and one mounted controller so the
+  // main DataHub page pays no React cost until a Compare trigger is opened.
+  playerComparison: {
+    modulePromise: null,
+    stylePromise: null,
+    controller: null,
+    isOpen: false,
+    triggerButton: null,
+  },
   ktcSheetData: {
     "1-QB": createEmptyKtcSheetStore(),
     SFLX: createEmptyKtcSheetStore(),
@@ -2713,6 +2723,10 @@ const chartModalCloseButton = chartModal?.querySelector("[data-chart-modal-close
 const chartDesktopPanel = document.querySelector("[data-chart-panel='desktop']");
 const chartDesktopRoot = document.querySelector("[data-chart-widget='desktop']");
 const chartMobileRoot = document.querySelector("[data-chart-widget='mobile']");
+const playerComparisonRoot = document.querySelector("#player-comparison-modal-root");
+const playerComparisonToggleButtons = Array.from(
+  document.querySelectorAll("[data-player-comparison-toggle]"),
+);
 const overlay = document.querySelector("#datahub-page-loading");
 const overlayTitle = document.querySelector("#overlay-title");
 const overlayDescription = document.querySelector("#overlay-description");
@@ -3298,6 +3312,12 @@ function attachEventListeners() {
   });
 
   sortMetaMenu?.addEventListener("keydown", handleSortMetaMenuKeydown);
+
+  playerComparisonToggleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openDataHubPlayerComparisonModal(button);
+    });
+  });
 
   chartToggleButton?.addEventListener("click", () => {
     if (state.isChartModalOpen) {
@@ -6820,6 +6840,221 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
   if (restoreFocus && state.isCompactViewport) {
     chartToggleButton?.focus?.();
   }
+}
+
+function syncDataHubPlayerComparisonTriggerState({ isExpanded = state.playerComparison.isOpen } = {}) {
+  playerComparisonToggleButtons.forEach((button) => {
+    button.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+  });
+}
+
+function setDataHubPlayerComparisonTriggerBusy(isBusy) {
+  // DataHub comparison trigger feedback:
+  // targets only the Compare buttons while the lazy React/CSS/data promises are
+  // resolving, so the duplicated utility rows stay visually synced.
+  playerComparisonToggleButtons.forEach((button) => {
+    button.classList.toggle("is-loading", Boolean(isBusy));
+    if (isBusy) {
+      button.setAttribute("aria-busy", "true");
+    } else {
+      button.removeAttribute("aria-busy");
+    }
+  });
+}
+
+function loadDataHubPlayerComparisonStyle() {
+  if (state.playerComparison.stylePromise) {
+    return state.playerComparison.stylePromise;
+  }
+
+  const existingLink = document.querySelector("link[data-datahub-player-comparison-style]");
+  if (existingLink) {
+    state.playerComparison.stylePromise = Promise.resolve(existingLink);
+    return state.playerComparison.stylePromise;
+  }
+
+  // DataHub comparison modal styling:
+  // load the scoped CSS only when Compare opens so the base DataHub render path
+  // does not request modal-specific styles up front.
+  state.playerComparison.stylePromise = new Promise((resolve, reject) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "../styles/datahub-player-comparison.css";
+    link.dataset.datahubPlayerComparisonStyle = "true";
+    link.addEventListener("load", () => resolve(link), { once: true });
+    link.addEventListener("error", () => reject(new Error("Unable to load DataHub player comparison styles.")), { once: true });
+    document.head.appendChild(link);
+  });
+
+  return state.playerComparison.stylePromise;
+}
+
+async function loadDataHubPlayerComparisonAssets() {
+  if (!state.playerComparison.modulePromise) {
+    // DataHub comparison React module:
+    // import the component tree only from this click-driven path so React and
+    // ReactDOM remain absent from the initial DataHub network waterfall.
+    state.playerComparison.modulePromise = import("../components/datahub-player-comparison/PlayerComparisonApp.js");
+  }
+
+  const [module] = await Promise.all([
+    state.playerComparison.modulePromise,
+    loadDataHubPlayerComparisonStyle(),
+  ]);
+
+  return module;
+}
+
+async function openDataHubPlayerComparisonModal(triggerButton = null) {
+  if (!playerComparisonRoot) {
+    return;
+  }
+
+  if (triggerButton instanceof HTMLButtonElement) {
+    state.playerComparison.triggerButton = triggerButton;
+  }
+
+  closeDataHubChartModal({ restoreFocus: false });
+  setDataHubPlayerComparisonTriggerBusy(true);
+
+  try {
+    const [module] = await Promise.all([
+      loadDataHubPlayerComparisonAssets(),
+      ensureDataHubGameLogsData(),
+    ]);
+
+    if (!state.statsRowsBase.length && state.rawSeasonRows.length) {
+      rebuildDataHubRows();
+    }
+
+    if (!state.playerComparison.controller) {
+      if (typeof module.mountDataHubPlayerComparison !== "function") {
+        throw new Error("DataHub player comparison module did not export a mount function.");
+      }
+
+      state.playerComparison.controller = module.mountDataHubPlayerComparison(playerComparisonRoot, {
+        ensureData: async () => {
+          await ensureDataHubGameLogsData();
+          return buildDataHubPlayerComparisonSnapshot();
+        },
+        getSnapshot: buildDataHubPlayerComparisonSnapshot,
+        close: () => {
+          state.playerComparison.controller?.close?.();
+        },
+        onClose: handleDataHubPlayerComparisonClosed,
+        restoreFocus: restoreDataHubPlayerComparisonFocus,
+      });
+    }
+
+    state.playerComparison.isOpen = true;
+    syncDataHubPlayerComparisonTriggerState({ isExpanded: true });
+    state.playerComparison.controller.open(buildDataHubPlayerComparisonSnapshot());
+  } catch (error) {
+    console.error("Unable to open DataHub player comparison modal.", error);
+    if (triggerButton instanceof HTMLElement) {
+      showDataHubTemporaryTooltip(triggerButton, "Comparison unavailable right now.");
+    }
+    handleDataHubPlayerComparisonClosed();
+  } finally {
+    setDataHubPlayerComparisonTriggerBusy(false);
+  }
+}
+
+function handleDataHubPlayerComparisonClosed() {
+  state.playerComparison.isOpen = false;
+  syncDataHubPlayerComparisonTriggerState({ isExpanded: false });
+}
+
+function restoreDataHubPlayerComparisonFocus() {
+  const triggerButton = state.playerComparison.triggerButton;
+  state.playerComparison.triggerButton = null;
+  if (triggerButton?.isConnected) {
+    triggerButton.focus?.();
+  }
+}
+
+function cloneDataHubComparisonStatsStore(store) {
+  const clone = Object.create(null);
+  Object.entries(store || {}).forEach(([outerKey, innerStore]) => {
+    clone[outerKey] = Object.create(null);
+    Object.entries(innerStore || {}).forEach(([innerKey, value]) => {
+      clone[outerKey][innerKey] = value && typeof value === "object"
+        ? { ...value }
+        : value;
+    });
+  });
+  return clone;
+}
+
+function buildDataHubPlayerComparisonPlayers() {
+  // DataHub comparison player list:
+  // derives selectable players from the already-normalized Stats rows only, so
+  // picks, rookie-only rows, and unsupported entities never enter the modal.
+  const seenPlayerIds = new Set();
+  return state.statsRowsBase
+    .map((row) => {
+      const meta = row?.__meta || null;
+      if (!meta?.playerId || !meta.hasGameLogsSupport || seenPlayerIds.has(meta.playerId)) {
+        return null;
+      }
+
+      const playerId = String(meta.playerId).trim();
+      const pos = String(meta.pos || row.POS || "").trim().toUpperCase();
+      if (!playerId || pos === "RDP") {
+        return null;
+      }
+
+      seenPlayerIds.add(playerId);
+      const rankCache = state.modalRankCache?.[playerId] || {};
+      const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
+      const name = String(meta.fullName || meta.name || row.PLAYER || "").trim() || playerId;
+      const posRank = Number.isFinite(rankCache.posRank)
+        ? rankCache.posRank
+        : parseDataHubPosRankNumber(meta.posRankText);
+
+      return {
+        id: playerId,
+        name,
+        displayName: name,
+        pos,
+        team,
+        age: Number.isFinite(meta.age) ? meta.age : toComparableNumber(row.AGE),
+        fpts: Number.isFinite(meta.fpts) ? meta.fpts : toComparableNumber(row.FPTS),
+        ppg: Number.isFinite(meta.ppg) ? meta.ppg : toComparableNumber(row.PPG),
+        gamesPlayed: Number.isFinite(meta.gmPlayed) ? meta.gmPlayed : toComparableNumber(row.G),
+        rank: Number.isFinite(rankCache.overallRank) ? rankCache.overallRank : meta.rank,
+        posRank,
+        ppgRank: Number.isFinite(rankCache.ppgPosRank) ? rankCache.ppgPosRank : null,
+        teamLogoSrc: team !== "FA" ? getDataHubTeamLogoSrc(team) : "",
+        ktc: Number.isFinite(meta.ktc) ? meta.ktc : null,
+        searchText: `${name} ${pos} ${team}`.toLowerCase(),
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => (Number(right.fpts) || 0) - (Number(left.fpts) || 0));
+}
+
+function buildDataHubPlayerComparisonSnapshot() {
+  const statLabels = {
+    ...DATAHUB_STAT_LABELS,
+    fpts: "FPTS",
+    fpt_ppr: "FPTS",
+    ppg: "PPG",
+    games_played: "G",
+    ceiling: "CL",
+    csty_pct: "CSTY%",
+    yds_total: "YDS(t)",
+    imp_per_g: "IMP/G",
+  };
+
+  return {
+    players: buildDataHubPlayerComparisonPlayers(),
+    weeklyStatsByWeek: cloneDataHubComparisonStatsStore(getDataHubCombinedWeeklyStats()),
+    seasonStatsByPlayerId: cloneDataHubComparisonStatsStore(state.playerSeasonStats),
+    seasonRanksByPlayerId: cloneDataHubComparisonStatsStore(state.playerSeasonRanks),
+    currentNflWeek: Number.isFinite(state.currentNflWeek) ? state.currentNflWeek : null,
+    statLabels,
+  };
 }
 
 function resizeDataHubHeroCharts() {
@@ -10455,6 +10690,7 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
 const DATAHUB_WEEKLY_META_HEADER_MAP = {
   VS: "opponent",
   vsRK: "opponent_rank",
+  INJ: "injury",
 };
 const DATAHUB_RADAR_STATS_CONFIG = {
   QB: {
@@ -11363,7 +11599,10 @@ async function ensureDataHubGameLogsData() {
     ]);
     const [seasonCsvText, seasonRanksCsvText, ...weeklyCsvText] = await Promise.all([
       fetchCsvText(),
-      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKS.csv", window.location.href)),
+      // DataHub season-rank CSV:
+      // keep the request case aligned to the shipped SZN_RKs.csv filename so
+      // case-sensitive hosts can hydrate ranks for modals and comparisons.
+      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKs.csv", window.location.href)),
       ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
         const week = index + 1;
         return fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${week}.csv`, window.location.href), { allowFailure: true });

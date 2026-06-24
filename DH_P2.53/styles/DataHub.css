@@ -2673,6 +2673,39 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
   fill: #1c1f26aa;
 }
 
+/* DataHub Compare trigger:
+   Targets only the new page-local React comparison launcher. It keeps the
+   duplicated desktop/mobile utility buttons compact and shows a loading pulse
+   while React, modal CSS, and weekly comparison data are lazy-loaded. */
+body[data-page="datahub"] .datahub-compare-trigger {
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .datahub-compare-trigger.is-loading {
+  color: rgba(237, 246, 255, 0.96);
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px rgba(116, 239, 255, 0.34),
+    0 8px 16px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+body[data-page="datahub"] .datahub-compare-trigger.is-loading .mini-chip__icon {
+  animation: datahub-compare-trigger-pulse 0.9s ease-in-out infinite alternate;
+  fill: rgba(116, 239, 255, 0.72);
+}
+
+@keyframes datahub-compare-trigger-pulse {
+  from {
+    opacity: 0.56;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
 .mini-chip--pick-values {
   letter-spacing: 0.08em;
 }

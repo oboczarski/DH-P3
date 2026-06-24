@@ -554,6 +554,32 @@
               <span>KEY</span>
             </button>
 
+            <!-- DataHub player comparison trigger:
+                 opens the lazy React comparison modal from the desktop control
+                 mount without loading React during the normal page startup. -->
+            <button
+              type="button"
+              class="mini-chip mini-chip--icon datahub-compare-trigger"
+              data-player-comparison-toggle
+              aria-controls="player-comparison-modal-root"
+              aria-expanded="false"
+            >
+              <svg
+                class="mini-chip__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M7 3v18"></path>
+                <path d="M17 3v18"></path>
+                <path d="M3 8h8"></path>
+                <path d="M13 16h8"></path>
+                <path d="m8 5 3 3-3 3"></path>
+                <path d="m16 13-3 3 3 3"></path>
+              </svg>
+              <span>COMPARE</span>
+            </button>
+
             <div class="search-shell">
               <svg
                 class="search-shell__icon"
@@ -819,6 +845,32 @@
               <span>KEY</span>
             </button>
 
+            <!-- DataHub player comparison trigger:
+                 duplicated in the mobile control mount so opening the lazy
+                 React comparison modal stays breakpoint-local like search. -->
+            <button
+              type="button"
+              class="mini-chip mini-chip--icon datahub-compare-trigger"
+              data-player-comparison-toggle
+              aria-controls="player-comparison-modal-root"
+              aria-expanded="false"
+            >
+              <svg
+                class="mini-chip__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M7 3v18"></path>
+                <path d="M17 3v18"></path>
+                <path d="M3 8h8"></path>
+                <path d="M13 16h8"></path>
+                <path d="m8 5 3 3-3 3"></path>
+                <path d="m16 13-3 3 3 3"></path>
+              </svg>
+              <span>COMPARE</span>
+            </button>
+
             <div class="search-shell">
               <svg
                 class="search-shell__icon"
@@ -1009,6 +1061,11 @@
         </span>
       </button>
     </div>
+
+    <!-- DataHub player comparison React root:
+         intentionally empty at startup; DataHub.js lazy-loads React, scoped
+         modal styles, and component modules only after Compare is opened. -->
+    <div id="player-comparison-modal-root"></div>
 
     <!-- Mobile chart modal:
          this shared popup shell hosts the active Stats or Trade Values chart

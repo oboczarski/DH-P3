@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub search clear button: bump the cache so browsers pick up the custom
-// mobile search affordance and the paired DataHub script/style updates.
-const CACHE_NAME = 'DH3.01A';
+// DataHub player comparison modal: bump the cache so browsers pick up the
+// lazy React bridge, scoped DataHub styles, and service-worker runtime rules.
+const CACHE_NAME = 'DH3.02A';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
