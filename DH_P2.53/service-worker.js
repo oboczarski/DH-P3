@@ -24,10 +24,11 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub lazy comparison modal: bump the cache so browsers pick up the new
-// Compare trigger, bridge script, and modal styles while the React island files
-// remain outside CORE_ASSET_PATHS for first-open lazy loading.
-const CACHE_NAME = 'DH3.02A';
+// DataHub player comparison revamp:
+// bump the cache so browsers pick up the new bridge and modal styles while the
+// React island files plus AllWks/threshold CSVs stay outside CORE_ASSET_PATHS
+// for first-open lazy loading.
+const CACHE_NAME = 'DH3.03A';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -1,9 +1,10 @@
 import {
-  COMPARISON_PLAYER_COLORS,
-  COMPARISON_POSITION_TONES,
   MAX_COMPARISON_PLAYERS,
   formatComparisonValue,
+  formatRank,
   getComparisonPosition,
+  getPlayerAccentColor,
+  getPlayerName,
   getSeasonStatKeys,
   getStatLabel,
   getWeeklyStatOptions,
@@ -11,20 +12,12 @@ import {
   toFiniteNumber,
 } from "./comparisonStats.js";
 import {
-  buildSeasonChartOption,
+  buildSeasonRadarOption,
   buildWeeklyChartOption,
 } from "./comparisonChartOptions.js";
 
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
-}
-
-function getPlayerName(player) {
-  return player?.name || player?.fullName || "Player";
-}
-
-function getTeamLogoSrc(player) {
-  return player?.teamLogoSrc || "";
 }
 
 function getInitialSelectedIds(payload) {
@@ -33,11 +26,16 @@ function getInitialSelectedIds(payload) {
     : [];
 }
 
+function getSelectedPlayers(playersById, selectedIds) {
+  return selectedIds
+    .map((id) => playersById.get(id))
+    .filter(Boolean);
+}
+
 function playerMatchesQuery(player, query) {
   if (!query) {
     return true;
   }
-
   return (player.searchText || normalizePlayerSearchText(player)).includes(query);
 }
 
@@ -47,29 +45,20 @@ function sortSearchResults(left, right, selectedIds) {
   if (leftSelected !== rightSelected) {
     return leftSelected ? -1 : 1;
   }
-
   const leftFpts = toFiniteNumber(left.fpts) ?? -Infinity;
   const rightFpts = toFiniteNumber(right.fpts) ?? -Infinity;
   if (leftFpts !== rightFpts) {
     return rightFpts - leftFpts;
   }
-
   return getPlayerName(left).localeCompare(getPlayerName(right));
 }
 
 function getSearchResults(players, query, selectedIds) {
   const normalizedQuery = query.trim().toLowerCase();
-  const results = players
+  return players
     .filter((player) => playerMatchesQuery(player, normalizedQuery))
-    .sort((left, right) => sortSearchResults(left, right, selectedIds));
-
-  return results.slice(0, normalizedQuery ? 14 : 10);
-}
-
-function getSelectedPlayers(playersById, selectedIds) {
-  return selectedIds
-    .map((id) => playersById.get(id))
-    .filter(Boolean);
+    .sort((left, right) => sortSearchResults(left, right, selectedIds))
+    .slice(0, normalizedQuery ? 14 : 10);
 }
 
 function getWeeklyDisplayValue(player, statKey) {
@@ -79,32 +68,30 @@ function getWeeklyDisplayValue(player, statKey) {
   if (!values.length) {
     return null;
   }
-
-  if (statKey === "fpts") {
-    return values.reduce((sum, value) => sum + value, 0);
-  }
-
-  return values[values.length - 1];
+  return statKey === "fpts"
+    ? values.reduce((sum, value) => sum + value, 0)
+    : values[values.length - 1];
 }
 
-function getChartFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys }) {
+function getFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys }) {
   if (mode === "season") {
-    return seasonStatKeys.slice(0, 5).map((statKey) => ({
+    return seasonStatKeys.slice(0, 6).map((statKey) => ({
       key: statKey,
       label: getStatLabel(statKey),
       values: selectedPlayers.map((player) => ({
         player,
         value: player?.seasonStats?.[statKey],
+        rank: player?.seasonPosRanks?.[statKey],
       })),
     }));
   }
-
   return selectedPlayers.map((player) => ({
     key: player.id,
     label: getPlayerName(player),
     values: [{
       player,
       value: getWeeklyDisplayValue(player, weeklyStatKey),
+      rank: null,
     }],
   }));
 }
@@ -132,23 +119,18 @@ export function createDataHubComparisonModal(React) {
   }
 
   function PlayerChip({ player, index, onRemove }) {
-    const color = COMPARISON_PLAYER_COLORS[index % COMPARISON_PLAYER_COLORS.length];
-    const posColor = COMPARISON_POSITION_TONES[player.pos] || color;
-
+    const color = getPlayerAccentColor(player, index);
     return h(
       "span",
       {
         className: "dh-compare-player-chip",
-        style: {
-          "--compare-player-color": color,
-          "--compare-pos-color": posColor,
-        },
+        style: { "--compare-player-color": color },
       },
       h("span", { className: "dh-compare-player-chip__dot", "aria-hidden": "true" }),
-      getTeamLogoSrc(player)
+      player.teamLogoSrc
         ? h("img", {
           className: "dh-compare-player-chip__logo",
-          src: getTeamLogoSrc(player),
+          src: player.teamLogoSrc,
           alt: "",
           loading: "eager",
         })
@@ -188,10 +170,10 @@ export function createDataHubComparisonModal(React) {
       h(
         "span",
         { className: "dh-compare-search-option__main" },
-        getTeamLogoSrc(player)
+        player.teamLogoSrc
           ? h("img", {
             className: "dh-compare-search-option__logo",
-            src: getTeamLogoSrc(player),
+            src: player.teamLogoSrc,
             alt: "",
             loading: "lazy",
           })
@@ -212,7 +194,72 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks }) {
+  function SummaryCard({ player, playerIndex, statKey }) {
+    const color = getPlayerAccentColor(player, playerIndex);
+    return h(
+      "article",
+      {
+        className: "dh-compare-summary-card",
+        style: { "--compare-player-color": color },
+      },
+      h(
+        "div",
+        { className: "dh-compare-summary-card__player" },
+        player.teamLogoSrc
+          ? h("img", { src: player.teamLogoSrc, alt: "", loading: "eager" })
+          : h("span", { className: "dh-compare-summary-card__logo-fallback" }, player.team || "FA"),
+        h(
+          "span",
+          { className: "dh-compare-summary-card__identity" },
+          h("strong", null, getPlayerName(player)),
+          h("span", null, `${player.pos || "FA"} · ${player.team || "FA"}`),
+        ),
+      ),
+      h(
+        "div",
+        { className: "dh-compare-summary-card__metric" },
+        h("span", null, `${getStatLabel(statKey)} Season`),
+        h("strong", null, formatComparisonValue(statKey, player?.seasonStats?.[statKey], { compact: true })),
+      ),
+      h(
+        "div",
+        { className: "dh-compare-summary-card__ranks" },
+        h("span", null, `OVR ${formatRank(player?.seasonOverallRanks?.[statKey])}`),
+        h("span", null, `${player.pos || "POS"}·${formatRank(player?.seasonPosRanks?.[statKey])}`),
+      ),
+    );
+  }
+
+  function ChartFallback({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys }) {
+    const rows = getFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
+    return h(
+      "div",
+      { className: "dh-compare-fallback" },
+      h("div", { className: "dh-compare-warning" }, "Chart renderer unavailable"),
+      h(
+        "div",
+        { className: "dh-compare-fallback__grid" },
+        rows.map((row) => h(
+          "div",
+          { key: row.key, className: "dh-compare-fallback__card" },
+          h("span", { className: "dh-compare-fallback__label" }, row.label),
+          row.values.map(({ player, value, rank }, index) => h(
+            "span",
+            {
+              key: `${row.key}-${player.id}`,
+              className: "dh-compare-fallback__value",
+              style: { "--compare-player-color": getPlayerAccentColor(player, index) },
+            },
+            mode === "season"
+              ? `${getPlayerName(player)} ${formatComparisonValue(row.key, value, { compact: true })} (${player.pos}·${formatRank(rank)})`
+              : `${getPlayerName(player)} ${formatComparisonValue(weeklyStatKey, value, { compact: true })}`,
+          )),
+        )),
+      ),
+    );
+  }
+
+  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -220,11 +267,10 @@ export function createDataHubComparisonModal(React) {
       if (!selectedPlayers.length) {
         return null;
       }
-
       return mode === "season"
-        ? buildSeasonChartOption({ players: selectedPlayers, statKeys: seasonStatKeys })
-        : buildWeeklyChartOption({ players: selectedPlayers, statKey: weeklyStatKey, weeks });
-    }, [mode, seasonStatKeys, selectedPlayers, weeklyStatKey, weeks]);
+        ? buildSeasonRadarOption({ players: selectedPlayers, statKeys: seasonStatKeys })
+        : buildWeeklyChartOption({ players: selectedPlayers, statKey: weeklyStatKey, weeks, thresholds });
+    }, [mode, seasonStatKeys, selectedPlayers, thresholds, weeklyStatKey, weeks]);
 
     useEffect(() => {
       setHasEcharts(Boolean(window.echarts));
@@ -235,18 +281,16 @@ export function createDataHubComparisonModal(React) {
       if (!element || !window.echarts || !chartOption) {
         return undefined;
       }
-
       const chart = chartInstanceRef.current || window.echarts.init(element, null, { renderer: "svg" });
       chartInstanceRef.current = chart;
       chart.setOption(chartOption, true);
-
       const resizeObserver = typeof ResizeObserver === "function"
         ? new ResizeObserver(() => chart.resize())
         : null;
       resizeObserver?.observe(element);
       const handleResize = () => chart.resize();
       window.addEventListener("resize", handleResize, { passive: true });
-
+      requestAnimationFrame(() => chart.resize());
       return () => {
         resizeObserver?.disconnect();
         window.removeEventListener("resize", handleResize);
@@ -261,49 +305,18 @@ export function createDataHubComparisonModal(React) {
     }, []);
 
     if (!selectedPlayers.length) {
-      return h(
-        "div",
-        { className: "dh-compare-empty" },
-        h("span", { className: "dh-compare-empty__title" }, "No players selected"),
-      );
+      return h("div", { className: "dh-compare-empty" }, h("span", null, "No players selected"));
     }
-
     if (!hasEcharts || !chartOption) {
-      const fallbackRows = getChartFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
-
-      return h(
-        "div",
-        { className: "dh-compare-fallback" },
-        h("div", { className: "dh-compare-warning" }, "Chart renderer unavailable"),
-        h(
-          "div",
-          { className: "dh-compare-fallback__grid" },
-          fallbackRows.map((row) => h(
-            "div",
-            { key: row.key, className: "dh-compare-fallback__card" },
-            h("span", { className: "dh-compare-fallback__label" }, row.label),
-            row.values.map(({ player, value }, index) => h(
-              "span",
-              {
-                key: `${row.key}-${player.id}`,
-                className: "dh-compare-fallback__value",
-                style: { "--compare-player-color": COMPARISON_PLAYER_COLORS[index % COMPARISON_PLAYER_COLORS.length] },
-              },
-              mode === "season"
-                ? `${getPlayerName(player)} ${formatComparisonValue(row.key, value, { compact: true })}`
-                : formatComparisonValue(weeklyStatKey, value, { compact: true }),
-            )),
-          )),
-        ),
-      );
+      return h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
     }
-
     return h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" });
   }
 
   function DataHubComparisonModal({ payload, onClose }) {
     const players = payload?.players || [];
     const weeks = payload?.weeks || [];
+    const thresholds = payload?.thresholds || {};
     const playersById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
     const [selectedIds, setSelectedIds] = useState(() => getInitialSelectedIds(payload));
     const [mode, setMode] = useState(payload?.defaults?.mode || "weekly");
@@ -313,17 +326,17 @@ export function createDataHubComparisonModal(React) {
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
     const searchInputRef = useRef(null);
     const skipSearchOpenOnFocusRef = useRef(false);
-    const dialogRef = useRef(null);
     const selectedPlayers = useMemo(() => getSelectedPlayers(playersById, selectedIds), [playersById, selectedIds]);
-    const weeklyStatOptions = useMemo(() => getWeeklyStatOptions(selectedPlayers), [selectedPlayers]);
+    const weeklyStatOptions = useMemo(() => getWeeklyStatOptions(selectedPlayers, thresholds), [selectedPlayers, thresholds]);
     const seasonStatKeys = useMemo(() => getSeasonStatKeys(selectedPlayers), [selectedPlayers]);
     const searchResults = useMemo(
       () => getSearchResults(players, query, selectedIds),
       [players, query, selectedIds],
     );
-    const selectionPosition = getComparisonPosition(selectedPlayers);
-    const isAtMax = selectedIds.length >= MAX_COMPARISON_PLAYERS;
     const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+    const isAtMax = selectedIds.length >= MAX_COMPARISON_PLAYERS;
+    const selectedPosition = getComparisonPosition(selectedPlayers);
+    const summaryStatKey = mode === "weekly" ? weeklyStatKey : "fpts";
 
     useEffect(() => {
       setSelectedIds(getInitialSelectedIds(payload));
@@ -341,8 +354,9 @@ export function createDataHubComparisonModal(React) {
     }, [weeklyStatKey, weeklyStatOptions]);
 
     useEffect(() => {
-      // The modal initially focuses the heading search for keyboard users while keeping the
-      // default chart unobscured until the user intentionally opens the player dropdown.
+      // DataHub comparison focus target:
+      // focus the heading search for keyboard users without auto-opening the
+      // dropdown over the default chart on first modal render.
       skipSearchOpenOnFocusRef.current = true;
       const frame = requestAnimationFrame(() => searchInputRef.current?.focus?.());
       return () => cancelAnimationFrame(frame);
@@ -350,15 +364,15 @@ export function createDataHubComparisonModal(React) {
 
     useEffect(() => {
       const handleKeydown = (event) => {
-        if (event.key === "Escape") {
-          if (isSearchOpen) {
-            setIsSearchOpen(false);
-            return;
-          }
-          onClose();
+        if (event.key !== "Escape") {
+          return;
         }
+        if (isSearchOpen) {
+          setIsSearchOpen(false);
+          return;
+        }
+        onClose();
       };
-
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
     }, [isSearchOpen, onClose]);
@@ -393,27 +407,20 @@ export function createDataHubComparisonModal(React) {
         setActiveOptionIndex((index) => Math.min(index + 1, Math.max(0, searchResults.length - 1)));
         return;
       }
-
       if (event.key === "ArrowUp") {
         event.preventDefault();
         setActiveOptionIndex((index) => Math.max(0, index - 1));
         return;
       }
-
       if (event.key === "Enter" && isSearchOpen) {
         event.preventDefault();
         const player = searchResults[activeOptionIndex];
-        if (!player) {
-          return;
-        }
-        const selected = selectedSet.has(player.id);
-        if (!selected && isAtMax) {
+        if (!player || (!selectedSet.has(player.id) && isAtMax)) {
           return;
         }
         togglePlayer(player.id);
         return;
       }
-
       if (event.key === "Backspace" && !query && selectedIds.length) {
         removePlayer(selectedIds[selectedIds.length - 1]);
       }
@@ -421,15 +428,10 @@ export function createDataHubComparisonModal(React) {
 
     return h(
       "div",
-      {
-        className: "dh-compare-modal",
-        onMouseDown: (event) => {
-          if (event.target === event.currentTarget) {
-            onClose();
-          }
-        },
-      },
-      // The backdrop owns overlay dismissal so clicks outside the dialog close only this DataHub modal.
+      { className: "dh-compare-modal" },
+      // DataHub comparison backdrop:
+      // closes only this lazy React modal and leaves the existing DataHub chart
+      // and game-log modal event wiring untouched.
       h("div", { className: "dh-compare-modal__overlay", "aria-hidden": "true", onMouseDown: onClose }),
       h(
         "section",
@@ -438,7 +440,6 @@ export function createDataHubComparisonModal(React) {
           role: "dialog",
           "aria-modal": "true",
           "aria-labelledby": "dh-compare-title",
-          ref: dialogRef,
           onMouseDown: (event) => event.stopPropagation(),
         },
         h(
@@ -446,19 +447,29 @@ export function createDataHubComparisonModal(React) {
           { className: "dh-compare-header" },
           h(
             "div",
-            { className: "dh-compare-title-block" },
+            { className: "dh-compare-heading" },
             h("span", { className: "dh-compare-eyebrow" }, "PLAYER COMPARISON"),
-            h("h2", { id: "dh-compare-title" }, mode === "season" ? "Season Multi-Stat" : "Weekly Single-Stat"),
+            h("h2", { id: "dh-compare-title" }, mode === "season" ? "Season Radar" : "Weekly Single-Stat"),
           ),
           h(
-            "button",
-            {
-              type: "button",
-              className: "dh-compare-close",
-              "aria-label": "Close comparison",
-              onClick: onClose,
-            },
-            "×",
+            "div",
+            { className: "dh-compare-header__actions" },
+            h(
+              "div",
+              { className: "dh-compare-mode-group", role: "group", "aria-label": "Comparison mode" },
+              h(ModeButton, { value: "weekly", active: mode === "weekly", onSelect: setMode }, "Weekly"),
+              h(ModeButton, { value: "season", active: mode === "season", onSelect: setMode }, "Season"),
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dh-compare-close",
+                "aria-label": "Close comparison",
+                onClick: onClose,
+              },
+              "×",
+            ),
           ),
           h(
             "div",
@@ -533,12 +544,6 @@ export function createDataHubComparisonModal(React) {
         h(
           "div",
           { className: "dh-compare-toolbar" },
-          h(
-            "div",
-            { className: "dh-compare-mode-group", role: "group", "aria-label": "Comparison mode" },
-            h(ModeButton, { value: "weekly", active: mode === "weekly", onSelect: setMode }, "Weekly"),
-            h(ModeButton, { value: "season", active: mode === "season", onSelect: setMode }, "Season"),
-          ),
           mode === "weekly"
             ? h(
               "div",
@@ -558,8 +563,18 @@ export function createDataHubComparisonModal(React) {
             : h(
               "div",
               { className: "dh-compare-season-context" },
-              selectionPosition ? `${selectionPosition} stat bundle` : "Cross-position stat bundle",
+              selectedPosition ? `${selectedPosition} positional radar` : "Cross-position radar bundle",
             ),
+        ),
+        h(
+          "section",
+          { className: "dh-compare-summary-grid", "aria-label": "Selected stat summary" },
+          selectedPlayers.map((player, index) => h(SummaryCard, {
+            key: player.id,
+            player,
+            playerIndex: index,
+            statKey: summaryStatKey,
+          })),
         ),
         h(
           "main",
@@ -570,6 +585,7 @@ export function createDataHubComparisonModal(React) {
             weeklyStatKey,
             seasonStatKeys,
             weeks,
+            thresholds,
           }),
         ),
       ),

@@ -2686,6 +2686,9 @@ const state = {
   playerSeasonRanks: Object.create(null),
   playerWeeklyStats: Object.create(null),
   weeklyStats: Object.create(null),
+  comparisonDataLoaded: false,
+  comparisonDataPromise: null,
+  comparisonData: null,
   liveWeeklyStats: Object.create(null),
   playerProjectionWeeks: Object.create(null),
   liveStatsLoaded: false,
@@ -3615,13 +3618,22 @@ function isElementVisible(element) {
 
 async function loadInitialData() {
   try {
-    const [csvText] = await Promise.all([
-      fetchCsvText(),
-      ensureDataHubSupplementalData(),
-    ]);
+    const csvText = await fetchCsvText();
     applyCsvText(csvText);
-    await ensureDataHubRookieData();
     hideOverlay();
+
+    // DataHub startup enrichment:
+    // SZN.csv is enough to render the Stats grid and enable the lazy Compare
+    // modal. KTC, ADP, and rookie enrichments continue in the background and
+    // rebuild the same cached rows when those slower feeds finish.
+    ensureDataHubSupplementalData()
+      .then(() => {
+        rebuildDataHubRows();
+        return ensureDataHubRookieData();
+      })
+      .catch((error) => {
+        console.error("Data Hub enrichment refresh failed.", error);
+      });
   } catch (error) {
     console.error(error);
     showOverlay({
@@ -6959,13 +6971,6 @@ async function ensureDataHubComparisonModule() {
   return dataHubComparisonModulePromise;
 }
 
-async function ensureDataHubComparisonStatsData() {
-  // Comparison stats hydration:
-  // reuse the existing game-log data loader so weekly CSV parsing, live stat
-  // overrides, and stat-value semantics stay aligned with the current modal.
-  await ensureDataHubGameLogsData();
-}
-
 function getDataHubComparisonReactRoot(ReactDOMClient) {
   if (!comparisonModalRoot || !ReactDOMClient?.createRoot) {
     return null;
@@ -7075,9 +7080,269 @@ function showDataHubComparisonLoadError(error) {
   closeButton.focus();
 }
 
+function getDataHubComparisonTeamLogoSrc(team) {
+  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
+  if (!teamKey || teamKey === "FA" || teamKey === "UD" || isMissingValue(teamKey) || /\d+(?:ST|ND|RD|TH)$/.test(teamKey)) {
+    return "";
+  }
+
+  return getDataHubTeamLogoSrc(teamKey);
+}
+
+function setDataHubComparisonStat(target, key, ...values) {
+  const value = values
+    .map((entry) => toComparableNumber(entry))
+    .find((entry) => Number.isFinite(entry));
+  if (Number.isFinite(value)) {
+    target[key] = value;
+  }
+}
+
+const DATAHUB_COMPARISON_ALL_WEEKS_URL = "../data/NFL-2025_Stats/AllWks_2025.csv";
+const DATAHUB_COMPARISON_THRESHOLDS_URL = "../data/NFL-2025_Stats/POS-STAT_THRESHOLDS.csv";
+const DATAHUB_COMPARISON_SEASON_URL = "../data/NFL-2025_Stats/SZN.csv";
+const DATAHUB_COMPARISON_SEASON_RANKS_URL = "../data/NFL-2025_Stats/SZN_RKs.csv";
+const DATAHUB_COMPARISON_META_KEYS = new Set(["WK", "SLPR_ID", "NM", "POS", "AGE", "TM", "VS"]);
+const DATAHUB_COMPARISON_SEASON_VALUE_KEYS = Object.freeze([
+  "fpts", "ppg", "games_played", "snp_pct", "yds_total", "imp", "opp",
+  "imp_per_g", "fpoe", "csty_pct", "ceiling", "pass_att", "pass_cmp",
+  "cmp_pct", "pass_yd", "pass_td", "pass_fd", "pass_int", "pass_sack",
+  "pass_rtg", "epa_per_db", "cpoe", "ttt", "prs_pct", "rush_att",
+  "rush_yd", "rush_td", "rush_fd", "ypc", "rush_yac", "yco_per_att",
+  "mtf", "mtf_per_att", "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd",
+  "rec_yar", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
+]);
+const DATAHUB_COMPARISON_QB_LOWER_BETTER = new Set(["ttt", "prs_pct", "pass_sack", "pass_int"]);
+
+// DataHub comparison full-prompt data bridge:
+// supersedes the first lightweight comparison payload while keeping the same
+// lazy React island entry point. The new path fetches AllWks/threshold data
+// only after Compare is opened, preserving the main DataHub page startup cost.
+async function ensureDataHubComparisonStatsData() {
+  if (state.comparisonDataLoaded && state.comparisonData) {
+    return;
+  }
+  if (state.comparisonDataPromise) {
+    await state.comparisonDataPromise;
+    return;
+  }
+
+  state.comparisonDataPromise = (async () => {
+    const [seasonCsvText, seasonRanksCsvText, allWeeksCsvText, thresholdCsvText] = await Promise.all([
+      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_URL, window.location.href)),
+      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
+      fetchDataHubText(new URL(DATAHUB_COMPARISON_ALL_WEEKS_URL, window.location.href)),
+      fetchDataHubText(new URL(DATAHUB_COMPARISON_THRESHOLDS_URL, window.location.href)),
+    ]);
+    const weeklyData = parseDataHubComparisonAllWeeksRows(parseCsv(allWeeksCsvText));
+    const thresholdData = parseDataHubComparisonThresholdRows(parseCsv(thresholdCsvText));
+    state.comparisonData = {
+      seasonStats: parseDataHubSeasonStatsRows(parseCsv(seasonCsvText)),
+      seasonRanks: parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText)),
+      thresholds: thresholdData.byPos,
+      thresholdStatKeys: thresholdData.statKeys,
+      weeklyRows: weeklyData.rows,
+      weeklyByPlayer: weeklyData.byPlayer,
+      weeklyRanks: computeDataHubComparisonWeeklyRanks(weeklyData.rows, thresholdData.byPos),
+    };
+    state.comparisonDataLoaded = true;
+  })()
+    .catch((error) => {
+      state.comparisonDataLoaded = false;
+      state.comparisonData = null;
+      throw error;
+    })
+    .finally(() => {
+      state.comparisonDataPromise = null;
+    });
+
+  await state.comparisonDataPromise;
+}
+
+function parseDataHubComparisonAllWeeksRows(rows) {
+  const parsedRows = [];
+  const byPlayer = Object.create(null);
+  rows.forEach((row) => {
+    const playerId = String(row.SLPR_ID || row.slpr_id || "").trim();
+    const week = toComparableNumber(row.WK);
+    if (!playerId || !Number.isFinite(week)) {
+      return;
+    }
+    const stats = {};
+    Object.entries(row).forEach(([key, value]) => {
+      if (DATAHUB_COMPARISON_META_KEYS.has(key)) {
+        return;
+      }
+      const numericValue = toComparableNumber(value);
+      if (Number.isFinite(numericValue)) {
+        stats[key] = numericValue;
+      }
+    });
+    const entry = {
+      week,
+      playerId,
+      name: String(row.NM || "").trim(),
+      pos: String(row.POS || "").trim().toUpperCase(),
+      team: String(row.TM || "").trim().toUpperCase(),
+      opponent: String(row.VS || "").trim(),
+      stats,
+    };
+    parsedRows.push(entry);
+    if (!byPlayer[playerId]) {
+      byPlayer[playerId] = Object.create(null);
+    }
+    byPlayer[playerId][week] = entry;
+  });
+  return { rows: parsedRows, byPlayer };
+}
+
+function parseDataHubComparisonThresholdRows(rows) {
+  const byPos = Object.create(null);
+  const statKeys = new Set();
+  rows.forEach((row) => {
+    const pos = String(row.POS || "").trim().toUpperCase();
+    const stat = String(row.STAT || "").trim();
+    const category = String(row.CATEGORY || "").trim().toUpperCase();
+    const value = toComparableNumber(row.VALUE);
+    if (!pos || !stat || !category || !Number.isFinite(value)) {
+      return;
+    }
+    if (!byPos[pos]) byPos[pos] = Object.create(null);
+    if (!byPos[pos][stat]) byPos[pos][stat] = Object.create(null);
+    byPos[pos][stat][category] = {
+      value,
+      operator: String(row.OPERATOR || "").trim(),
+      altOperator: String(row.ALT_OPERATOR || "").trim(),
+    };
+    statKeys.add(stat);
+  });
+  return { byPos, statKeys: Array.from(statKeys) };
+}
+
+function isDataHubComparisonLowerBetter(pos, statKey, thresholds = state.comparisonData?.thresholds) {
+  const safePos = String(pos || "").trim().toUpperCase();
+  if (safePos === "QB" && DATAHUB_COMPARISON_QB_LOWER_BETTER.has(statKey)) {
+    return true;
+  }
+  const threshold = thresholds?.[safePos]?.[statKey];
+  return Boolean(threshold && Object.values(threshold).some((entry) => entry?.altOperator));
+}
+
+function isDataHubComparisonWeeklyRankQualified(entry) {
+  const pos = entry?.pos;
+  const stats = entry?.stats || {};
+  if (pos === "QB") return (Number(stats.pass_att) || 0) >= 10;
+  if (pos === "RB") return (Number(stats.rush_att) || 0) >= 5;
+  if (pos === "WR" || pos === "TE") return (Number(stats.rr) || 0) >= 10;
+  return false;
+}
+
+function computeDataHubComparisonWeeklyRanks(weeklyRows, thresholds) {
+  const ranks = Object.create(null);
+  const grouped = new Map();
+  weeklyRows
+    .filter(isDataHubComparisonWeeklyRankQualified)
+    .forEach((entry) => {
+      const key = `${entry.week}:${entry.pos}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(entry);
+    });
+
+  grouped.forEach((entries) => {
+    const pos = entries[0]?.pos;
+    Object.keys(thresholds?.[pos] || {}).forEach((statKey) => {
+      const values = entries
+        .map((entry) => ({
+          entry,
+          value: getDataHubGameLogStatValue(statKey, entry.stats),
+        }))
+        .filter((item) => Number.isFinite(item.value));
+      if (!values.length) {
+        return;
+      }
+      const lowerBetter = isDataHubComparisonLowerBetter(pos, statKey, thresholds);
+      values.sort((left, right) => lowerBetter ? left.value - right.value : right.value - left.value);
+      let currentRank = 0;
+      let previousValue = null;
+      values.forEach((item, index) => {
+        if (previousValue === null || item.value !== previousValue) {
+          currentRank = index + 1;
+          previousValue = item.value;
+        }
+        if (!ranks[item.entry.week]) ranks[item.entry.week] = Object.create(null);
+        if (!ranks[item.entry.week][item.entry.playerId]) ranks[item.entry.week][item.entry.playerId] = Object.create(null);
+        ranks[item.entry.week][item.entry.playerId][statKey] = currentRank;
+      });
+    });
+  });
+  return ranks;
+}
+
+function assignDataHubComparisonRanks(items, lowerBetter) {
+  const ranks = Object.create(null);
+  const sorted = items
+    .filter((item) => Number.isFinite(item.value))
+    .sort((left, right) => lowerBetter ? left.value - right.value : right.value - left.value);
+  let currentRank = 0;
+  let previousValue = null;
+  sorted.forEach((item, index) => {
+    if (previousValue === null || item.value !== previousValue) {
+      currentRank = index + 1;
+      previousValue = item.value;
+    }
+    ranks[item.playerId] = currentRank;
+  });
+  return ranks;
+}
+
+function computeDataHubComparisonSeasonRankSets(players) {
+  const overall = Object.create(null);
+  const positional = Object.create(null);
+  const statKeys = new Set();
+  players.forEach((player) => {
+    Object.keys(player.seasonStats || {}).forEach((statKey) => statKeys.add(statKey));
+  });
+
+  statKeys.forEach((statKey) => {
+    const allItems = players.map((player) => ({
+      playerId: player.id,
+      pos: player.pos,
+      value: toComparableNumber(player.seasonStats?.[statKey]),
+    })).filter((item) => Number.isFinite(item.value));
+    if (allItems.length) {
+      const lowerBetter = allItems.length > 0 && allItems.every((item) => isDataHubComparisonLowerBetter(item.pos, statKey));
+      const assigned = assignDataHubComparisonRanks(allItems, lowerBetter);
+      Object.entries(assigned).forEach(([playerId, rank]) => {
+        if (!overall[playerId]) overall[playerId] = Object.create(null);
+        overall[playerId][statKey] = rank;
+      });
+    }
+
+    ["QB", "RB", "WR", "TE"].forEach((pos) => {
+      const posItems = allItems.filter((item) => item.pos === pos);
+      if (!posItems.length) return;
+      const assigned = assignDataHubComparisonRanks(posItems, isDataHubComparisonLowerBetter(pos, statKey));
+      Object.entries(assigned).forEach(([playerId, rank]) => {
+        if (!positional[playerId]) positional[playerId] = Object.create(null);
+        positional[playerId][statKey] = rank;
+      });
+    });
+  });
+  return { overall, positional };
+}
+
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
-  const defaultPlayers = getDefaultComparisonPlayers(players);
+  const computedRanks = computeDataHubComparisonSeasonRankSets(players);
+  const enrichedPlayers = players.map((player) => ({
+    ...player,
+    seasonOverallRanks: {
+      ...(computedRanks.overall[player.id] || {}),
+      ...(player.seasonOverallRanks || {}),
+    },
+    seasonPosRanks: computedRanks.positional[player.id] || {},
+  }));
+  const defaultPlayers = getDefaultComparisonPlayers(enrichedPlayers);
 
   return {
     revision: Date.now(),
@@ -7088,42 +7353,37 @@ function buildDataHubComparisonPayload() {
       weeklyStat: "fpts",
       selectedPlayerIds: defaultPlayers.map((player) => player.id),
     },
-    statCatalog: {
-      weekly: [...DATAHUB_COMPARISON_WEEKLY_STAT_KEYS],
-      season: [...DATAHUB_COMPARISON_SEASON_STAT_KEYS],
-    },
-    players,
+    thresholds: state.comparisonData?.thresholds || Object.create(null),
+    players: enrichedPlayers,
   };
 }
 
 function buildDataHubComparisonPlayers() {
-  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
   return state.statsRowsBase
-    .map((row) => buildDataHubComparisonPlayer(row, combinedWeeklyStats))
+    .map((row) => buildDataHubComparisonPlayer(row))
     .filter(Boolean)
     .sort((left, right) => {
       const leftFpts = Number.isFinite(left.fpts) ? left.fpts : -Infinity;
       const rightFpts = Number.isFinite(right.fpts) ? right.fpts : -Infinity;
-      if (leftFpts !== rightFpts) {
-        return rightFpts - leftFpts;
-      }
+      if (leftFpts !== rightFpts) return rightFpts - leftFpts;
       return left.name.localeCompare(right.name);
     });
 }
 
-function buildDataHubComparisonPlayer(row, combinedWeeklyStats) {
+function buildDataHubComparisonPlayer(row) {
   const meta = row?.__meta || {};
   const playerId = String(meta.playerId || row?.SLPR_ID || "").trim();
   const pos = String(meta.pos || row?.POS || "").trim().toUpperCase();
-  if (!playerId || !pos || pos === "RDP" || !meta.hasGameLogsSupport) {
+  const weeklyByPlayer = state.comparisonData?.weeklyByPlayer?.[playerId] || null;
+  if (!playerId || !pos || pos === "RDP" || !weeklyByPlayer) {
     return null;
   }
 
-  const name = String(meta.displayName || meta.name || row.PLAYER || "").trim();
+  const name = String(meta.displayName || meta.name || row.PLAYER || row.NM || "").trim();
   const fullName = String(meta.fullName || name).trim();
   const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
   const seasonStats = buildDataHubComparisonSeasonStats(playerId, row);
-  const weeklySeries = buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats);
+  const seasonOverallRanks = buildDataHubComparisonSeasonRanks(playerId);
 
   return {
     id: playerId,
@@ -7136,24 +7396,16 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats) {
     rank: Number.isFinite(meta.rank) ? meta.rank : toComparableNumber(row.RK),
     fpts: Number.isFinite(seasonStats.fpts) ? seasonStats.fpts : meta.fpts,
     ppg: Number.isFinite(seasonStats.ppg) ? seasonStats.ppg : meta.ppg,
-    hasGameLogsSupport: Boolean(meta.hasGameLogsSupport),
+    hasGameLogsSupport: true,
     searchText: [name, fullName, pos, team].filter(Boolean).join(" ").toLowerCase(),
     seasonStats,
-    weeklySeries,
+    seasonOverallRanks,
+    weeklySeries: buildDataHubComparisonWeeklySeries(playerId),
   };
 }
 
-function getDataHubComparisonTeamLogoSrc(team) {
-  const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
-  if (!teamKey || teamKey === "FA" || teamKey === "UD" || isMissingValue(teamKey) || /\d+(?:ST|ND|RD|TH)$/.test(teamKey)) {
-    return "";
-  }
-
-  return getDataHubTeamLogoSrc(teamKey);
-}
-
 function buildDataHubComparisonSeasonStats(playerId, row) {
-  const sourceStats = state.playerSeasonStats?.[playerId] || {};
+  const sourceStats = state.comparisonData?.seasonStats?.[playerId] || state.playerSeasonStats?.[playerId] || {};
   const meta = row?.__meta || {};
   const stats = {};
 
@@ -7163,21 +7415,36 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
     }
   });
 
-  setDataHubComparisonStat(stats, "fpts", sourceStats.fpts_ppr, sourceStats.fpt_ppr, sourceStats.fpts, meta.fpts, row.FPTS);
+  setDataHubComparisonStat(stats, "fpts", sourceStats.fpts_ppr, sourceStats.fpt_ppr, sourceStats.fpts, meta.fpts, row.FPTS, row.FPT_PPR);
   setDataHubComparisonStat(stats, "ppg", sourceStats.ppg, meta.ppg, row.PPG);
-  setDataHubComparisonStat(stats, "games_played", sourceStats.games_played, meta.gmPlayed, row.G);
-  setDataHubComparisonStat(stats, "yds_total", sourceStats.yds_total, row["YDS(t)"]);
-  setDataHubComparisonStat(stats, "imp_per_g", sourceStats.imp_per_g, row["IMP/G"]);
-  setDataHubComparisonStat(stats, "csty_pct", sourceStats.csty_pct, row["CSTY%"]);
-  setDataHubComparisonStat(stats, "ceiling", sourceStats.ceiling, row.CL);
-
-  DATAHUB_COMPARISON_SEASON_STAT_KEYS.forEach((key) => {
+  setDataHubComparisonStat(stats, "games_played", sourceStats.games_played, meta.gmPlayed, row.G, row.GM);
+  DATAHUB_COMPARISON_SEASON_VALUE_KEYS.forEach((key) => {
     if (stats[key] === undefined) {
-      setDataHubComparisonStat(stats, key, row[getDataHubComparisonRowAlias(key)]);
+      setDataHubComparisonStat(stats, key, sourceStats[key], row[getDataHubComparisonRowAlias(key)]);
     }
   });
-
+  if (stats.yds_total === undefined) {
+    const totalYards = (Number(stats.pass_yd) || 0) + (Number(stats.rush_yd) || 0) + (Number(stats.rec_yd) || 0);
+    if (totalYards) stats.yds_total = totalYards;
+  }
   return stats;
+}
+
+function buildDataHubComparisonSeasonRanks(playerId) {
+  const sourceRanks = state.comparisonData?.seasonRanks?.[playerId] || state.playerSeasonRanks?.[playerId] || {};
+  const ranks = {};
+  Object.entries(sourceRanks).forEach(([key, value]) => {
+    if (Number.isFinite(value)) {
+      ranks[key] = value;
+    }
+  });
+  setDataHubComparisonStat(ranks, "fpts", sourceRanks.fpt_ppr, sourceRanks.fpts, sourceRanks.fpts_ppr);
+  DATAHUB_COMPARISON_SEASON_VALUE_KEYS.forEach((key) => {
+    if (ranks[key] === undefined) {
+      setDataHubComparisonStat(ranks, key, sourceRanks[key]);
+    }
+  });
+  return ranks;
 }
 
 function getDataHubComparisonRowAlias(statKey) {
@@ -7187,16 +7454,26 @@ function getDataHubComparisonRowAlias(statKey) {
     cmp_pct: "CMP%",
     pass_yd: "paYDS",
     pass_td: "paTD",
+    pass_fd: "pa1D",
     pass_int: "INT",
     pass_sack: "SAC",
     pass_rtg: "paRTG",
+    epa_per_db: "EPA/DB",
+    cpoe: "CPOE",
+    ttt: "TTT",
+    prs_pct: "PRS%",
     rush_att: "CAR",
     rush_yd: "ruYDS",
     rush_td: "ruTD",
+    rush_fd: "ru1D",
     rush_yac: "YCO",
+    yco_per_att: "YCO/A",
+    mtf_per_att: "MTF/A",
     rec_tgt: "TGT",
     rec_yd: "recYDS",
     rec_td: "recTD",
+    rec_fd: "rec1D",
+    rec_yar: "YAC",
     ts_per_rr: "TS%",
     first_down_rec_rate: "1DRR",
     games_played: "G",
@@ -7210,33 +7487,17 @@ function getDataHubComparisonRowAlias(statKey) {
   return aliases[statKey] || statKey;
 }
 
-function setDataHubComparisonStat(target, key, ...values) {
-  const value = values
-    .map((entry) => toComparableNumber(entry))
-    .find((entry) => Number.isFinite(entry));
-  if (Number.isFinite(value)) {
-    target[key] = value;
-  }
-}
-
-function buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats) {
+function buildDataHubComparisonWeeklySeries(playerId) {
+  const weeklyByPlayer = state.comparisonData?.weeklyByPlayer?.[playerId] || {};
+  const weeklyRanks = state.comparisonData?.weeklyRanks || {};
   return Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
     const week = index + 1;
-    const sourceStats = combinedWeeklyStats?.[week]?.[playerId] || null;
-    const stats = {};
-    if (sourceStats) {
-      DATAHUB_COMPARISON_WEEKLY_STAT_KEYS.forEach((statKey) => {
-        const value = getDataHubGameLogStatValue(statKey, sourceStats);
-        if (Number.isFinite(value)) {
-          stats[statKey] = value;
-        }
-      });
-    }
-
+    const sourceEntry = weeklyByPlayer[week] || null;
     return {
       week,
-      opponent: sourceStats?.opponent || "",
-      stats,
+      opponent: sourceEntry?.opponent || "",
+      stats: sourceEntry?.stats ? { ...sourceEntry.stats } : {},
+      ranks: weeklyRanks?.[week]?.[playerId] || {},
     };
   });
 }
@@ -7255,19 +7516,12 @@ function getDefaultComparisonPlayers(players) {
     .map((group) => group.sort((left, right) => right.fpts - left.fpts))
     .filter((group) => group.length >= 2)
     .sort((left, right) => {
-      if (left[0].fpts !== right[0].fpts) {
-        return right[0].fpts - left[0].fpts;
-      }
+      if (left[0].fpts !== right[0].fpts) return right[0].fpts - left[0].fpts;
       return right[1].fpts - left[1].fpts;
     });
-
-  if (rankedGroups.length) {
-    return rankedGroups[0].slice(0, 2);
-  }
-
-  return players
-    .filter((player) => player.hasGameLogsSupport)
-    .slice(0, 2);
+  return rankedGroups.length
+    ? rankedGroups[0].slice(0, 2)
+    : players.filter((player) => player.hasGameLogsSupport).slice(0, 2);
 }
 
 function resizeDataHubHeroCharts() {
@@ -11811,7 +12065,7 @@ async function ensureDataHubGameLogsData() {
     ]);
     const [seasonCsvText, seasonRanksCsvText, ...weeklyCsvText] = await Promise.all([
       fetchCsvText(),
-      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKS.csv", window.location.href)),
+      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKs.csv", window.location.href)),
       ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
         const week = index + 1;
         return fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${week}.csv`, window.location.href), { allowFailure: true });
