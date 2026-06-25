@@ -11,23 +11,31 @@ import {
   DEFAULT_WEEKLY_STAT,
   MAX_SELECTED_PLAYERS,
   buildDefaultSelection,
-  buildSeasonMetricRows,
-  buildWeeklyComparisonSeries,
+  buildSeasonRadarData,
+  buildWeeklyChartData,
+  buildWeeklySummaryCards,
   filterPlayers,
   getPositionAccentRank,
   getSelectedPlayers,
   resolveStatLabel,
   resolveWeeklyStatOptions,
 } from "./comparisonData.js";
-import { SeasonMultiStatChart, WeeklyLineChart } from "./comparisonCharts.js";
+import { SeasonRadarComparison, WeeklyEChartsComparison } from "./comparisonCharts.js";
 
 const h = React.createElement;
 
 const EMPTY_SNAPSHOT = Object.freeze({
   players: [],
+  weeks: Object.freeze([]),
   weeklyStatsByWeek: Object.freeze({}),
+  weeklyRanksByWeekStatPlayer: Object.freeze({}),
+  thresholdsByPositionStat: Object.freeze({}),
+  statOptions: Object.freeze([]),
   seasonStatsByPlayerId: Object.freeze({}),
   seasonRanksByPlayerId: Object.freeze({}),
+  seasonOverallRanksByStatPlayer: Object.freeze({}),
+  seasonPosRanksByStatPlayer: Object.freeze({}),
+  radarStatSets: Object.freeze({ qb: Object.freeze([]), skill: Object.freeze([]) }),
   currentNflWeek: null,
   statLabels: Object.freeze({}),
 });
@@ -37,9 +45,16 @@ function normalizeSnapshot(snapshot) {
     ...EMPTY_SNAPSHOT,
     ...(snapshot || {}),
     players: Array.isArray(snapshot?.players) ? snapshot.players : [],
+    weeks: Array.isArray(snapshot?.weeks) ? snapshot.weeks : [],
     weeklyStatsByWeek: snapshot?.weeklyStatsByWeek || {},
+    weeklyRanksByWeekStatPlayer: snapshot?.weeklyRanksByWeekStatPlayer || {},
+    thresholdsByPositionStat: snapshot?.thresholdsByPositionStat || {},
+    statOptions: Array.isArray(snapshot?.statOptions) ? snapshot.statOptions : [],
     seasonStatsByPlayerId: snapshot?.seasonStatsByPlayerId || {},
     seasonRanksByPlayerId: snapshot?.seasonRanksByPlayerId || {},
+    seasonOverallRanksByStatPlayer: snapshot?.seasonOverallRanksByStatPlayer || {},
+    seasonPosRanksByStatPlayer: snapshot?.seasonPosRanksByStatPlayer || {},
+    radarStatSets: snapshot?.radarStatSets || { qb: [], skill: [] },
     statLabels: snapshot?.statLabels || {},
   };
 }
@@ -64,6 +79,10 @@ function formatPlayerMeta(player) {
     parts.push(rank);
   }
   return parts.join(" | ");
+}
+
+function formatRank(rank, prefix = "#") {
+  return Number.isFinite(rank) ? `${prefix}${Math.round(rank)}` : "NA";
 }
 
 function PlayerChip({ player, onRemove }) {
@@ -184,6 +203,60 @@ function PlayerSearch({
   );
 }
 
+function WeeklySummaryCards({ cards }) {
+  if (!cards?.length) {
+    return null;
+  }
+  return h(
+    "div",
+    { className: "datahub-player-comparison-summary", "aria-label": "Selected stat season summary" },
+    cards.map((card) =>
+      h(
+        "article",
+        {
+          key: card.player.id,
+          className: `datahub-player-comparison-summary-card datahub-player-comparison-summary-card--${String(card.player.pos || "").toLowerCase()}`,
+          style: { "--series-color": card.color },
+        },
+        h(
+          "div",
+          { className: "datahub-player-comparison-summary-card__head" },
+          card.player.teamLogoSrc
+            ? h("img", {
+                className: "datahub-player-comparison-summary-card__logo",
+                src: card.player.teamLogoSrc,
+                alt: "",
+                loading: "lazy",
+              })
+            : h("span", { className: "datahub-player-comparison-summary-card__team" }, card.player.team || "FA"),
+          h(
+            "span",
+            { className: "datahub-player-comparison-summary-card__player" },
+            h("strong", null, card.player.name),
+            h("small", null, `${card.player.pos} | ${card.player.team}`),
+          ),
+        ),
+        h(
+          "div",
+          { className: "datahub-player-comparison-summary-card__body" },
+          h(
+            "span",
+            { className: "datahub-player-comparison-summary-card__value" },
+            card.displayValue,
+            h("small", null, card.statLabel),
+          ),
+          h(
+            "span",
+            { className: "datahub-player-comparison-summary-card__ranks" },
+            h("span", null, `OVR ${formatRank(card.overallRank)}`),
+            h("span", null, `${card.player.pos} ${formatRank(card.posRank, "")}`),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 function PlayerComparisonRoot({ api, subscribe }) {
   const [isOpen, setIsOpen] = useState(false);
   const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
@@ -231,8 +304,8 @@ function PlayerComparisonRoot({ api, subscribe }) {
     document.body.classList.add("datahub-player-comparison-open");
     requestAnimationFrame(() => {
       // Comparison modal initial focus:
-      // focus the dialog shell instead of the search field so the default chart
-      // remains visible immediately when the modal opens.
+      // focus the dialog shell so the default weekly ECharts comparison is the
+      // first visible state instead of an open search menu covering the chart.
       dialogRef.current?.focus?.({ preventScroll: true });
     });
 
@@ -296,22 +369,17 @@ function PlayerComparisonRoot({ api, subscribe }) {
     () => filterPlayers(snapshot.players, deferredQuery, selectedIds),
     [deferredQuery, selectedIds, snapshot.players],
   );
-  const weeklySeries = useMemo(
-    () => buildWeeklyComparisonSeries({
-      selectedPlayers,
-      weeklyStatsByWeek: snapshot.weeklyStatsByWeek,
-      statKey: weeklyStat,
-    }),
-    [selectedPlayers, snapshot.weeklyStatsByWeek, weeklyStat],
+  const weeklyChartData = useMemo(
+    () => buildWeeklyChartData({ snapshot, selectedPlayers, statKey: weeklyStat }),
+    [selectedPlayers, snapshot, weeklyStat],
   );
-  const seasonMetrics = useMemo(
-    () => buildSeasonMetricRows({
-      selectedPlayers,
-      seasonStatsByPlayerId: snapshot.seasonStatsByPlayerId,
-      seasonRanksByPlayerId: snapshot.seasonRanksByPlayerId,
-      statLabels: snapshot.statLabels,
-    }),
-    [selectedPlayers, snapshot.seasonRanksByPlayerId, snapshot.seasonStatsByPlayerId, snapshot.statLabels],
+  const weeklySummaryCards = useMemo(
+    () => buildWeeklySummaryCards({ snapshot, selectedPlayers, statKey: weeklyStat }),
+    [selectedPlayers, snapshot, weeklyStat],
+  );
+  const radarData = useMemo(
+    () => buildSeasonRadarData({ snapshot, selectedPlayers }),
+    [selectedPlayers, snapshot],
   );
 
   useEffect(() => {
@@ -326,8 +394,8 @@ function PlayerComparisonRoot({ api, subscribe }) {
 
   const togglePlayer = useCallback((player) => {
     // Heading player selector:
-    // close the dropdown after each toggle so mobile users immediately see the
-    // updated chart instead of a stale menu covering the comparison surface.
+    // toggles selected comparison players without introducing a table, then
+    // closes the dropdown so mobile users immediately see the updated chart.
     setSelectedIds((previous) => {
       if (previous.includes(player.id)) {
         return previous.filter((id) => id !== player.id);
@@ -401,7 +469,7 @@ function PlayerComparisonRoot({ api, subscribe }) {
           "div",
           { className: "datahub-player-comparison-title-block" },
           h("span", { className: "datahub-player-comparison-kicker" }, "PLAYER COMPARISON"),
-          h("h2", { id: "player-comparison-modal-title" }, mode === "weekly" ? `Weekly ${activeStatLabel}` : "Season Multi-Stat"),
+          h("h2", { id: "player-comparison-modal-title" }, mode === "weekly" ? `Weekly ${activeStatLabel}` : "Season Radar"),
           h("p", { id: "player-comparison-modal-context" }, selectedSummary),
         ),
         h(
@@ -494,14 +562,17 @@ function PlayerComparisonRoot({ api, subscribe }) {
         { className: "datahub-player-comparison-body" },
         selectedPlayers.length
           ? mode === "weekly"
-            ? h(WeeklyLineChart, {
-                weeklySeries,
-                statLabel: activeStatLabel,
-              })
-            : h(SeasonMultiStatChart, {
-                metrics: seasonMetrics,
-                selectedPlayers,
-              })
+            ? h(
+                "div",
+                { className: "datahub-player-comparison-view datahub-player-comparison-view--weekly" },
+                h(WeeklySummaryCards, { cards: weeklySummaryCards }),
+                h(WeeklyEChartsComparison, { chartData: weeklyChartData }),
+              )
+            : h(
+                "div",
+                { className: "datahub-player-comparison-view datahub-player-comparison-view--season" },
+                h(SeasonRadarComparison, { radarData }),
+              )
           : h(
               "div",
               { className: "datahub-player-comparison-empty datahub-player-comparison-empty--open" },

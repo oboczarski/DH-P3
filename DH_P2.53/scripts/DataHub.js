@@ -2660,6 +2660,8 @@ const state = {
     controller: null,
     isOpen: false,
     triggerButton: null,
+    dataPromise: null,
+    dataLoaded: false,
   },
   ktcSheetData: {
     "1-QB": createEmptyKtcSheetStore(),
@@ -2690,6 +2692,11 @@ const state = {
   playerSeasonRanks: Object.create(null),
   playerWeeklyStats: Object.create(null),
   weeklyStats: Object.create(null),
+  playerComparisonThresholds: Object.create(null),
+  playerComparisonStatOptions: [],
+  playerComparisonWeeklyRanks: Object.create(null),
+  playerComparisonSeasonOverallRanks: Object.create(null),
+  playerComparisonSeasonPosRanks: Object.create(null),
   liveWeeklyStats: Object.create(null),
   playerProjectionWeeks: Object.create(null),
   liveStatsLoaded: false,
@@ -6920,7 +6927,7 @@ async function openDataHubPlayerComparisonModal(triggerButton = null) {
   try {
     const [module] = await Promise.all([
       loadDataHubPlayerComparisonAssets(),
-      ensureDataHubGameLogsData(),
+      ensureDataHubPlayerComparisonData(),
     ]);
 
     if (!state.statsRowsBase.length && state.rawSeasonRows.length) {
@@ -6934,7 +6941,7 @@ async function openDataHubPlayerComparisonModal(triggerButton = null) {
 
       state.playerComparison.controller = module.mountDataHubPlayerComparison(playerComparisonRoot, {
         ensureData: async () => {
-          await ensureDataHubGameLogsData();
+          await ensureDataHubPlayerComparisonData();
           return buildDataHubPlayerComparisonSnapshot();
         },
         getSnapshot: buildDataHubPlayerComparisonSnapshot,
@@ -6984,6 +6991,376 @@ function cloneDataHubComparisonStatsStore(store) {
     });
   });
   return clone;
+}
+
+function cloneDataHubComparisonDeep(value) {
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => cloneDataHubComparisonDeep(entry));
+  }
+  const clone = Object.create(null);
+  Object.entries(value).forEach(([key, entry]) => {
+    clone[key] = cloneDataHubComparisonDeep(entry);
+  });
+  return clone;
+}
+
+function getDataHubComparisonStatLabel(statKey) {
+  const labels = {
+    ...DATAHUB_STAT_LABELS,
+    fpts: "FPTS",
+    fpt_ppr: "FPTS",
+    fpts_ppr: "FPTS",
+    ppg: "PPG",
+    pass_yd: "paYDS",
+    pass_td: "paTD",
+    pass_att: "paATT",
+    pass_cmp: "CMP",
+    pass_fd: "pa1D",
+    pass_rtg: "paRTG",
+    pass_int: "INT",
+    pass_sack: "SAC",
+    pass_imp: "pIMP",
+    pass_imp_per_att: "pIMP/A",
+    rush_att: "CAR",
+    rush_yd: "ruYDS",
+    rush_td: "ruTD",
+    rush_fd: "ru1D",
+    rush_yac: "YCO",
+    rec_tgt: "TGT",
+    rec_yd: "recYDS",
+    rec_td: "recTD",
+    rec_fd: "rec1D",
+    rec_yar: "YAC",
+    ts_per_rr: "TS%",
+    first_down_rec_rate: "1DRR",
+    csty_pct: "CSTY%",
+    ceiling: "CL",
+    yds_total: "YDS(t)",
+    imp_per_g: "IMP/G",
+    opp: "OPP",
+  };
+  return labels[statKey] || statKey;
+}
+
+function getDataHubComparisonStatKeyForHeader(header) {
+  const normalizedHeader = normalizeSheetHeader(header);
+  if (!normalizedHeader || ["POS", "CATEGORY", "OPERATOR", "ALT-OPERATOR"].includes(normalizedHeader.toUpperCase())) {
+    return "";
+  }
+  if (normalizedHeader.toUpperCase() === "FPTS") {
+    return "fpts";
+  }
+  if (normalizedHeader.toUpperCase() === "PPG") {
+    return "ppg";
+  }
+  return DATAHUB_PLAYER_STAT_HEADER_MAP[normalizedHeader] || "";
+}
+
+function normalizeDataHubThresholdCategory(category) {
+  const normalized = String(category || "").trim().toUpperCase();
+  if (normalized === "Y-MAX") return "yMax";
+  if (normalized === "HIGH") return "high";
+  if (normalized === "MID-HIGH") return "midHigh";
+  if (normalized === "MID-LOW") return "midLow";
+  if (normalized === "LOW") return "low";
+  if (normalized === "Y-MIN") return "yMin";
+  return "";
+}
+
+function parseDataHubComparisonThresholdRows(rows) {
+  // DataHub comparison thresholds:
+  // parses POS-STAT_THRESHOLDS.csv into position/stat records used by the
+  // lazy React ECharts modal for stat availability, y-axis caps, and gradients.
+  const thresholdsByPositionStat = Object.create(null);
+  const statOrder = [];
+  const seenStatKeys = new Set();
+
+  rows.forEach((row) => {
+    const pos = String(row.POS || "").trim().toUpperCase();
+    const categoryKey = normalizeDataHubThresholdCategory(row.CATEGORY);
+    if (!DATAHUB_COMPARISON_POSITIONS.includes(pos) || !categoryKey) {
+      return;
+    }
+    if (!thresholdsByPositionStat[pos]) {
+      thresholdsByPositionStat[pos] = Object.create(null);
+    }
+
+    Object.entries(row).forEach(([header, rawValue]) => {
+      const statKey = getDataHubComparisonStatKeyForHeader(header);
+      if (!statKey) {
+        return;
+      }
+      if (!seenStatKeys.has(statKey)) {
+        seenStatKeys.add(statKey);
+        statOrder.push(statKey);
+      }
+
+      const valueText = String(rawValue ?? "").trim();
+      if (valueText === "-") {
+        return;
+      }
+
+      const statThreshold = thresholdsByPositionStat[pos][statKey] || {
+        pos,
+        statKey,
+        label: getDataHubComparisonStatLabel(statKey),
+        isLowBetter: pos === "QB" && DATAHUB_COMPARISON_LOW_IS_BETTER_STATS.has(statKey),
+        categories: Object.create(null),
+        operators: Object.create(null),
+        altOperators: Object.create(null),
+      };
+      statThreshold.operators[categoryKey] = String(row.OPERATOR || "").trim();
+      statThreshold.altOperators[categoryKey] = String(row["ALT-OPERATOR"] || "").trim();
+      const numericValue = toComparableNumber(valueText);
+      statThreshold.categories[categoryKey] = Number.isFinite(numericValue) ? numericValue : null;
+      thresholdsByPositionStat[pos][statKey] = statThreshold;
+    });
+  });
+
+  const statOptions = statOrder
+    .map((statKey) => {
+      const positions = DATAHUB_COMPARISON_POSITIONS.filter((pos) => {
+        const threshold = thresholdsByPositionStat[pos]?.[statKey];
+        if (!threshold) {
+          return false;
+        }
+        return Object.values(threshold.categories || {}).some((value) => Number.isFinite(value));
+      });
+      if (!positions.length) {
+        return null;
+      }
+      return {
+        key: statKey,
+        label: getDataHubComparisonStatLabel(statKey),
+        positions,
+        isLowBetter: DATAHUB_COMPARISON_LOW_IS_BETTER_STATS.has(statKey),
+      };
+    })
+    .filter(Boolean);
+
+  statOptions.sort((left, right) => {
+    if (left.key === "fpts") return -1;
+    if (right.key === "fpts") return 1;
+    return left.label.localeCompare(right.label);
+  });
+
+  return { thresholdsByPositionStat, statOptions };
+}
+
+async function ensureDataHubPlayerComparisonData() {
+  await ensureDataHubGameLogsData();
+  if (state.playerComparison.dataLoaded) {
+    return;
+  }
+  if (state.playerComparison.dataPromise) {
+    await state.playerComparison.dataPromise;
+    return;
+  }
+
+  state.playerComparison.dataPromise = (async () => {
+    const thresholdCsvText = await fetchDataHubText(new URL("../data/NFL-2025_Stats/POS-STAT_THRESHOLDS.csv", window.location.href));
+    const parsedThresholds = parseDataHubComparisonThresholdRows(parseCsv(thresholdCsvText));
+    state.playerComparisonThresholds = parsedThresholds.thresholdsByPositionStat;
+    state.playerComparisonStatOptions = parsedThresholds.statOptions;
+
+    // DataHub comparison rank caches:
+    // build these once after lazy threshold hydration so weekly labels and
+    // season radar values can update instantly as React selection changes.
+    state.playerComparisonWeeklyRanks = buildDataHubComparisonWeeklyRanks(
+      getDataHubCombinedWeeklyStats(),
+      state.playerComparisonStatOptions,
+    );
+    const seasonRanks = buildDataHubComparisonSeasonRankStores(
+      state.playerSeasonStats,
+      state.playerSeasonRanks,
+      state.playerComparisonStatOptions,
+    );
+    state.playerComparisonSeasonOverallRanks = seasonRanks.overall;
+    state.playerComparisonSeasonPosRanks = seasonRanks.positional;
+    state.playerComparison.dataLoaded = true;
+  })()
+    .catch((error) => {
+      state.playerComparison.dataLoaded = false;
+      throw error;
+    })
+    .finally(() => {
+      state.playerComparison.dataPromise = null;
+    });
+
+  await state.playerComparison.dataPromise;
+}
+
+function isDataHubComparisonWeeklyQualified(stats, position) {
+  const pos = String(position || stats?.pos || "").trim().toUpperCase();
+  if (pos === "QB") {
+    return (Number(stats?.pass_att) || 0) >= 10;
+  }
+  if (pos === "RB") {
+    return (Number(stats?.rush_att) || 0) >= 5;
+  }
+  if (pos === "WR" || pos === "TE") {
+    return (Number(stats?.rr) || 0) >= 10;
+  }
+  return false;
+}
+
+function getDataHubComparisonStatValue(stats, statKey) {
+  if (!stats) {
+    return null;
+  }
+  if (statKey === "fpts") {
+    if (Number.isFinite(stats.fpts_override)) return stats.fpts_override;
+    if (Number.isFinite(stats.fpt_ppr)) return stats.fpt_ppr;
+    if (Number.isFinite(stats.fpts_ppr)) return stats.fpts_ppr;
+    return Number.isFinite(stats.fpts) ? stats.fpts : null;
+  }
+  if (statKey === "ppg") {
+    if (Number.isFinite(stats.ppg)) return stats.ppg;
+    const fpts = getDataHubComparisonStatValue(stats, "fpts");
+    const gamesPlayed = Number(stats.games_played || stats.g || stats.G);
+    return Number.isFinite(fpts) && gamesPlayed > 0 ? fpts / gamesPlayed : null;
+  }
+  if (statKey === "yds_total") {
+    return (Number.isFinite(stats.pass_yd) ? stats.pass_yd : 0)
+      + (Number.isFinite(stats.rush_yd) ? stats.rush_yd : 0)
+      + (Number.isFinite(stats.rec_yd) ? stats.rec_yd : 0);
+  }
+  if (statKey === "ypc") {
+    const attempts = Number(stats.rush_att) || 0;
+    return attempts > 0 ? (Number(stats.rush_yd) || 0) / attempts : null;
+  }
+  if (statKey === "ts_per_rr") {
+    const routes = Number(stats.rr) || 0;
+    return routes > 0 ? ((Number(stats.rec_tgt) || 0) / routes) * 100 : null;
+  }
+  if (statKey === "pass_imp_per_att") {
+    const attempts = Number(stats.pass_att) || 0;
+    return attempts > 0 ? ((Number(stats.pass_imp) || 0) / attempts) * 100 : null;
+  }
+  if (statKey === "yco_per_att") {
+    const attempts = Number(stats.rush_att) || 0;
+    return attempts > 0 ? (Number(stats.rush_yac) || 0) / attempts : null;
+  }
+  if (statKey === "mtf_per_att") {
+    const attempts = Number(stats.rush_att) || 0;
+    return attempts > 0 ? (Number(stats.mtf) || 0) / attempts : null;
+  }
+  return Number.isFinite(stats[statKey]) ? stats[statKey] : null;
+}
+
+function assignDataHubComparisonRanks(entries, { lowIsBetter = false } = {}) {
+  const ranks = Object.create(null);
+  const sorted = [...entries].sort((left, right) => {
+    if (left.value === right.value) {
+      return String(left.playerId).localeCompare(String(right.playerId));
+    }
+    return lowIsBetter ? left.value - right.value : right.value - left.value;
+  });
+  let previousValue = null;
+  let previousRank = 0;
+  sorted.forEach((entry, index) => {
+    const rank = previousValue !== null && entry.value === previousValue
+      ? previousRank
+      : index + 1;
+    ranks[entry.playerId] = rank;
+    previousValue = entry.value;
+    previousRank = rank;
+  });
+  return ranks;
+}
+
+function buildDataHubComparisonWeeklyRanks(weeklyStatsByWeek, statOptions) {
+  const ranksByWeekStatPlayer = Object.create(null);
+  const statKeys = (statOptions || []).map((option) => option.key);
+  for (let week = 1; week <= DATAHUB_MAX_WEEKS; week += 1) {
+    const weekStats = weeklyStatsByWeek?.[week] || {};
+    ranksByWeekStatPlayer[week] = Object.create(null);
+    statKeys.forEach((statKey) => {
+      const statRanks = Object.create(null);
+      DATAHUB_COMPARISON_POSITIONS.forEach((pos) => {
+        const entries = Object.entries(weekStats)
+          .map(([playerId, stats]) => ({
+            playerId,
+            stats,
+            value: getDataHubComparisonStatValue(stats, statKey),
+          }))
+          .filter((entry) =>
+            String(entry.stats?.pos || "").toUpperCase() === pos
+            && isDataHubComparisonWeeklyQualified(entry.stats, pos)
+            && Number.isFinite(entry.value),
+          );
+        const positionRanks = assignDataHubComparisonRanks(entries, {
+          lowIsBetter: pos === "QB" && DATAHUB_COMPARISON_LOW_IS_BETTER_STATS.has(statKey),
+        });
+        Object.assign(statRanks, positionRanks);
+      });
+      ranksByWeekStatPlayer[week][statKey] = statRanks;
+    });
+  }
+  return ranksByWeekStatPlayer;
+}
+
+function getDataHubComparisonSeasonStatKeys(statOptions) {
+  const keys = new Set([
+    "fpts",
+    "ppg",
+    ...DATAHUB_COMPARISON_QB_RADAR_STATS,
+    ...DATAHUB_COMPARISON_SKILL_RADAR_STATS,
+  ]);
+  (statOptions || []).forEach((option) => keys.add(option.key));
+  return [...keys];
+}
+
+function buildDataHubComparisonSeasonRankStores(seasonStatsByPlayerId, existingRanksByPlayerId, statOptions) {
+  const overall = Object.create(null);
+  const positional = Object.create(null);
+  const playerEntries = Object.entries(seasonStatsByPlayerId || {})
+    .map(([playerId, stats]) => ({
+      playerId,
+      stats,
+      pos: String(stats?.pos || "").trim().toUpperCase(),
+    }))
+    .filter((entry) => entry.playerId && DATAHUB_COMPARISON_POSITIONS.includes(entry.pos));
+
+  getDataHubComparisonSeasonStatKeys(statOptions).forEach((statKey) => {
+    const entries = playerEntries
+      .map((entry) => ({
+        ...entry,
+        value: getDataHubComparisonStatValue(entry.stats, statKey),
+      }))
+      .filter((entry) => Number.isFinite(entry.value));
+    overall[statKey] = assignDataHubComparisonRanks(entries, {
+      lowIsBetter: DATAHUB_COMPARISON_LOW_IS_BETTER_STATS.has(statKey),
+    });
+    positional[statKey] = Object.create(null);
+    DATAHUB_COMPARISON_POSITIONS.forEach((pos) => {
+      Object.assign(
+        positional[statKey],
+        assignDataHubComparisonRanks(entries.filter((entry) => entry.pos === pos), {
+          lowIsBetter: pos === "QB" && DATAHUB_COMPARISON_LOW_IS_BETTER_STATS.has(statKey),
+        }),
+      );
+    });
+
+    // DataHub season rank CSV fallback:
+    // keep SZN_RKs.csv useful for future hand-curated rank sources, but prefer
+    // computed ranks from SZN.csv so overall and positional radar semantics are
+    // consistent across every supported stat.
+    Object.entries(existingRanksByPlayerId || {}).forEach(([playerId, rankRow]) => {
+      const fallbackRank = toComparableNumber(rankRow?.[statKey]);
+      if (Number.isFinite(fallbackRank) && !Number.isFinite(overall[statKey][playerId])) {
+        overall[statKey][playerId] = fallbackRank;
+      }
+      if (Number.isFinite(fallbackRank) && !Number.isFinite(positional[statKey][playerId])) {
+        positional[statKey][playerId] = fallbackRank;
+      }
+    });
+  });
+
+  return { overall, positional };
 }
 
 function buildDataHubPlayerComparisonPlayers() {
@@ -7039,19 +7416,34 @@ function buildDataHubPlayerComparisonSnapshot() {
     ...DATAHUB_STAT_LABELS,
     fpts: "FPTS",
     fpt_ppr: "FPTS",
+    fpts_ppr: "FPTS",
     ppg: "PPG",
     games_played: "G",
     ceiling: "CL",
     csty_pct: "CSTY%",
     yds_total: "YDS(t)",
     imp_per_g: "IMP/G",
+    opp: "OPP",
+    rec_yar: "YAC",
+    pass_sack: "SAC",
+    pass_int: "INT",
   };
 
   return {
     players: buildDataHubPlayerComparisonPlayers(),
+    weeks: Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => index + 1),
     weeklyStatsByWeek: cloneDataHubComparisonStatsStore(getDataHubCombinedWeeklyStats()),
+    weeklyRanksByWeekStatPlayer: cloneDataHubComparisonDeep(state.playerComparisonWeeklyRanks),
+    thresholdsByPositionStat: cloneDataHubComparisonDeep(state.playerComparisonThresholds),
+    statOptions: cloneDataHubComparisonDeep(state.playerComparisonStatOptions),
     seasonStatsByPlayerId: cloneDataHubComparisonStatsStore(state.playerSeasonStats),
     seasonRanksByPlayerId: cloneDataHubComparisonStatsStore(state.playerSeasonRanks),
+    seasonOverallRanksByStatPlayer: cloneDataHubComparisonDeep(state.playerComparisonSeasonOverallRanks),
+    seasonPosRanksByStatPlayer: cloneDataHubComparisonDeep(state.playerComparisonSeasonPosRanks),
+    radarStatSets: {
+      qb: [...DATAHUB_COMPARISON_QB_RADAR_STATS],
+      skill: [...DATAHUB_COMPARISON_SKILL_RADAR_STATS],
+    },
     currentNflWeek: Number.isFinite(state.currentNflWeek) ? state.currentNflWeek : null,
     statLabels,
   };
@@ -10692,6 +11084,20 @@ const DATAHUB_WEEKLY_META_HEADER_MAP = {
   vsRK: "opponent_rank",
   INJ: "injury",
 };
+// DataHub player comparison metrics:
+// these constants target only the lazy React comparison modal. They define the
+// positional rank population, QB lower-is-better weekly stats, and season radar
+// stat sets without changing the existing table/game-log stat ordering.
+const DATAHUB_COMPARISON_POSITIONS = ["QB", "RB", "WR", "TE"];
+const DATAHUB_COMPARISON_LOW_IS_BETTER_STATS = new Set(["ttt", "prs_pct", "pass_sack", "pass_int"]);
+const DATAHUB_COMPARISON_QB_RADAR_STATS = [
+  "fpts", "ppg", "yds_total", "imp", "csty_pct", "ceiling",
+  "rush_att", "rush_yd", "rush_td", "ypc", "snp_pct", "imp_per_g",
+];
+const DATAHUB_COMPARISON_SKILL_RADAR_STATS = [
+  "fpts", "ppg", "yds_total", "imp", "opp", "ts_per_rr",
+  "rec", "yprr", "rec_yar", "snp_pct", "csty_pct", "ceiling",
+];
 const DATAHUB_RADAR_STATS_CONFIG = {
   QB: {
     stats: ["fpts", "ppg", "ttt", "cmp_pct", "pa_ypg", "pass_rtg", "cpoe", "epa_per_db"],
@@ -11597,28 +12003,23 @@ async function ensureDataHubGameLogsData() {
       ensureDataHubSupplementalData(),
       bootstrapDataHubUserContext(),
     ]);
-    const [seasonCsvText, seasonRanksCsvText, ...weeklyCsvText] = await Promise.all([
+    const [seasonCsvText, seasonRanksCsvText, allWeeksCsvText] = await Promise.all([
       fetchCsvText(),
       // DataHub season-rank CSV:
       // keep the request case aligned to the shipped SZN_RKs.csv filename so
       // case-sensitive hosts can hydrate ranks for modals and comparisons.
       fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKs.csv", window.location.href)),
-      ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
-        const week = index + 1;
-        return fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${week}.csv`, window.location.href), { allowFailure: true });
-      }),
+      // DataHub comparison weekly source:
+      // hydrate the shared weekly stats store from one combined CSV so the
+      // comparison modal and game logs use the same normalized Week 1-18 data.
+      fetchDataHubText(new URL("../data/NFL-2025_Stats/AllWks_2025.csv", window.location.href)),
     ]);
     state.playerSeasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonCsvText));
     state.playerSeasonRanks = parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText));
-    const weeklyStats = Object.create(null);
-    weeklyCsvText.forEach((csvText, index) => {
-      if (!csvText) {
-        return;
-      }
-      weeklyStats[index + 1] = parseDataHubWeeklyStatsRows(parseCsv(csvText));
-    });
+    const weeklyStats = parseDataHubAllWeeksStatsRows(parseCsv(allWeeksCsvText));
     state.playerWeeklyStats = weeklyStats;
     state.weeklyStats = weeklyStats;
+    state.playerComparison.dataLoaded = false;
     state.gameLogsDataLoaded = true;
     await ensureDataHubLiveStats();
   })()
@@ -11836,6 +12237,31 @@ function parseDataHubSeasonRanksRows(rows) {
   return rankRows;
 }
 
+function parseDataHubAllWeeksStatsRows(rows) {
+  // DataHub combined weekly CSV:
+  // splits AllWks_2025.csv back into the same week -> player -> stat shape the
+  // existing game logs modal expects, while keeping comparison-specific weekly
+  // metadata available on each stat line.
+  const rowsByWeek = Object.create(null);
+  rows.forEach((row) => {
+    const week = toComparableNumber(row.WK ?? row.week ?? row.SZN);
+    if (!Number.isFinite(week) || week < 1 || week > DATAHUB_MAX_WEEKS) {
+      return;
+    }
+    const weekKey = String(Math.round(week));
+    if (!rowsByWeek[weekKey]) {
+      rowsByWeek[weekKey] = [];
+    }
+    rowsByWeek[weekKey].push(row);
+  });
+
+  const weeklyStats = Object.create(null);
+  for (let week = 1; week <= DATAHUB_MAX_WEEKS; week += 1) {
+    weeklyStats[week] = parseDataHubWeeklyStatsRows(rowsByWeek[String(week)] || []);
+  }
+  return weeklyStats;
+}
+
 function parseDataHubWeeklyStatsRows(rows) {
   const weeklyStats = Object.create(null);
   rows.forEach((row) => {
@@ -11874,6 +12300,13 @@ function parseDataHubWeeklyStatsRows(rows) {
         stats[statKey] = parsedValue;
       }
     });
+    stats.pos = String(row.POS || "").trim().toUpperCase();
+    stats.team = String(row.TM || "").trim().toUpperCase() || "FA";
+    stats.name = String(row["PLAYER NAME"] || row.NM || "").trim();
+    stats.week = toComparableNumber(row.WK ?? row.SZN);
+    if (stats.team && stats.team !== "FA") {
+      stats.teamLogoSrc = getDataHubTeamLogoSrc(stats.team);
+    }
     weeklyStats[playerId] = stats;
   });
   return weeklyStats;

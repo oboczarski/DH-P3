@@ -2677,8 +2677,32 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
    Targets only the new page-local React comparison launcher. It keeps the
    duplicated desktop/mobile utility buttons compact and shows a loading pulse
    while React, modal CSS, and weekly comparison data are lazy-loaded. */
-body[data-page="datahub"] .datahub-compare-trigger {
+body[data-page="datahub"] .utility-row .datahub-key-trigger {
+  /* DataHub utility row sizing:
+     gives the existing KEY chip an explicit smaller track so the new Compare
+     launcher and the player search field can coexist in both control mounts. */
+  flex: 0 0 58px;
+  min-width: 58px;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
   white-space: nowrap;
+}
+
+body[data-page="datahub"] .datahub-compare-trigger {
+  flex: 0 0 98px;
+  min-width: 98px;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .utility-row .search-shell {
+  /* DataHub search width:
+     narrows only the player-search lane in the DataHub utility rows after
+     adding the comparison trigger; the input still flexes on small screens. */
+  flex: 1 1 144px;
+  min-width: 0;
 }
 
 body[data-page="datahub"] .datahub-compare-trigger.is-loading {
@@ -7335,7 +7359,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
-    width: min(100%, 556px);
+    width: min(100%, 520px);
     margin: 0 auto;
     padding: 8px 10px;
     border-radius: 22px;
@@ -7344,6 +7368,28 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.05),
       0 12px 22px rgba(0, 0, 0, 0.14);
+  }
+
+  /* Desktop DataHub utility sizing:
+     shrinks the existing KEY chip and player search lane while keeping the new
+     Compare launcher slightly wider than KEY in the desktop control mount. */
+  body[data-page="datahub"] .hero-controls--desktop .utility-row .datahub-key-trigger {
+    flex: 0 0 74px;
+    min-width: 74px;
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  body[data-page="datahub"] .hero-controls--desktop .utility-row .datahub-compare-trigger {
+    flex: 0 0 126px;
+    min-width: 126px;
+    gap: 10px;
+  }
+
+  body[data-page="datahub"] .hero-controls--desktop .utility-row .search-shell {
+    flex: 1 1 210px;
+    min-width: 0;
+    max-width: 286px;
   }
 
   .hero-controls--desktop .receiving-subfilters {

@@ -24,9 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub player comparison modal: bump the cache so browsers pick up the
-// lazy React bridge, scoped DataHub styles, and service-worker runtime rules.
-const CACHE_NAME = 'DH3.02A';
+// DataHub player comparison revamp:
+// forces fresh DataHub HTML/JS/CSS/data while leaving the lazy React component
+// and modal stylesheet outside CORE_ASSET_PATHS so they load only on Compare.
+const CACHE_NAME = 'DH3.03A';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
