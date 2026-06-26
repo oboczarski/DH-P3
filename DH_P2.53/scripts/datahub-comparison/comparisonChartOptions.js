@@ -50,36 +50,6 @@ function hexToRgba(color, alpha) {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
-function getAbsoluteAssetUrl(src) {
-  if (!src || typeof window === "undefined") {
-    return src || "";
-  }
-  try {
-    return new URL(src, window.location.href).href;
-  } catch {
-    return src;
-  }
-}
-
-function buildMutedLogoSymbol(src) {
-  const href = getAbsoluteAssetUrl(src);
-  if (!href) {
-    return "circle";
-  }
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-      <defs>
-        <filter id="muted-logo">
-          <feColorMatrix type="saturate" values="0.08"/>
-        </filter>
-      </defs>
-      <circle cx="24" cy="24" r="21" fill="rgb(148,158,176)" fill-opacity="0.18"/>
-      <image href="${href}" x="5" y="5" width="38" height="38" preserveAspectRatio="xMidYMid meet" filter="url(#muted-logo)" opacity="0.9"/>
-    </svg>
-  `.trim();
-  return `image://data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
 function getSeriesRawValue(entry, statKey) {
   if (!entry || entry.isSkipped || entry.skipped) {
     return null;
@@ -343,13 +313,16 @@ function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymb
         label: {
           position: "top",
           distance: 0,
-          offset: [0, -Math.max(9, Math.round(logoSymbolSize * 0.5))],
-          color: "rgba(218,224,235,.74)",
-          backgroundColor: "rgba(128,138,154,0.14)",
-          borderColor: "rgba(174,184,198,0.24)",
+          offset: [0, -Math.max(13, Math.round(logoSymbolSize * 0.5) + 5)],
+          color: "rgba(232,237,246,.94)",
+          backgroundColor: "rgba(17,21,31,0.92)",
+          borderColor: "rgba(184,194,210,0.46)",
           borderWidth: 1,
           borderRadius: 6,
           padding: isMobile ? [2, 5, 2, 5] : [3, 6, 3, 6],
+          shadowColor: "rgba(0,0,0,0.42)",
+          shadowBlur: 6,
+          shadowOffsetY: 1,
         },
       };
     })
@@ -457,7 +430,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       const accent = getPlayerAccentColor(player, index);
       const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
-      const labelLift = Math.max(10, Math.round(symbolSize * 0.5) + 1);
+      const labelLift = Math.max(13, Math.round(symbolSize * 0.5) + 5);
       const dataPoints = safeWeeks.map((week) => {
         const entry = getWeeklyEntry(player, week);
         const rawValue = getSeriesRawValue(entry, statKey);
@@ -522,11 +495,14 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
               position: "top",
               distance: 0,
               offset: [0, -labelLift],
-              backgroundColor: hexToRgba(point.pointColor, 0.16),
-              borderColor: hexToRgba(point.pointColor, 0.3),
+              backgroundColor: "rgba(5,9,18,0.92)",
+              borderColor: hexToRgba(point.pointColor, 0.64),
               borderWidth: 1,
               borderRadius: 6,
               padding: labelPadding,
+              shadowColor: hexToRgba(point.pointColor, 0.38),
+              shadowBlur: 7,
+              shadowOffsetY: 1,
             },
           };
         })
@@ -539,10 +515,12 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
         symbolSize: player.teamLogoSrc ? symbolSize : (isMobile ? 5 : 7),
         showSymbol: true,
+        zlevel: 0,
         z: 6 + index,
         lineStyle: {
           width: isMobile ? 2.8 : 3.2,
           color: gradient,
+          opacity: 1,
           shadowColor: accent,
           shadowBlur: isMobile ? 7 : 11,
           shadowOffsetY: 3,
@@ -551,6 +529,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           color: accent,
           borderColor: "rgba(4,8,16,.96)",
           borderWidth: player.teamLogoSrc ? 4 : 2,
+          opacity: 1,
         },
         areaStyle: {
           opacity: areaOpacity,
@@ -590,17 +569,45 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       };
       const series = [lineSeries];
       if (skipLogoPoints.length) {
+        // Skipped-week markers:
+        // use the same direct image symbol path as normal data points; a
+        // neutral backing supplies the muted/DNP treatment without nesting the
+        // logo inside a data-URI SVG, which can fail to render in browsers.
+        series.push({
+          name: `${getPlayerName(player)} skipped week backing`,
+          type: "scatter",
+          coordinateSystem: "cartesian2d",
+          data: skipLogoPoints,
+          symbol: "circle",
+          symbolSize: skipLogoSymbolSize + (isMobile ? 7 : 8),
+          silent: true,
+          zlevel: 1,
+          z: 22 + index,
+          itemStyle: {
+            color: "rgba(128,138,154,0.5)",
+            borderColor: "rgba(222,228,238,0.38)",
+            borderWidth: 1,
+            shadowColor: "rgba(0,0,0,0.34)",
+            shadowBlur: 7,
+          },
+          emphasis: {
+            disabled: true,
+          },
+        });
         series.push({
           name: `${getPlayerName(player)} skipped week logo`,
           type: "scatter",
           coordinateSystem: "cartesian2d",
           data: skipLogoPoints,
-          symbol: buildMutedLogoSymbol(player.teamLogoSrc),
-          symbolSize: skipLogoSymbolSize,
+          symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
+          symbolSize: player.teamLogoSrc ? skipLogoSymbolSize : Math.max(7, skipLogoSymbolSize - 8),
           silent: true,
-          zlevel: 1,
-          z: 24 + index,
+          zlevel: 2,
+          z: 28 + index,
           itemStyle: {
+            color: "rgba(178,186,198,0.96)",
+            borderColor: "rgba(10,14,22,0.9)",
+            borderWidth: player.teamLogoSrc ? 3 : 1,
             opacity: 1,
           },
           emphasis: {
@@ -620,8 +627,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           symbol: "circle",
           symbolSize: 1,
           silent: true,
-          zlevel: 2,
-          z: 44 + index,
+          zlevel: 10,
+          z: 140 + index,
           itemStyle: {
             color: "rgba(150,160,176,0.01)",
           },
@@ -637,12 +644,12 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             },
             rich: {
               value: {
-                color: "rgba(248,252,255,.96)",
+                color: "rgba(255,255,255,.99)",
                 fontSize: isMobile ? 7 : 10,
                 fontWeight: 950,
               },
               rank: {
-                color: "rgba(218,232,250,.76)",
+                color: "rgba(226,236,250,.9)",
                 fontSize: isMobile ? 5.5 : 8,
                 fontWeight: 850,
               },
@@ -663,8 +670,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           symbol: "circle",
           symbolSize: 1,
           silent: true,
-          zlevel: 3,
-          z: 52 + index,
+          zlevel: 11,
+          z: 160 + index,
           itemStyle: {
             color: "rgba(150,160,176,0.01)",
           },
@@ -674,7 +681,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             fontFamily: "Product Sans, Google Sans, sans-serif",
             fontSize: isMobile ? 8 : 9,
             fontWeight: 950,
-            color: "rgba(218,224,235,.74)",
+            color: "rgba(232,237,246,.94)",
           },
           labelLayout: { moveOverlap: "shiftY" },
           emphasis: {
