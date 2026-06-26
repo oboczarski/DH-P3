@@ -475,7 +475,7 @@ body[data-page="datahub"] .dh-compare-clear-all {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   color: rgba(190, 209, 235, 0.74);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -483,7 +483,7 @@ body[data-page="datahub"] .dh-compare-clear-all {
 }
 
 body[data-page="datahub"] .dh-compare-position-filter {
-  min-width: 30px;
+  min-width: 40px;
   padding: 0 5px;
 }
 
@@ -1106,6 +1106,13 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   body[data-page="datahub"] .dh-compare-position-filter,
   body[data-page="datahub"] .dh-compare-clear-all {
     min-height: 23px;
+    border: 1px solid rgba(164, 207, 255, 0.12);
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    min-width: 31px;
   }
 
   body[data-page="datahub"] .dh-compare-search-option {
