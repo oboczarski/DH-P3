@@ -690,6 +690,16 @@ body[data-page="datahub"] .dh-compare-summary-card__identity strong {
   letter-spacing: 0;
 }
 
+body[data-page="datahub"] .dh-compare-summary-card__name-compact {
+  display: none;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__identity strong span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 body[data-page="datahub"] .dh-compare-summary-card__identity span,
 body[data-page="datahub"] .dh-compare-summary-card__metric span,
 body[data-page="datahub"] .dh-compare-summary-card__ranks {
@@ -1121,6 +1131,14 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-summary-card__metric strong {
     font-size: 1rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__name-full {
+    display: none;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__name-compact {
+    display: inline;
   }
 
   body[data-page="datahub"] .dh-compare-summary-card__ranks {

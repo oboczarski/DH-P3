@@ -121,6 +121,15 @@ function getFallbackWeeklyStat(options) {
   return options.find((option) => option.key === "fpts") || options[0] || { key: "fpts", label: "FPTS" };
 }
 
+function getCompactPlayerName(player) {
+  const fullName = getPlayerName(player).trim();
+  const parts = fullName.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) {
+    return fullName;
+  }
+  return `${parts[0].charAt(0)}. ${parts.slice(1).join(" ")}`;
+}
+
 export function createDataHubComparisonModal(React) {
   const {
     createElement: h,
@@ -336,7 +345,10 @@ export function createDataHubComparisonModal(React) {
         h(
           "span",
           { className: "dh-compare-summary-card__identity" },
-          h("strong", null, getPlayerName(player)),
+          h("strong", null,
+            h("span", { className: "dh-compare-summary-card__name-full" }, getPlayerName(player)),
+            h("span", { className: "dh-compare-summary-card__name-compact" }, getCompactPlayerName(player)),
+          ),
           h("span", null, `${player.pos || "FA"} · ${player.team || "FA"}`),
         ),
       ),

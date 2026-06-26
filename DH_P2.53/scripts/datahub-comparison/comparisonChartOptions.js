@@ -50,6 +50,36 @@ function hexToRgba(color, alpha) {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
+function getAbsoluteAssetUrl(src) {
+  if (!src || typeof window === "undefined") {
+    return src || "";
+  }
+  try {
+    return new URL(src, window.location.href).href;
+  } catch {
+    return src;
+  }
+}
+
+function buildMutedLogoSymbol(src) {
+  const href = getAbsoluteAssetUrl(src);
+  if (!href) {
+    return "circle";
+  }
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+      <defs>
+        <filter id="muted-logo">
+          <feColorMatrix type="saturate" values="0.08"/>
+        </filter>
+      </defs>
+      <circle cx="24" cy="24" r="21" fill="rgb(148,158,176)" fill-opacity="0.18"/>
+      <image href="${href}" x="5" y="5" width="38" height="38" preserveAspectRatio="xMidYMid meet" filter="url(#muted-logo)" opacity="0.9"/>
+    </svg>
+  `.trim();
+  return `image://data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 function getSeriesRawValue(entry, statKey) {
   if (!entry || entry.isSkipped || entry.skipped) {
     return null;
@@ -214,7 +244,7 @@ function buildWeeklyTooltip(params, statKey) {
 function buildCollisionLanes(players, statKey, weeks, axis, isMobile) {
   const lanes = new Map();
   const range = Math.max(1, axis.max - axis.min);
-  const closeThreshold = range * (isMobile ? 0.045 : 0.035);
+  const closeThreshold = range * (isMobile ? 0.07 : 0.06);
   weeks.forEach((week) => {
     const points = players
       .map((player, playerIndex) => {
@@ -234,7 +264,7 @@ function buildCollisionLanes(players, statKey, weeks, axis, isMobile) {
     let group = [];
     const flushGroup = () => {
       if (!group.length) return;
-      const laneOrder = group.length === 1 ? [0] : [-1, 1, 0];
+      const laneOrder = group.length === 1 ? [0] : [-1, 1, -2];
       group.forEach((item, index) => {
         lanes.set(item.key, laneOrder[index] ?? 0);
       });
@@ -268,8 +298,7 @@ function interpolateSkippedValue(seriesPoints, skippedWeek, axis) {
   return null;
 }
 
-function buildSkipMarkPoints({ player, playerIndex, statKey, weeks, axis, thresholds }) {
-  const accent = getPlayerAccentColor(player, playerIndex);
+function buildSkipMarkPoints({ player, statKey, weeks, axis }) {
   const points = weeks.map((week) => {
     const entry = getWeeklyEntry(player, week);
     const rawValue = getSeriesRawValue(entry, statKey);
@@ -288,19 +317,25 @@ function buildSkipMarkPoints({ player, playerIndex, statKey, weeks, axis, thresh
       if (interpolated === null) {
         return null;
       }
-      const markerColor = getPointThresholdColor(player, playerIndex, statKey, thresholds, interpolated) || accent;
       return {
         name: `${getPlayerName(player)} ${point.skipLabel}`,
         coord: [`wk${point.week}`, interpolated],
         value: point.skipLabel,
         skipLabel: point.skipLabel,
         itemStyle: {
-          color: hexToRgba(markerColor, 0.08),
-          borderColor: hexToRgba(markerColor, 0.18),
-          borderWidth: 1,
+          color: "rgba(150,160,176,0)",
+          borderColor: "rgba(150,160,176,0)",
+          borderWidth: 0,
         },
         label: {
-          color: "rgba(218,228,244,.62)",
+          position: "top",
+          distance: 12,
+          color: "rgba(218,224,235,.74)",
+          backgroundColor: "rgba(128,138,154,0.14)",
+          borderColor: "rgba(174,184,198,0.24)",
+          borderWidth: 1,
+          borderRadius: 6,
+          padding: [3, 6, 3, 6],
         },
       };
     })
@@ -404,8 +439,9 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     series: players.flatMap((player, index) => {
       const accent = getPlayerAccentColor(player, index);
       const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
-      const skipMarkPoints = buildSkipMarkPoints({ player, playerIndex: index, statKey, weeks: safeWeeks, axis, thresholds });
+      const skipMarkPoints = buildSkipMarkPoints({ player, statKey, weeks: safeWeeks, axis });
       const skipLogoPoints = buildSkipLogoPoints({ player, statKey, weeks: safeWeeks, axis });
+      const visualLaneOffset = isMobile ? 14 : 16;
       const lineSeries = {
         name: getPlayerName(player),
         type: "line",
@@ -473,7 +509,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
               fontFamily: "Product Sans, Google Sans, sans-serif",
               fontSize: isMobile ? 8 : 9,
               fontWeight: 950,
-              color: "rgba(218,228,244,.62)",
+              color: "rgba(218,224,235,.74)",
             },
             emphasis: { disabled: true },
           }
@@ -487,6 +523,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             ? accent
             : getPointThresholdColor(player, index, statKey, thresholds, rawValue);
           const skipped = Boolean(entry?.isSkipped || entry?.skipped);
+          const pointYOffset = lane * visualLaneOffset;
           return {
             value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
             rawValue,
@@ -496,11 +533,11 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             skipped,
             skipLabel: entry?.skipLabel || entry?.skipReason || "",
             pointColor,
-            symbolOffset: [0, 0],
+            symbolOffset: [0, pointYOffset],
             label: {
               position: "top",
-              distance: isMobile ? 0 : 1,
-              offset: lane ? [0, -Math.abs(lane) * (isMobile ? 5 : 6)] : [0, 0],
+              distance: 0,
+              offset: [0, pointYOffset - (isMobile ? 1 : 2)],
               backgroundColor: hexToRgba(pointColor, 0.16),
               borderColor: hexToRgba(pointColor, 0.3),
             },
@@ -517,12 +554,12 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           type: "scatter",
           coordinateSystem: "cartesian2d",
           data: skipLogoPoints,
-          symbol: `image://${player.teamLogoSrc}`,
+          symbol: buildMutedLogoSymbol(player.teamLogoSrc),
           symbolSize: Math.max(13, symbolSize - 2),
           silent: true,
           z: 14 + index,
           itemStyle: {
-            opacity: 0.42,
+            opacity: 1,
           },
           emphasis: {
             disabled: true,
