@@ -619,7 +619,7 @@ body[data-page="datahub"] .dh-compare-search__empty {
 body[data-page="datahub"] .dh-compare-summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 5px;
   min-width: 0;
   padding: 0 20px;
 }
@@ -646,7 +646,7 @@ body[data-page="datahub"] .dh-compare-summary-card {
 body[data-page="datahub"] .dh-compare-summary-card__player {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -685,7 +685,7 @@ body[data-page="datahub"] .dh-compare-summary-card__metric strong {
 
 body[data-page="datahub"] .dh-compare-summary-card__identity strong {
   color: rgba(248, 252, 255, 0.99);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: 0;
 }
@@ -694,7 +694,7 @@ body[data-page="datahub"] .dh-compare-summary-card__identity span,
 body[data-page="datahub"] .dh-compare-summary-card__metric span,
 body[data-page="datahub"] .dh-compare-summary-card__ranks {
   color: rgba(183, 204, 232, 0.64);
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 800;
 }
 
@@ -966,7 +966,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   body[data-page="datahub"] .dh-compare-summary-card {
     grid-template-columns: minmax(0, 1fr) auto auto;
     min-height: 62px;
-    padding: 8px 10px;
+    padding: 8px 6px 8px 6px;
   }
 
   body[data-page="datahub"] .dh-compare-body {
@@ -1105,14 +1105,14 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-summary-card {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 7px;
+    gap: 3px;
     min-height: 58px;
   }
 
   body[data-page="datahub"] .dh-compare-summary-card__player img,
   body[data-page="datahub"] .dh-compare-summary-card__logo-fallback {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   body[data-page="datahub"] .dh-compare-summary-card__metric {
