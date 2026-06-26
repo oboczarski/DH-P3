@@ -295,14 +295,43 @@ function buildSkipMarkPoints({ player, playerIndex, statKey, weeks, axis, thresh
         value: point.skipLabel,
         skipLabel: point.skipLabel,
         itemStyle: {
-          color: hexToRgba(markerColor, 0.18),
-          borderColor: hexToRgba(markerColor, 0.42),
+          color: hexToRgba(markerColor, 0.08),
+          borderColor: hexToRgba(markerColor, 0.18),
           borderWidth: 1,
         },
         label: {
-          color: "rgba(245,250,255,.9)",
+          color: "rgba(218,228,244,.62)",
         },
       };
+    })
+    .filter(Boolean);
+}
+
+function buildSkipLogoPoints({ player, statKey, weeks, axis }) {
+  if (!player?.teamLogoSrc) {
+    return [];
+  }
+  const points = weeks.map((week) => {
+    const entry = getWeeklyEntry(player, week);
+    const rawValue = getSeriesRawValue(entry, statKey);
+    return {
+      week,
+      rawValue,
+      value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
+      skipped: Boolean(entry?.isSkipped || entry?.skipped),
+      skipLabel: entry?.skipLabel || entry?.skipReason || "",
+    };
+  });
+  return points
+    .filter((point) => point.skipped && point.skipLabel)
+    .map((point) => {
+      const interpolated = interpolateSkippedValue(points, point.week, axis);
+      return interpolated === null
+        ? null
+        : {
+          value: [`wk${point.week}`, interpolated],
+          skipLabel: point.skipLabel,
+        };
     })
     .filter(Boolean);
 }
@@ -314,7 +343,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
   const isMobile = typeof isCompact === "boolean" ? isCompact : isMobileComparisonChart();
   const axis = getAxisConfig(players, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
-  const symbolSize = isMobile ? 15 : 17;
+  const symbolSize = isMobile ? 17 : 19;
   const areaOpacity = isMobile ? 0.025 : 0.035;
   const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
 
@@ -323,7 +352,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
     grid: isMobile
-      ? { top: 12, right: 10, bottom: 44, left: 30, containLabel: false }
+      ? { top: 12, right: 6, bottom: 44, left: 24, containLabel: false }
       : { top: 14, right: 22, bottom: 40, left: 48, containLabel: false },
     tooltip: {
       trigger: "axis",
@@ -372,11 +401,12 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         formatter: (value) => formatComparisonValue(statKey, value, { compact: true }),
       },
     },
-    series: players.map((player, index) => {
+    series: players.flatMap((player, index) => {
       const accent = getPlayerAccentColor(player, index);
       const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
       const skipMarkPoints = buildSkipMarkPoints({ player, playerIndex: index, statKey, weeks: safeWeeks, axis, thresholds });
-      return {
+      const skipLogoPoints = buildSkipLogoPoints({ player, statKey, weeks: safeWeeks, axis });
+      const lineSeries = {
         name: getPlayerName(player),
         type: "line",
         smooth: 0.42,
@@ -443,7 +473,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
               fontFamily: "Product Sans, Google Sans, sans-serif",
               fontSize: isMobile ? 8 : 9,
               fontWeight: 950,
-              color: "rgba(245,250,255,.9)",
+              color: "rgba(218,228,244,.62)",
             },
             emphasis: { disabled: true },
           }
@@ -466,17 +496,39 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             skipped,
             skipLabel: entry?.skipLabel || entry?.skipReason || "",
             pointColor,
-            symbolOffset: lane ? [lane * (isMobile ? 5 : 7), 0] : [0, 0],
+            symbolOffset: [0, 0],
             label: {
               position: "top",
-              distance: isMobile ? 2 : 4,
-              offset: lane ? [lane * (isMobile ? 9 : 9), -Math.abs(lane) * (isMobile ? 3 : 3)] : [0, 0],
+              distance: isMobile ? 0 : 1,
+              offset: lane ? [0, -Math.abs(lane) * (isMobile ? 5 : 6)] : [0, 0],
               backgroundColor: hexToRgba(pointColor, 0.16),
               borderColor: hexToRgba(pointColor, 0.3),
             },
           };
         }),
       };
+      if (!skipLogoPoints.length) {
+        return [lineSeries];
+      }
+      return [
+        lineSeries,
+        {
+          name: `${getPlayerName(player)} skipped week logo`,
+          type: "scatter",
+          coordinateSystem: "cartesian2d",
+          data: skipLogoPoints,
+          symbol: `image://${player.teamLogoSrc}`,
+          symbolSize: Math.max(13, symbolSize - 2),
+          silent: true,
+          z: 14 + index,
+          itemStyle: {
+            opacity: 0.42,
+          },
+          emphasis: {
+            disabled: true,
+          },
+        },
+      ];
     }),
   };
 }

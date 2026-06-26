@@ -141,7 +141,7 @@ body[data-page="datahub"] .dh-compare-selected {
 
 body[data-page="datahub"] .dh-compare-control-row {
   display: grid;
-  grid-template-columns: minmax(118px, 136px) minmax(0, 1fr);
+  grid-template-columns: minmax(92px, 108px) minmax(0, 1fr);
   align-items: start;
   gap: 8px;
   min-width: 0;
@@ -208,6 +208,7 @@ body[data-page="datahub"] .dh-compare-mode,
 body[data-page="datahub"] .dh-compare-search-option,
 body[data-page="datahub"] .dh-compare-position-filter,
 body[data-page="datahub"] .dh-compare-clear-all,
+body[data-page="datahub"] .dh-compare-search-close,
 body[data-page="datahub"] .dh-compare-stat-trigger,
 body[data-page="datahub"] .dh-compare-stat-option {
   font-family: inherit;
@@ -304,25 +305,16 @@ body[data-page="datahub"] .dh-compare-season-context {
 body[data-page="datahub"] .dh-compare-stat-trigger {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
   align-items: center;
-  padding: 5px 11px 5px 12px;
-  text-align: left;
+  padding: 0 11px 0 13px;
+  text-align: center;
   cursor: pointer;
-}
-
-body[data-page="datahub"] .dh-compare-stat-trigger__label {
-  color: rgba(183, 204, 232, 0.58);
-  font-size: 0.52rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 body[data-page="datahub"] .dh-compare-stat-trigger strong {
   overflow: hidden;
   color: rgba(248, 252, 255, 0.99);
-  font-size: 0.82rem;
+  font-size: 0.98rem;
   font-weight: 950;
   letter-spacing: 0;
   text-overflow: ellipsis;
@@ -330,10 +322,11 @@ body[data-page="datahub"] .dh-compare-stat-trigger strong {
 }
 
 body[data-page="datahub"] .dh-compare-stat-trigger__chevron {
-  grid-row: 1 / span 2;
   grid-column: 2;
   color: rgba(142, 228, 255, 0.75);
   font-size: 0.9rem;
+  line-height: 1;
+  align-self: center;
 }
 
 body[data-page="datahub"] .dh-compare-stat-menu {
@@ -343,7 +336,7 @@ body[data-page="datahub"] .dh-compare-stat-menu {
   z-index: 44;
   display: grid;
   gap: 4px;
-  width: min(120px, 78vw);
+  width: min(90px, 78vw);
   max-height: min(360px, 48vh);
   overflow: auto;
   padding: 7px;
@@ -358,7 +351,7 @@ body[data-page="datahub"] .dh-compare-stat-menu {
 }
 
 body[data-page="datahub"] .dh-compare-stat-option {
-  min-height: 36px;
+  min-height: 29px;
   padding: 0 10px;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -438,6 +431,21 @@ body[data-page="datahub"] .dh-compare-search-tools {
     linear-gradient(180deg, rgba(22, 33, 53, 0.99), rgba(18, 28, 47, 0.98));
 }
 
+body[data-page="datahub"] .dh-compare-search-close {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(164, 207, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(232, 242, 255, 0.82);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
 body[data-page="datahub"] .dh-compare-position-filters {
   display: flex;
   flex-wrap: wrap;
@@ -465,6 +473,7 @@ body[data-page="datahub"] .dh-compare-position-filter {
 }
 
 body[data-page="datahub"] .dh-compare-clear-all {
+  grid-column: 1 / -1;
   padding: 0 10px;
 }
 
@@ -749,7 +758,7 @@ body[data-page="datahub"] .dh-compare-chart-header {
 
 body[data-page="datahub"] .dh-compare-chart-stat {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   min-width: max-content;
 }
@@ -917,6 +926,7 @@ body[data-page="datahub"] .dh-compare-stat-trigger:focus-visible,
 body[data-page="datahub"] .dh-compare-stat-option:focus-visible,
 body[data-page="datahub"] .dh-compare-position-filter:focus-visible,
 body[data-page="datahub"] .dh-compare-clear-all:focus-visible,
+body[data-page="datahub"] .dh-compare-search-close:focus-visible,
 body[data-page="datahub"] .dh-compare-player-chip__remove:focus-visible,
 body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   outline: none;
@@ -947,7 +957,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     max-height: 158px;
     overflow: auto;
     padding: 0 14px;
@@ -1015,7 +1025,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-control-row {
-    grid-template-columns: minmax(104px, 118px) minmax(0, 1fr);
+    grid-template-columns: minmax(76px, 88px) minmax(0, 1fr);
     gap: 6px;
   }
 
@@ -1026,15 +1036,12 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-stat-trigger {
-    padding-inline: 9px;
+    padding-inline: 8px;
   }
 
   body[data-page="datahub"] .dh-compare-stat-trigger strong {
-    font-size: 0.74rem;
-  }
-
-  body[data-page="datahub"] .dh-compare-stat-trigger__label {
-    font-size: 0.48rem;
+    font-size: 0.96rem;
+    font-weight: 400;
   }
 
   body[data-page="datahub"] .dh-compare-search__input {
@@ -1053,13 +1060,14 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-search__menu {
+    left: -3px;
+    width: calc(100% + 5px);
     max-height: min(350px, 46vh);
     border-radius: 12px;
     padding: 0 7px 7px;
   }
 
   body[data-page="datahub"] .dh-compare-search-tools {
-    grid-template-columns: 1fr;
     padding: 6px 0 5px;
   }
 
@@ -1127,7 +1135,8 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-chart-shell,
   body[data-page="datahub"] .dh-compare-empty {
-    min-height: min(330px, 43svh);
+    min-height: min(314px, 40svh);
+    max-height: min(438px, 52svh);
   }
 
   body[data-page="datahub"] .dh-compare-chart-header {
@@ -1140,12 +1149,8 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     gap: 0px;
   }
 
-  body[data-page="datahub"] .dh-compare-chart-stat span {
-    font-size: 0.54rem;
-  }
-
   body[data-page="datahub"] .dh-compare-chart-stat strong {
-    font-size: 0.84rem;
+    font-size: 0.9rem;
   }
 
   body[data-page="datahub"] .dh-compare-chart-legend {

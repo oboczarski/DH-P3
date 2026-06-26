@@ -285,6 +285,9 @@ export function getThresholdConfig(thresholds, pos, statKey) {
 
 export function getWeeklyStatOptions(players, thresholds) {
   const positions = getComparisonPositions(players);
+  if (!positions.length) {
+    return [STAT_DEFINITIONS.fpts];
+  }
   const sourcePositions = positions.length ? positions : ["QB", "RB", "WR", "TE"];
   const statSets = sourcePositions
     .map((pos) => {

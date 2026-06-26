@@ -223,7 +223,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PositionFilters({ activeFilter, onFilterChange, selectedCount, onClearAll }) {
+  function PositionFilters({ activeFilter, onFilterChange, selectedCount, onClearAll, onClose }) {
     return h(
       "div",
       { className: "dh-compare-search-tools" },
@@ -241,6 +241,16 @@ export function createDataHubComparisonModal(React) {
           },
           filter.label,
         )),
+      ),
+      h(
+        "button",
+        {
+          type: "button",
+          className: "dh-compare-search-close",
+          "aria-label": "Close player selector",
+          onClick: onClose,
+        },
+        "×",
       ),
       h(
         "button",
@@ -278,7 +288,6 @@ export function createDataHubComparisonModal(React) {
             }
           },
         },
-        h("span", { className: "dh-compare-stat-trigger__label" }, "Stat"),
         h("strong", null, activeOption.label),
         h("span", { className: "dh-compare-stat-trigger__chevron", "aria-hidden": "true" }, "⌄"),
       ),
@@ -353,7 +362,6 @@ export function createDataHubComparisonModal(React) {
       h(
         "div",
         { className: "dh-compare-chart-stat" },
-        h("span", null, mode === "season" ? "Radar" : "Stat"),
         h("strong", null, mode === "season" ? "Season Multi-Stat" : getStatLabel(weeklyStatKey)),
       ),
       h(
@@ -567,7 +575,13 @@ export function createDataHubComparisonModal(React) {
     };
 
     const clearAllPlayers = () => {
+      // Heading player selector:
+      // reset the active comparison without closing the menu so the next
+      // selected player immediately repopulates summaries and chart data.
       setSelectedIds([]);
+      setWeeklyStatKey("fpts");
+      setQuery("");
+      setActiveOptionIndex(0);
       setIsSearchOpen(true);
       requestAnimationFrame(() => searchInputRef.current?.focus?.());
     };
@@ -728,6 +742,7 @@ export function createDataHubComparisonModal(React) {
                       onFilterChange: setPositionFilter,
                       selectedCount: selectedIds.length,
                       onClearAll: clearAllPlayers,
+                      onClose: () => setIsSearchOpen(false),
                     }),
                     searchResults.length
                       ? h(
