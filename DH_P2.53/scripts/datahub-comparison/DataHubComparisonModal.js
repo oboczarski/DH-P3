@@ -16,6 +16,15 @@ import {
   buildWeeklyChartOption,
 } from "./comparisonChartOptions.js";
 
+const POSITION_FILTERS = Object.freeze([
+  { key: "all", label: "All" },
+  { key: "QB", label: "QB" },
+  { key: "RB", label: "RB" },
+  { key: "WR", label: "WR" },
+  { key: "TE", label: "TE" },
+  { key: "FLX", label: "FLX" },
+]);
+
 function cx(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -39,6 +48,17 @@ function playerMatchesQuery(player, query) {
   return (player.searchText || normalizePlayerSearchText(player)).includes(query);
 }
 
+function playerMatchesPositionFilter(player, positionFilter) {
+  const pos = String(player?.pos || "").trim().toUpperCase();
+  if (!positionFilter || positionFilter === "all") {
+    return true;
+  }
+  if (positionFilter === "FLX") {
+    return pos === "RB" || pos === "WR" || pos === "TE";
+  }
+  return pos === positionFilter;
+}
+
 function sortSearchResults(left, right, selectedIds) {
   const leftSelected = selectedIds.includes(left.id);
   const rightSelected = selectedIds.includes(right.id);
@@ -53,16 +73,17 @@ function sortSearchResults(left, right, selectedIds) {
   return getPlayerName(left).localeCompare(getPlayerName(right));
 }
 
-function getSearchResults(players, query, selectedIds) {
+function getSearchResults(players, query, selectedIds, positionFilter) {
   const normalizedQuery = query.trim().toLowerCase();
   return players
+    .filter((player) => playerMatchesPositionFilter(player, positionFilter))
     .filter((player) => playerMatchesQuery(player, normalizedQuery))
-    .sort((left, right) => sortSearchResults(left, right, selectedIds))
-    .slice(0, normalizedQuery ? 14 : 10);
+    .sort((left, right) => sortSearchResults(left, right, selectedIds));
 }
 
 function getWeeklyDisplayValue(player, statKey) {
   const values = (player?.weeklySeries || [])
+    .filter((entry) => entry?.isPlayed || entry?.played)
     .map((entry) => toFiniteNumber(entry?.stats?.[statKey]))
     .filter((value) => value !== null);
   if (!values.length) {
@@ -94,6 +115,10 @@ function getFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys 
       rank: null,
     }],
   }));
+}
+
+function getFallbackWeeklyStat(options) {
+  return options.find((option) => option.key === "fpts") || options[0] || { key: "fpts", label: "FPTS" };
 }
 
 export function createDataHubComparisonModal(React) {
@@ -170,14 +195,18 @@ export function createDataHubComparisonModal(React) {
       h(
         "span",
         { className: "dh-compare-search-option__main" },
-        player.teamLogoSrc
-          ? h("img", {
-            className: "dh-compare-search-option__logo",
-            src: player.teamLogoSrc,
-            alt: "",
-            loading: "lazy",
-          })
-          : h("span", { className: "dh-compare-search-option__logo-fallback" }, player.team || "FA"),
+        h(
+          "span",
+          { className: "dh-compare-search-option__logo-wrap", "aria-hidden": "true" },
+          player.teamLogoSrc
+            ? h("img", {
+              className: "dh-compare-search-option__logo",
+              src: player.teamLogoSrc,
+              alt: "",
+              loading: "lazy",
+            })
+            : h("span", { className: "dh-compare-search-option__logo-fallback" }, player.team || "FA"),
+        ),
         h(
           "span",
           { className: "dh-compare-search-option__copy" },
@@ -189,8 +218,95 @@ export function createDataHubComparisonModal(React) {
         "span",
         { className: "dh-compare-search-option__stats" },
         h("span", { className: "dh-compare-search-option__fpts" }, formatComparisonValue("fpts", player.fpts, { compact: true })),
-        h("span", { className: "dh-compare-search-option__status" }, selected ? "Selected" : "Add"),
+        h("span", { className: "dh-compare-search-option__status" }, selected ? "Selected" : (disabled ? "Max 3" : "Add")),
       ),
+    );
+  }
+
+  function PositionFilters({ activeFilter, onFilterChange, selectedCount, onClearAll }) {
+    return h(
+      "div",
+      { className: "dh-compare-search-tools" },
+      h(
+        "div",
+        { className: "dh-compare-position-filters", role: "group", "aria-label": "Filter players by position" },
+        POSITION_FILTERS.map((filter) => h(
+          "button",
+          {
+            key: filter.key,
+            type: "button",
+            className: cx("dh-compare-position-filter", filter.key === activeFilter && "is-active"),
+            "aria-pressed": String(filter.key === activeFilter),
+            onClick: () => onFilterChange(filter.key),
+          },
+          filter.label,
+        )),
+      ),
+      h(
+        "button",
+        {
+          type: "button",
+          className: "dh-compare-clear-all",
+          disabled: selectedCount === 0,
+          onClick: onClearAll,
+        },
+        "Clear All",
+      ),
+    );
+  }
+
+  function StatDropdown({ options, activeKey, isOpen, onOpenChange, onSelect, shellRef }) {
+    const activeOption = options.find((option) => option.key === activeKey) || getFallbackWeeklyStat(options);
+    return h(
+      "div",
+      { className: "dh-compare-stat-select", ref: shellRef },
+      h(
+        "button",
+        {
+          type: "button",
+          className: "dh-compare-stat-trigger",
+          "aria-haspopup": "listbox",
+          "aria-expanded": String(isOpen),
+          onClick: () => onOpenChange(!isOpen),
+          onKeyDown: (event) => {
+            if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOpenChange(true);
+            }
+            if (event.key === "Escape") {
+              onOpenChange(false);
+            }
+          },
+        },
+        h("span", { className: "dh-compare-stat-trigger__label" }, "Stat"),
+        h("strong", null, activeOption.label),
+        h("span", { className: "dh-compare-stat-trigger__chevron", "aria-hidden": "true" }, "⌄"),
+      ),
+      isOpen
+        ? h(
+          "div",
+          {
+            className: "dh-compare-stat-menu",
+            role: "listbox",
+            "aria-label": "Weekly stat",
+          },
+          options.map((stat) => h(
+            "button",
+            {
+              key: stat.key,
+              type: "button",
+              role: "option",
+              className: cx("dh-compare-stat-option", stat.key === activeOption.key && "is-active"),
+              "aria-selected": String(stat.key === activeOption.key),
+              onClick: () => {
+                onSelect(stat.key);
+                onOpenChange(false);
+              },
+            },
+            stat.label,
+          )),
+        )
+        : null,
     );
   }
 
@@ -226,6 +342,35 @@ export function createDataHubComparisonModal(React) {
         { className: "dh-compare-summary-card__ranks" },
         h("span", null, `OVR ${formatRank(player?.seasonOverallRanks?.[statKey])}`),
         h("span", null, `${player.pos || "POS"}·${formatRank(player?.seasonPosRanks?.[statKey])}`),
+      ),
+    );
+  }
+
+  function ChartHeader({ mode, weeklyStatKey, selectedPlayers }) {
+    return h(
+      "div",
+      { className: "dh-compare-chart-header" },
+      h(
+        "div",
+        { className: "dh-compare-chart-stat" },
+        h("span", null, mode === "season" ? "Radar" : "Stat"),
+        h("strong", null, mode === "season" ? "Season Multi-Stat" : getStatLabel(weeklyStatKey)),
+      ),
+      h(
+        "div",
+        { className: "dh-compare-chart-legend", "aria-label": "Compared players" },
+        selectedPlayers.map((player, index) => h(
+          "span",
+          {
+            key: player.id,
+            className: "dh-compare-chart-legend__item",
+            style: { "--compare-player-color": getPlayerAccentColor(player, index) },
+          },
+          player.teamLogoSrc
+            ? h("img", { src: player.teamLogoSrc, alt: "", loading: "eager" })
+            : h("span", { className: "dh-compare-chart-legend__fallback" }, player.team || "FA"),
+          h("span", null, getPlayerName(player)),
+        )),
       ),
     );
   }
@@ -305,12 +450,21 @@ export function createDataHubComparisonModal(React) {
     }, []);
 
     if (!selectedPlayers.length) {
-      return h("div", { className: "dh-compare-empty" }, h("span", null, "No players selected"));
+      return h(
+        "section",
+        { className: "dh-compare-chart-shell" },
+        h("div", { className: "dh-compare-empty" }, h("span", null, "No players selected")),
+      );
     }
-    if (!hasEcharts || !chartOption) {
-      return h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
-    }
-    return h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" });
+
+    return h(
+      "section",
+      { className: "dh-compare-chart-shell" },
+      h(ChartHeader, { mode, weeklyStatKey, selectedPlayers }),
+      hasEcharts && chartOption
+        ? h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" })
+        : h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys }),
+    );
   }
 
   function DataHubComparisonModal({ payload, onClose }) {
@@ -323,15 +477,19 @@ export function createDataHubComparisonModal(React) {
     const [weeklyStatKey, setWeeklyStatKey] = useState(payload?.defaults?.weeklyStat || "fpts");
     const [query, setQuery] = useState("");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isStatOpen, setIsStatOpen] = useState(false);
+    const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
     const searchInputRef = useRef(null);
+    const selectorShellRef = useRef(null);
+    const statShellRef = useRef(null);
     const skipSearchOpenOnFocusRef = useRef(false);
     const selectedPlayers = useMemo(() => getSelectedPlayers(playersById, selectedIds), [playersById, selectedIds]);
     const weeklyStatOptions = useMemo(() => getWeeklyStatOptions(selectedPlayers, thresholds), [selectedPlayers, thresholds]);
     const seasonStatKeys = useMemo(() => getSeasonStatKeys(selectedPlayers), [selectedPlayers]);
     const searchResults = useMemo(
-      () => getSearchResults(players, query, selectedIds),
-      [players, query, selectedIds],
+      () => getSearchResults(players, query, selectedIds, positionFilter),
+      [players, positionFilter, query, selectedIds],
     );
     const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
     const isAtMax = selectedIds.length >= MAX_COMPARISON_PLAYERS;
@@ -344,19 +502,21 @@ export function createDataHubComparisonModal(React) {
       setWeeklyStatKey(payload?.defaults?.weeklyStat || "fpts");
       setQuery("");
       setIsSearchOpen(false);
+      setIsStatOpen(false);
+      setPositionFilter("all");
       setActiveOptionIndex(0);
     }, [payload?.revision]);
 
     useEffect(() => {
       if (!weeklyStatOptions.some((option) => option.key === weeklyStatKey)) {
-        setWeeklyStatKey(weeklyStatOptions[0]?.key || "fpts");
+        setWeeklyStatKey(getFallbackWeeklyStat(weeklyStatOptions).key);
       }
     }, [weeklyStatKey, weeklyStatOptions]);
 
     useEffect(() => {
       // DataHub comparison focus target:
       // focus the heading search for keyboard users without auto-opening the
-      // dropdown over the default chart on first modal render.
+      // dropdown over the default weekly chart on first modal render.
       skipSearchOpenOnFocusRef.current = true;
       const frame = requestAnimationFrame(() => searchInputRef.current?.focus?.());
       return () => cancelAnimationFrame(frame);
@@ -367,6 +527,10 @@ export function createDataHubComparisonModal(React) {
         if (event.key !== "Escape") {
           return;
         }
+        if (isStatOpen) {
+          setIsStatOpen(false);
+          return;
+        }
         if (isSearchOpen) {
           setIsSearchOpen(false);
           return;
@@ -375,14 +539,37 @@ export function createDataHubComparisonModal(React) {
       };
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
-    }, [isSearchOpen, onClose]);
+    }, [isSearchOpen, isStatOpen, onClose]);
+
+    useEffect(() => {
+      // Heading dropdown outside-close:
+      // close only the comparison selector menus when the pointer lands outside
+      // their scoped shells, preserving the rest of DataHub modal wiring.
+      const handlePointerDown = (event) => {
+        const target = event.target;
+        if (isSearchOpen && selectorShellRef.current && !selectorShellRef.current.contains(target)) {
+          setIsSearchOpen(false);
+        }
+        if (isStatOpen && statShellRef.current && !statShellRef.current.contains(target)) {
+          setIsStatOpen(false);
+        }
+      };
+      document.addEventListener("pointerdown", handlePointerDown, true);
+      return () => document.removeEventListener("pointerdown", handlePointerDown, true);
+    }, [isSearchOpen, isStatOpen]);
 
     useEffect(() => {
       setActiveOptionIndex(0);
-    }, [query]);
+    }, [positionFilter, query]);
 
     const removePlayer = (playerId) => {
       setSelectedIds((current) => current.filter((id) => id !== playerId));
+    };
+
+    const clearAllPlayers = () => {
+      setSelectedIds([]);
+      setIsSearchOpen(true);
+      requestAnimationFrame(() => searchInputRef.current?.focus?.());
     };
 
     const togglePlayer = (playerId) => {
@@ -473,7 +660,7 @@ export function createDataHubComparisonModal(React) {
           ),
           h(
             "div",
-            { className: "dh-compare-selector" },
+            { className: "dh-compare-selector", ref: selectorShellRef },
             h(
               "div",
               { className: "dh-compare-selected", "aria-label": "Selected players" },
@@ -486,85 +673,88 @@ export function createDataHubComparisonModal(React) {
             ),
             h(
               "div",
-              { className: "dh-compare-search" },
-              h("input", {
-                ref: searchInputRef,
-                className: "dh-compare-search__input",
-                type: "search",
-                placeholder: "Search players...",
-                value: query,
-                "aria-label": "Search players to compare",
-                "aria-expanded": String(isSearchOpen),
-                "aria-controls": "dh-compare-search-results",
-                autoComplete: "off",
-                onFocus: () => {
-                  if (skipSearchOpenOnFocusRef.current) {
-                    skipSearchOpenOnFocusRef.current = false;
-                    return;
-                  }
-                  setIsSearchOpen(true);
-                },
-                onChange: (event) => {
-                  setQuery(event.target.value);
-                  setIsSearchOpen(true);
-                },
-                onKeyDown: handleInputKeydown,
-              }),
-              isSearchOpen
-                ? h(
+              { className: "dh-compare-control-row" },
+              mode === "weekly"
+                ? h(StatDropdown, {
+                  options: weeklyStatOptions,
+                  activeKey: weeklyStatKey,
+                  isOpen: isStatOpen,
+                  onOpenChange: setIsStatOpen,
+                  onSelect: setWeeklyStatKey,
+                  shellRef: statShellRef,
+                })
+                : h(
                   "div",
-                  {
-                    id: "dh-compare-search-results",
-                    className: "dh-compare-search__menu",
-                    role: "listbox",
-                    "aria-label": "Player search results",
+                  { className: "dh-compare-season-context" },
+                  selectedPosition ? `${selectedPosition} positional radar` : "Cross-position radar bundle",
+                ),
+              h(
+                "div",
+                { className: "dh-compare-search" },
+                h("input", {
+                  ref: searchInputRef,
+                  className: "dh-compare-search__input",
+                  type: "search",
+                  placeholder: "Search players...",
+                  value: query,
+                  "aria-label": "Search players to compare",
+                  "aria-expanded": String(isSearchOpen),
+                  "aria-controls": "dh-compare-search-results",
+                  autoComplete: "off",
+                  onFocus: () => {
+                    if (skipSearchOpenOnFocusRef.current) {
+                      skipSearchOpenOnFocusRef.current = false;
+                      return;
+                    }
+                    setIsSearchOpen(true);
                   },
-                  searchResults.length
-                    ? searchResults.map((player, index) => {
-                      const selected = selectedSet.has(player.id);
-                      const disabled = !selected && isAtMax;
-                      return h(PlayerSearchOption, {
-                        key: player.id,
-                        player,
-                        selected,
-                        disabled,
-                        active: index === activeOptionIndex,
-                        onToggle: togglePlayer,
-                      });
-                    })
-                    : h("div", { className: "dh-compare-search__empty" }, "No matching players"),
-                  isAtMax
-                    ? h("div", { className: "dh-compare-search__limit" }, `Max ${MAX_COMPARISON_PLAYERS} active players`)
-                    : null,
-                )
-                : null,
+                  onChange: (event) => {
+                    setQuery(event.target.value);
+                    setIsSearchOpen(true);
+                  },
+                  onKeyDown: handleInputKeydown,
+                }),
+                isSearchOpen
+                  ? h(
+                    "div",
+                    {
+                      id: "dh-compare-search-results",
+                      className: "dh-compare-search__menu",
+                      role: "listbox",
+                      "aria-label": "Player search results",
+                    },
+                    h(PositionFilters, {
+                      activeFilter: positionFilter,
+                      onFilterChange: setPositionFilter,
+                      selectedCount: selectedIds.length,
+                      onClearAll: clearAllPlayers,
+                    }),
+                    searchResults.length
+                      ? h(
+                        "div",
+                        { className: "dh-compare-search__results" },
+                        searchResults.map((player, index) => {
+                          const selected = selectedSet.has(player.id);
+                          const disabled = !selected && isAtMax;
+                          return h(PlayerSearchOption, {
+                            key: player.id,
+                            player,
+                            selected,
+                            disabled,
+                            active: index === activeOptionIndex,
+                            onToggle: togglePlayer,
+                          });
+                        }),
+                      )
+                      : h("div", { className: "dh-compare-search__empty" }, "No matching players"),
+                    isAtMax
+                      ? h("div", { className: "dh-compare-search__limit" }, `Max ${MAX_COMPARISON_PLAYERS} active players`)
+                      : null,
+                  )
+                  : null,
+              ),
             ),
           ),
-        ),
-        h(
-          "div",
-          { className: "dh-compare-toolbar" },
-          mode === "weekly"
-            ? h(
-              "div",
-              { className: "dh-compare-stat-strip", role: "listbox", "aria-label": "Weekly stat" },
-              weeklyStatOptions.map((stat) => h(
-                "button",
-                {
-                  key: stat.key,
-                  type: "button",
-                  className: cx("dh-compare-stat", stat.key === weeklyStatKey && "is-active"),
-                  "aria-selected": String(stat.key === weeklyStatKey),
-                  onClick: () => setWeeklyStatKey(stat.key),
-                },
-                stat.label,
-              )),
-            )
-            : h(
-              "div",
-              { className: "dh-compare-season-context" },
-              selectedPosition ? `${selectedPosition} positional radar` : "Cross-position radar bundle",
-            ),
         ),
         h(
           "section",
