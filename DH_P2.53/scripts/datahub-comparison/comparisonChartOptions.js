@@ -633,7 +633,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             fontWeight: 900,
             formatter: (params) => {
               if (!params.data || params.data.rawValue === null) return "";
-              const rank = params.data.rank ? `{rank|(${params.data.pos}·${params.data.rank})}` : "";
+              const rank = !isMobile && params.data.rank ? `{rank|(${params.data.pos}·${params.data.rank})}` : "";
               return `{value|${formatComparisonValue(statKey, params.data.rawValue, { compact: true })}}${rank}`;
             },
             rich: {
@@ -646,6 +646,9 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
                 color: "rgba(226,236,250,.9)",
                 fontSize: isMobile ? 5.5 : 8,
                 fontWeight: 850,
+                lineHeight: isMobile ? 8 : 12,
+                padding: isMobile ? [0, 0, 0, 0] : [1, 0, 0, 1],
+                verticalAlign: "middle",
               },
             },
           },
