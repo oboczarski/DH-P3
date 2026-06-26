@@ -323,7 +323,7 @@ function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymb
         },
         label: {
           position: "top",
-          distance: isMobile ? 1 : 2,
+          distance: isMobile ? 1 : 1,
           offset: [0, 0],
           color: "rgba(232,237,246,.94)",
           backgroundColor: "rgba(17,21,31,0.92)",
@@ -508,7 +508,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             label: {
               show: true,
               position: "top",
-              distance: isMobile ? 1 : 2,
+              distance: isMobile ? 1 : 1,
               offset: [0, 0],
               backgroundColor: "rgba(5,9,18,0.92)",
               borderColor: hexToRgba(point.pointColor, 0.64),
