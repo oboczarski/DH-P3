@@ -350,7 +350,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         interval: 0,
         color: "rgba(205, 220, 245, 0.58)",
         fontFamily: "Product Sans, Google Sans, sans-serif",
-        fontSize: isMobile ? 7 : 10,
+        fontSize: isMobile ? 9 : 11,
         margin: isMobile ? 12 : 10,
         rotate: isMobile ? 45 : 0,
         align: isMobile ? "right" : "center",
