@@ -1,0 +1,1092 @@
+/* DataHub Compare modal stylesheet:
+   loaded only from the Compare open bridge. These rules intentionally replicate
+   the modal shell, controls, chart surfaces, and fallback states locally so the
+   React island does not depend on DataHub.css modal styling. */
+body[data-page="datahub"].datahub-comparison-modal-open {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+body[data-page="datahub"] .dh-compare-modal,
+body[data-page="datahub"] .dh-compare-modal * {
+  box-sizing: border-box;
+}
+
+body[data-page="datahub"] .dh-compare-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  color: rgba(240, 247, 255, 0.96);
+  font-family: "Product Sans", "Google Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body[data-page="datahub"] .dh-compare-modal__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3, 6, 12, 0.66), rgba(3, 6, 12, 0.9)),
+    rgba(2, 5, 11, 0.82);
+  backdrop-filter: blur(18px) saturate(142%) brightness(0.78);
+  -webkit-backdrop-filter: blur(18px) saturate(142%) brightness(0.78);
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(1180px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background:
+    linear-gradient(154deg, rgba(18, 26, 42, 0.97), rgba(5, 9, 17, 0.99)) padding-box,
+    linear-gradient(135deg, rgba(126, 235, 255, 0.38), rgba(130, 146, 255, 0.22), rgba(255, 106, 180, 0.2), rgba(91, 255, 198, 0.22)) border-box;
+  box-shadow:
+    0 34px 96px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog:not(.dh-compare-modal__dialog--error) {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  height: min(860px, calc(100svh - 32px));
+  min-height: min(720px, calc(100svh - 32px));
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog:not(.dh-compare-modal__dialog--error)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0) 24%),
+    linear-gradient(90deg, rgba(104, 235, 255, 0.08), rgba(255, 107, 180, 0.055), rgba(91, 255, 198, 0.06));
+}
+
+body[data-page="datahub"] .dh-compare-header,
+body[data-page="datahub"] .dh-compare-main,
+body[data-page="datahub"] .dh-compare-summary-grid,
+body[data-page="datahub"] .dh-compare-body {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-page="datahub"] .dh-compare-header {
+  z-index: 8;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "heading actions"
+    "selector selector";
+  align-items: start;
+  gap: 12px 18px;
+  min-width: 0;
+  padding: 18px 20px 0;
+}
+
+body[data-page="datahub"] .dh-compare-heading {
+  grid-area: heading;
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-eyebrow {
+  color: rgba(142, 228, 255, 0.75);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .dh-compare-heading h2 {
+  margin: 0;
+  color: rgba(248, 252, 255, 0.99);
+  font-size: clamp(1.62rem, 2.7vw, 2.72rem);
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] .dh-compare-header__actions {
+  grid-area: actions;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+body[data-page="datahub"] .dh-compare-mode-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(169, 204, 255, 0.13);
+  border-radius: 999px;
+  background: rgba(4, 9, 18, 0.66);
+}
+
+body[data-page="datahub"] .dh-compare-mode,
+body[data-page="datahub"] .dh-compare-stat-trigger,
+body[data-page="datahub"] .dh-compare-stat-option,
+body[data-page="datahub"] .dh-compare-filter,
+body[data-page="datahub"] .dh-compare-clear-all,
+body[data-page="datahub"] .dh-compare-search-option,
+body[data-page="datahub"] .dh-compare-player-chip__remove,
+body[data-page="datahub"] .dh-compare-close {
+  font: inherit;
+}
+
+body[data-page="datahub"] .dh-compare-mode,
+body[data-page="datahub"] .dh-compare-stat-trigger {
+  min-height: 30px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(190, 209, 235, 0.68);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-mode {
+  padding: 0 13px;
+}
+
+body[data-page="datahub"] .dh-compare-mode.is-active,
+body[data-page="datahub"] .dh-compare-stat-trigger[aria-expanded="true"] {
+  border-color: rgba(115, 244, 255, 0.22);
+  color: rgba(248, 252, 255, 0.99);
+  background:
+    linear-gradient(180deg, rgba(115, 244, 255, 0.16), rgba(255, 107, 180, 0.085)),
+    rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+body[data-page="datahub"] .dh-compare-close {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(185, 212, 246, 0.22);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(38, 50, 70, 0.96), rgba(12, 18, 29, 0.98));
+  color: rgba(239, 247, 255, 0.86);
+  font-size: 1.16rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body[data-page="datahub"] .dh-compare-selector {
+  grid-area: selector;
+  position: relative;
+  z-index: 12;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 7px;
+  min-height: 38px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-player-chip {
+  --compare-player-color: #72efff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(100%, 258px);
+  min-height: 32px;
+  padding: 4px 5px 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--compare-player-color) 36%, transparent);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--compare-player-color) 17%, transparent), rgba(255, 255, 255, 0.025)),
+    rgba(7, 12, 22, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+body[data-page="datahub"] .dh-compare-player-chip__dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--compare-player-color);
+  box-shadow: 0 0 12px var(--compare-player-color);
+}
+
+body[data-page="datahub"] .dh-compare-player-chip__logo {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2));
+}
+
+body[data-page="datahub"] .dh-compare-player-chip__name {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(248, 252, 255, 0.98);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-player-chip__pos {
+  flex: 0 0 auto;
+  color: var(--compare-player-color);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+body[data-page="datahub"] .dh-compare-player-chip__remove {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(239, 247, 255, 0.86);
+  line-height: 1;
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .dh-compare-controls {
+  display: grid;
+  grid-template-columns: minmax(128px, 160px) minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-controls--season {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-page="datahub"] .dh-compare-stat-select,
+body[data-page="datahub"] .dh-compare-search {
+  position: relative;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-stat-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-color: rgba(172, 210, 255, 0.17);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02)),
+    rgba(4, 9, 18, 0.74);
+  color: rgba(246, 251, 255, 0.96);
+}
+
+body[data-page="datahub"] .dh-compare-stat-trigger__icon {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.7;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+body[data-page="datahub"] .dh-compare-stat-menu,
+body[data-page="datahub"] .dh-compare-search__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 40;
+  display: grid;
+  gap: 5px;
+  max-height: min(354px, 44vh);
+  overflow: auto;
+  padding: 7px;
+  border: 1px solid rgba(148, 210, 255, 0.19);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(22, 33, 53, 0.99), rgba(6, 11, 21, 0.99)),
+    rgba(6, 10, 18, 0.99);
+  box-shadow:
+    0 24px 52px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body[data-page="datahub"] .dh-compare-stat-menu {
+  left: 0;
+  width: min(220px, 70vw);
+}
+
+body[data-page="datahub"] .dh-compare-stat-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(229, 240, 255, 0.86);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .dh-compare-stat-option:hover,
+body[data-page="datahub"] .dh-compare-stat-option.is-active {
+  border-color: rgba(115, 244, 255, 0.25);
+  color: rgba(248, 252, 255, 0.99);
+  background:
+    linear-gradient(180deg, rgba(115, 244, 255, 0.11), rgba(255, 107, 180, 0.055)),
+    rgba(255, 255, 255, 0.045);
+}
+
+body[data-page="datahub"] .dh-compare-search__input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(172, 210, 255, 0.17);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02)),
+    rgba(4, 9, 18, 0.74);
+  color: rgba(246, 251, 255, 0.98);
+  font: inherit;
+  font-size: 0.88rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body[data-page="datahub"] .dh-compare-search__input::placeholder {
+  color: rgba(184, 204, 232, 0.52);
+}
+
+body[data-page="datahub"] .dh-compare-search__menu {
+  left: 0;
+  right: 0;
+}
+
+body[data-page="datahub"] .dh-compare-search__tools {
+  position: sticky;
+  top: -7px;
+  z-index: 2;
+  display: grid;
+  gap: 6px;
+  padding: 2px 0 6px;
+  background:
+    linear-gradient(180deg, rgba(22, 33, 53, 0.99), rgba(16, 25, 42, 0.97));
+}
+
+body[data-page="datahub"] .dh-compare-filter-row {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 1px;
+  scrollbar-width: none;
+}
+
+body[data-page="datahub"] .dh-compare-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+body[data-page="datahub"] .dh-compare-filter,
+body[data-page="datahub"] .dh-compare-clear-all {
+  min-height: 27px;
+  border: 1px solid rgba(171, 206, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(195, 213, 240, 0.72);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-filter {
+  padding: 0 9px;
+}
+
+body[data-page="datahub"] .dh-compare-filter.is-active {
+  border-color: rgba(115, 244, 255, 0.26);
+  color: rgba(248, 252, 255, 0.96);
+  background: rgba(115, 244, 255, 0.12);
+}
+
+body[data-page="datahub"] .dh-compare-clear-all {
+  justify-self: start;
+  padding: 0 10px;
+  color: rgba(255, 206, 225, 0.82);
+}
+
+body[data-page="datahub"] .dh-compare-clear-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+body[data-page="datahub"] .dh-compare-search-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .dh-compare-search-option:hover,
+body[data-page="datahub"] .dh-compare-search-option.is-active {
+  border-color: rgba(115, 244, 255, 0.25);
+  background:
+    linear-gradient(180deg, rgba(115, 244, 255, 0.11), rgba(255, 107, 180, 0.055)),
+    rgba(255, 255, 255, 0.045);
+}
+
+body[data-page="datahub"] .dh-compare-search-option.is-selected {
+  border-color: rgba(91, 255, 198, 0.32);
+}
+
+body[data-page="datahub"] .dh-compare-search-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__logo-well,
+body[data-page="datahub"] .dh-compare-search-option__logo-fallback {
+  width: 34px;
+  height: 30px;
+  flex: 0 0 34px;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__logo-well {
+  display: inline-grid;
+  place-items: center;
+  overflow: visible;
+  border-radius: 0;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__logo {
+  width: 32px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.14));
+}
+
+body[data-page="datahub"] .dh-compare-search-option__logo-fallback {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(211, 228, 248, 0.78);
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__name {
+  max-width: 220px;
+  overflow: hidden;
+  color: rgba(246, 251, 255, 0.98);
+  font-size: 0.84rem;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__meta {
+  color: rgba(183, 204, 232, 0.66);
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__stats {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__fpts {
+  color: rgba(115, 244, 255, 0.92);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-search-option__status,
+body[data-page="datahub"] .dh-compare-search__limit,
+body[data-page="datahub"] .dh-compare-search__empty {
+  color: rgba(183, 204, 232, 0.64);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .dh-compare-search__limit,
+body[data-page="datahub"] .dh-compare-search__empty {
+  padding: 8px 10px 6px;
+  text-align: center;
+}
+
+body[data-page="datahub"] .dh-compare-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+}
+
+body[data-page="datahub"] .dh-compare-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  padding: 0 20px;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card {
+  --compare-player-color: #72efff;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 65px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--compare-player-color) 24%, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--compare-player-color) 12%, transparent), rgba(255, 255, 255, 0.025)),
+    rgba(6, 11, 20, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 12px 26px rgba(0, 0, 0, 0.17);
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__player {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__player img,
+body[data-page="datahub"] .dh-compare-summary-card__logo-fallback {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__logo-fallback {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(211, 228, 248, 0.78);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__identity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__identity strong,
+body[data-page="datahub"] .dh-compare-summary-card__identity span,
+body[data-page="datahub"] .dh-compare-summary-card__metric span,
+body[data-page="datahub"] .dh-compare-summary-card__metric strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__identity strong {
+  color: rgba(248, 252, 255, 0.99);
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__identity span,
+body[data-page="datahub"] .dh-compare-summary-card__metric span,
+body[data-page="datahub"] .dh-compare-summary-card__ranks {
+  color: rgba(183, 204, 232, 0.64);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__metric {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 76px;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__metric strong {
+  color: var(--compare-player-color);
+  font-size: 1.22rem;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] .dh-compare-summary-card__ranks {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 58px;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .dh-compare-body {
+  display: grid;
+  min-height: 0;
+  padding: 0 20px 20px;
+  overflow: hidden;
+}
+
+body[data-page="datahub"] .dh-compare-chart-shell,
+body[data-page="datahub"] .dh-compare-fallback,
+body[data-page="datahub"] .dh-compare-empty {
+  width: 100%;
+  height: 100%;
+  min-height: 370px;
+  border: 1px solid rgba(164, 207, 255, 0.13);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(4, 9, 17, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -28px 62px rgba(0, 0, 0, 0.18);
+}
+
+body[data-page="datahub"] .dh-compare-chart-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+body[data-page="datahub"] .dh-compare-chart-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 12px 14px 6px;
+}
+
+body[data-page="datahub"] .dh-compare-chart-title {
+  flex: 0 0 auto;
+  color: rgba(248, 252, 255, 0.98);
+  font-size: 1.02rem;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] .dh-compare-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .dh-compare-chart-legend__item {
+  --compare-player-color: #72efff;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: rgba(224, 235, 255, 0.8);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-chart-legend__logo {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 5px color-mix(in srgb, var(--compare-player-color) 42%, transparent))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+}
+
+body[data-page="datahub"] .dh-compare-chart-legend__logo-fallback {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--compare-player-color) 18%, rgba(255, 255, 255, 0.08));
+  color: rgba(245, 250, 255, 0.88);
+  font-size: 0.62rem;
+}
+
+body[data-page="datahub"] .dh-compare-chart-legend__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-chart {
+  min-height: 0;
+}
+
+body[data-page="datahub"] .dh-compare-empty {
+  display: grid;
+  place-items: center;
+  color: rgba(190, 209, 235, 0.68);
+}
+
+body[data-page="datahub"] .dh-compare-fallback {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 16px;
+  overflow: auto;
+}
+
+body[data-page="datahub"] .dh-compare-warning {
+  justify-self: start;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 176, 102, 0.25);
+  border-radius: 999px;
+  color: rgba(255, 214, 176, 0.9);
+  background: rgba(255, 176, 102, 0.08);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .dh-compare-fallback__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+body[data-page="datahub"] .dh-compare-fallback__card {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid rgba(164, 207, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+body[data-page="datahub"] .dh-compare-fallback__label {
+  color: rgba(183, 204, 232, 0.66);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+body[data-page="datahub"] .dh-compare-fallback__value {
+  color: var(--compare-player-color, rgba(238, 246, 255, 0.94));
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog--error {
+  align-content: center;
+  gap: 10px;
+  width: min(92vw, 440px);
+  min-height: 220px;
+  padding: 24px;
+}
+
+body[data-page="datahub"] .dh-compare-modal__dialog--error h2 {
+  margin: 0;
+  color: rgba(248, 252, 255, 0.99);
+  font-size: 1.4rem;
+  letter-spacing: 0;
+}
+
+body[data-page="datahub"] .dh-compare-error-message {
+  margin: 0;
+  color: rgba(205, 222, 247, 0.72);
+  line-height: 1.45;
+}
+
+body[data-page="datahub"] .dh-compare-close:hover,
+body[data-page="datahub"] .dh-compare-player-chip__remove:hover,
+body[data-page="datahub"] .dh-compare-mode:hover,
+body[data-page="datahub"] .dh-compare-stat-trigger:hover,
+body[data-page="datahub"] .dh-compare-clear-all:hover,
+body[data-page="datahub"] .dh-compare-filter:hover {
+  transform: translateY(-1px);
+}
+
+body[data-page="datahub"] .dh-compare-close:focus-visible,
+body[data-page="datahub"] .dh-compare-search__input:focus-visible,
+body[data-page="datahub"] .dh-compare-mode:focus-visible,
+body[data-page="datahub"] .dh-compare-stat-trigger:focus-visible,
+body[data-page="datahub"] .dh-compare-stat-option:focus-visible,
+body[data-page="datahub"] .dh-compare-filter:focus-visible,
+body[data-page="datahub"] .dh-compare-clear-all:focus-visible,
+body[data-page="datahub"] .dh-compare-player-chip__remove:focus-visible,
+body[data-page="datahub"] .dh-compare-search-option:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(151, 221, 255, 0.66),
+    0 0 0 5px rgba(92, 170, 255, 0.18);
+}
+
+@media (max-width: 920px) {
+  body[data-page="datahub"] .dh-compare-modal__dialog:not(.dh-compare-modal__dialog--error) {
+    width: calc(100vw - 24px);
+    height: calc(100svh - 24px);
+    min-height: 0;
+  }
+
+  body[data-page="datahub"] .dh-compare-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 15px 14px 0;
+  }
+
+  body[data-page="datahub"] .dh-compare-selector {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-page="datahub"] .dh-compare-selected {
+    max-height: 78px;
+    overflow: auto;
+    padding-right: 1px;
+    gap: 4px;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-grid {
+    grid-template-columns: 1fr;
+    max-height: 158px;
+    overflow: auto;
+    padding: 0 14px;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    min-height: 62px;
+    padding: 8px 10px;
+  }
+
+  body[data-page="datahub"] .dh-compare-body {
+    padding: 0 14px 14px;
+  }
+}
+
+@media (max-width: 719px) {
+  body[data-page="datahub"] .dh-compare-modal {
+    place-items: stretch;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+
+  body[data-page="datahub"] .dh-compare-modal__dialog:not(.dh-compare-modal__dialog--error) {
+    width: 100%;
+    height: calc(100svh - 16px);
+    align-self: center;
+    gap: 8px;
+    border-radius: 16px;
+  }
+
+  body[data-page="datahub"] .dh-compare-header {
+    padding: 12px 10px 0;
+  }
+
+  body[data-page="datahub"] .dh-compare-heading h2 {
+    font-size: 1.14rem;
+    line-height: 0.98;
+    text-wrap-mode: nowrap;
+  }
+
+  body[data-page="datahub"] .dh-compare-eyebrow {
+    font-size: 0.56rem;
+    letter-spacing: 0.13em;
+  }
+
+  body[data-page="datahub"] .dh-compare-header__actions {
+    gap: 6px;
+  }
+
+  body[data-page="datahub"] .dh-compare-mode-group {
+    padding: 3px;
+  }
+
+  body[data-page="datahub"] .dh-compare-mode {
+    min-height: 28px;
+    padding-inline: 9px;
+    font-size: 0.66rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-close {
+    width: 32px;
+    height: 32px;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chip {
+    max-width: 100%;
+    min-height: 29px;
+    gap: 4px;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chip__name {
+    max-width: 92px;
+    font-size: 0.64rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-controls {
+    grid-template-columns: minmax(96px, 118px) minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  body[data-page="datahub"] .dh-compare-controls--season {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body[data-page="datahub"] .dh-compare-stat-trigger,
+  body[data-page="datahub"] .dh-compare-search__input {
+    height: 38px;
+    font-size: 0.78rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-stat-trigger {
+    padding-inline: 10px;
+  }
+
+  body[data-page="datahub"] .dh-compare-search__input {
+    padding-inline: 11px;
+  }
+
+  body[data-page="datahub"] .dh-compare-search__menu {
+    max-height: min(318px, 42vh);
+    border-radius: 12px;
+  }
+
+  body[data-page="datahub"] .dh-compare-search-option {
+    min-height: 50px;
+    padding: 6px;
+  }
+
+  body[data-page="datahub"] .dh-compare-search-option__name {
+    max-width: 150px;
+    font-size: 0.78rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-grid {
+    max-height: 140px;
+    padding: 0 10px;
+  }
+
+  body[data-page="datahub"] .dh-compare-main {
+    grid-template-rows: auto minmax(250px, 35svh);
+    align-content: start;
+    overflow: auto;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+    min-height: 56px;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__player img,
+  body[data-page="datahub"] .dh-compare-summary-card__logo-fallback {
+    width: 28px;
+    height: 28px;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__metric {
+    min-width: 64px;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__metric strong {
+    font-size: 1rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-summary-card__ranks {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  body[data-page="datahub"] .dh-compare-body {
+    padding: 0 2px 8px;
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-shell,
+  body[data-page="datahub"] .dh-compare-fallback,
+  body[data-page="datahub"] .dh-compare-empty {
+    min-height: min(292px, 35svh);
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-header {
+    gap: 8px;
+    padding: 9px 10px 4px;
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-title {
+    font-size: 0.86rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-legend {
+    gap: 5px 8px;
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-legend__item {
+    max-width: 126px;
+    gap: 5px;
+    font-size: 0.66rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-chart-legend__logo,
+  body[data-page="datahub"] .dh-compare-chart-legend__logo-fallback {
+    width: 24px;
+    height: 24px;
+  }
+}

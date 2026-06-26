@@ -2850,6 +2850,7 @@ const ROOKIE_CSV_URLS_BY_CATEGORY = Object.freeze({
 let supplementalDataPromise = null;
 let rookieDataPromise = null;
 let dataHubComparisonModulePromise = null;
+let dataHubComparisonStylesPromise = null;
 let dataHubComparisonReactRoot = null;
 
 let activeMoreToggle = null;
@@ -6871,6 +6872,7 @@ function closeDataHubChartModal({ restoreFocus = true } = {}) {
 
 const DATAHUB_COMPARISON_REACT_URL = "https://cdn.jsdelivr.net/npm/react@18.3.1/+esm";
 const DATAHUB_COMPARISON_REACT_DOM_URL = "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/client/+esm";
+const DATAHUB_COMPARISON_STYLESHEET_URL = "../scripts/datahub-comparison/DataHubComparisonModal.css";
 const DATAHUB_COMPARISON_WEEKLY_STAT_KEYS = Object.freeze([
   "fpts",
   "pass_yd",
@@ -6971,6 +6973,41 @@ async function ensureDataHubComparisonModule() {
   return dataHubComparisonModulePromise;
 }
 
+function ensureDataHubComparisonStyles() {
+  if (dataHubComparisonStylesPromise) {
+    return dataHubComparisonStylesPromise;
+  }
+
+  // DataHub comparison lazy stylesheet:
+  // injects the modal-only CSS from the Compare click path so the first React
+  // island stays self-contained without adding modal styling to initial page CSS.
+  dataHubComparisonStylesPromise = new Promise((resolve, reject) => {
+    const existingLink = document.querySelector("link[data-datahub-comparison-css]");
+    if (existingLink) {
+      if (existingLink.sheet) {
+        resolve(existingLink);
+        return;
+      }
+      existingLink.addEventListener("load", () => resolve(existingLink), { once: true });
+      existingLink.addEventListener("error", () => reject(new Error("Unable to load comparison modal styles.")), { once: true });
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = new URL(DATAHUB_COMPARISON_STYLESHEET_URL, window.location.href).href;
+    link.dataset.datahubComparisonCss = "true";
+    link.addEventListener("load", () => resolve(link), { once: true });
+    link.addEventListener("error", () => {
+      dataHubComparisonStylesPromise = null;
+      reject(new Error("Unable to load comparison modal styles."));
+    }, { once: true });
+    document.head.appendChild(link);
+  });
+
+  return dataHubComparisonStylesPromise;
+}
+
 function getDataHubComparisonReactRoot(ReactDOMClient) {
   if (!comparisonModalRoot || !ReactDOMClient?.createRoot) {
     return null;
@@ -6993,7 +7030,8 @@ async function openDataHubComparisonModal(triggerButton = null) {
   syncComparisonControls();
 
   try {
-    const [comparisonModule] = await Promise.all([
+    const [, comparisonModule] = await Promise.all([
+      ensureDataHubComparisonStyles(),
       ensureDataHubComparisonModule(),
       ensureDataHubComparisonStatsData(),
     ]);
@@ -7117,7 +7155,8 @@ const DATAHUB_COMPARISON_QB_LOWER_BETTER = new Set(["ttt", "prs_pct", "pass_sack
 // DataHub comparison full-prompt data bridge:
 // supersedes the first lightweight comparison payload while keeping the same
 // lazy React island entry point. The new path fetches AllWks/threshold data
-// only after Compare is opened, preserving the main DataHub page startup cost.
+// only after Compare is opened, and it reuses the game-log weekly data source
+// so skipped/inactive weeks match the existing consistency chart behavior.
 async function ensureDataHubComparisonStatsData() {
   if (state.comparisonDataLoaded && state.comparisonData) {
     return;
@@ -7128,17 +7167,16 @@ async function ensureDataHubComparisonStatsData() {
   }
 
   state.comparisonDataPromise = (async () => {
-    const [seasonCsvText, seasonRanksCsvText, allWeeksCsvText, thresholdCsvText] = await Promise.all([
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_URL, window.location.href)),
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
+    const [, allWeeksCsvText, thresholdCsvText] = await Promise.all([
+      ensureDataHubGameLogsData(),
       fetchDataHubText(new URL(DATAHUB_COMPARISON_ALL_WEEKS_URL, window.location.href)),
       fetchDataHubText(new URL(DATAHUB_COMPARISON_THRESHOLDS_URL, window.location.href)),
     ]);
     const weeklyData = parseDataHubComparisonAllWeeksRows(parseCsv(allWeeksCsvText));
     const thresholdData = parseDataHubComparisonThresholdRows(parseCsv(thresholdCsvText));
     state.comparisonData = {
-      seasonStats: parseDataHubSeasonStatsRows(parseCsv(seasonCsvText)),
-      seasonRanks: parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText)),
+      seasonStats: state.playerSeasonStats || Object.create(null),
+      seasonRanks: state.playerSeasonRanks || Object.create(null),
       thresholds: thresholdData.byPos,
       thresholdStatKeys: thresholdData.statKeys,
       weeklyRows: weeklyData.rows,
@@ -7487,17 +7525,74 @@ function getDataHubComparisonRowAlias(statKey) {
   return aliases[statKey] || statKey;
 }
 
+function getDataHubComparisonSkipReason(statsForWeek) {
+  if (!statsForWeek) {
+    return "";
+  }
+  const opponent = String(statsForWeek.opponent || "").trim().toUpperCase();
+  if (opponent === "BYE") {
+    return "BYE";
+  }
+  const projectionReason = formatDataHubProjReason(statsForWeek.proj);
+  if (shouldSkipDataHubConsistencyWeek(statsForWeek)) {
+    return projectionReason || "DNP";
+  }
+
+  const fantasyPoints = toComparableNumber(statsForWeek.fpts_override ?? statsForWeek.fpt_ppr ?? statsForWeek.fpts);
+  const snapValue = toComparableNumber(statsForWeek.snp_pct ?? statsForWeek.snap_pct ?? statsForWeek.snp);
+  const hasUsage = ["pass_att", "rush_att", "rec_tgt", "rec", "rr"]
+    .some((statKey) => (Number(statsForWeek[statKey]) || 0) > 0);
+  if (Number.isFinite(fantasyPoints) && fantasyPoints <= 0.5 && snapValue === 0 && !hasUsage) {
+    return projectionReason || "DNP";
+  }
+
+  return "";
+}
+
+function buildDataHubComparisonWeeklyStatValues(statsForWeek) {
+  if (!statsForWeek) {
+    return {};
+  }
+  const statKeys = new Set([
+    "fpts",
+    ...(state.comparisonData?.thresholdStatKeys || []),
+    ...DATAHUB_COMPARISON_SEASON_VALUE_KEYS,
+  ]);
+  const stats = {};
+  statKeys.forEach((statKey) => {
+    const value = getDataHubGameLogStatValue(statKey, statsForWeek);
+    if (Number.isFinite(value)) {
+      stats[statKey] = value;
+    }
+  });
+  return stats;
+}
+
 function buildDataHubComparisonWeeklySeries(playerId) {
-  const weeklyByPlayer = state.comparisonData?.weeklyByPlayer?.[playerId] || {};
+  const allWeeksByPlayer = state.comparisonData?.weeklyByPlayer?.[playerId] || {};
   const weeklyRanks = state.comparisonData?.weeklyRanks || {};
+  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
   return Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
     const week = index + 1;
-    const sourceEntry = weeklyByPlayer[week] || null;
+    const combinedStats = combinedWeeklyStats?.[week]?.[playerId] || null;
+    const allWeeksEntry = allWeeksByPlayer[week] || null;
+    const fallbackStats = allWeeksEntry
+      ? { ...(allWeeksEntry.stats || {}), opponent: allWeeksEntry.opponent || "" }
+      : null;
+    const sourceStats = combinedStats || fallbackStats;
+    const opponent = String(sourceStats?.opponent || allWeeksEntry?.opponent || "").trim();
+    const skipReason = getDataHubComparisonSkipReason(sourceStats);
+    const isSkipped = Boolean(skipReason);
+    const stats = isSkipped ? {} : buildDataHubComparisonWeeklyStatValues(sourceStats);
     return {
       week,
-      opponent: sourceEntry?.opponent || "",
-      stats: sourceEntry?.stats ? { ...sourceEntry.stats } : {},
+      opponent,
+      rawStats: sourceStats ? { ...sourceStats } : {},
+      stats,
       ranks: weeklyRanks?.[week]?.[playerId] || {},
+      isPlayed: Boolean(!isSkipped && Object.keys(stats).length),
+      isSkipped,
+      skipReason,
     };
   });
 }

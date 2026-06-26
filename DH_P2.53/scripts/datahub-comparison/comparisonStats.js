@@ -78,6 +78,34 @@ export const COMPARISON_RADAR_BUNDLES = Object.freeze({
   ]),
 });
 
+export const COMPARISON_WEEKLY_STAT_KEYS_BY_POS = Object.freeze({
+  QB: Object.freeze([
+    "fpts", "ppg", "pass_att", "pass_cmp", "cmp_pct", "pass_yd", "pass_td",
+    "pass_fd", "pass_int", "pass_sack", "pass_rtg", "epa_per_db", "cpoe",
+    "ttt", "prs_pct", "rush_att", "rush_yd", "rush_td", "ypc", "snp_pct",
+    "yds_total", "imp", "imp_per_g", "fpoe", "csty_pct", "ceiling",
+  ]),
+  RB: Object.freeze([
+    "fpts", "ppg", "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc",
+    "rush_yac", "yco_per_att", "mtf", "mtf_per_att", "rec_tgt", "rec",
+    "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "ypr", "yprr",
+    "ts_per_rr", "first_down_rec_rate", "snp_pct", "yds_total", "imp",
+    "opp", "imp_per_g", "fpoe", "csty_pct", "ceiling",
+  ]),
+  WR: Object.freeze([
+    "fpts", "ppg", "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd",
+    "rec_yar", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
+    "rush_att", "rush_yd", "rush_td", "snp_pct", "yds_total", "imp",
+    "opp", "imp_per_g", "fpoe", "csty_pct", "ceiling",
+  ]),
+  TE: Object.freeze([
+    "fpts", "ppg", "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd",
+    "rec_yar", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
+    "rush_att", "rush_yd", "rush_td", "snp_pct", "yds_total", "imp",
+    "opp", "imp_per_g", "fpoe", "csty_pct", "ceiling",
+  ]),
+});
+
 const STAT_DEFINITIONS = Object.freeze({
   fpts: Object.freeze({ key: "fpts", label: "FPTS", unit: "pts", decimals: 1 }),
   ppg: Object.freeze({ key: "ppg", label: "PPG", unit: "pts", decimals: 1 }),
@@ -177,7 +205,11 @@ export function getWeeklyStatOptions(players, thresholds) {
   const positions = getComparisonPositions(players);
   const sourcePositions = positions.length ? positions : ["QB", "RB", "WR", "TE"];
   const statSets = sourcePositions
-    .map((pos) => Object.keys(thresholds?.[pos] || {}))
+    .map((pos) => {
+      const thresholdKeys = Object.keys(thresholds?.[pos] || {});
+      const allowedKeys = COMPARISON_WEEKLY_STAT_KEYS_BY_POS[pos] || [];
+      return thresholdKeys.filter((key) => allowedKeys.includes(key));
+    })
     .filter((keys) => keys.length);
 
   if (!statSets.length) {

@@ -2,7 +2,6 @@ import {
   MAX_COMPARISON_PLAYERS,
   formatComparisonValue,
   formatRank,
-  getComparisonPosition,
   getPlayerAccentColor,
   getPlayerName,
   getSeasonStatKeys,
@@ -53,12 +52,32 @@ function sortSearchResults(left, right, selectedIds) {
   return getPlayerName(left).localeCompare(getPlayerName(right));
 }
 
-function getSearchResults(players, query, selectedIds) {
+const POSITION_FILTERS = Object.freeze([
+  { key: "all", label: "All" },
+  { key: "QB", label: "QB" },
+  { key: "RB", label: "RB" },
+  { key: "WR", label: "WR" },
+  { key: "TE", label: "TE" },
+  { key: "FLX", label: "FLX" },
+]);
+
+function playerMatchesPositionFilter(player, positionFilter) {
+  const pos = String(player?.pos || "").trim().toUpperCase();
+  if (!positionFilter || positionFilter === "all") {
+    return true;
+  }
+  if (positionFilter === "FLX") {
+    return pos === "RB" || pos === "WR" || pos === "TE";
+  }
+  return pos === positionFilter;
+}
+
+function getSearchResults(players, query, selectedIds, positionFilter) {
   const normalizedQuery = query.trim().toLowerCase();
   return players
     .filter((player) => playerMatchesQuery(player, normalizedQuery))
+    .filter((player) => playerMatchesPositionFilter(player, positionFilter))
     .sort((left, right) => sortSearchResults(left, right, selectedIds))
-    .slice(0, normalizedQuery ? 14 : 10);
 }
 
 function getWeeklyDisplayValue(player, statKey) {
@@ -118,6 +137,80 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
+  function StatDropdown({ options, value, open, onToggleOpen, onSelect }) {
+    const activeOption = options.find((option) => option.key === value) || options[0] || { key: "fpts", label: "FPTS" };
+    return h(
+      "div",
+      { className: "dh-compare-stat-select" },
+      h(
+        "button",
+        {
+          type: "button",
+          className: "dh-compare-stat-trigger",
+          "aria-haspopup": "listbox",
+          "aria-expanded": String(open),
+          onClick: () => onToggleOpen(!open),
+        },
+        h("span", null, activeOption.label),
+        h("span", { className: "dh-compare-stat-trigger__icon", "aria-hidden": "true" }),
+      ),
+      open
+        ? h(
+          "div",
+          { className: "dh-compare-stat-menu", role: "listbox", "aria-label": "Weekly stat" },
+          options.map((option) => h(
+            "button",
+            {
+              key: option.key,
+              type: "button",
+              role: "option",
+              "aria-selected": String(option.key === value),
+              className: cx("dh-compare-stat-option", option.key === value && "is-active"),
+              onClick: () => {
+                onSelect(option.key);
+                onToggleOpen(false);
+              },
+            },
+            h("span", null, option.label),
+          )),
+        )
+        : null,
+    );
+  }
+
+  function ChartHeader({ mode, selectedPlayers, weeklyStatKey }) {
+    const title = mode === "season" ? "Season Radar" : getStatLabel(weeklyStatKey);
+    return h(
+      "div",
+      { className: "dh-compare-chart-header" },
+      h("div", { className: "dh-compare-chart-title" }, title),
+      h(
+        "div",
+        { className: "dh-compare-chart-legend", "aria-label": "Compared players" },
+        selectedPlayers.map((player, index) => {
+          const color = getPlayerAccentColor(player, index);
+          return h(
+            "span",
+            {
+              key: player.id,
+              className: "dh-compare-chart-legend__item",
+              style: { "--compare-player-color": color },
+            },
+            player.teamLogoSrc
+              ? h("img", {
+                className: "dh-compare-chart-legend__logo",
+                src: player.teamLogoSrc,
+                alt: "",
+                loading: "eager",
+              })
+              : h("span", { className: "dh-compare-chart-legend__logo-fallback" }, player.team || "FA"),
+            h("span", { className: "dh-compare-chart-legend__name" }, getPlayerName(player)),
+          );
+        }),
+      ),
+    );
+  }
+
   function PlayerChip({ player, index, onRemove }) {
     const color = getPlayerAccentColor(player, index);
     return h(
@@ -171,12 +264,16 @@ export function createDataHubComparisonModal(React) {
         "span",
         { className: "dh-compare-search-option__main" },
         player.teamLogoSrc
-          ? h("img", {
-            className: "dh-compare-search-option__logo",
-            src: player.teamLogoSrc,
-            alt: "",
-            loading: "lazy",
-          })
+          ? h(
+            "span",
+            { className: "dh-compare-search-option__logo-well", "aria-hidden": "true" },
+            h("img", {
+              className: "dh-compare-search-option__logo",
+              src: player.teamLogoSrc,
+              alt: "",
+              loading: "lazy",
+            }),
+          )
           : h("span", { className: "dh-compare-search-option__logo-fallback" }, player.team || "FA"),
         h(
           "span",
@@ -281,6 +378,11 @@ export function createDataHubComparisonModal(React) {
       if (!element || !window.echarts || !chartOption) {
         return undefined;
       }
+      const existingChart = chartInstanceRef.current;
+      if (existingChart?.getDom && existingChart.getDom() !== element && !existingChart.isDisposed?.()) {
+        existingChart.dispose();
+        chartInstanceRef.current = null;
+      }
       const chart = chartInstanceRef.current || window.echarts.init(element, null, { renderer: "svg" });
       chartInstanceRef.current = chart;
       chart.setOption(chartOption, true);
@@ -297,6 +399,19 @@ export function createDataHubComparisonModal(React) {
       };
     }, [chartOption]);
 
+    useEffect(() => {
+      // DataHub comparison chart reset:
+      // dispose the ECharts instance when Clear All swaps the chart for an
+      // empty state so the next selected player initializes against fresh DOM.
+      if (selectedPlayers.length || !chartInstanceRef.current) {
+        return;
+      }
+      if (!chartInstanceRef.current.isDisposed?.()) {
+        chartInstanceRef.current.dispose();
+      }
+      chartInstanceRef.current = null;
+    }, [selectedPlayers.length]);
+
     useEffect(() => () => {
       if (chartInstanceRef.current && !chartInstanceRef.current.isDisposed?.()) {
         chartInstanceRef.current.dispose();
@@ -310,7 +425,12 @@ export function createDataHubComparisonModal(React) {
     if (!hasEcharts || !chartOption) {
       return h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
     }
-    return h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" });
+    return h(
+      "div",
+      { className: "dh-compare-chart-shell" },
+      h(ChartHeader, { mode, selectedPlayers, weeklyStatKey }),
+      h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" }),
+    );
   }
 
   function DataHubComparisonModal({ payload, onClose }) {
@@ -323,19 +443,21 @@ export function createDataHubComparisonModal(React) {
     const [weeklyStatKey, setWeeklyStatKey] = useState(payload?.defaults?.weeklyStat || "fpts");
     const [query, setQuery] = useState("");
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isStatOpen, setIsStatOpen] = useState(false);
+    const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
+    const selectorRef = useRef(null);
     const searchInputRef = useRef(null);
     const skipSearchOpenOnFocusRef = useRef(false);
     const selectedPlayers = useMemo(() => getSelectedPlayers(playersById, selectedIds), [playersById, selectedIds]);
     const weeklyStatOptions = useMemo(() => getWeeklyStatOptions(selectedPlayers, thresholds), [selectedPlayers, thresholds]);
     const seasonStatKeys = useMemo(() => getSeasonStatKeys(selectedPlayers), [selectedPlayers]);
     const searchResults = useMemo(
-      () => getSearchResults(players, query, selectedIds),
-      [players, query, selectedIds],
+      () => getSearchResults(players, query, selectedIds, positionFilter),
+      [players, query, selectedIds, positionFilter],
     );
     const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
     const isAtMax = selectedIds.length >= MAX_COMPARISON_PLAYERS;
-    const selectedPosition = getComparisonPosition(selectedPlayers);
     const summaryStatKey = mode === "weekly" ? weeklyStatKey : "fpts";
 
     useEffect(() => {
@@ -344,6 +466,8 @@ export function createDataHubComparisonModal(React) {
       setWeeklyStatKey(payload?.defaults?.weeklyStat || "fpts");
       setQuery("");
       setIsSearchOpen(false);
+      setIsStatOpen(false);
+      setPositionFilter("all");
       setActiveOptionIndex(0);
     }, [payload?.revision]);
 
@@ -371,18 +495,49 @@ export function createDataHubComparisonModal(React) {
           setIsSearchOpen(false);
           return;
         }
+        if (isStatOpen) {
+          setIsStatOpen(false);
+          return;
+        }
         onClose();
       };
       document.addEventListener("keydown", handleKeydown);
       return () => document.removeEventListener("keydown", handleKeydown);
-    }, [isSearchOpen, onClose]);
+    }, [isSearchOpen, isStatOpen, onClose]);
 
     useEffect(() => {
       setActiveOptionIndex(0);
-    }, [query]);
+    }, [positionFilter, query]);
+
+    useEffect(() => {
+      setActiveOptionIndex((index) => Math.min(index, Math.max(0, searchResults.length - 1)));
+    }, [searchResults.length]);
+
+    useEffect(() => {
+      if (!isSearchOpen && !isStatOpen) {
+        return undefined;
+      }
+      const handlePointerDown = (event) => {
+        if (selectorRef.current?.contains(event.target)) {
+          return;
+        }
+        setIsSearchOpen(false);
+        setIsStatOpen(false);
+      };
+      document.addEventListener("pointerdown", handlePointerDown);
+      return () => document.removeEventListener("pointerdown", handlePointerDown);
+    }, [isSearchOpen, isStatOpen]);
 
     const removePlayer = (playerId) => {
       setSelectedIds((current) => current.filter((id) => id !== playerId));
+    };
+
+    const clearAllPlayers = () => {
+      setSelectedIds([]);
+      setQuery("");
+      setActiveOptionIndex(0);
+      setIsSearchOpen(true);
+      requestAnimationFrame(() => searchInputRef.current?.focus?.());
     };
 
     const togglePlayer = (playerId) => {
@@ -397,6 +552,7 @@ export function createDataHubComparisonModal(React) {
       });
       setQuery("");
       setIsSearchOpen(true);
+      setIsStatOpen(false);
       requestAnimationFrame(() => searchInputRef.current?.focus?.());
     };
 
@@ -473,7 +629,7 @@ export function createDataHubComparisonModal(React) {
           ),
           h(
             "div",
-            { className: "dh-compare-selector" },
+            { className: "dh-compare-selector", ref: selectorRef },
             h(
               "div",
               { className: "dh-compare-selected", "aria-label": "Selected players" },
@@ -486,107 +642,139 @@ export function createDataHubComparisonModal(React) {
             ),
             h(
               "div",
-              { className: "dh-compare-search" },
-              h("input", {
-                ref: searchInputRef,
-                className: "dh-compare-search__input",
-                type: "search",
-                placeholder: "Search players...",
-                value: query,
-                "aria-label": "Search players to compare",
-                "aria-expanded": String(isSearchOpen),
-                "aria-controls": "dh-compare-search-results",
-                autoComplete: "off",
-                onFocus: () => {
-                  if (skipSearchOpenOnFocusRef.current) {
-                    skipSearchOpenOnFocusRef.current = false;
-                    return;
-                  }
-                  setIsSearchOpen(true);
-                },
-                onChange: (event) => {
-                  setQuery(event.target.value);
-                  setIsSearchOpen(true);
-                },
-                onKeyDown: handleInputKeydown,
-              }),
-              isSearchOpen
-                ? h(
-                  "div",
-                  {
-                    id: "dh-compare-search-results",
-                    className: "dh-compare-search__menu",
-                    role: "listbox",
-                    "aria-label": "Player search results",
+              { className: cx("dh-compare-controls", mode === "season" && "dh-compare-controls--season") },
+              mode === "weekly"
+                ? h(StatDropdown, {
+                  options: weeklyStatOptions,
+                  value: weeklyStatKey,
+                  open: isStatOpen,
+                  onToggleOpen: (nextOpen) => {
+                    setIsStatOpen(nextOpen);
+                    if (nextOpen) {
+                      setIsSearchOpen(false);
+                    }
                   },
-                  searchResults.length
-                    ? searchResults.map((player, index) => {
-                      const selected = selectedSet.has(player.id);
-                      const disabled = !selected && isAtMax;
-                      return h(PlayerSearchOption, {
-                        key: player.id,
-                        player,
-                        selected,
-                        disabled,
-                        active: index === activeOptionIndex,
-                        onToggle: togglePlayer,
-                      });
-                    })
-                    : h("div", { className: "dh-compare-search__empty" }, "No matching players"),
-                  isAtMax
-                    ? h("div", { className: "dh-compare-search__limit" }, `Max ${MAX_COMPARISON_PLAYERS} active players`)
-                    : null,
-                )
+                  onSelect: setWeeklyStatKey,
+                })
                 : null,
+              h(
+                "div",
+                { className: "dh-compare-search" },
+                h("input", {
+                  ref: searchInputRef,
+                  className: "dh-compare-search__input",
+                  type: "search",
+                  placeholder: "Search players...",
+                  value: query,
+                  "aria-label": "Search players to compare",
+                  "aria-expanded": String(isSearchOpen),
+                  "aria-controls": "dh-compare-search-results",
+                  autoComplete: "off",
+                  onFocus: () => {
+                    if (skipSearchOpenOnFocusRef.current) {
+                      skipSearchOpenOnFocusRef.current = false;
+                      return;
+                    }
+                    setIsSearchOpen(true);
+                    setIsStatOpen(false);
+                  },
+                  onChange: (event) => {
+                    setQuery(event.target.value);
+                    setIsSearchOpen(true);
+                    setIsStatOpen(false);
+                  },
+                  onClick: () => {
+                    setIsSearchOpen(true);
+                    setIsStatOpen(false);
+                  },
+                  onKeyDown: handleInputKeydown,
+                }),
+                isSearchOpen
+                  ? h(
+                    "div",
+                    {
+                      id: "dh-compare-search-results",
+                      className: "dh-compare-search__menu",
+                      role: "listbox",
+                      "aria-label": "Player search results",
+                    },
+                    h(
+                      "div",
+                      { className: "dh-compare-search__tools", role: "presentation" },
+                      h(
+                        "div",
+                        { className: "dh-compare-filter-row", role: "group", "aria-label": "Filter players by position" },
+                        POSITION_FILTERS.map((filter) => h(
+                          "button",
+                          {
+                            key: filter.key,
+                            type: "button",
+                            className: cx("dh-compare-filter", positionFilter === filter.key && "is-active"),
+                            "aria-pressed": String(positionFilter === filter.key),
+                            onClick: () => setPositionFilter(filter.key),
+                          },
+                          filter.label,
+                        )),
+                      ),
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          className: "dh-compare-clear-all",
+                          disabled: selectedIds.length === 0,
+                          onClick: clearAllPlayers,
+                        },
+                        "Clear All",
+                      ),
+                    ),
+                    searchResults.length
+                      ? searchResults.map((player, index) => {
+                        const selected = selectedSet.has(player.id);
+                        const disabled = !selected && isAtMax;
+                        return h(PlayerSearchOption, {
+                          key: player.id,
+                          player,
+                          selected,
+                          disabled,
+                          active: index === activeOptionIndex,
+                          onToggle: togglePlayer,
+                        });
+                      })
+                      : h("div", { className: "dh-compare-search__empty" }, "No matching players"),
+                    isAtMax
+                      ? h("div", { className: "dh-compare-search__limit" }, `Max ${MAX_COMPARISON_PLAYERS} active players`)
+                      : null,
+                  )
+                  : null,
+              ),
             ),
           ),
         ),
         h(
-          "div",
-          { className: "dh-compare-toolbar" },
-          mode === "weekly"
-            ? h(
-              "div",
-              { className: "dh-compare-stat-strip", role: "listbox", "aria-label": "Weekly stat" },
-              weeklyStatOptions.map((stat) => h(
-                "button",
-                {
-                  key: stat.key,
-                  type: "button",
-                  className: cx("dh-compare-stat", stat.key === weeklyStatKey && "is-active"),
-                  "aria-selected": String(stat.key === weeklyStatKey),
-                  onClick: () => setWeeklyStatKey(stat.key),
-                },
-                stat.label,
-              )),
-            )
-            : h(
-              "div",
-              { className: "dh-compare-season-context" },
-              selectedPosition ? `${selectedPosition} positional radar` : "Cross-position radar bundle",
-            ),
-        ),
-        h(
-          "section",
-          { className: "dh-compare-summary-grid", "aria-label": "Selected stat summary" },
-          selectedPlayers.map((player, index) => h(SummaryCard, {
-            key: player.id,
-            player,
-            playerIndex: index,
-            statKey: summaryStatKey,
-          })),
-        ),
-        h(
           "main",
-          { className: "dh-compare-body" },
-          h(ComparisonChart, {
-            mode,
-            selectedPlayers,
-            weeklyStatKey,
-            seasonStatKeys,
-            weeks,
-            thresholds,
-          }),
+          { className: "dh-compare-main" },
+          h(
+            "section",
+            { className: "dh-compare-summary-grid", "aria-label": "Selected stat summary" },
+            selectedPlayers.map((player, index) => h(SummaryCard, {
+              key: player.id,
+              player,
+              playerIndex: index,
+              statKey: summaryStatKey,
+            })),
+          ),
+          h(
+            "div",
+            { className: "dh-compare-body" },
+            h(ComparisonChart, {
+              mode,
+              selectedPlayers,
+              weeklyStatKey,
+              seasonStatKeys,
+              weeks,
+              thresholds,
+            }),
+          ),
         ),
       ),
     );

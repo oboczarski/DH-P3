@@ -26,9 +26,9 @@
 // ============================================================================
 // DataHub player comparison revamp:
 // bump the cache so browsers pick up the new bridge and modal styles while the
-// React island files plus AllWks/threshold CSVs stay outside CORE_ASSET_PATHS
-// for first-open lazy loading.
-const CACHE_NAME = 'DH3.03A';
+// React island files, modal CSS, plus AllWks/threshold CSVs stay outside
+// CORE_ASSET_PATHS for first-open lazy loading.
+const CACHE_NAME = 'DH3.03B';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
