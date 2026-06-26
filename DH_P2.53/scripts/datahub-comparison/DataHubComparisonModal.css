@@ -648,7 +648,7 @@ body[data-page="datahub"] .dh-compare-summary-card {
   min-height: 65px;
   padding: 7px 12px;
   border: 1px solid color-mix(in srgb, var(--compare-player-color) 24%, rgba(255, 255, 255, 0.08));
-  border-radius: 8px;
+  border-radius: 15px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--compare-player-color) 12%, transparent), rgba(255, 255, 255, 0.025)),
     rgba(6, 11, 20, 0.7);
@@ -660,7 +660,7 @@ body[data-page="datahub"] .dh-compare-summary-card {
 body[data-page="datahub"] .dh-compare-summary-card__player {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -685,7 +685,7 @@ body[data-page="datahub"] .dh-compare-summary-card__logo-fallback {
 body[data-page="datahub"] .dh-compare-summary-card__identity {
   display: grid;
   gap: 2px;
-  min-width: 0;
+  min-width: 70px;
 }
 
 body[data-page="datahub"] .dh-compare-summary-card__identity strong,
@@ -1070,7 +1070,8 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-search__input {
     padding-left: 32px;
-    font-size: 0.82rem;
+    font-size: 16px;
+    font-weight: 300;
   }
 
   body[data-page="datahub"] .dh-compare-search__icon {
@@ -1080,7 +1081,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-player-chip {
-    max-width: 100%;
+    max-width: 174px;
     min-height: 29px;
     gap: 4px;
   }
@@ -1135,7 +1136,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-summary-card {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(94px, 1fr) auto;
     gap: 3px;
     min-height: 58px;
   }
@@ -1160,6 +1161,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-summary-card__name-compact {
     display: inline;
+    font-size: 0.7rem !important;
   }
 
   body[data-page="datahub"] .dh-compare-summary-card__ranks {
