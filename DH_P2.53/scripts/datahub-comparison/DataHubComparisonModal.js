@@ -139,6 +139,46 @@ export function createDataHubComparisonModal(React) {
     useState,
   } = React;
 
+  function ChevronDownIcon({ className }) {
+    return h(
+      "svg",
+      {
+        className,
+        viewBox: "0 0 20 20",
+        fill: "none",
+        "aria-hidden": "true",
+        focusable: "false",
+      },
+      h("path", {
+        d: "M5.5 7.5 10 12l4.5-4.5",
+        stroke: "currentColor",
+        strokeWidth: "2",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      }),
+    );
+  }
+
+  function SearchIcon({ className }) {
+    return h(
+      "svg",
+      {
+        className,
+        viewBox: "0 0 20 20",
+        fill: "none",
+        "aria-hidden": "true",
+        focusable: "false",
+      },
+      h("path", {
+        d: "m14.25 14.25 2.25 2.25M8.75 15.25a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z",
+        stroke: "currentColor",
+        strokeWidth: "1.9",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      }),
+    );
+  }
+
   function ModeButton({ value, active, onSelect, children }) {
     return h(
       "button",
@@ -195,9 +235,12 @@ export function createDataHubComparisonModal(React) {
         className: cx(
           "dh-compare-search-option",
           selected && "is-selected",
-          active && "is-active",
           disabled && "is-disabled",
         ),
+        // Player selector state:
+        // keyboard focus is kept for Enter selection, but it no longer borrows
+        // selected-row styling when filters reorder the visible option list.
+        "data-keyboard-active": active ? "true" : undefined,
         disabled,
         onClick: () => onToggle(player.id),
       },
@@ -298,7 +341,7 @@ export function createDataHubComparisonModal(React) {
           },
         },
         h("strong", null, activeOption.label),
-        h("span", { className: "dh-compare-stat-trigger__chevron", "aria-hidden": "true" }, "⌄"),
+        h(ChevronDownIcon, { className: "dh-compare-stat-trigger__chevron" }),
       ),
       isOpen
         ? h(
@@ -444,9 +487,24 @@ export function createDataHubComparisonModal(React) {
     useEffect(() => {
       const element = chartRef.current;
       if (!element || !window.echarts || !chartOption) {
+        // Chart lifecycle after Clear All:
+        // the empty selected-player state removes the chart node, so dispose
+        // the old ECharts instance before the next player selection creates a
+        // fresh node for the rebuilt comparison.
+        if (!chartOption && chartInstanceRef.current && !chartInstanceRef.current.isDisposed?.()) {
+          chartInstanceRef.current.dispose();
+          chartInstanceRef.current = null;
+        }
         return undefined;
       }
-      const chart = chartInstanceRef.current || window.echarts.init(element, null, { renderer: "svg" });
+      const currentDom = chartInstanceRef.current?.getDom?.();
+      if (chartInstanceRef.current && currentDom && currentDom !== element && !chartInstanceRef.current.isDisposed?.()) {
+        chartInstanceRef.current.dispose();
+        chartInstanceRef.current = null;
+      }
+      const chart = chartInstanceRef.current && !chartInstanceRef.current.isDisposed?.()
+        ? chartInstanceRef.current
+        : window.echarts.init(element, null, { renderer: "svg" });
       chartInstanceRef.current = chart;
       chart.setOption(chartOption, true);
       const resizeObserver = typeof ResizeObserver === "function"
@@ -599,6 +657,13 @@ export function createDataHubComparisonModal(React) {
     };
 
     const togglePlayer = (playerId) => {
+      const addingFromEmptySelection = !selectedSet.has(playerId) && selectedIds.length === 0;
+      if (addingFromEmptySelection) {
+        // Clear-all recovery:
+        // ensure the rebuilt comparison starts from a threshold-backed stat so
+        // charts repopulate immediately when the next player is selected.
+        setWeeklyStatKey("fpts");
+      }
       setSelectedIds((current) => {
         if (current.includes(playerId)) {
           return current.filter((id) => id !== playerId);
@@ -713,10 +778,11 @@ export function createDataHubComparisonModal(React) {
                   "div",
                   { className: "dh-compare-season-context" },
                   selectedPosition ? `${selectedPosition} positional radar` : "Cross-position radar bundle",
-                ),
+              ),
               h(
                 "div",
                 { className: "dh-compare-search" },
+                h(SearchIcon, { className: "dh-compare-search__icon" }),
                 h("input", {
                   ref: searchInputRef,
                   className: "dh-compare-search__input",

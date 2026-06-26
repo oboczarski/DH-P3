@@ -208,7 +208,7 @@ function buildWeeklyTooltip(params, statKey) {
   const entries = Array.isArray(params) ? params : [params];
   const weekLabel = entries[0]?.axisValueLabel || entries[0]?.name || "";
   const lines = entries
-    .filter((entry) => entry?.data)
+    .filter((entry) => entry?.data && !entry.data.isLabelOnly)
     .map((entry) => {
       if (entry.data.skipped) {
         return `
@@ -282,6 +282,17 @@ function buildCollisionLanes(players, statKey, weeks, axis, isMobile) {
   return lanes;
 }
 
+function getVisualPlotValue(rawValue, lane, axis, isMobile) {
+  const baseValue = clamp(rawValue, axis.min, axis.max);
+  if (baseValue === null || !lane) {
+    return baseValue;
+  }
+  const range = Math.max(1, axis.max - axis.min);
+  const valueStep = range * (isMobile ? 0.04 : 0.035);
+  const direction = axis.inverse ? lane : -lane;
+  return clamp(baseValue + (direction * valueStep), axis.min, axis.max);
+}
+
 function interpolateSkippedValue(seriesPoints, skippedWeek, axis) {
   const previous = [...seriesPoints].reverse().find((point) => point.week < skippedWeek && point.rawValue !== null);
   const next = seriesPoints.find((point) => point.week > skippedWeek && point.rawValue !== null);
@@ -298,18 +309,20 @@ function interpolateSkippedValue(seriesPoints, skippedWeek, axis) {
   return null;
 }
 
-function buildSkipMarkPoints({ player, statKey, weeks, axis }) {
-  const points = weeks.map((week) => {
-    const entry = getWeeklyEntry(player, week);
-    const rawValue = getSeriesRawValue(entry, statKey);
-    return {
-      week,
-      rawValue,
-      value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-      skipLabel: entry?.skipLabel || entry?.skipReason || "",
-      skipped: Boolean(entry?.isSkipped || entry?.skipped),
-    };
-  });
+function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymbolSize, seriesPoints }) {
+  const points = Array.isArray(seriesPoints) && seriesPoints.length
+    ? seriesPoints
+    : weeks.map((week) => {
+      const entry = getWeeklyEntry(player, week);
+      const rawValue = getSeriesRawValue(entry, statKey);
+      return {
+        week,
+        rawValue,
+        value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
+        skipLabel: entry?.skipLabel || entry?.skipReason || "",
+        skipped: Boolean(entry?.isSkipped || entry?.skipped),
+      };
+    });
   return points
     .filter((point) => point.skipped && point.skipLabel)
     .map((point) => {
@@ -319,44 +332,47 @@ function buildSkipMarkPoints({ player, statKey, weeks, axis }) {
       }
       return {
         name: `${getPlayerName(player)} ${point.skipLabel}`,
-        coord: [`wk${point.week}`, interpolated],
-        value: point.skipLabel,
+        value: [`wk${point.week}`, interpolated],
         skipLabel: point.skipLabel,
+        isLabelOnly: true,
         itemStyle: {
-          color: "rgba(150,160,176,0)",
+          color: "rgba(150,160,176,0.01)",
           borderColor: "rgba(150,160,176,0)",
           borderWidth: 0,
         },
         label: {
           position: "top",
-          distance: 12,
+          distance: 0,
+          offset: [0, -Math.max(9, Math.round(logoSymbolSize * 0.5))],
           color: "rgba(218,224,235,.74)",
           backgroundColor: "rgba(128,138,154,0.14)",
           borderColor: "rgba(174,184,198,0.24)",
           borderWidth: 1,
           borderRadius: 6,
-          padding: [3, 6, 3, 6],
+          padding: isMobile ? [2, 5, 2, 5] : [3, 6, 3, 6],
         },
       };
     })
     .filter(Boolean);
 }
 
-function buildSkipLogoPoints({ player, statKey, weeks, axis }) {
+function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
   if (!player?.teamLogoSrc) {
     return [];
   }
-  const points = weeks.map((week) => {
-    const entry = getWeeklyEntry(player, week);
-    const rawValue = getSeriesRawValue(entry, statKey);
-    return {
-      week,
-      rawValue,
-      value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-      skipped: Boolean(entry?.isSkipped || entry?.skipped),
-      skipLabel: entry?.skipLabel || entry?.skipReason || "",
-    };
-  });
+  const points = Array.isArray(seriesPoints) && seriesPoints.length
+    ? seriesPoints
+    : weeks.map((week) => {
+      const entry = getWeeklyEntry(player, week);
+      const rawValue = getSeriesRawValue(entry, statKey);
+      return {
+        week,
+        rawValue,
+        value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
+        skipped: Boolean(entry?.isSkipped || entry?.skipped),
+        skipLabel: entry?.skipLabel || entry?.skipReason || "",
+      };
+    });
   return points
     .filter((point) => point.skipped && point.skipLabel)
     .map((point) => {
@@ -366,6 +382,7 @@ function buildSkipLogoPoints({ player, statKey, weeks, axis }) {
         : {
           value: [`wk${point.week}`, interpolated],
           skipLabel: point.skipLabel,
+          isLabelOnly: true,
         };
     })
     .filter(Boolean);
@@ -439,9 +456,81 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
     series: players.flatMap((player, index) => {
       const accent = getPlayerAccentColor(player, index);
       const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
-      const skipMarkPoints = buildSkipMarkPoints({ player, statKey, weeks: safeWeeks, axis });
-      const skipLogoPoints = buildSkipLogoPoints({ player, statKey, weeks: safeWeeks, axis });
-      const visualLaneOffset = isMobile ? 14 : 16;
+      const skipLogoSymbolSize = symbolSize;
+      const labelLift = Math.max(10, Math.round(symbolSize * 0.5) + 1);
+      const dataPoints = safeWeeks.map((week) => {
+        const entry = getWeeklyEntry(player, week);
+        const rawValue = getSeriesRawValue(entry, statKey);
+        const rank = entry?.ranks?.[statKey] || null;
+        const lane = lanes.get(`${player.id}:${week}`) || 0;
+        const pointColor = rawValue === null
+          ? accent
+          : getPointThresholdColor(player, index, statKey, thresholds, rawValue);
+        const skipped = Boolean(entry?.isSkipped || entry?.skipped);
+        // Weekly overlap plotting:
+        // move close points in value space, not pixel space, so the line,
+        // logo marker, and label all share one visual coordinate while the
+        // original stat stays available as rawValue for labels/tooltips.
+        const plottedValue = getVisualPlotValue(rawValue, lane, axis, isMobile);
+        return {
+          week,
+          value: plottedValue,
+          realValue: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
+          rawValue,
+          rank,
+          pos: player.pos,
+          opponent: entry?.opponent || "",
+          skipped,
+          skipLabel: entry?.skipLabel || entry?.skipReason || "",
+          pointColor,
+          symbolOffset: [0, 0],
+          label: { show: false },
+        };
+      });
+      const skipLabelPoints = buildSkipLabelPoints({
+        player,
+        statKey,
+        weeks: safeWeeks,
+        axis,
+        isMobile,
+        logoSymbolSize: skipLogoSymbolSize,
+        seriesPoints: dataPoints,
+      });
+      const skipLogoPoints = buildSkipLogoPoints({
+        player,
+        statKey,
+        weeks: safeWeeks,
+        axis,
+        seriesPoints: dataPoints,
+      });
+      const labelPoints = dataPoints
+        .map((point, weekIndex) => {
+          if (point.rawValue === null || point.skipped) {
+            return null;
+          }
+          return {
+            name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
+            value: [`wk${safeWeeks[weekIndex]}`, point.value],
+            rawValue: point.rawValue,
+            rank: point.rank,
+            pos: point.pos,
+            pointColor: point.pointColor,
+            isLabelOnly: true,
+            itemStyle: { color: "rgba(150,160,176,0.01)" },
+            label: {
+              show: true,
+              position: "top",
+              distance: 0,
+              offset: [0, -labelLift],
+              backgroundColor: hexToRgba(point.pointColor, 0.16),
+              borderColor: hexToRgba(point.pointColor, 0.3),
+              borderWidth: 1,
+              borderRadius: 6,
+              padding: labelPadding,
+            },
+          };
+        })
+        .filter(Boolean);
       const lineSeries = {
         name: getPlayerName(player),
         type: "line",
@@ -450,7 +539,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
         symbolSize: player.teamLogoSrc ? symbolSize : (isMobile ? 5 : 7),
         showSymbol: true,
-        z: 8 + index,
+        z: 6 + index,
         lineStyle: {
           width: isMobile ? 2.8 : 3.2,
           color: gradient,
@@ -468,7 +557,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           color: gradient,
         },
         label: {
-          show: true,
+          show: false,
           color: "rgba(244,248,255,.9)",
           fontFamily: "Product Sans, Google Sans, sans-serif",
           fontWeight: 900,
@@ -493,79 +582,107 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             },
           },
         },
-        labelLayout: { moveOverlap: "shiftY", hideOverlap: true },
         emphasis: {
           focus: "series",
           lineStyle: { width: isMobile ? 3.5 : 4.2 },
         },
-        markPoint: skipMarkPoints.length
-          ? {
-            symbol: "roundRect",
-            symbolSize: isMobile ? [34, 16] : [42, 18],
-            data: skipMarkPoints,
-            label: {
-              show: true,
-              formatter: (params) => params.data?.skipLabel || params.value || "",
-              fontFamily: "Product Sans, Google Sans, sans-serif",
-              fontSize: isMobile ? 8 : 9,
-              fontWeight: 950,
-              color: "rgba(218,224,235,.74)",
-            },
-            emphasis: { disabled: true },
-          }
-          : undefined,
-        data: safeWeeks.map((week) => {
-          const entry = getWeeklyEntry(player, week);
-          const rawValue = getSeriesRawValue(entry, statKey);
-          const rank = entry?.ranks?.[statKey] || null;
-          const lane = lanes.get(`${player.id}:${week}`) || 0;
-          const pointColor = rawValue === null
-            ? accent
-            : getPointThresholdColor(player, index, statKey, thresholds, rawValue);
-          const skipped = Boolean(entry?.isSkipped || entry?.skipped);
-          const pointYOffset = lane * visualLaneOffset;
-          return {
-            value: rawValue === null ? null : clamp(rawValue, axis.min, axis.max),
-            rawValue,
-            rank,
-            pos: player.pos,
-            opponent: entry?.opponent || "",
-            skipped,
-            skipLabel: entry?.skipLabel || entry?.skipReason || "",
-            pointColor,
-            symbolOffset: [0, pointYOffset],
-            label: {
-              position: "top",
-              distance: 0,
-              offset: [0, pointYOffset - (isMobile ? 1 : 2)],
-              backgroundColor: hexToRgba(pointColor, 0.16),
-              borderColor: hexToRgba(pointColor, 0.3),
-            },
-          };
-        }),
+        data: dataPoints,
       };
-      if (!skipLogoPoints.length) {
-        return [lineSeries];
-      }
-      return [
-        lineSeries,
-        {
+      const series = [lineSeries];
+      if (skipLogoPoints.length) {
+        series.push({
           name: `${getPlayerName(player)} skipped week logo`,
           type: "scatter",
           coordinateSystem: "cartesian2d",
           data: skipLogoPoints,
           symbol: buildMutedLogoSymbol(player.teamLogoSrc),
-          symbolSize: Math.max(13, symbolSize - 2),
+          symbolSize: skipLogoSymbolSize,
           silent: true,
-          z: 14 + index,
+          zlevel: 1,
+          z: 24 + index,
           itemStyle: {
             opacity: 1,
           },
           emphasis: {
             disabled: true,
           },
-        },
-      ];
+        });
+      }
+      if (labelPoints.length) {
+        // Weekly labels:
+        // render chip labels as their own high-layer scatter series so labels
+        // always sit above comparison lines and logo markers.
+        series.push({
+          name: `${getPlayerName(player)} weekly labels`,
+          type: "scatter",
+          coordinateSystem: "cartesian2d",
+          data: labelPoints,
+          symbol: "circle",
+          symbolSize: 1,
+          silent: true,
+          zlevel: 2,
+          z: 44 + index,
+          itemStyle: {
+            color: "rgba(150,160,176,0.01)",
+          },
+          label: {
+            show: true,
+            color: "rgba(244,248,255,.9)",
+            fontFamily: "Product Sans, Google Sans, sans-serif",
+            fontWeight: 900,
+            formatter: (params) => {
+              if (!params.data || params.data.rawValue === null) return "";
+              const rank = params.data.rank ? `{rank|(${params.data.pos}·${params.data.rank})}` : "";
+              return `{value|${formatComparisonValue(statKey, params.data.rawValue, { compact: true })}}${rank}`;
+            },
+            rich: {
+              value: {
+                color: "rgba(248,252,255,.96)",
+                fontSize: isMobile ? 7 : 10,
+                fontWeight: 950,
+              },
+              rank: {
+                color: "rgba(218,232,250,.76)",
+                fontSize: isMobile ? 5.5 : 8,
+                fontWeight: 850,
+              },
+            },
+          },
+          labelLayout: { moveOverlap: "shiftY" },
+          emphasis: {
+            disabled: true,
+          },
+        });
+      }
+      if (skipLabelPoints.length) {
+        series.push({
+          name: `${getPlayerName(player)} skipped week labels`,
+          type: "scatter",
+          coordinateSystem: "cartesian2d",
+          data: skipLabelPoints,
+          symbol: "circle",
+          symbolSize: 1,
+          silent: true,
+          zlevel: 3,
+          z: 52 + index,
+          itemStyle: {
+            color: "rgba(150,160,176,0.01)",
+          },
+          label: {
+            show: true,
+            formatter: (params) => params.data?.skipLabel || "",
+            fontFamily: "Product Sans, Google Sans, sans-serif",
+            fontSize: isMobile ? 8 : 9,
+            fontWeight: 950,
+            color: "rgba(218,224,235,.74)",
+          },
+          labelLayout: { moveOverlap: "shiftY" },
+          emphasis: {
+            disabled: true,
+          },
+        });
+      }
+      return series;
     }),
   };
 }

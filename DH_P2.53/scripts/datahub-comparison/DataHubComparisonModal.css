@@ -323,10 +323,13 @@ body[data-page="datahub"] .dh-compare-stat-trigger strong {
 
 body[data-page="datahub"] .dh-compare-stat-trigger__chevron {
   grid-column: 2;
-  color: rgba(142, 228, 255, 0.75);
-  font-size: 0.9rem;
-  line-height: 1;
+  display: block;
+  width: 16px;
+  height: 16px;
   align-self: center;
+  justify-self: end;
+  color: rgba(142, 228, 255, 0.75);
+  flex: 0 0 auto;
 }
 
 body[data-page="datahub"] .dh-compare-stat-menu {
@@ -373,10 +376,22 @@ body[data-page="datahub"] .dh-compare-stat-option.is-active {
 }
 
 body[data-page="datahub"] .dh-compare-search__input {
-  padding: 0 14px;
+  padding: 0 14px 0 38px;
   font: inherit;
   font-size: 0.88rem;
   outline: 0;
+}
+
+body[data-page="datahub"] .dh-compare-search__icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  color: rgba(142, 228, 255, 0.72);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 body[data-page="datahub"] .dh-compare-search__input::placeholder {
@@ -511,8 +526,7 @@ body[data-page="datahub"] .dh-compare-search-option {
   cursor: pointer;
 }
 
-body[data-page="datahub"] .dh-compare-search-option:hover,
-body[data-page="datahub"] .dh-compare-search-option.is-active {
+body[data-page="datahub"] .dh-compare-search-option:hover {
   border-color: rgba(115, 244, 255, 0.25);
   background:
     linear-gradient(180deg, rgba(115, 244, 255, 0.11), rgba(255, 107, 180, 0.055)),
@@ -1055,7 +1069,14 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-search__input {
+    padding-left: 32px;
     font-size: 0.82rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-search__icon {
+    left: 11px;
+    width: 14px;
+    height: 14px;
   }
 
   body[data-page="datahub"] .dh-compare-player-chip {
