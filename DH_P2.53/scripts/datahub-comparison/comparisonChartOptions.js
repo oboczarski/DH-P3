@@ -312,8 +312,8 @@ function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymb
         },
         label: {
           position: "top",
-          distance: 0,
-          offset: [0, -Math.max(13, Math.round(logoSymbolSize * 0.5) + 5)],
+          distance: isMobile ? 1 : 2,
+          offset: [0, 0],
           color: "rgba(232,237,246,.94)",
           backgroundColor: "rgba(17,21,31,0.92)",
           borderColor: "rgba(184,194,210,0.46)",
@@ -430,7 +430,6 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       const accent = getPlayerAccentColor(player, index);
       const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
-      const labelLift = Math.max(13, Math.round(symbolSize * 0.5) + 5);
       const dataPoints = safeWeeks.map((week) => {
         const entry = getWeeklyEntry(player, week);
         const rawValue = getSeriesRawValue(entry, statKey);
@@ -493,8 +492,8 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             label: {
               show: true,
               position: "top",
-              distance: 0,
-              offset: [0, -labelLift],
+              distance: isMobile ? 1 : 2,
+              offset: [0, 0],
               backgroundColor: "rgba(5,9,18,0.92)",
               borderColor: hexToRgba(point.pointColor, 0.64),
               borderWidth: 1,
@@ -570,30 +569,9 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       const series = [lineSeries];
       if (skipLogoPoints.length) {
         // Skipped-week markers:
-        // use the same direct image symbol path as normal data points; a
-        // neutral backing supplies the muted/DNP treatment without nesting the
-        // logo inside a data-URI SVG, which can fail to render in browsers.
-        series.push({
-          name: `${getPlayerName(player)} skipped week backing`,
-          type: "scatter",
-          coordinateSystem: "cartesian2d",
-          data: skipLogoPoints,
-          symbol: "circle",
-          symbolSize: skipLogoSymbolSize + (isMobile ? 7 : 8),
-          silent: true,
-          zlevel: 1,
-          z: 22 + index,
-          itemStyle: {
-            color: "rgba(128,138,154,0.5)",
-            borderColor: "rgba(222,228,238,0.38)",
-            borderWidth: 1,
-            shadowColor: "rgba(0,0,0,0.34)",
-            shadowBlur: 7,
-          },
-          emphasis: {
-            disabled: true,
-          },
-        });
+        // use the same direct image symbol path as normal data points. Avoid a
+        // separate circular backing so BYE/DNP markers do not look like a
+        // different point type.
         series.push({
           name: `${getPlayerName(player)} skipped week logo`,
           type: "scatter",
@@ -607,7 +585,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           itemStyle: {
             color: "rgba(178,186,198,0.96)",
             borderColor: "rgba(10,14,22,0.9)",
-            borderWidth: player.teamLogoSrc ? 3 : 1,
+            borderWidth: player.teamLogoSrc ? 0 : 1,
             opacity: 1,
           },
           emphasis: {
@@ -625,7 +603,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           coordinateSystem: "cartesian2d",
           data: labelPoints,
           symbol: "circle",
-          symbolSize: 1,
+          symbolSize,
           silent: true,
           zlevel: 10,
           z: 140 + index,
@@ -655,7 +633,6 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
               },
             },
           },
-          labelLayout: { moveOverlap: "shiftY" },
           emphasis: {
             disabled: true,
           },
@@ -668,7 +645,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
           coordinateSystem: "cartesian2d",
           data: skipLabelPoints,
           symbol: "circle",
-          symbolSize: 1,
+          symbolSize: skipLogoSymbolSize,
           silent: true,
           zlevel: 11,
           z: 160 + index,
@@ -683,7 +660,6 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
             fontWeight: 950,
             color: "rgba(232,237,246,.94)",
           },
-          labelLayout: { moveOverlap: "shiftY" },
           emphasis: {
             disabled: true,
           },
