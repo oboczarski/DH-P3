@@ -103,6 +103,17 @@ function gradientOffset(value, axis, inverse) {
   return inverse ? pct : 1 - pct;
 }
 
+function getSamePositionPaletteIndex(players, player, playerIndex) {
+  const pos = String(player?.pos || "").toUpperCase();
+  if (!pos) {
+    return playerIndex;
+  }
+  return players
+    .slice(0, playerIndex)
+    .filter((previous) => String(previous?.pos || "").toUpperCase() === pos)
+    .length;
+}
+
 function buildThresholdGradient(player, playerIndex, statKey, thresholds, axis) {
   const palette = getPlayerPalette(player, playerIndex);
   const config = getThresholdConfig(thresholds, player.pos, statKey);
@@ -427,8 +438,13 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       },
     },
     series: players.flatMap((player, index) => {
-      const accent = getPlayerAccentColor(player, index);
-      const gradient = buildThresholdGradient(player, index, statKey, thresholds, axis);
+      // Weekly color selection:
+      // use secondary position gradients only when this player follows another
+      // selected player at the same position. Mixed-position comparisons keep
+      // every position on its primary gradient.
+      const paletteIndex = getSamePositionPaletteIndex(players, player, index);
+      const accent = getPlayerAccentColor(player, paletteIndex);
+      const gradient = buildThresholdGradient(player, paletteIndex, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
       const dataPoints = safeWeeks.map((week) => {
         const entry = getWeeklyEntry(player, week);
@@ -437,7 +453,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         const lane = lanes.get(`${player.id}:${week}`) || 0;
         const pointColor = rawValue === null
           ? accent
-          : getPointThresholdColor(player, index, statKey, thresholds, rawValue);
+          : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
         const skipped = Boolean(entry?.isSkipped || entry?.skipped);
         // Weekly overlap plotting:
         // move close points in value space, not pixel space, so the line,
@@ -517,7 +533,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         zlevel: 0,
         z: 6 + index,
         lineStyle: {
-          width: isMobile ? 2.8 : 3.2,
+          width: isMobile ? 2.55 : 2.95,
           color: gradient,
           opacity: 1,
           shadowColor: accent,
@@ -562,7 +578,7 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         },
         emphasis: {
           focus: "series",
-          lineStyle: { width: isMobile ? 3.5 : 4.2 },
+          lineStyle: { width: isMobile ? 3.2 : 3.8 },
         },
         data: dataPoints,
       };
