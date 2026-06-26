@@ -389,7 +389,11 @@ export function formatComparisonValue(key, value, options = {}) {
   } else if (decimals === 0) {
     text = `${Math.round(numberValue)}`;
   } else {
-    text = numberValue.toFixed(decimals).replace(/\.0+$/, "");
+    // FPTS display:
+    // keep the required trailing decimal for fantasy points, while preserving
+    // compact no-trailing-zero formatting for the rest of the comparison stats.
+    const fixedText = numberValue.toFixed(decimals);
+    text = definition.key === "fpts" ? fixedText : fixedText.replace(/\.0+$/, "");
   }
 
   if (definition.signed && numberValue > 0) {

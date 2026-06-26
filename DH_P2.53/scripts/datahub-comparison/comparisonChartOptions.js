@@ -372,7 +372,7 @@ function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
     .filter(Boolean);
 }
 
-export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, isCompact = null }) {
+export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, isCompact = null, showDataLabels = true }) {
   const safeWeeks = Array.isArray(weeks) && weeks.length
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
@@ -491,37 +491,39 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         axis,
         seriesPoints: dataPoints,
       });
-      const labelPoints = dataPoints
-        .map((point, weekIndex) => {
-          if (point.rawValue === null || point.skipped) {
-            return null;
-          }
-          return {
-            name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
-            value: [`wk${safeWeeks[weekIndex]}`, point.value],
-            rawValue: point.rawValue,
-            rank: point.rank,
-            pos: point.pos,
-            pointColor: point.pointColor,
-            isLabelOnly: true,
-            itemStyle: { color: "rgba(150,160,176,0.01)" },
-            label: {
-              show: true,
-              position: "top",
-              distance: isMobile ? 1 : 1,
-              offset: [0, 0],
-              backgroundColor: "rgba(5,9,18,0.92)",
-              borderColor: hexToRgba(point.pointColor, 0.64),
-              borderWidth: 1,
-              borderRadius: 6,
-              padding: labelPadding,
-              shadowColor: hexToRgba(point.pointColor, 0.38),
-              shadowBlur: 7,
-              shadowOffsetY: 1,
-            },
-          };
-        })
-        .filter(Boolean);
+      const labelPoints = showDataLabels
+        ? dataPoints
+          .map((point, weekIndex) => {
+            if (point.rawValue === null || point.skipped) {
+              return null;
+            }
+            return {
+              name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
+              value: [`wk${safeWeeks[weekIndex]}`, point.value],
+              rawValue: point.rawValue,
+              rank: point.rank,
+              pos: point.pos,
+              pointColor: point.pointColor,
+              isLabelOnly: true,
+              itemStyle: { color: "rgba(150,160,176,0.01)" },
+              label: {
+                show: true,
+                position: "top",
+                distance: isMobile ? 1 : 1,
+                offset: [0, 0],
+                backgroundColor: "rgba(5,9,18,0.92)",
+                borderColor: hexToRgba(point.pointColor, 0.64),
+                borderWidth: 1,
+                borderRadius: 6,
+                padding: labelPadding,
+                shadowColor: hexToRgba(point.pointColor, 0.38),
+                shadowBlur: 7,
+                shadowOffsetY: 1,
+              },
+            };
+          })
+          .filter(Boolean)
+        : [];
       const lineSeries = {
         name: getPlayerName(player),
         type: "line",

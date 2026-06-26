@@ -179,6 +179,36 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
+  function EmptyCompareIcon({ className }) {
+    return h(
+      "svg",
+      {
+        className,
+        viewBox: "0 0 48 48",
+        fill: "none",
+        "aria-hidden": "true",
+        focusable: "false",
+      },
+      h("path", {
+        d: "M8 31.5 17.5 22l7 7L40 13.5",
+        stroke: "currentColor",
+        strokeWidth: "3",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      }),
+      h("path", {
+        d: "M9 38h30M9 10v28",
+        stroke: "currentColor",
+        strokeWidth: "2",
+        strokeLinecap: "round",
+        opacity: "0.45",
+      }),
+      h("circle", { cx: "17.5", cy: "22", r: "3.2", fill: "currentColor", opacity: "0.88" }),
+      h("circle", { cx: "24.5", cy: "29", r: "3.2", fill: "currentColor", opacity: "0.68" }),
+      h("circle", { cx: "40", cy: "13.5", r: "3.2", fill: "currentColor", opacity: "0.88" }),
+    );
+  }
+
   function ModeButton({ value, active, onSelect, children }) {
     return h(
       "button",
@@ -438,6 +468,33 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
+  function ChartFooter({ mode, showDataLabels, onToggleDataLabels }) {
+    if (mode !== "weekly") {
+      return null;
+    }
+    return h(
+      "div",
+      { className: "dh-compare-chart-footer" },
+      h(
+        "label",
+        { className: "dh-compare-label-toggle" },
+        h("input", {
+          type: "checkbox",
+          role: "switch",
+          checked: showDataLabels,
+          "aria-label": "Show weekly data labels",
+          onChange: (event) => onToggleDataLabels(event.target.checked),
+        }),
+        h(
+          "span",
+          { className: "dh-compare-label-toggle__track", "aria-hidden": "true" },
+          h("span", { className: "dh-compare-label-toggle__thumb" }),
+        ),
+        h("span", { className: "dh-compare-label-toggle__text" }, "Data labels"),
+      ),
+    );
+  }
+
   function ChartFallback({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys }) {
     const rows = getFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys });
     return h(
@@ -467,7 +524,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
+  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showDataLabels, onToggleDataLabels }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -477,8 +534,14 @@ export function createDataHubComparisonModal(React) {
       }
       return mode === "season"
         ? buildSeasonRadarOption({ players: selectedPlayers, statKeys: seasonStatKeys })
-        : buildWeeklyChartOption({ players: selectedPlayers, statKey: weeklyStatKey, weeks, thresholds });
-    }, [mode, seasonStatKeys, selectedPlayers, thresholds, weeklyStatKey, weeks]);
+        : buildWeeklyChartOption({
+          players: selectedPlayers,
+          statKey: weeklyStatKey,
+          weeks,
+          thresholds,
+          showDataLabels,
+        });
+    }, [mode, seasonStatKeys, selectedPlayers, showDataLabels, thresholds, weeklyStatKey, weeks]);
 
     useEffect(() => {
       setHasEcharts(Boolean(window.echarts));
@@ -531,7 +594,17 @@ export function createDataHubComparisonModal(React) {
       return h(
         "section",
         { className: "dh-compare-chart-shell" },
-        h("div", { className: "dh-compare-empty" }, h("span", null, "No players selected")),
+        h(
+          "div",
+          { className: "dh-compare-empty" },
+          h(
+            "div",
+            { className: "dh-compare-empty__panel" },
+            h(EmptyCompareIcon, { className: "dh-compare-empty__icon" }),
+            h("strong", null, "No active comparison"),
+            h("span", null, "Awaiting players"),
+          ),
+        ),
       );
     }
 
@@ -542,6 +615,7 @@ export function createDataHubComparisonModal(React) {
       hasEcharts && chartOption
         ? h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" })
         : h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys }),
+      h(ChartFooter, { mode, showDataLabels, onToggleDataLabels }),
     );
   }
 
@@ -558,8 +632,9 @@ export function createDataHubComparisonModal(React) {
     const [isStatOpen, setIsStatOpen] = useState(false);
     const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
+    const [showDataLabels, setShowDataLabels] = useState(true);
     const searchInputRef = useRef(null);
-    const selectorShellRef = useRef(null);
+    const searchShellRef = useRef(null);
     const statShellRef = useRef(null);
     const skipSearchOpenOnFocusRef = useRef(false);
     const selectedPlayers = useMemo(() => getSelectedPlayers(playersById, selectedIds), [playersById, selectedIds]);
@@ -583,6 +658,7 @@ export function createDataHubComparisonModal(React) {
       setIsStatOpen(false);
       setPositionFilter("all");
       setActiveOptionIndex(0);
+      setShowDataLabels(true);
     }, [payload?.revision]);
 
     useEffect(() => {
@@ -621,11 +697,12 @@ export function createDataHubComparisonModal(React) {
 
     useEffect(() => {
       // Heading dropdown outside-close:
-      // close only the comparison selector menus when the pointer lands outside
-      // their scoped shells, preserving the rest of DataHub modal wiring.
+      // close the player menu whenever the pointer lands outside the actual
+      // search/dropdown shell. The broader selector also contains chips and
+      // stat controls, so using it here left too many tappable areas open.
       const handlePointerDown = (event) => {
         const target = event.target;
-        if (isSearchOpen && selectorShellRef.current && !selectorShellRef.current.contains(target)) {
+        if (isSearchOpen && searchShellRef.current && !searchShellRef.current.contains(target)) {
           setIsSearchOpen(false);
         }
         if (isStatOpen && statShellRef.current && !statShellRef.current.contains(target)) {
@@ -751,7 +828,7 @@ export function createDataHubComparisonModal(React) {
           ),
           h(
             "div",
-            { className: "dh-compare-selector", ref: selectorShellRef },
+            { className: "dh-compare-selector" },
             h(
               "div",
               { className: "dh-compare-selected", "aria-label": "Selected players" },
@@ -781,7 +858,7 @@ export function createDataHubComparisonModal(React) {
               ),
               h(
                 "div",
-                { className: "dh-compare-search" },
+                { className: "dh-compare-search", ref: searchShellRef },
                 h(SearchIcon, { className: "dh-compare-search__icon" }),
                 h("input", {
                   ref: searchInputRef,
@@ -869,6 +946,8 @@ export function createDataHubComparisonModal(React) {
             seasonStatKeys,
             weeks,
             thresholds,
+            showDataLabels,
+            onToggleDataLabels: setShowDataLabels,
           }),
         ),
       ),
