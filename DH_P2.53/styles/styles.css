@@ -94,7 +94,7 @@
 }
 
 #rosterGrid.condensed-mode .player-ktc-wrapper .player-ktc {
-  font-size: 0.53rem;
+  font-size: 0.5rem;
 }
 
 /* Match previous brightness treatment on KTC rank after the markup swap */
@@ -106,7 +106,7 @@
 #rosterGrid.condensed-mode .player-ktc-wrapper .ktc-rank-display,
 #rosterGrid.condensed-mode .player-ktc-wrapper .ktc-rank-suffix-display {
   filter: brightness(1.24);
-  font-size: 0.55rem;
+  font-size: 0.5rem;
 }
 
 @media (max-width: 819px) {
@@ -2395,17 +2395,18 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 #rosterGrid.condensed-mode .roster-column {
   width: 104px;
-  gap: 0.22rem;
+  gap: 0.2rem;
 }
 
 #rosterGrid.condensed-mode .team-header-item {
-  padding: 0.2rem 0.2rem;
-  font-size: 0.6rem;
+  padding: 0.1rem 0.2rem;
+  font-size: 0.56rem;
 }
 
 .player-row.player-row-condensed {
-  padding: 0.1rem 0.12rem 0rem;
-  gap: 0.06rem;
+  padding: 0.01rem 0.12rem 0rem;
+  gap: 0.01rem;
+  border-radius: 6px;
 }
 
 .player-row-condensed .player-main-line {
@@ -2447,20 +2448,21 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 */
 
 .player-row-condensed .player-value-line {
-  padding: 0.02rem 0.08rem 0rem;
-  gap: 0.18rem;
+  padding: 0.05rem 0.08rem 0rem;
+  gap: 0.15rem;
   margin-top: 0px;
-  font-size: 0.5rem;
+  font-size: 0.48rem;
+  margin-bottom: -1px;
 }
 
 .player-row-condensed .player-value-line .value {
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   filter: brightness(1.2);
 }
 
 .player-row-condensed .player-name {
   min-width: 0;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   margin: 0 0.1rem;
   flex: 1 1 auto;
   filter: brightness(1.15) drop-shadow(0px 0px 0px #6380ff);
@@ -2475,14 +2477,16 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .player-row-condensed .condensed-team-tag .team-logo.glow {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
+  margin: -1px 2px 1px 0px;
 }
 
 .player-row-condensed .condensed-team-tag .team-tag {
-  font-size: 0.55rem;
-  padding: 0.02rem 0.2rem;
+  font-size: 0.45rem;
+  padding: 0.06rem 0.2rem;
   line-height: 1;
+  margin: 2px 1px;
 }
 
 #rosterGrid.condensed-mode .team-card {
@@ -2491,6 +2495,9 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 #rosterGrid.condensed-mode .roster-section h3 {
   font-size: 0.6rem;
+  max-height: 14px;
+  min-height: 14px;
+  line-height: 1.2;
 }
 
 #rosterGrid.condensed-mode .pick-row {
@@ -2679,10 +2686,11 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   justify-content: center;
   font-size: 0.6rem;
   font-weight: 600;
-  padding: 1px 4px;
+  padding: 2px 4px;
   border-radius: 4px;
-  margin: 5px 0px;
+  margin: 4px 0px;
   line-height: 1;
+  z-index: 7;
 }
 
 .player-value-line {
@@ -2694,8 +2702,9 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   color: var(--color-text-secondary);
   background: #1d223faa;
   border-radius: 6px;
-  padding: 0.07rem 0.07rem 0rem;
-  margin-top: -6px;
+  padding: 0.1rem 0.2rem 0.023em 0.1rem;
+  margin-top: -5px;
+  line-height: 1;
 }
 
 .player-value-line .value {
@@ -7969,7 +7978,7 @@ body::before {
 /* Restore compact inline annotation for general UI (player cards, tables) */
 .has-rank-annotation .stat-rank-annotation {
   display: inline-block;
-  font-size: 1.15em;
+  font-size: 1.1em;
   line-height: 1;
   margin-left: 0.1em;
   transform: translateY(-0.25em);
