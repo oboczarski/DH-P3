@@ -7896,6 +7896,9 @@ body::before {
   font-size: 0.75rem;
   padding: 2px 6px;
   line-height: 0.85rem;
+  line-height: 0.9rem;
+  font-size: 0.9rem;
+  padding: 4.4px 8.5px;
 }
 
 .player-header-tags .modal-team-logo-chip {
@@ -7907,8 +7910,8 @@ body::before {
 }
 
 .player-header-tags .modal-team-logo-chip img.team-logo {
-  width: 17px;
-  height: 17px;
+  width: 22px;
+  height: 22px;
   margin: 0;
 }
 
@@ -8724,117 +8727,144 @@ img.team-logo.glow[alt="WAS"] {
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="BUF"] {
   --team-glow: rgba(198, 12, 48, 0.55) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="CAR"] {
   --team-glow: rgba(0, 133, 202, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="CHI"] {
   --team-glow: rgba(120, 90, 240, 0.55) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="CIN"] {
   --team-glow: rgba(251, 79, 20, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="CLE"] {
   --team-glow: rgba(225, 135, 0, 0.45) !important;
   --glow-r3: 1.6px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="DAL"] {
   --team-glow: rgba(134, 147, 151, 0.50) !important;
   --glow-r3: 1.6px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="DEN"] {
   --team-glow: rgba(251, 79, 20, 0.55) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="DET"] {
   --team-glow: rgba(0, 183, 235, 0.50) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="GB"] {
   --team-glow: rgba(0, 235, 150, 0.42) !important;
   --glow-r3: 1.6px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="HOU"] {
   --team-glow: rgba(167, 25, 48, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="IND"] {
   --team-glow: rgba(0, 183, 235, 0.55) !important;
   --glow-r3: 1.6px;
+  margin: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="JAX"] {
   --team-glow: rgba(0, 103, 120, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="KC"] {
   --team-glow: rgba(255, 0, 64, 0.50) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="LAC"] {
   --team-glow: rgba(0, 191, 255, 0.45) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="LAR"] {
   --team-glow: rgba(0, 91, 200, 0.55) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="LV"] {
   --team-glow: rgba(165, 172, 175, 0.50) !important;
   --glow-r3: 1.8px;
+  margin: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="MIA"] {
   --team-glow: rgba(0, 142, 151, 0.55) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="MIN"] {
   --team-glow: rgba(115, 0, 255, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="NE"] {
   --team-glow: rgba(255, 56, 95, 0.55) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="NO"] {
   --team-glow: rgba(160, 148, 101, 0.50) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="NYG"] {
   --team-glow: rgba(55, 56, 200, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 /* NYJ chip: minimal glow to match base override */
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="NYJ"] {
   --team-glow: rgba(17, 87, 64, 0.30) !important;
   --glow-r3: 1.2px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="PHI"] {
   --team-glow: rgba(43, 140, 78, 0.60) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="PIT"] {
@@ -8848,26 +8878,31 @@ img.team-logo.glow[alt="WAS"] {
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="SEA"] {
   --team-glow: rgba(105, 190, 40, 0.50) !important;
   --glow-r3: 1.6px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="SF"] {
   --team-glow: rgba(179, 153, 93, 0.45) !important;
   --glow-r3: 1.8px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="TB"] {
   --team-glow: rgba(247, 122, 97, 0.45) !important;
   --glow-r3: 1.6px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="TEN"] {
   --team-glow: rgba(75, 146, 219, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="WAS"] {
   --team-glow: rgba(180, 36, 36, 0.60) !important;
   --glow-r3: 2.0px;
+  margin: 0;
 }
 
 /* · · Modal Layout Fit · · */
