@@ -8556,6 +8556,9 @@ img.team-logo.glow[alt="CAR"] {
 img.team-logo.glow[alt="CHI"] {
   --team-glow: rgba(120, 90, 240, 0.55) !important;
   --glow-r3: 2.0px;
+  width: 22px;
+  height: 20px;
+  margin: -3px 0px 6px 0px;
 }
 
 img.team-logo.glow[alt="CIN"] {
@@ -8740,6 +8743,8 @@ img.team-logo.glow[alt="WAS"] {
   --team-glow: rgba(120, 90, 240, 0.55) !important;
   --glow-r3: 2.0px;
   margin: 0;
+  width: 22px;
+  height: 22px;
 }
 
 .player-tag.modal-team-logo-chip img.team-logo.glow[alt="CIN"] {
