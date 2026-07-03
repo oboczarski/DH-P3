@@ -1764,7 +1764,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   padding-bottom: 1rem;
   /* For scrollbar clearance */
   justify-content: center;
-  margin-left: -5px;
+  margin-left: -3px;
 }
 
 #rosterGrid.is-preview-mode {
