@@ -2550,6 +2550,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   justify-content: flex-start;
   align-items: center;
   gap: 0.25rem;
+  margin-bottom: -5px;
 }
 
 /* TODO: Re-enable the injury badge styles at the start of the next season. */
@@ -2680,6 +2681,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   font-weight: 600;
   padding: 1px 4px;
   border-radius: 4px;
+  margin: 5px 0px;
   line-height: 1;
 }
 
@@ -2693,7 +2695,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   background: #1d223faa;
   border-radius: 6px;
   padding: 0.07rem 0.07rem 0rem;
-  margin-top: -2px;
+  margin-top: -6px;
 }
 
 .player-value-line .value {
@@ -8478,6 +8480,7 @@ img.team-logo {
   vertical-align: middle;
   object-fit: contain;
   /* SVGs scale cleanly — no border-radius or image-rendering needed */
+  margin: -3px 0px 3px 0px;
 }
 
 /* === TEAM LOGO GLOW (per-team via CSS variables) ======================
@@ -8515,6 +8518,9 @@ img.team-logo.glow[alt="ARI"] {
 img.team-logo.glow[alt="ATL"] {
   --team-glow: rgba(255, 56, 95, 0.55) !important;
   --glow-r3: 2.0px;
+  width: 22px;
+  height: 20px;
+  margin: -3px 0px 6px 0px;
 }
 
 img.team-logo.glow[alt="BAL"] {
@@ -8575,6 +8581,9 @@ img.team-logo.glow[alt="HOU"] {
 img.team-logo.glow[alt="IND"] {
   --team-glow: rgba(0, 183, 235, 0.55) !important;
   --glow-r3: 1.6px;
+  width: 22px;
+  height: 20px;
+  margin: -4px 0px 5px 0px;
 }
 
 img.team-logo.glow[alt="JAX"] {
@@ -8600,6 +8609,9 @@ img.team-logo.glow[alt="LAR"] {
 img.team-logo.glow[alt="LV"] {
   --team-glow: rgba(165, 172, 175, 0.50) !important;
   --glow-r3: 1.8px;
+  width: 22px;
+  height: 20px;
+  margin: -3px 0px 6px 0px;
 }
 
 img.team-logo.glow[alt="MIA"] {
