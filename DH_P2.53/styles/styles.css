@@ -1752,7 +1752,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 /* ⬇︎ ROSTER VIEW ⬇︎ */
 #rosterContainer {
-  padding: 1px;
+  padding: 0px;
 }
 
 #rosterGrid {
