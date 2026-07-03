@@ -2464,7 +2464,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 .player-row-condensed .player-name {
   min-width: 0;
   font-size: 0.55rem;
-  margin: 0 0.1rem;
+  margin: 0 0.22rem;
   flex: 1 1 auto;
   filter: brightness(1.15) drop-shadow(0px 0px 0px #6380ff);
 }
@@ -2703,8 +2703,8 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   color: var(--color-text-secondary);
   background: #1d223faa;
   border-radius: 6px;
-  padding: 0.1rem 0.2rem 0.023em 0.1rem;
-  margin-top: -5px;
+  padding: 0.15rem 0.2rem 0.15em 0.1rem;
+  margin-top: -6px;
   line-height: 1;
 }
 
@@ -8663,6 +8663,9 @@ img.team-logo.glow[alt="PHI"] {
 img.team-logo.glow[alt="PIT"] {
   --team-glow: rgba(255, 182, 18, 0.38) !important;
   --glow-r3: 1.6px;
+  width: 22px;
+  height: 20px;
+  margin: -3px 0px 6px 0px;
 }
 
 img.team-logo.glow[alt="SEA"] {
