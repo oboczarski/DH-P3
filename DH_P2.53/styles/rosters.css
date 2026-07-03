@@ -3,7 +3,7 @@
 /* Base fixed header + content padding */
 body[data-page="rosters"] #header-container {
   position: fixed;
-  top: 0;
+  top: 2px;
   left: 0;
   right: 0;
   width: 100vw;
