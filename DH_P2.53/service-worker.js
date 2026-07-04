@@ -24,11 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub player comparison correction:
-// bump the cache so browsers pick up the bridge while the lazy modal CSS,
-// React island files, and AllWks/threshold CSVs stay outside CORE_ASSET_PATHS
-// for first-open loading only.
-const CACHE_NAME = 'DH3.03B';
+// Research Positional Analysis mobile chart spacing:
+// bump the cache so browsers pick up the updated Research CSS/JS and the
+// chart-specific asset query strings without requiring a manual hard refresh.
+const CACHE_NAME = 'DH3.03C';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

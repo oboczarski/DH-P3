@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=20260612-pos-analysis-icons" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.03C-pos-analysis-mobile-spacing" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -289,7 +289,9 @@
                 <p>Two stacked bars per year show WR and RB supply across T12, T36, and T60.</p>
               </div>
             </div>
-            <div class="pos-analysis-chart-scroll">
+            <!-- Positional Analysis tier stack chart: the modifier lets mobile
+                 spacing be tuned separately from the top supply chart. -->
+            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--tier-stack">
               <div class="pos-analysis-chart-host" id="pos-analysis-tier-stack-chart" role="img" aria-label="WR and RB tier stack bar chart"></div>
             </div>
           </section>
@@ -563,6 +565,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=20260612-pos-analysis-icons"></script>
+<script defer src="../scripts/syop.js?v=DH3.03C-pos-analysis-mobile-spacing"></script>
 </body>
 </html>

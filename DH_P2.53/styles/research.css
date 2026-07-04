@@ -3442,6 +3442,24 @@ body[data-page="research"] .pos-analysis-source-note {
     padding-inline: 0.55rem;
   }
 
+  /* Positional Analysis mobile chart spacing:
+     - top supply chart fits the viewport instead of forcing horizontal scroll
+     - G1 tier stack and combined charts keep their own tighter side gutters. */
+  body[data-page="research"] .pos-analysis-chart-scroll--supply {
+    overflow-x: hidden;
+    padding-inline: 0.16rem;
+  }
+
+  body[data-page="research"] .pos-analysis-chart-scroll--supply .pos-analysis-chart-host {
+    min-width: 0;
+    width: 100%;
+  }
+
+  body[data-page="research"] .pos-analysis-chart-scroll--tier-stack,
+  body[data-page="research"] .pos-analysis-chart-scroll--wide {
+    padding-inline: 0.14rem;
+  }
+
   body[data-page="research"] .pos-analysis-chart-host {
     min-width: 700px;
   }

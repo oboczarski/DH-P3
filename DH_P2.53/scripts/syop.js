@@ -2006,9 +2006,14 @@
     const range = POS_ANALYSIS_STATE.range;
     const active = getPosAnalysisDisplayPositions();
     const compact = window.innerWidth < 640;
-    const w = 1200;
-    const h = compact ? 456 : 472;
-    const m = { l: 52, r: 72, t: 34, b: 58 };
+    // Positional Analysis top supply chart:
+    // mobile uses its own compact SVG coordinate system so the RB/WR x-axis
+    // years sit close together and the chart does not need horizontal scroll.
+    const w = compact ? 440 : 1200;
+    const h = compact ? 368 : 472;
+    const m = compact
+      ? { l: 30, r: 28, t: 34, b: 48 }
+      : { l: 52, r: 72, t: 34, b: 58 };
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
     const maxValue = Math.max(...active.flatMap((pos) => posAnalysisValues(range, pos)), 0);
@@ -2032,7 +2037,7 @@
         svg += `<linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="${x(index)}" y1="${y(values[index])}" x2="${x(index + 1)}" y2="${y(values[index + 1])}"><stop offset="0%" stop-color="${config[tiers[index]]}"/><stop offset="100%" stop-color="${config[tiers[index + 1]]}"/></linearGradient>`;
       }
     });
-    svg += '</defs><rect class="pos-analysis-plot-bg" x="0" y="0" width="1200" height="' + h + '" rx="22"/>';
+    svg += `</defs><rect class="pos-analysis-plot-bg" x="0" y="0" width="${w}" height="${h}" rx="22"/>`;
 
     posAnalysisTickValues(yMin, yMax, 6).forEach((tick) => {
       svg += `<line class="pos-analysis-supply-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-supply-axis-label" x="${m.l - 12}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
@@ -2077,7 +2082,9 @@
       top: m.t - 4,
       bottom: h - m.b + 12
     }), 'pos-analysis-supply-value-label');
-    const scaleLabel = POS_ANALYSIS_STATE.positionView === 'rbWr' ? ` · dynamic scale ${yMin}-${yMax}` : '';
+    const scaleLabel = POS_ANALYSIS_STATE.positionView === 'rbWr'
+      ? compact ? ` · scale ${yMin}-${yMax}` : ` · dynamic scale ${yMin}-${yMax}`
+      : '';
     svg += `<text class="pos-analysis-supply-chart-title" x="${m.l}" y="22">${escapePosAnalysisHtml(range)} · active positions: ${escapePosAnalysisHtml(active.join(', '))}${scaleLabel}</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
@@ -2195,7 +2202,12 @@
     const compact = window.innerWidth < 640;
     const w = 1180;
     const h = compact ? 354 : 382;
-    const m = { l: 46, r: 28, t: 34, b: 52 };
+    // Positional Analysis G1 tier stack chart:
+    // compact margins pull the y-axis labels toward the mobile edge while
+    // leaving the desktop chart geometry unchanged.
+    const m = compact
+      ? { l: 28, r: 12, t: 34, b: 52 }
+      : { l: 46, r: 28, t: 34, b: 52 };
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
     const yMax = 26;
@@ -2251,9 +2263,13 @@
     if (!host) return;
     const years = POS_ANALYSIS_YEARS.filter((year) => year >= POS_ANALYSIS_STATE.minYear && year <= POS_ANALYSIS_STATE.maxYear);
     const container = host.closest('.pos-analysis-chart-scroll');
-    const w = Math.max(360, Math.floor((container?.clientWidth || host.clientWidth || 1120) - 24));
+    const compact = window.innerWidth < 640;
+    // Positional Analysis combined count + difference chart:
+    // mobile removes extra side gutter from the SVG so the y-axis labels align
+    // closer to the card edge without changing desktop spacing.
+    const w = Math.max(360, Math.floor((container?.clientWidth || host.clientWidth || 1120) - (compact ? 6 : 24)));
     const h = 462;
-    const m = { l: 46, r: 24 };
+    const m = compact ? { l: 28, r: 8 } : { l: 46, r: 24 };
     const markerTop = 34;
     const barTop = 112;
     const barBottom = 396;
@@ -2301,7 +2317,13 @@
         const tip = `<strong>${year} · T${cut}</strong><br>WR ${wr} · RB ${rb}<br>WR-RB gap: ${formatPosAnalysisDelta(gap)}`;
         const wrX = markerX - barW - barGap / 2;
         const rbX = markerX + barGap / 2;
-        svg += `<line class="pos-analysis-combo-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-combo-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-combo-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/><text class="pos-analysis-combo-cut-label" x="${markerX}" y="${h - 48}" text-anchor="middle">T${cut}</text>`;
+        // Positional Analysis combined chart:
+        // mobile moves the tier context into the compact title so the bottom
+        // axis stays clean; desktop keeps per-cluster T12/T36/T60 labels.
+        const cutLabel = !compact
+          ? `<text class="pos-analysis-combo-cut-label" x="${markerX}" y="${h - 48}" text-anchor="middle">T${cut}</text>`
+          : '';
+        svg += `<line class="pos-analysis-combo-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-combo-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-combo-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/>${cutLabel}`;
       });
       if (showAllYears || yearOffset % 2 === 0 || yearOffset === years.length - 1) {
         svg += `<text class="pos-analysis-combo-year-label" x="${yearCenter}" y="${h - 20}" text-anchor="middle">${year}</text>`;
@@ -2309,7 +2331,7 @@
     });
 
     const comboTitle = w < 620
-      ? 'Bars = counts · Markers = WR-RB gap'
+      ? 'T12/T36/T60 counts · Markers = WR-RB gap'
       : 'Bars = WR/RB counts · Markers = WR-RB gap · Count scale max = 26';
     svg += `<text class="pos-analysis-combo-chart-title" x="${m.l}" y="23">${comboTitle}</text></svg>`;
     host.innerHTML = svg;
