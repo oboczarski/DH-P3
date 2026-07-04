@@ -1675,6 +1675,11 @@
     return POS_ANALYSIS_YEARS.filter((_, index) => values[index] === target).join(', ');
   }
 
+  function posAnalysisLatestYearMatching(values, target) {
+    const years = POS_ANALYSIS_YEARS.filter((_, index) => values[index] === target);
+    return years.length ? String(years.at(-1)) : '';
+  }
+
   function getPosAnalysisTiers(values) {
     const tiers = Array(values.length).fill('high');
     values
@@ -1966,15 +1971,21 @@
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
     const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR`;
+    const mobileDiffLabel = `2025 · ${summary.range.replace(/^Top\s+/i, 'T')} ➜ RB–WR`;
     const chips = [
-      { label: 'Selected range', value: summary.range, tone: '', icon: 'target' },
-      { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
-      { label: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
-      { label: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
+      { label: 'Selected range', mobileLabel: 'Selected range', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
+      { label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
+      { label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
+      { label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
     ];
-    host.innerHTML = chips.map((chip) => (
-      `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span class="pos-analysis-stat-chip-label">${posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip')}<span>${escapePosAnalysisHtml(chip.label)}</span></span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`
-    )).join('');
+    // Positional Analysis stat chips: desktop keeps the icon by the label,
+    // while mobile swaps a duplicate icon beside the value without changing data.
+    host.innerHTML = chips.map((chip) => {
+      const toneClass = chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : '';
+      const desktopIcon = posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip');
+      const mobileIcon = posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip');
+      return `<div class="pos-analysis-stat-chip ${toneClass}"><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--desktop">${desktopIcon}<span>${escapePosAnalysisHtml(chip.label)}</span></span><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--mobile"><span>${escapePosAnalysisHtml(chip.mobileLabel)}</span></span><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--desktop">${escapePosAnalysisHtml(chip.value)}</strong><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--mobile">${mobileIcon}<span>${escapePosAnalysisHtml(chip.mobileValue)}</span></strong></div>`;
+    }).join('');
   }
 
   function renderPosAnalysisGlobalChart() {
@@ -1985,11 +1996,13 @@
       : '2007-2025 Positional Distribution: ALL POS';
     if (title) title.textContent = viewTitle;
     if (subtitle) {
-      subtitle.textContent = POS_ANALYSIS_STATE.mode === 'grid'
-        ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
-        : POS_ANALYSIS_STATE.positionView === 'rbWr'
-          ? 'Running back and wide receiver counts inside the selected fantasy-points rank range.'
-          : 'Position counts inside the selected fantasy-points rank range.';
+      subtitle.textContent = window.innerWidth <= 700 && POS_ANALYSIS_STATE.positionView === 'rbWr'
+        ? 'RB and WR distribution per szn inside the selected PPR FPTS rank range.'
+        : POS_ANALYSIS_STATE.mode === 'grid'
+          ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
+          : POS_ANALYSIS_STATE.positionView === 'rbWr'
+            ? 'Running back and wide receiver counts inside the selected fantasy-points rank range.'
+            : 'Position counts inside the selected fantasy-points rank range.';
     }
 
     if (POS_ANALYSIS_STATE.mode === 'grid') {
@@ -2010,9 +2023,9 @@
     // mobile uses its own compact SVG coordinate system so the RB/WR x-axis
     // years sit close together and the chart does not need horizontal scroll.
     const w = compact ? 440 : 1200;
-    const h = compact ? 368 : 472;
+    const h = compact ? 342 : 472;
     const m = compact
-      ? { l: 30, r: 28, t: 34, b: 48 }
+      ? { l: 30, r: 28, t: 34, b: 36 }
       : { l: 52, r: 72, t: 34, b: 58 };
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
@@ -2046,7 +2059,7 @@
       const xx = x(index);
       svg += `<line class="pos-analysis-supply-year-line" x1="${xx}" x2="${xx}" y1="${m.t}" y2="${h - m.b}"/>`;
       if (index % 2 === 0 || index === POS_ANALYSIS_YEARS.length - 1) {
-        svg += `<text class="pos-analysis-supply-axis-label" x="${xx}" y="${h - 24}" text-anchor="middle">${year}</text>`;
+        svg += `<text class="pos-analysis-supply-axis-label" x="${xx}" y="${compact ? h - 12 : h - 24}" text-anchor="middle">${year}</text>`;
       }
     });
 
@@ -2080,7 +2093,7 @@
       left: m.l - 4,
       right: w - m.r + 26,
       top: m.t - 4,
-      bottom: h - m.b + 12
+      bottom: h - m.b + (compact ? 6 : 12)
     }), 'pos-analysis-supply-value-label');
     const scaleLabel = POS_ANALYSIS_STATE.positionView === 'rbWr'
       ? compact ? ` · scale ${yMin}-${yMax}` : ` · dynamic scale ${yMin}-${yMax}`
@@ -2157,7 +2170,8 @@
       const stat = summary.stats[pos];
       const config = POS_ANALYSIS_POS_CONFIG[pos];
       const trendClass = stat.changeFromPrevious >= 0 ? 'up' : 'down';
-      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong><span>2025 position file</span></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(stat.bestYears)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
+      const latestPeakYear = posAnalysisLatestYearMatching(posAnalysisValues(POS_ANALYSIS_STATE.range, pos), stat.max);
+      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(latestPeakYear)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
     }).join('');
   }
 
@@ -2369,8 +2383,9 @@
     POS_ANALYSIS_STATE.interactionsBound = true;
   }
 
-  function posAnalysisPlayer(label, x, y, type, note = '') {
-    return `<div class="pos-analysis-field-player pos-analysis-field-player--${type}" style="left:${x}%;bottom:${y}%"><strong>${escapePosAnalysisHtml(label)}</strong>${note ? `<span>${escapePosAnalysisHtml(note)}</span>` : ''}</div>`;
+  function posAnalysisPlayer(label, x, y, type, note = '', role = type) {
+    const roleClass = String(role).trim() ? ` pos-analysis-field-player--${escapePosAnalysisAttr(role)}` : '';
+    return `<div class="pos-analysis-field-player pos-analysis-field-player--${type}${roleClass}" style="left:${x}%;bottom:${y}%"><strong>${escapePosAnalysisHtml(label)}</strong>${note ? `<span>${escapePosAnalysisHtml(note)}</span>` : ''}</div>`;
   }
 
   function renderPosAnalysisSimStat(icon, label, value) {
@@ -2394,14 +2409,16 @@
     });
 
     let players = '<div class="pos-analysis-line-of-scrimmage"></div><div class="pos-analysis-linemen"><span>LT</span><span>LG</span><span>C</span><span>RG</span><span>RT</span></div>';
+    // Personnel coordinates keep TE/WR chips below the line row and place
+    // inline tight ends outside the tackle area to avoid overlap in every state.
     if (POS_ANALYSIS_STATE.personnel === '11') {
       players += [
-        posAnalysisPlayer('QB', 50, 24, 'qb', 'Shotgun'),
-        posAnalysisPlayer('RB', 42, 24, 'rb', 'Offset'),
-        posAnalysisPlayer('TE', 68, 44, 'te', 'Inline'),
-        posAnalysisPlayer('WR1', 12, 44, 'wr', 'X'),
-        posAnalysisPlayer('WR2', 88, 40, 'wr', 'Z'),
-        posAnalysisPlayer('WR3', 26, 40, 'wr', 'Slot')
+        posAnalysisPlayer('QB', 50, 23, 'qb', 'Shotgun', 'backfield-qb'),
+        posAnalysisPlayer('RB', 42, 23, 'rb', 'Offset', 'backfield-rb'),
+        posAnalysisPlayer('TE', 74, 30, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('WR1', 11, 29, 'wr', 'X', 'wideout-left'),
+        posAnalysisPlayer('WR2', 89, 29, 'wr', 'Z', 'wideout-right'),
+        posAnalysisPlayer('WR3', 27, 27, 'wr', 'Slot', 'slot-left')
       ].join('');
       copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume decreased');
@@ -2410,12 +2427,12 @@
       qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Varied');
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
       players += [
-        posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
-        posAnalysisPlayer('RB', 50, 14, 'rb', 'Power'),
-        posAnalysisPlayer('TE1', 68, 44, 'te', 'Inline'),
-        posAnalysisPlayer('TE2', 74, 38, 'te', 'Wing'),
-        posAnalysisPlayer('TE3', 32, 44, 'te', 'Inline'),
-        posAnalysisPlayer('WR1', 12, 44, 'wr', 'Isolated')
+        posAnalysisPlayer('QB', 50, 31, 'qb', 'Under C', 'under-center-qb'),
+        posAnalysisPlayer('RB', 50, 12, 'rb', 'Power', 'deep-back'),
+        posAnalysisPlayer('TE1', 72, 30, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('TE2', 80, 23, 'te', 'Wing', 'wing-te-right'),
+        posAnalysisPlayer('TE3', 28, 30, 'te', 'Inline', 'inline-te-left'),
+        posAnalysisPlayer('WR1', 12, 29, 'wr', 'Isolated', 'wideout-left')
       ].join('');
       copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Peak leverage');
@@ -2424,12 +2441,12 @@
       qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Secure pocket');
     } else {
       players += [
-        posAnalysisPlayer('QB', 50, 35, 'qb', 'Under C'),
-        posAnalysisPlayer('RB', 50, 14, 'rb', 'Workhorse'),
-        posAnalysisPlayer('TE1', 68, 44, 'te', 'Inline'),
-        posAnalysisPlayer('TE2', 32, 44, 'te', 'Inline'),
-        posAnalysisPlayer('WR1', 12, 44, 'wr', 'X'),
-        posAnalysisPlayer('WR2', 88, 40, 'wr', 'Z')
+        posAnalysisPlayer('QB', 50, 31, 'qb', 'Under C', 'under-center-qb'),
+        posAnalysisPlayer('RB', 50, 12, 'rb', 'Workhorse', 'deep-back'),
+        posAnalysisPlayer('TE1', 72, 30, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('TE2', 28, 30, 'te', 'Inline', 'inline-te-left'),
+        posAnalysisPlayer('WR1', 12, 29, 'wr', 'X', 'wideout-left'),
+        posAnalysisPlayer('WR2', 88, 29, 'wr', 'Z', 'wideout-right')
       ].join('');
       copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume & routes up');

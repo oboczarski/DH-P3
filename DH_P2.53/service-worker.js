@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis mobile chart spacing:
+// Research Positional Analysis section-scoped CSS/JS:
 // bump the cache so browsers pick up the updated Research CSS/JS and the
 // chart-specific asset query strings without requiring a manual hard refresh.
-const CACHE_NAME = 'DH3.03C';
+const CACHE_NAME = 'DH3.03D';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
