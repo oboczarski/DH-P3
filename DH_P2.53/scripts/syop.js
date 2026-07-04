@@ -2411,14 +2411,22 @@
     let players = '<div class="pos-analysis-line-of-scrimmage"></div><div class="pos-analysis-linemen"><span>LT</span><span>LG</span><span>C</span><span>RG</span><span>RT</span></div>';
     // Personnel coordinates keep TE/WR chips below the line row and place
     // inline tight ends outside the tackle area to avoid overlap in every state.
+    // Stamp current personnel on the field grid so CSS @media desktop rules can
+    // override left/bottom per-personnel without duplicating JS rendering.
+    field.dataset.personnel = POS_ANALYSIS_STATE.personnel;
+
     if (POS_ANALYSIS_STATE.personnel === '11') {
+      // 11 Personnel — MOBILE positions: WR1(X) 7%/37%, TE(Inline) 73%/37%,
+      // WR3(Slot) 23%/31%, WR2(Z) 89%/31%.
+      // Desktop overrides are in research.css @media (min-width: 869px)
+      //   [data-personnel="11"] .pos-analysis-field-player--* { left/bottom }
       players += [
         posAnalysisPlayer('QB', 50, 23, 'qb', 'Shotgun', 'backfield-qb'),
         posAnalysisPlayer('RB', 42, 23, 'rb', 'Offset', 'backfield-rb'),
-        posAnalysisPlayer('TE', 74, 30, 'te', 'Inline', 'inline-te-right'),
-        posAnalysisPlayer('WR1', 11, 29, 'wr', 'X', 'wideout-left'),
-        posAnalysisPlayer('WR2', 89, 29, 'wr', 'Z', 'wideout-right'),
-        posAnalysisPlayer('WR3', 27, 27, 'wr', 'Slot', 'slot-left')
+        posAnalysisPlayer('TE', 73, 37, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('WR1', 7, 37, 'wr', 'X', 'wideout-left'),
+        posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right'),
+        posAnalysisPlayer('WR3', 23, 31, 'wr', 'Slot', 'slot-left')
       ].join('');
       copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume decreased');
@@ -2426,13 +2434,16 @@
       teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', '1 Receiving focused TE');
       qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Varied');
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
+      // 13 Personnel — MOBILE positions: WR1(X) 11%/31%, TE1(Inline) 72%/37%,
+      // TE2(Off-Line) 80%/31%, TE3(Inline) 27%/37%.
+      // Desktop overrides are in research.css @media (min-width: 869px)
       players += [
         posAnalysisPlayer('QB', 50, 31, 'qb', 'Under C', 'under-center-qb'),
         posAnalysisPlayer('RB', 50, 12, 'rb', 'Power', 'deep-back'),
-        posAnalysisPlayer('TE1', 72, 30, 'te', 'Inline', 'inline-te-right'),
-        posAnalysisPlayer('TE2', 80, 23, 'te', 'Wing', 'wing-te-right'),
-        posAnalysisPlayer('TE3', 28, 30, 'te', 'Inline', 'inline-te-left'),
-        posAnalysisPlayer('WR1', 12, 29, 'wr', 'Isolated', 'wideout-left')
+        posAnalysisPlayer('TE1', 72, 37, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('TE2', 80, 31, 'te', 'Off-Line', 'wing-te-right'),
+        posAnalysisPlayer('TE3', 27, 37, 'te', 'Inline', 'inline-te-left'),
+        posAnalysisPlayer('WR1', 11, 31, 'wr', 'X', 'wideout-left')
       ].join('');
       copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Peak leverage');
@@ -2440,13 +2451,16 @@
       teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', 'Triple snap expansion');
       qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Secure pocket');
     } else {
+      // 12 Personnel — MOBILE positions: WR1(X) 7%/37%, TE1(Inline) 72%/37%,
+      // TE2(Off-Line) 28%/31%, WR2(Z) 89%/31%.
+      // Desktop overrides are in research.css @media (min-width: 869px)
       players += [
         posAnalysisPlayer('QB', 50, 31, 'qb', 'Under C', 'under-center-qb'),
         posAnalysisPlayer('RB', 50, 12, 'rb', 'Workhorse', 'deep-back'),
-        posAnalysisPlayer('TE1', 72, 30, 'te', 'Inline', 'inline-te-right'),
-        posAnalysisPlayer('TE2', 28, 30, 'te', 'Inline', 'inline-te-left'),
-        posAnalysisPlayer('WR1', 12, 29, 'wr', 'X', 'wideout-left'),
-        posAnalysisPlayer('WR2', 88, 29, 'wr', 'Z', 'wideout-right')
+        posAnalysisPlayer('TE1', 72, 37, 'te', 'Inline', 'inline-te-right'),
+        posAnalysisPlayer('TE2', 28, 31, 'te', 'Off-Line', 'inline-te-left'),
+        posAnalysisPlayer('WR1', 7, 37, 'wr', 'X', 'wideout-left'),
+        posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right')
       ].join('');
       copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
       rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume & routes up');

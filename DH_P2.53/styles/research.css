@@ -4898,6 +4898,49 @@ body[data-page="research"] .pos-analysis-source-note {
     font-size: 0.45rem;
   }
 }
+/* END @media (max-width: 460px) */
+
+/* ── Desktop player positions per personnel group ────────────────────────────
+   Scoped to min-width: 869px (desktop breakpoint).
+   The JS stamps data-personnel on #pos-analysis-field-grid and sets inline
+   left/bottom values (mobile targets). These rules use !important to beat the
+   inline style specificity and apply the desktop-specific coordinates.
+   Role classes match the third arg of posAnalysisPlayer() in syop.js.
+─────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 869px) {
+  /* 11 Personnel — desktop: WR1(X) 9%/36%, TE(Inline) 67%/36%,
+     WR3(Slot) 25%/30%, WR2(Z) 89%/30% */
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="11"]
+    .pos-analysis-field-player--wideout-left  { left: 9%  !important; bottom: 36% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="11"]
+    .pos-analysis-field-player--wideout-right { left: 89% !important; bottom: 30% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="11"]
+    .pos-analysis-field-player--slot-left     { left: 25% !important; bottom: 30% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="11"]
+    .pos-analysis-field-player--inline-te-right { left: 67% !important; bottom: 36% !important; }
+
+  /* 12 Personnel — desktop: WR1(X) 9%/36%, TE1(Inline) 67%/36%,
+     TE2(Off-Line) 33%/30%, WR2(Z) 86%/30% */
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="12"]
+    .pos-analysis-field-player--wideout-left  { left: 9%  !important; bottom: 36% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="12"]
+    .pos-analysis-field-player--inline-te-right { left: 67% !important; bottom: 36% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="12"]
+    .pos-analysis-field-player--inline-te-left  { left: 33% !important; bottom: 30% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="12"]
+    .pos-analysis-field-player--wideout-right { left: 86% !important; bottom: 30% !important; }
+
+  /* 13 Personnel — desktop: WR1(X) 11%/30%, TE1(Inline) 67%/36%,
+     TE2(Off-Line) 73%/30%, TE3(Inline) 33%/36% */
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="13"]
+    .pos-analysis-field-player--wideout-left  { left: 11% !important; bottom: 30% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="13"]
+    .pos-analysis-field-player--inline-te-right { left: 67% !important; bottom: 36% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="13"]
+    .pos-analysis-field-player--wing-te-right   { left: 73% !important; bottom: 30% !important; }
+  body[data-page="research"] #pos-analysis-field-grid[data-personnel="13"]
+    .pos-analysis-field-player--inline-te-left  { left: 33% !important; bottom: 36% !important; }
+}
 
 
 /* Hide filters/view-switcher on Research page (header rules) */
