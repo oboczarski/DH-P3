@@ -1965,12 +1965,12 @@
     const host = document.getElementById('pos-analysis-summary-chips');
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
-    const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR DIFF`;
+    const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR`;
     const chips = [
       { label: 'Selected range', value: summary.range, tone: '', icon: 'target' },
       { label: diffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
-      { label: 'RB 2020 → 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
-      { label: 'WR 2020 → 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
+      { label: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
+      { label: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
     ];
     host.innerHTML = chips.map((chip) => (
       `<div class="pos-analysis-stat-chip ${chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : ''}"><span class="pos-analysis-stat-chip-label">${posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip')}<span>${escapePosAnalysisHtml(chip.label)}</span></span><strong>${escapePosAnalysisHtml(chip.value)}</strong></div>`

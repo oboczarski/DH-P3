@@ -2009,7 +2009,7 @@ body[data-page="research"] .pos-analysis-position-row {
 }
 
 body[data-page="research"] .pos-analysis-range-btn {
-  flex: 0 0 auto;
+  flex: 1 0 auto;
   padding: 0.52rem 0.72rem;
   border-radius: 10px;
   background: transparent;
@@ -3108,20 +3108,20 @@ body[data-page="research"] .pos-analysis-field-player span {
 }
 
 body[data-page="research"] .pos-analysis-field-player--qb strong {
-  background: #2563eb;
+  background: #f23f5db8;
 }
 
 body[data-page="research"] .pos-analysis-field-player--rb strong {
-  background: var(--pos-analysis-gold);
+  background: #3ce2c6;
   color: #0b0e16;
 }
 
 body[data-page="research"] .pos-analysis-field-player--wr strong {
-  background: var(--pos-analysis-red);
+  background: #1b7aff;
 }
 
 body[data-page="research"] .pos-analysis-field-player--te strong {
-  background: #6366f1;
+  background: #4a33ec;
 }
 
 body[data-page="research"] .pos-analysis-simulator-copy,
@@ -3633,7 +3633,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-stat-chip {
-    padding: 0.56rem 0.62rem;
+    padding: 0.3rem 0.06rem 0.3rem 0.22rem;
   }
 
   body[data-page="research"] .pos-analysis-stat-chip strong {
