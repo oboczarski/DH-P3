@@ -27,7 +27,7 @@
 // DataHub head-to-head comparison chart refresh:
 // bump the cache so browsers pick up the updated lazy comparison component,
 // chart options, and scoped responsive styles on the next normal refresh.
-const CACHE_NAME = 'DH3.03F';
+const CACHE_NAME = 'DH3.03G';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

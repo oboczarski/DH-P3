@@ -452,7 +452,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function ChartHeader({ mode, weeklyStatKey, selectedPlayers }) {
+  function ChartHeader({ mode, weeklyStatKey }) {
     return h(
       "div",
       { className: "dh-compare-chart-header" },
@@ -461,22 +461,24 @@ export function createDataHubComparisonModal(React) {
         { className: "dh-compare-chart-stat" },
         h("strong", null, mode === "season" ? "Season Multi-Stat" : getStatLabel(weeklyStatKey)),
       ),
-      h(
-        "div",
-        { className: "dh-compare-chart-legend", "aria-label": "Compared players" },
-        selectedPlayers.map((player, index) => h(
-          "span",
-          {
-            key: player.id,
-            className: "dh-compare-chart-legend__item",
-            style: { "--compare-player-color": getPlayerAccentColor(player, getPlayerPaletteIndex(selectedPlayers, index)) },
-          },
-          player.teamLogoSrc
-            ? h("img", { src: player.teamLogoSrc, alt: "", loading: "eager" })
-            : h("span", { className: "dh-compare-chart-legend__fallback" }, player.team || "FA"),
-          h("span", null, getPlayerName(player)),
-        )),
-      ),
+    );
+  }
+
+  function PlayerChartHeader({ player }) {
+    return h(
+      "div",
+      { className: "dh-compare-player-chart__header" },
+      h("span", { className: "dh-compare-player-chart__dot", "aria-hidden": "true" }),
+      player.teamLogoSrc
+        ? h("img", {
+          className: "dh-compare-player-chart__logo",
+          src: player.teamLogoSrc,
+          alt: "",
+          loading: "eager",
+        })
+        : h("span", { className: "dh-compare-player-chart__logo-fallback" }, player.team || "FA"),
+      h("strong", { className: "dh-compare-player-chart__name" }, getPlayerName(player)),
+      h("span", { className: "dh-compare-player-chart__meta" }, `${player.pos || "FA"} · ${player.team || "FA"}`),
     );
   }
 
@@ -509,7 +511,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
+  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -527,8 +529,9 @@ export function createDataHubComparisonModal(React) {
           weeks,
           thresholds,
           colorIndex: paletteIndex,
+          showXAxis,
         });
-    }, [mode, paletteIndex, player, seasonStatKeys, selectedPlayers, thresholds, weeklyStatKey, weeks]);
+    }, [mode, paletteIndex, player, seasonStatKeys, selectedPlayers, showXAxis, thresholds, weeklyStatKey, weeks]);
 
     useEffect(() => {
       setHasEcharts(Boolean(window.echarts));
@@ -584,6 +587,7 @@ export function createDataHubComparisonModal(React) {
         style: { "--compare-player-color": getPlayerAccentColor(player, paletteIndex) },
         "data-player-chart": player.id,
       },
+      h(PlayerChartHeader, { player }),
       hasEcharts && chartOption
         ? h("div", {
           className: "dh-compare-chart",
@@ -596,6 +600,23 @@ export function createDataHubComparisonModal(React) {
   }
 
   function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
+    const [isStackedLayout, setIsStackedLayout] = useState(() => window.matchMedia("(max-width: 719px)").matches);
+
+    useEffect(() => {
+      // Responsive shared X-axis:
+      // the mobile chart pair is stacked, so only its final chart owns the
+      // week axis. Desktop charts remain side by side and each keeps an axis.
+      const mediaQuery = window.matchMedia("(max-width: 719px)");
+      const handleChange = (event) => setIsStackedLayout(event.matches);
+      setIsStackedLayout(mediaQuery.matches);
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleChange);
+        return () => mediaQuery.removeEventListener("change", handleChange);
+      }
+      mediaQuery.addListener?.(handleChange);
+      return () => mediaQuery.removeListener?.(handleChange);
+    }, []);
+
     if (!selectedPlayers.length) {
       return h(
         "section",
@@ -617,10 +638,10 @@ export function createDataHubComparisonModal(React) {
     return h(
       "section",
       { className: "dh-compare-chart-shell" },
-      // Shared chart heading:
-      // one title and one legend describe both dedicated player charts, which
-      // avoids repeating vertical chrome in the stacked mobile layout.
-      h(ChartHeader, { mode, weeklyStatKey, selectedPlayers }),
+      // Shared stat heading:
+      // the metric remains common to both charts while player identity now
+      // sits directly above the chart it describes.
+      h(ChartHeader, { mode, weeklyStatKey }),
       h(
         "div",
         { className: cx("dh-compare-chart-grid", selectedPlayers.length === 1 && "dh-compare-chart-grid--single") },
@@ -634,6 +655,9 @@ export function createDataHubComparisonModal(React) {
           seasonStatKeys,
           weeks,
           thresholds,
+          showXAxis: selectedPlayers.length === 1
+            || !isStackedLayout
+            || playerIndex === selectedPlayers.length - 1,
         })),
       ),
     );

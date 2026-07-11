@@ -372,7 +372,7 @@ function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
     .filter(Boolean);
 }
 
-export function buildWeeklyChartOption({ players, axisPlayers = players, statKey, weeks, thresholds, isCompact = null, colorIndex = null }) {
+export function buildWeeklyChartOption({ players, axisPlayers = players, statKey, weeks, thresholds, isCompact = null, colorIndex = null, showXAxis = true }) {
   const safeWeeks = Array.isArray(weeks) && weeks.length
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
@@ -392,8 +392,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
     grid: isMobile
-      ? { top: 12, right: 6, bottom: 44, left: 24, containLabel: false }
-      : { top: 14, right: 22, bottom: 40, left: 48, containLabel: false },
+      ? { top: 10, right: 6, bottom: showXAxis ? 32 : 6, left: 24, containLabel: false }
+      : { top: 12, right: 22, bottom: showXAxis ? 32 : 8, left: 48, containLabel: false },
     tooltip: {
       trigger: "axis",
       confine: true,
@@ -411,16 +411,18 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
     legend: { show: false },
     xAxis: {
       type: "category",
+      show: showXAxis,
       boundaryGap: true,
       data: safeWeeks.map((week) => `wk${week}`),
-      axisLine: { lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
+      axisLine: { show: showXAxis, lineStyle: { color: "rgba(190, 218, 255, 0.16)" } },
       axisTick: { show: false },
       axisLabel: {
+        show: showXAxis,
         interval: 0,
         color: "rgba(205, 220, 245, 0.58)",
         fontFamily: "Product Sans, Google Sans, sans-serif",
         fontSize: isMobile ? 9 : 11,
-        margin: isMobile ? 12 : 10,
+        margin: isMobile ? 7 : 7,
         rotate: isMobile ? 45 : 0,
         align: isMobile ? "right" : "center",
       },

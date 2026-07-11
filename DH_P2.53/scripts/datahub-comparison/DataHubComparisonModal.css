@@ -774,7 +774,7 @@ body[data-page="datahub"] .dh-compare-chart-shell {
 body[data-page="datahub"] .dh-compare-chart-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   min-width: 0;
   padding: 13px 16px 6px;
@@ -802,54 +802,6 @@ body[data-page="datahub"] .dh-compare-chart-stat strong {
   letter-spacing: 0;
 }
 
-body[data-page="datahub"] .dh-compare-chart-legend {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  gap: 8px 35px;
-  min-width: 0;
-}
-
-body[data-page="datahub"] .dh-compare-chart-legend__item {
-  --compare-player-color: #72efff;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  color: rgba(224, 235, 255, 0.84);
-  font-size: 0.78rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-body[data-page="datahub"] .dh-compare-chart-legend__item::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--compare-player-color);
-  box-shadow: 0 0 12px var(--compare-player-color);
-}
-
-body[data-page="datahub"] .dh-compare-chart-legend__item img,
-body[data-page="datahub"] .dh-compare-chart-legend__fallback {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  object-fit: contain;
-  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.24));
-}
-
-body[data-page="datahub"] .dh-compare-chart-legend__fallback {
-  display: inline-grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(211, 228, 248, 0.78);
-  font-size: 0.58rem;
-}
-
 body[data-page="datahub"] .dh-compare-chart {
   min-height: 0;
   width: 100%;
@@ -873,6 +825,8 @@ body[data-page="datahub"] .dh-compare-chart-grid--single {
 body[data-page="datahub"] .dh-compare-player-chart {
   --compare-player-color: #72efff;
   position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -897,6 +851,63 @@ body[data-page="datahub"] .dh-compare-player-chart::before {
   pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--compare-player-color), transparent);
   opacity: 0.62;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__header {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, auto) auto;
+  align-items: center;
+  justify-content: start;
+  gap: 6px;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 10px 1px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--compare-player-color) 7%, transparent), transparent);
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--compare-player-color);
+  box-shadow: 0 0 10px var(--compare-player-color);
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__logo,
+body[data-page="datahub"] .dh-compare-player-chart__logo-fallback {
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__logo-fallback {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(211, 228, 248, 0.78);
+  font-size: 0.5rem;
+  font-weight: 900;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__name {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(248, 252, 255, 0.96);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__meta {
+  color: var(--compare-player-color);
+  font-size: 0.6rem;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 body[data-page="datahub"] .dh-compare-empty {
@@ -1283,35 +1294,15 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     font-size: 0.9rem;
   }
 
-  body[data-page="datahub"] .dh-compare-chart-legend {
-    gap: 0px 13px;
-  }
-
-  body[data-page="datahub"] .dh-compare-chart-legend__item {
-    max-width: 118px;
-    font-size: 0.62rem;
-  }
-
-  body[data-page="datahub"] .dh-compare-chart-legend__item span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  body[data-page="datahub"] .dh-compare-chart-legend__item img,
-  body[data-page="datahub"] .dh-compare-chart-legend__fallback {
-    width: 22px;
-    height: 22px;
-  }
-
   /* Mobile head-to-head chart layout:
      split the available chart body evenly between two dedicated player
-     charts, with one shared heading and only a narrow visual seam between
-     them so both remain visible inside the fixed-height modal. */
+     charts, remove the inter-panel gap, and let the lower chart alone own the
+     shared week axis so both read as one continuous comparison surface. */
   body[data-page="datahub"] .dh-compare-chart-grid {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: 3px;
-    padding: 0 3px 3px;
+    gap: 0;
+    padding: 0 3px 1px;
   }
 
   body[data-page="datahub"] .dh-compare-chart-grid--single {
@@ -1319,7 +1310,39 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-player-chart {
-    border-radius: 5px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart + .dh-compare-player-chart {
+    border-top: 1px solid rgba(164, 207, 255, 0.11);
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart__header {
+    grid-template-columns: auto auto minmax(0, auto) auto;
+    gap: 4px;
+    min-height: 23px;
+    padding: 2px 7px 0;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart__dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart__logo,
+  body[data-page="datahub"] .dh-compare-player-chart__logo-fallback {
+    width: 16px;
+    height: 16px;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart__name {
+    font-size: 0.68rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-player-chart__meta {
+    font-size: 0.52rem;
   }
 }
 
