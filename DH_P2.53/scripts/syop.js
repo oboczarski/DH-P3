@@ -188,6 +188,9 @@
     36: { RB: '#00ffc6', WR: '#2c9cff' },
     60: { RB: '#6afff6', WR: '#6ab7fc' }
   };
+  // Mini year-grid lines use their own requested RB/WR palette so changing
+  // these colors cannot alter the supply, tier-stack, or combined charts.
+  const POS_ANALYSIS_MINI_LINE_COLORS = { RB: '#06ff97', WR: '#0299fe' };
   const POS_ANALYSIS_STATE = {
     rows: [],
     counts: null,
@@ -1971,7 +1974,9 @@
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
     const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR`;
-    const mobileDiffLabel = `2025 · ${summary.range.replace(/^Top\s+/i, 'T')} ➜ RB–WR`;
+    // Mobile omits the selected tier from this chip because the range already
+    // appears in the neighboring summary chip; desktop keeps the full label.
+    const mobileDiffLabel = '2025 ➜ RB–WR';
     const chips = [
       { label: 'Selected range', mobileLabel: 'Selected range', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
       { label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
@@ -2202,10 +2207,11 @@
           svg += `<text class="pos-analysis-mini-axis-label" x="${x(index)}" y="${height - 12}" text-anchor="middle">T${cut}</text>`;
         }
       });
-      svg += `<path d="${posAnalysisSmoothPath(wrPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_RANGE_COLORS[60].WR}"/><path d="${posAnalysisSmoothPath(rbPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_RANGE_COLORS[60].RB}"/>`;
-      wrPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_RANGE_COLORS[60].WR}"/>`; });
-      rbPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_RANGE_COLORS[60].RB}"/>`; });
-      svg += `<text class="pos-analysis-mini-year" x="14" y="18">${year}</text><text class="pos-analysis-mini-legend" x="72" y="18" fill="${POS_ANALYSIS_RANGE_COLORS[60].WR}">WR ${wr.at(-1)}</text><text class="pos-analysis-mini-legend" x="126" y="18" fill="${POS_ANALYSIS_RANGE_COLORS[60].RB}">RB ${rb.at(-1)}</text></svg>`;
+      svg += `<path d="${posAnalysisSmoothPath(wrPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_MINI_LINE_COLORS.WR}"/><path d="${posAnalysisSmoothPath(rbPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_MINI_LINE_COLORS.RB}"/>`;
+      wrPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_MINI_LINE_COLORS.WR}"/>`; });
+      rbPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_MINI_LINE_COLORS.RB}"/>`; });
+      // The wider legend x-offset keeps the WR and RB count groups distinct.
+      svg += `<text class="pos-analysis-mini-year" x="14" y="18">${year}</text><text class="pos-analysis-mini-legend" x="72" y="18" fill="${POS_ANALYSIS_MINI_LINE_COLORS.WR}">WR ${wr.at(-1)}</text><text class="pos-analysis-mini-legend" x="142" y="18" fill="${POS_ANALYSIS_MINI_LINE_COLORS.RB}">RB ${rb.at(-1)}</text></svg>`;
       return `<article class="pos-analysis-mini-card">${svg}</article>`;
     }).join('');
   }

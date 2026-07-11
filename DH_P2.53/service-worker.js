@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis section-scoped CSS/JS:
+// Research Positional Analysis responsive view polish:
 // bump the cache so browsers pick up the updated Research CSS/JS and the
 // chart-specific asset query strings without requiring a manual hard refresh.
-const CACHE_NAME = 'DH3.03D';
+const CACHE_NAME = 'DH3.03E';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -1940,10 +1940,124 @@ body[data-page="research"] .pos-analysis-eyebrow {
   align-items: center;
   gap: 0.42rem;
   color: rgba(196, 234, 248, 0.86);
-  font-size: 0.64rem;
   font-weight: 800;
-  letter-spacing: 0.18em;
   text-transform: uppercase;
+}
+
+/* Positional Analysis section eyebrows: typography and icon sizing are
+   intentionally repeated per section. This gives every desktop eyebrow an
+   independent tuning hook instead of inheriting tweak-sensitive values from
+   another card, while the shared class above retains structural alignment. */
+body[data-page="research"] .pos-analysis-eyebrow--global {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--profiles {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--mini {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--tier-stack {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--combo {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--paradigm {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--simulator {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--milestone {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--matrix {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--te-role {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--formula {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--timeline {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--tactical-caution {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--strategic-summary {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--regression {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--moving-forward {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.92rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
 }
 
 body[data-page="research"] .pos-analysis-kicker {
@@ -2002,8 +2116,8 @@ body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon-shell {
 }
 
 body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon-shell {
-  width: 1.08rem;
-  height: 1.08rem;
+  width: var(--pos-analysis-eyebrow-shell-size, 1.08rem);
+  height: var(--pos-analysis-eyebrow-shell-size, 1.08rem);
   color: var(--pos-analysis-cyan);
   filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.28));
 }
@@ -2014,8 +2128,8 @@ body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon {
 }
 
 body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon {
-  width: 0.92rem;
-  height: 0.92rem;
+  width: var(--pos-analysis-eyebrow-icon-size, 0.92rem);
+  height: var(--pos-analysis-eyebrow-icon-size, 0.92rem);
 }
 
 body[data-page="research"] .pos-analysis-hero h1 {
@@ -2757,7 +2871,7 @@ body[data-page="research"] .pos-analysis-mini-line {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.35;
+  stroke-width: 2.75;
 }
 
 body[data-page="research"] .pos-analysis-mini-year,
@@ -4073,6 +4187,41 @@ body[data-page="research"] .pos-analysis-source-note {
     font-size: clamp(1.18rem, 1rem + 1vw, 1.5rem);
     white-space: nowrap;
   }
+
+  /* Desktop-only mini-chart type scale: slightly tighter than the mobile
+     defaults without changing the SVG geometry or any phone presentation. */
+  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-axis-label {
+    font-size: 15.5px;
+  }
+
+  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-year {
+    font-size: 21px;
+  }
+
+  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-legend {
+    font-size: 18px;
+  }
+
+  /* Desktop tactical header: stack the controls under the heading block so
+     eyebrow, title, and personnel buttons read as one vertical sequence. */
+  body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator .pos-analysis-personnel-buttons {
+    align-self: flex-start;
+    margin-top: 0.55rem;
+  }
+}
+
+@media (min-width: 701px) {
+  /* Desktop/tablet stat chips must never reveal the duplicate mobile value;
+     this higher-specificity rule beats the generic value display declaration. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--mobile,
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile {
+    display: none;
+  }
 }
 
 @media (max-width: 920px) {
@@ -4230,10 +4379,33 @@ body[data-page="research"] .pos-analysis-source-note {
     border-radius: 14px;
   }
 
-  body[data-page="research"] .pos-analysis-global-section .pos-analysis-global-title-row {
+  /* Mobile supply-chart heading order: eyebrow, title, subtitle, toggles. The
+     desktop flex row remains unchanged because this flattening is phone-only. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-global-heading {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.55rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-eyebrow--global {
+    align-self: flex-start;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-global-title-row {
+    display: contents;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section #pos-analysis-global-title {
+    order: 1;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section #pos-analysis-global-subtitle {
+    order: 2;
+    margin-bottom: 0.55rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-chart-toggles {
+    order: 3;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-toggle {
@@ -4373,8 +4545,11 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--mobile {
-    display: block;
+    display: flex;
+    justify-content: center;
+    width: 100%;
     letter-spacing: -0.04em;
+    text-align: center;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--mobile > span {
@@ -4502,7 +4677,116 @@ body[data-page="research"] .pos-analysis-source-note {
     letter-spacing: 0.12em;
   }
 
-  body[data-page="research"] .pos-analysis-eyebrow {
+  /* Phone eyebrow values remain section-specific as well as device-specific;
+     edit one modifier without changing another section or desktop. */
+  body[data-page="research"] .pos-analysis-eyebrow--global {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--profiles {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--mini {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--tier-stack {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--combo {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--paradigm {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--simulator {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--milestone {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--matrix {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--te-role {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--formula {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--timeline {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--tactical-caution {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--strategic-summary {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--regression {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--moving-forward {
+    --pos-analysis-eyebrow-shell-size: 0.92rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
     font-size: 0.55rem;
     letter-spacing: 0.05em;
   }
@@ -4512,17 +4796,7 @@ body[data-page="research"] .pos-analysis-source-note {
     height: 0.92rem;
   }
 
-  body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon-shell {
-    width: 0.92rem;
-    height: 0.92rem;
-  }
-
   body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon {
-    width: 0.7rem;
-    height: 0.7rem;
-  }
-
-  body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon {
     width: 0.7rem;
     height: 0.7rem;
   }
