@@ -7429,7 +7429,10 @@ function buildDataHubComparisonPayload() {
 
   return {
     revision: Date.now(),
-    maxPlayers: 3,
+    // DataHub comparison payload:
+    // expose the same two-player head-to-head limit enforced by the lazy
+    // React island so future consumers cannot advertise a third slot.
+    maxPlayers: 2,
     weeks: Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => index + 1),
     defaults: {
       mode: "weekly",

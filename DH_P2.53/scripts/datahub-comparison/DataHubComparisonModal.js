@@ -130,6 +130,18 @@ function getCompactPlayerName(player) {
   return `${parts[0].charAt(0)}. ${parts.slice(1).join(" ")}`;
 }
 
+function getPlayerPaletteIndex(players, playerIndex) {
+  const player = players[playerIndex];
+  const position = String(player?.pos || "").trim().toUpperCase();
+  if (!player || !position) {
+    return 0;
+  }
+  return players
+    .slice(0, playerIndex)
+    .filter((candidate) => String(candidate?.pos || "").trim().toUpperCase() === position)
+    .length;
+}
+
 export function createDataHubComparisonModal(React) {
   const {
     createElement: h,
@@ -457,40 +469,13 @@ export function createDataHubComparisonModal(React) {
           {
             key: player.id,
             className: "dh-compare-chart-legend__item",
-            style: { "--compare-player-color": getPlayerAccentColor(player, index) },
+            style: { "--compare-player-color": getPlayerAccentColor(player, getPlayerPaletteIndex(selectedPlayers, index)) },
           },
           player.teamLogoSrc
             ? h("img", { src: player.teamLogoSrc, alt: "", loading: "eager" })
             : h("span", { className: "dh-compare-chart-legend__fallback" }, player.team || "FA"),
           h("span", null, getPlayerName(player)),
         )),
-      ),
-    );
-  }
-
-  function ChartFooter({ mode, showDataLabels, onToggleDataLabels }) {
-    if (mode !== "weekly") {
-      return null;
-    }
-    return h(
-      "div",
-      { className: "dh-compare-chart-footer" },
-      h(
-        "label",
-        { className: "dh-compare-label-toggle" },
-        h("input", {
-          type: "checkbox",
-          role: "switch",
-          checked: showDataLabels,
-          "aria-label": "Show weekly data labels",
-          onChange: (event) => onToggleDataLabels(event.target.checked),
-        }),
-        h(
-          "span",
-          { className: "dh-compare-label-toggle__track", "aria-hidden": "true" },
-          h("span", { className: "dh-compare-label-toggle__thumb" }),
-        ),
-        h("span", { className: "dh-compare-label-toggle__text" }, "Data labels"),
       ),
     );
   }
@@ -524,24 +509,26 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showDataLabels, onToggleDataLabels }) {
+  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
+    const paletteIndex = getPlayerPaletteIndex(selectedPlayers, playerIndex);
     const chartOption = useMemo(() => {
-      if (!selectedPlayers.length) {
+      if (!player) {
         return null;
       }
       return mode === "season"
-        ? buildSeasonRadarOption({ players: selectedPlayers, statKeys: seasonStatKeys })
+        ? buildSeasonRadarOption({ players: [player], statKeys: seasonStatKeys, colorIndex: paletteIndex })
         : buildWeeklyChartOption({
-          players: selectedPlayers,
+          players: [player],
+          axisPlayers: selectedPlayers,
           statKey: weeklyStatKey,
           weeks,
           thresholds,
-          showDataLabels,
+          colorIndex: paletteIndex,
         });
-    }, [mode, seasonStatKeys, selectedPlayers, showDataLabels, thresholds, weeklyStatKey, weeks]);
+    }, [mode, paletteIndex, player, seasonStatKeys, selectedPlayers, thresholds, weeklyStatKey, weeks]);
 
     useEffect(() => {
       setHasEcharts(Boolean(window.echarts));
@@ -590,6 +577,25 @@ export function createDataHubComparisonModal(React) {
       chartInstanceRef.current = null;
     }, []);
 
+    return h(
+      "div",
+      {
+        className: "dh-compare-player-chart",
+        style: { "--compare-player-color": getPlayerAccentColor(player, paletteIndex) },
+        "data-player-chart": player.id,
+      },
+      hasEcharts && chartOption
+        ? h("div", {
+          className: "dh-compare-chart",
+          ref: chartRef,
+          role: "img",
+          "aria-label": `${getPlayerName(player)} ${mode === "season" ? "season" : "weekly"} comparison chart`,
+        })
+        : h(ChartFallback, { mode, selectedPlayers: [player], weeklyStatKey, seasonStatKeys }),
+    );
+  }
+
+  function ComparisonChart({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds }) {
     if (!selectedPlayers.length) {
       return h(
         "section",
@@ -611,11 +617,25 @@ export function createDataHubComparisonModal(React) {
     return h(
       "section",
       { className: "dh-compare-chart-shell" },
+      // Shared chart heading:
+      // one title and one legend describe both dedicated player charts, which
+      // avoids repeating vertical chrome in the stacked mobile layout.
       h(ChartHeader, { mode, weeklyStatKey, selectedPlayers }),
-      hasEcharts && chartOption
-        ? h("div", { className: "dh-compare-chart", ref: chartRef, "aria-label": "Player comparison chart" })
-        : h(ChartFallback, { mode, selectedPlayers, weeklyStatKey, seasonStatKeys }),
-      h(ChartFooter, { mode, showDataLabels, onToggleDataLabels }),
+      h(
+        "div",
+        { className: cx("dh-compare-chart-grid", selectedPlayers.length === 1 && "dh-compare-chart-grid--single") },
+        selectedPlayers.map((player, playerIndex) => h(PlayerChart, {
+          key: player.id,
+          mode,
+          player,
+          playerIndex,
+          selectedPlayers,
+          weeklyStatKey,
+          seasonStatKeys,
+          weeks,
+          thresholds,
+        })),
+      ),
     );
   }
 
@@ -632,7 +652,6 @@ export function createDataHubComparisonModal(React) {
     const [isStatOpen, setIsStatOpen] = useState(false);
     const [positionFilter, setPositionFilter] = useState("all");
     const [activeOptionIndex, setActiveOptionIndex] = useState(0);
-    const [showDataLabels, setShowDataLabels] = useState(true);
     const searchInputRef = useRef(null);
     const searchShellRef = useRef(null);
     const statShellRef = useRef(null);
@@ -658,7 +677,6 @@ export function createDataHubComparisonModal(React) {
       setIsStatOpen(false);
       setPositionFilter("all");
       setActiveOptionIndex(0);
-      setShowDataLabels(true);
     }, [payload?.revision]);
 
     useEffect(() => {
@@ -932,7 +950,7 @@ export function createDataHubComparisonModal(React) {
           selectedPlayers.map((player, index) => h(SummaryCard, {
             key: player.id,
             player,
-            playerIndex: index,
+            playerIndex: getPlayerPaletteIndex(selectedPlayers, index),
             statKey: summaryStatKey,
           })),
         ),
@@ -946,8 +964,6 @@ export function createDataHubComparisonModal(React) {
             seasonStatKeys,
             weeks,
             thresholds,
-            showDataLabels,
-            onToggleDataLabels: setShowDataLabels,
           }),
         ),
       ),

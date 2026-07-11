@@ -372,12 +372,16 @@ function buildSkipLogoPoints({ player, statKey, weeks, axis, seriesPoints }) {
     .filter(Boolean);
 }
 
-export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, isCompact = null, showDataLabels = true }) {
+export function buildWeeklyChartOption({ players, axisPlayers = players, statKey, weeks, thresholds, isCompact = null, colorIndex = null }) {
   const safeWeeks = Array.isArray(weeks) && weeks.length
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
   const isMobile = typeof isCompact === "boolean" ? isCompact : isMobileComparisonChart();
-  const axis = getAxisConfig(players, statKey, thresholds);
+  // Per-player weekly chart scale:
+  // derive both dedicated charts from the full selected-player set so the
+  // visual scale remains directly comparable even though each chart renders
+  // only one player's line.
+  const axis = getAxisConfig(axisPlayers, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
   const symbolSize = isMobile ? 17 : 19;
   const areaOpacity = isMobile ? 0.025 : 0.035;
@@ -442,7 +446,9 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
       // use secondary position gradients only when this player follows another
       // selected player at the same position. Mixed-position comparisons keep
       // every position on its primary gradient.
-      const paletteIndex = getSamePositionPaletteIndex(players, player, index);
+      const paletteIndex = Number.isInteger(colorIndex)
+        ? colorIndex
+        : getSamePositionPaletteIndex(players, player, index);
       const accent = getPlayerAccentColor(player, paletteIndex);
       const gradient = buildThresholdGradient(player, paletteIndex, statKey, thresholds, axis);
       const skipLogoSymbolSize = symbolSize;
@@ -491,39 +497,41 @@ export function buildWeeklyChartOption({ players, statKey, weeks, thresholds, is
         axis,
         seriesPoints: dataPoints,
       });
-      const labelPoints = showDataLabels
-        ? dataPoints
-          .map((point, weekIndex) => {
-            if (point.rawValue === null || point.skipped) {
-              return null;
-            }
-            return {
-              name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
-              value: [`wk${safeWeeks[weekIndex]}`, point.value],
-              rawValue: point.rawValue,
-              rank: point.rank,
-              pos: point.pos,
-              pointColor: point.pointColor,
-              isLabelOnly: true,
-              itemStyle: { color: "rgba(150,160,176,0.01)" },
-              label: {
-                show: true,
-                position: "top",
-                distance: isMobile ? 1 : 1,
-                offset: [0, 0],
-                backgroundColor: "rgba(5,9,18,0.92)",
-                borderColor: hexToRgba(point.pointColor, 0.64),
-                borderWidth: 1,
-                borderRadius: 6,
-                padding: labelPadding,
-                shadowColor: hexToRgba(point.pointColor, 0.38),
-                shadowBlur: 7,
-                shadowOffsetY: 1,
-              },
-            };
-          })
-          .filter(Boolean)
-        : [];
+      // Weekly data labels:
+      // labels are now a permanent part of each player's dedicated chart;
+      // the previous modal toggle was removed to keep the compact layout
+      // predictable and the values immediately readable.
+      const labelPoints = dataPoints
+        .map((point, weekIndex) => {
+          if (point.rawValue === null || point.skipped) {
+            return null;
+          }
+          return {
+            name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
+            value: [`wk${safeWeeks[weekIndex]}`, point.value],
+            rawValue: point.rawValue,
+            rank: point.rank,
+            pos: point.pos,
+            pointColor: point.pointColor,
+            isLabelOnly: true,
+            itemStyle: { color: "rgba(150,160,176,0.01)" },
+            label: {
+              show: true,
+              position: "top",
+              distance: 1,
+              offset: [0, 0],
+              backgroundColor: "rgba(5,9,18,0.92)",
+              borderColor: hexToRgba(point.pointColor, 0.64),
+              borderWidth: 1,
+              borderRadius: 6,
+              padding: labelPadding,
+              shadowColor: hexToRgba(point.pointColor, 0.38),
+              shadowBlur: 7,
+              shadowOffsetY: 1,
+            },
+          };
+        })
+        .filter(Boolean);
       const lineSeries = {
         name: getPlayerName(player),
         type: "line",
@@ -714,13 +722,16 @@ function buildRadarTooltip(params, statKeys) {
   `;
 }
 
-export function buildSeasonRadarOption({ players, statKeys }) {
+export function buildSeasonRadarOption({ players, statKeys, colorIndex = null }) {
   const isMobile = isMobileComparisonChart();
   return {
     animationDuration: 620,
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
-    color: players.map((player, index) => getPlayerAccentColor(player, index)),
+    color: players.map((player, index) => getPlayerAccentColor(
+      player,
+      Number.isInteger(colorIndex) ? colorIndex : index,
+    )),
     tooltip: {
       trigger: "item",
       confine: true,
@@ -769,7 +780,10 @@ export function buildSeasonRadarOption({ players, statKeys }) {
       areaStyle: { opacity: 0.13 },
       emphasis: { focus: "self" },
       data: players.map((player, index) => {
-        const color = getPlayerAccentColor(player, index);
+        const color = getPlayerAccentColor(
+          player,
+          Number.isInteger(colorIndex) ? colorIndex : index,
+        );
         return {
           name: getPlayerName(player),
           value: statKeys.map((statKey) => getRadarRankValue(player?.seasonPosRanks?.[statKey], player.pos)),

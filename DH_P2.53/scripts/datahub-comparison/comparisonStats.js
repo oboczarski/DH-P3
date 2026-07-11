@@ -2,7 +2,10 @@
 // this module is loaded only with the lazy React comparison island. It keeps
 // stat labels, threshold semantics, player colors, and radar bundles out of
 // the main DataHub page startup path.
-export const MAX_COMPARISON_PLAYERS = 3;
+// Comparison selection limit:
+// keep the modal intentionally focused on a direct head-to-head so each
+// player can own a dedicated chart at every responsive breakpoint.
+export const MAX_COMPARISON_PLAYERS = 2;
 
 export const COMPARISON_POSITION_TONES = Object.freeze({
   QB: "#ff7a8f",

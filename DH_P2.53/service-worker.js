@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis responsive view polish:
-// bump the cache so browsers pick up the updated Research CSS/JS and the
-// chart-specific asset query strings without requiring a manual hard refresh.
-const CACHE_NAME = 'DH3.03E';
+// DataHub head-to-head comparison chart refresh:
+// bump the cache so browsers pick up the updated lazy comparison component,
+// chart options, and scoped responsive styles on the next normal refresh.
+const CACHE_NAME = 'DH3.03F';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
