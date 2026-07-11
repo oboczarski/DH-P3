@@ -7,6 +7,7 @@ import {
   getPlayerName,
   getSeasonStatKeys,
   getStatLabel,
+  getWeeklyComparisonResults,
   getWeeklyStatOptions,
   normalizePlayerSearchText,
   toFiniteNumber,
@@ -191,6 +192,32 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
+  function WeeklyWinsIcon({ className }) {
+    return h(
+      "svg",
+      {
+        className,
+        viewBox: "0 0 20 20",
+        fill: "none",
+        "aria-hidden": "true",
+        focusable: "false",
+      },
+      h("path", {
+        d: "M6 3.5h8v3.2c0 3-1.55 5.05-4 5.8-2.45-.75-4-2.8-4-5.8V3.5Z",
+        stroke: "currentColor",
+        strokeWidth: "1.55",
+        strokeLinejoin: "round",
+      }),
+      h("path", {
+        d: "M6 5H3.8v1.2c0 2.1 1.1 3.35 3.25 3.7M14 5h2.2v1.2c0 2.1-1.1 3.35-3.25 3.7M10 12.5v2.2M7.2 16.5h5.6",
+        stroke: "currentColor",
+        strokeWidth: "1.55",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+      }),
+    );
+  }
+
   function EmptyCompareIcon({ className }) {
     return h(
       "svg",
@@ -312,7 +339,7 @@ export function createDataHubComparisonModal(React) {
         "span",
         { className: "dh-compare-search-option__stats" },
         h("span", { className: "dh-compare-search-option__fpts" }, formatComparisonValue("fpts", player.fpts, { compact: true })),
-        h("span", { className: "dh-compare-search-option__status" }, selected ? "Selected" : (disabled ? "Max 3" : "Add")),
+        h("span", { className: "dh-compare-search-option__status" }, selected ? "Selected" : (disabled ? `Max ${MAX_COMPARISON_PLAYERS}` : "Add")),
       ),
     );
   }
@@ -452,33 +479,41 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function ChartHeader({ mode, weeklyStatKey }) {
-    return h(
-      "div",
-      { className: "dh-compare-chart-header" },
-      h(
-        "div",
-        { className: "dh-compare-chart-stat" },
-        h("strong", null, mode === "season" ? "Season Multi-Stat" : getStatLabel(weeklyStatKey)),
-      ),
-    );
-  }
-
-  function PlayerChartHeader({ player }) {
+  function PlayerChartHeader({ mode, player, weeklyStatKey, weeklyResult }) {
+    const winsLabel = weeklyResult
+      ? `${weeklyResult.wins} weekly ${weeklyResult.wins === 1 ? "win" : "wins"} across ${weeklyResult.compared} comparable weeks`
+      : "Weekly comparison unavailable";
     return h(
       "div",
       { className: "dh-compare-player-chart__header" },
-      h("span", { className: "dh-compare-player-chart__dot", "aria-hidden": "true" }),
-      player.teamLogoSrc
-        ? h("img", {
-          className: "dh-compare-player-chart__logo",
-          src: player.teamLogoSrc,
-          alt: "",
-          loading: "eager",
-        })
-        : h("span", { className: "dh-compare-player-chart__logo-fallback" }, player.team || "FA"),
-      h("strong", { className: "dh-compare-player-chart__name" }, getPlayerName(player)),
-      h("span", { className: "dh-compare-player-chart__meta" }, `${player.pos || "FA"} · ${player.team || "FA"}`),
+      h("span", { className: "dh-compare-player-chart__stat" }, mode === "season" ? "Season" : getStatLabel(weeklyStatKey)),
+      h(
+        "span",
+        { className: "dh-compare-player-chart__identity" },
+        h("span", { className: "dh-compare-player-chart__dot", "aria-hidden": "true" }),
+        player.teamLogoSrc
+          ? h("img", {
+            className: "dh-compare-player-chart__logo",
+            src: player.teamLogoSrc,
+            alt: "",
+            loading: "eager",
+          })
+          : h("span", { className: "dh-compare-player-chart__logo-fallback" }, player.team || "FA"),
+        h("strong", { className: "dh-compare-player-chart__name" }, getPlayerName(player)),
+      ),
+      mode === "weekly" && weeklyResult
+        ? h(
+          "span",
+          {
+            className: cx("dh-compare-weekly-wins", `is-${weeklyResult.status}`),
+            title: `${getPlayerName(player)}: ${winsLabel}`,
+            "aria-label": `${getPlayerName(player)}: ${winsLabel}`,
+          },
+          h(WeeklyWinsIcon, { className: "dh-compare-weekly-wins__icon" }),
+          h("strong", null, weeklyResult.wins),
+          h("span", null, "wins"),
+        )
+        : h("span", { className: "dh-compare-player-chart__meta" }, `${player.pos || "FA"} · ${player.team || "FA"}`),
     );
   }
 
@@ -511,7 +546,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis }) {
+  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis, weeklyResult }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -587,7 +622,7 @@ export function createDataHubComparisonModal(React) {
         style: { "--compare-player-color": getPlayerAccentColor(player, paletteIndex) },
         "data-player-chart": player.id,
       },
-      h(PlayerChartHeader, { player }),
+      h(PlayerChartHeader, { mode, player, weeklyStatKey, weeklyResult }),
       hasEcharts && chartOption
         ? h("div", {
           className: "dh-compare-chart",
@@ -617,6 +652,11 @@ export function createDataHubComparisonModal(React) {
       return () => mediaQuery.removeListener?.(handleChange);
     }, []);
 
+    const weeklyResults = useMemo(
+      () => getWeeklyComparisonResults(selectedPlayers, weeklyStatKey, weeks),
+      [selectedPlayers, weeklyStatKey, weeks],
+    );
+
     if (!selectedPlayers.length) {
       return h(
         "section",
@@ -638,10 +678,6 @@ export function createDataHubComparisonModal(React) {
     return h(
       "section",
       { className: "dh-compare-chart-shell" },
-      // Shared stat heading:
-      // the metric remains common to both charts while player identity now
-      // sits directly above the chart it describes.
-      h(ChartHeader, { mode, weeklyStatKey }),
       h(
         "div",
         { className: cx("dh-compare-chart-grid", selectedPlayers.length === 1 && "dh-compare-chart-grid--single") },
@@ -658,6 +694,7 @@ export function createDataHubComparisonModal(React) {
           showXAxis: selectedPlayers.length === 1
             || !isStackedLayout
             || playerIndex === selectedPlayers.length - 1,
+          weeklyResult: weeklyResults.get(player.id),
         })),
       ),
     );
@@ -924,6 +961,9 @@ export function createDataHubComparisonModal(React) {
                     setIsSearchOpen(true);
                   },
                   onKeyDown: handleInputKeydown,
+                }),
+                h(ChevronDownIcon, {
+                  className: cx("dh-compare-search__chevron", isSearchOpen && "is-open"),
                 }),
                 isSearchOpen
                   ? h(

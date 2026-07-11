@@ -282,6 +282,48 @@ export function isLowerBetterForPosition(pos, statKey) {
   return keys.includes(statKey);
 }
 
+export function getWeeklyComparisonResults(players, statKey, weeks) {
+  // Weekly head-to-head score:
+  // count only weeks where both selected players recorded a valid value for
+  // the active stat. Skipped/non-played weeks and ties do not award a win.
+  if (!Array.isArray(players) || players.length !== 2) {
+    return new Map();
+  }
+  const safeWeeks = Array.isArray(weeks) && weeks.length
+    ? weeks
+    : Array.from({ length: 18 }, (_, index) => index + 1);
+  const lowerBetter = players.every((player) => isLowerBetterForPosition(player.pos, statKey));
+  const results = players.map((player) => ({ playerId: player.id, wins: 0, compared: 0 }));
+
+  safeWeeks.forEach((week) => {
+    const values = players.map((player) => {
+      const entry = (player.weeklySeries || []).find((candidate) => Number(candidate?.week) === Number(week));
+      if (!entry || entry.isSkipped || entry.skipped || !(entry.isPlayed || entry.played)) {
+        return null;
+      }
+      return toFiniteNumber(entry?.stats?.[statKey]);
+    });
+    if (values.some((value) => value === null)) {
+      return;
+    }
+    results.forEach((result) => {
+      result.compared += 1;
+    });
+    if (values[0] === values[1]) {
+      return;
+    }
+    const winnerIndex = lowerBetter
+      ? (values[0] < values[1] ? 0 : 1)
+      : (values[0] > values[1] ? 0 : 1);
+    results[winnerIndex].wins += 1;
+  });
+
+  const [first, second] = results;
+  first.status = first.wins === second.wins ? "tied" : (first.wins > second.wins ? "leading" : "trailing");
+  second.status = first.wins === second.wins ? "tied" : (second.wins > first.wins ? "leading" : "trailing");
+  return new Map(results.map((result) => [result.playerId, result]));
+}
+
 export function getThresholdConfig(thresholds, pos, statKey) {
   return thresholds?.[String(pos || "").toUpperCase()]?.[statKey] || null;
 }

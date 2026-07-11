@@ -499,6 +499,14 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         axis,
         seriesPoints: dataPoints,
       });
+      const playedLogoPoints = player.teamLogoSrc
+        ? dataPoints
+          .filter((point) => point.rawValue !== null && !point.skipped)
+          .map((point) => ({
+            value: [`wk${point.week}`, point.value],
+            rawValue: point.rawValue,
+          }))
+        : [];
       // Weekly data labels:
       // labels are now a permanent part of each player's dedicated chart;
       // the previous modal toggle was removed to keep the compact layout
@@ -522,14 +530,40 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
               position: "top",
               distance: 1,
               offset: [0, 0],
-              backgroundColor: "rgba(5,9,18,0.92)",
-              borderColor: hexToRgba(point.pointColor, 0.64),
+              backgroundColor: {
+                type: "linear",
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: "rgba(39, 50, 73, 0.90)" },
+                  { offset: 1, color: "rgba(28, 35, 50, 0.92)" },
+                ],
+                global: false,
+              },
+              borderColor: "rgba(255, 255, 255, 0.05)",
               borderWidth: 1,
               borderRadius: 6,
               padding: labelPadding,
-              shadowColor: hexToRgba(point.pointColor, 0.38),
-              shadowBlur: 7,
-              shadowOffsetY: 1,
+              shadowColor: "rgba(0, 0, 0, 0.16)",
+              shadowBlur: 16,
+              shadowOffsetY: 8,
+              rich: {
+                value: {
+                  color: point.pointColor,
+                  fontSize: isMobile ? 7 : 10,
+                  fontWeight: 950,
+                },
+                rank: {
+                  color: "rgba(226,236,250,.9)",
+                  fontSize: isMobile ? 5.5 : 8,
+                  fontWeight: 850,
+                  lineHeight: isMobile ? 8 : 12,
+                  padding: isMobile ? [0, 0, 0, 0] : [1, 0, 0, 1],
+                  verticalAlign: "middle",
+                },
+              },
             },
           };
         })
@@ -541,7 +575,10 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         connectNulls: true,
         symbol: player.teamLogoSrc ? `image://${player.teamLogoSrc}` : "circle",
         symbolSize: player.teamLogoSrc ? symbolSize : (isMobile ? 5 : 7),
-        showSymbol: true,
+        // Played-week team logos are rendered in a dedicated scatter layer
+        // below so compact chart clipping cannot make the upper chart lose
+        // its point markers. Circle fallbacks remain owned by this line.
+        showSymbol: !player.teamLogoSrc,
         zlevel: 0,
         z: 6 + index,
         lineStyle: {
@@ -595,6 +632,26 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         data: dataPoints,
       };
       const series = [lineSeries];
+      if (playedLogoPoints.length) {
+        series.push({
+          name: `${getPlayerName(player)} played week logos`,
+          type: "scatter",
+          coordinateSystem: "cartesian2d",
+          data: playedLogoPoints,
+          symbol: `image://${player.teamLogoSrc}`,
+          symbolSize,
+          silent: true,
+          clip: false,
+          zlevel: 6,
+          z: 82 + index,
+          itemStyle: {
+            opacity: 1,
+          },
+          emphasis: {
+            disabled: true,
+          },
+        });
+      }
       if (skipLogoPoints.length) {
         // Skipped-week markers:
         // use the same direct image symbol path as normal data points. Avoid a

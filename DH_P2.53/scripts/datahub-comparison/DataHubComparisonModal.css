@@ -376,7 +376,7 @@ body[data-page="datahub"] .dh-compare-stat-option.is-active {
 }
 
 body[data-page="datahub"] .dh-compare-search__input {
-  padding: 0 14px 0 38px;
+  padding: 0 40px 0 38px;
   font: inherit;
   font-size: 0.88rem;
   outline: 0;
@@ -392,6 +392,24 @@ body[data-page="datahub"] .dh-compare-search__icon {
   color: rgba(142, 228, 255, 0.72);
   pointer-events: none;
   transform: translateY(-50%);
+}
+
+body[data-page="datahub"] .dh-compare-search__chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  color: rgba(142, 228, 255, 0.68);
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+body[data-page="datahub"] .dh-compare-search__chevron.is-open {
+  color: rgba(196, 244, 255, 0.96);
+  transform: translateY(-50%) rotate(180deg);
 }
 
 body[data-page="datahub"] .dh-compare-search__input::placeholder {
@@ -767,39 +785,8 @@ body[data-page="datahub"] .dh-compare-empty {
 
 body[data-page="datahub"] .dh-compare-chart-shell {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   overflow: hidden;
-}
-
-body[data-page="datahub"] .dh-compare-chart-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 14px;
-  min-width: 0;
-  padding: 13px 16px 6px;
-}
-
-body[data-page="datahub"] .dh-compare-chart-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: max-content;
-}
-
-body[data-page="datahub"] .dh-compare-chart-stat span {
-  color: rgba(183, 204, 232, 0.62);
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-body[data-page="datahub"] .dh-compare-chart-stat strong {
-  color: rgba(248, 252, 255, 0.96);
-  font-size: 1rem;
-  font-weight: 950;
-  letter-spacing: 0;
 }
 
 body[data-page="datahub"] .dh-compare-chart {
@@ -855,14 +842,31 @@ body[data-page="datahub"] .dh-compare-player-chart__header {
   position: relative;
   z-index: 3;
   display: grid;
-  grid-template-columns: auto auto minmax(0, auto) auto;
+  grid-template-columns: minmax(44px, 1fr) minmax(0, auto) minmax(44px, 1fr);
   align-items: center;
-  justify-content: start;
   gap: 6px;
   min-width: 0;
   min-height: 30px;
   padding: 4px 10px 1px;
   background: none;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__stat {
+  justify-self: start;
+  color: rgba(220, 233, 250, 0.7);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-player-chart__identity {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 5px;
+  min-width: 0;
 }
 
 body[data-page="datahub"] .dh-compare-player-chart__dot {
@@ -901,11 +905,68 @@ body[data-page="datahub"] .dh-compare-player-chart__name {
 }
 
 body[data-page="datahub"] .dh-compare-player-chart__meta {
+  justify-self: start;
   color: var(--compare-player-color);
   font-size: 0.6rem;
   font-weight: 850;
   letter-spacing: 0.03em;
   white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 3px;
+  min-height: 22px;
+  padding: 2px 7px 2px 5px;
+  border: 1px solid rgba(164, 207, 255, 0.13);
+  border-radius: 999px;
+  color: rgba(205, 219, 239, 0.68);
+  background: linear-gradient(180deg, rgba(45, 56, 77, 0.72), rgba(25, 32, 46, 0.78));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins__icon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins strong {
+  color: inherit;
+  font-size: 0.7rem;
+  font-weight: 950;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins span {
+  color: inherit;
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins.is-leading {
+  border-color: rgba(91, 255, 198, 0.34);
+  color: rgba(126, 255, 210, 0.98);
+  background:
+    linear-gradient(180deg, rgba(38, 105, 94, 0.58), rgba(14, 45, 47, 0.72)),
+    rgba(15, 33, 39, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(209, 255, 240, 0.13),
+    0 0 15px rgba(91, 255, 198, 0.12);
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins.is-trailing {
+  color: rgba(183, 196, 216, 0.56);
+  opacity: 0.82;
+}
+
+body[data-page="datahub"] .dh-compare-weekly-wins.is-tied {
+  border-color: rgba(255, 210, 117, 0.25);
+  color: rgba(255, 222, 150, 0.86);
 }
 
 body[data-page="datahub"] .dh-compare-empty {
@@ -1171,6 +1232,12 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     height: 14px;
   }
 
+  body[data-page="datahub"] .dh-compare-search__chevron {
+    right: 11px;
+    width: 14px;
+    height: 14px;
+  }
+
   body[data-page="datahub"] .dh-compare-player-chip {
     max-width: 174px;
     min-height: 29px;
@@ -1278,20 +1345,6 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     max-height: none;
   }
 
-  body[data-page="datahub"] .dh-compare-chart-header {
-    align-items: flex-start;
-    gap: 0px;
-    padding: 5px 6px 0px;
-  }
-
-  body[data-page="datahub"] .dh-compare-chart-stat {
-    gap: 0px;
-  }
-
-  body[data-page="datahub"] .dh-compare-chart-stat strong {
-    font-size: 0.9rem;
-  }
-
   /* Mobile head-to-head chart layout:
      split the available chart body evenly between two dedicated player
      charts, remove the inter-panel gap, and let the lower chart alone own the
@@ -1319,7 +1372,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-player-chart__header {
-    grid-template-columns: auto auto minmax(0, auto) auto;
+    grid-template-columns: minmax(38px, 1fr) minmax(0, auto) minmax(38px, 1fr);
     gap: 4px;
     min-height: 23px;
     padding: 2px 7px 0;
@@ -1340,8 +1393,31 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     font-size: 0.68rem;
   }
 
+  body[data-page="datahub"] .dh-compare-player-chart__stat {
+    font-size: 0.58rem;
+  }
+
   body[data-page="datahub"] .dh-compare-player-chart__meta {
     font-size: 0.52rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-weekly-wins {
+    gap: 2px;
+    min-height: 19px;
+    padding: 1px 5px 1px 4px;
+  }
+
+  body[data-page="datahub"] .dh-compare-weekly-wins__icon {
+    width: 11px;
+    height: 11px;
+  }
+
+  body[data-page="datahub"] .dh-compare-weekly-wins strong {
+    font-size: 0.62rem;
+  }
+
+  body[data-page="datahub"] .dh-compare-weekly-wins span {
+    font-size: 0.46rem;
   }
 }
 
@@ -1370,7 +1446,4 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     height: 22px;
   }
 
-  body[data-page="datahub"] .dh-compare-chart-header {
-    padding-top: 2px;
-  }
 }
