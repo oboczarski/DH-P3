@@ -282,10 +282,10 @@ export function isLowerBetterForPosition(pos, statKey) {
   return keys.includes(statKey);
 }
 
-export function getWeeklyComparisonResults(players, statKey, weeks) {
+export function getWeeklyComparisonEdges(players, statKey, weeks) {
   // Weekly head-to-head score:
   // count only weeks where both selected players recorded a valid value for
-  // the active stat. Skipped/non-played weeks and ties do not award a win.
+  // the active stat. Skipped/non-played weeks and ties do not add a better week.
   if (!Array.isArray(players) || players.length !== 2) {
     return new Map();
   }
@@ -293,7 +293,7 @@ export function getWeeklyComparisonResults(players, statKey, weeks) {
     ? weeks
     : Array.from({ length: 18 }, (_, index) => index + 1);
   const lowerBetter = players.every((player) => isLowerBetterForPosition(player.pos, statKey));
-  const results = players.map((player) => ({ playerId: player.id, wins: 0, compared: 0 }));
+  const results = players.map((player) => ({ playerId: player.id, betterWeeks: 0, compared: 0 }));
 
   safeWeeks.forEach((week) => {
     const values = players.map((player) => {
@@ -312,15 +312,15 @@ export function getWeeklyComparisonResults(players, statKey, weeks) {
     if (values[0] === values[1]) {
       return;
     }
-    const winnerIndex = lowerBetter
+    const betterValueIndex = lowerBetter
       ? (values[0] < values[1] ? 0 : 1)
       : (values[0] > values[1] ? 0 : 1);
-    results[winnerIndex].wins += 1;
+    results[betterValueIndex].betterWeeks += 1;
   });
 
   const [first, second] = results;
-  first.status = first.wins === second.wins ? "tied" : (first.wins > second.wins ? "leading" : "trailing");
-  second.status = first.wins === second.wins ? "tied" : (second.wins > first.wins ? "leading" : "trailing");
+  first.status = first.betterWeeks === second.betterWeeks ? "even" : (first.betterWeeks > second.betterWeeks ? "ahead" : "behind");
+  second.status = first.betterWeeks === second.betterWeeks ? "even" : (second.betterWeeks > first.betterWeeks ? "ahead" : "behind");
   return new Map(results.map((result) => [result.playerId, result]));
 }
 

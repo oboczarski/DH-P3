@@ -913,7 +913,7 @@ body[data-page="datahub"] .dh-compare-player-chart__meta {
   white-space: nowrap;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins {
+body[data-page="datahub"] .dh-compare-weekly-edge {
   display: inline-flex;
   align-items: center;
   justify-self: start;
@@ -928,19 +928,19 @@ body[data-page="datahub"] .dh-compare-weekly-wins {
   white-space: nowrap;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins__icon {
+body[data-page="datahub"] .dh-compare-weekly-edge__icon {
   width: 13px;
   height: 13px;
   flex: 0 0 auto;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins strong {
+body[data-page="datahub"] .dh-compare-weekly-edge strong {
   color: inherit;
   font-size: 0.7rem;
   font-weight: 950;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins span {
+body[data-page="datahub"] .dh-compare-weekly-edge span {
   color: inherit;
   font-size: 0.52rem;
   font-weight: 900;
@@ -948,7 +948,7 @@ body[data-page="datahub"] .dh-compare-weekly-wins span {
   text-transform: uppercase;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins.is-leading {
+body[data-page="datahub"] .dh-compare-weekly-edge.is-ahead {
   border-color: rgba(91, 255, 198, 0.34);
   color: rgba(126, 255, 210, 0.98);
   background:
@@ -959,12 +959,12 @@ body[data-page="datahub"] .dh-compare-weekly-wins.is-leading {
     0 0 15px rgba(91, 255, 198, 0.12);
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins.is-trailing {
+body[data-page="datahub"] .dh-compare-weekly-edge.is-behind {
   color: rgba(183, 196, 216, 0.56);
   opacity: 0.82;
 }
 
-body[data-page="datahub"] .dh-compare-weekly-wins.is-tied {
+body[data-page="datahub"] .dh-compare-weekly-edge.is-even {
   border-color: rgba(255, 210, 117, 0.25);
   color: rgba(255, 222, 150, 0.86);
 }
@@ -1401,22 +1401,22 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     font-size: 0.52rem;
   }
 
-  body[data-page="datahub"] .dh-compare-weekly-wins {
+  body[data-page="datahub"] .dh-compare-weekly-edge {
     gap: 2px;
     min-height: 19px;
     padding: 1px 5px 1px 4px;
   }
 
-  body[data-page="datahub"] .dh-compare-weekly-wins__icon {
+  body[data-page="datahub"] .dh-compare-weekly-edge__icon {
     width: 11px;
     height: 11px;
   }
 
-  body[data-page="datahub"] .dh-compare-weekly-wins strong {
+  body[data-page="datahub"] .dh-compare-weekly-edge strong {
     font-size: 0.62rem;
   }
 
-  body[data-page="datahub"] .dh-compare-weekly-wins span {
+  body[data-page="datahub"] .dh-compare-weekly-edge span {
     font-size: 0.46rem;
   }
 }

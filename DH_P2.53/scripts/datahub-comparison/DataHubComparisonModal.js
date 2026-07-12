@@ -7,7 +7,7 @@ import {
   getPlayerName,
   getSeasonStatKeys,
   getStatLabel,
-  getWeeklyComparisonResults,
+  getWeeklyComparisonEdges,
   getWeeklyStatOptions,
   normalizePlayerSearchText,
   toFiniteNumber,
@@ -192,7 +192,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function WeeklyWinsIcon({ className }) {
+  function WeeklyEdgeIcon({ className }) {
     return h(
       "svg",
       {
@@ -203,13 +203,14 @@ export function createDataHubComparisonModal(React) {
         focusable: "false",
       },
       h("path", {
-        d: "M6 3.5h8v3.2c0 3-1.55 5.05-4 5.8-2.45-.75-4-2.8-4-5.8V3.5Z",
+        d: "M3 13.8 7.2 9.6l3 2.8L16.8 5.8",
         stroke: "currentColor",
-        strokeWidth: "1.55",
+        strokeWidth: "1.7",
+        strokeLinecap: "round",
         strokeLinejoin: "round",
       }),
       h("path", {
-        d: "M6 5H3.8v1.2c0 2.1 1.1 3.35 3.25 3.7M14 5h2.2v1.2c0 2.1-1.1 3.35-3.25 3.7M10 12.5v2.2M7.2 16.5h5.6",
+        d: "M12.8 5.8h4v4M3 16.5h14",
         stroke: "currentColor",
         strokeWidth: "1.55",
         strokeLinecap: "round",
@@ -479,9 +480,9 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PlayerChartHeader({ mode, player, weeklyStatKey, weeklyResult }) {
-    const winsLabel = weeklyResult
-      ? `${weeklyResult.wins} weekly ${weeklyResult.wins === 1 ? "win" : "wins"} across ${weeklyResult.compared} comparable weeks`
+  function PlayerChartHeader({ mode, player, weeklyStatKey, weeklyEdge }) {
+    const edgeLabel = weeklyEdge
+      ? `${weeklyEdge.betterWeeks} ${weeklyEdge.betterWeeks === 1 ? "week" : "weeks"} with the better ${getStatLabel(weeklyStatKey)} value across ${weeklyEdge.compared} comparable weeks`
       : "Weekly comparison unavailable";
     return h(
       "div",
@@ -501,17 +502,17 @@ export function createDataHubComparisonModal(React) {
           : h("span", { className: "dh-compare-player-chart__logo-fallback" }, player.team || "FA"),
         h("strong", { className: "dh-compare-player-chart__name" }, getPlayerName(player)),
       ),
-      mode === "weekly" && weeklyResult
+      mode === "weekly" && weeklyEdge
         ? h(
           "span",
           {
-            className: cx("dh-compare-weekly-wins", `is-${weeklyResult.status}`),
-            title: `${getPlayerName(player)}: ${winsLabel}`,
-            "aria-label": `${getPlayerName(player)}: ${winsLabel}`,
+            className: cx("dh-compare-weekly-edge", `is-${weeklyEdge.status}`),
+            title: `${getPlayerName(player)}: ${edgeLabel}`,
+            "aria-label": `${getPlayerName(player)}: ${edgeLabel}`,
           },
-          h(WeeklyWinsIcon, { className: "dh-compare-weekly-wins__icon" }),
-          h("strong", null, weeklyResult.wins),
-          h("span", null, "wins"),
+          h(WeeklyEdgeIcon, { className: "dh-compare-weekly-edge__icon" }),
+          h("strong", null, weeklyEdge.betterWeeks),
+          h("span", null, "better wks"),
         )
         : h("span", { className: "dh-compare-player-chart__meta" }, `${player.pos || "FA"} · ${player.team || "FA"}`),
     );
@@ -546,7 +547,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis, weeklyResult }) {
+  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis, weeklyEdge }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -622,7 +623,7 @@ export function createDataHubComparisonModal(React) {
         style: { "--compare-player-color": getPlayerAccentColor(player, paletteIndex) },
         "data-player-chart": player.id,
       },
-      h(PlayerChartHeader, { mode, player, weeklyStatKey, weeklyResult }),
+      h(PlayerChartHeader, { mode, player, weeklyStatKey, weeklyEdge }),
       hasEcharts && chartOption
         ? h("div", {
           className: "dh-compare-chart",
@@ -652,8 +653,8 @@ export function createDataHubComparisonModal(React) {
       return () => mediaQuery.removeListener?.(handleChange);
     }, []);
 
-    const weeklyResults = useMemo(
-      () => getWeeklyComparisonResults(selectedPlayers, weeklyStatKey, weeks),
+    const weeklyEdges = useMemo(
+      () => getWeeklyComparisonEdges(selectedPlayers, weeklyStatKey, weeks),
       [selectedPlayers, weeklyStatKey, weeks],
     );
 
@@ -694,7 +695,7 @@ export function createDataHubComparisonModal(React) {
           showXAxis: selectedPlayers.length === 1
             || !isStackedLayout
             || playerIndex === selectedPlayers.length - 1,
-          weeklyResult: weeklyResults.get(player.id),
+          weeklyEdge: weeklyEdges.get(player.id),
         })),
       ),
     );

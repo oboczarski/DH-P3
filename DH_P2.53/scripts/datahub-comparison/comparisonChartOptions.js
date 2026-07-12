@@ -11,6 +11,8 @@ import {
   toFiniteNumber,
 } from "./comparisonStats.js";
 
+const COMPARISON_CHART_FONT_FAMILY = '"Product Sans", "Google Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+
 function clamp(value, min, max) {
   if (value === null) {
     return null;
@@ -48,6 +50,28 @@ function hexToRgba(color, alpha) {
   const green = (value >> 8) & 255;
   const blue = value & 255;
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function getReadableValueLabelColor(color, pos) {
+  // RB/TE threshold palettes include deep violet values that lose contrast
+  // against the opaque navy label pill. Preserve the hue while lifting only
+  // colors whose perceived brightness is too low for compact text.
+  const position = String(pos || "").trim().toUpperCase();
+  const hex = String(color || "").trim();
+  if ((position !== "RB" && position !== "TE") || !/^#[0-9a-f]{6}$/i.test(hex)) {
+    return color;
+  }
+  const value = Number.parseInt(hex.slice(1), 16);
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+  const perceivedBrightness = ((red * 0.2126) + (green * 0.7152) + (blue * 0.0722)) / 255;
+  if (perceivedBrightness >= 0.42) {
+    return color;
+  }
+  const lift = perceivedBrightness < 0.2 ? 0.52 : 0.42;
+  const liftChannel = (channel) => Math.round(channel + ((255 - channel) * lift));
+  return `rgb(${liftChannel(red)}, ${liftChannel(green)}, ${liftChannel(blue)})`;
 }
 
 function getSeriesRawValue(entry, statKey) {
@@ -403,7 +427,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
       padding: [10, 12],
       textStyle: {
         color: "rgba(240, 247, 255, 0.94)",
-        fontFamily: "Product Sans, Google Sans, sans-serif",
+        fontFamily: COMPARISON_CHART_FONT_FAMILY,
       },
       extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
       formatter: (params) => buildWeeklyTooltip(params, statKey),
@@ -420,7 +444,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         show: showXAxis,
         interval: 0,
         color: "rgba(205, 220, 245, 0.58)",
-        fontFamily: "Product Sans, Google Sans, sans-serif",
+        fontFamily: COMPARISON_CHART_FONT_FAMILY,
         fontSize: isMobile ? 9 : 11,
         margin: isMobile ? 7 : 7,
         rotate: isMobile ? 45 : 0,
@@ -437,7 +461,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
       axisTick: { show: false },
       axisLabel: {
         color: "rgba(205, 220, 245, 0.5)",
-        fontFamily: "Product Sans, Google Sans, sans-serif",
+        fontFamily: COMPARISON_CHART_FONT_FAMILY,
         fontSize: isMobile ? 9 : 10,
         margin: isMobile ? 4 : 8,
         formatter: (value) => formatComparisonValue(statKey, value, { compact: true }),
@@ -516,6 +540,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           if (point.rawValue === null || point.skipped) {
             return null;
           }
+          const labelTextColor = getReadableValueLabelColor(point.pointColor, player.pos);
           return {
             name: `${getPlayerName(player)} wk${safeWeeks[weekIndex]} ${getStatLabel(statKey)}`,
             value: [`wk${safeWeeks[weekIndex]}`, point.value],
@@ -523,6 +548,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             rank: point.rank,
             pos: point.pos,
             pointColor: point.pointColor,
+            labelTextColor,
             isLabelOnly: true,
             itemStyle: { color: "rgba(150,160,176,0.01)" },
             label: {
@@ -537,8 +563,8 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
                 x2: 0,
                 y2: 1,
                 colorStops: [
-                  { offset: 0, color: "rgba(39, 50, 73, 0.90)" },
-                  { offset: 1, color: "rgba(28, 35, 50, 0.92)" },
+                  { offset: 0, color: "rgb(39, 50, 73)" },
+                  { offset: 1, color: "rgb(28, 35, 50)" },
                 ],
                 global: false,
               },
@@ -549,14 +575,19 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
               shadowColor: "rgba(0, 0, 0, 0.16)",
               shadowBlur: 16,
               shadowOffsetY: 8,
+              fontFamily: COMPARISON_CHART_FONT_FAMILY,
               rich: {
                 value: {
-                  color: point.pointColor,
+                  color: labelTextColor,
+                  fontFamily: COMPARISON_CHART_FONT_FAMILY,
                   fontSize: isMobile ? 7 : 10,
                   fontWeight: 950,
+                  textShadowColor: "rgba(0, 0, 0, 0.58)",
+                  textShadowBlur: 4,
                 },
                 rank: {
                   color: "rgba(226,236,250,.9)",
+                  fontFamily: COMPARISON_CHART_FONT_FAMILY,
                   fontSize: isMobile ? 5.5 : 8,
                   fontWeight: 850,
                   lineHeight: isMobile ? 8 : 12,
@@ -602,7 +633,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         label: {
           show: false,
           color: "rgba(244,248,255,.9)",
-          fontFamily: "Product Sans, Google Sans, sans-serif",
+          fontFamily: COMPARISON_CHART_FONT_FAMILY,
           fontWeight: 900,
           padding: labelPadding,
           borderRadius: 6,
@@ -615,11 +646,13 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           rich: {
             value: {
               color: "rgba(248,252,255,.96)",
+              fontFamily: COMPARISON_CHART_FONT_FAMILY,
               fontSize: isMobile ? 7 : 10,
               fontWeight: 950,
             },
             rank: {
               color: "rgba(218,232,250,.76)",
+              fontFamily: COMPARISON_CHART_FONT_FAMILY,
               fontSize: isMobile ? 5.5 : 8,
               fontWeight: 850,
             },
@@ -698,7 +731,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           label: {
             show: true,
             color: "rgba(244,248,255,.9)",
-            fontFamily: "Product Sans, Google Sans, sans-serif",
+            fontFamily: COMPARISON_CHART_FONT_FAMILY,
             fontWeight: 900,
             formatter: (params) => {
               if (!params.data || params.data.rawValue === null) return "";
@@ -708,11 +741,13 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             rich: {
               value: {
                 color: "rgba(255,255,255,.99)",
+                fontFamily: COMPARISON_CHART_FONT_FAMILY,
                 fontSize: isMobile ? 7 : 10,
                 fontWeight: 950,
               },
               rank: {
                 color: "rgba(226,236,250,.9)",
+                fontFamily: COMPARISON_CHART_FONT_FAMILY,
                 fontSize: isMobile ? 5.5 : 8,
                 fontWeight: 850,
                 lineHeight: isMobile ? 8 : 12,
@@ -743,7 +778,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
           label: {
             show: true,
             formatter: (params) => params.data?.skipLabel || "",
-            fontFamily: "Product Sans, Google Sans, sans-serif",
+            fontFamily: COMPARISON_CHART_FONT_FAMILY,
             fontSize: isMobile ? 8 : 9,
             fontWeight: 950,
             color: "rgba(232,237,246,.94)",
@@ -800,7 +835,7 @@ export function buildSeasonRadarOption({ players, statKeys, colorIndex = null })
       padding: [10, 12],
       textStyle: {
         color: "rgba(240, 247, 255, 0.94)",
-        fontFamily: "Product Sans, Google Sans, sans-serif",
+        fontFamily: COMPARISON_CHART_FONT_FAMILY,
       },
       extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
       formatter: (params) => buildRadarTooltip(params, statKeys),
@@ -813,7 +848,7 @@ export function buildSeasonRadarOption({ players, statKeys, colorIndex = null })
       splitNumber: 4,
       axisName: {
         color: "rgba(232,242,255,.86)",
-        fontFamily: "Product Sans, Google Sans, sans-serif",
+        fontFamily: COMPARISON_CHART_FONT_FAMILY,
         fontSize: isMobile ? 9 : 11,
         fontWeight: 900,
         formatter: (name) => name,
