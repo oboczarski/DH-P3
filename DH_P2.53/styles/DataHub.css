@@ -6730,9 +6730,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     /* Desktop team dropdowns need to escape the panel bounds so the team menu
        can render above the table shell instead of getting clipped by the card. */
     overflow: visible;
-    background: linear-gradient(180deg, rgb(32 41 53 / 90%), rgb(14 18 23 / 95%)) padding-box, linear-gradient(135deg, #343745 0%, #4e525b 35%, #1f252a 65%, #383e4d 100%) border-box;
+    background: linear-gradient(180deg, rgb(32 41 53 / 90%), rgb(14 18 23 / 95%)) padding-box, linear-gradient(135deg, #343745 0%, #2c2f36 35%, #1f252a 65%, #383e4d 100%) border-box;
     border: 7px solid transparent;
-    box-shadow: rgba(0, 0, 0, 0.58) 0px 3px 7px inset, rgba(255, 255, 255, 0.03) -4px -4px 9px inset, rgb(78 86 101 / 10%) 0px 2px 2px 3px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 6px inset, rgba(255, 255, 255, 0.03) -4px -4px 9px inset, rgb(78 86 101 / 10%) 0px 2px 2px 3px;
     border-radius: 40px;
   }
 
@@ -7551,9 +7551,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     border-bottom: 2px solid rgba(255, 255, 255, 0.04);
     padding: 6px 7px 6px;
     margin-bottom: 0px;
-    background: linear-gradient(180deg, rgb(40 49 63 / 90%), rgb(18 25 37 / 95%)) padding-box, linear-gradient(135deg, #343745 0%, #4e525b 35%, #1f252a 65%, #383e4d 100%) border-box;
+    background: linear-gradient(180deg, rgb(40 49 63 / 90%), rgb(18 25 37 / 95%)) padding-box, linear-gradient(169deg, #2d303d 0%, #33373e 25%, #39404f 50%, #232b31 75%, #383e4d 100%) border-box;
     border: 5px solid transparent;
-    box-shadow: rgba(0, 0, 0, 0.58) 0px 3px 7px inset, rgba(255, 255, 255, 0.03) -4px -4px 9px inset, rgba(0, 0, 0, 0.32) 0px 2px 7px;
+    box-shadow: rgba(0, 0, 0, 0.4) -1px 3px 6px inset, rgba(255, 255, 255, 0.03) -4px -4px 9px inset, rgba(0, 0, 0, 0.2) 0px 2px 4px;
     border-radius: 18px;
   }
 
