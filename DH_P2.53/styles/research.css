@@ -4706,7 +4706,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 }
 
-@media (max-width: 460px) {
+@media (max-width: 560px) {
   body[data-page="research"] .pos-analysis-kicker {
     font-size: 0.55rem;
     letter-spacing: 0.02em;
@@ -5221,7 +5221,7 @@ body[data-page="research"] .pos-analysis-source-note {
     font-size: 0.45rem;
   }
 }
-/* END @media (max-width: 460px) */
+/* END @media (max-width: 560px) */
 
 /* ── Desktop player positions per personnel group ────────────────────────────
    Scoped to min-width: 869px (desktop breakpoint).
