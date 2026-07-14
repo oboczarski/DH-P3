@@ -2812,23 +2812,12 @@ body[data-page="research"] .pos-analysis-supply-grid-axis-label {
   font-weight: 800;
 }
 
-body[data-page="research"] .pos-analysis-supply-grid-axis-label {
-  font-size: 22px;
-  fill: rgba(226, 231, 255, 0.62);
-}
-
 body[data-page="research"] .pos-analysis-supply-chart-title,
 body[data-page="research"] .pos-analysis-supply-grid-title {
   fill: rgb(209 215 230 / 96%);
   font-family: 'Product Sans', 'Google Sans', sans-serif;
   font-size: 13px;
   font-weight: 900;
-}
-
-body[data-page="research"] .pos-analysis-supply-grid-title {
-  font-size: 33px;
-  transform: translate(43px, 6px);
-  font-weight: 500;
 }
 
 body[data-page="research"] .pos-analysis-supply-line {
@@ -2857,12 +2846,51 @@ body[data-page="research"] .pos-analysis-supply-value-label {
   font-weight: 900;
 }
 
-body[data-page="research"] .pos-analysis-supply-series-label {
-  font-size: 20px;
-}
-
 body[data-page="research"] .pos-analysis-supply-value-label {
   stroke-width: 3px;
+}
+
+/* Positional Analysis supply-chart typography is view- and breakpoint-specific:
+   Grid View keeps independent title/axis/series rules, while Single Range owns
+   only its terminal series-label size. */
+@media (min-width: 701px) {
+  body[data-page="research"] .pos-analysis-supply-grid-title {
+    font-size: 23px;
+    transform: translate(54px, -1px);
+    font-weight: 500;
+  }
+
+  body[data-page="research"] .pos-analysis-supply-grid-axis-label {
+    font-size: 15px;
+    fill: rgba(226, 231, 255, 0.62);
+  }
+
+  body[data-page="research"] .pos-analysis-supply-series-label--grid,
+  body[data-page="research"] .pos-analysis-supply-series-label--single {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Preserve the existing mobile Grid View typography exactly. */
+  body[data-page="research"] .pos-analysis-supply-grid-title {
+    font-size: 33px;
+    transform: translate(43px, 6px);
+    font-weight: 500;
+  }
+
+  body[data-page="research"] .pos-analysis-supply-grid-axis-label {
+    font-size: 22px;
+    fill: rgba(226, 231, 255, 0.62);
+  }
+
+  body[data-page="research"] .pos-analysis-supply-series-label--grid {
+    font-size: 20px;
+  }
+
+  body[data-page="research"] .pos-analysis-supply-series-label--single {
+    font-size: 12px;
+  }
 }
 
 /* Positional Analysis mini year grid */

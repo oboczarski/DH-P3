@@ -1789,6 +1789,47 @@
     return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
   }
 
+  // Positional Analysis supply-chart data labels: SVG text positions use the
+  // baseline, so visually equal above/below gaps require asymmetric y offsets.
+  // Near-point candidates always come first; larger offsets are reserved for a
+  // label that genuinely collides with one already placed.
+  function getPosAnalysisSupplyLabelOffsets(fontSize, preferBelow, compact) {
+    const above = -4;
+    const below = fontSize + 4;
+    const horizontalNudge = compact ? 6 : 9;
+    const widerNudge = horizontalNudge * 2;
+    const fartherAbove = above - fontSize - 5;
+    const fartherBelow = below + fontSize + 5;
+    const extremeAbove = fartherAbove - fontSize;
+    const extremeBelow = fartherBelow + fontSize;
+    const preferred = preferBelow ? below : above;
+    const alternate = preferBelow ? above : below;
+    const fartherPreferred = preferBelow ? fartherBelow : fartherAbove;
+    const fartherAlternate = preferBelow ? fartherAbove : fartherBelow;
+    return [
+      [0, preferred],
+      [0, alternate],
+      [-horizontalNudge, preferred],
+      [horizontalNudge, preferred],
+      [-horizontalNudge, alternate],
+      [horizontalNudge, alternate],
+      [0, fartherPreferred],
+      [0, fartherAlternate],
+      [-horizontalNudge, fartherPreferred],
+      [horizontalNudge, fartherPreferred],
+      [-horizontalNudge, fartherAlternate],
+      [horizontalNudge, fartherAlternate],
+      [-widerNudge, preferred],
+      [widerNudge, preferred],
+      [-widerNudge, alternate],
+      [widerNudge, alternate],
+      [0, preferBelow ? extremeBelow : extremeAbove],
+      [0, preferBelow ? extremeAbove : extremeBelow],
+      [-horizontalNudge, preferBelow ? extremeBelow : extremeAbove],
+      [horizontalNudge, preferBelow ? extremeBelow : extremeAbove]
+    ];
+  }
+
   function placePosAnalysisLabels(candidates, bounds) {
     const placed = [];
     candidates.forEach((candidate) => {
@@ -1834,9 +1875,14 @@
   }
 
   function renderPosAnalysisTextLabels(labels, className = 'pos-analysis-svg-value-label') {
-    return labels.map((label) => (
-      `<text class="${className}" x="${label.x.toFixed(1)}" y="${label.y.toFixed(1)}" text-anchor="middle" fill="${label.color}" font-size="${label.fontSize || 10}" font-weight="800">${escapePosAnalysisHtml(label.text)}</text>`
-    )).join('');
+    return labels.map((label) => {
+      // Point-origin attributes keep label-distance behavior directly testable
+      // without changing the visible SVG or the chart's tooltip interaction.
+      const pointAttrs = Number.isFinite(label.pointX) && Number.isFinite(label.pointY)
+        ? ` data-pos-analysis-point-x="${label.pointX.toFixed(1)}" data-pos-analysis-point-y="${label.pointY.toFixed(1)}" data-pos-analysis-series="${escapePosAnalysisAttr(label.series || '')}" data-pos-analysis-year="${escapePosAnalysisAttr(label.year || '')}"`
+        : '';
+      return `<text class="${className}"${pointAttrs} x="${label.x.toFixed(1)}" y="${label.y.toFixed(1)}" text-anchor="middle" fill="${label.color}" font-size="${label.fontSize || 10}" font-weight="800">${escapePosAnalysisHtml(label.text)}</text>`;
+    }).join('');
   }
 
   function renderPosAnalysisLabelPills(labels) {
@@ -2081,20 +2127,24 @@
         svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, index, 0.105)}" stroke="url(#${gradientId})" stroke-width="4.35" fill="none"/>`;
       }
       values.forEach((value, index) => {
-        const labelOffset = [-16, 16, -30, 30][posIndex % 4];
+        const labelFontSize = compact ? 9 : 12;
         labels.push({
           x: points[index][0],
           y: points[index][1],
+          pointX: points[index][0],
+          pointY: points[index][1],
+          series: pos,
+          year: POS_ANALYSIS_YEARS[index],
           text: String(value),
           color: config[tiers[index]],
-          fontSize: compact ? 9 : 12,
-          offsets: [[0, labelOffset], [0, -labelOffset], [-16, labelOffset], [16, -labelOffset], [0, labelOffset * 1.6]]
+          fontSize: labelFontSize,
+          offsets: getPosAnalysisSupplyLabelOffsets(labelFontSize, posIndex % 2 === 1, compact)
         });
         const tip = `<strong>${pos} · ${POS_ANALYSIS_YEARS[index]}</strong><br>${range} count: ${value}`;
         svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 5.5 : 3.4}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
       });
       const lastPoint = points.at(-1);
-      svg += `<text class="pos-analysis-supply-series-label" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
+      svg += `<text class="pos-analysis-supply-series-label pos-analysis-supply-series-label--single" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
     });
 
     svg += renderPosAnalysisTextLabels(placePosAnalysisLabels(labels, {
@@ -2169,7 +2219,7 @@
           svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, segmentIndex, 0.095)}" fill="none" stroke="url(#${gradientId})" stroke-width="3.4"/>`;
         }
         const lastPoint = points.at(-1);
-        svg += `<text class="pos-analysis-supply-series-label" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
+        svg += `<text class="pos-analysis-supply-series-label pos-analysis-supply-series-label--grid" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
       });
     });
 
