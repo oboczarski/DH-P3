@@ -2327,7 +2327,7 @@ body[data-page="research"] .pos-analysis-tier-stack-section .pos-analysis-card-h
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  padding: 0.45rem 1.6rem 0.35rem;
+  padding: 0.45rem 1.6rem 0rem;
 }
 
 body[data-page="research"] .pos-analysis-combo-section .pos-analysis-card-head {
@@ -2954,7 +2954,7 @@ body[data-page="research"] .pos-analysis-tier-stack-chart-title {
 body[data-page="research"] .pos-analysis-tier-stack-segment {
   cursor: pointer;
   outline: none;
-  opacity: 0.93;
+  opacity: 0.59;
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-segment:focus-visible {

@@ -186,9 +186,9 @@
     TE: { label: 'Tight Ends', low: '#ff6bc8', mid: '#bf4be4', high: '#7f2fff' }
   };
   const POS_ANALYSIS_RANGE_COLORS = {
-    12: { RB: '#00ad87', WR: '#0467c1' },
-    36: { RB: '#00ffc6', WR: '#2c9cff' },
-    60: { RB: '#6afff6', WR: '#6ab7fc' }
+    12: { RB: '#00c3ff', WR: '#2b40ff' },
+    36: { RB: '#00ffc3', WR: '#276bfc' },
+    60: { RB: '#00ff99', WR: '#3e92ff' }
   };
   // Mini year-grid lines use their own requested RB/WR palette so changing
   // these colors cannot alter the supply, tier-stack, or combined charts.
