@@ -2124,7 +2124,7 @@
       const points = values.map((value, index) => [x(index), y(value)]);
       for (let index = 0; index < values.length - 1; index += 1) {
         const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
-        svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, index, 0.105)}" stroke="url(#${gradientId})" stroke-width="4.35" fill="none"/>`;
+        svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, index, 0.105)}" stroke="url(#${gradientId})" stroke-width="6.3" fill="none"/>`;
       }
       values.forEach((value, index) => {
         const labelFontSize = compact ? 9 : 12;
@@ -2141,7 +2141,7 @@
           offsets: getPosAnalysisSupplyLabelOffsets(labelFontSize, posIndex % 2 === 1, compact)
         });
         const tip = `<strong>${pos} · ${POS_ANALYSIS_YEARS[index]}</strong><br>${range} count: ${value}`;
-        svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 5.5 : 3.4}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+        svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 6 : 6}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
       });
       const lastPoint = points.at(-1);
       svg += `<text class="pos-analysis-supply-series-label pos-analysis-supply-series-label--single" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;
