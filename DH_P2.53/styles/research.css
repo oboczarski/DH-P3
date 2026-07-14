@@ -2287,7 +2287,7 @@ body[data-page="research"] .pos-analysis-profile-section {
 }
 
 body[data-page="research"] .pos-analysis-mini-section {
-  padding: 0;
+  padding: 0rem 0.1rem;
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-section {
@@ -2795,7 +2795,7 @@ body[data-page="research"] .pos-analysis-small-plot-bg {
 /* Positional Analysis top supply chart */
 body[data-page="research"] .pos-analysis-supply-grid-line {
   stroke: rgba(255, 255, 255, 0.055);
-  stroke-width: 1px;
+  stroke-width: 0.03rem;
 }
 
 body[data-page="research"] .pos-analysis-supply-year-line {
@@ -3047,17 +3047,18 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   padding: 0.72rem 0.8rem;
   border-radius: 13px;
   border: 1px solid rgba(103, 232, 249, 0.15);
-  background: rgb(103 232 249 / 1%);
+  background: rgb(103 232 249 / 3%);
+  backdrop-filter: blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--up {
   border-color: rgba(52, 211, 153, 0.25);
-  background: rgb(52 211 153 / 2%);
+  background: rgb(52 211 153 / 5%);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--down {
   border-color: rgba(244, 114, 182, 0.28);
-  background: rgb(244 114 182 / 1%);
+  background: rgb(244 114 182 / 3%);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-label {
@@ -4318,7 +4319,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-card-head {
-    padding: 0.66rem;
+    padding: 0.26rem 0.66rem 0.66rem;
     border-radius: 14px;
     flex-direction: column;
     align-items: stretch;
@@ -4326,7 +4327,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-mini-section .pos-analysis-card-head {
-    padding: 0.66rem;
+    padding: 0.26rem 0.66rem 0.66rem;
     border-radius: 14px;
     flex-direction: column;
     align-items: stretch;
@@ -4334,7 +4335,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-tier-stack-section .pos-analysis-card-head {
-    padding: 0.66rem;
+    padding: 0.26rem 0.66rem 0.06rem;
     border-radius: 14px;
     flex-direction: column;
     align-items: stretch;
@@ -4342,7 +4343,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-combo-section .pos-analysis-card-head {
-    padding: 0.66rem;
+    padding: 0.26rem 0.66rem 0.66rem;
     border-radius: 14px;
     flex-direction: column;
     align-items: stretch;
@@ -5011,7 +5012,7 @@ body[data-page="research"] .pos-analysis-source-note {
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card {
     min-height: 7.7rem;
-    padding: 0.64rem 0.66rem 0.42rem;
+    padding: 0.5rem 0.45rem 0.2rem;
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-icon {
