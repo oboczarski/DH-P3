@@ -1791,17 +1791,21 @@
 
   // Positional Analysis supply-chart data labels: SVG text positions use the
   // baseline, so visually equal above/below gaps require asymmetric y offsets.
-  // Near-point candidates always come first; larger offsets are reserved for a
-  // label that genuinely collides with one already placed.
+  // Near-point candidates sit one SVG pixel farther from the enlarged markers
+  // than before. Collision fallbacks use smaller steps so one label is not
+  // pushed disproportionately far away when two values meet.
   function getPosAnalysisSupplyLabelOffsets(fontSize, preferBelow, compact) {
-    const above = -4;
-    const below = fontSize + 4;
+    const pointGap = 5;
+    const collisionStep = fontSize + 2;
+    const extremeStep = Math.max(6, fontSize - 2);
+    const above = -pointGap;
+    const below = fontSize + pointGap;
     const horizontalNudge = compact ? 6 : 9;
     const widerNudge = horizontalNudge * 2;
-    const fartherAbove = above - fontSize - 5;
-    const fartherBelow = below + fontSize + 5;
-    const extremeAbove = fartherAbove - fontSize;
-    const extremeBelow = fartherBelow + fontSize;
+    const fartherAbove = above - collisionStep;
+    const fartherBelow = below + collisionStep;
+    const extremeAbove = fartherAbove - extremeStep;
+    const extremeBelow = fartherBelow + extremeStep;
     const preferred = preferBelow ? below : above;
     const alternate = preferBelow ? above : below;
     const fartherPreferred = preferBelow ? fartherBelow : fartherAbove;
@@ -2027,7 +2031,7 @@
     const mobileDiffLabel = '2025 · RB vs. WR';
     const chips = [
       { key: 'range', label: 'SELECTED RANGE', mobileLabel: 'RANGE', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
-      { key: 'difference', label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
+      { key: 'difference', label: diffLabel, mobileLabel: mobileDiffLabel, value: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
       { key: 'rb-trend', label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
       { key: 'wr-trend', label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
     ];
@@ -2073,6 +2077,12 @@
     const range = POS_ANALYSIS_STATE.range;
     const active = getPosAnalysisDisplayPositions();
     const compact = window.innerWidth < 640;
+    const mobile = window.innerWidth <= 700;
+    // Positional Analysis single-range geometry: keep the user-tuned desktop
+    // line/point sizes intact while applying the requested sizes through the
+    // page's full 700px mobile breakpoint (independent of compact SVG layout).
+    const lineStrokeWidth = mobile ? 5.1 : 6.3;
+    const pointRadius = mobile ? 4.85 : 6;
     // Positional Analysis top supply chart:
     // mobile uses its own compact SVG coordinate system so the RB/WR x-axis
     // years sit close together and the chart does not need horizontal scroll.
@@ -2124,7 +2134,7 @@
       const points = values.map((value, index) => [x(index), y(value)]);
       for (let index = 0; index < values.length - 1; index += 1) {
         const gradientId = `pos-analysis-supply-${range.replace(/\s+/g, '')}-${pos}-${index}`;
-        svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, index, 0.105)}" stroke="url(#${gradientId})" stroke-width="6.3" fill="none"/>`;
+        svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, index, 0.105)}" stroke="url(#${gradientId})" stroke-width="${lineStrokeWidth}" fill="none"/>`;
       }
       values.forEach((value, index) => {
         const labelFontSize = compact ? 9 : 12;
@@ -2141,7 +2151,7 @@
           offsets: getPosAnalysisSupplyLabelOffsets(labelFontSize, posIndex % 2 === 1, compact)
         });
         const tip = `<strong>${pos} · ${POS_ANALYSIS_YEARS[index]}</strong><br>${range} count: ${value}`;
-        svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${index === values.length - 1 ? 6 : 6}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
+        svg += `<circle class="pos-analysis-supply-point" cx="${points[index][0]}" cy="${points[index][1]}" r="${pointRadius}" fill="#050711" stroke="${config[tiers[index]]}" tabindex="0" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"/>`;
       });
       const lastPoint = points.at(-1);
       svg += `<text class="pos-analysis-supply-series-label pos-analysis-supply-series-label--single" x="${lastPoint[0] + 12}" y="${lastPoint[1] + 4}" fill="${config.high}">${pos}</text>`;

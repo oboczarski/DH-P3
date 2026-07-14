@@ -24,10 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis label refresh:
-// bump the cache so browsers receive the corrected point-label placement and
-// view-specific mobile/desktop supply-chart typography on normal refresh.
-const CACHE_NAME = 'DH3.03K';
+// Research Positional Analysis chart refresh: bump the cache so browsers receive
+// the revised label offsets and breakpoint-specific line/point geometry.
+const CACHE_NAME = 'DH3.03L';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
