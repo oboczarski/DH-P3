@@ -3126,6 +3126,16 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   background: linear-gradient(180deg, #686e7a33, #33384230);
 }
 
+/* Positional Analysis stat-chip identities: these narrow modifiers let icon
+   colors change on both breakpoints without recoloring any neighboring chip. */
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range .pos-analysis-icon--chip {
+  color: #7f67f9;
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend .pos-analysis-icon--chip {
+  color: #f967c5;
+}
+
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value {
   display: block;
   margin-top: 0.25rem;
@@ -3248,14 +3258,16 @@ body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-c
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.22);
-  padding: 0.52rem;
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack > div {
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.22);
-  padding: 0.52rem;
+}
+
+body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-rank--mobile {
+  display: none;
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack {
@@ -4203,6 +4215,12 @@ body[data-page="research"] .pos-analysis-source-note {
     white-space: nowrap;
   }
 
+  /* Positional Analysis hero subheading: desktop gets its own fixed type size;
+     the existing mobile declaration remains untouched outside this breakpoint. */
+  body[data-page="research"] .pos-analysis-hero p {
+    font-size: 1.2rem;
+  }
+
   /* Desktop-only mini-chart type scale: slightly tighter than the mobile
      defaults without changing the SVG geometry or any phone presentation. */
   body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-axis-label {
@@ -4236,6 +4254,21 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--mobile,
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile {
     display: none;
+  }
+
+  /* Selected-Range Position Cards desktop metric-box spacing remains isolated
+     from the compact phone treatment below. */
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-current,
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack > div {
+    padding: 0.52rem;
+  }
+
+  /* Desktop stat chips now mirror mobile's icon/value row while retaining the
+     desktop-only label and value copy. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--desktop {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
   }
 }
 
@@ -4599,6 +4632,45 @@ body[data-page="research"] .pos-analysis-source-note {
     padding: 0 0.15rem;
     text-wrap-mode: nowrap;
     margin-top: 0.1rem;
+  }
+
+  /* Selected-Range Position Cards mobile metrics: compact vertical padding,
+     shortened rank copy, and an inline parenthesized peak year reduce height. */
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-current,
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack > div {
+    padding: 0.1rem 0.52rem;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-rank--desktop {
+    display: none;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-rank--mobile {
+    display: block;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-peak strong,
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-peak-year {
+    display: inline;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-peak-year {
+    margin-left: 0.2rem;
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-peak-year::before {
+    content: '(';
+  }
+
+  body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-peak-year::after {
+    content: ')';
+  }
+
+  /* Only the RB and WR trend chips receive the requested wider mobile
+     icon/value separation; Range and difference retain their 0.3rem gap. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--rb-trend .pos-analysis-stat-chip-value--mobile,
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend .pos-analysis-stat-chip-value--mobile {
+    gap: 0.7rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile .pos-analysis-icon--chip {

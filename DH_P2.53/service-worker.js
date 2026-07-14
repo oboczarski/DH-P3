@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis grid refresh:
-// bump the cache so browsers pick up the page-local chart order, axis labels,
-// mobile spacing, and summary-label updates on the next normal refresh.
-const CACHE_NAME = 'DH3.03I';
+// Research Positional Analysis card refresh:
+// bump the cache so browsers receive the breakpoint-specific profile metrics,
+// stat-chip labels, icon placement, and color updates on the next normal refresh.
+const CACHE_NAME = 'DH3.03J';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

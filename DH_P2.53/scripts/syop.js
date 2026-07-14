@@ -1975,23 +1975,24 @@
     const host = document.getElementById('pos-analysis-summary-chips');
     if (!host) return;
     const summary = getPosAnalysisRangeSummary(POS_ANALYSIS_STATE.range);
-    const diffLabel = `2025 · ${summary.range.toUpperCase()} ➜ RB–WR`;
-    // Mobile omits the selected tier from this chip because the range already
-    // appears in the neighboring summary chip; desktop keeps the full label.
-    const mobileDiffLabel = '2025 ➜ RB–WR';
+    const diffLabel = `2025  ${summary.range.toUpperCase()} · RB vs. WR`;
+    // Positional Analysis stat-chip copy stays source-specific by breakpoint:
+    // mobile omits the tier because the Range chip already supplies that context.
+    const mobileDiffLabel = '2025 · RB vs. WR';
     const chips = [
-      { label: 'Selected range', mobileLabel: 'Range', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
-      { label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
-      { label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
-      { label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
+      { key: 'range', label: 'SELECTED RANGE', mobileLabel: 'RANGE', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
+      { key: 'difference', label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
+      { key: 'rb-trend', label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
+      { key: 'wr-trend', label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
     ];
-    // Positional Analysis stat chips: desktop keeps the icon by the label,
-    // while mobile swaps a duplicate icon beside the value without changing data.
+    // Positional Analysis stat chips: both breakpoints place the icon beside the
+    // value; duplicate label/value nodes preserve their breakpoint-specific copy.
     host.innerHTML = chips.map((chip) => {
       const toneClass = chip.tone ? `pos-analysis-stat-chip--${chip.tone}` : '';
+      const chipClass = `pos-analysis-stat-chip--${chip.key}`;
       const desktopIcon = posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip');
       const mobileIcon = posAnalysisIcon(chip.icon, 'pos-analysis-icon--chip');
-      return `<div class="pos-analysis-stat-chip ${toneClass}"><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--desktop">${desktopIcon}<span>${escapePosAnalysisHtml(chip.label)}</span></span><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--mobile"><span>${escapePosAnalysisHtml(chip.mobileLabel)}</span></span><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--desktop">${escapePosAnalysisHtml(chip.value)}</strong><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--mobile">${mobileIcon}<span>${escapePosAnalysisHtml(chip.mobileValue)}</span></strong></div>`;
+      return `<div class="pos-analysis-stat-chip ${chipClass} ${toneClass}"><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--desktop"><span>${escapePosAnalysisHtml(chip.label)}</span></span><span class="pos-analysis-stat-chip-label pos-analysis-stat-chip-label--mobile"><span>${escapePosAnalysisHtml(chip.mobileLabel)}</span></span><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--desktop">${desktopIcon}<span>${escapePosAnalysisHtml(chip.value)}</span></strong><strong class="pos-analysis-stat-chip-value pos-analysis-stat-chip-value--mobile">${mobileIcon}<span>${escapePosAnalysisHtml(chip.mobileValue)}</span></strong></div>`;
     }).join('');
   }
 
@@ -2185,7 +2186,9 @@
       const config = POS_ANALYSIS_POS_CONFIG[pos];
       const trendClass = stat.changeFromPrevious >= 0 ? 'up' : 'down';
       const latestPeakYear = posAnalysisLatestYearMatching(posAnalysisValues(POS_ANALYSIS_STATE.range, pos), stat.max);
-      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small>Rank #${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div><span>Peak</span><strong>${stat.max}</strong><small>${escapePosAnalysisHtml(latestPeakYear)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
+      // Position-profile metrics use explicit mobile/desktop copy hooks: phones
+      // omit "Rank", while the peak year can move inline without altering desktop.
+      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small class="pos-analysis-profile-rank pos-analysis-profile-rank--desktop">Rank #${stat.rank} of 19</small><small class="pos-analysis-profile-rank pos-analysis-profile-rank--mobile">#${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div class="pos-analysis-profile-peak"><span>Peak</span><strong>${stat.max}</strong><small class="pos-analysis-profile-peak-year">${escapePosAnalysisHtml(latestPeakYear)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
     }).join('');
   }
 
