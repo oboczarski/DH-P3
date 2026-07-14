@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.03E-pos-analysis-view-polish" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.03I-pos-analysis-grid-polish" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -23,7 +23,9 @@
 <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 </head>
-<body data-page="research" class="p-2 sm:p-4">
+<!-- Research page shell: phones keep the existing 0.5rem vertical breathing room
+     while using 0.25rem horizontal padding; the sm breakpoint remains unchanged. -->
+<body data-page="research" class="px-1 py-2 sm:p-4">
 <div aria-hidden="true" id="starfield">
   <div id="stars"></div>
   <div id="stars1"></div>
@@ -572,6 +574,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=DH3.03E-pos-analysis-view-polish"></script>
+<script defer src="../scripts/syop.js?v=DH3.03I-pos-analysis-grid-polish"></script>
 </body>
 </html>

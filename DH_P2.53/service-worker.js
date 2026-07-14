@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub head-to-head comparison chart refresh:
-// bump the cache so browsers pick up the updated lazy comparison component,
-// chart options, and scoped responsive styles on the next normal refresh.
-const CACHE_NAME = 'DH3.03H';
+// Research Positional Analysis grid refresh:
+// bump the cache so browsers pick up the page-local chart order, axis labels,
+// mobile spacing, and summary-label updates on the next normal refresh.
+const CACHE_NAME = 'DH3.03I';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

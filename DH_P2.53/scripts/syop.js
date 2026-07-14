@@ -168,7 +168,9 @@
   const POS_ANALYSIS_YEARS = Array.from({ length: 19 }, (_, index) => 2007 + index);
   const POS_ANALYSIS_POSITIONS = ['QB', 'RB', 'WR', 'TE'];
   const POS_ANALYSIS_RANGE_OPTIONS = ['Top 6', 'Top 12', 'Top 24', 'Top 36', 'Top 48', 'Top 60'];
-  const POS_ANALYSIS_GRID_RANGES = ['Top 60', 'Top 48', 'Top 36', 'Top 24'];
+  // Positional Analysis supply grid: order ranges from the tightest tier to the
+  // broadest so the two-by-two layout reads 24/36 across, then 48/60 below.
+  const POS_ANALYSIS_GRID_RANGES = ['Top 24', 'Top 36', 'Top 48', 'Top 60'];
   const POS_ANALYSIS_CUTS = {
     'Top 6': 6,
     'Top 12': 12,
@@ -1978,7 +1980,7 @@
     // appears in the neighboring summary chip; desktop keeps the full label.
     const mobileDiffLabel = '2025 ➜ RB–WR';
     const chips = [
-      { label: 'Selected range', mobileLabel: 'Selected range', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
+      { label: 'Selected range', mobileLabel: 'Range', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
       { label: diffLabel, mobileLabel: mobileDiffLabel, value: formatPosAnalysisDelta(summary.rbWrDiff), mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
       { label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
       { label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
@@ -2004,7 +2006,7 @@
       subtitle.textContent = window.innerWidth <= 700 && POS_ANALYSIS_STATE.positionView === 'rbWr'
         ? 'RB and WR distribution per szn inside the selected PPR FPTS rank range.'
         : POS_ANALYSIS_STATE.mode === 'grid'
-          ? 'Four-range comparison: Top 60, Top 48, Top 36, and Top 24.'
+          ? 'Four-range comparison: Top 24, Top 36, Top 48, and Top 60.'
           : POS_ANALYSIS_STATE.positionView === 'rbWr'
             ? 'Running back and wide receiver counts inside the selected fantasy-points rank range.'
             : 'Position counts inside the selected fantasy-points rank range.';
@@ -2119,6 +2121,14 @@
     const h = panelH * 2 + gap;
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Four range supply comparison">`;
 
+    // Positional Analysis grid x-axis: desktop shows a three-year cadence while
+    // phones use a six-year cadence to keep every label clear in each mini chart.
+    const mobile = window.innerWidth <= 700;
+    const xLabelYears = mobile
+      ? [2007, 2013, 2019, 2025]
+      : [2007, 2010, 2013, 2016, 2019, 2022, 2025];
+    const xLabelIndexes = xLabelYears.map((year) => POS_ANALYSIS_YEARS.indexOf(year));
+
     POS_ANALYSIS_GRID_RANGES.forEach((range, index) => {
       const col = index % 2;
       const row = Math.floor(index / 2);
@@ -2132,7 +2142,6 @@
         : { min: 0, max: Math.max(8, ...active.flatMap((pos) => posAnalysisValues(range, pos))) + 2 };
       const x = (pointIndex) => ox + m.l + pointIndex / (POS_ANALYSIS_YEARS.length - 1) * plotW;
       const y = (value) => oy + m.t + plotH - (value - domain.min) / Math.max(1, domain.max - domain.min) * plotH;
-      const xLabelIndexes = [0, Math.floor((POS_ANALYSIS_YEARS.length - 1) / 2), POS_ANALYSIS_YEARS.length - 1];
       svg += '<defs>';
       active.forEach((pos) => {
         const values = posAnalysisValues(range, pos);
@@ -2156,7 +2165,7 @@
         const points = values.map((value, pointIndex) => [x(pointIndex), y(value)]);
         for (let segmentIndex = 0; segmentIndex < values.length - 1; segmentIndex += 1) {
           const gradientId = `pos-analysis-grid-${range.replace(/\s+/g, '')}-${pos}-${index}-${segmentIndex}`;
-          svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, segmentIndex, 0.095)}" fill="none" stroke="url(#${gradientId})" stroke-width="2.8"/>`;
+          svg += `<path class="pos-analysis-supply-line" d="${posAnalysisSmoothSegmentPath(points, segmentIndex, 0.095)}" fill="none" stroke="url(#${gradientId})" stroke-width="3.4"/>`;
         }
         const lastPoint = points.at(-1);
         svg += `<text class="pos-analysis-supply-series-label" x="${lastPoint[0] + 6}" y="${lastPoint[1] + 3}" fill="${config.high}">${pos}</text>`;
