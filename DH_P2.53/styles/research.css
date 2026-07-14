@@ -2989,12 +2989,12 @@ body[data-page="research"] .pos-analysis-tier-stack-label-count {
 
 body[data-page="research"] .pos-analysis-tier-stack-year-label {
   fill: rgba(245, 247, 255, 0.9);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 900;
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-pos-label {
-  font-size: 9.4px;
+  font-size: 11.4px;
   font-weight: 950;
 }
 
@@ -5299,7 +5299,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-tier-stack-year-label {
-    font-size: 9.6px;
+    font-size: 12.6px;
   }
 
   body[data-page="research"] .pos-analysis-supply-value-label {
