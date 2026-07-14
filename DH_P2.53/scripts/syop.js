@@ -180,9 +180,9 @@
     'Top 60': 60
   };
   const POS_ANALYSIS_POS_CONFIG = {
-    QB: { label: 'Quarterbacks', low: '#ff9a3d', mid: '#ff6d62', high: '#ff4187' },
-    RB: { label: 'Running Backs', low: '#1ac2ff', mid: '#10e7cb', high: '#06ff97' },
-    WR: { label: 'Wide Receivers', low: '#8153ff', mid: '#4276ff', high: '#0299fe' },
+    QB: { label: 'Quarterbacks', low: '#FF916B', mid: '#FF666B', high: '#F94095' },
+    RB: { label: 'Running Backs', low: '#0d7efe', mid: '#1fa9f9', high: '#00ffae' },
+    WR: { label: 'Wide Receivers', low: '#5c47ff', mid: '#0051ff', high: '#1b7eff' },
     TE: { label: 'Tight Ends', low: '#ff6bc8', mid: '#bf4be4', high: '#7f2fff' }
   };
   const POS_ANALYSIS_RANGE_COLORS = {
