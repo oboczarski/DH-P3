@@ -4295,7 +4295,7 @@ body[data-page="research"] .pos-analysis-source-note {
      from the compact phone treatment below. */
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-current,
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack > div {
-    padding: 0.52rem;
+    padding: 0.2rem 0.52rem;
   }
 
   /* Desktop stat chips now mirror mobile's icon/value row while retaining the
