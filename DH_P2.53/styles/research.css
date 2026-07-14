@@ -2597,8 +2597,8 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-row 
   scrollbar-width: thin;
   border: 1px solid var(--pos-analysis-line-soft);
   background: rgba(0, 0, 0, 0.26);
-  border-radius: 14px;
-  padding: 0.34rem;
+  border-radius: 15px;
+  padding: 0.12rem;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-position-row {
@@ -2629,8 +2629,8 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-btn 
   font-family: inherit;
   cursor: pointer;
   flex: 1 0 auto;
-  padding: 0.42rem 0.72rem;
-  border-radius: 10px;
+  padding: 0.5rem 0.72rem;
+  border-radius: 12px;
   background: transparent;
   color: var(--pos-analysis-muted);
   font-size: 0.9rem;
@@ -4460,8 +4460,9 @@ body[data-page="research"] .pos-analysis-source-note {
     justify-content: flex-start;
     max-width: 413px;
     min-width: auto;
-    padding: 0.2rem 0.2rem;
+    padding: 0.1rem 0.15rem;
     gap: 1px;
+    border-radius: 13px;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-position-row {
@@ -4476,6 +4477,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-btn {
     padding: 0.4rem 0.5rem;
     font-size: 0.61rem;
+    border-radius: 10px;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-btn {
@@ -4952,7 +4954,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-row {
-    padding: 0.25rem;
+    padding: 0.12rem 0.15rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-position-row {
