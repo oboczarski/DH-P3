@@ -2305,8 +2305,8 @@
     const yMax = 26;
     const y = (value) => m.t + plotH - value / yMax * plotH;
     const groupW = plotW / POS_ANALYSIS_YEARS.length;
-    const barW = Math.min(27, Math.max(16.5, groupW * 0.27));
-    const pairGap = Math.min(10, Math.max(6, groupW * 0.1));
+    const barW = Math.min(27, Math.max(16.5, groupW * 0.37));
+    const pairGap = 12;
     const labelCutoff = compact ? 17 : 15;
     let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="RB and WR stacked tier supply bars">`;
 
