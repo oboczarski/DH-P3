@@ -2150,7 +2150,7 @@ body[data-page="research"] .pos-analysis-hero h1 span {
 body[data-page="research"] .pos-analysis-hero p {
   margin: 0.15rem 0 0;
   color: var(--pos-analysis-sub);
-  font-size: 0.72rem;
+  font-size: 1.22rem;
   line-height: 1.52;
   text-wrap-mode: nowrap;
   letter-spacing: -0.01rem;
@@ -2643,8 +2643,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-btn 
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-range-btn.is-active {
-  background: conic-gradient(from 
-48deg, #562ffcd9, #de95ffaa, #be89ffaa, #66c0ffaa, #562ffcd9);
+  background: conic-gradient(from 48deg, #552eff 5deg, #de95ffaa, #be89ffaa, #6bc2ff9c, #552eff);
   color: #1a1c1e;
 }
 
@@ -3048,17 +3047,17 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   padding: 0.72rem 0.8rem;
   border-radius: 13px;
   border: 1px solid rgba(103, 232, 249, 0.15);
-  background: rgba(103, 232, 249, 0.06);
+  background: rgb(103 232 249 / 1%);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--up {
   border-color: rgba(52, 211, 153, 0.25);
-  background: rgba(52, 211, 153, 0.1);
+  background: rgb(52 211 153 / 2%);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--down {
   border-color: rgba(244, 114, 182, 0.28);
-  background: rgba(244, 114, 182, 0.1);
+  background: rgb(244 114 182 / 1%);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-label {
@@ -3067,7 +3066,6 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-
   font-size: 0.58rem;
   font-weight: 900;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card span {
@@ -3119,11 +3117,12 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-icon--chip {
   width: 1.65rem;
   height: 1.65rem;
-  color: var(--pos-analysis-cyan);
+  color: #00ebc7;
   stroke-width: 2.2;
   padding: 2px;
-  border: 1px solid #334;
+  border: 1px solid #3333448c;
   border-radius: 28px;
+  background: linear-gradient(180deg, #686e7a33, #33384230);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value {
@@ -3133,6 +3132,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   font-size: 1.35rem;
   line-height: 1;
   font-weight: 900;
+  justify-self: center;
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-grid {
@@ -4604,9 +4604,7 @@ body[data-page="research"] .pos-analysis-source-note {
     width: 1.4rem;
     height: 1.4rem;
     padding: 2px;
-    border: 1px solid #334;
     border-radius: 28px;
-    background: linear-gradient(180deg, #474e5d66, #1b1d2170);
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-grid {
@@ -5012,7 +5010,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card {
-    min-height: 11.7rem;
+    min-height: 7.7rem;
     padding: 0.64rem 0.66rem 0.42rem;
   }
 
