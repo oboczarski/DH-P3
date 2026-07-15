@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis icon correction: use the dual-color multiline
-// RB-vs-WR chip symbol with accurate rising and falling final segments.
-const CACHE_NAME = 'DH3.03R';
+// Research Positional Analysis chart polish: slightly increase point-label
+// spacing, enlarge desktop axes, and refresh the hero kicker icon.
+const CACHE_NAME = 'DH3.03S';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

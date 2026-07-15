@@ -209,8 +209,8 @@
   };
 
   // Positional Analysis Material Symbols registry:
-  // - the seven remaining user-selected paths stay byte-for-byte at the source of truth
-  // - the RB-vs-WR chip uses a two-layer multiline symbol so each series owns its color
+  // - user-selected glyph geometry stays local to the exact UI that requested it
+  // - layered symbols support the dual-color RB-vs-WR chip and the hero insights glyph
   // - every remaining glyph comes from Google's rounded 24px Material Symbols SVG set
   // - inline paths keep this Research-only tab independent from icon fonts and network loading.
   const POS_ANALYSIS_MATERIAL_SYMBOLS = {
@@ -227,6 +227,16 @@
         { role: 'falling', path: 'M2.71 8.71 C4.6 7.05 7.03 6 9.61 6 C14.96 6 18.91 10.06 20 16.48' },
         // Angular series from the selected Material icon: RB finishes upward.
         { role: 'rising', path: 'M2.75 17.74 L9.5 10.98 L13.5 14.98 L17.65 10.33 L21.3 6.22' }
+      ]
+    },
+    'hero-insights': {
+      materialName: 'insights',
+      viewBox: '0 0 24 24',
+      layers: [
+        // Positional Analysis hero kicker: preserve the supplied trend-node geometry.
+        { role: 'trend', path: 'M21,8c-1.45,0-2.26,1.44-1.93,2.51l-3.55,3.56c-0.3-0.09-0.74-0.09-1.04,0l-2.55-2.55C12.27,10.45,11.46,9,10,9 c-1.45,0-2.27,1.44-1.93,2.52l-4.56,4.55C2.44,15.74,1,16.55,1,18c0,1.1,0.9,2,2,2c1.45,0,2.26-1.44,1.93-2.51l4.55-4.56 c0.3,0.09,0.74,0.09,1.04,0l2.55,2.55C12.73,16.55,13.54,18,15,18c1.45,0,2.27-1.44,1.93-2.52l3.56-3.55 C21.56,12.26,23,11.45,23,10C23,8.9,22.1,8,21,8z' },
+        { role: 'sparkle-large', path: 'M15 9 15.94 6.93 18 6 15.94 5.07 15 3 14.08 5.07 12 6 14.08 6.93Z' },
+        { role: 'sparkle-small', path: 'M3.5 11 4 9 6 8.5 4 8 3.5 6 3 8 1 8.5 3 9Z' }
       ]
     },
     'rb-trend': { materialName: 'trending_up', path: 'M108-255q-12-12-11.5-28.5T108-311l211-214q23-23 57-23t57 23l103 104 208-206h-64q-17 0-28.5-11.5T640-667q0-17 11.5-28.5T680-707h160q17 0 28.5 11.5T880-667v160q0 17-11.5 28.5T840-467q-17 0-28.5-11.5T800-507v-64L593-364q-23 23-57 23t-57-23L376-467 164-255q-11 11-28 11t-28-11Z' },
@@ -1487,9 +1497,9 @@
       `pos-analysis-material-symbol--${iconKey}`,
       extraClass
     ].filter(Boolean).join(' ');
-    // The RB-vs-WR chip is the only layered symbol: its two paths receive
-    // independent Research-scoped series colors while all other symbols keep
-    // the standard single filled Material path.
+    // Layered symbols preserve multi-part Material geometry; the RB-vs-WR chip
+    // additionally assigns independent Research-scoped series colors, while
+    // ordinary icons continue using one filled Material path.
     const geometry = Array.isArray(icon.layers)
       ? icon.layers.map((layer) => `<path class="pos-analysis-material-symbol-layer pos-analysis-material-symbol-layer--${escapePosAnalysisAttr(layer.role)}" d="${layer.path}"></path>`).join('')
       : `<path d="${icon.path}"></path>`;
@@ -1823,7 +1833,9 @@
   // than before. Collision fallbacks use smaller steps so one label is not
   // pushed disproportionately far away when two values meet.
   function getPosAnalysisSupplyLabelOffsets(fontSize, preferBelow, compact) {
-    const pointGap = 5;
+    // A half-pixel increase creates the requested barely perceptible breathing
+    // room on both breakpoints without changing collision-repulsion strength.
+    const pointGap = 5.5;
     const collisionStep = fontSize + 2;
     const extremeStep = Math.max(6, fontSize - 2);
     const above = -pointGap;

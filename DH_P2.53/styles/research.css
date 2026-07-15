@@ -2888,6 +2888,13 @@ body[data-page="research"] .pos-analysis-supply-value-label {
    Grid View keeps independent title/axis/series rules, while Single Range owns
    only its terminal series-label size. */
 @media (min-width: 701px) {
+  /* Desktop-only supply axes: Single Range and Grid View share the requested
+     18px label size while the existing mobile typography remains untouched. */
+  body[data-page="research"] .pos-analysis-supply-axis-label,
+  body[data-page="research"] .pos-analysis-supply-grid-axis-label {
+    font-size: 18px;
+  }
+
   body[data-page="research"] .pos-analysis-supply-grid-title {
     font-size: 23px;
     transform: translate(54px, -1px);
@@ -2895,7 +2902,6 @@ body[data-page="research"] .pos-analysis-supply-value-label {
   }
 
   body[data-page="research"] .pos-analysis-supply-grid-axis-label {
-    font-size: 15px;
     fill: rgba(226, 231, 255, 0.62);
   }
 
