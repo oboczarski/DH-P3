@@ -2075,13 +2075,20 @@ body[data-page="research"] .pos-analysis-kicker-dot {
   box-shadow: 0 0 16px rgba(103, 232, 249, 0.72);
 }
 
-/* Positional Analysis local inline SVG icons: mirrors the DataHub page's
-   self-contained icon approach while keeping every selector Research-scoped. */
+/* Positional Analysis local Material Symbols: every glyph is an inline SVG,
+   filled by currentColor, and remains fully scoped to the Research page. */
 body[data-page="research"] .pos-analysis-icon {
   display: block;
   width: 1em;
   height: 1em;
   flex: 0 0 auto;
+}
+
+body[data-page="research"] .pos-analysis-material-symbol {
+  overflow: visible;
+  fill: currentColor;
+  stroke: none;
+  shape-rendering: geometricPrecision;
 }
 
 body[data-page="research"] .pos-analysis-icon-shell {
@@ -2712,7 +2719,6 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-icon {
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-icon .pos-analysis-icon {
   width: 1.18rem;
   height: 1.18rem;
-  stroke-width: 2.25;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-current {
@@ -3156,7 +3162,6 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   width: 2.4rem;
   height: 2.4rem;
   color: #00ebc7;
-  stroke-width: 2px;
   padding: 0px;
   border: 0px solid #3333448c;
   border-radius: 28px;
@@ -3273,7 +3278,6 @@ body[data-page="research"] .pos-analysis-profile-section .pos-analysis-trend-pil
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-trend-pill .pos-analysis-icon {
   width: 0.68rem;
   height: 0.68rem;
-  stroke-width: 2.5;
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-trend-pill--up {
@@ -5178,7 +5182,6 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile .pos-analysis-icon--chip {
   background: linear-gradient(180deg, #686e7a33, #33384230);
   border: 1px solid #3333448c;
-  stroke-width: 2.2px;
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-icon--sim {
@@ -6000,6 +6003,407 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
   }
 }
 
+
+/* Positional Analysis Material Symbol optical sizing:
+   - each UI section owns its variables instead of sharing a global icon size
+   - desktop and mobile values are declared independently for quick tuning
+   - key-specific SVG classes remain available for one-off optical corrections. */
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-btn .pos-analysis-button-icon {
+  width: var(--pos-analysis-control-icon-shell-size);
+  height: var(--pos-analysis-control-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-btn .pos-analysis-button-icon .pos-analysis-material-symbol {
+  width: var(--pos-analysis-control-icon-size);
+  height: var(--pos-analysis-control-icon-size);
+  margin: 0;
+  transform: none;
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-btn .pos-analysis-pos-icon .pos-analysis-material-symbol {
+  width: var(--pos-analysis-position-icon-size);
+  height: var(--pos-analysis-position-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value .pos-analysis-icon--chip {
+  width: var(--pos-analysis-chip-icon-size);
+  height: var(--pos-analysis-chip-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card .pos-analysis-profile-icon .pos-analysis-material-symbol {
+  width: var(--pos-analysis-profile-symbol-size);
+  height: var(--pos-analysis-profile-symbol-size);
+}
+
+body[data-page="research"] .pos-analysis-profile-section .pos-analysis-trend-pill .pos-analysis-material-symbol {
+  width: var(--pos-analysis-profile-trend-icon-size);
+  height: var(--pos-analysis-profile-trend-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-info-hero .pos-analysis-info-stat .pos-analysis-icon-shell {
+  width: var(--pos-analysis-info-stat-icon-shell-size);
+  height: var(--pos-analysis-info-stat-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-info-hero .pos-analysis-info-stat .pos-analysis-material-symbol {
+  width: var(--pos-analysis-info-stat-icon-size);
+  height: var(--pos-analysis-info-stat-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-formula .pos-analysis-icon-shell {
+  width: var(--pos-analysis-formula-icon-shell-size);
+  height: var(--pos-analysis-formula-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-formula .pos-analysis-material-symbol {
+  width: var(--pos-analysis-formula-icon-size);
+  height: var(--pos-analysis-formula-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-simulator .pos-analysis-personnel-buttons button .pos-analysis-button-icon {
+  width: var(--pos-analysis-personnel-button-icon-shell-size);
+  height: var(--pos-analysis-personnel-button-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-simulator .pos-analysis-personnel-buttons button .pos-analysis-material-symbol {
+  width: var(--pos-analysis-personnel-button-icon-size);
+  height: var(--pos-analysis-personnel-button-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats > div .pos-analysis-material-symbol {
+  width: var(--pos-analysis-sim-stat-icon-size);
+  height: var(--pos-analysis-sim-stat-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-icon .pos-analysis-icon-shell {
+  width: var(--pos-analysis-overall-icon-shell-size);
+  height: var(--pos-analysis-overall-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-icon .pos-analysis-material-symbol {
+  width: var(--pos-analysis-overall-icon-size);
+  height: var(--pos-analysis-overall-icon-size);
+}
+
+body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-card .pos-analysis-icon-shell {
+  width: var(--pos-analysis-matrix-icon-shell-size);
+  height: var(--pos-analysis-matrix-icon-shell-size);
+}
+
+body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-card .pos-analysis-material-symbol {
+  width: var(--pos-analysis-matrix-icon-size);
+  height: var(--pos-analysis-matrix-icon-size);
+}
+
+@media (min-width: 701px) {
+  /* Desktop kicker symbols are independent because both reuse the same shell class. */
+  body[data-page="research"] .pos-analysis-kicker--dashboard .pos-analysis-icon-shell {
+    width: 1.08rem;
+    height: 1.08rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--dashboard .pos-analysis-material-symbol {
+    width: 0.84rem;
+    height: 0.84rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--infographic .pos-analysis-icon-shell {
+    width: 1.08rem;
+    height: 1.08rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--infographic .pos-analysis-material-symbol {
+    width: 0.82rem;
+    height: 0.82rem;
+  }
+
+  /* Desktop eyebrow symbols are optically calibrated per panel. */
+  body[data-page="research"] .pos-analysis-eyebrow--global { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--profiles { --pos-analysis-eyebrow-icon-size: 0.88rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--mini { --pos-analysis-eyebrow-icon-size: 0.88rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--tier-stack { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--combo { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--paradigm { --pos-analysis-eyebrow-icon-size: 0.88rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--simulator { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--milestone { --pos-analysis-eyebrow-icon-size: 0.88rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--matrix { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--te-role { --pos-analysis-eyebrow-icon-size: 0.98rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--formula { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--timeline { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--tactical-caution { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--strategic-summary { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--regression { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--moving-forward { --pos-analysis-eyebrow-icon-size: 0.9rem; }
+
+  /* Desktop chart-mode controls: each control owns its shell and glyph size. */
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="single"] {
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 0.98rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="grid"] {
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 0.94rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="all"] {
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 0.98rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="rbWr"] {
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 1rem;
+  }
+
+  /* Desktop position-filter symbols account for each supplied path's density. */
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="QB"] { --pos-analysis-position-icon-size: 1.08rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] { --pos-analysis-position-icon-size: 1.1rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] { --pos-analysis-position-icon-size: 1.16rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] { --pos-analysis-position-icon-size: 1.12rem; }
+
+  /* Desktop chip symbols remain independently adjustable per stat identity. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range { --pos-analysis-chip-icon-size: 2.05rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference { --pos-analysis-chip-icon-size: 2.15rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--rb-trend { --pos-analysis-chip-icon-size: 2rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend { --pos-analysis-chip-icon-size: 2rem; }
+
+  /* Desktop position cards use per-position optical sizes and a separate trend size. */
+  body[data-page="research"] .pos-analysis-profile-section { --pos-analysis-profile-trend-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-profile-card--qb { --pos-analysis-profile-symbol-size: 1rem; }
+  body[data-page="research"] .pos-analysis-profile-card--rb { --pos-analysis-profile-symbol-size: 1.04rem; }
+  body[data-page="research"] .pos-analysis-profile-card--wr { --pos-analysis-profile-symbol-size: 1.1rem; }
+  body[data-page="research"] .pos-analysis-profile-card--te { --pos-analysis-profile-symbol-size: 1.06rem; }
+
+  /* Desktop infographic summary symbols. */
+  body[data-page="research"] .pos-analysis-info-stat--formula {
+    --pos-analysis-info-stat-icon-shell-size: 1rem;
+    --pos-analysis-info-stat-icon-size: 0.84rem;
+  }
+
+  body[data-page="research"] .pos-analysis-info-stat--milestone {
+    --pos-analysis-info-stat-icon-shell-size: 1rem;
+    --pos-analysis-info-stat-icon-size: 0.82rem;
+  }
+
+  /* Desktop personnel formula symbols are separate from their simulator twins. */
+  body[data-page="research"] .pos-analysis-personnel-formula--11 {
+    --pos-analysis-formula-icon-shell-size: 1rem;
+    --pos-analysis-formula-icon-size: 0.8rem;
+  }
+
+  body[data-page="research"] .pos-analysis-personnel-formula--12 {
+    --pos-analysis-formula-icon-shell-size: 1rem;
+    --pos-analysis-formula-icon-size: 0.84rem;
+  }
+
+  body[data-page="research"] .pos-analysis-personnel-formula--13 {
+    --pos-analysis-formula-icon-shell-size: 1rem;
+    --pos-analysis-formula-icon-size: 0.84rem;
+  }
+
+  /* Desktop tactical-simulator control symbols. */
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="11"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.9rem;
+    --pos-analysis-personnel-button-icon-size: 0.78rem;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="12"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.9rem;
+    --pos-analysis-personnel-button-icon-size: 0.8rem;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="13"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.9rem;
+    --pos-analysis-personnel-button-icon-size: 0.82rem;
+  }
+
+  body[data-page="research"] #pos-analysis-sim-rb { --pos-analysis-sim-stat-icon-size: 0.86rem; }
+  body[data-page="research"] #pos-analysis-sim-wr { --pos-analysis-sim-stat-icon-size: 0.9rem; }
+  body[data-page="research"] #pos-analysis-sim-te { --pos-analysis-sim-stat-icon-size: 0.88rem; }
+  body[data-page="research"] #pos-analysis-sim-qb { --pos-analysis-sim-stat-icon-size: 0.84rem; }
+
+  /* Desktop historical banner and positional matrix symbols. */
+  body[data-page="research"] .pos-analysis-overall-icon {
+    --pos-analysis-overall-icon-shell-size: 1.08rem;
+    --pos-analysis-overall-icon-size: 1.02rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--rb {
+    --pos-analysis-matrix-icon-shell-size: 1.08rem;
+    --pos-analysis-matrix-icon-size: 0.86rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--wr {
+    --pos-analysis-matrix-icon-shell-size: 1.08rem;
+    --pos-analysis-matrix-icon-size: 0.92rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--te {
+    --pos-analysis-matrix-icon-shell-size: 1.08rem;
+    --pos-analysis-matrix-icon-size: 0.9rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--qb {
+    --pos-analysis-matrix-icon-shell-size: 1.08rem;
+    --pos-analysis-matrix-icon-size: 0.84rem;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Mobile kicker symbols are intentionally independent from desktop and each other. */
+  body[data-page="research"] .pos-analysis-kicker--dashboard .pos-analysis-icon-shell {
+    width: 0.92rem;
+    height: 0.92rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--dashboard .pos-analysis-material-symbol {
+    width: 0.72rem;
+    height: 0.72rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--infographic .pos-analysis-icon-shell {
+    width: 0.92rem;
+    height: 0.92rem;
+  }
+
+  body[data-page="research"] .pos-analysis-kicker--infographic .pos-analysis-material-symbol {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+
+  /* Mobile eyebrow symbols remain panel-specific. */
+  body[data-page="research"] .pos-analysis-eyebrow--global { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--profiles { --pos-analysis-eyebrow-icon-size: 0.68rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--mini { --pos-analysis-eyebrow-icon-size: 0.69rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--tier-stack { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--combo { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--paradigm { --pos-analysis-eyebrow-icon-size: 0.69rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--simulator { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--milestone { --pos-analysis-eyebrow-icon-size: 0.68rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--matrix { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--te-role { --pos-analysis-eyebrow-icon-size: 0.76rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--formula { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--timeline { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--tactical-caution { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--strategic-summary { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--regression { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+  body[data-page="research"] .pos-analysis-eyebrow--moving-forward { --pos-analysis-eyebrow-icon-size: 0.7rem; }
+
+  /* Mobile chart-mode controls. */
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="single"] {
+    --pos-analysis-control-icon-shell-size: 0.78rem;
+    --pos-analysis-control-icon-size: 0.86rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="grid"] {
+    --pos-analysis-control-icon-shell-size: 0.78rem;
+    --pos-analysis-control-icon-size: 0.82rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="all"] {
+    --pos-analysis-control-icon-shell-size: 0.78rem;
+    --pos-analysis-control-icon-size: 0.84rem;
+  }
+
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="rbWr"] {
+    --pos-analysis-control-icon-shell-size: 0.78rem;
+    --pos-analysis-control-icon-size: 0.86rem;
+  }
+
+  /* Mobile position-filter symbols. */
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="QB"] { --pos-analysis-position-icon-size: 0.76rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] { --pos-analysis-position-icon-size: 0.78rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] { --pos-analysis-position-icon-size: 0.84rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] { --pos-analysis-position-icon-size: 0.8rem; }
+
+  /* Mobile stat chips: each selected path has its own optical size. */
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range { --pos-analysis-chip-icon-size: 1.32rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference { --pos-analysis-chip-icon-size: 1.42rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--rb-trend { --pos-analysis-chip-icon-size: 1.32rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend { --pos-analysis-chip-icon-size: 1.32rem; }
+
+  /* Mobile position cards. */
+  body[data-page="research"] .pos-analysis-profile-section { --pos-analysis-profile-trend-icon-size: 0.62rem; }
+  body[data-page="research"] .pos-analysis-profile-card--qb { --pos-analysis-profile-symbol-size: 0.78rem; }
+  body[data-page="research"] .pos-analysis-profile-card--rb { --pos-analysis-profile-symbol-size: 0.82rem; }
+  body[data-page="research"] .pos-analysis-profile-card--wr { --pos-analysis-profile-symbol-size: 0.88rem; }
+  body[data-page="research"] .pos-analysis-profile-card--te { --pos-analysis-profile-symbol-size: 0.84rem; }
+
+  /* Mobile infographic summary symbols. */
+  body[data-page="research"] .pos-analysis-info-stat--formula {
+    --pos-analysis-info-stat-icon-shell-size: 0.9rem;
+    --pos-analysis-info-stat-icon-size: 0.7rem;
+  }
+
+  body[data-page="research"] .pos-analysis-info-stat--milestone {
+    --pos-analysis-info-stat-icon-shell-size: 0.9rem;
+    --pos-analysis-info-stat-icon-size: 0.68rem;
+  }
+
+  /* Mobile personnel formula symbols. */
+  body[data-page="research"] .pos-analysis-personnel-formula--11 {
+    --pos-analysis-formula-icon-shell-size: 0.86rem;
+    --pos-analysis-formula-icon-size: 0.66rem;
+  }
+
+  body[data-page="research"] .pos-analysis-personnel-formula--12 {
+    --pos-analysis-formula-icon-shell-size: 0.86rem;
+    --pos-analysis-formula-icon-size: 0.7rem;
+  }
+
+  body[data-page="research"] .pos-analysis-personnel-formula--13 {
+    --pos-analysis-formula-icon-shell-size: 0.86rem;
+    --pos-analysis-formula-icon-size: 0.7rem;
+  }
+
+  /* Mobile tactical-simulator control symbols. */
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="11"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.72rem;
+    --pos-analysis-personnel-button-icon-size: 0.64rem;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="12"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.72rem;
+    --pos-analysis-personnel-button-icon-size: 0.66rem;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator [data-pos-analysis-personnel="13"] {
+    --pos-analysis-personnel-button-icon-shell-size: 0.72rem;
+    --pos-analysis-personnel-button-icon-size: 0.68rem;
+  }
+
+  body[data-page="research"] #pos-analysis-sim-rb { --pos-analysis-sim-stat-icon-size: 0.7rem; }
+  body[data-page="research"] #pos-analysis-sim-wr { --pos-analysis-sim-stat-icon-size: 0.74rem; }
+  body[data-page="research"] #pos-analysis-sim-te { --pos-analysis-sim-stat-icon-size: 0.72rem; }
+  body[data-page="research"] #pos-analysis-sim-qb { --pos-analysis-sim-stat-icon-size: 0.68rem; }
+
+  /* Mobile historical banner and positional matrix symbols. */
+  body[data-page="research"] .pos-analysis-overall-icon {
+    --pos-analysis-overall-icon-shell-size: 0.94rem;
+    --pos-analysis-overall-icon-size: 0.88rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--rb {
+    --pos-analysis-matrix-icon-shell-size: 0.92rem;
+    --pos-analysis-matrix-icon-size: 0.72rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--wr {
+    --pos-analysis-matrix-icon-shell-size: 0.92rem;
+    --pos-analysis-matrix-icon-size: 0.76rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--te {
+    --pos-analysis-matrix-icon-shell-size: 0.92rem;
+    --pos-analysis-matrix-icon-size: 0.74rem;
+  }
+
+  body[data-page="research"] .pos-analysis-matrix-card--qb {
+    --pos-analysis-matrix-icon-shell-size: 0.92rem;
+    --pos-analysis-matrix-icon-size: 0.7rem;
+  }
+}
 
 /* Hide filters/view-switcher on Research page (header rules) */
 body[data-page="research"] #filters-row,

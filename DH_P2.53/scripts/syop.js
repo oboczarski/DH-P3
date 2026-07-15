@@ -208,42 +208,45 @@
     personnel: '12'
   };
 
-  // Positional Analysis icon system:
-  // - mirrors DataHub's local inline-SVG approach instead of adding a shared icon dependency
-  // - targets only .pos-analysis-* UI elements through hydrated data attributes or direct render helpers
-  // - keeps all icons decorative/aria-hidden so chart and control labels remain the accessible names.
-  const POS_ANALYSIS_ICON_PATHS = {
-    radar: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8l5 3"/><path d="M4 12h3"/><path d="M17 12h3"/>',
-    'line-chart': '<path d="M3 19h18"/><path d="M5 16l4-5 4 3 6-8"/><circle cx="9" cy="11" r="1.4"/><circle cx="13" cy="14" r="1.4"/><circle cx="19" cy="6" r="1.4"/>',
-    grid: '<rect x="4" y="4" width="6" height="6" rx="1.2"/><rect x="14" y="4" width="6" height="6" rx="1.2"/><rect x="4" y="14" width="6" height="6" rx="1.2"/><rect x="14" y="14" width="6" height="6" rx="1.2"/>',
-    users: '<path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20"/><circle cx="10" cy="7" r="3.5"/><path d="M20 20v-1.2a3 3 0 0 0-2.2-2.9"/><path d="M15.5 4.4a3.2 3.2 0 0 1 0 5.2"/>',
-    split: '<path d="M5 4v5a4 4 0 0 0 4 4h10"/><path d="M16 10l3 3-3 3"/><path d="M5 20v-3a4 4 0 0 1 4-4"/>',
-    cards: '<rect x="5" y="6" width="14" height="12" rx="2"/><path d="M8 10h8"/><path d="M8 14h5"/><path d="M3 9V7a3 3 0 0 1 3-3h9"/>',
-    calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4"/><path d="M16 3v4"/><path d="M4 10h16"/><path d="M8 14h2"/><path d="M14 14h2"/>',
-    stack: '<path d="M5 19V9"/><path d="M12 19V5"/><path d="M19 19v-7"/><path d="M3 19h18"/><path d="M5 13h4"/><path d="M12 11h4"/><path d="M19 16h2"/>',
-    'bar-gap': '<path d="M4 20V9"/><path d="M8 20V5"/><path d="M16 20v-7"/><path d="M20 20V8"/><path d="M3 20h18"/><path d="M11 9h2"/><path d="M11 15h2"/>',
-    strategy: '<path d="M4 18l6-6 4 4 6-8"/><path d="M14 8h6v6"/><circle cx="7" cy="18" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="17" cy="16" r="2"/>',
-    formula: '<path d="M5 7h14"/><path d="M5 12h8"/><path d="M5 17h14"/><path d="M16 10l3 2-3 2"/>',
-    trophy: '<path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5a2 2 0 0 0 2 4h1"/><path d="M16 6h3a2 2 0 0 1-2 4h-1"/><path d="M12 12v5"/><path d="M8 20h8"/><path d="M10 17h4"/>',
-    switch: '<path d="M5 7h11"/><path d="M13 4l3 3-3 3"/><path d="M19 17H8"/><path d="M11 14l-3 3 3 3"/>',
-    spread: '<path d="M4 17h16"/><circle cx="12" cy="17" r="1.4"/><circle cx="6" cy="10" r="1.4"/><circle cx="18" cy="10" r="1.4"/><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/>',
-    heavy: '<path d="M4 17h16"/><circle cx="12" cy="17" r="1.4"/><circle cx="8" cy="10" r="1.4"/><circle cx="16" cy="10" r="1.4"/><rect x="9" y="5" width="6" height="4" rx="1.2"/>',
-    jumbo: '<path d="M4 17h16"/><circle cx="12" cy="18" r="1.4"/><rect x="5" y="8" width="4" height="4" rx="1"/><rect x="10" y="6" width="4" height="4" rx="1"/><rect x="15" y="8" width="4" height="4" rx="1"/>',
-    field: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 5v14"/><path d="M16 5v14"/><path d="M4 12h16"/><circle cx="12" cy="12" r="2"/>',
-    milestone: '<path d="M5 19h14"/><path d="M7 19V8l5-3 5 3v11"/><path d="M9 11h6"/><path d="M9 15h6"/>',
-    network: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><circle cx="12" cy="12" r="2"/><path d="M8 7.5l2.5 3"/><path d="M16 7.5l-2.5 3"/><path d="M8 16.5l2.5-3"/><path d="M16 16.5l-2.5-3"/>',
-    runner: '<circle cx="12" cy="4" r="2"/><path d="M10 9l4 2 3-2"/><path d="M14 11l-2 4 4 5"/><path d="M10 9l-3 4"/><path d="M12 15l-5 4"/>',
-    route: '<path d="M4 18c5 0 4-12 10-12h5"/><path d="M16 3l3 3-3 3"/><circle cx="4" cy="18" r="2"/><circle cx="10" cy="11" r="1.4"/>',
-    shield: '<path d="M12 3l7 3v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-5"/>',
-    helmet: '<path d="M4 13a8 8 0 0 1 15.6-2.5"/><path d="M19 11v5h-5l-2-3H8v5H6a2 2 0 0 1-2-2v-3"/><path d="M14 16h5"/>',
-    timeline: '<path d="M5 4v16"/><circle cx="5" cy="6" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="5" cy="18" r="2"/><path d="M9 6h10"/><path d="M9 12h7"/><path d="M9 18h10"/>',
-    warning: '<path d="M12 4l9 16H3L12 4Z"/><path d="M12 9v5"/><path d="M12 17h.01"/>',
-    cycle: '<path d="M20 12a8 8 0 0 1-13.5 5.8"/><path d="M4 12A8 8 0 0 1 17.5 6.2"/><path d="M7 18H4v-3"/><path d="M17 6h3v3"/>',
-    ground: '<path d="M4 18c4-4 12-4 16 0"/><path d="M6 14c3-2 9-2 12 0"/><path d="M8 10c2-1 6-1 8 0"/><path d="M12 4v4"/>',
-    target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3"/><path d="M12 19v3"/><path d="M2 12h3"/><path d="M19 12h3"/>',
-    diff: '<path d="M4 8h16"/><path d="M4 16h16"/><path d="M8 4v8"/><path d="M16 12v8"/>',
-    'trend-up': '<path d="M4 16l5-5 4 4 7-8"/><path d="M15 7h5v5"/>',
-    'trend-down': '<path d="M4 8l5 5 4-4 7 8"/><path d="M15 17h5v-5"/>'
+  // Positional Analysis Material Symbols registry:
+  // - the eight user-selected paths stay byte-for-byte at the source of truth
+  // - every remaining glyph comes from Google's rounded 24px Material Symbols SVG set
+  // - inline paths keep this Research-only tab independent from icon fonts and network loading.
+  const POS_ANALYSIS_MATERIAL_SYMBOLS = {
+    qb: { materialName: 'my_location', path: 'M440-82v-40q-125-14-214.5-103.5T122-440H82q-17 0-28.5-11.5T42-480q0-17 11.5-28.5T82-520h40q14-125 103.5-214.5T440-838v-40q0-17 11.5-28.5T480-918q17 0 28.5 11.5T520-878v40q125 14 214.5 103.5T838-520h40q17 0 28.5 11.5T918-480q0 17-11.5 28.5T878-440h-40q-14 125-103.5 214.5T520-122v40q0 17-11.5 28.5T480-42q-17 0-28.5-11.5T440-82Zm238-200q82-82 82-198t-82-198q-82-82-198-82t-198 82q-82 82-82 198t82 198q82 82 198 82t198-82Zm-311-85q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47Zm169.5-56.5Q560-447 560-480t-23.5-56.5Q513-560 480-560t-56.5 23.5Q400-513 400-480t23.5 56.5Q447-400 480-400t56.5-23.5ZM480-480Z' },
+    rb: { materialName: 'train', path: 'M160-340v-380q0-53 27.5-84.5t72.5-48q45-16.5 102.5-22T480-880q66 0 124.5 5.5t102 22q43.5 16.5 68.5 48t25 84.5v380q0 59-40.5 99.5T660-200l20 20q17 17 8 38.5T655-120q-7 0-13.5-2.5T630-130l-70-70H400l-70 70q-5 5-11.5 7.5T305-120q-23 0-32.5-21.5T280-180l20-20q-59 0-99.5-40.5T160-340Zm320-460q-106 0-155 12.5T258-760h448q-15-17-64.5-28.5T480-800ZM240-560h200v-120H240v120Zm420 80H240h480-60Zm-140-80h200v-120H520v120ZM383-337q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Zm280 0q17-17 17-43t-17-43q-17-17-43-17t-43 17q-17 17-17 43t17 43q17 17 43 17t43-17Zm-363 57h360q26 0 43-17t17-43v-140H240v140q0 26 17 43t43 17Zm180-480h226-448 222Z' },
+    wr: { materialName: 'call_split', path: 'M240-664v64q0 17-11.5 28.5T200-560q-17 0-28.5-11.5T160-600v-160q0-17 11.5-28.5T200-800h160q17 0 28.5 11.5T400-760q0 17-11.5 28.5T360-720h-64l201 201q11 11 17 25.5t6 30.5v263q0 17-11.5 28.5T480-160q-17 0-28.5-11.5T440-200v-264L240-664Zm480 0-98 99q-12 12-28.5 12T565-565q-12-12-12-29t12-29l99-97h-64q-17 0-28.5-11.5T560-760q0-17 11.5-28.5T600-800h160q17 0 28.5 11.5T800-760v160q0 17-11.5 28.5T760-560q-17 0-28.5-11.5T720-600v-64Z' },
+    te: { materialName: 'person_shield', path: 'M458-240Zm-218 80q-33 0-56.5-23.5T160-240v-32q0-34 17.5-62.5T224-378q31-16 62.5-27t63.5-19q23-5 45-9t45-6q17-2 28.5 10t11.5 29q0 17-11.5 28.5T440-358q-18 2-35.5 4t-35.5 7q-28 7-55 17t-54 24q-9 5-14.5 14t-5.5 20v32h218q17 0 28.5 11.5T498-200q0 17-11.5 28.5T458-160H240Zm320-215q0-11 5.5-21t16.5-15l120-60q8-5 18-5t18 5l120 60q11 5 16.5 15t5.5 21v77q0 69-36 125t-98 85q-6 3-12.5 4T720-83q-7 0-13.5-1T694-88q-62-29-98-85t-36-125v-77Zm160 211q38-18 59-55t21-79v-52l-80-40-80 40v52q0 42 21 79t59 55ZM367-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47Zm169.5-56.5Q560-607 560-640t-23.5-56.5Q513-720 480-720t-56.5 23.5Q400-673 400-640t23.5 56.5Q447-560 480-560t56.5-23.5ZM480-640Zm240 363Z' },
+    'selected-range': { materialName: 'selected_range', path: 'M388.5-291.5Q400-303 400-320t-11.5-28.5Q377-360 360-360t-28.5 11.5Q320-337 320-320t11.5 28.5Q343-280 360-280t28.5-11.5Zm120 0Q520-303 520-320t-11.5-28.5Q497-360 480-360t-28.5 11.5Q440-337 440-320t11.5 28.5Q463-280 480-280t28.5-11.5Zm120 0Q640-303 640-320t-11.5-28.5Q617-360 600-360t-28.5 11.5Q560-337 560-320t11.5 28.5Q583-280 600-280t28.5-11.5ZM437-513l-56-57q-12-12-28.5-12T324-570q-12 12-12 28.5t12 28.5l85 85q12 12 28.5 12t28.5-12l169-170q11-12 11.5-28.5T635-655q-12-12-28-12t-28 12L437-513Zm43 433q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z' },
+    'rb-vs-wr': { materialName: 'rb_vs_wr', path: 'm110-290 213-213q23-23 57-23t57 23l103 103 67-76-224-207-213 213q-13 13-30 13t-30-13q-13-13-13-30t13-30l216-216q23-23 54.5-23.5T436-748l228 209 132-150q11-13 28.5-13t29.5 12q11 11 11.5 26.5T855-636L722-486l126 116q14 12 14 30t-13 31q-12 12-29 12t-30-11L666-422l-70 78q-23 26-57 27.5T480-340L380-440 170-230q-13 13-30 13t-30-13q-13-13-13-30t13-30Z' },
+    'rb-trend': { materialName: 'trending_up', path: 'M108-255q-12-12-11.5-28.5T108-311l211-214q23-23 57-23t57 23l103 104 208-206h-64q-17 0-28.5-11.5T640-667q0-17 11.5-28.5T680-707h160q17 0 28.5 11.5T880-667v160q0 17-11.5 28.5T840-467q-17 0-28.5-11.5T800-507v-64L593-364q-23 23-57 23t-57-23L376-467 164-255q-11 11-28 11t-28-11Z' },
+    'wr-trend': { materialName: 'trending_down', path: 'M744-320 536-526 433-423q-23 23-57 23t-57-23L108-636q-11-11-11.5-27.5T108-692q11-11 28-11t28 11l212 212 103-103q23-23 57-23t57 23l207 207v-64q0-17 11.5-28.5T840-480q17 0 28.5 11.5T880-440v160q0 17-11.5 28.5T840-240H680q-17 0-28.5-11.5T640-280q0-17 11.5-28.5T680-320h64Z' },
+    radar: { materialName: 'radar', path: 'M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q56 0 105.5-17.5T676-227l-57-57q-29 21-64.5 32.5T480-240q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 39-12 75t-33 65l57 57q32-41 50-91t18-106q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-160q22 0 42.5-5.5T561-342l-61-61q-5 2-10 2.5t-10 .5q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 6-.5 11.5T557-458l60 60q11-18 17-38.5t6-43.5q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Z' },
+    'line-chart': { materialName: 'monitoring', path: 'M160-120q-17 0-28.5-11.5T120-160v-40q0-17 11.5-28.5T160-240q17 0 28.5 11.5T200-200v40q0 17-11.5 28.5T160-120Zm160 0q-17 0-28.5-11.5T280-160v-220q0-17 11.5-28.5T320-420q17 0 28.5 11.5T360-380v220q0 17-11.5 28.5T320-120Zm160 0q-17 0-28.5-11.5T440-160v-140q0-17 11.5-28.5T480-340q17 0 28.5 11.5T520-300v140q0 17-11.5 28.5T480-120Zm160 0q-17 0-28.5-11.5T600-160v-200q0-17 11.5-28.5T640-400q17 0 28.5 11.5T680-360v200q0 17-11.5 28.5T640-120Zm160 0q-17 0-28.5-11.5T760-160v-360q0-17 11.5-28.5T800-560q17 0 28.5 11.5T840-520v360q0 17-11.5 28.5T800-120ZM560-481q-16 0-30.5-6T503-504L400-607 188-395q-12 12-28.5 11.5T131-396q-11-12-10.5-28.5T132-452l211-211q12-12 26.5-17.5T400-686q16 0 31 5.5t26 17.5l103 103 212-212q12-12 28.5-11.5T829-771q11 12 10.5 28.5T828-715L617-504q-11 11-26 17t-31 6Z' },
+    grid: { materialName: 'grid_view', path: 'M200-520q-33 0-56.5-23.5T120-600v-160q0-33 23.5-56.5T200-840h160q33 0 56.5 23.5T440-760v160q0 33-23.5 56.5T360-520H200Zm0 400q-33 0-56.5-23.5T120-200v-160q0-33 23.5-56.5T200-440h160q33 0 56.5 23.5T440-360v160q0 33-23.5 56.5T360-120H200Zm400-400q-33 0-56.5-23.5T520-600v-160q0-33 23.5-56.5T600-840h160q33 0 56.5 23.5T840-760v160q0 33-23.5 56.5T760-520H600Zm0 400q-33 0-56.5-23.5T520-200v-160q0-33 23.5-56.5T600-440h160q33 0 56.5 23.5T840-360v160q0 33-23.5 56.5T760-120H600ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z' },
+    users: { materialName: 'group', path: 'M40-272q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v32q0 33-23.5 56.5T600-160H120q-33 0-56.5-23.5T40-240v-32Zm800 112H738q11-18 16.5-38.5T760-240v-40q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v40q0 33-23.5 56.5T840-160ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z' },
+    split: { materialName: 'compare_arrows', path: 'M367-320H120q-17 0-28.5-11.5T80-360q0-17 11.5-28.5T120-400h247l-75-75q-11-11-11-27.5t11-28.5q12-12 28.5-12t28.5 12l143 143q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L348-188q-12 12-28 11.5T292-189q-11-12-11.5-28t11.5-28l75-75Zm226-240 75 75q11 11 11 27.5T668-429q-12 12-28.5 12T611-429L468-572q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l144-144q12-12 28-11.5t28 12.5q11 12 11.5 28T668-715l-75 75h247q17 0 28.5 11.5T880-600q0 17-11.5 28.5T840-560H593Z' },
+    cards: { materialName: 'id_card', path: 'M720-440q17 0 28.5-11.5T760-480q0-17-11.5-28.5T720-520H600q-17 0-28.5 11.5T560-480q0 17 11.5 28.5T600-440h120Zm0-120q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640H600q-17 0-28.5 11.5T560-600q0 17 11.5 28.5T600-560h120ZM360-440q-36 0-65 6.5T244-413q-21 13-32 29.5T201-348q0 12 9 20t22 8h256q13 0 22-8.5t9-21.5q0-17-11-33t-32-30q-22-14-51-20.5t-65-6.5Zm0-40q33 0 56.5-23.5T440-560q0-33-23.5-56.5T360-640q-33 0-56.5 23.5T280-560q0 33 23.5 56.5T360-480ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z' },
+    calendar: { materialName: 'calendar_month', path: 'M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z' },
+    stack: { materialName: 'stacked_bar_chart', path: 'M200-160q-17 0-28.5-11.5T160-200v-360q0-17 11.5-28.5T200-600h80q17 0 28.5 11.5T320-560v360q0 17-11.5 28.5T280-160h-80Zm0-480q-17 0-28.5-11.5T160-680v-80q0-17 11.5-28.5T200-800h80q17 0 28.5 11.5T320-760v80q0 17-11.5 28.5T280-640h-80Zm240 480q-17 0-28.5-11.5T400-200v-240q0-17 11.5-28.5T440-480h80q17 0 28.5 11.5T560-440v240q0 17-11.5 28.5T520-160h-80Zm0-360q-17 0-28.5-11.5T400-560v-80q0-17 11.5-28.5T440-680h80q17 0 28.5 11.5T560-640v80q0 17-11.5 28.5T520-520h-80Zm240 360q-17 0-28.5-11.5T640-200v-120q0-17 11.5-28.5T680-360h80q17 0 28.5 11.5T800-320v120q0 17-11.5 28.5T760-160h-80Zm0-240q-17 0-28.5-11.5T640-440v-80q0-17 11.5-28.5T680-560h80q17 0 28.5 11.5T800-520v80q0 17-11.5 28.5T760-400h-80Z' },
+    'bar-gap': { materialName: 'bar_chart_4_bars', path: 'M120-120q-17 0-28.5-11.5T80-160q0-17 11.5-28.5T120-200h720q17 0 28.5 11.5T880-160q0 17-11.5 28.5T840-120H120Zm60-120q-25 0-42.5-17.5T120-300v-160q0-25 17.5-42.5T180-520q25 0 42.5 17.5T240-460v160q0 25-17.5 42.5T180-240Zm200 0q-25 0-42.5-17.5T320-300v-360q0-25 17.5-42.5T380-720q25 0 42.5 17.5T440-660v360q0 25-17.5 42.5T380-240Zm200 0q-25 0-42.5-17.5T520-300v-240q0-25 17.5-42.5T580-600q25 0 42.5 17.5T640-540v240q0 25-17.5 42.5T580-240Zm200 0q-25 0-42.5-17.5T720-300v-480q0-25 17.5-42.5T780-840q25 0 42.5 17.5T840-780v480q0 25-17.5 42.5T780-240Z' },
+    strategy: { materialName: 'strategy', path: 'm200-531-100-57q-9-5-14.5-14.5T80-623v-114q0-11 5.5-20.5T100-772l100-57q9-5 20-5t20 5l100 57q9 5 14.5 14.5T360-737v114q0 11-5.5 20.5T340-588l-100 57q-9 5-20 5t-20-5Zm20-81 60-34v-68l-60-34-60 34v68l60 34Zm440 123v-93l100 59q19 11 29.5 29.5T800-454v188q0 21-10.5 39.5T760-197l-160 93q-19 11-40 11t-40-11l-160-93q-19-11-29.5-29.5T320-266v-188q0-21 10.5-39.5T360-523l100-59v93l-60 35v188l160 93 160-93v-188l-60-35Zm-60-151v200q0 17-11.5 28.5T560-400q-17 0-28.5-11.5T520-440v-400q0-17 11.5-28.5T560-880h245q24 0 36 21t-2 41l-24 36q-7 10-7 22t7 22l24 36q14 20 2 41t-36 21H600Zm-40 309ZM220-680Z' },
+    formula: { materialName: 'function', path: 'M221-120q-45 0-73-24t-28-64q0-32 17-51.5t43-19.5q25 0 42.5 17t17.5 41q0 5-.5 9t-1.5 9q5-1 8.5-5.5T252-221l62-339h-74q-17 0-28.5-11.5T200-600q0-17 11.5-28.5T240-640h89l21-114q7-38 37.5-62t72.5-24q44 0 72 26t28 65q0 30-17 49.5T500-680q-25 0-42.5-17T440-739q0-5 .5-9t1.5-9q-6 2-9 6t-5 12l-17 99h149q17 0 28.5 11.5T600-600q0 15-9.5 26T567-561l53 60 53-60q-14-2-23.5-13t-9.5-26q0-17 11.5-28.5T680-640h120q17 0 28.5 11.5T840-600q0 17-11.5 28.5T800-560h-22L673-440l105 120h22q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H680q-17 0-28.5-11.5T640-280q0-15 9.5-26t23.5-13l-53-61-53 61q14 2 23.5 13t9.5 26q0 17-11.5 28.5T560-240H440q-17 0-28.5-11.5T400-280q0-17 11.5-28.5T440-320h22l105-120-105-120h-66l-64 344q-8 45-37 70.5T221-120Z' },
+    trophy: { materialName: 'trophy', path: 'M440-200v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80q0-33 23.5-56.5T360-840h240q33 0 56.5 23.5T680-760h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h120q17 0 28.5 11.5T680-160q0 17-11.5 28.5T640-120H320q-17 0-28.5-11.5T280-160q0-17 11.5-28.5T320-200h120ZM280-528v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z' },
+    switch: { materialName: 'swap_horiz', path: 'm233-320 75 75q11 11 11 27.5T308-189q-12 12-28.5 12T251-189L108-332q-6-6-8.5-13T97-360q0-8 2.5-15t8.5-13l144-144q12-12 28-11.5t28 12.5q11 12 11.5 28T308-475l-75 75h247q17 0 28.5 11.5T520-360q0 17-11.5 28.5T480-320H233Zm494-240H480q-17 0-28.5-11.5T440-600q0-17 11.5-28.5T480-640h247l-75-75q-11-11-11-27.5t11-28.5q12-12 28.5-12t28.5 12l143 143q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L708-428q-12 12-28 11.5T652-429q-11-12-11.5-28t11.5-28l75-75Z' },
+    spread: { materialName: 'open_in_full', path: 'M160-120q-17 0-28.5-11.5T120-160v-240q0-17 11.5-28.5T160-440q17 0 28.5 11.5T200-400v144l504-504H560q-17 0-28.5-11.5T520-800q0-17 11.5-28.5T560-840h240q17 0 28.5 11.5T840-800v240q0 17-11.5 28.5T800-520q-17 0-28.5-11.5T760-560v-144L256-200h144q17 0 28.5 11.5T440-160q0 17-11.5 28.5T400-120H160Z' },
+    heavy: { materialName: 'fitness_center', path: 'M282-622 168-508q-11 11-27.5 11.5T112-508q-11-11-11.5-27.5T111-564l29-30-28-28q-12-12-12-28t12-28l56-56-29-30q-11-11-11-27.5t12-28.5q11-11 27.5-11.5T196-821l30 29 56-56q12-12 28-12t28 12l28 28 30-29q11-11 27.5-11t28.5 12q11 11 11 28t-11 28L338-678l340 340 114-114q11-11 27.5-11.5T848-452q11 11 11.5 27.5T849-396l-29 30 28 28q12 12 12 28t-12 28l-56 56 29 30q11 11 11 27.5T820-140q-11 11-27.5 11.5T764-139l-30-29-56 56q-12 12-28 12t-28-12l-28-28-30 29q-11 11-27.5 11T508-112q-11-11-11-28t11-28l114-114-340-340Z' },
+    jumbo: { materialName: 'fort', path: 'M40-200v-47q0-16 6-30.5T63-303l57-57v-240l-57-57q-11-11-17-25.5T40-713v-87q0-17 11.5-28.5T80-840q17 0 28.5 11.5T120-800v40h80v-40q0-17 11.5-28.5T240-840q17 0 28.5 11.5T280-800v40h80v-40q0-17 11.5-28.5T400-840q17 0 28.5 11.5T440-800v87q0 16-6 30.5T417-657l-57 57v40h240v-40l-57-57q-11-11-17-25.5t-6-30.5v-87q0-17 11.5-28.5T560-840q17 0 28.5 11.5T600-800v40h80v-40q0-17 11.5-28.5T720-840q17 0 28.5 11.5T760-800v40h80v-40q0-17 11.5-28.5T880-840q17 0 28.5 11.5T920-800v87q0 16-6 30.5T897-657l-57 57v240l57 57q11 11 17 25.5t6 30.5v47q0 33-23.5 56.5T840-120H600q-17 0-28.5-11.5T560-160v-80q0-33-23.5-56.5T480-320q-33 0-56.5 23.5T400-240v80q0 17-11.5 28.5T360-120H120q-33 0-56.5-23.5T40-200Zm80 0h200v-40q0-66 47-113t113-47q66 0 113 47t47 113v40h200v-47l-80-80v-306l47-47H633l47 47v153H280v-153l47-47H153l47 47v306l-80 80v47Zm360-240Z' },
+    field: { materialName: 'stadium', path: 'M120-712v-96q0-11 9.5-17t19.5-1l95 48q11 5 11 18t-11 18l-95 48q-10 5-19.5-1t-9.5-17Zm600 0v-96q0-11 9.5-17t19.5-1l95 48q11 5 11 18t-11 18l-95 48q-10 5-19.5-1t-9.5-17Zm-280-40v-96q0-11 9.5-17t19.5-1l95 48q11 5 11 18t-11 18l-95 48q-10 5-19.5-1t-9.5-17ZM406-81q-140-8-233-41.5T80-200v-360q0-25 31.5-46.5t85.5-38q54-16.5 127-26t156-9.5q83 0 156 9.5t127 26q54 16.5 85.5 38T880-560v360q0 45-93.5 78T553-81q-14 1-23.5-8.5T520-113v-127h-80v126q0 14-10 24t-24 9Zm74-439q97 0 167.5-11.5T760-558q0-5-76-23.5T480-600q-128 0-204 18.5T200-558q42 15 112.5 26.5T480-520ZM360-166v-74q0-33 23.5-56.5T440-320h80q33 0 56.5 23.5T600-240v74q80-8 131-23.5t69-27.5v-271q-55 22-138 35t-182 13q-99 0-182-13t-138-35v271q18 12 69 27.5T360-166Zm120-161Z' },
+    milestone: { materialName: 'history', path: 'M480-120q-126 0-223-76.5T131-392q-4-15 6-27.5t27-14.5q16-2 29 6t18 24q24 90 99 147t170 57q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h70q17 0 28.5 11.5T360-600q0 17-11.5 28.5T320-560H160q-17 0-28.5-11.5T120-600v-160q0-17 11.5-28.5T160-800q17 0 28.5 11.5T200-760v54q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm40-376 100 100q11 11 11 28t-11 28q-11 11-28 11t-28-11L452-452q-6-6-9-13.5t-3-15.5v-159q0-17 11.5-28.5T480-680q17 0 28.5 11.5T520-640v144Z' },
+    network: { materialName: 'hub', path: 'M240-40q-50 0-85-35t-35-85q0-50 35-85t85-35q14 0 26 3t23 8l57-71q-28-31-39-70t-5-78l-81-27q-17 25-43 40t-58 15q-50 0-85-35T0-580q0-50 35-85t85-35q50 0 85 35t35 85v8l81 28q20-36 53.5-61t75.5-32v-87q-39-11-64.5-42.5T360-840q0-50 35-85t85-35q50 0 85 35t35 85q0 42-26 73.5T510-724v87q42 7 75.5 32t53.5 61l81-28v-8q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-32 0-58.5-15T739-515l-81 27q6 39-5 77.5T614-340l57 70q11-5 23-7.5t26-2.5q50 0 85 35t35 85q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-20 6.5-38.5T624-232l-57-71q-41 23-87.5 23T392-303l-56 71q11 15 17.5 33.5T360-160q0 50-35 85t-85 35ZM120-540q17 0 28.5-11.5T160-580q0-17-11.5-28.5T120-620q-17 0-28.5 11.5T80-580q0 17 11.5 28.5T120-540Zm120 420q17 0 28.5-11.5T280-160q0-17-11.5-28.5T240-200q-17 0-28.5 11.5T200-160q0 17 11.5 28.5T240-120Zm240-680q17 0 28.5-11.5T520-840q0-17-11.5-28.5T480-880q-17 0-28.5 11.5T440-840q0 17 11.5 28.5T480-800Zm0 440q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm240 240q17 0 28.5-11.5T760-160q0-17-11.5-28.5T720-200q-17 0-28.5 11.5T680-160q0 17 11.5 28.5T720-120Zm120-420q17 0 28.5-11.5T880-580q0-17-11.5-28.5T840-620q-17 0-28.5 11.5T800-580q0 17 11.5 28.5T840-540ZM480-840ZM120-580Zm360 120Zm360-120ZM240-160Zm480 0Z' },
+    timeline: { materialName: 'timeline', path: 'M120-240q-33 0-56.5-23.5T40-320q0-33 23.5-56.5T120-400h10.5q4.5 0 9.5 2l182-182q-2-5-2-9.5V-600q0-33 23.5-56.5T400-680q33 0 56.5 23.5T480-600q0 2-2 20l102 102q5-2 9.5-2h21q4.5 0 9.5 2l142-142q-2-5-2-9.5V-640q0-33 23.5-56.5T840-720q33 0 56.5 23.5T920-640q0 33-23.5 56.5T840-560h-10.5q-4.5 0-9.5-2L678-420q2 5 2 9.5v10.5q0 33-23.5 56.5T600-320q-33 0-56.5-23.5T520-400v-10.5q0-4.5 2-9.5L420-522q-5 2-9.5 2H400q-2 0-20-2L198-340q2 5 2 9.5v10.5q0 33-23.5 56.5T120-240Z' },
+    warning: { materialName: 'warning', path: 'M109-120q-11 0-20-5.5T75-140q-5-9-5.5-19.5T75-180l370-640q6-10 15.5-15t19.5-5q10 0 19.5 5t15.5 15l370 640q6 10 5.5 20.5T885-140q-5 9-14 14.5t-20 5.5H109Zm69-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm0-120q17 0 28.5-11.5T520-400v-120q0-17-11.5-28.5T480-560q-17 0-28.5 11.5T440-520v120q0 17 11.5 28.5T480-360Zm0-100Z' },
+    cycle: { materialName: 'cycle', path: 'M160-479q0 85 42.5 158T318-204q14 9 19.5 24.5T335-150q-8 15-24.5 19.5T279-134q-93-54-146-146T80-479q0-26 3.5-51t9.5-50l-13 8q-14 9-30 4.5T26-586q-8-14-3.5-30.5T41-641l121-70q14-8 30.5-3.5T217-696l70 120q8 14 3.5 30.5T272-521q-14 8-30.5 3.5T217-536l-34-59q-11 28-17 57t-6 59Zm320-321q-41 0-81 10.5T323-759q-15 8-31.5 5.5T267-770q-9-16-4-32.5t21-25.5q45-26 94.5-39T480-880q79 0 151.5 29.5T761-765v-15q0-17 11.5-28.5T801-820q17 0 28.5 11.5T841-780v140q0 17-11.5 28.5T801-600H661q-17 0-28.5-11.5T621-640q0-17 11.5-28.5T661-680h69q-46-57-111-88.5T480-800Zm242 531q38-44 58-97t20-111q0-17 11.5-30t28.5-13q17 0 28.5 13t11.5 30q0 65-20.5 125.5T800-239q-39 52-92.5 89T591-95l10 6q14 8 18 24.5T615-34q-8 14-24 18t-30-4L439-90q-14-8-18.5-24.5T424-145l70-121q8-14 24-18t30 4q14 8 18.5 24.5T563-225l-37 63q57-8 107.5-35.5T722-269Z' },
+    ground: { materialName: 'grass', path: 'M120-160q-17 0-28.5-11.5T80-200q0-17 11.5-28.5T120-240h190q-17-63-56-114t-94-83q-22-13-21-28.5t27-14.5q131 2 222.5 95T480-160H120Zm440 0q0-42-9-83.5T525-323q42-69 112.5-112T794-480q24-1 25 15.5T800-437q-55 32-94 83t-56 114h190q17 0 28.5 11.5T880-200q0 17-11.5 28.5T840-160H560Zm-80-239q0-106 60.5-188.5T696-702q23-8 34 5t-9 32q-32 30-55.5 67T626-519q-44 21-80.5 51.5T480-399Zm-73-75q-12-9-24-17t-25-16q0-6 1-12.5t1-12.5q0-53-11.5-101T315-726q-11-22 1.5-32.5T349-753q36 29 63.5 66t44.5 81q-18 30-31 63.5T407-474Z' },
+    target: { materialName: 'target', path: 'M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-80q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 100-70 170t-170 70Zm0-80q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Z' },
+    'trend-up': { materialName: 'trending_up', path: 'M108-255q-12-12-11.5-28.5T108-311l211-214q23-23 57-23t57 23l103 104 208-206h-64q-17 0-28.5-11.5T640-667q0-17 11.5-28.5T680-707h160q17 0 28.5 11.5T880-667v160q0 17-11.5 28.5T840-467q-17 0-28.5-11.5T800-507v-64L593-364q-23 23-57 23t-57-23L376-467 164-255q-11 11-28 11t-28-11Z' },
+    'trend-down': { materialName: 'trending_down', path: 'M744-320 536-526 433-423q-23 23-57 23t-57-23L108-636q-11-11-11.5-27.5T108-692q11-11 28-11t28 11l212 212 103-103q23-23 57-23t57 23l207 207v-64q0-17 11.5-28.5T840-480q17 0 28.5 11.5T880-440v160q0 17-11.5 28.5T840-240H680q-17 0-28.5-11.5T640-280q0-17 11.5-28.5T680-320h64Z' }
   };
 
   const { distributionByPosition: SYOP_DISTRIBUTION, summaryByPosition: SYOP_POSITION_SUMMARY } = buildSyopSummary();
@@ -1464,9 +1467,17 @@
   }
 
   function posAnalysisIcon(name, extraClass = '') {
-    const paths = POS_ANALYSIS_ICON_PATHS[name] || POS_ANALYSIS_ICON_PATHS.target;
-    const className = `pos-analysis-icon${extraClass ? ` ${extraClass}` : ''}`;
-    return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+    const iconKey = POS_ANALYSIS_MATERIAL_SYMBOLS[name] ? name : 'target';
+    const icon = POS_ANALYSIS_MATERIAL_SYMBOLS[iconKey];
+    // Every rendered glyph gets both a common Material Symbol hook and a
+    // key-specific modifier so one section/icon can be tuned without leakage.
+    const className = [
+      'pos-analysis-icon',
+      'pos-analysis-material-symbol',
+      `pos-analysis-material-symbol--${iconKey}`,
+      extraClass
+    ].filter(Boolean).join(' ');
+    return `<svg class="${className}" viewBox="0 -960 960 960" aria-hidden="true" focusable="false" fill="currentColor" data-material-symbol="${escapePosAnalysisAttr(icon.materialName)}"><path d="${icon.path}"></path></svg>`;
   }
 
   function hydratePosAnalysisIcons(root = getPosAnalysisRoot()) {
@@ -1630,10 +1641,10 @@
 
   function getPosAnalysisPositionIcon(pos) {
     return {
-      QB: 'helmet',
-      RB: 'runner',
-      WR: 'route',
-      TE: 'shield'
+      QB: 'qb',
+      RB: 'rb',
+      WR: 'wr',
+      TE: 'te'
     }[pos] || 'target';
   }
 
@@ -2030,10 +2041,10 @@
     // mobile omits the tier because the Range chip already supplies that context.
     const mobileDiffLabel = '2025 · RB vs. WR';
     const chips = [
-      { key: 'range', label: 'SELECTED RANGE', mobileLabel: 'RANGE', value: summary.range, mobileValue: summary.range, tone: '', icon: 'target' },
-      { key: 'difference', label: diffLabel, mobileLabel: mobileDiffLabel, value: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'diff' },
-      { key: 'rb-trend', label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: summary.rb2020To2025 >= 0 ? 'trend-up' : 'trend-down' },
-      { key: 'wr-trend', label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: summary.wr2020To2025 >= 0 ? 'trend-up' : 'trend-down' }
+      { key: 'range', label: 'SELECTED RANGE', mobileLabel: 'RANGE', value: summary.range, mobileValue: summary.range, tone: '', icon: 'selected-range' },
+      { key: 'difference', label: diffLabel, mobileLabel: mobileDiffLabel, value: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, mobileValue: `${formatPosAnalysisDelta(summary.rbWrDiff)} RB`, tone: summary.rbWrDiff >= 0 ? 'up' : 'down', icon: 'rb-vs-wr' },
+      { key: 'rb-trend', label: 'RB 2020 ➜ 2025', mobileLabel: 'RB 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.rb2020To2025), mobileValue: formatPosAnalysisDelta(summary.rb2020To2025), tone: summary.rb2020To2025 >= 0 ? 'up' : 'down', icon: 'rb-trend' },
+      { key: 'wr-trend', label: 'WR 2020 ➜ 2025', mobileLabel: 'WR 2020 ➜ 2025', value: formatPosAnalysisDelta(summary.wr2020To2025), mobileValue: formatPosAnalysisDelta(summary.wr2020To2025), tone: summary.wr2020To2025 >= 0 ? 'up' : 'down', icon: 'wr-trend' }
     ];
     // Positional Analysis stat chips: both breakpoints place the icon beside the
     // value; duplicate label/value nodes preserve their breakpoint-specific copy.
@@ -2248,7 +2259,7 @@
       const latestPeakYear = posAnalysisLatestYearMatching(posAnalysisValues(POS_ANALYSIS_STATE.range, pos), stat.max);
       // Position-profile metrics use explicit mobile/desktop copy hooks: phones
       // omit "Rank", while the peak year can move inline without altering desktop.
-      return `<article class="pos-analysis-profile-card" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small class="pos-analysis-profile-rank pos-analysis-profile-rank--desktop">Rank #${stat.rank} of 19</small><small class="pos-analysis-profile-rank pos-analysis-profile-rank--mobile">#${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div class="pos-analysis-profile-peak"><span>Peak</span><strong>${stat.max}</strong><small class="pos-analysis-profile-peak-year">${escapePosAnalysisHtml(latestPeakYear)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
+      return `<article class="pos-analysis-profile-card pos-analysis-profile-card--${pos.toLowerCase()}" style="--pos-low:${config.low};--pos-mid:${config.mid};--pos-high:${config.high}"><div class="pos-analysis-profile-top"><div class="pos-analysis-profile-id"><span class="pos-analysis-profile-icon">${posAnalysisIcon(getPosAnalysisPositionIcon(pos), 'pos-analysis-icon--profile')}</span><div><strong>${pos}</strong></div></div><em class="pos-analysis-trend-pill pos-analysis-trend-pill--${trendClass}">${posAnalysisIcon(stat.changeFromPrevious >= 0 ? 'trend-up' : 'trend-down', 'pos-analysis-icon--trend')} ${formatPosAnalysisDelta(stat.changeFromPrevious)} YoY</em></div><div class="pos-analysis-profile-metrics"><div class="pos-analysis-profile-current"><span>Current</span><strong>${stat.current}</strong><small class="pos-analysis-profile-rank pos-analysis-profile-rank--desktop">Rank #${stat.rank} of 19</small><small class="pos-analysis-profile-rank pos-analysis-profile-rank--mobile">#${stat.rank} of 19</small></div><div class="pos-analysis-profile-stack"><div><span>Avg</span><strong>${stat.avg.toFixed(1)}</strong></div><div class="pos-analysis-profile-peak"><span>Peak</span><strong>${stat.max}</strong><small class="pos-analysis-profile-peak-year">${escapePosAnalysisHtml(latestPeakYear)}</small></div></div></div>${renderPosAnalysisProfileSparkline(pos, POS_ANALYSIS_STATE.range)}</article>`;
     }).join('');
   }
 
@@ -2485,7 +2496,7 @@
   }
 
   function renderPosAnalysisSimStat(icon, label, value) {
-    return `<span class="pos-analysis-sim-stat-label">${posAnalysisIcon(icon, 'pos-analysis-icon--sim')}<span>${escapePosAnalysisHtml(label)}</span></span><strong>${escapePosAnalysisHtml(value)}</strong>`;
+    return `<span class="pos-analysis-sim-stat-label pos-analysis-sim-stat-label--${escapePosAnalysisAttr(icon)}">${posAnalysisIcon(icon, 'pos-analysis-icon--sim')}<span>${escapePosAnalysisHtml(label)}</span></span><strong>${escapePosAnalysisHtml(value)}</strong>`;
   }
 
   function renderPosAnalysisPersonnel() {
@@ -2525,10 +2536,10 @@
         posAnalysisPlayer('WR3', 23, 31, 'wr', 'Slot', 'slot-left')
       ].join('');
       copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume decreased');
-      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'Max route availability');
-      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', '1 Receiving focused TE');
-      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Varied');
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Volume decreased');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'Max route availability');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '1 Receiving focused TE');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Varied');
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
       // 13 Personnel — MOBILE positions: WR1(X) 11%/31%, TE1(Inline) 72%/37%,
       // TE2(Off-Line) 80%/31%, TE3(Inline) 27%/37%.
@@ -2542,10 +2553,10 @@
         posAnalysisPlayer('WR1', 11, 31, 'wr', 'X', 'wideout-left')
       ].join('');
       copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Peak leverage');
-      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'WR2/WR3 benched');
-      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', 'Triple snap expansion');
-      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Secure pocket');
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Peak leverage');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'WR2/WR3 benched');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', 'Triple snap expansion');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Secure pocket');
     } else {
       // 12 Personnel — MOBILE positions: WR1(X) 7%/37%, TE1(Inline) 72%/37%,
       // TE2(Off-Line) 28%/31%, WR2(Z) 89%/31%.
@@ -2559,10 +2570,10 @@
         posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right')
       ].join('');
       copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('runner', 'RB opportunity', 'Volume & routes up');
-      wrStat.innerHTML = renderPosAnalysisSimStat('route', 'WR opportunity', 'WR3 compressed');
-      teStat.innerHTML = renderPosAnalysisSimStat('shield', 'TE role', 'Two on-field TEs');
-      qbStat.innerHTML = renderPosAnalysisSimStat('helmet', 'QB protection', 'Extra inline help');
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Volume & routes up');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'WR3 compressed');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', 'Two on-field TEs');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Extra inline help');
     }
 
     field.innerHTML = players;

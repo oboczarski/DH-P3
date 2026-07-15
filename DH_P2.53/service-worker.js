@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis desktop stat-chip alignment refresh: preserve
-// left-side icons while centering each chip's value text independently.
-const CACHE_NAME = 'DH3.03O';
+// Research Positional Analysis Material Symbols refresh: replace every tab-local
+// legacy icon and expose independent desktop/mobile sizing hooks by section.
+const CACHE_NAME = 'DH3.03P';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

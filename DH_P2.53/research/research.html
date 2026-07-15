@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.03O-desktop-stat-chip-alignment" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.03P-material-symbol-icons" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -330,12 +330,14 @@
                 <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--infographic" id="pos-analysis-infographic-title">The Running Back Renaissance</h2>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--infographic">Structural NFL personnel shifts are creating a measurable fantasy supply change: RB representation is rising across the major tiers while WR depth is being squeezed.</p>
               </div>
+              <!-- Infographic summary icon modifiers keep the formula and
+                   milestone symbols independently tunable at each breakpoint. -->
               <div class="pos-analysis-info-stat-stack">
-                <div>
+                <div class="pos-analysis-info-stat pos-analysis-info-stat--formula">
                   <span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="formula" aria-hidden="true"></span> Current meta formula</span>
                   <strong>12/13 personnel &uarr; = RB &uarr;</strong>
                 </div>
-                <div>
+                <div class="pos-analysis-info-stat pos-analysis-info-stat--milestone">
                   <span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="trophy" aria-hidden="true"></span> Definitive era pivot</span>
                   <strong>2025 tier sweep verified</strong>
                 </div>
@@ -351,10 +353,12 @@
                   <p>For more than a decade, the league moved heavily toward pass-first football. Offenses lived in 11 personnel, spread the field with three wide receivers, and forced defenses to get smaller, faster, and more comfortable playing nickel as a base package.</p>
                   <p>Dynasty strategy followed that same direction. Wide receiver became the position most managers wanted to build around because of longevity, stability, and the pass-heavy scoring environment.</p>
                   <blockquote>That logic still has merit, but it is no longer complete. The league has started shifting back toward heavier offensive personnel, especially 12 and 13 personnel. That change has a direct effect on positional opportunity, fantasy scoring distribution, and dynasty roster construction.</blockquote>
+                  <!-- Personnel formula modifiers isolate 11/12/13 icon sizing
+                       from the simulator controls that reuse the same symbols. -->
                   <div class="pos-analysis-personnel-formulas" aria-label="Offensive personnel formulas">
-                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="spread" aria-hidden="true"></span> 11 personnel</span><strong>1 RB | 1 TE | 3 WR</strong><small>Spread-first layout</small></div>
-                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="heavy" aria-hidden="true"></span> 12 personnel</span><strong>1 RB | 2 TE | 2 WR</strong><small>Extra run-surface</small></div>
-                    <div><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="jumbo" aria-hidden="true"></span> 13 personnel</span><strong>1 RB | 3 TE | 1 WR</strong><small>Maximum blocking unit</small></div>
+                    <div class="pos-analysis-personnel-formula pos-analysis-personnel-formula--11"><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="spread" aria-hidden="true"></span> 11 personnel</span><strong>1 RB | 1 TE | 3 WR</strong><small>Spread-first layout</small></div>
+                    <div class="pos-analysis-personnel-formula pos-analysis-personnel-formula--12"><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="heavy" aria-hidden="true"></span> 12 personnel</span><strong>1 RB | 2 TE | 2 WR</strong><small>Extra run-surface</small></div>
+                    <div class="pos-analysis-personnel-formula pos-analysis-personnel-formula--13"><span><span class="pos-analysis-icon-shell" data-pos-analysis-icon="jumbo" aria-hidden="true"></span> 13 personnel</span><strong>1 RB | 3 TE | 1 WR</strong><small>Maximum blocking unit</small></div>
                   </div>
                 </article>
 
@@ -393,7 +397,7 @@
                 <h3 class="pos-analysis-panel-heading pos-analysis-panel-heading--milestone">Breaking Through the Decades</h3>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--milestone"> <span class="pos-a-intro">  Ladies and gentlemen, running backs are not just 'all the way back'. THEY HAVE ALREADY SURPASSED! Running backs are operating at level of dominance we have not seen in <strong> OVER 2+ DECADES</strong>!</span> These historical breakthroughs help tell a portion of the tale, demonstrating the shift in ranking structures:</p>
                 <div class="pos-analysis-overall-banner">
-                  <i aria-hidden="true"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="trophy"></span></i>
+                  <i class="pos-analysis-overall-icon" aria-hidden="true"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="trophy"></span></i>
                   <span>OVERALL</span>
                   <p><strong>2025 was the first time in over 2 decades</strong> where running backs surpassed wide receivers in scoring across <strong>every single major ranking tier</strong> in the exact same year:</p>
                   <div><em>Top 12</em><em>Top 24</em><em>Top 36</em><em>Top 48</em><em>Top 60</em></div>
@@ -447,8 +451,10 @@
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--matrix">When offenses move away from 11 personnel and increase 12/13 personnel, the structure of the field changes. There are fewer wide receivers on the field, more tight ends attached to formations, more blocking surfaces, and a greater ability to run efficiently without becoming predictable.</p>
               </div>
               <div class="pos-analysis-matrix-grid">
-                <article>
-                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="runner" aria-hidden="true"></span> Running Backs</span>
+                <!-- Position-specific matrix modifiers pair each card with the
+                     exact QB/RB/WR/TE Material Symbol selected for this tab. -->
+                <article class="pos-analysis-matrix-card pos-analysis-matrix-card--rb">
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="rb" aria-hidden="true"></span> Running Backs</span>
                   <p>Running backs are the biggest winners from heavier personnel. More 12 and 13 personnel generally means more run-friendly offensive structures. Extra tight ends create better blocking angles, allow offenses to attack lighter defensive boxes, and help teams stay multiple without tipping run or pass as clearly. That matters because the RB position is volume-sensitive and environment-sensitive.</p>
                   <ul>
                     <li>More rushing volume</li>
@@ -460,20 +466,20 @@
                   </ul>
                   <small>VOLUME &amp; ENVIRONMENT SENSITIVE</small>
                 </article>
-                <article>
-                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="route" aria-hidden="true"></span> Wide Receivers</span>
+                <article class="pos-analysis-matrix-card pos-analysis-matrix-card--wr">
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="wr" aria-hidden="true"></span> Wide Receivers</span>
                   <p>Wide receivers are the position most negatively affected by the shift. In 11 personnel, three wide receivers are on the field. In 12 personnel, that drops to two. In 13 personnel, it drops to one. That alone reduces route availability, snap availability, and target opportunity for WR depth across the league.</p>
                   <p>This does not kill elite wide receivers. True alpha target earners still matter. But it does compress the position. The WR3/WR4 types on NFL teams become more fragile for fantasy because they are no longer guaranteed the same route volume when offenses are willing to play heavier.</p>
                   <small>INVERSE ENVIRONMENT CORRELATION</small>
                 </article>
-                <article>
-                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="shield" aria-hidden="true"></span> Tight Ends</span>
+                <article class="pos-analysis-matrix-card pos-analysis-matrix-card--te">
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="te" aria-hidden="true"></span> Tight Ends</span>
                   <p>Tight ends also benefit from the league’s heavier personnel trend, but the fantasy boost is more complicated than it is for running backs. More 12 and 13 personnel means more tight ends on the field. This increases overall TE snaps and creates more paths to relevance for athletic, versatile, or formation-flexible players.</p>
                   <p>However, adding tight ends to the field does not automatically mean fantasy production becomes more concentrated. In many cases, the extra snaps are spread across TE2 and TE3 types rather than flowing heavily to one primary fantasy option.</p>
                   <small>REAL-WORLD VS FANTASY SPLIT</small>
                 </article>
-                <article>
-                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="helmet" aria-hidden="true"></span> Quarterbacks</span>
+                <article class="pos-analysis-matrix-card pos-analysis-matrix-card--qb">
+                  <span class="pos-analysis-matrix-title"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="qb" aria-hidden="true"></span> Quarterbacks</span>
                   <p>Quarterbacks are affected by heavier personnel, but usually less dramatically. More 12 and 13 personnel can reduce raw pass volume, which slightly lowers the overall fantasy ceiling for quarterbacks. Fewer three-WR formations generally means fewer spread-out passing looks and fewer plays designed purely around volume.</p>
                   <p>At the same time, heavier personnel can also help quarterbacks in other ways. It can improve play-action efficiency, create easier reads, force defenses into heavier packages, and help offenses stay balanced. That can offset some of the lost volume.</p>
                   <small>SECONDARY OFFSETS APPLIED</small>
@@ -483,7 +489,7 @@
 
             <section class="pos-analysis-te-role" aria-labelledby="pos-analysis-te-role-title">
               <article class="pos-analysis-info-card pos-analysis-te-role-card">
-                <span class="pos-analysis-eyebrow pos-analysis-eyebrow--te-role"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="shield" aria-hidden="true"></span> Role-based TE differences</span>
+                <span class="pos-analysis-eyebrow pos-analysis-eyebrow--te-role"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="te" aria-hidden="true"></span> Role-based TE differences</span>
                 <h3 class="pos-analysis-panel-heading pos-analysis-panel-heading--te-role" id="pos-analysis-te-role-title">Tight End Utility Is Not Always Fantasy Concentration</h3>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--te-role">There is also a role-based difference. Heavier personnel packages are often built for versatility, not just receiving volume. Tight ends can run routes, stay attached as blockers, chip edge rushers, help in pass protection, or create run/pass ambiguity before the snap. That real-life value matters, but it does not always translate cleanly to fantasy points.</p>
                 <p>In lighter personnel, running backs are more often used as extra blockers in pass protection. In heavier 12 and 13 personnel, the additional tight end can fill more of that responsibility. That helps the offense function, but it can cap the fantasy impact for the position if those snaps are not turning into routes and targets.</p>
@@ -574,6 +580,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=DH3.03O-desktop-stat-chip-alignment"></script>
+<script defer src="../scripts/syop.js?v=DH3.03P-material-symbol-icons"></script>
 </body>
 </html>
