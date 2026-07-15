@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis tier-stack hotfix: retain the original WR/RB
-// bar grouping while centering only each year label beneath its pair.
-const CACHE_NAME = 'DH3.03N';
+// Research Positional Analysis desktop stat-chip alignment refresh: preserve
+// left-side icons while centering each chip's value text independently.
+const CACHE_NAME = 'DH3.03O';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
