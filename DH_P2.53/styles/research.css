@@ -2876,11 +2876,12 @@ body[data-page="research"] .pos-analysis-supply-value-label {
   paint-order: stroke;
   stroke: rgba(5, 7, 17, 0.78);
   stroke-width: 2.8px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 body[data-page="research"] .pos-analysis-supply-value-label {
-  stroke-width: 3px;
+  stroke-width: 2px;
+  font-size: 16px;
 }
 
 /* Positional Analysis supply-chart typography is view- and breakpoint-specific:
@@ -5361,7 +5362,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-supply-value-label {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-linemen {
