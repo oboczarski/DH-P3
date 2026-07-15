@@ -2293,13 +2293,15 @@
     if (!host) return;
     const compact = window.innerWidth < 640;
     const w = 1180;
-    const h = compact ? 354 : 382;
+    // Positional Analysis tier-stack plot: twelve extra plot units make the
+    // bars only slightly taller, while the higher title closes the header gap.
+    const h = compact ? 362 : 390;
     // Positional Analysis G1 tier stack chart:
     // compact margins pull the y-axis labels toward the mobile edge while
     // leaving the desktop chart geometry unchanged.
     const m = compact
-      ? { l: 28, r: 12, t: 34, b: 52 }
-      : { l: 46, r: 28, t: 34, b: 52 };
+      ? { l: 28, r: 12, t: 30, b: 52 }
+      : { l: 46, r: 28, t: 30, b: 52 };
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
     const yMax = 26;
@@ -2316,6 +2318,9 @@
 
     POS_ANALYSIS_YEARS.forEach((year, yearIndex) => {
       const yearCenter = m.l + yearIndex * groupW + groupW / 2;
+      // Positional Analysis tier-stack year labels: preserve the original bar
+      // grouping exactly and center only the year text between the WR/RB labels.
+      const yearLabelCenter = yearCenter + barW / 4;
       ['WR', 'RB'].forEach((pos, posOffset) => {
         const x0 = yearCenter + (posOffset === 0 ? -(barW + pairGap) / 2 : pairGap / 2);
         const top12 = POS_ANALYSIS_STATE.counts['Top 12'][pos][yearIndex];
@@ -2333,19 +2338,32 @@
           const segmentH = Math.max(0, y2 - y1);
           const fill = POS_ANALYSIS_RANGE_COLORS[segment.cut][pos];
           const tip = `<strong>${pos} ${segment.label} · ${year}</strong><br>Cumulative count: ${segment.value}<br>Segment count: ${segment.to - segment.from}`;
-          svg += `<rect class="pos-analysis-tier-stack-segment" x="${x0}" y="${y1}" width="${barW}" height="${segmentH}" fill="${fill}" rx="${segment.cut === '60' ? Math.min(5, barW / 2) : 0}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
+          // Rounded middle segments soften the internal stack without changing
+          // the existing stronger rounding on the top T60 segment.
+          const cornerRadius = segment.cut === '60'
+            ? Math.min(5, barW / 2)
+            : segment.cut === '36'
+              ? Math.min(3.5, barW / 2)
+              : 0;
+          svg += `<rect class="pos-analysis-tier-stack-segment" data-pos-analysis-tier-cut="${segment.cut}" x="${x0}" y="${y1}" width="${barW}" height="${segmentH}" fill="${fill}" rx="${cornerRadius}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
           if (segmentH >= labelCutoff) {
             const labelX = x0 + barW / 2;
             const labelY = y1 + segmentH / 2;
-            svg += `<g class="pos-analysis-tier-stack-label-badge"><rect x="${x0 + 1.5}" y="${labelY - 10}" width="${barW - 3}" height="20" rx="5"/><text class="pos-analysis-tier-stack-label" x="${labelX}" y="${labelY - 2}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-range" x="${labelX}">${segment.label}</tspan><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}" dy="10">${segment.value}</tspan></text></g>`;
+            // A T12 count of two is too short for two lines, so it displays the
+            // value alone. All other badges gain eight units of label/value space.
+            const valueOnly = segment.cut === '12' && segment.value === 2;
+            const labelMarkup = valueOnly
+              ? `<text class="pos-analysis-tier-stack-label pos-analysis-tier-stack-label--value-only" x="${labelX}" y="${labelY + 5}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}">${segment.value}</tspan></text>`
+              : `<text class="pos-analysis-tier-stack-label" x="${labelX}" y="${labelY - 7}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-range" x="${labelX}">${segment.label}</tspan><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}" dy="18">${segment.value}</tspan></text>`;
+            svg += `<g class="pos-analysis-tier-stack-label-badge" data-pos-analysis-tier-cut="${segment.cut}" data-pos-analysis-value-only="${valueOnly}"><rect x="${x0 + 1.5}" y="${labelY - 16}" width="${barW - 3}" height="32" rx="5"/>${labelMarkup}</g>`;
           }
         });
         svg += `</g><text class="pos-analysis-tier-stack-pos-label" x="${x0 + barW / 2}" y="${h - 34}" text-anchor="middle" fill="${POS_ANALYSIS_POS_CONFIG[pos].high}">${pos}</text>`;
       });
-      svg += `<text class="pos-analysis-tier-stack-year-label" x="${yearCenter}" y="${h - 16}" text-anchor="middle">${year}</text>`;
+      svg += `<text class="pos-analysis-tier-stack-year-label" x="${yearLabelCenter}" y="${h - 16}" text-anchor="middle">${year}</text>`;
     });
 
-    svg += `<text class="pos-analysis-tier-stack-chart-title" x="${m.l}" y="24">Stack height = Top 60 total · section labels show cumulative T12, T36, and T60 counts</text></svg>`;
+    svg += `<text class="pos-analysis-tier-stack-chart-title" x="${m.l}" y="18">Stack height = Top 60 total · section labels show cumulative T12, T36, and T60 counts</text></svg>`;
     host.innerHTML = svg;
     attachPosAnalysisTooltips(host);
   }

@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis chart refresh: bump the cache so browsers receive
-// the revised label offsets and breakpoint-specific line/point geometry.
-const CACHE_NAME = 'DH3.03L';
+// Research Positional Analysis tier-stack hotfix: retain the original WR/RB
+// bar grouping while centering only each year label beneath its pair.
+const CACHE_NAME = 'DH3.03N';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
