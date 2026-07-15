@@ -2104,9 +2104,9 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer {
   fill: none;
-  stroke-width: 2.12;
-  stroke-linecap: butt;
-  stroke-linejoin: miter;
+  stroke-width: 2.02px;
+  stroke-linecap: round;
+  stroke-linejoin: bevel;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer--rising {
@@ -2114,7 +2114,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer--falling {
-  stroke: var(--pos-analysis-rb-vs-wr-falling-color);
+  stroke: #4d50ff;
 }
 
 body[data-page="research"] .pos-analysis-icon-shell {
@@ -2787,6 +2787,7 @@ body[data-page="research"] .pos-analysis-combo-section .pos-analysis-chart-scrol
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-chart-host {
   min-width: 760px;
+  filter: drop-shadow(-1px -3px 5px #0005) drop-shadow(4px 4px 6px #0009);
 }
 
 body[data-page="research"] .pos-analysis-tier-stack-section .pos-analysis-chart-host {
@@ -3117,14 +3118,14 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--up {
-  border-color: rgba(52, 211, 153, 0.25);
-  background: rgb(52 211 153 / 5%);
+  border-color: rgb(30 255 240 / 15%);
+  background: #0bffe205;
   box-shadow: inset 0px 16px 17px #dfefff10, inset 20px 25px 9px -25px #dfefff0a, inset 19px 20px 9px -25px #dfefff07;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--down {
-  border-color: rgba(244, 114, 182, 0.28);
-  background: rgb(244 114 182 / 3%);
+  border-color: rgba(244, 114, 182, 0.15);
+  background: rgb(244 114 182 / 2%);
   box-shadow: inset 0px 10px 18px #dfefff10, inset 20px 25px 9px -25px #dfefff0e, inset 19px 23px 9px -25px #dfefff05;
 }
 
@@ -4648,6 +4649,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-chart-scroll--supply .pos-analysis-chart-host {
     min-width: 0;
     width: 100%;
+    filter: drop-shadow(-1px -3px 5px #0005) drop-shadow(3px 4px 5px #0008);
   }
 
   body[data-page="research"] .pos-analysis-tier-stack-section .pos-analysis-chart-scroll--tier-stack {
@@ -5197,7 +5199,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value {
-    font-size: 1.02rem;
+    font-size: 0.92rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-icon--chip {
@@ -5206,8 +5208,9 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile .pos-analysis-icon--chip {
-  background: linear-gradient(180deg, #686e7a33, #33384230);
-  border: 1px solid #3333448c;
+  background: linear-gradient(180deg, #686e7a23, #33384220);
+  border: 0px solid #3333448c;
+  box-shadow: inset 0 0 2px 0px #fff2;
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-icon--sim {
@@ -6344,17 +6347,17 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] { --pos-analysis-position-icon-size: 0.8rem; }
 
   /* Mobile stat chips: each selected path has its own optical size. */
-  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range { --pos-analysis-chip-icon-size: 1.32rem; }
-  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference { --pos-analysis-chip-icon-size: 1.42rem; }
-  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--rb-trend { --pos-analysis-chip-icon-size: 1.32rem; }
-  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend { --pos-analysis-chip-icon-size: 1.32rem; }
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range {--pos-analysis-chip-icon-size: 1.42rem;}
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference {--pos-analysis-chip-icon-size: 1.42rem;}
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--rb-trend {--pos-analysis-chip-icon-size: 1.42rem;}
+  body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--wr-trend {--pos-analysis-chip-icon-size: 1.42rem;}
 
   /* Mobile position cards. */
   body[data-page="research"] .pos-analysis-profile-section { --pos-analysis-profile-trend-icon-size: 0.62rem; }
-  body[data-page="research"] .pos-analysis-profile-card--qb {--pos-analysis-profile-symbol-size: 1.28rem;}
+  body[data-page="research"] .pos-analysis-profile-card--qb {--pos-analysis-profile-symbol-size: 1.18rem;}
   body[data-page="research"] .pos-analysis-profile-card--rb {--pos-analysis-profile-symbol-size: 1.32rem;}
-  body[data-page="research"] .pos-analysis-profile-card--wr { --pos-analysis-profile-symbol-size: 0.88rem; }
-  body[data-page="research"] .pos-analysis-profile-card--te { --pos-analysis-profile-symbol-size: 0.84rem; }
+  body[data-page="research"] .pos-analysis-profile-card--wr {--pos-analysis-profile-symbol-size: 1.45rem;}
+  body[data-page="research"] .pos-analysis-profile-card--te {--pos-analysis-profile-symbol-size: 1.4rem;}
 
   /* Mobile infographic summary symbols. */
   body[data-page="research"] .pos-analysis-info-stat--formula {
