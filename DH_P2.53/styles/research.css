@@ -3128,6 +3128,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   gap: 0.38rem;
   min-width: 0;
   color: var(--pos-analysis-muted);
+  justify-self: center;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--mobile {
@@ -3147,7 +3148,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-icon--chip {
@@ -3626,7 +3627,7 @@ body[data-page="research"] .pos-analysis-info-left {
 }
 
 body[data-page="research"] .pos-analysis-paradigm-card {
-  padding: 1rem;
+  padding: 0.7rem 0.8rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card {
@@ -3686,7 +3687,8 @@ body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-f
   border: 1px solid var(--pos-analysis-line-soft);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.025);
-  padding: 0.68rem;
+  padding: 0.2rem 0.38rem;
+  text-align: center;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div {
@@ -3712,7 +3714,7 @@ body[data-page="research"] .pos-analysis-timeline .pos-analysis-timeline-grid ar
 
 body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-formulas strong {
   display: block;
-  margin-top: 0.18rem;
+  margin-top: 0rem;
   color: #fff;
   font-size: 0.82rem;
 }
@@ -4303,7 +4305,7 @@ body[data-page="research"] .pos-analysis-source-note {
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--desktop {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 1.3rem;
   }
 }
 
