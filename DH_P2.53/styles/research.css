@@ -3071,12 +3071,12 @@ body[data-page="research"] .pos-analysis-takeaway-grid {
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  padding: 0 1rem 1rem;
-  gap: 10px;
+  padding: 0 1.1rem 1rem;
+  gap: 18px;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip {
-  padding: 0.72rem 0.8rem;
+  padding: 0.22rem 0.8rem 0.4rem;
   border-radius: 13px;
   border: 1px solid rgba(103, 232, 249, 0.15);
   background: rgb(103 232 249 / 3%);
@@ -3149,17 +3149,18 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip 
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 1.1rem;
+  font-weight: 500;
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-icon--chip {
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 2.4rem;
+  height: 2.4rem;
   color: #00ebc7;
-  stroke-width: 2.2;
-  padding: 2px;
-  border: 1px solid #3333448c;
+  stroke-width: 2px;
+  padding: 0px;
+  border: 0px solid #3333448c;
   border-radius: 28px;
-  background: linear-gradient(180deg, #686e7a33, #33384230);
+  background: none;
 }
 
 /* Positional Analysis stat-chip identities: these narrow modifiers let icon
@@ -3174,7 +3175,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip-
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0rem;
   color: #fff;
   font-size: 1.35rem;
   line-height: 1;
@@ -4308,13 +4309,14 @@ body[data-page="research"] .pos-analysis-source-note {
     grid-template-columns: 1.65rem minmax(0, 1fr);
     align-items: center;
     width: 100%;
-    min-height: 1.65rem;
+    min-height: 0.25rem;
     gap: 0;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--desktop .pos-analysis-icon--chip {
     grid-column: 1;
     justify-self: start;
+    transform: translateX(7px);
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--desktop > span {
@@ -4324,6 +4326,7 @@ body[data-page="research"] .pos-analysis-source-note {
     transform: translate(-50%, -50%);
     text-align: center;
     white-space: nowrap;
+    letter-spacing: 0.1rem;
   }
 }
 
@@ -5173,6 +5176,9 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-value--mobile .pos-analysis-icon--chip {
+  background: linear-gradient(180deg, #686e7a33, #33384230);
+  border: 1px solid #3333448c;
+  stroke-width: 2.2px;
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-icon--sim {
