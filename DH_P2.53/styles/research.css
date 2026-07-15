@@ -3354,7 +3354,7 @@ body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-c
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-stack strong {
   display: block;
-  margin-top: 0.12rem;
+  margin-top: 0rem;
   color: #fff;
   font-size: 1.34rem;
   line-height: 0.92;
@@ -4616,8 +4616,8 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-icon {
-    width: 1.2rem;
-    height: 1.2rem;
+    width: 1.3rem;
+    height: 1.3rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-icon .pos-analysis-icon {
@@ -5117,7 +5117,7 @@ body[data-page="research"] .pos-analysis-source-note {
     width: 1rem;
     height: 1rem;
     margin: -3px 0px 0 -3px;
-    transform: translateY(-0.5px);
+    transform: translateY(0px);
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-personnel-buttons .pos-analysis-icon {
@@ -5159,8 +5159,8 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-current {
-    padding: 0.2rem 0.3rem;
-    font-size: 0.6rem;
+    padding: 0.3rem 0.35rem;
+    font-size: 0.7rem;
     margin-top: 0px;
     color: #fffd;
   }
@@ -5174,7 +5174,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-card {
-    min-height: 7.7rem;
+    min-height: 4.7rem;
     padding: 0.5rem 0.45rem 0.2rem;
   }
 
@@ -6046,7 +6046,7 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-btn .
   width: var(--pos-analysis-control-icon-size);
   height: var(--pos-analysis-control-icon-size);
   margin: 0;
-  transform: none;
+  transform: translateY(-1px);
 }
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-pos-btn .pos-analysis-pos-icon .pos-analysis-material-symbol {
@@ -6187,8 +6187,8 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
 
   /* Desktop position-filter symbols account for each supplied path's density. */
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="QB"] { --pos-analysis-position-icon-size: 1.08rem; }
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] { --pos-analysis-position-icon-size: 1.1rem; }
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] { --pos-analysis-position-icon-size: 1.16rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] {--pos-analysis-position-icon-size: 1.3rem;}
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] {--pos-analysis-position-icon-size: 1.4rem;}
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] { --pos-analysis-position-icon-size: 1.12rem; }
 
   /* Desktop chip symbols remain independently adjustable per stat identity. */
@@ -6321,30 +6321,30 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
 
   /* Mobile chart-mode controls. */
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="single"] {
-    --pos-analysis-control-icon-shell-size: 0.78rem;
-    --pos-analysis-control-icon-size: 0.86rem;
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 1rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-mode="grid"] {
-    --pos-analysis-control-icon-shell-size: 0.78rem;
-    --pos-analysis-control-icon-size: 0.82rem;
+    --pos-analysis-control-icon-shell-size: 0.9rem;
+    --pos-analysis-control-icon-size: 0.9rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="all"] {
-    --pos-analysis-control-icon-shell-size: 0.78rem;
-    --pos-analysis-control-icon-size: 0.84rem;
+    --pos-analysis-control-icon-shell-size: 1rem;
+    --pos-analysis-control-icon-size: 1rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position-view="rbWr"] {
-    --pos-analysis-control-icon-shell-size: 0.78rem;
-    --pos-analysis-control-icon-size: 0.86rem;
+    --pos-analysis-control-icon-shell-size: 0.95rem;
+    --pos-analysis-control-icon-size: 1rem;
   }
 
   /* Mobile position-filter symbols. */
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="QB"] { --pos-analysis-position-icon-size: 0.76rem; }
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] { --pos-analysis-position-icon-size: 0.78rem; }
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] { --pos-analysis-position-icon-size: 0.84rem; }
-  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] { --pos-analysis-position-icon-size: 0.8rem; }
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="QB"] {--pos-analysis-position-icon-size: 1.05rem;}
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="RB"] {--pos-analysis-position-icon-size: 1.08rem;}
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="WR"] {--pos-analysis-position-icon-size: 1.2rem;}
+  body[data-page="research"] .pos-analysis-global-section [data-pos-analysis-position="TE"] {--pos-analysis-position-icon-size: 1.2rem;}
 
   /* Mobile stat chips: each selected path has its own optical size. */
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--range {--pos-analysis-chip-icon-size: 1.42rem;}
@@ -6355,7 +6355,7 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
   /* Mobile position cards. */
   body[data-page="research"] .pos-analysis-profile-section { --pos-analysis-profile-trend-icon-size: 0.62rem; }
   body[data-page="research"] .pos-analysis-profile-card--qb {--pos-analysis-profile-symbol-size: 1.18rem;}
-  body[data-page="research"] .pos-analysis-profile-card--rb {--pos-analysis-profile-symbol-size: 1.32rem;}
+  body[data-page="research"] .pos-analysis-profile-card--rb {--pos-analysis-profile-symbol-size: 1.2rem;}
   body[data-page="research"] .pos-analysis-profile-card--wr {--pos-analysis-profile-symbol-size: 1.45rem;}
   body[data-page="research"] .pos-analysis-profile-card--te {--pos-analysis-profile-symbol-size: 1.4rem;}
 
