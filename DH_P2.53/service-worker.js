@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis Material Symbols refresh: replace every tab-local
-// legacy icon and expose independent desktop/mobile sizing hooks by section.
-const CACHE_NAME = 'DH3.03P';
+// Research Positional Analysis icon correction: use the dual-color multiline
+// RB-vs-WR chip symbol with accurate rising and falling final segments.
+const CACHE_NAME = 'DH3.03R';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

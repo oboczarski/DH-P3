@@ -2091,6 +2091,32 @@ body[data-page="research"] .pos-analysis-material-symbol {
   shape-rendering: geometricPrecision;
 }
 
+/* 2025 RB-vs-WR stat chip: the selected multiline Material icon is split
+   into independently colored RB and WR series without affecting other icons. */
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference {
+  --pos-analysis-rb-vs-wr-rising-color: #00ebc7;
+  --pos-analysis-rb-vs-wr-falling-color: #f967c5;
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol--rb-vs-wr {
+  fill: none;
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer {
+  fill: none;
+  stroke-width: 2.12;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer--rising {
+  stroke: var(--pos-analysis-rb-vs-wr-rising-color);
+}
+
+body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip--difference .pos-analysis-material-symbol-layer--falling {
+  stroke: var(--pos-analysis-rb-vs-wr-falling-color);
+}
+
 body[data-page="research"] .pos-analysis-icon-shell {
   display: inline-grid;
   place-items: center;

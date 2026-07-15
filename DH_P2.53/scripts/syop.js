@@ -209,7 +209,8 @@
   };
 
   // Positional Analysis Material Symbols registry:
-  // - the eight user-selected paths stay byte-for-byte at the source of truth
+  // - the seven remaining user-selected paths stay byte-for-byte at the source of truth
+  // - the RB-vs-WR chip uses a two-layer multiline symbol so each series owns its color
   // - every remaining glyph comes from Google's rounded 24px Material Symbols SVG set
   // - inline paths keep this Research-only tab independent from icon fonts and network loading.
   const POS_ANALYSIS_MATERIAL_SYMBOLS = {
@@ -218,7 +219,16 @@
     wr: { materialName: 'call_split', path: 'M240-664v64q0 17-11.5 28.5T200-560q-17 0-28.5-11.5T160-600v-160q0-17 11.5-28.5T200-800h160q17 0 28.5 11.5T400-760q0 17-11.5 28.5T360-720h-64l201 201q11 11 17 25.5t6 30.5v263q0 17-11.5 28.5T480-160q-17 0-28.5-11.5T440-200v-264L240-664Zm480 0-98 99q-12 12-28.5 12T565-565q-12-12-12-29t12-29l99-97h-64q-17 0-28.5-11.5T560-760q0-17 11.5-28.5T600-800h160q17 0 28.5 11.5T800-760v160q0 17-11.5 28.5T760-560q-17 0-28.5-11.5T720-600v-64Z' },
     te: { materialName: 'person_shield', path: 'M458-240Zm-218 80q-33 0-56.5-23.5T160-240v-32q0-34 17.5-62.5T224-378q31-16 62.5-27t63.5-19q23-5 45-9t45-6q17-2 28.5 10t11.5 29q0 17-11.5 28.5T440-358q-18 2-35.5 4t-35.5 7q-28 7-55 17t-54 24q-9 5-14.5 14t-5.5 20v32h218q17 0 28.5 11.5T498-200q0 17-11.5 28.5T458-160H240Zm320-215q0-11 5.5-21t16.5-15l120-60q8-5 18-5t18 5l120 60q11 5 16.5 15t5.5 21v77q0 69-36 125t-98 85q-6 3-12.5 4T720-83q-7 0-13.5-1T694-88q-62-29-98-85t-36-125v-77Zm160 211q38-18 59-55t21-79v-52l-80-40-80 40v52q0 42 21 79t59 55ZM367-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47Zm169.5-56.5Q560-607 560-640t-23.5-56.5Q513-720 480-720t-56.5 23.5Q400-673 400-640t23.5 56.5Q447-560 480-560t56.5-23.5ZM480-640Zm240 363Z' },
     'selected-range': { materialName: 'selected_range', path: 'M388.5-291.5Q400-303 400-320t-11.5-28.5Q377-360 360-360t-28.5 11.5Q320-337 320-320t11.5 28.5Q343-280 360-280t28.5-11.5Zm120 0Q520-303 520-320t-11.5-28.5Q497-360 480-360t-28.5 11.5Q440-337 440-320t11.5 28.5Q463-280 480-280t28.5-11.5Zm120 0Q640-303 640-320t-11.5-28.5Q617-360 600-360t-28.5 11.5Q560-337 560-320t11.5 28.5Q583-280 600-280t28.5-11.5ZM437-513l-56-57q-12-12-28.5-12T324-570q-12 12-12 28.5t12 28.5l85 85q12 12 28.5 12t28.5-12l169-170q11-12 11.5-28.5T635-655q-12-12-28-12t-28 12L437-513Zm43 433q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z' },
-    'rb-vs-wr': { materialName: 'rb_vs_wr', path: 'm110-290 213-213q23-23 57-23t57 23l103 103 67-76-224-207-213 213q-13 13-30 13t-30-13q-13-13-13-30t13-30l216-216q23-23 54.5-23.5T436-748l228 209 132-150q11-13 28.5-13t29.5 12q11 11 11.5 26.5T855-636L722-486l126 116q14 12 14 30t-13 31q-12 12-29 12t-30-11L666-422l-70 78q-23 26-57 27.5T480-340L380-440 170-230q-13 13-30 13t-30-13q-13-13-13-30t13-30Z' },
+    'rb-vs-wr': {
+      materialName: 'multiline_chart',
+      viewBox: '0 0 24 24',
+      layers: [
+        // Smooth series from the selected Material icon: WR finishes downward.
+        { role: 'falling', path: 'M2.71 8.71 C4.6 7.05 7.03 6 9.61 6 C14.96 6 18.91 10.06 20 16.48' },
+        // Angular series from the selected Material icon: RB finishes upward.
+        { role: 'rising', path: 'M2.75 17.74 L9.5 10.98 L13.5 14.98 L17.65 10.33 L21.3 6.22' }
+      ]
+    },
     'rb-trend': { materialName: 'trending_up', path: 'M108-255q-12-12-11.5-28.5T108-311l211-214q23-23 57-23t57 23l103 104 208-206h-64q-17 0-28.5-11.5T640-667q0-17 11.5-28.5T680-707h160q17 0 28.5 11.5T880-667v160q0 17-11.5 28.5T840-467q-17 0-28.5-11.5T800-507v-64L593-364q-23 23-57 23t-57-23L376-467 164-255q-11 11-28 11t-28-11Z' },
     'wr-trend': { materialName: 'trending_down', path: 'M744-320 536-526 433-423q-23 23-57 23t-57-23L108-636q-11-11-11.5-27.5T108-692q11-11 28-11t28 11l212 212 103-103q23-23 57-23t57 23l207 207v-64q0-17 11.5-28.5T840-480q17 0 28.5 11.5T880-440v160q0 17-11.5 28.5T840-240H680q-17 0-28.5-11.5T640-280q0-17 11.5-28.5T680-320h64Z' },
     radar: { materialName: 'radar', path: 'M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q56 0 105.5-17.5T676-227l-57-57q-29 21-64.5 32.5T480-240q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 39-12 75t-33 65l57 57q32-41 50-91t18-106q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-160q22 0 42.5-5.5T561-342l-61-61q-5 2-10 2.5t-10 .5q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 6-.5 11.5T557-458l60 60q11-18 17-38.5t6-43.5q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Z' },
@@ -1477,7 +1487,14 @@
       `pos-analysis-material-symbol--${iconKey}`,
       extraClass
     ].filter(Boolean).join(' ');
-    return `<svg class="${className}" viewBox="0 -960 960 960" aria-hidden="true" focusable="false" fill="currentColor" data-material-symbol="${escapePosAnalysisAttr(icon.materialName)}"><path d="${icon.path}"></path></svg>`;
+    // The RB-vs-WR chip is the only layered symbol: its two paths receive
+    // independent Research-scoped series colors while all other symbols keep
+    // the standard single filled Material path.
+    const geometry = Array.isArray(icon.layers)
+      ? icon.layers.map((layer) => `<path class="pos-analysis-material-symbol-layer pos-analysis-material-symbol-layer--${escapePosAnalysisAttr(layer.role)}" d="${layer.path}"></path>`).join('')
+      : `<path d="${icon.path}"></path>`;
+    const viewBox = icon.viewBox || '0 -960 960 960';
+    return `<svg class="${className}" viewBox="${viewBox}" aria-hidden="true" focusable="false" fill="currentColor" data-material-symbol="${escapePosAnalysisAttr(icon.materialName)}">${geometry}</svg>`;
   }
 
   function hydratePosAnalysisIcons(root = getPosAnalysisRoot()) {
