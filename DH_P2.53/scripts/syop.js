@@ -1835,7 +1835,7 @@
   function getPosAnalysisSupplyLabelOffsets(fontSize, preferBelow, compact) {
     // A half-pixel increase creates the requested barely perceptible breathing
     // room on both breakpoints without changing collision-repulsion strength.
-    const pointGap = 5.5;
+    const pointGap = 10;
     const collisionStep = fontSize + 2;
     const extremeStep = Math.max(6, fontSize - 2);
     const above = -pointGap;
