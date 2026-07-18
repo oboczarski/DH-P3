@@ -2898,6 +2898,35 @@ body[data-page="rosters"] #rosterGrid.condensed-mode .player-adp {
   font-size: 0.5rem;
 }
 
+/* Default condensed cards only: ADP can be wider than the former PPG value.
+   Tighten this 102px value row just enough to keep three-digit ADP and KTC
+   rank/value combinations on one line without widening every roster column. */
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-value-line {
+  gap: 0.06rem;
+  padding-right: 0.02rem;
+  padding-left: 0.02rem;
+  font-size: 0.44rem;
+}
+
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper,
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-adp-wrapper {
+  font-size: 0.44rem;
+  white-space: nowrap;
+}
+
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper .ktc-rank-display,
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-adp {
+  font-size: 0.45rem;
+}
+
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper .ktc-rank-suffix-display {
+  font-size: 0.42rem;
+}
+
+body[data-page="rosters"] #rosterGrid.condensed-mode:not(.is-preview-mode) .player-ktc-wrapper .player-ktc {
+  font-size: 0.44rem;
+}
+
 /* Trade Preview renders exactly two teams. Let both columns share the usable
    width up to a generous desktop cap instead of retaining the 122px all-team width. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) {
