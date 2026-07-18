@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters player-card refresh: replace PPG with league-format ADP and add the
-// wider, two-row Trade Preview comparison-card layout.
-const CACHE_NAME = 'DH3.03T';
+// Rosters Trade Preview card refinement: move age beside the player name, move
+// ADP to row two, and vertically center the parenthesized KTC value.
+const CACHE_NAME = 'DH3.03U';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

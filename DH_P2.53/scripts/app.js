@@ -8460,9 +8460,10 @@ function createPlayerRow(player, teamName) {
     const condensedTeamTagHtml = isCondensedView && !isTradePreviewCard
         ? `<span class="condensed-team-tag">${teamTagHTML}</span>`
         : '';
-    const tradePreviewAdpHtml = isTradePreviewCard
-        ? `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`
+    const tradePreviewAgeHtml = isTradePreviewCard
+        ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span></span>`
         : '';
+    const tradePreviewAdpHtml = `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`;
     const tradePreviewTeamHtml = isTradePreviewCard
         ? `<span class="trade-preview-team-slot">${teamTagHTML}</span>`
         : '';
@@ -8470,22 +8471,24 @@ function createPlayerRow(player, teamName) {
                 <div class="player-main-line${isCondensedView ? ' condensed-main-line' : ''}">
                     ${isCondensedView ? condensedPosRankHtml : playerTagHtml}
                     <div class="player-name"><span class="player-name-clickable">${player.name}</span></div>
+                    ${tradePreviewAgeHtml}
                     ${isCondensedView ? condensedTeamTagHtml : injuryBadgeHtml}
-                    ${tradePreviewAdpHtml}
                     ${tradePreviewTeamHtml}
                 </div>`;
     const metaLineHtml = isCondensedView ? '' : `
                 <div class="player-meta-line">
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
-                    <span><span class="player-age">${player.age || '?'} </span> y.o. </span>
+                    ${isTradePreviewCard
+                        ? tradePreviewAdpHtml
+                        : `<span><span class="player-age">${player.age || '?'} </span> y.o. </span>`}
                     ${isTradePreviewCard
                         ? `<span class="trade-preview-ktc-cluster"><span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></span>`
                         : `<span class="separator">•</span>${teamTagHTML}`}
                 </div>`;
     const valueLineHtml = isTradePreviewCard
         ? (isCondensedView
-            ? `<div class="player-value-line trade-preview-condensed-value-line"><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
+            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewAdpHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
             : '')
         : `<div class="player-value-line">
                     <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
