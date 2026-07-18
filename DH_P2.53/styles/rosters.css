@@ -3004,7 +3004,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line {
   /* One shared gap spaces both Trade Preview dots equally on every side. */
   --trade-preview-metric-gap: 0.22rem;
-  justify-content: flex-start;
+  justify-content: space-between;
   min-width: 0;
   gap: var(--trade-preview-metric-gap);
   padding: 0.14rem 0.24rem;
@@ -3105,7 +3105,8 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .ktc-rank-suffix-display {
     margin-right: 2px;
-    font-size: 0.52rem;
+    font-size: 0.5rem;
+    align-self: baseline;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .player-ktc {
