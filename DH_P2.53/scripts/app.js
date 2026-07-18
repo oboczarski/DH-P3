@@ -8475,6 +8475,8 @@ function createPlayerRow(player, teamName) {
                     ${isCondensedView ? condensedTeamTagHtml : injuryBadgeHtml}
                     ${tradePreviewTeamHtml}
                 </div>`;
+    // Trade Preview row two keeps both separators and all three metrics as
+    // direct flex siblings so one page-scoped CSS gap spaces every dot evenly.
     const metaLineHtml = isCondensedView ? '' : `
                 <div class="player-meta-line">
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
@@ -8483,7 +8485,7 @@ function createPlayerRow(player, teamName) {
                         ? tradePreviewAdpHtml
                         : `<span><span class="player-age">${player.age || '?'} </span> y.o. </span>`}
                     ${isTradePreviewCard
-                        ? `<span class="trade-preview-ktc-cluster"><span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></span>`
+                        ? `<span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>`
                         : `<span class="separator">•</span>${teamTagHTML}`}
                 </div>`;
     const valueLineHtml = isTradePreviewCard

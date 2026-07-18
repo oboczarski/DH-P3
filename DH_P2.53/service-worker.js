@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters Trade Preview card refinement: move age beside the player name, move
-// ADP to row two, and vertically center the parenthesized KTC value.
-const CACHE_NAME = 'DH3.03U';
+// Rosters Trade Preview row-two refinement: give both metric separators the
+// same fixed amount of space on their left and right sides.
+const CACHE_NAME = 'DH3.03V';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

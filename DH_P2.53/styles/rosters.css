@@ -3002,21 +3002,15 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line {
+  /* One shared gap spaces both Trade Preview dots equally on every side. */
+  --trade-preview-metric-gap: 0.22rem;
   justify-content: flex-start;
   min-width: 0;
-  gap: 0.22rem;
+  gap: var(--trade-preview-metric-gap);
   padding: 0.14rem 0.24rem;
   border-radius: 6px;
   background: #1d223faa;
   line-height: 1;
-}
-
-body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-cluster {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.22rem;
-  margin-left: auto;
-  white-space: nowrap;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper {
@@ -3086,9 +3080,12 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
     font-size: 0.57rem;
   }
 
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line,
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-cluster {
-    gap: 0.12rem;
+  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line {
+    /* Preserve the equal separator gap while reclaiming a little row width so
+       the longest rank/ADP/KTC combination stays visible on small phones. */
+    --trade-preview-metric-gap: 0.12rem;
+    padding-right: 0.2rem;
+    padding-left: 0.2rem;
   }
 
   /* Mobile preview row two must accommodate positional rank, ADP, and the
