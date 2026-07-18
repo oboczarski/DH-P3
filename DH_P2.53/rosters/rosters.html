@@ -22,7 +22,7 @@
   <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
   <!-- Rosters page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/rosters.css?v=20260223" />
+  <link rel="stylesheet" href="../styles/rosters.css?v=20260718" />
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
   <link rel="stylesheet" href="../styles/ownership.css?v=20260211" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
@@ -209,12 +209,12 @@
 <span class="separator">•</span>
 <span class="team-tag legend-team">TEAM</span>
 </div>
-<!-- Bottom row: KTC left, ADP right (no chips) -->
+<!-- Default-card bottom row: league-format KTC left, league-format ADP right. -->
 <div class="player-value-line legend-bottom"><div class="legend-bottom-bg">
 <span class="kv-left"><span class="value player-ktc legend-ktc">KTC VALUE&nbsp;(POS RK)</span></span>
-<span class="kv-right"><span class="value player-ppg legend-ppg">PPG&nbsp;(POS RK)</span></span>
+<span class="kv-right"><span class="value player-adp legend-adp">ADP</span></span>
 </div></div>
-</div><div class="legend-footnote" id="rosterCardFootnote">KTC VALUE, PPG, AND POSITION RANKS REFLECT LEAGUE-SPECIFIC SCORING.</div></section>
+</div><div class="legend-footnote" id="rosterCardFootnote">KTC VALUE AND ADP REFLECT THE LEAGUE'S 1QB/SFLX FORMAT; FPTS POSITION RANKS REFLECT LEAGUE SCORING.</div></section>
 <div id="loading" class="hidden">
   <div class="loading-overlay" role="alert" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>
@@ -576,6 +576,6 @@
     </div>
   </div>
 </div>
-  <script defer="True" src="../scripts/app.js?v=20260116"></script>
+  <script defer="True" src="../scripts/app.js?v=20260718"></script>
 </body>
 </html>

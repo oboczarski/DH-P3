@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis chart polish: slightly increase point-label
-// spacing, enlarge desktop axes, and refresh the hero kicker icon.
-const CACHE_NAME = 'DH3.03S';
+// Rosters player-card refresh: replace PPG with league-format ADP and add the
+// wider, two-row Trade Preview comparison-card layout.
+const CACHE_NAME = 'DH3.03T';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

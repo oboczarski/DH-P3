@@ -8371,6 +8371,12 @@ function createPlayerRow(player, teamName) {
     row.className = 'player-row';
     const slotAbbr = { 'SUPER_FLEX': 'SFLX', 'FLEX': 'FLX' };
     const isCondensedView = state.currentRosterView === 'condensed' && !state.isStartSitMode;
+    // Rosters Trade Preview only: the two selected team columns use a wider,
+    // two-row player card without changing the default or Start/Sit card layouts.
+    const isTradePreviewCard = state.isCompareMode && !state.isStartSitMode;
+    if (isTradePreviewCard) {
+        row.classList.add('player-row--trade-preview');
+    }
     const displaySlot = state.currentRosterView === 'depth' ? (slotAbbr[player.slot] || player.slot) : player.pos;
     const fullPlayer = state.players?.[player.id];
     // Use pre-calculated ranks if available, otherwise calculate once
@@ -8416,6 +8422,11 @@ function createPlayerRow(player, teamName) {
         }
     }
     const ktc = player.ktc || '—';
+    // Roster ADP comes from the same league-format KTC row already selected by
+    // getPlayerData() (KTC_1QB for 1QB leagues, KTC_SFLX for superflex leagues).
+    const numericAdpValue = Number(player.adp);
+    const hasAdpValue = Number.isFinite(numericAdpValue) && numericAdpValue > 0;
+    const adpValue = hasAdpValue ? numericAdpValue.toFixed(1) : 'NA';
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
@@ -8429,18 +8440,6 @@ function createPlayerRow(player, teamName) {
     const fptsPosRankDisplay = hasFptsPosRank ? `${basePos}·${fptsPosRankNumber}` : basePos;
     const posRankColor = getPosRankColor(fptsPosRankDisplay);
     const effectivePosRankColor = (isCondensedView && basePos === 'TE') ? '#a181ff' : posRankColor;
-    const ppgRawString = typeof playerRanks.ppg === 'string' ? playerRanks.ppg.trim() : '';
-    const numericPpgValue = typeof playerRanks.ppg === 'number'
-        ? playerRanks.ppg
-        : Number.parseFloat(ppgRawString || '');
-    const hasNumericPpgValue = Number.isFinite(numericPpgValue);
-    const hasPositivePpgValue = hasNumericPpgValue && numericPpgValue > 0;
-    const ppgValue = hasPositivePpgValue
-        ? numericPpgValue.toFixed(1)
-        : (!hasNumericPpgValue && ppgRawString && ppgRawString.toUpperCase() !== 'NA' ? ppgRawString : 'NA');
-    const rawPpgPosRankNumber = Number.parseInt(playerRanks.ppgPosRank, 10);
-    const hasPpgPosRank = Number.isFinite(rawPpgPosRankNumber) && rawPpgPosRankNumber > 0;
-    const ppgPosRankNumber = hasPpgPosRank ? rawPpgPosRankNumber : null;
     const ktcPosRankMatch = typeof player.posRank === 'string' ? player.posRank.match(/(\d+)/) : null;
     const rawKtcPosRankNumber = ktcPosRankMatch ? Number.parseInt(ktcPosRankMatch[1], 10) : null;
     const ktcPosRankNumber = Number.isFinite(rawKtcPosRankNumber) && rawKtcPosRankNumber > 0 ? rawKtcPosRankNumber : null;
@@ -8458,22 +8457,39 @@ function createPlayerRow(player, teamName) {
     const playerTagHtml = !isCondensedView
         ? `<div class="player-tag" data-pos="${displaySlot}">${displaySlot}</div>`
         : '';
-    const condensedTeamTagHtml = isCondensedView
+    const condensedTeamTagHtml = isCondensedView && !isTradePreviewCard
         ? `<span class="condensed-team-tag">${teamTagHTML}</span>`
+        : '';
+    const tradePreviewAdpHtml = isTradePreviewCard
+        ? `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`
+        : '';
+    const tradePreviewTeamHtml = isTradePreviewCard
+        ? `<span class="trade-preview-team-slot">${teamTagHTML}</span>`
         : '';
     const mainLineHtml = `
                 <div class="player-main-line${isCondensedView ? ' condensed-main-line' : ''}">
                     ${isCondensedView ? condensedPosRankHtml : playerTagHtml}
                     <div class="player-name"><span class="player-name-clickable">${player.name}</span></div>
                     ${isCondensedView ? condensedTeamTagHtml : injuryBadgeHtml}
+                    ${tradePreviewAdpHtml}
+                    ${tradePreviewTeamHtml}
                 </div>`;
     const metaLineHtml = isCondensedView ? '' : `
                 <div class="player-meta-line">
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
                     <span><span class="player-age">${player.age || '?'} </span> y.o. </span>
-                    <span class="separator">•</span>
-                    ${teamTagHTML}
+                    ${isTradePreviewCard
+                        ? `<span class="trade-preview-ktc-cluster"><span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></span>`
+                        : `<span class="separator">•</span>${teamTagHTML}`}
+                </div>`;
+    const valueLineHtml = isTradePreviewCard
+        ? (isCondensedView
+            ? `<div class="player-value-line trade-preview-condensed-value-line"><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
+            : '')
+        : `<div class="player-value-line">
+                    <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
+                    <span class="player-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>
                 </div>`;
     // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
     const rosterWatermarkHtml = (player.team && player.team !== 'FA')
@@ -8483,10 +8499,7 @@ function createPlayerRow(player, teamName) {
                 ${rosterWatermarkHtml}
                 ${mainLineHtml}
                 ${metaLineHtml}
-                <div class="player-value-line">
-                    <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
-                    <span class="player-ppg-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>
-                </div>
+                ${valueLineHtml}
             `;
     if (isCondensedView) {
         const nameEl = row.querySelector('.player-name-clickable');
@@ -8509,7 +8522,7 @@ function createPlayerRow(player, teamName) {
     }
     const ageEl = row.querySelector('.player-age');
     const ktcEl = row.querySelector('.player-ktc');
-    const ppgEl = row.querySelector('.player-ppg');
+    const adpEl = row.querySelector('.player-adp');
     const playerPosRankEl = row.querySelector('.player-pos-rank');
     if (playerPosRankEl) {
         playerPosRankEl.textContent = fptsPosRankDisplay;
@@ -8517,13 +8530,11 @@ function createPlayerRow(player, teamName) {
     }
     if (ageEl && player.age && player.age !== '?') ageEl.style.color = getAgeColorForRoster(player.pos, parseFloat(player.age));
     if (ktcEl && player.ktc) ktcEl.style.color = getKtcColor(player.ktc);
-    if (ppgEl) {
-        ppgEl.textContent = ppgValue;
-        if (hasPositivePpgValue && typeof ppgPosRankNumber === 'number') {
-            ppgEl.style.color = getConditionalColorByRank(ppgPosRankNumber, basePos);
-        } else if (!hasPositivePpgValue) {
-            ppgEl.style.color = 'var(--color-text-tertiary)';
-        }
+    if (adpEl) {
+        adpEl.textContent = adpValue;
+        adpEl.style.color = hasAdpValue
+            ? getAdpColorForRoster(numericAdpValue)
+            : 'var(--color-text-tertiary)';
     }
     const ktcWrapper = row.querySelector('.player-ktc-wrapper');
     if (ktcWrapper) {
