@@ -2952,7 +2952,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) > .ro
    team logo; second row = FPTS positional rank + ADP + KTC. */
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview {
   gap: 0.1rem;
-  padding: 0.17rem 0.3rem 0.13rem;
+  padding: 0.1rem 0.3rem 0.02rem;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-main-line {
@@ -2960,7 +2960,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .play
   width: 100%;
   min-width: 0;
   gap: 0.24rem;
-  margin-bottom: 0;
+  margin-bottom: -1px;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-name {
@@ -2998,6 +2998,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trad
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-team-slot .team-logo {
   width: 19px;
   height: 19px;
+  margin: 0px;
 }
 
 body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line {
@@ -3077,12 +3078,12 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper {
-    font-size: 0.54rem;
+    font-size: 0.6rem;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age-unit {
     margin-left: 0.04rem;
-    font-size: 0.47rem;
+    font-size: 0.57rem;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line,
@@ -3094,7 +3095,7 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
      expanded KTC rank/value group inside a ~166px card without clipping. */
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-meta-line,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-pos-rank {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
@@ -3102,16 +3103,16 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .ktc-rank-display,
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .stat-rank-annotation {
-    font-size: 0.5rem;
+    font-size: 0.55rem;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .ktc-rank-suffix-display {
-    margin-right: 0;
-    font-size: 0.46rem;
+    margin-right: 2px;
+    font-size: 0.52rem;
   }
 
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper .player-ktc {
-    font-size: 0.48rem;
+    font-size: 0.53rem;
   }
 }
 
