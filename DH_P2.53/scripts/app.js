@@ -8878,6 +8878,9 @@ function renderTradeBlock() {
         const totalKtc = assets.reduce((sum, asset) => sum + asset.ktc, 0);
         tradeData[name] = { assets, totalKtc };
     });
+    // Rosters Trade Preview player-name taps reuse the same Game Logs opener as
+    // roster-card names. Draft picks stay plain text because they have no player ID.
+    const tradePreviewPlayerAssets = new Map();
     const totals = teamNames.map(name => tradeData[name].totalKtc);
     const totalClasses = {};
     if (teamNames.length === 2) {
@@ -8900,7 +8903,15 @@ function renderTradeBlock() {
         if (assets.length > 0) {
             assets.forEach(asset => {
                 const ktcColor = getKtcColor(asset.ktc);
-                assetsHTML += `<div class="trade-asset-chip"><span class="player-tag" data-pos="${asset.pos || 'DP'}">${asset.pos || 'DP'}</span><span>${asset.label}</span><span class="ktc" style="color: ${ktcColor}">(${asset.ktc})</span></div>`;
+                const playerId = String(asset.id || '');
+                const isPlayerAsset = Boolean(playerId && state.players[playerId]);
+                if (isPlayerAsset) {
+                    tradePreviewPlayerAssets.set(playerId, asset);
+                }
+                const assetLabelHtml = isPlayerAsset
+                    ? `<span class="player-name-clickable trade-preview-player-name" data-player-id="${escapeHtml(playerId)}">${escapeHtml(asset.label)}</span>`
+                    : `<span>${escapeHtml(asset.label)}</span>`;
+                assetsHTML += `<div class="trade-asset-chip"><span class="player-tag" data-pos="${asset.pos || 'DP'}">${asset.pos || 'DP'}</span>${assetLabelHtml}<span class="ktc" style="color: ${ktcColor}">(${asset.ktc})</span></div>`;
             });
         } else {
             assetsHTML = `<span class="text-xs text-slate-500 p-2">Select assets...</span>`;
@@ -8925,6 +8936,22 @@ function renderTradeBlock() {
         }
     });
     tradeBody.innerHTML = bodyHtml;
+    tradeBody.querySelectorAll('.trade-preview-player-name').forEach(nameEl => {
+        nameEl.style.cursor = 'pointer';
+        nameEl.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const asset = tradePreviewPlayerAssets.get(nameEl.dataset.playerId);
+            if (!asset) return;
+            const fullPlayer = state.players[asset.id];
+            handlePlayerNameClick({
+                id: asset.id,
+                name: fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : asset.label,
+                pos: asset.basePos || fullPlayer?.position || asset.pos || '',
+                team: asset.team || fullPlayer?.team || 'FA',
+                ktc: asset.ktc
+            });
+        });
+    });
     // Disable/enable Clear button based on whether any assets are selected
     const clearBtn = document.getElementById('clearTradeButton');
     try {

@@ -3068,13 +3068,16 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .player-row--trade-preview .player-main-line {
     gap: 0.28rem;
   }
-
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age,
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
-  body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper {
-    font-size: 0.6rem;
-  }
-
+  
+    body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-adp-wrapper,
+    body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-ktc-wrapper {
+      font-size: 0.6rem;
+    }
+  
+    body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age {
+      font-size: 0.6rem;
+    }
+  
   body[data-page="rosters"] #rosterGrid.is-preview-mode:not(.start-sit-mode) .trade-preview-age-unit {
     margin-left: 0.04rem;
     font-size: 0.57rem;

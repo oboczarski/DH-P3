@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters Trade Preview row-two refinement: give both metric separators the
-// same fixed amount of space on their left and right sides.
-const CACHE_NAME = 'DH3.03V';
+// Rosters Trade Preview interaction: player-name taps inside selected asset
+// chips now open the same Game Logs modal as names in the roster columns.
+const CACHE_NAME = 'DH3.03W';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
