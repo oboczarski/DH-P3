@@ -3229,23 +3229,21 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="BAL"] {
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYJ"] {
   --roster-card-watermark-size: 80px;
   --roster-card-watermark-condensed-size: 38px;
-  top: 34%;
+  top: 37%;
   right: 4px;
+  opacity: 0.14;
+  filter: grayscale(100%) brightness(1.6);
 }
-.player-row .roster-card-watermark[alt="CAR"] {
+
+body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
+  top: 35%;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="CAR"] {
     opacity: 0.09;
     filter: grayscale(100%) brightness(3);
 }
 
-.player-row .roster-card-watermark[alt="NYJ"] {
-  opacity: 0.14;
-  filter: grayscale(100%) brightness(1.6);
-  top: 37%;
-}
-
-.player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
-  top: 35%;
-}
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="ARI"] {
   --roster-card-watermark-size: 70px;
