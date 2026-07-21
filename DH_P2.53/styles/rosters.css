@@ -3127,9 +3127,9 @@ body[data-page="rosters"] .player-row .roster-card-watermark {
   height: var(--roster-card-watermark-size, 70px);
   transform: translateY(-50%);
   top: 50%;
-  right: 0px;
+  right: 5px;
   object-fit: contain;
-  opacity: 0.07;
+  opacity: 0.065;
   pointer-events: none;
   z-index: 0;
   user-select: none;
@@ -3163,23 +3163,25 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="PIT"] {
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CIN"] {
-  --roster-card-watermark-size: 64px;
+  --roster-card-watermark-size: 60px;
   --roster-card-watermark-condensed-size: 34px;
   top: 49%;
   right: 6px;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="LV"] {
-  --roster-card-watermark-size: 63px;
+  --roster-card-watermark-size: 60px;
   --roster-card-watermark-condensed-size: 34px;
-  top: 53%;
-  opacity: 0.06;
+  top: 51%;
+  opacity: 0.08;
+  filter: grayscale(100%) brightness(1.4) invert(0.15);
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYG"] {
-  --roster-card-watermark-size: 59px;
+  --roster-card-watermark-size: 57px;
   --roster-card-watermark-condensed-size: 34px;
-  right: 9px;
+  right: 10px;
+  top: 50%;
   filter: grayscale(100%) contrast(1);
 }
 
@@ -3189,8 +3191,9 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="HOU"] {
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="IND"] {
-  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-size: 60px;
   --roster-card-watermark-condensed-size: 34px;
+  top: 54%;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="ATL"] {
@@ -3198,6 +3201,8 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="ATL"] {
   --roster-card-watermark-condensed-size: 34px;
   top: 56%;
   right: 6px;
+  filter: grayscale(100%) brightness(2);
+  opacity: 0.045;
 }
 
 /* Minor increases: 74px standard / 38px condensed. These remain separate even
@@ -3205,8 +3210,9 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="ATL"] {
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="SEA"] {
   --roster-card-watermark-size: 78px;
   --roster-card-watermark-condensed-size: 38px;
-  top: 40%;
+  top: 38%;
   right: 4px;
+  filter: grayscale(100%) brightness(1.4) invert(0.15);
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="NE"] {
@@ -3251,6 +3257,8 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="ARI"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="BUF"] {
   --roster-card-watermark-size: 70px;
+  filter: grayscale(100%) brightness(0.9) invert(0.2);
+  opacity: 0.1;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CLE"] {
@@ -3267,6 +3275,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="DET"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="GB"] {
   --roster-card-watermark-size: 70px;
+  opacity: 0.055;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="JAX"] {
@@ -3283,6 +3292,8 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="LAC"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="LAR"] {
   --roster-card-watermark-size: 70px;
+  filter: grayscale(100%) brightness(0.85) invert(0.85);
+  opacity: 0.1;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="MIA"] {
@@ -3299,10 +3310,15 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="NO"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="PHI"] {
   --roster-card-watermark-size: 70px;
+  filter: grayscale(100%) brightness(1.5) invert(0.75);
+  opacity: 0.09;
+  right: 2px;
+  top: 45%;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="SF"] {
   --roster-card-watermark-size: 70px;
+  top: 48%;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="TB"] {
@@ -3310,7 +3326,9 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="TB"] {
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="TEN"] {
-  --roster-card-watermark-size: 70px;
+  --roster-card-watermark-size: 78px;
+  top: 42%;
+  right: 7px;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="WAS"] {
