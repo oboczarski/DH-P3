@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters Trade Preview interaction: player-name taps inside selected asset
-// chips now open the same Game Logs modal as names in the roster columns.
-const CACHE_NAME = 'DH3.03W';
+// Rosters player cards: refresh page-local, independently sized NFL team-logo
+// watermark adjustments in both standard and condensed roster views.
+const CACHE_NAME = 'DH3.03X';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

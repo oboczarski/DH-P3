@@ -3119,4 +3119,86 @@ body[data-page="rosters"] #rosterGrid.is-preview-mode.condensed-mode:not(.start-
   }
 }
 
+/* Roster player-card watermarks: keep the shared defaults in styles.css, but
+   route the rendered dimensions through page-local variables so each requested
+   NFL logo can be tuned independently in both standard and condensed cards. */
+body[data-page="rosters"] .player-row .roster-card-watermark {
+  width: var(--roster-card-watermark-size, 70px);
+  height: var(--roster-card-watermark-size, 70px);
+}
+
+body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermark {
+  width: var(--roster-card-watermark-condensed-size, 36px);
+  height: var(--roster-card-watermark-condensed-size, 36px);
+}
+
+/* Minor reductions: 66px standard / 34px condensed. Each team deliberately
+   owns a separate rule so later logo-specific refinements cannot affect peers. */
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="CHI"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="PIT"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="CIN"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="LV"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYG"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="HOU"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="IND"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="ATL"] {
+  --roster-card-watermark-size: 66px;
+  --roster-card-watermark-condensed-size: 34px;
+}
+
+/* Minor increases: 74px standard / 38px condensed. These remain separate even
+   when values currently match, preserving one-team-at-a-time adjustability. */
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="SEA"] {
+  --roster-card-watermark-size: 74px;
+  --roster-card-watermark-condensed-size: 38px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="NE"] {
+  --roster-card-watermark-size: 74px;
+  --roster-card-watermark-condensed-size: 38px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="DEN"] {
+  --roster-card-watermark-size: 74px;
+  --roster-card-watermark-condensed-size: 38px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="BAL"] {
+  --roster-card-watermark-size: 74px;
+  --roster-card-watermark-condensed-size: 38px;
+}
+
+body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYJ"] {
+  --roster-card-watermark-size: 74px;
+  --roster-card-watermark-condensed-size: 38px;
+}
+
 /* ============================================================================ */
