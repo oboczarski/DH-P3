@@ -2372,22 +2372,6 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   right: -4px;
 }
 
-/* Per-team watermark opacity boosts for darker/less-visible logos (roster cards) */
-.player-row .roster-card-watermark[alt="CAR"] {
-  opacity: 0.09;
-  filter: grayscale(100%);
-}
-
-/* NYJ watermark: shifted up, brighter to compensate for dark logo */
-.player-row .roster-card-watermark[alt="NYJ"] {
-  opacity: 0.14;
-  filter: grayscale(100%) brightness(1.6);
-  top: 37%;
-}
-
-.player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
-  top: 35%;
-}
 
 /* Condensed roster view trims padding/gaps without changing type scale */
 #rosterGrid.condensed-mode {
