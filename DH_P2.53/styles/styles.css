@@ -2352,12 +2352,12 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 .player-row .roster-card-watermark {
   position: absolute;
   top: 50%;
-  right: 24px;
+  right: 0px;
   transform: translateY(-50%);
   width: 70px;
   height: 70px;
   object-fit: contain;
-  opacity: 0.04;
+  opacity: 0.08;
   pointer-events: none;
   z-index: 0;
   user-select: none;
