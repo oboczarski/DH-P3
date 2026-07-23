@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters player cards: refresh page-local, independently sized NFL team-logo
-// watermark adjustments in both standard and condensed roster views.
-const CACHE_NAME = 'DH3.03X';
+// Rosters CSS extraction: refresh the page-local stylesheet after roster-only rules
+// moved out of styles.css; existing per-team watermark overrides stay independently scoped.
+const CACHE_NAME = 'DH3.03Y';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
