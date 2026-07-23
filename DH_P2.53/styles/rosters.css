@@ -3252,7 +3252,9 @@ body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermar
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CAR"] {
   opacity: 0.07;
-  filter: grayscale(100%) brightness(3);
+  filter: grayscale(100%) brightness(2.5);
+  --roster-card-watermark-size: 75px;
+  top: 48%;
 }
 
 
@@ -3263,7 +3265,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="ARI"] {
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="BUF"] {
   --roster-card-watermark-size: 70px;
   filter: grayscale(100%) brightness(0.9) invert(0.2);
-  opacity: 0.1;
+  opacity: 0.115;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CLE"] {
