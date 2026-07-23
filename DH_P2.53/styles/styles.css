@@ -10309,7 +10309,7 @@ body.league-gate-active {
   justify-content: center;
   background: transparent;
   border: none;
-  padding: 0 0.75rem;
+  padding: 0 0.4rem;
   cursor: pointer;
   transition: background 0.2s ease;
   -webkit-tap-highlight-color: transparent;
@@ -10339,14 +10339,15 @@ body.league-gate-active {
 
 .league-nav-name {
   font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-size: 0.89rem;
   font-weight: 600;
-  color: rgb(198 204 224 / 95%);
+  color: rgb(225 229 243);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 160px;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
+  text-shadow: 2px 2px 2px #0004;
 }
 
 .league-nav-dropdown-icon {
@@ -10356,10 +10357,11 @@ body.league-gate-active {
 
 .league-nav-subtitle {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.02em;
+  text-shadow: 0px 0px 3px #fff5, 2px 2px 2px #0005;
 }
 
 /* League Selection Popup */
