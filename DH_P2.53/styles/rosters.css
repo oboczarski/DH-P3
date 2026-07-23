@@ -3129,7 +3129,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark {
   top: 50%;
   right: 5px;
   object-fit: contain;
-  opacity: 0.065;
+  opacity: 0.08;
   pointer-events: none;
   z-index: 0;
   user-select: none;
@@ -3323,6 +3323,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="SF"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="TB"] {
   --roster-card-watermark-size: 70px;
+  opacity: 0.1;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="TEN"] {
