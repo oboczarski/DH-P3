@@ -3149,7 +3149,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="CHI"] {
   --roster-card-watermark-condensed-size: 34px;
   right: 6%;
   top: 53%;
-  opacity: 0.08;
+  opacity: 0.075;
   filter: contrast(1.2) grayscale(100%) brightness(2.5);
 }
 
@@ -3220,11 +3220,13 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="NE"] {
   --roster-card-watermark-condensed-size: 38px;
   top: 46%;
   right: 7px;
+  opacity: 0.07;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="DEN"] {
   --roster-card-watermark-size: 74px;
   --roster-card-watermark-condensed-size: 38px;
+    opacity: 0.07;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="BAL"] {
@@ -3238,7 +3240,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYJ"] {
   top: 37%;
   right: 4px;
   opacity: 0.14;
-  filter: grayscale(100%) brightness(1.6);
+  filter: grayscale(100%) brightness(2);
 }
 
 body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermark[alt="NYJ"] {
@@ -3246,7 +3248,7 @@ body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermar
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CAR"] {
-    opacity: 0.09;
+    opacity: 0.075;
     filter: grayscale(100%) brightness(3);
 }
 
@@ -3275,7 +3277,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="DET"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="GB"] {
   --roster-card-watermark-size: 70px;
-  opacity: 0.055;
+  opacity: 0.05;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="JAX"] {
@@ -3284,6 +3286,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="JAX"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="KC"] {
   --roster-card-watermark-size: 70px;
+    opacity: 0.07;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="LAC"] {
@@ -3298,6 +3301,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="LAR"] {
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="MIA"] {
   --roster-card-watermark-size: 70px;
+    opacity: 0.07;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="MIN"] {
