@@ -10347,7 +10347,7 @@ body.league-gate-active {
   text-overflow: ellipsis;
   max-width: 160px;
   letter-spacing: 0.005em;
-  text-shadow: 2px 2px 1px #00000035;
+  text-shadow: 2px 2px 1px #0003;
 }
 
 .league-nav-dropdown-icon {
@@ -10361,7 +10361,7 @@ body.league-gate-active {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.02em;
-  text-shadow: 0px 0px 3px #fff5, 2px 2px 2px #0005;
+  text-shadow: 0px 0px 3px #fff5, 2px 2px 2px #0004;
 }
 
 /* League Selection Popup */

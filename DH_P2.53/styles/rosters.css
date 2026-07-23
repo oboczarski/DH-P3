@@ -3232,6 +3232,8 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="DEN"] {
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="BAL"] {
   --roster-card-watermark-size: 82px;
   --roster-card-watermark-condensed-size: 38px;
+  top: 48%;
+  right: 5px;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYJ"] {
