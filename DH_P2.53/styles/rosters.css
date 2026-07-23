@@ -3234,6 +3234,7 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="BAL"] {
   --roster-card-watermark-condensed-size: 38px;
   top: 48%;
   right: 5px;
+  opacity: 0.075;
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="NYJ"] {
@@ -3250,7 +3251,7 @@ body[data-page="rosters"] .player-row.player-row-condensed .roster-card-watermar
 }
 
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="CAR"] {
-    opacity: 0.075;
+    opacity: 0.07;
     filter: grayscale(100%) brightness(3);
 }
 
