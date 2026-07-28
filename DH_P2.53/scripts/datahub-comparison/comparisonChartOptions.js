@@ -486,10 +486,12 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             weekPrefix: {
               color: "rgba(205, 220, 245, 0.52)",
               fontFamily: COMPARISON_CHART_FONT_FAMILY,
-              fontSize: 5,
+              // Mobile weekly x-axis: keep the "wk" prefix legible while preserving the compact axis height.
+              fontSize: 6,
               fontWeight: 800,
               lineHeight: 8,
-              padding: [0, 1, 0, 0],
+              // ECharts rich-text padding order is top, right, bottom, left; right controls the prefix-to-number gap.
+              padding: [0, 0, 0, 0],
               verticalAlign: "bottom",
             },
             weekNumber: {
