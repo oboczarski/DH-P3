@@ -26,7 +26,7 @@
 // ============================================================================
 // Rosters CSS extraction: refresh the page-local stylesheet after roster-only rules
 // moved out of styles.css; existing per-team watermark overrides stay independently scoped.
-const CACHE_NAME = 'DH3.03Y';
+const CACHE_NAME = 'DH3.03Z';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -420,14 +420,20 @@ export function formatRank(rank, prefix = "") {
 }
 
 export function formatComparisonValue(key, value, options = {}) {
-  const { compact = false } = options;
+  const { compact = false, decimals: decimalsOverride = null } = options;
   const definition = getStatDefinition(key);
   const numberValue = toFiniteNumber(value);
   if (numberValue === null) {
     return "NA";
   }
 
-  const decimals = Number.isFinite(definition.decimals) ? definition.decimals : 1;
+  // Comparison summary averages:
+  // callers can preserve a meaningful decimal for per-week averages of
+  // counting stats without changing the normal whole-number stat display.
+  const defaultDecimals = Number.isFinite(definition.decimals) ? definition.decimals : 1;
+  const decimals = Number.isFinite(decimalsOverride)
+    ? Math.max(0, Math.floor(decimalsOverride))
+    : defaultDecimals;
   let text;
   if (compact && Math.abs(numberValue) >= 1000) {
     text = `${(numberValue / 1000).toFixed(Math.abs(numberValue) >= 10000 ? 0 : 1)}k`;

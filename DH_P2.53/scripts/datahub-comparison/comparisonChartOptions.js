@@ -209,38 +209,61 @@ function getPointThresholdColor(player, playerIndex, statKey, thresholds, rawVal
   return palette.low;
 }
 
-function buildWeeklyTooltip(params, statKey) {
+function getTooltipWeek(params) {
   const entries = Array.isArray(params) ? params : [params];
-  const weekLabel = entries[0]?.axisValueLabel || entries[0]?.name || "";
-  const lines = entries
-    .filter((entry) => entry?.data && !entry.data.isLabelOnly)
-    .map((entry) => {
-      if (entry.data.skipped) {
-        return `
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px;">
-            <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${entry.data.pointColor || entry.color};margin-right:6px;"></span>${entry.seriesName}</span>
-            <strong style="color:rgba(255,214,176,.92);">${entry.data.skipLabel || "DNP"}</strong>
-          </div>
-        `;
-      }
-      if (entry.data.rawValue === null || entry.data.rawValue === undefined) {
-        return "";
-      }
-      const rank = entry.data.rank ? ` <span style="opacity:.58">(${entry.data.pos}·${entry.data.rank})</span>` : "";
-      const opponent = entry.data.opponent ? ` <span style="opacity:.58">${entry.data.opponent}</span>` : "";
-      return `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px;">
-          <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${entry.data.pointColor || entry.color};margin-right:6px;"></span>${entry.seriesName}${opponent}${rank}</span>
-          <strong>${formatComparisonValue(statKey, entry.data.rawValue)}</strong>
-        </div>
-      `;
-    })
-    .filter(Boolean)
-    .join("");
+  const rawWeek = entries.find((entry) => (
+    entry?.axisValue !== undefined
+    || entry?.axisValueLabel
+    || entry?.name
+    || Array.isArray(entry?.data?.value)
+  ));
+  const source = rawWeek?.axisValue
+    ?? rawWeek?.axisValueLabel
+    ?? rawWeek?.name
+    ?? rawWeek?.data?.value?.[0]
+    ?? "";
+  const match = String(source).match(/(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+function buildWeeklyTooltip(params, statKey, players, thresholds) {
+  // Weekly comparison tooltip:
+  // build one row from each selected player's actual weekly record instead of
+  // reading ECharts' line/logo/label helper layers, which repeated one value.
+  const week = getTooltipWeek(params);
+  const safePlayers = Array.isArray(players) ? players : [];
+  const lines = safePlayers.map((player, playerIndex) => {
+    const entry = getWeeklyEntry(player, week);
+    const skipped = Boolean(entry?.isSkipped || entry?.skipped);
+    const rawValue = getSeriesRawValue(entry, statKey);
+    const paletteIndex = getSamePositionPaletteIndex(safePlayers, player, playerIndex);
+    const pointColor = rawValue === null
+      ? getPlayerAccentColor(player, paletteIndex)
+      : getPointThresholdColor(player, paletteIndex, statKey, thresholds, rawValue);
+    const rankValue = entry?.ranks?.[statKey];
+    const rank = rankValue
+      ? ` <span style="opacity:.58">(${player.pos}·${formatRank(rankValue)})</span>`
+      : "";
+    const opponent = entry?.opponent
+      ? ` <span style="opacity:.58">${entry.opponent}</span>`
+      : "";
+    const displayValue = skipped
+      ? (entry?.skipLabel || entry?.skipReason || "DNP")
+      : formatComparisonValue(statKey, rawValue);
+    const valueColor = skipped || rawValue === null
+      ? "rgba(255,214,176,.92)"
+      : "rgba(245,249,255,.98)";
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:8px;">
+        <span><span style="display:inline-block;width:8px;height:8px;border-radius:99px;background:${pointColor};margin-right:6px;"></span>${getPlayerName(player)}${opponent}${rank}</span>
+        <strong style="color:${valueColor};">${displayValue}</strong>
+      </div>
+    `;
+  }).join("");
 
   return `
     <div style="min-width:220px;font-family:Product Sans,Google Sans,sans-serif;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,238,255,.58);">${weekLabel}</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(226,238,255,.58);">${week ? `Week ${week}` : "Week"}</div>
       ${lines || '<div style="margin-top:6px;color:rgba(226,238,255,.68);">No stat recorded</div>'}
     </div>
   `;
@@ -407,7 +430,10 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
   // only one player's line.
   const axis = getAxisConfig(axisPlayers, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
-  const symbolSize = isMobile ? 17 : 19;
+  // Mobile weekly markers:
+  // keep team-logo data points slightly smaller so labels and adjacent weeks
+  // retain separation in the compact stacked charts.
+  const symbolSize = isMobile ? 15 : 19;
   const areaOpacity = isMobile ? 0.025 : 0.035;
   const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
 
@@ -416,7 +442,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
     animationEasing: "cubicOut",
     backgroundColor: "transparent",
     grid: isMobile
-      ? { top: 10, right: 6, bottom: showXAxis ? 32 : 6, left: 24, containLabel: false }
+      ? { top: 10, right: 6, bottom: showXAxis ? 15 : 4, left: 24, containLabel: false }
       : { top: 12, right: 22, bottom: showXAxis ? 32 : 8, left: 48, containLabel: false },
     tooltip: {
       trigger: "axis",
@@ -430,7 +456,7 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
       },
       extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
-      formatter: (params) => buildWeeklyTooltip(params, statKey),
+      formatter: (params) => buildWeeklyTooltip(params, statKey, axisPlayers, thresholds),
     },
     legend: { show: false },
     xAxis: {
@@ -445,10 +471,14 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         interval: 0,
         color: "rgba(205, 220, 245, 0.58)",
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
-        fontSize: isMobile ? 9 : 11,
-        margin: isMobile ? 7 : 7,
-        rotate: isMobile ? 45 : 0,
-        align: isMobile ? "right" : "center",
+        // Mobile week labels:
+        // numbers-only labels with a 2px margin provide an X axis for the top
+        // chart while consuming only a single, very shallow line of height.
+        fontSize: isMobile ? 7 : 11,
+        margin: isMobile ? 2 : 7,
+        rotate: 0,
+        align: "center",
+        formatter: isMobile ? (value) => String(value).replace(/^wk/i, "") : undefined,
       },
     },
     yAxis: {

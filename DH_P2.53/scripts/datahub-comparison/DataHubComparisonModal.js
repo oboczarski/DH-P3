@@ -6,6 +6,7 @@ import {
   getPlayerAccentColor,
   getPlayerName,
   getSeasonStatKeys,
+  getStatDefinition,
   getStatLabel,
   getWeeklyComparisonEdges,
   getWeeklyStatOptions,
@@ -93,6 +94,29 @@ function getWeeklyDisplayValue(player, statKey) {
   return statKey === "fpts"
     ? values.reduce((sum, value) => sum + value, 0)
     : values[values.length - 1];
+}
+
+function getWeeklyStatAverage(player, statKey) {
+  // Summary-card weekly average:
+  // include only played, non-skipped weeks with a real value for the active
+  // stat so byes, injuries, and missing observations do not dilute the AVG.
+  const values = (player?.weeklySeries || [])
+    .filter((entry) => !entry?.isSkipped && !entry?.skipped && (entry?.isPlayed || entry?.played))
+    .map((entry) => toFiniteNumber(entry?.stats?.[statKey]))
+    .filter((value) => value !== null);
+  if (!values.length) {
+    return null;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function formatWeeklyStatAverage(player, statKey) {
+  const definition = getStatDefinition(statKey);
+  const defaultDecimals = Number.isFinite(definition?.decimals) ? definition.decimals : 1;
+  return formatComparisonValue(statKey, getWeeklyStatAverage(player, statKey), {
+    compact: true,
+    decimals: Math.max(1, defaultDecimals),
+  });
 }
 
 function getFallbackRows({ mode, selectedPlayers, weeklyStatKey, seasonStatKeys }) {
@@ -443,6 +467,7 @@ export function createDataHubComparisonModal(React) {
 
   function SummaryCard({ player, playerIndex, statKey }) {
     const color = getPlayerAccentColor(player, playerIndex);
+    const weeklyAverage = formatWeeklyStatAverage(player, statKey);
     return h(
       "article",
       {
@@ -474,8 +499,22 @@ export function createDataHubComparisonModal(React) {
       h(
         "div",
         { className: "dh-compare-summary-card__ranks" },
-        h("span", null, `OVR ${formatRank(player?.seasonOverallRanks?.[statKey])}`),
-        h("span", null, `${player.pos || "POS"}·${formatRank(player?.seasonPosRanks?.[statKey])}`),
+        h(
+          "span",
+          { className: "dh-compare-summary-card__rank-pair" },
+          h("span", null, `OVR ${formatRank(player?.seasonOverallRanks?.[statKey])}`),
+          h("span", { className: "dh-compare-summary-card__rank-separator", "aria-hidden": "true" }, "|"),
+          h("span", null, `${player.pos || "POS"}·${formatRank(player?.seasonPosRanks?.[statKey])}`),
+        ),
+        h(
+          "span",
+          {
+            className: "dh-compare-summary-card__average",
+            title: `${getStatLabel(statKey)} weekly average`,
+          },
+          h("span", null, "AVG"),
+          h("strong", null, weeklyAverage),
+        ),
       ),
     );
   }
@@ -547,7 +586,7 @@ export function createDataHubComparisonModal(React) {
     );
   }
 
-  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, showXAxis, weeklyEdge }) {
+  function PlayerChart({ mode, player, playerIndex, selectedPlayers, weeklyStatKey, seasonStatKeys, weeks, thresholds, isCompact, showXAxis, weeklyEdge }) {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     const [hasEcharts, setHasEcharts] = useState(() => Boolean(window.echarts));
@@ -565,9 +604,10 @@ export function createDataHubComparisonModal(React) {
           weeks,
           thresholds,
           colorIndex: paletteIndex,
+          isCompact,
           showXAxis,
         });
-    }, [mode, paletteIndex, player, seasonStatKeys, selectedPlayers, showXAxis, thresholds, weeklyStatKey, weeks]);
+    }, [isCompact, mode, paletteIndex, player, seasonStatKeys, selectedPlayers, showXAxis, thresholds, weeklyStatKey, weeks]);
 
     useEffect(() => {
       setHasEcharts(Boolean(window.echarts));
@@ -639,9 +679,9 @@ export function createDataHubComparisonModal(React) {
     const [isStackedLayout, setIsStackedLayout] = useState(() => window.matchMedia("(max-width: 719px)").matches);
 
     useEffect(() => {
-      // Responsive shared X-axis:
-      // the mobile chart pair is stacked, so only its final chart owns the
-      // week axis. Desktop charts remain side by side and each keeps an axis.
+      // Responsive chart treatment:
+      // the stacked mobile pair uses the compact chart contract, including a
+      // very shallow week axis on both charts. Desktop keeps its full axis.
       const mediaQuery = window.matchMedia("(max-width: 719px)");
       const handleChange = (event) => setIsStackedLayout(event.matches);
       setIsStackedLayout(mediaQuery.matches);
@@ -692,9 +732,8 @@ export function createDataHubComparisonModal(React) {
           seasonStatKeys,
           weeks,
           thresholds,
-          showXAxis: selectedPlayers.length === 1
-            || !isStackedLayout
-            || playerIndex === selectedPlayers.length - 1,
+          isCompact: isStackedLayout,
+          showXAxis: true,
           weeklyEdge: weeklyEdges.get(player.id),
         })),
       ),
@@ -963,9 +1002,29 @@ export function createDataHubComparisonModal(React) {
                   },
                   onKeyDown: handleInputKeydown,
                 }),
-                h(ChevronDownIcon, {
-                  className: cx("dh-compare-search__chevron", isSearchOpen && "is-open"),
-                }),
+                h(
+                  "button",
+                  {
+                    type: "button",
+                    className: cx("dh-compare-search__toggle", isSearchOpen && "is-open"),
+                    "aria-label": isSearchOpen ? "Close player search results" : "Open player search results",
+                    "aria-controls": "dh-compare-search-results",
+                    "aria-expanded": String(isSearchOpen),
+                    // Player-search dropdown arrow:
+                    // make the visible chevron a real toggle so a second tap
+                    // closes an already-open menu on touch and desktop alike.
+                    onPointerDown: (event) => event.preventDefault(),
+                    onClick: () => {
+                      const nextOpen = !isSearchOpen;
+                      setIsSearchOpen(nextOpen);
+                      if (nextOpen) {
+                        setIsStatOpen(false);
+                        requestAnimationFrame(() => searchInputRef.current?.focus?.());
+                      }
+                    },
+                  },
+                  h(ChevronDownIcon, { className: "dh-compare-search__chevron" }),
+                ),
                 isSearchOpen
                   ? h(
                     "div",
