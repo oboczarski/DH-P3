@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters CSS extraction: refresh the page-local stylesheet after roster-only rules
-// moved out of styles.css; existing per-team watermark overrides stay independently scoped.
-const CACHE_NAME = 'DH3.04B';
+// DataHub comparison cards and skipped-week pills: refresh the page-local modal
+// stylesheet and lazy-loaded chart module after this responsive polish pass.
+const CACHE_NAME = 'DH3.04C';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

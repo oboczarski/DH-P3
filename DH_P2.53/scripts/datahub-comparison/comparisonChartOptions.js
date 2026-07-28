@@ -372,12 +372,15 @@ function buildSkipLabelPoints({ player, statKey, weeks, axis, isMobile, logoSymb
           position: "top",
           distance: isMobile ? 1 : 1,
           offset: [0, 0],
-          color: "rgba(232,237,246,.94)",
+          color: "#9090a0",
           backgroundColor: "rgba(17,21,31,0.92)",
           borderColor: "rgba(184,194,210,0.46)",
-          borderWidth: 1,
-          borderRadius: 6,
-          padding: isMobile ? [2, 5, 2, 5] : [3, 6, 3, 6],
+          // ECharts doubles this label-border value in its SVG stroke output;
+          // 0.5 renders the requested 1px skipped-week pill outline.
+          borderWidth: 0.5,
+          borderRadius: 5,
+          // Keep BYE/IR/OUT pills proportional to their one-pixel-smaller text.
+          padding: isMobile ? [1, 4, 1, 4] : [2, 5, 2, 5],
           shadowColor: "rgba(0,0,0,0.42)",
           shadowBlur: 6,
           shadowOffsetY: 1,
@@ -834,9 +837,9 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
             show: true,
             formatter: (params) => params.data?.skipLabel || "",
             fontFamily: COMPARISON_CHART_FONT_FAMILY,
-            fontSize: isMobile ? 8 : 9,
+            fontSize: isMobile ? 7 : 8,
             fontWeight: 950,
-            color: "rgba(232,237,246,.94)",
+            color: "#9090a0",
           },
           emphasis: {
             disabled: true,

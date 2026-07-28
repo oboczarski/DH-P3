@@ -678,9 +678,13 @@ body[data-page="datahub"] .dh-compare-summary-grid {
 body[data-page="datahub"] .dh-compare-summary-card {
   --compare-player-color: #72efff;
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) auto auto;
+  /* Desktop summary cards mirror the mobile composition:
+     player and value share the first row, while ranks and AVG share a
+     full-width detail row without changing the user's desktop sizing. */
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  column-gap: 10px;
+  row-gap: 3px;
   min-width: 0;
   min-height: 65px;
   padding: 7px 12px;
@@ -774,21 +778,25 @@ body[data-page="datahub"] .dh-compare-summary-card__metric strong {
 }
 
 body[data-page="datahub"] .dh-compare-summary-card__ranks {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
-  min-width: 68px;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
   text-transform: uppercase;
 }
 
 body[data-page="datahub"] .dh-compare-summary-card__rank-pair {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 4px;
 }
 
 body[data-page="datahub"] .dh-compare-summary-card__rank-separator {
-  display: none;
+  display: inline;
+  color: rgba(183, 204, 232, 0.38);
 }
 
 body[data-page="datahub"] .dh-compare-summary-card__average {
@@ -796,6 +804,7 @@ body[data-page="datahub"] .dh-compare-summary-card__average {
   align-items: baseline;
   justify-content: flex-end;
   gap: 4px;
+  margin-left: auto;
   color: color-mix(in srgb, var(--compare-player-color) 70%, rgba(222, 235, 251, 0.88));
 }
 
@@ -1192,7 +1201,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
   }
 
   body[data-page="datahub"] .dh-compare-summary-card {
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     min-height: 62px;
     padding: 8px 6px 8px 6px;
   }
