@@ -668,10 +668,11 @@ body[data-page="datahub"] .dh-compare-search__empty {
 
 body[data-page="datahub"] .dh-compare-summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 350px));
+  gap: 10px;
   min-width: 0;
   padding: 0 20px;
+  justify-content: space-evenly;
 }
 
 body[data-page="datahub"] .dh-compare-summary-card {
@@ -851,7 +852,7 @@ body[data-page="datahub"] .dh-compare-chart-grid {
   gap: 8px;
   min-width: 0;
   min-height: 0;
-  padding: 0 8px 8px;
+  padding: 8px;
   overflow: hidden;
 }
 
@@ -894,7 +895,7 @@ body[data-page="datahub"] .dh-compare-player-chart__header {
   display: grid;
   grid-template-columns: minmax(44px, 1fr) minmax(0, auto) minmax(44px, 1fr);
   align-items: center;
-  gap: 6px;
+  gap: 36px;
   min-width: 0;
   min-height: 30px;
   padding: 4px 10px 1px;
@@ -1431,7 +1432,7 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 0;
-    padding: 0 3px 1px;
+    padding: 0 2px 1px;
   }
 
   body[data-page="datahub"] .dh-compare-chart-grid--single {
@@ -1446,14 +1447,14 @@ body[data-page="datahub"] .dh-compare-search-option:focus-visible {
 
   body[data-page="datahub"] .dh-compare-player-chart + .dh-compare-player-chart {
     border-top: 0px solid rgba(164, 207, 255, 0.11);
-    transform: translateY(-3px);
+    transform: translateY(0px);
   }
 
   body[data-page="datahub"] .dh-compare-player-chart__header {
     grid-template-columns: minmax(38px, 1fr) minmax(0, auto) minmax(38px, 1fr);
-    gap: 4px;
+    gap: 24px;
     min-height: 23px;
-    padding: 2px 7px 0;
+    padding: 5px 7px 0;
   }
 
   body[data-page="datahub"] .dh-compare-player-chart__dot {
