@@ -472,13 +472,36 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
         color: "rgba(205, 220, 245, 0.58)",
         fontFamily: COMPARISON_CHART_FONT_FAMILY,
         // Mobile week labels:
-        // numbers-only labels with a 2px margin provide an X axis for the top
-        // chart while consuming only a single, very shallow line of height.
+        // add the requested lowercase `wk` as a smaller rich-text prefix while
+        // keeping the 2px margin and one-line shallow axis on both charts.
         fontSize: isMobile ? 7 : 11,
         margin: isMobile ? 2 : 7,
         rotate: 0,
         align: "center",
-        formatter: isMobile ? (value) => String(value).replace(/^wk/i, "") : undefined,
+        formatter: isMobile
+          ? (value) => `{weekPrefix|wk}{weekNumber|${String(value).replace(/^wk/i, "")}}`
+          : undefined,
+        rich: isMobile
+          ? {
+            weekPrefix: {
+              color: "rgba(205, 220, 245, 0.52)",
+              fontFamily: COMPARISON_CHART_FONT_FAMILY,
+              fontSize: 5,
+              fontWeight: 800,
+              lineHeight: 8,
+              padding: [0, 1, 0, 0],
+              verticalAlign: "bottom",
+            },
+            weekNumber: {
+              color: "rgba(205, 220, 245, 0.62)",
+              fontFamily: COMPARISON_CHART_FONT_FAMILY,
+              fontSize: 7,
+              fontWeight: 800,
+              lineHeight: 8,
+              verticalAlign: "bottom",
+            },
+          }
+          : undefined,
       },
     },
     yAxis: {
