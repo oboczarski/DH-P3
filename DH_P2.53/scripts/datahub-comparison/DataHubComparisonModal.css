@@ -566,13 +566,11 @@ body[data-page="datahub"] .dh-compare-search-option {
 
 body[data-page="datahub"] .dh-compare-search-option:hover {
   border-color: rgba(115, 244, 255, 0.25);
-  background:
-    linear-gradient(180deg, rgba(115, 244, 255, 0.11), rgba(255, 107, 180, 0.055)),
-    rgba(255, 255, 255, 0.045);
 }
 
 body[data-page="datahub"] .dh-compare-search-option.is-selected {
   border-color: rgba(91, 255, 198, 0.32);
+  background: linear-gradient(180deg, rgba(115, 244, 255, 0.11), rgba(255, 107, 180, 0.055)), rgba(255, 255, 255, 0.045);
 }
 
 body[data-page="datahub"] .dh-compare-search-option.is-disabled {
