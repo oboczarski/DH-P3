@@ -2364,9 +2364,19 @@
                 ? 'RB edge'
                 : 'Even split';
       const phaseScore = `RB ${rbTierWins}\u2013${wrTierWins} WR${tiedTiers ? ` \u00b7 ${tiedTiers} tie` : ''}`;
-      const top60Diff = values.RB.at(-1) - values.WR.at(-1);
-      const top60Leader = top60Diff > 0 ? 'RB' : top60Diff < 0 ? 'WR' : 'EVEN';
-      const top60Gap = top60Diff === 0 ? 'Even' : `${top60Leader} +${Math.abs(top60Diff)}`;
+      // Year-card RB-vs-WR footer: show the leader gap at every labeled range
+      // instead of reducing the comparison to Top 60 alone. The data-range-cut
+      // hooks let CSS mirror the SVG's T12/T36/T60 x-axis coordinates.
+      const rangeGapMarkup = labelIndexes.map((index) => {
+        const cut = cuts[index];
+        const difference = values.RB[index] - values.WR[index];
+        const leader = difference > 0 ? 'RB' : difference < 0 ? 'WR' : 'EVEN';
+        const visibleGap = difference === 0 ? 'Even' : `${leader} +${Math.abs(difference)}`;
+        const accessibleGap = difference === 0
+          ? `Top ${cut}: RB and WR are even`
+          : `Top ${cut}: ${leader} leads by ${Math.abs(difference)}`;
+        return `<strong class="pos-analysis-year-shift-gap pos-analysis-year-shift-gap--${difference > 0 ? 'rb' : difference < 0 ? 'wr' : 'even'}" data-range-cut="${cut}" aria-label="${accessibleGap}">${visibleGap}</strong>`;
+      }).join('');
       const emphasisClass = year >= 2024 ? ' is-rb-pivot' : '';
       const ids = {
         rbLine: `pos-analysis-year-rb-line-${year}`,
@@ -2421,7 +2431,7 @@
       // Value-only chips need less horizontal mass than the retired "RB 12"
       // format. The compact geometry leaves the curves visible while retaining
       // comfortable padding for every one- and two-digit player count.
-      const labelWidth = compact ? 24 : 30;
+      const labelWidth = compact ? 20 : 26;
       const labelHeight = compact ? 13 : 16;
       const labelMarkup = labelIndexes.map((index) => positions.map((pos) => {
         const otherPos = pos === 'RB' ? 'WR' : 'RB';
@@ -2461,7 +2471,7 @@
       }).join('. ');
       const svg = `<svg class="pos-analysis-year-shift-chart" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="pos-analysis-year-shift-svg-title-${year} pos-analysis-year-shift-svg-desc-${year}"><title id="pos-analysis-year-shift-svg-title-${year}">${year} cumulative RB and WR positional supply</title><desc id="pos-analysis-year-shift-svg-desc-${year}">${description}.</desc><defs>${gradientMarkup}<linearGradient id="${ids.areaFade}" gradientUnits="userSpaceOnUse" x1="0" y1="${margin.t}" x2="0" y2="${baseline}"><stop offset="0%" stop-color="white" stop-opacity=".9"/><stop offset="58%" stop-color="white" stop-opacity=".42"/><stop offset="100%" stop-color="black" stop-opacity="0"/></linearGradient><mask id="${ids.areaMask}" maskUnits="userSpaceOnUse" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" fill="url(#${ids.areaFade})"/></mask><clipPath id="${ids.clip}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/></clipPath><filter id="${ids.glow}" x="-20%" y="-25%" width="140%" height="150%"><feGaussianBlur stdDeviation="${compact ? 1.8 : 2.5}"/></filter></defs><rect class="pos-analysis-year-shift-plot" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/>${gridMarkup}${guideMarkup}<text class="pos-analysis-year-shift-axis-title" x="${margin.l}" y="${compact ? 10 : 12}">PLAYER COUNT</text>${areaMarkup}${lineMarkup}${pointMarkup}${labelMarkup}</svg>`;
 
-      return `<article class="pos-analysis-year-shift-card pos-analysis-year-shift-card--${phaseTone}${emphasisClass}" data-year="${year}"><header class="pos-analysis-year-shift-card-head"><div class="pos-analysis-year-shift-year"><strong>${year}</strong></div><div class="pos-analysis-year-shift-phase pos-analysis-year-shift-phase--${phaseTone}"><span>${phaseLabel}</span><small>${phaseScore}</small></div></header><div class="pos-analysis-year-shift-chart-shell">${svg}</div><footer class="pos-analysis-year-shift-card-foot"><span>Top 60 gap</span><strong class="pos-analysis-year-shift-gap pos-analysis-year-shift-gap--${top60Diff > 0 ? 'rb' : top60Diff < 0 ? 'wr' : 'even'}">${top60Gap}</strong></footer></article>`;
+      return `<article class="pos-analysis-year-shift-card pos-analysis-year-shift-card--${phaseTone}${emphasisClass}" data-year="${year}"><header class="pos-analysis-year-shift-card-head"><div class="pos-analysis-year-shift-year"><strong>${year}</strong></div><div class="pos-analysis-year-shift-phase pos-analysis-year-shift-phase--${phaseTone}"><span>${phaseLabel}</span><small>${phaseScore}</small></div></header><div class="pos-analysis-year-shift-chart-shell">${svg}</div><footer class="pos-analysis-year-shift-card-foot"><span class="pos-analysis-year-shift-card-foot-label">RB vs. WR</span><div class="pos-analysis-year-shift-range-gaps" aria-label="RB versus WR gaps at Top 12, Top 36, and Top 60">${rangeGapMarkup}</div></footer></article>`;
     }).join('');
 
     attachPosAnalysisTooltips(host);
