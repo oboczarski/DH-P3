@@ -198,8 +198,8 @@
   // separate from POS_ANALYSIS_POS_CONFIG. Adjusting these RB/WR stops changes
   // only the six year-shift charts, including their points and value chips.
   const POS_ANALYSIS_YEAR_SHIFT_GRADIENTS = {
-    RB: { low: '#0056a2', mid: '#0ebbff', high: '#00ff84' },
-    WR: { low: '#9147ff', mid: '#0033ff', high: '#009dff' }
+    RB: { low: '#004675', mid: '#48cbff', high: '#00ff84' },
+    WR: { low: '#7a39fbaa', mid: '#5100ff', high: '#00aaff' }
   };
   // G1 tier-stack defaults follow the page's 700px mobile breakpoint. The
   // choice is made once at page load so rotating/resizing never overwrites a
@@ -2521,7 +2521,7 @@
     const groupW = plotW / Math.max(1, years.length);
     const pairGap = Math.min(compact ? 9 : 14, Math.max(compact ? 5 : 7, groupW * 0.12));
     const barW = Math.min(
-      compact ? 28 : 34,
+      compact ? 48 : 54,
       Math.max(compact ? 14 : 17, (groupW - pairGap) * 0.34)
     );
     const minimumLabelH = compact ? 13 : 12;
