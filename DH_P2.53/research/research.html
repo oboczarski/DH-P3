@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.04G-year-shift-axis-spacing" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.04H-tier-stack-range" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -305,40 +305,30 @@
           </section>
 
           <section class="pos-analysis-card pos-analysis-tier-stack-section" aria-labelledby="pos-analysis-g1-title">
-            <div class="pos-analysis-card-head">
-              <div>
+            <!-- G1 year-range controls now belong to the tier-stack chart. Their
+                 compact phone placement is handled locally in research.css. -->
+            <div class="pos-analysis-card-head pos-analysis-card-head--with-controls">
+              <div class="pos-analysis-tier-stack-heading">
                 <span class="pos-analysis-eyebrow pos-analysis-eyebrow--tier-stack"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="stack" aria-hidden="true"></span> G1</span>
                 <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--tier-stack" id="pos-analysis-g1-title">RB / WR Tier Stack by Year</h2>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--tier-stack">Two stacked bars per year show WR and RB supply across T12, T36, and T60.</p>
               </div>
-            </div>
-            <!-- Positional Analysis tier stack chart: the modifier lets mobile
-                 spacing be tuned separately from the top supply chart. -->
-            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--tier-stack">
-              <div class="pos-analysis-chart-host" id="pos-analysis-tier-stack-chart" role="img" aria-label="WR and RB tier stack bar chart"></div>
-            </div>
-          </section>
-
-          <section class="pos-analysis-card pos-analysis-combo-section" aria-labelledby="pos-analysis-combo-title">
-            <div class="pos-analysis-card-head pos-analysis-card-head--with-controls">
-              <div>
-                <span class="pos-analysis-eyebrow pos-analysis-eyebrow--combo"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="bar-gap" aria-hidden="true"></span> Counts + gap</span>
-                <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--combo" id="pos-analysis-combo-title">Combined Count Bars + Difference Markers</h2>
-                <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--combo">Bars show WR/RB counts; markers show the WR minus RB gap.</p>
-              </div>
-              <div class="pos-analysis-year-controls" aria-label="Combined chart year range">
+              <div class="pos-analysis-year-controls" aria-label="Tier stack chart year range">
                 <div class="pos-analysis-year-control">
                   <label for="pos-analysis-min-year">Min year</label>
-                  <select id="pos-analysis-min-year"></select>
+                  <select id="pos-analysis-min-year" aria-label="Minimum year for the tier stack chart"></select>
                 </div>
                 <div class="pos-analysis-year-control">
                   <label for="pos-analysis-max-year">Max year</label>
-                  <select id="pos-analysis-max-year"></select>
+                  <select id="pos-analysis-max-year" aria-label="Maximum year for the tier stack chart"></select>
                 </div>
               </div>
             </div>
-            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--wide">
-              <div class="pos-analysis-chart-host" id="pos-analysis-combo-chart" role="img" aria-label="Combined WR and RB count bars with difference markers"></div>
+            <!-- Positional Analysis tier stack chart: the modifier lets mobile
+                 spacing and range-driven overflow be tuned separately from the
+                 top supply chart. -->
+            <div class="pos-analysis-chart-scroll pos-analysis-chart-scroll--tier-stack">
+              <div class="pos-analysis-chart-host" id="pos-analysis-tier-stack-chart" role="img" aria-label="WR and RB tier stack bar chart"></div>
             </div>
           </section>
 
@@ -601,6 +591,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=DH3.04G-year-shift-axis-spacing"></script>
+<script defer src="../scripts/syop.js?v=DH3.04H-tier-stack-range"></script>
 </body>
 </html>

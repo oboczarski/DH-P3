@@ -201,6 +201,10 @@
     RB: { low: '#0056a2', mid: '#0ebbff', high: '#00ff84' },
     WR: { low: '#9147ff', mid: '#0033ff', high: '#009dff' }
   };
+  // G1 tier-stack defaults follow the page's 700px mobile breakpoint. The
+  // choice is made once at page load so rotating/resizing never overwrites a
+  // range the visitor has already selected.
+  const POS_ANALYSIS_TIER_STACK_DEFAULT_MIN_YEAR = window.matchMedia('(max-width: 700px)').matches ? 2020 : 2014;
   const POS_ANALYSIS_STATE = {
     rows: [],
     counts: null,
@@ -211,8 +215,8 @@
     mode: 'single',
     positionView: 'rbWr',
     activePositions: ['RB', 'WR'],
-    minYear: 2014,
-    maxYear: 2025,
+    tierStackMinYear: POS_ANALYSIS_TIER_STACK_DEFAULT_MIN_YEAR,
+    tierStackMaxYear: POS_ANALYSIS_YEARS[POS_ANALYSIS_YEARS.length - 1],
     personnel: '12'
   };
 
@@ -257,7 +261,6 @@
     cards: { materialName: 'id_card', path: 'M720-440q17 0 28.5-11.5T760-480q0-17-11.5-28.5T720-520H600q-17 0-28.5 11.5T560-480q0 17 11.5 28.5T600-440h120Zm0-120q17 0 28.5-11.5T760-600q0-17-11.5-28.5T720-640H600q-17 0-28.5 11.5T560-600q0 17 11.5 28.5T600-560h120ZM360-440q-36 0-65 6.5T244-413q-21 13-32 29.5T201-348q0 12 9 20t22 8h256q13 0 22-8.5t9-21.5q0-17-11-33t-32-30q-22-14-51-20.5t-65-6.5Zm0-40q33 0 56.5-23.5T440-560q0-33-23.5-56.5T360-640q-33 0-56.5 23.5T280-560q0 33 23.5 56.5T360-480ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm0 0v-480 480Z' },
     calendar: { materialName: 'calendar_month', path: 'M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z' },
     stack: { materialName: 'stacked_bar_chart', path: 'M200-160q-17 0-28.5-11.5T160-200v-360q0-17 11.5-28.5T200-600h80q17 0 28.5 11.5T320-560v360q0 17-11.5 28.5T280-160h-80Zm0-480q-17 0-28.5-11.5T160-680v-80q0-17 11.5-28.5T200-800h80q17 0 28.5 11.5T320-760v80q0 17-11.5 28.5T280-640h-80Zm240 480q-17 0-28.5-11.5T400-200v-240q0-17 11.5-28.5T440-480h80q17 0 28.5 11.5T560-440v240q0 17-11.5 28.5T520-160h-80Zm0-360q-17 0-28.5-11.5T400-560v-80q0-17 11.5-28.5T440-680h80q17 0 28.5 11.5T560-640v80q0 17-11.5 28.5T520-520h-80Zm240 360q-17 0-28.5-11.5T640-200v-120q0-17 11.5-28.5T680-360h80q17 0 28.5 11.5T800-320v120q0 17-11.5 28.5T760-160h-80Zm0-240q-17 0-28.5-11.5T640-440v-80q0-17 11.5-28.5T680-560h80q17 0 28.5 11.5T800-520v80q0 17-11.5 28.5T760-400h-80Z' },
-    'bar-gap': { materialName: 'bar_chart_4_bars', path: 'M120-120q-17 0-28.5-11.5T80-160q0-17 11.5-28.5T120-200h720q17 0 28.5 11.5T880-160q0 17-11.5 28.5T840-120H120Zm60-120q-25 0-42.5-17.5T120-300v-160q0-25 17.5-42.5T180-520q25 0 42.5 17.5T240-460v160q0 25-17.5 42.5T180-240Zm200 0q-25 0-42.5-17.5T320-300v-360q0-25 17.5-42.5T380-720q25 0 42.5 17.5T440-660v360q0 25-17.5 42.5T380-240Zm200 0q-25 0-42.5-17.5T520-300v-240q0-25 17.5-42.5T580-600q25 0 42.5 17.5T640-540v240q0 25-17.5 42.5T580-240Zm200 0q-25 0-42.5-17.5T720-300v-480q0-25 17.5-42.5T780-840q25 0 42.5 17.5T840-780v480q0 25-17.5 42.5T780-240Z' },
     strategy: { materialName: 'strategy', path: 'm200-531-100-57q-9-5-14.5-14.5T80-623v-114q0-11 5.5-20.5T100-772l100-57q9-5 20-5t20 5l100 57q9 5 14.5 14.5T360-737v114q0 11-5.5 20.5T340-588l-100 57q-9 5-20 5t-20-5Zm20-81 60-34v-68l-60-34-60 34v68l60 34Zm440 123v-93l100 59q19 11 29.5 29.5T800-454v188q0 21-10.5 39.5T760-197l-160 93q-19 11-40 11t-40-11l-160-93q-19-11-29.5-29.5T320-266v-188q0-21 10.5-39.5T360-523l100-59v93l-60 35v188l160 93 160-93v-188l-60-35Zm-60-151v200q0 17-11.5 28.5T560-400q-17 0-28.5-11.5T520-440v-400q0-17 11.5-28.5T560-880h245q24 0 36 21t-2 41l-24 36q-7 10-7 22t7 22l24 36q14 20 2 41t-36 21H600Zm-40 309ZM220-680Z' },
     formula: { materialName: 'function', path: 'M221-120q-45 0-73-24t-28-64q0-32 17-51.5t43-19.5q25 0 42.5 17t17.5 41q0 5-.5 9t-1.5 9q5-1 8.5-5.5T252-221l62-339h-74q-17 0-28.5-11.5T200-600q0-17 11.5-28.5T240-640h89l21-114q7-38 37.5-62t72.5-24q44 0 72 26t28 65q0 30-17 49.5T500-680q-25 0-42.5-17T440-739q0-5 .5-9t1.5-9q-6 2-9 6t-5 12l-17 99h149q17 0 28.5 11.5T600-600q0 15-9.5 26T567-561l53 60 53-60q-14-2-23.5-13t-9.5-26q0-17 11.5-28.5T680-640h120q17 0 28.5 11.5T840-600q0 17-11.5 28.5T800-560h-22L673-440l105 120h22q17 0 28.5 11.5T840-280q0 17-11.5 28.5T800-240H680q-17 0-28.5-11.5T640-280q0-15 9.5-26t23.5-13l-53-61-53 61q14 2 23.5 13t9.5 26q0 17-11.5 28.5T560-240H440q-17 0-28.5-11.5T400-280q0-17 11.5-28.5T440-320h22l105-120-105-120h-66l-64 344q-8 45-37 70.5T221-120Z' },
     trophy: { materialName: 'trophy', path: 'M440-200v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80q0-33 23.5-56.5T360-840h240q33 0 56.5 23.5T680-760h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h120q17 0 28.5 11.5T680-160q0 17-11.5 28.5T640-120H320q-17 0-28.5-11.5T280-160q0-17 11.5-28.5T320-200h120ZM280-528v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z' },
@@ -2058,21 +2061,25 @@
     if (!minSelect.options.length) minSelect.innerHTML = options;
     if (!maxSelect.options.length) maxSelect.innerHTML = options;
 
-    minSelect.value = String(POS_ANALYSIS_STATE.minYear);
-    maxSelect.value = String(POS_ANALYSIS_STATE.maxYear);
+    minSelect.value = String(POS_ANALYSIS_STATE.tierStackMinYear);
+    maxSelect.value = String(POS_ANALYSIS_STATE.tierStackMaxYear);
     minSelect.onchange = () => {
-      POS_ANALYSIS_STATE.minYear = Number(minSelect.value) || 2014;
-      if (POS_ANALYSIS_STATE.minYear > POS_ANALYSIS_STATE.maxYear) {
-        POS_ANALYSIS_STATE.maxYear = POS_ANALYSIS_STATE.minYear;
+      POS_ANALYSIS_STATE.tierStackMinYear = Number(minSelect.value) || POS_ANALYSIS_TIER_STACK_DEFAULT_MIN_YEAR;
+      if (POS_ANALYSIS_STATE.tierStackMinYear > POS_ANALYSIS_STATE.tierStackMaxYear) {
+        POS_ANALYSIS_STATE.tierStackMaxYear = POS_ANALYSIS_STATE.tierStackMinYear;
       }
-      renderPosAnalysisAll();
+      // G1 owns this range: changing it updates only the selectors and the
+      // tier-stack SVG, then returns horizontal scroll to the first chosen year.
+      refreshPosAnalysisYearControls();
+      renderPosAnalysisTierStackBars({ resetScroll: true });
     };
     maxSelect.onchange = () => {
-      POS_ANALYSIS_STATE.maxYear = Number(maxSelect.value) || 2025;
-      if (POS_ANALYSIS_STATE.maxYear < POS_ANALYSIS_STATE.minYear) {
-        POS_ANALYSIS_STATE.minYear = POS_ANALYSIS_STATE.maxYear;
+      POS_ANALYSIS_STATE.tierStackMaxYear = Number(maxSelect.value) || POS_ANALYSIS_YEARS[POS_ANALYSIS_YEARS.length - 1];
+      if (POS_ANALYSIS_STATE.tierStackMaxYear < POS_ANALYSIS_STATE.tierStackMinYear) {
+        POS_ANALYSIS_STATE.tierStackMinYear = POS_ANALYSIS_STATE.tierStackMaxYear;
       }
-      renderPosAnalysisAll();
+      refreshPosAnalysisYearControls();
+      renderPosAnalysisTierStackBars({ resetScroll: true });
     };
   }
 
@@ -2481,41 +2488,72 @@
     attachPosAnalysisTooltips(host);
   }
 
-  function renderPosAnalysisTierStackBars() {
+  function renderPosAnalysisTierStackBars({ resetScroll = false } = {}) {
     const host = document.getElementById('pos-analysis-tier-stack-chart');
     if (!host) return;
-    const compact = window.innerWidth < 640;
-    const w = 1180;
-    // Positional Analysis tier-stack plot: twelve extra plot units make the
-    // bars only slightly taller, while the higher title closes the header gap.
-    const h = compact ? 362 : 390;
-    // Positional Analysis G1 tier stack chart:
-    // compact margins pull the y-axis labels toward the mobile edge while
-    // leaving the desktop chart geometry unchanged.
+    const years = POS_ANALYSIS_YEARS.filter((year) => (
+      year >= POS_ANALYSIS_STATE.tierStackMinYear
+      && year <= POS_ANALYSIS_STATE.tierStackMaxYear
+    ));
+    const container = host.closest('.pos-analysis-chart-scroll');
+    const compact = window.matchMedia('(max-width: 700px)').matches;
+    const h = compact ? 248 : 390;
     const m = compact
-      ? { l: 28, r: 12, t: 30, b: 52 }
+      ? { l: 30, r: 10, t: 26, b: 52 }
       : { l: 46, r: 28, t: 30, b: 52 };
+    const availableW = Math.max(
+      compact ? 286 : 560,
+      Math.floor((container?.clientWidth || host.clientWidth || 1180) - (compact ? 4 : 0))
+    );
+    // G1 range-aware geometry:
+    // - six phone years compress just enough to fit the card without scrolling
+    // - longer ranges receive a readable per-year lane and overflow naturally
+    // - desktop uses the existing card width whenever all lanes fit.
+    const compactFitLaneW = years.length <= 6
+      ? Math.max(43, Math.min(54, (availableW - m.l - m.r) / Math.max(1, years.length)))
+      : 54;
+    const minimumLaneW = compact ? compactFitLaneW : 56;
+    const w = Math.ceil(Math.max(availableW, m.l + m.r + years.length * minimumLaneW));
     const plotW = w - m.l - m.r;
     const plotH = h - m.t - m.b;
     const yMax = 26;
     const y = (value) => m.t + plotH - value / yMax * plotH;
-    const groupW = plotW / POS_ANALYSIS_YEARS.length;
-    const barW = Math.min(27, Math.max(16.5, groupW * 0.37));
-    const pairGap = 12;
-    const labelCutoff = compact ? 17 : 15;
-    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="RB and WR stacked tier supply bars">`;
+    const groupW = plotW / Math.max(1, years.length);
+    const pairGap = Math.min(compact ? 9 : 14, Math.max(compact ? 5 : 7, groupW * 0.12));
+    const barW = Math.min(
+      compact ? 28 : 34,
+      Math.max(compact ? 14 : 17, (groupW - pairGap) * 0.34)
+    );
+    const minimumLabelH = compact ? 13 : 12;
+    const fullLabelH = compact ? 29 : 25;
+    const rangeFontSize = Math.min(compact ? 9.5 : 10.4, Math.max(compact ? 7.6 : 8.4, barW * 0.48));
+    const countFontSize = Math.min(compact ? 13.2 : 14.2, Math.max(compact ? 10.4 : 11.5, barW * 0.62));
+    const positionFontSize = Math.min(compact ? 10.7 : 11.4, Math.max(9, groupW * 0.19));
+    const yearFontSize = Math.min(compact ? 12.4 : 13, Math.max(compact ? 10.2 : 11, groupW * 0.22));
+    const firstYear = years[0];
+    const lastYear = years[years.length - 1];
+    const rangeLabel = firstYear === lastYear ? String(firstYear) : `${firstYear} through ${lastYear}`;
+    const chartTitle = compact
+      ? 'Stack height = T60 · labels = cumulative tier counts'
+      : 'Stack height = Top 60 total · section labels show cumulative T12, T36, and T60 counts';
+
+    host.style.width = `${w}px`;
+    host.style.minWidth = `${w}px`;
+    host.dataset.yearCount = String(years.length);
+    host.setAttribute('aria-label', `WR and RB tier stack bar chart for ${rangeLabel}`);
+    let svg = `<svg class="pos-analysis-tier-stack-chart" data-year-count="${years.length}" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="pos-analysis-tier-stack-svg-title pos-analysis-tier-stack-svg-desc" style="--pos-analysis-tier-range-size:${rangeFontSize.toFixed(2)}px;--pos-analysis-tier-count-size:${countFontSize.toFixed(2)}px;--pos-analysis-tier-position-size:${positionFontSize.toFixed(2)}px;--pos-analysis-tier-year-size:${yearFontSize.toFixed(2)}px"><title id="pos-analysis-tier-stack-svg-title">RB and WR tier supply from ${rangeLabel}</title><desc id="pos-analysis-tier-stack-svg-desc">Two stacked bars per year compare cumulative Top 12, Top 36, and Top 60 running back and wide receiver counts.</desc>`;
 
     [0, 5, 10, 15, 20, 26].forEach((tick) => {
       svg += `<line class="pos-analysis-tier-stack-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-tier-stack-axis-label" x="${m.l - 8}" y="${y(tick) + 4}" text-anchor="end">${tick}</text>`;
     });
 
-    POS_ANALYSIS_YEARS.forEach((year, yearIndex) => {
-      const yearCenter = m.l + yearIndex * groupW + groupW / 2;
-      // Positional Analysis tier-stack year labels: preserve the original bar
-      // grouping exactly and center only the year text between the WR/RB labels.
-      const yearLabelCenter = yearCenter + barW / 4;
+    years.forEach((year, yearOffset) => {
+      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
+      const yearCenter = m.l + yearOffset * groupW + groupW / 2;
       ['WR', 'RB'].forEach((pos, posOffset) => {
-        const x0 = yearCenter + (posOffset === 0 ? -(barW + pairGap) / 2 : pairGap / 2);
+        const x0 = posOffset === 0
+          ? yearCenter - pairGap / 2 - barW
+          : yearCenter + pairGap / 2;
         const top12 = POS_ANALYSIS_STATE.counts['Top 12'][pos][yearIndex];
         const top36 = POS_ANALYSIS_STATE.counts['Top 36'][pos][yearIndex];
         const top60 = POS_ANALYSIS_STATE.counts['Top 60'][pos][yearIndex];
@@ -2539,105 +2577,27 @@
               ? Math.min(3.5, barW / 2)
               : 0;
           svg += `<rect class="pos-analysis-tier-stack-segment" data-pos-analysis-tier-cut="${segment.cut}" x="${x0}" y="${y1}" width="${barW}" height="${segmentH}" fill="${fill}" rx="${cornerRadius}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/>`;
-          if (segmentH >= labelCutoff) {
+          if (segmentH >= minimumLabelH) {
             const labelX = x0 + barW / 2;
             const labelY = y1 + segmentH / 2;
-            // A T12 count of two is too short for two lines, so it displays the
-            // value alone. All other badges gain eight units of label/value space.
-            const valueOnly = segment.cut === '12' && segment.value === 2;
+            // Short sections keep the cumulative value while taller sections
+            // retain both their T12/T36/T60 tier tag and value.
+            const valueOnly = segmentH < fullLabelH || (segment.cut === '12' && segment.value === 2);
+            const badgeH = valueOnly ? Math.min(20, Math.max(12, segmentH - 2)) : 30;
             const labelMarkup = valueOnly
-              ? `<text class="pos-analysis-tier-stack-label pos-analysis-tier-stack-label--value-only" x="${labelX}" y="${labelY + 5}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}">${segment.value}</tspan></text>`
-              : `<text class="pos-analysis-tier-stack-label" x="${labelX}" y="${labelY - 7}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-range" x="${labelX}">${segment.label}</tspan><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}" dy="18">${segment.value}</tspan></text>`;
-            svg += `<g class="pos-analysis-tier-stack-label-badge" data-pos-analysis-tier-cut="${segment.cut}" data-pos-analysis-value-only="${valueOnly}"><rect x="${x0 + 1.5}" y="${labelY - 16}" width="${barW - 3}" height="32" rx="5"/>${labelMarkup}</g>`;
+              ? `<text class="pos-analysis-tier-stack-label pos-analysis-tier-stack-label--value-only" x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="central"><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}">${segment.value}</tspan></text>`
+              : `<text class="pos-analysis-tier-stack-label" x="${labelX}" y="${labelY - 5}" text-anchor="middle"><tspan class="pos-analysis-tier-stack-label-range" x="${labelX}">${segment.label}</tspan><tspan class="pos-analysis-tier-stack-label-count" x="${labelX}" dy="14">${segment.value}</tspan></text>`;
+            svg += `<g class="pos-analysis-tier-stack-label-badge" data-pos-analysis-tier-cut="${segment.cut}" data-pos-analysis-value-only="${valueOnly}"><rect x="${x0 + 1.5}" y="${labelY - badgeH / 2}" width="${Math.max(1, barW - 3)}" height="${badgeH}" rx="${Math.min(5, badgeH / 2)}"/>${labelMarkup}</g>`;
           }
         });
-        svg += `</g><text class="pos-analysis-tier-stack-pos-label" x="${x0 + barW / 2}" y="${h - 34}" text-anchor="middle" fill="${POS_ANALYSIS_POS_CONFIG[pos].high}">${pos}</text>`;
+        svg += `</g><text class="pos-analysis-tier-stack-pos-label" x="${x0 + barW / 2}" y="${h - (compact ? 31 : 34)}" text-anchor="middle" fill="${POS_ANALYSIS_POS_CONFIG[pos].high}">${pos}</text>`;
       });
-      svg += `<text class="pos-analysis-tier-stack-year-label" x="${yearLabelCenter}" y="${h - 16}" text-anchor="middle">${year}</text>`;
+      svg += `<text class="pos-analysis-tier-stack-year-label" x="${yearCenter}" y="${h - (compact ? 13 : 16)}" text-anchor="middle">${year}</text>`;
     });
 
-    svg += `<text class="pos-analysis-tier-stack-chart-title" x="${m.l}" y="18">Stack height = Top 60 total · section labels show cumulative T12, T36, and T60 counts</text></svg>`;
+    svg += `<text class="pos-analysis-tier-stack-chart-title" x="${m.l}" y="${compact ? 16 : 18}">${chartTitle}</text></svg>`;
     host.innerHTML = svg;
-    attachPosAnalysisTooltips(host);
-  }
-
-  function renderPosAnalysisCombo() {
-    const host = document.getElementById('pos-analysis-combo-chart');
-    if (!host) return;
-    const years = POS_ANALYSIS_YEARS.filter((year) => year >= POS_ANALYSIS_STATE.minYear && year <= POS_ANALYSIS_STATE.maxYear);
-    const container = host.closest('.pos-analysis-chart-scroll');
-    const compact = window.innerWidth < 640;
-    // Positional Analysis combined count + difference chart:
-    // mobile removes extra side gutter from the SVG so the y-axis labels align
-    // closer to the card edge without changing desktop spacing.
-    const w = Math.max(360, Math.floor((container?.clientWidth || host.clientWidth || 1120) - (compact ? 6 : 24)));
-    const h = 462;
-    const m = compact ? { l: 28, r: 8 } : { l: 46, r: 24 };
-    const markerTop = 34;
-    const barTop = 112;
-    const barBottom = 396;
-    const barMax = 26;
-    const cuts = ['12', '36', '60'];
-    const allGaps = POS_ANALYSIS_YEARS.flatMap((year) => {
-      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
-      return cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex] - POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex]);
-    });
-    const gapMin = Math.min(-16, Math.min(...allGaps, 0) - 1);
-    const gapMax = Math.max(12, Math.max(...allGaps, 0) + 1);
-    const barY = (value) => barTop + (barBottom - barTop) - Math.min(value, barMax) / barMax * (barBottom - barTop);
-    const gapMinY = barY(barMax);
-    const gapMaxY = markerTop;
-    const gapY = (value) => gapMinY - (value - gapMin) / (gapMax - gapMin) * (gapMinY - gapMaxY);
-    const gapZero = gapY(0);
-    const plotW = Math.max(1, w - m.l - m.r);
-    const groupW = plotW / Math.max(1, years.length);
-    const clusterW = groupW * 0.78;
-    const rangeStep = Math.min(clusterW / 2, Math.max(17, groupW * 0.29));
-    const barW = Math.max(4, Math.min(10.8, rangeStep * 0.31));
-    const barGap = Math.max(1, Math.min(1.4, barW * 0.12));
-    const showAllYears = groupW >= 38;
-    let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Combined WR and RB count bars with difference markers">`;
-
-    [0, 5, 10, 15, 20, 26].forEach((tick) => {
-      svg += `<line class="pos-analysis-combo-count-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${barY(tick)}" y2="${barY(tick)}"/><text class="pos-analysis-combo-axis-label" x="${m.l - 10}" y="${barY(tick) + 4}" text-anchor="end">${tick}</text>`;
-    });
-    [0, gapMax].forEach((tick) => {
-      svg += `<line class="pos-analysis-combo-gap-grid-line" x1="${m.l}" x2="${w - m.r}" y1="${gapY(tick)}" y2="${gapY(tick)}"/><text class="pos-analysis-combo-axis-label" x="${m.l - 10}" y="${gapY(tick) + 4}" text-anchor="end">${tick}</text>`;
-    });
-
-    years.forEach((year, yearOffset) => {
-      const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
-      const yearCenter = m.l + yearOffset * groupW + groupW / 2;
-      cuts.forEach((cut, cutIndex) => {
-        const markerX = yearCenter + (cutIndex - 1) * rangeStep;
-        const wr = POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex];
-        const rb = POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex];
-        const gap = wr - rb;
-        const wrColor = POS_ANALYSIS_RANGE_COLORS[cut].WR;
-        const rbColor = POS_ANALYSIS_RANGE_COLORS[cut].RB;
-        const gapColor = gap >= 0 ? wrColor : rbColor;
-        const markerY = gapY(gap);
-        const tip = `<strong>${year} · T${cut}</strong><br>WR ${wr} · RB ${rb}<br>WR-RB gap: ${formatPosAnalysisDelta(gap)}`;
-        const wrX = markerX - barW - barGap / 2;
-        const rbX = markerX + barGap / 2;
-        // Positional Analysis combined chart:
-        // mobile moves the tier context into the compact title so the bottom
-        // axis stays clean; desktop keeps per-cluster T12/T36/T60 labels.
-        const cutLabel = !compact
-          ? `<text class="pos-analysis-combo-cut-label" x="${markerX}" y="${h - 48}" text-anchor="middle">T${cut}</text>`
-          : '';
-        svg += `<line class="pos-analysis-combo-gap-stem" x1="${markerX}" x2="${markerX}" y1="${gapZero}" y2="${markerY}" stroke="${gapColor}"/><circle class="pos-analysis-combo-gap-marker" cx="${markerX}" cy="${markerY}" r="5.1" stroke="${gapColor}" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}" tabindex="0"/><text class="pos-analysis-combo-gap-label" x="${markerX}" y="${gap >= 0 ? markerY - 9 : markerY + 16}" text-anchor="middle" fill="${gapColor}">${formatPosAnalysisDelta(gap)}</text><rect class="pos-analysis-combo-bar" x="${wrX}" y="${barY(wr)}" width="${barW}" height="${barBottom - barY(wr)}" rx="${barW / 2}" fill="${wrColor}"/><rect class="pos-analysis-combo-bar" x="${rbX}" y="${barY(rb)}" width="${barW}" height="${barBottom - barY(rb)}" rx="${barW / 2}" fill="${rbColor}"/>${cutLabel}`;
-      });
-      if (showAllYears || yearOffset % 2 === 0 || yearOffset === years.length - 1) {
-        svg += `<text class="pos-analysis-combo-year-label" x="${yearCenter}" y="${h - 20}" text-anchor="middle">${year}</text>`;
-      }
-    });
-
-    const comboTitle = w < 620
-      ? 'T12/T36/T60 counts · Markers = WR-RB gap'
-      : 'Bars = WR/RB counts · Markers = WR-RB gap · Count scale max = 26';
-    svg += `<text class="pos-analysis-combo-chart-title" x="${m.l}" y="23">${comboTitle}</text></svg>`;
-    host.innerHTML = svg;
+    if (resetScroll && container) container.scrollLeft = 0;
     attachPosAnalysisTooltips(host);
   }
 
@@ -2769,7 +2729,6 @@
     renderPosAnalysisProfiles();
     renderPosAnalysisYearShiftGrid();
     renderPosAnalysisTierStackBars();
-    renderPosAnalysisCombo();
     renderPosAnalysisPersonnel();
   }
 

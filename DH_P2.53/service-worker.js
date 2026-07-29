@@ -24,9 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis year grid: refresh the page-local assets after
-// tightening axis geometry, centering slimmer labels, and inlining gap details.
-const CACHE_NAME = 'DH3.04G';
+// Research Positional Analysis G1: refresh the page-local assets after moving
+// the year controls, removing the combined chart, and making tier-stack
+// geometry responsive to its selected season range.
+const CACHE_NAME = 'DH3.04H';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
