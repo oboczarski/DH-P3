@@ -6593,13 +6593,13 @@ body[data-page="research"] .pos-analysis-year-shift-line-glow {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-line {
-  stroke-width: 2.45;
+  stroke-width: 1.5px;
   opacity: 0.98;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-line-glow {
-  stroke-width: 6;
-  opacity: 0.22;
+  stroke-width: 7px;
+  opacity: 0.27;
   pointer-events: none;
 }
 
@@ -6654,11 +6654,11 @@ body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analys
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line--wr {
-  opacity: 0.68;
+  opacity: 1.08;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line-glow--wr {
-  opacity: 0.1;
+  opacity: 0.27;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-point--wr {
@@ -6670,7 +6670,7 @@ body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analys
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line--rb {
-  stroke-width: 2.75;
+  stroke-width: 1.5px;
 }
 
 /* Desktop-only line treatment for the year-by-year chart grid. These approved
