@@ -6847,17 +6847,21 @@ body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analys
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card-foot {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.24rem;
-  min-height: 0.22rem;
-  padding: 0.32rem 0 0.4rem;
+  position: relative;
+  display: block;
+  min-height: 1.75rem;
+  padding: 0;
   border-top: 1px solid rgba(141, 162, 205, 0.08);
   background: rgba(1, 5, 13, 0.28);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
-  padding-inline: 0.68rem;
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 0.68rem;
+  padding: 0;
+  transform: translateY(-50%);
   color: rgba(147, 165, 198, 0.55);
   font-size: 0.6rem;
   line-height: 1;
@@ -6865,16 +6869,17 @@ body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
   font-weight: 850;
 }
 
-/* The range-gap rail mirrors the SVG viewBox coordinates. Its container uses
-   the same inline inset as the chart shell, centering T12/T36 exactly while
-   keeping the edge-anchored T60 value visually tied to the plot endpoint. */
+/* The range-gap rail mirrors the SVG viewBox coordinates. It fills the footer
+   so the range values and "RB vs. WR" label share one vertical centerline,
+   while its inline inset still matches the chart shell's plotting geometry. */
 body[data-page="research"] .pos-analysis-year-shift-range-gaps {
   --pos-analysis-year-gap-t12: 26.444444%;
   --pos-analysis-year-gap-t36: 61.555556%;
-  position: relative;
+  position: absolute;
+  inset: 0 0.26rem;
   min-width: 0;
-  height: 0.78rem;
-  margin-inline: 0.26rem;
+  height: auto;
+  margin: 0;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-gap {
@@ -6931,6 +6936,15 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   body[data-page="research"] .pos-analysis-year-shift-grid {
     gap: 0.55rem;
     padding-inline: 0.72rem;
+  }
+
+  /* Compact SVG geometry begins before the two-column phone layout. Reduce
+     only the footer key's footprint so it clears T12 in the 3-column tablet
+     band while remaining vertically centered with every range comparison. */
+  body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
+    left: 0.36rem;
+    font-size: 0.48rem;
+    letter-spacing: -0.03em;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-range-gaps {
@@ -7071,20 +7085,21 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot {
-    gap: 0.18rem;
-    min-height: 2.32rem;
-    padding: 0.26rem 0 0.3rem;
+    min-height: 1.45rem;
+    padding: 0;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
-    padding-inline: 0.26rem;
-    font-size: 0.39rem;
+    left: 0.26rem;
+    padding: 0;
+    font-size: 0.34rem;
     letter-spacing: -0.02em;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-range-gaps {
-    height: 0.68rem;
-    margin-inline: 0.08rem;
+    inset-inline: 0.08rem;
+    height: auto;
+    margin: 0;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-gap {
@@ -7108,6 +7123,13 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
 
   body[data-page="research"] .pos-analysis-year-shift-phase small {
     font-size: 0.36rem;
+  }
+
+  /* Keep the inline footer key clear of the T12 gap on the narrowest cards. */
+  body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
+    left: 0.18rem;
+    font-size: 0.3rem;
+    letter-spacing: -0.01em;
   }
 }
 

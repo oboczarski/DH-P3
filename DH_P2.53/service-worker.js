@@ -25,8 +25,8 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Research Positional Analysis year grid: refresh the page-local assets after
-// adding symmetric leader-card emphasis and three range-aligned gap values.
-const CACHE_NAME = 'DH3.04F';
+// tightening axis geometry, centering slimmer labels, and inlining gap details.
+const CACHE_NAME = 'DH3.04G';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

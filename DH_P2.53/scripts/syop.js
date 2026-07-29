@@ -2315,22 +2315,26 @@
     const positions = ['WR', 'RB'];
     const compact = window.innerWidth <= 920;
     const width = compact ? 220 : 360;
-    const height = compact ? 180 : 235;
+    // Year-grid chart geometry: keep the desktop canvas unchanged, trim the
+    // mobile canvas slightly, and reclaim the oversized bottom gutter as real
+    // plotting room so the X-axis labels sit in a compact, balanced band.
+    const height = compact ? 174 : 235;
     const margin = compact
-      ? { l: 24, r: 9, t: 18, b: 26 }
-      : { l: 32, r: 12, t: 21, b: 30 };
+      ? { l: 24, r: 9, t: 18, b: 16 }
+      : { l: 32, r: 12, t: 21, b: 21 };
     const plotWidth = width - margin.l - margin.r;
     const plotHeight = height - margin.t - margin.b;
     const baseline = height - margin.b;
-    const maxY = 30;
-    const yTicks = compact ? [0, 15, 30] : [0, 10, 20, 30];
+    const xAxisLabelY = baseline + (compact ? 10 : 14);
+    const maxY = 26;
+    const yTicks = [0, 5, 10, 15, 20, 25];
     const labelIndexes = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut) => cuts.indexOf(cut));
     const x = (index) => margin.l + index / (cuts.length - 1) * plotWidth;
     const y = (value) => margin.t + plotHeight - value / maxY * plotHeight;
 
-    // Each season is rendered on the same 0-30 domain. That fixed geometry is
-    // what makes the six cards comparable and keeps the 2024/2025 crossover
-    // visually honest instead of auto-scaling each year independently.
+    // Every season shares a 0-26 domain for honest card-to-card comparison.
+    // The final labeled tick intentionally stops at 25, leaving one unit of
+    // headroom between the highest visible Y-axis label and the chart maximum.
     host.innerHTML = POS_ANALYSIS_YEAR_SHIFT_YEARS.map((year) => {
       const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
       const values = Object.fromEntries(positions.map((pos) => [
@@ -2371,7 +2375,7 @@
         const cut = cuts[index];
         const difference = values.RB[index] - values.WR[index];
         const leader = difference > 0 ? 'RB' : difference < 0 ? 'WR' : 'EVEN';
-        const visibleGap = difference === 0 ? 'Even' : `${leader} +${Math.abs(difference)}`;
+        const visibleGap = difference === 0 ? '-' : `${leader} +${Math.abs(difference)}`;
         const accessibleGap = difference === 0
           ? `Top ${cut}: RB and WR are even`
           : `Top ${cut}: ${leader} leads by ${Math.abs(difference)}`;
@@ -2399,7 +2403,7 @@
         `<line class="pos-analysis-year-shift-grid-line${tick === 0 ? ' pos-analysis-year-shift-grid-line--baseline' : ''}" x1="${margin.l}" x2="${width - margin.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--y" x="${margin.l - (compact ? 5 : 7)}" y="${y(tick) + (compact ? 2.8 : 3.5)}" text-anchor="end">${tick}</text>`
       )).join('');
       const guideMarkup = labelIndexes.map((index) => (
-        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${height - (compact ? 7 : 8)}" text-anchor="middle">T${cuts[index]}</text>`
+        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${xAxisLabelY}" text-anchor="middle">T${cuts[index]}</text>`
       )).join('');
 
       const areaMarkup = positions.map((pos) => {
@@ -2428,10 +2432,10 @@
         }).join('');
       }).join('');
 
-      // Value-only chips need less horizontal mass than the retired "RB 12"
-      // format. The compact geometry leaves the curves visible while retaining
-      // comfortable padding for every one- and two-digit player count.
-      const labelWidth = compact ? 20 : 26;
+      // Value-only chips use a deliberately narrow pill width. SVG central
+      // baselines below keep every one- and two-digit value optically centered
+      // in both axes even after removing the remaining horizontal padding.
+      const labelWidth = compact ? 18 : 22;
       const labelHeight = compact ? 13 : 16;
       const labelMarkup = labelIndexes.map((index) => positions.map((pos) => {
         const otherPos = pos === 'RB' ? 'WR' : 'RB';
@@ -2462,7 +2466,7 @@
         );
         const labelIsAbove = labelCenterY < point[1];
         const leaderTargetY = labelCenterY + (labelIsAbove ? labelHeight / 2 : -labelHeight / 2);
-        return `<g class="pos-analysis-year-shift-data-label pos-analysis-year-shift-data-label--${key}"><line x1="${point[0]}" x2="${labelCenterX}" y1="${point[1]}" y2="${leaderTargetY}" stroke="${config.high}"/><rect x="${labelCenterX - labelWidth / 2}" y="${labelCenterY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="${labelHeight / 2}" fill="rgba(5,8,18,.92)" stroke="${config.high}"/><text x="${labelCenterX}" y="${labelCenterY + (compact ? 2.8 : 3.5)}" text-anchor="middle" fill="${config.high}">${value}</text></g>`;
+        return `<g class="pos-analysis-year-shift-data-label pos-analysis-year-shift-data-label--${key}"><line x1="${point[0]}" x2="${labelCenterX}" y1="${point[1]}" y2="${leaderTargetY}" stroke="${config.high}"/><rect x="${labelCenterX - labelWidth / 2}" y="${labelCenterY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="${labelHeight / 2}" fill="rgba(5,8,18,.92)" stroke="${config.high}"/><text x="${labelCenterX}" y="${labelCenterY}" text-anchor="middle" dominant-baseline="central" fill="${config.high}">${value}</text></g>`;
       }).join('')).join('');
 
       const description = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut, index) => {
