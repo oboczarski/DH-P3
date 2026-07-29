@@ -1768,18 +1768,6 @@ body[data-page="research"] .pos-analysis-profile-section {
   box-shadow: 0 18px 36px rgba(5, 8, 20, 0.44);
 }
 
-body[data-page="research"] .pos-analysis-mini-section {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--pos-analysis-line);
-  background:
-    radial-gradient(circle at 14% 0%, rgba(103, 232, 249, 0.12), transparent 42%),
-    radial-gradient(circle at 86% 12%, rgba(226, 177, 60, 0.08), transparent 46%),
-    linear-gradient(135deg, rgba(17, 22, 40, 0.72), rgba(8, 11, 23, 0.44));
-  border-radius: 16px;
-  box-shadow: 0 18px 36px rgba(5, 8, 20, 0.44);
-}
-
 body[data-page="research"] .pos-analysis-tier-stack-section {
   position: relative;
   overflow: hidden;
@@ -1956,13 +1944,6 @@ body[data-page="research"] .pos-analysis-eyebrow--global {
 }
 
 body[data-page="research"] .pos-analysis-eyebrow--profiles {
-  --pos-analysis-eyebrow-shell-size: 1.08rem;
-  --pos-analysis-eyebrow-icon-size: 0.92rem;
-  font-size: 0.64rem;
-  letter-spacing: 0.18em;
-}
-
-body[data-page="research"] .pos-analysis-eyebrow--mini {
   --pos-analysis-eyebrow-shell-size: 1.08rem;
   --pos-analysis-eyebrow-icon-size: 0.92rem;
   font-size: 0.64rem;
@@ -2203,13 +2184,6 @@ body[data-page="research"] .pos-analysis-profile-section p {
   line-height: 1.52;
 }
 
-body[data-page="research"] .pos-analysis-mini-section p {
-  margin: 0.15rem 0 0;
-  color: var(--pos-analysis-sub);
-  font-size: 0.82rem;
-  line-height: 1.52;
-}
-
 body[data-page="research"] .pos-analysis-tier-stack-section p {
   margin: 0.15rem 0 0;
   color: var(--pos-analysis-sub);
@@ -2319,10 +2293,6 @@ body[data-page="research"] .pos-analysis-profile-section {
   padding: 0;
 }
 
-body[data-page="research"] .pos-analysis-mini-section {
-  padding: 0rem 0.1rem;
-}
-
 body[data-page="research"] .pos-analysis-tier-stack-section {
   padding: 0;
 }
@@ -2340,14 +2310,6 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-card-head 
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 0.45rem 1.6rem 0.35rem;
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-card-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -2389,15 +2351,6 @@ body[data-page="research"] .pos-analysis-global-section h2 {
 }
 
 body[data-page="research"] .pos-analysis-profile-section h2 {
-  margin: 0.18rem 0 0;
-  color: #fff;
-  font-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
-  line-height: 1.04;
-  letter-spacing: 0;
-  font-weight: 850;
-}
-
-body[data-page="research"] .pos-analysis-mini-section h2 {
   margin: 0.18rem 0 0;
   color: #fff;
   font-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
@@ -2809,8 +2762,7 @@ body[data-page="research"] .pos-analysis-combo-section .pos-analysis-chart-scrol
 
 body[data-page="research"] .pos-analysis-global-section .pos-analysis-chart-host svg,
 body[data-page="research"] .pos-analysis-tier-stack-section .pos-analysis-chart-host svg,
-body[data-page="research"] .pos-analysis-combo-section .pos-analysis-chart-host svg,
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-card svg {
+body[data-page="research"] .pos-analysis-combo-section .pos-analysis-chart-host svg {
   display: block;
   width: 100%;
   height: auto;
@@ -2931,35 +2883,6 @@ body[data-page="research"] .pos-analysis-supply-value-label {
   body[data-page="research"] .pos-analysis-supply-series-label--single {
     font-size: 12px;
   }
-}
-
-/* Positional Analysis mini year grid */
-body[data-page="research"] .pos-analysis-mini-grid-line {
-  stroke: rgba(255, 255, 255, 0.05);
-  stroke-width: 1px;
-}
-
-body[data-page="research"] .pos-analysis-mini-axis-label {
-  fill: rgba(255, 255, 255, 0.68);
-  font-family: 'Product Sans', 'Google Sans', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-body[data-page="research"] .pos-analysis-mini-line {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.75;
-}
-
-body[data-page="research"] .pos-analysis-mini-year,
-body[data-page="research"] .pos-analysis-mini-legend {
-  font-family: 'Product Sans', 'Google Sans', sans-serif;
-  paint-order: stroke;
-  stroke: rgba(5, 7, 17, 0.72);
-  stroke-width: 2.4px;
-  letter-spacing: -0.05em;
 }
 
 /* Positional Analysis tier stack chart */
@@ -3085,11 +3008,6 @@ body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-grid 
 }
 
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-grid {
-  display: grid;
-  gap: 1rem;
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
   display: grid;
   gap: 1rem;
 }
@@ -3383,36 +3301,6 @@ body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-s
 body[data-page="research"] .pos-analysis-profile-section .pos-analysis-profile-spark-base {
   stroke: rgba(255, 255, 255, 0.07);
   stroke-width: 1;
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 0 0.5rem 0.7rem;
-  gap: 0rem;
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-card {
-  border-top: 0px solid rgb(255 255 255 / 4%);
-  border-radius: 0px;
-  background: rgba(230, 230, 250, 0.0051);
-  border-bottom: 1px solid rgb(255 255 255 / 1%);
-  border-left: 1px solid rgb(255 255 255 / 1%);
-  border-right: 1px solid rgb(255 255 255 / 1%);
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-year {
-  fill: rgba(245, 247, 255, 0.95);
-  font-size: 23px;
-  font-weight: 600;
-  transform: translate(-10px , -6px);
-  paint-order: stroke;
-  text-shadow: 1px 1px 0px #40f5;
-}
-
-body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-legend {
-  font-size: 20px;
-  font-weight: 500;
-  margin-top: 0.25rem;
 }
 
 body[data-page="research"] .pos-analysis-combo-section .pos-analysis-year-controls {
@@ -4297,20 +4185,6 @@ body[data-page="research"] .pos-analysis-source-note {
     font-size: 1.2rem;
   }
 
-  /* Desktop-only mini-chart type scale: slightly tighter than the mobile
-     defaults without changing the SVG geometry or any phone presentation. */
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-axis-label {
-    font-size: 15.5px;
-  }
-
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-year {
-    font-size: 21px;
-  }
-
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-legend {
-    font-size: 18px;
-  }
-
   /* Desktop tactical header: stack the controls under the heading block so
      eyebrow, title, and personnel buttons read as one vertical sequence. */
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-head {
@@ -4423,9 +4297,6 @@ body[data-page="research"] .pos-analysis-source-note {
     flex-direction: column;
   }
 
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 700px) {
@@ -4448,14 +4319,6 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-profile-section .pos-analysis-card-head {
-    padding: 0.26rem 0.66rem 0.66rem;
-    border-radius: 14px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.55rem;
-  }
-
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-card-head {
     padding: 0.26rem 0.66rem 0.66rem;
     border-radius: 14px;
     flex-direction: column;
@@ -4690,10 +4553,6 @@ body[data-page="research"] .pos-analysis-source-note {
     padding-inline: 0.55rem;
   }
 
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
-    padding-inline: 0.55rem;
-  }
-
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-stat-chip .pos-analysis-stat-chip-label--desktop {
     display: none;
   }
@@ -4869,9 +4728,6 @@ body[data-page="research"] .pos-analysis-source-note {
     height: 14rem;
   }
 
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 560px) {
@@ -4890,13 +4746,6 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-eyebrow--profiles {
-    --pos-analysis-eyebrow-shell-size: 0.92rem;
-    --pos-analysis-eyebrow-icon-size: 0.7rem;
-    font-size: 0.55rem;
-    letter-spacing: 0.05em;
-  }
-
-  body[data-page="research"] .pos-analysis-eyebrow--mini {
     --pos-analysis-eyebrow-shell-size: 0.92rem;
     --pos-analysis-eyebrow-icon-size: 0.7rem;
     font-size: 0.55rem;
@@ -5012,10 +4861,6 @@ body[data-page="research"] .pos-analysis-source-note {
     font-size: 1rem;
   }
 
-  body[data-page="research"] .pos-analysis-mini-section h2 {
-    font-size: 1rem;
-  }
-
   body[data-page="research"] .pos-analysis-tier-stack-section h2 {
     font-size: 1rem;
   }
@@ -5078,12 +4923,6 @@ body[data-page="research"] .pos-analysis-source-note {
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  body[data-page="research"] .pos-analysis-mini-section .pos-analysis-mini-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding-inline: 0rem;
-    gap: 0rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-toggle {
@@ -5474,13 +5313,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
     letter-spacing: 0.18em;
   }
 
-  body[data-page="research"] .pos-analysis-eyebrow--mini {
-    --pos-analysis-eyebrow-shell-size: 1.08rem;
-    --pos-analysis-eyebrow-icon-size: 0.92rem;
-    font-size: 0.64rem;
-    letter-spacing: 0.18em;
-  }
-
   body[data-page="research"] .pos-analysis-eyebrow--tier-stack {
     --pos-analysis-eyebrow-shell-size: 1.08rem;
     --pos-analysis-eyebrow-icon-size: 0.92rem;
@@ -5584,10 +5416,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
     --pos-analysis-panel-heading-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
   }
 
-  body[data-page="research"] .pos-analysis-panel-heading--mini {
-    --pos-analysis-panel-heading-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
-  }
-
   body[data-page="research"] .pos-analysis-panel-heading--tier-stack {
     --pos-analysis-panel-heading-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
   }
@@ -5653,10 +5481,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
   }
 
   body[data-page="research"] .pos-analysis-panel-subheading--profiles {
-    --pos-analysis-panel-subheading-size: 0.82rem;
-  }
-
-  body[data-page="research"] .pos-analysis-panel-subheading--mini {
     --pos-analysis-panel-subheading-size: 0.82rem;
   }
 
@@ -5773,13 +5597,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
     letter-spacing: 0.05em;
   }
 
-  body[data-page="research"] .pos-analysis-eyebrow--mini {
-    --pos-analysis-eyebrow-shell-size: 0.92rem;
-    --pos-analysis-eyebrow-icon-size: 0.7rem;
-    font-size: 0.55rem;
-    letter-spacing: 0.05em;
-  }
-
   body[data-page="research"] .pos-analysis-eyebrow--tier-stack {
     --pos-analysis-eyebrow-shell-size: 0.92rem;
     --pos-analysis-eyebrow-icon-size: 0.7rem;
@@ -5883,10 +5700,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
     --pos-analysis-panel-heading-size: clamp(1rem, 0.83rem + 0.7vw, 1.18rem);
   }
 
-  body[data-page="research"] .pos-analysis-panel-heading--mini {
-    --pos-analysis-panel-heading-size: clamp(1rem, 0.83rem + 0.7vw, 1.18rem);
-  }
-
   body[data-page="research"] .pos-analysis-panel-heading--tier-stack {
     --pos-analysis-panel-heading-size: clamp(1rem, 0.83rem + 0.7vw, 1.18rem);
   }
@@ -5952,10 +5765,6 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
   }
 
   body[data-page="research"] .pos-analysis-panel-subheading--profiles {
-    --pos-analysis-panel-subheading-size: 0.82rem;
-  }
-
-  body[data-page="research"] .pos-analysis-panel-subheading--mini {
     --pos-analysis-panel-subheading-size: 0.82rem;
   }
 
@@ -6158,7 +5967,6 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
   /* Desktop eyebrow symbols are optically calibrated per panel. */
   body[data-page="research"] .pos-analysis-eyebrow--global { --pos-analysis-eyebrow-icon-size: 0.9rem; }
   body[data-page="research"] .pos-analysis-eyebrow--profiles { --pos-analysis-eyebrow-icon-size: 0.88rem; }
-  body[data-page="research"] .pos-analysis-eyebrow--mini { --pos-analysis-eyebrow-icon-size: 0.88rem; }
   body[data-page="research"] .pos-analysis-eyebrow--tier-stack { --pos-analysis-eyebrow-icon-size: 0.9rem; }
   body[data-page="research"] .pos-analysis-eyebrow--combo { --pos-analysis-eyebrow-icon-size: 0.9rem; }
   body[data-page="research"] .pos-analysis-eyebrow--paradigm { --pos-analysis-eyebrow-icon-size: 0.88rem; }
@@ -6313,7 +6121,6 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
   /* Mobile eyebrow symbols remain panel-specific. */
   body[data-page="research"] .pos-analysis-eyebrow--global {--pos-analysis-eyebrow-icon-size: 1rem;}
   body[data-page="research"] .pos-analysis-eyebrow--profiles { --pos-analysis-eyebrow-icon-size: 0.68rem; }
-  body[data-page="research"] .pos-analysis-eyebrow--mini { --pos-analysis-eyebrow-icon-size: 0.69rem; }
   body[data-page="research"] .pos-analysis-eyebrow--tier-stack { --pos-analysis-eyebrow-icon-size: 0.7rem; }
   body[data-page="research"] .pos-analysis-eyebrow--combo { --pos-analysis-eyebrow-icon-size: 0.7rem; }
   body[data-page="research"] .pos-analysis-eyebrow--paradigm { --pos-analysis-eyebrow-icon-size: 0.69rem; }
@@ -6490,4 +6297,760 @@ body[data-page="research"] #secondary-header-row {
   font-size: 15px;
   font-weight: 500;
   color: #aab;
+}
+
+/* ==========================================================================
+   Positional Analysis — 2020-2025 Line Graph Grid by Year
+   --------------------------------------------------------------------------
+   This Research-only component replaces the former mini-chart grid. Every
+   season card shares one 0-30 player domain, uses the top-panel RB/WR gradient
+   families, and owns narrow hooks for its header, axes, series, labels, and
+   2024/2025 pivot emphasis.
+   ========================================================================== */
+body[data-page="research"] .pos-analysis-year-shift-section {
+  --pos-analysis-year-rb-low: #0d7efe;
+  --pos-analysis-year-rb-mid: #1fa9f9;
+  --pos-analysis-year-rb-high: #00ffae;
+  --pos-analysis-year-wr-low: #5c47ff;
+  --pos-analysis-year-wr-mid: #0051ff;
+  --pos-analysis-year-wr-high: #1b7eff;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(121, 152, 207, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 6% -14%, rgba(56, 189, 248, 0.13), transparent 35%),
+    radial-gradient(circle at 94% 9%, rgba(0, 255, 174, 0.075), transparent 31%),
+    linear-gradient(148deg, rgba(16, 23, 42, 0.91), rgba(6, 9, 20, 0.86) 55%, rgba(8, 13, 27, 0.92));
+  box-shadow:
+    0 24px 56px rgba(2, 5, 15, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.34;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.76), transparent 78%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.76), transparent 78%);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-section::after {
+  content: '';
+  position: absolute;
+  inset: 0 8% auto;
+  z-index: 2;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(76, 194, 255, 0.58), rgba(0, 255, 174, 0.42), transparent);
+  box-shadow: 0 0 18px rgba(30, 176, 255, 0.22);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 0.72fr);
+  gap: 1rem;
+  align-items: end;
+  padding: 1rem 1.05rem 0.86rem;
+  border-bottom: 1px solid rgba(149, 173, 220, 0.105);
+  background:
+    linear-gradient(90deg, rgba(37, 99, 235, 0.035), transparent 44%),
+    rgba(3, 7, 17, 0.16);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-heading {
+  min-width: 0;
+}
+
+body[data-page="research"] .pos-analysis-eyebrow--year-shift {
+  --pos-analysis-eyebrow-shell-size: 1.08rem;
+  --pos-analysis-eyebrow-icon-size: 0.88rem;
+  color: rgba(174, 224, 246, 0.88);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+}
+
+body[data-page="research"] .pos-analysis-panel-heading--year-shift {
+  --pos-analysis-panel-heading-size: clamp(1.32rem, 1.05rem + 1vw, 1.72rem);
+  margin: 0.22rem 0 0;
+  color: #f7faff;
+  line-height: 1.02;
+  letter-spacing: -0.026em;
+  font-weight: 760;
+}
+
+body[data-page="research"] .pos-analysis-panel-subheading--year-shift {
+  --pos-analysis-panel-subheading-size: 0.82rem;
+  max-width: 47rem;
+  margin: 0.3rem 0 0;
+  color: rgba(184, 198, 224, 0.76);
+  line-height: 1.46;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-meta {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.25fr) repeat(2, minmax(104px, 0.72fr));
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend,
+body[data-page="research"] .pos-analysis-year-shift-scale,
+body[data-page="research"] .pos-analysis-year-shift-pivot {
+  min-width: 0;
+  min-height: 3.25rem;
+  border: 1px solid rgba(132, 157, 205, 0.13);
+  border-radius: 12px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    rgba(2, 6, 16, 0.44);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 9px 22px rgba(0, 0, 0, 0.13);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend {
+  display: grid;
+  gap: 0.34rem;
+  padding: 0.46rem 0.55rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend-item {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr);
+  gap: 0.42rem;
+  align-items: center;
+  min-width: 0;
+  color: rgba(211, 220, 240, 0.78);
+  font-size: 0.59rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend-item i {
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend-item--rb i {
+  background: linear-gradient(90deg, var(--pos-analysis-year-rb-low), var(--pos-analysis-year-rb-mid) 52%, var(--pos-analysis-year-rb-high));
+  box-shadow: 0 0 8px rgba(0, 255, 174, 0.32);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend-item--wr i {
+  background: linear-gradient(90deg, var(--pos-analysis-year-wr-low), var(--pos-analysis-year-wr-mid) 52%, var(--pos-analysis-year-wr-high));
+  box-shadow: 0 0 8px rgba(35, 107, 255, 0.3);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-legend-item strong {
+  color: #f4f7ff;
+  font-size: 0.64rem;
+  font-weight: 850;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-scale,
+body[data-page="research"] .pos-analysis-year-shift-pivot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.46rem 0.58rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-scale span,
+body[data-page="research"] .pos-analysis-year-shift-pivot span {
+  color: rgba(157, 173, 205, 0.62);
+  font-size: 0.49rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  font-weight: 850;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-scale strong,
+body[data-page="research"] .pos-analysis-year-shift-pivot strong {
+  display: block;
+  margin-top: 0.34rem;
+  color: rgba(238, 244, 255, 0.92);
+  font-size: 0.68rem;
+  line-height: 1;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-pivot {
+  border-color: rgba(0, 255, 174, 0.14);
+  background:
+    radial-gradient(circle at 82% 18%, rgba(0, 255, 174, 0.08), transparent 55%),
+    linear-gradient(150deg, rgba(35, 115, 238, 0.055), rgba(255, 255, 255, 0.012)),
+    rgba(2, 6, 16, 0.44);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-pivot strong {
+  color: #9af8db;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.72rem;
+  padding: 0.82rem 0.92rem 0.96rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-grid > .pos-analysis-message {
+  grid-column: 1 / -1;
+  min-height: 13rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card {
+  --pos-analysis-year-card-accent: rgba(54, 116, 255, 0.58);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid rgba(123, 148, 197, 0.14);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(37, 99, 235, 0.09), transparent 38%),
+    linear-gradient(158deg, rgba(16, 23, 42, 0.88), rgba(4, 8, 18, 0.95));
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.038);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 10% auto;
+  z-index: 2;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--pos-analysis-year-card-accent), transparent);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card::after {
+  content: '';
+  position: absolute;
+  inset: -34% -28% auto auto;
+  z-index: -1;
+  width: 72%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--pos-analysis-year-card-accent) 16%, transparent), transparent 68%);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card--wr {
+  --pos-analysis-year-card-accent: rgba(58, 106, 255, 0.65);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card--rb {
+  --pos-analysis-year-card-accent: rgba(0, 255, 174, 0.72);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot {
+  border-color: rgba(0, 255, 174, 0.2);
+  background:
+    radial-gradient(circle at 88% 0%, rgba(0, 255, 174, 0.11), transparent 37%),
+    radial-gradient(circle at 10% 8%, rgba(37, 99, 235, 0.11), transparent 42%),
+    linear-gradient(158deg, rgba(13, 25, 39, 0.93), rgba(3, 10, 18, 0.97));
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(173, 255, 226, 0.045);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card[data-year="2025"] {
+  border-color: rgba(0, 255, 174, 0.31);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    0 0 24px rgba(0, 255, 174, 0.055),
+    inset 0 1px 0 rgba(173, 255, 226, 0.06);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body[data-page="research"] .pos-analysis-year-shift-card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--pos-analysis-year-card-accent) 48%, rgba(145, 168, 215, 0.2));
+    box-shadow:
+      0 19px 34px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.64rem 0.68rem 0.2rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-year {
+  min-width: 0;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-year span {
+  display: block;
+  color: rgba(152, 170, 204, 0.58);
+  font-size: 0.47rem;
+  line-height: 1;
+  letter-spacing: 0.15em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-year strong {
+  display: block;
+  margin-top: 0.18rem;
+  color: #f8fbff;
+  font-size: 1.46rem;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  font-weight: 780;
+  text-shadow: 0 5px 18px rgba(0, 0, 0, 0.34);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  padding: 0.34rem 0.46rem 0.31rem;
+  border: 1px solid rgba(73, 123, 255, 0.18);
+  border-radius: 9px;
+  background: rgba(15, 28, 58, 0.48);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase span {
+  color: #86b9ff;
+  font-size: 0.53rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase small {
+  margin-top: 0.2rem;
+  color: rgba(194, 207, 231, 0.64);
+  font-size: 0.47rem;
+  line-height: 1;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase--rb {
+  border-color: rgba(0, 255, 174, 0.2);
+  background: rgba(0, 82, 68, 0.2);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase--rb span {
+  color: #71f6cd;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase--even {
+  border-color: rgba(164, 177, 211, 0.16);
+  background: rgba(71, 79, 105, 0.16);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-phase--even span {
+  color: #c9d2e6;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-chart-shell {
+  min-width: 0;
+  padding: 0 0.26rem 0.08rem;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-plot {
+  fill: rgba(1, 5, 14, 0.33);
+  stroke: rgba(137, 158, 200, 0.08);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-grid-line {
+  stroke: rgba(202, 217, 245, 0.08);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-grid-line--baseline {
+  stroke: rgba(202, 217, 245, 0.15);
+  stroke-dasharray: none;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-guide {
+  stroke: rgba(154, 183, 231, 0.055);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 5;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-axis-label,
+body[data-page="research"] .pos-analysis-year-shift-axis-title,
+body[data-page="research"] .pos-analysis-year-shift-data-label text {
+  font-family: 'Product Sans', 'Google Sans', sans-serif;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-axis-label {
+  fill: rgba(180, 195, 222, 0.58);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
+  fill: rgba(210, 221, 241, 0.72);
+  font-size: 9.5px;
+  letter-spacing: 0.025em;
+  font-weight: 760;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-axis-title {
+  fill: rgba(151, 171, 206, 0.52);
+  font-size: 7.4px;
+  letter-spacing: 0.13em;
+  font-weight: 850;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-area {
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-line,
+body[data-page="research"] .pos-analysis-year-shift-line-glow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-line {
+  stroke-width: 2.45;
+  opacity: 0.98;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-line-glow {
+  stroke-width: 6;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-point {
+  stroke: rgba(3, 8, 18, 0.9);
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-point.is-labeled {
+  cursor: pointer;
+  stroke: rgba(4, 9, 20, 0.98);
+  stroke-width: 1.8;
+  outline: none;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-point.is-labeled:focus-visible {
+  filter: drop-shadow(0 0 6px currentcolor) drop-shadow(0 0 4px rgba(255, 255, 255, 0.7));
+}
+
+body[data-page="research"] .pos-analysis-year-shift-data-label {
+  pointer-events: none;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-data-label line {
+  stroke-width: 1;
+  stroke-opacity: 0.36;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-data-label rect {
+  stroke-width: 0.85;
+  stroke-opacity: 0.56;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+}
+
+body[data-page="research"] .pos-analysis-year-shift-data-label text {
+  font-size: 10.2px;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+  paint-order: stroke;
+  stroke: rgba(3, 7, 16, 0.82);
+  stroke-width: 1.25px;
+}
+
+/* 2024 and 2025 are the requested emphasis window. Keep WR labels readable,
+   while dimming only its gradient area/line/points enough for RB to lead the
+   visual hierarchy without hiding the underlying values. */
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-area--wr {
+  opacity: 0.55;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line--wr {
+  opacity: 0.68;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line-glow--wr {
+  opacity: 0.1;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-point--wr {
+  opacity: 0.72;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-data-label--wr {
+  opacity: 0.84;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card.is-rb-pivot .pos-analysis-year-shift-line--rb {
+  stroke-width: 2.75;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 1.9rem;
+  padding: 0.38rem 0.68rem 0.42rem;
+  border-top: 1px solid rgba(141, 162, 205, 0.08);
+  background: rgba(1, 5, 13, 0.28);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-card-foot > span {
+  color: rgba(147, 165, 198, 0.55);
+  font-size: 0.48rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-gap {
+  font-size: 0.61rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-weight: 820;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-gap--rb {
+  color: #62efc4;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-gap--wr {
+  color: #72a5ff;
+}
+
+body[data-page="research"] .pos-analysis-year-shift-gap--even {
+  color: #c8d2e6;
+}
+
+@media (max-width: 920px) {
+  body[data-page="research"] .pos-analysis-year-shift-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-meta {
+    grid-template-columns: minmax(170px, 1.3fr) repeat(2, minmax(105px, 0.7fr));
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-grid {
+    gap: 0.55rem;
+    padding-inline: 0.72rem;
+  }
+}
+
+@media (max-width: 700px) {
+  body[data-page="research"] .pos-analysis-year-shift-section {
+    border-radius: 14px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-head {
+    gap: 0.58rem;
+    padding: 0.62rem 0.62rem 0.56rem;
+  }
+
+  body[data-page="research"] .pos-analysis-eyebrow--year-shift {
+    --pos-analysis-eyebrow-shell-size: 0.94rem;
+    --pos-analysis-eyebrow-icon-size: 0.7rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.07em;
+  }
+
+  body[data-page="research"] .pos-analysis-panel-heading--year-shift {
+    --pos-analysis-panel-heading-size: clamp(1.04rem, 0.9rem + 0.7vw, 1.14rem);
+    margin-top: 0.16rem;
+  }
+
+  body[data-page="research"] .pos-analysis-panel-subheading--year-shift {
+    --pos-analysis-panel-subheading-size: 0.7rem;
+    margin-top: 0.23rem;
+    line-height: 1.36;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.34rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-legend {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    min-height: 2.25rem;
+    padding: 0.38rem 0.48rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-legend-item {
+    grid-template-columns: minmax(1.8rem, 2.15rem) minmax(0, 1fr);
+    gap: 0.3rem;
+    font-size: 0.53rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-legend-item strong {
+    font-size: 0.56rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-scale,
+  body[data-page="research"] .pos-analysis-year-shift-pivot {
+    min-height: 2.55rem;
+    padding: 0.39rem 0.46rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-scale span,
+  body[data-page="research"] .pos-analysis-year-shift-pivot span {
+    font-size: 0.43rem;
+    letter-spacing: 0.08em;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-scale strong,
+  body[data-page="research"] .pos-analysis-year-shift-pivot strong {
+    margin-top: 0.25rem;
+    font-size: 0.59rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.42rem;
+    padding: 0.48rem 0.46rem 0.56rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-card {
+    border-radius: 12px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-card-head {
+    gap: 0.32rem;
+    padding: 0.43rem 0.46rem 0.12rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-year span {
+    font-size: 0.4rem;
+    letter-spacing: 0.11em;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-year strong {
+    margin-top: 0.14rem;
+    font-size: 1.12rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-phase {
+    padding: 0.26rem 0.3rem 0.24rem;
+    border-radius: 7px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-phase span {
+    font-size: 0.43rem;
+    letter-spacing: 0.07em;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-phase small {
+    margin-top: 0.16rem;
+    font-size: 0.39rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-chart-shell {
+    padding-inline: 0.08rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-axis-label {
+    font-size: 8.2px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
+    font-size: 8.8px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-axis-title {
+    font-size: 6.8px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-data-label text {
+    font-size: 9.4px;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-card-foot {
+    min-height: 1.58rem;
+    padding: 0.31rem 0.46rem 0.34rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-card-foot > span {
+    font-size: 0.39rem;
+    letter-spacing: 0.08em;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-gap {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  body[data-page="research"] .pos-analysis-year-shift-grid {
+    gap: 0.3rem;
+    padding-inline: 0.34rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-card-head {
+    padding-inline: 0.38rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-phase {
+    padding-inline: 0.24rem;
+  }
+
+  body[data-page="research"] .pos-analysis-year-shift-phase small {
+    font-size: 0.36rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="research"] .pos-analysis-year-shift-card {
+    transition: none;
+  }
 }

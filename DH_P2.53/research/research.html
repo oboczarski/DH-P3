@@ -14,7 +14,7 @@
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.03S-supply-label-axis-hero-icon" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.04D-year-shift-grid" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -276,15 +276,32 @@
             <div class="pos-analysis-profile-grid" id="pos-analysis-position-profiles"></div>
           </section>
 
-          <section class="pos-analysis-card pos-analysis-mini-section" aria-labelledby="pos-analysis-mini-title">
-            <div class="pos-analysis-card-head">
-              <div>
-                <span class="pos-analysis-eyebrow pos-analysis-eyebrow--mini"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="calendar" aria-hidden="true"></span> Year grid</span>
-                <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--mini" id="pos-analysis-mini-title">Mini Line Graph Grid by Year</h2>
-                <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--mini">Each mini chart compares cumulative WR/RB counts across fantasy-point ranking tiers.</p>
+          <section class="pos-analysis-card pos-analysis-year-shift-section" aria-labelledby="pos-analysis-year-shift-title">
+            <!-- 2020-2025 year-shift panel: this replaces the legacy mini-chart
+                 component with a fixed-scale, six-card comparison built only
+                 for the Research page's Positional Analysis tab. -->
+            <div class="pos-analysis-year-shift-head">
+              <div class="pos-analysis-year-shift-heading">
+                <span class="pos-analysis-eyebrow pos-analysis-eyebrow--year-shift"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="calendar" aria-hidden="true"></span> 2020&ndash;2025 &middot; Supply shift</span>
+                <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--year-shift" id="pos-analysis-year-shift-title">Line Graph Grid by Year</h2>
+                <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--year-shift">Six seasons on one shared player-count scale. Gradient curves track cumulative WR/RB supply; labels spotlight Top 12, Top 36, and Top 60.</p>
               </div>
+              <aside class="pos-analysis-year-shift-meta" aria-label="Chart legend and comparison scale">
+                <div class="pos-analysis-year-shift-legend" aria-label="Position series">
+                  <span class="pos-analysis-year-shift-legend-item pos-analysis-year-shift-legend-item--rb"><i aria-hidden="true"></i><span><strong>RB</strong> trajectory</span></span>
+                  <span class="pos-analysis-year-shift-legend-item pos-analysis-year-shift-legend-item--wr"><i aria-hidden="true"></i><span><strong>WR</strong> trajectory</span></span>
+                </div>
+                <div class="pos-analysis-year-shift-scale">
+                  <span>Comparable axis</span>
+                  <strong>0&ndash;30 players</strong>
+                </div>
+                <div class="pos-analysis-year-shift-pivot">
+                  <span>Emphasis window</span>
+                  <strong>2024 &rarr; 2025</strong>
+                </div>
+              </aside>
             </div>
-            <div class="pos-analysis-mini-grid" id="pos-analysis-mini-year-grid" aria-label="Mini line graphs by year"></div>
+            <div class="pos-analysis-year-shift-grid" id="pos-analysis-year-shift-grid" aria-label="Gradient line and area charts for 2020 through 2025"></div>
           </section>
 
           <section class="pos-analysis-card pos-analysis-tier-stack-section" aria-labelledby="pos-analysis-g1-title">
@@ -584,6 +601,6 @@
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=DH3.03S-supply-label-axis-hero-icon"></script>
+<script defer src="../scripts/syop.js?v=DH3.04D-year-shift-grid"></script>
 </body>
 </html>

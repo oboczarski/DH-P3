@@ -190,9 +190,10 @@
     36: { RB: '#00ffc3', WR: '#276bfc' },
     60: { RB: '#00ff99', WR: '#3e92ff' }
   };
-  // Mini year-grid lines use their own requested RB/WR palette so changing
-  // these colors cannot alter the supply, tier-stack, or combined charts.
-  const POS_ANALYSIS_MINI_LINE_COLORS = { RB: '#06ff97', WR: '#0299fe' };
+  // Line Graph Grid by Year: keep the redesigned comparison intentionally
+  // bounded to the six-season trend window requested for this Research panel.
+  const POS_ANALYSIS_YEAR_SHIFT_YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
+  const POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS = [12, 36, 60];
   const POS_ANALYSIS_STATE = {
     rows: [],
     counts: null,
@@ -1684,10 +1685,6 @@
     return { min, max: Math.max(max, min + 1) };
   }
 
-  function getPosAnalysisMiniYears() {
-    return POS_ANALYSIS_YEARS.filter((year) => year >= 2011 && year <= 2025);
-  }
-
   function posAnalysisTickValues(min, max, targetCount = 6) {
     const span = Math.max(1, max - min);
     const step = Math.max(1, Math.ceil(span / targetCount));
@@ -1789,6 +1786,17 @@
       d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
     }
     return d;
+  }
+
+  // Line Graph Grid area geometry: reuse the exact smoothed series curve, then
+  // close it against the shared zero baseline so the fill remains a truthful
+  // cumulative-count area rather than introducing an independent shape.
+  function posAnalysisSmoothAreaPath(points, baseline, smoothing = 0.18) {
+    if (!points.length) return '';
+    const linePath = posAnalysisSmoothPath(points, smoothing);
+    const first = points[0];
+    const last = points.at(-1);
+    return `${linePath} L ${last[0].toFixed(2)} ${baseline.toFixed(2)} L ${first[0].toFixed(2)} ${baseline.toFixed(2)} Z`;
   }
 
   // Positional Supply chart: each year-to-year segment gets its own subtle curve so gradients can follow the original tier-colored line behavior.
@@ -1975,7 +1983,7 @@
     const root = getPosAnalysisRoot();
     if (!root) return;
     const safeMessage = escapePosAnalysisHtml(message);
-    root.querySelectorAll('.pos-analysis-chart-host, .pos-analysis-mini-grid, .pos-analysis-profile-grid, .pos-analysis-stat-grid').forEach((node) => {
+    root.querySelectorAll('.pos-analysis-chart-host, .pos-analysis-year-shift-grid, .pos-analysis-profile-grid, .pos-analysis-stat-grid').forEach((node) => {
       node.innerHTML = `<div class="pos-analysis-message pos-analysis-message--${tone}">${safeMessage}</div>`;
     });
   }
@@ -2292,40 +2300,161 @@
     }).join('');
   }
 
-  function renderPosAnalysisMiniYearGrid() {
-    const host = document.getElementById('pos-analysis-mini-year-grid');
+  function renderPosAnalysisYearShiftGrid() {
+    const host = document.getElementById('pos-analysis-year-shift-grid');
     if (!host) return;
+
     const cuts = [6, 12, 24, 36, 48, 60];
+    const positions = ['WR', 'RB'];
+    const compact = window.innerWidth <= 920;
+    const width = compact ? 220 : 360;
+    const height = compact ? 180 : 235;
+    const margin = compact
+      ? { l: 24, r: 9, t: 18, b: 26 }
+      : { l: 32, r: 12, t: 21, b: 30 };
+    const plotWidth = width - margin.l - margin.r;
+    const plotHeight = height - margin.t - margin.b;
+    const baseline = height - margin.b;
     const maxY = 30;
-    host.innerHTML = getPosAnalysisMiniYears().map((year) => {
-      const width = 250;
-      const height = 162;
-      const m = { l: 34, r: 14, t: 28, b: 34 };
-      const plotW = width - m.l - m.r;
-      const plotH = height - m.t - m.b;
+    const yTicks = compact ? [0, 15, 30] : [0, 10, 20, 30];
+    const labelIndexes = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut) => cuts.indexOf(cut));
+    const x = (index) => margin.l + index / (cuts.length - 1) * plotWidth;
+    const y = (value) => margin.t + plotHeight - value / maxY * plotHeight;
+
+    // Each season is rendered on the same 0-30 domain. That fixed geometry is
+    // what makes the six cards comparable and keeps the 2024/2025 crossover
+    // visually honest instead of auto-scaling each year independently.
+    host.innerHTML = POS_ANALYSIS_YEAR_SHIFT_YEARS.map((year) => {
       const yearIndex = POS_ANALYSIS_YEARS.indexOf(year);
-      const x = (index) => m.l + index / (cuts.length - 1) * plotW;
-      const y = (value) => m.t + plotH - value / maxY * plotH;
-      const wr = cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].WR[yearIndex]);
-      const rb = cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`].RB[yearIndex]);
-      const wrPoints = wr.map((value, index) => [x(index), y(value)]);
-      const rbPoints = rb.map((value, index) => [x(index), y(value)]);
-      let svg = `<svg viewBox="0 0 ${width} ${height}" aria-label="${year} WR and RB cumulative counts">`;
-      [0, 15, 30].forEach((tick) => {
-        svg += `<line class="pos-analysis-mini-grid-line" x1="${m.l}" x2="${width - m.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-mini-axis-label" x="${m.l - 7}" y="${y(tick) + 3}" text-anchor="end">${tick}</text>`;
+      const values = Object.fromEntries(positions.map((pos) => [
+        pos,
+        cuts.map((cut) => POS_ANALYSIS_STATE.counts[`Top ${cut}`][pos][yearIndex])
+      ]));
+      const points = Object.fromEntries(positions.map((pos) => [
+        pos,
+        values[pos].map((value, index) => [x(index), y(value)])
+      ]));
+
+      let rbTierWins = 0;
+      let wrTierWins = 0;
+      let tiedTiers = 0;
+      labelIndexes.forEach((index) => {
+        if (values.RB[index] > values.WR[index]) rbTierWins += 1;
+        else if (values.WR[index] > values.RB[index]) wrTierWins += 1;
+        else tiedTiers += 1;
       });
-      cuts.forEach((cut, index) => {
-        if ([12, 36, 60].includes(cut)) {
-          svg += `<text class="pos-analysis-mini-axis-label" x="${x(index)}" y="${height - 12}" text-anchor="middle">T${cut}</text>`;
-        }
-      });
-      svg += `<path d="${posAnalysisSmoothPath(wrPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_MINI_LINE_COLORS.WR}"/><path d="${posAnalysisSmoothPath(rbPoints, 0.2)}" class="pos-analysis-mini-line" stroke="${POS_ANALYSIS_MINI_LINE_COLORS.RB}"/>`;
-      wrPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_MINI_LINE_COLORS.WR}"/>`; });
-      rbPoints.forEach((point) => { svg += `<circle class="pos-analysis-mini-dot" cx="${point[0]}" cy="${point[1]}" r="2.2" fill="${POS_ANALYSIS_MINI_LINE_COLORS.RB}"/>`; });
-      // The wider legend x-offset keeps the WR and RB count groups distinct.
-      svg += `<text class="pos-analysis-mini-year" x="14" y="18">${year}</text><text class="pos-analysis-mini-legend" x="72" y="18" fill="${POS_ANALYSIS_MINI_LINE_COLORS.WR}">WR ${wr.at(-1)}</text><text class="pos-analysis-mini-legend" x="142" y="18" fill="${POS_ANALYSIS_MINI_LINE_COLORS.RB}">RB ${rb.at(-1)}</text></svg>`;
-      return `<article class="pos-analysis-mini-card">${svg}</article>`;
+
+      const phaseTone = rbTierWins > wrTierWins ? 'rb' : wrTierWins > rbTierWins ? 'wr' : 'even';
+      const phaseLabel = year === 2025
+        ? 'RB sweep'
+        : year === 2024
+          ? 'RB pivot'
+          : wrTierWins === POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.length
+            ? 'WR control'
+            : phaseTone === 'wr'
+              ? 'WR edge'
+              : phaseTone === 'rb'
+                ? 'RB edge'
+                : 'Even split';
+      const phaseScore = `RB ${rbTierWins}\u2013${wrTierWins} WR${tiedTiers ? ` \u00b7 ${tiedTiers} tie` : ''}`;
+      const top60Diff = values.RB.at(-1) - values.WR.at(-1);
+      const top60Leader = top60Diff > 0 ? 'RB' : top60Diff < 0 ? 'WR' : 'EVEN';
+      const top60Gap = top60Diff === 0 ? 'Even' : `${top60Leader} +${Math.abs(top60Diff)}`;
+      const emphasisClass = year >= 2024 ? ' is-rb-pivot' : '';
+      const ids = {
+        rbLine: `pos-analysis-year-rb-line-${year}`,
+        wrLine: `pos-analysis-year-wr-line-${year}`,
+        rbArea: `pos-analysis-year-rb-area-${year}`,
+        wrArea: `pos-analysis-year-wr-area-${year}`,
+        areaFade: `pos-analysis-year-area-fade-${year}`,
+        areaMask: `pos-analysis-year-area-mask-${year}`,
+        clip: `pos-analysis-year-clip-${year}`,
+        glow: `pos-analysis-year-glow-${year}`
+      };
+
+      const gradientMarkup = positions.map((pos) => {
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const key = pos.toLowerCase();
+        return `<linearGradient id="${ids[`${key}Line`]}" gradientUnits="userSpaceOnUse" x1="${margin.l}" y1="0" x2="${width - margin.r}" y2="0"><stop offset="0%" stop-color="${config.low}"/><stop offset="52%" stop-color="${config.mid}"/><stop offset="100%" stop-color="${config.high}"/></linearGradient><linearGradient id="${ids[`${key}Area`]}" gradientUnits="userSpaceOnUse" x1="${margin.l}" y1="0" x2="${width - margin.r}" y2="0"><stop offset="0%" stop-color="${config.low}" stop-opacity=".2"/><stop offset="52%" stop-color="${config.mid}" stop-opacity=".12"/><stop offset="100%" stop-color="${config.high}" stop-opacity=".055"/></linearGradient>`;
+      }).join('');
+
+      const gridMarkup = yTicks.map((tick) => (
+        `<line class="pos-analysis-year-shift-grid-line${tick === 0 ? ' pos-analysis-year-shift-grid-line--baseline' : ''}" x1="${margin.l}" x2="${width - margin.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--y" x="${margin.l - (compact ? 5 : 7)}" y="${y(tick) + (compact ? 2.8 : 3.5)}" text-anchor="end">${tick}</text>`
+      )).join('');
+      const guideMarkup = labelIndexes.map((index) => (
+        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${height - (compact ? 7 : 8)}" text-anchor="middle">T${cuts[index]}</text>`
+      )).join('');
+
+      const areaMarkup = positions.map((pos) => {
+        const key = pos.toLowerCase();
+        return `<path class="pos-analysis-year-shift-area pos-analysis-year-shift-area--${key}" d="${posAnalysisSmoothAreaPath(points[pos], baseline, 0.18)}" fill="url(#${ids[`${key}Area`]})" mask="url(#${ids.areaMask})" clip-path="url(#${ids.clip})"/>`;
+      }).join('');
+
+      const lineMarkup = positions.map((pos) => {
+        const key = pos.toLowerCase();
+        const path = posAnalysisSmoothPath(points[pos], 0.18);
+        return `<path class="pos-analysis-year-shift-line-glow pos-analysis-year-shift-line-glow--${key}" d="${path}" stroke="url(#${ids[`${key}Line`]})" filter="url(#${ids.glow})" clip-path="url(#${ids.clip})"/><path class="pos-analysis-year-shift-line pos-analysis-year-shift-line--${key}" d="${path}" stroke="url(#${ids[`${key}Line`]})" clip-path="url(#${ids.clip})"/>`;
+      }).join('');
+
+      const pointMarkup = positions.map((pos) => {
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const key = pos.toLowerCase();
+        return points[pos].map((point, index) => {
+          const cut = cuts[index];
+          const highlighted = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.includes(cut);
+          const pointColor = index < 2 ? config.low : index < 4 ? config.mid : config.high;
+          const tip = `<strong>${pos} \u00b7 ${year} \u00b7 Top ${cut}</strong><br>Cumulative player count: ${values[pos][index]}`;
+          const interaction = highlighted
+            ? ` tabindex="0" aria-label="${pos} ${year} Top ${cut}: ${values[pos][index]} players" data-pos-analysis-tip="${escapePosAnalysisAttr(tip)}"`
+            : '';
+          return `<circle class="pos-analysis-year-shift-point pos-analysis-year-shift-point--${key}${highlighted ? ' is-labeled' : ''}" cx="${point[0]}" cy="${point[1]}" r="${highlighted ? (compact ? 3.4 : 4.1) : (compact ? 1.55 : 1.9)}" fill="${pointColor}"${interaction}/>`;
+        }).join('');
+      }).join('');
+
+      const labelWidth = compact ? 36 : 46;
+      const labelHeight = compact ? 14 : 17;
+      const labelMarkup = labelIndexes.map((index) => positions.map((pos) => {
+        const otherPos = pos === 'RB' ? 'WR' : 'RB';
+        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const key = pos.toLowerCase();
+        const point = points[pos][index];
+        const otherPoint = points[otherPos][index];
+        const value = values[pos][index];
+        const otherValue = values[otherPos][index];
+        const prefersAbove = value === otherValue ? pos === 'WR' : value > otherValue;
+        // Near the zero line, a conventional above/below pair has no room for
+        // the lower pill. Split close RB/WR values horizontally in one upper
+        // lane instead, preserving both labels without covering either series.
+        const floorCollision = Math.abs(value - otherValue) <= 2
+          && Math.max(point[1], otherPoint[1]) >= baseline - labelHeight * 2.2;
+        const requestedCenterY = floorCollision
+          ? Math.min(point[1], otherPoint[1]) - labelHeight / 2 - (compact ? 2 : 3)
+          : point[1] + (prefersAbove ? -(compact ? 11 : 13) : (compact ? 12 : 15));
+        const horizontalSplit = floorCollision
+          ? (pos === 'WR' ? -1 : 1) * (labelWidth / 2 + (compact ? 1.5 : 2.5))
+          : 0;
+        const minCenterY = margin.t + labelHeight / 2 + 1;
+        const maxCenterY = baseline - labelHeight / 2 - 2;
+        const labelCenterY = Math.max(minCenterY, Math.min(maxCenterY, requestedCenterY));
+        const labelCenterX = Math.max(
+          margin.l + labelWidth / 2 - 2,
+          Math.min(width - margin.r - labelWidth / 2 + 2, point[0] + horizontalSplit)
+        );
+        const labelIsAbove = labelCenterY < point[1];
+        const leaderTargetY = labelCenterY + (labelIsAbove ? labelHeight / 2 : -labelHeight / 2);
+        return `<g class="pos-analysis-year-shift-data-label pos-analysis-year-shift-data-label--${key}"><line x1="${point[0]}" x2="${labelCenterX}" y1="${point[1]}" y2="${leaderTargetY}" stroke="${config.high}"/><rect x="${labelCenterX - labelWidth / 2}" y="${labelCenterY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="${labelHeight / 2}" fill="rgba(5,8,18,.92)" stroke="${config.high}"/><text x="${labelCenterX}" y="${labelCenterY + (compact ? 2.8 : 3.5)}" text-anchor="middle" fill="${config.high}">${pos} ${value}</text></g>`;
+      }).join('')).join('');
+
+      const description = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut, index) => {
+        const pointIndex = labelIndexes[index];
+        return `Top ${cut}: RB ${values.RB[pointIndex]}, WR ${values.WR[pointIndex]}`;
+      }).join('. ');
+      const svg = `<svg class="pos-analysis-year-shift-chart" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="pos-analysis-year-shift-svg-title-${year} pos-analysis-year-shift-svg-desc-${year}"><title id="pos-analysis-year-shift-svg-title-${year}">${year} cumulative RB and WR positional supply</title><desc id="pos-analysis-year-shift-svg-desc-${year}">${description}.</desc><defs>${gradientMarkup}<linearGradient id="${ids.areaFade}" gradientUnits="userSpaceOnUse" x1="0" y1="${margin.t}" x2="0" y2="${baseline}"><stop offset="0%" stop-color="white" stop-opacity=".9"/><stop offset="58%" stop-color="white" stop-opacity=".42"/><stop offset="100%" stop-color="black" stop-opacity="0"/></linearGradient><mask id="${ids.areaMask}" maskUnits="userSpaceOnUse" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" fill="url(#${ids.areaFade})"/></mask><clipPath id="${ids.clip}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/></clipPath><filter id="${ids.glow}" x="-20%" y="-25%" width="140%" height="150%"><feGaussianBlur stdDeviation="${compact ? 1.8 : 2.5}"/></filter></defs><rect class="pos-analysis-year-shift-plot" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/>${gridMarkup}${guideMarkup}<text class="pos-analysis-year-shift-axis-title" x="${margin.l}" y="${compact ? 10 : 12}">PLAYER COUNT</text>${areaMarkup}${lineMarkup}${pointMarkup}${labelMarkup}</svg>`;
+
+      return `<article class="pos-analysis-year-shift-card pos-analysis-year-shift-card--${phaseTone}${emphasisClass}" data-year="${year}"><header class="pos-analysis-year-shift-card-head"><div class="pos-analysis-year-shift-year"><span>Season</span><strong>${year}</strong></div><div class="pos-analysis-year-shift-phase pos-analysis-year-shift-phase--${phaseTone}"><span>${phaseLabel}</span><small>${phaseScore}</small></div></header><div class="pos-analysis-year-shift-chart-shell">${svg}</div><footer class="pos-analysis-year-shift-card-foot"><span>Top 60 gap</span><strong class="pos-analysis-year-shift-gap pos-analysis-year-shift-gap--${top60Diff > 0 ? 'rb' : top60Diff < 0 ? 'wr' : 'even'}">${top60Gap}</strong></footer></article>`;
     }).join('');
+
+    attachPosAnalysisTooltips(host);
   }
 
   function renderPosAnalysisTierStackBars() {
@@ -2614,7 +2743,7 @@
     refreshPosAnalysisYearControls();
     renderPosAnalysisGlobalChart();
     renderPosAnalysisProfiles();
-    renderPosAnalysisMiniYearGrid();
+    renderPosAnalysisYearShiftGrid();
     renderPosAnalysisTierStackBars();
     renderPosAnalysisCombo();
     renderPosAnalysisPersonnel();

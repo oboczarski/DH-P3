@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub comparison cards and skipped-week pills: refresh the page-local modal
-// stylesheet and lazy-loaded chart module after this responsive polish pass.
-const CACHE_NAME = 'DH3.04C';
+// Research Positional Analysis year grid: refresh the page-local markup,
+// stylesheet, and CSV-driven chart renderer after the 2020-2025 redesign.
+const CACHE_NAME = 'DH3.04D';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
