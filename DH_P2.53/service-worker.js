@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis year grid: refresh the page-local markup,
-// stylesheet, and CSV-driven chart renderer after the 2020-2025 redesign.
-const CACHE_NAME = 'DH3.04D';
+// Research Positional Analysis year grid: refresh the page-local assets after
+// isolating its palette and simplifying its year/value label treatments.
+const CACHE_NAME = 'DH3.04E';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

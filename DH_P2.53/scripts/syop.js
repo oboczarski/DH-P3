@@ -194,6 +194,13 @@
   // bounded to the six-season trend window requested for this Research panel.
   const POS_ANALYSIS_YEAR_SHIFT_YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
   const POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS = [12, 36, 60];
+  // Line Graph Grid by Year palette: this configuration is intentionally
+  // separate from POS_ANALYSIS_POS_CONFIG. Adjusting these RB/WR stops changes
+  // only the six year-shift charts, including their points and value chips.
+  const POS_ANALYSIS_YEAR_SHIFT_GRADIENTS = {
+    RB: { low: '#0d7efe', mid: '#1fa9f9', high: '#00ffae' },
+    WR: { low: '#5c47ff', mid: '#0051ff', high: '#1b7eff' }
+  };
   const POS_ANALYSIS_STATE = {
     rows: [],
     counts: null,
@@ -2373,7 +2380,7 @@
       };
 
       const gradientMarkup = positions.map((pos) => {
-        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const config = POS_ANALYSIS_YEAR_SHIFT_GRADIENTS[pos];
         const key = pos.toLowerCase();
         return `<linearGradient id="${ids[`${key}Line`]}" gradientUnits="userSpaceOnUse" x1="${margin.l}" y1="0" x2="${width - margin.r}" y2="0"><stop offset="0%" stop-color="${config.low}"/><stop offset="52%" stop-color="${config.mid}"/><stop offset="100%" stop-color="${config.high}"/></linearGradient><linearGradient id="${ids[`${key}Area`]}" gradientUnits="userSpaceOnUse" x1="${margin.l}" y1="0" x2="${width - margin.r}" y2="0"><stop offset="0%" stop-color="${config.low}" stop-opacity=".2"/><stop offset="52%" stop-color="${config.mid}" stop-opacity=".12"/><stop offset="100%" stop-color="${config.high}" stop-opacity=".055"/></linearGradient>`;
       }).join('');
@@ -2397,7 +2404,7 @@
       }).join('');
 
       const pointMarkup = positions.map((pos) => {
-        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const config = POS_ANALYSIS_YEAR_SHIFT_GRADIENTS[pos];
         const key = pos.toLowerCase();
         return points[pos].map((point, index) => {
           const cut = cuts[index];
@@ -2411,11 +2418,14 @@
         }).join('');
       }).join('');
 
-      const labelWidth = compact ? 36 : 46;
-      const labelHeight = compact ? 14 : 17;
+      // Value-only chips need less horizontal mass than the retired "RB 12"
+      // format. The compact geometry leaves the curves visible while retaining
+      // comfortable padding for every one- and two-digit player count.
+      const labelWidth = compact ? 24 : 30;
+      const labelHeight = compact ? 13 : 16;
       const labelMarkup = labelIndexes.map((index) => positions.map((pos) => {
         const otherPos = pos === 'RB' ? 'WR' : 'RB';
-        const config = POS_ANALYSIS_POS_CONFIG[pos];
+        const config = POS_ANALYSIS_YEAR_SHIFT_GRADIENTS[pos];
         const key = pos.toLowerCase();
         const point = points[pos][index];
         const otherPoint = points[otherPos][index];
@@ -2442,7 +2452,7 @@
         );
         const labelIsAbove = labelCenterY < point[1];
         const leaderTargetY = labelCenterY + (labelIsAbove ? labelHeight / 2 : -labelHeight / 2);
-        return `<g class="pos-analysis-year-shift-data-label pos-analysis-year-shift-data-label--${key}"><line x1="${point[0]}" x2="${labelCenterX}" y1="${point[1]}" y2="${leaderTargetY}" stroke="${config.high}"/><rect x="${labelCenterX - labelWidth / 2}" y="${labelCenterY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="${labelHeight / 2}" fill="rgba(5,8,18,.92)" stroke="${config.high}"/><text x="${labelCenterX}" y="${labelCenterY + (compact ? 2.8 : 3.5)}" text-anchor="middle" fill="${config.high}">${pos} ${value}</text></g>`;
+        return `<g class="pos-analysis-year-shift-data-label pos-analysis-year-shift-data-label--${key}"><line x1="${point[0]}" x2="${labelCenterX}" y1="${point[1]}" y2="${leaderTargetY}" stroke="${config.high}"/><rect x="${labelCenterX - labelWidth / 2}" y="${labelCenterY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" rx="${labelHeight / 2}" fill="rgba(5,8,18,.92)" stroke="${config.high}"/><text x="${labelCenterX}" y="${labelCenterY + (compact ? 2.8 : 3.5)}" text-anchor="middle" fill="${config.high}">${value}</text></g>`;
       }).join('')).join('');
 
       const description = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut, index) => {
@@ -2451,7 +2461,7 @@
       }).join('. ');
       const svg = `<svg class="pos-analysis-year-shift-chart" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="pos-analysis-year-shift-svg-title-${year} pos-analysis-year-shift-svg-desc-${year}"><title id="pos-analysis-year-shift-svg-title-${year}">${year} cumulative RB and WR positional supply</title><desc id="pos-analysis-year-shift-svg-desc-${year}">${description}.</desc><defs>${gradientMarkup}<linearGradient id="${ids.areaFade}" gradientUnits="userSpaceOnUse" x1="0" y1="${margin.t}" x2="0" y2="${baseline}"><stop offset="0%" stop-color="white" stop-opacity=".9"/><stop offset="58%" stop-color="white" stop-opacity=".42"/><stop offset="100%" stop-color="black" stop-opacity="0"/></linearGradient><mask id="${ids.areaMask}" maskUnits="userSpaceOnUse" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" fill="url(#${ids.areaFade})"/></mask><clipPath id="${ids.clip}"><rect x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/></clipPath><filter id="${ids.glow}" x="-20%" y="-25%" width="140%" height="150%"><feGaussianBlur stdDeviation="${compact ? 1.8 : 2.5}"/></filter></defs><rect class="pos-analysis-year-shift-plot" x="${margin.l}" y="${margin.t}" width="${plotWidth}" height="${plotHeight}" rx="${compact ? 9 : 12}"/>${gridMarkup}${guideMarkup}<text class="pos-analysis-year-shift-axis-title" x="${margin.l}" y="${compact ? 10 : 12}">PLAYER COUNT</text>${areaMarkup}${lineMarkup}${pointMarkup}${labelMarkup}</svg>`;
 
-      return `<article class="pos-analysis-year-shift-card pos-analysis-year-shift-card--${phaseTone}${emphasisClass}" data-year="${year}"><header class="pos-analysis-year-shift-card-head"><div class="pos-analysis-year-shift-year"><span>Season</span><strong>${year}</strong></div><div class="pos-analysis-year-shift-phase pos-analysis-year-shift-phase--${phaseTone}"><span>${phaseLabel}</span><small>${phaseScore}</small></div></header><div class="pos-analysis-year-shift-chart-shell">${svg}</div><footer class="pos-analysis-year-shift-card-foot"><span>Top 60 gap</span><strong class="pos-analysis-year-shift-gap pos-analysis-year-shift-gap--${top60Diff > 0 ? 'rb' : top60Diff < 0 ? 'wr' : 'even'}">${top60Gap}</strong></footer></article>`;
+      return `<article class="pos-analysis-year-shift-card pos-analysis-year-shift-card--${phaseTone}${emphasisClass}" data-year="${year}"><header class="pos-analysis-year-shift-card-head"><div class="pos-analysis-year-shift-year"><strong>${year}</strong></div><div class="pos-analysis-year-shift-phase pos-analysis-year-shift-phase--${phaseTone}"><span>${phaseLabel}</span><small>${phaseScore}</small></div></header><div class="pos-analysis-year-shift-chart-shell">${svg}</div><footer class="pos-analysis-year-shift-card-foot"><span>Top 60 gap</span><strong class="pos-analysis-year-shift-gap pos-analysis-year-shift-gap--${top60Diff > 0 ? 'rb' : top60Diff < 0 ? 'wr' : 'even'}">${top60Gap}</strong></footer></article>`;
     }).join('');
 
     attachPosAnalysisTooltips(host);

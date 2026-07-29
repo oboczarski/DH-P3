@@ -6303,8 +6303,8 @@ body[data-page="research"] #secondary-header-row {
    Positional Analysis — 2020-2025 Line Graph Grid by Year
    --------------------------------------------------------------------------
    This Research-only component replaces the former mini-chart grid. Every
-   season card shares one 0-30 player domain, uses the top-panel RB/WR gradient
-   families, and owns narrow hooks for its header, axes, series, labels, and
+   season card shares one 0-30 player domain and owns dedicated RB/WR gradient
+   families plus narrow hooks for its header, axes, series, labels, and the
    2024/2025 pivot emphasis.
    ========================================================================== */
 body[data-page="research"] .pos-analysis-year-shift-section {
@@ -6602,25 +6602,18 @@ body[data-page="research"] .pos-analysis-year-shift-card-head {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-year {
+  display: flex;
+  align-items: center;
   min-width: 0;
-}
-
-body[data-page="research"] .pos-analysis-year-shift-year span {
-  display: block;
-  color: rgba(152, 170, 204, 0.58);
-  font-size: 0.47rem;
-  line-height: 1;
-  letter-spacing: 0.15em;
-  font-weight: 900;
-  text-transform: uppercase;
+  min-height: 2rem;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-year strong {
   display: block;
-  margin-top: 0.18rem;
+  margin: 0;
   color: #f8fbff;
-  font-size: 1.46rem;
-  line-height: 0.92;
+  font-size: 1.5rem;
+  line-height: 1;
   letter-spacing: -0.04em;
   font-weight: 780;
   text-shadow: 0 5px 18px rgba(0, 0, 0, 0.34);
