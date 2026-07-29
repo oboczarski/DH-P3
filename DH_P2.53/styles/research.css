@@ -35,7 +35,7 @@ body[data-page="research"] .app-header {
 
 @media (min-width: 869px) {
   body[data-page="research"] {
-    --research-desktop-content-max: 1200px;
+    --research-desktop-content-max: 1150px;
     --research-desktop-panel-width: min(calc(100vw - 3.5rem), var(--research-desktop-content-max));
     --research-desktop-shell-width: min(calc(100vw - 3rem), var(--research-desktop-content-max));
     --research-desktop-nav-button-width: clamp(4.2rem, 4.5vw, 4.85rem);
@@ -6605,7 +6605,7 @@ body[data-page="research"] .pos-analysis-year-shift-card[data-year="2025"] {
 
 @media (hover: hover) and (pointer: fine) {
   body[data-page="research"] .pos-analysis-year-shift-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(0px);
     border-color: color-mix(in srgb, var(--pos-analysis-year-card-accent) 48%, rgba(145, 168, 215, 0.2));
     box-shadow:
       0 19px 34px rgba(0, 0, 0, 0.28),
@@ -6693,9 +6693,10 @@ body[data-page="research"] .pos-analysis-year-shift-chart-shell {
 
 body[data-page="research"] .pos-analysis-year-shift-chart {
   display: block;
-  width: 100%;
+  width: 100.5%;
   height: auto;
   overflow: visible;
+  transform: translateX(-3px);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-plot {
@@ -6732,15 +6733,16 @@ body[data-page="research"] .pos-analysis-year-shift-data-label text {
 
 body[data-page="research"] .pos-analysis-year-shift-axis-label {
   fill: rgba(180, 195, 222, 0.58);
-  font-size: 9px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
   fill: rgba(210, 221, 241, 0.72);
-  font-size: 9.5px;
+  font-size: 11.5px;
   letter-spacing: 0.025em;
-  font-weight: 760;
+  font-weight: 560;
+  transform: translateX(0px);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-axis-title {
@@ -6848,7 +6850,7 @@ body[data-page="research"] .pos-analysis-year-shift-card-foot {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.24rem;
-  min-height: 2.72rem;
+  min-height: 0.22rem;
   padding: 0.32rem 0 0.4rem;
   border-top: 1px solid rgba(141, 162, 205, 0.08);
   background: rgba(1, 5, 13, 0.28);
@@ -6857,11 +6859,10 @@ body[data-page="research"] .pos-analysis-year-shift-card-foot {
 body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
   padding-inline: 0.68rem;
   color: rgba(147, 165, 198, 0.55);
-  font-size: 0.48rem;
+  font-size: 0.6rem;
   line-height: 1;
-  letter-spacing: 0.12em;
+  letter-spacing: -0.04em;
   font-weight: 850;
-  text-transform: uppercase;
 }
 
 /* The range-gap rail mirrors the SVG viewBox coordinates. Its container uses
@@ -7018,8 +7019,10 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-head {
-    gap: 0.32rem;
-    padding: 0.43rem 0.46rem 0.12rem;
+    gap: 0.12rem;
+    padding: 0.13rem 0.46rem 0rem;
+    justify-content: space-between;
+    align-items: center;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-year span {
@@ -7074,9 +7077,9 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
-    padding-inline: 0.46rem;
+    padding-inline: 0.26rem;
     font-size: 0.39rem;
-    letter-spacing: 0.08em;
+    letter-spacing: -0.02em;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-range-gaps {
