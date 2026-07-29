@@ -6679,16 +6679,16 @@ body[data-page="research"] .pos-analysis-year-shift-chart {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-plot {
-  fill: rgba(1, 5, 14, 0.33);
-  stroke: rgba(137, 158, 200, 0.08);
-  stroke-width: 1;
+  fill: rgba(1, 5, 14, 0);
+  stroke: rgba(137, 158, 200, 0);
+  stroke-width: 0;
   vector-effect: non-scaling-stroke;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-grid-line {
-  stroke: rgba(202, 217, 245, 0.08);
-  stroke-width: 1;
-  stroke-dasharray: 2 5;
+  stroke: rgba(202, 217, 245, 0);
+  stroke-width: 1px;
+  stroke-dasharray: 0;
   vector-effect: non-scaling-stroke;
 }
 
@@ -6782,7 +6782,7 @@ body[data-page="research"] .pos-analysis-year-shift-data-label line {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-data-label rect {
-  stroke-width: 0.85;
+  stroke-width: 0.75px;
   stroke-opacity: 0.56;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));

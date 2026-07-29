@@ -198,8 +198,8 @@
   // separate from POS_ANALYSIS_POS_CONFIG. Adjusting these RB/WR stops changes
   // only the six year-shift charts, including their points and value chips.
   const POS_ANALYSIS_YEAR_SHIFT_GRADIENTS = {
-    RB: { low: '#0d7efe', mid: '#1fa9f9', high: '#00ffae' },
-    WR: { low: '#5c47ff', mid: '#0051ff', high: '#1b7eff' }
+    RB: { low: '#0056a2', mid: '#0ebbff', high: '#00ff84' },
+    WR: { low: '#9147ff', mid: '#0033ff', high: '#009dff' }
   };
   const POS_ANALYSIS_STATE = {
     rows: [],
