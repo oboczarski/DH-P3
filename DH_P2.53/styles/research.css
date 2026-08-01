@@ -6715,7 +6715,7 @@ body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
   left: 0.68rem;
   padding: 0;
   transform: translateY(-50%);
-  color: rgba(147, 165, 198, 0.55);
+  color: rgb(147 165 198 / 79%);
   font-size: 0.6rem;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -6890,6 +6890,7 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
     padding: 0.13rem 0.46rem 0rem;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: -9px;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-year span {
@@ -6898,7 +6899,7 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-year strong {
-    margin-top: 0.14rem;
+    margin-top: 0;
     font-size: 1.12rem;
   }
 
@@ -6919,6 +6920,7 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
 
   body[data-page="research"] .pos-analysis-year-shift-chart-shell {
     padding-inline: 0.08rem;
+    padding: 0 0.08rem;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-axis-label {
@@ -6927,10 +6929,13 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
 
   body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
     font-size: 8.8px;
+    transform: translateX(-2px);
   }
 
   body[data-page="research"] .pos-analysis-year-shift-axis-title {
-    font-size: 6.8px;
+    font-size: 7.8px;
+    transform: translate(-16px, 4px);
+    letter-spacing: 0px;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-data-label text {
@@ -6938,25 +6943,28 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot {
-    min-height: 1.45rem;
+    min-height: 1.25rem;
     padding: 0;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
     left: 0.26rem;
     padding: 0;
-    font-size: 0.34rem;
+    font-size: 0.41rem;
     letter-spacing: -0.02em;
+    word-spacing: -0.15em;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-range-gaps {
-    inset-inline: 0.08rem;
+    inset-inline: 0.18rem;
     height: auto;
-    margin: 0;
+    margin: 0 2px 0 0px;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-gap {
     font-size: 0.5rem;
+    letter-spacing: -0.03rem;
+    word-spacing: -0.07em;
   }
 }
 
