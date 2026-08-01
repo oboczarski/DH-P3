@@ -6445,7 +6445,7 @@ body[data-page="research"] .pos-analysis-year-shift-card-head {
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.6rem;
-  padding: 0.64rem 0.68rem 0.2rem;
+  padding: 0.64rem 0.68rem 0rem;
 }
 
 body[data-page="research"] .pos-analysis-year-shift-year {
@@ -6577,6 +6577,7 @@ body[data-page="research"] .pos-analysis-year-shift-axis-title {
   font-size: 7.4px;
   letter-spacing: 0.13em;
   font-weight: 850;
+  transform: translate(-27px, 4px);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-area {
