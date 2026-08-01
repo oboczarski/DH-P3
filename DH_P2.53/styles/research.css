@@ -6924,7 +6924,8 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-axis-label {
-    font-size: 8.2px;
+    font-size: 9px;
+    font-weight: 600;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
@@ -6943,8 +6944,9 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot {
-    min-height: 1.25rem;
+    min-height: 1.15rem;
     padding: 0;
+    margin-top: -0.1rem;
   }
 
   body[data-page="research"] .pos-analysis-year-shift-card-foot-label {
