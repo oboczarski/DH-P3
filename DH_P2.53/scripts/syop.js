@@ -2377,7 +2377,7 @@
       const phaseScore = `RB ${rbTierWins}\u2013${wrTierWins} WR${tiedTiers ? ` \u00b7 ${tiedTiers} tie` : ''}`;
       // Year-card RB-vs-WR footer: show the leader gap at every labeled range
       // instead of reducing the comparison to Top 60 alone. The data-range-cut
-      // hooks let CSS mirror the SVG's T12/T36/T60 x-axis coordinates.
+      // hooks let CSS mirror the SVG's TOP12/TOP36/TOP60 x-axis coordinates.
       const rangeGapMarkup = labelIndexes.map((index) => {
         const cut = cuts[index];
         const difference = values.RB[index] - values.WR[index];
@@ -2409,8 +2409,10 @@
       const gridMarkup = yTicks.map((tick) => (
         `<line class="pos-analysis-year-shift-grid-line${tick === 0 ? ' pos-analysis-year-shift-grid-line--baseline' : ''}" x1="${margin.l}" x2="${width - margin.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--y" x="${margin.l - (compact ? 5 : 7)}" y="${y(tick) + (compact ? 2.8 : 3.5)}" text-anchor="end">${tick}</text>`
       )).join('');
+      // Year-grid X-axis labels use separate SVG spans so the TOP prefix can
+      // remain exactly 1px smaller than its threshold number at every layout.
       const guideMarkup = labelIndexes.map((index) => (
-        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${xAxisLabelY}" text-anchor="middle">T${cuts[index]}</text>`
+        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${xAxisLabelY}" text-anchor="middle"><tspan class="pos-analysis-year-shift-axis-prefix">TOP</tspan><tspan class="pos-analysis-year-shift-axis-number">${cuts[index]}</tspan></text>`
       )).join('');
 
       const areaMarkup = positions.map((pos) => {

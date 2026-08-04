@@ -6565,11 +6565,22 @@ body[data-page="research"] .pos-analysis-year-shift-axis-label {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
+  --pos-analysis-year-shift-axis-number-size: 11.5px;
   fill: rgba(210, 221, 241, 0.72);
-  font-size: 11.5px;
+  font-size: var(--pos-analysis-year-shift-axis-number-size);
   letter-spacing: 0.025em;
   font-weight: 560;
   transform: translateX(0px);
+}
+
+/* Year-grid tier labels: keep TOP visually subordinate while its number
+   retains the established desktop/mobile X-axis size. */
+body[data-page="research"] .pos-analysis-year-shift-axis-prefix {
+  font-size: calc(var(--pos-analysis-year-shift-axis-number-size) - 1px);
+}
+
+body[data-page="research"] .pos-analysis-year-shift-axis-number {
+  font-size: var(--pos-analysis-year-shift-axis-number-size);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-axis-title {
@@ -6930,7 +6941,7 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
   }
 
   body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
-    font-size: 8.8px;
+    --pos-analysis-year-shift-axis-number-size: 8.8px;
     transform: translateX(-2px);
   }
 
