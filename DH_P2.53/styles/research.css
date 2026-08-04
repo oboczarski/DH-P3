@@ -7013,3 +7013,20 @@ body[data-page="research"] .pos-analysis-year-shift-gap--even {
     transition: none;
   }
 }
+
+body[data-page="research"] .personnel-arrow-u {
+  display: inline-block !important;
+   color: #95fbe5 !important;
+  font-family: 'elms sans';
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  transform: translateX(-1px);
+}
+body[data-page="research"] .personnel-arrow-d {
+  display: inline-block !important;
+  color: #ffadde !important;
+  font-family: 'elms sans';
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  transform: translateX(-1px);
+}
