@@ -3670,6 +3670,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
   color: var(--pos-analysis-sub);
   font-size: 0.72rem;
   line-height: 1.45;
+  list-style: disc;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list li + li {
