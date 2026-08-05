@@ -6524,10 +6524,10 @@ body[data-page="research"] .pos-analysis-year-shift-chart-shell {
 
 body[data-page="research"] .pos-analysis-year-shift-chart {
   display: block;
-  width: 100.5%;
+  width: 102.9%;
   height: auto;
   overflow: visible;
-  transform: translateX(-3px);
+  transform: translateX(-6px);
 }
 
 body[data-page="research"] .pos-analysis-year-shift-plot {
@@ -6550,9 +6550,9 @@ body[data-page="research"] .pos-analysis-year-shift-grid-line--baseline {
 }
 
 body[data-page="research"] .pos-analysis-year-shift-guide {
-  stroke: rgba(154, 183, 231, 0.055);
+  stroke: rgba(154, 183, 231, 0.5);
   stroke-width: 1;
-  stroke-dasharray: 1.5 5;
+  stroke-dasharray: 1 6.7;
   vector-effect: non-scaling-stroke;
 }
 
@@ -6574,7 +6574,7 @@ body[data-page="research"] .pos-analysis-year-shift-axis-label--x {
   font-size: var(--pos-analysis-year-shift-axis-number-size);
   letter-spacing: 0.025em;
   font-weight: 560;
-  transform: translateX(0px);
+  transform: translateX(-10px);
 }
 
 /* Year-grid tier labels: keep TOP visually subordinate while its number
