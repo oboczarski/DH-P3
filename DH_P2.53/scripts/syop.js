@@ -2337,6 +2337,12 @@
     const yTicks = [0, 5, 10, 15, 20, 25];
     const labelIndexes = POS_ANALYSIS_YEAR_SHIFT_LABEL_CUTS.map((cut) => cuts.indexOf(cut));
     const x = (index) => margin.l + index / (cuts.length - 1) * plotWidth;
+    // Year-grid desktop X-axis label anchors: move only TOP12 and TOP36 10
+    // units right for optical alignment. Compact charts retain their existing
+    // coordinates because they use a separate 220-unit SVG viewBox.
+    const xAxisLabelX = (index) => x(index) + (
+      !compact && (cuts[index] === 12 || cuts[index] === 36) ? 10 : 0
+    );
     const y = (value) => margin.t + plotHeight - value / maxY * plotHeight;
 
     // Every season shares a 0-26 domain for honest card-to-card comparison.
@@ -2410,9 +2416,10 @@
         `<line class="pos-analysis-year-shift-grid-line${tick === 0 ? ' pos-analysis-year-shift-grid-line--baseline' : ''}" x1="${margin.l}" x2="${width - margin.r}" y1="${y(tick)}" y2="${y(tick)}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--y" x="${margin.l - (compact ? 5 : 7)}" y="${y(tick) + (compact ? 2.8 : 3.5)}" text-anchor="end">${tick}</text>`
       )).join('');
       // Year-grid X-axis labels use separate SVG spans so the TOP prefix can
-      // remain exactly 1px smaller than its threshold number at every layout.
+      // remain exactly 1px smaller than its threshold number at every layout;
+      // label-only anchors preserve the guide-line and data-point geometry.
       const guideMarkup = labelIndexes.map((index) => (
-        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${x(index)}" y="${xAxisLabelY}" text-anchor="middle"><tspan class="pos-analysis-year-shift-axis-prefix">TOP</tspan><tspan class="pos-analysis-year-shift-axis-number">${cuts[index]}</tspan></text>`
+        `<line class="pos-analysis-year-shift-guide" x1="${x(index)}" x2="${x(index)}" y1="${margin.t}" y2="${baseline}"/><text class="pos-analysis-year-shift-axis-label pos-analysis-year-shift-axis-label--x" x="${xAxisLabelX(index)}" y="${xAxisLabelY}" text-anchor="middle"><tspan class="pos-analysis-year-shift-axis-prefix">TOP</tspan><tspan class="pos-analysis-year-shift-axis-number">${cuts[index]}</tspan></text>`
       )).join('');
 
       const areaMarkup = positions.map((pos) => {

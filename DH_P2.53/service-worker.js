@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
- // Research Positional Analysis year grid: refresh the page-local assets after
-// expanding its tier X-axis labels and independently sizing their TOP prefix.
-const CACHE_NAME = 'DH3.04I';
+// Research Positional Analysis year grid: refresh the page-local assets after
+// optically aligning the desktop TOP12 and TOP36 X-axis labels.
+const CACHE_NAME = 'DH3.04J';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
