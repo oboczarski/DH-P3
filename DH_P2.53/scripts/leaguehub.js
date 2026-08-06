@@ -44,16 +44,19 @@
       tradesSearchInput: document.getElementById('leagueTradesSearch'),
       tradeSelects: {
         member: {
+          control: document.getElementById('leagueTradesMemberButton')?.closest('.leaguehub-trades-control'),
           button: document.getElementById('leagueTradesMemberButton'),
           value: document.getElementById('leagueTradesMemberValue'),
           menu: document.getElementById('leagueTradesMemberMenu'),
         },
         season: {
+          control: document.getElementById('leagueTradesSeasonButton')?.closest('.leaguehub-trades-control'),
           button: document.getElementById('leagueTradesSeasonButton'),
           value: document.getElementById('leagueTradesSeasonValue'),
           menu: document.getElementById('leagueTradesSeasonMenu'),
         },
         asset: {
+          control: document.getElementById('leagueTradesAssetButton')?.closest('.leaguehub-trades-control'),
           button: document.getElementById('leagueTradesAssetButton'),
           value: document.getElementById('leagueTradesAssetValue'),
           menu: document.getElementById('leagueTradesAssetMenu'),
@@ -923,6 +926,10 @@
       const select = elements.tradeSelects?.[type];
       if (!select?.button || !select?.menu) return;
       state.trades.openSelect = type;
+      // Trade Archive dropdown stacking:
+      // marks the full filter control as open so its mobile stacking context
+      // stays above neighboring Season and Assets controls without relying on focus.
+      select.control?.classList.add('is-select-open');
       select.button.setAttribute('aria-expanded', 'true');
       select.menu.classList.remove('hidden');
     }
@@ -931,6 +938,7 @@
       const openType = state.trades.openSelect;
       if (openType) {
         const select = elements.tradeSelects?.[openType];
+        select?.control?.classList.remove('is-select-open');
         select?.button?.setAttribute('aria-expanded', 'false');
         select?.menu?.classList.add('hidden');
       }
@@ -960,7 +968,7 @@
 
     function populateTradeMemberFilter() {
       const options = [
-        { value: 'ALL', label: 'All Leaguemates', meta: 'Every completed trade' },
+        { value: 'ALL', label: 'All League Members', meta: 'Every completed trade' },
         ...state.trades.currentMembers.map((member) => ({
           value: member.ownerId,
           label: member.teamName,

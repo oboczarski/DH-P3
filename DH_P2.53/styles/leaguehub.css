@@ -969,6 +969,13 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
     grid-column: 1 / -1;
   }
 
+  /* Mobile Trade Archive dropdown layering:
+     lifts the entire open filter above later grid controls so the member menu
+     fully covers the Season and Assets buttons on touch browsers. */
+  body[data-page="leaguehub"] .leaguehub-trades-control.is-select-open {
+    z-index: 160;
+  }
+
   body[data-page="leaguehub"] .leaguehub-trades-select-button,
   body[data-page="leaguehub"] .leaguehub-trades-search-wrap {
     min-height: 2.22rem;
