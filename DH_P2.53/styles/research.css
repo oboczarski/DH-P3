@@ -2024,8 +2024,8 @@ body[data-page="research"] .pos-analysis-eyebrow--moving-forward {
 
 body[data-page="research"] .pos-analysis-kicker {
   padding: 0.28rem 0.58rem;
-  border: 1px solid rgba(103, 232, 249, 0.18);
-  background: rgba(103, 232, 249, 0.06);
+  border: 0px solid rgba(103, 232, 249, 0.18);
+  background: none;
   border-radius: 999px;
 }
 
@@ -2106,7 +2106,7 @@ body[data-page="research"] .pos-analysis-profile-icon {
 body[data-page="research"] .pos-analysis-kicker .pos-analysis-icon-shell {
   width: 1.08rem;
   height: 1.08rem;
-  color: var(--pos-analysis-cyan);
+  color: #81c1ff;
   filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.28));
 }
 
@@ -3317,7 +3317,7 @@ body[data-page="research"] .pos-analysis-info-hero {
 }
 
 body[data-page="research"] .pos-analysis-info-hero h2 {
-  color: var(--pos-analysis-gold);
+  color: #5aa7e3;
   text-transform: uppercase;
 }
 
@@ -3344,7 +3344,7 @@ body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-f
   color: var(--pos-analysis-muted);
   font-size: 0.6rem;
   font-weight: 900;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -3386,6 +3386,7 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-gr
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
+  filter: hue-rotate(177deg);
 }
 
 body[data-page="research"] .pos-analysis-info-hero .pos-analysis-info-stat-stack .pos-analysis-icon-shell {
@@ -3492,6 +3493,7 @@ body[data-page="research"] .pos-analysis-paradigm-card blockquote {
   font-size: 0.8rem;
   line-height: 1.52;
   font-style: italic;
+  filter: hue-rotate(177deg);
 }
 
 body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-formulas {
@@ -3561,6 +3563,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
   border: 1px solid rgba(226, 177, 60, 0.28);
   border-radius: 13px;
   background: linear-gradient(135deg, rgba(226, 177, 60, 0.16), rgba(226, 177, 60, 0.04));
+  filter: hue-rotate(177deg);
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-banner span {
@@ -3575,6 +3578,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  height: 1.2rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list b {
@@ -3624,6 +3628,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
   flex-wrap: wrap;
   gap: 1.02rem;
   margin-top: 0.52rem;
+  justify-content: center;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-banner em {
@@ -3640,7 +3645,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div > strong {
   display: block;
-  color: var(--pos-analysis-gold);
+  color: #69abdf;
   font-size: 0.8rem;
   text-transform: none;
 }
@@ -3654,8 +3659,9 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list b {
   margin-top: 0.32rem;
-  background: rgba(52, 211, 153, 0.1);
-  color: #a7f3d0;
+  background: #26405f;
+  color: #81c1ff;
+  border: 1px solid #365c83;
   text-transform: none;
 }
 
@@ -3681,7 +3687,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list li::marker {
-  color: rgba(226, 177, 60, 0.78);
+  color: #5cb4fa;
 }
 
 body[data-page="research"] .pos-analysis-simulator-head {
@@ -3734,6 +3740,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-personnel-butto
   background: rgba(226, 177, 60, 0.2);
   color: var(--pos-analysis-gold);
   box-shadow: inset 0 0 0 1px rgba(226, 177, 60, 0.32);
+  filter: hue-rotate(177deg);
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-field {
@@ -3871,7 +3878,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy 
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy strong {
-  color: var(--pos-analysis-gold);
+  color: #69abdf;
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
@@ -3915,7 +3922,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-icon--sim {
   width: 0.82rem;
   height: 0.82rem;
-  color: var(--pos-analysis-gold);
+  color: #69abdf;
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats strong {
@@ -4033,8 +4040,8 @@ body[data-page="research"] .pos-analysis-timeline .pos-analysis-timeline-grid ar
   height: 2rem;
   place-items: center;
   border-radius: 999px;
-  background: rgba(226, 177, 60, 0.16);
-  color: var(--pos-analysis-gold);
+  background: #284462;
+  color: #8fd6ff;
 }
 
 body[data-page="research"] .pos-analysis-timeline .pos-analysis-timeline-grid article strong {
@@ -5016,7 +5023,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-banner div {
-    gap: 0.42rem;
+    gap: 0.62rem;
     margin-top: 0.52rem;
     flex-wrap: nowrap;
   }
@@ -5756,8 +5763,9 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats > div
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-icon .pos-analysis-icon-shell {
-  width: var(--pos-analysis-overall-icon-shell-size);
-  height: var(--pos-analysis-overall-icon-shell-size);
+  width: 1.95rem;
+  height: 1.2rem;
+  transform: translateY(2px);
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-icon .pos-analysis-material-symbol {
