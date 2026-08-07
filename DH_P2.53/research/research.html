@@ -19,7 +19,7 @@ rel="stylesheet">
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.04J-year-grid-axis-position" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.04K-year-grid-heading-meta" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -291,14 +291,13 @@ rel="stylesheet">
                 <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--year-shift" id="pos-analysis-year-shift-title">Line Graph Grid by Year</h2>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--year-shift">Six seasons on one shared player-count scale. Gradient curves track cumulative WR/RB supply; labels spotlight Top 12, Top 36, and Top 60.</p>
               </div>
-              <aside class="pos-analysis-year-shift-meta" aria-label="Chart legend and comparison scale">
+              <!-- Year-grid heading metadata: keep the RB/WR trajectory key and
+                   trend window together; the shared chart scale is conveyed by
+                   the chart axes instead of a separate comparable-axis card. -->
+              <aside class="pos-analysis-year-shift-meta" aria-label="Chart legend and trend window">
                 <div class="pos-analysis-year-shift-legend" aria-label="Position series">
                   <span class="pos-analysis-year-shift-legend-item pos-analysis-year-shift-legend-item--rb"><i aria-hidden="true"></i><span><strong>RB</strong> trajectory</span></span>
                   <span class="pos-analysis-year-shift-legend-item pos-analysis-year-shift-legend-item--wr"><i aria-hidden="true"></i><span><strong>WR</strong> trajectory</span></span>
-                </div>
-                <div class="pos-analysis-year-shift-scale">
-                  <span>Comparable axis</span>
-                  <strong>0&ndash;26 players</strong>
                 </div>
                 <div class="pos-analysis-year-shift-pivot">
                   <span>Trend Window</span>
@@ -347,7 +346,7 @@ rel="stylesheet">
                 <!-- Strategic blueprint kicker: the Material Symbol replaces the
                      old decorative dot while the dashboard kicker remains unchanged. -->
                 <span class="pos-analysis-kicker pos-analysis-kicker--infographic"><span class="pos-analysis-icon-shell" data-pos-analysis-icon="strategy" aria-hidden="true"></span> Dynasty strategic blueprint</span>
-                <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--infographic" id="pos-analysis-infographic-title">The Running Back Renaissance</h2>
+                <h2 class="pos-analysis-panel-heading pos-analysis-panel-heading--infographic" id="pos-analysis-infographic-title">A New Dawn: Running Backs' Historic Takeover</h2>
                 <p class="pos-analysis-panel-subheading pos-analysis-panel-subheading--infographic">Structural NFL personnel shifts have altered RB and WR fantasy output in historic fashion, reshaping the positional balance across the major ranges of PPR leaderboards in ways not seen for at least two decades. With RBs hitting 20+ year highs and WRs dropping to 20+ year lows, 2025 marked the first time in 2+ decades that RBs outperformed WRs across each of those ranges.</p>
               </div>
               <!-- Infographic summary icon modifiers keep the formula and
