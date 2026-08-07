@@ -3333,6 +3333,8 @@ body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysi
   line-height: 0.96;
   background: linear-gradient(45deg, #a6bfe0, #99c3e4 30%);
   background-clip: text;
+  text-transform: capitalize;
+  font-weight: 600;
 }
 
 body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-detail {
@@ -3342,12 +3344,12 @@ body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysi
   line-height: 1.2;
   background: linear-gradient(92deg, #5aa7e3 -7%, #657a9f 14%, #5aa7e3 35%, #657a9f 46%);
   background-clip: text;
-  background: linear-gradient(to right, #0EAfB0 0%, #6297dB 103%);
+  background: linear-gradient( to bottom left, #2b5876, #4e4376);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   -webkit-text-stroke: 0px #ffffff00;
-  filter: drop-shadow(2px 2px 2px #0008) drop-shadow(-1px -1px 2px #fff2) drop-shadow(0px 0px 20px #fff2);
+  filter: drop-shadow(2px 2px 2px #0008) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
   paint-order: stroke fill;
   font-family: 'Google Sans';
   text-transform: capitalize;
@@ -5327,7 +5329,7 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
 
   body[data-page="research"] .pos-analysis-panel-heading--infographic {
     --pos-analysis-panel-heading-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
-    --pos-analysis-infographic-title-lead-size: clamp(1.68rem, 1.35rem + 1.9vw, 3.25rem);
+    --pos-analysis-infographic-title-lead-size: clamp(1.68rem, 1.35rem + 1.8vw, 3.25rem);
     --pos-analysis-infographic-title-detail-size: clamp(1.02rem, 0.88rem + 0.5vw, 1.3rem);
   }
 
