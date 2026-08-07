@@ -3710,6 +3710,33 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
   text-transform: none;
 }
 
+/* Breaking Through the Decades list accents: years receive their exact solid
+   colors, while bold RB/WR labels use their requested position gradients. */
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2024 {
+  color: #8e84ff;
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2025 {
+  color: #5a9bff;
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-position {
+  font-weight: 900;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-position--rb {
+  color: #6cf5c9;
+  background-image: linear-gradient(90deg, #51a4d4d4, #6cf5c9d9);
+}
+
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-position--wr {
+  color: #79a8ff;
+  background-image: linear-gradient(90deg, #817dff, #79a8ff);
+}
+
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list b {
   margin-top: 0.32rem;
   background: #26405f;
@@ -3724,6 +3751,15 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
   color: var(--pos-analysis-sub);
   font-size: 0.74rem;
   line-height: 1.4;
+}
+
+/* Inline years inside the list copy inherit the surrounding typography; this
+   counters the card's generic helper-span layout without changing other spans. */
+body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list span.pos-analysis-list-year {
+  display: inline;
+  margin-top: 0;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list ul {

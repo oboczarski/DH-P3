@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis infographic: refresh the page-local styles after
-// splitting the New Dawn hero title into independently sized desktop/mobile lines.
-const CACHE_NAME = 'DH3.04L';
+// Research Positional Analysis milestone lists: refresh the page-local markup and
+// styles for the independently colored year and bold position accents.
+const CACHE_NAME = 'DH3.04M';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
