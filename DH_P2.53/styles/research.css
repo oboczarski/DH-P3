@@ -3690,7 +3690,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div > strong {
   display: block;
   color: #69abdf;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: none;
 }
 
@@ -3727,7 +3727,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list li + li {
-  margin-top: 0.18rem;
+  margin-top: 0.28rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list li::marker {
@@ -5199,7 +5199,7 @@ body[data-page="research"] .pos-analysis-panel-heading[class*="pos-analysis-pane
 }
 
 body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-panel-subheading--"] {
-  font-size: var(--pos-analysis-panel-subheading-size);
+  font-size: 0.74rem;
 }
 
 @media (min-width: 701px) {
@@ -6181,7 +6181,7 @@ body[data-page="research"] #secondary-header-row {
     filter: opacity(0.6) contrast(1);
 }
 .pos-a-intro {
-  font-size: 14.1px;
+  font-size: 13px;
   font-weight: 500;
   color: #aab;
 }
