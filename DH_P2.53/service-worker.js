@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis year grid: refresh the page-local assets after
-// replacing the comparable-axis heading card with the two-card legend/window row.
-const CACHE_NAME = 'DH3.04K';
+// Research Positional Analysis infographic: refresh the page-local styles after
+// splitting the New Dawn hero title into independently sized desktop/mobile lines.
+const CACHE_NAME = 'DH3.04L';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

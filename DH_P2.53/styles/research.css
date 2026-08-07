@@ -3321,6 +3321,27 @@ body[data-page="research"] .pos-analysis-info-hero h2 {
   text-transform: uppercase;
 }
 
+/* Infographic hero title hierarchy: each phrase owns a forced line and an
+   independently tunable size without changing other Positional Analysis headings. */
+body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-lead,
+body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-detail {
+  display: block;
+  white-space: nowrap;
+}
+
+body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-lead {
+  color: #5aa7e3;
+  font-size: var(--pos-analysis-infographic-title-lead-size);
+  line-height: 0.96;
+}
+
+body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-detail {
+  margin-top: 0.18rem;
+  color: rgba(220, 235, 250, 0.9);
+  font-size: var(--pos-analysis-infographic-title-detail-size);
+  line-height: 1.04;
+}
+
 body[data-page="research"] .pos-analysis-info-hero .pos-analysis-info-stat-stack {
   display: grid;
   gap: 0.55rem;
@@ -5285,6 +5306,8 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
 
   body[data-page="research"] .pos-analysis-panel-heading--infographic {
     --pos-analysis-panel-heading-size: clamp(1.18rem, 1rem + 1vw, 1.7rem);
+    --pos-analysis-infographic-title-lead-size: clamp(1.68rem, 1.35rem + 1.3vw, 2.25rem);
+    --pos-analysis-infographic-title-detail-size: clamp(1.02rem, 0.88rem + 0.5vw, 1.3rem);
   }
 
   body[data-page="research"] .pos-analysis-panel-heading--paradigm {
@@ -5554,6 +5577,8 @@ body[data-page="research"] .pos-analysis-panel-subheading[class*="pos-analysis-p
 
   body[data-page="research"] .pos-analysis-panel-heading--infographic {
     --pos-analysis-panel-heading-size: clamp(1rem, 0.83rem + 0.7vw, 1.18rem);
+    --pos-analysis-infographic-title-lead-size: clamp(1.24rem, 1.08rem + 0.8vw, 1.42rem);
+    --pos-analysis-infographic-title-detail-size: clamp(0.78rem, 0.7rem + 0.42vw, 0.9rem);
   }
 
   body[data-page="research"] .pos-analysis-panel-heading--paradigm {
