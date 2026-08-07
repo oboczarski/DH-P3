@@ -3330,16 +3330,24 @@ body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysi
 }
 
 body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-lead {
-  color: #5aa7e3;
+  color: transparent;
   font-size: var(--pos-analysis-infographic-title-lead-size);
   line-height: 0.96;
+  background: linear-gradient(45deg, #a6bfe0, #99c3e4 30%);
+  background-clip: text;
 }
 
 body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-detail {
   margin-top: 0.18rem;
-  color: rgba(220, 235, 250, 0.9);
+  color: transparent;
   font-size: var(--pos-analysis-infographic-title-detail-size);
   line-height: 1.04;
+  background: linear-gradient(92deg, #5aa7e3 -7%, #657a9f 14%, #5aa7e3 35%, #657a9f 46%);
+  background-clip: text;
+  background: linear-gradient(90deg, #76C7FF 0%, #A78BFA 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 body[data-page="research"] .pos-analysis-info-hero .pos-analysis-info-stat-stack {
