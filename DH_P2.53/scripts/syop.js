@@ -2686,11 +2686,11 @@
         posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right'),
         posAnalysisPlayer('WR3', 23, 31, 'wr', 'Slot', 'slot-left')
       ].join('');
-      copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> spread targets, lighter run surface, and maximum three-WR route availability.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Volume decreased');
-      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'Max route availability');
-      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '1 Receiving focused TE');
-      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Varied');
+      copy.innerHTML = '<strong>11 Personnel Layout (1 RB, 1 TE, 3 WR):</strong> Light personnel grouping, 3-WR spacing, and 1 TE. Lighter run surface, but offers broad run/pass flexibility.';
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↓ Rush·%');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR role', '3 WR Sets');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '1 TE on field');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Fewer extra blockers available');
     } else if (POS_ANALYSIS_STATE.personnel === '13') {
       // 13 Personnel — MOBILE positions: WR1(X) 11%/31%, TE1(Inline) 72%/37%,
       // TE2(Off-Line) 80%/31%, TE3(Inline) 27%/37%.
@@ -2703,11 +2703,11 @@
         posAnalysisPlayer('TE3', 27, 37, 'te', 'Inline', 'inline-te-left'),
         posAnalysisPlayer('WR1', 11, 31, 'wr', 'X', 'wideout-left')
       ].join('');
-      copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> maximum blocking structure, reduced WR depth, and peak ground leverage.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Peak leverage');
-      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'WR2/WR3 benched');
-      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', 'Triple snap expansion');
-      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Secure pocket');
+      copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> Adds a 3rd TE and removes another WR, creating a heavy front generating additional gaps and stressing defensive run fits. Can force heavier defensive personnel, creating favorable play-action/pass matchups against linebackers and base defenses. ';
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑↑ Rush·% | Max run support');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR role', 'Only 1 WR on field');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '3 TEs on field');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Max protection flexibility');
     } else {
       // 12 Personnel — MOBILE positions: WR1(X) 7%/37%, TE1(Inline) 72%/37%,
       // TE2(Off-Line) 28%/31%, WR2(Z) 89%/31%.
@@ -2720,11 +2720,11 @@
         posAnalysisPlayer('WR1', 7, 37, 'wr', 'X', 'wideout-left'),
         posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right')
       ].join('');
-      copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> added blocking surface, WR3 removed, and more sustainable RB environment.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', 'Volume & routes up');
-      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR opportunity', 'WR3 compressed');
-      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', 'Two on-field TEs');
-      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Extra inline help');
+      copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> Adds a 2nd TE while removing the Slot WR / WR3, creating more blocking surfaces and additional formation flexibility without sacrificing the ability to spread the defense. TEs can stay attached, flex into the slot, or release as receivers.';
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑ Rush·% | Strong run support');
+      wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR role', '2 WR Sets');
+      teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '2 TEs on field');
+      qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'More protection flexibility');
     }
 
     field.innerHTML = players;
