@@ -3526,8 +3526,8 @@ body[data-page="research"] .pos-analysis-paradigm-card.pos-analysis-info-card--w
 }
 
 body[data-page="research"] .pos-analysis-paradigm-card blockquote {
-  margin: 0.78rem 0 0;
-  padding: 0.72rem 0.8rem;
+  margin: 0.48rem 0 0;
+  padding: 0.42rem 0.5rem;
   border-left: 2px solid rgb(69 108 149);
   border-radius: 0 12px 12px 0;
   background: linear-gradient(45deg, black, transparent);
