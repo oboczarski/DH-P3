@@ -4941,6 +4941,17 @@ body[data-page="research"] .pos-analysis-source-note {
     margin: 0.7rem -0.2rem 0.1rem -0.2rem;
   }
 
+  /* Mobile-only simulator copy: tighten the stat values and extend the
+     explanatory copy to the same compact horizontal edges as the stat row. */
+  body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats strong {
+    font-size: 0.65rem;
+    letter-spacing: -0.015rem;
+  }
+
+  body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy {
+    margin: 0.7rem -0.2rem 0.1rem -0.2rem;
+  }
+
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-toggle {
     width: 100%;
     overflow-x: auto;

@@ -25,8 +25,8 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Research Positional Analysis simulator: refresh the page-local styles for
-// internal-only stat dividers and desktop-specific label sizing.
-const CACHE_NAME = 'DH3.04O';
+// mobile-only stat-value typography and explanatory-copy spacing.
+const CACHE_NAME = 'DH3.04P';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
