@@ -3342,14 +3342,11 @@ body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysi
   color: transparent;
   font-size: 2.4rem;
   line-height: 1.2;
-  background: linear-gradient(92deg, #5aa7e3 -7%, #657a9f 14%, #5aa7e3 35%, #657a9f 46%);
-  background-clip: text;
   background: linear-gradient( to bottom left, #2b5876, #4e4376);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  -webkit-text-stroke: 0px #ffffff00;
-  filter: drop-shadow(2px 2px 2px #0008) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
+  filter: drop-shadow(2px 2px 2px #0007) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
   paint-order: stroke fill;
   font-family: 'Google Sans';
   text-transform: capitalize;
