@@ -4016,6 +4016,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span 
 @media (min-width: 701px) {
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span {
     font-size: 0.7rem;
+    gap: 0.2rem !important;
   }
 }
 
