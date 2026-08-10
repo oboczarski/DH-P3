@@ -3565,6 +3565,12 @@ body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-f
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div {
+  /* Tier-card header layout: range stays left, pill stays right, and the list
+     spans the full card width beneath their vertically centered header row. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: 0.75rem;
   border: 1px solid transparent;
   border-radius: 12px;
   background: linear-gradient(135deg, #8bc7ff15, #7eb7ff0d), linear-gradient(
@@ -3746,11 +3752,14 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list b {
-  margin-top: 0.32rem;
+  justify-self: end;
+  align-self: center;
+  margin-top: 0;
   background: #26405f;
   color: #81c1ff;
   border: 1px solid #365c83;
   text-transform: none;
+  white-space: nowrap;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list span {
@@ -3771,6 +3780,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list ul {
+  grid-column: 1 / -1;
   margin: 0.48rem 0 0;
   padding-left: 1rem;
   color: var(--pos-analysis-sub);

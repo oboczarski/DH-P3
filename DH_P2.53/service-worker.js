@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis milestone lists: refresh the page-local markup and
-// styles for the independently colored year and bold position accents.
-const CACHE_NAME = 'DH3.04M';
+// Research Positional Analysis milestone tiers: refresh the page-local markup and
+// styles for standardized pills aligned opposite their range labels.
+const CACHE_NAME = 'DH3.04N';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
