@@ -3331,10 +3331,11 @@ body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysi
   color: transparent;
   font-size: var(--pos-analysis-infographic-title-lead-size);
   line-height: 0.96;
-  background: linear-gradient(45deg, #a6bfe0, #99c3e4 30%);
+  background: linear-gradient(180deg, #7199ee 35%, #99c3e4 100%);
   background-clip: text;
   text-transform: capitalize;
   font-weight: 600;
+  filter: drop-shadow(2px 2px 2px #0006) drop-shadow(0px 0px 20px #fff1) brightness(1) saturate(1);
 }
 
 body[data-page="research"] .pos-analysis-panel-heading--infographic .pos-analysis-infographic-title-detail {
@@ -3714,14 +3715,14 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
    colors, while bold RB/WR labels use their requested position gradients. */
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2024 {
   color: #8e84ff;
-  color: #c8b6e8ad;
+  color: #ada8da;
   text-shadow: 2px 2px 1px #0006;
   font-size: 0.85rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2025 {
   color: #5a9bff;
-  color: #cee1f9b3;
+  color: #99c3e4ea;
   text-shadow: 2px 2px 1px #0006;
   font-size: 0.85rem;
 }
