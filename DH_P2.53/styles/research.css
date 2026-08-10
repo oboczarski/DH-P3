@@ -3539,8 +3539,8 @@ body[data-page="research"] .pos-analysis-paradigm-card blockquote {
 }
 @media (max-width: 700px) {
 body[data-page="research"] .pos-analysis-paradigm-card blockquote {
-  margin: 0.35rem 0 0;
-  padding: 0.32rem 0.8rem 0.42rem 0.8rem;
+  margin: 0.25rem 0 0;
+  padding: 0.2rem 0.8rem 0.42rem 0.4rem;
   font-size: 0.7rem;
   line-height: 1.52;
   font-style: italic;
@@ -3995,12 +3995,13 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats div {
   min-width: 0;
+  border-right: 1px solid #3459;
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span {
   display: block;
   color: var(--pos-analysis-muted);
-  font-size: 0.58rem;
+  font-size: 0.57rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4009,8 +4010,9 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-sim-stat-label {
   display: flex;
   align-items: center;
-  gap: 0.1rem;
+  gap: 0.05rem;
   min-width: 0;
+  justify-content: center;
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-sim-stat-label > span {
@@ -4018,8 +4020,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-
   min-width: 0;
   color: inherit;
   font: inherit;
-  letter-spacing: 0.0;
-  overflow: hidden;
+  letter-spacing: -0.6px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4034,7 +4035,8 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats stron
   display: block;
   margin-top: 0.12rem;
   color: #fff;
-  font-size: 0.73rem;
+  font-size: 0.7rem;
+  text-align: center;
 }
 
 body[data-page="research"] .pos-analysis-position-matrix {
@@ -4921,6 +4923,9 @@ body[data-page="research"] .pos-analysis-source-note {
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0rem;
+    padding: 0.5rem 0.1rem;
+    margin: 0.7rem -0.2rem 0.1rem -0.2rem;
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-mode-toggle {
@@ -6019,7 +6024,7 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
   body[data-page="research"] #pos-analysis-sim-rb { --pos-analysis-sim-stat-icon-size: 0.86rem; }
   body[data-page="research"] #pos-analysis-sim-wr { --pos-analysis-sim-stat-icon-size: 0.9rem; }
   body[data-page="research"] #pos-analysis-sim-te { --pos-analysis-sim-stat-icon-size: 0.88rem; }
-  body[data-page="research"] #pos-analysis-sim-qb { --pos-analysis-sim-stat-icon-size: 0.84rem; }
+  body[data-page="research"] #pos-analysis-sim-qb {--pos-analysis-sim-stat-icon-size: 0.84rem;}
 
   /* Desktop historical banner and positional matrix symbols. */
   body[data-page="research"] .pos-analysis-overall-icon {
@@ -6169,7 +6174,7 @@ body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-ca
     --pos-analysis-personnel-button-icon-size: 0.68rem;
   }
 
-  body[data-page="research"] #pos-analysis-sim-rb { --pos-analysis-sim-stat-icon-size: 0.7rem; }
+  body[data-page="research"] #pos-analysis-sim-rb {--pos-analysis-sim-stat-icon-size: 0.7rem;}
   body[data-page="research"] #pos-analysis-sim-wr { --pos-analysis-sim-stat-icon-size: 0.74rem; }
   body[data-page="research"] #pos-analysis-sim-te { --pos-analysis-sim-stat-icon-size: 0.72rem; }
   body[data-page="research"] #pos-analysis-sim-qb { --pos-analysis-sim-stat-icon-size: 0.68rem; }
