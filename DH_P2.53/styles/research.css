@@ -3988,7 +3988,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy 
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.1fr)minmax(0, 0.9fr)minmax(0, 0.9fr)minmax(0, 1.1fr);
   gap: 0.5rem;
   padding: 0.6rem;
 }
@@ -4006,7 +4006,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats > div
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span {
   display: block;
   color: var(--pos-analysis-muted);
-  font-size: 0.57rem;
+  font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4033,7 +4033,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-
   min-width: 0;
   color: inherit;
   font: inherit;
-  letter-spacing: -0.6px;
+  letter-spacing: -0.3px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4048,7 +4048,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats stron
   display: block;
   margin-top: 0.12rem;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-family: 'MuseoModerno';
   text-align: center;
   font-weight: 500;
@@ -4937,7 +4937,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.1fr)minmax(0, 0.9fr)minmax(0, 0.9fr)minmax(0, 1.1fr);
     gap: 0rem;
     padding: 0.5rem 0.1rem;
     margin: 0.7rem -0.2rem 0.1rem -0.2rem;
@@ -4947,7 +4947,7 @@ body[data-page="research"] .pos-analysis-source-note {
      explanatory copy to the same compact horizontal edges as the stat row. */
   body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats strong {
     font-size: 0.65rem;
-    letter-spacing: -0.03rem;
+    letter-spacing: -0.02rem;
     font-family: 'Museomoderno';
     font-weight: 400;
   }
