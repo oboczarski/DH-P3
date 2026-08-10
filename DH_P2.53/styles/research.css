@@ -3567,10 +3567,13 @@ body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-f
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div {
-  border: 1px solid var(--pos-analysis-line-soft);
+  border: 1px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: linear-gradient(135deg, #8bc7ff15, #7eb7ff0d), linear-gradient(
+333deg, #7eb7ff37, #7eb7ff67, #7eb7ff37) border-area;
   padding: 0.68rem;
+  box-shadow: inset 0px 5px 15px -4px #aab1;
+  backdrop-filter: blur(2px);
 }
 
 body[data-page="research"] .pos-analysis-position-matrix .pos-analysis-matrix-grid article {
@@ -3699,7 +3702,7 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-overall-ba
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div > strong {
   display: block;
   color: #69abdf;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   text-transform: none;
 }
 
@@ -3713,17 +3716,17 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 /* Breaking Through the Decades list accents: years receive their exact solid
    colors, while bold RB/WR labels use their requested position gradients. */
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2024 {
-  color: #8b8bdc;
-  text-shadow: 2px 2px 3px #0008;
-  font-size: 0.9rem;
-  border: 0px solid #334;
-  border-radius: 12px;
+  color: #8e84ff;
+  color: #c8b6e8ad;
+  text-shadow: 2px 2px 1px #0006;
+  font-size: 0.85rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-year--2025 {
-  color: #769eda;
-  text-shadow: 2px 2px 3px #0008;
-  font-size: 0.9rem;
+  color: #5a9bff;
+  color: #cee1f9b3;
+  text-shadow: 2px 2px 1px #0006;
+  font-size: 0.85rem;
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-position {
@@ -3740,7 +3743,8 @@ body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list 
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list .pos-analysis-list-position--wr {
   color: #79a8ff;
-  background-image: linear-gradient(90deg, #716cff, #67c1ff);
+  background-image: linear-gradient(90deg, #817dff, #79a8ff);
+  background-image: linear-gradient(90deg, #6c7cff, #67c1ff);
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list b {
