@@ -3995,6 +3995,11 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats div {
   min-width: 0;
+}
+
+/* Simulator opportunity dividers: draw a line after only the first three
+   position notes so QB Protection never receives an outside right edge. */
+body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats > div:not(:last-child) {
   border-right: 1px solid #3459;
 }
 
@@ -4005,6 +4010,13 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span 
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+/* Desktop-only simulator labels: mobile keeps the base 0.57rem size above. */
+@media (min-width: 701px) {
+  body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats span {
+    font-size: 0.7rem;
+  }
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats .pos-analysis-sim-stat-label {
