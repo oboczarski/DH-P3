@@ -2647,7 +2647,10 @@
   }
 
   function renderPosAnalysisSimStat(icon, label, value) {
-    return `<span class="pos-analysis-sim-stat-label pos-analysis-sim-stat-label--${escapePosAnalysisAttr(icon)}">${posAnalysisIcon(icon, 'pos-analysis-icon--sim')}<span>${escapePosAnalysisHtml(label)}</span></span><strong>${escapePosAnalysisHtml(value)}</strong>`;
+    // Simulator stat values remain HTML-escaped, while intentional newline
+    // markers can create controlled line breaks in specific position notes.
+    const formattedValue = escapePosAnalysisHtml(value).replace(/\n/g, '<br>');
+    return `<span class="pos-analysis-sim-stat-label pos-analysis-sim-stat-label--${escapePosAnalysisAttr(icon)}">${posAnalysisIcon(icon, 'pos-analysis-icon--sim')}<span>${escapePosAnalysisHtml(label)}</span></span><strong>${formattedValue}</strong>`;
   }
 
   function renderPosAnalysisPersonnel() {
@@ -2704,7 +2707,7 @@
         posAnalysisPlayer('WR1', 11, 31, 'wr', 'X', 'wideout-left')
       ].join('');
       copy.innerHTML = '<strong>13 Personnel Layout (1 RB, 3 TE, 1 WR):</strong> Adds a 3rd TE and removes another WR, creating a heavy front generating additional gaps and stressing defensive run fits. Can force heavier defensive personnel, creating favorable play-action/pass matchups against linebackers and base defenses. ';
-      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑↑ Rush·% | Max run support');
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑↑ Rush·% |\nMax run support');
       wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR role', 'Only 1 WR on field');
       teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '3 TEs on field');
       qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'Max protection flexibility');
@@ -2721,7 +2724,7 @@
         posAnalysisPlayer('WR2', 89, 31, 'wr', 'Z', 'wideout-right')
       ].join('');
       copy.innerHTML = '<strong>12 Personnel Layout (1 RB, 2 TE, 2 WR):</strong> Adds a 2nd TE while removing the Slot WR / WR3, creating more blocking surfaces and additional formation flexibility without sacrificing the ability to spread the defense. TEs can stay attached, flex into the slot, or release as receivers.';
-      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑ Rush·% | Strong run support');
+      rbStat.innerHTML = renderPosAnalysisSimStat('rb', 'RB opportunity', '↑ Rush·% |\nStrong run support');
       wrStat.innerHTML = renderPosAnalysisSimStat('wr', 'WR role', '2 WR Sets');
       teStat.innerHTML = renderPosAnalysisSimStat('te', 'TE role', '2 TEs on field');
       qbStat.innerHTML = renderPosAnalysisSimStat('qb', 'QB protection', 'More protection flexibility');

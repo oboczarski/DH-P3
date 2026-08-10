@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis simulator: refresh the page-local styles for
-// mobile-only stat-value typography and explanatory-copy spacing.
-const CACHE_NAME = 'DH3.04P';
+// Research Positional Analysis simulator: refresh the page-local script for
+// controlled RB opportunity line breaks after the percentage separator.
+const CACHE_NAME = 'DH3.04Q';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
