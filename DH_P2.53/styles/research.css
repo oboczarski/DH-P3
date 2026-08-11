@@ -3967,20 +3967,20 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy 
   margin-top: 0.7rem;
   border: 1px solid #aab3;
   border-radius: 13px;
-  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -30deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   backdrop-filter: saturate(1.1) blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
   margin-top: 0.7rem;
-  border: 1px solid var(--pos-analysis-line-soft);
+  border: 1px solid #aab2;
   border-radius: 13px;
-  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -30deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   backdrop-filter: saturate(1.1) blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy {
-  padding: 0.72rem;
+  padding: 0.62rem;
   color: var(--pos-analysis-sub);
   font-size: 0.78rem;
   line-height: 1.45;
