@@ -3858,8 +3858,8 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-field {
   overflow: hidden;
   border: 1px solid rgba(16, 185, 129, 0.00);
   border-radius: 15px;
-  background: linear-gradient(to bottom , rgb(52 151 157 / 7%), rgba(6, 182, 159, 0.19)), repeating-linear-gradient(to bottom, transparent 0 24%, rgba(255, 255, 255, 0.035) 24.2% 24.6%, transparent 24.8% 49%), linear-gradient(313deg, #7effef2a, #7effef57, #7effef2a) border-area;
-  backdrop-filter: blur(2px);
+  background: linear-gradient(to bottom , rgb(52 151 157 / 7%), rgba(6, 182, 159, 0.19)), repeating-linear-gradient(to bottom, transparent 0 13%, rgba(255, 255, 255, 0.15) 13% 4.6%, transparent 13.6% 74.1%) content-box, linear-gradient(313deg, #7effef2a, #7effef57, #7effef2a) border-area;
+  padding: 0 10px;
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-field-label {
@@ -3890,7 +3890,7 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-line-of-scrimma
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 44%;
+  bottom: 55.5%;
   border-top: 1px dashed rgba(16, 185, 129, 0.22);
 }
 
