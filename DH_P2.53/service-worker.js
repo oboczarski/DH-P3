@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis simulator: refresh the page-local script for
-// controlled RB opportunity line breaks after the percentage separator.
-const CACHE_NAME = 'DH3.04Q';
+// Research Positional Analysis profiles: refresh the page-local markup, script,
+// and styles for uniform inline metrics and active-range trend pills.
+const CACHE_NAME = 'DH3.04R';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
