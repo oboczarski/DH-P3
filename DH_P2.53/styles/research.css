@@ -3557,11 +3557,12 @@ body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-f
 }
 
 body[data-page="research"] .pos-analysis-paradigm-card .pos-analysis-personnel-formulas div {
-  border: 1px solid var(--pos-analysis-line-soft);
+  border: 1px solid #3345;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   padding: 0.2rem 0.38rem;
   text-align: center;
+  backdrop-filter: saturate(1.1) blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-milestone-card .pos-analysis-tier-list div {
@@ -3963,16 +3964,18 @@ body[data-page="research"] .pos-analysis-simulator .pos-analysis-field-player--t
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy {
   margin-top: 0.7rem;
-  border: 1px solid var(--pos-analysis-line-soft);
+  border: 1px solid #aab3;
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.025);
+  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  backdrop-filter: saturate(1.1) blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-sim-stats {
   margin-top: 0.7rem;
   border: 1px solid var(--pos-analysis-line-soft);
   border-radius: 13px;
-  background: rgba(255, 255, 255, 0.025);
+  background: radial-gradient(195% 116% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(215% 156% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  backdrop-filter: saturate(1.1) blur(1px);
 }
 
 body[data-page="research"] .pos-analysis-simulator .pos-analysis-simulator-copy {
