@@ -2837,19 +2837,43 @@
       });
     };
 
+    // Research tab routing: local dashboard buttons still switch panels in
+    // place, while the Rookie ADP anchor keeps its native isolated-page route.
     tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => activate(tab, { focusTab: false }));
+      if (tab.dataset.target) {
+        tab.addEventListener('click', () => activate(tab, { focusTab: false }));
+      }
       tab.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
           event.preventDefault();
           const delta = event.key === 'ArrowRight' ? 1 : -1;
           const nextIndex = (index + delta + tabs.length) % tabs.length;
-          activate(tabs[nextIndex], { focusTab: true });
+          const nextTab = tabs[nextIndex];
+          if (nextTab.dataset.target) {
+            activate(nextTab, { focusTab: true });
+          } else {
+            tabs.forEach((candidate) => candidate.setAttribute('tabindex', candidate === nextTab ? '0' : '-1'));
+            nextTab.focus();
+          }
         }
       });
     });
 
-    const currentActive = tabs.find((tab) => tab.classList.contains('active')) || tabs[0];
+    // ADP return links use ?tab=... so each copied tab can reopen its exact
+    // Vanilla Research panel without changing normal in-page tab behavior.
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    const requestedTargets = {
+      'positional-analysis': 'positional-analysis-tab-panel',
+      syop: 'syop-tab-panel',
+      draft: 'draft-tab-panel'
+    };
+    const requestedTarget = requestedTargets[requestedTab];
+    const requestedActiveTab = requestedTarget
+      ? tabs.find((tab) => tab.dataset.target === requestedTarget)
+      : null;
+    const currentActive = requestedActiveTab
+      || tabs.find((tab) => tab.classList.contains('active'))
+      || tabs.find((tab) => tab.dataset.target);
     if (currentActive) {
       activate(currentActive, { focusTab: false });
     }

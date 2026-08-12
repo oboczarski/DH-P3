@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis profiles: refresh the page-local markup, script,
-// and styles for uniform inline metrics and active-range trend pills.
-const CACHE_NAME = 'DH3.04R';
+// Research ADP dependency security refresh: retire cached 16.2.6 bundles so
+// every client receives the rebuilt, patched 16.3.0 static export.
+const CACHE_NAME = 'DH3.04U';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -41,6 +41,7 @@ const CORE_ASSET_PATHS = [
   '/ownership/ownership.html',
   '/leaguehub/leaguehub.html',
   '/research/research.html',
+  '/adp/index.html',
   '/contact/contact.html',
   '/styles/styles.css',
   '/styles/stats.css',

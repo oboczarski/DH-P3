@@ -1,2 +1,9 @@
 .DS_Store
 **/.DS_Store
+
+# Isolated ADP build output: source stays in adp-app; Netlify regenerates the
+# published static route under DH_P2.53/adp on every deploy.
+adp-app/node_modules/
+adp-app/.next/
+adp-app/out/
+DH_P2.53/adp/
