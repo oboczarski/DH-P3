@@ -2032,7 +2032,7 @@ body[data-page="research"] .pos-analysis-eyebrow--moving-forward {
 }
 
 body[data-page="research"] .pos-analysis-kicker {
-  padding: 0.28rem 0.58rem;
+  padding: 0 0.58rem;
   border: 0px solid rgba(103, 232, 249, 0.18);
   background: none;
   border-radius: 999px;
@@ -2138,12 +2138,19 @@ body[data-page="research"] .pos-analysis-eyebrow .pos-analysis-icon {
 
 body[data-page="research"] .pos-analysis-hero h1 {
   margin: 0.45rem 0 0.16rem;
-  color: #fff;
   font-size: clamp(2rem, 5.4vw, 4.4rem);
   line-height: 0.94;
   letter-spacing: 0;
-  font-weight: 900;
+  font-weight: 600;
   text-transform: uppercase;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(162deg, #7199ee 35%, #99c3e4 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter: drop-shadow(2px 2px 2px #0008) drop-shadow(0px 0px 20px #fff1) brightness(1) saturate(1);
+  font-family: 'MuseoModerno';
+  text-transform: capitalize;
 }
 
 body[data-page="research"] .pos-analysis-hero h1 span {
@@ -2154,36 +2161,35 @@ body[data-page="research"] .pos-analysis-hero h1 span {
 /* Positional Analysis dashboard title: these modifier-local hooks split the
    hero title into independently styled lines without affecting other headings. */
 body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-lead {
-  font-size: 3rem;
+  font-size: 4rem;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  background: linear-gradient(180deg, #7199ee 35%, #99c3e4 100%);
   background-clip: text;
   -webkit-background-clip: text;
-  filter: drop-shadow(2px 2px 2px #0006) drop-shadow(0px 0px 20px #fff1) brightness(1) saturate(1);
-  text-transform: none;
 }
 
 body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-period {
-  font-size: 3.7rem;
+  font-size: 4rem;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  background: linear-gradient(to bottom left, #2b5876, #4e4376);
   -webkit-background-clip: text;
   background-clip: text;
-  filter: drop-shadow(2px 2px 2px #0007) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
-  text-transform: none;
 }
 
 /* Positional Analysis dashboard title: phones use the requested compact line
    sizes while retaining the desktop gradients and all other visual treatment. */
 @media (max-width: 700px) {
   body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-lead {
-    font-size: 1.15rem;
+    font-size: 1.95rem;
+    letter-spacing: -0.07rem;
   }
 
   body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-period {
-    font-size: 1.3rem;
+    font-size: 1.6rem;
+    word-spacing: 0.5rem;
+    margin: 0.1rem 0.2rem 0.1rem;
+    font-size: 1.9rem;
+    letter-spacing: -0.08rem;
   }
 }
 
@@ -4376,7 +4382,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-hero {
-    padding: 0.56rem 0.56rem  0.46rem;
+    padding: 0 0.56rem  0.46rem;
     border-radius: 14px;
   }
 
@@ -4543,7 +4549,7 @@ body[data-page="research"] .pos-analysis-source-note {
   }
 
   body[data-page="research"] .pos-analysis-hero h1 {
-    font-size: clamp(1.75rem, 7.8vw, 2.65rem);
+    font-size: clamp(2.75rem, 8.8vw, 3.65rem);
   }
 
   body[data-page="research"] .pos-analysis-global-section .pos-analysis-control-row {
