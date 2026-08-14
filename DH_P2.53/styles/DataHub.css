@@ -14672,15 +14672,15 @@ body[data-page="datahub"] .hero-controls--mobile .utility-row > .mini-chip--comp
    Targets: direct rookie Ownership opens identified by the modal-mode class.
    What it does: removes the header summary row, places the sole KTC chip beside
    Exposure, and gives Exposure a compact primary row plus context sub-row.
-   Important notes: every selector requires the rookie-only container class, so
-   veteran Ownership and all other Game Logs/modal layouts retain their current
-   markup, sizing, and responsive behavior. */
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #glOwnershipSummaryRow {
+   Important notes: every selector requires both the rookie-only container class
+   and the concrete Ownership pane ID. The pane ID deliberately outranks older
+   shared Ownership rules while the mode class prevents any veteran/modal leak. */
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane #glOwnershipSummaryRow {
   display: none !important;
   margin: 0 !important;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(108px, 1fr);
   align-items: stretch;
@@ -14689,7 +14689,7 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   margin: 0 auto 0.58rem;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview > .gl-ownership-exposure-card {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview > .gl-ownership-exposure-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
@@ -14709,7 +14709,7 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   box-sizing: border-box;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-label {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-label {
   grid-area: label;
   align-self: center;
   font-size: 0.74rem;
@@ -14717,13 +14717,13 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   font-weight: 400;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values {
   grid-area: values;
   justify-self: end;
   min-width: 0;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-context {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-context {
   grid-area: context;
   justify-self: center;
   max-width: 100%;
@@ -14735,22 +14735,22 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   white-space: nowrap;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
   font-size: 1.5rem;
   line-height: 1;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-pct {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-pct {
   font-size: 1.45rem;
   line-height: 1;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-sep {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-sep {
   margin-inline: 0.2rem;
   font-size: 0.82rem;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip {
   display: flex;
   flex: none;
   flex-direction: column;
@@ -14764,27 +14764,85 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   box-sizing: border-box;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip h4 {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip h4 {
   margin-bottom: 0.14rem;
   padding-bottom: 0.14rem;
 }
 
-body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip .chip-values {
+body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-values {
   gap: 0;
+}
+
+@media (min-width: 681px) {
+  /* Desktop-only Rookie Ownership typography:
+     targets the rookie Exposure/KTC overview without changing the shared
+     veteran Ownership summary cards or their existing desktop treatment. */
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-context {
+    grid-area: context;
+    justify-self: center;
+    max-width: 100%;
+    overflow: hidden;
+    color: rgba(166, 176, 231, 0.45);
+    font-family: "Google Sans Flex", "Google Sans", sans-serif;
+    font-size: 0.8rem;
+    font-variation-settings: "slnt" -7;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1;
+    text-align: center;
+    text-overflow: ellipsis;
+    text-wrap-mode: nowrap;
+    white-space: nowrap;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-label {
+    grid-area: label;
+    align-self: center;
+    font-family: "Google Sans Flex", "Google Sans", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 450;
+    letter-spacing: 0;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip h4 {
+    display: block;
+    margin-bottom: 0.14rem;
+    padding-bottom: 0.14rem;
+    border-bottom: 1px solid var(--color-panel-border);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    word-spacing: 0.3rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-values {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--color-text-primary);
+    font-size: 1.05rem;
+    font-weight: 400;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-header-value {
+    font-size: 1.05rem;
+  }
 }
 
 @media (max-width: 680px) {
   /* Rookie-only Ownership mobile balance:
      keeps Exposure and KTC side by side down to narrow phones while reducing
      inner spacing and type independently from the veteran modal. */
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview {
     grid-template-columns: minmax(0, 0.75fr) minmax(92px, 0.75fr);
     gap: 1.38rem;
     margin-bottom: 0.48rem;
     max-width: 87%;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview > .gl-ownership-exposure-card {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview > .gl-ownership-exposure-card {
     column-gap: 0.26rem;
     row-gap: 0.1rem;
     min-height: 45px;
@@ -14792,32 +14850,33 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
     border-radius: 11px;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-label {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-label {
     font-size: 0.62rem;
-    letter-spacing: 0.065em;
+    letter-spacing: 0;
+    font-family: "Google Sans Flex", "Google Sans", sans-serif;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-context {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-context {
     font-size: 0.65rem;
-    font-family: Google Sans Flex;
+    font-family: "Google Sans Flex", "Google Sans", sans-serif;
     font-variation-settings: "slnt" -7;
-    font-weight: 300;
+    font-weight: 200;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
     font-size: 1.24rem;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-pct {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-pct {
     font-size: 1.2rem;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-sep {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-sep {
     margin-inline: 0.14rem;
     font-size: 0.68rem;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip {
     flex: none !important;
     min-width: 0 !important;
     min-height: 49px;
@@ -14825,21 +14884,29 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
     border-radius: 11px;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip h4 {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip h4 {
     margin-bottom: 0.1rem !important;
     padding-bottom: 0.1rem !important;
-    font-size: 0.62rem !important;
-  }
-
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip .chip-header-value {
-    font-size: 0.76rem !important;
-  }
-
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip .chip-values {
     font-size: 0.74rem !important;
+    word-spacing: 0.3rem !important;
   }
 
-  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip .chip-separator {
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-header-value {
+    font-size: 0.88rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-values {
+    gap: 0.3rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-pos-rank-label {
+    margin-top: 0.05rem !important;
+    font-size: 0.79em !important;
+    font-weight: 400 !important;
+  }
+
+  body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-separator {
     margin-inline: 0.16rem !important;
   }
 }
