@@ -14777,26 +14777,27 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
      keeps Exposure and KTC side by side down to narrow phones while reducing
      inner spacing and type independently from the veteran modal. */
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview {
-    grid-template-columns: minmax(0, 1.55fr) minmax(92px, 0.75fr);
-    gap: 0.38rem;
+    grid-template-columns: minmax(0, 0.75fr) minmax(92px, 0.75fr);
+    gap: 1.38rem;
     margin-bottom: 0.48rem;
+    max-width: 87%;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview > .gl-ownership-exposure-card {
     column-gap: 0.26rem;
     row-gap: 0.1rem;
-    min-height: 56px;
+    min-height: 45px;
     padding: 0.28rem 0.42rem 0.26rem;
     border-radius: 11px;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-label {
-    font-size: 0.56rem;
+    font-size: 0.62rem;
     letter-spacing: 0.065em;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-context {
-    font-size: 0.5rem;
+    font-size: 0.65rem;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
@@ -14815,7 +14816,7 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-ktc-chip {
     flex: none !important;
     min-width: 0 !important;
-    min-height: 56px;
+    min-height: 49px;
     padding: 0.28rem 0.38rem !important;
     border-radius: 11px;
   }
