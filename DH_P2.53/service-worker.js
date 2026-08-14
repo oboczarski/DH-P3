@@ -26,7 +26,7 @@
 // ============================================================================
 // Research Positional Distribution point refresh: retire the prior cached CSS
 // so every client receives the separate mobile and desktop marker treatment.
-const CACHE_NAME = 'DH3.04W';
+const CACHE_NAME = 'DH3.05';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
