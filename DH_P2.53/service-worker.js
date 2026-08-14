@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research ADP dependency security refresh: retire cached 16.2.6 bundles so
-// every client receives the rebuilt, patched 16.3.0 static export.
-const CACHE_NAME = 'DH3.04U';
+// Research Positional Analysis title refresh: retire the prior cached heading
+// markup/styles so every client receives the new isolated two-line treatment.
+const CACHE_NAME = 'DH3.04V';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

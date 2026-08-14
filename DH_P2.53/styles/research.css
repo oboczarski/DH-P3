@@ -2151,6 +2151,42 @@ body[data-page="research"] .pos-analysis-hero h1 span {
   color: var(--pos-analysis-cyan);
 }
 
+/* Positional Analysis dashboard title: these modifier-local hooks split the
+   hero title into independently styled lines without affecting other headings. */
+body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-lead {
+  font-size: 3rem;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(180deg, #7199ee 35%, #99c3e4 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter: drop-shadow(2px 2px 2px #0006) drop-shadow(0px 0px 20px #fff1) brightness(1) saturate(1);
+  text-transform: none;
+}
+
+body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-period {
+  font-size: 3.7rem;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(to bottom left, #2b5876, #4e4376);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(2px 2px 2px #0007) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
+  text-transform: none;
+}
+
+/* Positional Analysis dashboard title: phones use the requested compact line
+   sizes while retaining the desktop gradients and all other visual treatment. */
+@media (max-width: 700px) {
+  body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-lead {
+    font-size: 1.15rem;
+  }
+
+  body[data-page="research"] .pos-analysis-panel-heading--dashboard .pos-analysis-dashboard-title-period {
+    font-size: 1.3rem;
+  }
+}
+
 body[data-page="research"] .pos-analysis-hero p {
   margin: 0.15rem 0 0;
   color: var(--pos-analysis-sub);
