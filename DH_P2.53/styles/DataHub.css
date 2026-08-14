@@ -14799,6 +14799,9 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-context {
     font-size: 0.65rem;
+    font-family: Google Sans Flex;
+    font-variation-settings: "slnt" -7;
+    font-weight: 300;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values .ownership-exposure-count {
