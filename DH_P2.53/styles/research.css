@@ -2800,8 +2800,27 @@ body[data-page="research"] .pos-analysis-supply-line {
 
 body[data-page="research"] .pos-analysis-supply-point {
   cursor: pointer;
-  stroke-width: 2.2;
   outline: none;
+}
+
+/* Positional Distribution data points: phones use their own marker geometry
+   and treatment without changing desktop markers or any other chart points. */
+@media (max-width: 700px) {
+  body[data-page="research"] .pos-analysis-supply-point {
+    stroke-width: 1px;
+    fill: #181a25;
+    r: 5px;
+  }
+}
+
+/* Positional Distribution data points: desktop values are isolated above the
+   mobile breakpoint so both device classes remain independently tunable. */
+@media (min-width: 701px) {
+  body[data-page="research"] .pos-analysis-supply-point {
+    stroke-width: 1.5px;
+    fill: #181a25;
+    r: 8px;
+  }
 }
 
 body[data-page="research"] .pos-analysis-supply-point:focus-visible {

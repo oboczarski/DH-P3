@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Analysis title refresh: retire the prior cached heading
-// markup/styles so every client receives the new isolated two-line treatment.
-const CACHE_NAME = 'DH3.04V';
+// Research Positional Distribution point refresh: retire the prior cached CSS
+// so every client receives the separate mobile and desktop marker treatment.
+const CACHE_NAME = 'DH3.04W';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
