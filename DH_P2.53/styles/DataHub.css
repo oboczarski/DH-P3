@@ -13290,7 +13290,7 @@ body[data-page="datahub"] #game-logs-modal .weekly-chart-grid {
   body[data-page="datahub"] #game-logs-modal .player-vitals__label {
     font-size: 0.62rem;
     letter-spacing: 0.1em;
-    font-weight: 800;
+    font-weight: 500;
   }
 
   body[data-page="datahub"] #game-logs-modal .player-vitals__value {
@@ -14810,8 +14810,8 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
     padding-bottom: 0.14rem;
     border-bottom: 1px solid var(--color-panel-border);
     color: var(--color-text-secondary);
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 0.93rem;
+    font-weight: 500;
     text-transform: uppercase;
     word-spacing: 0.3rem !important;
   }
@@ -14828,6 +14828,9 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-header-value {
     font-size: 1.05rem;
+    font-weight: 500;
+    filter: brightness(1.2);
+    font-family: 'Google Sans Flex';
   }
 }
 
@@ -14887,23 +14890,27 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip h4 {
     margin-bottom: 0.1rem !important;
     padding-bottom: 0.1rem !important;
-    font-size: 0.74rem !important;
+    font-size: 0.8rem !important;
     word-spacing: 0.3rem !important;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-header-value {
-    font-size: 0.88rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 500;
+    filter: brightness(1.2);
+    font-family: 'Google Sans Flex';
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-values {
     gap: 0.3rem !important;
-    font-size: 0.82rem !important;
+    font-size: 0.92rem !important;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-pos-rank-label {
     margin-top: 0.05rem !important;
-    font-size: 0.79em !important;
+    font-size: 0.78em !important;
     font-weight: 400 !important;
+    letter-spacing: 0.07rem;
   }
 
   body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only #gamelogs-ownership-pane .datahub-rookie-ownership-ktc-chip .chip-separator {
