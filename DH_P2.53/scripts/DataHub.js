@@ -15941,6 +15941,20 @@ function getDataHubOwnershipExposureTierClassByCount(count) {
   return tierConfig?.className || "ownership-exposure--tier-1";
 }
 
+function getDataHubOwnershipKtcSummaryChipMarkup(summary, extraClassName = "") {
+  const extraClass = extraClassName ? ` ${extraClassName}` : "";
+  return `
+    <div class="gamelogs-summary-chip ownership-summary-chip${extraClass}">
+      <h4><span class="chip-header-value" style="color:${getDataHubKtcColor(summary.ktc)}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : "—"}</span><span class="chip-unit"> KTC</span></h4>
+      <div class="chip-values">
+        <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${summary.ktcPosRank || "—"}</span></span>
+        <span class="chip-separator">•</span>
+        <span style="color:${getDataHubRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : "—"}</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderDataHubOwnershipPane(playerId) {
   const nameEl = document.querySelector("#glOwnershipPlayerName");
   const leftEl = document.querySelector("#glOwnershipLeft");
@@ -15948,6 +15962,7 @@ function renderDataHubOwnershipPane(playerId) {
   const chipsEl = document.querySelector("#glOwnershipSummaryChips");
   const bodyEl = document.querySelector("#glOwnershipBody");
   const summary = getDataHubOwnershipSummary(playerId);
+  const isRookieOwnership = isDataHubOwnershipOnlyModal();
   if (!summary) {
     if (bodyEl) {
       bodyEl.innerHTML = '<div class="ownership-modal-empty">Player data unavailable.</div>';
@@ -15966,7 +15981,10 @@ function renderDataHubOwnershipPane(playerId) {
     vitalsEl.appendChild(createDataHubPlayerVitalsElement(getDataHubPlayerVitals(playerId, summary), { variant: "modal", pos: summary.pos }));
   }
   if (chipsEl) {
-    chipsEl.innerHTML = `
+    // Rookie Ownership summary placement:
+    // remove the header summary row's contents only for direct rookie opens;
+    // veterans retain their existing FPTS, PPG, and KTC header structure.
+    chipsEl.innerHTML = isRookieOwnership ? "" : `
       <div class="gamelogs-summary-chip ownership-summary-chip">
         <h4><span class="chip-header-value" style="color:${getDataHubConditionalColorByRank(summary.posRank, summary.pos)}">${Number.isFinite(summary.fpts) ? summary.fpts.toFixed(1) : "—"}</span><span class="chip-unit"> FPTS</span></h4>
         <div class="chip-values">
@@ -15983,21 +16001,14 @@ function renderDataHubOwnershipPane(playerId) {
           <span style="color:${getDataHubRankColor(summary.ppgOverallRank)}">${Number.isFinite(summary.ppgOverallRank) ? `#${summary.ppgOverallRank}` : "—"}</span>
         </div>
       </div>
-      <div class="gamelogs-summary-chip ownership-summary-chip">
-        <h4><span class="chip-header-value" style="color:${getDataHubKtcColor(summary.ktc)}">${Number.isFinite(summary.ktc) ? Math.round(summary.ktc) : "—"}</span><span class="chip-unit"> KTC</span></h4>
-        <div class="chip-values">
-          <span class="pos-rank-container"><span class="chip-pos-rank-label pos-color-${dataHubEscapeHtml(summary.pos)}">${dataHubEscapeHtml(summary.pos)}·</span><span style="color:${getDataHubConditionalColorByRank(summary.ktcPosRank, summary.pos)}">${summary.ktcPosRank || "—"}</span></span>
-          <span class="chip-separator">•</span>
-          <span style="color:${getDataHubRankColor(summary.ktcOverallRank)}">${Number.isFinite(summary.ktcOverallRank) ? `#${summary.ktcOverallRank}` : "—"}</span>
-        </div>
-      </div>
+      ${getDataHubOwnershipKtcSummaryChipMarkup(summary)}
     `;
     // DataHub Ownership modal header:
     // targets the inline Ownership tab's vitals capsule and matches the regular
     // Game Logs header by sizing vitals to the rendered summary-chip row width.
     const ownershipVitalsElement = vitalsEl?.querySelector(".player-vitals--modal");
     const ownershipSummaryChipsWidth = chipsEl.offsetWidth;
-    if (ownershipVitalsElement && ownershipSummaryChipsWidth > 0) {
+    if (!isRookieOwnership && ownershipVitalsElement && ownershipSummaryChipsWidth > 0) {
       ownershipVitalsElement.style.width = `${ownershipSummaryChipsWidth}px`;
     }
   }
@@ -16048,7 +16059,7 @@ function renderDataHubOwnershipPane(playerId) {
     const exposureClass = ownedCount === 0
       ? "ownership-exposure--tier-0"
       : getDataHubOwnershipExposureTierClassByCount(ownedCount);
-    bodyEl.innerHTML = `
+    const exposureCardMarkup = `
       <div class="gl-ownership-exposure-card">
         <span class="gl-exposure-label">Exposure</span>
         <div class="gl-exposure-values ownership-list-exposure ${exposureClass}">
@@ -16058,6 +16069,20 @@ function renderDataHubOwnershipPane(playerId) {
         </div>
         <span class="gl-exposure-context">owned in ${ownedCount} of ${rows.length} leagues</span>
       </div>
+    `;
+    // Rookie Ownership overview row:
+    // move the sole remaining KTC summary chip beside Exposure in the scroll
+    // body. Veteran Ownership keeps the original standalone Exposure card.
+    const ownershipOverviewMarkup = isRookieOwnership
+      ? `
+        <div class="datahub-rookie-ownership-overview">
+          ${exposureCardMarkup}
+          ${getDataHubOwnershipKtcSummaryChipMarkup(summary, "datahub-rookie-ownership-ktc-chip")}
+        </div>
+      `
+      : exposureCardMarkup;
+    bodyEl.innerHTML = `
+      ${ownershipOverviewMarkup}
       <div class="ownership-modal-section-title">
         League Ownership
         <span class="ownership-modal-section-subtitle">${rows.length} league${rows.length === 1 ? "" : "s"}</span>
