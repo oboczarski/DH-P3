@@ -1115,9 +1115,10 @@
       </div>
     </div>
 
-    <!-- DataHub game logs modal:
-         this mirrors the Stats page shell locally so DataHub can open full game
-         logs without depending on shared Stats markup or app.js wiring. -->
+    <!-- DataHub player-details modal:
+         veteran names retain the full tabbed Game Logs/Ownership shell, while
+         DataHub.js opens this same Ownership pane directly for rookie names and
+         hides the tab strip so rookies never enter the Game Logs interface. -->
     <div id="game-logs-modal" class="hidden gamelogs-modal-container">
       <div class="modal-overlay"></div>
 

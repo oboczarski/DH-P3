@@ -2733,6 +2733,7 @@ const filePickerInput = document.querySelector("#file-picker-input");
 const gridContainer = document.querySelector("#player-grid");
 const gameLogsModal = document.querySelector("#game-logs-modal");
 const modalOverlay = document.querySelector("#game-logs-modal .modal-overlay");
+const gameLogsModalTabList = document.querySelector("#game-logs-modal .gamelogs-modal-tabs");
 const modalPlayerName = document.querySelector("#modal-player-name");
 const modalPlayerVitals = document.querySelector("#modal-player-vitals");
 const modalSummaryChips = document.querySelector("#modal-summary-chips");
@@ -9783,7 +9784,9 @@ function createRookieTierBadge(value) {
 
 function createPlayerTriggerButton(row) {
   const playerLabel = formatPlayerColumnDisplayValue(row);
-  if (!canOpenDataHubGameLogs(row)) {
+  const opensRookieOwnership = isDataHubRookiesView() && canOpenDataHubOwnership(row);
+  const opensGameLogs = !opensRookieOwnership && canOpenDataHubGameLogs(row);
+  if (!opensRookieOwnership && !opensGameLogs) {
     const text = document.createElement("span");
     text.className = "stats-player-btn stats-player-btn--static";
     text.textContent = playerLabel;
@@ -9793,9 +9796,21 @@ function createPlayerTriggerButton(row) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "stats-player-btn";
-  button.setAttribute("aria-label", `Open game logs for ${playerLabel}`);
+  button.setAttribute(
+    "aria-label",
+    opensRookieOwnership
+      ? `Open ownership for ${playerLabel}`
+      : `Open game logs for ${playerLabel}`,
+  );
   button.textContent = playerLabel;
   button.addEventListener("click", () => {
+    // Rookies PLAYER trigger:
+    // both dedicated rookie subviews open the Ownership pane directly and do
+    // not enter the veteran Game Logs/tabbed-modal path below.
+    if (opensRookieOwnership) {
+      openDataHubRookieOwnership(row, button);
+      return;
+    }
     openDataHubGameLogs(row, button);
   });
   return button;
@@ -9872,6 +9887,11 @@ function createDataHubTableTeamFallback(teamKey) {
 function canOpenDataHubGameLogs(rowOrMeta) {
   const meta = rowOrMeta?.__meta || rowOrMeta;
   return Boolean(meta?.hasGameLogsSupport && meta?.playerId && meta.pos !== "RDP");
+}
+
+function canOpenDataHubOwnership(rowOrMeta) {
+  const meta = rowOrMeta?.__meta || rowOrMeta;
+  return Boolean(meta?.playerId && meta.pos !== "RDP");
 }
 
 function createFptsChip(value) {
@@ -11888,6 +11908,10 @@ function openDataHubModal() {
   if (!gameLogsModal) {
     return;
   }
+  // Veteran modal mode:
+  // explicitly restore the existing tab strip before every Game Logs launch so
+  // a previous rookie-only Ownership open can never alter veteran behavior.
+  setDataHubModalOwnershipOnly(false);
   gameLogsModal.classList.remove("hidden");
   statsKeyContainer?.classList.add("hidden");
   radarChartContainer?.classList.add("hidden");
@@ -11942,6 +11966,43 @@ function closeDataHubModal() {
   state.currentGameLogsSummary = null;
   state.currentGameLogsFooterStats = null;
   state.currentConsistencyData = null;
+  setDataHubModalOwnershipOnly(false);
+}
+
+function setDataHubModalOwnershipOnly(isOwnershipOnly) {
+  if (!gameLogsModal) {
+    return;
+  }
+
+  // Rookie Ownership modal mode:
+  // hide the Game Logs/Ownership tab interface only for direct rookie opens;
+  // the veteran launcher calls this with false and retains the original UI.
+  gameLogsModal.classList.toggle("gamelogs-modal-container--ownership-only", isOwnershipOnly);
+  gameLogsModal.dataset.modalMode = isOwnershipOnly ? "ownership-only" : "gamelogs";
+  gameLogsModalTabList?.classList.toggle("hidden", isOwnershipOnly);
+  if (isOwnershipOnly) {
+    gameLogsModalTabList?.setAttribute("aria-hidden", "true");
+  } else {
+    gameLogsModalTabList?.removeAttribute("aria-hidden");
+  }
+}
+
+function isDataHubOwnershipOnlyModal() {
+  return gameLogsModal?.dataset.modalMode === "ownership-only";
+}
+
+function openDataHubOwnershipOnlyModal() {
+  if (!gameLogsModal) {
+    return;
+  }
+
+  setDataHubModalOwnershipOnly(true);
+  gameLogsModal.classList.remove("hidden", "loading");
+  gameLogsModal.querySelector(".game-logs-loading-container")?.remove();
+  statsKeyContainer?.classList.add("hidden");
+  radarChartContainer?.classList.add("hidden");
+  consistencyContainer?.classList.add("hidden");
+  switchDataHubModalTab("ownership");
 }
 
 function setDataHubGameLogsView(view) {
@@ -11982,12 +12043,15 @@ function switchDataHubModalTab(tabKey) {
   if (!gameLogsPane || !ownershipPane) {
     return;
   }
+  // Ownership-only rookie opens cannot be switched into Game Logs, even if a
+  // future caller attempts to change the hidden tab state programmatically.
+  const resolvedTabKey = isDataHubOwnershipOnlyModal() ? "ownership" : tabKey;
   gameLogsModalTabs.forEach((button) => {
-    const isActive = button.dataset.modalTab === tabKey;
+    const isActive = button.dataset.modalTab === resolvedTabKey;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-selected", isActive ? "true" : "false");
   });
-  if (tabKey === "ownership") {
+  if (resolvedTabKey === "ownership") {
     gameLogsPane.classList.add("hidden");
     ownershipPane.classList.remove("hidden");
     const playerId = String(state.currentGameLogsPlayer?.id || "").trim();
@@ -12011,6 +12075,64 @@ function switchDataHubModalTab(tabKey) {
   } else {
     gameLogsPane.classList.remove("hidden");
     ownershipPane.classList.add("hidden");
+  }
+}
+
+async function openDataHubRookieOwnership(row, triggerButton = null) {
+  const meta = row?.__meta;
+  if (!isDataHubRookiesView() || !canOpenDataHubOwnership(meta)) {
+    return;
+  }
+
+  const requestSeq = ++dataHubGameLogsRequestSeq;
+  const playerId = String(meta.playerId || "").trim();
+  const isStaleRequest = () => requestSeq !== dataHubGameLogsRequestSeq;
+  state.currentGameLogsPlayer = buildDataHubModalPlayer(meta);
+  state.currentGameLogsPlayerRanks = null;
+  state.currentGameLogsSummary = null;
+  setDataHubPendingPlayerButton(triggerButton);
+
+  // Direct rookie Ownership launch:
+  // open the existing page-local Ownership dialog immediately, with its tab
+  // strip suppressed, and intentionally skip ensureDataHubGameLogsData().
+  openDataHubOwnershipOnlyModal();
+  renderDataHubOwnershipPane(playerId);
+
+  try {
+    await Promise.all([
+      fetchDataHubSleeperPlayers().catch((error) => {
+        console.error("Unable to refresh Sleeper player details for rookie ownership.", error);
+      }),
+      ensureDataHubSupplementalData(),
+      bootstrapDataHubUserContext(),
+    ]);
+    if (isStaleRequest()) {
+      return;
+    }
+
+    state.currentGameLogsPlayer = buildDataHubModalPlayer(meta);
+    renderDataHubOwnershipPane(playerId);
+
+    if (state.userId && !hasDataHubOwnershipContextLoaded()) {
+      await loadDataHubOwnershipContextForUser();
+      if (isStaleRequest()) {
+        return;
+      }
+      renderDataHubOwnershipPane(playerId);
+    }
+  } catch (error) {
+    console.error("Unable to prepare DataHub rookie ownership data.", error);
+    if (isStaleRequest()) {
+      return;
+    }
+    const body = document.querySelector("#glOwnershipBody");
+    if (body) {
+      body.innerHTML = '<div class="ownership-modal-empty">Unable to load ownership data right now.</div>';
+    }
+  } finally {
+    if (!isStaleRequest()) {
+      clearDataHubPendingPlayerButton();
+    }
   }
 }
 
@@ -15615,6 +15737,17 @@ function renderDataHubOwnershipUsernamePrompt({ bodyEl, usernameValue = "" } = {
     return;
   }
 
+  const ownershipOnly = isDataHubOwnershipOnlyModal();
+  const promptCopy = ownershipOnly
+    ? "Data Hub will use it to load your dynasty league exposure for this player."
+    : "Data Hub will use it to load your dynasty league exposure for this player, or you can jump right back to the regular game logs view.";
+  const backToGameLogsButton = ownershipOnly
+    ? ""
+    : `
+          <button type="button" class="ownership-username-prompt__button ownership-username-prompt__button--secondary" data-datahub-ownership-back>
+            Back to Game Logs
+          </button>`;
+
   bodyEl.innerHTML = `
     <section class="ownership-username-prompt" aria-labelledby="datahubOwnershipPromptTitle">
       <div class="ownership-username-prompt__badge">
@@ -15627,7 +15760,7 @@ function renderDataHubOwnershipUsernamePrompt({ bodyEl, usernameValue = "" } = {
         <span>Ownership Access</span>
       </div>
       <h4 class="ownership-username-prompt__title" id="datahubOwnershipPromptTitle">Please enter a Sleeper username to view ownership data.</h4>
-      <p class="ownership-username-prompt__copy">Data Hub will use it to load your dynasty league exposure for this player, or you can jump right back to the regular game logs view.</p>
+      <p class="ownership-username-prompt__copy">${promptCopy}</p>
       <form class="ownership-username-prompt__form" data-datahub-ownership-form novalidate>
         <label class="ownership-username-prompt__label" for="datahubOwnershipUsernameInput">Sleeper Username</label>
         <div class="ownership-username-prompt__field">
@@ -15653,9 +15786,7 @@ function renderDataHubOwnershipUsernamePrompt({ bodyEl, usernameValue = "" } = {
           <button type="submit" class="ownership-username-prompt__button ownership-username-prompt__button--primary" data-datahub-ownership-submit>
             Load Ownership
           </button>
-          <button type="button" class="ownership-username-prompt__button ownership-username-prompt__button--secondary" data-datahub-ownership-back>
-            Back to Game Logs
-          </button>
+          ${backToGameLogsButton}
         </div>
       </form>
     </section>
@@ -15955,7 +16086,10 @@ function getDataHubOwnershipSummary(playerId) {
   const player = state.sleeperPlayers?.[playerId];
   const seasonStats = state.playerSeasonStats?.[playerId] || {};
   const rowMeta = state.statsRowsByPlayerId?.[playerId]?.__meta || null;
-  if (!player && !rowMeta) {
+  const activeModalPlayer = state.currentGameLogsPlayer?.id === playerId
+    ? state.currentGameLogsPlayer
+    : null;
+  if (!player && !rowMeta && !activeModalPlayer) {
     return null;
   }
   const currentLookup = getActiveKtcLookup()?.[playerId] || null;
@@ -15967,18 +16101,24 @@ function getDataHubOwnershipSummary(playerId) {
   const firstName = String(player?.first_name || "").trim();
   const lastName = String(player?.last_name || "").trim();
   return {
-    fullName: `${firstName} ${lastName}`.trim() || rowMeta?.fullName || rowMeta?.name || playerId,
-    pos: String(player?.position || rowMeta?.pos || "").trim().toUpperCase() || "—",
-    team: String(player?.team || rowMeta?.team || "FA").trim().toUpperCase() || "FA",
+    // Rookie Ownership fallback:
+    // direct rookie opens can render from their row metadata before the shared
+    // Sleeper player directory finishes hydrating; veteran summary precedence
+    // remains unchanged because player/season data still wins when present.
+    fullName: `${firstName} ${lastName}`.trim() || rowMeta?.fullName || rowMeta?.name || activeModalPlayer?.fullName || activeModalPlayer?.name || playerId,
+    pos: String(player?.position || rowMeta?.pos || activeModalPlayer?.pos || "").trim().toUpperCase() || "—",
+    team: String(player?.team || rowMeta?.team || activeModalPlayer?.team || "FA").trim().toUpperCase() || "FA",
     fpts: Number.isFinite(seasonStats.fpts_ppr) ? seasonStats.fpts_ppr : rowMeta?.fpts,
     ppg: Number.isFinite(seasonStats.ppg) ? seasonStats.ppg : rowMeta?.ppg,
     posRank: rankCache.posRank || null,
     overallRank: rankCache.overallRank || null,
     ppgPosRank: rankCache.ppgPosRank || null,
     ppgOverallRank: rankCache.ppgOverallRank || null,
-    ktc: Number.isFinite(valueData?.ktc) ? valueData.ktc : rowMeta?.ktc,
-    ktcPosRank: parseDataHubPosRankNumber(valueData?.posRank || rowMeta?.posRankText),
-    ktcOverallRank: Number.isFinite(valueData?.overallRank) ? valueData.overallRank : rowMeta?.overallKtcRank,
+    ktc: Number.isFinite(valueData?.ktc) ? valueData.ktc : (rowMeta?.ktc ?? activeModalPlayer?.ktc),
+    ktcPosRank: parseDataHubPosRankNumber(valueData?.posRank || rowMeta?.posRankText || activeModalPlayer?.posRank),
+    ktcOverallRank: Number.isFinite(valueData?.overallRank)
+      ? valueData.overallRank
+      : (rowMeta?.overallKtcRank ?? activeModalPlayer?.overallRank),
   };
 }
 
