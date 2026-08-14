@@ -14682,10 +14682,10 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
 
 body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(108px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(108px, 1fr);
   align-items: stretch;
-  gap: 0.55rem;
-  width: 100%;
+  gap: 1.55rem;
+  width: 90%;
   margin: 0 auto 0.58rem;
 }
 
@@ -14712,8 +14712,9 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
 body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-label {
   grid-area: label;
   align-self: center;
-  font-size: 0.64rem;
+  font-size: 0.74rem;
   letter-spacing: 0.09em;
+  font-weight: 400;
 }
 
 body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-only .datahub-rookie-ownership-overview .gl-exposure-values {
@@ -14727,7 +14728,7 @@ body[data-page="datahub"] #game-logs-modal.gamelogs-modal-container--ownership-o
   justify-self: center;
   max-width: 100%;
   overflow: hidden;
-  font-size: 0.56rem;
+  font-size: 0.76rem;
   line-height: 1.1;
   text-align: center;
   text-overflow: ellipsis;
