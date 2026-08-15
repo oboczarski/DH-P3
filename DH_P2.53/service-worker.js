@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research Positional Distribution point refresh: retire the prior cached CSS
-// so every client receives the separate mobile and desktop marker treatment.
-const CACHE_NAME = 'DH3.05';
+// Ownership filters, team-logo alignment, and physical-mobile table scrolling:
+// retire the prior cache so devices receive the updated page CSS and renderer.
+const CACHE_NAME = 'DH3.06';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

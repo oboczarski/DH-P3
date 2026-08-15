@@ -9385,7 +9385,7 @@ function getOwnershipExposureTierClassByCount(count) {
 /* Ownership% list in-place updater:
    - rebuilds the list rows only (not the toolbar/search/filter bar)
    - preserves search input focus and cursor position
-   - applies both search term and desktop position filter */
+   - applies search plus the ownership-only position filters at every viewport */
 function renderOwnershipPercentList(shell) {
     if (!shell) return;
     const rows = Array.isArray(state.ownershipRows) ? state.ownershipRows : [];
@@ -9395,9 +9395,13 @@ function renderOwnershipPercentList(shell) {
     const list = shell.querySelector('.ownership-list');
     if (!list) return;
 
-    // Filter rows by search term + position
+    // Ownership filter contract: FLX groups RB, WR, and TE without including QB.
     const filteredRows = rows.filter((row) => {
-        if (activePos !== 'ALL' && row.pos !== activePos) return false;
+        const rowPos = String(row.pos || '').toUpperCase();
+        const matchesPosition = activePos === 'ALL'
+            || rowPos === activePos
+            || (activePos === 'FLX' && ['RB', 'WR', 'TE'].includes(rowPos));
+        if (!matchesPosition) return false;
         if (searchTerm && !row.search.includes(searchTerm)) return false;
         return true;
     });
@@ -9444,7 +9448,7 @@ function renderOwnershipPercentList(shell) {
                 <div class="ownership-list-player-main">
                     <div class="ownership-list-player-top">
                         <button class="ownership-player-trigger" type="button" data-player-id="${row.pid}">${row.displayName}</button>
-                        <span class="team-tag" style="background-color:${TEAM_COLORS[row.team] || '#64748b'};color:white;">${row.team || 'FA'}</span>
+                        ${getOwnershipTeamMarkup(row.team, 'list')}
                     </div>
                     <div class="ownership-player-meta">${details.join('<span class="pl-details-sep"> • </span>') || '—'}</div>
                 </div>
@@ -9466,16 +9470,16 @@ function renderOwnershipPercentList(shell) {
         list.appendChild(empty);
     }
 
-    // Sync position filter button active states (desktop only, no-op if not present)
+    // Keep the ownership-only filter buttons and ARIA state synchronized after each refresh.
     updateOwnershipPercentPositionFilterButtons(shell);
 }
 
-/* Ownership% position filter button ARIA / active-class sync (desktop only).
-   Safe to call even when the filter bar is hidden on mobile. */
+/* Ownership% position filter button ARIA / active-class sync.
+   This deliberately targets a class that is not shared with Player Value. */
 function updateOwnershipPercentPositionFilterButtons(shell) {
     if (!shell) return;
     const activePos = (state.ownershipPercentPositionFilter || 'ALL').toUpperCase();
-    shell.querySelectorAll('.ownership-value-filter-btn[data-ownership-percent-pos]').forEach((button) => {
+    shell.querySelectorAll('.ownership-percent-filter-btn[data-ownership-percent-pos]').forEach((button) => {
         const buttonPos = (button.dataset.ownershipPercentPos || 'ALL').toUpperCase();
         const isActive = buttonPos === activePos;
         button.classList.toggle('is-active', isActive);
@@ -9495,7 +9499,7 @@ function renderOwnershipPercentView() {
     const shell = document.createElement('section');
     shell.className = 'ownership-shell ownership-shell--percent';
 
-    // Toolbar: search input + clear button + position filter bar (desktop only)
+    // Ownership% toolbar: the six dedicated position buttons sit below search on all viewports.
     const toolbar = document.createElement('div');
     toolbar.className = 'ownership-toolbar';
     toolbar.innerHTML = `
@@ -9508,12 +9512,9 @@ function renderOwnershipPercentView() {
             <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
         </div>
         <div class="ownership-percent-position-filter" role="group" aria-label="Filter ownership by position">
-            ${['ALL', 'QB', 'RB', 'WR', 'TE'].map((pos) => {
+            ${['ALL', 'QB', 'RB', 'WR', 'TE', 'FLX'].map((pos) => {
                 const active = (state.ownershipPercentPositionFilter || 'ALL') === pos;
-                // Ownership% desktop parity: expose the same data-ownership-pos hook used by the
-                // Player Value tab so both filter bars resolve through the exact same late-stage
-                // ownership.css color/active selectors without affecting mobile visibility.
-                return `<button class="ownership-value-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-percent-pos="${pos}" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
+                return `<button class="ownership-percent-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-percent-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
             }).join('')}
         </div>
     `;
@@ -9578,9 +9579,9 @@ function renderOwnershipPercentView() {
         syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
     });
 
-    // Desktop-only position filter: click handler for filter buttons
+    // Ownership-only position filter: available on both touch and desktop layouts.
     shell.querySelector('.ownership-percent-position-filter')?.addEventListener('click', (event) => {
-        const button = event.target.closest('.ownership-value-filter-btn');
+        const button = event.target.closest('.ownership-percent-filter-btn');
         if (!button) return;
         const nextPos = button.dataset.ownershipPercentPos || 'ALL';
         state.ownershipPercentPositionFilter = nextPos;
@@ -9603,15 +9604,24 @@ function formatOwnershipValue(value, decimals = 1) {
     return Number(value).toFixed(decimals);
 }
 
-function getOwnershipTableTeamMarkup(teamRaw) {
+/* Ownership team visual:
+   - replaces text team tags in the Ownership% list with NFL logos
+   - gives list and Player Value logos separate styling hooks
+   - keeps a compact FA fallback because there is no NFL logo for free agents */
+function getOwnershipTeamMarkup(teamRaw, variant = 'value') {
     const teamKey = (teamRaw || 'FA').toUpperCase();
     const teamStyle = `background-color: ${TEAM_COLORS[teamKey] || '#64748b'}; color: #fff;`;
     const logoKeyMap = { WSH: 'was', WAS: 'was', JAC: 'jax', LA: 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
     const src = `../assets/NFL_logos_svg/${normalizedKey}.svg`;
+    const isListLogo = variant === 'list';
+    const logoClass = isListLogo ? 'ownership-list-team-logo' : 'ownership-value-team-logo';
+    const fallbackClass = isListLogo
+        ? 'ownership-list-team-fallback'
+        : 'stats-team-chip ownership-value-team-fallback';
     return (teamKey && teamKey !== 'FA')
-        ? `<img class="team-logo glow" src="${src}" alt="${escapeHtml(teamKey)}" width="20" height="20" loading="lazy" decoding="async">`
-        : `<span class="stats-team-chip" style="${teamStyle}">${escapeHtml(teamKey)}</span>`;
+        ? `<img class="team-logo glow ownership-team-logo ${logoClass}" src="${src}" alt="${escapeHtml(teamKey)}" width="20" height="20" loading="lazy" decoding="async">`
+        : `<span class="${fallbackClass}" style="${teamStyle}">${escapeHtml(teamKey)}</span>`;
 }
 
 function getOwnershipSortCellValue(row, column) {
@@ -10070,7 +10080,7 @@ function buildOwnershipValueTableRowMarkup(row) {
                 <button class="ownership-player-trigger ownership-player-trigger--value" type="button" data-player-id="${escapeHtml(row.playerId)}">${escapeHtml(row.displayName)}</button>
             </td>
             <td><span class="pl-list-tag ownership-pos-tag ${row.pos}">${row.pos}</span></td>
-            <td class="ownership-value-team-cell">${getOwnershipTableTeamMarkup(row.team)}</td>
+            <td class="ownership-value-team-cell">${getOwnershipTeamMarkup(row.team)}</td>
             <td><span style="color:${ageColor};">${row.age}</span></td>
             <td><span class="stats-value-chip ownership-value-chip" style="color:${oneQbKtcColor};">${oneQbKtcDisplay}</span></td>
             <td><span style="color:${oneQbPrkColor};">${row.oneQbPosRank || `${row.pos}·—`}</span></td>
