@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Ownership filters, team-logo alignment, and physical-mobile table scrolling:
-// retire the prior cache so devices receive the updated page CSS and renderer.
-const CACHE_NAME = 'DH3.06';
+// Ownership Liquid Glass toolbar/header styling and responsive control layout:
+// retire the prior cache so devices receive the updated page CSS immediately.
+const CACHE_NAME = 'DH3.07';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

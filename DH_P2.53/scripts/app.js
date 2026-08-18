@@ -9499,7 +9499,8 @@ function renderOwnershipPercentView() {
     const shell = document.createElement('section');
     shell.className = 'ownership-shell ownership-shell--percent';
 
-    // Ownership% toolbar: the six dedicated position buttons sit below search on all viewports.
+    // Ownership% toolbar: dedicated position buttons sit beside search on desktop
+    // and below it on mobile; CSS keeps both layouts exclusive to this page/view.
     const toolbar = document.createElement('div');
     toolbar.className = 'ownership-toolbar';
     toolbar.innerHTML = `

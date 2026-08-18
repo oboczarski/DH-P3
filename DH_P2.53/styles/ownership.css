@@ -2408,14 +2408,58 @@ body[data-page="ownership"] .ownership-value-filter-btn:disabled {
   cursor: not-allowed;
 }
 
-/* Ownership% position filters:
-   six independent glass tags echo the row position chips without borrowing the
-   Player Value connected-control class, geometry, or active treatment. */
+/* Ownership% Liquid Glass toolbar:
+   - targets only the Ownership% controls on the Ownership page
+   - uses one dark toolbar material, a recessed search control, and a connected
+     Finder-style option bar with a raised glass lens for the selected position
+   - spectral light is intentionally limited to thin specular edges so the
+     controls stay legible and do not become colorful decorative surfaces. */
 body[data-page="ownership"] .ownership-toolbar {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   flex-direction: column !important;
   align-items: stretch;
-  gap: 0.48rem;
-  margin: 0 0 0.58rem;
+  gap: 0.56rem;
+  margin: -0.7rem -0.65rem 0.58rem;
+  padding: 0.68rem 0.65rem 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 15px 15px 13px 13px;
+  background: linear-gradient(180deg, rgba(38, 38, 38, 0.55), rgba(38, 38, 39, 0.99));
+  -webkit-backdrop-filter: blur(15px) saturate(125%);
+  backdrop-filter: blur(15px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.72),
+    inset 0 12px 25px rgba(255, 255, 255, 0.018),
+    0 10px 24px rgba(0, 0, 0, 0.24);
+}
+
+/* Fine spectral glints mimic light splitting along the glass edge without
+   tinting the toolbar surface itself. */
+body[data-page="ownership"] .ownership-toolbar::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 6%;
+  left: 6%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(121, 174, 255, 0.18) 18%,
+    rgba(255, 255, 255, 0.34) 42%,
+    rgba(255, 179, 225, 0.17) 68%,
+    rgba(255, 226, 161, 0.12) 84%,
+    transparent);
+  box-shadow: 0 1px 7px rgba(168, 190, 255, 0.08);
+  pointer-events: none;
+}
+
+body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap,
+body[data-page="ownership"] .ownership-toolbar .ownership-percent-position-filter {
+  position: relative;
+  z-index: 1;
 }
 
 body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
@@ -2424,17 +2468,55 @@ body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
   max-width: none;
 }
 
+/* Search is a separate control group within the toolbar, matching the macOS
+   toolbar convention that separates different control types. */
+body[data-page="ownership"] .ownership-toolbar .ownership-search-input {
+  min-height: 2.48rem;
+  border-color: rgba(255, 255, 255, 0.115);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(78, 78, 82, 0.34), rgba(16, 16, 18, 0.54));
+  color: rgba(241, 243, 249, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
+    0 5px 14px rgba(0, 0, 0, 0.18);
+}
+
+body[data-page="ownership"] .ownership-toolbar .ownership-search-input::placeholder {
+  color: rgba(205, 209, 221, 0.58);
+}
+
+body[data-page="ownership"] .ownership-toolbar .ownership-search-input:focus {
+  border-color: rgba(181, 194, 255, 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
+    0 0 0 2px rgba(128, 145, 233, 0.13),
+    0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+body[data-page="ownership"] .ownership-toolbar .ownership-search-icon,
+body[data-page="ownership"] .ownership-toolbar .ownership-search-clear {
+  color: rgba(214, 218, 231, 0.64);
+}
+
 body[data-page="ownership"] .ownership-percent-position-filter {
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: stretch;
-  gap: clamp(0.2rem, 0.7vw, 0.42rem);
+  gap: 2px;
   width: 100%;
-  padding: 0.32rem;
-  border: 0px solid rgba(151, 163, 224, 0.16);
-  border-radius: 13px;
-  background: linear-gradient(180deg, rgba(38, 38, 38, 0.55), rgba(38, 38, 39, 0.99));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 10px 24px rgba(5, 7, 20, 0.2);
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(9, 9, 10, 0.42), rgba(22, 22, 24, 0.64));
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.62),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.045),
+    0 5px 14px rgba(0, 0, 0, 0.2);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn {
@@ -2442,29 +2524,33 @@ body[data-page="ownership"] .ownership-percent-filter-btn {
   position: relative;
   isolation: isolate;
   min-width: 0;
-  min-height: 2.2rem;
+  min-height: 2.08rem;
   padding: 0.25rem 0.18rem;
-  border: 1px solid rgba(var(--ownership-percent-pos-rgb), 0.26);
-  border-radius: 9px;
-  background: linear-gradient(165deg, rgba(var(--ownership-percent-pos-rgb), 0.075), rgba(13, 16, 31, 0.58));
-  color: rgba(var(--ownership-percent-pos-rgb), 0.74);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), inset 0 0 9px rgba(var(--ownership-percent-pos-rgb), 0.035);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(218, 220, 229, 0.66);
+  box-shadow: none;
   font-family: var(--font-sans);
   font-size: 0.74rem;
-  font-weight: 750;
-  letter-spacing: 0.055em;
+  font-weight: 700;
+  letter-spacing: 0.045em;
   line-height: 1;
   text-transform: uppercase;
-  transition: color 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
+/* The selected segment receives the glass indicator. The highlight is neutral;
+   only the label carries a restrained position tint. */
 body[data-page="ownership"] .ownership-percent-filter-btn::after {
   content: '';
   position: absolute;
-  inset: 1px;
+  inset: 1px 7% auto;
+  height: 44%;
   z-index: -1;
-  border-radius: 7px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), transparent 48%);
+  border-radius: 999px 999px 50% 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent);
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -2489,20 +2575,119 @@ body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active {
-  color: rgb(var(--ownership-percent-pos-rgb));
-  border-color: rgba(var(--ownership-percent-pos-rgb), 0.72);
-  background: linear-gradient(155deg, rgba(var(--ownership-percent-pos-rgb), 0.2), rgba(18, 22, 40, 0.74));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 10px rgba(var(--ownership-percent-pos-rgb), 0.11), 0 0 6px rgba(var(--ownership-percent-pos-rgb), 0.22);
+  color: rgba(var(--ownership-percent-pos-rgb), 0.86);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.065) 48%, rgba(255, 255, 255, 0.035));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.29),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.62),
+    inset 1px 0 0 rgba(132, 190, 255, 0.065),
+    inset -1px 0 0 rgba(255, 177, 218, 0.055),
+    0 2px 6px rgba(0, 0, 0, 0.48),
+    0 0 0 0.5px rgba(255, 255, 255, 0.06);
+}
+
+body[data-page="ownership"] .ownership-percent-filter-btn.is-active::after {
+  opacity: 1;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn:hover {
-  color: rgb(var(--ownership-percent-pos-rgb));
-  border-color: rgba(var(--ownership-percent-pos-rgb), 0.48);
+  color: rgba(239, 241, 247, 0.82);
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+body[data-page="ownership"] .ownership-percent-filter-btn.is-active:hover {
+  color: rgba(var(--ownership-percent-pos-rgb), 0.92);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn:focus-visible {
-  outline: 2px solid rgba(var(--ownership-percent-pos-rgb), 0.56);
-  outline-offset: 2px;
+  outline: 2px solid rgba(195, 204, 255, 0.54);
+  outline-offset: 1px;
+}
+
+/* Ownership% column labels use the same darkened lower edge, bright specular
+   rim, and subtle ambient color spill as the toolbar above. */
+body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(59, 59, 62, 0.72), rgba(25, 25, 27, 0.96));
+  -webkit-backdrop-filter: blur(13px) saturate(122%);
+  backdrop-filter: blur(13px) saturate(122%);
+  color: rgba(224, 227, 237, 0.76);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.68),
+    0 5px 12px rgba(0, 0, 0, 0.22);
+  filter: none;
+}
+
+body[data-page="ownership"] .ownership-shell--percent .ownership-list-header::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 18% -65%, rgba(112, 174, 255, 0.13), transparent 42%),
+    radial-gradient(ellipse at 74% -85%, rgba(255, 173, 220, 0.09), transparent 39%),
+    linear-gradient(90deg, transparent 8%, rgba(255, 255, 255, 0.08) 48%, transparent 92%);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 820px) {
+  /* Ownership desktop controls mirror the Player Value panel's horizontal
+     toolbar composition while retaining their dedicated Liquid Glass styling. */
+  body[data-page="ownership"] .ownership-toolbar {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.8rem, 2.6vw, 2.5rem);
+    padding-right: clamp(0.75rem, 2vw, 2rem);
+    padding-left: clamp(0.75rem, 2vw, 2rem);
+  }
+
+  body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
+    flex: 1 1 auto;
+    min-width: 320px;
+    max-width: 678px;
+  }
+
+  body[data-page="ownership"] .ownership-percent-position-filter {
+    flex: 0 1 390px;
+    width: min(390px, 46%);
+    min-width: 330px;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 819px) {
+  /* Ownership mobile header material: exact requested gradient and optical
+     treatment; the page selector prevents this from affecting any other page. */
+  body[data-page="ownership"] #header-container .app-header {
+    background: linear-gradient(95deg, #1f1f1f85, #37353592, #3a3a4090);
+    -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+    backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Match the toolbar's full-bleed top backing to the shell's smaller mobile
+     padding without changing the mobile search-above-filters arrangement. */
+  body[data-page="ownership"] .ownership-toolbar {
+    margin: -0.54rem -0.45rem 0.5rem;
+    padding: 0.54rem 0.45rem 0.6rem;
+    border-radius: 11px 11px 10px 10px;
+  }
 }
 
 /* Ownership team logos:
@@ -2803,13 +2988,13 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   }
 
   /* Ownership% column-header: frozen at the top of the list scroll container.
-     Opaque background prevents data rows from bleeding through on scroll. */
-  body[data-page="ownership"] .ownership-list-header {
+     Its near-opaque Liquid Glass backing prevents rows bleeding through. */
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: rgba(24, 27, 50, 0.98);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: linear-gradient(180deg, rgba(59, 59, 62, 0.94), rgba(25, 25, 27, 0.99));
+    backdrop-filter: blur(13px) saturate(122%);
+    -webkit-backdrop-filter: blur(13px) saturate(122%);
   }
 }
