@@ -2469,30 +2469,37 @@ body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
 }
 
 /* Search is a separate control group within the toolbar, matching the macOS
-   toolbar convention that separates different control types. */
+   toolbar convention that separates different control types. Its material is
+   intentionally identical to the Finder-style position option bar below. */
 body[data-page="ownership"] .ownership-toolbar .ownership-search-input {
-  min-height: 2.48rem;
-  border-color: rgba(255, 255, 255, 0.115);
+  box-sizing: border-box;
+  height: 2.58rem;
+  min-height: 2.58rem;
+  max-height: none;
+  border-color: rgba(255, 255, 255, 0.11);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(78, 78, 82, 0.34), rgba(16, 16, 18, 0.54));
-  color: rgba(241, 243, 249, 0.92);
+  background: linear-gradient(180deg, rgba(84, 84, 87, 0.82), rgba(55, 55, 58, 0.9));
+  -webkit-backdrop-filter: blur(14px) saturate(112%);
+  backdrop-filter: blur(14px) saturate(112%);
+  color: rgba(245, 245, 248, 0.9);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
-    0 5px 14px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.42),
+    0 2px 5px rgba(0, 0, 0, 0.32);
 }
 
 body[data-page="ownership"] .ownership-toolbar .ownership-search-input::placeholder {
-  color: rgba(205, 209, 221, 0.58);
+  color: rgba(239, 239, 243, 0.62);
 }
 
 body[data-page="ownership"] .ownership-toolbar .ownership-search-input:focus {
-  border-color: rgba(181, 194, 255, 0.34);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(96, 96, 99, 0.88), rgba(61, 61, 64, 0.94));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.58),
-    0 0 0 2px rgba(128, 145, 233, 0.13),
-    0 6px 15px rgba(0, 0, 0, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.46),
+    0 0 0 2px rgba(255, 255, 255, 0.07),
+    0 2px 5px rgba(0, 0, 0, 0.34);
 }
 
 body[data-page="ownership"] .ownership-toolbar .ownership-search-icon,
@@ -2505,18 +2512,18 @@ body[data-page="ownership"] .ownership-percent-position-filter {
   box-sizing: border-box;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: stretch;
-  gap: 2px;
+  gap: 1px;
   width: 100%;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.085);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(9, 9, 10, 0.42), rgba(22, 22, 24, 0.64));
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
+  background: linear-gradient(180deg, rgba(84, 84, 87, 0.82), rgba(55, 55, 58, 0.9));
+  -webkit-backdrop-filter: blur(14px) saturate(112%);
+  backdrop-filter: blur(14px) saturate(112%);
   box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.62),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.045),
-    0 5px 14px rgba(0, 0, 0, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.42),
+    0 2px 5px rgba(0, 0, 0, 0.32);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn {
@@ -2529,7 +2536,7 @@ body[data-page="ownership"] .ownership-percent-filter-btn {
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: rgba(218, 220, 229, 0.66);
+  color: rgba(239, 239, 243, 0.72);
   box-shadow: none;
   font-family: var(--font-sans);
   font-size: 0.74rem;
@@ -2540,16 +2547,17 @@ body[data-page="ownership"] .ownership-percent-filter-btn {
   transition: color 0.12s ease, background-color 0.12s ease;
 }
 
-/* The selected segment receives the glass indicator. The highlight is neutral;
-   only the label carries a restrained position tint. */
+/* Finder option-bar indicator:
+   inactive items remain completely borderless on the shared capsule; the
+   selected item alone receives one neutral lifted glass plate. */
 body[data-page="ownership"] .ownership-percent-filter-btn::after {
   content: '';
   position: absolute;
-  inset: 1px 7% auto;
-  height: 44%;
+  inset: 1px 8% auto;
+  height: 46%;
   z-index: -1;
   border-radius: 999px 999px 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent);
   opacity: 0;
   pointer-events: none;
 }
@@ -2575,16 +2583,15 @@ body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active {
-  color: rgba(var(--ownership-percent-pos-rgb), 0.86);
-  border-color: rgba(255, 255, 255, 0.15);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.065) 48%, rgba(255, 255, 255, 0.035));
+  color: rgba(239, 239, 244, 0.9);
+  color: color-mix(in srgb, rgb(var(--ownership-percent-pos-rgb)) 32%, #efeff4);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(126, 126, 130, 0.88), rgba(75, 75, 79, 0.94));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.29),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.62),
-    inset 1px 0 0 rgba(132, 190, 255, 0.065),
-    inset -1px 0 0 rgba(255, 177, 218, 0.055),
-    0 2px 6px rgba(0, 0, 0, 0.48),
-    0 0 0 0.5px rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.48),
+    0 1px 3px rgba(0, 0, 0, 0.48),
+    0 0 0 0.5px rgba(255, 255, 255, 0.055);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active::after {
@@ -2592,12 +2599,13 @@ body[data-page="ownership"] .ownership-percent-filter-btn.is-active::after {
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn:hover {
-  color: rgba(239, 241, 247, 0.82);
-  background-color: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.88);
+  background-color: rgba(255, 255, 255, 0.035);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active:hover {
-  color: rgba(var(--ownership-percent-pos-rgb), 0.92);
+  color: rgba(245, 245, 248, 0.94);
+  color: color-mix(in srgb, rgb(var(--ownership-percent-pos-rgb)) 40%, #f3f3f6);
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn:focus-visible {
@@ -2651,21 +2659,21 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
     flex-direction: row !important;
     align-items: center;
     justify-content: center;
-    gap: clamp(0.8rem, 2.6vw, 2.5rem);
-    padding-right: clamp(0.75rem, 2vw, 2rem);
-    padding-left: clamp(0.75rem, 2vw, 2rem);
+    gap: 4rem;
+    padding-right: 2.65rem;
+    padding-left: 2.65rem;
   }
 
   body[data-page="ownership"] .ownership-toolbar .ownership-search-wrap {
-    flex: 1 1 auto;
-    min-width: 320px;
+    flex: 0 0 398px;
+    min-width: 398px;
     max-width: 678px;
   }
 
   body[data-page="ownership"] .ownership-percent-position-filter {
-    flex: 0 1 390px;
-    width: min(390px, 46%);
-    min-width: 330px;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 240px;
     margin-bottom: 0;
   }
 }
