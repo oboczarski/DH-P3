@@ -26,7 +26,7 @@
 // ============================================================================
 // Ownership Liquid Glass toolbar/header styling and responsive control layout:
 // retire the prior cache so devices receive the updated page CSS immediately.
-const CACHE_NAME = 'DH3.07';
+const CACHE_NAME = 'DH3.1s';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
