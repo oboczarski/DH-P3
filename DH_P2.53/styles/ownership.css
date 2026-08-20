@@ -2426,8 +2426,6 @@ body[data-page="ownership"] .ownership-toolbar {
   border: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 15px 15px 13px 13px;
   background: linear-gradient(180deg, rgba(38, 38, 38, 0.55), rgba(38, 38, 39, 0.99));
-  -webkit-backdrop-filter: blur(15px) saturate(125%);
-  backdrop-filter: blur(15px) saturate(125%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     inset 0 -1px 0 rgba(0, 0, 0, 0.72),
@@ -3004,5 +3002,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     background: linear-gradient(180deg, rgba(59, 59, 62, 0.94), rgba(25, 25, 27, 0.99));
     backdrop-filter: blur(13px) saturate(122%);
     -webkit-backdrop-filter: blur(13px) saturate(122%);
+    min-height: 30px;
+    border-radius: 999px;
   }
 }
