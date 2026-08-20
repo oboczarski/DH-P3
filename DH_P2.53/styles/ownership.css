@@ -1134,7 +1134,7 @@ body[data-page="ownership"] .ownership-modal-warning {
 
 @media (max-width: 640px) {
   body[data-page="ownership"] .ownership-shell {
-    padding: 0.54rem 0.25rem;
+    padding: 0.54rem 0.1rem;
     border-radius: 12px;
   }
 
@@ -2711,8 +2711,8 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
   /* Match the toolbar's full-bleed top backing to the shell's smaller mobile
      padding without changing the mobile search-above-filters arrangement. */
   body[data-page="ownership"] .ownership-toolbar {
-    margin: -0.54rem -0.25rem 0.5rem;
-    padding: 0.54rem 0.45rem 0.6rem;
+    margin: -0.6rem -0.1rem 0.5rem;
+    padding: 0.54rem 0.55rem 0.6rem;
     border-radius: 11px 11px 10px 10px;
   }
 }
