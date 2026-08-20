@@ -26,7 +26,7 @@
 // ============================================================================
 // Ownership frozen-list fixes plus Rosters-only premium dropdown styling:
 // retire the prior cache so devices receive the updated HTML/CSS/JS immediately.
-const CACHE_NAME = 'DH3.1t';
+const CACHE_NAME = 'DH3.1B';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
