@@ -4607,4 +4607,458 @@ body[data-page="rosters"] .player-row .roster-card-watermark[alt="TEN"] {
 body[data-page="rosters"] .player-row .roster-card-watermark[alt="WAS"] {
   --roster-card-watermark-size: 70px;
 }
+
+/* ============================================================================
+   Rosters premium dropdown surfaces
+   ─────────────────────────────────────────────────────────────────────────────
+   Targets: the page-navigation More menu at every viewport and the mobile-only
+   View menu. Both borrow Data Hub's layered icon-well / supporting-copy anatomy,
+   then shift the spectral edge light and depth toward the Rosters violet/slate
+   palette. Every selector is page-scoped so shared navigation stays untouched.
+   ============================================================================ */
+body[data-page="rosters"] .nav-button.nav-more-toggle[aria-expanded="true"] {
+  color: rgba(225, 222, 255, 0.96);
+  border-color: rgba(155, 143, 255, 0.48);
+  background: linear-gradient(180deg, rgba(118, 109, 255, 0.15), rgba(66, 194, 255, 0.05));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 8px 18px rgba(7, 9, 20, 0.3),
+    0 0 15px rgba(118, 109, 255, 0.18);
+}
+
+body[data-page="rosters"] .nav-more-dropdown {
+  box-sizing: border-box;
+  display: grid;
+  gap: 6px;
+  width: min(188px, calc(100vw - 24px));
+  min-width: 0;
+  max-width: none;
+  padding: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(171, 160, 255, 0.3);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 4%, rgba(66, 194, 255, 0.16), transparent 30%),
+    radial-gradient(circle at 7% 100%, rgba(118, 109, 255, 0.2), transparent 38%),
+    linear-gradient(180deg, rgba(38, 37, 62, 0.98), rgba(13, 17, 30, 0.98));
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.54),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(92, 102, 178, 0.14);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(9px) scale(0.98);
+  transform-origin: top center;
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body[data-page="rosters"] .nav-more-dropdown::before,
+body[data-page="rosters"] .nav-more-dropdown::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+body[data-page="rosters"] .nav-more-dropdown::before {
+  z-index: 0;
+  inset: 1px;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 27%),
+    radial-gradient(circle at 84% 12%, rgba(111, 213, 255, 0.17), transparent 28%),
+    radial-gradient(circle at 9% 100%, rgba(154, 132, 255, 0.2), transparent 36%);
+}
+
+body[data-page="rosters"] .nav-more-dropdown::after {
+  z-index: 2;
+  top: 0;
+  right: 24px;
+  left: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(211, 204, 255, 0.88), transparent);
+  box-shadow:
+    0 0 14px rgba(118, 109, 255, 0.9),
+    0 0 24px rgba(66, 194, 255, 0.28);
+}
+
+body[data-page="rosters"] .nav-more-dropdown.hidden {
+  display: none;
+}
+
+body[data-page="rosters"] .nav-more-dropdown:not(.hidden) {
+  display: grid;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+body[data-page="rosters"] .nav-more-item {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  justify-content: stretch;
+  gap: 5px;
+  width: 100%;
+  max-width: none;
+  min-height: 45px;
+  padding: 5px 7px;
+  border: 1px solid rgba(168, 173, 230, 0.09);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.012)),
+    rgba(10, 15, 29, 0.48);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: rgba(237, 239, 255, 0.94);
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    0 7px 16px rgba(3, 6, 17, 0.15);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+body[data-page="rosters"] .nav-more-item-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(170, 165, 255, 0.12);
+  border-radius: 11px;
+  color: rgba(191, 187, 255, 0.96);
+  background:
+    linear-gradient(180deg, rgba(118, 109, 255, 0.2), rgba(66, 194, 255, 0.08)),
+    rgba(18, 25, 45, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 9px 17px rgba(3, 7, 18, 0.3),
+    0 0 11px rgba(118, 109, 255, 0.1);
+}
+
+body[data-page="rosters"] .nav-more-item-icon i {
+  font-size: 0.92rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.42));
+}
+
+body[data-page="rosters"] .nav-more-item-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+body[data-page="rosters"] .nav-more-item-title {
+  display: block;
+  overflow: hidden;
+  color: rgba(243, 244, 255, 0.97);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="rosters"] .nav-more-item-subtext {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(178, 187, 220, 0.76);
+  font-size: 0.56rem;
+  font-weight: 450;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-page="rosters"] .nav-more-item:hover,
+body[data-page="rosters"] .nav-more-item.active {
+  transform: translateY(-1px);
+  border-color: rgba(170, 178, 255, 0.31);
+  background:
+    linear-gradient(180deg, rgba(118, 109, 255, 0.16), rgba(66, 194, 255, 0.07)),
+    rgba(14, 20, 37, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 22px rgba(3, 7, 18, 0.3),
+    0 0 15px rgba(118, 109, 255, 0.1);
+}
+
+body[data-page="rosters"] .nav-more-item:active {
+  transform: scale(0.985);
+}
+
+body[data-page="rosters"] .nav-more-item:focus-visible {
+  outline: none;
+  border-color: rgba(184, 178, 255, 0.62);
+  box-shadow:
+    0 0 0 1px rgba(184, 178, 255, 0.62),
+    0 0 0 5px rgba(118, 109, 255, 0.16);
+}
+
+@media (min-width: 820px) {
+  /* Rosters desktop More menu: slightly more room for the Data Hub-style
+     supporting copy while retaining the same visual hierarchy as mobile. */
+  body[data-page="rosters"] .nav-more-dropdown {
+    width: min(208px, calc(100vw - 32px));
+    padding: 8px;
+    border-radius: 24px;
+  }
+
+  body[data-page="rosters"] .nav-more-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    min-height: 52px;
+    padding: 7px 9px;
+    border-radius: 17px;
+  }
+
+  body[data-page="rosters"] .nav-more-item-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  body[data-page="rosters"] .nav-more-item-icon i {
+    font-size: 1rem;
+  }
+
+  body[data-page="rosters"] .nav-more-item-title {
+    font-size: 0.82rem;
+  }
+
+  body[data-page="rosters"] .nav-more-item-subtext {
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 819px) {
+  /* Default Rosters mobile View label: POS receives only a slight cool tint,
+     leaving the View: prefix in the control's existing neutral color. */
+  body[data-page="rosters"] #viewDropdownLabel {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.24em;
+  }
+
+  body[data-page="rosters"] .view-dropdown-label-prefix {
+    color: inherit;
+  }
+
+  body[data-page="rosters"] .view-dropdown-label-pos {
+    color: rgba(174, 209, 255, 0.94);
+    text-shadow: 0 0 7px rgba(118, 109, 255, 0.26);
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] {
+    border-color: rgba(166, 155, 255, 0.46);
+    background:
+      linear-gradient(180deg, rgba(118, 109, 255, 0.12), rgba(66, 194, 255, 0.035)),
+      rgba(13, 14, 35, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.11),
+      0 7px 16px rgba(0, 0, 0, 0.25),
+      0 0 12px rgba(118, 109, 255, 0.18);
+  }
+
+  body[data-page="rosters"] .view-dropdown-arrow {
+    transform-origin: center;
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  body[data-page="rosters"] .view-dropdown-toggle[aria-expanded="true"] .view-dropdown-arrow {
+    transform: rotate(180deg);
+    opacity: 0.95;
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu {
+    box-sizing: border-box;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 1250;
+    display: grid;
+    gap: 5px;
+    width: min(194px, calc(100vw - 20px));
+    min-width: 0;
+    margin-top: 0;
+    padding: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(171, 160, 255, 0.3);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at 86% 4%, rgba(66, 194, 255, 0.15), transparent 31%),
+      radial-gradient(circle at 8% 100%, rgba(118, 109, 255, 0.2), transparent 38%),
+      linear-gradient(180deg, rgba(38, 37, 62, 0.985), rgba(13, 17, 30, 0.985));
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    box-shadow:
+      0 24px 48px rgba(0, 0, 0, 0.52),
+      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(92, 102, 178, 0.13);
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu::before,
+  body[data-page="rosters"] .view-dropdown-menu::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu::before {
+    z-index: 0;
+    inset: 1px;
+    border-radius: inherit;
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.11), transparent 28%),
+      radial-gradient(circle at 84% 12%, rgba(111, 213, 255, 0.16), transparent 29%),
+      radial-gradient(circle at 9% 100%, rgba(154, 132, 255, 0.19), transparent 36%);
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu::after {
+    z-index: 2;
+    top: 0;
+    right: 22px;
+    left: 22px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(211, 204, 255, 0.86), transparent);
+    box-shadow:
+      0 0 13px rgba(118, 109, 255, 0.88),
+      0 0 22px rgba(66, 194, 255, 0.24);
+  }
+
+  body[data-page="rosters"] .view-dropdown-menu.hidden {
+    display: none;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    min-height: 45px;
+    padding: 5px 7px;
+    border: 1px solid rgba(168, 173, 230, 0.09);
+    border-radius: 15px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      rgba(10, 15, 29, 0.47);
+    color: rgba(237, 239, 255, 0.94);
+    text-align: left;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 7px 16px rgba(3, 6, 17, 0.14);
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      background 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 33px;
+    height: 33px;
+    border: 1px solid rgba(170, 165, 255, 0.12);
+    border-radius: 11px;
+    color: rgba(191, 187, 255, 0.94);
+    background:
+      linear-gradient(180deg, rgba(118, 109, 255, 0.19), rgba(66, 194, 255, 0.075)),
+      rgba(18, 25, 45, 0.82);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 8px 15px rgba(3, 7, 18, 0.28);
+  }
+
+  body[data-page="rosters"] .view-dropdown-option-icon i {
+    font-size: 0.82rem;
+    line-height: 1;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option-copy {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option-title {
+    display: block;
+    overflow: hidden;
+    color: rgba(243, 244, 255, 0.96);
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option-subtext {
+    display: block;
+    overflow: hidden;
+    color: rgba(178, 187, 220, 0.74);
+    font-size: 0.53rem;
+    font-weight: 450;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body[data-page="rosters"] .view-dropdown-option:hover,
+  body[data-page="rosters"] .view-dropdown-option.active {
+    transform: translateY(-1px);
+    border-color: rgba(170, 178, 255, 0.3);
+    background:
+      linear-gradient(180deg, rgba(118, 109, 255, 0.16), rgba(66, 194, 255, 0.065)),
+      rgba(14, 20, 37, 0.78);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.09),
+      0 11px 20px rgba(3, 7, 18, 0.28),
+      0 0 14px rgba(118, 109, 255, 0.09);
+  }
+
+  body[data-page="rosters"] .view-dropdown-option.active .view-dropdown-option-icon {
+    color: rgba(196, 219, 255, 0.98);
+    border-color: rgba(169, 183, 255, 0.25);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      0 8px 15px rgba(3, 7, 18, 0.28),
+      0 0 12px rgba(118, 109, 255, 0.19);
+  }
+
+  body[data-page="rosters"] .view-dropdown-option:focus-visible {
+    outline: none;
+    border-color: rgba(184, 178, 255, 0.62);
+    box-shadow:
+      0 0 0 1px rgba(184, 178, 255, 0.62),
+      0 0 0 5px rgba(118, 109, 255, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="rosters"] .nav-more-dropdown,
+  body[data-page="rosters"] .nav-more-item,
+  body[data-page="rosters"] .view-dropdown-arrow,
+  body[data-page="rosters"] .view-dropdown-option {
+    transition: none;
+  }
+}
 /* ============================================================================ */

@@ -2631,6 +2631,23 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
   filter: none;
 }
 
+/* Ownership% sticky-header paint guard:
+   supplies an opaque full-width layer behind the rounded glass capsule. The
+   guard blocks scrolling rows from appearing through any rounded corner while
+   leaving the visible header material and column grid unchanged. */
+body[data-page="ownership"] .ownership-list-header-guard {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  flex: 0 0 auto;
+  padding-bottom: 4px;
+  background: linear-gradient(180deg, rgb(31, 31, 33), rgb(24, 24, 26));
+}
+
+body[data-page="ownership"] .ownership-list-header-guard > .ownership-list-header {
+  margin-bottom: 0;
+}
+
 body[data-page="ownership"] .ownership-shell--percent .ownership-list-header::before {
   content: '';
   position: absolute;
@@ -2918,14 +2935,19 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 @media (max-width: 819px) {
   /* Constrain viewport: body is exactly the visible screen; no outer scroll. */
   body[data-page="ownership"] {
+    box-sizing: border-box;
     height: 100vh;     /* fallback for browsers without dvh */
     height: 100dvh;    /* preferred: accounts for collapsing browser chrome */
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   /* content-wrapper fills the body content area as a vertical flex stack. */
   body[data-page="ownership"] .content-wrapper {
-    height: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -2993,16 +3015,87 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     flex-direction: column;
   }
 
-  /* Ownership% column-header: frozen at the top of the list scroll container.
-     Its near-opaque Liquid Glass backing prevents rows bleeding through. */
-  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
+  /* Ownership% column-header: the full-width guard is sticky while the rounded
+     capsule remains its visual child, eliminating row paint in the corners. */
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 3;
+  }
+
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
+    position: relative;
+    z-index: 1;
     background: linear-gradient(180deg, rgba(59, 59, 62, 0.94), rgba(25, 25, 27, 0.99));
     backdrop-filter: blur(13px) saturate(122%);
     -webkit-backdrop-filter: blur(13px) saturate(122%);
     min-height: 30px;
     border-radius: 999px;
+  }
+}
+
+/* ============================================================================
+   Ownership% desktop frozen controls + list header (≥ 820px)
+   ─────────────────────────────────────────────────────────────────────────────
+   Targets only the active Ownership% shell. The outer Ownership page is locked
+   to the visible viewport, the toolbar stays rigid, and the player list becomes
+   the sole vertical scroller with its guarded column header pinned at top.
+   Player Value keeps its existing independent desktop behavior.
+   ============================================================================ */
+@media (min-width: 820px) {
+  body[data-page="ownership"]:has(.ownership-shell--percent) {
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-page="ownership"]:has(.ownership-shell--percent) .content-wrapper {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body[data-page="ownership"]:has(.ownership-shell--percent) #header-container {
+    flex-shrink: 0;
+  }
+
+  body[data-page="ownership"]:has(.ownership-shell--percent) #content,
+  body[data-page="ownership"]:has(.ownership-shell--percent) #playerListView,
+  body[data-page="ownership"] .ownership-shell--percent {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-page="ownership"] .ownership-shell--percent .ownership-toolbar,
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
+    flex-shrink: 0;
+  }
+
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+  }
+
+  body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
+    position: relative;
+    z-index: 1;
   }
 }

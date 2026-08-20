@@ -2220,7 +2220,9 @@ function setRosterView(view) {
     if (viewDropdownIcon && viewDropdownLabel) {
         if (isPositional) {
             viewDropdownIcon.className = 'fa-solid fa-users';
-            viewDropdownLabel.textContent = 'View: POS';
+            // Rosters mobile View control: keep the default POS value in its own
+            // page-scoped hook so it can carry a restrained accent tint.
+            viewDropdownLabel.innerHTML = '<span class="view-dropdown-label-prefix">View:</span><span class="view-dropdown-label-pos">POS</span>';
         } else if (isCondensed) {
             viewDropdownIcon.className = 'fa-solid fa-compress';
             viewDropdownLabel.textContent = 'Condensed';
@@ -2843,11 +2845,14 @@ function openViewDropdown() {
     if (!viewDropdownMenu || !viewDropdownToggle) return;
     viewDropdownMenu.classList.remove('hidden');
     viewDropdownToggle.setAttribute('aria-expanded', 'true');
+    // Keep the mobile Rosters menu state exposed consistently to assistive tech.
+    viewDropdownMenu.setAttribute('aria-hidden', 'false');
 }
 function closeViewDropdown() {
     if (!viewDropdownMenu || !viewDropdownToggle) return;
     viewDropdownMenu.classList.add('hidden');
     viewDropdownToggle.setAttribute('aria-expanded', 'false');
+    viewDropdownMenu.setAttribute('aria-hidden', 'true');
 }
 function filterTeamsByQuery(q) {
     if (!rosterGrid) {
@@ -9406,12 +9411,16 @@ function renderOwnershipPercentList(shell) {
         return true;
     });
 
-    // Rebuild list content (header + rows) without replacing the shell or toolbar
+    // Rebuild list content (header + rows) without replacing the shell or toolbar.
+    // The full-width header guard gives the rounded sticky capsule an opaque
+    // backing, so scrolling player rows cannot show through its corner cutouts.
     list.innerHTML = `
-        <div class="ownership-list-header">
-            <span class="ownership-col ownership-col--player">Player</span>
-            <span class="ownership-col ownership-col--exposure">Exposure</span>
-            <span class="ownership-col ownership-col--leagues">Leagues</span>
+        <div class="ownership-list-header-guard">
+            <div class="ownership-list-header">
+                <span class="ownership-col ownership-col--player">Player</span>
+                <span class="ownership-col ownership-col--exposure">Exposure</span>
+                <span class="ownership-col ownership-col--leagues">Leagues</span>
+            </div>
         </div>
     `;
 

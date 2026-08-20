@@ -22,9 +22,9 @@
   <link rel="shortcut icon" href="../assets/icons/favicon.ico?v=20250926r5c" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
   <!-- Rosters page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/rosters.css?v=20260723a" />
+  <link rel="stylesheet" href="../styles/rosters.css?v=20260819-vi10" />
   <!-- Ownership modal styles (needed for watchlist → ownership flow) -->
-  <link rel="stylesheet" href="../styles/ownership.css?v=20260211" />
+  <link rel="stylesheet" href="../styles/ownership.css?v=DH3.1t-vi10" />
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
  </head>
@@ -74,21 +74,35 @@
         <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
       </button>
       <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
-        <button class="nav-more-item" data-nav="ownership" role="menuitem">
-          <i class="fa-solid fa-percent" aria-hidden="true"></i>
-          <span class="nav-label">Ownership</span>
+        <!-- Rosters More menu: Data Hub-inspired icon wells and supporting copy,
+             with roster-only color treatment supplied by rosters.css. -->
+        <button type="button" class="nav-more-item" data-nav="ownership" role="menuitem">
+          <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-percent"></i></span>
+          <span class="nav-more-item-copy">
+            <span class="nav-more-item-title">Ownership</span>
+            <span class="nav-more-item-subtext">Player Exposures</span>
+          </span>
         </button>
-        <button class="nav-more-item" data-url="https://trophyroom.dynastyhub.pro/" role="menuitem">
-          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-          <span class="nav-label">Trophy Room</span>
+        <button type="button" class="nav-more-item" data-url="https://trophyroom.dynastyhub.pro/" role="menuitem">
+          <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+          <span class="nav-more-item-copy">
+            <span class="nav-more-item-title">Trophy Room</span>
+            <span class="nav-more-item-subtext">Dynasty Career Profile</span>
+          </span>
         </button>
-        <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
-          <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-          <span class="nav-label">Matchups</span>
+        <button type="button" class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
+          <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-table-columns"></i></span>
+          <span class="nav-more-item-copy">
+            <span class="nav-more-item-title">Matchups</span>
+            <span class="nav-more-item-subtext">In-Season SoS Tool</span>
+          </span>
         </button>
-        <button class="nav-more-item" data-nav="contact" role="menuitem">
-          <i class="fa-solid fa-envelope" aria-hidden="true"></i>
-          <span class="nav-label">Contact</span>
+        <button type="button" class="nav-more-item" data-nav="contact" role="menuitem">
+          <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+          <span class="nav-more-item-copy">
+            <span class="nav-more-item-title">Contact</span>
+            <span class="nav-more-item-subtext">Feedback</span>
+          </span>
         </button>
       </div>
         </div>
@@ -134,21 +148,32 @@
             <div class="view-switcher-dropdown">
                 <button id="viewDropdownToggle" class="view-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
                     <i class="fa-solid fa-users" id="viewDropdownIcon" aria-hidden="true"></i>
-                    <span class="switcher-label" id="viewDropdownLabel">View: POS</span>
+                    <span class="switcher-label" id="viewDropdownLabel"><span class="view-dropdown-label-prefix">View:</span><span class="view-dropdown-label-pos">POS</span></span>
                     <i class="fa-solid fa-caret-down view-dropdown-arrow" aria-hidden="true"></i>
                 </button>
-                <div id="viewDropdownMenu" class="view-dropdown-menu hidden">
-                    <button class="view-dropdown-option active" data-view="positional">
-                        <i class="fa-solid fa-users" aria-hidden="true"></i>
-                        <span>View: POS</span>
+                <!-- Rosters mobile View menu mirrors the richer two-line Data Hub
+                     menu hierarchy while preserving the existing view actions. -->
+                <div id="viewDropdownMenu" class="view-dropdown-menu hidden" role="menu" aria-hidden="true">
+                    <button type="button" class="view-dropdown-option active" data-view="positional" role="menuitem">
+                        <span class="view-dropdown-option-icon" aria-hidden="true"><i class="fa-solid fa-users"></i></span>
+                        <span class="view-dropdown-option-copy">
+                            <span class="view-dropdown-option-title">View: POS</span>
+                            <span class="view-dropdown-option-subtext">Position Groups</span>
+                        </span>
                     </button>
-                    <button class="view-dropdown-option" data-view="condensed">
-                        <i class="fa-solid fa-compress" aria-hidden="true"></i>
-                        <span>View: Condensed</span>
+                    <button type="button" class="view-dropdown-option" data-view="condensed" role="menuitem">
+                        <span class="view-dropdown-option-icon" aria-hidden="true"><i class="fa-solid fa-compress"></i></span>
+                        <span class="view-dropdown-option-copy">
+                            <span class="view-dropdown-option-title">View: Condensed</span>
+                            <span class="view-dropdown-option-subtext">Compact Cards</span>
+                        </span>
                     </button>
-                    <button class="view-dropdown-option" data-view="lineup">
-                        <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                        <span>View: Lineup</span>
+                    <button type="button" class="view-dropdown-option" data-view="lineup" role="menuitem">
+                        <span class="view-dropdown-option-icon" aria-hidden="true"><i class="fa-solid fa-list-ol"></i></span>
+                        <span class="view-dropdown-option-copy">
+                            <span class="view-dropdown-option-title">View: Lineup</span>
+                            <span class="view-dropdown-option-subtext">Starting Lineup</span>
+                        </span>
                     </button>
                 </div>
             </div>
@@ -576,6 +601,6 @@
     </div>
   </div>
 </div>
-  <script defer="True" src="../scripts/app.js?v=20260719a"></script>
+  <script defer="True" src="../scripts/app.js?v=20260819-vi10"></script>
 </body>
 </html>

@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Ownership Liquid Glass toolbar/header styling and responsive control layout:
-// retire the prior cache so devices receive the updated page CSS immediately.
-const CACHE_NAME = 'DH3.1s';
+// Ownership frozen-list fixes plus Rosters-only premium dropdown styling:
+// retire the prior cache so devices receive the updated HTML/CSS/JS immediately.
+const CACHE_NAME = 'DH3.1t';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
