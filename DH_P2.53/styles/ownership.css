@@ -275,7 +275,7 @@ body[data-page="ownership"] .ownership-shell {
   backdrop-filter: blur(3px) saturate(120%);
   -webkit-backdrop-filter: blur(7px) saturate(120%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 16px rgba(0, 0, 0, 0.26);
-  padding: 0.7rem 0.65rem;
+  padding: 0.7rem 0.45rem;
   font-family: var(--font-sans);
   align-self: center;
 }
@@ -1134,7 +1134,7 @@ body[data-page="ownership"] .ownership-modal-warning {
 
 @media (max-width: 640px) {
   body[data-page="ownership"] .ownership-shell {
-    padding: 0.54rem 0.45rem;
+    padding: 0.54rem 0.25rem;
     border-radius: 12px;
   }
 
@@ -2133,6 +2133,9 @@ body[data-page="ownership"] .ownership-list-header,
 body[data-page="ownership"] .ownership-list-row {
   grid-template-columns: minmax(0, 1.58fr) minmax(126px, 0.72fr) minmax(0, 1.04fr);
   gap: 0.62rem;
+  max-width: 98%;
+  align-self: center;
+  min-width: 98%;
 }
 
 body[data-page="ownership"] .ownership-col--player,
@@ -2421,7 +2424,7 @@ body[data-page="ownership"] .ownership-toolbar {
   flex-direction: column !important;
   align-items: stretch;
   gap: 0.56rem;
-  margin: -0.7rem -0.65rem 0.58rem;
+  margin: -0.7rem -0.45rem 0.58rem;
   padding: 0.68rem 0.65rem 0.72rem;
   border: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 15px 15px 13px 13px;
@@ -2641,7 +2644,8 @@ body[data-page="ownership"] .ownership-list-header-guard {
   z-index: 3;
   flex: 0 0 auto;
   padding-bottom: 4px;
-  background: linear-gradient(180deg, rgb(31, 31, 33), rgb(24, 24, 26));
+  background: none;
+  border-radius: 90px;
 }
 
 body[data-page="ownership"] .ownership-list-header-guard > .ownership-list-header {
@@ -2707,7 +2711,7 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
   /* Match the toolbar's full-bleed top backing to the shell's smaller mobile
      padding without changing the mobile search-above-filters arrangement. */
   body[data-page="ownership"] .ownership-toolbar {
-    margin: -0.54rem -0.45rem 0.5rem;
+    margin: -0.54rem -0.25rem 0.5rem;
     padding: 0.54rem 0.45rem 0.6rem;
     border-radius: 11px 11px 10px 10px;
   }
@@ -2843,6 +2847,9 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     gap: 0.4rem;
     padding-left: 0.12rem;
     padding-right: 0.18rem;
+    max-width: 96%;
+    align-self: center;
+    min-width: 94%;
   }
 
   body[data-page="ownership"] .ownership-list-exposure {
@@ -2941,6 +2948,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    padding: 2px 5px;
   }
 
   /* content-wrapper fills the body content area as a vertical flex stack. */
@@ -2956,6 +2964,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   /* header-container: rigid — must not shrink to compress content below. */
   body[data-page="ownership"] #header-container {
     flex-shrink: 0;
+    padding: 0.1rem 0rem 0.3rem 0rem;
   }
 
   /* main content area: fills all remaining space below the header. */
@@ -3013,6 +3022,9 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    scrollbar-color: transparent transparent;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   /* Ownership% column-header: the full-width guard is sticky while the rounded
@@ -3021,6 +3033,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     position: sticky;
     top: 0;
     z-index: 3;
+    background: none;
+    border-radius: 90px;
   }
 
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
@@ -3031,6 +3045,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     -webkit-backdrop-filter: blur(13px) saturate(122%);
     min-height: 30px;
     border-radius: 999px;
+    max-width: 101%;
+    min-width: 100%;
   }
 }
 
@@ -3086,6 +3102,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-color: #474c5245 #474c5245;
+    scrollbar-width: thin;
   }
 
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
@@ -3097,5 +3115,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
     position: relative;
     z-index: 1;
+    min-width: 100%;
+    max-width: 100%;
   }
 }
