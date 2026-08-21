@@ -393,8 +393,10 @@ const DATAHUB_ROOKIES_TEAM_LOGO_KEY_MAP = Object.freeze({
 
 // Rookies hero chart reference data:
 // targets the rookies-tab tier-map widget only. Grades are rounded up to whole
-// numbers here, and each player carries a team abbreviation so the chart can
-// render the matching local NFL logo inside the player orb.
+// numbers here, and rank order mirrors the career CSV so each fixed tier slot
+// receives the same prospect shown at that position in the Rankings table.
+// Each player also carries a team abbreviation so the chart can render the
+// matching local NFL logo inside the player orb.
 const DATAHUB_ROOKIES_CHART_PLAYERS = Object.freeze([
   { rank: 1, sleeperId: "13287", name: "Jeremiyah Love", grade: 94, tier: 1, pos: "RB", team: "ARI" },
   { rank: 2, sleeperId: "13269", name: "Fernando Mendoza", grade: 90, tier: 2, pos: "QB", team: "LV" },
@@ -402,9 +404,9 @@ const DATAHUB_ROOKIES_CHART_PLAYERS = Object.freeze([
   { rank: 4, sleeperId: "13281", name: "Jordyn Tyson", grade: 88, tier: 2, pos: "WR", team: "NO" },
   { rank: 5, sleeperId: "13294", name: "Makai Lemon", grade: 87, tier: 2, pos: "WR", team: "PHI" },
   { rank: 6, sleeperId: "13298", name: "KC Concepcion", grade: 84, tier: 3, pos: "WR", team: "CLE" },
-  { rank: 7, sleeperId: "13330", name: "Kenyon Sadiq", grade: 82, tier: 3, pos: "TE", team: "NYJ" },
-  { rank: 8, sleeperId: "13276", name: "Omar Cooper Jr.", grade: 82, tier: 3, pos: "WR", team: "NYJ" },
-  { rank: 9, sleeperId: "13417", name: "De'Zhaun Stribling", grade: 81, tier: 3, pos: "WR", team: "SF" },
+  { rank: 7, sleeperId: "13417", name: "De'Zhaun Stribling", grade: 83, tier: 3, pos: "WR", team: "SF" },
+  { rank: 8, sleeperId: "13330", name: "Kenyon Sadiq", grade: 81, tier: 3, pos: "TE", team: "NYJ" },
+  { rank: 9, sleeperId: "13276", name: "Omar Cooper Jr.", grade: 81, tier: 3, pos: "WR", team: "NYJ" },
   { rank: 10, sleeperId: "13286", name: "Jadarian Price", grade: 79, tier: 3, pos: "RB", team: "SEA" },
   { rank: 11, sleeperId: "13349", name: "Eli Stowers", grade: 79, tier: 3, pos: "TE", team: "PHI" },
   { rank: 12, sleeperId: "13301", name: "Antonio Williams", grade: 77, tier: 4, pos: "WR", team: "WAS" },

@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Ownership frozen-list fixes plus Rosters-only premium dropdown styling:
-// retire the prior cache so devices receive the updated HTML/CSS/JS immediately.
-const CACHE_NAME = 'DH3.1E';
+// DataHub rookie ranking, grade, and tier-chart data refresh:
+// retire the prior cache so devices receive the updated JS and CSVs immediately.
+const CACHE_NAME = 'DH3.1F';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
