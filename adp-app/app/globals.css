@@ -706,13 +706,14 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 }
 .stat-value small { margin-left: 2px; color: var(--ring-end); font-size: 13px; letter-spacing: 0; }
 .stat-core em {
-  margin-top: 8px;
   color: #8d98b0;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 8px;
+  letter-spacing: .08em;
+  margin-top: 2px;
+  font-size: 11px;
   font-style: normal;
-  font-weight: 800;
-  letter-spacing: .18em;
+  font-weight: 300;
+  font-family: 'Product Sans';
 }
 .stat-note {
   display: flex;
@@ -742,23 +743,36 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 .trend-card-heading p { min-width: 0; margin: 0; color: #747e96; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; font-weight: 400; line-height: 1.5; }
 .legend { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: flex-end; margin-right: -16px; }
 
-.legend span {
+.legend-toggle {
+  appearance: none;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 60px;
   gap: 6px;
   padding: 7px 8px;
-  border: 0px solid rgba(255,255,255,.08);
+  border: 0;
   border-radius: 11px;
   color: #D8DDE9;
   background: linear-gradient(180deg, rgb(31 40 56 / 98%), rgb(17 21 32 / 99%));
+  font-family: inherit;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .05em;
   box-shadow: rgba(255, 255, 255, 0.05) 0px 1px 0px inset, rgba(0, 0, 0, 0.16) 0px 7px 6px;
+  cursor: pointer;
+  transition: color 160ms ease, opacity 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
+.legend-toggle:hover { color: #fff; }
+.legend-toggle:focus-visible { outline: 2px solid rgba(70, 231, 255, .68); outline-offset: 2px; }
+.legend-toggle.is-inactive {
+  color: #70788d;
+  background: linear-gradient(180deg, rgba(24, 29, 42, .72), rgba(12, 15, 24, .82));
+  box-shadow: inset 0 0 0 1px rgba(146, 157, 194, .065);
+  opacity: .54;
+}
+.legend-toggle.is-inactive .gradient-legend-mark { filter: saturate(.15); opacity: .46; }
 .legend i { width: 6px; height: 6px; border-radius: 50%; }
 .legend .gradient-legend-mark { width: 14px; height: 14px; border-radius: 99px; }
 .trend-chart { height: 500px; margin-top: 8px; }
@@ -806,6 +820,7 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 .matrix-range-rail b { font-family: var(--font-matrix-display), sans-serif; font-size: 16px; font-weight: 650; }
 .matrix-position { font-family: var(--font-matrix-display), sans-serif !important; font-size: 22px; font-weight: 680; letter-spacing: -.03em; }
 .matrix-position-caption { fill: #5b6580; font-size: 8px; font-weight: 700; letter-spacing: .15em; }
+.matrix-divider-label { fill: #77829d; paint-order: stroke; stroke: #080916; stroke-width: 3px; font-family: var(--font-matrix-display), sans-serif !important; font-size: 9px; font-weight: 690; letter-spacing: .08em; }
 .matrix-value { fill: #c7cee2; paint-order: stroke; stroke: #080916; stroke-width: 3px; font-family: var(--font-matrix-display), sans-serif !important; font-size: 12px; font-weight: 590; }
 .matrix-core { fill: url(#matrix-center-fill); filter: drop-shadow(0 0 25px rgba(92,111,255,.13)); }
 .core-eyebrow,
@@ -889,6 +904,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .matrix-range-rail b { font-size: 7px; }
   .matrix-position { font-size: 21px; }
   .matrix-position-caption { font-size: 10px; }
+  .matrix-divider-label { font-size: 13px; }
   .matrix-value { font-size: 16px; }
   .core-eyebrow,
   .core-label,
@@ -941,7 +957,13 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .stat-core::after { inset: 3px; }
   .stat-value { font-size: clamp(14px, 4.2vw, 18px); letter-spacing: -.065em; }
   .stat-value small { margin-left: 1px; font-size: clamp(6px, 1.8vw, 8px); }
-  .stat-core em { margin-top: 2px; font-size: clamp(3.5px, 1vw, 5px); letter-spacing: .06em; }
+  .stat-core em {
+    letter-spacing: .06em;
+    margin-top: 1px;
+    font-size: 6px;
+    font-weight: 500;
+    margin-bottom: -3px;
+  }
   .stat-note { justify-content: center; gap: 3px; min-height: 12px; padding-top: clamp(4px, 1.2vw, 6px); }
   .stat-status { width: 3px; height: 3px; }
   .stat-note strong { flex: 0 1 auto; overflow: visible; font-size: clamp(5.5px, 1.65vw, 8px); line-height: 1; letter-spacing: .025em; text-transform: uppercase; text-overflow: clip; }
@@ -961,7 +983,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .trend-card-heading p { margin: 4px 0 2px 1px; font-size: 9px; line-height: 1.35; white-space: nowrap; }
   .trend-chart { width: 100%; height: 410px; margin-top: 0; margin-left: -4px; }
   .legend { width: 100%; flex-wrap: nowrap; justify-content: flex-start; gap: 22px; }
-  .legend span { flex: 1; justify-content: center; gap: 8px; padding: 6px 4px; }
+  .legend-toggle { flex: 1; justify-content: center; gap: 8px; padding: 6px 4px; }
   .legend .gradient-legend-mark { width: 14px; height: 14px; }
   .chart-footnote { margin-top: 0; padding: 0 14px; font-size: 8px; line-height: 1.4; letter-spacing: .025em; }
 

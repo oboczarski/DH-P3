@@ -64,6 +64,10 @@ const positionGradients = {
   TE: ["#FF0088", "#D400FF", "#5D00FF", "#4C00FF"],
 };
 
+type Position = keyof typeof positionGradients;
+
+const trendPositions = Object.keys(positionGradients) as Position[];
+
 const curveData = [
   { range: "Top 6", QB: null, QBLabel: null, RB: 74.5, RBLabel: 75.0, WR: 68.7, WRLabel: 73.7, TE: 99.0, TELabel: 100.0 },
   { range: "Round 1", QB: 83.3, QBLabel: 83.3, RB: 57.1, RBLabel: 61.9, WR: 63.1, WRLabel: 62.8, TE: 50.0, TELabel: 50.0 },
@@ -129,6 +133,7 @@ function TrendTooltip({ active, payload, label }: ChartTooltipProps) {
 export default function Home() {
   const [compactBars, setCompactBars] = useState(false);
   const [readinessPhase, setReadinessPhase] = useState<ReadinessPhase>("loading");
+  const [hiddenTrendPositions, setHiddenTrendPositions] = useState<Position[]>([]);
 
   useEffect(() => {
     const update = () => setCompactBars(window.innerWidth <= 560);
@@ -136,6 +141,16 @@ export default function Home() {
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
+
+  // Positional trend legend: each button independently controls its matching
+  // Recharts line and area while retaining a visible, accessible pressed state.
+  const toggleTrendPosition = (position: Position) => {
+    setHiddenTrendPositions((current) => (
+      current.includes(position)
+        ? current.filter((candidate) => candidate !== position)
+        : [...current, position]
+    ));
+  };
 
   useEffect(() => {
     const mobileViewport = window.matchMedia("(max-width: 760px)");
@@ -395,10 +410,31 @@ export default function Home() {
               <h2>Positional Hit Probabilities by Draft Range</h2>
               <div className="trend-card-meta-row">
                 <p>Positional Hit % · 1QB ADP · Rounds 1–3</p>
-                <div className="legend" aria-label="Position legend">
-                  {Object.entries(positionGradients).map(([position, colors]) => (
-                    <span key={position}><i className="gradient-legend-mark" style={{ background: `linear-gradient(270deg, ${colors.join(",")})`, boxShadow: `0 0 14px ${colors[3]}` }} />{position}</span>
-                  ))}
+                <div className="legend" aria-label="Toggle positional chart lines">
+                  {trendPositions.map((position) => {
+                    const colors = positionGradients[position];
+                    const isActive = !hiddenTrendPositions.includes(position);
+
+                    return (
+                      <button
+                        type="button"
+                        className={`legend-toggle${isActive ? "" : " is-inactive"}`}
+                        aria-pressed={isActive}
+                        aria-label={`${position} chart line ${isActive ? "shown" : "hidden"}`}
+                        key={position}
+                        onClick={() => toggleTrendPosition(position)}
+                      >
+                        <i
+                          className="gradient-legend-mark"
+                          style={{
+                            background: `linear-gradient(270deg, ${colors.join(",")})`,
+                            boxShadow: isActive ? `0 0 14px ${colors[3]}` : "none",
+                          }}
+                        />
+                        {position}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -428,7 +464,7 @@ export default function Home() {
                 <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: "#a8b0c7", fontSize: 12, fontWeight: 650 }} dy={12} />
                 <YAxis domain={[10, 110]} ticks={[25, 50, 75, 100]} axisLine={false} tickLine={false} width={compactBars ? 35 : 42} tickFormatter={(v) => `${v}%`} tick={{ fill: "#626b84", fontSize: compactBars ? 9 : 11 }} />
                 <Tooltip content={<TrendTooltip />} cursor={{ stroke: "rgba(255,255,255,.16)", strokeDasharray: "3 6" }} />
-                {Object.keys(positionGradients).map((position) => (
+                {trendPositions.filter((position) => !hiddenTrendPositions.includes(position)).map((position) => (
                   <Area
                     key={`area-${position}`}
                     type="monotone"
@@ -439,7 +475,8 @@ export default function Home() {
                     isAnimationActive={false}
                   />
                 ))}
-                {Object.entries(positionGradients).map(([position, colors]) => {
+                {trendPositions.filter((position) => !hiddenTrendPositions.includes(position)).map((position) => {
+                  const colors = positionGradients[position];
                   const actuals = curveData.map((row) => row[`${position}Label` as keyof typeof row] as number | null);
                   return (
                   <Line

@@ -55,6 +55,25 @@ const rangeRadii = [205, 179, 153, 127];
 const guideRadii = [90, 115, 140, 165, 190, 215];
 const annularArc = arc();
 
+// Matrix bar gradients follow the clockwise travel of each position's arcs.
+// RB retains its existing vector because it already reads top-to-bottom along
+// the right quadrant; the other three receive explicit directional fixes.
+const matrixGradientDirections = {
+  QB: { x1: "0%", x2: "100%", y1: "50%", y2: "50%" },
+  RB: { x1: "0%", x2: "100%", y1: "0%", y2: "100%" },
+  WR: { x1: "100%", x2: "0%", y1: "50%", y2: "50%" },
+  TE: { x1: "50%", x2: "50%", y1: "100%", y2: "0%" },
+} satisfies Record<MatrixPosition, { x1: string; x2: string; y1: string; y2: string }>;
+
+// Divider labels progress clockwise and sit in the gap at the radius of the
+// range they identify, keeping all four labels aligned to their actual bars.
+const dividerRangeLabels = [
+  { angle: 45, label: "TOP6", radius: rangeRadii[0], rotation: 45 },
+  { angle: 135, label: "RD1", radius: rangeRadii[1], rotation: -45 },
+  { angle: 225, label: "RD2", radius: rangeRadii[2], rotation: 45 },
+  { angle: 315, label: "RD3", radius: rangeRadii[3], rotation: -45 },
+] as const;
+
 const labelPlacement = {
   QB: { dx: 10, dy: 0, textAnchor: "start", dominantBaseline: "central" },
   RB: { dx: 0, dy: 10, textAnchor: "middle", dominantBaseline: "hanging" },
@@ -100,14 +119,12 @@ function MatrixDefinitions({ gradients }: { gradients: MatrixGradientMap }) {
     <defs>
       {positions.map((position) => {
         const colors = gradients[position];
+        const direction = matrixGradientDirections[position];
         return (
           <linearGradient
             id={`matrix-${position}`}
             key={position}
-            x1="0%"
-            x2="100%"
-            y1="0%"
-            y2="100%"
+            {...direction}
           >
             {colors.map((color, index) => (
               <stop
@@ -227,20 +244,31 @@ export default function QuadrantArcMatrix({
             />
           ))}
 
-          {[0, 90, 180, 270].map((angle) => {
-            const start = polarPoint(112, angle + 45);
-            const end = polarPoint(232, angle + 45);
+          {dividerRangeLabels.map(({ angle, label, radius, rotation }) => {
+            const start = polarPoint(112, angle);
+            const end = polarPoint(232, angle);
+            const labelPoint = polarPoint(radius, angle);
             return (
-              <line
-                key={angle}
-                x1={start.x}
-                y1={start.y}
-                x2={end.x}
-                y2={end.y}
-                stroke="rgba(177,196,238,.11)"
-                strokeWidth="1"
-                aria-hidden="true"
-              />
+              <g key={label} aria-hidden="true">
+                <line
+                  x1={start.x}
+                  y1={start.y}
+                  x2={end.x}
+                  y2={end.y}
+                  stroke="rgba(177,196,238,.11)"
+                  strokeWidth="1"
+                />
+                <text
+                  x={labelPoint.x}
+                  y={labelPoint.y}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  className="matrix-divider-label"
+                  transform={`rotate(${rotation} ${labelPoint.x} ${labelPoint.y})`}
+                >
+                  {label}
+                </text>
+              </g>
             );
           })}
 
@@ -274,12 +302,19 @@ export default function QuadrantArcMatrix({
 
                 {rangeDefinitions.map(({ label }, rangeIndex) => {
                   const value = values[label];
+                  // TE Round 1 uses a 53.5% visual extent only; its source value,
+                  // visible label, accessible name, and tooltip remain 50.0%.
+                  const displayValue = position === "TE" && label === "RD 1" && value !== null
+                    ? 53.5
+                    : value;
                   const radius = rangeRadii[rangeIndex];
                   const endAngle =
-                    value === null ? startAngle + 70 : startAngle + (70 * value) / 100;
+                    displayValue === null
+                      ? startAngle + 70
+                      : startAngle + (70 * displayValue) / 100;
                   const point = polarPoint(
                     radius,
-                    value === null ? startAngle + 35 : endAngle,
+                    displayValue === null ? startAngle + 35 : endAngle,
                   );
                   const placement =
                     value === null
