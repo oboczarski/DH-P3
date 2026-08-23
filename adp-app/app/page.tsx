@@ -55,6 +55,8 @@ type StatDialStyle = CSSProperties & {
   "--arc-mid": string;
 };
 
+type ReadinessPhase = "loading" | "exiting" | "hidden";
+
 const positionGradients = {
   QB: ["#FFA947", "#FF916B", "#FF666B", "#F94095"],
   RB: ["#004CFF", "#00B3FF", "#00EDFF", "#00FFCB"],
@@ -126,6 +128,7 @@ function TrendTooltip({ active, payload, label }: ChartTooltipProps) {
 
 export default function Home() {
   const [compactBars, setCompactBars] = useState(false);
+  const [readinessPhase, setReadinessPhase] = useState<ReadinessPhase>("loading");
 
   useEffect(() => {
     const update = () => setCompactBars(window.innerWidth <= 560);
@@ -134,12 +137,133 @@ export default function Home() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  useEffect(() => {
+    const mobileViewport = window.matchMedia("(max-width: 760px)");
+
+    // Physical-mobile readiness gate: keep this isolated ADP view covered while
+    // its two Recharts SVGs, matrix, and fonts establish real dimensions. The
+    // content remains mounted underneath so Safari can complete layout/paint.
+    if (!mobileViewport.matches) {
+      const desktopReleaseFrame = window.requestAnimationFrame(() => {
+        setReadinessPhase("hidden");
+      });
+      return () => window.cancelAnimationFrame(desktopReleaseFrame);
+    }
+
+    let cancelled = false;
+    let exitTimer: ReturnType<typeof setTimeout> | undefined;
+    const startedAt = performance.now();
+    const minimumDisplayMs = 1050;
+    const readinessTimeoutMs = 3600;
+    const nextFrame = () => new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+    const shortDelay = (duration: number) => new Promise<void>((resolve) => {
+      window.setTimeout(resolve, duration);
+    });
+
+    document.documentElement.classList.add("adp-page-loading");
+
+    const criticalVisualsHaveLayout = () => {
+      const chartSurfaces = Array.from(
+        document.querySelectorAll<SVGSVGElement>(".recharts-responsive-container svg.recharts-surface"),
+      );
+      const matrix = document.querySelector<SVGSVGElement>(".matrix-svg");
+      const chartsReady = chartSurfaces.length >= 2 && chartSurfaces.every((surface) => {
+        const bounds = surface.getBoundingClientRect();
+        return bounds.width > 180 && bounds.height > 180 && surface.querySelectorAll("path").length > 0;
+      });
+      const matrixBounds = matrix?.getBoundingClientRect();
+      const matrixReady = Boolean(
+        matrixBounds && matrixBounds.width > 180 && matrixBounds.height > 180,
+      );
+
+      return chartsReady && matrixReady;
+    };
+
+    const revealWhenReady = async () => {
+      // Font readiness is bounded so a slow font endpoint can never trap the UI.
+      await Promise.race([
+        document.fonts?.ready ?? Promise.resolve(),
+        shortDelay(1600),
+      ]);
+
+      let stableFrames = 0;
+      while (!cancelled && performance.now() - startedAt < readinessTimeoutMs) {
+        await nextFrame();
+        stableFrames = criticalVisualsHaveLayout() ? stableFrames + 1 : 0;
+
+        if (stableFrames >= 3 && performance.now() - startedAt >= minimumDisplayMs) {
+          break;
+        }
+      }
+
+      if (cancelled) return;
+
+      // Give WebKit one final pair of frames to commit the completed chart tree
+      // before scrolling is unlocked and the readiness surface fades away.
+      await nextFrame();
+      await nextFrame();
+      if (cancelled) return;
+
+      document.documentElement.classList.remove("adp-page-loading");
+      setReadinessPhase("exiting");
+      exitTimer = setTimeout(() => {
+        if (!cancelled) setReadinessPhase("hidden");
+      }, 520);
+    };
+
+    void revealWhenReady();
+
+    return () => {
+      cancelled = true;
+      document.documentElement.classList.remove("adp-page-loading");
+      if (exitTimer) clearTimeout(exitTimer);
+    };
+  }, []);
+
   return (
     <>
+      {readinessPhase !== "hidden" ? (
+        <div
+          className={`adp-readiness adp-readiness--${readinessPhase}`}
+          role="status"
+          aria-live="polite"
+          aria-label="Preparing the Rookie ADP hit-rate dashboard"
+        >
+          <div className="adp-readiness-grid" aria-hidden="true" />
+          <div className="adp-readiness-module">
+            <span className="adp-readiness-kicker">
+              <i aria-hidden="true" />
+              DYNASTY HUB RESEARCH
+            </span>
+            <div className="adp-readiness-emblem" aria-hidden="true">
+              <span className="adp-readiness-orbit adp-readiness-orbit--outer" />
+              <span className="adp-readiness-orbit adp-readiness-orbit--inner" />
+              <span className="adp-readiness-core">ADP</span>
+              <i className="adp-readiness-node adp-readiness-node--one" />
+              <i className="adp-readiness-node adp-readiness-node--two" />
+              <i className="adp-readiness-node adp-readiness-node--three" />
+            </div>
+            <div className="adp-readiness-copy">
+              <h2>Rookie ADP Intelligence</h2>
+              <p>Calibrating hit-rate models</p>
+            </div>
+            <div className="adp-readiness-progress" aria-hidden="true">
+              <span /><span /><span /><span /><span />
+            </div>
+            <div className="adp-readiness-signals" aria-hidden="true">
+              <span><i />DATASET</span>
+              <span><i />CHARTS</span>
+              <span><i />MATRIX</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {/* Dynasty Hub integration: the shared navigation surfaces stay outside
           the preserved dashboard main so its existing grid remains unchanged. */}
       <DynastyHubResearchShell />
-      <main>
+      <main aria-busy={readinessPhase !== "hidden"}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <div className="dashboard-shell">

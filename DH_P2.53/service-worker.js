@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rookie ADP loading stability: retire the prior cache so the isolated page's
-// synchronized shell and versioned Next.js assets reach devices immediately.
-const CACHE_NAME = 'DH3.1I';
+// Rookie ADP mobile stability: retire the prior cache so the readiness gate,
+// compositor-safe CSS, and versioned Next.js assets reach devices immediately.
+const CACHE_NAME = 'DH3.1J';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -1251,6 +1251,325 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .stat-arc-echo { display: none; }
 }
 
+/* Rookie ADP mobile readiness surface: this covers the already-mounted chart
+   tree until fonts and critical SVGs have stable dimensions on physical iOS. */
+.adp-readiness { display: none; }
+
+@media (max-width: 760px) {
+  html.adp-page-loading,
+  html.adp-page-loading body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .adp-readiness {
+    position: fixed;
+    z-index: 5000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+    background:
+      radial-gradient(circle at 50% 43%, rgba(92, 63, 255, .18), transparent 15rem),
+      radial-gradient(circle at 22% 22%, rgba(255, 10, 165, .075), transparent 14rem),
+      linear-gradient(155deg, #030612 0%, #070b1b 52%, #02050d 100%);
+    opacity: 1;
+    transition: opacity 480ms cubic-bezier(.22, .8, .25, 1), visibility 480ms linear;
+  }
+
+  .adp-readiness--exiting {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .adp-readiness-grid {
+    position: absolute;
+    inset: 0;
+    opacity: .54;
+    background-image:
+      linear-gradient(rgba(124, 140, 196, .035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 140, 196, .035) 1px, transparent 1px);
+    background-size: 38px 38px;
+  }
+
+  .adp-readiness-grid::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 14%;
+    width: min(78vw, 330px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(113, 96, 255, .46), rgba(0, 221, 250, .42), transparent);
+    transform: translateX(-50%);
+  }
+
+  .adp-readiness-module {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    width: min(100%, 350px);
+    padding: 27px 23px 22px;
+    border: 1px solid rgba(149, 158, 214, .14);
+    border-radius: 27px;
+    background:
+      radial-gradient(circle at 50% 23%, rgba(112, 87, 255, .13), transparent 10rem),
+      linear-gradient(160deg, rgba(16, 23, 49, .97), rgba(5, 9, 22, .99));
+    box-shadow:
+      inset 0 1px rgba(255, 255, 255, .055),
+      inset 0 -32px 60px rgba(0, 0, 0, .2),
+      0 28px 70px rgba(0, 0, 0, .38);
+  }
+
+  .adp-readiness-module::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 18%;
+    right: 18%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ff29b1, #8e68ff 55%, #16dff5, transparent);
+  }
+
+  .adp-readiness-kicker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #858fa9;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 8px;
+    line-height: 1;
+    letter-spacing: .19em;
+    font-weight: 760;
+  }
+
+  .adp-readiness-kicker i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #20f1cb;
+    box-shadow: 0 0 9px rgba(32, 241, 203, .75);
+    animation: adp-readiness-pulse 1.15s ease-in-out infinite;
+  }
+
+  .adp-readiness-emblem {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 152px;
+    aspect-ratio: 1;
+    margin: 21px 0 17px;
+  }
+
+  .adp-readiness-orbit,
+  .adp-readiness-core,
+  .adp-readiness-node {
+    position: absolute;
+    border-radius: 50%;
+  }
+
+  .adp-readiness-orbit {
+    border: 1px solid rgba(161, 174, 218, .15);
+  }
+
+  .adp-readiness-orbit--outer {
+    inset: 0;
+    border-top-color: #ff24ae;
+    border-right-color: rgba(115, 101, 255, .62);
+    border-bottom-color: #11dff5;
+    animation: adp-readiness-spin 3.4s linear infinite;
+  }
+
+  .adp-readiness-orbit--outer::before,
+  .adp-readiness-orbit--outer::after {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1px dashed rgba(129, 143, 196, .17);
+    border-radius: inherit;
+  }
+
+  .adp-readiness-orbit--outer::after {
+    inset: 25px;
+    border-style: solid;
+    border-color: rgba(120, 102, 255, .16);
+  }
+
+  .adp-readiness-orbit--inner {
+    inset: 36px;
+    border-width: 2px;
+    border-color: #966dff rgba(150, 109, 255, .12) #25dff2 rgba(37, 223, 242, .12);
+    animation: adp-readiness-spin-reverse 2.25s linear infinite;
+  }
+
+  .adp-readiness-core {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border: 1px solid rgba(177, 188, 231, .17);
+    color: #eef3ff;
+    background: linear-gradient(145deg, #182344, #080d1d 72%);
+    box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 0 0 7px rgba(97, 83, 213, .055);
+    font-family: var(--font-matrix-display), Inter, sans-serif;
+    font-size: 17px;
+    line-height: 1;
+    letter-spacing: .08em;
+    font-weight: 700;
+  }
+
+  .adp-readiness-node {
+    width: 7px;
+    height: 7px;
+    border: 1px solid rgba(255, 255, 255, .72);
+  }
+
+  .adp-readiness-node--one { top: 3px; left: 73px; background: #ff27ae; box-shadow: 0 0 9px rgba(255, 39, 174, .78); }
+  .adp-readiness-node--two { right: 11px; bottom: 32px; background: #16e6f5; box-shadow: 0 0 9px rgba(22, 230, 245, .76); }
+  .adp-readiness-node--three { bottom: 22px; left: 19px; background: #9c70ff; box-shadow: 0 0 9px rgba(156, 112, 255, .75); }
+
+  .adp-readiness-copy { text-align: center; }
+  .adp-readiness-copy h2 {
+    margin: 0;
+    color: #f0f3fb;
+    font-size: 22px;
+    line-height: 1.12;
+    letter-spacing: -.035em;
+    font-weight: 680;
+  }
+  .adp-readiness-copy p {
+    margin: 7px 0 0;
+    color: #818ba5;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 9px;
+    line-height: 1.3;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .adp-readiness-progress {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: min(100%, 238px);
+    gap: 5px;
+    margin-top: 22px;
+  }
+
+  .adp-readiness-progress span {
+    height: 2px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(130, 143, 190, .14);
+  }
+
+  .adp-readiness-progress span::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff27ae, #8469ff, #19def3);
+    opacity: .88;
+    transform: translateX(-110%);
+    animation: adp-readiness-scan 1.4s ease-in-out infinite;
+  }
+
+  .adp-readiness-progress span:nth-child(2)::after { animation-delay: 110ms; }
+  .adp-readiness-progress span:nth-child(3)::after { animation-delay: 220ms; }
+  .adp-readiness-progress span:nth-child(4)::after { animation-delay: 330ms; }
+  .adp-readiness-progress span:nth-child(5)::after { animation-delay: 440ms; }
+
+  .adp-readiness-signals {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 14px;
+    color: #66718c;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 7px;
+    line-height: 1;
+    letter-spacing: .1em;
+    font-weight: 720;
+  }
+
+  .adp-readiness-signals span { display: flex; align-items: center; gap: 5px; }
+  .adp-readiness-signals i { width: 3px; height: 3px; border-radius: 50%; background: #20d8f0; box-shadow: 0 0 6px rgba(32, 216, 240, .68); }
+
+  /* Physical-iOS paint stabilization: avoid a single tall clipped layer and
+     reduce nested masks/blur filters that made Safari evict page tiles while
+     scrolling. These overrides affect only this isolated ADP app on mobile. */
+  html,
+  body {
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  body::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 100svh;
+    opacity: .2;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  main { overflow: visible; }
+  .ambient { display: none; }
+
+  .dh-app-header,
+  .dh-nav-button,
+  .dh-nav-more-dropdown,
+  .dh-nav-more-item,
+  .stat-card,
+  .chart-tooltip,
+  .matrix-data-tooltip {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .stat-card,
+  .matrix-panel { isolation: auto; }
+
+  .stat-card::before,
+  .stat-dial::before,
+  .stat-arc-glow,
+  .stat-arc-echo,
+  .overall-panel::before,
+  .insight-hero::before {
+    display: none;
+  }
+
+  .stat-dial,
+  .stat-arc,
+  .matrix-svg path[filter],
+  .matrix-core {
+    filter: none;
+  }
+
+  .panel {
+    box-shadow: inset 0 1px rgba(255, 255, 255, .04), 0 18px 48px rgba(0, 0, 0, .19);
+  }
+}
+
+@keyframes adp-readiness-spin { to { transform: rotate(360deg); } }
+@keyframes adp-readiness-spin-reverse { to { transform: rotate(-360deg); } }
+@keyframes adp-readiness-pulse { 50% { opacity: .38; transform: scale(.78); } }
+@keyframes adp-readiness-scan {
+  0% { transform: translateX(-110%); }
+  48%, 70% { transform: translateX(0); }
+  100% { transform: translateX(110%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stat-card { transition: none; }
+  .adp-readiness,
+  .adp-readiness-kicker i,
+  .adp-readiness-orbit,
+  .adp-readiness-progress span::after {
+    animation: none;
+    transition-duration: 1ms;
+  }
+
+  .adp-readiness-progress span::after { transform: none; }
 }
