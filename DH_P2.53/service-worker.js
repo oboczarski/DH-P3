@@ -26,7 +26,7 @@
 // ============================================================================
 // Rookie ADP mobile stability: retire the prior cache so the readiness gate,
 // compositor-safe CSS, and versioned Next.js assets reach devices immediately.
-const CACHE_NAME = 'DH3.1J';
+const CACHE_NAME = 'DH3.11';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
