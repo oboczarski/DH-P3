@@ -1,8 +1,8 @@
-# Rookie ADP Hit Rates
+# Rookie ADP and NFL Draft Hit Rates
 
-A responsive fantasy-football dashboard that visualizes rookie hit rates by
-draft range and position. The application uses the Next.js App Router, React,
-TypeScript, Recharts, and Tailwind CSS.
+Responsive fantasy-football dashboards that visualize career hit rates by
+rookie ADP and NFL Draft capital. The application uses the Next.js App Router,
+React, TypeScript, Recharts, and Tailwind CSS.
 
 ## Requirements
 
@@ -19,6 +19,9 @@ npm run dev
 ```
 
 Open [http://localhost:3000/adp/](http://localhost:3000/adp/).
+
+The NFL Draft study is available at
+[http://localhost:3000/adp/nfl-draft/](http://localhost:3000/adp/nfl-draft/).
 
 ## Validation
 

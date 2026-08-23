@@ -2773,10 +2773,7 @@
     }
     resizeTimer = window.setTimeout(() => {
       const activeTarget = document.querySelector('.syop-tab.active')?.dataset.target;
-      if (activeTarget === 'draft-tab-panel') {
-        renderDraftOverall();
-        renderDraftPositional();
-      } else if (activeTarget === 'positional-analysis-tab-panel') {
+      if (activeTarget === 'positional-analysis-tab-panel') {
         renderPositionalAnalysis();
       } else {
         renderSunburst();
@@ -2824,10 +2821,7 @@
       }
 
       window.requestAnimationFrame(() => {
-        if (tab.dataset.target === 'draft-tab-panel') {
-          renderDraftOverall();
-          renderDraftPositional();
-        } else if (tab.dataset.target === 'positional-analysis-tab-panel') {
+        if (tab.dataset.target === 'positional-analysis-tab-panel') {
           renderPositionalAnalysis();
         } else {
           renderSunburst();
@@ -2838,7 +2832,7 @@
     };
 
     // Research tab routing: local dashboard buttons still switch panels in
-    // place, while the Rookie ADP anchor keeps its native isolated-page route.
+    // place, while both hit-rate anchors keep their isolated Next.js routes.
     tabs.forEach((tab, index) => {
       if (tab.dataset.target) {
         tab.addEventListener('click', () => activate(tab, { focusTab: false }));
@@ -2859,13 +2853,12 @@
       });
     });
 
-    // ADP return links use ?tab=... so each copied tab can reopen its exact
-    // Vanilla Research panel without changing normal in-page tab behavior.
+    // Hit-rate return links use ?tab=... to reopen either remaining Vanilla
+    // Research panel without changing normal in-page tab behavior.
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
     const requestedTargets = {
       'positional-analysis': 'positional-analysis-tab-panel',
-      syop: 'syop-tab-panel',
-      draft: 'draft-tab-panel'
+      syop: 'syop-tab-panel'
     };
     const requestedTarget = requestedTargets[requestedTab];
     const requestedActiveTab = requestedTarget
@@ -2898,8 +2891,6 @@
     renderSunburst();
     renderBarChart();
     renderGauges();
-    renderDraftOverall();
-    renderDraftPositional();
     setupPosAnalysisInteractions();
     renderPosAnalysisPersonnel();
     window.addEventListener('resize', handleResize);

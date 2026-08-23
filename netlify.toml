@@ -67,6 +67,13 @@
   to = "/adp/index.html"
   status = 200
 
+# NFL Draft hit-rate dashboard: keep the seven-round study inside the same
+# isolated static export while supporting the clean route without a slash.
+[[redirects]]
+  from = "/adp/nfl-draft"
+  to = "/adp/nfl-draft/index.html"
+  status = 200
+
 [[redirects]]
   from = "/contact"
   to = "/contact/contact.html"

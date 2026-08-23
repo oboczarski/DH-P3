@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rookie ADP matrix typography and Study Frame spacing: retire the prior cache
-// so the refined labels and responsive panel layout reach devices immediately.
-const CACHE_NAME = 'DH3.14';
+// Isolated NFL Draft hit-rate overhaul: retire the prior cache so the new
+// seven-round route, responsive charts, and shared hit-rate shell arrive now.
+const CACHE_NAME = 'DH3.18';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -42,6 +42,7 @@ const CORE_ASSET_PATHS = [
   '/leaguehub/leaguehub.html',
   '/research/research.html',
   '/adp/index.html',
+  '/adp/nfl-draft/index.html',
   '/contact/contact.html',
   '/styles/styles.css',
   '/styles/stats.css',
@@ -95,8 +96,8 @@ function isCacheableAsset(url) {
   return patterns.some(p => p.test(pathname));
 }
 
-// Rookie ADP static export: Next.js content-hashes every file in this directory,
-// so these assets can use cache-first delivery without risking a stale bundle.
+// Isolated hit-rate export: Next.js content-hashes every file in this directory,
+// so both dashboard routes can use cache-first delivery safely.
 function isVersionedAdpBuildAsset(url) {
   if (!isSameOrigin(url)) return false;
 
@@ -119,8 +120,8 @@ async function fetchFresh(url) {
   });
 }
 
-// Rookie ADP install warmup: discover the current build's hashed scripts,
-// styles, and self-hosted fonts directly from its generated entry document.
+// Hit-rate install warmup: discover each route's hashed scripts, styles, and
+// self-hosted fonts directly from both generated entry documents.
 async function cacheAdpBuildAssets(cache, indexResponse) {
   const html = await indexResponse.text();
   const assetPaths = Array.from(
@@ -143,7 +144,7 @@ async function cacheAdpBuildAssets(cache, indexResponse) {
   }));
 }
 
-// Rookie ADP runtime delivery: reuse the current cache for hashed build files;
+// Hit-rate runtime delivery: reuse the current cache for hashed build files;
 // a cache miss still falls through to a fresh network request and is stored.
 async function fetchVersionedAdpBuildAsset(request) {
   const cache = await caches.open(CACHE_NAME);
@@ -169,7 +170,7 @@ self.addEventListener('install', event => {
         try {
           const response = await fetchFresh(url);
           if (response.ok) {
-            const adpIndexResponse = new URL(url).pathname === '/adp/index.html'
+            const adpIndexResponse = /^\/adp\/(?:nfl-draft\/)?index\.html$/.test(new URL(url).pathname)
               ? response.clone()
               : null;
             await cache.put(url, response);

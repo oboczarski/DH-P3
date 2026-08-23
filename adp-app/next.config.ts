@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ADP integration export: keep the React app isolated while emitting a
-  // deployable static route under Dynasty Hub's existing /adp/ path.
+  // Hit-rate integration export: keep both React dashboards isolated while
+  // emitting their deployable routes beneath Dynasty Hub's existing /adp path.
   output: "export",
   basePath: "/adp",
   trailingSlash: true,

@@ -103,11 +103,11 @@ rel="stylesheet">
   <main class="container mx-auto syop-main" id="content">
     <div class="syop-tabs" role="tablist" aria-label="Research dashboards">
       <!-- Four-dashboard Research order: Positional remains the local default,
-           while the isolated Rookie ADP tab navigates to its own Next.js route. -->
+           while both hit-rate studies navigate to their isolated Next.js routes. -->
       <button class="syop-tab active" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="positional-analysis-tab-panel">Positional Analysis</button>
       <button class="syop-tab" id="syop-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="syop-tab-panel">Career Length Analytics</button>
       <a class="syop-tab syop-tab-link" id="rookie-adp-tab-link" role="tab" aria-selected="false" href="../adp/">ROOKIE DRAFT ADP &mdash;  PLAYER HIT %</a>
-      <button class="syop-tab" id="draft-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="draft-tab-panel">NFL Draft<br> &mdash;  Player Hit %</button>
+      <a class="syop-tab syop-tab-link" id="nfl-draft-tab-link" role="tab" aria-selected="false" tabindex="-1" href="../adp/nfl-draft/">NFL Draft<br> &mdash;  Player Hit %</a>
     </div>
 
     <div class="syop-tab-panels">
@@ -184,51 +184,6 @@ rel="stylesheet">
           </article>
         </div>
         <p class="syop-footnote">Data sourced from Dynasty Hub SYOP research feeds. Visualization rebuilt for the League HQ experience.</p>
-      </section>
-
-      <section class="syop-section syop-tab-panel" id="draft-tab-panel" role="tabpanel" aria-labelledby="draft-tab-button" hidden>
-        <section class="syop-hero syop-draft-hero" aria-labelledby="draft-data-heading">
-          <div class="syop-hero-intro">
-            <div class="syop-pill">DYNASTY HUB RESEARCH • NFL Draft</div>
-            <h2 id="draft-data-heading">NFL Draft &mdash; Player Hit Rates</h2>
-            <p>Overall and positional hit probabilities across draft rounds.</p>
-          </div>
-          <div class="syop-hero-summary">
-            <div class="syop-hero-meta syop-draft-meta">
-              <div class="syop-hero-meta-item">
-                <span class="meta-label">SAMPLE:</span>
-                <span class="meta-value">QB • RB • WR • TE  |  08-22 Draft Classes  |  Rounds 1-7  </span>
-              </div>
-              <div class="syop-hero-meta-item">
-                <span class="meta-label">HIT:</span>
-                <span class="meta-value">Hitting SYOP Threshold ≥ 1 Time During Career</span>
-              </div>
-            </div>
-          </div>
-        </section>
-        <div class="syop-panels-grid syop-draft-grid">
-          <article class="syop-panel glass-panel" id="draft-overall-panel">
-            <header>
-              <h3>Overall Hit Probability</h3>
-              <p>All positions &times; round</p>
-            </header>
-            <div class="syop-panel-body">
-              <div class="syop-chart" id="draft-overall-chart" role="img" aria-label="Overall draft hit probability bar chart"></div>
-              <div class="draft-round-tiles" id="draft-round-tiles"></div>
-            </div>
-          </article>
-          <article class="syop-panel glass-panel" id="draft-positional-panel">
-            <header>
-              <h3>Positional Hit Rate Trends by Round</h3>
-              <div class="syop-panel-subhead" id="draft-positional-legend"></div>
-            </header>
-            <div class="syop-panel-body">
-              <div class="syop-chart" id="draft-positional-chart" role="img" aria-label="Positional draft hit rate line chart"></div>
-              <p class="syop-chart-footnote">Values reflect provided hit-rate percentages for each round.</p>
-            </div>
-          </article>
-        </div>
-        <div class="draft-pill">HIT RATE &bull; All Positions &amp; By Position</div>
       </section>
 
       <section class="syop-section syop-tab-panel pos-analysis-panel active" id="positional-analysis-tab-panel" role="tabpanel" aria-labelledby="positional-analysis-tab-button">
@@ -639,6 +594,6 @@ rel="stylesheet">
   </main>
 </div>
 <script defer src="../scripts/app.js?v=20260116"></script>
-<script defer src="../scripts/syop.js?v=DH3.04T-adp-integration"></script>
+<script defer src="../scripts/syop.js?v=DH3.15-hit-rates-routing"></script>
 </body>
 </html>

@@ -36,30 +36,32 @@ const INTERNAL_PATHS: Record<InternalDestination, string> = {
   contact: "/contact/contact.html",
 };
 
+type ActiveResearchTab = "rookie-adp" | "nfl-draft";
+
 const researchTabs = [
   {
+    id: "positional-analysis",
     label: "Positional Analysis",
     href: "/research/research.html?tab=positional-analysis",
-    active: false,
   },
   {
+    id: "syop",
     label: "Career Length Analytics",
     href: "/research/research.html?tab=syop",
-    active: false,
   },
   {
+    id: "rookie-adp",
     label: "ROOKIE DRAFT ADP —  PLAYER HIT %",
     href: "/adp/",
-    active: true,
   },
   {
+    id: "nfl-draft",
     label: (
       <>
         NFL Draft<br /> —  Player Hit %
       </>
     ),
-    href: "/research/research.html?tab=draft",
-    active: false,
+    href: "/adp/nfl-draft/",
   },
 ] as const;
 
@@ -90,7 +92,11 @@ function addUsername(path: string, username: string) {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-export default function DynastyHubResearchShell() {
+export default function DynastyHubResearchShell({
+  activeResearchTab = "rookie-adp",
+}: {
+  activeResearchTab?: ActiveResearchTab;
+}) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
@@ -249,18 +255,23 @@ export default function DynastyHubResearchShell() {
       </div>
 
       <nav className="adp-research-tabs" role="tablist" aria-label="Research dashboards">
-        {researchTabs.map((tab) => (
-          <a
-            className={`adp-research-tab${tab.active ? " active" : ""}`}
-            href={tab.href}
-            role="tab"
-            aria-selected={tab.active ? "true" : "false"}
-            aria-current={tab.active ? "page" : undefined}
-            key={tab.href}
-          >
-            {tab.label}
-          </a>
-        ))}
+        {researchTabs.map((tab) => {
+          // Both isolated hit-rate routes share this shell, but only the route
+          // selected by the page receives the active Research-tab treatment.
+          const isActive = tab.id === activeResearchTab;
+          return (
+            <a
+              className={`adp-research-tab${isActive ? " active" : ""}`}
+              href={tab.href}
+              role="tab"
+              aria-selected={isActive ? "true" : "false"}
+              aria-current={isActive ? "page" : undefined}
+              key={tab.href}
+            >
+              {tab.label}
+            </a>
+          );
+        })}
       </nav>
 
       {moreOpen && typeof document !== "undefined"

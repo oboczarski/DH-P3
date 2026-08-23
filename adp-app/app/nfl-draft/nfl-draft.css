@@ -1,0 +1,556 @@
+/* NFL Draft hit-rate route: every override is scoped to the separate seven-
+   round dashboard so the Rookie ADP route retains its exact four-range layout. */
+.nfl-draft-dashboard .hero p {
+  max-width: 760px;
+}
+
+.nfl-draft-dashboard .nfl-stat-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card {
+  --dial-size: clamp(82px, 8.2vw, 108px);
+  --ring-inset: 5px;
+  --ring-width: 8px;
+  min-height: 218px;
+  padding: 13px 10px 11px;
+  border-radius: 17px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card::before {
+  width: 145px;
+  height: 145px;
+  filter: blur(17px);
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-top {
+  gap: 5px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-heading {
+  gap: 4px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-kicker {
+  font-size: 6.5px;
+  letter-spacing: .13em;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
+  font-size: 9px;
+  letter-spacing: .11em;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-index {
+  min-width: 29px;
+  gap: 4px;
+  padding: 4px 5px;
+  font-size: 6.5px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-dial {
+  margin: 7px auto 6px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-core {
+  inset: calc(var(--ring-inset) + var(--ring-width) + 5px);
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-value {
+  font-size: clamp(19px, 2vw, 25px);
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-value small {
+  font-size: 9px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-core em {
+  margin-top: 1px;
+  font-size: 7px;
+  letter-spacing: .06em;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-note {
+  gap: 4px;
+  padding-top: 7px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-note strong {
+  font-size: 7px;
+}
+
+.nfl-draft-dashboard .nfl-stat-card .stat-note small {
+  display: none;
+}
+
+.nfl-draft-dashboard .chart-value {
+  font-size: 9px;
+  stroke-width: 3px;
+}
+
+.nfl-draft-dashboard .nfl-overall-value {
+  font-size: 9.5px;
+}
+
+.nfl-draft-dashboard .trend-chart {
+  min-width: 0;
+}
+
+.nfl-draft-dashboard .nfl-matrix-panel {
+  min-height: 790px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-shell {
+  grid-template-columns: minmax(0, 1fr) 31px;
+  min-height: 600px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-svg {
+  max-width: 680px;
+  max-height: 620px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-range-rail {
+  gap: 6px;
+  min-height: 285px;
+  margin-left: -14px;
+  padding-left: 7px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-range-rail span {
+  font-size: 9px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-range-rail b {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.nfl-draft-dashboard .nfl-matrix-position {
+  font-size: 19px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-position-caption {
+  font-size: 6.5px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-divider-label {
+  font-size: 6px;
+  letter-spacing: .035em;
+  stroke-width: 2.5px;
+}
+
+.nfl-draft-dashboard .nfl-matrix-value {
+  font-size: 8px;
+  stroke-width: 2.5px;
+}
+
+.nfl-draft-dashboard .nfl-core-eyebrow {
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.nfl-draft-dashboard .nfl-core-value {
+  font-size: 29px;
+}
+
+.nfl-draft-dashboard .nfl-core-label {
+  font-size: 6.5px;
+  letter-spacing: .11em;
+}
+
+.nfl-draft-dashboard .te-insight {
+  --mini: #D400FF;
+}
+
+.nfl-draft-dashboard .dataset-title {
+  font-size: 9.5px;
+  letter-spacing: .11em;
+}
+
+.nfl-draft-dashboard .dataset-parameter span {
+  font-size: 9px;
+}
+
+.nfl-draft-dashboard .dataset-parameter strong {
+  font-size: 12.5px;
+}
+
+@media (max-width: 1100px) {
+  .nfl-draft-dashboard .nfl-stat-grid {
+    gap: 5px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card {
+    --dial-size: clamp(68px, 8vw, 90px);
+    min-height: 198px;
+    padding: 11px 7px 9px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-kicker {
+    font-size: 5.8px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
+    font-size: 8px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-index {
+    min-width: 24px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 900px) {
+  .nfl-draft-dashboard .nfl-stat-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card {
+    --dial-size: clamp(58px, 8vw, 76px);
+    --ring-inset: 4px;
+    --ring-width: 6px;
+    min-height: 174px;
+    padding: 9px 5px 8px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-index {
+    display: none;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-top {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-heading {
+    width: 100%;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-value {
+    font-size: clamp(15px, 2.5vw, 20px);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-note {
+    justify-content: center;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-note strong {
+    flex: 0 1 auto;
+    text-align: center;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-panel {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .nfl-draft-dashboard .nfl-matrix-shell {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-range-rail {
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(4px, 1.7vw, 9px);
+    min-height: 31px;
+    margin-left: 0;
+    padding-left: 0;
+    border-top: 1px solid rgba(255,255,255,.055);
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-range-rail span {
+    font-size: 4.5px;
+    writing-mode: initial;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-range-rail b {
+    font-size: 6.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-divider-label {
+    font-size: 8.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-value {
+    font-size: 10.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-eyebrow {
+    font-size: 10px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-value {
+    font-size: 38px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-label {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  .nfl-draft-dashboard .hero h1 {
+    font-size: clamp(30px, 8.7vw, 36px);
+    line-height: .96;
+  }
+
+  .nfl-draft-dashboard .hero p {
+    max-width: 355px;
+    font-size: 11px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: clamp(1.5px, .55vw, 3px);
+    margin-bottom: 10px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card {
+    --dial-size: clamp(33px, 10.6vw, 50px);
+    --ring-inset: 2px;
+    --ring-width: 3px;
+    min-height: clamp(82px, 24vw, 106px);
+    padding: 4px 2px;
+    border-radius: clamp(8px, 2.5vw, 12px);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card::before {
+    width: calc(var(--dial-size) + 10px);
+    height: calc(var(--dial-size) + 10px);
+    filter: blur(8px);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card::after {
+    left: 12%;
+    width: 76%;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-top {
+    min-height: 7px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-kicker {
+    display: none;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
+    font-size: clamp(5.8px, 1.8vw, 8px);
+    letter-spacing: .015em;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-dial {
+    margin: 2px auto;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-dial::after {
+    box-shadow: inset 0 0 3px rgba(0,0,0,.72), 0 0 0 1px rgba(255,255,255,.02);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-arc-echo {
+    inset: calc(var(--ring-inset) + var(--ring-width) + 1px);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-origin {
+    top: var(--ring-inset);
+    width: 2px;
+    height: 2px;
+    border-width: 0;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-cap::after {
+    top: -1px;
+    width: 4px;
+    height: 4px;
+    border-width: 1px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-core {
+    inset: calc(var(--ring-inset) + var(--ring-width) + 2px);
+    box-shadow: inset 0 1px rgba(255,255,255,.06), inset 0 -5px 8px rgba(0,0,0,.5), 0 0 0 1px rgba(3,7,17,.55);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-core::after {
+    inset: 2px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-value {
+    font-size: clamp(9px, 3vw, 13px);
+    letter-spacing: -.075em;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-value small {
+    margin-left: .5px;
+    font-size: clamp(3.5px, 1.2vw, 5px);
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-core em {
+    margin-top: 0;
+    margin-bottom: -1px;
+    font-size: clamp(3px, .95vw, 4px);
+    letter-spacing: .02em;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-note {
+    min-height: 8px;
+    gap: 1.5px;
+    padding-top: 2px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-status {
+    width: 2px;
+    height: 2px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-note strong {
+    overflow: hidden;
+    max-width: 100%;
+    font-size: clamp(4px, 1.2vw, 5.5px);
+    line-height: 1;
+    letter-spacing: 0;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
+  .nfl-draft-dashboard .overall-drop {
+    flex-basis: 88px;
+    width: 88px;
+    min-width: 88px;
+  }
+
+  .nfl-draft-dashboard .overall-drop small {
+    font-size: 6.8px;
+  }
+
+  .nfl-draft-dashboard .overall-chart {
+    height: 255px;
+  }
+
+  .nfl-draft-dashboard .trend-card-heading h2,
+  .nfl-draft-dashboard .matrix-card-heading h2 {
+    font-size: 17px;
+  }
+
+  .nfl-draft-dashboard .trend-card-heading p {
+    font-size: 8.5px;
+  }
+
+  .nfl-draft-dashboard .legend {
+    gap: 8px;
+  }
+
+  .nfl-draft-dashboard .legend-toggle {
+    gap: 5px;
+    min-width: 0;
+    padding: 5px 3px;
+    font-size: 10px;
+  }
+
+  .nfl-draft-dashboard .legend .gradient-legend-mark {
+    width: 11px;
+    height: 11px;
+  }
+
+  .nfl-draft-dashboard .trend-chart {
+    height: 470px;
+  }
+
+  .nfl-draft-dashboard .chart-value {
+    font-size: 7.4px;
+    stroke-width: 2.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-overall-value {
+    font-size: 8px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-panel {
+    padding: 18px 9px 13px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-shell {
+    margin-top: 2px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-range-rail {
+    gap: clamp(3px, 1.2vw, 6px);
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-range-rail b {
+    font-size: 5.8px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-position {
+    font-size: 18px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-position-caption {
+    font-size: 7px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-divider-label {
+    font-size: 8px;
+  }
+
+  .nfl-draft-dashboard .nfl-matrix-value {
+    font-size: 9.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-value {
+    font-size: 34px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-eyebrow {
+    font-size: 9px;
+  }
+
+  .nfl-draft-dashboard .nfl-core-label {
+    font-size: 7px;
+  }
+
+  .nfl-draft-dashboard .dataset-title {
+    font-size: 9.5px;
+    letter-spacing: .08em;
+  }
+
+  .nfl-draft-dashboard .dataset-parameter span {
+    font-size: 8.5px;
+  }
+
+  .nfl-draft-dashboard .dataset-parameter strong {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .nfl-draft-dashboard .nfl-stat-grid {
+    gap: 1px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card {
+    --dial-size: clamp(31px, 10.4vw, 37px);
+    min-height: 79px;
+    padding-inline: 1px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
+    font-size: 5.5px;
+  }
+
+  .nfl-draft-dashboard .nfl-stat-card .stat-note strong {
+    font-size: 3.8px;
+  }
+
+  .nfl-draft-dashboard .legend {
+    gap: 4px;
+  }
+
+  .nfl-draft-dashboard .legend-toggle {
+    font-size: 9px;
+  }
+}
+

@@ -9,7 +9,7 @@ const dynastyHubDirectory = path.resolve(appDirectory, "../DH_P2.53");
 const destinationDirectory = path.join(dynastyHubDirectory, "adp");
 
 // Static export publisher: replace only DH_P2.53/adp with the newly generated
-// Next.js output so the Vanilla site can serve the isolated dashboard at /adp/.
+// Next.js output for both isolated Rookie ADP and NFL Draft dashboard routes.
 if (!destinationDirectory.startsWith(`${dynastyHubDirectory}${path.sep}`)) {
   throw new Error("Refusing to publish the ADP export outside DH_P2.53.");
 }
