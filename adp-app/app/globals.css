@@ -380,6 +380,7 @@ body::before {
   .adp-research-tabs {
     margin-top: -19px;
     padding: .04rem;
+    gap: .1rem;
   }
 
   .adp-research-tab {
@@ -391,15 +392,14 @@ body::before {
 }
 
 @media (max-width: 540px) {
-  .adp-research-tabs {
-    gap: .16rem;
-  }
-
   .adp-research-tab {
-    min-height: 4.35rem;
+    /* ADP tab parity: mirror the native Research phone geometry exactly so
+       route changes do not alter the four-button navigation footprint. */
+    min-height: 3.05rem;
     padding: .32rem .08rem;
-    font-size: clamp(.59rem, 2.6vw, .68rem);
+    font-size: clamp(.59rem, 1.6vw, .68rem);
     line-height: 1.14;
+    filter: saturate(1.4) opacity(.9);
     letter-spacing: -.012em;
   }
 }

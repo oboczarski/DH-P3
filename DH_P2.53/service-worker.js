@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub rookie ranking, grade, and tier-chart data refresh:
-// retire the prior cache so devices receive the updated JS and CSVs immediately.
-const CACHE_NAME = 'DH3.1G';
+// Rookie ADP loading stability: retire the prior cache so the isolated page's
+// synchronized shell and versioned Next.js assets reach devices immediately.
+const CACHE_NAME = 'DH3.1H';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -95,6 +95,15 @@ function isCacheableAsset(url) {
   return patterns.some(p => p.test(pathname));
 }
 
+// Rookie ADP static export: Next.js content-hashes every file in this directory,
+// so these assets can use cache-first delivery without risking a stale bundle.
+function isVersionedAdpBuildAsset(url) {
+  if (!isSameOrigin(url)) return false;
+
+  const pathname = new URL(url, self.location.origin).pathname;
+  return pathname.startsWith('/adp/_next/static/');
+}
+
 // ============================================================================
 // HELPER: Fetch with HTTP cache bypass
 // ============================================================================
@@ -110,6 +119,44 @@ async function fetchFresh(url) {
   });
 }
 
+// Rookie ADP install warmup: discover the current build's hashed scripts,
+// styles, and self-hosted fonts directly from its generated entry document.
+async function cacheAdpBuildAssets(cache, indexResponse) {
+  const html = await indexResponse.text();
+  const assetPaths = Array.from(
+    html.matchAll(/(?:src|href)="(\/adp\/_next\/static\/[^"]+)"/g),
+    match => match[1]
+  );
+  const assetUrls = Array.from(new Set(assetPaths))
+    .map(path => new URL(path, self.location.origin).href)
+    .filter(isVersionedAdpBuildAsset);
+
+  await Promise.all(assetUrls.map(async url => {
+    try {
+      const response = await fetchFresh(url);
+      if (response.ok) {
+        await cache.put(url, response);
+      }
+    } catch (err) {
+      console.warn('[SW] ADP build cache failed:', url, err);
+    }
+  }));
+}
+
+// Rookie ADP runtime delivery: reuse the current cache for hashed build files;
+// a cache miss still falls through to a fresh network request and is stored.
+async function fetchVersionedAdpBuildAsset(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const response = await fetchFresh(request.url);
+  if (response.ok) {
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
 // ============================================================================
 // INSTALL — Pre-cache core assets with HTTP cache bypass
 // ============================================================================
@@ -122,7 +169,13 @@ self.addEventListener('install', event => {
         try {
           const response = await fetchFresh(url);
           if (response.ok) {
+            const adpIndexResponse = new URL(url).pathname === '/adp/index.html'
+              ? response.clone()
+              : null;
             await cache.put(url, response);
+            if (adpIndexResponse) {
+              await cacheAdpBuildAssets(cache, adpIndexResponse);
+            }
           }
         } catch (err) {
           console.warn('[SW] Install cache failed:', url, err);
@@ -170,6 +223,13 @@ self.addEventListener('fetch', event => {
 
   // Only handle GET
   if (request.method !== 'GET') return;
+
+  // The ADP app is an isolated static export. Its hashed build files are safe
+  // to serve cache-first and avoid repeat mobile downloads on every tab visit.
+  if (isVersionedAdpBuildAsset(request.url)) {
+    event.respondWith(fetchVersionedAdpBuildAsset(request));
+    return;
+  }
 
   // Skip third-party — let browser handle normally (no SW caching)
   if (!isCacheableAsset(request.url)) return;

@@ -43,21 +43,27 @@ const researchTabs = [
     active: false,
   },
   {
-    label: "Career Length Analytics — SYOP",
+    label: "Career Length Analytics",
     href: "/research/research.html?tab=syop",
     active: false,
   },
   {
-    label: "ROOKIE DRAFT ADP — PLAYER HIT RATES",
+    label: "ROOKIE DRAFT ADP —  PLAYER HIT %",
     href: "/adp/",
     active: true,
   },
   {
-    label: "NFL Draft — Player Hit Rates",
+    label: (
+      <>
+        NFL Draft<br /> —  Player Hit %
+      </>
+    ),
     href: "/research/research.html?tab=draft",
     active: false,
   },
 ] as const;
+
+const SERVICE_WORKER_PATH = "/service-worker.js?v=20250825104842";
 
 function readPreferredUsername() {
   if (typeof window === "undefined") return "";
@@ -90,12 +96,23 @@ export default function DynastyHubResearchShell() {
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  // ADP integration shell: register the same root service worker used by the
-  // Vanilla app without importing its broad app.js runtime.
+  // ADP loading stability: use the Vanilla app's exact service-worker URL and
+  // wait for the page load event so registration cannot compete with the
+  // isolated Next.js bundles during the first mobile render.
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      void navigator.serviceWorker.register("/service-worker.js").catch(() => undefined);
+    if (!("serviceWorker" in navigator)) return;
+
+    const registerServiceWorker = () => {
+      void navigator.serviceWorker.register(SERVICE_WORKER_PATH).catch(() => undefined);
+    };
+
+    if (document.readyState === "complete") {
+      registerServiceWorker();
+      return;
     }
+
+    window.addEventListener("load", registerServiceWorker, { once: true });
+    return () => window.removeEventListener("load", registerServiceWorker);
   }, []);
 
   const positionMoreMenu = useCallback(() => {
@@ -239,7 +256,7 @@ export default function DynastyHubResearchShell() {
             role="tab"
             aria-selected={tab.active ? "true" : "false"}
             aria-current={tab.active ? "page" : undefined}
-            key={tab.label}
+            key={tab.href}
           >
             {tab.label}
           </a>
