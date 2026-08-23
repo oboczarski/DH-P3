@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rookie ADP chart controls: retire the prior cache so the legend toggles,
-// matrix refinements, and versioned Next.js assets reach devices immediately.
-const CACHE_NAME = 'DH3.12';
+// Rookie ADP study-frame refinements: retire the prior cache so the complete
+// matrix divider keys and simplified panel borders reach devices immediately.
+const CACHE_NAME = 'DH3.13';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

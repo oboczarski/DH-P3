@@ -573,7 +573,7 @@ export default function Home() {
             <h2 id="study-frame-title">What counts as a hit?</h2>
           </div>
           <div className="method-definition">
-            <span>CAREER RULE</span>
+            <span>PLAYER HIT</span>
             <strong>Threshold reached ≥ 1 time</strong>
             <p>Across the player&apos;s career</p>
           </div>

@@ -65,13 +65,20 @@ const matrixGradientDirections = {
   TE: { x1: "50%", x2: "50%", y1: "100%", y2: "0%" },
 } satisfies Record<MatrixPosition, { x1: string; x2: string; y1: string; y2: string }>;
 
-// Divider labels progress clockwise and sit in the gap at the radius of the
-// range they identify, keeping all four labels aligned to their actual bars.
+// Every divider carries the complete outside-to-inside range key. Divider
+// rotations keep each four-label set aligned with its quadrant gap.
+const dividerAngles = [
+  { angle: 45, rotation: 45 },
+  { angle: 135, rotation: -45 },
+  { angle: 225, rotation: 45 },
+  { angle: 315, rotation: -45 },
+] as const;
+
 const dividerRangeLabels = [
-  { angle: 45, label: "TOP6", radius: rangeRadii[0], rotation: 45 },
-  { angle: 135, label: "RD1", radius: rangeRadii[1], rotation: -45 },
-  { angle: 225, label: "RD2", radius: rangeRadii[2], rotation: 45 },
-  { angle: 315, label: "RD3", radius: rangeRadii[3], rotation: -45 },
+  { label: "TOP6", radius: rangeRadii[0] },
+  { label: "RD1", radius: rangeRadii[1] },
+  { label: "RD2", radius: rangeRadii[2] },
+  { label: "RD3", radius: rangeRadii[3] },
 ] as const;
 
 const labelPlacement = {
@@ -244,12 +251,11 @@ export default function QuadrantArcMatrix({
             />
           ))}
 
-          {dividerRangeLabels.map(({ angle, label, radius, rotation }) => {
+          {dividerAngles.map(({ angle, rotation }) => {
             const start = polarPoint(112, angle);
             const end = polarPoint(232, angle);
-            const labelPoint = polarPoint(radius, angle);
             return (
-              <g key={label} aria-hidden="true">
+              <g key={angle} aria-hidden="true">
                 <line
                   x1={start.x}
                   y1={start.y}
@@ -258,16 +264,23 @@ export default function QuadrantArcMatrix({
                   stroke="rgba(177,196,238,.11)"
                   strokeWidth="1"
                 />
-                <text
-                  x={labelPoint.x}
-                  y={labelPoint.y}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  className="matrix-divider-label"
-                  transform={`rotate(${rotation} ${labelPoint.x} ${labelPoint.y})`}
-                >
-                  {label}
-                </text>
+                {dividerRangeLabels.map(({ label, radius }) => {
+                  const labelPoint = polarPoint(radius, angle);
+
+                  return (
+                    <text
+                      x={labelPoint.x}
+                      y={labelPoint.y}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="matrix-divider-label"
+                      key={label}
+                      transform={`rotate(${rotation} ${labelPoint.x} ${labelPoint.y})`}
+                    >
+                      {label}
+                    </text>
+                  );
+                })}
               </g>
             );
           })}
