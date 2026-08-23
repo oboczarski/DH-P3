@@ -26,7 +26,7 @@
 // ============================================================================
 // Rookie ADP loading stability: retire the prior cache so the isolated page's
 // synchronized shell and versioned Next.js assets reach devices immediately.
-const CACHE_NAME = 'DH3.1H';
+const CACHE_NAME = 'DH3.1I';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
