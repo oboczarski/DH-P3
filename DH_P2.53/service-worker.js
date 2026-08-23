@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rookie ADP study-frame refinements: retire the prior cache so the complete
-// matrix divider keys and simplified panel borders reach devices immediately.
-const CACHE_NAME = 'DH3.13';
+// Rookie ADP matrix typography and Study Frame spacing: retire the prior cache
+// so the refined labels and responsive panel layout reach devices immediately.
+const CACHE_NAME = 'DH3.14';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

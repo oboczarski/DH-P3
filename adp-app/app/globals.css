@@ -820,8 +820,16 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 .matrix-range-rail b { font-family: var(--font-matrix-display), sans-serif; font-size: 16px; font-weight: 650; }
 .matrix-position { font-family: var(--font-matrix-display), sans-serif !important; font-size: 22px; font-weight: 680; letter-spacing: -.03em; }
 .matrix-position-caption { fill: #5b6580; font-size: 8px; font-weight: 700; letter-spacing: .15em; }
-.matrix-divider-label { fill: #77829d; paint-order: stroke; stroke: #080916; stroke-width: 3px; font-family: var(--font-matrix-display), sans-serif !important; font-size: 7px; font-weight: 690; letter-spacing: .08em; }
-.matrix-value { fill: #c7cee2; paint-order: stroke; stroke: #080916; stroke-width: 3px; font-family: var(--font-matrix-display), sans-serif !important; font-size: 12px; font-weight: 590; }
+.matrix-divider-label { fill: #77829d; paint-order: stroke; stroke: #080916; stroke-width: 3px; font-family: var(--font-matrix-display), sans-serif !important; font-size: 8px; font-weight: 690; letter-spacing: .08em; }
+.matrix-value {
+  fill: #c7cee2;
+  paint-order: stroke;
+  stroke: #080916;
+  stroke-width: 3px;
+  font-size: 11px;
+  font-weight: 590;
+  font-family: var(--font-matrix-display), sans-serif !important;
+}
 .matrix-core { fill: url(#matrix-center-fill); filter: drop-shadow(0 0 25px rgba(92,111,255,.13)); }
 .core-eyebrow,
 .core-label,
@@ -861,10 +869,19 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 .method-panel > div { padding: 19px 11px; border: 0; }
 .method-panel > .dataset-parameters,
 .method-panel > .threshold-grid { border-right: 1px solid var(--line); }
-.method-heading h2 { margin: 10px 0 0; font-size: 22px; letter-spacing: -.03em; }
+.method-heading h2 {
+  letter-spacing: -.03em;
+  margin: 10px 0 -14px;
+  font-size: 22px;
+}
 .method-segment-label, .method-definition span, .benchmark-copy span { color: #69738a; font-size: 11px; font-weight: 850; letter-spacing: .17em; }
 .method-definition strong { display: block; color: #e0e4ed; margin-top: 9px; font-size: 13px; }.method-definition p { color: #69738a; font-size: 11px; margin: 5px 0 0; }
-.threshold-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.threshold-grid {
+  grid-template-columns: repeat(4,1fr);
+  gap: 8px;
+  display: grid;
+  margin-left: -25px;
+}
 .threshold-item {
   border-right: 1px solid #C0C8D20F;
   align-content: center;
@@ -916,8 +933,8 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .matrix-range-rail b { font-size: 7px; }
   .matrix-position { font-size: 21px; }
   .matrix-position-caption { font-size: 10px; }
-  .matrix-divider-label { font-size: 9px; }
-  .matrix-value { font-size: 16px; }
+  .matrix-divider-label { font-size: 10px; }
+  .matrix-value { font-size: 14px; }
   .core-eyebrow,
   .core-label,
   .core-foot { font-size: 11px; }
@@ -1037,7 +1054,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
   .method-panel > div { padding: 10px 26px; border: 0; }
   .method-panel > .dataset-parameters { grid-column: auto; gap: 6px; padding: 15px 18px 12px; border-right: 0; border-bottom: 1px solid var(--line); }
   .method-panel > .threshold-grid { border-right: 0; border-bottom: 1px solid var(--line); }
-  .threshold-grid { gap: 5px; }
+  .threshold-grid { gap: 5px; margin-left: 0px; }
   .dataset-title { font-size: 11px; margin-top: 0px; }
   .dataset-parameter-grid { gap: 5px; margin-top: 4px; }
   .dataset-parameter { padding-right: 9px; }

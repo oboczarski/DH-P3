@@ -81,11 +81,13 @@ const dividerRangeLabels = [
   { label: "RD3", radius: rangeRadii[3] },
 ] as const;
 
+// Keep percentage labels close to their bar-end datapoints while retaining the
+// position-specific direction that prevents labels from sitting over the arcs.
 const labelPlacement = {
-  QB: { dx: 10, dy: 0, textAnchor: "start", dominantBaseline: "central" },
-  RB: { dx: 0, dy: 10, textAnchor: "middle", dominantBaseline: "hanging" },
-  WR: { dx: -10, dy: 0, textAnchor: "end", dominantBaseline: "central" },
-  TE: { dx: 0, dy: -10, textAnchor: "middle", dominantBaseline: "auto" },
+  QB: { dx: 8, dy: 0, textAnchor: "start", dominantBaseline: "central" },
+  RB: { dx: 0, dy: 8, textAnchor: "middle", dominantBaseline: "hanging" },
+  WR: { dx: -8, dy: 0, textAnchor: "end", dominantBaseline: "central" },
+  TE: { dx: 0, dy: -8, textAnchor: "middle", dominantBaseline: "auto" },
 } as const;
 
 function degreesToRadians(degrees: number) {
