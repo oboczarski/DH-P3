@@ -26,7 +26,7 @@
 // ============================================================================
 // DataHub rookie ranking, grade, and tier-chart data refresh:
 // retire the prior cache so devices receive the updated JS and CSVs immediately.
-const CACHE_NAME = 'DH3.1F';
+const CACHE_NAME = 'DH3.1G';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
