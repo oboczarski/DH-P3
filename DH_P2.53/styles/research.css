@@ -1089,6 +1089,7 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   .syop-tabs {
     padding: 0.04rem;
     margin-top: -19px;
+    gap: 0.1rem;
   }
 
   .syop-tab {
@@ -1177,9 +1178,9 @@ body[data-page="research"] .syop-sunburst-metric-suffix--mode {
   }
 
   .syop-tab {
-    min-height: 4.35rem;
+    min-height: 3.05rem;
     padding: 0.32rem 0.08rem;
-    font-size: clamp(0.59rem, 2.6vw, 0.68rem);
+    font-size: clamp(0.59rem, 1.6vw, 0.68rem);
     line-height: 1.14;
     filter: saturate(1.4) opacity(0.9);
     letter-spacing: -0.012em;
