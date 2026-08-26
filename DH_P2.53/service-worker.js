@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Mobile Ownership/Research controls: retire the prior cache so the side-by-side
-// Ownership header and responsive four-tab labels arrive together on refresh.
-const CACHE_NAME = 'DH3.20';
+// Page-local More menus: retire the prior cache so the Rosters-style Research,
+// Ownership, LeagueHub, Contact, and isolated ADP menus arrive together.
+const CACHE_NAME = 'DH3.21';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -22,7 +22,7 @@ rel="stylesheet">
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.20-mobile-control-tabs" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.21-page-more-menus" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -71,22 +71,36 @@ rel="stylesheet">
             <span class="nav-label">More</span>
             <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
           </button>
+          <!-- Research-local More menu anatomy: icon wells and supporting copy
+               mirror Rosters while remaining independently styleable here. -->
           <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
             <button class="nav-more-item" data-nav="ownership" role="menuitem">
-              <i class="fa-solid fa-percent" aria-hidden="true"></i>
-              <span class="nav-label">Ownership</span>
+              <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-percent"></i></span>
+              <span class="nav-more-item-copy">
+                <span class="nav-more-item-title">Ownership</span>
+                <span class="nav-more-item-subtext">Player Exposures</span>
+              </span>
             </button>
             <button class="nav-more-item" data-url="https://trophyroom.dynastyhub.pro/" role="menuitem">
-              <i class="fa-solid fa-trophy" aria-hidden="true"></i>
-              <span class="nav-label">Trophy Room</span>
+              <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+              <span class="nav-more-item-copy">
+                <span class="nav-more-item-title">Trophy Room</span>
+                <span class="nav-more-item-subtext">Dyn. Career Profile</span>
+              </span>
             </button>
             <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
-              <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-              <span class="nav-label">Matchups</span>
+              <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-table-columns"></i></span>
+              <span class="nav-more-item-copy">
+                <span class="nav-more-item-title">Matchups</span>
+                <span class="nav-more-item-subtext">In-Season SoS Tool</span>
+              </span>
             </button>
             <button class="nav-more-item" data-nav="contact" role="menuitem">
-              <i class="fa-solid fa-envelope" aria-hidden="true"></i>
-              <span class="nav-label">Contact</span>
+              <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+              <span class="nav-more-item-copy">
+                <span class="nav-more-item-title">Contact</span>
+                <span class="nav-more-item-subtext">Feedback</span>
+              </span>
             </button>
           </div>
         </div>

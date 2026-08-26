@@ -284,26 +284,40 @@ export default function DynastyHubResearchShell({
         ? createPortal(
             <div
               ref={moreMenuRef}
-              className="dh-nav-more-dropdown"
+              className={`dh-nav-more-dropdown dh-nav-more-dropdown--${activeResearchTab}`}
               role="menu"
               aria-hidden="false"
               style={menuStyle}
             >
+              {/* Isolated ADP More menu: Rosters-style icon wells and supporting
+                  copy receive a route-specific Rookie or NFL Draft palette. */}
               <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateInternal("ownership")}>
-                <i className="fa-solid fa-percent" aria-hidden="true" />
-                <span className="dh-nav-label">Ownership</span>
+                <span className="dh-nav-more-item-icon" aria-hidden="true"><i className="fa-solid fa-percent" /></span>
+                <span className="dh-nav-more-item-copy">
+                  <span className="dh-nav-more-item-title">Ownership</span>
+                  <span className="dh-nav-more-item-subtext">Player Exposures</span>
+                </span>
               </button>
               <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateExternal("https://trophyroom.dynastyhub.pro/")}>
-                <i className="fa-solid fa-trophy" aria-hidden="true" />
-                <span className="dh-nav-label">Trophy Room</span>
+                <span className="dh-nav-more-item-icon" aria-hidden="true"><i className="fa-solid fa-trophy" /></span>
+                <span className="dh-nav-more-item-copy">
+                  <span className="dh-nav-more-item-title">Trophy Room</span>
+                  <span className="dh-nav-more-item-subtext">Dyn. Career Profile</span>
+                </span>
               </button>
               <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateExternal("http://dynastyhub-matchups.netlify.app/")}>
-                <i className="fa-solid fa-table-columns" aria-hidden="true" />
-                <span className="dh-nav-label">Matchups</span>
+                <span className="dh-nav-more-item-icon" aria-hidden="true"><i className="fa-solid fa-table-columns" /></span>
+                <span className="dh-nav-more-item-copy">
+                  <span className="dh-nav-more-item-title">Matchups</span>
+                  <span className="dh-nav-more-item-subtext">In-Season SoS Tool</span>
+                </span>
               </button>
               <button className="dh-nav-more-item" type="button" role="menuitem" onClick={() => navigateInternal("contact")}>
-                <i className="fa-solid fa-envelope" aria-hidden="true" />
-                <span className="dh-nav-label">Contact</span>
+                <span className="dh-nav-more-item-icon" aria-hidden="true"><i className="fa-solid fa-envelope" /></span>
+                <span className="dh-nav-more-item-copy">
+                  <span className="dh-nav-more-item-title">Contact</span>
+                  <span className="dh-nav-more-item-subtext">Feedback</span>
+                </span>
               </button>
             </div>,
             document.body,
