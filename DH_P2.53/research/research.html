@@ -22,7 +22,7 @@ rel="stylesheet">
 <meta content="#0D0E1B" name="theme-color"/>
 <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet"/>
 <!-- Research/SYOP page-specific styles (extracted from styles.css) -->
-<link rel="stylesheet" href="../styles/research.css?v=DH3.04W-supply-points" />
+<link rel="stylesheet" href="../styles/research.css?v=DH3.20-mobile-control-tabs" />
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
 <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -104,10 +104,12 @@ rel="stylesheet">
     <div class="syop-tabs" role="tablist" aria-label="Research dashboards">
       <!-- Four-dashboard Research order: Positional remains the local default,
            while both hit-rate studies navigate to their isolated Next.js routes. -->
-      <button class="syop-tab active" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="positional-analysis-tab-panel">Positional Analysis</button>
+      <!-- Responsive Research labels: explicit word spans and a mobile-only break
+           keep the same four-tab wording while letting desktop remain single-line. -->
+      <button class="syop-tab active" id="positional-analysis-tab-button" type="button" role="tab" aria-selected="true" tabindex="0" data-target="positional-analysis-tab-panel"><span class="research-tab-label-part">Positional</span> <span class="research-tab-label-part">Analysis</span></button>
       <button class="syop-tab" id="syop-tab-button" type="button" role="tab" aria-selected="false" tabindex="-1" data-target="syop-tab-panel">Career Length Analytics</button>
       <a class="syop-tab syop-tab-link" id="rookie-adp-tab-link" role="tab" aria-selected="false" href="../adp/">ROOKIE DRAFT ADP &mdash;  PLAYER HIT %</a>
-      <a class="syop-tab syop-tab-link" id="nfl-draft-tab-link" role="tab" aria-selected="false" tabindex="-1" href="../adp/nfl-draft/">NFL Draft<br> &mdash;  Player Hit %</a>
+      <a class="syop-tab syop-tab-link" id="nfl-draft-tab-link" role="tab" aria-selected="false" tabindex="-1" href="../adp/nfl-draft/"><span>NFL Draft</span><span> &mdash;  Player Hit %</span></a>
     </div>
 
     <div class="syop-tab-panels">

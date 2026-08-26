@@ -333,6 +333,21 @@ body[data-page="research"] .research-meta-separator {
   cursor: pointer;
 }
 
+/* Research tab label controls: the two requested labels become vertical flex
+   stacks only on mobile, replacing the old always-on NFL Draft <br>. */
+@media (max-width: 868px) {
+  body[data-page="research"] #positional-analysis-tab-button,
+  body[data-page="research"] #nfl-draft-tab-link {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 869px) {
+  body[data-page="research"] #nfl-draft-tab-link {
+    white-space: nowrap;
+  }
+}
+
 .syop-tab:hover,
 .syop-tab:focus {
   color: #f5f7ff;

@@ -41,7 +41,12 @@ type ActiveResearchTab = "rookie-adp" | "nfl-draft";
 const researchTabs = [
   {
     id: "positional-analysis",
-    label: "Positional Analysis",
+    label: (
+      <>
+        <span className="adp-research-tab-label-part">Positional</span>{" "}
+        <span className="adp-research-tab-label-part">Analysis</span>
+      </>
+    ),
     href: "/research/research.html?tab=positional-analysis",
   },
   {
@@ -58,7 +63,8 @@ const researchTabs = [
     id: "nfl-draft",
     label: (
       <>
-        NFL Draft<br /> —  Player Hit %
+        <span>NFL Draft</span>
+        <span> —  Player Hit %</span>
       </>
     ),
     href: "/adp/nfl-draft/",
@@ -261,7 +267,7 @@ export default function DynastyHubResearchShell({
           const isActive = tab.id === activeResearchTab;
           return (
             <a
-              className={`adp-research-tab${isActive ? " active" : ""}`}
+              className={`adp-research-tab adp-research-tab--${tab.id}${isActive ? " active" : ""}`}
               href={tab.href}
               role="tab"
               aria-selected={isActive ? "true" : "false"}
