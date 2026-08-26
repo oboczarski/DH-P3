@@ -21,7 +21,6 @@ import {
   nflDraftStatNotes,
   nflDraftStatPalettes,
   nflDraftTrendData,
-  nflDraftTrendLabelOffsets,
   type NflDraftPosition,
 } from "./data";
 import "./nfl-draft.css";
@@ -69,38 +68,24 @@ function PositionalPercentLabel({
   x,
   y,
   index,
-  position,
   values,
-  compact,
 }: {
   x?: number;
   y?: number;
   index?: number;
-  position: NflDraftPosition;
   values: readonly number[];
-  compact: boolean;
 }) {
-  const pointIndex = index ?? 0;
-  const value = values[pointIndex];
-  const baseOffset = nflDraftTrendLabelOffsets[position][pointIndex] ?? { dx: 0, dy: -12 };
-  // The first mobile x-coordinate sits beside the y-axis. Pull its four-label
-  // fan inward while preserving the vertical slots used to separate 76–83%.
-  const offset = compact && pointIndex === 0
-    ? {
-        QB: { dx: -10, dy: -13 },
-        RB: { dx: 0, dy: -17 },
-        WR: { dx: 0, dy: 18 },
-        TE: { dx: 15, dy: -4 },
-      }[position]
-    : baseOffset;
+  const value = values[index ?? 0];
   if (x == null || y == null || value == null) return null;
 
+  // NFL positional labels intentionally use the same neutral ten-pixel lift as
+  // the Rookie ADP chart; round-specific positioning can be tuned separately.
   return (
     <text
-      x={x + offset.dx}
-      y={y + offset.dy}
+      x={x}
+      y={y - 10}
       textAnchor="middle"
-      className={`chart-value nfl-trend-value nfl-trend-value--${position.toLowerCase()}`}
+      className="chart-value nfl-trend-value"
     >
       {value.toFixed(1)}%
     </text>
@@ -455,7 +440,7 @@ export default function NflDraftHitRatesPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={nflDraftTrendData}
-                  margin={compactCharts ? { top: 34, right: 30, bottom: 4, left: -5 } : { top: 38, right: 46, bottom: 5, left: 0 }}
+                  margin={compactCharts ? { top: 6, right: 18, bottom: 3, left: 0 } : { top: 28, right: 34, bottom: 5, left: 0 }}
                 >
                   <defs>
                     {Object.entries(nflDraftPositionGradients).map(([position, colors]) => (
@@ -496,7 +481,7 @@ export default function NflDraftHitRatesPage() {
                         activeDot={{ r: 7, fill: colors[3], stroke: "#07101d", strokeWidth: 4 }}
                         isAnimationActive={false}
                       >
-                        <LabelList content={<PositionalPercentLabel position={position} values={values} compact={compactCharts} />} />
+                        <LabelList content={<PositionalPercentLabel values={values} />} />
                       </Line>
                     );
                   })}

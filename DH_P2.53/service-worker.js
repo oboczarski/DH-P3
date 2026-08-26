@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Isolated NFL Draft hit-rate overhaul: retire the prior cache so the new
-// seven-round route, responsive charts, and shared hit-rate shell arrive now.
-const CACHE_NAME = 'DH3.18';
+// NFL Draft-only chart refinement: retire the prior cache so the revised
+// progress dials, compact panels, and thicker seven-round matrix arrive now.
+const CACHE_NAME = 'DH3.19';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

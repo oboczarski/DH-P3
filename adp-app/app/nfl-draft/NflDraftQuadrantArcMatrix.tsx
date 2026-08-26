@@ -40,22 +40,23 @@ type MatrixTooltip = {
 };
 
 const rangeDefinitions = [
-  { source: "Round 1", label: "RD 1", railColor: "#ff78ca" },
-  { source: "Round 2", label: "RD 2", railColor: "#d98aff" },
-  { source: "Round 3", label: "RD 3", railColor: "#a980ff" },
-  { source: "Round 4", label: "RD 4", railColor: "#748eff" },
-  { source: "Round 5", label: "RD 5", railColor: "#43b9ff" },
-  { source: "Round 6", label: "RD 6", railColor: "#35dedb" },
-  { source: "Round 7", label: "RD 7", railColor: "#61efae" },
+  { source: "Round 1", label: "RD 1" },
+  { source: "Round 2", label: "RD 2" },
+  { source: "Round 3", label: "RD 3" },
+  { source: "Round 4", label: "RD 4" },
+  { source: "Round 5", label: "RD 5" },
+  { source: "Round 6", label: "RD 6" },
+  { source: "Round 7", label: "RD 7" },
 ] as const;
 
 const positions: NflDraftPosition[] = ["QB", "RB", "WR", "TE"];
 const quadrantStartAngles = [-35, 55, 145, 235];
 
-// Seven compact, evenly separated rails fill the space recovered by reducing
-// the center from the four-range matrix while leaving a clear inner gutter.
-const rangeRadii = [220, 201, 182, 163, 144, 125, 106];
-const guideRadii = [78, 96, 115, 134, 153, 172, 191, 210, 229];
+// NFL matrix ring geometry: fourteen-pixel rails and tighter twenty-two-pixel
+// centers use the recovered inner space instead of leaving RD 7 detached from
+// the reduced core. The outer extent remains inside the original chart frame.
+const rangeRadii = [221, 199, 177, 155, 133, 111, 89];
+const guideRadii = [79, 89, 111, 133, 155, 177, 199, 221, 232];
 const annularArc = arc();
 
 const matrixGradientDirections = {
@@ -133,7 +134,11 @@ function arcPath(
   );
 }
 
-function formatPercent(value: number) {
+function formatMatrixPercent(value: number) {
+  return `${Math.round(value)}%`;
+}
+
+function formatOverallPercent(value: number) {
   return `${value.toFixed(1)}%`;
 }
 
@@ -228,7 +233,7 @@ export default function NflDraftQuadrantArcMatrix({
   return (
     <div className="viz-shell matrix-shell nfl-matrix-shell">
       <svg
-        viewBox="0 0 620 620"
+        viewBox="36 36 548 548"
         className="viz-svg matrix-svg nfl-matrix-svg"
         role="img"
         aria-labelledby="nfl-quadrant-matrix-title nfl-quadrant-matrix-description"
@@ -324,7 +329,7 @@ export default function NflDraftQuadrantArcMatrix({
                     textAnchor: labelPlacement[position].textAnchor,
                     dominantBaseline: labelPlacement[position].dominantBaseline,
                   };
-                  const accessibleLabel = `${position} · ${label}: ${formatPercent(value)}`;
+                  const accessibleLabel = `${position} · ${label}: ${formatMatrixPercent(value)}`;
 
                   return (
                     <g
@@ -345,17 +350,17 @@ export default function NflDraftQuadrantArcMatrix({
                     >
                       <title>{accessibleLabel}</title>
                       <path
-                        d={arcPath(radius - 4.5, radius + 4.5, startAngle, startAngle + 70, 4.5)}
+                        d={arcPath(radius - 7, radius + 7, startAngle, startAngle + 70, 7)}
                         fill="rgba(151,169,212,.07)"
                         stroke="rgba(192,205,240,.065)"
-                        strokeWidth=".8"
+                        strokeWidth="1"
                       />
                       <path
-                        d={arcPath(radius - 4.5, radius + 4.5, startAngle, endAngle, 4.5)}
+                        d={arcPath(radius - 7, radius + 7, startAngle, endAngle, 7)}
                         fill={`url(#nfl-matrix-${position})`}
                         filter="url(#nfl-matrix-glow)"
                       />
-                      <circle cx={point.x} cy={point.y} r="2.6" fill="#f7fbff" />
+                      <circle cx={point.x} cy={point.y} r="3.25" fill="#f7fbff" />
                       <text
                         x={placement.x}
                         y={placement.y}
@@ -363,7 +368,7 @@ export default function NflDraftQuadrantArcMatrix({
                         dominantBaseline={placement.dominantBaseline}
                         className="matrix-value nfl-matrix-value"
                       >
-                        {formatPercent(value)}
+                        {formatMatrixPercent(value)}
                       </text>
                     </g>
                   );
@@ -381,21 +386,13 @@ export default function NflDraftQuadrantArcMatrix({
             OVERALL · RD 1
           </text>
           <text y="11" textAnchor="middle" className="core-value nfl-core-value">
-            {formatPercent(roundOneOverall)}
+            {formatOverallPercent(roundOneOverall)}
           </text>
           <text y="31" textAnchor="middle" className="core-label nfl-core-label">
             HIT PROBABILITY
           </text>
         </g>
       </svg>
-
-      <div className="matrix-range-rail nfl-matrix-range-rail" aria-label="Arc order from outside to inside">
-        <span>OUTER</span>
-        {rangeDefinitions.map(({ label, railColor }) => (
-          <b key={label} style={{ color: railColor }}>{label}</b>
-        ))}
-        <span>INNER</span>
-      </div>
 
       {tooltip ? (
         <div
@@ -404,7 +401,7 @@ export default function NflDraftQuadrantArcMatrix({
           role="status"
         >
           <strong>{tooltip.position} · {tooltip.range}</strong>
-          <div><span>Hit rate</span><b>{formatPercent(tooltip.value)}</b></div>
+          <div><span>Hit rate</span><b>{formatMatrixPercent(tooltip.value)}</b></div>
           <div><span>NFL round</span><b>{tooltip.range}</b></div>
         </div>
       ) : null}

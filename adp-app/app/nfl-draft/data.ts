@@ -57,26 +57,3 @@ export const nflDraftStatPalettes = [
   { accent: "#00dcca", rgb: "0,220,202", start: "#50e8ff", mid: "#00dcca", end: "#27ef9f" },
   { accent: "#55e58f", rgb: "85,229,143", start: "#8fffc0", mid: "#55e58f", end: "#00d9b0" },
 ] as const;
-
-export type TrendLabelOffset = { dx: number; dy: number };
-
-// Each label receives a position-and-round-specific slot. The offsets preserve
-// all 28 visible values while separating the dense Round 1 and late-round data.
-export const nflDraftTrendLabelOffsets: Record<NflDraftPosition, readonly TrendLabelOffset[]> = {
-  QB: [
-    { dx: -22, dy: -12 }, { dx: -15, dy: -13 }, { dx: -16, dy: -12 },
-    { dx: -16, dy: 12 }, { dx: -14, dy: 17 }, { dx: -16, dy: -6 }, { dx: -18, dy: -26 },
-  ],
-  RB: [
-    { dx: 0, dy: -15 }, { dx: -15, dy: -14 }, { dx: 0, dy: -14 },
-    { dx: 0, dy: -15 }, { dx: 0, dy: -15 }, { dx: 0, dy: -17 }, { dx: 17, dy: 16 },
-  ],
-  WR: [
-    { dx: 0, dy: 19 }, { dx: 15, dy: 17 }, { dx: 16, dy: 17 },
-    { dx: 0, dy: 17 }, { dx: 0, dy: -15 }, { dx: 15, dy: -7 }, { dx: 17, dy: -10 },
-  ],
-  TE: [
-    { dx: 22, dy: -5 }, { dx: 15, dy: 15 }, { dx: 17, dy: -12 },
-    { dx: 15, dy: -12 }, { dx: 13, dy: 2 }, { dx: 14, dy: 18 }, { dx: -8, dy: 19 },
-  ],
-};
