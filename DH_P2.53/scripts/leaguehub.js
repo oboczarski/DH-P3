@@ -884,7 +884,7 @@
       if (elements.heroHeading) {
         elements.heroHeading.textContent = isAnalysis
           ? 'League Value & Production Overview'
-          : 'League Trade Archive';
+          : 'Dynasty League Trade Database';
       }
       if (elements.heroDescription) {
         elements.heroDescription.textContent = isAnalysis
