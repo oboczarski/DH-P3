@@ -135,9 +135,7 @@ body[data-page="ownership"] .nav-more-item-icon {
   border: 0;
   border-radius: 11px;
   color: rgb(178 181 255 / 96%);
-  background:
-    linear-gradient(180deg, #6556c994, rgb(95 76 147 / 17%)),
-    rgba(15, 26, 42, 0.78);
+  background: linear-gradient(180deg, #6265b2, rgb(95 76 147 / 17%)), rgba(15, 26, 42, 0.78);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 2px 3px -1px rgba(0, 0, 0, 0.33);
