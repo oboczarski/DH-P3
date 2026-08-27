@@ -773,8 +773,9 @@ body[data-page="leaguehub"] .leaguehub-trades-season::before {
   left: 0;
   width: 2px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #624cfb, rgb(55 162 255 / 34%), rgb(100 30 209 / 55%));
+  background: linear-gradient(180deg, #624cfb, rgb(55 162 255 / 34%), rgb(153 87 255 / 55%));
   box-shadow: 0 0 14px rgba(111, 245, 209, 0.22);
+  opacity: 0.7;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season + .leaguehub-trades-season {
