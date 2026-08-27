@@ -295,8 +295,8 @@ body[data-page="leaguehub"] .leaguehub-tab-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.22rem;
-  padding: 0.2rem;
-  border-radius: 18px;
+  padding: 0.15rem;
+  border-radius: 16px;
   border: 1px solid rgba(145, 166, 224, 0.2);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
@@ -325,7 +325,7 @@ body[data-page="leaguehub"] .leaguehub-tab-button {
 
 body[data-page="leaguehub"] .leaguehub-tab-button:hover {
   color: #fff;
-  transform: translateY(-1px);
+  transform: translateY(0px);
 }
 
 body[data-page="leaguehub"] .leaguehub-tab-button:focus-visible {
@@ -335,12 +335,9 @@ body[data-page="leaguehub"] .leaguehub-tab-button:focus-visible {
 
 body[data-page="leaguehub"] .leaguehub-tab-button.active {
   color: #fff;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(111, 245, 209, 0.18), transparent 48%),
-    radial-gradient(circle at 95% 100%, rgba(255, 119, 184, 0.13), transparent 44%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
-    rgba(18, 25, 48, 0.92);
+  background: conic-gradient(from 48deg, #5230ff 5deg, #755faeaa, #3c248f, #79a2ff7a, #5230ff);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 9px 18px rgba(4, 8, 21, 0.24);
+  opacity: 0.9;
 }
 
 body[data-page="leaguehub"] .leaguehub-tab-button i {
@@ -1294,7 +1291,7 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
   body[data-page="leaguehub"] .leaguehub-tab-button {
     min-height: 2.5rem;
     padding: 0.38rem 0.42rem;
-    border-radius: 12px;
+    border-radius: 13px;
   }
 
   body[data-page="leaguehub"] .leaguehub-tab-label {
@@ -1454,10 +1451,32 @@ body[data-page="leaguehub"] .analyzer-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
+  font-size: 1.85rem;
+  text-wrap-mode: nowrap;
+  letter-spacing: -0.07em;
+  color: transparent;
+  background: linear-gradient(to bottom left, #424f6f, #4e4376) text;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  justify-content: center;
+  margin: 0;
+  font-family: 'MuseoModerno';
+  text-transform: capitalize;
+  font-weight: 600;
+  filter: drop-shadow(2px 2px 2px #0007) drop-shadow(0px 0px 20px #fff1) brightness(1.7) saturate(1.6);
+}
+
+body[data-page="leaguehub"] .analyzer-hero h1 {
+  font-size: 0.95rem;
+  line-height: 1;
+  margin: 0;
+  text-wrap-mode: nowrap;
+  align-self: center;
+  font-family: urbanist;
   text-transform: uppercase;
   text-wrap-mode: nowrap;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: var(--color-text-secondary);
   background: linear-gradient(to bottom, rgb(185 184 217 / 15%), rgb(91 75 203 / 10%));
   border: 1px solid rgba(128, 138, 189, 0.2);
@@ -1466,14 +1485,7 @@ body[data-page="leaguehub"] .analyzer-pill {
   justify-content: center;
   margin: 0 0.8rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-body[data-page="leaguehub"] .analyzer-hero h1 {
-  font-size: 1.35rem;
-  line-height: 1.2;
-  margin: 0;
-  text-wrap-mode: nowrap;
-  align-self: center;
+  font-weight: 500;
 }
 
 body[data-page="leaguehub"] .analyzer-hero p {
@@ -3005,11 +3017,13 @@ body[data-page="leaguehub"] .app-header {
     padding: 0.95rem;
   }
   body[data-page="leaguehub"] .analyzer-hero h1 {
-    font-size: 1.75rem;
+    font-size: 1.05rem;
+    margin-top: -6px;
   }
   body[data-page="leaguehub"] .analyzer-pill {
-    margin: 0 3.1rem;
-    padding: 0.35rem 0.9rem;
+    margin: 0 1.6rem;
+    padding: 0 0.9rem 0;
+    font-size: 41px;
   }
   body[data-page="leaguehub"] .analyzer-hero-intro {
     gap: 0.55rem;

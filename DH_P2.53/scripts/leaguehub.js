@@ -889,7 +889,7 @@
       if (elements.heroDescription) {
         elements.heroDescription.textContent = isAnalysis
           ? 'Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.'
-          : 'Explore completed Sleeper trades across linked seasons, compare received value, and filter the archive by partner, season, asset, or league.';
+          : 'Explore your league’s trades across each season, compare received value, and gain insight into leagues trade activity.';
       }
     }
 
