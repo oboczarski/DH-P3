@@ -773,7 +773,7 @@ body[data-page="leaguehub"] .leaguehub-trades-season::before {
   left: 0;
   width: 2px;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--lh-trade-teal), rgba(141, 202, 255, 0.34), rgba(255, 119, 184, 0.08));
+  background: linear-gradient(180deg, #624cfb, rgb(55 162 255 / 34%), rgb(100 30 209 / 55%));
   box-shadow: 0 0 14px rgba(111, 245, 209, 0.22);
 }
 
@@ -793,7 +793,7 @@ body[data-page="leaguehub"] .leaguehub-trades-season-head {
   padding: 0.42rem 0.54rem;
   border: 1px solid rgba(151, 180, 246, 0.15);
   border-radius: 14px;
-  background: rgba(11, 16, 34, 0.92);
+  background: rgb(69 92 114 / 53%);
   box-shadow: 0 10px 20px rgba(2, 6, 17, 0.24);
   backdrop-filter: blur(10px) saturate(135%);
   -webkit-backdrop-filter: blur(10px) saturate(135%);
@@ -910,10 +910,10 @@ body[data-page="leaguehub"] .leaguehub-trade-package {
 body[data-page="leaguehub"] .leaguehub-trade-package::before {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 5px auto 5px 0px;
   width: 3px;
   border-radius: 14px 0 0 14px;
-  background: rgba(141, 202, 255, 0.44);
+  background: rgb(117 111 255 / 44%);
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-package.is-primary {
@@ -975,6 +975,11 @@ body[data-page="leaguehub"] .leaguehub-trade-package-total {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.06rem;
+  padding: 4px 6px 2px;
+  border: 1px solid #334;
+  border-radius: 8px;
+  align-items: center;
+  background: linear-gradient(rgba(92, 170, 255, 0.16), rgba(177, 102, 255, 0.09)), rgb(183 200 230 / 10%);
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-selected-pill {
