@@ -412,6 +412,32 @@ body[data-page="leaguehub"] .leaguehub-trades-feed-head {
   gap: 0.8rem;
 }
 
+/* Desktop Trade Archive toolbar header:
+   gives the league picker a true centered column between the archive title and
+   live status, without changing the analysis-panel header system. */
+body[data-page="leaguehub"] .leaguehub-trades-toolbar-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 17rem) minmax(0, 1fr);
+  align-items: end;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-heading {
+  align-self: center;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-head-league {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  width: 100%;
+  min-width: 0;
+  justify-self: center;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters .leaguehub-trades-control--league-mobile {
+  display: none;
+}
+
 body[data-page="leaguehub"] .leaguehub-trades-kicker {
   display: block;
   margin-bottom: 0.16rem;
@@ -451,11 +477,12 @@ body[data-page="leaguehub"] .leaguehub-trades-status {
   text-transform: capitalize;
   font-style: italic;
   letter-spacing: 0.02em;
+  justify-self: end;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.52rem;
   margin-top: 0.72rem;
 }
@@ -469,10 +496,11 @@ body[data-page="leaguehub"] .leaguehub-trades-control {
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-control--search {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-control label,
+body[data-page="leaguehub"] .leaguehub-trades-head-league label,
 body[data-page="leaguehub"] .leaguehub-trades-control-label {
   color: rgba(203, 217, 252, 0.68);
   font-size: 0.58rem;
@@ -480,6 +508,55 @@ body[data-page="leaguehub"] .leaguehub-trades-control-label {
   letter-spacing: 0.14em;
   line-height: 1;
   text-transform: uppercase;
+}
+
+/* Archive-local native league selects:
+   visually match the custom filter bars while retaining native platform
+   selection behavior and the same league source as the navigation control. */
+body[data-page="leaguehub"] .leaguehub-trades-native-select {
+  position: relative;
+  min-width: 0;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-native-select select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.42rem;
+  padding: 0.44rem 2rem 0.44rem 0.62rem;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 191, 255, 0.17);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(8, 13, 28, 0.68);
+  color: #f3f7ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-native-select select:disabled {
+  cursor: not-allowed;
+  color: rgba(207, 219, 255, 0.46);
+  opacity: 0.7;
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-native-select i {
+  position: absolute;
+  top: 50%;
+  right: 0.68rem;
+  color: rgba(207, 223, 255, 0.66);
+  font-size: 0.66rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+body[data-page="leaguehub"] .leaguehub-trades-native-select:focus-within select {
+  border-color: rgba(141, 202, 255, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 2px rgba(141, 202, 255, 0.13);
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-select {
@@ -791,11 +868,17 @@ body[data-page="leaguehub"] .leaguehub-trades-season-head {
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.42rem 0.54rem;
-  border: 1px solid rgba(151, 180, 246, 0.15);
-  border-radius: 14px;
-  background: rgb(69 92 114 / 53%);
-  box-shadow: 0 10px 20px rgba(2, 6, 17, 0.24);
+  min-height: 3.25rem;
+  padding: 0.58rem 0.72rem;
+  border: 1px solid hsl(var(--lh-season-hue, 215) 78% 72% / 0.24);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 10% 0%, hsl(var(--lh-season-hue, 215) 88% 70% / 0.16), transparent 44%),
+    linear-gradient(135deg, hsl(var(--lh-season-hue, 215) 36% 23% / 0.94), rgba(28, 35, 58, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 22px rgba(2, 6, 17, 0.28),
+    0 0 20px hsl(var(--lh-season-hue, 215) 78% 58% / 0.08);
   backdrop-filter: blur(10px) saturate(135%);
   -webkit-backdrop-filter: blur(10px) saturate(135%);
 }
@@ -803,7 +886,7 @@ body[data-page="leaguehub"] .leaguehub-trades-season-head {
 body[data-page="leaguehub"] .leaguehub-trades-season-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
+  gap: 0.58rem;
   min-width: 0;
 }
 
@@ -811,31 +894,42 @@ body[data-page="leaguehub"] .leaguehub-trades-season-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.8rem;
-  padding: 0.2rem 0.42rem;
+  min-width: 3.65rem;
+  min-height: 1.72rem;
+  padding: 0.28rem 0.58rem;
   border-radius: 999px;
-  border: 1px solid rgba(111, 245, 209, 0.24);
-  background: rgba(111, 245, 209, 0.1);
-  color: #dffdf6;
-  font-size: 0.66rem;
+  border: 1px solid hsl(var(--lh-season-hue, 215) 92% 76% / 0.48);
+  background:
+    linear-gradient(135deg, hsl(var(--lh-season-hue, 215) 84% 65% / 0.24), hsl(var(--lh-season-hue, 215) 78% 48% / 0.12)),
+    rgba(8, 13, 28, 0.72);
+  color: hsl(var(--lh-season-hue, 215) 90% 92%);
+  font-size: 0.78rem;
   font-weight: 900;
+  letter-spacing: 0.055em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 16px hsl(var(--lh-season-hue, 215) 84% 62% / 0.18);
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season-name {
   min-width: 0;
   overflow: hidden;
   color: #f7fbff;
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: 1.02rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season-count {
   flex: 0 0 auto;
-  color: rgba(207, 219, 255, 0.62);
-  font-size: 0.68rem;
-  font-weight: 700;
+  padding: 0.22rem 0.44rem;
+  border-radius: 999px;
+  background: rgba(7, 12, 27, 0.34);
+  color: rgba(225, 234, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-entry {
@@ -937,6 +1031,18 @@ body[data-page="leaguehub"] .leaguehub-trade-package.is-selected-member {
 body[data-page="leaguehub"] .leaguehub-trade-package.is-selected-member::before {
   background: var(--lh-trade-teal);
   box-shadow: 0 0 16px rgba(111, 245, 209, 0.42);
+}
+
+/* Greater received-value side:
+   highlights only the unique KTC/PPG leader selected by the archive renderer;
+   ties keep the neutral package treatment on every side. */
+body[data-page="leaguehub"] .leaguehub-trade-package.has-greater-received-value::before {
+  background: rgb(29 252 197 / 86%);
+  box-shadow: 0 0 16px rgb(29 252 197 / 36%);
+}
+
+body[data-page="leaguehub"] .leaguehub-trade-package.has-greater-received-value .leaguehub-trade-package-total {
+  filter: brightness(1.3) saturate(1.3);
 }
 
 body[data-page="leaguehub"] .leaguehub-trade-package-head {
@@ -1204,8 +1310,17 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
   body[data-page="leaguehub"] .leaguehub-trades-toolbar-head,
   body[data-page="leaguehub"] .leaguehub-trades-module-header,
   body[data-page="leaguehub"] .leaguehub-trades-feed-head {
+    display: flex;
     flex-direction: column;
     gap: 0.44rem;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-trades-head-league--desktop {
+    display: none;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-trades-toolbar-filters .leaguehub-trades-control--league-mobile {
+    display: flex;
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-status {
@@ -1220,7 +1335,6 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
     gap: 0.42rem;
   }
 
-  body[data-page="leaguehub"] .leaguehub-trades-control--member,
   body[data-page="leaguehub"] .leaguehub-trades-control--search {
     grid-column: 1 / -1;
   }
@@ -1233,7 +1347,8 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-select-button,
-  body[data-page="leaguehub"] .leaguehub-trades-search-wrap {
+  body[data-page="leaguehub"] .leaguehub-trades-search-wrap,
+  body[data-page="leaguehub"] .leaguehub-trades-native-select select {
     min-height: 2.22rem;
   }
 
@@ -1247,16 +1362,19 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
 
   body[data-page="leaguehub"] .leaguehub-trades-season-head {
     top: 0.1rem;
-    padding: 0.36rem 0.42rem;
+    min-height: 2.9rem;
+    padding: 0.5rem 0.54rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-season-tag {
-    min-width: 2.45rem;
-    font-size: 0.6rem;
+    min-width: 3.2rem;
+    min-height: 1.54rem;
+    padding: 0.24rem 0.48rem;
+    font-size: 0.7rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trades-season-name {
-    font-size: 0.74rem;
+    font-size: 0.88rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trade-entry {
@@ -1290,6 +1408,16 @@ body[data-page="leaguehub"] .leaguehub-trade-empty-note {
     flex-direction: row;
     gap: 0.06rem;
     margin-bottom: -10px;
+  }
+
+  /* Mobile FAAB rows have no right-side value chip, so they must keep normal
+     title/subtitle flow instead of inheriting the compressed player-row offset. */
+  body[data-page="leaguehub"] .leaguehub-trade-asset-row.is-faab .leaguehub-trade-asset-line {
+    margin-bottom: 0;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-trade-asset-row.is-faab .leaguehub-trade-asset-subtitle {
+    margin-top: 0.12rem;
   }
 
   body[data-page="leaguehub"] .leaguehub-trade-stat-grid {
@@ -2339,6 +2467,19 @@ body[data-page="leaguehub"] .analyzer-leaderboard-table .al-ppg-cell {
 
 /* ---- Mobile refinements ---- */
 @media (max-width: 819px) {
+  /* Mobile WebKit Trade Archive compositing:
+     dozens of card/sticky-header backdrop layers can darken the whole page on
+     physical devices, so the archive keeps its layered backgrounds but drops
+     only those nested filters on mobile. Analysis-view glass remains unchanged. */
+  body[data-page="leaguehub"] #leagueTradesPanel .leaguehub-trades-toolbar,
+  body[data-page="leaguehub"] #leagueTradesPanel .leaguehub-trades-module,
+  body[data-page="leaguehub"] #leagueTradesPanel .leaguehub-trades-empty,
+  body[data-page="leaguehub"] #leagueTradesPanel .leaguehub-trade-entry,
+  body[data-page="leaguehub"] #leagueTradesPanel .leaguehub-trades-season-head {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   body[data-page="leaguehub"] #header-container {
     display: contents;
   }

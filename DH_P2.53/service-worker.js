@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Page-local More menus: retire the prior cache so the Rosters-style Research,
-// Ownership, LeagueHub, Contact, and isolated ADP menus arrive together.
-const CACHE_NAME = 'DH3.21';
+// LeagueHub Trade Archive refresh: retire the prior cache so the responsive
+// controls, received-value comparison, and mobile compositing fix arrive together.
+const CACHE_NAME = 'DH3.22';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

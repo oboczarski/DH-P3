@@ -17,6 +17,9 @@
       tabButtons: document.querySelectorAll('.leaguehub-tab-button'),
       analysisPanel: document.getElementById('leagueAnalysisPanel'),
       tradesPanel: document.getElementById('leagueTradesPanel'),
+      heroPill: document.getElementById('leagueHubHeroPill'),
+      heroHeading: document.getElementById('analyzer-hero-heading'),
+      heroDescription: document.getElementById('leagueHubHeroDescription'),
       summaryStats: document.getElementById('summaryStats'),
       content: document.getElementById('infographicContent'),
       lineupToggle: document.querySelectorAll('#lineup-panel .toggle-option'),
@@ -42,6 +45,7 @@
       tradesFeed: document.getElementById('leagueTradesFeed'),
       tradesFeedMeta: document.getElementById('leagueTradesFeedMeta'),
       tradesSearchInput: document.getElementById('leagueTradesSearch'),
+      tradeLeagueSelects: document.querySelectorAll('[data-trade-league-select]'),
       tradeSelects: {
         member: {
           control: document.getElementById('leagueTradesMemberButton')?.closest('.leaguehub-trades-control'),
@@ -628,8 +632,21 @@
     elements.leagueSelect?.addEventListener('change', () => {
       const leagueId = elements.leagueSelect.value;
       if (leagueId) {
+        syncLeagueSelectValues(leagueId);
         analyzeLeague(leagueId);
       }
+    });
+
+    // Trade Archive league controls:
+    // mirror the primary navigation select at their desktop/mobile placements so
+    // selecting a league from any surface drives the same analysis + archive flow.
+    elements.tradeLeagueSelects.forEach((select) => {
+      select.addEventListener('change', () => {
+        const leagueId = select.value;
+        if (!leagueId) return;
+        syncLeagueSelectValues(leagueId);
+        analyzeLeague(leagueId);
+      });
     });
 
     elements.tabButtons.forEach((button) => {
@@ -841,6 +858,8 @@
       state.trades.activeTab = tabName;
       const isAnalysis = tabName === 'analysis';
 
+      updateLeagueHubHero(isAnalysis);
+
       elements.analysisTab?.classList.toggle('active', isAnalysis);
       elements.analysisTab?.setAttribute('aria-selected', isAnalysis ? 'true' : 'false');
       elements.analysisTab?.setAttribute('tabindex', isAnalysis ? '0' : '-1');
@@ -854,6 +873,23 @@
 
       if (!isAnalysis && !skipTradeLoad && state.currentLeagueId) {
         await ensureTradeArchiveLoaded();
+      }
+    }
+
+    // LeagueHub hero context:
+    // keeps the product eyebrow consistent and swaps only the view-specific
+    // heading/description when users move between Analysis and Trade Archive.
+    function updateLeagueHubHero(isAnalysis) {
+      if (elements.heroPill) elements.heroPill.textContent = 'Dynasty Hub • League Hub';
+      if (elements.heroHeading) {
+        elements.heroHeading.textContent = isAnalysis
+          ? 'League Value & Production Overview'
+          : 'League Trade Archive';
+      }
+      if (elements.heroDescription) {
+        elements.heroDescription.textContent = isAnalysis
+          ? 'Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.'
+          : 'Explore completed Sleeper trades across linked seasons, compare received value, and filter the archive by partner, season, asset, or league.';
       }
     }
 
@@ -1036,7 +1072,7 @@
       clearTradeArchiveUi();
       setTradeEmptyState('');
       setTradeStatus(leagueInfo?.name
-        ? `Trade archive ready for ${leagueInfo.name}. Open League Trades to load completed Sleeper deals.`
+        ? `Trade archive ready for ${leagueInfo.name}. Open League Trade Archive to load completed Sleeper deals.`
         : 'Select a league to load the trade archive.');
     }
 
@@ -1681,7 +1717,7 @@
             <span class="leaguehub-trades-summary-meta">${escapeHtml(card.meta)}</span>
           </article>`).join('');
       }
-      if (elements.tradesAnalysisHeading) elements.tradesAnalysisHeading.textContent = selectedMember?.teamName || 'Selected leaguemate';
+      if (elements.tradesAnalysisHeading) elements.tradesAnalysisHeading.textContent = selectedMember?.teamName || 'Selected trade partner';
       if (elements.tradesAnalysisSubheading) {
         elements.tradesAnalysisSubheading.textContent = `${selectedTrades.length} completed trade${selectedTrades.length === 1 ? '' : 's'} in the current filter view.`;
       }
@@ -1736,7 +1772,7 @@
       if (!totalTrades) {
         elements.tradesFeed.innerHTML = '';
         elements.tradesFeedMeta.textContent = 'No completed trades match the current filters.';
-        setTradeEmptyState('No completed trades match the selected leaguemate, season, asset, or search filters.');
+        setTradeEmptyState('No completed trades match the selected trade partner, season, asset, or search filters.');
         return;
       }
 
@@ -1746,9 +1782,10 @@
     }
 
     function renderTradeSeasonBundle(seasonBundle, selectedMember) {
+      const seasonHue = getTradeSeasonHue(seasonBundle.season);
       return `
         <section class="leaguehub-trades-season">
-          <header class="leaguehub-trades-season-head">
+          <header class="leaguehub-trades-season-head" style="--lh-season-hue:${seasonHue}">
             <div class="leaguehub-trades-season-label">
               <span class="leaguehub-trades-season-tag">${escapeHtml(seasonBundle.season)}</span>
               <span class="leaguehub-trades-season-name">${escapeHtml(seasonBundle.leagueName || `Season ${seasonBundle.season}`)}</span>
@@ -1761,9 +1798,20 @@
         </section>`;
     }
 
+    // Season timeline color identity:
+    // assigns each linked year a nearby but distinct blue-to-violet hue so the
+    // sticky header and year pill remain cohesive without every season matching.
+    function getTradeSeasonHue(season) {
+      const year = Number.parseInt(season, 10);
+      if (!Number.isFinite(year)) return 215;
+      const yearOffset = ((year - 2016) % 18 + 18) % 18;
+      return 185 + (yearOffset * 7);
+    }
+
     function renderTradeCard(trade, index = 0) {
       const renderSides = getTradeRenderSides(trade);
       const isMultiRoster = renderSides.length > 2;
+      const greaterReceivedSide = getGreaterReceivedTradeSide(trade);
       // Trade card separator:
       // adds a visible divider before later cards in a season without changing
       // the transaction content or analysis-side DOM.
@@ -1778,9 +1826,35 @@
             <h4 class="leaguehub-trade-entry-title">${escapeHtml(renderSides.map((side) => side.teamName).join(' vs '))}</h4>
           </header>
           <div class="leaguehub-trade-entry-body ${isMultiRoster ? 'is-multi-team' : ''}">
-            ${renderSides.map((side, sideIndex) => renderTradeSide(side, sideIndex, trade)).join('')}
+            ${renderSides.map((side, sideIndex) => renderTradeSide(side, sideIndex, trade, side === greaterReceivedSide)).join('')}
           </div>
         </article>`;
+    }
+
+    // Trade-side received-value comparison:
+    // evaluates the complete package so filters never move the highlight; the
+    // current-season branch uses total KTC and prior seasons use received-player
+    // average PPG. Exact ties intentionally leave every side unhighlighted.
+    function getGreaterReceivedTradeSide(trade) {
+      const evaluatedSides = (trade?.sides || [])
+        .map((side) => ({ side, value: getTradeSideReceivedValue(side, trade) }))
+        .filter((entry) => Number.isFinite(entry.value));
+      if (evaluatedSides.length < 2) return null;
+      const greatestValue = Math.max(...evaluatedSides.map((entry) => entry.value));
+      const leaders = evaluatedSides.filter((entry) => Math.abs(entry.value - greatestValue) < 0.0001);
+      return leaders.length === 1 ? leaders[0].side : null;
+    }
+
+    function getTradeSideReceivedValue(side, trade) {
+      const incomingAssets = side?.incomingAssets || [];
+      if (isKtcPrimaryTradeSeason(trade?.season)) {
+        return incomingAssets.reduce((sum, asset) => sum + (Number(asset?.ktc) || 0), 0);
+      }
+      return averageNumbers(
+        incomingAssets
+          .filter((asset) => asset?.type === 'player')
+          .map((asset) => asset?.stats?.ppg),
+      ) ?? 0;
     }
 
     function getTradeRenderSides(trade) {
@@ -1794,7 +1868,7 @@
       ];
     }
 
-    function renderTradeSide(side, index, trade) {
+    function renderTradeSide(side, index, trade, hasGreaterReceivedValue = false) {
       const selectedOwnerId = state.trades.selectedMember;
       const isSelected = selectedOwnerId !== 'ALL' && side.ownerId === String(selectedOwnerId);
       const visibleAssets = getVisibleAssetsForSide(side);
@@ -1803,7 +1877,11 @@
       const totalKtc = visibleAssets.reduce((sum, asset) => sum + (Number(asset.ktc) || 0), 0);
       const isKtcPrimary = isKtcPrimaryTradeSeason(trade?.season);
       const productionSeason = getTradeProductionSeason(trade?.season);
-      const sideClass = `${index % 2 === 0 ? 'is-primary' : 'is-secondary'}${isSelected ? ' is-selected-member' : ''}`;
+      const sideClass = [
+        index % 2 === 0 ? 'is-primary' : 'is-secondary',
+        isSelected ? 'is-selected-member' : '',
+        hasGreaterReceivedValue ? 'has-greater-received-value' : '',
+      ].filter(Boolean).join(' ');
       const meta = [
         side.receivedPlayers ? `${side.receivedPlayers} player${side.receivedPlayers === 1 ? '' : 's'}` : '',
         side.receivedPicks ? `${side.receivedPicks} pick${side.receivedPicks === 1 ? '' : 's'}` : '',
@@ -1813,7 +1891,7 @@
         ? `
               <span class="leaguehub-trade-package-total-label">Received Value</span>
               <span class="leaguehub-trade-package-total-value" style="color:${getTradeKtcColor(totalKtc)}">${formatNumber(totalKtc)} KTC</span>
-              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(avgPpg, 1)} ${escapeHtml(productionSeason)} PPG</span>`
+              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(avgPpg, 1)} PPG (${escapeHtml(productionSeason)})</span>`
         : `
               <span class="leaguehub-trade-package-total-label">Received</span>
               <span class="leaguehub-trade-package-total-value">${formatOptionalNumber(avgPpg, 1)} PPG</span>
@@ -2766,6 +2844,7 @@
         if (!leagueInfo) throw new Error('League not found.');
         const analyzerSources = resolveAnalyzerSources(leagueInfo);
 
+        syncLeagueSelectValues(leagueId);
         state.currentLeagueId = leagueId;
         const qbSlots = leagueInfo.roster_positions.filter((slot) => slot === 'QB').length;
         const superflexSlots = leagueInfo.roster_positions.filter((slot) => slot === 'SUPER_FLEX').length;
@@ -4488,16 +4567,29 @@
     }
 
     function populateLeagueSelect(leagues) {
-      const select = elements.leagueSelect;
-      if (!select) return;
-      select.innerHTML = '<option value="">Select a league...</option>';
-      leagues.forEach((league) => {
-        const option = document.createElement('option');
-        option.value = league.league_id;
-        option.textContent = league.name;
-        select.appendChild(option);
+      // League selector population:
+      // gives the nav, desktop archive, and mobile archive controls identical
+      // options while allowing responsive CSS to expose only the local picker.
+      const leagueSelects = [elements.leagueSelect, ...elements.tradeLeagueSelects].filter(Boolean);
+      leagueSelects.forEach((select) => {
+        select.innerHTML = '<option value="">Select a league...</option>';
+        leagues.forEach((league) => {
+          const option = document.createElement('option');
+          option.value = league.league_id;
+          option.textContent = league.name;
+          select.appendChild(option);
+        });
+        select.disabled = false;
       });
-      select.disabled = false;
+      syncLeagueSelectValues(state.currentLeagueId || '');
+    }
+
+    function syncLeagueSelectValues(leagueId) {
+      const targetLeagueId = String(leagueId || '');
+      [elements.leagueSelect, ...elements.tradeLeagueSelects].filter(Boolean).forEach((select) => {
+        const hasTarget = [...select.options].some((option) => option.value === targetLeagueId);
+        select.value = hasTarget ? targetLeagueId : '';
+      });
     }
 
     function setLoading(isLoading, message = 'Loading LeagueHub...') {
