@@ -30,14 +30,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.25-dashboard-background-lab">
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.26-dashboard-background-families">
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 
 </head>
 
-<body data-page="welcome" data-dashboard-background="orbital-regalia" class="p-2 sm:p-4">
+<body data-page="welcome" data-dashboard-background="obsidian-confluence" class="p-2 sm:p-4">
   <!-- Glass-refraction SVG filter defs — hidden, referenced by backdrop-filter: url(#glass-refract).
        Two strengths: subtle (scale 8) for cards/pills, strong (scale 16) for dense/header tiers. -->
   <svg class="glass-svg-defs" aria-hidden="true" width="0" height="0"
@@ -175,7 +175,7 @@
             <div class="dashboard-background-lab__eyebrow">
               <span class="dashboard-background-lab__status" aria-hidden="true"></span>
               <span>Background Design Lab</span>
-              <span class="dashboard-background-lab__count" id="dashboardBackgroundCount">01 / 18</span>
+              <span class="dashboard-background-lab__count" id="dashboardBackgroundCount">01 / 09</span>
             </div>
             <label class="sr-only" for="dashboardBackgroundSelect">Select dashboard background design</label>
             <div class="dashboard-background-lab__control">
@@ -183,29 +183,20 @@
                 id="dashboardBackgroundSelect"
                 aria-describedby="dashboardBackgroundDescription"
               >
-                <option value="orbital-regalia">01 — Orbital Regalia</option>
-                <option value="silk-nebula">02 — Silk Nebula</option>
-                <option value="halo-matrix">03 — Halo Matrix</option>
-                <option value="champagne-flux">04 — Champagne Flux</option>
-                <option value="obsidian-confluence">05 — Obsidian Confluence</option>
-                <option value="sovereign-aperture">06 — Sovereign Aperture</option>
-                <option value="ascendant-current">07 — Ascendant Current</option>
-                <option value="ascendant-current-iii">08 — Ascendant Current III</option>
-                <option value="auric-current">09 — Auric Current</option>
-                <option value="harmonic-vault">10 — Harmonic Vault</option>
-                <option value="medallion-drift">11 — Medallion Drift</option>
-                <option value="gilded-tides">12 — Gilded Tides</option>
-                <option value="imperial-triumph">13 — Imperial Triumph</option>
-                <option value="mercurial-fold">14 — Mercurial Fold</option>
-                <option value="quantum-tides">15 — Quantum Tides</option>
-                <option value="signal-meridian">16 — Signal Meridian</option>
-                <option value="circuit-crown">17 — Circuit Crown</option>
-                <option value="astral-vortex">18 — Astral Vortex</option>
+                <option value="obsidian-confluence">01 — Obsidian Confluence</option>
+                <option value="obsidian-confluence-ii">02 — Obsidian Confluence II</option>
+                <option value="mercurial-fold">03 — Mercurial Fold</option>
+                <option value="mercurial-fold-ii">04 — Mercurial Fold II</option>
+                <option value="mercurial-fold-iii">05 — Mercurial Fold III</option>
+                <option value="mercurial-aperture">06 — Mercurial Aperture</option>
+                <option value="silk-nebula">07 — Silk Nebula</option>
+                <option value="gilded-tides">08 — Gilded Tides</option>
+                <option value="medallion-drift">09 — Medallion Drift</option>
               </select>
               <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </div>
             <p id="dashboardBackgroundDescription" class="dashboard-background-lab__description" aria-live="polite">
-              A closer, more prominent silver gyroscope engineered from engraved titanium and perforated metal.
+              Tightly framed mirrored metalwork reaches both sides sooner around a matte-black corridor.
             </p>
           </section>
 
@@ -586,7 +577,7 @@
 
   <script defer src="scripts/app.js?v=20260406-datahub3"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.25-dashboard-background-lab"></script>
+  <script src="scripts/dashboard.js?v=DH3.26-dashboard-background-families"></script>
 </body>
 
 </html>

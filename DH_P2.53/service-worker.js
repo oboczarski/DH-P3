@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Dashboard background design lab refinement: retire the prior cache so the revised
-// crops, regenerated variants, five additions, removals, and renumbering arrive together.
-const CACHE_NAME = 'DH3.25';
+// Dashboard background family refinement: retire the prior cache so the four generated
+// relatives, nine-style inventory, removed assets, and new default arrive together.
+const CACHE_NAME = 'DH3.26';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

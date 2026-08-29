@@ -4299,42 +4299,6 @@ function drawScatterChart(containerId, data) {
 // persistence, and loading behavior. Nothing here is shared with app.js or sister pages.
 const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
   {
-    id: 'orbital-regalia',
-    name: 'Orbital Regalia',
-    asset: 'assets/welcome/background-lab/orbital-regalia.png',
-    description: 'A closer, more prominent silver gyroscope engineered from engraved titanium and perforated metal.',
-    brightness: 0.58,
-    contrast: 1.06,
-    opacity: 0.88
-  },
-  {
-    id: 'silk-nebula',
-    name: 'Silk Nebula',
-    asset: 'assets/welcome/background-lab/silk-nebula.png',
-    description: 'Tightly framed smoked-slate silk reaches both sides sooner around a calm black center.',
-    brightness: 0.58,
-    contrast: 1.05,
-    opacity: 0.86
-  },
-  {
-    id: 'halo-matrix',
-    name: 'Halo Matrix',
-    asset: 'assets/welcome/background-lab/halo-matrix.png',
-    description: 'A fully contained circular matrix of recessed rings and dimensional silver perforations.',
-    brightness: 0.7,
-    contrast: 1.06,
-    opacity: 0.9
-  },
-  {
-    id: 'champagne-flux',
-    name: 'Champagne Flux',
-    asset: 'assets/welcome/background-lab/champagne-flux.png',
-    description: 'A centered cool-silver current of metal blades, smoked ribbons, and fine filaments.',
-    brightness: 0.62,
-    contrast: 1.04,
-    opacity: 0.87
-  },
-  {
     id: 'obsidian-confluence',
     name: 'Obsidian Confluence',
     asset: 'assets/welcome/background-lab/obsidian-confluence.png',
@@ -4344,74 +4308,11 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     opacity: 0.9
   },
   {
-    id: 'sovereign-aperture',
-    name: 'Sovereign Aperture',
-    asset: 'assets/welcome/background-lab/sovereign-aperture.png',
-    description: 'A monumental dark aperture centered inside machined graphite and silver architecture.',
+    id: 'obsidian-confluence-ii',
+    name: 'Obsidian Confluence II',
+    asset: 'assets/welcome/background-lab/obsidian-confluence-ii.png',
+    description: 'Interlocking perforated titanium bands braid upward around a broad matte-black corridor.',
     brightness: 0.68,
-    contrast: 1.06,
-    opacity: 0.9
-  },
-  {
-    id: 'ascendant-current',
-    name: 'Ascendant Current',
-    asset: 'assets/welcome/background-lab/ascendant-current.png',
-    description: 'Twin platinum currents rise from both bottom corners into an open dark aureole.',
-    brightness: 0.57,
-    contrast: 1.05,
-    opacity: 0.88
-  },
-  {
-    id: 'ascendant-current-iii',
-    name: 'Ascendant Current III',
-    asset: 'assets/welcome/background-lab/ascendant-current-iii.png',
-    description: 'Engineered silver currents sweep upward from both lower corners around a dark center.',
-    brightness: 0.55,
-    contrast: 1.05,
-    opacity: 0.87
-  },
-  {
-    id: 'auric-current',
-    name: 'Auric Current',
-    asset: 'assets/welcome/background-lab/auric-current.png',
-    description: 'A full-height platinum current continues from the lower trails through the upper frame.',
-    brightness: 0.56,
-    contrast: 1.05,
-    opacity: 0.88
-  },
-  {
-    id: 'harmonic-vault',
-    name: 'Harmonic Vault',
-    asset: 'assets/welcome/background-lab/harmonic-vault.png',
-    description: 'Nested silver-edged frames recede through a centered black-glass resonance chamber.',
-    brightness: 0.72,
-    contrast: 1.05,
-    opacity: 0.9
-  },
-  {
-    id: 'medallion-drift',
-    name: 'Medallion Drift',
-    asset: 'assets/welcome/background-lab/medallion-drift.png',
-    description: 'A more prominent radial black-titanium medallion fills its satin-silver orbital field.',
-    brightness: 0.66,
-    contrast: 1.05,
-    opacity: 0.89
-  },
-  {
-    id: 'gilded-tides',
-    name: 'Gilded Tides',
-    asset: 'assets/welcome/background-lab/gilded-tides.png',
-    description: 'Closer couture silver filaments and smoked-slate silk frame a midnight void.',
-    brightness: 0.6,
-    contrast: 1.04,
-    opacity: 0.87
-  },
-  {
-    id: 'imperial-triumph',
-    name: 'Imperial Triumph',
-    asset: 'assets/welcome/background-lab/imperial-triumph.png',
-    description: 'A farther silver football trophy stands behind immediate side architecture in an obsidian gallery.',
-    brightness: 0.7,
     contrast: 1.06,
     opacity: 0.9
   },
@@ -4425,45 +4326,63 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     opacity: 0.86
   },
   {
-    id: 'quantum-tides',
-    name: 'Quantum Tides',
-    asset: 'assets/welcome/background-lab/quantum-tides.png',
-    description: 'Platinum point-cloud terrain rolls through layered graphite waves and a distant valley.',
-    brightness: 0.6,
+    id: 'mercurial-fold-ii',
+    name: 'Mercurial Fold II',
+    asset: 'assets/welcome/background-lab/mercurial-fold-ii.png',
+    description: 'Broad satin-chrome sheets curl around a tall, calm obsidian hourglass void.',
+    brightness: 0.5,
+    contrast: 1.04,
+    opacity: 0.86
+  },
+  {
+    id: 'mercurial-fold-iii',
+    name: 'Mercurial Fold III',
+    asset: 'assets/welcome/background-lab/mercurial-fold-iii.png',
+    description: 'Nested liquid-metal pleats surround a wide black-glass basin with layered depth.',
+    brightness: 0.52,
+    contrast: 1.04,
+    opacity: 0.86
+  },
+  {
+    id: 'mercurial-aperture',
+    name: 'Mercurial Aperture',
+    asset: 'assets/welcome/background-lab/mercurial-aperture.png',
+    description: 'A monumental engineered aperture emerges from intertwined liquid-metal silver folds.',
+    brightness: 0.56,
     contrast: 1.05,
     opacity: 0.88
   },
   {
-    id: 'signal-meridian',
-    name: 'Signal Meridian',
-    asset: 'assets/welcome/background-lab/signal-meridian.png',
-    description: 'Silver data waves and vertical signal needles cross a deep obsidian meridian.',
-    brightness: 0.54,
-    contrast: 1.04,
+    id: 'silk-nebula',
+    name: 'Silk Nebula',
+    asset: 'assets/welcome/background-lab/silk-nebula.png',
+    description: 'Tightly framed smoked-slate silk reaches both sides sooner around a calm black center.',
+    brightness: 0.58,
+    contrast: 1.05,
     opacity: 0.86
   },
   {
-    id: 'circuit-crown',
-    name: 'Circuit Crown',
-    asset: 'assets/welcome/background-lab/circuit-crown.png',
-    description: 'A centered black-titanium diamond crowns a precisely engraved silver circuit matrix.',
-    brightness: 0.56,
-    contrast: 1.06,
-    opacity: 0.88
+    id: 'gilded-tides',
+    name: 'Gilded Tides',
+    asset: 'assets/welcome/background-lab/gilded-tides.png',
+    description: 'Closer couture silver filaments and smoked-slate silk frame a midnight void.',
+    brightness: 0.6,
+    contrast: 1.04,
+    opacity: 0.87
   },
   {
-    id: 'astral-vortex',
-    name: 'Astral Vortex',
-    asset: 'assets/welcome/background-lab/astral-vortex.png',
-    description: 'Abstract silver nebula currents orbit layered gravitational voids in obsidian space.',
-    brightness: 0.5,
-    contrast: 1.04,
-    opacity: 0.86
+    id: 'medallion-drift',
+    name: 'Medallion Drift',
+    asset: 'assets/welcome/background-lab/medallion-drift.png',
+    description: 'A more prominent radial black-titanium medallion fills its satin-silver orbital field.',
+    brightness: 0.66,
+    contrast: 1.05,
+    opacity: 0.89
   }
 ]);
 
 const DASHBOARD_BACKGROUND_STORAGE_KEY = 'dh-dashboard-background-design-lab';
-const DEFAULT_DASHBOARD_BACKGROUND_ID = 'orbital-regalia';
+const DEFAULT_DASHBOARD_BACKGROUND_ID = 'obsidian-confluence';
 const dashboardBackgroundById = new Map(
   DASHBOARD_BACKGROUND_DESIGNS.map((design) => [design.id, design])
 );
