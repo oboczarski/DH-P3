@@ -2717,6 +2717,10 @@ body[data-page="welcome"] .app-header {
 
   body[data-page="welcome"] .welcome-branding-panel h2 {
     font-size: 3.2rem;
+    font-family: "Bruno Ace SC";
+    letter-spacing: -0.05em;
+    font-weight: 200;
+    -webkit-text-stroke: 1px #16254394;
   }
 
   /* Adjust Header Container on Desktop */
@@ -2832,7 +2836,7 @@ body[data-page="welcome"] .app-header {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0rem;
     width: 100%;
     margin: 3px 12px 3px 5px !important;
 }
