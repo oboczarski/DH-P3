@@ -26,7 +26,7 @@
 // ============================================================================
 // LeagueHub Trade Archive refresh: retire the prior cache so the responsive
 // controls, received-value comparison, and mobile compositing fix arrive together.
-const CACHE_NAME = 'DH3.22C';
+const CACHE_NAME = 'DH3.22D';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
