@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Dashboard background design lab: retire the prior cache so the welcome-only picker,
-// controller, silver/slate raster set, and ::after image stage arrive together.
-const CACHE_NAME = 'DH3.24';
+// Dashboard background design lab refinement: retire the prior cache so the revised
+// crops, regenerated variants, five additions, removals, and renumbering arrive together.
+const CACHE_NAME = 'DH3.25';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
