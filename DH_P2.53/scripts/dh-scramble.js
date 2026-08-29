@@ -7,6 +7,8 @@
   const SCRAMBLE_MIN_MS = 50;                  // dud char holds longer -> slower-looking flicker
   const SCRAMBLE_MAX_MS = 110;
   const SPACE_INDEX = TARGET.indexOf(" ");      // should be 7 for "Dynasty Hub"
+  const SCRAMBLE_FONT = '1em "Bruno Ace SC"';
+  const FONT_WAIT_MAX_MS = 2500;
 
   const now = () => Date.now();
   const rand = (n) => Math.floor(Math.random() * n);
@@ -25,10 +27,7 @@
     return arr;
   }
 
-  function run() {
-    const el = document.getElementById("dh-scramble");
-    if (!el) return;
-
+  function run(el) {
     const slots = TARGET.split("");
     const state = slots.map(() => ({ dud: randChar(), next: now() + randInterval() }));
 
@@ -76,9 +75,32 @@
     }, TICK_MS);
   }
 
+  function start() {
+    const el = document.getElementById("dh-scramble");
+    if (!el) return;
+
+    // Dashboard scramble font gate: reveal and animate only after Bruno Ace SC is
+    // available, preventing the initial static title from flashing in a fallback face.
+    // The timeout keeps the title usable if a browser blocks the external font request.
+    const revealAndRun = () => {
+      el.classList.remove("dh-scramble--font-pending");
+      run(el);
+    };
+
+    if (!document.fonts || typeof document.fonts.load !== "function") {
+      revealAndRun();
+      return;
+    }
+
+    Promise.race([
+      document.fonts.load(SCRAMBLE_FONT, TARGET),
+      new Promise((resolve) => setTimeout(resolve, FONT_WAIT_MAX_MS))
+    ]).then(revealAndRun, revealAndRun);
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
+    document.addEventListener("DOMContentLoaded", start);
   } else {
-    run();
+    start();
   }
 })();

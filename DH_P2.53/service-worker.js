@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// LeagueHub Trade Archive refresh: retire the prior cache so the responsive
-// controls, received-value comparison, and mobile compositing fix arrive together.
-const CACHE_NAME = 'DH3.23A';
+// Dashboard mobile branding refresh: retire the prior cache so the compact content
+// gutter, exact title-size bands, and Bruno Ace SC scramble gate arrive together.
+const CACHE_NAME = 'DH3.23B';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

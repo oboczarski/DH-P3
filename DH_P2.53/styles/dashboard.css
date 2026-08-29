@@ -2878,6 +2878,52 @@ body[data-page="welcome"] .app-header {
   }
 }
 
+/* Dashboard mobile content gutter: replace the body's Tailwind p-2/sm:p-4
+   spacing with the requested compact 0.3rem edge on mobile only. */
+@media (max-width: 819px) {
+  body[data-page="welcome"] {
+    padding: 0.3rem;
+  }
+}
+
+/* Dashboard scramble typography: keep both the initial title and every animated
+   dud character in Bruno Ace SC. The pending state prevents a fallback-font flash
+   while the externally hosted face finishes loading. */
+body[data-page="welcome"] #dh-scramble,
+body[data-page="welcome"] #dh-scramble .dh-dud {
+  font-family: "Bruno Ace SC", sans-serif;
+}
+
+body[data-page="welcome"] #dh-scramble.dh-scramble--font-pending {
+  visibility: hidden;
+}
+
+/* Dashboard mobile title sizing: use independent literal bands so changing one
+   phone-width range cannot shift the logo, title, or menu geometry in another. */
+@media (max-width: 379px) {
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 1.84rem;
+  }
+}
+
+@media (min-width: 380px) and (max-width: 409px) {
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 1.94rem;
+  }
+}
+
+@media (min-width: 410px) and (max-width: 429px) {
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 2.14rem;
+  }
+}
+
+@media (min-width: 430px) and (max-width: 819px) {
+  body[data-page="welcome"] .welcome-branding-panel h2 {
+    font-size: 2.22rem;
+  }
+}
+
 /* --- Block E: Home-page header, controls, enter button, menu --- */
 
 /* make sure only for home: hide any leftover contextual controls */
