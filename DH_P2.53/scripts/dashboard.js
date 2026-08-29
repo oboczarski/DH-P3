@@ -4295,6 +4295,294 @@ function drawScatterChart(containerId, data) {
     .attr('opacity', 1);
 }
 
+// Dashboard background design lab: the home page owns this exact list, image grading,
+// persistence, and loading behavior. Nothing here is shared with app.js or sister pages.
+const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
+  {
+    id: 'orbital-regalia',
+    name: 'Orbital Regalia',
+    asset: 'assets/welcome/background-lab/orbital-regalia.png',
+    description: 'A centered silver gyroscope engineered from engraved titanium and perforated metal.',
+    brightness: 0.58,
+    contrast: 1.06,
+    opacity: 0.88
+  },
+  {
+    id: 'silk-nebula',
+    name: 'Silk Nebula',
+    asset: 'assets/welcome/background-lab/silk-nebula.png',
+    description: 'Balanced smoked-slate silk and platinum filaments surrounding a calm black center.',
+    brightness: 0.58,
+    contrast: 1.05,
+    opacity: 0.86
+  },
+  {
+    id: 'halo-matrix',
+    name: 'Halo Matrix',
+    asset: 'assets/welcome/background-lab/halo-matrix.png',
+    description: 'A fully contained circular matrix of recessed rings and dimensional silver perforations.',
+    brightness: 0.7,
+    contrast: 1.06,
+    opacity: 0.9
+  },
+  {
+    id: 'champagne-flux',
+    name: 'Champagne Flux',
+    asset: 'assets/welcome/background-lab/champagne-flux.png',
+    description: 'A centered cool-silver current of metal blades, smoked ribbons, and fine filaments.',
+    brightness: 0.62,
+    contrast: 1.04,
+    opacity: 0.87
+  },
+  {
+    id: 'obsidian-confluence',
+    name: 'Obsidian Confluence',
+    asset: 'assets/welcome/background-lab/obsidian-confluence.png',
+    description: 'Mirrored architectural ribbons converge around a protected matte-black corridor.',
+    brightness: 0.7,
+    contrast: 1.06,
+    opacity: 0.9
+  },
+  {
+    id: 'sovereign-aperture',
+    name: 'Sovereign Aperture',
+    asset: 'assets/welcome/background-lab/sovereign-aperture.png',
+    description: 'A monumental dark aperture centered inside machined graphite and silver architecture.',
+    brightness: 0.68,
+    contrast: 1.06,
+    opacity: 0.9
+  },
+  {
+    id: 'ascendant-current',
+    name: 'Ascendant Current',
+    asset: 'assets/welcome/background-lab/ascendant-current.png',
+    description: 'A platinum filament laurel rises from obsidian into an incomplete dark aureole.',
+    brightness: 0.61,
+    contrast: 1.05,
+    opacity: 0.88
+  },
+  {
+    id: 'ascendant-current-iii',
+    name: 'Ascendant Current III',
+    asset: 'assets/welcome/background-lab/ascendant-current-iii.png',
+    description: 'A couture three-tier current with precision joints, perforation, and engraved indexing.',
+    brightness: 0.57,
+    contrast: 1.05,
+    opacity: 0.87
+  },
+  {
+    id: 'ascendant-current-iv',
+    name: 'Ascendant Current IV',
+    asset: 'assets/welcome/background-lab/ascendant-current-iv.png',
+    description: 'The centered laurel is supported by fully contained high-reaching titanium ribs.',
+    brightness: 0.56,
+    contrast: 1.05,
+    opacity: 0.87
+  },
+  {
+    id: 'ascendant-current-vi',
+    name: 'Ascendant Current VI',
+    asset: 'assets/welcome/background-lab/ascendant-current-vi.png',
+    description: 'The silver laurel integrates with a deep, single-axis black-titanium parallax passage.',
+    brightness: 0.64,
+    contrast: 1.05,
+    opacity: 0.89
+  },
+  {
+    id: 'auric-current',
+    name: 'Auric Current',
+    asset: 'assets/welcome/background-lab/auric-current.png',
+    description: 'A centered incomplete platinum halo carried through balanced orbital current trails.',
+    brightness: 0.63,
+    contrast: 1.05,
+    opacity: 0.88
+  },
+  {
+    id: 'harmonic-vault',
+    name: 'Harmonic Vault',
+    asset: 'assets/welcome/background-lab/harmonic-vault.png',
+    description: 'Nested silver-edged frames recede through a centered black-glass resonance chamber.',
+    brightness: 0.72,
+    contrast: 1.05,
+    opacity: 0.9
+  },
+  {
+    id: 'medallion-drift',
+    name: 'Medallion Drift',
+    asset: 'assets/welcome/background-lab/medallion-drift.png',
+    description: 'A radial black-titanium medallion is balanced inside independent satin-silver orbits.',
+    brightness: 0.66,
+    contrast: 1.05,
+    opacity: 0.89
+  },
+  {
+    id: 'prismatic-treasury',
+    name: 'Prismatic Treasury',
+    asset: 'assets/welcome/background-lab/prismatic-treasury.png',
+    description: 'A mathematically centered hexagonal void is framed by mirrored obsidian facets.',
+    brightness: 0.68,
+    contrast: 1.06,
+    opacity: 0.9
+  },
+  {
+    id: 'eclipse-regalia',
+    name: 'Eclipse Regalia',
+    asset: 'assets/welcome/background-lab/eclipse-regalia.png',
+    description: 'A fully contained smoked-black eclipse sits inside machined silver orbital metalwork.',
+    brightness: 0.7,
+    contrast: 1.06,
+    opacity: 0.9
+  },
+  {
+    id: 'gilded-tides',
+    name: 'Gilded Tides',
+    asset: 'assets/welcome/background-lab/gilded-tides.png',
+    description: 'Couture silver filaments and smoked-slate silk flow around a centered midnight void.',
+    brightness: 0.6,
+    contrast: 1.04,
+    opacity: 0.87
+  },
+  {
+    id: 'imperial-triumph',
+    name: 'Imperial Triumph',
+    asset: 'assets/welcome/background-lab/imperial-triumph.png',
+    description: 'A silver football trophy stands on-axis in a deep obsidian parallax gallery.',
+    brightness: 0.7,
+    contrast: 1.06,
+    opacity: 0.9
+  }
+]);
+
+const DASHBOARD_BACKGROUND_STORAGE_KEY = 'dh-dashboard-background-design-lab';
+const DEFAULT_DASHBOARD_BACKGROUND_ID = 'orbital-regalia';
+const dashboardBackgroundById = new Map(
+  DASHBOARD_BACKGROUND_DESIGNS.map((design) => [design.id, design])
+);
+const dashboardBackgroundLoads = new Map();
+
+// Dashboard background lab persistence: invalid or unavailable storage always falls
+// back to the first remaining reference variant without affecting username storage.
+function readDashboardBackgroundId() {
+  try {
+    const saved = localStorage.getItem(DASHBOARD_BACKGROUND_STORAGE_KEY);
+    return dashboardBackgroundById.has(saved) ? saved : DEFAULT_DASHBOARD_BACKGROUND_ID;
+  } catch (e) {
+    return DEFAULT_DASHBOARD_BACKGROUND_ID;
+  }
+}
+
+// Dashboard background image preload: decode the requested raster before changing the
+// pseudo-element variable so the current option does not flash away on slower devices.
+function preloadDashboardBackground(design) {
+  if (dashboardBackgroundLoads.has(design.id)) {
+    return dashboardBackgroundLoads.get(design.id);
+  }
+
+  const assetUrl = new URL(design.asset, document.baseURI).href;
+  const loadPromise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => resolve(assetUrl);
+    image.onerror = () => reject(new Error(`Unable to load dashboard background: ${design.id}`));
+    image.src = assetUrl;
+  });
+
+  dashboardBackgroundLoads.set(design.id, loadPromise);
+  return loadPromise;
+}
+
+// Dashboard background image stage: update only the welcome body's controlled CSS
+// variables. #stars through #stars3 remain separate animated layers above ::after.
+function applyDashboardBackground(design, persist = true) {
+  const body = document.body;
+  if (body?.dataset.page !== 'welcome') return;
+
+  const assetUrl = new URL(design.asset, document.baseURI).href;
+  body.dataset.dashboardBackground = design.id;
+  body.style.setProperty('--dashboard-background-image', `url("${assetUrl}")`);
+  body.style.setProperty('--dashboard-background-brightness', String(design.brightness));
+  body.style.setProperty('--dashboard-background-contrast', String(design.contrast));
+  body.style.setProperty('--dashboard-background-opacity', String(design.opacity));
+
+  const starfield = document.getElementById('starfield');
+  if (starfield) {
+    starfield.dataset.backgroundDesign = design.id;
+  }
+
+  if (persist) {
+    try {
+      localStorage.setItem(DASHBOARD_BACKGROUND_STORAGE_KEY, design.id);
+    } catch (e) {
+      // The visual tester remains usable when private browsing blocks persistence.
+    }
+  }
+}
+
+// Dashboard background lab UI: synchronize the option number and accessible description,
+// then switch only after the selected full-quality image is ready.
+function setupDashboardBackgroundLab() {
+  if (document.body?.dataset.page !== 'welcome') return;
+
+  const lab = document.getElementById('dashboardBackgroundLab');
+  const select = document.getElementById('dashboardBackgroundSelect');
+  const count = document.getElementById('dashboardBackgroundCount');
+  const description = document.getElementById('dashboardBackgroundDescription');
+  if (!lab || !(select instanceof HTMLSelectElement) || !count || !description) return;
+
+  let activeDesign = dashboardBackgroundById.get(readDashboardBackgroundId())
+    || dashboardBackgroundById.get(DEFAULT_DASHBOARD_BACKGROUND_ID);
+  let requestId = 0;
+
+  const syncLabCopy = (design) => {
+    const designIndex = DASHBOARD_BACKGROUND_DESIGNS.findIndex((entry) => entry.id === design.id);
+    select.value = design.id;
+    count.textContent = `${String(designIndex + 1).padStart(2, '0')} / ${String(DASHBOARD_BACKGROUND_DESIGNS.length).padStart(2, '0')}`;
+    description.textContent = design.description;
+  };
+
+  applyDashboardBackground(activeDesign, false);
+  syncLabCopy(activeDesign);
+  preloadDashboardBackground(activeDesign).catch(() => {
+    // The CSS request still gets its normal browser retry path if eager decode fails.
+  });
+
+  select.addEventListener('change', async () => {
+    const nextDesign = dashboardBackgroundById.get(select.value);
+    if (!nextDesign) return;
+
+    // Returning to the active option while another raster is decoding cancels that
+    // pending switch instead of letting the older request overwrite the visible choice.
+    if (nextDesign.id === activeDesign.id) {
+      requestId += 1;
+      lab.removeAttribute('aria-busy');
+      delete document.body.dataset.dashboardBackgroundLoading;
+      syncLabCopy(activeDesign);
+      return;
+    }
+
+    const thisRequest = ++requestId;
+    lab.setAttribute('aria-busy', 'true');
+    document.body.dataset.dashboardBackgroundLoading = 'true';
+
+    try {
+      await preloadDashboardBackground(nextDesign);
+      if (thisRequest !== requestId) return;
+      activeDesign = nextDesign;
+      applyDashboardBackground(activeDesign);
+      syncLabCopy(activeDesign);
+    } catch (error) {
+      if (thisRequest !== requestId) return;
+      syncLabCopy(activeDesign);
+      console.warn(error);
+    } finally {
+      if (thisRequest === requestId) {
+        lab.removeAttribute('aria-busy');
+        delete document.body.dataset.dashboardBackgroundLoading;
+      }
+    }
+  });
+}
+
 // Dashboard header branding: keep the home-page logo visible when the app is opened
 // from a sister app or restored from a mobile webview/pageshow state. The helper
 // validates the header logo image and re-requests it once if the first paint stalls.
@@ -4450,6 +4738,7 @@ window.initFantasyDashboard = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  setupDashboardBackgroundLab();
   stabilizeDashboardBrandLogo();
   window.initFantasyDashboard();
 });

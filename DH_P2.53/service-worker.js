@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Dashboard mobile branding refresh: retire the prior cache so the compact content
-// gutter, exact title-size bands, and Bruno Ace SC scramble gate arrive together.
-const CACHE_NAME = 'DH3.23B';
+// Dashboard background design lab: retire the prior cache so the welcome-only picker,
+// controller, silver/slate raster set, and ::after image stage arrive together.
+const CACHE_NAME = 'DH3.24';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
