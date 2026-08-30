@@ -25,8 +25,8 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Research hit-rate refinement: retire the prior cache so both isolated route
-// documents discover the updated NFL knob, positional chart, typography, and CSS.
-const CACHE_NAME = 'DH3.29';
+// documents discover the updated neutral NFL matrix-knob geometry and styling.
+const CACHE_NAME = 'DH3.30';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

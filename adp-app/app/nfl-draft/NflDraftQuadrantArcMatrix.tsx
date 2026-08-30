@@ -171,7 +171,7 @@ function MatrixDefinitions({ gradients }: { gradients: MatrixGradientMap }) {
       })}
 
       {/* NFL matrix knob: these route-local layers reproduce the stat-core
-          bezel, navy face, upper highlight, RD1 accent, and inset depth. */}
+          bezel, navy face, neutral highlight, and inset depth. */}
       <linearGradient id="nfl-matrix-core-bezel" x1="20%" y1="4%" x2="80%" y2="96%">
         <stop offset="0%" stopColor="#18223a" />
         <stop offset="34%" stopColor="#091020" />
@@ -186,11 +186,6 @@ function MatrixDefinitions({ gradients }: { gradients: MatrixGradientMap }) {
         <stop offset="0%" stopColor="#2c3d66" stopOpacity="0.62" />
         <stop offset="58%" stopColor="#2c3d66" stopOpacity="0.20" />
         <stop offset="100%" stopColor="#2c3d66" stopOpacity="0" />
-      </radialGradient>
-      <radialGradient id="nfl-matrix-core-accent" cx="52%" cy="63%" r="48%">
-        <stop offset="0%" stopColor="#ff0aa5" stopOpacity="0.075" />
-        <stop offset="58%" stopColor="#ff0aa5" stopOpacity="0.025" />
-        <stop offset="100%" stopColor="#ff0aa5" stopOpacity="0" />
       </radialGradient>
       <linearGradient id="nfl-matrix-core-depth" x1="50%" y1="0%" x2="50%" y2="100%">
         <stop offset="0%" stopColor="#000000" stopOpacity="0" />
@@ -429,7 +424,7 @@ export default function NflDraftQuadrantArcMatrix({
             filter="url(#nfl-matrix-core-shadow)"
           >
             <circle
-              r="73"
+              r="72"
               fill="url(#nfl-matrix-core-bezel)"
               stroke="rgba(255,255,255,.075)"
               strokeWidth="1"
@@ -441,18 +436,18 @@ export default function NflDraftQuadrantArcMatrix({
               strokeWidth="2.5"
             />
             <circle
-              r="67"
+              r="66"
               fill="url(#nfl-matrix-core-base)"
-              stroke="rgba(255,255,255,.085)"
-              strokeWidth="1"
+              stroke="rgba(50,50,55,0.685)"
+              strokeWidth="2"
             />
             <circle r="67" fill="url(#nfl-matrix-core-highlight)" />
-            <circle r="67" fill="url(#nfl-matrix-core-accent)" />
+            <circle r="67" fill="#3342" />
             <circle r="67" fill="url(#nfl-matrix-core-depth)" />
             <circle
               r="63"
               fill="none"
-              stroke="rgba(255,10,165,.055)"
+              stroke="rgba(115,120,125,.055)"
               strokeWidth="1"
             />
             <path

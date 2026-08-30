@@ -297,7 +297,7 @@ export default function Home() {
         </header>
 
         <section className="hero">
-          <div className="eyebrow"><span>CAREER HIT STUDY</span><i /></div>
+          <div className="eyebrow"><span>HIT RATE STUDY</span><i /></div>
           <h1>Player Career Hit Rates<br /><em>by Rookie ADP.</em></h1>
           <p>
             Positional hit rates across eight rookie classes—highlighting overall and positional hit probabilities for players across rookie draft ADP.
