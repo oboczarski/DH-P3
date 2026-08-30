@@ -170,24 +170,43 @@ function MatrixDefinitions({ gradients }: { gradients: MatrixGradientMap }) {
         );
       })}
 
-      {/* NFL matrix core: layered upper highlight, lower accent glow, and deep
-          navy falloff reproduce the visual treatment used by the stat dials. */}
-      <radialGradient id="nfl-matrix-center-fill" cx="33%" cy="24%" r="82%">
-        <stop offset="0%" stopColor="#2c3d66" stopOpacity="0.62" />
-        <stop offset="40%" stopColor="#0f1930" />
-        <stop offset="72%" stopColor="#080d1d" />
-        <stop offset="100%" stopColor="#050914" />
-      </radialGradient>
-      <radialGradient id="nfl-matrix-center-accent" cx="52%" cy="63%" r="62%">
-        <stop offset="0%" stopColor="#4d79ff" stopOpacity="0.12" />
-        <stop offset="48%" stopColor="#4d79ff" stopOpacity="0.035" />
-        <stop offset="100%" stopColor="#4d79ff" stopOpacity="0" />
-      </radialGradient>
-      <linearGradient id="nfl-matrix-center-edge" x1="22%" y1="4%" x2="78%" y2="96%">
-        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.13" />
-        <stop offset="48%" stopColor="#8290b6" stopOpacity="0.08" />
-        <stop offset="100%" stopColor="#02050d" stopOpacity="0.72" />
+      {/* NFL matrix knob: these route-local layers reproduce the stat-core
+          bezel, navy face, upper highlight, RD1 accent, and inset depth. */}
+      <linearGradient id="nfl-matrix-core-bezel" x1="20%" y1="4%" x2="80%" y2="96%">
+        <stop offset="0%" stopColor="#18223a" />
+        <stop offset="34%" stopColor="#091020" />
+        <stop offset="100%" stopColor="#02050d" />
       </linearGradient>
+      <linearGradient id="nfl-matrix-core-base" x1="18%" y1="4%" x2="82%" y2="96%">
+        <stop offset="0%" stopColor="#0f1930" />
+        <stop offset="72%" stopColor="#050914" />
+        <stop offset="100%" stopColor="#040712" />
+      </linearGradient>
+      <radialGradient id="nfl-matrix-core-highlight" cx="33%" cy="24%" r="48%">
+        <stop offset="0%" stopColor="#2c3d66" stopOpacity="0.62" />
+        <stop offset="58%" stopColor="#2c3d66" stopOpacity="0.20" />
+        <stop offset="100%" stopColor="#2c3d66" stopOpacity="0" />
+      </radialGradient>
+      <radialGradient id="nfl-matrix-core-accent" cx="52%" cy="63%" r="48%">
+        <stop offset="0%" stopColor="#ff0aa5" stopOpacity="0.075" />
+        <stop offset="58%" stopColor="#ff0aa5" stopOpacity="0.025" />
+        <stop offset="100%" stopColor="#ff0aa5" stopOpacity="0" />
+      </radialGradient>
+      <linearGradient id="nfl-matrix-core-depth" x1="50%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stopColor="#000000" stopOpacity="0" />
+        <stop offset="48%" stopColor="#000000" stopOpacity="0.04" />
+        <stop offset="100%" stopColor="#000000" stopOpacity="0.50" />
+      </linearGradient>
+
+      <filter id="nfl-matrix-core-shadow" x="-45%" y="-45%" width="190%" height="210%">
+        <feDropShadow
+          dx="0"
+          dy="8"
+          stdDeviation="7"
+          floodColor="#000000"
+          floodOpacity="0.38"
+        />
+      </filter>
 
       <filter id="nfl-matrix-glow" x="-80%" y="-80%" width="260%" height="260%">
         <feGaussianBlur stdDeviation="3" result="blur" />
@@ -402,20 +421,43 @@ export default function NflDraftQuadrantArcMatrix({
             );
           })}
 
-          {/* NFL matrix center mirrors the progress-dial cores: a dark outer
-              frame, layered navy face, restrained accent bloom, and top sheen. */}
-          <g className="nfl-matrix-core-stack" aria-hidden="true">
-            <circle r="72" fill="#030711" className="matrix-core nfl-matrix-core" />
+          {/* NFL-only knob construction mirrors the progress-circle centers:
+              raised bezel, recessed rim, bordered face, inset depth, and sheen. */}
+          <g
+            className="nfl-matrix-core-stack"
+            aria-hidden="true"
+            filter="url(#nfl-matrix-core-shadow)"
+          >
             <circle
-              r="68"
-              fill="url(#nfl-matrix-center-fill)"
-              stroke="url(#nfl-matrix-center-edge)"
-              strokeWidth="1.25"
+              r="73"
+              fill="url(#nfl-matrix-core-bezel)"
+              stroke="rgba(255,255,255,.075)"
+              strokeWidth="1"
             />
-            <circle r="68" fill="url(#nfl-matrix-center-accent)" />
+            <circle
+              r="69.5"
+              fill="#02050d"
+              stroke="rgba(3,7,17,.92)"
+              strokeWidth="2.5"
+            />
+            <circle
+              r="67"
+              fill="url(#nfl-matrix-core-base)"
+              stroke="rgba(255,255,255,.085)"
+              strokeWidth="1"
+            />
+            <circle r="67" fill="url(#nfl-matrix-core-highlight)" />
+            <circle r="67" fill="url(#nfl-matrix-core-accent)" />
+            <circle r="67" fill="url(#nfl-matrix-core-depth)" />
+            <circle
+              r="63"
+              fill="none"
+              stroke="rgba(255,10,165,.055)"
+              strokeWidth="1"
+            />
             <path
-              d={arcPath(61, 62, -54, 38, 1)}
-              fill="rgba(255,255,255,.055)"
+              d={arcPath(61.5, 62.5, -66, 36, 1)}
+              fill="rgba(255,255,255,.05)"
             />
           </g>
           <text y="-20" textAnchor="middle" className="core-eyebrow nfl-core-eyebrow">

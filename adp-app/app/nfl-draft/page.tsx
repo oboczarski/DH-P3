@@ -22,10 +22,42 @@ import {
   nflDraftStatPalettes,
   nflDraftTrendData,
   type NflDraftPosition,
+  type NflDraftTrendRow,
 } from "./data";
 import "./nfl-draft.css";
 
 const trendPositions = Object.keys(nflDraftPositionGradients) as NflDraftPosition[];
+
+const trendPlotDataKeys = {
+  QB: "plotQB",
+  RB: "plotRB",
+  WR: "plotWR",
+  TE: "plotTE",
+} as const;
+
+type NflDraftTrendPlotRow = NflDraftTrendRow & {
+  plotQB: number;
+  plotRB: number;
+  plotWR: number;
+  plotTE: number;
+};
+
+// Positional line-chart geometry only: these placement values improve point
+// and label separation without replacing any actual hit-rate value elsewhere.
+const nflDraftTrendPointPlacement = {
+  QB: [79, 44, 33, 18, 7, 11, 14],
+  RB: [85, 62, 50, 27, 24, 19, 6],
+  WR: [71, 51, 28.5, 9, 15, 15, 10],
+  TE: [75, 40, 38, 23, 11, 7, 2],
+} satisfies Record<NflDraftPosition, readonly number[]>;
+
+const nflDraftTrendPlotData: NflDraftTrendPlotRow[] = nflDraftTrendData.map((row, index) => ({
+  ...row,
+  plotQB: nflDraftTrendPointPlacement.QB[index],
+  plotRB: nflDraftTrendPointPlacement.RB[index],
+  plotWR: nflDraftTrendPointPlacement.WR[index],
+  plotTE: nflDraftTrendPointPlacement.TE[index],
+}));
 
 const statCards = nflDraftTrendData.map((metric, index) => ({
   ...metric,
@@ -78,12 +110,12 @@ function PositionalPercentLabel({
   const value = values[index ?? 0];
   if (x == null || y == null || value == null) return null;
 
-  // NFL positional labels intentionally use the same neutral ten-pixel lift as
-  // the Rookie ADP chart; round-specific positioning can be tuned separately.
+  // NFL-only labels sit close to their chart-only placement points while the
+  // text continues to report the actual supplied hit-rate value.
   return (
     <text
       x={x}
-      y={y - 10}
+      y={y - 7}
       textAnchor="middle"
       className="chart-value nfl-trend-value"
     >
@@ -95,6 +127,7 @@ function PositionalPercentLabel({
 type TooltipDatum = {
   dataKey?: string | number;
   value?: string | number | null;
+  payload?: Partial<Record<NflDraftPosition, number>>;
 };
 
 type ChartTooltipProps = {
@@ -115,15 +148,21 @@ function NflDraftTooltip({ active, payload, label }: ChartTooltipProps) {
         ))
         .map((item) => {
           const dataKey = String(item.dataKey);
-          const position = dataKey as NflDraftPosition;
-          const displayLabel = dataKey === "overall" ? "Overall" : dataKey;
+          const plotPosition = trendPositions.find(
+            (candidate) => trendPlotDataKeys[candidate] === dataKey,
+          );
+          const position = plotPosition ?? dataKey as NflDraftPosition;
+          const displayLabel = dataKey === "overall" ? "Overall" : position;
+          const displayValue = plotPosition
+            ? item.payload?.[plotPosition] ?? item.value
+            : item.value;
           const color = position in nflDraftPositionGradients
             ? nflDraftPositionGradients[position][3]
             : "#d747ff";
           return (
             <div className="tooltip-row" key={dataKey}>
               <span><i style={{ background: color }} />{displayLabel}</span>
-              <strong>{Number(item.value).toFixed(1)}%</strong>
+              <strong>{Number(displayValue).toFixed(1)}%</strong>
             </div>
           );
         })}
@@ -439,7 +478,7 @@ export default function NflDraftHitRatesPage() {
             <div className="trend-chart" role="img" aria-label="Line chart showing positional hit rate across all seven NFL Draft rounds">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
-                  data={nflDraftTrendData}
+                  data={nflDraftTrendPlotData}
                   margin={compactCharts ? { top: 6, right: 18, bottom: 3, left: 0 } : { top: 28, right: 34, bottom: 5, left: 0 }}
                 >
                   <defs>
@@ -464,7 +503,7 @@ export default function NflDraftHitRatesPage() {
                   <YAxis domain={[0, 90]} ticks={[0, 20, 40, 60, 80]} axisLine={false} tickLine={false} width={compactCharts ? 31 : 42} tickFormatter={(value) => `${value}%`} tick={{ fill: "#626b84", fontSize: compactCharts ? 8 : 10 }} />
                   <Tooltip content={<NflDraftTooltip />} cursor={{ stroke: "rgba(255,255,255,.16)", strokeDasharray: "3 6" }} />
                   {trendPositions.filter((position) => !hiddenTrendPositions.includes(position)).map((position) => (
-                    <Area key={`area-${position}`} type="monotone" dataKey={position} stroke="none" fill={`url(#nfl-area-${position})`} isAnimationActive={false} />
+                    <Area key={`area-${position}`} type="monotone" dataKey={trendPlotDataKeys[position]} name={position} stroke="none" fill={`url(#nfl-area-${position})`} isAnimationActive={false} />
                   ))}
                   {trendPositions.filter((position) => !hiddenTrendPositions.includes(position)).map((position) => {
                     const colors = nflDraftPositionGradients[position];
@@ -473,12 +512,12 @@ export default function NflDraftHitRatesPage() {
                       <Line
                         key={position}
                         type="monotone"
-                        dataKey={position}
+                        dataKey={trendPlotDataKeys[position]}
                         name={position}
                         stroke={`url(#nfl-line-${position})`}
                         strokeWidth={compactCharts ? 3 : 4}
-                        dot={{ r: compactCharts ? 3.7 : 5, fill: colors[0], stroke: colors[3], strokeWidth: compactCharts ? 2 : 3 }}
-                        activeDot={{ r: 7, fill: colors[3], stroke: "#07101d", strokeWidth: 4 }}
+                        dot={{ r: 4, fill: colors[3], stroke: "#f7fbff", strokeOpacity: .52, strokeWidth: 1 }}
+                        activeDot={{ r: 6, fill: colors[3], stroke: "#f7fbff", strokeWidth: 2 }}
                         isAnimationActive={false}
                       >
                         <LabelList content={<PositionalPercentLabel values={values} />} />
