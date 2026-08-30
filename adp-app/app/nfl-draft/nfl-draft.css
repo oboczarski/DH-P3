@@ -4,6 +4,20 @@
   max-width: 760px;
 }
 
+/* NFL Draft hero only: a warm draft-board gradient separates this heading
+   from the blue/pink Rookie ADP treatment without affecting the shared route. */
+.nfl-draft-dashboard .hero h1 {
+  background: linear-gradient(102deg, #ffe09a 0%, #ff9a66 43%, #f45c91 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.nfl-draft-dashboard .hero h1 em {
+  background: linear-gradient(92deg, #7ce7ff 0%, #3f8cff 48%, #7a65ff 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
 .nfl-draft-dashboard .nfl-stat-grid {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 7px;
@@ -38,8 +52,9 @@
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
-  font-size: 9px;
-  letter-spacing: .11em;
+  letter-spacing: .05em;
+  font-family: 'Product Sans';
+  font-size: 14px;
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-index {
@@ -58,7 +73,13 @@
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-value {
-  font-size: clamp(19px, 2vw, 25px);
+  color: #f8f9fd;
+  letter-spacing: -.055em;
+  text-shadow: 0 1px 10px #0000007a;
+  font-family: 'Product Sans';
+  font-size: clamp(22px, 5vw, 34px);
+  font-weight: 560;
+  line-height: .95;
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-value small {
@@ -66,9 +87,13 @@
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-core em {
+  color: #bec4d9;
   letter-spacing: .06em;
-  margin-top: 1px;
-  font-size: 9px;
+  margin-top: -2px;
+  font-family: 'Product Sans';
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
 }
 
 .nfl-draft-dashboard .nfl-stat-card .stat-note {
@@ -95,9 +120,9 @@
 
 .nfl-draft-dashboard .trend-chart {
   min-width: 0;
-  height: 500px;
-  margin-top: -22px;
-  margin-bottom: 4px;
+  height: 530px;
+  margin-top: 8px;
+  margin-bottom: 24px;
 }
 
 /* NFL-only paired-chart sizing: remove the inherited Rookie matrix minimum
@@ -116,7 +141,7 @@
   width: min(100%, 575px);
   max-width: 575px;
   max-height: 575px;
-  margin: -18px auto -24px;
+  margin: 2px auto -4px;
 }
 
 .nfl-draft-dashboard .nfl-matrix-position {
@@ -184,13 +209,18 @@
     font-size: 5.8px;
   }
 
-  .nfl-draft-dashboard .nfl-stat-card .stat-heading strong {
-    font-size: 8px;
-  }
-
   .nfl-draft-dashboard .nfl-stat-card .stat-index {
     min-width: 24px;
     padding: 4px;
+  }
+}
+
+@media (min-width: 901px) {
+  /* NFL desktop trend panel: preserve the requested chart height and gutters
+     independently from the Rookie ADP desktop chart. */
+  .nfl-draft-dashboard .trend-chart {
+    height: 520px;
+    margin: 8px -28px 24px;
   }
 }
 
@@ -219,10 +249,6 @@
 
   .nfl-draft-dashboard .nfl-stat-card .stat-heading {
     width: 100%;
-  }
-
-  .nfl-draft-dashboard .nfl-stat-card .stat-value {
-    font-size: clamp(15px, 2.5vw, 20px);
   }
 
   .nfl-draft-dashboard .nfl-stat-card .stat-note {
@@ -267,13 +293,19 @@
 }
 
 @media (max-width: 560px) {
+  /* NFL mobile hero spacing remains route-local; Rookie ADP receives only the
+     explicitly shared Dynasty Hub Research brand typography below. */
+  .nfl-draft-dashboard .hero {
+    padding: 1px 0 10px;
+  }
+
   .nfl-draft-dashboard .hero h1 {
     font-size: clamp(30px, 8.7vw, 36px);
     line-height: .96;
   }
 
   .nfl-draft-dashboard .hero p {
-    max-width: 355px;
+    max-width: 395px;
     font-size: 11px;
   }
 
@@ -356,8 +388,8 @@
   }
 
   .nfl-draft-dashboard .nfl-stat-card .stat-value {
-    font-size: clamp(9px, 3vw, 13px);
     letter-spacing: -.075em;
+    font-size: clamp(10px, 4vw, 13px);
   }
 
   .nfl-draft-dashboard .nfl-stat-card .stat-value small {
@@ -366,10 +398,10 @@
   }
 
   .nfl-draft-dashboard .nfl-stat-card .stat-core em {
-    letter-spacing: .02em;
-    margin-top: 0;
-    margin-bottom: -1px;
-    font-size: 5px;
+    letter-spacing: .0em;
+    margin-top: -1px;
+    margin-bottom: -2px;
+    font-size: 6px;
   }
 
   .nfl-draft-dashboard .nfl-stat-card .stat-note {

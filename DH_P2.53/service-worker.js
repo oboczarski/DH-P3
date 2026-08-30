@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Dashboard background family refinement: retire the prior cache so the four generated
-// relatives, nine-style inventory, removed assets, and new default arrive together.
-const CACHE_NAME = 'DH3.26';
+// Research hit-rate refinement: retire the prior cache so both isolated route
+// documents discover the updated NFL matrix/CSS bundle and shared brand styling.
+const CACHE_NAME = 'DH3.27';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

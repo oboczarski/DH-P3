@@ -525,9 +525,11 @@ export default function NflDraftHitRatesPage() {
                   <span><i style={{ width: "9.4%" }} /><b>9.4%</b><small>ROUND 7</small></span>
                 </div>
               </article>
+              {/* NFL RB insight follows the corrected Round 2 / Round 3 order
+                  used by both the positional line chart and quadrant matrix. */}
               <article className="panel mini-insight rb-insight">
                 <span className="mini-number">62.0%</span>
-                <div><strong>RB retains a Round 3 pocket</strong><p>The position rebounds above its Round 2 hit rate.</p></div>
+                <div><strong>RB peaks in Round 2</strong><p>The position posts 62.0% before easing to 50.0% in Round 3.</p></div>
               </article>
               <article className="panel mini-insight te-insight">
                 <span className="mini-number">4.0%</span>

@@ -19,12 +19,12 @@ export type NflDraftTrendRow = {
   TE: number;
 };
 
-// NFL Draft hit-rate source: these seven rows preserve the exact overall and
-// positional values from the retired Vanilla Research tab.
+// NFL Draft hit-rate source: this single seven-round table feeds both the line
+// chart and matrix; RB is intentionally 62% in Round 2 and 50% in Round 3.
 export const nflDraftTrendData: NflDraftTrendRow[] = [
   { range: "Round 1", shortRange: "RD 1", overall: 78.4, QB: 78, RB: 83, WR: 76, TE: 78 },
-  { range: "Round 2", shortRange: "RD 2", overall: 47.7, QB: 42, RB: 50, WR: 51, TE: 40 },
-  { range: "Round 3", shortRange: "RD 3", overall: 38.5, QB: 31, RB: 62, WR: 30, TE: 36 },
+  { range: "Round 2", shortRange: "RD 2", overall: 47.7, QB: 42, RB: 62, WR: 51, TE: 40 },
+  { range: "Round 3", shortRange: "RD 3", overall: 38.5, QB: 31, RB: 50, WR: 30, TE: 36 },
   { range: "Round 4", shortRange: "RD 4", overall: 18.0, QB: 20, RB: 27, WR: 9, TE: 23 },
   { range: "Round 5", shortRange: "RD 5", overall: 15.0, QB: 7, RB: 27, WR: 13, TE: 9 },
   { range: "Round 6", shortRange: "RD 6", overall: 14.1, QB: 11, RB: 18, WR: 15, TE: 8 },

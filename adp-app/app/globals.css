@@ -477,7 +477,18 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 
 .dashboard-shell { width: min(1300px, calc(100% - 80px)); margin: 0 auto; padding: 28px 0 80px; position: relative; z-index: 1; }
 .topbar { height: 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: 12px; color: #cfd5e6; font-size: 11px; letter-spacing: .2em; font-weight: 800; }
+/* Shared isolated-dashboard masthead: keep the Dynasty Hub Research text
+   identical on both Rookie ADP and NFL Draft Capital routes. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #cfd5e6;
+  font-family: 'Product Sans';
+  font-size: 25px;
+  font-weight: 400;
+  letter-spacing: 0em;
+}
 .brand-mark { width: 35px; height: 33px; display: flex; align-items: flex-end; gap: 2px; padding: 5px; border: 1px solid rgba(255,255,255,.16); border-radius: 7px; background: rgba(255,255,255,.04); }
 .brand-mark i { width: 7px; border-radius: 3px; background: linear-gradient(to top, #ff0aa5, #00ddfa); }
 .brand-mark i:nth-child(1) { height: 13px; }.brand-mark i:nth-child(2) { height: 21px; }.brand-mark i:nth-child(3) { height: 18px; }
@@ -961,7 +972,7 @@ footer { display: flex; align-items: center; justify-content: space-between; gap
 @media (max-width: 560px) {
   .dashboard-shell { width: calc(100% - 19px); padding-top: 14px; padding-bottom: 36px; }
   .topbar { height: 44px; }
-  .brand { gap: 10px; font-size: 14.5px; letter-spacing: -.1px; font-family: 'Geist', var(--font-geist-sans), sans-serif; font-weight: 500; }
+  .brand { gap: 6px; font-size: 16.5px; letter-spacing: -0.4px; font-family: 'Product Sans'; font-weight: 400; }
   .sample-badge { column-gap: 6px; }
   .sample-status-dot { width: 2px; height: 24px; border-radius: 1px; }
   .sample-badge > div { gap: 2px; }

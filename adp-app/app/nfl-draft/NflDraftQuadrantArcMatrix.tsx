@@ -52,11 +52,20 @@ const rangeDefinitions = [
 const positions: NflDraftPosition[] = ["QB", "RB", "WR", "TE"];
 const quadrantStartAngles = [-35, 55, 145, 235];
 
-// NFL matrix ring geometry: fourteen-pixel rails and tighter twenty-two-pixel
-// centers use the recovered inner space instead of leaving RD 7 detached from
-// the reduced core. The outer extent remains inside the original chart frame.
+// NFL matrix arc geometry: the seven fourteen-pixel bars keep their existing
+// size and spacing while the guide rings below occupy only the gaps between them.
 const rangeRadii = [221, 199, 177, 155, 133, 111, 89];
-const guideRadii = [79, 89, 111, 133, 155, 177, 199, 221, 232];
+const guideRings = [
+  { radius: 78, stroke: "rgba(132,151,196,0.0)" },
+  { radius: 78, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 100, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 122, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 144, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 166, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 188, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 210, stroke: "rgba(132,151,196,0.22)" },
+  { radius: 238, stroke: "rgba(132,151,196,0.22)" },
+] as const;
 const annularArc = arc();
 
 const matrixGradientDirections = {
@@ -96,13 +105,13 @@ const matrixLabelNudges: Record<NflDraftPosition, readonly { dx: number; dy: num
   ],
 };
 
-// The side labels sit closer to their outer arcs than QB/WR, reclaiming the
-// horizontal breathing room specifically requested for TE and RB.
+// NFL side-label spacing: TE and RB now use the same outer radius as QB/WR,
+// adding clearance from their arcs without changing the SVG viewport or chart.
 const positionLabelRadius = {
   QB: 252,
-  RB: 244,
+  RB: 252,
   WR: 252,
-  TE: 244,
+  TE: 252,
 } satisfies Record<NflDraftPosition, number>;
 
 function degreesToRadians(degrees: number) {
@@ -246,19 +255,22 @@ export default function NflDraftQuadrantArcMatrix({
         <MatrixDefinitions gradients={gradients} />
 
         <g transform="translate(310 310)">
-          {guideRadii.map((radius) => (
+          {guideRings.map(({ radius, stroke }, index) => (
             <circle
-              key={radius}
+              key={`${radius}-${index}`}
               r={radius}
               fill="none"
-              stroke="rgba(132,151,196,.07)"
+              stroke={stroke}
               strokeWidth="1"
               aria-hidden="true"
+              strokeDasharray="1 2"
             />
           ))}
 
           {dividerAngles.map(({ angle, rotation }) => {
-            const start = polarPoint(77, angle);
+            // NFL divider bounds terminate exactly on the innermost and
+            // outermost guide rings instead of projecting beyond the matrix.
+            const start = polarPoint(78, angle);
             const end = polarPoint(238, angle);
             return (
               <g key={angle} aria-hidden="true" data-nfl-matrix-divider={angle}>
