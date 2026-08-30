@@ -25,8 +25,8 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Research hit-rate refinement: retire the prior cache so both isolated route
-// documents discover the updated NFL matrix/CSS bundle and shared brand styling.
-const CACHE_NAME = 'DH3.27';
+// documents discover the updated NFL matrix, title, typography, and mobile CSS.
+const CACHE_NAME = 'DH3.28';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

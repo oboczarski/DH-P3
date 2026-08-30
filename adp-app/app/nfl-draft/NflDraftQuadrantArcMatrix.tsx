@@ -170,11 +170,24 @@ function MatrixDefinitions({ gradients }: { gradients: MatrixGradientMap }) {
         );
       })}
 
-      <radialGradient id="nfl-matrix-center-fill" cx="42%" cy="34%" r="70%">
-        <stop offset="0%" stopColor="#242752" stopOpacity="0.72" />
-        <stop offset="48%" stopColor="#0e1028" stopOpacity="0.92" />
-        <stop offset="100%" stopColor="#060713" />
+      {/* NFL matrix core: layered upper highlight, lower accent glow, and deep
+          navy falloff reproduce the visual treatment used by the stat dials. */}
+      <radialGradient id="nfl-matrix-center-fill" cx="33%" cy="24%" r="82%">
+        <stop offset="0%" stopColor="#2c3d66" stopOpacity="0.62" />
+        <stop offset="40%" stopColor="#0f1930" />
+        <stop offset="72%" stopColor="#080d1d" />
+        <stop offset="100%" stopColor="#050914" />
       </radialGradient>
+      <radialGradient id="nfl-matrix-center-accent" cx="52%" cy="63%" r="62%">
+        <stop offset="0%" stopColor="#4d79ff" stopOpacity="0.12" />
+        <stop offset="48%" stopColor="#4d79ff" stopOpacity="0.035" />
+        <stop offset="100%" stopColor="#4d79ff" stopOpacity="0" />
+      </radialGradient>
+      <linearGradient id="nfl-matrix-center-edge" x1="22%" y1="4%" x2="78%" y2="96%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.13" />
+        <stop offset="48%" stopColor="#8290b6" stopOpacity="0.08" />
+        <stop offset="100%" stopColor="#02050d" stopOpacity="0.72" />
+      </linearGradient>
 
       <filter id="nfl-matrix-glow" x="-80%" y="-80%" width="260%" height="260%">
         <feGaussianBlur stdDeviation="3" result="blur" />
@@ -389,11 +402,22 @@ export default function NflDraftQuadrantArcMatrix({
             );
           })}
 
-          {/* Seven rings need a materially smaller core; the Rookie matrix's
-              lower footer is intentionally omitted to preserve inner clearance. */}
-          <circle r="72" fill="url(#nfl-matrix-center-fill)" className="matrix-core nfl-matrix-core" />
-          <circle r="65" fill="#070817" stroke="rgba(182,199,240,.16)" />
-          <circle r="55" fill="none" stroke="rgba(64,224,255,.13)" strokeDasharray="2 6" />
+          {/* NFL matrix center mirrors the progress-dial cores: a dark outer
+              frame, layered navy face, restrained accent bloom, and top sheen. */}
+          <g className="nfl-matrix-core-stack" aria-hidden="true">
+            <circle r="72" fill="#030711" className="matrix-core nfl-matrix-core" />
+            <circle
+              r="68"
+              fill="url(#nfl-matrix-center-fill)"
+              stroke="url(#nfl-matrix-center-edge)"
+              strokeWidth="1.25"
+            />
+            <circle r="68" fill="url(#nfl-matrix-center-accent)" />
+            <path
+              d={arcPath(61, 62, -54, 38, 1)}
+              fill="rgba(255,255,255,.055)"
+            />
+          </g>
           <text y="-20" textAnchor="middle" className="core-eyebrow nfl-core-eyebrow">
             OVERALL · RD 1
           </text>

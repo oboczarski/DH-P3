@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-/* eslint-disable @next/next/no-page-custom-font -- The isolated integration
-   mirrors the exact font links already used by Dynasty Hub's Research header. */
+/* eslint-disable @next/next/no-page-custom-font, @next/next/google-font-display --
+   The isolated integration mirrors the exact user-supplied Research font links. */
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,7 +57,17 @@ export default function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700&display=swap"
+          href="https://fonts.googleapis.com/css?family=Google+Sans:100,200,300,400,500,600,700"
+        />
+        {/* Shared Research editing fonts: these links expose the same font
+            families on both isolated player hit-rate routes. */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=MuseoModerno:ital,wght@0,100..900;1,100..900&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Bruno+Ace+SC&display=swap"
         />
         <link
           rel="stylesheet"

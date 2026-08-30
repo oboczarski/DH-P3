@@ -723,12 +723,11 @@ main { position: relative; overflow: hidden; min-height: 100vh; }
 }
 .stat-value {
   color: #f8f9fd;
-  font-variant-numeric: tabular-nums;
-  font-size: 31px;
-  line-height: .95;
   letter-spacing: -.055em;
+  text-shadow: 0 1px 10px #0000007a;
+  font-size: 31px;
   font-weight: 760;
-  text-shadow: 0 1px 10px rgba(0,0,0,.48);
+  line-height: .95;
 }
 .stat-value small { margin-left: 2px; color: var(--ring-end); font-size: 13px; letter-spacing: 0; }
 .stat-core em {
