@@ -156,10 +156,10 @@ body[data-page="welcome"] {
   background-color: #07111f;
   /* Dashboard background lab: JS swaps only this controlled image variable and its
      per-design grade. The fallback keeps the first option visible without JS. */
-  --dashboard-background-image: url('../assets/welcome/background-lab/obsidian-confluence.png');
-  --dashboard-background-brightness: 0.7;
-  --dashboard-background-contrast: 1.06;
-  --dashboard-background-opacity: 0.9;
+  --dashboard-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
+  --dashboard-background-brightness: 0.5;
+  --dashboard-background-contrast: 1.05;
+  --dashboard-background-opacity: 0.86;
 }
 
 /* Dashboard starfield host: keep the fixed full-viewport background container in place,

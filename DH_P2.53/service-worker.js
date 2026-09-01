@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Research hit-rate refinement: retire the prior cache so both isolated route
-// documents discover the updated neutral NFL matrix-knob geometry and styling.
-const CACHE_NAME = 'DH3.30';
+// Welcome background-library revision: retire the prior cache so the dashboard
+// receives the seven-option registry together with its added and removed images.
+const CACHE_NAME = 'DH3.31';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

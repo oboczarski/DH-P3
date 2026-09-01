@@ -4299,24 +4299,6 @@ function drawScatterChart(containerId, data) {
 // persistence, and loading behavior. Nothing here is shared with app.js or sister pages.
 const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
   {
-    id: 'obsidian-confluence',
-    name: 'Obsidian Confluence',
-    asset: 'assets/welcome/background-lab/obsidian-confluence.png',
-    description: 'Tightly framed mirrored metalwork reaches both sides sooner around a matte-black corridor.',
-    brightness: 0.7,
-    contrast: 1.06,
-    opacity: 0.9
-  },
-  {
-    id: 'obsidian-confluence-ii',
-    name: 'Obsidian Confluence II',
-    asset: 'assets/welcome/background-lab/obsidian-confluence-ii.png',
-    description: 'Interlocking perforated titanium bands braid upward around a broad matte-black corridor.',
-    brightness: 0.68,
-    contrast: 1.06,
-    opacity: 0.9
-  },
-  {
     id: 'mercurial-fold',
     name: 'Mercurial Fold',
     asset: 'assets/welcome/background-lab/mercurial-fold.png',
@@ -4344,33 +4326,6 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     opacity: 0.86
   },
   {
-    id: 'mercurial-aperture',
-    name: 'Mercurial Aperture',
-    asset: 'assets/welcome/background-lab/mercurial-aperture.png',
-    description: 'A monumental engineered aperture emerges from intertwined liquid-metal silver folds.',
-    brightness: 0.56,
-    contrast: 1.05,
-    opacity: 0.88
-  },
-  {
-    id: 'silk-nebula',
-    name: 'Silk Nebula',
-    asset: 'assets/welcome/background-lab/silk-nebula.png',
-    description: 'Tightly framed smoked-slate silk reaches both sides sooner around a calm black center.',
-    brightness: 0.58,
-    contrast: 1.05,
-    opacity: 0.86
-  },
-  {
-    id: 'gilded-tides',
-    name: 'Gilded Tides',
-    asset: 'assets/welcome/background-lab/gilded-tides.png',
-    description: 'Closer couture silver filaments and smoked-slate silk frame a midnight void.',
-    brightness: 0.6,
-    contrast: 1.04,
-    opacity: 0.87
-  },
-  {
     id: 'medallion-drift',
     name: 'Medallion Drift',
     asset: 'assets/welcome/background-lab/medallion-drift.png',
@@ -4378,11 +4333,38 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     brightness: 0.66,
     contrast: 1.05,
     opacity: 0.89
+  },
+  {
+    id: 'medallion-fold',
+    name: 'Medallion Fold',
+    asset: 'assets/welcome/background-lab/medallion-fold.png',
+    description: 'A monumental black-titanium medallion stands in front of sweeping liquid-metal folds.',
+    brightness: 0.56,
+    contrast: 1.05,
+    opacity: 0.88
+  },
+  {
+    id: 'obsidian-topography',
+    name: 'Obsidian Topography',
+    asset: 'assets/welcome/background-lab/obsidian-topography.png',
+    description: 'Sculpted obsidian contour layers surround a calm graphite valley with tactile depth.',
+    brightness: 0.62,
+    contrast: 1.08,
+    opacity: 0.9
+  },
+  {
+    id: 'luminous-shroud',
+    name: 'Luminous Shroud',
+    asset: 'assets/welcome/background-lab/luminous-shroud.png',
+    description: 'Translucent silver and slate ribbons drift around a deep, quiet obsidian center.',
+    brightness: 0.52,
+    contrast: 1.06,
+    opacity: 0.86
   }
 ]);
 
 const DASHBOARD_BACKGROUND_STORAGE_KEY = 'dh-dashboard-background-design-lab';
-const DEFAULT_DASHBOARD_BACKGROUND_ID = 'obsidian-confluence';
+const DEFAULT_DASHBOARD_BACKGROUND_ID = 'mercurial-fold';
 const dashboardBackgroundById = new Map(
   DASHBOARD_BACKGROUND_DESIGNS.map((design) => [design.id, design])
 );

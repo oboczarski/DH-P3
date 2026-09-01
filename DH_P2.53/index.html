@@ -30,14 +30,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.26-dashboard-background-families">
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.31-dashboard-background-set">
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 
 </head>
 
-<body data-page="welcome" data-dashboard-background="obsidian-confluence" class="p-2 sm:p-4">
+<body data-page="welcome" data-dashboard-background="mercurial-fold" class="p-2 sm:p-4">
   <!-- Glass-refraction SVG filter defs — hidden, referenced by backdrop-filter: url(#glass-refract).
        Two strengths: subtle (scale 8) for cards/pills, strong (scale 16) for dense/header tiers. -->
   <svg class="glass-svg-defs" aria-hidden="true" width="0" height="0"
@@ -175,7 +175,7 @@
             <div class="dashboard-background-lab__eyebrow">
               <span class="dashboard-background-lab__status" aria-hidden="true"></span>
               <span>Background Design Lab</span>
-              <span class="dashboard-background-lab__count" id="dashboardBackgroundCount">01 / 09</span>
+              <span class="dashboard-background-lab__count" id="dashboardBackgroundCount">01 / 07</span>
             </div>
             <label class="sr-only" for="dashboardBackgroundSelect">Select dashboard background design</label>
             <div class="dashboard-background-lab__control">
@@ -183,20 +183,18 @@
                 id="dashboardBackgroundSelect"
                 aria-describedby="dashboardBackgroundDescription"
               >
-                <option value="obsidian-confluence">01 — Obsidian Confluence</option>
-                <option value="obsidian-confluence-ii">02 — Obsidian Confluence II</option>
-                <option value="mercurial-fold">03 — Mercurial Fold</option>
-                <option value="mercurial-fold-ii">04 — Mercurial Fold II</option>
-                <option value="mercurial-fold-iii">05 — Mercurial Fold III</option>
-                <option value="mercurial-aperture">06 — Mercurial Aperture</option>
-                <option value="silk-nebula">07 — Silk Nebula</option>
-                <option value="gilded-tides">08 — Gilded Tides</option>
-                <option value="medallion-drift">09 — Medallion Drift</option>
+                <option value="mercurial-fold">01 — Mercurial Fold</option>
+                <option value="mercurial-fold-ii">02 — Mercurial Fold II</option>
+                <option value="mercurial-fold-iii">03 — Mercurial Fold III</option>
+                <option value="medallion-drift">04 — Medallion Drift</option>
+                <option value="medallion-fold">05 — Medallion Fold</option>
+                <option value="obsidian-topography">06 — Obsidian Topography</option>
+                <option value="luminous-shroud">07 — Luminous Shroud</option>
               </select>
               <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </div>
             <p id="dashboardBackgroundDescription" class="dashboard-background-lab__description" aria-live="polite">
-              Tightly framed mirrored metalwork reaches both sides sooner around a matte-black corridor.
+              Liquid-metal silk folds spiral inward around a sculpted black-glass center.
             </p>
           </section>
 
@@ -577,7 +575,7 @@
 
   <script defer src="scripts/app.js?v=20260406-datahub3"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.26-dashboard-background-families"></script>
+  <script src="scripts/dashboard.js?v=DH3.31-dashboard-background-set"></script>
 </body>
 
 </html>
