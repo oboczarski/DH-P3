@@ -30,14 +30,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.33-ascendance-refinement">
+  <link rel="stylesheet" href="styles/dashboard.css?v=DH3.34-responsive-page-backgrounds">
   <!-- Cloudflare Web Analytics: tracks visits for the current Dynasty Hub Cloudflare property; kept deferred so it does not block app rendering. -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
     data-cf-beacon='{"token": "0a02235754b046f389fb57f26b46f13a"}'></script>
 
 </head>
 
-<body data-page="welcome" data-dashboard-background="mercurial-fold" class="p-2 sm:p-4">
+<body data-page="welcome" class="p-2 sm:p-4">
   <!-- Glass-refraction SVG filter defs — hidden, referenced by backdrop-filter: url(#glass-refract).
        Two strengths: subtle (scale 8) for cards/pills, strong (scale 16) for dense/header tiers. -->
   <svg class="glass-svg-defs" aria-hidden="true" width="0" height="0"
@@ -164,43 +164,9 @@
           </div>
         </div>
 
-        <!-- Dashboard-only background lab: this compact reference-style selector sits
-             directly above the league-leaders heading and never renders on sister pages. -->
-        <div class="dashboard-background-heading-stack">
-          <section
-            class="dashboard-background-lab"
-            id="dashboardBackgroundLab"
-            aria-label="Dashboard background design lab"
-          >
-            <div class="dashboard-background-lab__eyebrow">
-              <span class="dashboard-background-lab__status" aria-hidden="true"></span>
-              <span>Background Design Lab</span>
-              <span class="dashboard-background-lab__count" id="dashboardBackgroundCount">01 / 06</span>
-            </div>
-            <label class="sr-only" for="dashboardBackgroundSelect">Select dashboard background design</label>
-            <div class="dashboard-background-lab__control">
-              <select
-                id="dashboardBackgroundSelect"
-                aria-describedby="dashboardBackgroundDescription"
-              >
-                <option value="mercurial-fold">01 — Mercurial Fold</option>
-                <option value="mercurial-fold-ii">02 — Mercurial Fold II</option>
-                <option value="medallion-fold">03 — Medallion Fold</option>
-                <option value="mercurial-ascendance">04 — Mercurial Ascendance</option>
-                <option value="mercurial-ascendance-ii">05 — Mercurial Ascendance II</option>
-                <option value="mercurial-orbit">06 — Mercurial Orbit</option>
-              </select>
-              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-            </div>
-            <p id="dashboardBackgroundDescription" class="dashboard-background-lab__description" aria-live="polite">
-              Liquid-metal silk folds spiral inward around a sculpted black-glass center.
-            </p>
-          </section>
-
-          <!-- Page Subtitle -->
-          <div class="welcome-subtitle-row">
-            <h3>25-26 League Leaders Dashboard</h3>
-          </div>
+        <!-- Page Subtitle -->
+        <div class="welcome-subtitle-row">
+          <h3>25-26 League Leaders Dashboard</h3>
         </div>
 
         <!-- Key Metrics Row -->
@@ -574,7 +540,7 @@
 
   <script defer src="scripts/app.js?v=20260406-datahub3"></script>
   <script src="scripts/dh-scramble.js?v=DH3.23B-dashboard-branding"></script>
-  <script src="scripts/dashboard.js?v=DH3.33-ascendance-refinement"></script>
+  <script src="scripts/dashboard.js?v=DH3.34-responsive-page-backgrounds"></script>
 </body>
 
 </html>

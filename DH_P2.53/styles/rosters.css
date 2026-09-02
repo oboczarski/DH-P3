@@ -4,6 +4,54 @@
    Keep this extracted block before the later roster overrides so the existing cascade,
    responsive behavior, and component-specific refinements remain unchanged. */
 
+/* Rosters-only responsive background assignment: Mercurial Fold II is the desktop
+   raster, while Medallion Fold is selected independently for mobile viewports. */
+body[data-page="rosters"] {
+  --rosters-background-image: url('../assets/welcome/background-lab/mercurial-fold-ii.png');
+  --rosters-background-brightness: 0.5;
+  --rosters-background-contrast: 1.04;
+}
+
+/* Rosters fixed image stage intentionally duplicates the dashboard composition in this
+   page-specific file so later tuning cannot leak across either page. Shared animated
+   star elements retain their existing z-index and animation rules above this layer. */
+body[data-page="rosters"] #starfield::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-color: #03070d;
+  background-image:
+    linear-gradient(180deg, rgba(1, 4, 9, 0.08), transparent 24% 70%, rgba(1, 4, 9, 0.3)),
+    var(--rosters-background-image);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter:
+    brightness(var(--rosters-background-brightness))
+    contrast(var(--rosters-background-contrast));
+  opacity: 0.08;
+  transform: translateZ(0);
+  transition: opacity 180ms ease, filter 180ms ease;
+  will-change: opacity;
+}
+
+/* Rosters mobile background selection is separate from dashboard.css by design. */
+@media (max-width: 819px) {
+  body[data-page="rosters"] {
+    --rosters-background-image: url('../assets/welcome/background-lab/medallion-fold.png');
+    --rosters-background-brightness: 0.56;
+    --rosters-background-contrast: 1.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="rosters"] #starfield::after {
+    transition: none;
+  }
+}
+
 /* Show All Button cont.. */
 
 #compareButton.compare-show-all {

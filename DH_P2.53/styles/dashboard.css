@@ -149,17 +149,23 @@
   filter: drop-shadow(2px 1px 2px #5900ffed) drop-shadow(0 0 16px #7300ff48);
 }
 
-/* Dashboard home background: the welcome page now mirrors the RB ranks infographic
-   backdrop. The body fallback keeps the same navy foundation visible while the
-   fixed starfield host and its pseudo-elements finish painting. */
+/* Dashboard-only responsive background assignment: desktop uses Mercurial Fold II,
+   while the independently tunable mobile branch switches to Medallion Fold. */
 body[data-page="welcome"] {
   background-color: #07111f;
-  /* Dashboard background lab: JS swaps only this controlled image variable and its
-     per-design grade. The fallback keeps the first option visible without JS. */
-  --dashboard-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
+  --dashboard-background-image: url('../assets/welcome/background-lab/mercurial-fold-ii.png');
   --dashboard-background-brightness: 0.5;
-  --dashboard-background-contrast: 1.05;
-  --dashboard-background-opacity: 0.86;
+  --dashboard-background-contrast: 1.04;
+}
+
+/* Dashboard mobile background selection remains local to dashboard.css so the same
+   breakpoint and assets can be adjusted without changing any sister-page styling. */
+@media (max-width: 819px) {
+  body[data-page="welcome"] {
+    --dashboard-background-image: url('../assets/welcome/background-lab/medallion-fold.png');
+    --dashboard-background-brightness: 0.56;
+    --dashboard-background-contrast: 1.05;
+  }
 }
 
 /* Dashboard starfield host: keep the fixed full-viewport background container in place,
@@ -183,9 +189,8 @@ body[data-page="welcome"] #starfield::before {
   background-repeat: no-repeat;
 }
 
-/* Dashboard background lab image stage: each selected silver/slate variant replaces
-   the former repeating pattern on this exact welcome-page pseudo-element. The image
-   stays centered at every width; the existing animated star DOM remains above it. */
+/* Dashboard fixed image stage: the responsive page-local variable chooses the raster,
+   while every existing animated star DOM layer remains independently above it. */
 body[data-page="welcome"] #starfield::after {
   content: '';
   position: absolute;
@@ -202,17 +207,10 @@ body[data-page="welcome"] #starfield::after {
   filter:
     brightness(var(--dashboard-background-brightness))
     contrast(var(--dashboard-background-contrast));
-  opacity: var(--dashboard-background-opacity);
+  opacity: 0.08;
   transform: translateZ(0);
   transition: opacity 180ms ease, filter 180ms ease;
   will-change: opacity;
-  opacity: 0.1;
-}
-
-/* Dashboard background loading state: keep the current art in place while the next
-   selected raster decodes, then return it to its independently tuned opacity. */
-body[data-page="welcome"][data-dashboard-background-loading="true"] #starfield::after {
-  opacity: 0.54;
 }
 
 /* Dashboard welcome background cleanup: disable the shared noise film on the home page
@@ -315,224 +313,11 @@ body[data-page="welcome"] #stars1::after {
   animation: animStar 75s linear infinite;
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   Dashboard background design lab
-   - Welcome-page only; no selector or styling leaks into other routes.
-   - The compact control mirrors the DTR reference tool and sits immediately
-     above the league-leaders heading as one independently tunable stack.
-   ══════════════════════════════════════════════════════════════════════ */
-body[data-page="welcome"] .dashboard-background-heading-stack {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  gap: 0.36rem;
-}
-
-body[data-page="welcome"] .dashboard-background-lab {
-  position: relative;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: max-content minmax(14rem, 1fr);
-  align-items: center;
-  gap: 0.52rem;
-  width: min(100%, 31rem);
-  padding: 0.34rem 0.4rem 0.36rem 0.52rem;
-  overflow: hidden;
-  border: 1px solid rgba(188, 199, 218, 0.2);
-  border-radius: 0.76rem;
-  color-scheme: dark;
-  background:
-    linear-gradient(135deg, rgba(164, 180, 207, 0.09), transparent 44%),
-    rgba(5, 10, 18, 0.76);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.055),
-    0 14px 34px -26px rgba(180, 199, 230, 0.58),
-    0 14px 30px -24px rgba(0, 0, 0, 0.96);
-  -webkit-backdrop-filter: blur(15px) saturate(1.08);
-  backdrop-filter: blur(15px) saturate(1.08);
-}
-
-body[data-page="welcome"] .dashboard-background-lab::before {
-  content: '';
-  position: absolute;
-  inset: 0.5px 16% auto;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(221, 230, 244, 0.38), transparent);
-  pointer-events: none;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__eyebrow {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  color: rgba(205, 215, 232, 0.64);
-  font-family: 'Product Sans', 'Google Sans', 'Quicksand', sans-serif;
-  font-size: 0.59rem;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__status {
-  flex: 0 0 auto;
-  width: 0.38rem;
-  height: 0.38rem;
-  margin-right: 0.42rem;
-  border: 1px solid rgba(228, 235, 246, 0.62);
-  border-radius: 999px;
-  background: rgba(173, 188, 212, 0.76);
-  box-shadow: 0 0 8px rgba(183, 202, 231, 0.44);
-}
-
-body[data-page="welcome"] .dashboard-background-lab[aria-busy="true"] .dashboard-background-lab__status {
-  animation: dashboard-background-lab-pulse 850ms ease-in-out infinite alternate;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__count {
-  margin-left: 0.48rem;
-  padding-left: 0.48rem;
-  border-left: 1px solid rgba(185, 200, 224, 0.16);
-  color: rgba(179, 196, 222, 0.74);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.54rem;
-  letter-spacing: 0.09em;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control {
-  position: relative;
-  min-width: 0;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control select {
-  display: block;
-  width: 100%;
-  min-height: 2.08rem;
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 0.4rem 2.25rem 0.4rem 0.68rem;
-  border: 1px solid rgba(229, 235, 246, 0.1);
-  border-radius: 0.66rem;
-  outline: none;
-  color: rgba(242, 246, 252, 0.96);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)),
-    rgba(2, 6, 12, 0.8);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    inset 0 -8px 24px rgba(0, 0, 0, 0.3);
-  font-family: 'Product Sans', 'Google Sans', 'Quicksand', sans-serif;
-  font-size: 0.73rem;
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: 0.025em;
-  cursor: pointer;
-  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control select:hover {
-  border-color: rgba(196, 210, 232, 0.34);
-  background-color: rgba(13, 20, 31, 0.9);
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control select:focus-visible {
-  border-color: rgba(218, 228, 244, 0.7);
-  box-shadow:
-    0 0 0 3px rgba(163, 184, 218, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control select option {
-  color: #eef3fb;
-  background: #070c14;
-}
-
-body[data-page="welcome"] .dashboard-background-lab__control > i {
-  position: absolute;
-  top: 50%;
-  right: 0.72rem;
-  color: rgba(193, 208, 232, 0.82);
-  font-size: 0.72rem;
-  transform: translateY(-50%);
-  filter: drop-shadow(0 0 6px rgba(180, 199, 228, 0.22));
-  pointer-events: none;
-}
-
-/* The reference compact picker keeps its description available to assistive
-   technology while the visible one-row control stays directly above the title. */
-body[data-page="welcome"] .dashboard-background-lab__description {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-body[data-page="welcome"] .dashboard-background-heading-stack .welcome-subtitle-row {
-  margin-top: 0 !important;
-  margin-bottom: -5px !important;
-  padding-top: 0.08rem;
-}
-
-@keyframes dashboard-background-lab-pulse {
-  from {
-    opacity: 0.48;
-    transform: scale(0.86);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@media (max-width: 819px) {
-  body[data-page="welcome"] .dashboard-background-heading-stack {
-    gap: 0.28rem;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab {
-    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-    width: min(100%, 31rem);
-    padding: 0.31rem 0.36rem 0.33rem 0.45rem;
-    border-radius: 0.7rem;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab__eyebrow {
-    font-size: 0.52rem;
-    letter-spacing: 0.1em;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab__count {
-    margin-left: auto;
-    padding-left: 0.32rem;
-    font-size: 0.49rem;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab__control select {
-    min-height: 1.96rem;
-    padding: 0.33rem 1.9rem 0.33rem 0.58rem;
-    font-size: 0.68rem;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab__control > i {
-    right: 0.57rem;
-    font-size: 0.66rem;
-  }
-}
-
+/* Dashboard background motion preference remains page-scoped even though the
+   tester's transient loading animation has been removed. */
 @media (prefers-reduced-motion: reduce) {
   body[data-page="welcome"] #starfield::after {
     transition: none;
-  }
-
-  body[data-page="welcome"] .dashboard-background-lab[aria-busy="true"] .dashboard-background-lab__status {
-    animation: none;
   }
 }
 

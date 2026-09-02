@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Welcome Ascendance revision: retire the prior cache so the dashboard receives the
-// final six-option registry together with the integrated artwork and removed images.
-const CACHE_NAME = 'DH3.33';
+// Dashboard and Rosters responsive-background revision: retire the prior cache so both
+// page-specific styles and the removed dashboard tester arrive together for all users.
+const CACHE_NAME = 'DH3.34';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
