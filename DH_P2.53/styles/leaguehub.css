@@ -1,4 +1,57 @@
 /* LeagueHub page styles (extracted from styles.css) */
+
+/* LeagueHub-only responsive background assignment: Mercurial Fold is the desktop
+   raster, while Medallion Fold is selected independently for mobile viewports. */
+body[data-page="leaguehub"] {
+  --leaguehub-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
+  --leaguehub-background-brightness: 0.5;
+  --leaguehub-background-contrast: 1.05;
+}
+
+/* LeagueHub tones the inherited gradient in this page-specific file only. */
+body[data-page="leaguehub"] #starfield::before {
+  filter: grayscale(0.2);
+}
+
+/* LeagueHub fixed image stage is intentionally self-contained so later visual tuning
+   cannot alter the corresponding implementation on Dashboard, Rosters, or Ownership. */
+body[data-page="leaguehub"] #starfield::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-color: #03070d;
+  background-image:
+    linear-gradient(180deg, rgba(1, 4, 9, 0.08), transparent 24% 70%, rgba(1, 4, 9, 0.3)),
+    var(--leaguehub-background-image);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter:
+    brightness(var(--leaguehub-background-brightness))
+    contrast(var(--leaguehub-background-contrast));
+  opacity: 0.04;
+  transform: translateZ(0);
+  transition: opacity 180ms ease, filter 180ms ease;
+  will-change: opacity;
+}
+
+/* LeagueHub mobile selection remains independent from every other page stylesheet. */
+@media (max-width: 819px) {
+  body[data-page="leaguehub"] {
+    --leaguehub-background-image: url('../assets/welcome/background-lab/medallion-fold.png');
+    --leaguehub-background-brightness: 0.56;
+    --leaguehub-background-contrast: 1.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="leaguehub"] #starfield::after {
+    transition: none;
+  }
+}
+
 /* ============================================================================
    LeagueHub More menu — page-local Rosters parity
    ---------------------------------------------------------------------------

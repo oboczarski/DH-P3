@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Dashboard and Rosters responsive-background revision: retire the prior cache so both
-// page-specific styles and the removed dashboard tester arrive together for all users.
-const CACHE_NAME = 'DH3.34';
+// Expanded page-background revision: retire the prior cache so all five independently
+// scoped static pages receive the corrected responsive assets and visual grading.
+const CACHE_NAME = 'DH3.35';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

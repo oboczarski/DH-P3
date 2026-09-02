@@ -1,4 +1,57 @@
 /* Ownership page position tags & row tuning (extracted from styles.css) */
+
+/* Ownership-only responsive background assignment: Mercurial Fold is the desktop
+   raster, while Medallion Fold is selected independently for mobile viewports. */
+body[data-page="ownership"] {
+  --ownership-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
+  --ownership-background-brightness: 0.5;
+  --ownership-background-contrast: 1.05;
+}
+
+/* Ownership tones the inherited gradient in this page-specific file only. */
+body[data-page="ownership"] #starfield::before {
+  filter: grayscale(0.2);
+}
+
+/* Ownership fixed image stage is intentionally self-contained so future opacity,
+   grading, or composition changes cannot affect Dashboard, Rosters, or other pages. */
+body[data-page="ownership"] #starfield::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-color: #03070d;
+  background-image:
+    linear-gradient(180deg, rgba(1, 4, 9, 0.08), transparent 24% 70%, rgba(1, 4, 9, 0.3)),
+    var(--ownership-background-image);
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter:
+    brightness(var(--ownership-background-brightness))
+    contrast(var(--ownership-background-contrast));
+  opacity: 0.04;
+  transform: translateZ(0);
+  transition: opacity 180ms ease, filter 180ms ease;
+  will-change: opacity;
+}
+
+/* Ownership mobile selection remains independent from every other page stylesheet. */
+@media (max-width: 819px) {
+  body[data-page="ownership"] {
+    --ownership-background-image: url('../assets/welcome/background-lab/medallion-fold.png');
+    --ownership-background-brightness: 0.56;
+    --ownership-background-contrast: 1.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="ownership"] #starfield::after {
+    transition: none;
+  }
+}
+
 /* ============================================================================
    Ownership More menu — page-local Rosters parity
    ---------------------------------------------------------------------------

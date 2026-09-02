@@ -4,12 +4,18 @@
    Keep this extracted block before the later roster overrides so the existing cascade,
    responsive behavior, and component-specific refinements remain unchanged. */
 
-/* Rosters-only responsive background assignment: Mercurial Fold II is the desktop
+/* Rosters-only responsive background assignment: Mercurial Fold is the desktop
    raster, while Medallion Fold is selected independently for mobile viewports. */
 body[data-page="rosters"] {
-  --rosters-background-image: url('../assets/welcome/background-lab/mercurial-fold-ii.png');
+  --rosters-background-image: url('../assets/welcome/background-lab/mercurial-fold.png');
   --rosters-background-brightness: 0.5;
-  --rosters-background-contrast: 1.04;
+  --rosters-background-contrast: 1.05;
+}
+
+/* Rosters tones its inherited gradient independently without changing the shared
+   starfield treatment used by pages that are outside this rollout. */
+body[data-page="rosters"] #starfield::before {
+  filter: grayscale(0.2);
 }
 
 /* Rosters fixed image stage intentionally duplicates the dashboard composition in this
@@ -31,7 +37,7 @@ body[data-page="rosters"] #starfield::after {
   filter:
     brightness(var(--rosters-background-brightness))
     contrast(var(--rosters-background-contrast));
-  opacity: 0.08;
+  opacity: 0.04;
   transform: translateZ(0);
   transition: opacity 180ms ease, filter 180ms ease;
   will-change: opacity;
