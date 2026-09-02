@@ -26,7 +26,7 @@
 // ============================================================================
 // Expanded page-background revision: retire the prior cache so all five independently
 // scoped static pages receive the corrected responsive assets and visual grading.
-const CACHE_NAME = 'DH3.35';
+const CACHE_NAME = 'DH3.35a';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -2273,14 +2273,14 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 
 .welcome-subtitle-row h3 {
   font-size: 0.92rem;
-  color: #ced8ebcc;
+  color: #b7c1d5cc;
   /* Dimmer, soft purple-white */
   font-weight: 400;
   text-transform: uppercase;
   margin: 5px 0 2px;
   text-align: center;
   /* Nice glow effect */
-  text-shadow: 0 0 8px #766dff29, 0 0 8px #4e09ff43, 1px 2px 2px #0006;
+  text-shadow: 0 0 8px #766dff29, 0 0 8px #4e09ff43, 1px 1.5px 1px #fff3;
   text-wrap-mode: nowrap;
   font-family: 'Bruno Ace SC';
   letter-spacing: -0.03rem;
@@ -2328,7 +2328,7 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
     letter-spacing: -1px;
     word-spacing: 11px;
     margin: 9px 0 3px;
-    text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43, 1px 2px 0px #0008;
+    text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43, 1px 2px 0px #0005;
   }
 }
 
