@@ -4343,23 +4343,34 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     contrast: 1.05,
     opacity: 0.88
   },
+  // Mercurial Fold II composites: each supplied focal design stays in front while
+  // the shared liquid-metal fold environment remains a secondary background layer.
   {
-    id: 'obsidian-topography',
-    name: 'Obsidian Topography',
-    asset: 'assets/welcome/background-lab/obsidian-topography.png',
-    description: 'Sculpted obsidian contour layers surround a calm graphite valley with tactile depth.',
-    brightness: 0.62,
-    contrast: 1.08,
+    id: 'mercurial-signal',
+    name: 'Mercurial Signal',
+    asset: 'assets/welcome/background-lab/mercurial-signal.png',
+    description: 'A luminous silver data-wave landscape rises in front of sweeping liquid-metal folds.',
+    brightness: 0.58,
+    contrast: 1.06,
     opacity: 0.9
   },
   {
-    id: 'luminous-shroud',
-    name: 'Luminous Shroud',
-    asset: 'assets/welcome/background-lab/luminous-shroud.png',
-    description: 'Translucent silver and slate ribbons drift around a deep, quiet obsidian center.',
-    brightness: 0.52,
+    id: 'mercurial-ascendance',
+    name: 'Mercurial Ascendance',
+    asset: 'assets/welcome/background-lab/mercurial-ascendance.png',
+    description: 'An ascending filament sculpture and open halo stand before sculpted chrome currents.',
+    brightness: 0.58,
     contrast: 1.06,
-    opacity: 0.86
+    opacity: 0.89
+  },
+  {
+    id: 'mercurial-orbit',
+    name: 'Mercurial Orbit',
+    asset: 'assets/welcome/background-lab/mercurial-orbit.png',
+    description: 'A machined armillary of interlocking dark-silver rings commands a liquid-metal field.',
+    brightness: 0.58,
+    contrast: 1.05,
+    opacity: 0.9
   }
 ]);
 

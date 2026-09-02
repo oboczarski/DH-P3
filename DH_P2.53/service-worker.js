@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Welcome background-library revision: retire the prior cache so the dashboard
-// receives the seven-option registry together with its added and removed images.
-const CACHE_NAME = 'DH3.31';
+// Welcome background-composite revision: retire the prior cache so the dashboard
+// receives the final eight-option registry together with its added and removed images.
+const CACHE_NAME = 'DH3.32';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
