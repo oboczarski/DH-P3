@@ -384,7 +384,7 @@ main#content {
   font-size: clamp(1.4rem, 5vw, 3.1rem);
   font-weight: 200;
   color: #979fbf;
-  text-shadow: 0 0 9px #5300ffaa, 2px 2px 3px #0007;
+  text-shadow: 0 0 9px #5300ffaa, 2px 2px 0px #eef2, 4px 4px 3px #0005;
   position: relative;
   z-index: 1;
   white-space: nowrap;
@@ -2272,16 +2272,18 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
 }
 
 .welcome-subtitle-row h3 {
-  font-size: 1.15rem;
+  font-size: 0.92rem;
   color: #ced8ebcc;
   /* Dimmer, soft purple-white */
   font-weight: 400;
   text-transform: uppercase;
-  margin: 0;
+  margin: 5px 0 2px;
   text-align: center;
   /* Nice glow effect */
-  text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43;
+  text-shadow: 0 0 8px #766dff29, 0 0 8px #4e09ff43, 1px 2px 2px #0006;
   text-wrap-mode: nowrap;
+  font-family: 'Bruno Ace SC';
+  letter-spacing: -0.03rem;
 }
 
 /* tighter grid: menu - username - enter */
@@ -2313,15 +2315,20 @@ body:not([data-page="welcome"]) .welcome-branding-panel {
   }
 
   .welcome-subtitle-row h3 {
-    font-size: 2.35rem;
-    font-weight: 200;
+    font-size: 1.85rem;
+    font-weight: 600;
     /* Original gradient slightly brightened */
-    background: linear-gradient(131deg, #caeaff 0%, #ffcbd6 100%);
+    background: repeating-linear-gradient(135deg, transparent 0 0px, rgb(2 3 7 / 47%) 1px 1px, transparent 2px 2px, #646a8300 1px 1px), linear-gradient(90deg, #e6c1cb 1%, #8cc7c7 14%, #bcdfe7d1 15%, #c0e8f7d1 60%, #fbedfbbf 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     /* Matching glow */
-    filter: drop-shadow(0 0 8px rgba(112, 26, 255, 0.4));
+    filter: drop-shadow(0 0 8px rgba(112, 26, 255, 0.14)) brightness(1.4) saturate(0.7);
+    font-family: 'Bruno Ace SC';
+    letter-spacing: -1px;
+    word-spacing: 11px;
+    margin: 9px 0 3px;
+    text-shadow: 0 0 12px #766dff29, 0 0 10px #4e09ff43, 1px 2px 0px #0008;
   }
 }
 
