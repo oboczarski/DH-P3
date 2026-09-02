@@ -9411,18 +9411,10 @@ function renderOwnershipPercentList(shell) {
         return true;
     });
 
-    // Rebuild list content (header + rows) without replacing the shell or toolbar.
-    // The full-width header guard gives the rounded sticky capsule an opaque
-    // backing, so scrolling player rows cannot show through its corner cutouts.
-    list.innerHTML = `
-        <div class="ownership-list-header-guard">
-            <div class="ownership-list-header">
-                <span class="ownership-col ownership-col--player">Player</span>
-                <span class="ownership-col ownership-col--exposure">Exposure</span>
-                <span class="ownership-col ownership-col--leagues">Leagues</span>
-            </div>
-        </div>
-    `;
+    // Ownership% row refresh: only the independently scrollable row container is
+    // rebuilt. The frozen header is a separate shell sibling, so row paint can
+    // never travel behind its translucent material while the list scrolls.
+    list.replaceChildren();
 
     filteredRows.forEach((row) => {
         const item = document.createElement('article');
@@ -9529,11 +9521,24 @@ function renderOwnershipPercentView() {
         </div>
     `;
 
-    // List container (rows are populated by renderOwnershipPercentList)
+    // Ownership% frozen header: keep the column labels physically outside the
+    // row scroller so translucent header pixels can never reveal moving rows.
+    const headerGuard = document.createElement('div');
+    headerGuard.className = 'ownership-list-header-guard';
+    headerGuard.innerHTML = `
+        <div class="ownership-list-header">
+            <span class="ownership-col ownership-col--player">Player</span>
+            <span class="ownership-col ownership-col--exposure">Exposure</span>
+            <span class="ownership-col ownership-col--leagues">Leagues</span>
+        </div>
+    `;
+
+    // List container: rows only are populated by renderOwnershipPercentList.
     const list = document.createElement('div');
     list.className = 'ownership-list';
 
     shell.appendChild(toolbar);
+    shell.appendChild(headerGuard);
     shell.appendChild(list);
     playerListView.innerHTML = '';
     playerListView.appendChild(shell);
@@ -9969,7 +9974,7 @@ function updateOwnershipValueSortHeaders(valueTable) {
 function updateOwnershipValuePositionFilterButtons(shell) {
     if (!shell) return;
     const activePos = (state.ownershipValuePositionFilter || 'ALL').toUpperCase();
-    shell.querySelectorAll('.ownership-value-filter-btn[data-ownership-pos]').forEach((button) => {
+    shell.querySelectorAll('.ownership-percent-filter-btn[data-ownership-pos]').forEach((button) => {
         const buttonPos = (button.dataset.ownershipPos || 'ALL').toUpperCase();
         const isActive = buttonPos === activePos;
         button.classList.toggle('is-active', isActive);
@@ -10122,9 +10127,10 @@ function renderOwnershipValueView() {
         { label: 'PPG', key: 'ppg' }
     ];
 
-    // Player Value controls target table discoverability (search + position filter).
+    // Player Value reuses the Ownership% toolbar and position-control anatomy so
+    // both tabs retain identical materials, spacing, and responsive composition.
     shell.innerHTML = `
-        <div class="ownership-value-toolbar">
+        <div class="ownership-toolbar ownership-value-toolbar">
             <div class="ownership-search-wrap ownership-search-wrap--value">
                 <label class="sr-only" for="ownershipValueSearchInput">Search value table players</label>
                 <input id="ownershipValueSearchInput" class="ownership-search-input" type="search" placeholder="Search players / team..." autocomplete="off" value="${state.ownershipValueSearchTerm || ''}" />
@@ -10133,13 +10139,12 @@ function renderOwnershipValueView() {
                 </button>
                 <span class="ownership-search-icon" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
             </div>
-            <div class="ownership-value-position-filter" role="group" aria-label="Filter player value table by position">
+            <div class="ownership-percent-position-filter ownership-percent-position-filter--value" role="group" aria-label="Filter player value table by position">
                 ${['ALL', 'QB', 'RB', 'WR', 'TE'].map((pos) => {
                     const active = (state.ownershipValuePositionFilter || 'ALL') === pos;
-                    return `<button class="ownership-value-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
+                    return `<button class="ownership-percent-filter-btn ${active ? 'is-active' : ''}" type="button" data-ownership-pos="${pos}" aria-pressed="${active ? 'true' : 'false'}">${pos}</button>`;
                 }).join('')}
             </div>
-            <p class="ownership-value-sort-note">Tap a column header to sort</p>
         </div>
         <div class="ownership-value-table-wrap">
             <table class="ownership-value-table" aria-label="Ownership player value table">
@@ -10228,8 +10233,8 @@ function renderOwnershipValueView() {
         syncOwnershipValueSearchClearButton(searchInput, searchClearButton);
     });
 
-    shell.querySelector('.ownership-value-position-filter')?.addEventListener('click', (event) => {
-        const button = event.target.closest('.ownership-value-filter-btn');
+    shell.querySelector('.ownership-percent-position-filter--value')?.addEventListener('click', (event) => {
+        const button = event.target.closest('.ownership-percent-filter-btn');
         if (!button) return;
         const nextPos = button.dataset.ownershipPos || 'ALL';
         state.ownershipValuePositionFilter = nextPos;

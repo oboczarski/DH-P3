@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Expanded page-background revision: retire the prior cache so all five independently
-// scoped static pages receive the corrected responsive assets and visual grading.
-const CACHE_NAME = 'DH3.35a';
+// Ownership toolbar/header revision: retire the prior cache so the page receives
+// the separated list header plus synchronized Ownership and Player Value controls.
+const CACHE_NAME = 'DH3.35b';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

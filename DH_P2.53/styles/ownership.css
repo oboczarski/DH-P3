@@ -2817,6 +2817,12 @@ body[data-page="ownership"] .ownership-percent-position-filter {
     0 2px 5px rgba(0, 0, 0, 0.32);
 }
 
+/* Player Value has five positions instead of six, but otherwise uses the exact
+   same Ownership toolbar control. This modifier changes only the column count. */
+body[data-page="ownership"] .ownership-percent-position-filter--value {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 body[data-page="ownership"] .ownership-percent-filter-btn {
   --ownership-percent-pos-rgb: 149, 170, 239;
   position: relative;
@@ -2853,19 +2859,23 @@ body[data-page="ownership"] .ownership-percent-filter-btn::after {
   pointer-events: none;
 }
 
-body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="QB"] {
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="QB"],
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-pos="QB"] {
   --ownership-percent-pos-rgb: 255, 58, 117;
 }
 
-body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="RB"] {
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="RB"],
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-pos="RB"] {
   --ownership-percent-pos-rgb: 80, 235, 239;
 }
 
-body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="WR"] {
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="WR"],
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-pos="WR"] {
   --ownership-percent-pos-rgb: 68, 137, 255;
 }
 
-body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="TE"] {
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="TE"],
+body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-pos="TE"] {
   --ownership-percent-pos-rgb: 70, 30, 255;
 }
 
@@ -2919,16 +2929,15 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
   filter: none;
 }
 
-/* Ownership% sticky-header paint guard:
-   supplies an opaque full-width layer behind the rounded glass capsule. The
-   guard blocks scrolling rows from appearing through any rounded corner while
-   leaving the visible header material and column grid unchanged. */
+/* Ownership% frozen-header container: this is a shell sibling of the row
+   scroller, rather than a child of it. The physical separation prevents moving
+   row paint from appearing behind the translucent rounded header. */
 body[data-page="ownership"] .ownership-list-header-guard {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 3;
   flex: 0 0 auto;
   padding-bottom: 4px;
+  margin-bottom: 0.2em;
   background: none;
   border-radius: 90px;
 }
@@ -2991,6 +3000,12 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
     background: linear-gradient(95deg, #1f1f1f85, #37353592, #3a3a4090);
     -webkit-backdrop-filter: blur(2px) saturate(120%) brightness(120%);
     backdrop-filter: blur(2px) saturate(120%) brightness(120%);
+  }
+
+  /* Ownership toolbar position labels use the requested smaller mobile size;
+     Player Value inherits it because both tabs share this exact control. */
+  body[data-page="ownership"] .ownership-percent-filter-btn {
+    font-size: 0.9rem;
   }
 }
 
@@ -3060,15 +3075,6 @@ body[data-page="ownership"] .ownership-value-table-wrap {
 
 body[data-page="ownership"] .ownership-value-table-wrap .ownership-value-table {
   touch-action: pan-x pan-y pinch-zoom;
-}
-
-body[data-page="ownership"] .ownership-value-sort-note {
-  display: none;
-  margin: 0.02rem 0 0;
-  text-align: center;
-  color: #9aa5da;
-  font-size: 0.66rem;
-  letter-spacing: 0.03em;
 }
 
 body[data-page="ownership"] .ownership-value-table {
@@ -3157,30 +3163,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     font-size: 0.7rem;
   }
 
-  body[data-page="ownership"] .ownership-value-position-filter {
-    gap: 0.2rem;
-    padding: 0.15rem;
-    margin-bottom: 0px;
-  }
-
-  body[data-page="ownership"] .ownership-value-filter-btn {
-    min-height: 2.1rem;
-    font-size: 0.91rem;
-    border-radius: 8px;
-  }
-
   body[data-page="ownership"] .ownership-value-table-wrap {
     max-height: min(var(--ownership-value-mobile-max-height, 66vh), 700px);
-  }
-}
-
-@media (max-width: 819px) {
-  body[data-page="ownership"] .ownership-value-sort-note {
-    display: block;
-  }
-  p.ownership-value-sort-note::before {
-    content: "✦ ";
-    color: lightcoral;
   }
 }
 
@@ -3217,9 +3201,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
    - The app header stays visible at top; nothing scrolls past it.
    - Search bar (.ownership-toolbar / .ownership-value-toolbar) is frozen at
      the top of the shell as a flex-shrink-0 item — it never disappears.
-   - Ownership% tab: .ownership-list becomes the scroll container; the
-     .ownership-list-header is sticky at top: 0 inside it so column labels
-     stay visible while row data scrolls.
+   - Ownership% tab: .ownership-list contains only rows and becomes the scroll
+     container; its header guard is a separate rigid sibling above it.
    - Player Value tab: .ownership-value-table-wrap flex-fills remaining height
      and is the sole scroll container; the existing <thead> with
      position: sticky; top: 0 freezes column headers inside the wrap.
@@ -3316,11 +3299,10 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     -ms-overflow-style: none;
   }
 
-  /* Ownership% column-header: the full-width guard is sticky while the rounded
-     capsule remains its visual child, eliminating row paint in the corners. */
+  /* Ownership% column header is physically outside the row scroller; it remains
+     rigid while the rounded capsule preserves the current visual treatment. */
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 3;
     background: none;
     border-radius: 90px;
@@ -3402,7 +3384,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
    ─────────────────────────────────────────────────────────────────────────────
    Targets only the active Ownership% shell. The outer Ownership page is locked
    to the visible viewport, the toolbar stays rigid, and the player list becomes
-   the sole vertical scroller with its guarded column header pinned at top.
+   the sole vertical scroller beneath a separate rigid column header.
    Player Value keeps its existing independent desktop behavior.
    ============================================================================ */
 @media (min-width: 820px) {
@@ -3454,8 +3436,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   }
 
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header-guard {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 3;
   }
 
@@ -3466,5 +3447,49 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     max-width: 100%;
     min-height: 31px;
     background: linear-gradient(to bottom right, #eef1,#fff0, #fff0) ,radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 64%, rgba(225, 235, 255, 0.07) 0%, rgba(255, 255, 255, 0.045) 80%, transparent 92%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  }
+}
+
+/* Ownership-page navigation material: this intentionally overrides the shared
+   styles.css base only inside the Ownership header. Other pages keep their
+   existing navigation rules and responsive geometry untouched. */
+body[data-page="ownership"] .app-header .nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0.6rem;
+  min-height: 2.25rem;
+  background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  border: 1px solid transparent;
+  border-radius: 19px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
+  flex: 1;
+  max-width: 4.5rem;
+}
+
+/* The shared Home-button ID has its own padding, so restate the page-local
+   navigation padding here to keep every Ownership header button identical. */
+body[data-page="ownership"] .app-header #homeButton.nav-button {
+  padding: 0.4rem 0.6rem;
+}
+
+@media (max-width: 520px) {
+  /* Ownership-only mobile nav spacing requested for the primary header row.
+     Cancel the shared 3.4rem button minimum so all six controls can flex within
+     the narrow header instead of forcing the navigation container past its edge. */
+  body[data-page="ownership"] #primary-header-row .nav-buttons-container {
+    gap: 0.15rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body[data-page="ownership"] .app-header .nav-button {
+    min-width: 0;
   }
 }
