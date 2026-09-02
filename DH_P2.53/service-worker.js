@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Ownership toolbar/header revision: retire the prior cache so the page receives
-// the separated list header plus synchronized Ownership and Player Value controls.
-const CACHE_NAME = 'DH3.35b';
+// Ownership navigation correction: retire the prior cache so the page receives
+// the corrected breakpoint-specific nav material without the compact desktop sizing.
+const CACHE_NAME = 'DH3.35c';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

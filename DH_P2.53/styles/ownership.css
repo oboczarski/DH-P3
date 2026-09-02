@@ -3450,46 +3450,47 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   }
 }
 
-/* Ownership-page navigation material: this intentionally overrides the shared
-   styles.css base only inside the Ownership header. Other pages keep their
-   existing navigation rules and responsive geometry untouched. */
-body[data-page="ownership"] .app-header .nav-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.1rem;
-  padding: 0.4rem 0.6rem;
-  min-height: 2.25rem;
-  background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
-  border: 1px solid transparent;
-  border-radius: 19px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
-  flex: 1;
-  max-width: 4.5rem;
+/* Ownership desktop navigation material (>= 820px): only the declarations
+   actively owned by the visual-material rule live here. The established
+   desktop sizing, spacing, padding, radius, and flex geometry above remain the
+   source of truth for the large evenly distributed buttons. */
+@media (min-width: 820px) {
+  body[data-page="ownership"] .app-header .nav-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
+  }
 }
 
-/* The shared Home-button ID has its own padding, so restate the page-local
-   navigation padding here to keep every Ownership header button identical. */
-body[data-page="ownership"] .app-header #homeButton.nav-button {
-  padding: 0.4rem 0.6rem;
+/* Ownership mobile navigation material (<= 819px): preserve the established
+   mobile geometry while applying the corrected active declarations and flex
+   behavior supplied for this breakpoint family. */
+@media (max-width: 819px) {
+  body[data-page="ownership"] .app-header .nav-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
+    flex: 1;
+  }
 }
 
 @media (max-width: 520px) {
-  /* Ownership-only mobile nav spacing requested for the primary header row.
-     Cancel the shared 3.4rem button minimum so all six controls can flex within
-     the narrow header instead of forcing the navigation container past its edge. */
-  body[data-page="ownership"] #primary-header-row .nav-buttons-container {
+  /* Ownership-only mobile navigation gap; no sizing constraints are overridden. */
+  body[data-page="ownership"] .nav-buttons-container {
     gap: 0.15rem;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  body[data-page="ownership"] .app-header .nav-button {
-    min-width: 0;
   }
 }
