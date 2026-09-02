@@ -495,11 +495,9 @@ body[data-page="ownership"] #ownershipModeSwitcher {
   gap: 0;
   padding: 0.2rem;
   border-radius: 34px;
-  border: 1px solid rgba(128, 138, 189, 0.25);
-  background: linear-gradient(180deg, #57596b, rgb(31 33 46 / 64%));
-  backdrop-filter: blur(8px) saturate(125%);
-  -webkit-backdrop-filter: blur(8px) saturate(125%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 28px rgba(0, 0, 0, 0.23);
+  border: 0px solid rgba(128, 138, 189, 0.25);
+  background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),    inset 0 -1px 0 rgba(0, 0, 0, 0.42),    0 2px 5px rgba(0, 0, 0, 0.32);
 }
 
 @media (min-width: 820px) {
@@ -509,11 +507,11 @@ body[data-page="ownership"] #ownershipModeSwitcher {
      so desktop sizing applies without leaking to other pages. */
   body[data-page="ownership"] #ownershipModeSwitcher {
     height: 46px;
-    padding: 0.1rem;
+    padding: 0.2rem;
   }
 
   body[data-page="ownership"] #ownershipModeSwitcher .ownership-mode-btn {
-    height: 42px;
+    height: 41px;
     border-radius: 32px;
   }
 
@@ -601,7 +599,7 @@ body[data-page="ownership"] .ownership-search-input {
   width: 100%;
   min-height: 2.68rem;
   border-radius: 10px;
-  border: 1px solid rgba(128, 138, 189, 0.3);
+  border: 0px solid rgba(128, 138, 189, 0.3);
   background: rgb(47 49 64 / 45%);
   color: #d8ddff99;
   font-size: 16px;
@@ -1730,12 +1728,11 @@ body[data-page="ownership"] .ownership-list-row {
 
 body[data-page="ownership"] .ownership-list-header {
   border-radius: 10px;
-  border: 1px solid rgba(128, 138, 189, 0.23);
-  background: rgb(112 126 193 / 5%);
+  border: 0px solid rgba(128, 138, 189, 0.23);
   padding: 0.42rem 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.61rem;
+  font-size: 0.91rem;
   font-weight: 700;
   color: #aeb5e4;
   text-shadow: 0px 0px 1px #73ff;
@@ -1763,10 +1760,12 @@ body[data-page="ownership"] .ownership-list-leagues {
 
 body[data-page="ownership"] .ownership-list-row {
   border-radius: 12px;
-  border: 1px solid rgba(128, 138, 189, 0.17);
-  background: linear-gradient(180deg, rgba(155, 155, 255, 0.04), rgba(0, 0, 0, 0.26));
+  border: 0px solid rgba(128, 138, 189, 0.17);
+  background: radial-gradient(120% 100% at 92% 6%, rgb(25 45 55 / 8%) 0%, rgba(35, 45, 55, 0.05) 22%, rgba(35, 45, 55, 0.015) 58%, transparent 68%) border-box, radial-gradient(110% 105% at 8% 94%, rgba(25, 35, 55, 0.12) 0%, rgba(35, 45, 55, 0.005) 70%, transparent 102%) border-box, radial-gradient(120% 100% at 53% 112%, rgba(35, 45, 55, 0) 0%, rgba(35, 45, 55, 0.05) 55%, rgba(135, 145, 165, 0.15) 100%) border-box, conic-gradient(from -40deg, #FFFFFF1d 0deg, #FFFFFF30 20deg, #FFFFFF50 104deg, #FFF6FF2a 112deg, #FFFFFF10 133deg, #FFFFFF10 153deg, #FFFFFF20 230deg, #FFFFFF2f 265deg, #FFFFFF3a 280deg, #FFFFFF18 300deg, #FFFFFF18 368deg) border-area;
   padding: 0.34rem 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.19);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),    inset 0 -1px 0 rgba(0, 0, 0, 0.42),    0 2px 5px rgba(0, 0, 0, 0.32);
+  min-height: 51px;
+  max-height: 51px;
 }
 
 body[data-page="ownership"] .ownership-list-player-wrap {
@@ -2164,9 +2163,11 @@ body[data-page="ownership"] #ownershipPlayerModal .ownership-modal-empty {
   }
 
   body[data-page="ownership"] .ownership-list-header {
-    font-weight: 300;
-    font-size: 0.82rem;
+    font-weight: 600;
+    font-size: 0.92rem;
     color: #aaf;
+    letter-spacing: -0.01rem;
+    font-family: 'Google Sans';
   }
 
   body[data-page="ownership"] .ownership-list-player-wrap {
@@ -2721,16 +2722,12 @@ body[data-page="ownership"] .ownership-toolbar {
   flex-direction: column !important;
   align-items: stretch;
   gap: 0.56rem;
-  margin: -0.7rem -0.45rem 0.58rem;
-  padding: 0.68rem 0.65rem 0.72rem;
-  border: 1px solid rgba(255, 255, 255, 0.085);
+  margin: -0.75rem -0.45rem 0.28rem;
+  padding: 0.88rem 0.65rem 0.72rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.085);
   border-radius: 15px 15px 13px 13px;
-  background: linear-gradient(180deg, rgba(38, 38, 38, 0.55), rgba(38, 38, 39, 0.99));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.72),
-    inset 0 12px 25px rgba(255, 255, 255, 0.018),
-    0 10px 24px rgba(0, 0, 0, 0.24);
+  background: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 /* Fine spectral glints mimic light splitting along the glass edge without
@@ -2774,11 +2771,10 @@ body[data-page="ownership"] .ownership-toolbar .ownership-search-input {
   height: 2.58rem;
   min-height: 2.58rem;
   max-height: none;
-  border-color: rgba(255, 255, 255, 0.11);
+  border-color: transparent;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(84, 84, 87, 0.82), rgba(55, 55, 58, 0.9));
+  background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   -webkit-backdrop-filter: blur(14px) saturate(112%);
-  backdrop-filter: blur(14px) saturate(112%);
   color: rgba(245, 245, 248, 0.9);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
@@ -2792,7 +2788,6 @@ body[data-page="ownership"] .ownership-toolbar .ownership-search-input::placehol
 
 body[data-page="ownership"] .ownership-toolbar .ownership-search-input:focus {
   border-color: rgba(255, 255, 255, 0.18);
-  background: linear-gradient(180deg, rgba(96, 96, 99, 0.88), rgba(61, 61, 64, 0.94));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     inset 0 -1px 0 rgba(0, 0, 0, 0.46),
@@ -2813,11 +2808,9 @@ body[data-page="ownership"] .ownership-percent-position-filter {
   gap: 1px;
   width: 100%;
   padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.11);
+  border: 0px solid rgba(255, 255, 255, 0.11);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(84, 84, 87, 0.82), rgba(55, 55, 58, 0.9));
-  -webkit-backdrop-filter: blur(14px) saturate(112%);
-  backdrop-filter: blur(14px) saturate(112%);
+  background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.16),
     inset 0 -1px 0 rgba(0, 0, 0, 0.42),
@@ -2825,20 +2818,20 @@ body[data-page="ownership"] .ownership-percent-position-filter {
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn {
-  --ownership-percent-pos-rgb: 149, 160, 229;
+  --ownership-percent-pos-rgb: 149, 170, 239;
   position: relative;
   isolation: isolate;
   min-width: 0;
   min-height: 2.08rem;
   padding: 0.25rem 0.18rem;
-  border: 1px solid transparent;
+  border: 0px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: rgba(239, 239, 243, 0.72);
+  color: rgb(192 192 214 / 45%);
   box-shadow: none;
   font-family: var(--font-sans);
-  font-size: 0.74rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 400;
   letter-spacing: 0.045em;
   line-height: 1;
   text-transform: uppercase;
@@ -2851,11 +2844,11 @@ body[data-page="ownership"] .ownership-percent-filter-btn {
 body[data-page="ownership"] .ownership-percent-filter-btn::after {
   content: '';
   position: absolute;
-  inset: 1px 8% auto;
+  inset: 1px 4% auto;
   height: 46%;
   z-index: -1;
   border-radius: 999px 999px 50% 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent);
   opacity: 0;
   pointer-events: none;
 }
@@ -2865,31 +2858,32 @@ body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="RB"] {
-  --ownership-percent-pos-rgb: 0, 235, 199;
+  --ownership-percent-pos-rgb: 80, 235, 239;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="WR"] {
-  --ownership-percent-pos-rgb: 88, 167, 255;
+  --ownership-percent-pos-rgb: 68, 137, 255;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="TE"] {
-  --ownership-percent-pos-rgb: 180, 105, 255;
+  --ownership-percent-pos-rgb: 70, 30, 255;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn[data-ownership-percent-pos="FLX"] {
-  --ownership-percent-pos-rgb: 96, 206, 214;
+  --ownership-percent-pos-rgb: 246, 106, 234;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active {
   color: rgba(239, 239, 244, 0.9);
-  color: color-mix(in srgb, rgb(var(--ownership-percent-pos-rgb)) 32%, #efeff4);
+  color: color-mix(in srgb, rgb(var(--ownership-percent-pos-rgb)) 42%, #efeff4);
   border-color: rgba(255, 255, 255, 0.1);
-  background: linear-gradient(180deg, rgba(126, 126, 130, 0.88), rgba(75, 75, 79, 0.94));
+  background: transparent;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.24),
     inset 0 -1px 0 rgba(0, 0, 0, 0.48),
     0 1px 3px rgba(0, 0, 0, 0.48),
     0 0 0 0.5px rgba(255, 255, 255, 0.055);
+  text-shadow: 1px 1px 2px #0008;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active::after {
@@ -2897,8 +2891,8 @@ body[data-page="ownership"] .ownership-percent-filter-btn.is-active::after {
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn:hover {
-  color: rgba(255, 255, 255, 0.88);
-  background-color: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.48);
+  background-color: transparent;
 }
 
 body[data-page="ownership"] .ownership-percent-filter-btn.is-active:hover {
@@ -2919,15 +2913,9 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
   overflow: hidden;
   border-color: rgba(255, 255, 255, 0.11);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(59, 59, 62, 0.72), rgba(25, 25, 27, 0.96));
-  -webkit-backdrop-filter: blur(13px) saturate(122%);
-  backdrop-filter: blur(13px) saturate(122%);
   color: rgba(224, 227, 237, 0.76);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.72);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.68),
-    0 5px 12px rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),    inset 0 -1px 0 rgba(0, 0, 0, 0.42),    0 2px 5px rgba(0, 0, 0, 0.32);
   filter: none;
 }
 
@@ -2991,6 +2979,8 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
     width: auto;
     min-width: 240px;
     margin-bottom: 0;
+    min-height: 44px;
+    max-height: 44px;
   }
 }
 
@@ -3147,6 +3137,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     max-width: 96%;
     align-self: center;
     min-width: 94%;
+    min-height: 47px;
+    max-height: 47px;
   }
 
   body[data-page="ownership"] .ownership-list-exposure {
@@ -3337,10 +3329,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
   body[data-page="ownership"] .ownership-shell--percent .ownership-list-header {
     position: relative;
     z-index: 1;
-    background: linear-gradient(180deg, rgba(59, 59, 62, 0.94), rgba(25, 25, 27, 0.99));
-    backdrop-filter: blur(13px) saturate(122%);
-    -webkit-backdrop-filter: blur(13px) saturate(122%);
-    min-height: 30px;
+    background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.1) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
+    min-height: 34px;
     border-radius: 999px;
     max-width: 101%;
     min-width: 100%;
@@ -3474,5 +3464,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     z-index: 1;
     min-width: 100%;
     max-width: 100%;
+    min-height: 31px;
+    background: linear-gradient(to bottom right, #eef1,#fff0, #fff0) ,radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 64%, rgba(225, 235, 255, 0.07) 0%, rgba(255, 255, 255, 0.045) 80%, transparent 92%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
   }
 }
