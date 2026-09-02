@@ -2721,7 +2721,7 @@ body[data-page="welcome"] .app-header {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 1.25rem;
+    gap: 1rem;
     width: 100%;
   }
 
@@ -2734,9 +2734,9 @@ body[data-page="welcome"] .app-header {
   body[data-page="welcome"] .welcome-branding-panel h2 {
     font-size: 3.2rem;
     font-family: "Bruno Ace SC";
-    letter-spacing: -0.05em;
-    font-weight: 200;
-    -webkit-text-stroke: 1px #16254394;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    -webkit-text-stroke: 0px #16254394;
   }
 
   /* Adjust Header Container on Desktop */

@@ -383,7 +383,7 @@ main#content {
 .welcome-branding-panel h2 {
   font-size: clamp(1.4rem, 5vw, 3.1rem);
   font-weight: 200;
-  color: #b3bad7;
+  color: #979fbf;
   text-shadow: 0 0 9px #5300ffaa, 2px 2px 3px #0007;
   position: relative;
   z-index: 1;
