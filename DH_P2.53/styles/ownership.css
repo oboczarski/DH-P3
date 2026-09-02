@@ -566,7 +566,8 @@ body[data-page="ownership"] .ownership-shell {
   max-width: 1000px;
   border-radius: 16px;
   border: 1px solid rgb(13 14 14 / 36%);
-  background: linear-gradient(95deg, #1f1f1f85, #40404092, #45454690);
+  background: linear-gradient(
+115deg, #1f1f1f85, #40404092, #45454690);
   backdrop-filter: blur(3px) saturate(120%);
   -webkit-backdrop-filter: blur(7px) saturate(120%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 16px rgba(0, 0, 0, 0.26);
@@ -3014,8 +3015,9 @@ body[data-page="ownership"] .ownership-shell--percent .ownership-list-header > *
      padding without changing the mobile search-above-filters arrangement. */
   body[data-page="ownership"] .ownership-toolbar {
     margin: -0.6rem -0.1rem 0.5rem;
-    padding: 0.54rem 0.55rem 0.6rem;
-    border-radius: 11px 11px 10px 10px;
+    padding: 0.74rem 0.55rem 0.5rem;
+    border-radius: 11px 11px 3px 2px;
+    border-bottom: 1px solid #585c7381;
   }
 }
 
@@ -3354,8 +3356,8 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     min-height: 0;
     height: 100%;
     padding: 0.15rem 0.08rem;
-    gap: clamp(0.1rem, 0.6vw, 0.2rem);
-    font-size: clamp(0.58rem, 2.4vw, 0.72rem);
+    gap: 0.25rem;
+    font-size: clamp(0.58rem, 2.6vw, 0.72rem);
     letter-spacing: 0;
     line-height: 1;
     white-space: nowrap;
@@ -3363,7 +3365,7 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
 
   body[data-page="ownership"] #ownershipModeSwitcher .ownership-mode-btn i {
     flex: 0 0 auto;
-    font-size: clamp(0.58rem, 2.2vw, 0.7rem);
+    font-size: clamp(0.64rem, 2.2vw, 0.7rem);
   }
 
   body[data-page="ownership"] .ownership-username-bar #usernameInput {
@@ -3461,11 +3463,12 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     align-items: center;
     justify-content: center;
     background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
-    border: 1px solid transparent;
+    border: 0px solid transparent;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),  0 2px 5px rgba(0, 0, 0, 0.42);
   }
 }
 
@@ -3479,12 +3482,13 @@ body[data-page="ownership"] .ownership-value-table .ownership-player-trigger--va
     align-items: center;
     justify-content: center;
     background: radial-gradient(120% 100% at 92% 6%, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.09) 22%, rgba(255, 255, 255, 0.035) 48%, transparent 68%) border-box, radial-gradient(90% 75% at 8% 94%, rgba(225, 235, 255, 0.10) 0%, rgba(255, 255, 255, 0.045) 30%, transparent 62%) border-box, radial-gradient(140% 120% at 48% 42%, rgba(255, 255, 255, 0.075) 0%, rgba(255, 255, 255, 0.045) 55%, rgba(255, 255, 255, 0.065) 100%) border-box, conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF20 20deg,  #FFFFFF30 104deg,  #FFF6FF1a 112deg,  #FFFFFF0a 133deg,  #FFFFFF0a 153deg,  #FFFFFF18 230deg,  #FFFFFF1f 265deg,  #FFFFFF20 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;
-    border: 1px solid transparent;
+    border: 0px solid transparent;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: inset 0 0px 0 rgba(255, 255, 255, 0.16), inset 0 0px 6px 1px rgba(0, 0, 0, 0.2), 0 2px 5px rgba(0, 0, 0, 0.2), inset 3px 10px 12px -3px #ccd1;
     flex: 1;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),  0 2px 5px rgba(0, 0, 0, 0.32);
   }
 }
 
