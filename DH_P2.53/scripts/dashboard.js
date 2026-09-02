@@ -4317,24 +4317,6 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     opacity: 0.86
   },
   {
-    id: 'mercurial-fold-iii',
-    name: 'Mercurial Fold III',
-    asset: 'assets/welcome/background-lab/mercurial-fold-iii.png',
-    description: 'Nested liquid-metal pleats surround a wide black-glass basin with layered depth.',
-    brightness: 0.52,
-    contrast: 1.04,
-    opacity: 0.86
-  },
-  {
-    id: 'medallion-drift',
-    name: 'Medallion Drift',
-    asset: 'assets/welcome/background-lab/medallion-drift.png',
-    description: 'A more prominent radial black-titanium medallion fills its satin-silver orbital field.',
-    brightness: 0.66,
-    contrast: 1.05,
-    opacity: 0.89
-  },
-  {
     id: 'medallion-fold',
     name: 'Medallion Fold',
     asset: 'assets/welcome/background-lab/medallion-fold.png',
@@ -4343,17 +4325,8 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     contrast: 1.05,
     opacity: 0.88
   },
-  // Mercurial Fold II composites: each supplied focal design stays in front while
-  // the shared liquid-metal fold environment remains a secondary background layer.
-  {
-    id: 'mercurial-signal',
-    name: 'Mercurial Signal',
-    asset: 'assets/welcome/background-lab/mercurial-signal.png',
-    description: 'A luminous silver data-wave landscape rises in front of sweeping liquid-metal folds.',
-    brightness: 0.58,
-    contrast: 1.06,
-    opacity: 0.9
-  },
+  // Mercurial Ascendance variants keep the centered filament identity while the
+  // second treatment grows those filaments directly into its outer metal currents.
   {
     id: 'mercurial-ascendance',
     name: 'Mercurial Ascendance',
@@ -4361,6 +4334,15 @@ const DASHBOARD_BACKGROUND_DESIGNS = Object.freeze([
     description: 'An ascending filament sculpture and open halo stand before sculpted chrome currents.',
     brightness: 0.58,
     contrast: 1.06,
+    opacity: 0.89
+  },
+  {
+    id: 'mercurial-ascendance-ii',
+    name: 'Mercurial Ascendance II',
+    asset: 'assets/welcome/background-lab/mercurial-ascendance-ii.png',
+    description: 'Luminous center filaments widen seamlessly into the surrounding liquid-metal currents.',
+    brightness: 0.58,
+    contrast: 1.05,
     opacity: 0.89
   },
   {
