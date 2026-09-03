@@ -24,9 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Data Hub live Trade Values update: retire the prior cache so the positional
-// ADP ranks and live SFLX chart logic arrive together on the next normal refresh.
-const CACHE_NAME = 'DH3.37';
+// LeagueHub command-center refresh: retire the prior cache so the integrated
+// branding/header, responsive Archive controls, and preseason stats bridge
+// arrive together on the next normal refresh.
+const CACHE_NAME = 'DH3.38';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

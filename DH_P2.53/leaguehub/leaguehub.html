@@ -27,7 +27,7 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.36-trade-archive-revamp" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.38-leaguehub-command-center" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -50,125 +50,217 @@
   <div id="noise-overlay"></div>
   <div class="relative z-10 content-wrapper">
     <div id="header-container">
-      <header class="app-header glass-panel">
-        <div class="header-row" id="primary-header-row">
-          <div class="nav-buttons-container">
-            <button class="nav-button" id="homeButton" data-nav="home">
-              <img src="../assets/logos/App_Logo_icon256.png" alt="Dynasty Hub" class="nav-logo" aria-hidden="true" />
-              <span class="nav-label">Home</span>
-            </button>
-            <button class="nav-button" id="rostersButton" data-nav="rosters">
-              <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-              <span class="nav-label">Rosters</span>
-            </button>
-            <button class="nav-button" id="statsButton" data-nav="datahub">
-              <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
-              <span class="nav-label">DataHub</span>
-            </button>
-            <button class="nav-button active" id="leagueHubButton" data-nav="leaguehub">
-              <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
-              <span class="nav-label">LeagueHub</span>
-            </button>
-            <button class="nav-button" id="researchButton" data-nav="research">
-              <i class="fa-solid fa-flask" aria-hidden="true"></i>
-              <span class="nav-label">Research</span>
-            </button>
-            <button class="nav-button nav-more-toggle" id="moreButton" aria-haspopup="true" aria-expanded="false">
-              <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
-              <span class="nav-label">More</span>
-              <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
-            </button>
-            <!-- LeagueHub-local More menu anatomy: icon wells and supporting copy
-                 mirror Rosters while remaining independently styleable here. -->
-            <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
-              <button class="nav-more-item" data-nav="ownership" role="menuitem">
-                <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-percent"></i></span>
-                <span class="nav-more-item-copy">
-                  <span class="nav-more-item-title">Ownership</span>
-                  <span class="nav-more-item-subtext">Player Exposures</span>
-                </span>
-              </button>
-              <button class="nav-more-item" data-url="https://trophyroom.dynastyhub.pro/" role="menuitem">
-                <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
-                <span class="nav-more-item-copy">
-                  <span class="nav-more-item-title">Trophy Room</span>
-                  <span class="nav-more-item-subtext">Dyn. Career Profile</span>
-                </span>
-              </button>
-              <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem">
-                <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-table-columns"></i></span>
-                <span class="nav-more-item-copy">
-                  <span class="nav-more-item-title">Matchups</span>
-                  <span class="nav-more-item-subtext">In-Season SoS Tool</span>
-                </span>
-              </button>
-              <button class="nav-more-item" data-nav="contact" role="menuitem">
-                <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
-                <span class="nav-more-item-copy">
-                  <span class="nav-more-item-title">Contact</span>
-                  <span class="nav-more-item-subtext">Feedback</span>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-      <section class="analyzer-hero glass-panel" aria-labelledby="analyzer-hero-heading">
-        <!-- LeagueHub hero workspace:
-             keeps account and league context out of the navigation bar, then
-             places both primary LeagueHub views directly inside the hero. -->
-        <div class="leaguehub-hero-topline">
-          <div class="analyzer-hero-intro">
-            <div id="leagueHubHeroPill" class="analyzer-pill">Dynasty Hub • League Hub</div>
-            <h1 id="analyzer-hero-heading">League Value &amp; Production Overview</h1>
-          </div>
-          <div class="leaguehub-hero-session" aria-label="Connected Sleeper user">
-            <div class="leaguehub-hero-user">
-              <span class="leaguehub-hero-user-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
-              <span class="leaguehub-hero-user-copy">
-                <small>Connected user</small>
-                <strong id="leagueHubHeroUsername">Connecting…</strong>
+      <!-- LeagueHub command frame:
+           desktop presents the brand, compact navigation, page title, account,
+           tabs, league, and archive filters as one integrated glass workspace;
+           mobile CSS separates the archive filters into their own panel. -->
+      <section class="leaguehub-command-frame glass-panel" aria-label="LeagueHub command center">
+        <div class="analyzer-hero" aria-labelledby="analyzer-hero-heading">
+          <div class="leaguehub-masthead">
+            <div class="leaguehub-brand-lockup" role="img" aria-label="Dynasty Hub">
+              <img class="leaguehub-brand-logo" src="../assets/logos/DH-Logo-nbg_vC05b.png?v=DH3.38"
+                alt="" width="1254" height="1254" decoding="async" fetchpriority="high" />
+              <span class="leaguehub-brand-copy">
+                <strong><span>Dynasty</span><span>Hub</span></strong>
+                <small>League intelligence</small>
               </span>
             </div>
-            <button id="leagueHubChangeUserButton" class="leaguehub-change-user-button" type="button">
-              <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
-              <span>Change user</span>
-            </button>
-          </div>
-        </div>
 
-        <div class="leaguehub-hero-workspace">
-          <div class="leaguehub-hero-league-control">
-            <label for="leagueSelect">Active league</label>
-            <div class="leaguehub-hero-league-select">
-              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-              <select disabled id="leagueSelect">
-                <option value="">Select a league...</option>
-              </select>
-              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            <header class="app-header">
+              <div class="header-row" id="primary-header-row">
+                <nav class="nav-buttons-container" aria-label="Primary navigation">
+                  <button class="nav-button" id="homeButton" data-nav="home" type="button" aria-label="Home">
+                    <i class="fa-solid fa-house" aria-hidden="true"></i>
+                    <span class="nav-label">Home</span>
+                  </button>
+                  <button class="nav-button" id="rostersButton" data-nav="rosters" type="button" aria-label="Rosters">
+                    <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+                    <span class="nav-label">Rosters</span>
+                  </button>
+                  <button class="nav-button" id="statsButton" data-nav="datahub" type="button" aria-label="DataHub">
+                    <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+                    <span class="nav-label">DataHub</span>
+                  </button>
+                  <button class="nav-button active" id="leagueHubButton" data-nav="leaguehub" type="button"
+                    aria-label="LeagueHub" aria-current="page">
+                    <i class="fa-solid fa-square-poll-vertical" aria-hidden="true"></i>
+                    <span class="nav-label">LeagueHub</span>
+                  </button>
+                  <button class="nav-button" id="researchButton" data-nav="research" type="button" aria-label="Research">
+                    <i class="fa-solid fa-flask" aria-hidden="true"></i>
+                    <span class="nav-label">Research</span>
+                  </button>
+                  <button class="nav-button nav-more-toggle" id="moreButton" type="button" aria-label="More"
+                    aria-haspopup="true" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                    <span class="nav-label">More</span>
+                    <i class="fa-solid fa-caret-down nav-more-caret" aria-hidden="true"></i>
+                  </button>
+                  <!-- LeagueHub-local More menu anatomy remains page-owned so its
+                       destinations and visual tuning stay isolated from sister pages. -->
+                  <div class="nav-more-dropdown hidden" id="moreDropdown" role="menu" aria-hidden="true">
+                    <button class="nav-more-item" data-nav="ownership" role="menuitem" type="button">
+                      <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-percent"></i></span>
+                      <span class="nav-more-item-copy">
+                        <span class="nav-more-item-title">Ownership</span>
+                        <span class="nav-more-item-subtext">Player Exposures</span>
+                      </span>
+                    </button>
+                    <button class="nav-more-item" data-url="https://trophyroom.dynastyhub.pro/" role="menuitem" type="button">
+                      <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-trophy"></i></span>
+                      <span class="nav-more-item-copy">
+                        <span class="nav-more-item-title">Trophy Room</span>
+                        <span class="nav-more-item-subtext">Dyn. Career Profile</span>
+                      </span>
+                    </button>
+                    <button class="nav-more-item" data-url="http://dynastyhub-matchups.netlify.app/" role="menuitem" type="button">
+                      <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-table-columns"></i></span>
+                      <span class="nav-more-item-copy">
+                        <span class="nav-more-item-title">Matchups</span>
+                        <span class="nav-more-item-subtext">In-Season SoS Tool</span>
+                      </span>
+                    </button>
+                    <button class="nav-more-item" data-nav="contact" role="menuitem" type="button">
+                      <span class="nav-more-item-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+                      <span class="nav-more-item-copy">
+                        <span class="nav-more-item-title">Contact</span>
+                        <span class="nav-more-item-subtext">Feedback</span>
+                      </span>
+                    </button>
+                  </div>
+                </nav>
+              </div>
+            </header>
+
+            <div class="analyzer-hero-intro">
+              <div id="leagueHubHeroPill" class="analyzer-pill">League Hub</div>
+              <h1 id="analyzer-hero-heading">League Intelligence</h1>
             </div>
           </div>
 
-          <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
-            <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
-              <button type="button" id="leagueAnalysisTab" class="leaguehub-tab-button active" role="tab"
-                aria-selected="true" aria-controls="leagueAnalysisPanel" data-leaguehub-tab="analysis">
-                <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
-                <span class="leaguehub-tab-label">League Analysis</span>
-              </button>
-              <button type="button" id="leagueTradesTab" class="leaguehub-tab-button" role="tab" aria-selected="false"
-                aria-controls="leagueTradesPanel" data-leaguehub-tab="trades" tabindex="-1">
-                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-                <span class="leaguehub-tab-label">League Trade Archive</span>
+          <!-- Desktop order is user / tabs / league. Mobile reflows the same
+               controls to tabs / user / league without duplicating behavior. -->
+          <div class="leaguehub-context-row">
+            <div class="leaguehub-hero-session" aria-label="Connected Sleeper user">
+              <div class="leaguehub-hero-user">
+                <span class="leaguehub-hero-user-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+                <span class="leaguehub-hero-user-copy">
+                  <small>Connected user</small>
+                  <strong id="leagueHubHeroUsername">Connecting…</strong>
+                </span>
+              </div>
+              <button id="leagueHubChangeUserButton" class="leaguehub-change-user-button" type="button">
+                <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+                <span>Change user</span>
               </button>
             </div>
-          </section>
+
+            <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
+              <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
+                <button type="button" id="leagueAnalysisTab" class="leaguehub-tab-button active" role="tab"
+                  aria-selected="true" aria-controls="leagueAnalysisPanel" data-leaguehub-tab="analysis">
+                  <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                  <span class="leaguehub-tab-label">League Analysis</span>
+                </button>
+                <button type="button" id="leagueTradesTab" class="leaguehub-tab-button" role="tab" aria-selected="false"
+                  aria-controls="leagueTradesPanel" data-leaguehub-tab="trades" tabindex="-1">
+                  <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                  <span class="leaguehub-tab-label">Trade Archive</span>
+                </button>
+              </div>
+            </section>
+
+            <div class="leaguehub-hero-league-control">
+              <label for="leagueSelect">Active league</label>
+              <div class="leaguehub-hero-league-select">
+                <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                <select disabled id="leagueSelect">
+                  <option value="">Select a league...</option>
+                </select>
+                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden compatibility field: shared routing and the username gate use
+               this value without returning the old input to the navigation bar. -->
+          <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
+            inputmode="text" name="username" type="hidden" value="" />
         </div>
 
-        <!-- Hidden compatibility field: shared routing and the username gate use
-             this value without returning the old input to the navigation bar. -->
-        <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
-          inputmode="text" name="username" type="hidden" value="" />
+        <!-- Trade Archive command deck:
+             mounted beside the shared hero on desktop and rendered as its own
+             glass panel on mobile; JS exposes it only for the Archive tab. -->
+        <section id="leagueTradesToolbar" class="leaguehub-trades-toolbar hidden"
+          aria-labelledby="leagueTradesHeading" aria-hidden="true">
+          <div class="leaguehub-trades-toolbar-head">
+            <div class="leaguehub-trades-heading">
+              <span class="leaguehub-trades-kicker">Trade Archive</span>
+              <h2 id="leagueTradesHeading">Archive controls</h2>
+            </div>
+            <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
+              Select a league to load the trade archive.
+            </div>
+          </div>
+
+          <div class="leaguehub-trades-toolbar-filters">
+            <div class="leaguehub-trades-control leaguehub-trades-control--member">
+              <span class="leaguehub-trades-control-label" id="leagueTradesMemberLabel">
+                <i class="fa-solid fa-people-arrows" aria-hidden="true"></i><span>Trade Partners</span>
+              </span>
+              <div class="leaguehub-trades-select" data-trade-select="member">
+                <button type="button" id="leagueTradesMemberButton" class="leaguehub-trades-select-button"
+                  aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesMemberLabel leagueTradesMemberValue">
+                  <span id="leagueTradesMemberValue">All League Members</span>
+                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="leagueTradesMemberMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                  aria-labelledby="leagueTradesMemberLabel"></div>
+              </div>
+            </div>
+
+            <div class="leaguehub-trades-control leaguehub-trades-control--season">
+              <span class="leaguehub-trades-control-label" id="leagueTradesSeasonLabelText">
+                <i class="fa-solid fa-calendar-days" aria-hidden="true"></i><span>Season</span>
+              </span>
+              <div class="leaguehub-trades-select" data-trade-select="season">
+                <button type="button" id="leagueTradesSeasonButton" class="leaguehub-trades-select-button"
+                  aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesSeasonLabelText leagueTradesSeasonValue">
+                  <span id="leagueTradesSeasonValue">All Seasons</span>
+                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="leagueTradesSeasonMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                  aria-labelledby="leagueTradesSeasonLabelText"></div>
+              </div>
+            </div>
+
+            <div class="leaguehub-trades-control leaguehub-trades-control--asset">
+              <span class="leaguehub-trades-control-label" id="leagueTradesAssetLabel">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>Assets</span>
+              </span>
+              <div class="leaguehub-trades-select" data-trade-select="asset">
+                <button type="button" id="leagueTradesAssetButton" class="leaguehub-trades-select-button"
+                  aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesAssetLabel leagueTradesAssetValue">
+                  <span id="leagueTradesAssetValue">All Assets</span>
+                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="leagueTradesAssetMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
+                  aria-labelledby="leagueTradesAssetLabel"></div>
+              </div>
+            </div>
+
+            <div class="leaguehub-trades-control leaguehub-trades-control--search">
+              <label for="leagueTradesSearch">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span>Search</span>
+              </label>
+              <div class="leaguehub-trades-search-wrap">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="leagueTradesSearch" type="search" inputmode="search" autocomplete="off"
+                  placeholder="Search players, picks, teams..." />
+              </div>
+            </div>
+          </div>
+        </section>
       </section>
     </div>
     <main class="container mx-auto analyzer-main" id="content">
@@ -376,91 +468,6 @@
       <section id="leagueTradesPanel" class="leaguehub-panel leaguehub-panel--trades hidden" role="tabpanel"
         aria-labelledby="leagueTradesTab" aria-hidden="true">
         <section class="leaguehub-trades-shell" aria-labelledby="leagueTradesHeading">
-          <section class="leaguehub-trades-toolbar" aria-label="Trade archive controls">
-            <div class="leaguehub-trades-toolbar-head">
-              <div class="leaguehub-trades-heading">
-                <span class="leaguehub-trades-kicker">Sleeper transaction history</span>
-                <h2 id="leagueTradesHeading">Trade Archive</h2>
-              </div>
-              <!-- Desktop Trade Archive league picker: mirrors the hero's active
-                   league control and stays centered in the controls-panel header. -->
-              <div class="leaguehub-trades-head-league leaguehub-trades-head-league--desktop">
-                <label for="leagueTradesLeagueSelectDesktop">League</label>
-                <div class="leaguehub-trades-native-select">
-                  <select id="leagueTradesLeagueSelectDesktop" data-trade-league-select disabled>
-                    <option value="">Select a league...</option>
-                  </select>
-                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                </div>
-              </div>
-              <div id="leagueTradesStatus" class="leaguehub-trades-status" aria-live="polite">
-                Select a league to load the trade archive.
-              </div>
-            </div>
-
-            <div class="leaguehub-trades-toolbar-filters">
-              <div class="leaguehub-trades-control leaguehub-trades-control--member">
-                <span class="leaguehub-trades-control-label" id="leagueTradesMemberLabel">Trade Partners</span>
-                <div class="leaguehub-trades-select" data-trade-select="member">
-                  <button type="button" id="leagueTradesMemberButton" class="leaguehub-trades-select-button"
-                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesMemberLabel leagueTradesMemberValue">
-                    <span id="leagueTradesMemberValue">All League Members</span>
-                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                  </button>
-                  <div id="leagueTradesMemberMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
-                    aria-labelledby="leagueTradesMemberLabel"></div>
-                </div>
-              </div>
-
-              <!-- Mobile Trade Archive league picker: forms the first control row
-                   beside Trade Partners and stays synchronized with the hero selector. -->
-              <div class="leaguehub-trades-control leaguehub-trades-control--league-mobile">
-                <label for="leagueTradesLeagueSelectMobile">League</label>
-                <div class="leaguehub-trades-native-select">
-                  <select id="leagueTradesLeagueSelectMobile" data-trade-league-select disabled>
-                    <option value="">Select a league...</option>
-                  </select>
-                  <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                </div>
-              </div>
-
-              <div class="leaguehub-trades-control leaguehub-trades-control--season">
-                <span class="leaguehub-trades-control-label" id="leagueTradesSeasonLabelText">Season</span>
-                <div class="leaguehub-trades-select" data-trade-select="season">
-                  <button type="button" id="leagueTradesSeasonButton" class="leaguehub-trades-select-button"
-                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesSeasonLabelText leagueTradesSeasonValue">
-                    <span id="leagueTradesSeasonValue">All Seasons</span>
-                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                  </button>
-                  <div id="leagueTradesSeasonMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
-                    aria-labelledby="leagueTradesSeasonLabelText"></div>
-                </div>
-              </div>
-
-              <div class="leaguehub-trades-control leaguehub-trades-control--asset">
-                <span class="leaguehub-trades-control-label" id="leagueTradesAssetLabel">Assets</span>
-                <div class="leaguehub-trades-select" data-trade-select="asset">
-                  <button type="button" id="leagueTradesAssetButton" class="leaguehub-trades-select-button"
-                    aria-haspopup="listbox" aria-expanded="false" aria-labelledby="leagueTradesAssetLabel leagueTradesAssetValue">
-                    <span id="leagueTradesAssetValue">All Assets</span>
-                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                  </button>
-                  <div id="leagueTradesAssetMenu" class="leaguehub-trades-select-menu hidden" role="listbox"
-                    aria-labelledby="leagueTradesAssetLabel"></div>
-                </div>
-              </div>
-
-              <div class="leaguehub-trades-control leaguehub-trades-control--search">
-                <label for="leagueTradesSearch">Search</label>
-                <div class="leaguehub-trades-search-wrap">
-                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                  <input id="leagueTradesSearch" type="search" inputmode="search" autocomplete="off"
-                    placeholder="Search players, picks, teams..." />
-                </div>
-              </div>
-            </div>
-          </section>
-
           <section id="leagueTradesAnalytics" class="leaguehub-trades-analytics hidden" aria-live="polite">
             <article class="leaguehub-trades-module">
               <header class="leaguehub-trades-module-header">
@@ -501,7 +508,7 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub.js?v=DH3.36-trade-archive-revamp"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.38-leaguehub-command-center"></script>
   <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 

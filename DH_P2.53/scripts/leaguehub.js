@@ -17,6 +17,7 @@
       tabButtons: document.querySelectorAll('.leaguehub-tab-button'),
       analysisPanel: document.getElementById('leagueAnalysisPanel'),
       tradesPanel: document.getElementById('leagueTradesPanel'),
+      tradeToolbar: document.getElementById('leagueTradesToolbar'),
       heroPill: document.getElementById('leagueHubHeroPill'),
       heroHeading: document.getElementById('analyzer-hero-heading'),
       heroUsername: document.getElementById('leagueHubHeroUsername'),
@@ -46,7 +47,6 @@
       tradesFeed: document.getElementById('leagueTradesFeed'),
       tradesFeedMeta: document.getElementById('leagueTradesFeedMeta'),
       tradesSearchInput: document.getElementById('leagueTradesSearch'),
-      tradeLeagueSelects: document.querySelectorAll('[data-trade-league-select]'),
       tradeSelects: {
         member: {
           control: document.getElementById('leagueTradesMemberButton')?.closest('.leaguehub-trades-control'),
@@ -742,18 +742,6 @@
       });
     });
 
-    // Trade Archive league controls:
-    // mirror the hero's active-league selector inside the archive toolbar so
-    // selecting a league from either surface drives the same analysis + archive flow.
-    elements.tradeLeagueSelects.forEach((select) => {
-      select.addEventListener('change', () => {
-        const leagueId = select.value;
-        if (!leagueId) return;
-        syncLeagueSelectValues(leagueId);
-        analyzeLeague(leagueId);
-      });
-    });
-
     elements.tabButtons.forEach((button) => {
       button.addEventListener('click', () => {
         setActiveLeagueHubTab(button.dataset.leaguehubTab);
@@ -972,8 +960,8 @@
     }
 
     // LeagueHub tab workspace:
-    // toggles only the wrapper panels, leaving the existing analysis DOM mounted
-    // and lazy-loading trade history only when the trades tab is opened.
+    // toggles the archive command deck with its matching panel, leaves the
+    // existing analysis DOM mounted, and lazy-loads history only when requested.
     async function setActiveLeagueHubTab(nextTab, { skipTradeLoad = false } = {}) {
       const tabName = nextTab === 'trades' ? 'trades' : 'analysis';
       state.trades.activeTab = tabName;
@@ -991,6 +979,8 @@
       elements.analysisPanel?.setAttribute('aria-hidden', isAnalysis ? 'false' : 'true');
       elements.tradesPanel?.classList.toggle('hidden', isAnalysis);
       elements.tradesPanel?.setAttribute('aria-hidden', isAnalysis ? 'true' : 'false');
+      elements.tradeToolbar?.classList.toggle('hidden', isAnalysis);
+      elements.tradeToolbar?.setAttribute('aria-hidden', isAnalysis ? 'true' : 'false');
 
       if (!isAnalysis && !skipTradeLoad && state.currentLeagueId) {
         await ensureTradeArchiveLoaded();
@@ -998,14 +988,14 @@
     }
 
     // LeagueHub hero context:
-    // keeps the product eyebrow consistent and swaps the view-specific heading;
-    // navigation tabs now occupy the former description area in the hero.
+    // keeps the compact product identity stable while giving each workspace a
+    // concise title that still fits the desktop masthead and mobile title row.
     function updateLeagueHubHero(isAnalysis) {
-      if (elements.heroPill) elements.heroPill.textContent = 'Dynasty Hub • League Hub';
+      if (elements.heroPill) elements.heroPill.textContent = 'League Hub';
       if (elements.heroHeading) {
         elements.heroHeading.textContent = isAnalysis
-          ? 'League Value & Production Overview'
-          : 'Dynasty League Trade Database';
+          ? 'League Intelligence'
+          : 'Trade Archive';
       }
     }
 
@@ -1511,10 +1501,25 @@
     }
 
     function getTradeProductionSeason(season) {
-      // Trade-year production contract:
-      // never substitute a neighboring season; a 2023 trade displays 2023
-      // production, while a future season correctly reports unavailable stats.
-      return String(season || '');
+      const tradeSeason = String(season || '');
+
+      // 2026 preseason bridge:
+      // show the latest complete 2025 production beside 2026 trades until the
+      // career archive actually contains 2026 rows, then switch automatically.
+      if (tradeSeason === '2026') {
+        const seasonRows = state.tradeCareerStatsBySeason?.['2026'];
+        if (seasonRows) {
+          // Exit on the first own row so this check stays constant-time in
+          // practice even after the full 2026 player archive is populated.
+          for (const playerId in seasonRows) {
+            if (Object.prototype.hasOwnProperty.call(seasonRows, playerId)) return '2026';
+          }
+        }
+        return '2025';
+      }
+
+      // All completed seasons retain the production from their exact trade year.
+      return tradeSeason;
     }
 
     function buildTradePlayerAsset(playerId, season, createdAt) {
@@ -2119,7 +2124,7 @@
         : `<span class="leaguehub-trade-team-fallback">${escapeHtml(asset?.team === '2TM' ? '2 teams' : asset?.team || 'FA')}</span>`;
       const seasonLabel = asset?.hasSeasonData
         ? `${asset.productionSeason} stats`
-        : `${asset.tradeSeason} stats unavailable`;
+        : `${asset.productionSeason || asset.tradeSeason} stats unavailable`;
       return `
         <span class="leaguehub-trade-asset-subtitle">
           <span class="leaguehub-trade-meta-position">${escapeHtml(position || 'PLYR')}</span>
@@ -4761,29 +4766,27 @@
     }
 
     function populateLeagueSelect(leagues) {
-      // League selector population:
-      // gives the nav, desktop archive, and mobile archive controls identical
-      // options while allowing responsive CSS to expose only the local picker.
-      const leagueSelects = [elements.leagueSelect, ...elements.tradeLeagueSelects].filter(Boolean);
-      leagueSelects.forEach((select) => {
-        select.innerHTML = '<option value="">Select a league...</option>';
-        leagues.forEach((league) => {
-          const option = document.createElement('option');
-          option.value = league.league_id;
-          option.textContent = league.name;
-          select.appendChild(option);
-        });
-        select.disabled = false;
+      // LeagueHub command-center selector:
+      // one responsive control owns league state for both the analysis and
+      // archive views, avoiding duplicate selectors and synchronization drift.
+      if (!elements.leagueSelect) return;
+      elements.leagueSelect.innerHTML = '<option value="">Select a league...</option>';
+      leagues.forEach((league) => {
+        const option = document.createElement('option');
+        option.value = league.league_id;
+        option.textContent = league.name;
+        elements.leagueSelect.appendChild(option);
       });
+      elements.leagueSelect.disabled = false;
       syncLeagueSelectValues(state.currentLeagueId || '');
     }
 
     function syncLeagueSelectValues(leagueId) {
+      if (!elements.leagueSelect) return;
       const targetLeagueId = String(leagueId || '');
-      [elements.leagueSelect, ...elements.tradeLeagueSelects].filter(Boolean).forEach((select) => {
-        const hasTarget = [...select.options].some((option) => option.value === targetLeagueId);
-        select.value = hasTarget ? targetLeagueId : '';
-      });
+      const hasTarget = [...elements.leagueSelect.options]
+        .some((option) => option.value === targetLeagueId);
+      elements.leagueSelect.value = hasTarget ? targetLeagueId : '';
     }
 
     function setLoading(isLoading, message = 'Loading LeagueHub...') {
