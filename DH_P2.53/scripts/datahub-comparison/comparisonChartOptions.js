@@ -4,7 +4,6 @@ import {
   getPlayerAccentColor,
   getPlayerName,
   getPlayerPalette,
-  getRadarRankValue,
   getStatLabel,
   getThresholdConfig,
   isLowerBetterForPosition,
@@ -433,10 +432,10 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
   // only one player's line.
   const axis = getAxisConfig(axisPlayers, statKey, thresholds);
   const lanes = buildCollisionLanes(players, statKey, safeWeeks, axis, isMobile);
-  // Mobile weekly markers:
-  // keep team-logo data points slightly smaller so labels and adjacent weeks
-  // retain separation in the compact stacked charts.
-  const symbolSize = isMobile ? 15 : 19;
+  // Weekly comparison data-point logos:
+  // keep team marks subordinate to the value/rank labels so adjacent weeks stay
+  // readable in both the desktop pair and the compact stacked mobile charts.
+  const symbolSize = isMobile ? 12 : 15;
   const areaOpacity = isMobile ? 0.025 : 0.035;
   const labelPadding = isMobile ? [2, 3, 2, 3] : [3, 5, 3, 5];
 
@@ -848,106 +847,5 @@ export function buildWeeklyChartOption({ players, axisPlayers = players, statKey
       }
       return series;
     }),
-  };
-}
-
-function buildRadarTooltip(params, statKeys) {
-  const statRows = statKeys.map((statKey, index) => {
-    const raw = params.data?.rawValues?.[index];
-    const posRank = params.data?.posRanks?.[index];
-    const overallRank = params.data?.overallRanks?.[index];
-    const rankText = posRank ? `${params.data.pos}·${formatRank(posRank)}` : "rank NA";
-    const overallText = overallRank ? `OVR ${formatRank(overallRank)}` : "OVR NA";
-    return `
-      <div style="display:flex;justify-content:space-between;gap:16px;margin-top:6px;">
-        <span style="opacity:.72">${getStatLabel(statKey)} <span style="opacity:.5">${rankText} · ${overallText}</span></span>
-        <strong>${formatComparisonValue(statKey, raw, { compact: true })}</strong>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <div style="min-width:260px;font-family:Product Sans,Google Sans,sans-serif;">
-      <div style="font-size:12px;font-weight:900;color:rgba(245,250,255,.95);">${params.name}</div>
-      ${statRows}
-    </div>
-  `;
-}
-
-export function buildSeasonRadarOption({ players, statKeys, colorIndex = null }) {
-  const isMobile = isMobileComparisonChart();
-  return {
-    animationDuration: 620,
-    animationEasing: "cubicOut",
-    backgroundColor: "transparent",
-    color: players.map((player, index) => getPlayerAccentColor(
-      player,
-      Number.isInteger(colorIndex) ? colorIndex : index,
-    )),
-    tooltip: {
-      trigger: "item",
-      confine: true,
-      backgroundColor: "rgba(7, 12, 24, 0.96)",
-      borderColor: "rgba(142, 221, 255, 0.2)",
-      borderWidth: 1,
-      padding: [10, 12],
-      textStyle: {
-        color: "rgba(240, 247, 255, 0.94)",
-        fontFamily: COMPARISON_CHART_FONT_FAMILY,
-      },
-      extraCssText: "border-radius:16px;box-shadow:0 20px 48px rgba(0,0,0,.38);",
-      formatter: (params) => buildRadarTooltip(params, statKeys),
-    },
-    legend: { show: false },
-    radar: {
-      center: ["50%", isMobile ? "55%" : "54%"],
-      radius: isMobile ? "59%" : "66%",
-      startAngle: 90,
-      splitNumber: 4,
-      axisName: {
-        color: "rgba(232,242,255,.86)",
-        fontFamily: COMPARISON_CHART_FONT_FAMILY,
-        fontSize: isMobile ? 9 : 11,
-        fontWeight: 900,
-        formatter: (name) => name,
-      },
-      axisLine: { lineStyle: { color: "rgba(190,218,255,.12)" } },
-      splitLine: { lineStyle: { color: "rgba(190,218,255,.11)" } },
-      splitArea: {
-        areaStyle: {
-          color: ["rgba(255,255,255,.035)", "rgba(255,255,255,.018)"],
-        },
-      },
-      indicator: statKeys.map((statKey) => ({
-        name: getStatLabel(statKey),
-        max: 100,
-        min: 0,
-      })),
-    },
-    series: [{
-      type: "radar",
-      symbol: "circle",
-      symbolSize: isMobile ? 6 : 7,
-      lineStyle: { width: isMobile ? 2.2 : 2.6 },
-      areaStyle: { opacity: 0.13 },
-      emphasis: { focus: "self" },
-      data: players.map((player, index) => {
-        const color = getPlayerAccentColor(
-          player,
-          Number.isInteger(colorIndex) ? colorIndex : index,
-        );
-        return {
-          name: getPlayerName(player),
-          value: statKeys.map((statKey) => getRadarRankValue(player?.seasonPosRanks?.[statKey], player.pos)),
-          rawValues: statKeys.map((statKey) => player?.seasonStats?.[statKey]),
-          posRanks: statKeys.map((statKey) => player?.seasonPosRanks?.[statKey]),
-          overallRanks: statKeys.map((statKey) => player?.seasonOverallRanks?.[statKey]),
-          pos: player.pos,
-          itemStyle: { color },
-          lineStyle: { color },
-          areaStyle: { color, opacity: 0.11 },
-        };
-      }),
-    }],
   };
 }

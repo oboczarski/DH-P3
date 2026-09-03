@@ -7076,7 +7076,7 @@ async function openDataHubComparisonModal(triggerButton = null) {
       ensureDataHubComparisonStatsData(),
     ]);
     const payload = buildDataHubComparisonPayload();
-    if (!payload.defaults.selectedPlayerIds.length) {
+    if (!payload.players.length) {
       throw new Error("No eligible players are available for comparison.");
     }
 
@@ -7176,6 +7176,17 @@ function setDataHubComparisonStat(target, key, ...values) {
   }
 }
 
+function setDataHubComparisonRatio(target, key, numeratorKey, denominatorKey, scale = 1) {
+  if (target[key] !== undefined) {
+    return;
+  }
+  const numerator = toComparableNumber(target[numeratorKey]);
+  const denominator = toComparableNumber(target[denominatorKey]);
+  if (Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0) {
+    target[key] = (numerator / denominator) * scale;
+  }
+}
+
 const DATAHUB_COMPARISON_ALL_WEEKS_URL = "../data/NFL-2025_Stats/AllWks_2025.csv";
 const DATAHUB_COMPARISON_THRESHOLDS_URL = "../data/NFL-2025_Stats/POS-STAT_THRESHOLDS.csv";
 const DATAHUB_COMPARISON_SEASON_URL = "../data/NFL-2025_Stats/SZN.csv";
@@ -7184,11 +7195,11 @@ const DATAHUB_COMPARISON_META_KEYS = new Set(["WK", "SLPR_ID", "NM", "POS", "AGE
 const DATAHUB_COMPARISON_SEASON_VALUE_KEYS = Object.freeze([
   "fpts", "ppg", "games_played", "snp_pct", "yds_total", "imp", "opp",
   "imp_per_g", "fpoe", "csty_pct", "ceiling", "pass_att", "pass_cmp",
-  "cmp_pct", "pass_yd", "pass_td", "pass_fd", "pass_int", "pass_sack",
+  "cmp_pct", "pass_yd", "pa_ypg", "pass_td", "pass_fd", "pass_int", "pass_sack",
   "pass_rtg", "epa_per_db", "cpoe", "ttt", "prs_pct", "rush_att",
-  "rush_yd", "rush_td", "rush_fd", "ypc", "rush_yac", "yco_per_att",
+  "rush_yd", "ru_ypg", "rush_td", "rush_fd", "ypc", "rush_yac", "yco_per_att",
   "mtf", "mtf_per_att", "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd",
-  "rec_yar", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
+  "rec_yar", "rec_ypg", "rr", "ypr", "yprr", "ts_per_rr", "first_down_rec_rate",
 ]);
 const DATAHUB_COMPARISON_QB_LOWER_BETTER = new Set(["ttt", "prs_pct", "pass_sack", "pass_int"]);
 
@@ -7460,15 +7471,31 @@ function computeDataHubComparisonSeasonRankSets(players) {
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
   const computedRanks = computeDataHubComparisonSeasonRankSets(players);
-  const enrichedPlayers = players.map((player) => ({
-    ...player,
-    seasonOverallRanks: {
-      ...(computedRanks.overall[player.id] || {}),
-      ...(player.seasonOverallRanks || {}),
-    },
-    seasonPosRanks: computedRanks.positional[player.id] || {},
-  }));
-  const defaultPlayers = getDefaultComparisonPlayers(enrichedPlayers);
+  const enrichedPlayers = players.map((player) => {
+    const computedPositionRanks = computedRanks.positional[player.id] || {};
+    const seasonPosRanks = {
+      ...computedPositionRanks,
+      ...(player.sourceSeasonRanks || {}),
+    };
+
+    // Comparison season-rank bridge:
+    // SZN_RKs supplies the qualified positional ranks used by the Game Logs
+    // radar. FPTS and PPG are the exceptions: Game Logs computes those from
+    // the full season table, so preserve the equivalent computed pos ranks.
+    if (Number.isFinite(computedPositionRanks.fpts)) {
+      seasonPosRanks.fpts = computedPositionRanks.fpts;
+    }
+    if (Number.isFinite(computedPositionRanks.ppg)) {
+      seasonPosRanks.ppg = computedPositionRanks.ppg;
+    }
+
+    const { sourceSeasonRanks, ...comparisonPlayer } = player;
+    return {
+      ...comparisonPlayer,
+      seasonOverallRanks: computedRanks.overall[player.id] || {},
+      seasonPosRanks,
+    };
+  });
 
   return {
     revision: Date.now(),
@@ -7480,7 +7507,9 @@ function buildDataHubComparisonPayload() {
     defaults: {
       mode: "weekly",
       weeklyStat: "fpts",
-      selectedPlayerIds: defaultPlayers.map((player) => player.id),
+      // Compare modal initial state:
+      // begin empty so the user explicitly owns both head-to-head slots.
+      selectedPlayerIds: [],
     },
     thresholds: state.comparisonData?.thresholds || Object.create(null),
     players: enrichedPlayers,
@@ -7514,7 +7543,7 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
   const fullName = String(meta.fullName || name).trim();
   const team = String(meta.team || row.TM || "FA").trim().toUpperCase() || "FA";
   const seasonStats = buildDataHubComparisonSeasonStats(playerId, row);
-  const seasonOverallRanks = buildDataHubComparisonSeasonRanks(playerId);
+  const sourceSeasonRanks = buildDataHubComparisonSeasonRanks(playerId);
 
   return {
     id: playerId,
@@ -7530,7 +7559,7 @@ function buildDataHubComparisonPlayer(row, combinedWeeklyStats = getDataHubCombi
     hasGameLogsSupport: true,
     searchText: [name, fullName, pos, team].filter(Boolean).join(" ").toLowerCase(),
     seasonStats,
-    seasonOverallRanks,
+    sourceSeasonRanks,
     weeklySeries: buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats),
   };
 }
@@ -7558,6 +7587,22 @@ function buildDataHubComparisonSeasonStats(playerId, row) {
     const totalYards = (Number(stats.pass_yd) || 0) + (Number(stats.rush_yd) || 0) + (Number(stats.rec_yd) || 0);
     if (totalYards) stats.yds_total = totalYards;
   }
+
+  // Comparison season-stat recovery:
+  // retain CSV values as authoritative, then derive only absent rate/per-game
+  // fields from the same season row so every position radar has a complete
+  // eight-stat bundle even when an export omits a convenience column.
+  setDataHubComparisonRatio(stats, "ppg", "fpts", "games_played");
+  setDataHubComparisonRatio(stats, "pa_ypg", "pass_yd", "games_played");
+  setDataHubComparisonRatio(stats, "ru_ypg", "rush_yd", "games_played");
+  setDataHubComparisonRatio(stats, "rec_ypg", "rec_yd", "games_played");
+  setDataHubComparisonRatio(stats, "cmp_pct", "pass_cmp", "pass_att", 100);
+  setDataHubComparisonRatio(stats, "ypc", "rush_yd", "rush_att");
+  setDataHubComparisonRatio(stats, "yco_per_att", "rush_yac", "rush_att");
+  setDataHubComparisonRatio(stats, "mtf_per_att", "mtf", "rush_att");
+  setDataHubComparisonRatio(stats, "yprr", "rec_yd", "rr");
+  setDataHubComparisonRatio(stats, "first_down_rec_rate", "rec_fd", "rr");
+  setDataHubComparisonRatio(stats, "imp_per_g", "imp", "games_played");
   return stats;
 }
 
@@ -7589,12 +7634,14 @@ function getDataHubComparisonRowAlias(statKey) {
     pass_int: "INT",
     pass_sack: "SAC",
     pass_rtg: "paRTG",
+    pa_ypg: "paYPG",
     epa_per_db: "EPA/DB",
     cpoe: "CPOE",
     ttt: "TTT",
     prs_pct: "PRS%",
     rush_att: "CAR",
     rush_yd: "ruYDS",
+    ru_ypg: "ruYPG",
     rush_td: "ruTD",
     rush_fd: "ru1D",
     rush_yac: "YCO",
@@ -7605,6 +7652,7 @@ function getDataHubComparisonRowAlias(statKey) {
     rec_td: "recTD",
     rec_fd: "rec1D",
     rec_yar: "YAC",
+    rec_ypg: "recYPG",
     ts_per_rr: "TS%",
     first_down_rec_rate: "1DRR",
     games_played: "G",
@@ -7648,28 +7696,6 @@ function buildDataHubComparisonWeeklySeries(playerId, combinedWeeklyStats = getD
       ranks: weeklyRanks?.[week]?.[playerId] || {},
     };
   });
-}
-
-function getDefaultComparisonPlayers(players) {
-  const groupsByPosition = new Map();
-  players
-    .filter((player) => player.hasGameLogsSupport && Number.isFinite(player.fpts))
-    .forEach((player) => {
-      const group = groupsByPosition.get(player.pos) || [];
-      group.push(player);
-      groupsByPosition.set(player.pos, group);
-    });
-
-  const rankedGroups = Array.from(groupsByPosition.values())
-    .map((group) => group.sort((left, right) => right.fpts - left.fpts))
-    .filter((group) => group.length >= 2)
-    .sort((left, right) => {
-      if (left[0].fpts !== right[0].fpts) return right[0].fpts - left[0].fpts;
-      return right[1].fpts - left[1].fpts;
-    });
-  return rankedGroups.length
-    ? rankedGroups[0].slice(0, 2)
-    : players.filter((player) => player.hasGameLogsSupport).slice(0, 2);
 }
 
 function resizeDataHubHeroCharts() {

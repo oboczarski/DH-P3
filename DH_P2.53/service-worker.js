@@ -24,9 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// LeagueHub header and Archive refinement: retire the prior cache so the new
-// navigation, responsive split table, and season insights arrive together.
-const CACHE_NAME = 'DH3.40';
+// DataHub Compare selector and season-radar refresh: retire the prior cache so
+// the corrected season data, responsive labels, and interaction state arrive
+// together on each user's next normal refresh.
+const CACHE_NAME = 'DH3.41';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

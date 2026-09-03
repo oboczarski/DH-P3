@@ -50,34 +50,50 @@ export const COMPARISON_RADAR_MAX_RANK_BY_POS = Object.freeze({
   TE: 24,
 });
 
+// Season comparison radar bundles:
+// mirror the eight-axis Data Hub Game Logs Performance radar for each position.
+// RB intentionally owns its rushing-efficiency set instead of falling through
+// to the shared WR/TE receiving set used by the previous comparison chart.
 export const COMPARISON_RADAR_BUNDLES = Object.freeze({
-  qb: Object.freeze([
+  QB: Object.freeze([
+    "fpts",
+    "ppg",
+    "ttt",
+    "cmp_pct",
+    "pa_ypg",
+    "pass_rtg",
+    "cpoe",
+    "epa_per_db",
+  ]),
+  RB: Object.freeze([
     "fpts",
     "ppg",
     "yds_total",
-    "imp",
-    "csty_pct",
-    "ceiling",
-    "rush_att",
-    "rush_yd",
-    "rush_td",
-    "ypc",
     "snp_pct",
+    "mtf_per_att",
+    "yco_per_att",
+    "ypc",
+    "ts_per_rr",
+  ]),
+  WR: Object.freeze([
+    "fpts",
+    "ppg",
+    "rec",
+    "rec_ypg",
+    "ts_per_rr",
+    "yprr",
+    "first_down_rec_rate",
     "imp_per_g",
   ]),
-  skill: Object.freeze([
+  TE: Object.freeze([
     "fpts",
     "ppg",
-    "yds_total",
-    "imp",
-    "opp",
-    "ts_per_rr",
     "rec",
+    "rec_ypg",
+    "ts_per_rr",
     "yprr",
-    "rec_yar",
-    "snp_pct",
-    "csty_pct",
-    "ceiling",
+    "first_down_rec_rate",
+    "imp_per_g",
   ]),
 });
 
@@ -199,7 +215,7 @@ const STAT_DEFINITIONS = Object.freeze({
   yds_total: Object.freeze({ key: "yds_total", label: "YDS(t)", decimals: 0 }),
   imp: Object.freeze({ key: "imp", label: "IMP", decimals: 0 }),
   opp: Object.freeze({ key: "opp", label: "OPP", decimals: 0 }),
-  imp_per_g: Object.freeze({ key: "imp_per_g", label: "IMP/G", decimals: 1 }),
+  imp_per_g: Object.freeze({ key: "imp_per_g", label: "IMP/G", decimals: 2 }),
   fpoe: Object.freeze({ key: "fpoe", label: "FPOE", decimals: 1, signed: true }),
   csty_pct: Object.freeze({ key: "csty_pct", label: "CSTY%", unit: "%", decimals: 1, percent: true }),
   ceiling: Object.freeze({ key: "ceiling", label: "CL", decimals: 1 }),
@@ -212,6 +228,7 @@ const STAT_DEFINITIONS = Object.freeze({
   pass_int: Object.freeze({ key: "pass_int", label: "INT", decimals: 0 }),
   pass_sack: Object.freeze({ key: "pass_sack", label: "SAC", decimals: 0 }),
   pass_rtg: Object.freeze({ key: "pass_rtg", label: "paRTG", decimals: 1 }),
+  pa_ypg: Object.freeze({ key: "pa_ypg", label: "paYPG", decimals: 1 }),
   epa_per_db: Object.freeze({ key: "epa_per_db", label: "EPA/DB", decimals: 2, signed: true }),
   cpoe: Object.freeze({ key: "cpoe", label: "CPOE", unit: "%", decimals: 1, percent: true, signed: true }),
   ttt: Object.freeze({ key: "ttt", label: "TTT", unit: "s", decimals: 2 }),
@@ -231,11 +248,12 @@ const STAT_DEFINITIONS = Object.freeze({
   rec_td: Object.freeze({ key: "rec_td", label: "recTD", decimals: 0 }),
   rec_fd: Object.freeze({ key: "rec_fd", label: "rec1D", decimals: 0 }),
   rec_yar: Object.freeze({ key: "rec_yar", label: "YAC", decimals: 0 }),
+  rec_ypg: Object.freeze({ key: "rec_ypg", label: "recYPG", decimals: 1 }),
   rr: Object.freeze({ key: "rr", label: "RR", decimals: 0 }),
   ypr: Object.freeze({ key: "ypr", label: "YPR", decimals: 2 }),
   yprr: Object.freeze({ key: "yprr", label: "YPRR", decimals: 2 }),
   ts_per_rr: Object.freeze({ key: "ts_per_rr", label: "TS%", unit: "%", decimals: 1, percent: true }),
-  first_down_rec_rate: Object.freeze({ key: "first_down_rec_rate", label: "1DRR", decimals: 3 }),
+  first_down_rec_rate: Object.freeze({ key: "first_down_rec_rate", label: "1DRR", decimals: 2 }),
 });
 
 export const COMPARISON_STAT_DEFINITIONS = STAT_DEFINITIONS;
@@ -356,9 +374,8 @@ export function getWeeklyStatOptions(players, thresholds) {
 }
 
 export function getSeasonStatKeys(players) {
-  const positions = getComparisonPositions(players);
-  const hasQuarterback = positions.includes("QB");
-  return uniqueStatKeys(hasQuarterback ? COMPARISON_RADAR_BUNDLES.qb : COMPARISON_RADAR_BUNDLES.skill);
+  const position = getComparisonPosition(players);
+  return uniqueStatKeys(COMPARISON_RADAR_BUNDLES[position] || []);
 }
 
 export function getPlayerPalette(player, playerIndex) {
@@ -388,15 +405,61 @@ export function getRadarRankValue(rank, pos) {
   const numericRank = toFiniteNumber(rank);
   const maxRank = COMPARISON_RADAR_MAX_RANK_BY_POS[String(pos || "").toUpperCase()] || 72;
   if (numericRank === null || numericRank <= 0) {
-    return 6;
+    return 10;
   }
   if (numericRank <= 1) {
-    return 100;
+    return 85;
   }
   if (numericRank >= maxRank) {
-    return 12;
+    return 10;
   }
-  return Math.max(12, Math.round((100 - ((numericRank - 1) / Math.max(1, maxRank - 1)) * 88) * 10) / 10);
+  if (numericRank <= 7) {
+    return 85 - (((numericRank - 1) / 6) * 12);
+  }
+  return 73 - (((numericRank - 7) / Math.max(1, maxRank - 7)) * 63);
+}
+
+export function getComparisonRankColor(rank, position) {
+  const numericRank = toFiniteNumber(rank);
+  if (numericRank === null || numericRank <= 0) {
+    return "#767693";
+  }
+  const pos = String(position || "").trim().toUpperCase();
+  const thresholds = pos === "WR"
+    ? [
+      { value: 12, color: "#51cba5" },
+      { value: 24, color: "#34aabf" },
+      { value: 36, color: "#4798fc" },
+      { value: 48, color: "#957cff" },
+      { value: 60, color: "#ff6fe1" },
+      { value: 72, color: "#ff2eb9" },
+    ]
+    : [
+      { value: 8, color: "#51cba5" },
+      { value: 16, color: "#34aabf" },
+      { value: 24, color: "#4798fc" },
+      { value: 32, color: "#957cff" },
+      { value: 44, color: "#ff6fe1" },
+      { value: 60, color: "#ff2eb2" },
+    ];
+  return thresholds.find((entry) => numericRank <= entry.value)?.color || "#767693";
+}
+
+export function getOrdinalSuffix(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return "";
+  }
+  const absoluteValue = Math.abs(Math.round(numericValue));
+  const tens = absoluteValue % 100;
+  if (tens >= 11 && tens <= 13) {
+    return "th";
+  }
+  const ones = absoluteValue % 10;
+  if (ones === 1) return "st";
+  if (ones === 2) return "nd";
+  if (ones === 3) return "rd";
+  return "th";
 }
 
 export function normalizePlayerSearchText(player) {
