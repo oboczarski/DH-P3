@@ -24,9 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Ownership navigation correction: retire the prior cache so the page receives
-// the corrected breakpoint-specific nav material without the compact desktop sizing.
-const CACHE_NAME = 'DH3.35c';
+// LeagueHub Trade Archive revamp: retire the prior cache so the new hero,
+// username-return flow, historical team map, and responsive archive UI arrive
+// together on the next normal refresh.
+const CACHE_NAME = 'DH3.36';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

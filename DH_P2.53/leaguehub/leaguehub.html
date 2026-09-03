@@ -25,9 +25,9 @@
   <link href="../manifest.webmanifest?v=20250827002411?v=20250826235225" rel="manifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon-180.png?v=20250926r5c" />
   <meta name="theme-color" content="#0D0E1B" />
-  <link href="../styles/styles.css?v=20250827002411?v=20250826235225" rel="stylesheet" />
+  <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.35-expanded-page-backgrounds" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.36-trade-archive-revamp" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -112,82 +112,63 @@
             </div>
           </div>
         </div>
-        <div id="contextual-controls">
-          <div class="header-row" id="secondary-header-row">
-            <div class="username-area">
-              <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput" inputmode="text"
-                name="username" placeholder="SLPR Username..." type="text" value="The_Oracle" />
-            </div>
-            <div class="custom-select-wrapper">
-              <select disabled="" id="leagueSelect">
-                <option>Select a league...</option>
-              </select>
-            </div>
-            <div class="view-switcher secondary-switcher compact-switcher">
-              <button id="positionalViewBtn">
-                <i class="fa-solid fa-users" aria-hidden="true"></i>
-                <span class="switcher-label">Positional</span>
-              </button>
-              <button id="lineupViewBtn">
-                <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
-                <span class="switcher-label">Lineup</span>
-              </button>
-            </div>
-          </div>
-          <div class="header-row" id="filters-row">
-            <div class="start-sit-button-slot" id="start-sit-button-slot">
-              <div class="start-sit-button-container">
-                <button class="menu-button analyzer-button start-sit-button" id="startSitButton" type="button"
-                  aria-label="Open Start/Sit recommendations">
-                  <i class="fa-solid fa-elevator analyzer-icon" aria-hidden="true"></i>
-                  <span class="analyzer-label">Start/Sit</span>
-                </button>
-              </div>
-            </div>
-            <div class="filters-container">
-              <div id="positional-filters">
-                <button class="filter-btn" data-position="QB">QB</button>
-                <button class="filter-btn" data-position="RB">RB</button>
-                <button class="filter-btn" data-position="WR">WR</button>
-                <button class="filter-btn" data-position="TE">TE</button>
-                <button class="filter-btn" data-position="FLX">FLX</button>
-              </div>
-              <button class="control-button-subtle" id="clearFiltersButton">
-                <span class="clear-filters-stack">
-                  <i class="fa-solid fa-filter-circle-xmark" aria-hidden="true"></i>
-                  <span class="sr-only">Clear filters</span>
-                </span>
-              </button>
-              <div class="compare-controls">
-                <button class="control-button hidden" id="compareButton" aria-hidden="true" tabindex="-1"
-                  style="display:none;"></button>
-                <button id="compareSearchToggle" class="control-button-subtle compare-search-toggle"
-                  aria-haspopup="true" aria-expanded="false" aria-controls="compareSearchPopover">
-                  <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                  <span class="sr-only">Search teams</span>
-                </button>
-                <div id="compareSearchPopover" class="compare-search-popover hidden" role="dialog" aria-modal="false">
-                  <button type="button" id="compareSearchClose" class="compare-search-close"
-                    aria-label="Close search popover">
-                    <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-                  </button>
-                  <label for="compareSearchInput" class="sr-only">Search teams</label>
-                  <input id="compareSearchInput" type="search" placeholder="Search Players…" autocomplete="off"
-                    inputmode="search" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </header>
       <section class="analyzer-hero glass-panel" aria-labelledby="analyzer-hero-heading">
-        <div class="analyzer-hero-intro">
-          <!-- LeagueHub hero copy is switched by the active workspace tab while
-               this shared product label remains consistent in both views. -->
-          <div id="leagueHubHeroPill" class="analyzer-pill">Dynasty Hub • League Hub</div>
-          <h1 id="analyzer-hero-heading">League Value &amp; Production Overview</h1>
-          <p id="leagueHubHeroDescription">Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.</p>
+        <!-- LeagueHub hero workspace:
+             keeps account and league context out of the navigation bar, then
+             places both primary LeagueHub views directly inside the hero. -->
+        <div class="leaguehub-hero-topline">
+          <div class="analyzer-hero-intro">
+            <div id="leagueHubHeroPill" class="analyzer-pill">Dynasty Hub • League Hub</div>
+            <h1 id="analyzer-hero-heading">League Value &amp; Production Overview</h1>
+          </div>
+          <div class="leaguehub-hero-session" aria-label="Connected Sleeper user">
+            <div class="leaguehub-hero-user">
+              <span class="leaguehub-hero-user-icon" aria-hidden="true"><i class="fa-solid fa-user"></i></span>
+              <span class="leaguehub-hero-user-copy">
+                <small>Connected user</small>
+                <strong id="leagueHubHeroUsername">Connecting…</strong>
+              </span>
+            </div>
+            <button id="leagueHubChangeUserButton" class="leaguehub-change-user-button" type="button">
+              <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+              <span>Change user</span>
+            </button>
+          </div>
         </div>
+
+        <div class="leaguehub-hero-workspace">
+          <div class="leaguehub-hero-league-control">
+            <label for="leagueSelect">Active league</label>
+            <div class="leaguehub-hero-league-select">
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              <select disabled id="leagueSelect">
+                <option value="">Select a league...</option>
+              </select>
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </div>
+          </div>
+
+          <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
+            <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
+              <button type="button" id="leagueAnalysisTab" class="leaguehub-tab-button active" role="tab"
+                aria-selected="true" aria-controls="leagueAnalysisPanel" data-leaguehub-tab="analysis">
+                <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                <span class="leaguehub-tab-label">League Analysis</span>
+              </button>
+              <button type="button" id="leagueTradesTab" class="leaguehub-tab-button" role="tab" aria-selected="false"
+                aria-controls="leagueTradesPanel" data-leaguehub-tab="trades" tabindex="-1">
+                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                <span class="leaguehub-tab-label">League Trade Archive</span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Hidden compatibility field: shared routing and the username gate use
+             this value without returning the old input to the navigation bar. -->
+        <input autocapitalize="none" autocomplete="username" autocorrect="off" id="usernameInput"
+          inputmode="text" name="username" type="hidden" value="" />
       </section>
     </div>
     <main class="container mx-auto analyzer-main" id="content">
@@ -203,24 +184,6 @@
           </div>
         </div>
       </div>
-
-      <!-- LeagueHub workspace tabs:
-           separates the League Trade Archive from the existing League Analysis
-           surface without changing analyzer chart/table IDs or their render targets. -->
-      <section class="leaguehub-tab-shell" aria-label="LeagueHub views">
-        <div class="leaguehub-tab-list" role="tablist" aria-label="LeagueHub tabs">
-          <button type="button" id="leagueAnalysisTab" class="leaguehub-tab-button active" role="tab"
-            aria-selected="true" aria-controls="leagueAnalysisPanel" data-leaguehub-tab="analysis">
-            <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
-            <span class="leaguehub-tab-label">League Analysis</span>
-          </button>
-          <button type="button" id="leagueTradesTab" class="leaguehub-tab-button" role="tab" aria-selected="false"
-            aria-controls="leagueTradesPanel" data-leaguehub-tab="trades" tabindex="-1">
-            <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-            <span class="leaguehub-tab-label">League Trade Archive</span>
-          </button>
-        </div>
-      </section>
 
       <section id="leagueAnalysisPanel" class="leaguehub-panel leaguehub-panel--analysis" role="tabpanel"
         aria-labelledby="leagueAnalysisTab">
@@ -419,8 +382,8 @@
                 <span class="leaguehub-trades-kicker">Sleeper transaction history</span>
                 <h2 id="leagueTradesHeading">Trade Archive</h2>
               </div>
-              <!-- Desktop Trade Archive league picker: mirrors the primary nav
-                   selector and stays centered in the controls-panel header. -->
+              <!-- Desktop Trade Archive league picker: mirrors the hero's active
+                   league control and stays centered in the controls-panel header. -->
               <div class="leaguehub-trades-head-league leaguehub-trades-head-league--desktop">
                 <label for="leagueTradesLeagueSelectDesktop">League</label>
                 <div class="leaguehub-trades-native-select">
@@ -450,7 +413,7 @@
               </div>
 
               <!-- Mobile Trade Archive league picker: forms the first control row
-                   beside Trade Partners and stays synchronized with the nav picker. -->
+                   beside Trade Partners and stays synchronized with the hero selector. -->
               <div class="leaguehub-trades-control leaguehub-trades-control--league-mobile">
                 <label for="leagueTradesLeagueSelectMobile">League</label>
                 <div class="leaguehub-trades-native-select">
@@ -538,8 +501,8 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub.js?v=DH3.22-trade-archive"></script>
-  <script defer src="../scripts/app.js?v=20260116"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.36-trade-archive-revamp"></script>
+  <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 
 </html>

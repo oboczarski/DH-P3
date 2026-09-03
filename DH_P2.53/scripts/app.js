@@ -329,6 +329,7 @@ let leagueUsernameGateLoadingTitleEl = null;
 let leagueUsernameGateLoadingDescriptionEl = null;
 let leagueUsernameGateMoreToggleEl = null;
 let leagueUsernameGateMoreMenuEl = null;
+let leagueUsernameGateBackEl = null;
 let initialPageDataLoadPromise = null;
 function normalizeLeagueUsername(value) {
     return String(value || '').trim().toLowerCase();
@@ -477,6 +478,13 @@ function ensureLeagueUsernameGate() {
                                     <p id="leagueUsernameGateError" class="league-username-gate__error" aria-live="polite" hidden></p>
                                 </div>
                             </form>
+                            <!-- LeagueHub returning-session action:
+                                 appears only when Change user opened the gate, so
+                                 first-time visitors still have to connect a user. -->
+                            <button id="leagueUsernameGateBack" class="league-username-gate__back-action" type="button" data-gate-back hidden>
+                                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                                <span>Go back</span>
+                            </button>
                         </div>
                         <div class="league-username-gate__panel league-username-gate__panel--loading" hidden aria-live="polite">
                             <div class="league-username-gate__loader" aria-hidden="true">
@@ -509,6 +517,7 @@ function ensureLeagueUsernameGate() {
     leagueUsernameGateLoadingDescriptionEl = document.getElementById('leagueUsernameGateLoadingDescription');
     leagueUsernameGateMoreToggleEl = leagueUsernameGateRoot?.querySelector('[data-gate-more-toggle]') || null;
     leagueUsernameGateMoreMenuEl = document.getElementById('leagueUsernameGateMoreMenu');
+    leagueUsernameGateBackEl = document.getElementById('leagueUsernameGateBack');
 
     leagueUsernameGateForm?.addEventListener('submit', handleLeagueUsernameGateSubmit);
     leagueUsernameGateRoot?.addEventListener('click', handleLeagueUsernameGateClick);
@@ -595,6 +604,14 @@ async function navigateFromLeagueUsernameGate(target) {
     }
 }
 function handleLeagueUsernameGateClick(event) {
+    const backAction = event.target.closest('[data-gate-back]');
+    if (backAction && leagueUsernameGateRoot?.contains(backAction)) {
+        event.preventDefault();
+        event.stopPropagation();
+        void returnFromLeagueUsernameGate();
+        return;
+    }
+
     const moreToggle = event.target.closest('[data-gate-more-toggle]');
     if (moreToggle && leagueUsernameGateRoot?.contains(moreToggle)) {
         event.preventDefault();
@@ -623,14 +640,34 @@ function handleLeagueUsernameGateClick(event) {
         closeLeagueUsernameGateMoreMenu();
     }
 }
+async function returnFromLeagueUsernameGate() {
+    if (!leagueUsernameGateRoot || leagueUsernameGateRoot.dataset.allowReturn !== 'true') return;
+    if (leagueUsernameGateRoot.dataset.submitting === 'true') return;
+
+    // LeagueHub gate return behavior:
+    // asks the page-local bridge to restore the already-loaded account context
+    // before dismissing the overlay, preserving the prior active user and league.
+    const leagueHubBridge = window.__dhLeagueHubBridge;
+    if (pageType === 'leaguehub' && typeof leagueHubBridge?.cancelUsernameChange === 'function') {
+        const wasRestored = await leagueHubBridge.cancelUsernameChange();
+        if (wasRestored === false) return;
+    }
+    hideLeagueUsernameGate();
+}
 function handleLeagueUsernameGateKeydown(event) {
     if (event.key !== 'Escape') return;
-    if (!leagueUsernameGateMoreMenuEl || leagueUsernameGateMoreMenuEl.classList.contains('hidden')) return;
-    event.preventDefault();
-    closeLeagueUsernameGateMoreMenu();
-    try {
-        leagueUsernameGateMoreToggleEl?.focus();
-    } catch (error) { }
+    if (leagueUsernameGateMoreMenuEl && !leagueUsernameGateMoreMenuEl.classList.contains('hidden')) {
+        event.preventDefault();
+        closeLeagueUsernameGateMoreMenu();
+        try {
+            leagueUsernameGateMoreToggleEl?.focus();
+        } catch (error) { }
+        return;
+    }
+    if (leagueUsernameGateRoot?.dataset.allowReturn === 'true') {
+        event.preventDefault();
+        void returnFromLeagueUsernameGate();
+    }
 }
 function initializeLeagueUsernameGate() {
     if (!usesLeagueUsernameGate(pageType)) return;
@@ -679,11 +716,16 @@ function showLeagueUsernameGate(options = {}) {
     const gate = ensureLeagueUsernameGate();
     if (!gate) return;
 
+    const wasOpen = gate.classList.contains('is-open');
     const activePage = usesLeagueUsernameGate(options.page) ? options.page : (gate.dataset.page || pageType);
     const copy = getLeagueUsernameGateCopy(activePage);
     const presetUsername = normalizeLeagueUsername(options.username || readPreferredHeaderUsername());
+    const allowReturn = typeof options.allowReturn === 'boolean'
+        ? options.allowReturn
+        : wasOpen && gate.dataset.allowReturn === 'true';
 
     gate.dataset.page = activePage;
+    gate.dataset.allowReturn = allowReturn ? 'true' : 'false';
     gate.hidden = false;
     gate.setAttribute('aria-hidden', 'false');
     gate.classList.add('is-open');
@@ -700,6 +742,13 @@ function showLeagueUsernameGate(options = {}) {
     leagueUsernameGateLoadingDescriptionEl.textContent = copy.loadingDescription;
     if (leagueUsernameGateInputEl) {
         leagueUsernameGateInputEl.value = presetUsername;
+    }
+    if (leagueUsernameGateBackEl) {
+        const returnUsername = normalizeLeagueUsername(options.returnUsername || gate.dataset.returnUsername);
+        gate.dataset.returnUsername = allowReturn ? returnUsername : '';
+        leagueUsernameGateBackEl.hidden = !allowReturn;
+        const label = leagueUsernameGateBackEl.querySelector('span');
+        if (label) label.textContent = returnUsername ? `Go back to @${returnUsername}` : 'Go back';
     }
 
     setLeagueUsernameGateLoading(false, copy.loadingDescription);
@@ -725,6 +774,9 @@ function hideLeagueUsernameGate() {
     document.body.classList.remove('league-gate-active');
     leagueUsernameGateRoot.classList.remove('is-open', 'is-loading', 'has-error');
     leagueUsernameGateRoot.dataset.submitting = 'false';
+    leagueUsernameGateRoot.dataset.allowReturn = 'false';
+    leagueUsernameGateRoot.dataset.returnUsername = '';
+    if (leagueUsernameGateBackEl) leagueUsernameGateBackEl.hidden = true;
     leagueUsernameGateRoot.setAttribute('aria-hidden', 'true');
     closeLeagueUsernameGateMoreMenu();
     window.setTimeout(() => {

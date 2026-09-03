@@ -19,7 +19,8 @@
       tradesPanel: document.getElementById('leagueTradesPanel'),
       heroPill: document.getElementById('leagueHubHeroPill'),
       heroHeading: document.getElementById('analyzer-hero-heading'),
-      heroDescription: document.getElementById('leagueHubHeroDescription'),
+      heroUsername: document.getElementById('leagueHubHeroUsername'),
+      changeUserButton: document.getElementById('leagueHubChangeUserButton'),
       summaryStats: document.getElementById('summaryStats'),
       content: document.getElementById('infographicContent'),
       lineupToggle: document.querySelectorAll('#lineup-panel .toggle-option'),
@@ -130,13 +131,22 @@
       { value: 'faab', label: 'FAAB' },
     ];
     const TRADE_CAREER_CSV_URL = new URL('../data/NFL16-25/NFL-PlayerData_16-25.csv', window.location.href).toString();
-    // Trade Archive 2026 handling:
-    // 2026 trades happen before local 2026 production exists, so player rows use
-    // completed 2025 stats while package/player primary values remain KTC.
-    const TRADE_KTC_PRIMARY_SEASONS = new Set(['2026']);
-    const TRADE_PRODUCTION_FALLBACK_SEASONS = {
-      2026: '2025',
-    };
+    // Historical multi-team lookup:
+    // derived offline from nflverse weekly roster/snap releases, this keeps the
+    // runtime payload tiny while preserving both team identities for every 2TM
+    // season row in the local 2016-25 production archive.
+    const TRADE_MULTI_TEAM_CSV_URL = new URL('../data/NFL16-25/NFL-PlayerTeams_16-25.csv', window.location.href).toString();
+    const TRADE_TEAM_LOGO_KEY_MAP = Object.freeze({
+      JAC: 'jax',
+      LA: 'lar',
+      LAR: 'lar',
+      LV: 'lv',
+      OAK: 'lv',
+      SD: 'lac',
+      STL: 'lar',
+      WAS: 'was',
+      WSH: 'was',
+    });
 
     const radarBackgroundPlugin = {
       id: 'analyzerRadarBackground',
@@ -534,6 +544,9 @@
       careerStatsByOwner: {},
       textCache: {},
       tradeCareerStatsBySeason: null,
+      tradeTeamHistoryBySeason: null,
+      connectedUsername: '',
+      usernameReturnSnapshot: null,
       charts: {
         lineup: null,
         overall: null,
@@ -593,16 +606,95 @@
       }
       return 'LeagueHub could not finish connecting that username. Please try again.';
     };
-    const showLeagueHubGate = ({ username = '', errorMessage = '', focusInput = true } = {}) => {
+    const updateLeagueHubSessionDisplay = () => {
+      if (elements.heroUsername) {
+        elements.heroUsername.textContent = state.connectedUsername
+          ? `@${state.connectedUsername}`
+          : 'Not connected';
+      }
+      if (elements.changeUserButton) {
+        elements.changeUserButton.disabled = !state.connectedUsername;
+      }
+    };
+    const showLeagueHubGate = ({
+      username = '',
+      errorMessage = '',
+      focusInput = true,
+      allowReturn,
+      returnUsername = '',
+    } = {}) => {
       try {
         window.__dhUsernameGate?.show?.({
           page: 'leaguehub',
           username,
           errorMessage,
           focusInput,
+          ...(typeof allowReturn === 'boolean' ? { allowReturn } : {}),
+          returnUsername,
         });
       } catch (error) { }
     };
+
+    function captureUsernameReturnSnapshot() {
+      return {
+        username: state.connectedUsername,
+        userId: state.userId,
+        leagues: state.leagues,
+        currentLeagueId: state.currentLeagueId,
+        currentLineupMetric: state.currentLineupMetric,
+        currentRadarMetric: state.currentRadarMetric,
+        playerStats: state.playerStats,
+        playerStatsSeason: state.playerStatsSeason,
+        leaguePlayerStats: state.leaguePlayerStats,
+        isSuperflex: state.isSuperflex,
+        careerStatsByOwner: state.careerStatsByOwner,
+        lineupData: state.lineupData,
+        teams: state.teams,
+        standingsTeams: state.standingsTeams,
+        leaderboards: state.leaderboards,
+        activeLeaderboard: state.activeLeaderboard,
+        radarSlots: state.radarSlots,
+        trades: { ...state.trades },
+        contentWasHidden: elements.content?.classList.contains('hidden') ?? true,
+        summaryWasHidden: elements.summaryStats?.classList.contains('hidden') ?? true,
+      };
+    }
+
+    function restoreUsernameReturnSnapshot() {
+      const snapshot = state.usernameReturnSnapshot;
+      if (!snapshot?.username) return false;
+
+      // LeagueHub username rollback:
+      // restores the prior data references and visible league immediately when
+      // Go back is selected, without another Sleeper request or archive rebuild.
+      state.userId = snapshot.userId;
+      state.leagues = snapshot.leagues;
+      state.currentLeagueId = snapshot.currentLeagueId;
+      state.currentLineupMetric = snapshot.currentLineupMetric;
+      state.currentRadarMetric = snapshot.currentRadarMetric;
+      state.playerStats = snapshot.playerStats;
+      state.playerStatsSeason = snapshot.playerStatsSeason;
+      state.leaguePlayerStats = snapshot.leaguePlayerStats;
+      state.isSuperflex = snapshot.isSuperflex;
+      state.careerStatsByOwner = snapshot.careerStatsByOwner;
+      state.lineupData = snapshot.lineupData;
+      state.teams = snapshot.teams;
+      state.standingsTeams = snapshot.standingsTeams;
+      state.leaderboards = snapshot.leaderboards;
+      state.activeLeaderboard = snapshot.activeLeaderboard;
+      state.radarSlots = snapshot.radarSlots;
+      state.trades = snapshot.trades;
+      state.connectedUsername = snapshot.username;
+      state.usernameReturnSnapshot = null;
+
+      syncStoredUsername(snapshot.username);
+      populateLeagueSelect(snapshot.leagues || []);
+      syncLeagueSelectValues(snapshot.currentLeagueId || '');
+      elements.content?.classList.toggle('hidden', snapshot.contentWasHidden);
+      elements.summaryStats?.classList.toggle('hidden', snapshot.summaryWasHidden);
+      updateLeagueHubSessionDisplay();
+      return true;
+    }
 
     // LeagueHub gate bridge:
     // lets the shared username overlay in app.js submit directly into the
@@ -618,8 +710,11 @@
             });
             return false;
           }
-          return handleFetchData(leagueId);
+          return handleFetchData(leagueId, {
+            preserveExistingContent: Boolean(state.usernameReturnSnapshot),
+          });
         },
+        cancelUsernameChange: async () => restoreUsernameReturnSnapshot(),
       };
     }
 
@@ -637,9 +732,19 @@
       }
     });
 
+    elements.changeUserButton?.addEventListener('click', () => {
+      if (!state.connectedUsername) return;
+      state.usernameReturnSnapshot = captureUsernameReturnSnapshot();
+      showLeagueHubGate({
+        username: state.connectedUsername,
+        allowReturn: true,
+        returnUsername: state.connectedUsername,
+      });
+    });
+
     // Trade Archive league controls:
-    // mirror the primary navigation select at their desktop/mobile placements so
-    // selecting a league from any surface drives the same analysis + archive flow.
+    // mirror the hero's active-league selector inside the archive toolbar so
+    // selecting a league from either surface drives the same analysis + archive flow.
     elements.tradeLeagueSelects.forEach((select) => {
       select.addEventListener('change', () => {
         const leagueId = select.value;
@@ -726,6 +831,7 @@
 
     populateTradeAssetFilter();
     setActiveLeagueHubTab('analysis', { skipTradeLoad: true });
+    updateLeagueHubSessionDisplay();
 
     // Analyzer split league table sorting:
     // cycles sortable headers in both the frozen SZN table and the horizontal
@@ -763,7 +869,11 @@
     window.visualViewport?.addEventListener?.('resize', scheduleAnalyzerChartResolutionRefresh);
 
     const normalizedInitialUsername = normalizeLeagueUsername(initialUsername);
-    const storedUsername = normalizeLeagueUsername(elements.usernameInput?.value);
+    let locallyStoredUsername = '';
+    try {
+      locallyStoredUsername = localStorage.getItem('sleeper_username') || '';
+    } catch (error) { }
+    const storedUsername = normalizeLeagueUsername(elements.usernameInput?.value || locallyStoredUsername);
 
     if (normalizedInitialUsername) {
       syncStoredUsername(initialUsername);
@@ -777,7 +887,7 @@
       showLeagueHubGate({ focusInput: false });
     }
 
-    async function handleFetchData(targetLeagueId) {
+    async function handleFetchData(targetLeagueId, { preserveExistingContent = false } = {}) {
       const username = syncStoredUsername(elements.usernameInput.value);
       if (!username) {
         showLeagueHubGate({
@@ -788,7 +898,7 @@
       }
 
       setLoading(true, 'Finding your dynasty leagues...');
-      hideContent();
+      if (!preserveExistingContent) hideContent();
       let wasSuccessful = false;
 
       try {
@@ -805,24 +915,35 @@
           const target = state.leagues.find((league) => league.league_id === targetLeagueId);
           if (target) {
             elements.leagueSelect.value = targetLeagueId;
-            wasSuccessful = await analyzeLeague(targetLeagueId);
+            wasSuccessful = await analyzeLeague(targetLeagueId, { preserveExistingContent });
+            if (wasSuccessful) finalizeConnectedUsername(username);
             return wasSuccessful;
           }
         }
 
         elements.leagueSelect.selectedIndex = 1;
-        wasSuccessful = await analyzeLeague(state.leagues[0].league_id);
+        wasSuccessful = await analyzeLeague(state.leagues[0].league_id, { preserveExistingContent });
+        if (wasSuccessful) finalizeConnectedUsername(username);
       } catch (error) {
         console.error('Analyzer fetch error:', error);
         showLeagueHubGate({
           username,
           errorMessage: getLeagueHubGateErrorMessage(error),
+          allowReturn: Boolean(state.usernameReturnSnapshot),
+          returnUsername: state.usernameReturnSnapshot?.username || '',
         });
       } finally {
         setLoading(false);
       }
 
       return wasSuccessful;
+    }
+
+    function finalizeConnectedUsername(username) {
+      state.connectedUsername = normalizeLeagueUsername(username);
+      state.usernameReturnSnapshot = null;
+      syncStoredUsername(state.connectedUsername);
+      updateLeagueHubSessionDisplay();
     }
 
     function hideContent() {
@@ -877,19 +998,14 @@
     }
 
     // LeagueHub hero context:
-    // keeps the product eyebrow consistent and swaps only the view-specific
-    // heading/description when users move between Analysis and Trade Archive.
+    // keeps the product eyebrow consistent and swaps the view-specific heading;
+    // navigation tabs now occupy the former description area in the hero.
     function updateLeagueHubHero(isAnalysis) {
       if (elements.heroPill) elements.heroPill.textContent = 'Dynasty Hub • League Hub';
       if (elements.heroHeading) {
         elements.heroHeading.textContent = isAnalysis
           ? 'League Value & Production Overview'
           : 'Dynasty League Trade Database';
-      }
-      if (elements.heroDescription) {
-        elements.heroDescription.textContent = isAnalysis
-          ? 'Track KTC valuations alongside real Sleeper scoring to uncover strengths across every roster.'
-          : 'Explore your league’s trades across each season, compare received value, and gain insight into leagues trade activity.';
       }
     }
 
@@ -1395,12 +1511,10 @@
     }
 
     function getTradeProductionSeason(season) {
-      const tradeSeason = String(season || '');
-      return TRADE_PRODUCTION_FALLBACK_SEASONS[tradeSeason] || tradeSeason;
-    }
-
-    function isKtcPrimaryTradeSeason(season) {
-      return TRADE_KTC_PRIMARY_SEASONS.has(String(season || ''));
+      // Trade-year production contract:
+      // never substitute a neighboring season; a 2023 trade displays 2023
+      // production, while a future season correctly reports unavailable stats.
+      return String(season || '');
     }
 
     function buildTradePlayerAsset(playerId, season, createdAt) {
@@ -1413,21 +1527,24 @@
       const tradeAge = getPlayerAge(playerInfo, createdAt ? new Date(createdAt) : new Date());
       const age = Number.isFinite(tradeAge) ? tradeAge : careerRow?.age;
       const team = careerRow?.team || playerInfo.team || '--';
+      const teams = Array.isArray(careerRow?.teams) && careerRow.teams.length
+        ? careerRow.teams
+        : team && team !== '2TM' && team !== '--' ? [team] : [];
       return {
         type: 'player',
         sortOrder: 0,
         id: String(playerId),
         badge: position,
         title,
-        subtitle: `${position} | ${team}`,
+        subtitle: position,
+        team,
+        teams,
         ktc: getKtcValue(playerId),
         tradeSeason,
         productionSeason,
-        usesProductionFallback: productionSeason !== tradeSeason,
-        isKtcPrimary: isKtcPrimaryTradeSeason(tradeSeason),
         stats: careerRow ? { ...careerRow, age } : { age: Number.isFinite(age) ? age : null },
         hasSeasonData: Boolean(careerRow),
-        searchTokens: [title, position, team, tradeSeason, productionSeason, playerId].filter(Boolean),
+        searchTokens: [title, position, team, ...teams, tradeSeason, productionSeason, playerId].filter(Boolean),
       };
     }
 
@@ -1474,10 +1591,10 @@
     function sortTradeAssets(a, b) {
       const orderDiff = (a?.sortOrder ?? 99) - (b?.sortOrder ?? 99);
       if (orderDiff !== 0) return orderDiff;
-      const ppgDiff = (Number(b?.stats?.ppg) || 0) - (Number(a?.stats?.ppg) || 0);
-      if (ppgDiff !== 0) return ppgDiff;
       const ktcDiff = (Number(b?.ktc) || 0) - (Number(a?.ktc) || 0);
       if (ktcDiff !== 0) return ktcDiff;
+      const ppgDiff = (Number(b?.stats?.ppg) || 0) - (Number(a?.stats?.ppg) || 0);
+      if (ppgDiff !== 0) return ppgDiff;
       return String(a?.title || '').localeCompare(String(b?.title || ''));
     }
 
@@ -1550,6 +1667,7 @@
 
     function renderAllMemberTradeAnalytics(currentMembers) {
       const visibleTrades = getFilteredTrades();
+      if (elements.tradesAnalysisTable) elements.tradesAnalysisTable.dataset.mode = 'league';
       const visibleSeasonCount = state.trades.selectedSeason !== 'ALL'
         ? 1
         : Math.max(1, state.trades.seasonBundles.length || new Set(visibleTrades.map((trade) => trade.season)).size || 1);
@@ -1562,8 +1680,8 @@
         { width: '150px', pxWidth: 150 },
         { width: '62px', pxWidth: 62 },
         { width: '56px', pxWidth: 56 },
-        { width: '70px', pxWidth: 70 },
-        { width: '64px', pxWidth: 64 },
+        { width: '82px', pxWidth: 82 },
+        { width: '96px', pxWidth: 96 },
       ]);
       const rows = currentMembers.map((member) => {
         const memberTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(member.ownerId));
@@ -1588,6 +1706,7 @@
         });
         const topPartner = Array.from(partnerCounts.values())
           .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))[0] || null;
+        const ktcIn = memberSides.reduce((sum, side) => sum + getTradeSideReceivedValue(side), 0);
         return {
           member,
           tradeCount: memberTrades.length,
@@ -1597,8 +1716,8 @@
           topPartnerCount: topPartner?.count || null,
           playersIn: memberSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
           picksIn: memberSides.reduce((sum, side) => sum + side.receivedPicks, 0),
-          fptsIn: memberSides.reduce((sum, side) => sum + side.receivedFpts, 0),
-          avgPpgIn: averageNumbers(memberSides.flatMap((side) => side.receivedPpgValues || [])),
+          ktcIn,
+          avgKtcPerTrade: memberTrades.length ? ktcIn / memberTrades.length : 0,
         };
       }).sort((a, b) => b.tradeCount - a.tradeCount || b.playersIn - a.playersIn || a.member.teamName.localeCompare(b.member.teamName));
       const totalTradeParticipations = rows.reduce((sum, row) => sum + row.tradeCount, 0);
@@ -1617,43 +1736,56 @@
       }
       if (elements.tradesAnalysisHead) {
         elements.tradesAnalysisHead.innerHTML = `
-          <tr>
-            <th scope="col" class="is-numeric">RK</th>
-            <th scope="col">Team</th>
-            <th scope="col" class="is-numeric">Trades</th>
-            <th scope="col" class="is-numeric">League Share</th>
-            <th scope="col" class="is-numeric">Trades/Year (AVG)</th>
-            <th scope="col">Top Trade Partner</th>
-            <th scope="col" class="is-numeric">Players In</th>
-            <th scope="col" class="is-numeric">Picks In</th>
-            <th scope="col" class="is-numeric">FPTS In</th>
-            <th scope="col" class="is-numeric">Avg PPG</th>
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup" colspan="2">Manager</th>
+            <th scope="colgroup" colspan="3">Trade activity</th>
+            <th scope="colgroup">Trade network</th>
+            <th scope="colgroup" colspan="4">Assets received</th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col" class="is-numeric"><span>RK</span></th>
+            <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Team</span></th>
+            <th scope="col" class="is-numeric"><span>Trades</span></th>
+            <th scope="col" class="is-numeric"><span>League share</span></th>
+            <th scope="col" class="is-numeric"><span>Avg / year</span></th>
+            <th scope="col"><span><i class="fa-solid fa-link" aria-hidden="true"></i> Top partner</span></th>
+            <th scope="col" class="is-numeric"><span>Players</span></th>
+            <th scope="col" class="is-numeric"><span>Picks</span></th>
+            <th scope="col" class="is-numeric"><span>KTC in</span></th>
+            <th scope="col" class="is-numeric"><span>Avg KTC / trade</span></th>
           </tr>`;
       }
       if (elements.tradesAnalysisBody) {
         elements.tradesAnalysisBody.innerHTML = rows.map((row, index) => `
           <tr>
-            <td class="is-numeric">${index + 1}</td>
-            <td class="leaguehub-trades-team-cell"><strong>${escapeHtml(row.member.teamName)}</strong></td>
-            <td class="is-numeric">${row.tradeCount}</td>
-            <td class="is-numeric">${formatOptionalNumber(row.leagueShare, 1)}%</td>
-            <td class="is-numeric">${formatOptionalNumber(row.avgPerYear, 1)}</td>
+            <td class="is-numeric leaguehub-trades-rank-cell"><span>${index + 1}</span></td>
+            <td class="leaguehub-trades-team-cell">
+              <strong>${escapeHtml(row.member.teamName)}</strong>
+              ${row.member.teamName !== row.member.displayName ? `<small>${escapeHtml(row.member.displayName)}</small>` : ''}
+            </td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-primary">${row.tradeCount}</span></td>
+            <td class="is-numeric">
+              <span class="leaguehub-trades-share-value">${formatOptionalNumber(row.leagueShare, 1)}%</span>
+              <span class="leaguehub-trades-share-track" aria-hidden="true"><i style="--league-share:${row.leagueShare.toFixed(2)}%"></i></span>
+            </td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${formatOptionalNumber(row.avgPerYear, 1)}</span></td>
             <td class="leaguehub-trades-top-partner-cell">
               <span class="leaguehub-trades-top-partner-text">
                 <span class="leaguehub-trades-top-partner-name">${escapeHtml(row.topPartnerName)}</span>
-                ${row.topPartnerCount ? `<span class="leaguehub-trades-top-partner-count">(${row.topPartnerCount})</span>` : ''}
+                ${row.topPartnerCount ? `<span class="leaguehub-trades-top-partner-count">${row.topPartnerCount}x</span>` : ''}
               </span>
             </td>
-            <td class="is-numeric">${row.playersIn}</td>
-            <td class="is-numeric">${row.picksIn}</td>
-            <td class="is-numeric">${formatOptionalNumber(row.fptsIn, 1)}</td>
-            <td class="is-numeric">${formatOptionalNumber(row.avgPpgIn, 1)}</td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcIn)}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(Math.round(row.avgKtcPerTrade))}</span></td>
           </tr>`).join('');
       }
     }
 
     function renderSelectedMemberTradeAnalytics(selectedOwnerId) {
       const selectedMember = state.trades.currentMemberMap[selectedOwnerId];
+      if (elements.tradesAnalysisTable) elements.tradesAnalysisTable.dataset.mode = 'member';
       const visibleTrades = getFilteredTrades();
       const selectedTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(String(selectedOwnerId)));
       const selectedSides = selectedTrades.map((trade) => getTradeSideForOwner(trade, selectedOwnerId)).filter(Boolean);
@@ -1678,12 +1810,15 @@
               playersOut: 0,
               picksIn: 0,
               picksOut: 0,
+              ktcIn: 0,
+              ktcOut: 0,
             });
           }
           const stats = partnerStats.get(partnerKey);
           touchedPartners.add(partnerKey);
           if (movement.asset.type === 'player') stats[isIncoming ? 'playersIn' : 'playersOut'] += 1;
           if (movement.asset.type === 'pick') stats[isIncoming ? 'picksIn' : 'picksOut'] += 1;
+          stats[isIncoming ? 'ktcIn' : 'ktcOut'] += Number(movement.asset?.ktc) || 0;
         });
         touchedPartners.forEach((partnerKey) => {
           const stats = partnerStats.get(partnerKey);
@@ -1697,15 +1832,14 @@
         playersIn: selectedSides.reduce((sum, side) => sum + side.receivedPlayers, 0),
         playersOut: selectedSides.reduce((sum, side) => sum + side.sentPlayers, 0),
         picksIn: selectedSides.reduce((sum, side) => sum + side.receivedPicks, 0),
-        fptsIn: selectedSides.reduce((sum, side) => sum + side.receivedFpts, 0),
-        avgPpgIn: averageNumbers(selectedSides.flatMap((side) => side.receivedPpgValues || [])),
+        ktcIn: selectedSides.reduce((sum, side) => sum + getTradeSideReceivedValue(side), 0),
       };
       const summaryCards = [
         { label: 'Trades', value: totals.trades, meta: `${totals.partners} partner${totals.partners === 1 ? '' : 's'}` },
         { label: 'Players In', value: totals.playersIn, meta: `${totals.playersOut} sent` },
         { label: 'Picks In', value: totals.picksIn, meta: 'Draft assets received' },
-        { label: 'FPTS In', value: formatOptionalNumber(totals.fptsIn, 1), meta: 'Trade-season production' },
-        { label: 'Avg PPG In', value: formatOptionalNumber(totals.avgPpgIn, 1), meta: 'Player assets only' },
+        { label: 'KTC In', value: formatNumber(totals.ktcIn), meta: 'Current package value' },
+        { label: 'Avg KTC / Trade', value: formatNumber(selectedTrades.length ? Math.round(totals.ktcIn / selectedTrades.length) : 0), meta: 'Received value per deal' },
       ];
 
       if (elements.tradesSummaryCards) {
@@ -1728,16 +1862,24 @@
         { width: '72px', pxWidth: 72 },
         { width: '64px', pxWidth: 64 },
         { width: '64px', pxWidth: 64 },
+        { width: '88px', pxWidth: 88 },
+        { width: '88px', pxWidth: 88 },
       ]);
       if (elements.tradesAnalysisHead) {
         elements.tradesAnalysisHead.innerHTML = `
-          <tr>
-            <th scope="col">Partner</th>
-            <th scope="col" class="is-numeric">Trades</th>
-            <th scope="col" class="is-numeric">Players In</th>
-            <th scope="col" class="is-numeric">Players Out</th>
-            <th scope="col" class="is-numeric">Picks In</th>
-            <th scope="col" class="is-numeric">Picks Out</th>
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup" colspan="2">Partner activity</th>
+            <th scope="colgroup" colspan="6">Asset movement</th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Partner</span></th>
+            <th scope="col" class="is-numeric"><span>Trades</span></th>
+            <th scope="col" class="is-numeric"><span>Players in</span></th>
+            <th scope="col" class="is-numeric"><span>Players out</span></th>
+            <th scope="col" class="is-numeric"><span>Picks in</span></th>
+            <th scope="col" class="is-numeric"><span>Picks out</span></th>
+            <th scope="col" class="is-numeric"><span>KTC in</span></th>
+            <th scope="col" class="is-numeric"><span>KTC out</span></th>
           </tr>`;
       }
       if (elements.tradesAnalysisBody) {
@@ -1745,12 +1887,14 @@
         elements.tradesAnalysisBody.innerHTML = rows.length ? rows.map((row) => `
           <tr>
             <td class="leaguehub-trades-partner-cell"><span class="leaguehub-trades-partner-name">${escapeHtml(row.partnerLabel || '—')}</span></td>
-            <td class="is-numeric">${row.tradeCount}</td>
-            <td class="is-numeric">${row.playersIn}</td>
-            <td class="is-numeric">${row.playersOut}</td>
-            <td class="is-numeric">${row.picksIn}</td>
-            <td class="is-numeric">${row.picksOut}</td>
-          </tr>`).join('') : '<tr><td colspan="6" class="leaguehub-trades-empty-cell">No partner rows match these filters.</td></tr>';
+            <td class="is-numeric"><span class="leaguehub-table-metric is-primary">${row.tradeCount}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersOut}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksOut}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcIn)}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcOut)}</span></td>
+          </tr>`).join('') : '<tr><td colspan="8" class="leaguehub-trades-empty-cell">No partner rows match these filters.</td></tr>';
       }
     }
 
@@ -1786,11 +1930,18 @@
       return `
         <section class="leaguehub-trades-season">
           <header class="leaguehub-trades-season-head" style="--lh-season-hue:${seasonHue}">
+            <div class="leaguehub-trades-season-year">
+              <span>Season</span>
+              <strong>${escapeHtml(seasonBundle.season)}</strong>
+            </div>
             <div class="leaguehub-trades-season-label">
-              <span class="leaguehub-trades-season-tag">${escapeHtml(seasonBundle.season)}</span>
+              <span class="leaguehub-trades-season-overline">Trade ledger</span>
               <span class="leaguehub-trades-season-name">${escapeHtml(seasonBundle.leagueName || `Season ${seasonBundle.season}`)}</span>
             </div>
-            <span class="leaguehub-trades-season-count">${seasonBundle.trades.length} trade${seasonBundle.trades.length === 1 ? '' : 's'}</span>
+            <span class="leaguehub-trades-season-count">
+              <strong>${seasonBundle.trades.length}</strong>
+              <span>completed trade${seasonBundle.trades.length === 1 ? '' : 's'}</span>
+            </span>
           </header>
           ${seasonBundle.trades.length
             ? seasonBundle.trades.map((trade, index) => renderTradeCard(trade, index)).join('')
@@ -1832,12 +1983,11 @@
     }
 
     // Trade-side received-value comparison:
-    // evaluates the complete package so filters never move the highlight; the
-    // current-season branch uses total KTC and prior seasons use received-player
-    // average PPG. Exact ties intentionally leave every side unhighlighted.
+    // evaluates every season with total KTC across the complete package so
+    // archive filters never move the highlight. Exact ties stay unhighlighted.
     function getGreaterReceivedTradeSide(trade) {
       const evaluatedSides = (trade?.sides || [])
-        .map((side) => ({ side, value: getTradeSideReceivedValue(side, trade) }))
+        .map((side) => ({ side, value: getTradeSideReceivedValue(side) }))
         .filter((entry) => Number.isFinite(entry.value));
       if (evaluatedSides.length < 2) return null;
       const greatestValue = Math.max(...evaluatedSides.map((entry) => entry.value));
@@ -1845,16 +1995,9 @@
       return leaders.length === 1 ? leaders[0].side : null;
     }
 
-    function getTradeSideReceivedValue(side, trade) {
+    function getTradeSideReceivedValue(side) {
       const incomingAssets = side?.incomingAssets || [];
-      if (isKtcPrimaryTradeSeason(trade?.season)) {
-        return incomingAssets.reduce((sum, asset) => sum + (Number(asset?.ktc) || 0), 0);
-      }
-      return averageNumbers(
-        incomingAssets
-          .filter((asset) => asset?.type === 'player')
-          .map((asset) => asset?.stats?.ppg),
-      ) ?? 0;
+      return incomingAssets.reduce((sum, asset) => sum + (Number(asset?.ktc) || 0), 0);
     }
 
     function getTradeRenderSides(trade) {
@@ -1872,10 +2015,11 @@
       const selectedOwnerId = state.trades.selectedMember;
       const isSelected = selectedOwnerId !== 'ALL' && side.ownerId === String(selectedOwnerId);
       const visibleAssets = getVisibleAssetsForSide(side);
-      const avgPpg = averageNumbers(visibleAssets.filter((asset) => asset.type === 'player').map((asset) => asset.stats?.ppg));
-      const totalFpts = visibleAssets.reduce((sum, asset) => sum + (Number(asset.stats?.fpts) || 0), 0);
-      const totalKtc = visibleAssets.reduce((sum, asset) => sum + (Number(asset.ktc) || 0), 0);
-      const isKtcPrimary = isKtcPrimaryTradeSeason(trade?.season);
+      const completeIncomingAssets = side?.incomingAssets || [];
+      const avgPpg = averageNumbers(completeIncomingAssets
+        .filter((asset) => asset.type === 'player' && asset.hasSeasonData)
+        .map((asset) => asset.stats?.ppg));
+      const totalKtc = getTradeSideReceivedValue(side);
       const productionSeason = getTradeProductionSeason(trade?.season);
       const sideClass = [
         index % 2 === 0 ? 'is-primary' : 'is-secondary',
@@ -1887,15 +2031,13 @@
         side.receivedPicks ? `${side.receivedPicks} pick${side.receivedPicks === 1 ? '' : 's'}` : '',
         side.receivedFaab ? `${side.receivedFaab} FAAB` : '',
       ].filter(Boolean).join(' | ') || 'No visible receives';
-      const packageTotal = isKtcPrimary
-        ? `
-              <span class="leaguehub-trade-package-total-label">Received Value</span>
-              <span class="leaguehub-trade-package-total-value" style="color:${getTradeKtcColor(totalKtc)}">${formatNumber(totalKtc)} KTC</span>
-              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(avgPpg, 1)} PPG (${escapeHtml(productionSeason)})</span>`
-        : `
-              <span class="leaguehub-trade-package-total-label">Received</span>
-              <span class="leaguehub-trade-package-total-value">${formatOptionalNumber(avgPpg, 1)} PPG</span>
-              <span class="leaguehub-trade-package-total-sub">${formatOptionalNumber(totalFpts, 1)} FPTS</span>`;
+      const productionSummary = Number.isFinite(avgPpg)
+        ? `${formatOptionalNumber(avgPpg, 1)} PPG · ${productionSeason}`
+        : `${productionSeason} stats unavailable`;
+      const packageTotal = `
+            <span class="leaguehub-trade-package-total-label">Received KTC</span>
+            <span class="leaguehub-trade-package-total-value" style="color:${getTradeKtcColor(totalKtc)}">${formatNumber(totalKtc)}</span>
+            <span class="leaguehub-trade-package-total-sub">${escapeHtml(productionSummary)}</span>`;
 
       return `
         <section class="leaguehub-trade-package ${sideClass}">
@@ -1944,22 +2086,19 @@
       const ppgOverallColor = getTradeOverallRankColor(stats.ppgOverallRank);
       const fptsOverallColor = getTradeOverallRankColor(stats.fptsOverallRank);
       const ageColor = getTradeAgeColor(pos, stats.age);
-      const mainValueColor = asset.isKtcPrimary ? getTradeKtcColor(asset.ktc) : ppgColor;
-      const mainValue = asset.isKtcPrimary
-        ? `${formatNumber(Number(asset.ktc) || 0)} KTC`
-        : `${formatOptionalNumber(stats.ppg, 1)} PPG`;
-      const seasonDataNote = asset.usesProductionFallback
-        ? ` | ${asset.productionSeason} stats`
-        : asset.hasSeasonData ? '' : ' | No season data';
+      const mainValueColor = getTradeKtcColor(asset.ktc);
+      const mainValue = `${formatNumber(Number(asset.ktc) || 0)} KTC`;
       return `
         <div class="leaguehub-trade-asset-row is-player">
           <span class="leaguehub-trade-asset-badge ${pos}">${escapeHtml(pos || 'PLYR')}</span>
           <div class="leaguehub-trade-asset-content">
             <div class="leaguehub-trade-asset-line">
-              <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
+              <span class="leaguehub-trade-asset-identity">
+                <span class="leaguehub-trade-asset-name">${escapeHtml(asset.title)}</span>
+                ${renderTradePlayerSubtitle(asset, pos)}
+              </span>
               <span class="leaguehub-trade-asset-main" style="color:${mainValueColor}">${escapeHtml(mainValue)}</span>
             </div>
-            <div class="leaguehub-trade-asset-subtitle">${escapeHtml(asset.subtitle)}${escapeHtml(seasonDataNote)}</div>
             <div class="leaguehub-trade-stat-grid">
               ${renderTradeMetricChip('FPTS', formatOptionalNumber(stats.fpts, 1), fptsColor)}
               ${renderTradeMetricChip('FPTS RK', formatRankText(stats.fptsOverallRank), fptsOverallColor)}
@@ -1970,6 +2109,31 @@
             </div>
           </div>
         </div>`;
+    }
+
+    function renderTradePlayerSubtitle(asset, position) {
+      const teams = Array.isArray(asset?.teams) ? asset.teams.filter(Boolean) : [];
+      const teamLabel = teams.length ? teams.join(' and ') : (asset?.team || 'Free agent');
+      const teamMarkup = teams.length
+        ? teams.map((team) => renderTradeTeamLogo(team)).join('')
+        : `<span class="leaguehub-trade-team-fallback">${escapeHtml(asset?.team === '2TM' ? '2 teams' : asset?.team || 'FA')}</span>`;
+      const seasonLabel = asset?.hasSeasonData
+        ? `${asset.productionSeason} stats`
+        : `${asset.tradeSeason} stats unavailable`;
+      return `
+        <span class="leaguehub-trade-asset-subtitle">
+          <span class="leaguehub-trade-meta-position">${escapeHtml(position || 'PLYR')}</span>
+          <span class="leaguehub-trade-meta-separator" aria-hidden="true">•</span>
+          <span class="leaguehub-trade-team-logos" aria-label="${escapeHtml(teamLabel)}">${teamMarkup}</span>
+          <span class="leaguehub-trade-meta-separator" aria-hidden="true">•</span>
+          <span class="leaguehub-trade-meta-season">${escapeHtml(seasonLabel)}</span>
+        </span>`;
+    }
+
+    function renderTradeTeamLogo(teamAbbr) {
+      const team = String(teamAbbr || '').trim().toUpperCase();
+      const logoKey = TRADE_TEAM_LOGO_KEY_MAP[team] || team.toLowerCase();
+      return `<img class="leaguehub-trade-team-logo" src="../assets/NFL_logos_svg/${escapeHtml(logoKey)}.svg" alt="${escapeHtml(team)}" title="${escapeHtml(team)}" width="18" height="18" loading="lazy" decoding="async">`;
     }
 
     function renderTradePickAsset(asset) {
@@ -2204,20 +2368,43 @@
 
     async function ensureTradeCareerStats() {
       if (state.tradeCareerStatsBySeason) return state.tradeCareerStatsBySeason;
-      const csvText = await fetchTextWithCache(TRADE_CAREER_CSV_URL);
+      const [csvText, multiTeamCsvText] = await Promise.all([
+        fetchTextWithCache(TRADE_CAREER_CSV_URL),
+        fetchTextWithCache(TRADE_MULTI_TEAM_CSV_URL),
+      ]);
       const bySeason = {};
+      const teamHistoryBySeason = {};
+
+      // Historical 2TM resolution:
+      // the compact companion CSV is keyed by the same Sleeper ID + season as
+      // the production file and supplies the two logo identities for that year.
+      parseCsvRows(multiTeamCsvText).forEach((row) => {
+        const season = String(row.SZN || '').trim();
+        const playerId = String(row.SLPR_ID || '').trim();
+        const teams = String(row.TEAMS || '')
+          .split('|')
+          .map((team) => team.trim().toUpperCase())
+          .filter(Boolean);
+        if (!season || !playerId || !teams.length) return;
+        if (!teamHistoryBySeason[season]) teamHistoryBySeason[season] = {};
+        teamHistoryBySeason[season][playerId] = teams;
+      });
 
       parseCsvRows(csvText).forEach((row) => {
         const season = String(row.SZN || '').trim();
         const playerId = String(row.SLPR_ID || '').trim();
         if (!season || !playerId) return;
         if (!bySeason[season]) bySeason[season] = {};
+        const team = String(row.TM || '').trim().toUpperCase();
+        const teams = teamHistoryBySeason?.[season]?.[playerId]
+          || (team && team !== '2TM' ? [team] : []);
         bySeason[season][playerId] = {
           playerId,
           season,
           name: row.PLAYER || '',
           pos: String(row.POS || '').toUpperCase(),
-          team: row.TM || '',
+          team,
+          teams,
           games: parseOptionalNumber(row.G),
           fpts: parseOptionalNumber(row.FPTS),
           ppg: parseOptionalNumber(row.PPG),
@@ -2231,6 +2418,7 @@
         };
       });
 
+      state.tradeTeamHistoryBySeason = teamHistoryBySeason;
       state.tradeCareerStatsBySeason = bySeason;
       return bySeason;
     }
@@ -2344,10 +2532,10 @@
       if (!user || !user.user_id) {
         throw new Error('Sleeper user not found.');
       }
-      state.userId = user.user_id;
+      const nextUserId = user.user_id;
 
       const currentYear = new Date().getFullYear();
-      const leagues = await fetchWithCache(`https://api.sleeper.app/v1/user/${state.userId}/leagues/nfl/${currentYear}`);
+      const leagues = await fetchWithCache(`https://api.sleeper.app/v1/user/${nextUserId}/leagues/nfl/${currentYear}`);
       if (!Array.isArray(leagues) || leagues.length === 0) {
         throw new Error('No active leagues found for this user in the current season.');
       }
@@ -2364,6 +2552,10 @@
         throw new Error('No active dynasty leagues found for this user in the current season.');
       }
 
+      // Username switch commit point:
+      // do not replace the active LeagueHub identity until Sleeper has returned
+      // a valid dynasty league set, allowing Change user -> Go back to be lossless.
+      state.userId = nextUserId;
       state.leagues = dynastyOnlyLeagues.sort((a, b) => a.name.localeCompare(b.name));
       populateLeagueSelect(state.leagues);
     }
@@ -2835,10 +3027,10 @@
       });
     }
 
-    async function analyzeLeague(leagueId) {
+    async function analyzeLeague(leagueId, { preserveExistingContent = false } = {}) {
       try {
         setLoading(true, 'Analyzing league value and production...');
-        hideContent();
+        if (!preserveExistingContent) hideContent();
 
         const leagueInfo = state.leagues.find((league) => league.league_id === leagueId);
         if (!leagueInfo) throw new Error('League not found.');
@@ -2914,6 +3106,8 @@
           showLeagueHubGate({
             username: elements.usernameInput?.value || '',
             errorMessage: getLeagueHubGateErrorMessage(error),
+            allowReturn: Boolean(state.usernameReturnSnapshot),
+            returnUsername: state.usernameReturnSnapshot?.username || '',
           });
         } else {
           alert(`Failed to analyze league: ${error.message}`);
