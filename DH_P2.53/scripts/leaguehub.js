@@ -44,6 +44,13 @@
       tradesAnalysisTable: document.getElementById('leagueTradesAnalysisTable'),
       tradesAnalysisHead: document.getElementById('leagueTradesAnalysisHead'),
       tradesAnalysisBody: document.getElementById('leagueTradesAnalysisBody'),
+      tradesMobileTable: document.getElementById('leagueTradesMobileTable'),
+      tradesMobileFrozenTable: document.getElementById('leagueTradesMobileFrozenTable'),
+      tradesMobileFrozenHead: document.getElementById('leagueTradesMobileFrozenHead'),
+      tradesMobileFrozenBody: document.getElementById('leagueTradesMobileFrozenBody'),
+      tradesMobileScrollTable: document.getElementById('leagueTradesMobileScrollTable'),
+      tradesMobileScrollHead: document.getElementById('leagueTradesMobileScrollHead'),
+      tradesMobileScrollBody: document.getElementById('leagueTradesMobileScrollBody'),
       tradesFeed: document.getElementById('leagueTradesFeed'),
       tradesFeedMeta: document.getElementById('leagueTradesFeedMeta'),
       tradesSearchInput: document.getElementById('leagueTradesSearch'),
@@ -124,6 +131,7 @@
     const RADAR_SLOT_TYPES = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'SUPER_FLEX'];
     const RADAR_FLEX_ELIGIBLE = ['RB', 'WR', 'TE'];
     const TRADE_FETCH_LEGS = Array.from({ length: 19 }, (_, index) => index);
+    const TRADE_MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', { month: 'short' });
     const TRADE_ASSET_OPTIONS = [
       { value: 'ALL', label: 'All Assets' },
       { value: 'player', label: 'Players' },
@@ -991,10 +999,10 @@
     // keeps the compact product identity stable while giving each workspace a
     // concise title that still fits the desktop masthead and mobile title row.
     function updateLeagueHubHero(isAnalysis) {
-      if (elements.heroPill) elements.heroPill.textContent = 'League Hub';
+      if (elements.heroPill) elements.heroPill.textContent = 'DH League Hub';
       if (elements.heroHeading) {
         elements.heroHeading.textContent = isAnalysis
-          ? 'League Intelligence'
+          ? 'League Analysis'
           : 'Trade Archive';
       }
     }
@@ -1150,8 +1158,19 @@
       elements.tradesAnalytics?.classList.add('hidden');
       elements.tradesSummaryCards?.classList.add('hidden');
       if (elements.tradesSummaryCards) elements.tradesSummaryCards.innerHTML = '';
-      if (elements.tradesAnalysisHead) elements.tradesAnalysisHead.innerHTML = '';
-      if (elements.tradesAnalysisBody) elements.tradesAnalysisBody.innerHTML = '';
+      // Trade analytics reset:
+      // clear the unified desktop table and both physical mobile panes together
+      // so a league switch cannot leave stale frozen or scrolling rows behind.
+      [
+        elements.tradesAnalysisHead,
+        elements.tradesAnalysisBody,
+        elements.tradesMobileFrozenHead,
+        elements.tradesMobileFrozenBody,
+        elements.tradesMobileScrollHead,
+        elements.tradesMobileScrollBody,
+      ].filter(Boolean).forEach((element) => {
+        element.innerHTML = '';
+      });
       if (elements.tradesFeed) elements.tradesFeed.innerHTML = '';
       if (elements.tradesFeedMeta) elements.tradesFeedMeta.textContent = 'No trades loaded yet.';
     }
@@ -1660,19 +1679,64 @@
       }
     }
 
-    function setTradeAnalyticsColumns(columns) {
-      if (!elements.tradesAnalysisTable) return;
-      const colgroup = elements.tradesAnalysisTable.querySelector('colgroup');
+    function setTradeTableColumns(table, columns, fillAvailable = false) {
+      if (!table) return 0;
+      const colgroup = table.querySelector('colgroup');
       if (colgroup) {
         colgroup.innerHTML = columns.map((column) => `<col style="width:${column.width}">`).join('');
       }
       const minWidth = columns.reduce((sum, column) => sum + column.pxWidth, 0);
-      elements.tradesAnalysisTable.style.minWidth = `${minWidth}px`;
+      table.style.width = fillAvailable ? '100%' : `${minWidth}px`;
+      table.style.minWidth = `${minWidth}px`;
+      return minWidth;
+    }
+
+    // Responsive Trade Activity table anatomy:
+    // desktop receives every column in one table, while mobile receives a
+    // physically separate identity table plus a horizontal metrics table.
+    function setTradeAnalyticsColumns(columns, frozenColumnCount, mobileFrozenColumns = null) {
+      setTradeTableColumns(elements.tradesAnalysisTable, columns, true);
+      const frozenColumns = mobileFrozenColumns || columns.slice(0, frozenColumnCount);
+      const scrollingColumns = columns.slice(frozenColumnCount);
+      const frozenWidth = setTradeTableColumns(elements.tradesMobileFrozenTable, frozenColumns);
+      setTradeTableColumns(elements.tradesMobileScrollTable, scrollingColumns);
+      elements.tradesMobileTable?.style.setProperty('--leaguehub-frozen-table-width', `${frozenWidth}px`);
+    }
+
+    function setTradeAnalyticsMode(mode) {
+      [
+        elements.tradesAnalysisTable,
+        elements.tradesMobileFrozenTable,
+        elements.tradesMobileScrollTable,
+      ].filter(Boolean).forEach((table) => {
+        table.dataset.mode = mode;
+      });
+      if (elements.tradesMobileTable) elements.tradesMobileTable.dataset.mode = mode;
+    }
+
+    function getTradeVolumeClass(tradeCount, maxTradeCount) {
+      const count = Number(tradeCount) || 0;
+      const maximum = Number(maxTradeCount) || 0;
+      if (count <= 0 || maximum <= 0) return 'is-volume-none';
+      const shareOfLeader = count / maximum;
+      if (shareOfLeader >= 0.75) return 'is-volume-high';
+      if (shareOfLeader >= 0.4) return 'is-volume-medium';
+      return 'is-volume-low';
+    }
+
+    // Trades-column conditional formatting:
+    // tier each count against the busiest visible row so the color communicates
+    // actual activity instead of applying one decorative color to every chip.
+    function renderTradeCountMetric(tradeCount, maxTradeCount) {
+      const count = Number(tradeCount) || 0;
+      const volumeClass = getTradeVolumeClass(count, maxTradeCount);
+      const label = `${count} trade${count === 1 ? '' : 's'}`;
+      return `<span class="leaguehub-table-metric is-trade-count ${volumeClass}" aria-label="${label}">${count}</span>`;
     }
 
     function renderAllMemberTradeAnalytics(currentMembers) {
       const visibleTrades = getFilteredTrades();
-      if (elements.tradesAnalysisTable) elements.tradesAnalysisTable.dataset.mode = 'league';
+      setTradeAnalyticsMode('league');
       const visibleSeasonCount = state.trades.selectedSeason !== 'ALL'
         ? 1
         : Math.max(1, state.trades.seasonBundles.length || new Set(visibleTrades.map((trade) => trade.season)).size || 1);
@@ -1687,6 +1751,11 @@
         { width: '56px', pxWidth: 56 },
         { width: '82px', pxWidth: 82 },
         { width: '96px', pxWidth: 96 },
+      ], 2, [
+        // Mobile-only identity widths reclaim metric space without changing
+        // the more generous desktop RK / Team proportions.
+        { width: '32px', pxWidth: 32 },
+        { width: '126px', pxWidth: 126 },
       ]);
       const rows = currentMembers.map((member) => {
         const memberTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(member.ownerId));
@@ -1725,6 +1794,7 @@
           avgKtcPerTrade: memberTrades.length ? ktcIn / memberTrades.length : 0,
         };
       }).sort((a, b) => b.tradeCount - a.tradeCount || b.playersIn - a.playersIn || a.member.teamName.localeCompare(b.member.teamName));
+      const maxTradeCount = Math.max(0, ...rows.map((row) => row.tradeCount));
       const totalTradeParticipations = rows.reduce((sum, row) => sum + row.tradeCount, 0);
       rows.forEach((row) => {
         // League Share:
@@ -1742,33 +1812,92 @@
       if (elements.tradesAnalysisHead) {
         elements.tradesAnalysisHead.innerHTML = `
           <tr class="leaguehub-trades-table-group-row">
-            <th scope="colgroup" colspan="2">Manager</th>
-            <th scope="colgroup" colspan="3">Trade activity</th>
-            <th scope="colgroup">Trade network</th>
-            <th scope="colgroup" colspan="4">Assets received</th>
+            <th scope="colgroup" colspan="2"><span><i class="fa-solid fa-address-card" aria-hidden="true"></i> Manager</span></th>
+            <th scope="colgroup" colspan="3"><span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Trade activity</span></th>
+            <th scope="colgroup"><span><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Trade network</span></th>
+            <th scope="colgroup" colspan="4"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Assets received</span></th>
           </tr>
           <tr class="leaguehub-trades-table-column-row">
-            <th scope="col" class="is-numeric"><span>RK</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> RK</span></th>
             <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Team</span></th>
-            <th scope="col" class="is-numeric"><span>Trades</span></th>
-            <th scope="col" class="is-numeric"><span>League share</span></th>
-            <th scope="col" class="is-numeric"><span>Avg / year</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> Trades</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> League share</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Avg / year</span></th>
             <th scope="col"><span><i class="fa-solid fa-link" aria-hidden="true"></i> Top partner</span></th>
-            <th scope="col" class="is-numeric"><span>Players</span></th>
-            <th scope="col" class="is-numeric"><span>Picks</span></th>
-            <th scope="col" class="is-numeric"><span>KTC in</span></th>
-            <th scope="col" class="is-numeric"><span>Avg KTC / trade</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Players</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> Picks</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Avg KTC / trade</span></th>
+          </tr>`;
+      }
+      if (elements.tradesMobileFrozenHead) {
+        elements.tradesMobileFrozenHead.innerHTML = `
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup" colspan="2"><span><i class="fa-solid fa-address-card" aria-hidden="true"></i> Manager</span></th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> RK</span></th>
+            <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Team</span></th>
+          </tr>`;
+      }
+      if (elements.tradesMobileScrollHead) {
+        elements.tradesMobileScrollHead.innerHTML = `
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup" colspan="3"><span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Trade activity</span></th>
+            <th scope="colgroup"><span><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Trade network</span></th>
+            <th scope="colgroup" colspan="4"><span><i class="fa-solid fa-box-open" aria-hidden="true"></i> Assets received</span></th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> Trades</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> League share</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Avg / year</span></th>
+            <th scope="col"><span><i class="fa-solid fa-link" aria-hidden="true"></i> Top partner</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Players</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> Picks</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> Avg KTC / trade</span></th>
           </tr>`;
       }
       if (elements.tradesAnalysisBody) {
         elements.tradesAnalysisBody.innerHTML = rows.map((row, index) => `
-          <tr>
+          <tr data-row-index="${index}">
             <td class="is-numeric leaguehub-trades-rank-cell"><span>${index + 1}</span></td>
             <td class="leaguehub-trades-team-cell">
               <strong>${escapeHtml(row.member.teamName)}</strong>
               ${row.member.teamName !== row.member.displayName ? `<small>${escapeHtml(row.member.displayName)}</small>` : ''}
             </td>
-            <td class="is-numeric"><span class="leaguehub-table-metric is-primary">${row.tradeCount}</span></td>
+            <td class="is-numeric">${renderTradeCountMetric(row.tradeCount, maxTradeCount)}</td>
+            <td class="is-numeric">
+              <span class="leaguehub-trades-share-value">${formatOptionalNumber(row.leagueShare, 1)}%</span>
+              <span class="leaguehub-trades-share-track" aria-hidden="true"><i style="--league-share:${row.leagueShare.toFixed(2)}%"></i></span>
+            </td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${formatOptionalNumber(row.avgPerYear, 1)}</span></td>
+            <td class="leaguehub-trades-top-partner-cell">
+              <span class="leaguehub-trades-top-partner-text">
+                <span class="leaguehub-trades-top-partner-name">${escapeHtml(row.topPartnerName)}</span>
+                ${row.topPartnerCount ? `<span class="leaguehub-trades-top-partner-count">${row.topPartnerCount}x</span>` : ''}
+              </span>
+            </td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksIn}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcIn)}</span></td>
+            <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(Math.round(row.avgKtcPerTrade))}</span></td>
+          </tr>`).join('');
+      }
+      if (elements.tradesMobileFrozenBody) {
+        elements.tradesMobileFrozenBody.innerHTML = rows.map((row, index) => `
+          <tr data-row-index="${index}">
+            <td class="is-numeric leaguehub-trades-rank-cell"><span>${index + 1}</span></td>
+            <td class="leaguehub-trades-team-cell">
+              <strong>${escapeHtml(row.member.teamName)}</strong>
+              ${row.member.teamName !== row.member.displayName ? `<small>${escapeHtml(row.member.displayName)}</small>` : ''}
+            </td>
+          </tr>`).join('');
+      }
+      if (elements.tradesMobileScrollBody) {
+        elements.tradesMobileScrollBody.innerHTML = rows.map((row, index) => `
+          <tr data-row-index="${index}">
+            <td class="is-numeric">${renderTradeCountMetric(row.tradeCount, maxTradeCount)}</td>
             <td class="is-numeric">
               <span class="leaguehub-trades-share-value">${formatOptionalNumber(row.leagueShare, 1)}%</span>
               <span class="leaguehub-trades-share-track" aria-hidden="true"><i style="--league-share:${row.leagueShare.toFixed(2)}%"></i></span>
@@ -1790,7 +1919,7 @@
 
     function renderSelectedMemberTradeAnalytics(selectedOwnerId) {
       const selectedMember = state.trades.currentMemberMap[selectedOwnerId];
-      if (elements.tradesAnalysisTable) elements.tradesAnalysisTable.dataset.mode = 'member';
+      setTradeAnalyticsMode('member');
       const visibleTrades = getFilteredTrades();
       const selectedTrades = visibleTrades.filter((trade) => trade.participantOwnerIds.includes(String(selectedOwnerId)));
       const selectedSides = selectedTrades.map((trade) => getTradeSideForOwner(trade, selectedOwnerId)).filter(Boolean);
@@ -1839,6 +1968,9 @@
         picksIn: selectedSides.reduce((sum, side) => sum + side.receivedPicks, 0),
         ktcIn: selectedSides.reduce((sum, side) => sum + getTradeSideReceivedValue(side), 0),
       };
+      const rows = Array.from(partnerStats.values())
+        .sort((a, b) => b.tradeCount - a.tradeCount || a.partnerLabel.localeCompare(b.partnerLabel));
+      const maxTradeCount = Math.max(0, ...rows.map((row) => row.tradeCount));
       const summaryCards = [
         { label: 'Trades', value: totals.trades, meta: `${totals.partners} partner${totals.partners === 1 ? '' : 's'}` },
         { label: 'Players In', value: totals.playersIn, meta: `${totals.playersOut} sent` },
@@ -1869,30 +2001,54 @@
         { width: '64px', pxWidth: 64 },
         { width: '88px', pxWidth: 88 },
         { width: '88px', pxWidth: 88 },
-      ]);
+      ], 1);
       if (elements.tradesAnalysisHead) {
         elements.tradesAnalysisHead.innerHTML = `
           <tr class="leaguehub-trades-table-group-row">
-            <th scope="colgroup" colspan="2">Partner activity</th>
-            <th scope="colgroup" colspan="6">Asset movement</th>
+            <th scope="colgroup" colspan="2"><span><i class="fa-solid fa-handshake" aria-hidden="true"></i> Partner activity</span></th>
+            <th scope="colgroup" colspan="6"><span><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i> Asset movement</span></th>
           </tr>
           <tr class="leaguehub-trades-table-column-row">
             <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Partner</span></th>
-            <th scope="col" class="is-numeric"><span>Trades</span></th>
-            <th scope="col" class="is-numeric"><span>Players in</span></th>
-            <th scope="col" class="is-numeric"><span>Players out</span></th>
-            <th scope="col" class="is-numeric"><span>Picks in</span></th>
-            <th scope="col" class="is-numeric"><span>Picks out</span></th>
-            <th scope="col" class="is-numeric"><span>KTC in</span></th>
-            <th scope="col" class="is-numeric"><span>KTC out</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> Trades</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Players in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-minus" aria-hidden="true"></i> Players out</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-circle-down" aria-hidden="true"></i> Picks in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-circle-up" aria-hidden="true"></i> Picks out</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> KTC out</span></th>
+          </tr>`;
+      }
+      if (elements.tradesMobileFrozenHead) {
+        elements.tradesMobileFrozenHead.innerHTML = `
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup"><span><i class="fa-solid fa-handshake" aria-hidden="true"></i> Network</span></th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Partner</span></th>
+          </tr>`;
+      }
+      if (elements.tradesMobileScrollHead) {
+        elements.tradesMobileScrollHead.innerHTML = `
+          <tr class="leaguehub-trades-table-group-row">
+            <th scope="colgroup"><span><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Activity</span></th>
+            <th scope="colgroup" colspan="6"><span><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i> Asset movement</span></th>
+          </tr>
+          <tr class="leaguehub-trades-table-column-row">
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> Trades</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Players in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-minus" aria-hidden="true"></i> Players out</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-circle-down" aria-hidden="true"></i> Picks in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-circle-up" aria-hidden="true"></i> Picks out</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> KTC out</span></th>
           </tr>`;
       }
       if (elements.tradesAnalysisBody) {
-        const rows = Array.from(partnerStats.values()).sort((a, b) => b.tradeCount - a.tradeCount || a.partnerLabel.localeCompare(b.partnerLabel));
-        elements.tradesAnalysisBody.innerHTML = rows.length ? rows.map((row) => `
-          <tr>
+        elements.tradesAnalysisBody.innerHTML = rows.length ? rows.map((row, index) => `
+          <tr data-row-index="${index}">
             <td class="leaguehub-trades-partner-cell"><span class="leaguehub-trades-partner-name">${escapeHtml(row.partnerLabel || '—')}</span></td>
-            <td class="is-numeric"><span class="leaguehub-table-metric is-primary">${row.tradeCount}</span></td>
+            <td class="is-numeric">${renderTradeCountMetric(row.tradeCount, maxTradeCount)}</td>
             <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersIn}</span></td>
             <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersOut}</span></td>
             <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksIn}</span></td>
@@ -1900,6 +2056,28 @@
             <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcIn)}</span></td>
             <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcOut)}</span></td>
           </tr>`).join('') : '<tr><td colspan="8" class="leaguehub-trades-empty-cell">No partner rows match these filters.</td></tr>';
+      }
+      if (elements.tradesMobileFrozenBody) {
+        elements.tradesMobileFrozenBody.innerHTML = rows.length
+          ? rows.map((row, index) => `
+            <tr data-row-index="${index}">
+              <td class="leaguehub-trades-partner-cell"><span class="leaguehub-trades-partner-name">${escapeHtml(row.partnerLabel || '—')}</span></td>
+            </tr>`).join('')
+          : '<tr><td class="leaguehub-trades-empty-cell">No partners</td></tr>';
+      }
+      if (elements.tradesMobileScrollBody) {
+        elements.tradesMobileScrollBody.innerHTML = rows.length
+          ? rows.map((row, index) => `
+            <tr data-row-index="${index}">
+              <td class="is-numeric">${renderTradeCountMetric(row.tradeCount, maxTradeCount)}</td>
+              <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersIn}</span></td>
+              <td class="is-numeric"><span class="leaguehub-table-metric">${row.playersOut}</span></td>
+              <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksIn}</span></td>
+              <td class="is-numeric"><span class="leaguehub-table-metric">${row.picksOut}</span></td>
+              <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcIn)}</span></td>
+              <td class="is-numeric"><span class="leaguehub-table-metric is-ktc">${formatNumber(row.ktcOut)}</span></td>
+            </tr>`).join('')
+          : '<tr><td colspan="7" class="leaguehub-trades-empty-cell">No partner rows match these filters.</td></tr>';
       }
     }
 
@@ -1932,6 +2110,7 @@
 
     function renderTradeSeasonBundle(seasonBundle, selectedMember) {
       const seasonHue = getTradeSeasonHue(seasonBundle.season);
+      const insights = getTradeSeasonInsights(seasonBundle);
       return `
         <section class="leaguehub-trades-season">
           <header class="leaguehub-trades-season-head" style="--lh-season-hue:${seasonHue}">
@@ -1942,6 +2121,11 @@
             <div class="leaguehub-trades-season-label">
               <span class="leaguehub-trades-season-overline">Trade ledger</span>
               <span class="leaguehub-trades-season-name">${escapeHtml(seasonBundle.leagueName || `Season ${seasonBundle.season}`)}</span>
+              <span class="leaguehub-trades-season-insights" aria-label="Season trade insights">
+                <span><i class="fa-solid fa-people-group" aria-hidden="true"></i><strong>${insights.activeTeams}</strong><small>active teams</small></span>
+                <span><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><strong>${insights.assetsMoved}</strong><small>assets moved</small></span>
+                <span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i><strong>${escapeHtml(insights.busiestMonth)}</strong><small>busiest month</small></span>
+              </span>
             </div>
             <span class="leaguehub-trades-season-count">
               <strong>${seasonBundle.trades.length}</strong>
@@ -1952,6 +2136,37 @@
             ? seasonBundle.trades.map((trade, index) => renderTradeCard(trade, index)).join('')
             : `<p class="leaguehub-trade-empty-note">No completed trades${selectedMember ? ` involving ${escapeHtml(selectedMember.teamName)}` : ''} in ${escapeHtml(seasonBundle.season)}.</p>`}
         </section>`;
+    }
+
+    // Desktop season-ledger insight strip:
+    // derives concise information from the already-filtered bundle, adding
+    // useful context to the roomy header without another request or data pass.
+    function getTradeSeasonInsights(seasonBundle) {
+      const trades = Array.isArray(seasonBundle?.trades) ? seasonBundle.trades : [];
+      const activeRosterIds = new Set();
+      const monthCounts = new Map();
+      let assetsMoved = 0;
+
+      trades.forEach((trade) => {
+        assetsMoved += Number(trade?.assetCount) || 0;
+        (trade?.sides || []).forEach((side) => {
+          if (side?.rosterId !== undefined && side?.rosterId !== null) {
+            activeRosterIds.add(String(side.rosterId));
+          }
+        });
+        const createdAt = Number(trade?.createdAt);
+        if (!Number.isFinite(createdAt) || createdAt <= 0) return;
+        const month = TRADE_MONTH_FORMATTER.format(new Date(createdAt));
+        monthCounts.set(month, (monthCounts.get(month) || 0) + 1);
+      });
+
+      const busiestMonth = Array.from(monthCounts.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] || '—';
+      return {
+        activeTeams: activeRosterIds.size,
+        assetsMoved,
+        busiestMonth,
+      };
     }
 
     // Season timeline color identity:

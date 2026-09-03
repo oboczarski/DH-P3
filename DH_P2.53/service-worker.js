@@ -24,9 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Data Hub ADP rank correction: retire the prior cache so the corrected 1QB
-// and SFLX positional-rank mappings arrive on the next normal refresh.
-const CACHE_NAME = 'DH3.39';
+// LeagueHub header and Archive refinement: retire the prior cache so the new
+// navigation, responsive split table, and season insights arrive together.
+const CACHE_NAME = 'DH3.40';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

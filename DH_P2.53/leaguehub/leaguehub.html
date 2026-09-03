@@ -27,7 +27,7 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.38-leaguehub-command-center" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.40-leaguehub-refinement" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -57,13 +57,9 @@
       <section class="leaguehub-command-frame glass-panel" aria-label="LeagueHub command center">
         <div class="analyzer-hero" aria-labelledby="analyzer-hero-heading">
           <div class="leaguehub-masthead">
-            <div class="leaguehub-brand-lockup" role="img" aria-label="Dynasty Hub">
-              <img class="leaguehub-brand-logo" src="../assets/logos/DH-Logo-nbg_vC05b.png?v=DH3.38"
+            <div class="leaguehub-brand-lockup" role="img" aria-label="DH League Hub">
+              <img class="leaguehub-brand-logo" src="../assets/logos/DH-Logo-nbg_vC05b.png?v=DH3.40"
                 alt="" width="1254" height="1254" decoding="async" fetchpriority="high" />
-              <span class="leaguehub-brand-copy">
-                <strong><span>Dynasty</span><span>Hub</span></strong>
-                <small>League intelligence</small>
-              </span>
             </div>
 
             <header class="app-header">
@@ -133,8 +129,8 @@
             </header>
 
             <div class="analyzer-hero-intro">
-              <div id="leagueHubHeroPill" class="analyzer-pill">League Hub</div>
-              <h1 id="analyzer-hero-heading">League Intelligence</h1>
+              <div id="leagueHubHeroPill" class="analyzer-pill">DH League Hub</div>
+              <h1 id="analyzer-hero-heading">League Analysis</h1>
             </div>
           </div>
 
@@ -481,12 +477,35 @@
               </header>
               <div id="leagueTradesSummaryCards" class="leaguehub-trades-summary-grid hidden"
                 aria-label="Selected manager trade summary"></div>
-              <div class="leaguehub-trades-table-wrap">
+              <!-- Desktop keeps one unified table. Mobile uses the physically
+                   separated tables below so frozen identity columns never move
+                   with, or allow content to paint beneath, the metric scroller. -->
+              <div class="leaguehub-trades-table-wrap leaguehub-trades-table-wrap--desktop">
                 <table id="leagueTradesAnalysisTable" class="leaguehub-trades-table">
                   <colgroup></colgroup>
                   <thead id="leagueTradesAnalysisHead"></thead>
                   <tbody id="leagueTradesAnalysisBody"></tbody>
                 </table>
+              </div>
+              <div id="leagueTradesMobileTable" class="leaguehub-trades-mobile-table"
+                aria-label="Trade activity table">
+                <div class="leaguehub-trades-mobile-frozen" aria-label="Frozen manager columns">
+                  <table id="leagueTradesMobileFrozenTable"
+                    class="leaguehub-trades-table leaguehub-trades-table--mobile-frozen">
+                    <colgroup></colgroup>
+                    <thead id="leagueTradesMobileFrozenHead"></thead>
+                    <tbody id="leagueTradesMobileFrozenBody"></tbody>
+                  </table>
+                </div>
+                <div class="leaguehub-trades-mobile-scroll" tabindex="0"
+                  aria-label="Scrollable trade metrics">
+                  <table id="leagueTradesMobileScrollTable"
+                    class="leaguehub-trades-table leaguehub-trades-table--mobile-scroll">
+                    <colgroup></colgroup>
+                    <thead id="leagueTradesMobileScrollHead"></thead>
+                    <tbody id="leagueTradesMobileScrollBody"></tbody>
+                  </table>
+                </div>
               </div>
             </article>
           </section>
@@ -508,7 +527,7 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub.js?v=DH3.38-leaguehub-command-center"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.40-leaguehub-refinement"></script>
   <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 
