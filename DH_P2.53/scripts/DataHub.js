@@ -249,27 +249,10 @@ const DATAHUB_TOP60_CHART_SERIES = Object.freeze([
   }),
 ]);
 
-// Trade Values chart reference data:
-// this is the updated Top60ChrtW widget content, kept page-local so the
-// Trade Values hero chart can match the standalone reference without pulling
-// from live table rows in this pass.
-const DATAHUB_TRADE_VALUES_CHART_DATA = Object.freeze([
-  { name: "J.Allen", fullName: "Josh Allen", pos: "QB", ktc: 3, adp: 1.5 },
-  { name: "Bijan", fullName: "Bijan Robinson", pos: "RB", ktc: 2, adp: 2.6 },
-  { name: "J.Chase", fullName: "Ja'Marr Chase", pos: "WR", ktc: 1, adp: 4.4 },
-  { name: "Maye", fullName: "Drake Maye", pos: "QB", ktc: 6, adp: 3.4 },
-  { name: "Gibbs", fullName: "Jahmyr Gibbs", pos: "RB", ktc: 5, adp: 5.9 },
-  { name: "JSN", fullName: "Jaxon Smith-Njigba", pos: "WR", ktc: 4, adp: 7.5 },
-  { name: "Nacua", fullName: "Puka Nacua", pos: "WR", ktc: 7, adp: 6.4 },
-  { name: "Daniels", fullName: "Jayden Daniels", pos: "QB", ktc: 11, adp: 8 },
-  { name: "Nabers", fullName: "Malik Nabers", pos: "WR", ktc: 9, adp: 12.8 },
-  { name: "St.Brown", fullName: "Amon-Ra St. Brown", pos: "WR", ktc: 13, adp: 9.1 },
-  { name: "C.Williams", fullName: "Caleb Williams", pos: "QB", ktc: 8, adp: 14.1 },
-  { name: "Bowers", fullName: "Brock Bowers", pos: "TE", ktc: 10, adp: 13.2 },
-  { name: "L.Jackson", fullName: "Lamar Jackson", pos: "QB", ktc: 14, adp: 11.8 },
-  { name: "Jefferson", fullName: "Justin Jefferson", pos: "WR", ktc: 12, adp: 16.3 },
-  { name: "Burrow", fullName: "Joe Burrow", pos: "QB", ktc: 18, adp: 10.4 },
-].sort((a, b) => b.adp - a.adp));
+// Trade Values chart row limit:
+// the SFLX comparison chart now derives its Top 15 from the same live KTC/ADP
+// rows as the table instead of retaining a separate player snapshot here.
+const DATAHUB_TRADE_VALUES_CHART_LIMIT = 15;
 
 const DATAHUB_TRADE_VALUES_CHART_POSITIONS = Object.freeze([
   Object.freeze({
@@ -4265,6 +4248,11 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       "SFLX DIFF": formatTradeDiffString(getTradeDiffValue(sflxEntity.overallRank, sflxAdpValue)),
       __oneQbOverallRank: oneQbEntity?.overallRank ?? null,
       __sflxOverallRank: sflxEntity.overallRank ?? null,
+      // Live ADP positional ranks:
+      // carry the format-specific ranks from ADP_2026 as metadata so the table
+      // can display WR12-style annotations without changing sortable values.
+      __oneQbAdpPosRank: adpEntry?.posAdp ?? null,
+      __sflxAdpPosRank: adpEntry?.posSfAdp ?? null,
       __oneQbDiffWinner: getTradeDiffWinner(oneQbEntity?.overallRank, oneQbAdpValue),
       __sflxDiffWinner: getTradeDiffWinner(sflxEntity.overallRank, sflxAdpValue),
       __hasGameLogsSupport: Boolean(statsRow?.__meta?.playerId),
@@ -4630,6 +4618,10 @@ function ensureDataHubHeroChartWidget(widgetKey, viewKey = state.activePageTab) 
   const existingWidget = state.heroChartWidgets?.[widgetKey];
   if (existingWidget?.viewKey === chartConfig.key && existingWidget.root === widgetRoot) {
     syncDataHubHeroChartFrame(widgetRoot, chartConfig);
+    // Live Trade Values chart refresh:
+    // supplemental KTC/ADP feeds can finish after this widget is first mounted,
+    // so refresh an existing widget whenever the page shell resynchronizes.
+    existingWidget.refresh?.();
     return existingWidget;
   }
 
@@ -4680,21 +4672,29 @@ function createDataHubStandardHeroChartWidget(widgetRoot, widgetKey, chartConfig
   }
 
   syncDataHubHeroChartFrame(widgetRoot, chartConfig);
-  chartConfig.renderSummary(summaryHost);
 
   const echartsApi = getDataHubEchartsApi();
   if (!echartsApi) {
+    chartConfig.renderSummary(summaryHost);
     return {
       key: widgetKey,
       viewKey: chartConfig.key,
       root: widgetRoot,
+      refresh: () => chartConfig.renderSummary(summaryHost),
       resize: () => {},
       dispose: () => {},
     };
   }
 
   const chart = echartsApi.init(chartCanvas, null, { renderer: "svg" });
-  chart.setOption(chartConfig.buildOption(echartsApi), true);
+  const refresh = () => {
+    // Standard chart data refresh:
+    // rebuild both the plot and its summary from current in-memory rows while
+    // preserving the existing chart instance, resize observer, and shell.
+    chartConfig.renderSummary(summaryHost);
+    chart.setOption(chartConfig.buildOption(echartsApi), true);
+  };
+  refresh();
 
   const resize = () => {
     if (!widgetRoot.isConnected || chart.isDisposed()) {
@@ -4713,6 +4713,7 @@ function createDataHubStandardHeroChartWidget(widgetRoot, widgetKey, chartConfig
     viewKey: chartConfig.key,
     root: widgetRoot,
     chart,
+    refresh,
     resize,
     dispose: () => {
       resizeObserver?.disconnect();
@@ -4769,8 +4770,9 @@ function renderDataHubTop60SummaryChips(summaryHost) {
 }
 
 function renderDataHubTradeValuesSummaryChips(summaryHost) {
+  const chartData = getDataHubTradeValuesChartData();
   const summaries = DATAHUB_TRADE_VALUES_CHART_POSITIONS.map((positionGroup) => {
-    const players = DATAHUB_TRADE_VALUES_CHART_DATA.filter((row) => row.pos === positionGroup.key);
+    const players = chartData.filter((row) => row.pos === positionGroup.key);
     const count = players.length;
     const totalShift = players.reduce((sum, row) => sum + (row.adp - row.ktc), 0);
     const avgDiff = count ? totalShift / count : 0;
@@ -4826,6 +4828,39 @@ function renderDataHubTradeValuesSummaryChips(summaryHost) {
       </div>
     `)
     .join("");
+}
+
+function getDataHubTradeValuesChartData() {
+  const supportedPositions = new Set(
+    DATAHUB_TRADE_VALUES_CHART_POSITIONS.map((positionGroup) => positionGroup.key),
+  );
+
+  // Live Trade Values chart dataset:
+  // select the current SFLX ADP top 15 from the fully enriched trade rows, then
+  // reverse them for the chart's bottom-to-top category-axis presentation.
+  return (state.tradeRowsBase || [])
+    .map((row) => ({
+      name: formatDataHubTradeValuesChartName(row?.__meta?.fullName || row?.PLAYER),
+      fullName: String(row?.__meta?.fullName || row?.PLAYER || "").trim(),
+      pos: String(row?.__meta?.pos || row?.POS || "").trim().toUpperCase(),
+      ktc: toComparableNumber(row?.__meta?.ktcSflxRank),
+      adp: toComparableNumber(row?.["SFLX ADP"]),
+    }))
+    .filter((row) => (
+      supportedPositions.has(row.pos)
+      && Number.isFinite(row.ktc)
+      && Number.isFinite(row.adp)
+    ))
+    .sort((left, right) => left.adp - right.adp)
+    .slice(0, DATAHUB_TRADE_VALUES_CHART_LIMIT)
+    .sort((left, right) => right.adp - left.adp);
+}
+
+function formatDataHubTradeValuesChartName(playerName) {
+  // Trade Values chart labels:
+  // reuse the table's first-initial abbreviation and remove its single space
+  // after the period so live names stay inside the chart's compact Y-axis lane.
+  return abbreviatePlayerName(playerName).replace(". ", ".");
 }
 
 function buildDataHubTop60ChartOption(echartsApi) {
@@ -4992,8 +5027,11 @@ function createDataHubTop60AreaGradient(echartsApi, start, end) {
 }
 
 function buildDataHubTradeValuesChartOption(echartsApi) {
-  const adpData = DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.adp);
-  const ktcData = DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.ktc);
+  const chartData = getDataHubTradeValuesChartData();
+  const adpData = chartData.map((row) => row.adp);
+  const ktcData = chartData.map((row) => row.ktc);
+  const chartMaxValue = Math.max(20, ...adpData, ...ktcData);
+  const chartAxisMax = Math.ceil(chartMaxValue / 5) * 5;
 
   return {
     animationDuration: 450,
@@ -5039,13 +5077,13 @@ function buildDataHubTradeValuesChartOption(echartsApi) {
       extraCssText:
         "border-radius:8px; box-shadow:0 8px 30px rgba(0,0,0,0.6); padding:6px 9px; backdrop-filter:blur(8px);",
       formatter(params) {
-        return buildDataHubTradeValuesTooltip(params);
+        return buildDataHubTradeValuesTooltip(params, chartData);
       },
     },
     xAxis: {
       type: "value",
       min: 0,
-      max: 20,
+      max: chartAxisMax,
       interval: 5,
       axisLine: {
         show: false,
@@ -5069,10 +5107,10 @@ function buildDataHubTradeValuesChartOption(echartsApi) {
     },
     yAxis: {
       type: "category",
-      data: DATAHUB_TRADE_VALUES_CHART_DATA.map((row) => row.name),
+      data: chartData.map((row) => row.name),
       axisLabel: {
-        formatter(value) {
-          const player = DATAHUB_TRADE_VALUES_CHART_DATA.find((row) => row.name === value);
+        formatter(value, index) {
+          const player = chartData[index];
           if (!player) {
             return value;
           }
@@ -5159,7 +5197,7 @@ function buildDataHubTradeValuesChartOption(echartsApi) {
             }),
           };
         },
-        data: DATAHUB_TRADE_VALUES_CHART_DATA.map((row, index) => [row.ktc, row.adp, index]),
+        data: chartData.map((row, index) => [row.ktc, row.adp, index]),
         z: 3,
         tooltip: { show: false },
       },
@@ -5185,14 +5223,13 @@ function buildDataHubTradeValuesChartOption(echartsApi) {
   };
 }
 
-function buildDataHubTradeValuesTooltip(params) {
+function buildDataHubTradeValuesTooltip(params, chartData) {
   if (!Array.isArray(params) || params.length === 0) {
     return "";
   }
 
   const playerIndex = params[0]?.dataIndex ?? 0;
-  const player = DATAHUB_TRADE_VALUES_CHART_DATA[playerIndex];
-  const adpPoint = params.find((entry) => entry.seriesName === "ADP");
+  const player = chartData[playerIndex];
   const ktcPoint = params.find((entry) => entry.seriesName === "KTC Rank");
 
   return `
@@ -5205,7 +5242,7 @@ function buildDataHubTradeValuesTooltip(params) {
         <span style="width:8px; height:8px; border-radius:50%; background:${DATAHUB_TRADE_VALUES_CHART_COLORS.adp};"></span>
         <span style="color:rgba(255,255,255,0.7); font-size:12px;">ADP</span>
       </div>
-      <strong style="font-size:14px; color:#fff;">${adpPoint?.value ?? ""}</strong>
+      <strong style="font-size:14px; color:#fff;">${Number.isFinite(player?.adp) ? player.adp.toFixed(1) : ""}</strong>
     </div>
     <div style="display:flex; justify-content:space-between; gap:24px; align-items:center;">
       <div style="display:flex; align-items:center; gap:6px;">
@@ -9937,6 +9974,13 @@ function createPosBadge(posValue) {
 }
 
 function isTradeValuesRichColumn(columnName) {
+  // Trade Val. & ADP-only annotation scope:
+  // add positional ranks to the top-level Trade Values table without changing
+  // the separate Rookies Trade Values subview that shares this renderer.
+  if (columnName === "1QB ADP" || columnName === "SFLX ADP") {
+    return state.activePageView === "adp-values";
+  }
+
   return columnName === "KTC 1QB"
     || columnName === "KTC SFLX"
     || columnName === "1QB DIFF"
@@ -9988,6 +10032,35 @@ function buildTradeValuesAnnotation(columnName, meta) {
     close.textContent = ")";
 
     annotation.append(open, rankNumber, suffix, close);
+    return annotation;
+  }
+
+  if (columnName === "1QB ADP" || columnName === "SFLX ADP") {
+    const position = String(meta.pos || "").trim().toUpperCase();
+    const rank = columnName === "1QB ADP" ? meta.adpOneQbPosRank : meta.adpSflxPosRank;
+    if (!position || !Number.isFinite(rank)) {
+      return null;
+    }
+
+    // Trade Values ADP annotation:
+    // append the live format-specific positional rank as `(WR12)` while the
+    // base ADP value remains untouched for sorting, filtering, and heat tiers.
+    const annotation = document.createElement("span");
+    annotation.className = "trade-value-metric__annotation";
+
+    const open = document.createElement("span");
+    open.className = "trade-value-metric__annotation-bracket";
+    open.textContent = "(";
+
+    const positionRank = document.createElement("span");
+    positionRank.className = "trade-value-metric__rank-number";
+    positionRank.textContent = `${position}${Math.round(rank)}`;
+
+    const close = document.createElement("span");
+    close.className = "trade-value-metric__annotation-bracket";
+    close.textContent = ")";
+
+    annotation.append(open, positionRank, close);
     return annotation;
   }
 
@@ -11574,6 +11647,8 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
   );
   const ktcOneQbRank = toComparableNumber(sourceRow.__oneQbOverallRank);
   const ktcSflxRank = toComparableNumber(sourceRow.__sflxOverallRank);
+  const adpOneQbPosRank = toComparableNumber(sourceRow.__oneQbAdpPosRank);
+  const adpSflxPosRank = toComparableNumber(sourceRow.__sflxAdpPosRank);
   const hasGameLogsSupport = sourceRow.__hasGameLogsSupport != null
     ? Boolean(sourceRow.__hasGameLogsSupport)
     : Boolean(playerId && pos !== "RDP");
@@ -11597,6 +11672,8 @@ function buildDataHubRowMeta(sourceRow, normalizedRow) {
     ktc: toIntegerOrNull(ktcEntry?.ktc),
     ktcOneQbRank,
     ktcSflxRank,
+    adpOneQbPosRank,
+    adpSflxPosRank,
     diffOneQbWinner: String(sourceRow.__oneQbDiffWinner || ""),
     diffSflxWinner: String(sourceRow.__sflxDiffWinner || ""),
     tradeEntityType: String(sourceRow.__tradeEntityType || ""),

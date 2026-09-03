@@ -24,10 +24,9 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// LeagueHub Trade Archive revamp: retire the prior cache so the new hero,
-// username-return flow, historical team map, and responsive archive UI arrive
-// together on the next normal refresh.
-const CACHE_NAME = 'DH3.36';
+// Data Hub live Trade Values update: retire the prior cache so the positional
+// ADP ranks and live SFLX chart logic arrive together on the next normal refresh.
+const CACHE_NAME = 'DH3.37';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
