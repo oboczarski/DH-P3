@@ -3728,8 +3728,11 @@ async function fetchDataHubAdpLookup() {
       adpLookup[playerId] = {
         sflxAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "SFLX_ADP")),
         pprAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "PPR_ADP")),
-        posAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "POS_ADP")),
-        posSfAdp: toFloatOrNull(getNormalizedSheetValue(normalizedRow, ["P-SF_ADP", "POS_SF_ADP"])),
+        // ADP_2026 positional-rank mapping:
+        // P-SF_ADP accompanies the 1QB/PPR ADP value, while POS_ADP accompanies
+        // SFLX ADP. Name them by their actual destination to prevent inversion.
+        oneQbPosRank: toFloatOrNull(getNormalizedSheetValue(normalizedRow, ["P-SF_ADP", "POS_SF_ADP"])),
+        sflxPosRank: toFloatOrNull(getNormalizedSheetValue(normalizedRow, "POS_ADP")),
       };
     });
 
@@ -4236,7 +4239,7 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       PPG: statsRow?.PPG,
       VALUE: formatIntegerString(oneQbEntity?.ktc),
       ADP: formatFixedString(oneQbAdpValue, 1),
-      "POS·ADP": formatFixedString(adpEntry?.posAdp, 1),
+      "POS·ADP": formatFixedString(adpEntry?.oneQbPosRank, 1),
       "POS RK": sflxEntity.posRank,
       RY: sflxEntity.rookieYear,
       EXP: tradeEntityExperience,
@@ -4251,8 +4254,8 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       // Live ADP positional ranks:
       // carry the format-specific ranks from ADP_2026 as metadata so the table
       // can display WR12-style annotations without changing sortable values.
-      __oneQbAdpPosRank: adpEntry?.posAdp ?? null,
-      __sflxAdpPosRank: adpEntry?.posSfAdp ?? null,
+      __oneQbAdpPosRank: adpEntry?.oneQbPosRank ?? null,
+      __sflxAdpPosRank: adpEntry?.sflxPosRank ?? null,
       __oneQbDiffWinner: getTradeDiffWinner(oneQbEntity?.overallRank, oneQbAdpValue),
       __sflxDiffWinner: getTradeDiffWinner(sflxEntity.overallRank, sflxAdpValue),
       __hasGameLogsSupport: Boolean(statsRow?.__meta?.playerId),
@@ -4314,7 +4317,7 @@ function enrichSeasonRow(sourceRow, { oneQbLookup, sflxLookup, adpLookup }) {
   // ownership summaries that still read the existing VALUE / ADP fields.
   enrichedRow.VALUE = formatIntegerString(oneQbEntry?.ktc);
   enrichedRow.ADP = formatFixedString(adpEntry?.pprAdp, 1);
-  enrichedRow["POS·ADP"] = formatFixedString(adpEntry?.posAdp, 1);
+  enrichedRow["POS·ADP"] = formatFixedString(adpEntry?.oneQbPosRank, 1);
   enrichedRow.PPG = formatFixedString(ppg, 1);
   enrichedRow.__hasGameLogsSupport = Boolean(playerId && String(sourceRow.POS || "").trim().toUpperCase() !== "RDP");
 
