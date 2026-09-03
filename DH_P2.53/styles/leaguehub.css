@@ -4445,21 +4445,22 @@ body[data-page="leaguehub"] .leaguehub-trades-season-label {
   justify-items: start;
   gap: 0.28rem;
   min-width: 0;
-  padding: 0.68rem 0.88rem;
+  padding: 0.68rem 1.98rem;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season-name {
   width: 100%;
   color: #f4f7ff;
-  font-size: 0.92rem;
+  font-size: 1.62rem;
   font-weight: 800;
   letter-spacing: -0.025em;
+  margin-top: -9px;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season-count {
   display: grid;
   align-content: center;
-  justify-items: end;
+  justify-items: center;
   gap: 0.12rem;
   min-width: 7.2rem;
   padding: 0.62rem 0.86rem;
@@ -4470,14 +4471,14 @@ body[data-page="leaguehub"] .leaguehub-trades-season-count {
 
 body[data-page="leaguehub"] .leaguehub-trades-season-count strong {
   color: #f7f9ff;
-  font-size: 1.32rem;
+  font-size: 1.62rem;
   font-weight: 800;
   line-height: 1;
 }
 
 body[data-page="leaguehub"] .leaguehub-trades-season-count span {
   color: rgba(184, 198, 228, 0.55);
-  font-size: 0.5rem;
+  font-size: 0.6rem;
   font-weight: 750;
   letter-spacing: 0.045em;
   line-height: 1;
@@ -4714,7 +4715,7 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
   }
 
   body[data-page="leaguehub"] .leaguehub-masthead {
-    grid-template-columns: minmax(9.5rem, 0.66fr) minmax(25rem, 1.9fr) minmax(8.2rem, 0.68fr);
+    grid-template-columns: minmax(9.5rem, 0.62fr) minmax(25rem, 1.9fr) minmax(8.2rem, 0.68fr);
     grid-template-areas:
       "brand nav title";
     gap: 0.68rem;
@@ -4810,7 +4811,7 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
 
   body[data-page="leaguehub"] .analyzer-hero h1 {
     max-width: 21rem;
-    font-size: 2.25rem;
+    font-size: 2.15rem;
     line-height: 0.98;
     transform: translate(0px, 4px);
   }
