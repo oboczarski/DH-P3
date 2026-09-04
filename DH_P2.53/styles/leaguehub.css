@@ -4455,6 +4455,16 @@ body[data-page="leaguehub"] .leaguehub-trades-top-partner-text {
   font-size: 0.78rem;
 }
 
+/* Align only Top Trade Partner body content to the left. The column and group
+   header cells retain the centered table-header alignment above. */
+body[data-page="leaguehub"] td.leaguehub-trades-top-partner-cell {
+  text-align: left;
+}
+
+body[data-page="leaguehub"] td.leaguehub-trades-top-partner-cell .leaguehub-trades-top-partner-text {
+  justify-content: flex-start;
+}
+
 body[data-page="leaguehub"] .leaguehub-trades-top-partner-count {
   display: inline-flex;
   align-items: center;
@@ -5130,7 +5140,7 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
 
 @media (max-width: 819px) {
   /* Mobile top-level order is a navigation-only first row, then logo/title,
-     tabs, user, and league. Archive filters remain in their sibling panel. */
+     tabs, and a paired user/league row. Archive filters remain separate. */
   body[data-page="leaguehub"] .analyzer-hero {
     gap: 0.42rem;
     margin: 0;
@@ -5168,8 +5178,31 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
   }
 
   body[data-page="leaguehub"] .leaguehub-context-row {
+    grid-template-areas:
+      "tabs"
+      "identity";
     gap: 0.3rem;
     padding-top: 0.38rem;
+  }
+
+  /* Mobile identity row: preserve the existing user control itself and place
+     the league dropdown in the open portion of the same grid row. */
+  body[data-page="leaguehub"] .leaguehub-hero-session {
+    grid-area: identity;
+    justify-self: start;
+    width: 53%;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-hero-league-control {
+    grid-area: identity;
+    align-self: stretch;
+    justify-self: end;
+    width: 45%;
+    z-index: 1;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-hero-league-control > label {
+    display: none;
   }
 
   body[data-page="leaguehub"] .leaguehub-tab-list {
@@ -5264,7 +5297,9 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
     scrollbar-color: rgba(116, 132, 190, 0.54) rgba(8, 12, 24, 0.7);
     scrollbar-width: thin;
   }
@@ -5386,6 +5421,26 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
     white-space: normal;
   }
 
+  /* The mobile season panel has three visible regions. Flex centering here
+     prevents inherited grid/sticky rules from settling their text at the foot. */
+  body[data-page="leaguehub"] .leaguehub-trades-season-year,
+  body[data-page="leaguehub"] .leaguehub-trades-season-label,
+  body[data-page="leaguehub"] .leaguehub-trades-season-count {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-trades-season-year,
+  body[data-page="leaguehub"] .leaguehub-trades-season-count {
+    align-items: center;
+  }
+
+  body[data-page="leaguehub"] .leaguehub-trades-season-label {
+    align-items: flex-start;
+  }
+
   body[data-page="leaguehub"] .leaguehub-trade-entry {
     padding: 0.46rem;
   }
@@ -5437,6 +5492,7 @@ body[data-page="leaguehub"] .leaguehub-trade-stat-chip strong {
 
   body[data-page="leaguehub"] .leaguehub-hero-session {
     gap: 0.34rem;
+    width: 100%;
   }
 
   body[data-page="leaguehub"] .leaguehub-hero-user {

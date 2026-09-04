@@ -24,10 +24,10 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// LeagueHub season-header and Trade Activity refinement: retire the prior cache
-// so the responsive table widths, labels, tiers, and account layout arrive
-// together on each user's next normal refresh.
-const CACHE_NAME = 'DH3.42';
+// LeagueHub mobile identity, touch scrolling, and Archive column refinement:
+// retire the prior cache so layout and interaction fixes arrive together on
+// each user's next normal refresh.
+const CACHE_NAME = 'DH3.43';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

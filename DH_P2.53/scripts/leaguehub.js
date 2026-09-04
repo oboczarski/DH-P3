@@ -1751,25 +1751,25 @@
       setTradeAnalyticsColumns([
         { width: '36px', pxWidth: 36 },
         { width: '136px', pxWidth: 136 },
-        { width: '52px', pxWidth: 52 },
-        { width: '78px', pxWidth: 78 },
-        { width: '76px', pxWidth: 76 },
+        { width: '96px', pxWidth: 96 },
+        { width: '126px', pxWidth: 126 },
+        { width: '130px', pxWidth: 130 },
         { width: '150px', pxWidth: 150 },
         { width: '62px', pxWidth: 62 },
-        { width: '56px', pxWidth: 56 },
+        { width: '76px', pxWidth: 76 },
         { width: '82px', pxWidth: 82 },
         { width: '96px', pxWidth: 96 },
       ], 2, [
-        // Mobile-only widths give the requested labels and metrics room while
-        // leaving the desktop table's existing proportions untouched.
+        // Mobile owns independently expanded widths for the longer labels, so
+        // later narrow-screen tuning cannot change the desktop proportions.
         { width: '40px', pxWidth: 40 },
         { width: '126px', pxWidth: 126 },
-        { width: '88px', pxWidth: 88 },
         { width: '104px', pxWidth: 104 },
-        { width: '104px', pxWidth: 104 },
+        { width: '132px', pxWidth: 132 },
+        { width: '136px', pxWidth: 136 },
         { width: '176px', pxWidth: 176 },
         { width: '84px', pxWidth: 84 },
-        { width: '64px', pxWidth: 64 },
+        { width: '78px', pxWidth: 78 },
         { width: '86px', pxWidth: 86 },
         { width: '136px', pxWidth: 136 },
       ]);
@@ -1836,11 +1836,11 @@
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ranking-star" aria-hidden="true"></i> RK</span></th>
             <th scope="col"><span><i class="fa-solid fa-user-group" aria-hidden="true"></i> Team</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> TRADE COUNT</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> % ALL TRADES</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> TRADES PER SZN</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> % LEAGUE TRADES</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> AVG TRADES / SZN</span></th>
             <th scope="col"><span><i class="fa-solid fa-link" aria-hidden="true"></i> TOP TRADE PARTNER</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> PLAYERS IN</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> PICK IN</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> PICKS IN</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> AVG KTC IN / TRADE</span></th>
           </tr>`;
@@ -1864,11 +1864,11 @@
           </tr>
           <tr class="leaguehub-trades-table-column-row">
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-right-left" aria-hidden="true"></i> TRADE COUNT</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> % ALL TRADES</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> TRADES PER SZN</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> % LEAGUE TRADES</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> AVG TRADES / SZN</span></th>
             <th scope="col"><span><i class="fa-solid fa-link" aria-hidden="true"></i> TOP TRADE PARTNER</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-user-plus" aria-hidden="true"></i> PLAYERS IN</span></th>
-            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> PICK IN</span></th>
+            <th scope="col" class="is-numeric"><span><i class="fa-solid fa-ticket" aria-hidden="true"></i> PICKS IN</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-coins" aria-hidden="true"></i> KTC in</span></th>
             <th scope="col" class="is-numeric"><span><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> AVG KTC IN / TRADE</span></th>
           </tr>`;
@@ -2008,7 +2008,7 @@
       }
       setTradeAnalyticsColumns([
         { width: '170px', pxWidth: 170 },
-        { width: '64px', pxWidth: 64 },
+        { width: '96px', pxWidth: 96 },
         { width: '72px', pxWidth: 72 },
         { width: '72px', pxWidth: 72 },
         { width: '64px', pxWidth: 64 },
@@ -2019,7 +2019,7 @@
         // Member-mode mobile widths remain independent from desktop and leave
         // the expanded Trade Count / Players In labels comfortably readable.
         { width: '170px', pxWidth: 170 },
-        { width: '88px', pxWidth: 88 },
+        { width: '104px', pxWidth: 104 },
         { width: '84px', pxWidth: 84 },
         { width: '84px', pxWidth: 84 },
         { width: '70px', pxWidth: 70 },
