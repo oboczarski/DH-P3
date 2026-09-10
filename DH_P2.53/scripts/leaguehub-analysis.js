@@ -15,8 +15,36 @@
     return Array.from({ length: Math.max(0, 19 - start) }, (_, i) => start + i);
   }
 
-  // Sleeper scoring keys match projection stat keys, including position-specific
-  // reception bonuses. Sum each category once; pts_ppr is only a coverage marker.
+  // Derive only identities supported by the forecast, never guessed game bonuses.
+  // Season forecasts omit incompletions and some position premiums even when the
+  // underlying attempts, completions, receptions or touchdowns are available.
+  function scoringStats(stats, position) {
+    const result = { ...stats };
+    const pos = String(position).toLowerCase();
+    if (result.pass_inc == null && result.pass_att != null && result.pass_cmp != null) result.pass_inc = result.pass_att - result.pass_cmp;
+    ['rec', 'rec_fd', 'rush_fd', 'rush_td', 'pass_td'].forEach(key => {
+      if (result[`bonus_${key}_${pos}`] == null && result[key] != null) result[`bonus_${key}_${pos}`] = result[key];
+    });
+    return result;
+  }
+
+  // A season forecast is the baseline, not a sum of independently authored weekly
+  // forecasts. Remove completed-week actual stat counts to express the remaining
+  // season budget; current-week games remain included until the NFL week advances.
+  function remainingProjection(stats, completedStats, position) {
+    if (!stats) return null;
+    const result = scoringStats(stats, position);
+    const completed = completedStats.map(item => scoringStats(item || {}, position));
+    Object.keys(result).forEach(key => {
+      if (/^(pass_|rush_|rec(?:_|$)|fum|bonus_)/.test(key)) {
+        result[key] = Math.max(0, Number(result[key]) - completed.reduce((sum, item) => sum + (Number(item[key]) || 0), 0));
+      }
+    });
+    return result;
+  }
+
+  // Score the forecast with this league's weights; generic pts_ppr is a coverage
+  // marker only and never substitutes for custom league points.
   function scoreProjection(stats, scoring, position) {
     if (!stats || typeof stats !== 'object') return null;
     const settings = Object.entries(scoring || {}).filter(([, weight]) => Number.isFinite(Number(weight)) && Number(weight) !== 0);
@@ -24,12 +52,8 @@
     const covered = ['pts_ppr', 'pts_half_ppr', 'pts_std', ...settings.map(([key]) => key)]
       .some(key => stats[key] != null && Number.isFinite(Number(stats[key])));
     if (!covered) return null;
-    return settings.reduce((total, [key, weight]) => {
-      let stat = stats[key];
-      // Reception premium can be derived exactly if omitted by the feed.
-      if (stat == null && key === `bonus_rec_${String(position).toLowerCase()}`) stat = stats.rec;
-      return total + (Number(stat) || 0) * Number(weight);
-    }, 0);
+    const derived = scoringStats(stats, position);
+    return settings.reduce((total, [key, weight]) => total + (Number(derived[key]) || 0) * Number(weight), 0);
   }
 
   function rank(value, population) {
@@ -72,7 +96,7 @@
     };
   }
 
-  const api = { projectionWeeks, scoreProjection, rank, rankFill, quality, sumProjections };
+  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, sumProjections };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

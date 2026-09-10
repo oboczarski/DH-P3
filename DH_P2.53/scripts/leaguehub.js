@@ -95,6 +95,8 @@
       'RB/WR/TE': 'FLEX',
       'W/R/T': 'FLEX',
       'FLEX': 'FLEX',
+      'FLX': 'FLEX',
+      'SFLX': 'SUPER_FLEX',
       'SUPER_FLEX': 'SUPER_FLEX',
       'QB/RB/WR/TE': 'SUPER_FLEX',
       'Q/W/R/T': 'SUPER_FLEX',
@@ -331,7 +333,6 @@
       currentLineupMetric: 'value',
       currentRadarMetric: 'proj',
       currentOverallMetric: 'value',
-      currentMatrixMetric: 'value',
       currentLeadersMetric: 'proj',
       playerProjections: {},
       projectionMeta: {},
@@ -340,6 +341,7 @@
       cache: {},
       championCache: {},
       leagueHistoryCache: {},
+      championsByLeague: {},
       careerStatsCache: {},
       careerStatsByOwner: {},
       textCache: {},
@@ -595,13 +597,13 @@
           btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
         updateRadarChart();
+        renderQualityMatrix();
       });
     });
 
     // Independent analysis controls keep filters and mode switches within their panel.
     [
       ['value-panel', 'currentOverallMetric', renderOverallChart],
-      ['quality-matrix-panel', 'currentMatrixMetric', renderQualityMatrix],
       ['leaders-panel', 'currentLeadersMetric', renderLeagueLeaders],
     ].forEach(([id, stateKey, render]) => {
       const buttons = document.querySelectorAll(`#${id} .toggle-option`);
@@ -615,9 +617,16 @@
         render();
       }));
     });
+    // Ownership-style position buttons retain keyboard focus and expose selection
+    // with aria-pressed. Team-count controls remain independent of position.
     ['lineup', 'overall'].forEach(kind => {
-      ['Position', 'Team'].forEach(filter => document.getElementById(`${kind}${filter}Filter`)
-        ?.addEventListener('change', () => renderAnalysisBar(kind)));
+      document.getElementById(`${kind}TeamFilter`)?.addEventListener('change', () => renderAnalysisBar(kind));
+      document.getElementById(`${kind}PositionFilter`)?.addEventListener('click', event => {
+        const button = event.target.closest('button[data-position]');
+        if (!button || button.disabled) return;
+        event.currentTarget.dataset.value = button.dataset.position;
+        renderAnalysisBar(kind);
+      });
     });
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
@@ -2894,22 +2903,31 @@
       const seasonResults = await Promise.all(
         leagueHistory.map(async (historyLeague) => {
           try {
-            const [rosters, winnersBracket] = await Promise.all([
+            const [rosters, winnersBracket, users] = await Promise.all([
               fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/rosters`),
               fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/winners_bracket`)
                 .catch(() => []),
+              fetchWithCache(`https://api.sleeper.app/v1/league/${historyLeague.league_id}/users`).catch(() => []),
             ]);
 
             return {
               rosters: Array.isArray(rosters) ? rosters : [],
               winnerRosterId: resolveWinnerRosterId(winnersBracket),
+              league: historyLeague, users: Array.isArray(users) ? users : [],
             };
           } catch (error) {
             console.warn(`Analyzer career stats failed for league ${historyLeague?.league_id}:`, error);
-            return null;
+            return { league: historyLeague, rosters: [], users: [], winnerRosterId: null, unavailable: true };
           }
         }),
       );
+
+      state.championsByLeague[rootLeagueId] = seasonResults.map(result => {
+        const winner = result.rosters.find(roster => String(roster.roster_id) === String(result.winnerRosterId));
+        const owner = result.users.find(user => user.user_id === winner?.owner_id);
+        return { season: result.league.season, status: result.league.status, unavailable: result.unavailable,
+          champion: winner ? owner?.display_name || owner?.username || winner.metadata?.team_name || `Team ${winner.roster_id}` : null };
+      }).sort((a, b) => Number(b.season) - Number(a.season));
 
       const careerStatsByOwner = {};
       seasonResults.forEach((seasonResult) => {
@@ -3005,8 +3023,13 @@
         setLoading(true, 'Loading Dynasty values and rest-of-season projections...');
         if (!preserveExistingContent) hideContent();
 
-        const leagueInfo = state.leagues.find((league) => league.league_id === leagueId);
-        if (!leagueInfo) throw new Error('League not found.');
+        if (!state.leagues.some(league => league.league_id === leagueId)) throw new Error('League not found.');
+        // Fetch the selected season's live settings, never a previous league's
+        // scoring or manually submitted starters from the historical standings.
+        const response = await fetch(`https://api.sleeper.app/v1/league/${leagueId}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('League settings could not be loaded.');
+        const leagueInfo = await response.json();
+        if (requestToken !== state.analysisRequestToken) return false;
         const analyzerSources = resolveAnalyzerSources(leagueInfo);
 
         syncLeagueSelectValues(leagueId);
@@ -3065,6 +3088,7 @@
         populateAnalysisSlotFilter();
         renderQualityMatrix();
         renderSummaryStats(state.teams, state.standingsTeams);
+        renderLeagueChampions(leagueId);
         renderLineupChart(state.teams);
         renderOverallChart(state.teams);
         renderRadarChart(state.teams, state.radarSlots);
@@ -3100,35 +3124,37 @@
       }
     }
 
-    // League Analysis projections: fetch each remaining week once, score with the
-    // selected league settings, and retain null for missing/incomplete coverage.
+    // Use Sleeper's selected-season forecast. Weekly projection sums describe a
+    // different forecast and must not replace the provider's season totals.
+    // Completed-week actual counts are removed from the season forecast for ROS;
+    // no previous-season data is allowed into Contender rankings.
     async function fetchAnalysisProjections(leagueInfo, rosters) {
       const playerIds = [...new Set(rosters.flatMap(roster => roster.players || []))];
       try {
         const nfl = await fetchWithCache('https://api.sleeper.app/v1/state/nfl');
         const weeks = Analysis.projectionWeeks(leagueInfo.season, nfl);
         if (!weeks.length) return { values: {}, meta: { available: false, label: `${leagueInfo.season} season complete · No remaining regular-season projections.` } };
-        const totals = Object.fromEntries(playerIds.map(id => [id, { total: 0, covered: false }]));
-        // Four simultaneous requests bound payload pressure on mobile connections.
-        for (let index = 0; index < weeks.length; index += 4) {
-          const batch = await Promise.all(weeks.slice(index, index + 4).map(week =>
-            fetchWithCache(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}/${week}`)));
-          batch.forEach(data => {
-            if (!data || !Object.values(data).some(stats => stats?.pts_ppr != null)) throw new Error('A remaining week has no projection feed.');
-            playerIds.forEach(id => {
-              const score = Analysis.scoreProjection(data[id], leagueInfo.scoring_settings, state.players[id]?.position);
-              // Bye weeks have no scoring fields and contribute zero. Players with
-              // no scoring fields in any remaining week keep an unavailable value.
-              if (score !== null) { totals[id].total += score; totals[id].covered = true; }
-            });
-          });
+        const seasonData = await fetchWithCache(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}`);
+        if (!seasonData || !Object.values(seasonData).some(stats => stats?.pts_ppr != null)) throw new Error('Season forecast unavailable.');
+        const completed = [];
+        for (let start = 1; start < weeks[0]; start += 4) {
+          const batch = await Promise.all(Array.from({ length: Math.min(4, weeks[0] - start) }, (_, i) =>
+            fetchWithCache(`https://api.sleeper.app/v1/stats/nfl/regular/${leagueInfo.season}/${start + i}`)));
+          if (batch.some(data => !data || !Object.values(data).some(stats => stats?.pts_ppr != null))) throw new Error('Completed-week stats unavailable.');
+          completed.push(...batch);
         }
-        const values = Object.fromEntries(Object.entries(totals).map(([id, item]) => [id, item.covered ? item.total : null]));
+        const values = Object.fromEntries(playerIds.map(id => [id, Analysis.scoreProjection(
+          Analysis.remainingProjection(seasonData[id], completed.map(week => week[id]), state.players[id]?.position),
+          leagueInfo.scoring_settings, state.players[id]?.position)]));
         const eligible = playerIds.filter(id => POSITION_ORDER.includes(state.players[id]?.position));
-        const missing = eligible.filter(id => values[id] === null).length;
+        const missing = eligible.filter(id => !Number.isFinite(values[id])).length;
         const available = eligible.some(id => Number.isFinite(values[id]));
-        return { values, meta: { available, season: leagueInfo.season, weeks, missing,
-          label: `${leagueInfo.season} · PROJ: Weeks ${weeks[0]}–18 · League scoring${missing ? ` · ${missing} rostered players have no projection (—)` : ''}` } };
+        // Sparse stat fields represent zero, but categories absent across the entire
+        // forecast are not modeled by the provider. Surface those league bonuses.
+        const supported = new Set(Object.values(seasonData).flatMap(stats => POSITION_ORDER.flatMap(pos => Object.keys(Analysis.scoringStats(stats, pos)))));
+        const unmodeled = Object.entries(leagueInfo.scoring_settings || {}).filter(([key, weight]) => Number(weight) && /^(pass_|rush_|rec(?:_|$)|fum|bonus_(?:pass|rush|rec))/.test(key) && !supported.has(key)).map(([key]) => key);
+        return { values, meta: { available, season: leagueInfo.season, weeks, missing, unmodeled,
+          label: `${leagueInfo.season}–${String(Number(leagueInfo.season) + 1).slice(-2)} · ${weeks[0] === 1 ? 'Season' : 'Remaining season'} PROJ · League scoring${missing ? ` · ${missing} players without PROJ` : ''}${unmodeled.length ? ' · Some scoring categories unprojected' : ''}` } };
       } catch (error) {
         console.warn('LeagueHub projections unavailable:', error);
         return { values: {}, meta: { available: false, label: 'PROJ unavailable · Sleeper projections could not be loaded. Reload to retry; Dynasty values remain available.' } };
@@ -3231,46 +3257,15 @@
       return null;
     }
 
+    // Number every repeated slot, including its first occurrence, while single
+    // slots keep the compact league abbreviations in both the matrix and radar.
     function buildRadarSlots(rosterPositions = []) {
+      const types = (rosterPositions || []).map(normalizeSlot).filter(type => RADAR_SLOT_TYPES.includes(type));
       const counts = {};
-      const slots = [];
-
-      (rosterPositions || []).forEach((slot) => {
-        const normalized = normalizeSlot(slot);
-        if (!normalized || !RADAR_SLOT_TYPES.includes(normalized)) return;
-        counts[normalized] = (counts[normalized] || 0) + 1;
-        slots.push({
-          type: normalized,
-          label: buildRadarLabel(normalized, counts[normalized]),
-        });
+      return types.map(type => {
+        counts[type] = (counts[type] || 0) + 1;
+        return { type, label: `${SLOT_LABELS[type]}${types.filter(item => item === type).length > 1 ? counts[type] : ''}` };
       });
-
-      if (!slots.length) {
-        ['QB', 'RB', 'WR', 'TE'].forEach((type) => {
-          slots.push({ type, label: buildRadarLabel(type, 1) });
-        });
-      }
-
-      return slots;
-    }
-
-    function buildRadarLabel(type, count) {
-      switch (type) {
-        case 'QB':
-          return count > 1 ? `QB${count}` : 'QB';
-        case 'RB':
-          return `RB${count}`;
-        case 'WR':
-          return `WR${count}`;
-        case 'TE':
-          return count > 1 ? `TE${count}` : 'TE';
-        case 'FLEX':
-          return count > 1 ? `Flex ${count}` : 'Flex';
-        case 'SUPER_FLEX':
-          return count > 1 ? `SFlex ${count}` : 'SFlex';
-        default:
-          return type;
-      }
     }
 
     function createDerivedSlotTotals() {
@@ -3544,45 +3539,81 @@
           </div><div class="la-rank-total">${formatAnalysisValue(quality.overall, metric)} <small>${metric === 'value' ? 'KTC' : 'PROJ'}</small></div><p>${metric === 'value' ? 'Full roster + draft picks' : 'Rest-of-season starters'}</p></article>`;
       }).join('');
       const cards = [
-        ['Team Value', team.totalValue, 'value', 'Roster + picks'],
-        ['Starter Value', team.startersValueTotal, 'value', 'Best Dynasty lineup'],
-        ['Team Avg Age', team.teamAvgAge, 'age', 'Full roster'],
-        ['Starters Avg Age', team.startersAvgAge, 'age', 'Dynasty starters'],
-      ].map(([label, value, metric, note]) => `<article class="la-summary-stat"><span>${label}</span><strong>${metric === 'age' ? formatAge(value) : formatNumber(value)}</strong><small>${note}</small></article>`).join('');
-      const top = [...team.allPlayers].filter(player => Number.isFinite(player.proj)).sort((a, b) => b.proj - a.proj)[0];
-      elements.summaryStats.innerHTML = `<div class="la-summary-overview"><span class="la-eyebrow">YOUR TEAM / LEAGUE OUTLOOK</span><h2>${escapeHtml(team.teamName)}</h2><p>${teams.length} teams · ${state.isSuperflex ? 'Superflex / 2QB' : '1QB'} · Dynasty league</p><div class="la-summary-stats">${cards}</div><div class="la-summary-leader"><span>PROJECTION LEADER</span><strong>${escapeHtml(top?.name || '—')}</strong><small>${formatAnalysisValue(top?.proj, 'proj')} PROJ</small></div></div><div class="la-rank-pair">${rings}</div>`;
+        ['TTL Team Value', 'totalValue', 'value', 'total-value analyzer-chip--value-card'],
+        ['Starter Value', 'startersValueTotal', 'value', 'starter-value analyzer-chip--value-card'],
+        ['Team Avg Age', 'teamAvgAge', 'age', 'team-avg-age analyzer-chip--avg-age'],
+        ['Starters Avg Age', 'startersAvgAge', 'age', 'starters-avg-age analyzer-chip--avg-age'],
+      ].map(([label, key, metric, className]) => {
+        const value = team[key];
+        const population = teams.map(item => item[key]).filter(Number.isFinite);
+        const rank = Analysis.rank(Number.isFinite(value) ? (metric === 'age' ? -value : value) : null, population.map(item => metric === 'age' ? -item : item));
+        const average = population.length ? population.reduce((sum, item) => sum + item, 0) / population.length : null;
+        return `<article class="analyzer-chip analyzer-chip--${className}"><span class="chip-label">${label}</span><span class="chip-value" style="color:${analysisRankColor(rank, teams.length)}">${metric === 'age' ? formatAge(value) : formatNumberWithSuffixMarkup(value)}</span><span class="chip-meta">Rank ${rank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${metric === 'age' ? formatAge(average) : formatNumberWithSuffixMarkup(average, 'chip-avg-value-suffix')}</span></span></article>`;
+      }).join('');
+      // Keep the original top-scorer card, using the same season PROJ as Contender.
+      const topForTeam = item => item.allPlayers.filter(player => Number.isFinite(player.proj)).sort((a, b) => b.proj - a.proj)[0];
+      const top = topForTeam(team);
+      const topScores = teams.map(topForTeam).filter(Boolean).map(player => player.proj);
+      const topRank = Analysis.rank(top?.proj, topScores);
+      const topAverage = topScores.length ? topScores.reduce((sum, score) => sum + score, 0) / topScores.length : null;
+      const topCard = `<article class="analyzer-chip analyzer-chip--top-scorer"><span class="chip-label">Top Projected Scorer</span><span class="chip-value" title="${escapeHtml(top?.name || '')}">${escapeHtml(top ? abbreviateFirstName(top.name) : '—')}</span><span class="chip-meta">${formatAnalysisValue(top?.proj, 'proj')} PROJ · Rank ${topRank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${formatAnalysisValue(topAverage, 'proj')}</span></span></article>`;
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}${topCard}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${championTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
     }
 
+    function championTrophyIcon() {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 3h8v6a4 4 0 0 1-8 0V3Z M8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z"/></svg>';
+    }
+
+    // List every linked league season, including unfinished seasons, with names
+    // resolved from that year's championship bracket and historical roster owner.
+    function renderLeagueChampions(leagueId) {
+      const list = document.getElementById('leagueChampionsList');
+      if (!list) return;
+      const seasons = state.championsByLeague[leagueId] || [];
+      list.innerHTML = seasons.map(item => `<li${item.champion ? '' : ' class="is-pending"'}><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion || '')}">${escapeHtml(item.champion || (item.unavailable || item.status === 'complete' ? 'Result unavailable' : 'In progress'))}</span>${item.champion ? championTrophyIcon() : '<span class="la-champion-pending">—</span>'}</li>`).join('') || '<li>League history unavailable</li>';
+    }
+
     function renderQualityMatrix() {
-      const metric = state.currentMatrixMetric;
+      // One shared mode drives the radar, the lineup membership, and every matrix
+      // cell. Column surfaces stay fixed; only rank text uses DataHub's heat tiers.
+      const metric = state.currentRadarMetric;
       const dynasty = metric === 'value';
       const columns = [
-        ...state.radarSlots.map((slot, index) => ({ label: slot.label, get: team => team.quality[metric].slots[index], slot: index })),
-        ...(dynasty ? [{ label: 'STARTERS', get: team => team.quality[metric].starters }] : []),
-        { label: 'DEPTH', get: team => team.quality[metric].depth },
-        ...(dynasty ? [{ label: 'PICKS', get: team => team.quality[metric].picks }] : []),
-        { label: 'OVERALL', get: team => team.quality[metric].overall },
+        { label: 'OVR', family: 'overall', get: team => team.quality[metric].overall },
+        { label: 'TM', family: 'team' },
+        ...state.radarSlots.map((slot, index) => ({ label: slot.label, family: slot.type.toLowerCase(), get: team => team.quality[metric].slots[index], slot: index })),
+        { label: 'DEPTH', family: 'depth', get: team => team.quality[metric].depth },
+        ...(dynasty ? [{ label: 'PICKS', family: 'picks', get: team => team.quality[metric].picks }] : []),
       ];
-      const teams = [...state.teams].sort((a, b) => (b.quality[metric].overall ?? -Infinity) - (a.quality[metric].overall ?? -Infinity) || a.teamName.localeCompare(b.teamName));
-      document.getElementById('qualityMatrixHead').innerHTML = `<tr><th scope="col">TM</th>${columns.map(column => `<th scope="col"${column.label === 'OVERALL' ? ' aria-sort="descending"' : ''}>${escapeHtml(column.label)}${column.label === 'OVERALL' ? ' ↓' : ''}</th>`).join('')}</tr>`;
-      document.getElementById('qualityMatrixBody').innerHTML = teams.map(team => `<tr${team.isUserTeam ? ' class="is-user-team"' : ''}><th scope="row"><span title="${escapeHtml(team.username)}">${escapeHtml(team.username)}</span>${team.isUserTeam ? '<small>YOU</small>' : ''}</th>${columns.map(column => {
+      const teams = [...state.teams].sort((a, b) => (b.quality[metric].overall ?? -Infinity) - (a.quality[metric].overall ?? -Infinity) || a.username.localeCompare(b.username));
+      document.getElementById('qualityMatrixHead').innerHTML = `<tr>${columns.map(column => `<th scope="col" class="la-matrix-${column.family}"${column.family === 'overall' ? ' aria-sort="descending"' : ''}>${escapeHtml(column.label)}${column.family === 'overall' ? ' ↓' : ''}</th>`).join('')}</tr>`;
+      document.getElementById('qualityMatrixBody').innerHTML = teams.map(team => `<tr${team.isUserTeam ? ' class="is-user-team"' : ''}>${columns.map(column => {
+        if (column.family === 'team') return `<th scope="row" class="la-matrix-team"><span title="${escapeHtml(team.username)}">${escapeHtml(team.username)}</span>${team.isUserTeam ? '<small>YOU</small>' : ''}</th>`;
         const value = column.get(team);
-        const rank = Analysis.rank(value, state.teams.map(column.get));
+        const population = state.teams.map(column.get).filter(Number.isFinite);
+        const rank = Analysis.rank(value, population);
+        // Same 0–4 percentile buckets as DataHub, with flat columns at tier 2.
+        const tier = !rank ? 0 : population.every(item => item === population[0]) ? 2 : Math.round((population.length - rank) / Math.max(1, population.length - 1) * 4);
         const player = column.slot != null ? team.derivedLineups[metric].assignments[column.slot]?.player : null;
-        const detail = column.slot != null ? (player?.name || 'Empty starting spot') : column.label === 'DEPTH' ? team.quality[metric].depthPlayers.map(p => p.name).join(', ') : column.label;
-        return `<td${column.label === 'OVERALL' ? ' class="la-matrix-overall"' : ''}><span class="la-rank-badge" style="--rank-color:${analysisRankColor(rank, teams.length)}" tabindex="0" aria-label="${escapeHtml(`${column.label}: ${rank ? `rank ${rank}, ${formatAnalysisValue(value, metric)} ${dynasty ? 'KTC' : 'PROJ'}` : 'projection unavailable'}. ${detail}`)}" title="${escapeHtml(detail)}">${rank ? `#${rank}` : '—'}</span><small class="la-matrix-value">(${formatAnalysisValue(value, metric)})</small></td>`;
+        const detail = column.slot != null ? (player?.name || 'Empty starting spot') : column.family === 'depth' ? team.quality[metric].depthPlayers.map(p => `${p.name} (${formatAnalysisValue(dynasty ? p.ktc : p.proj, metric)})`).join(', ') : column.label;
+        return `<td class="la-matrix-${column.family}"><span class="la-rank-badge la-rank-badge--${column.family} la-rank-tier-${tier}" tabindex="0" aria-label="${escapeHtml(`${column.label}: ${rank ? `rank ${rank}, ${formatAnalysisValue(value, metric)} ${dynasty ? 'KTC' : 'PROJ'}` : 'projection unavailable'}. ${detail}`)}" title="${escapeHtml(detail)}">${rank ? `<small>#</small>${rank}` : '—'}</span><small class="la-matrix-value">(${formatAnalysisValue(value, metric)})</small></td>`;
       }).join('')}</tr>`).join('');
       document.getElementById('qualityMatrixNote').textContent = dynasty
-        ? 'KTC value in parentheses. Depth: all non-starting QB/RB/WR/TE. Overall: full roster + picks. Sorted by overall.'
-        : 'ROS PROJ in parentheses. Depth: best remaining 1 QB, 3 RB/WR combined + 1 TE. Overall: starters only. — means projections are unavailable.';
+        ? 'KTC in parentheses · Depth: every non-starting QB/RB/WR/TE · OVR: full roster + picks'
+        : 'PROJ in parentheses · Depth: next 1 QB, 3 RB/WR combined + 1 TE · OVR: starters';
+      document.getElementById('analysisScoringNote').textContent = state.projectionMeta.unmodeled?.length
+        ? `Sleeper does not publish season forecasts for these league scoring categories: ${state.projectionMeta.unmodeled.join(', ')}. They contribute no projected points. Season PROJ uses the selected year's forecast; after Week 1, completed-week actual stat counts are subtracted to show the remaining season.`
+        : 'Season PROJ uses the selected year’s forecast with league scoring. After Week 1, completed-week actual stat counts are subtracted to show the remaining season.';
     }
 
     function populateAnalysisSlotFilter() {
-      const select = document.getElementById('lineupPositionFilter');
-      const previous = select.value;
-      select.innerHTML = '<option value="ALL">All starters</option>' + [...new Set(state.radarSlots.map(slot => slot.type))].map(slot => `<option value="${slot}">${SLOT_LABELS[slot]}</option>`).join('');
-      if ([...select.options].some(option => option.value === previous)) select.value = previous;
+      ['lineup', 'overall'].forEach(kind => {
+        const group = document.getElementById(`${kind}PositionFilter`);
+        const keys = kind === 'lineup' ? [...new Set(state.radarSlots.map(slot => slot.type))] : [...POSITION_ORDER, 'Picks'];
+        if (!keys.includes(group.dataset.value)) group.dataset.value = 'ALL';
+        group.innerHTML = ['ALL', ...keys].map(key => `<button type="button" class="la-position-btn" data-position="${key}" aria-pressed="${group.dataset.value === key}">${key === 'Picks' ? 'PICKS' : SLOT_LABELS[key] || key}</button>`).join('');
+      });
     }
 
     function renderLineupChart() { renderAnalysisBar('lineup'); }
@@ -3595,13 +3626,15 @@
     function renderAnalysisBar(kind) {
       const metric = kind === 'lineup' ? state.currentLineupMetric : state.currentOverallMetric;
       const dynasty = metric === 'value';
-      const positionSelect = document.getElementById(`${kind}PositionFilter`);
-      if (kind === 'overall') {
-        const pickOption = positionSelect.querySelector('option[value="Picks"]');
-        pickOption.disabled = !dynasty;
-        if (!dynasty && positionSelect.value === 'Picks') positionSelect.value = 'ALL';
-      }
-      const filter = positionSelect.value;
+      const positionGroup = document.getElementById(`${kind}PositionFilter`);
+      if (!dynasty && positionGroup.dataset.value === 'Picks') positionGroup.dataset.value = 'ALL';
+      const filter = positionGroup.dataset.value || 'ALL';
+      positionGroup.querySelectorAll('button').forEach(button => {
+        const selected = button.dataset.position === filter;
+        button.classList.toggle('active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+        button.hidden = button.dataset.position === 'Picks' && !dynasty;
+      });
       const scope = document.getElementById(`${kind}TeamFilter`).value;
       const allKeys = kind === 'lineup' ? [...new Set(state.radarSlots.map(slot => slot.type))] : [...POSITION_ORDER, ...(dynasty ? ['Picks'] : [])];
       const keys = filter === 'ALL' ? allKeys : allKeys.filter(key => key === filter);
@@ -3648,14 +3681,14 @@
         animationDuration: 450,
         textStyle: { fontFamily: 'Google Sans, sans-serif' },
         aria: { enabled: true, label: { description: `${kind === 'lineup' ? 'Starting lineup' : 'Roster'} ${dynasty ? 'Dynasty KTC values' : 'Contender rest-of-season projections'}. ${visible.map(row => `${row.team.username}: ${formatAnalysisValue(row.total, metric)}`).join('. ')}` } },
-        grid: { left: mobile ? 68 : 84, right: mobile ? 49 : 56, top: 5, bottom: 24 },
+        grid: { left: mobile ? 92 : 108, right: mobile ? 49 : 56, top: 5, bottom: 24 },
         xAxis: { type: 'value', min: 0, max: max * 1.04, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#71809c', fontSize: 10, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: 'rgba(152,169,204,.09)', type: 'dashed' } } },
         yAxis: { type: 'category', inverse: true, data: visible.map(row => String(row.team.roster.roster_id)), axisLine: { show: false }, axisTick: { show: false }, axisLabel: {
           interval: 0, margin: 10, formatter: (_, index) => {
             const row = visible[index];
             const name = truncateLabel(row.team.username, mobile ? 8 : 11).replace(/[{}]/g, '');
-            return `{${row.team.isUserTeam ? 'you' : 'rank'}|${row.rank ? String(row.rank).padStart(2, '0') : '—'}} {${row.team.isUserTeam ? 'you' : 'name'}|${name}}`;
-          }, rich: { rank: { color: '#72839f', fontSize: 10, width: 17 }, name: { color: '#c6d0e4', fontSize: 11 }, you: { color: '#f1e3ff', fontSize: 11, fontWeight: 700 } },
+            return `{${row.team.isUserTeam ? 'you' : 'name'}|${name}} {${row.team.isUserTeam ? 'yourRank' : 'rank'}|${row.rank || '—'}}`;
+          }, rich: { rank: { color: '#c0cae9', fontSize: 10, fontWeight: 700, width: 14, align: 'center', padding: [3, 2], backgroundColor: '#a3b6ee19', borderColor: '#96aad83d', borderWidth: 1, borderRadius: 5 }, yourRank: { color: '#ece1ff', fontSize: 10, fontWeight: 800, width: 14, align: 'center', padding: [3, 2], backgroundColor: '#8548db66', borderColor: '#ba8fff80', borderWidth: 1, borderRadius: 5 }, name: { color: '#c6d0e4', fontSize: 11 }, you: { color: '#f1e3ff', fontSize: 11, fontWeight: 700 } },
         } },
         tooltip: { trigger: 'axis', confine: true, appendToBody: false, backgroundColor: '#111a2b', borderColor: '#34415b', textStyle: { color: '#e6edf9', fontSize: 12 }, extraCssText: 'max-width:300px;white-space:normal;box-shadow:0 14px 40px #0007;border-radius:12px;',
           formatter: params => {
