@@ -124,7 +124,7 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge {--rank-peak: #1
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge small {font-size: 0.82em;font-weight: 500;margin-right: 1px;opacity: 1;color: #aab;filter: saturate(0.5) grayscale(1) brightness(0.8);}
 /* User-specified column skins match Trade Archive tags. Ranking tiers below
    affect text only; tag gradients and borders never change with rank. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--overall {--rank-peak: #14f7e2;background: linear-gradient(90deg, rgb(133 142 255 / 20%), rgb(21 33 54 / 92%));font-weight: 500;font-size: 15px !important;letter-spacing: -0.04em;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--overall {--rank-peak: #14f7e2;background: linear-gradient(90deg, rgb(174 180 255 / 20%), rgb(30 39 54 / 92%));font-weight: 500;font-size: 15px !important;letter-spacing: -0.04em;}
 body[data-page="leaguehub"] #leagueAnalysisPanel :is(.la-rank-badge--qb, .la-rank-badge--super_flex) {--rank-peak: #d03176;border-color: rgb(230 95 137 / 32%);background: linear-gradient(90deg, rgb(89 63 82 / 42%), rgb(91 59 76 / 92%));}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--rb {--rank-peak: #53fff2c7;background: linear-gradient(135deg, rgb(35 40 54 / 53%), rgb(59 111 117 / 42%));border: 0px solid rgba(134, 158, 211, .13);}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--wr {--rank-peak: #006bfc;border-color: rgba(106, 151, 229, .24);background: linear-gradient(90deg, rgb(55 74 110 / 49%), rgb(30 36 53 / 37%));}
