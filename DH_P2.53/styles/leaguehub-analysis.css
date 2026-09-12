@@ -136,8 +136,8 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--depth { --rank-
    top, with matching 9/12/14/16px glow progression and a second top-tier glow. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-0 {color: rgb(106 112 116 / 70%);text-shadow: 0 0px 1px #9e0e0ed4;filter: brightness(0.65)  saturate(0.5);}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-1 {color: color-mix(in srgb, var(--rank-peak) 15%, rgb(73 77 82 / 84%));text-shadow: 0 0 0px color-mix(in srgb, var(--rank-peak) 5%, transparent);filter: brightness(0.9) saturate(0.9);}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-2 {color: color-mix(in srgb, var(--rank-peak) 32%, rgba(206, 223, 234, .92));text-shadow: 0 0 12px color-mix(in srgb, var(--rank-peak) 8%, transparent);filter: hue-rotate(0deg);}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-3 {color: color-mix(in srgb, var(--rank-peak) 70%, rgb(163 163 163 / 98%));text-shadow: 1px 1px 2px #0009;filter: brightness(1.1);}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-2 {color: color-mix(in srgb, var(--rank-peak) 32%, rgba(206, 223, 234, .92));text-shadow: 0 0 12px color-mix(in srgb, var(--rank-peak) 8%, transparent);filter: hue-rotate(0deg) opacity(0.7);}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-3 {color: color-mix(in srgb, var(--rank-peak) 70%, rgb(163 163 163 / 98%));text-shadow: 1px 1px 2px #0009;filter: brightness(1);}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-4 {color: var(--rank-peak);text-shadow: 1px 1px 0px #000d !important;filter: brightness(1.6) saturate(1.4);box-shadow: inset 0px -3px 2px -3px currentColor, 0 3px 6px -2px #0002;font-size: 13px;font-weight: 600;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-value { display: block; color: #9aaac4; font-size: 7px; line-height: 1.1; margin-top: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-overall .la-matrix-value { color: #b9dcd9; }
