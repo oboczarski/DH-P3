@@ -334,6 +334,7 @@
       currentRadarMetric: 'proj',
       currentOverallMetric: 'value',
       currentLeadersMetric: 'proj',
+      matrixSort: { key: 'overall', direction: 'desc' },
       playerProjections: {},
       projectionMeta: {},
       analysisRequestToken: 0,
@@ -628,6 +629,7 @@
         renderAnalysisBar(kind);
       });
     });
+    wireQualityMatrixControls();
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
     [elements.startersCanvas, elements.overallCanvas, elements.radarCanvas?.parentElement]
@@ -765,6 +767,7 @@
     }
 
     function hideContent() {
+      hideMatrixHeaderTooltip();
       elements.content.classList.add('hidden');
       elements.summaryStats.classList.add('hidden');
     }
@@ -793,6 +796,7 @@
     // toggles the archive command deck with its matching panel, leaves the
     // existing analysis DOM mounted, and lazy-loads history only when requested.
     async function setActiveLeagueHubTab(nextTab, { skipTradeLoad = false } = {}) {
+      hideMatrixHeaderTooltip();
       const tabName = nextTab === 'trades' ? 'trades' : 'analysis';
       state.trades.activeTab = tabName;
       const isAnalysis = tabName === 'analysis';
@@ -3082,6 +3086,7 @@
         state.careerStatsByOwner = careerStatsByOwner;
         state.leaderboards = processed.leaderboards;
         state.radarSlots = processed.radarSlots;
+        state.matrixSort = { key: 'overall', direction: 'desc' };
 
         elements.content.classList.remove('hidden');
         document.getElementById('analysisProjectionStatus').textContent = state.projectionMeta.label;
@@ -3561,35 +3566,113 @@
       elements.summaryStats.classList.remove('hidden');
     }
 
+    // Reuse the exact League Table trophy glyph and class so the champions card
+    // inherits its gold tone, shadow and glow without a separate SVG treatment.
     function championTrophyIcon() {
-      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 3h8v6a4 4 0 0 1-8 0V3Z M8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v5m-4 3h8m-7-3h6v3H9z"/></svg>';
+      return '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>';
     }
 
-    // List every linked league season, including unfinished seasons, with names
-    // resolved from that year's championship bracket and historical roster owner.
+    // Only resolved champions belong in this history card; ongoing or unavailable
+    // seasons produce no season row and cannot be mistaken for a title winner.
     function renderLeagueChampions(leagueId) {
       const list = document.getElementById('leagueChampionsList');
       if (!list) return;
-      const seasons = state.championsByLeague[leagueId] || [];
-      list.innerHTML = seasons.map(item => `<li${item.champion ? '' : ' class="is-pending"'}><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion || '')}">${escapeHtml(item.champion || (item.unavailable || item.status === 'complete' ? 'Result unavailable' : 'In progress'))}</span>${item.champion ? championTrophyIcon() : '<span class="la-champion-pending">—</span>'}</li>`).join('') || '<li>League history unavailable</li>';
+      const seasons = (state.championsByLeague[leagueId] || []).filter(item => item.champion);
+      list.innerHTML = seasons.map(item => `<li><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion)}">${escapeHtml(item.champion)}</span>${championTrophyIcon()}</li>`).join('') || '<li class="la-champions-empty">No league champions recorded yet.</li>';
+    }
+
+    // Header sorting changes row order only. Column ranks still compare every
+    // league team, and unavailable values remain last in either sort direction.
+    function wireQualityMatrixControls() {
+      const head = document.getElementById('qualityMatrixHead');
+      if (!head) return;
+      const tooltip = document.createElement('div');
+      tooltip.id = 'laMatrixHeaderTooltip';
+      tooltip.className = 'la-matrix-tooltip';
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.hidden = true;
+      // Body placement keeps the tooltip outside the matrix's clipping region
+      // and the panel's backdrop-filter containing block.
+      document.body.appendChild(tooltip);
+      head.addEventListener('click', event => {
+        const button = event.target.closest('th')?.querySelector('button[data-matrix-sort]');
+        if (!button) return;
+        const key = button.dataset.matrixSort;
+        state.matrixSort = {
+          key,
+          direction: state.matrixSort.key === key
+            ? (state.matrixSort.direction === 'desc' ? 'asc' : 'desc')
+            : (key === 'team' ? 'asc' : 'desc'),
+        };
+        renderQualityMatrix();
+        // Re-rendered headers retain keyboard focus after Enter/Space activation.
+        [...head.querySelectorAll('button')].find(item => item.dataset.matrixSort === key)?.focus({ preventScroll: true });
+      });
+      const showTooltip = event => {
+        const button = event.target.closest('th')?.querySelector('button[data-matrix-sort]');
+        if (!button || !window.matchMedia('(min-width: 820px) and (hover: hover)').matches) return;
+        hideMatrixHeaderTooltip();
+        tooltip.textContent = button.dataset.fullLabel;
+        tooltip.hidden = false;
+        button.setAttribute('aria-describedby', tooltip.id);
+        const bounds = button.getBoundingClientRect();
+        const left = Math.max(8, Math.min(window.innerWidth - tooltip.offsetWidth - 8, bounds.left + bounds.width / 2 - tooltip.offsetWidth / 2));
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${bounds.top > tooltip.offsetHeight + 12 ? bounds.top - tooltip.offsetHeight - 7 : bounds.bottom + 7}px`;
+      };
+      head.addEventListener('pointerover', showTooltip);
+      head.addEventListener('focusin', showTooltip);
+      head.addEventListener('pointerout', event => {
+        if (!event.target.closest('button')?.contains(event.relatedTarget)) hideMatrixHeaderTooltip();
+      });
+      head.addEventListener('focusout', hideMatrixHeaderTooltip);
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') hideMatrixHeaderTooltip(); });
+      window.addEventListener('scroll', hideMatrixHeaderTooltip, true);
+      window.addEventListener('resize', hideMatrixHeaderTooltip);
+    }
+
+    function hideMatrixHeaderTooltip() {
+      const tooltip = document.getElementById('laMatrixHeaderTooltip');
+      if (!tooltip || tooltip.hidden) return;
+      tooltip.hidden = true;
+      document.querySelector('#qualityMatrixHead [aria-describedby]')?.removeAttribute('aria-describedby');
     }
 
     function renderQualityMatrix() {
       // One shared mode drives the radar, the lineup membership, and every matrix
       // cell. Column surfaces stay fixed; only rank text uses DataHub's heat tiers.
+      hideMatrixHeaderTooltip();
       const metric = state.currentRadarMetric;
       const dynasty = metric === 'value';
+      const positionNames = { QB: 'QUARTERBACK', RB: 'RUNNING BACK', WR: 'WIDE RECEIVER', TE: 'TIGHT END', FLEX: 'FLEX', SUPER_FLEX: 'SUPERFLEX' };
       const columns = [
-        { label: 'OVR', family: 'overall', get: team => team.quality[metric].overall },
-        { label: 'TM', family: 'team' },
-        ...state.radarSlots.map((slot, index) => ({ label: slot.label, family: slot.type.toLowerCase(), get: team => team.quality[metric].slots[index], slot: index })),
-        { label: 'DEPTH', family: 'depth', get: team => team.quality[metric].depth },
-        ...(dynasty ? [{ label: 'PICKS', family: 'picks', get: team => team.quality[metric].picks }] : []),
+        { key: 'overall', label: 'OVR', fullLabel: 'OVERALL', family: 'overall', get: team => team.quality[metric].overall },
+        { key: 'team', label: 'TM', fullLabel: 'TEAM', family: 'team', get: team => team.username },
+        ...state.radarSlots.map((slot, index) => ({ key: `slot-${index}-${slot.type}`, label: slot.label,
+          fullLabel: `${positionNames[slot.type]}${slot.label.match(/\d+$/) ? ` ${slot.label.match(/\d+$/)[0]}` : ''}`,
+          family: slot.type.toLowerCase(), get: team => team.quality[metric].slots[index], slot: index })),
+        { key: 'depth', label: 'DEPTH', mobileLabel: 'DPTH', fullLabel: 'DEPTH', family: 'depth', get: team => team.quality[metric].depth },
+        ...(dynasty ? [{ key: 'picks', label: 'PICKS', mobileLabel: 'PKS', fullLabel: 'DRAFT PICKS', family: 'picks', get: team => team.quality[metric].picks }] : []),
       ];
-      const teams = [...state.teams].sort((a, b) => (b.quality[metric].overall ?? -Infinity) - (a.quality[metric].overall ?? -Infinity) || a.username.localeCompare(b.username));
-      document.getElementById('qualityMatrixHead').innerHTML = `<tr>${columns.map(column => `<th scope="col" class="la-matrix-${column.family}"${column.family === 'overall' ? ' aria-sort="descending"' : ''}>${escapeHtml(column.label)}${column.family === 'overall' ? ' ↓' : ''}</th>`).join('')}</tr>`;
+      // Picks is absent in Contender; return to the default OVR sort if a mode
+      // change removes the sorted column rather than retaining a stale key.
+      if (!columns.some(column => column.key === state.matrixSort.key)) state.matrixSort = { key: 'overall', direction: 'desc' };
+      const sortColumn = columns.find(column => column.key === state.matrixSort.key);
+      const direction = state.matrixSort.direction === 'asc' ? 1 : -1;
+      const teams = [...state.teams].sort((a, b) => {
+        const first = sortColumn.get(a);
+        const second = sortColumn.get(b);
+        if (sortColumn.key === 'team') return direction * first.localeCompare(second, undefined, { numeric: true, sensitivity: 'base' });
+        if (Number.isFinite(first) !== Number.isFinite(second)) return Number.isFinite(first) ? -1 : 1;
+        return (Number.isFinite(first) ? direction * (first - second) : 0) || a.username.localeCompare(b.username);
+      });
+      document.getElementById('qualityMatrixHead').innerHTML = `<tr>${columns.map(column => {
+        const active = column.key === state.matrixSort.key;
+        const sort = active ? (direction === 1 ? 'ascending' : 'descending') : 'none';
+        return `<th scope="col" class="la-matrix-${column.family}" aria-sort="${sort}"><button type="button" class="la-matrix-sort" data-matrix-sort="${column.key}" data-full-label="${column.fullLabel}" aria-label="Sort by ${column.fullLabel}">${column.mobileLabel ? `<span class="la-matrix-label-desktop" aria-hidden="true">${column.label}</span><span class="la-matrix-label-mobile" aria-hidden="true">${column.mobileLabel}</span>` : `<span aria-hidden="true">${escapeHtml(column.label)}</span>`}</button></th>`;
+      }).join('')}</tr>`;
       document.getElementById('qualityMatrixBody').innerHTML = teams.map(team => `<tr${team.isUserTeam ? ' class="is-user-team"' : ''}>${columns.map(column => {
-        if (column.family === 'team') return `<th scope="row" class="la-matrix-team"><span title="${escapeHtml(team.username)}">${escapeHtml(team.username)}</span>${team.isUserTeam ? '<small>YOU</small>' : ''}</th>`;
+        if (column.family === 'team') return `<th scope="row" class="la-matrix-team"><span title="${escapeHtml(team.username)}">${escapeHtml(team.username)}</span>${team.isUserTeam ? '<small>ACTIVE USER</small>' : ''}</th>`;
         const value = column.get(team);
         const population = state.teams.map(column.get).filter(Number.isFinite);
         const rank = Analysis.rank(value, population);
@@ -3597,7 +3680,8 @@
         const tier = !rank ? 0 : population.every(item => item === population[0]) ? 2 : Math.round((population.length - rank) / Math.max(1, population.length - 1) * 4);
         const player = column.slot != null ? team.derivedLineups[metric].assignments[column.slot]?.player : null;
         const detail = column.slot != null ? (player?.name || 'Empty starting spot') : column.family === 'depth' ? team.quality[metric].depthPlayers.map(p => `${p.name} (${formatAnalysisValue(dynasty ? p.ktc : p.proj, metric)})`).join(', ') : column.label;
-        return `<td class="la-matrix-${column.family}"><span class="la-rank-badge la-rank-badge--${column.family} la-rank-tier-${tier}" tabindex="0" aria-label="${escapeHtml(`${column.label}: ${rank ? `rank ${rank}, ${formatAnalysisValue(value, metric)} ${dynasty ? 'KTC' : 'PROJ'}` : 'projection unavailable'}. ${detail}`)}" title="${escapeHtml(detail)}">${rank ? `<small>#</small>${rank}` : '—'}</span><small class="la-matrix-value">(${formatAnalysisValue(value, metric)})</small></td>`;
+        // Round the visible subvalue only; full precision still drives scoring and sorting.
+        return `<td class="la-matrix-${column.family}"><span class="la-rank-badge la-rank-badge--${column.family} la-rank-tier-${tier}" tabindex="0" aria-label="${escapeHtml(`${column.label}: ${rank ? `rank ${rank}, ${formatAnalysisValue(value, metric)} ${dynasty ? 'KTC' : 'PROJ'}` : 'projection unavailable'}. ${detail}`)}" title="${escapeHtml(detail)}">${rank ? `<small>#</small>${rank}` : '—'}</span><small class="la-matrix-value">(${Number.isFinite(value) ? Math.round(value).toLocaleString('en-US') : '—'})</small></td>`;
       }).join('')}</tr>`).join('');
       document.getElementById('qualityMatrixNote').textContent = dynasty
         ? 'KTC in parentheses · Depth: every non-starting QB/RB/WR/TE · OVR: full roster + picks'
@@ -3671,7 +3755,8 @@
       }
       const host = kind === 'lineup' ? elements.startersCanvas : elements.overallCanvas;
       if (!window.echarts) { host.textContent = 'Charts unavailable. Rankings are available in the matrix.'; return; }
-      host.style.height = `${Math.max(220, visible.length * 30 + 36)}px`;
+      // Reserve a compact second axis line for the metric name, retaining bar density.
+      host.style.height = `${Math.max(228, visible.length * 30 + 44)}px`;
       const chart = state.charts[kind] || echarts.init(host, null, { renderer: 'svg' });
       state.charts[kind] = chart;
       const mobile = host.clientWidth < 440;
@@ -3681,8 +3766,8 @@
         animationDuration: 450,
         textStyle: { fontFamily: 'Google Sans, sans-serif' },
         aria: { enabled: true, label: { description: `${kind === 'lineup' ? 'Starting lineup' : 'Roster'} ${dynasty ? 'Dynasty KTC values' : 'Contender rest-of-season projections'}. ${visible.map(row => `${row.team.username}: ${formatAnalysisValue(row.total, metric)}`).join('. ')}` } },
-        grid: { left: mobile ? 92 : 108, right: mobile ? 49 : 56, top: 5, bottom: 24 },
-        xAxis: { type: 'value', min: 0, max: max * 1.04, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#71809c', fontSize: 10, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: 'rgba(152,169,204,.09)', type: 'dashed' } } },
+        grid: { left: mobile ? 92 : 108, right: mobile ? 49 : 56, top: 5, bottom: 34 },
+        xAxis: { type: 'value', name: dynasty ? 'KTC VALUE' : 'ROS PROJ', nameLocation: 'middle', nameGap: 24, nameTextStyle: { color: '#8799b7', fontSize: 9, fontWeight: 500, lineHeight: 10, padding: 0 }, min: 0, max: max * 1.04, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#71809c', fontSize: 10, margin: 6, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: 'rgba(152,169,204,.09)', type: 'dashed' } } },
         yAxis: { type: 'category', inverse: true, data: visible.map(row => String(row.team.roster.roster_id)), axisLine: { show: false }, axisTick: { show: false }, axisLabel: {
           interval: 0, margin: 10, formatter: (_, index) => {
             const row = visible[index];
@@ -3705,7 +3790,6 @@
         })),
       }, true);
       chart.resize();
-      document.getElementById(`${kind}ChartUnit`).textContent = dynasty ? 'KTC VALUE' : 'ROS PROJ';
       document.getElementById(`${kind}ChartLegend`).innerHTML = keys.map(key => `<span><i style="background:${colors[key]}"></i>${SLOT_LABELS[key] || key}</span>`).join('');
       document.getElementById(`${kind}ChartNote`).textContent = kind === 'overall' && !dynasty
         ? 'All rostered players with available PROJ · Contender overall rank uses starters only'

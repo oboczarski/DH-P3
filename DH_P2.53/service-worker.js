@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analysis with ROS projections, the positional matrix, and redesigned charts.
-const CACHE_NAME = 'DH3.46b-analysis';
+// Refresh League Analysis controls, champions, and sortable mobile matrix styles.
+const CACHE_NAME = 'DH3.46c-analysis';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
