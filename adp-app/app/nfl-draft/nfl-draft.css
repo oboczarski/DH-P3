@@ -24,7 +24,7 @@
 }
 
 .nfl-draft-dashboard .nfl-stat-card {
-  --dial-size: clamp(92px, 10vw, 149px);
+  --dial-size: clamp(92px, 11vw, 149px);
   --ring-inset: 5px;
   --ring-width: 8px;
   border-radius: 17px;
