@@ -45,7 +45,7 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li .analyzer
 /* Image trophies share a slightly larger icon box in the champions card and
    League Table. Contain preserves the tall A1 and square B2/C3/D4 proportions;
    remove the font icon's saturation treatment to display the supplied colors. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-trophy-image { display: inline-block; flex: 0 0 auto; width: 20px; height: 20px; max-width: none; object-fit: contain; vertical-align: middle; filter: drop-shadow(0 1px 2px #0004); text-shadow: none; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-trophy-image {display: inline-block;flex: 0 0 auto;width: 30px;height: 30px;max-width: none;object-fit: contain;vertical-align: middle;filter: drop-shadow(0px 0 4px #0007)     drop-shadow(0px 0 2px #0006) opacity(0.75) saturate(0.6) brightness(0.95);text-shadow: none;}
 /* Long title histories wrap within the existing League Table column. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-trophies { max-width: 100%; flex-wrap: wrap; justify-content: center; gap: 2px; vertical-align: middle; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-empty { color: #9ba7be; }
