@@ -27,8 +27,8 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46f-analysis" />
-  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.46f-analysis" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46g-analysis" />
+  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.46g-analysis" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -286,7 +286,7 @@
           <div class="la-projection-status" id="analysisProjectionStatus" role="status"></div>
           <div class="analyzer-panels-grid">
           <article class="analyzer-panel glass-panel la-bar-panel" id="lineup-panel">
- <header class="analyzer-panel-header"><div><span class="la-eyebrow">01 / TEAM POWER</span><h2>Power Rankings</h2><p>Starting strength, depth, and draft capital.</p></div><div class="analyzer-toggle" role="group" aria-label="Power Rankings basis"><button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Dynasty</button><button type="button" class="toggle-option" data-metric="proj" aria-pressed="false">Contender</button></div></header>
+ <header class="analyzer-panel-header"><div><span class="la-eyebrow">01 / TEAM POWER</span><h2>Power Rankings</h2><p>Starting strength, depth, and draft capital.</p></div><div class="analyzer-toggle la-power-toggle" role="group" aria-label="Power Rankings basis"><button type="button" class="toggle-option" data-metric="proj" aria-pressed="false">Contender</button><button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Dynasty</button></div></header>
  <!-- Refine independently removes depth/picks and limits the re-ranked chart to six teams. -->
  <div class="la-chart-controls">
    <div class="la-position-filter" id="lineupPositionFilter" data-value="ALL" role="group" aria-label="Power Rankings positions"></div>
@@ -310,7 +310,7 @@
           </div>
           <section class="analyzer-panel glass-panel analyzer-radar-section" id="radar-panel">
             <!-- One three-mode control keeps the matrix and adjacent radar in sync. -->
-            <header class="analyzer-panel-header"><div><span class="la-eyebrow">03 / POSITIONAL QUALITY</span><h2>Positional Strength <span id="radarStrengthRank" class="radar-strength-rank-badge"></span></h2><p id="radarStrengthSubtitle">Your starters at each position <b>vs.</b> League AVG.</p></div><div class="analyzer-toggle la-quality-toggle" role="group" aria-label="Positional quality ranking basis"><button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Dynasty</button><button type="button" class="toggle-option active" data-metric="proj" aria-pressed="true">Contender</button><button type="button" class="toggle-option" data-metric="roster" aria-pressed="false">Total Roster Value</button></div></header>
+            <header class="analyzer-panel-header"><div><span class="la-eyebrow">03 / POSITIONAL QUALITY</span><h2>Positional Strength <span id="radarStrengthRank" class="radar-strength-rank-badge"></span></h2><p id="radarStrengthSubtitle">Your starters at each position <b>vs.</b> League AVG.</p></div><div class="analyzer-toggle la-quality-toggle" role="group" aria-label="Positional quality ranking basis"><button type="button" class="toggle-option active" data-metric="proj" aria-pressed="true">Contender</button><button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Dynasty</button><button type="button" class="toggle-option" data-metric="roster" aria-pressed="false">Total Roster Value</button></div></header>
             <div class="la-quality-layout">
               <div class="la-radar-wrap"><div class="chart-container analyzer-chart analyzer-chart--radar"><canvas id="radarChart" aria-label="Positional strength radar" role="img"></canvas></div><div class="la-radar-legend"><span>Your team</span><span>League average</span></div></div>
               <section class="la-matrix-section" id="quality-matrix-panel" aria-labelledby="qualityMatrixTitle">
@@ -473,8 +473,10 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub-analysis.js?v=DH3.46f-analysis"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.46f-analysis"></script>
+  <script src="../scripts/leaguehub-analysis.js?v=DH3.46g-analysis"></script>
+  <!-- Optional color-shift tester: remove this script tag to remove the tool. -->
+  <script src="../scripts/leaguehub-color-shift.js?v=DH3.46g-analysis"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.46g-analysis"></script>
   <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 

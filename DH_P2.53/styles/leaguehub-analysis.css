@@ -97,11 +97,15 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-switch::before { con
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu [aria-checked="true"] .la-refine-switch { background: #6f54be80; border-color: #b3a0ed70; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu [aria-checked="true"] .la-refine-switch::before { transform: translateX(11px); background: #d7caff; }
 /* A static metric badge reuses the active toggle surface with distinct text.
-   Only the shared quality switcher gets three buttons and content-sized widths. */
+   The two ranking switchers divide their available width equally per button. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle .la-roster-value-button.active,
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option[data-metric="roster"].active { color: #d7bcff; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-static-metric button { cursor: default; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option { min-width: 0 !important; white-space: nowrap; }
+/* Keep equal tracks when selection changes or the third label is longer.
+   These rules target the controls only, preserving the user's summary sizing. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle.la-power-toggle { display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 230px; max-width: 100%; box-sizing: border-box; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle.la-quality-toggle { display: inline-grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 390px; max-width: 100%; box-sizing: border-box; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle:is(.la-power-toggle, .la-quality-toggle) .toggle-option { min-width: 0 !important; width: 100%; box-sizing: border-box; white-space: normal; line-height: 1.1; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-bar-chart {width: 106%;min-width: 0;height: 380px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend span { display: inline-flex; align-items: center; gap: 6px; color: #a9b9d0; font-size: 10px; }
@@ -276,11 +280,12 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter :is(select, summary) { width: 100%; height: 28px; padding: 2px 3px; font-size: 9px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter { display: flex; align-items: center; gap: 6px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter.la-refine { flex-basis: 65px; }
-  /* Three quality options stay in the upper-right eyebrow row. Natural button
-     widths override the older fixed minimum only for this specific switcher. */
+  /* Equal-width buttons remain in the upper-right eyebrow row on mobile. */
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle.la-power-toggle { width: 164px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle.la-quality-toggle { width: 228px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle { gap: 1px; padding: 1px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option { font-size: 9px; padding: 5px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-radar-section > .analyzer-panel-header .la-eyebrow { min-height: 27px; margin-bottom: 3px; padding-right: 202px; font-size: 7px; letter-spacing: 0; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option { font-size: 9px; padding: 5px; min-height: 30px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-radar-section > .analyzer-panel-header .la-eyebrow { min-height: 34px; margin-bottom: 3px; padding-right: 236px; white-space: normal; font-size: 7px; letter-spacing: 0; }
 }
 /* Literal mobile matrix adjustments; desktop composition and the user's
    current column palettes remain under their existing rules above. */

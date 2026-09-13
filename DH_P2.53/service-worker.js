@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Power Rankings depth/picks, Total Roster Value, and three synchronized rank rings.
-const CACHE_NAME = 'DH3.46f-analysis';
+// League Analysis toggle order, four-card summary, and optional color-shift palettes.
+const CACHE_NAME = 'DH3.46g-analysis';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

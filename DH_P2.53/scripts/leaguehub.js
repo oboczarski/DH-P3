@@ -649,6 +649,12 @@
       refine.open = false;
       refine.querySelector('summary')?.focus();
     });
+    // Optional color tester changes both bar charts without touching rankings or the radar.
+    document.addEventListener('leaguehub:color-shift', () => {
+      if (!state.teams?.length) return;
+      renderLineupChart();
+      renderOverallChart();
+    });
     wireQualityMatrixControls();
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
@@ -3584,14 +3590,8 @@
         const average = population.length ? population.reduce((sum, item) => sum + item, 0) / population.length : null;
         return `<article class="analyzer-chip analyzer-chip--${className}"><span class="chip-label">${label}</span><span class="chip-value" style="color:${analysisRankColor(rank, teams.length)}">${metric === 'age' ? formatAge(value) : formatNumberWithSuffixMarkup(value)}</span><span class="chip-meta">Rank ${rank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${metric === 'age' ? formatAge(average) : formatNumberWithSuffixMarkup(average, 'chip-avg-value-suffix')}</span></span></article>`;
       }).join('');
-      // Keep the original top-scorer card, using the same season PROJ as Contender.
-      const topForTeam = item => item.allPlayers.filter(player => Number.isFinite(player.proj)).sort((a, b) => b.proj - a.proj)[0];
-      const top = topForTeam(team);
-      const topScores = teams.map(topForTeam).filter(Boolean).map(player => player.proj);
-      const topRank = Analysis.rank(top?.proj, topScores);
-      const topAverage = topScores.length ? topScores.reduce((sum, score) => sum + score, 0) / topScores.length : null;
-      const topCard = `<article class="analyzer-chip analyzer-chip--top-scorer"><span class="chip-label">Top Projected Scorer</span><span class="chip-value" title="${escapeHtml(top?.name || '')}">${escapeHtml(top ? abbreviateFirstName(top.name) : '—')}</span><span class="chip-meta">${formatAnalysisValue(top?.proj, 'proj')} PROJ · Rank ${topRank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${formatAnalysisValue(topAverage, 'proj')}</span></span></article>`;
-      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}${topCard}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      // The summary now contains only the four retained cards; preserve its user-sized grid.
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
     }
 
@@ -3765,12 +3765,17 @@
         ...(!startersOnly ? ['Depth', ...(dynasty ? ['Picks'] : [])] : []),
       ] : [...POSITION_ORDER, 'Picks'];
       const keys = filter === 'ALL' ? allKeys : allKeys.filter(key => key === filter);
-      // Preserve the previous LeagueHub chart palettes across the new renderer.
-      const colors = !power
+      // Continue the established saturated palettes through Depth/Picks, avoiding
+      // muted end segments that break the progression of the stacked bars.
+      const defaultColors = !power
         ? { QB: '#3700B3', RB: '#4c02de', WR: '#6300ff', TE: '#7100ff', Picks: '#9400ff' }
         : dynasty
-          ? { QB: '#15607a', RB: '#0c8184', WR: '#0da0a4', TE: '#09bb9f', FLEX: '#2ad2a0', SUPER_FLEX: '#37ebb5', Depth: '#479f91', Picks: '#85c3b2' }
-          : { QB: '#003c63', RB: '#005d91', WR: '#006da2', TE: '#007bb4', FLEX: '#008cd1', SUPER_FLEX: '#00a3ff', Depth: '#4e9cba' };
+          ? { QB: '#15607a', RB: '#0c8184', WR: '#0da0a4', TE: '#09bb9f', FLEX: '#2ad2a0', SUPER_FLEX: '#37ebb5', Depth: '#16d9cd', Picks: '#00c8f0' }
+          : { QB: '#003c63', RB: '#005d91', WR: '#006da2', TE: '#007bb4', FLEX: '#008cd1', SUPER_FLEX: '#00a3ff', Depth: '#3076ff' };
+      // Optional tester hook: removing its script restores these defaults. Map
+      // the full segment order so position filters never change a segment's hue.
+      const paletteKeys = power ? [...new Set(state.radarSlots.map(slot => slot.type)), 'Depth', ...(dynasty ? ['Picks'] : [])] : [...POSITION_ORDER, 'Picks'];
+      const colors = window.LeagueHubColorShift?.colors(metric, paletteKeys) || defaultColors;
       const rows = state.teams.map(team => {
         // Refine is applied before position filtering, totals, ranking, and Top 6.
         // All-view totals use exactly the components behind the matrix/rings.
