@@ -3566,10 +3566,13 @@
       elements.summaryStats.classList.remove('hidden');
     }
 
-    // Reuse the exact League Table trophy glyph and class so the champions card
-    // inherits its gold tone, shadow and glow without a separate SVG treatment.
-    function championTrophyIcon() {
-      return '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>';
+    // Preview the supplied trophy artwork in display order. Each championship
+    // list starts at A1, wraps after D4, and renders only its actual title count.
+    // The card heading uses A1 independently of the championship sequence.
+    function championTrophyIcon(index = 0) {
+      const images = ['A1_Trophy.svg', 'B2_Trophy.svg', 'C3_Trophy.png', 'D4_Trophy.png'];
+      const image = images[index % images.length];
+      return `<img class="analyzer-standings-trophy la-trophy-image" src="../assets/Misc-Images/${image}" width="20" height="20" alt="" aria-hidden="true" decoding="async" />`;
     }
 
     // Only resolved champions belong in this history card; ongoing or unavailable
@@ -3578,7 +3581,7 @@
       const list = document.getElementById('leagueChampionsList');
       if (!list) return;
       const seasons = (state.championsByLeague[leagueId] || []).filter(item => item.champion);
-      list.innerHTML = seasons.map(item => `<li><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion)}">${escapeHtml(item.champion)}</span>${championTrophyIcon()}</li>`).join('') || '<li class="la-champions-empty">No league champions recorded yet.</li>';
+      list.innerHTML = seasons.map((item, index) => `<li><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion)}">${escapeHtml(item.champion)}</span>${championTrophyIcon(index)}</li>`).join('') || '<li class="la-champions-empty">No league champions recorded yet.</li>';
     }
 
     // Header sorting changes row order only. Column ranks still compare every
@@ -4139,9 +4142,7 @@
           `;
         }
 
-        const trophyMarkup = Array.from({ length: careerStats.championships }, () => (
-          '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>'
-        )).join('');
+        const trophyMarkup = Array.from({ length: careerStats.championships }, (_, index) => championTrophyIcon(index)).join('');
 
         return `
           <span

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analysis controls, champions, and sortable mobile matrix styles.
-const CACHE_NAME = 'DH3.46c-analysis';
+// Refresh League Analysis with the four-image championship trophy preview.
+const CACHE_NAME = 'DH3.46d-analysis';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
