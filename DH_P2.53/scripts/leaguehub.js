@@ -3562,17 +3562,14 @@
       const topRank = Analysis.rank(top?.proj, topScores);
       const topAverage = topScores.length ? topScores.reduce((sum, score) => sum + score, 0) / topScores.length : null;
       const topCard = `<article class="analyzer-chip analyzer-chip--top-scorer"><span class="chip-label">Top Projected Scorer</span><span class="chip-value" title="${escapeHtml(top?.name || '')}">${escapeHtml(top ? abbreviateFirstName(top.name) : '—')}</span><span class="chip-meta">${formatAnalysisValue(top?.proj, 'proj')} PROJ · Rank ${topRank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${formatAnalysisValue(topAverage, 'proj')}</span></span></article>`;
-      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}${topCard}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${championTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}${topCard}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
     }
 
-    // Preview the supplied trophy artwork in display order. Each championship
-    // list starts at A1, wraps after D4, and renders only its actual title count.
-    // The card heading uses A1 independently of the championship sequence.
-    function championTrophyIcon(index = 0) {
-      const images = ['A1_Trophy.svg', 'B2_Trophy.svg', 'C3_Trophy.png', 'D4_Trophy.png'];
-      const image = images[index % images.length];
-      return `<img class="analyzer-standings-trophy la-trophy-image" src="../assets/Misc-Images/${image}" width="20" height="20" alt="" aria-hidden="true" decoding="async" />`;
+    // C3 belongs only to the League Champions card, including its heading.
+    // Its image styling is independent of the League Table's original font icons.
+    function leagueChampionsTrophyIcon() {
+      return '<img class="la-trophy-image" src="../assets/Misc-Images/C3_Trophy.png" width="30" height="30" alt="" aria-hidden="true" decoding="async" />';
     }
 
     // Only resolved champions belong in this history card; ongoing or unavailable
@@ -3581,7 +3578,7 @@
       const list = document.getElementById('leagueChampionsList');
       if (!list) return;
       const seasons = (state.championsByLeague[leagueId] || []).filter(item => item.champion);
-      list.innerHTML = seasons.map((item, index) => `<li><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion)}">${escapeHtml(item.champion)}</span>${championTrophyIcon(index)}</li>`).join('') || '<li class="la-champions-empty">No league champions recorded yet.</li>';
+      list.innerHTML = seasons.map(item => `<li><span class="la-champion-season">${escapeHtml(item.season)}</span><span class="la-champion-name" title="${escapeHtml(item.champion)}">${escapeHtml(item.champion)}</span>${leagueChampionsTrophyIcon()}</li>`).join('') || '<li class="la-champions-empty">No league champions recorded yet.</li>';
     }
 
     // Header sorting changes row order only. Column ranks still compare every
@@ -4142,7 +4139,10 @@
           `;
         }
 
-        const trophyMarkup = Array.from({ length: careerStats.championships }, (_, index) => championTrophyIcon(index)).join('');
+        // League Table trophies retain their original glyph and styling.
+        const trophyMarkup = Array.from({ length: careerStats.championships }, () => (
+          '<i class="fa-solid fa-trophy analyzer-standings-trophy" aria-hidden="true"></i>'
+        )).join('');
 
         return `
           <span

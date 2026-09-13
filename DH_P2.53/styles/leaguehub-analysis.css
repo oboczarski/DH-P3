@@ -41,13 +41,10 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card header { dis
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card h2 {color: #e8dfc7;font-size: 16px;font-weight: 600;margin: 0;letter-spacing: -.02em;font-family: 'Bruno Ace SC';}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card .la-eyebrow { color: #b7a987; font-size: 8px; margin-bottom: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-icon {display: grid;place-items: center;flex-shrink: 0;width: 44px;height: 44px;padding: 4px;box-sizing: border-box;color: #e5c77f;border: 1px solid #d7b76b38;border-radius: 11px;background: linear-gradient(135deg, #b995452c, #b9954509);box-shadow: inset 0 1px 0 #eadbbb26;}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li .analyzer-standings-trophy { flex-shrink: 0; }
-/* Image trophies share a slightly larger icon box in the champions card and
-   League Table. Contain preserves the tall A1 and square B2/C3/D4 proportions;
-   remove the font icon's saturation treatment to display the supplied colors. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-trophy-image {display: inline-block;flex: 0 0 auto;width: 30px;height: 30px;max-width: none;object-fit: contain;vertical-align: middle;filter: drop-shadow(0px 0 4px #0007)     drop-shadow(0px 0 2px #0006) opacity(0.75) saturate(0.6) brightness(0.95);text-shadow: none;}
-/* Long title histories wrap within the existing League Table column. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-trophies { max-width: 100%; flex-wrap: wrap; justify-content: center; gap: 2px; vertical-align: middle; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li .la-trophy-image { flex-shrink: 0; }
+/* C3 is confined to the League Champions card. Preserve the user-tuned
+   image sizing, filters, and heading treatment independently of League Table. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card .la-trophy-image {display: inline-block;flex: 0 0 auto;width: 30px;height: 30px;max-width: none;object-fit: contain;vertical-align: middle;filter: drop-shadow(0px 0 4px #0007)     drop-shadow(0px 0 2px #0006) opacity(0.75) saturate(0.6) brightness(0.95);text-shadow: none;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-empty { color: #9ba7be; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card ol { list-style: none; margin: 0; padding: 0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li {display: flex;align-items: center;gap: 8px;padding: 6px 0;border-top: 1px solid #c6b89413;font-size: 12px;}
@@ -256,7 +253,7 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li { gap: 6px; padding: 4px 0; font-size: 10px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-season { font-size: 13px; padding: 1px 4px; border-radius: 6px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-name { font-size: 12px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-trophy-image { width: 18px; height: 18px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card .la-trophy-image { width: 18px; height: 18px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-label-desktop { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-label-mobile { display: inline; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-sort { padding: 0 1px; }

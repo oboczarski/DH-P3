@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analysis with the four-image championship trophy preview.
-const CACHE_NAME = 'DH3.46d-analysis';
+// Restore original League Table trophies; use C3 only in the champions card.
+const CACHE_NAME = 'DH3.46e-analysis';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
