@@ -32,7 +32,9 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-projection-status { display
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-projection-status::before { content: ''; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: #78d3be; box-shadow: 0 0 10px #78d3be60; }
 /* Restore the original LeagueHub chips and average rows. Larger Research-style
    rings and the season champions share the same compact summary row. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(340px, 1.35fr) minmax(210px, .9fr); gap: 10px; padding: 0; margin-bottom: 10px; background: none; border: 0; box-shadow: none; }
+/* Narrow the desktop stats/history columns to give the three ranking dials
+   most of the row. Existing trophy image sizing and filters remain untouched. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { display: grid; grid-template-columns: minmax(200px, .75fr) minmax(0, 2.05fr) minmax(185px, .68fr); gap: 10px; padding: 0; margin-bottom: 10px; background: none; border: 0; box-shadow: none; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip { order: initial; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip--top-scorer { grid-column: 1 / -1; min-height: 76px; }
@@ -50,10 +52,11 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card ol { list-st
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li {display: flex;align-items: center;gap: 8px;padding: 8px 0;border-top: 1px solid #c6b89413;font-size: 12px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-season {color: #9c9074;font-size: 16px;font-family: 'Bruno Ace SC';font-weight: 400;padding: 2px 4px;border-radius: 8px;background: linear-gradient(rgba(92, 170, 255, 0.16), rgba(177, 102, 255, 0.09)), rgba(8, 15, 27, 0.68);background: linear-gradient(rgba(39, 50, 73, 0.9), rgba(28, 35, 50, 0.92));box-shadow: rgba(255, 255, 255, 0.05) 0px 1px 0px inset, rgba(0, 0, 0, 0.16) 0px 8px 16px;text-shadow: 1px 1px 0px #9c907478;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-name {min-width: 0;flex: 1;color: #d9dce9;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;font-family: 'Bruno Ace SC';font-weight: 400;letter-spacing: -0.04em;font-size: 14px;}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card { --ring-start: #d7b7ff; --ring-mid: #9c83ff; --ring-end: #796ef1; border-radius: 17px; border: 1px solid #ad9bd221; padding: 10px 8px; text-align: center; background: radial-gradient(ellipse at 50% 40%, #8860c017, transparent 70%), #151e313d; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; min-width: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card { --ring-start: #d7b7ff; --ring-mid: #9c83ff; --ring-end: #796ef1; min-width: 0; border-radius: 17px; border: 1px solid #ad9bd221; padding: 10px 3px; text-align: center; background: radial-gradient(ellipse at 50% 40%, #8860c017, transparent 70%), #151e313d; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card--value { --ring-start: #a5e9d2; --ring-mid: #56c7a5; --ring-end: #398c93; border-color: #73c7bd21; background: radial-gradient(ellipse at 50% 40%, #359c7e17, transparent 70%), #151e313d; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card--proj { --ring-start: #b1eddb; --ring-mid: #69d3c0; --ring-end: #4f9ddd; border-color: #73c7bd21; background: radial-gradient(ellipse at 50% 40%, #359c9c17, transparent 70%), #151e313d; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title {display: flex;justify-content: space-between;align-items: center;gap: 5px;color: var(--ring-start);font-size: 13px;font-weight: 600;padding: 0 3px;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title {display: flex;justify-content: space-between;align-items: center;flex-wrap: wrap;gap: 3px;color: var(--ring-start);font-size: 13px;font-weight: 600;padding: 0 2px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title small { font-size: 7px; letter-spacing: .1em; color: #8191ae; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-dial {position: relative;width: 183px;max-width: 100%;aspect-ratio: 1;border-radius: 50%;margin: 8px auto;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-dial::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: repeating-conic-gradient(#bccbea80 0deg 1deg, transparent 1deg 15deg); mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 0); opacity: .55; }
@@ -75,7 +78,29 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card p { font-size: 9p
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panels-grid { gap: 10px; min-width: 0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-controls { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; padding: 5px 0; border-top: 1px solid #92a7d312; border-bottom: 1px solid #92a7d312; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter { display: flex; align-items: center; align-self: center; flex: 0 0 auto; min-width: 0; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter select {appearance: auto;color-scheme: dark;color: #c2cee3;font-family: inherit;font-size: 13px;background: radial-gradient(115% 76% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(115% 76% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;border: 1px solid #7c93ba24;border-radius: 27px;padding: 2px 8px;min-width: 0;max-width: 100%;height: 35px;font-weight: 600;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter :is(select, summary) {appearance: auto;color-scheme: dark;color: #c2cee3;font-family: inherit;font-size: 13px;background: radial-gradient(115% 76% at 100% 0%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.05) 18%, transparent 74%) padding-box, radial-gradient(115% 76% at 0% 100%, rgb(215 225 255 / 0.051) 0%, rgb(219 230 255 / 0.03) 18%, transparent 74%) padding-box,  conic-gradient(  from -40deg,  #FFFFFF1d 0deg,  #FFFFFF30 20deg,  #FFFFFF50 104deg,  #FFF6FF2a 112deg,  #FFFFFF10 133deg,  #FFFFFF10 153deg,  #FFFFFF20 230deg,  #FFFFFF2f 265deg,  #FFFFFF3a 280deg,  #FFFFFF18 300deg,  #FFFFFF18 368deg) border-area;border: 1px solid #7c93ba24;border-radius: 27px;padding: 2px 8px;min-width: 0;max-width: 100%;height: 35px;font-weight: 600;}
+/* Refine stays beside the position pills. Its anchored switch menu overlays
+   this chart only, without adding a row or changing the other dropdowns. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter.la-refine { position: relative; display: block; flex: 0 0 88px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine summary { display: flex; align-items: center; justify-content: center; gap: 7px; box-sizing: border-box; list-style: none; cursor: pointer; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine summary::-webkit-details-marker { display: none; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine summary i { font-size: 8px; transition: transform .15s; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine[open] summary i { transform: rotate(180deg); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine[data-active="true"] summary { color: #bdb5ff; border-color: #a394ef66; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine summary:focus-visible { outline: 2px solid #b4a2ff; outline-offset: 3px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu { position: absolute; z-index: 10; top: calc(100% + 5px); right: 0; width: 180px; padding: 5px; border: 1px solid #90aade40; border-radius: 12px; background: linear-gradient(140deg, #27334e, #111a2d); box-shadow: inset 0 1px 0 #d4e1ff12, 0 6px 20px #0006; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 35px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: #c8d5eb; font: 500 12px 'Google Sans Flex', sans-serif; cursor: pointer; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu button:hover { background: #b5c1f013; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-switch { display: block; flex: 0 0 27px; height: 16px; border-radius: 20px; background: #111a2b; border: 1px solid #9cafd33d; box-sizing: border-box; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-switch::before { content: ''; display: block; width: 10px; height: 10px; margin: 2px; border-radius: 50%; background: #7f90b1; transition: transform .15s; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu [aria-checked="true"] .la-refine-switch { background: #6f54be80; border-color: #b3a0ed70; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-refine-menu [aria-checked="true"] .la-refine-switch::before { transform: translateX(11px); background: #d7caff; }
+/* A static metric badge reuses the active toggle surface with distinct text.
+   Only the shared quality switcher gets three buttons and content-sized widths. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle .la-roster-value-button.active,
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option[data-metric="roster"].active { color: #d7bcff; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-static-metric button { cursor: default; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option { min-width: 0 !important; white-space: nowrap; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-bar-chart {width: 106%;min-width: 0;height: 380px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-chart-legend span { display: inline-flex; align-items: center; gap: 6px; color: #a9b9d0; font-size: 10px; }
@@ -104,6 +129,9 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-radar-legend { display: fle
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-radar-legend span::before { content: ''; display: inline-block; width: 7px; height: 7px; background: #8653e7; border-radius: 50%; margin-right: 6px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-radar-legend span + span::before { background: #8b9ac0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-section { min-width: 0; }
+/* The Roster Value breakdown is already included in its positional columns.
+   A divider before Starters makes the non-additive pair visually separate. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix .la-matrix-breakdown { border-left: 2px solid #91aace55; padding-left: 5px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-header { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-header h3 { color: #dce5f7; font-size: 13px; font-weight: 600; margin: 0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-matrix-header p { font-size: 10px; color: #8496b4; margin: 4px 0 0; }
@@ -159,6 +187,7 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--te {--rank-peak
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--flex {--rank-peak: #9d5114;background: linear-gradient(90deg, rgb(13 10 49 / 22%), rgb(27 39 60 / 92%));}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--picks { --rank-peak: #acd1ff; background: linear-gradient(180deg, rgb(35 40 54 / 53%), rgb(60 67 87 / 48%)); border: 0px solid rgba(134, 158, 211, .13); }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--depth { --rank-peak: #e5928b; background: linear-gradient(90deg, rgb(100 64 82 / 20%), rgb(58 48 54 / 92%)); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-badge--starters { --rank-peak: #a4c5ff; background: linear-gradient(90deg, rgb(69 113 194 / 18%), rgb(30 39 54 / 92%)); }
 /* DataHub's five percentile tiers: gray at the floor, full column hue at the
    top, with matching 9/12/14/16px glow progression and a second top-tier glow. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-tier-0 {color: rgb(106 112 116 / 70%);text-shadow: 0 0px 1px #9e0e0e00 !important;filter: brightness(0.75)  saturate(0.6);}
@@ -193,6 +222,8 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
 /* The League Table now owns a full panel. Desktop columns distribute across
    that width; the existing split/frozen horizontal scroll remains mobile-only. */
 @media (min-width: 820px) {
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats .analyzer-chip { padding-inline: 8px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats .chip-label { font-size: 10px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-standings-panel .analyzer-standings { width: 100%; max-width: none; min-height: 0; margin: 0; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-frozen-shell { flex: 0 0 18%; max-width: 220px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-scroll-shell { overflow-x: hidden; }
@@ -204,7 +235,7 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-sort { font-size: inherit; }
 }
 @media (max-width: 1100px) {
-  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(0, 2.15fr) minmax(185px, .85fr); }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip--top-scorer { grid-column: 1 / -1; }
 }
@@ -215,9 +246,11 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
 @media (max-width: 819px) {
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair { gap: 8px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-dial {width: clamp(125px, 41vw, 156px);}
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair { gap: 5px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-dial {width: 156px;}
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card {padding: 9px 3px;}
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title { font-size: 11px; gap: 2px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title small { font-size: 6px; letter-spacing: .02em; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core strong { font-size: 35px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip { display: flex; min-height: 91px; padding: 10px 11px 7px; gap: 3px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip--top-scorer { min-height: 76px; }
@@ -239,8 +272,14 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-position-filter { flex: 1 1 0; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-position-btn { min-height: 26px; padding: 3px 1px; font-size: 9px; letter-spacing: 0; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter { flex: 0 0 88px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter select { width: 100%; height: 28px; padding: 2px 3px; font-size: 9px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter :is(select, summary) { width: 100%; height: 28px; padding: 2px 3px; font-size: 9px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter { display: flex; align-items: center; gap: 6px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-filter.la-refine { flex-basis: 65px; }
+  /* Three quality options stay in the upper-right eyebrow row. Natural button
+     widths override the older fixed minimum only for this specific switcher. */
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle { gap: 1px; padding: 1px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-toggle .toggle-option { font-size: 9px; padding: 5px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-radar-section > .analyzer-panel-header .la-eyebrow { min-height: 27px; margin-bottom: 3px; padding-right: 202px; font-size: 7px; letter-spacing: 0; }
 }
 /* Literal mobile matrix adjustments; desktop composition and the user's
    current column palettes remain under their existing rules above. */
@@ -329,8 +368,20 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
     filter: saturate(0.5) grayscale(1) brightness(0.8);
   }
 }
+/* Keep all three dials visible on phones. Thin the inner spacing rather than
+   hiding Long Term/Sustain/Win Now or reducing the dial's available width. */
+@media (max-width: 480px) {
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title { font-size: 10px; min-height: 24px; align-content: center; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core { inset: 18px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core strong { font-size: 28px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core strong small { font-size: 10px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core em { font-size: 7px; margin-top: 3px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-echo { inset: 17px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total { font-size: 11px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total small { font-size: 7px; margin-left: 1px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card p { font-size: 8px; line-height: 1.3; }
+}
 @media (max-width: 380px) {
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title small { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chart--radar { height: 320px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panel-header .la-eyebrow { letter-spacing: .01em; font-size: 7px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-position-btn { font-size: 8px; padding-inline: 0; }

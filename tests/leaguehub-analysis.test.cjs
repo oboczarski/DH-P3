@@ -19,7 +19,12 @@ const players = [
 ].map(([id,pos,ktc,proj])=>({id,pos,ktc,proj,name:id}));
 const slots = ['FLEX','QB','RB','WR','TE','SUPER_FLEX'].map(type=>({type,label:type}));
 const build = metric => context.buildDerivedLineup(players, [], slots, metric);
-function team() { return { allPlayers: players, derivedLineups: { value:build('value'),proj:build('proj') }, totalValue: 10000, overallPositional: {Picks:1000} }; }
+// Keep these source fixtures aligned with the three ranking definitions.
+function team() {
+ const ownedPicks = [{round:1,ktc:600},{round:2,ktc:300},{round:3,ktc:100}];
+ const overallPositional = {QB:2400,RB:1800,WR:2700,TE:1250,Picks:1000};
+ return { allPlayers: players, derivedLineups: { value:build('value'),proj:build('proj') }, ownedPicks, totalValue:9150, overallPositional };
+}
 test('ROS starts at current week, future seasons at one, completed seasons have none',()=>{
  assert.deepEqual(A.projectionWeeks(2026,{season:'2026',week:7,season_type:'regular'}),[7,8,9,10,11,12,13,14,15,16,17,18]);
  assert.equal(A.projectionWeeks(2027,{season:'2026',week:7,season_type:'regular'}).length,18);
@@ -49,18 +54,43 @@ test('Dynasty and Contender choose different starters with the same existing slo
  assert.equal(build('proj').assignments[2].player.id,'r2');
  assert.equal(build('proj').assignments[5].player.id,'q2');
 });
-test('Contender depth uses only 1 QB + 3 combined RB/WR + 1 TE from nonstarters',()=>{
+test('Contender power adds exactly the next QB and three RB/WR/TE to starters',()=>{
  const q=A.quality(team(),'proj');
- assert.deepEqual(q.depthPlayers.map(p=>p.id),['q3','r1','w3','w4','t2']);
- assert.equal(q.depth,830);
- assert.equal(q.overall,1280);
- assert.equal(q.overall,q.starters);
+ assert.deepEqual(q.depthPlayers.map(p=>p.id),['q3','r1','w3','w4']);
+ assert.equal(q.depth,720);
+ assert.equal(q.overall,2000);
+ assert.equal(q.overall,q.starters+q.depth);
 });
-test('Dynasty depth counts every nonstarter, while overall includes full roster and picks',()=>{
+test('Dynasty reserves meet positional minimums then add the best remaining player, with only Rounds 1-2',()=>{
  const t=team();const q=A.quality(t,'value');
  const ids=new Set(t.derivedLineups.value.assignments.map(a=>a.player.id));
+ assert.deepEqual(q.depthPlayers.map(p=>p.id),['q3','w3','r2','w4','t2','r3']);
+ assert.ok(q.depthPlayers.every(p=>!ids.has(p.id)));
+ assert.equal(new Set(q.depthPlayers.map(p=>p.id)).size,6);
+ assert.equal(q.depth,2950);
+ assert.equal(q.overall,8500);assert.equal(q.picks,900);
+});
+test('Total Roster Value includes all reserves and picks without adding starters or depth twice',()=>{
+ const t=team();const q=A.quality(t,'roster');
+ const ids=new Set(t.derivedLineups.value.assignments.map(a=>a.player.id));
  assert.equal(q.depth,players.filter(p=>!ids.has(p.id)).reduce((sum,p)=>sum+p.ktc,0));
- assert.equal(q.overall,10000);assert.equal(q.picks,1000);
+ assert.equal(q.overall,9150);assert.equal(q.picks,1000);
+ assert.equal(q.overall,q.starters+q.depth+q.picks);
+});
+test('Contender depth can select a TE in any of its three FLEX places',()=>{
+ const bench=players.filter(p=>['q3','r3','w4','t2','t3'].includes(p.id));
+ assert.deepEqual(A.selectDepth(bench,'proj').map(p=>p.id),['q3','w4','r3','t2']);
+});
+test('bar totals match full league scores and Starters Only excludes both depth and picks',()=>{
+ const t=team();t.quality=Object.fromEntries(['value','proj','roster'].map(metric=>[metric,A.quality(t,metric)]));
+ for(const metric of ['value','proj','roster']) {
+  assert.equal(A.barSegments(t,metric).reduce((sum,s)=>sum+s.value,0),t.quality[metric].overall);
+ }
+ for(const metric of ['value','proj']) {
+  const segments=A.barSegments(t,metric,true);
+  assert.ok(segments.every(s=>!['Depth','Picks'].includes(s.key)));
+  assert.equal(segments.reduce((sum,s)=>sum+s.value,0),t.quality[metric].starters);
+ }
 });
 test('ties share ranks and ring fill; absent projections do not receive rank one',()=>{
  assert.equal(A.rank(100,[100,100,80]),1);assert.equal(A.rank(80,[100,100,80]),3);

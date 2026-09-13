@@ -72,31 +72,79 @@
       ? null : players.reduce((sum, player) => sum + player.proj, 0);
   }
 
-  // Bench membership follows the active derived lineup, never Sleeper's manually
-  // saved starters. Dynasty counts every non-starting QB/RB/WR/TE. Contender
-  // selects one remaining QB, three RB/WR combined, and one remaining TE.
+  // Power Rankings use the bench left after this metric's optimized starters.
+  // Reserve positional minimums before the wildcard so one player cannot fill
+  // two depth spots. Short benches contribute only the players actually owned.
+  function selectDepth(bench, metric) {
+    const key = metric === 'proj' ? 'proj' : 'ktc';
+    const sorted = [...bench].sort((a, b) => {
+      const primary = (b[key] ?? -Infinity) - (a[key] ?? -Infinity);
+      return primary || (b.ktc - a.ktc) || a.name.localeCompare(b.name);
+    });
+    const selected = [];
+    const used = new Set();
+    const take = (positions, count) => sorted
+      .filter(player => positions.includes(player.pos) && !used.has(player.id))
+      .slice(0, count).forEach(player => { selected.push(player); used.add(player.id); });
+    take(['QB'], 1);
+    if (metric === 'proj') {
+      take(['RB', 'WR', 'TE'], 3);
+    } else {
+      take(['RB', 'WR'], 3);
+      take(['TE'], 1);
+      take(POSITIONS, 6 - selected.length);
+    }
+    return selected;
+  }
+
+  // The matrix, bars, and rings share these three scores. Roster Value retains
+  // all bench/pick value; Dynasty power counts only six reserves and Rounds 1–2.
   function quality(team, metric) {
-    const lineup = team.derivedLineups[metric];
+    const rosterValue = metric === 'roster';
+    const dynasty = metric !== 'proj';
+    const lineup = team.derivedLineups[dynasty ? 'value' : 'proj'];
     const starterIds = new Set(lineup.assignments.flatMap(slot => slot.player ? [slot.player.id] : []));
     const bench = team.allPlayers.filter(player => POSITIONS.includes(player.pos) && !starterIds.has(player.id));
-    const dynasty = metric === 'value';
-    const depthPlayers = dynasty ? bench : [
-      ...bench.filter(p => p.pos === 'QB').sort((a, b) => (b.proj ?? -Infinity) - (a.proj ?? -Infinity)).slice(0, 1),
-      ...bench.filter(p => ['RB', 'WR'].includes(p.pos)).sort((a, b) => (b.proj ?? -Infinity) - (a.proj ?? -Infinity)).slice(0, 3),
-      ...bench.filter(p => p.pos === 'TE').sort((a, b) => (b.proj ?? -Infinity) - (a.proj ?? -Infinity)).slice(0, 1),
-    ];
+    const depthPlayers = rosterValue ? bench : selectDepth(bench, metric);
+    const pickAssets = dynasty ? (team.ownedPicks || []).filter(pick => rosterValue || [1, 2].includes(Number(pick.round))) : [];
+    const picks = pickAssets.reduce((sum, pick) => sum + pick.ktc, 0);
     const starters = dynasty ? lineup.totals.value : sumProjections(lineup.assignments.flatMap(slot => slot.player ? [slot.player] : []));
+    const depth = dynasty ? depthPlayers.reduce((sum, p) => sum + p.ktc, 0) : sumProjections(depthPlayers);
     return {
       slots: lineup.assignments.map(slot => dynasty ? slot.score : (slot.player ? slot.player.proj : 0)),
       starters,
-      depth: dynasty ? depthPlayers.reduce((sum, p) => sum + p.ktc, 0) : sumProjections(depthPlayers),
-      picks: team.overallPositional.Picks,
-      overall: dynasty ? team.totalValue : starters,
+      depth,
+      picks,
+      overall: rosterValue ? team.totalValue : Number.isFinite(starters) && Number.isFinite(depth) ? starters + depth + picks : null,
       depthPlayers,
+      pickAssets,
     };
   }
 
-  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, sumProjections };
+  // Refine changes only chart composition. It removes reserves/picks before
+  // sorting and ranking; the matrix/rings continue to report the full score.
+  function barSegments(team, metric, startersOnly = false) {
+    const score = team.quality[metric];
+    if (metric === 'roster') return [...POSITIONS, 'Picks'].map(key => ({
+      key, value: team.overallPositional[key],
+      players: team.allPlayers.filter(player => player.pos === key),
+      picks: key === 'Picks' ? score.pickAssets : [],
+    }));
+    const lineup = team.derivedLineups[metric];
+    const segments = [...new Set(lineup.assignments.map(slot => slot.type))].map(key => {
+      const slots = lineup.assignments.filter(slot => slot.type === key);
+      const ids = new Set(slots.flatMap(slot => slot.player ? [slot.player.id] : []));
+      const players = team.allPlayers.filter(player => ids.has(player.id));
+      return { key, players, value: metric === 'value' ? players.reduce((sum, p) => sum + p.ktc, 0) : sumProjections(players) };
+    });
+    if (!startersOnly) {
+      segments.push({ key: 'Depth', value: score.depth, players: score.depthPlayers });
+      if (metric === 'value') segments.push({ key: 'Picks', value: score.picks, players: [], picks: score.pickAssets });
+    }
+    return segments;
+  }
+
+  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Restore original League Table trophies; use C3 only in the champions card.
-const CACHE_NAME = 'DH3.46e-analysis';
+// Power Rankings depth/picks, Total Roster Value, and three synchronized rank rings.
+const CACHE_NAME = 'DH3.46f-analysis';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

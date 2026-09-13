@@ -27,8 +27,8 @@
   <meta name="theme-color" content="#0D0E1B" />
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
-  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46e-analysis" />
-  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.46e-analysis" />
+  <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46f-analysis" />
+  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.46f-analysis" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -286,30 +286,41 @@
           <div class="la-projection-status" id="analysisProjectionStatus" role="status"></div>
           <div class="analyzer-panels-grid">
           <article class="analyzer-panel glass-panel la-bar-panel" id="lineup-panel">
- <header class="analyzer-panel-header"><div><span class="la-eyebrow">01 / STARTING POWER</span><h2>Starting Lineup</h2><p>Your league’s lineup. Its strongest available starters.</p></div><div class="analyzer-toggle" role="group" aria-label="Ranking basis"><button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Dynasty</button><button type="button" class="toggle-option" data-metric="proj" aria-pressed="false">Contender</button></div></header>
- <div class="la-chart-controls"><div class="la-position-filter" id="lineupPositionFilter" data-value="ALL" role="group" aria-label="Starting lineup positions"></div><label class="la-filter"><select id="lineupTeamFilter" aria-label="Teams shown in Starting Lineup"><option value="all">All teams</option><option value="top">Top 6</option><option value="near">Around my team</option></select></label></div>
- <div class="la-bar-chart" id="startersValueChart" role="img" aria-label="Starting Lineup"></div>
+ <header class="analyzer-panel-header"><div><span class="la-eyebrow">01 / TEAM POWER</span><h2>Power Rankings</h2><p>Starting strength, depth, and draft capital.</p></div><div class="analyzer-toggle" role="group" aria-label="Power Rankings basis"><button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Dynasty</button><button type="button" class="toggle-option" data-metric="proj" aria-pressed="false">Contender</button></div></header>
+ <!-- Refine independently removes depth/picks and limits the re-ranked chart to six teams. -->
+ <div class="la-chart-controls">
+   <div class="la-position-filter" id="lineupPositionFilter" data-value="ALL" role="group" aria-label="Power Rankings positions"></div>
+   <details class="la-filter la-refine" id="lineupTeamFilter" data-active="false">
+     <summary>Refine <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+     <div class="la-refine-menu" role="group" aria-label="Refine Power Rankings">
+       <button type="button" role="switch" aria-checked="false" data-refinement="startersOnly"><span>Starters Only</span><span class="la-refine-switch" aria-hidden="true"></span></button>
+       <button type="button" role="switch" aria-checked="false" data-refinement="topSix"><span>Top 6 Teams</span><span class="la-refine-switch" aria-hidden="true"></span></button>
+     </div>
+   </details>
+ </div>
+ <div class="la-bar-chart" id="startersValueChart" role="img" aria-label="Power Rankings"></div>
  <div class="la-chart-legend" id="lineupChartLegend"></div><p class="la-chart-note" id="lineupChartNote">Ranked by total · Your team is highlighted</p>
  </article>
           <article class="analyzer-panel glass-panel la-bar-panel" id="value-panel">
- <header class="analyzer-panel-header"><div><span class="la-eyebrow">02 / ROSTER COMPOSITION</span><h2>Roster Strength</h2><p>Explore where each team holds its value and production.</p></div><div class="analyzer-toggle" role="group" aria-label="Ranking basis"><button type="button" class="toggle-option active" data-metric="value" aria-pressed="true">Dynasty</button><button type="button" class="toggle-option" data-metric="proj" aria-pressed="false">Contender</button></div></header>
- <div class="la-chart-controls"><div class="la-position-filter" id="overallPositionFilter" data-value="ALL" role="group" aria-label="Roster positions"></div><label class="la-filter"><select id="overallTeamFilter" aria-label="Teams shown in Roster Strength"><option value="all">All teams</option><option value="top">Top 6</option><option value="near">Around my team</option></select></label></div>
- <div class="la-bar-chart" id="overallValueChart" role="img" aria-label="Roster Strength"></div>
+ <header class="analyzer-panel-header"><div><span class="la-eyebrow">02 / ROSTER COMPOSITION</span><h2>Total Roster Value</h2><p>Every rostered player and all owned draft capital.</p></div><div class="analyzer-toggle la-static-metric"><button type="button" class="toggle-option active la-roster-value-button" aria-disabled="true">Roster Value</button></div></header>
+ <div class="la-chart-controls"><div class="la-position-filter" id="overallPositionFilter" data-value="ALL" role="group" aria-label="Roster positions"></div><label class="la-filter"><select id="overallTeamFilter" aria-label="Teams shown in Total Roster Value"><option value="all">All teams</option><option value="top">Top 6</option><option value="near">Around my team</option></select></label></div>
+ <div class="la-bar-chart" id="overallValueChart" role="img" aria-label="Total Roster Value"></div>
  <div class="la-chart-legend" id="overallChartLegend"></div><p class="la-chart-note" id="overallChartNote">Ranked by total · Your team is highlighted</p>
  </article>
           </div>
           <section class="analyzer-panel glass-panel analyzer-radar-section" id="radar-panel">
-            <header class="analyzer-panel-header"><div><span class="la-eyebrow">03 / POSITIONAL QUALITY</span><h2>Positional Strength <span id="radarStrengthRank" class="radar-strength-rank-badge"></span></h2><p>Your starters at each position <b>vs.</b> League AVG.</p></div><div class="analyzer-toggle" role="group" aria-label="Ranking basis"><button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Dynasty</button><button type="button" class="toggle-option active" data-metric="proj" aria-pressed="true">Contender</button></div></header>
+            <!-- One three-mode control keeps the matrix and adjacent radar in sync. -->
+            <header class="analyzer-panel-header"><div><span class="la-eyebrow">03 / POSITIONAL QUALITY</span><h2>Positional Strength <span id="radarStrengthRank" class="radar-strength-rank-badge"></span></h2><p id="radarStrengthSubtitle">Your starters at each position <b>vs.</b> League AVG.</p></div><div class="analyzer-toggle la-quality-toggle" role="group" aria-label="Positional quality ranking basis"><button type="button" class="toggle-option" data-metric="value" aria-pressed="false">Dynasty</button><button type="button" class="toggle-option active" data-metric="proj" aria-pressed="true">Contender</button><button type="button" class="toggle-option" data-metric="roster" aria-pressed="false">Total Roster Value</button></div></header>
             <div class="la-quality-layout">
               <div class="la-radar-wrap"><div class="chart-container analyzer-chart analyzer-chart--radar"><canvas id="radarChart" aria-label="Positional strength radar" role="img"></canvas></div><div class="la-radar-legend"><span>Your team</span><span>League average</span></div></div>
               <section class="la-matrix-section" id="quality-matrix-panel" aria-labelledby="qualityMatrixTitle">
-                <header class="la-matrix-header"><div><h3 id="qualityMatrixTitle">Positional Quality Matrix</h3><p>Every starting spot. Every team. Ranked.</p></div></header>
+                <header class="la-matrix-header"><div><h3 id="qualityMatrixTitle">Positional Quality Matrix</h3><p id="qualityMatrixSubtitle">Every starting spot. Every team. Ranked.</p></div></header>
                 <div class="la-matrix-scroll" tabindex="0" role="region" aria-label="Positional quality rankings; scroll for all starting positions"><table class="la-matrix" id="qualityMatrixTable"><thead id="qualityMatrixHead"></thead><tbody id="qualityMatrixBody"></tbody></table></div>
                 <div class="la-matrix-key">Brighter ranks lead the league · Muted ranks trail</div>
                 <p class="la-method" id="qualityMatrixNote"></p>
               </section>
             </div>
-            <details class="la-method-details"><summary>How starting lineups and rankings work</summary><p>League settings determine each starting spot. Dynasty selects the highest KTC values; Contender selects the highest rest-of-season PROJ. QB, RB, WR and TE slots fill first. FLEX uses the best remaining RB/WR/TE; SUPER_FLEX uses the next-highest QB after the primary QB slots. Each player can fill only one spot. Tied values receive the same rank.</p><p id="analysisScoringNote"></p></details>
+            <details class="la-method-details"><summary>How starting lineups and rankings work</summary><p>League settings determine each starting spot. Dynasty selects the highest KTC values; Contender selects the highest rest-of-season PROJ. QB, RB, WR and TE slots fill first. FLEX uses the best remaining RB/WR/TE; SUPER_FLEX uses the next-highest QB after the primary QB slots. Each player can fill only one spot. Tied values receive the same rank.</p><p>Dynasty power adds six reserves: one QB, three RB/WR combined, one TE, then the highest-valued remaining QB/RB/WR/TE. Only first- and second-round picks count. Contender adds the next QB and the next three RB/WR/TE. If a roster cannot fill a depth requirement, only available players count. Total Roster Value counts every QB/RB/WR/TE and all owned picks; its Starters and Depth columns are a separate breakdown, never added twice.</p><p id="analysisScoringNote"></p></details>
           </section>
           <section class="analyzer-panel glass-panel la-standings-panel" id="league-table-panel" aria-label="League Table — Season and Career Overview">
                       <div class="analyzer-standings" aria-live="polite">
@@ -462,8 +473,8 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub-analysis.js?v=DH3.46e-analysis"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.46e-analysis"></script>
+  <script src="../scripts/leaguehub-analysis.js?v=DH3.46f-analysis"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.46f-analysis"></script>
   <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 
