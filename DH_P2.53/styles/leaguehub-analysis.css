@@ -40,7 +40,7 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card {min-width: 
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card header { display: flex; gap: 9px; align-items: center; margin-bottom: 10px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card h2 {color: #e8dfc7;font-size: 16px;font-weight: 600;margin: 0;letter-spacing: -.02em;font-family: 'Bruno Ace SC';}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card .la-eyebrow { color: #b7a987; font-size: 8px; margin-bottom: 3px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-icon { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; padding: 6px; box-sizing: border-box; color: #e5c77f; border: 1px solid #d7b76b38; border-radius: 11px; background: linear-gradient(135deg, #b995452c, #b9954509); box-shadow: inset 0 1px 0 #eadbbb26; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-icon {display: grid;place-items: center;flex-shrink: 0;width: 44px;height: 44px;padding: 4px;box-sizing: border-box;color: #e5c77f;border: 1px solid #d7b76b38;border-radius: 11px;background: linear-gradient(135deg, #b995452c, #b9954509);box-shadow: inset 0 1px 0 #eadbbb26;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li .analyzer-standings-trophy { flex-shrink: 0; }
 /* Image trophies share a slightly larger icon box in the champions card and
    League Table. Contain preserves the tall A1 and square B2/C3/D4 proportions;
