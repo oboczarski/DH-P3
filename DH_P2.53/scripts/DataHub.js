@@ -1,3 +1,5 @@
+import { get2026QualifierOptions } from "./datahub-stats-season.js";
+
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
 // ---------------------------------------------------------------------------
@@ -5,7 +7,7 @@
 // the visible page title now follows the active Stats vs Trade Values tab so
 // each content view shows the requested heading without touching other pages.
 const PAGE_TITLES = Object.freeze({
-  stats: "2025 Stats & Advanced Analytics",
+  stats: "2026 Stats & Advanced Analytics",
   "adp-values": "Trade Values & ADP",
   rookies: "2026 Rookie Prospect Grades",
 });
@@ -1836,12 +1838,14 @@ function getStatsQualifierConfig(category = VIEW_FILTER_CONFIGS.stats.defaultCat
   return STATS_QUALIFIER_CONFIGS[category] || STATS_QUALIFIER_CONFIGS.overview;
 }
 
-function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.defaultCategory) {
+function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.defaultCategory, season = "2026") {
   const config = getStatsQualifierConfig(category);
   return {
     qualifierStat: config.defaultStat,
-    qualifierThreshold: String(config.defaultThreshold),
-    showAll: Boolean(config.defaultShowAll),
+    qualifierThreshold: season === "2026"
+      ? get2026QualifierOptions(config.defaultStat).find((option) => option.isDefault).value
+      : String(config.defaultThreshold),
+    showAll: season === "2026" ? false : Boolean(config.defaultShowAll),
     team: "",
     teams: [],
   };
@@ -1911,20 +1915,28 @@ function getStickyColumnCount(pageView = state.activePageView, category = state.
 }
 
 function resetStatsQualifierDefaultsForCategory(category = state.activeCategory) {
-  const defaults = createDefaultStatsQualifierState(category);
+  const defaults = createDefaultStatsQualifierState(category, state.statsSeason);
   state.statsFilters.qualifierStat = defaults.qualifierStat;
   state.statsFilters.qualifierThreshold = defaults.qualifierThreshold;
   state.statsFilters.showAll = defaults.showAll;
 }
 
-function getStatsQualifierThresholds(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
-  const config = getStatsQualifierConfig(category);
-  return config.stats?.[qualifierStat] || [];
+// Resolve the selected tier against loaded-week metadata each time we render or
+// filter. 2025 keeps its existing full-season thresholds and selection behavior.
+function getStatsQualifierOptions(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
+  if (state.statsSeason === "2026") {
+    return get2026QualifierOptions(qualifierStat, state.stats2026.weeksOfData);
+  }
+  return (getStatsQualifierConfig(category).stats?.[qualifierStat] || []).map((threshold) => ({
+    value: String(threshold),
+    threshold,
+    label: formatQualifierThresholdLabel(qualifierStat, threshold),
+  }));
 }
 
 function getDefaultThresholdForStat(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
-  const thresholds = getStatsQualifierThresholds(category, qualifierStat);
-  return thresholds.length ? String(thresholds[0]) : "";
+  const options = getStatsQualifierOptions(category, qualifierStat);
+  return (options.find((option) => option.isDefault) || options[0])?.value || "";
 }
 
 function isAllowedStatsQualifierStat(category = state.activeCategory, qualifierStat = state.statsFilters.qualifierStat) {
@@ -2594,7 +2606,16 @@ const state = {
     WR: true,
     TE: true,
   },
+  // Stats-only season source: populate normalized rows and weeksOfData together
+  // when the 2026 feed is connected. The placeholder intentionally has no rows;
+  // loaded-week metadata starts at Week 1 and must advance with the source data.
+  statsSeason: "2026",
+  stats2026: { rows: [], weeksOfData: 1 },
   statsFilters: createDefaultStatsQualifierState(),
+  statsFiltersBySeason: {
+    "2026": null,
+    "2025": null,
+  },
   // Trade Values entity toggles:
   // keep the three adp-values row filters in page-local state so desktop and
   // mobile controls stay mirrored while tab switches preserve the session.
@@ -2768,6 +2789,7 @@ const controlMounts = Array.from(document.querySelectorAll("[data-control-scope]
   qualifierStatMenu: root.querySelector('[data-qualifier-menu="stat"]'),
   qualifierThresholdMenu: root.querySelector('[data-qualifier-menu="threshold"]'),
   qualifierShowAll: root.querySelector("[data-qualifier-show-all]"),
+  statsSeasonSelect: root.querySelector("[data-stats-season]"),
   teamFilterShell: root.querySelector("[data-team-filter-shell]"),
   teamFilterToggle: root.querySelector("[data-team-filter-toggle]"),
   teamFilterValue: root.querySelector("[data-team-filter-value]"),
@@ -3206,6 +3228,27 @@ function attachEventListeners() {
       state.statsFilters.showAll = Boolean(event.target.checked);
       syncUiState();
       refreshGrid();
+    });
+
+    // Both responsive season selectors share one Stats state. Restore each
+    // season's filters independently so 2026 tier keys never reach 2025 filters.
+    mount.statsSeasonSelect?.addEventListener("change", (event) => {
+      const season = event.target.value;
+      if (state.activePageView !== "stats" || !["2026", "2025"].includes(season) || season === state.statsSeason) return;
+      state.statsFiltersBySeason[state.statsSeason] = { category: state.activeCategory, filters: state.statsFilters };
+      state.statsSeason = season;
+      const saved = state.statsFiltersBySeason[season];
+      state.statsFilters = saved?.category === state.activeCategory
+        ? saved.filters
+        : createDefaultStatsQualifierState(state.activeCategory, season);
+      closeAllDataHubQualifierMenus();
+      closeAllDataHubTeamMenus();
+      syncUiState();
+      refreshGrid();
+    });
+    mount.statsSeasonSelect?.addEventListener("focus", () => {
+      closeAllDataHubQualifierMenus();
+      closeAllDataHubTeamMenus();
     });
 
     teamFilterToggle?.addEventListener("click", () => {
@@ -4208,7 +4251,9 @@ function getActiveRowsForView(pageView = state.activePageView) {
     return [...(state.rookieCareerRowsByCategory[state.activeCategory] || [])];
   }
 
-  return [...state.statsRowsBase];
+  // Keep the shared 2025 base available to valuations/comparisons; the Stats
+  // table alone switches to the empty 2026 source until integration is ready.
+  return [...(state.statsSeason === "2026" ? state.stats2026.rows : state.statsRowsBase)];
 }
 
 function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId }) {
@@ -4465,6 +4510,7 @@ function resolveDataHubContentView(pageTab = state.activePageTab) {
 }
 
 function getDataHubHeroTitle(pageTab = state.activePageTab) {
+  if (pageTab === "stats") return `${state.statsSeason} Stats & Advanced Analytics`;
   return PAGE_TITLES[pageTab]
     || PAGE_TITLES[resolveDataHubContentView(pageTab)]
     || PAGE_TITLES.stats;
@@ -8363,13 +8409,7 @@ function syncStatsQualifierControls(mount) {
     qualifiersActive,
   });
 
-  const thresholdOptions = getStatsQualifierThresholds(
-    state.activeCategory,
-    state.statsFilters.qualifierStat,
-  ).map((threshold) => ({
-    value: String(threshold),
-    label: formatQualifierThresholdLabel(state.statsFilters.qualifierStat, threshold),
-  }));
+  const thresholdOptions = getStatsQualifierOptions();
 
   if (!thresholdOptions.some((option) => option.value === state.statsFilters.qualifierThreshold)) {
     state.statsFilters.qualifierThreshold = getDefaultThresholdForStat(
@@ -8390,6 +8430,8 @@ function syncStatsQualifierControls(mount) {
     inactivePlaceholder: "Set Min",
     qualifiersActive,
   });
+
+  if (mount.statsSeasonSelect) mount.statsSeasonSelect.value = state.statsSeason;
 
   const teamOptions = getDataHubTeamOptions();
   syncSelectedStatsTeamsToOptions(teamOptions);
@@ -8448,7 +8490,10 @@ function syncQualifierDropdownControl(mount, config) {
   const selectedOption = options.find((option) => option.value === selectedValue)
     || options[0]
     || { value: "", label: inactivePlaceholder };
-  valueEl.textContent = qualifiersActive ? selectedOption.label : inactivePlaceholder;
+  valueEl.textContent = qualifiersActive ? (selectedOption.triggerLabel || selectedOption.label) : inactivePlaceholder;
+  // GM_P menu labels retain High/Middle/Low even when all values equal one;
+  // the compact trigger shows the numeric value with the full tier in its title.
+  toggle.title = qualifiersActive ? selectedOption.label : inactivePlaceholder;
 
   const fragment = document.createDocumentFragment();
   options.forEach((optionConfig) => {
@@ -10119,7 +10164,9 @@ function createEmptyStateRow(columnCount) {
   const td = document.createElement("td");
   td.className = "stats-table__empty-cell";
   td.colSpan = columnCount;
-  td.textContent = "No players match the current view.";
+  // The unconnected 2026 table is intentionally blank, not a filter failure.
+  td.textContent = state.activePageView === "stats" && state.statsSeason === "2026" && !state.stats2026.rows.length
+    ? "" : "No players match the current view.";
 
   tr.append(td);
   return tr;
@@ -10371,7 +10418,7 @@ function matchesStatsQualifierFilter(row) {
   }
 
   const qualifierValue = toComparableNumber(row[state.statsFilters.qualifierStat]);
-  const thresholdValue = toComparableNumber(state.statsFilters.qualifierThreshold);
+  const thresholdValue = getStatsQualifierOptions().find((option) => option.value === state.statsFilters.qualifierThreshold)?.threshold;
 
   if (!Number.isFinite(qualifierValue) || !Number.isFinite(thresholdValue)) {
     return false;

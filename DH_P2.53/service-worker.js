@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// League Analysis toggle order, four-card summary, and optional color-shift palettes.
-const CACHE_NAME = 'DH3.46g-analysis';
+// DataHub Stats season selector and week-aware 2026 qualifier thresholds.
+const CACHE_NAME = 'DH3.46h-datahub-seasons';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -55,6 +55,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/app.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
+  '/scripts/datahub-stats-season.js',
   '/scripts/leaguehub.js',
   // League Analysis shares a local projection model and a pinned ECharts renderer.
   '/scripts/leaguehub-analysis.js',

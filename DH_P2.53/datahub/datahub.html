@@ -475,7 +475,7 @@
           <div
             data-qualifier-row
             class="qualifier-row"
-            aria-label="Minimum qualifiers and NFL team filters"
+            aria-label="Minimum qualifiers, NFL team and season filters"
             hidden
           >
             <div class="qualifier-row__header">
@@ -538,6 +538,15 @@
                   <span class="team-filter__value" data-team-filter-value>All Teams</span>
                 </button>
                 <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
+              </div>
+
+              <!-- Stats-only season selector mirrors across desktop and mobile. -->
+              <span class="qualifier-divider" aria-hidden="true"></span>
+              <div class="qualifier-field qualifier-field--season">
+                <select class="qualifier-select stats-season-select" data-stats-season aria-label="Stats season">
+                  <option value="2026" selected>2026 SZN</option>
+                  <option value="2025">2025 SZN</option>
+                </select>
               </div>
             </div>
           </div>
@@ -767,7 +776,7 @@
           <div
             data-qualifier-row
             class="qualifier-row"
-            aria-label="Minimum qualifiers and NFL team filters"
+            aria-label="Minimum qualifiers, NFL team and season filters"
             hidden
           >
             <div class="qualifier-row__header">
@@ -813,7 +822,7 @@
                 <span class="qualifier-toggle__switch" aria-hidden="true">
                   <span class="qualifier-toggle__thumb"></span>
                 </span>
-                <span class="qualifier-toggle__text">Show All</span>
+                <span class="qualifier-toggle__text">All</span>
               </label>
 
               <span class="qualifier-divider" aria-hidden="true"></span>
@@ -830,6 +839,15 @@
                   <span class="team-filter__value" data-team-filter-value>All Teams</span>
                 </button>
                 <div class="team-filter__menu" data-team-filter-menu role="listbox" hidden></div>
+              </div>
+
+              <!-- Stats-only season selector mirrors across desktop and mobile. -->
+              <span class="qualifier-divider" aria-hidden="true"></span>
+              <div class="qualifier-field qualifier-field--season">
+                <select class="qualifier-select stats-season-select" data-stats-season aria-label="Stats season">
+                  <option value="2026" selected>2026 SZN</option>
+                  <option value="2025">2025 SZN</option>
+                </select>
               </div>
             </div>
           </div>
@@ -922,7 +940,7 @@
              Trade Values content view, but the old eyebrow chip is removed. -->
         <div class="hero-copy">
           <h1 id="main-title" class="page-title">
-            2025 Stats &amp; Advanced Analytics
+            2026 Stats &amp; Advanced Analytics
           </h1>
         </div>
 

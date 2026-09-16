@@ -2183,9 +2183,10 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
   color: rgba(185, 202, 227, 0.72);
 }
 
-.qualifier-row__controls {
+body[data-page="datahub"] .qualifier-row__controls {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.76fr) auto 1px minmax(0, 1fr);
+  /* Reserve the final column and matching divider for the Stats season. */
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.65fr) auto 1px minmax(0, 1fr) 1px minmax(0, 1fr);
   align-items: center;
   gap: 6px;
   min-width: 0;
@@ -2275,6 +2276,31 @@ body[data-page="datahub"] .hero-controls .trade-entity-toggle--entity.is-active 
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+/* Stats season uses a native select for keyboard/touch support and the same
+   surface/chevron as the qualifier buttons. This stays inside DataHub only. */
+body[data-page="datahub"] .stats-season-select {
+  appearance: none;
+  color-scheme: dark;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
+  min-width: 112px;
+}
+
+/* Preserve readable Stats labels on the narrowest phone layouts, including
+   three-digit thresholds later in the season, without changing other rows. */
+@media (max-width: 359px) {
+  body[data-page="datahub"] .hero-controls--mobile .qualifier-row__controls {
+    grid-template-columns: minmax(48px, 0.8fr) minmax(38px, 0.6fr) auto 1px minmax(66px, 1.1fr) 1px minmax(65px, 1.13fr);
+    gap: 2px;
+  }
+
+  body[data-page="datahub"] .hero-controls--mobile .qualifier-field--threshold .qualifier-select {
+    padding-inline: 4px 14px;
+  }
 }
 
 .qualifier-select__value {
@@ -6326,9 +6352,25 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     letter-spacing: 0.12em;
   }
 
-  .qualifier-row__controls {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.76fr) auto 1px minmax(0, 1fr);
+  body[data-page="datahub"] .qualifier-row__controls {
+    /* Compact Stats controls leave room for All Teams and the season on mobile. */
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.6fr) auto 1px minmax(0, 1.1fr) 1px minmax(0, 1.13fr);
     gap: 4px;
+  }
+
+  body[data-page="datahub"] .qualifier-row .qualifier-toggle {
+    padding-inline: 4px;
+    gap: 3px;
+  }
+
+  body[data-page="datahub"] .qualifier-row .qualifier-select {
+    padding-inline: 6px 16px;
+    letter-spacing: 0;
+  }
+
+  /* On narrow phones, retain the full All Teams label beside the new season. */
+  body[data-page="datahub"] .qualifier-row .team-filter__trigger {
+    padding-inline: 6px 16px;
   }
 
   .qualifier-field,
@@ -6831,9 +6873,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     color: rgba(190, 207, 232, 0.68);
   }
 
-  .hero-controls--desktop .qualifier-row__controls {
-    grid-template-columns: minmax(0, 1.1fr) minmax(84px, 0.8fr) auto 1px minmax(0, 1fr);
-    gap: 13px;
+  body[data-page="datahub"] .hero-controls--desktop .qualifier-row__controls {
+    /* Narrow only Stats qualifier/team controls to accommodate the season. */
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.65fr) auto 1px minmax(0, 1fr) 1px minmax(0, 1.05fr);
+    gap: 7px;
+  }
+
+  body[data-page="datahub"] .hero-controls--desktop .qualifier-row .qualifier-select,
+  body[data-page="datahub"] .hero-controls--desktop .qualifier-row .team-filter__trigger {
+    padding-inline: 8px 22px;
   }
 
   .hero-controls--desktop .qualifier-select,
