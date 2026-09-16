@@ -228,5 +228,6 @@
   "chat.agent.allowedNetworkDomains": [
     " 127.0.0.1",
     "http://127.0.0.1:5509/DH_P2.53"
-  ]
+  ],
+  "chat.agentHost.codexAgent.enabled": true
 }
