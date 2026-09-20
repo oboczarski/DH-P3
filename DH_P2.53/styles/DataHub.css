@@ -6354,12 +6354,12 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"] .qualifier-row__controls {
     /* Compact Stats controls leave room for All Teams and the season on mobile. */
-    grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.6fr) auto 1px minmax(0, 1.1fr) 1px minmax(0, 1.13fr);
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.65fr) auto 1px minmax(0, 0.7fr) 1px minmax(0, 0.73fr);
     gap: 4px;
   }
 
   body[data-page="datahub"] .qualifier-row .qualifier-toggle {
-    padding-inline: 4px;
+    padding-inline: 6px;
     gap: 3px;
   }
 
