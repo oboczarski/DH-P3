@@ -2577,11 +2577,54 @@ function handleCompareClick() {
     }
     renderAllTeamData(state.currentTeams);
 }
-function handleStartSitButtonClick() {
+async function handleStartSitButtonClick() {
     if (state.isStartSitMode) {
         exitStartSitMode();
-    } else {
+        return;
+    }
+    if (startSitButton?.getAttribute('aria-busy') === 'true') {
+        return;
+    }
+    const teams = state.currentTeams || [];
+    const userTeam = teams.find(team => team.teamName === state.userTeamName) || teams.find(team => team.isUserTeam);
+    if (!userTeam) {
+        if (startSitButton) {
+            showTemporaryTooltip(startSitButton, 'Load your roster first.');
+        }
+        return;
+    }
+
+    // Rosters Start/Sit activation: wait for the shared weekly-stat load before
+    // players become selectable so each preview snapshot receives the current
+    // week's real projection instead of retaining a temporary empty value.
+    const wasDisabled = Boolean(startSitButton?.disabled);
+    if (startSitButton) {
+        startSitButton.disabled = true;
+        startSitButton.setAttribute('aria-busy', 'true');
+    }
+    try {
+        if (playerStatsSheetsLoadPromise) {
+            await playerStatsSheetsLoadPromise;
+        } else {
+            await fetchPlayerStatsSheets();
+        }
+        if (!state.statsSheetsLoaded) {
+            if (startSitButton) {
+                showTemporaryTooltip(startSitButton, 'Unable to load projections. Please try again.');
+            }
+            return;
+        }
         enterStartSitMode();
+    } catch (error) {
+        console.warn('Unable to prepare Start/Sit projections.', error);
+        if (startSitButton) {
+            showTemporaryTooltip(startSitButton, 'Unable to load projections. Please try again.');
+        }
+    } finally {
+        if (startSitButton) {
+            startSitButton.disabled = wasDisabled;
+            startSitButton.removeAttribute('aria-busy');
+        }
     }
 }
 function enterStartSitMode() {

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub live 2026 DH/WK/DRK workbook data and schedule-backed game logs.
-const CACHE_NAME = 'DH3.46i-datahub-live-2026';
+// Rosters Start/Sit now waits for weekly projections before enabling player selection.
+const CACHE_NAME = 'DH3.46j-start-sit-projections';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
