@@ -1321,7 +1321,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2026', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, rosters2026GameLogs: null, rosters2026GameLogsPromise: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2026', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, rosters2025GameLogs: null, rosters2026GameLogs: null, rosters2026GameLogsPromise: null, activeRostersGameLogsSeason: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 // Tracks the in-flight ownership context request used by the Ownership tab inside
 // the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
 let ownershipContextLoadPromise = null;
@@ -1674,7 +1674,7 @@ if (pageType === 'rosters') {
                 // Rosters season switch: reload the currently open player through
                 // the selected source so 2026 never overlays the 2025 CSV state.
                 if (pageType === 'rosters' && state.currentGameLogsPlayer?.id) {
-                    handlePlayerNameClick({ id: state.currentGameLogsPlayer.id });
+                    handlePlayerNameClick(state.currentGameLogsPlayer);
                 }
             });
         }
@@ -2603,12 +2603,20 @@ async function handleStartSitButtonClick() {
         startSitButton.setAttribute('aria-busy', 'true');
     }
     try {
-        if (playerStatsSheetsLoadPromise) {
+        const activeLeague = state.leagues.find((entry) => entry.league_id === state.currentLeagueId);
+        const activeLeagueSeason = Number.parseInt(activeLeague?.season, 10);
+        if (activeLeagueSeason === 2026 && typeof window.activateRosters2026GameLogs === 'function') {
+            // Start/Sit always uses the current-season projection source even if
+            // the user most recently viewed historical 2025 Game Logs.
+            await window.activateRosters2026GameLogs();
+            await ensureSleeperLiveStats();
+        } else if (playerStatsSheetsLoadPromise) {
             await playerStatsSheetsLoadPromise;
         } else {
             await fetchPlayerStatsSheets();
         }
-        if (!state.statsSheetsLoaded) {
+        const hasProjectionStats = Object.keys(state.playerWeeklyStats || {}).length > 0;
+        if (!hasProjectionStats) {
             if (startSitButton) {
                 showTemporaryTooltip(startSitButton, 'Unable to load projections. Please try again.');
             }
@@ -3273,6 +3281,47 @@ async function fetchSleeperPlayers({ force = false } = {}) {
 if (typeof window !== 'undefined') {
     window.fetchSleeperPlayers = fetchSleeperPlayers;
 }
+function applyPlayerStatsSnapshot(snapshot, season = null) {
+    if (!snapshot) return;
+    state.playerSeasonStats = snapshot.seasonStats || {};
+    state.playerSeasonRanks = snapshot.seasonRanks || {};
+    state.playerWeeklyStats = snapshot.weeklyStats || {};
+    state.weeklyStats = snapshot.weeklyStats || {};
+    state.playerProjectionWeeks = snapshot.projectionWeeks || {};
+    state.seasonRankCache = snapshot.seasonRankCache || computeSeasonRankings(state.playerSeasonStats);
+    state.calculatedRankCache = null;
+    if (pageType === 'rosters' && season) {
+        state.activeRostersGameLogsSeason = String(season);
+    }
+}
+async function activateRosters2025GameLogs() {
+    // Rosters 2025 Game Logs source restoration:
+    // the 2026 workbook replaces the shared modal state, so restore the cached
+    // local-CSV snapshot and the previous league's matchups on every switch back.
+    if (!state.rosters2025GameLogs) {
+        await fetchPlayerStatsSheets();
+    }
+    if (!state.rosters2025GameLogs) {
+        throw new Error('Rosters 2025 Game Logs data is unavailable.');
+    }
+    applyPlayerStatsSnapshot(state.rosters2025GameLogs, '2025');
+    state.liveWeeklyStats = {};
+    state.liveStatsLoaded = true;
+    state.lastLiveStatsWeek = null;
+    state.currentNflWeek = 18;
+    state.matchupDataLoaded = false;
+    state.leagueMatchupStats = {};
+
+    const league = state.leagues.find((entry) => entry.league_id === state.currentLeagueId);
+    if (league) {
+        const leagueSeason = Number.parseInt(league.season, 10);
+        const previousLeagueId = league.previous_league_id;
+        const matchupLeagueId = leagueSeason > 2025 && previousLeagueId
+            ? previousLeagueId
+            : league.league_id;
+        await fetchLeagueMatchupData(matchupLeagueId, 18);
+    }
+}
 async function fetchGameLogs(playerId) {
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         await window.activateRosters2026GameLogs();
@@ -3283,6 +3332,8 @@ async function fetchGameLogs(playerId) {
         if (state.currentLeagueId) {
             await fetchLeagueMatchupData(state.currentLeagueId, state.currentNflWeek || 18);
         }
+    } else if (pageType === 'rosters' && state.currentGameLogsSeason === '2025') {
+        await activateRosters2025GameLogs();
     } else if (!state.statsSheetsLoaded) {
         await fetchPlayerStatsSheets();
     } else {
@@ -3708,9 +3759,9 @@ async function fetchPlayerStatsSheets() {
             const { seasonCsv, seasonRanksCsv, allWeeklyCsvs } = shouldUsePlayerStatsGoogleSheets()
                 ? await loadPlayerStatsFromGoogleSheets()
                 : await loadPlayerStatsFromCsvFiles();
-            state.playerSeasonStats = parseSeasonStatsCsv(seasonCsv);
-            state.playerSeasonRanks = parseSeasonRanksCsv(seasonRanksCsv);
-            state.seasonRankCache = computeSeasonRankings(state.playerSeasonStats);
+            const seasonStats = parseSeasonStatsCsv(seasonCsv);
+            const seasonRanks = parseSeasonRanksCsv(seasonRanksCsv);
+            const seasonRankCache = computeSeasonRankings(seasonStats);
             const weeklyStats = {};
             const projectionWeeks = {};
             allWeeklyCsvs.forEach(({ week, csv, hasFullStats }) => {
@@ -3721,13 +3772,23 @@ async function fetchPlayerStatsSheets() {
                     }
                 }
             });
-            state.playerWeeklyStats = weeklyStats;
-            state.weeklyStats = weeklyStats;
-            state.playerProjectionWeeks = projectionWeeks;
+            const snapshot = { seasonStats, seasonRanks, seasonRankCache, weeklyStats, projectionWeeks };
+            if (pageType === 'rosters') {
+                // Preserve the shipped 2025 CSV source independently so a later
+                // 2026 workbook activation cannot make the season dropdown sticky.
+                state.rosters2025GameLogs = snapshot;
+            }
+            const shouldActivateSnapshot = pageType !== 'rosters'
+                || state.currentGameLogsSeason === '2025'
+                || state.activeRostersGameLogsSeason !== '2026';
+            if (shouldActivateSnapshot) {
+                applyPlayerStatsSnapshot(snapshot, pageType === 'rosters' ? '2025' : null);
+            }
             state.statsSheetsLoaded = true;
-            state.liveStatsLoaded = false;
-            state.calculatedRankCache = null;
-            await ensureSleeperLiveStats();
+            if (pageType !== 'rosters') {
+                state.liveStatsLoaded = false;
+                await ensureSleeperLiveStats();
+            }
         } catch (error) {
             console.error('Failed to fetch player stats (CSV/Sheets).', error);
             state.playerSeasonStats = {};
@@ -6557,6 +6618,21 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
 async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const isStaleRequest = () => Number.isFinite(requestSeq) && requestSeq !== gameLogsModalRequestSeq;
     if (isStaleRequest()) return;
+    playerRanks = playerRanks || getDefaultPlayerRanks();
+    const incomingPlayer = player || {};
+    const fullPlayer = state.players[incomingPlayer.id] || null;
+    const valueData = (state.isSuperflex ? state.sflxData : state.oneQbData)?.[incomingPlayer.id] || null;
+    const normalizedPosition = String(incomingPlayer.pos || incomingPlayer.position || fullPlayer?.position || valueData?.pos || 'NA').toUpperCase();
+    player = {
+        ...(fullPlayer || {}),
+        ...incomingPlayer,
+        id: incomingPlayer.id,
+        pos: normalizedPosition,
+        team: incomingPlayer.team || fullPlayer?.team || valueData?.team || 'FA',
+        ktc: incomingPlayer.ktc ?? valueData?.ktc ?? null,
+        posRank: incomingPlayer.posRank ?? valueData?.posRank ?? null,
+        overallRank: incomingPlayer.overallRank ?? valueData?.overallRank ?? null
+    };
     // Keep current player data so overlay panels (including radar) can re-render.
     state.currentGameLogsPlayer = player;
     state.currentGameLogsPlayerRanks = playerRanks;
@@ -6569,7 +6645,6 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const league = state.leagues.find(l => l.league_id === state.currentLeagueId);
     if (!league && !state.isGameLogFromStatsPage) return;
     const scoringSettings = league?.scoring_settings || {};
-    const fullPlayer = state.players[player.id];
     const playerName = fullPlayer ? `${fullPlayer.first_name} ${fullPlayer.last_name}` : player.name;
     const modalHeader = document.getElementById('modal-header');
 
@@ -6607,10 +6682,19 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     }
     // Render summary chips
     const summaryChipsContainer = document.getElementById('modal-summary-chips');
+    const formatSummaryValue = (value) => {
+        if (value === null || value === undefined) return '—';
+        const text = String(value).trim();
+        if (!text || /^(?:undefined|null|nan)$/i.test(text)) return '—';
+        return text;
+    };
+    const totalPointsDisplay = formatSummaryValue(playerRanks?.total_pts);
+    const ppgDisplay = formatSummaryValue(playerRanks?.ppg);
+    const ktcDisplay = formatSummaryValue(player.ktc);
     summaryChipsContainer.innerHTML = `
                 <div class="gamelogs-summary-chip">
                     <h4>
-                        <span class="chip-header-value" style="color: ${getConditionalColorByRank(playerRanks.posRank, player.pos)}">${playerRanks.total_pts} </span>
+                        <span class="chip-header-value" style="color: ${getConditionalColorByRank(playerRanks.posRank, player.pos)}">${totalPointsDisplay} </span>
                         <span class="chip-unit"> FPTS</span>
                     </h4>
                     <div class="chip-values">
@@ -6624,7 +6708,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 </div>
                 <div class="gamelogs-summary-chip">
                     <h4>
-                        <span class="chip-header-value" style="color: ${getConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${playerRanks.ppg}</span>
+                        <span class="chip-header-value" style="color: ${getConditionalColorByRank(playerRanks.ppgPosRank, player.pos)}">${ppgDisplay}</span>
                         <span class="chip-unit"> PPG</span>
                     </h4>
                     <div class="chip-values">
@@ -6638,7 +6722,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 </div>
                 <div class="gamelogs-summary-chip">
                     <h4>
-                        <span class="chip-header-value" style="color: ${getKtcColor(player.ktc)}">${player.ktc}</span>
+                        <span class="chip-header-value" style="color: ${getKtcColor(player.ktc)}">${ktcDisplay}</span>
                         <span class="chip-unit"> KTC</span>
                     </h4>
                     <div class="chip-values">

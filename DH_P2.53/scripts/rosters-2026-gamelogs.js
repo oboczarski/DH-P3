@@ -167,6 +167,7 @@
         state.weeklyStats = snapshot.weeklyStats;
         state.playerProjectionWeeks = {};
         state.liveWeeklyStats = {};
+        state.activeRostersGameLogsSeason = '2026';
         // 2026 consistency remains sheet-backed, while the weekly table and
         // summary ranks may use the selected league's Sleeper matchup scores.
         state.matchupDataLoaded = false;
