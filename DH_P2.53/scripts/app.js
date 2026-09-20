@@ -1321,7 +1321,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, rosters2026GameLogs: null, rosters2026GameLogsPromise: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 // Tracks the in-flight ownership context request used by the Ownership tab inside
 // the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
 let ownershipContextLoadPromise = null;
@@ -1671,6 +1671,11 @@ if (pageType === 'rosters') {
                 if (!option) return;
                 setGameLogsSelectedSeason(option.dataset.gamelogsSeasonValue);
                 closeGameLogsSeasonMenu();
+                // Rosters season switch: reload the currently open player through
+                // the selected source so 2026 never overlays the 2025 CSV state.
+                if (pageType === 'rosters' && state.currentGameLogsPlayer?.id) {
+                    handlePlayerNameClick({ id: state.currentGameLogsPlayer.id });
+                }
             });
         }
         document.addEventListener('click', (event) => {
@@ -3220,7 +3225,9 @@ if (typeof window !== 'undefined') {
     window.fetchSleeperPlayers = fetchSleeperPlayers;
 }
 async function fetchGameLogs(playerId) {
-    if (!state.statsSheetsLoaded) {
+    if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        await window.activateRosters2026GameLogs();
+    } else if (!state.statsSheetsLoaded) {
         await fetchPlayerStatsSheets();
     } else {
         await ensureSleeperLiveStats();
@@ -5318,7 +5325,9 @@ async function handlePlayerNameClick(player) {
     // Stats page uses sheet data, other pages calculate from weekly data
     const playerRanks = state.isGameLogFromStatsPage
         ? getStatsPagePlayerRanks(player.id)
-        : calculatePlayerStatsAndRanks(player.id);
+        : (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && typeof window.getRosters2026PlayerRanks === 'function'
+            ? window.getRosters2026PlayerRanks(player.id)
+            : calculatePlayerStatsAndRanks(player.id));
     if (isStaleRequest()) return;
     await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
 }
