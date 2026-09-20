@@ -4208,22 +4208,7 @@ body[data-page="rosters"] #rosterGrid .player-adp {
   filter: brightness(1.25);
 }
 
-body[data-page="rosters"] .player-ppg-wrapper .value {
-  margin-left: 0.03rem;
-}
-
-body[data-page="rosters"] #rosterGrid .player-ppg {
-  font-family: 'Google Sans', var(--font-sans);
-  font-size: 0.55rem;
-  font-weight: 300;
-  filter: brightness(1.25);
-}
-
 body[data-page="rosters"] #rosterGrid.condensed-mode .player-adp {
-  font-size: 0.5rem;
-}
-
-body[data-page="rosters"] #rosterGrid.condensed-mode .player-ppg {
   font-size: 0.5rem;
 }
 

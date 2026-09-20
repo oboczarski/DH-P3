@@ -5176,7 +5176,6 @@ function getPlayerData(playerId, slot) {
         posRank: valueData?.posRank || null,
         overallRank: valueData?.overallRank || null,
         ppg: playerRanks ? parseFloat(playerRanks.ppg) : 0,
-        ppgRank: playerRanks?.ppgPosRank || null,
         playerRanks: playerRanks,
         injuryDesignation: upcomingDesignation
     };
@@ -8508,11 +8507,9 @@ function createPlayerRow(player, teamName) {
         }
     }
     const ktc = player.ktc || '—';
-    const ppgValueNumber = Number(player.ppg ?? playerRanks.ppg);
-    const hasPpgValue = Number.isFinite(ppgValueNumber) && ppgValueNumber >= 0;
-    const ppgValue = hasPpgValue ? ppgValueNumber.toFixed(1) : 'NA';
-    const ppgRankNumber = Number.parseInt(player.ppgRank ?? playerRanks.ppgPosRank, 10);
-    const hasPpgRank = Number.isFinite(ppgRankNumber) && ppgRankNumber > 0;
+    const numericAdpValue = Number(player.adp);
+    const hasAdpValue = Number.isFinite(numericAdpValue) && numericAdpValue > 0;
+    const adpValue = hasAdpValue ? numericAdpValue.toFixed(1) : 'NA';
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
@@ -8549,7 +8546,7 @@ function createPlayerRow(player, teamName) {
     const tradePreviewAgeHtml = isTradePreviewCard
         ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span></span>`
         : '';
-    const tradePreviewPpgHtml = `<span class="player-ppg-wrapper trade-preview-adp-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>`;
+    const tradePreviewAdpHtml = `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`;
     const tradePreviewTeamHtml = isTradePreviewCard
         ? `<span class="trade-preview-team-slot">${teamTagHTML}</span>`
         : '';
@@ -8568,7 +8565,7 @@ function createPlayerRow(player, teamName) {
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
                     ${isTradePreviewCard
-                        ? tradePreviewPpgHtml
+                        ? tradePreviewAdpHtml
                         : `<span><span class="player-age">${player.age || '?'} </span> y.o. </span>`}
                     ${isTradePreviewCard
                         ? `<span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>`
@@ -8576,11 +8573,11 @@ function createPlayerRow(player, teamName) {
                 </div>`;
     const valueLineHtml = isTradePreviewCard
         ? (isCondensedView
-            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewPpgHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
+            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewAdpHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
             : '')
         : `<div class="player-value-line">
                     <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
-                    <span class="player-ppg-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>
+                    <span class="player-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>
                 </div>`;
     // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
     const rosterWatermarkHtml = (player.team && player.team !== 'FA')
@@ -8613,7 +8610,7 @@ function createPlayerRow(player, teamName) {
     }
     const ageEl = row.querySelector('.player-age');
     const ktcEl = row.querySelector('.player-ktc');
-    const ppgEl = row.querySelector('.player-ppg');
+    const adpEl = row.querySelector('.player-adp');
     const playerPosRankEl = row.querySelector('.player-pos-rank');
     if (playerPosRankEl) {
         playerPosRankEl.textContent = fptsPosRankDisplay;
@@ -8621,10 +8618,10 @@ function createPlayerRow(player, teamName) {
     }
     if (ageEl && player.age && player.age !== '?') ageEl.style.color = getAgeColorForRoster(player.pos, parseFloat(player.age));
     if (ktcEl && player.ktc) ktcEl.style.color = getKtcColor(player.ktc);
-    if (ppgEl) {
-        ppgEl.textContent = ppgValue;
-        ppgEl.style.color = hasPpgValue
-            ? 'var(--color-text-primary)'
+    if (adpEl) {
+        adpEl.textContent = adpValue;
+        adpEl.style.color = hasAdpValue
+            ? getAdpColorForRoster(numericAdpValue)
             : 'var(--color-text-tertiary)';
     }
     const ktcWrapper = row.querySelector('.player-ktc-wrapper');
@@ -8676,31 +8673,6 @@ function createPlayerRow(player, teamName) {
                 rankSuffixDisplay.style.color = ktcColor;
             }
         }
-    }
-    const ppgWrapper = row.querySelector('.player-ppg-wrapper');
-    if (ppgWrapper) {
-        ppgWrapper.classList.add('has-rank-annotation');
-        const annotation = createRankAnnotation(
-            hasPpgRank ? ppgRankNumber : 'NA',
-            { wrapInParens: true, ordinal: true, variant: 'ktc' }
-        );
-        const rankNumberSpan = annotation.querySelector('.stat-rank-number');
-        const rankSuffixSpan = annotation.querySelector('.stat-rank-suffix');
-        const valueSpan = ppgWrapper.querySelector('.value.player-ppg');
-        if (valueSpan) ppgWrapper.removeChild(valueSpan);
-        while (annotation.firstChild) annotation.removeChild(annotation.firstChild);
-        annotation.appendChild(document.createTextNode('('));
-        if (valueSpan) annotation.appendChild(valueSpan);
-        annotation.appendChild(document.createTextNode(')'));
-        const rankDisplay = document.createElement('span');
-        rankDisplay.className = 'ppg-rank-display';
-        rankDisplay.textContent = rankNumberSpan?.textContent || '';
-        const rankSuffixDisplay = document.createElement('span');
-        rankSuffixDisplay.className = 'ppg-rank-suffix-display';
-        rankSuffixDisplay.textContent = rankSuffixSpan?.textContent || '';
-        ppgWrapper.appendChild(rankDisplay);
-        if (rankSuffixDisplay.textContent) ppgWrapper.appendChild(rankSuffixDisplay);
-        ppgWrapper.appendChild(annotation);
     }
     const playerNameClickableEl = row.querySelector('.player-name-clickable');
     if (playerNameClickableEl) {
