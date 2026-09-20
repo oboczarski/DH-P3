@@ -14502,7 +14502,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-season-option {
   justify-content: space-between;
   gap: 0.25rem;
   width: 100%;
-  padding: 0.34rem 0.22rem;
+  padding: 0.54rem 0.22rem;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -14521,7 +14521,7 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-season-option.is-selected {
 }
 
 body[data-page="datahub"] #game-logs-modal .gamelogs-season-option-year {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
