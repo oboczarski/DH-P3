@@ -18,7 +18,7 @@
         TGT: 'rec_tgt', REC: 'rec', recYDS: 'rec_yd', recTD: 'rec_td', rec1D: 'rec_fd', YAC: 'rec_yar', YPR: 'ypr',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
-        CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj'
+        CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
     };
     const normalizeTeam = (team) => ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[String(team || '').trim().toUpperCase()] || String(team || '').trim().toUpperCase();
     const csvLine = (line) => {
@@ -167,7 +167,11 @@
         state.weeklyStats = snapshot.weeklyStats;
         state.playerProjectionWeeks = {};
         state.liveWeeklyStats = {};
-        state.liveStatsLoaded = true;
+        // 2026 consistency remains sheet-backed, while the weekly table and
+        // summary ranks may use the selected league's Sleeper matchup scores.
+        state.matchupDataLoaded = false;
+        state.leagueMatchupStats = {};
+        state.liveStatsLoaded = false;
         return snapshot;
     }
     window.ensureRosters2026GameLogsLoaded = ensureRosters2026GameLogsLoaded;

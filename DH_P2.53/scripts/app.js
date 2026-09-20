@@ -3227,6 +3227,13 @@ if (typeof window !== 'undefined') {
 async function fetchGameLogs(playerId) {
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         await window.activateRosters2026GameLogs();
+        // Sleeper matchup points are the authoritative league-specific source
+        // for the weekly table and summary totals. Keep workbook FPT_PPR in
+        // playerWeeklyStats for the consistency chart only.
+        await ensureSleeperLiveStats();
+        if (state.currentLeagueId) {
+            await fetchLeagueMatchupData(state.currentLeagueId, state.currentNflWeek || 18);
+        }
     } else if (!state.statsSheetsLoaded) {
         await fetchPlayerStatsSheets();
     } else {
@@ -5325,9 +5332,7 @@ async function handlePlayerNameClick(player) {
     // Stats page uses sheet data, other pages calculate from weekly data
     const playerRanks = state.isGameLogFromStatsPage
         ? getStatsPagePlayerRanks(player.id)
-        : (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && typeof window.getRosters2026PlayerRanks === 'function'
-            ? window.getRosters2026PlayerRanks(player.id)
-            : calculatePlayerStatsAndRanks(player.id));
+        : calculatePlayerStatsAndRanks(player.id);
     if (isStaleRequest()) return;
     await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
 }
