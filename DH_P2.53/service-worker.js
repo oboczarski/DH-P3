@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters Game Logs can switch cleanly between isolated 2025 and 2026 data snapshots.
-const CACHE_NAME = 'DH3.46k-game-log-season-switch';
+// Rosters Game Logs season menu now displays only the selectable years.
+const CACHE_NAME = 'DH3.46l-game-log-year-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
