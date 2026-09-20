@@ -1321,7 +1321,7 @@ if (pageType !== 'welcome') {
 }
 
 // --- State ---
-let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, lastLiveStatsFetchTs: 0, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2025', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, rosters2026GameLogs: null, rosters2026GameLogsPromise: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
+let state = { userId: null, leagues: [], players: {}, oneQbData: {}, sflxData: {}, currentLeagueId: null, isSuperflex: false, cache: {}, teamsToCompare: new Set(), isCompareMode: false, currentRosterView: 'positional', activePositions: new Set(), tradeBlock: {}, isTradeCollapsed: false, weeklyStats: {}, playerSeasonStats: {}, playerSeasonRanks: {}, playerWeeklyStats: {}, statsSheetsLoaded: false, seasonRankCache: null, isGameLogModalOpenFromComparison: false, liveWeeklyStats: {}, liveStatsLoaded: false, currentNflSeason: null, currentNflWeek: null, lastLiveStatsWeek: null, calculatedRankCache: null, playerProjectionWeeks: {}, isStartSitMode: false, startSitSelections: [], startSitNextSide: 'left', startSitTeamName: null, startSitCompactPreview: false, leagueMatchupStats: {}, matchupDataLoaded: false, draftOrderBySeason: {}, isGameLogFromStatsPage: false, statsPagePlayerData: null, currentGameLogsPlayerRanks: null, currentGameLogsSummary: null, currentConsistencyData: null, currentGameLogsSeason: '2026', isGameLogsCareerPlaceholderActive: false, careerStatsByPlayer: null, rosters2026GameLogs: null, rosters2026GameLogsPromise: null, ownershipMode: 'ownership', ownershipContext: null, ownershipRows: [], ownershipValueRows: [], ownershipListSearchTerm: '', ownershipValueSearchTerm: '', ownershipValuePositionFilter: 'ALL', ownershipPercentPositionFilter: 'ALL', ownershipPreferredKtcMode: 'sflx', ownershipValueSortColumn: null, ownershipValueSortDirection: null, watchlist: new Set(), watchlistLoaded: false };
 // Tracks the in-flight ownership context request used by the Ownership tab inside
 // the Game Logs modal so repeated tab taps do not fan out duplicate league loads.
 let ownershipContextLoadPromise = null;
@@ -2466,7 +2466,13 @@ async function handleLeagueSelect() {
         const matchupLeagueId = usePreviousSeason ? previousLeagueId : leagueId;
         const matchupMaxWeek = usePreviousSeason ? 18 : null; // null uses current week
         await fetchLeagueMatchupData(matchupLeagueId, matchupMaxWeek);
-
+        
+        // Rosters card metrics default to the active 2026 workbook. Load its
+        // FPTS/PPG rank snapshot before creating cards so the first paint uses
+        // the same season data as the Game Logs modal.
+        if (pageType === 'rosters' && leagueSeason === 2026 && typeof window.activateRosters2026GameLogs === 'function') {
+            await window.activateRosters2026GameLogs();
+        }
         // Hydrate draft order (for precise pick labels like 2026 1.02 and KTC early/mid/late buckets)
         await hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts });
 
@@ -5137,6 +5143,14 @@ function getOwnedPicks(rosterId, tradedPicks, leagueInfo) {
     });
     return ownedPicks.sort((a, b) => a.season.localeCompare(b.season) || a.round - b.round);
 }
+function getRosterCardRanks(playerId) {
+    if (pageType === 'rosters' && state.currentGameLogsSeason === '2026'
+        && typeof window.getRosters2026PlayerRanks === 'function') {
+        return window.getRosters2026PlayerRanks(playerId);
+    }
+    return calculatePlayerStatsAndRanks(playerId);
+}
+
 function getPlayerData(playerId, slot) {
     const player = state.players[playerId];
     if (!player) return { id: playerId, name: 'Unknown Player', pos: '?', age: '?', team: '?', adp: null, ktc: null, slot, posRank: null, ppg: 0, injuryDesignation: null };
@@ -5147,7 +5161,7 @@ function getPlayerData(playerId, slot) {
     // Prioritize age from the sheet and format it to one decimal place
     const ageFromSheet = valueData?.age;
     const formattedAge = (typeof ageFromSheet === 'number') ? ageFromSheet.toFixed(1) : (player.age ? Number(player.age).toFixed(1) : '?');
-    const playerRanks = calculatePlayerStatsAndRanks(playerId) || getDefaultPlayerRanks();
+    const playerRanks = getRosterCardRanks(playerId) || getDefaultPlayerRanks();
     // Prefer direct Sleeper injury status; fall back to sheet-based upcoming projection designation
     const upcomingDesignation = getSleeperInjuryDesignation(playerId) || getUpcomingProjectionDesignation(playerId);
     return {
@@ -5162,6 +5176,7 @@ function getPlayerData(playerId, slot) {
         posRank: valueData?.posRank || null,
         overallRank: valueData?.overallRank || null,
         ppg: playerRanks ? parseFloat(playerRanks.ppg) : 0,
+        ppgRank: playerRanks?.ppgPosRank || null,
         playerRanks: playerRanks,
         injuryDesignation: upcomingDesignation
     };
@@ -8451,7 +8466,7 @@ function createPlayerRow(player, teamName) {
     const displaySlot = state.currentRosterView === 'depth' ? (slotAbbr[player.slot] || player.slot) : player.pos;
     const fullPlayer = state.players?.[player.id];
     // Use pre-calculated ranks if available, otherwise calculate once
-    const playerRanks = player._cachedRanks || calculatePlayerStatsAndRanks(player.id) || getDefaultPlayerRanks();
+    const playerRanks = player._cachedRanks || getRosterCardRanks(player.id) || getDefaultPlayerRanks();
     if (!player._cachedRanks) player._cachedRanks = playerRanks;
     const firstName = (player.first_name || fullPlayer?.first_name || '').trim();
     const lastName = (player.last_name || fullPlayer?.last_name || '').trim();
@@ -8493,11 +8508,11 @@ function createPlayerRow(player, teamName) {
         }
     }
     const ktc = player.ktc || '—';
-    // Roster ADP comes from the same league-format KTC row already selected by
-    // getPlayerData() (KTC_1QB for 1QB leagues, KTC_SFLX for superflex leagues).
-    const numericAdpValue = Number(player.adp);
-    const hasAdpValue = Number.isFinite(numericAdpValue) && numericAdpValue > 0;
-    const adpValue = hasAdpValue ? numericAdpValue.toFixed(1) : 'NA';
+    const ppgValueNumber = Number(player.ppg ?? playerRanks.ppg);
+    const hasPpgValue = Number.isFinite(ppgValueNumber) && ppgValueNumber >= 0;
+    const ppgValue = hasPpgValue ? ppgValueNumber.toFixed(1) : 'NA';
+    const ppgRankNumber = Number.parseInt(player.ppgRank ?? playerRanks.ppgPosRank, 10);
+    const hasPpgRank = Number.isFinite(ppgRankNumber) && ppgRankNumber > 0;
     const teamKey = (player.team || 'FA').toUpperCase();
     const logoKeyMap = { 'WSH': 'was', 'WAS': 'was', 'JAC': 'jax', 'LA': 'lar' };
     const normalizedKey = logoKeyMap[teamKey] || teamKey.toLowerCase();
@@ -8534,7 +8549,7 @@ function createPlayerRow(player, teamName) {
     const tradePreviewAgeHtml = isTradePreviewCard
         ? `<span class="trade-preview-age"><span class="player-age">${player.age || '?'}</span><span class="trade-preview-age-unit"> y.o.</span></span>`
         : '';
-    const tradePreviewAdpHtml = `<span class="player-adp-wrapper trade-preview-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>`;
+    const tradePreviewPpgHtml = `<span class="player-ppg-wrapper trade-preview-adp-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>`;
     const tradePreviewTeamHtml = isTradePreviewCard
         ? `<span class="trade-preview-team-slot">${teamTagHTML}</span>`
         : '';
@@ -8553,7 +8568,7 @@ function createPlayerRow(player, teamName) {
                     <span class="player-pos-rank" style="color: ${posRankColor}; font-weight: 400;">${fptsPosRankDisplay}</span>
                     <span class="separator">•</span>
                     ${isTradePreviewCard
-                        ? tradePreviewAdpHtml
+                        ? tradePreviewPpgHtml
                         : `<span><span class="player-age">${player.age || '?'} </span> y.o. </span>`}
                     ${isTradePreviewCard
                         ? `<span class="separator">•</span><span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>`
@@ -8561,11 +8576,11 @@ function createPlayerRow(player, teamName) {
                 </div>`;
     const valueLineHtml = isTradePreviewCard
         ? (isCondensedView
-            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewAdpHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
+            ? `<div class="player-value-line trade-preview-condensed-value-line">${tradePreviewPpgHtml}<span class="player-ktc-wrapper trade-preview-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span></div>`
             : '')
         : `<div class="player-value-line">
                     <span class="player-ktc-wrapper">KTC:<span class="value player-ktc">${ktc}</span></span>
-                    <span class="player-adp-wrapper">ADP:<span class="value player-adp">${adpValue}</span></span>
+                    <span class="player-ppg-wrapper">PPG:<span class="value player-ppg">${ppgValue}</span></span>
                 </div>`;
     // Team logo watermark: subtle background image behind card content (similar to watchlist cards)
     const rosterWatermarkHtml = (player.team && player.team !== 'FA')
@@ -8598,7 +8613,7 @@ function createPlayerRow(player, teamName) {
     }
     const ageEl = row.querySelector('.player-age');
     const ktcEl = row.querySelector('.player-ktc');
-    const adpEl = row.querySelector('.player-adp');
+    const ppgEl = row.querySelector('.player-ppg');
     const playerPosRankEl = row.querySelector('.player-pos-rank');
     if (playerPosRankEl) {
         playerPosRankEl.textContent = fptsPosRankDisplay;
@@ -8606,10 +8621,10 @@ function createPlayerRow(player, teamName) {
     }
     if (ageEl && player.age && player.age !== '?') ageEl.style.color = getAgeColorForRoster(player.pos, parseFloat(player.age));
     if (ktcEl && player.ktc) ktcEl.style.color = getKtcColor(player.ktc);
-    if (adpEl) {
-        adpEl.textContent = adpValue;
-        adpEl.style.color = hasAdpValue
-            ? getAdpColorForRoster(numericAdpValue)
+    if (ppgEl) {
+        ppgEl.textContent = ppgValue;
+        ppgEl.style.color = hasPpgValue
+            ? 'var(--color-text-primary)'
             : 'var(--color-text-tertiary)';
     }
     const ktcWrapper = row.querySelector('.player-ktc-wrapper');
@@ -8661,6 +8676,31 @@ function createPlayerRow(player, teamName) {
                 rankSuffixDisplay.style.color = ktcColor;
             }
         }
+    }
+    const ppgWrapper = row.querySelector('.player-ppg-wrapper');
+    if (ppgWrapper) {
+        ppgWrapper.classList.add('has-rank-annotation');
+        const annotation = createRankAnnotation(
+            hasPpgRank ? ppgRankNumber : 'NA',
+            { wrapInParens: true, ordinal: true, variant: 'ktc' }
+        );
+        const rankNumberSpan = annotation.querySelector('.stat-rank-number');
+        const rankSuffixSpan = annotation.querySelector('.stat-rank-suffix');
+        const valueSpan = ppgWrapper.querySelector('.value.player-ppg');
+        if (valueSpan) ppgWrapper.removeChild(valueSpan);
+        while (annotation.firstChild) annotation.removeChild(annotation.firstChild);
+        annotation.appendChild(document.createTextNode('('));
+        if (valueSpan) annotation.appendChild(valueSpan);
+        annotation.appendChild(document.createTextNode(')'));
+        const rankDisplay = document.createElement('span');
+        rankDisplay.className = 'ppg-rank-display';
+        rankDisplay.textContent = rankNumberSpan?.textContent || '';
+        const rankSuffixDisplay = document.createElement('span');
+        rankSuffixDisplay.className = 'ppg-rank-suffix-display';
+        rankSuffixDisplay.textContent = rankSuffixSpan?.textContent || '';
+        ppgWrapper.appendChild(rankDisplay);
+        if (rankSuffixDisplay.textContent) ppgWrapper.appendChild(rankSuffixDisplay);
+        ppgWrapper.appendChild(annotation);
     }
     const playerNameClickableEl = row.querySelector('.player-name-clickable');
     if (playerNameClickableEl) {
@@ -11602,7 +11642,7 @@ function openModal() {
     statsKeyContainer.classList.add('hidden');
     if (radarChartContainer) radarChartContainer.classList.add('hidden');
     if (consistencyContainer) consistencyContainer.classList.add('hidden');
-    setGameLogsSelectedSeason(state.currentGameLogsSeason || '2025');
+    setGameLogsSelectedSeason(state.currentGameLogsSeason || '2026');
     setGameLogsModalView('gl');
 
     // Always reset to Game Logs tab when opening the modal

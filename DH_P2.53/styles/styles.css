@@ -97,6 +97,43 @@
   font-size: 0.5rem;
 }
 
+/* Rosters PPG rank/value display mirrors the KTC card treatment: 21st(15.2). */
+.player-ppg-wrapper.has-rank-annotation .stat-rank-annotation {
+  margin-left: -1px;
+}
+
+#rosterGrid .player-ppg-wrapper .ppg-rank-display {
+  margin-left: 0.03rem;
+  font-weight: 800;
+  font-size: 0.62rem;
+}
+
+#rosterGrid .player-ppg-wrapper .ppg-rank-suffix-display {
+  font-size: 0.55rem;
+  font-weight: 500;
+  margin-left: 0.02rem;
+}
+
+#rosterGrid .player-ppg-wrapper .player-ppg {
+  font-size: 0.57rem;
+}
+
+@media (max-width: 819px) {
+  #rosterGrid .player-ppg-wrapper .ppg-rank-display {
+    font-size: 0.56rem;
+    font-family: 'Google Sans';
+  }
+
+  #rosterGrid .player-ppg-wrapper .ppg-rank-suffix-display {
+    margin-right: 2px;
+    font-size: 0.55rem;
+  }
+
+  #rosterGrid .player-ppg-wrapper .player-ppg {
+    font-size: 0.52rem;
+  }
+}
+
 /* Match previous brightness treatment on KTC rank after the markup swap */
 #rosterGrid .player-ktc-wrapper .ktc-rank-display,
 #rosterGrid .player-ktc-wrapper .ktc-rank-suffix-display {
