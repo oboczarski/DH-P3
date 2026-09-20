@@ -6875,7 +6875,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"] .hero-controls--desktop .qualifier-row__controls {
     /* Narrow only Stats qualifier/team controls to accommodate the season. */
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.65fr) auto 1px minmax(0, 1fr) 1px minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.7fr) auto 1px minmax(0, 0.8fr) 1px minmax(0, 0.8fr);
     gap: 7px;
   }
 
