@@ -121,7 +121,7 @@
   }
 
   #rosterGrid .player-ktc-wrapper .player-ktc {
-    font-size: 0.56rem;
+    font-size: 0.52rem;
   }
 }
 
@@ -6772,7 +6772,7 @@ body::before {
 /* Restore compact inline annotation for general UI (player cards, tables) */
 .has-rank-annotation .stat-rank-annotation {
   display: inline-block;
-  font-size: 1.1em;
+  font-size: 1em;
   line-height: 1;
   margin-left: 0.1em;
   transform: translateY(-0.25em);
