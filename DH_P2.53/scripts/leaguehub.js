@@ -649,12 +649,6 @@
       refine.open = false;
       refine.querySelector('summary')?.focus();
     });
-    // Optional color tester changes both bar charts without touching rankings or the radar.
-    document.addEventListener('leaguehub:color-shift', () => {
-      if (!state.teams?.length) return;
-      renderLineupChart();
-      renderOverallChart();
-    });
     wireQualityMatrixControls();
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
@@ -3772,10 +3766,7 @@
         : dynasty
           ? { QB: '#15607a', RB: '#0c8184', WR: '#0da0a4', TE: '#09bb9f', FLEX: '#2ad2a0', SUPER_FLEX: '#37ebb5', Depth: '#16d9cd', Picks: '#00c8f0' }
           : { QB: '#003c63', RB: '#005d91', WR: '#006da2', TE: '#007bb4', FLEX: '#008cd1', SUPER_FLEX: '#00a3ff', Depth: '#3076ff' };
-      // Optional tester hook: removing its script restores these defaults. Map
-      // the full segment order so position filters never change a segment's hue.
-      const paletteKeys = power ? [...new Set(state.radarSlots.map(slot => slot.type)), 'Depth', ...(dynasty ? ['Picks'] : [])] : [...POSITION_ORDER, 'Picks'];
-      const colors = window.LeagueHubColorShift?.colors(metric, paletteKeys) || defaultColors;
+      const colors = defaultColors;
       const rows = state.teams.map(team => {
         // Refine is applied before position filtering, totals, ranking, and Top 6.
         // All-view totals use exactly the components behind the matrix/rings.
