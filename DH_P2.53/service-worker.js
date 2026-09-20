@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Rosters Game Logs season menu now displays only the selectable years.
-const CACHE_NAME = 'DH3.46l-game-log-year-labels';
+// DataHub mobile Game Logs season menu displays only the selectable years.
+const CACHE_NAME = 'DH3.46m-datahub-mobile-year-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

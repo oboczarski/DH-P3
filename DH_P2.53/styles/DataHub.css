@@ -14538,6 +14538,14 @@ body[data-page="datahub"] #game-logs-modal .gamelogs-season-option.is-selected .
   color: rgb(164 190 255 / 93%);
 }
 
+/* DataHub mobile Game Logs year menu: show only the selectable years below
+   the page's 720px desktop breakpoint; keep the desktop year notes intact. */
+@media (max-width: 719px) {
+  body[data-page="datahub"] #game-logs-modal .gamelogs-season-option-note {
+    display: none;
+  }
+}
+
 body[data-page="datahub"] #game-logs-modal .gamelogs-view-switcher {
   height: 30px;
   align-items: stretch !important;
