@@ -1,5 +1,5 @@
-// DataHub Stats 2026 qualifiers. The future season loader must supply the number
-// of weeks actually loaded; never derive this from today's date or player GM_P.
+// DataHub Stats 2026 qualifiers. The workbook loader supplies the count of WK
+// tabs with results; never derive this from today's date or a player's GM_P.
 // Stable option keys preserve the chosen tier as its numeric threshold changes.
 const WEEK_ONE_OPTIONS = Object.freeze({
   RR: [26, 22, 17, 13, 11],
@@ -10,6 +10,16 @@ const WEEK_ONE_OPTIONS = Object.freeze({
   "SNP%": [70, 60, 50, 40, 30],
 });
 const DEFAULT_OPTION_INDEX = Object.freeze({ RR: 3, TGT: 1, CAR: 2, paATT: 1, DB: 0, "SNP%": 0 });
+
+// Season ranks use the position's default volume qualifier, independently of
+// the user's table filter or Show All setting. WR and TE rank separately.
+export function is2026RankQualified(row, weeksOfData = 1) {
+  const stat = { QB: 'paATT', RB: 'CAR', WR: 'RR', TE: 'RR' }[row.POS];
+  if (!stat) return false;
+  const threshold = get2026QualifierOptions(stat, weeksOfData).find((option) => option.isDefault).threshold;
+  const value = Number(row[stat]);
+  return Number.isFinite(value) && value >= threshold;
+}
 
 export function get2026QualifierOptions(stat, weeksOfData = 1) {
   const weeks = Math.max(1, Math.min(18, Math.floor(Number(weeksOfData) || 1)));

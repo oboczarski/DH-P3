@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { get2026QualifierOptions as options } from '../DH_P2.53/scripts/datahub-stats-season.js';
+import { get2026QualifierOptions as options, is2026RankQualified } from '../DH_P2.53/scripts/datahub-stats-season.js';
+
+test('season ranking pools use position defaults and exclude players below the boundary', () => {
+  for (const [pos, stat, minimum] of [['QB','paATT',16], ['RB','CAR',5], ['WR','RR',13], ['TE','RR',13]]) {
+    assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum - 1, FPTS: 1000 }), false);
+    assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum }), true);
+    assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum }, 2), false);
+    assert.equal(is2026RankQualified({ POS: pos, [stat]: minimum * 2 }, 2), true);
+    assert.equal(is2026RankQualified({ POS: pos, [stat]: 'NA' }), false);
+  }
+});
 
 test('volume qualifiers scale every option and preserve the selected default through Week 18', () => {
   const expected = {

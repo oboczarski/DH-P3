@@ -1,4 +1,5 @@
-import { get2026QualifierOptions } from "./datahub-stats-season.js";
+import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
+import { load2026SourceData } from "./datahub-2026-data.js";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -1845,7 +1846,8 @@ function createDefaultStatsQualifierState(category = VIEW_FILTER_CONFIGS.stats.d
     qualifierThreshold: season === "2026"
       ? get2026QualifierOptions(config.defaultStat).find((option) => option.isDefault).value
       : String(config.defaultThreshold),
-    showAll: season === "2026" ? false : Boolean(config.defaultShowAll),
+    // Overview starts unfiltered in both seasons; category-specific defaults stay intact.
+    showAll: Boolean(config.defaultShowAll),
     team: "",
     teams: [],
   };
@@ -1980,7 +1982,7 @@ function syncSelectedStatsTeamsToOptions(options) {
 }
 
 function getDataHubTeamOptions() {
-  const sourceRows = state.statsRowsBase.length ? state.statsRowsBase : state.rows;
+  const sourceRows = getDataHubStatsRowsForSeason();
   const uniqueTeams = [...new Set(
     sourceRows
       .map((row) => String(row.TM || "").trim())
@@ -2606,11 +2608,15 @@ const state = {
     WR: true,
     TE: true,
   },
-  // Stats-only season source: populate normalized rows and weeksOfData together
-  // when the 2026 feed is connected. The placeholder intentionally has no rows;
-  // loaded-week metadata starts at Week 1 and must advance with the source data.
+  // DataHub 2026 has its own live workbook snapshot. Keep historical 2025 rows
+  // separate, and derive qualifiers only from WK tabs containing results.
   statsSeason: "2026",
-  stats2026: { rows: [], weeksOfData: 1 },
+  stats2026: { rows: [], rawRows: [], weeklyRows: {}, weeksOfData: 1, loaded: false },
+  stats2026Promise: null,
+  seasonDataCache: Object.create(null),
+  seasonDataPromises: Object.create(null),
+  comparisonDataCache: Object.create(null),
+  comparisonDataPromises: Object.create(null),
   statsFilters: createDefaultStatsQualifierState(),
   statsFiltersBySeason: {
     "2026": null,
@@ -2685,30 +2691,19 @@ const state = {
   ownershipContext: null,
   ownershipPreferredKtcMode: "oneqb",
   leagues: [],
-  gameLogsDataLoaded: false,
-  gameLogsDataPromise: null,
   careerStatsByPlayer: null,
   playerSeasonStats: Object.create(null),
   playerSeasonRanks: Object.create(null),
   playerWeeklyStats: Object.create(null),
   weeklyStats: Object.create(null),
-  comparisonDataLoaded: false,
-  comparisonDataPromise: null,
   comparisonData: null,
-  liveWeeklyStats: Object.create(null),
-  playerProjectionWeeks: Object.create(null),
-  liveStatsLoaded: false,
-  lastLiveStatsWeek: null,
-  lastLiveStatsFetchTs: 0,
-  currentNflSeason: 2025,
-  currentNflWeek: null,
   currentGameLogsPlayer: null,
   currentGameLogsPlayerRanks: null,
   currentGameLogsSummary: null,
   currentGameLogsFooterStats: null,
   currentGameLogsView: "gl",
   currentConsistencyData: null,
-  currentModalSeason: "2025",
+  currentModalSeason: "2026",
   currentGameLogsTriggerButton: null,
 };
 
@@ -3648,8 +3643,15 @@ function isElementVisible(element) {
 
 async function loadInitialData() {
   try {
-    const csvText = await fetchCsvText();
-    applyCsvText(csvText);
+    // Load both sources independently. A workbook failure never substitutes
+    // 2025 stats under a 2026 label; historical CSV data remains selectable.
+    const results = await Promise.allSettled([
+      fetchCsvText().then(applyCsvText),
+      ensureDataHub2026Data(),
+    ]);
+    if (results[state.statsSeason === "2026" ? 1 : 0].status === "rejected") {
+      throw results[state.statsSeason === "2026" ? 1 : 0].reason;
+    }
     hideOverlay();
 
     // DataHub startup enrichment:
@@ -3667,12 +3669,32 @@ async function loadInitialData() {
   } catch (error) {
     console.error(error);
     showOverlay({
-      title: "Local browser access blocked",
-      description:
-        "This browser blocked direct access to SZN.csv from file://. Select the same local SZN.csv file to finish loading the Data Hub.",
-      showActions: true,
+      title: "Unable to load season data",
+      description: `${error.message} Please reload to retry.`,
+      showActions: state.statsSeason === "2025",
     });
   }
+}
+
+// Keep this request shared by the table, Game Logs and Compare. Each full page
+// refresh re-reads DH/DRK/WK tabs; normalized rows rebuild again after KTC/ADP arrive.
+async function ensureDataHub2026Data() {
+  if (state.stats2026.loaded) return state.stats2026;
+  if (!state.stats2026Promise) {
+    state.stats2026Promise = load2026SourceData({
+      parseCsv,
+      scheduleUrl: new URL("../data/NFL-2026/Schedule2026.csv", window.location.href),
+    }).then((source) => {
+      state.stats2026 = { ...source, rows: [], loaded: true };
+      rebuildDataHubRows();
+      return state.stats2026;
+    }).finally(() => { state.stats2026Promise = null; });
+  }
+  return state.stats2026Promise;
+}
+
+function getDataHubStatsRowsForSeason(season = state.statsSeason) {
+  return season === "2026" ? state.stats2026.rows : state.statsRowsBase;
 }
 
 async function fetchCsvText() {
@@ -4175,17 +4197,6 @@ function resolveRookieCareerTeam(playerId) {
 // table can swap between the Stats and Trade Values views without re-fetching
 // SZN.csv, while the hidden 1-QB modal context remains available separately.
 function rebuildDataHubRows() {
-  if (!state.rawSeasonRows.length) {
-    state.statsRowsBase = [];
-    state.tradeRowsBase = [];
-    state.statsRowsByPlayerId = Object.create(null);
-    state.rows = [];
-    state.modalRankCache = Object.create(null);
-    syncUiState();
-    refreshGrid();
-    return;
-  }
-
   const oneQbSheetData = state.ktcSheetData["1-QB"] || createEmptyKtcSheetStore();
   const sflxSheetData = state.ktcSheetData.SFLX || createEmptyKtcSheetStore();
   const oneQbLookup = oneQbSheetData.byPlayerId || Object.create(null);
@@ -4208,13 +4219,14 @@ function rebuildDataHubRows() {
   });
 
   state.statsRowsBase = statsRowsBase;
+  state.stats2026.rows = state.stats2026.rawRows.map((row) => normalizeRow(enrichSeasonRow(row, { oneQbLookup, sflxLookup, adpLookup })));
   state.tradeRowsBase = tradeRowsBase;
   if (state.rookieDataLoaded) {
     state.rookieTradeRowsBase = buildRookieTradeRowsBase(tradeRowsBase, state.rookieProspectByPlayerId);
   }
   state.statsRowsByPlayerId = statsRowsByPlayerId;
   state.rows = getActiveRowsForView();
-  state.modalRankCache = buildDataHubModalRankCache(statsRowsBase);
+  state.modalRankCache = buildDataHubModalRankCache(getDataHubStatsRowsForSeason(state.currentModalSeason), state.currentModalSeason);
 
   syncUiState();
   refreshGrid();
@@ -4251,9 +4263,7 @@ function getActiveRowsForView(pageView = state.activePageView) {
     return [...(state.rookieCareerRowsByCategory[state.activeCategory] || [])];
   }
 
-  // Keep the shared 2025 base available to valuations/comparisons; the Stats
-  // table alone switches to the empty 2026 source until integration is ready.
-  return [...(state.statsSeason === "2026" ? state.stats2026.rows : state.statsRowsBase)];
+  return [...getDataHubStatsRowsForSeason()];
 }
 
 function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId }) {
@@ -4557,7 +4567,7 @@ function syncUiState() {
 }
 
 function syncComparisonControls() {
-  const canOpenComparison = Boolean(comparisonModalRoot && state.statsRowsBase.length);
+  const canOpenComparison = Boolean(comparisonModalRoot && getDataHubStatsRowsForSeason().length);
   comparisonOpenButtons.forEach((button) => {
     const isDisabled = !canOpenComparison || state.isComparisonModalOpening;
     button.disabled = isDisabled;
@@ -7107,10 +7117,11 @@ function getDataHubComparisonReactRoot(ReactDOMClient) {
 }
 
 async function openDataHubComparisonModal(triggerButton = null) {
-  if (!comparisonModalRoot || state.isComparisonModalOpening || !state.statsRowsBase.length) {
+  if (!comparisonModalRoot || state.isComparisonModalOpening || !getDataHubStatsRowsForSeason().length) {
     return;
   }
 
+  const season = state.statsSeason;
   state.isComparisonModalOpening = true;
   state.comparisonModalTriggerButton = triggerButton || document.activeElement;
   syncComparisonControls();
@@ -7119,8 +7130,9 @@ async function openDataHubComparisonModal(triggerButton = null) {
     const [, comparisonModule] = await Promise.all([
       ensureDataHubComparisonStyles(),
       ensureDataHubComparisonModule(),
-      ensureDataHubComparisonStatsData(),
+      ensureDataHubComparisonStatsData(season),
     ]);
+    if (season !== state.statsSeason) return;
     const payload = buildDataHubComparisonPayload();
     if (!payload.players.length) {
       throw new Error("No eligible players are available for comparison.");
@@ -7235,7 +7247,6 @@ function setDataHubComparisonRatio(target, key, numeratorKey, denominatorKey, sc
 
 const DATAHUB_COMPARISON_ALL_WEEKS_URL = "../data/NFL-2025_Stats/AllWks_2025.csv";
 const DATAHUB_COMPARISON_THRESHOLDS_URL = "../data/NFL-2025_Stats/POS-STAT_THRESHOLDS.csv";
-const DATAHUB_COMPARISON_SEASON_URL = "../data/NFL-2025_Stats/SZN.csv";
 const DATAHUB_COMPARISON_SEASON_RANKS_URL = "../data/NFL-2025_Stats/SZN_RKs.csv";
 const DATAHUB_COMPARISON_META_KEYS = new Set(["WK", "SLPR_ID", "NM", "POS", "AGE", "TM", "VS"]);
 const DATAHUB_COMPARISON_SEASON_VALUE_KEYS = Object.freeze([
@@ -7253,54 +7264,56 @@ const DATAHUB_COMPARISON_QB_LOWER_BETTER = new Set(["ttt", "prs_pct", "pass_sack
 // supersedes the first lightweight comparison payload while keeping the same
 // lazy React island entry point. The new path fetches AllWks/threshold data
 // only after Compare is opened, preserving the main DataHub page startup cost.
-async function ensureDataHubComparisonStatsData() {
-  if (state.comparisonDataLoaded && state.comparisonData) {
-    return;
+async function ensureDataHubComparisonStatsData(season = state.statsSeason) {
+  if (!state.comparisonDataCache[season] && !state.comparisonDataPromises[season]) {
+    state.comparisonDataPromises[season] = (async () => {
+      const [snapshot, thresholdText, allWeeksText] = await Promise.all([
+        ensureDataHubGameLogsData(season),
+        // Retain the existing chart calibration; all player values/ranks below
+        // come exclusively from the selected season's data.
+        fetchDataHubText(new URL(DATAHUB_COMPARISON_THRESHOLDS_URL, window.location.href)),
+        season === "2025" ? fetchDataHubText(new URL(DATAHUB_COMPARISON_ALL_WEEKS_URL, window.location.href)) : "",
+      ]);
+      const thresholdData = parseDataHubComparisonThresholdRows(parseCsv(thresholdText));
+      const weeklyData = season === "2025"
+        ? parseDataHubComparisonAllWeeksRows(parseCsv(allWeeksText))
+        : buildDataHub2026ComparisonWeeks(snapshot.weeklyStats);
+      const data = {
+        snapshot,
+        seasonStats: snapshot.seasonStats,
+        seasonRanks: snapshot.seasonRanks,
+        thresholds: thresholdData.byPos,
+        thresholdStatKeys: thresholdData.statKeys,
+        weeklyRows: weeklyData.rows,
+        weeklyByPlayer: weeklyData.byPlayer,
+        weeklyRanks: computeDataHubComparisonWeeklyRanks(weeklyData.rows, thresholdData.byPos),
+      };
+      state.comparisonDataCache[season] = data;
+      return data;
+    })().finally(() => { delete state.comparisonDataPromises[season]; });
   }
-  if (state.comparisonDataPromise) {
-    await state.comparisonDataPromise;
-    return;
+  const data = state.comparisonDataCache[season] || await state.comparisonDataPromises[season];
+  if (season === state.statsSeason) {
+    activateDataHubSeasonSnapshot(data.snapshot);
+    state.comparisonData = data;
   }
+  return data;
+}
 
-  state.comparisonDataPromise = (async () => {
-    const [seasonCsvText, seasonRanksCsvText, allWeeksCsvText, thresholdCsvText] = await Promise.all([
-      // Comparison weekly player series:
-      // hydrate the same game-log weekly sources used by the consistency chart
-      // so BYE/DNP/status weeks behave consistently inside the React modal.
-      ensureDataHubGameLogsData().then(() => ""),
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_URL, window.location.href)),
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_ALL_WEEKS_URL, window.location.href)),
-      fetchDataHubText(new URL(DATAHUB_COMPARISON_THRESHOLDS_URL, window.location.href)),
-    ]).then(([, seasonText, ranksText, weeksText, thresholdsText]) => [
-      seasonText,
-      ranksText,
-      weeksText,
-      thresholdsText,
-    ]);
-    const weeklyData = parseDataHubComparisonAllWeeksRows(parseCsv(allWeeksCsvText));
-    const thresholdData = parseDataHubComparisonThresholdRows(parseCsv(thresholdCsvText));
-    state.comparisonData = {
-      seasonStats: parseDataHubSeasonStatsRows(parseCsv(seasonCsvText)),
-      seasonRanks: parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText)),
-      thresholds: thresholdData.byPos,
-      thresholdStatKeys: thresholdData.statKeys,
-      weeklyRows: weeklyData.rows,
-      weeklyByPlayer: weeklyData.byPlayer,
-      weeklyRanks: computeDataHubComparisonWeeklyRanks(weeklyData.rows, thresholdData.byPos),
-    };
-    state.comparisonDataLoaded = true;
-  })()
-    .catch((error) => {
-      state.comparisonDataLoaded = false;
-      state.comparisonData = null;
-      throw error;
-    })
-    .finally(() => {
-      state.comparisonDataPromise = null;
+function buildDataHub2026ComparisonWeeks(weeklyStats) {
+  const rows = [];
+  const byPlayer = Object.create(null);
+  Object.entries(state.stats2026.weeklyRows).forEach(([week, sourceRows]) => {
+    sourceRows.forEach((row) => {
+      const id = String(row.SLPR_ID);
+      const stats = weeklyStats[week]?.[id] || {};
+      const entry = { week: Number(week), playerId: id, name: row["PLAYER NAME"], pos: row.POS, team: row.TM, opponent: stats.opponent, stats };
+      rows.push(entry);
+      if (!byPlayer[id]) byPlayer[id] = Object.create(null);
+      byPlayer[id][week] = entry;
     });
-
-  await state.comparisonDataPromise;
+  });
+  return { rows, byPlayer };
 }
 
 function parseDataHubComparisonAllWeeksRows(rows) {
@@ -7516,7 +7529,10 @@ function computeDataHubComparisonSeasonRankSets(players) {
 
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
-  const computedRanks = computeDataHubComparisonSeasonRankSets(players);
+  const qualifiedIds = state.statsSeason === "2026"
+    ? new Set(state.stats2026.rows.filter((row) => is2026RankQualified(row, state.stats2026.weeksOfData)).map((row) => row.__meta.playerId))
+    : null;
+  const computedRanks = computeDataHubComparisonSeasonRankSets(qualifiedIds ? players.filter((player) => qualifiedIds.has(player.id)) : players);
   const enrichedPlayers = players.map((player) => {
     const computedPositionRanks = computedRanks.positional[player.id] || {};
     const seasonPosRanks = {
@@ -7545,6 +7561,7 @@ function buildDataHubComparisonPayload() {
 
   return {
     revision: Date.now(),
+    season: state.statsSeason,
     // DataHub comparison payload:
     // expose the same two-player head-to-head limit enforced by the lazy
     // React island so future consumers cannot advertise a third slot.
@@ -7564,7 +7581,7 @@ function buildDataHubComparisonPayload() {
 
 function buildDataHubComparisonPlayers() {
   const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
-  return state.statsRowsBase
+  return getDataHubStatsRowsForSeason()
     .map((row) => buildDataHubComparisonPlayer(row, combinedWeeklyStats))
     .filter(Boolean)
     .sort((left, right) => {
@@ -8571,7 +8588,7 @@ function buildTeamFilterSummary(selectedTeams, options) {
   wrapper.className = "team-filter__content team-filter__content--multi";
   const logoStack = document.createElement("span");
   logoStack.className = "team-filter__logo-stack";
-  selectedTeams.slice(0, 3).forEach((team) => {
+  selectedTeams.filter((team) => team !== "UD" && team !== "FA").slice(0, 3).forEach((team) => {
     const logo = document.createElement("img");
     logo.className = "team-logo glow team-filter__logo team-filter__logo--stacked";
     logo.src = getDataHubControlTeamLogoSrc(team);
@@ -8594,7 +8611,9 @@ function buildTeamFilterContent(optionConfig, options = {}) {
   const wrapper = document.createElement("span");
   wrapper.className = "team-filter__content";
 
-  if (optionConfig.value && optionConfig.value !== "FA") {
+  // DH includes unattached players (UD); render their label without requesting
+  // a nonexistent NFL logo, just as we already do for free agents.
+  if (optionConfig.value && optionConfig.value !== "FA" && optionConfig.value !== "UD") {
     const logo = document.createElement("img");
     logo.className = "team-logo glow team-filter__logo";
     logo.src = getDataHubControlTeamLogoSrc(optionConfig.value);
@@ -8603,10 +8622,10 @@ function buildTeamFilterContent(optionConfig, options = {}) {
     logo.height = compact ? 16 : 18;
     logo.loading = "lazy";
     wrapper.append(logo);
-  } else if (optionConfig.value === "FA") {
+  } else if (optionConfig.value === "FA" || optionConfig.value === "UD") {
     const fallback = document.createElement("span");
     fallback.className = "team-filter__fallback";
-    fallback.textContent = "FA";
+    fallback.textContent = optionConfig.value;
     wrapper.append(fallback);
   }
 
@@ -10164,9 +10183,7 @@ function createEmptyStateRow(columnCount) {
   const td = document.createElement("td");
   td.className = "stats-table__empty-cell";
   td.colSpan = columnCount;
-  // The unconnected 2026 table is intentionally blank, not a filter failure.
-  td.textContent = state.activePageView === "stats" && state.statsSeason === "2026" && !state.stats2026.rows.length
-    ? "" : "No players match the current view.";
+  td.textContent = "No players match the current view.";
 
   tr.append(td);
   return tr;
@@ -11783,7 +11800,22 @@ function parseDataHubPosRankNumber(posRankText) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function buildDataHubModalRankCache(rows) {
+function buildDataHubModalRankCache(rows, season = "2025") {
+  // 2026 fantasy summary ranks share the same default-qualified pool and tied
+  // positional ranks as Season/Compare. Non-qualified players receive no rank.
+  if (season === "2026") {
+    const players = rows.filter((row) => is2026RankQualified(row, state.stats2026.weeksOfData)).map((row) => ({
+      id: row.__meta.playerId, pos: row.POS,
+      seasonStats: { fpts: row.__meta.fpts, ppg: row.__meta.ppg },
+    }));
+    const ranks = computeDataHubComparisonSeasonRankSets(players);
+    return Object.fromEntries(players.map((player) => [player.id, {
+      posRank: ranks.positional[player.id]?.fpts,
+      ppgPosRank: ranks.positional[player.id]?.ppg,
+      overallRank: ranks.overall[player.id]?.fpts,
+      ppgOverallRank: ranks.overall[player.id]?.ppg,
+    }]));
+  }
   const cache = Object.create(null);
   const playersWithStats = rows.filter((row) => {
     const meta = row?.__meta;
@@ -11858,8 +11890,8 @@ function toggleDataHubGameLogsSeasonMenu() {
 
 function setDataHubSelectedGameLogsSeason(season, { resetCareer = true } = {}) {
   // DataHub Game Logs modal season dropdown:
-  // tracks the selected season label locally. 2026 remains a placeholder and
-  // does not change the loaded 2025 game-log/career data source.
+  // tracks the year for the loaded GameLog/Season snapshot; Career retains its
+  // historical CSV source and remains independent of the season switch.
   const normalizedSeason = season === "2026" ? "2026" : DATAHUB_GAME_LOGS_YEAR;
   state.currentModalSeason = normalizedSeason;
   if (gameLogsSeasonLabel) {
@@ -11953,8 +11985,14 @@ function attachGameLogsModalListeners() {
     const seasonOption = event.target?.closest?.("[data-gamelogs-season-value]");
     if (seasonOption) {
       event.preventDefault();
-      setDataHubSelectedGameLogsSeason(seasonOption.dataset.gamelogsSeasonValue || DATAHUB_GAME_LOGS_YEAR);
+      const season = seasonOption.dataset.gamelogsSeasonValue;
+      const player = state.currentGameLogsPlayer;
       closeDataHubGameLogsSeasonMenu();
+      if (player && season !== state.currentModalSeason) {
+        const row = getDataHubStatsRowsForSeason(season).find((entry) => entry.__meta.playerId === player.id)
+          || { __meta: { playerId: player.id, name: player.name, fullName: player.fullName, pos: player.pos, team: player.team, hasGameLogsSupport: true } };
+        openDataHubGameLogs(row, null, { season, view: state.currentGameLogsView === "career" ? "gl" : state.currentGameLogsView });
+      }
       return;
     }
 
@@ -12059,7 +12097,7 @@ function attachGameLogsModalListeners() {
   });
 }
 
-function openDataHubModal() {
+function openDataHubModal(season = state.statsSeason) {
   if (!gameLogsModal) {
     return;
   }
@@ -12071,7 +12109,7 @@ function openDataHubModal() {
   statsKeyContainer?.classList.add("hidden");
   radarChartContainer?.classList.add("hidden");
   consistencyContainer?.classList.add("hidden");
-  setDataHubSelectedGameLogsSeason(DATAHUB_GAME_LOGS_YEAR, { resetCareer: false });
+  setDataHubSelectedGameLogsSeason(season, { resetCareer: false });
   closeDataHubGameLogsSeasonMenu();
   setDataHubGameLogsView("gl");
   switchDataHubModalTab("gamelogs");
@@ -12291,7 +12329,7 @@ async function openDataHubRookieOwnership(row, triggerButton = null) {
   }
 }
 
-async function openDataHubGameLogs(row, triggerButton = null) {
+async function openDataHubGameLogs(row, triggerButton = null, { season = state.statsSeason, view = "gl" } = {}) {
   const meta = row?.__meta;
   if (!canOpenDataHubGameLogs(meta)) {
     return;
@@ -12310,25 +12348,29 @@ async function openDataHubGameLogs(row, triggerButton = null) {
   const loadingPlayer = buildDataHubModalPlayer(meta);
   state.currentGameLogsPlayer = loadingPlayer;
   prepareDataHubModalForLoading(loadingPlayer);
-  openDataHubModal();
+  openDataHubModal(season);
+  state.currentGameLogsView = view;
   showDataHubLoadingPanel();
 
   try {
-    await ensureDataHubGameLogsData();
+    const snapshot = await ensureDataHubGameLogsData(season);
     if (isStaleRequest()) {
       return;
     }
 
-    const player = buildDataHubModalPlayer(meta);
+    activateDataHubSeasonSnapshot(snapshot);
+    const seasonMeta = getDataHubStatsRowsForSeason(season).find((entry) => entry.__meta.playerId === meta.playerId)?.__meta
+      || { ...meta, fpts: null, ppg: null, gmPlayed: null };
+    const player = buildDataHubModalPlayer(seasonMeta);
     state.currentGameLogsPlayer = player;
     modalPlayerName.textContent = player.fullName || player.name || "Player";
 
-    const gameLogs = await fetchDataHubGameLogs(player.id);
+    const gameLogs = await fetchDataHubGameLogs(player.id, season);
     if (isStaleRequest()) {
       return;
     }
 
-    const playerRanks = buildDataHubPlayerRanks(player.id, meta);
+    const playerRanks = buildDataHubPlayerRanks(player.id, seasonMeta);
     if (isStaleRequest()) {
       return;
     }
@@ -12427,54 +12469,49 @@ function showDataHubLoadingPanel() {
   modalContent.appendChild(panel);
 }
 
-async function ensureDataHubGameLogsData() {
-  if (state.gameLogsDataLoaded) {
-    await ensureDataHubLiveStats();
-    if (!state.username) {
-      await bootstrapDataHubUserContext();
-    }
-    return;
-  }
-  if (state.gameLogsDataPromise) {
-    await state.gameLogsDataPromise;
-    return;
-  }
-  state.gameLogsDataPromise = (async () => {
-    await Promise.all([
-      fetchDataHubSleeperPlayers(),
-      ensureDataHubSupplementalData(),
-      bootstrapDataHubUserContext(),
-    ]);
-    const [seasonCsvText, seasonRanksCsvText, ...weeklyCsvText] = await Promise.all([
-      fetchCsvText(),
-      fetchDataHubText(new URL("../data/NFL-2025_Stats/SZN_RKs.csv", window.location.href)),
-      ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => {
-        const week = index + 1;
-        return fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${week}.csv`, window.location.href), { allowFailure: true });
-      }),
-    ]);
-    state.playerSeasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonCsvText));
-    state.playerSeasonRanks = parseDataHubSeasonRanksRows(parseCsv(seasonRanksCsvText));
-    const weeklyStats = Object.create(null);
-    weeklyCsvText.forEach((csvText, index) => {
-      if (!csvText) {
-        return;
+// Cache by year, and return immutable-in-use snapshots. Callers activate a
+// snapshot only after their request guard passes, so late requests cannot mix years.
+async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
+  if (state.seasonDataCache[season]) return state.seasonDataCache[season];
+  if (!state.seasonDataPromises[season]) {
+    state.seasonDataPromises[season] = (async () => {
+      await Promise.all([fetchDataHubSleeperPlayers(), ensureDataHubSupplementalData(), bootstrapDataHubUserContext()]);
+      let seasonStats, seasonRanks, weeklyStats;
+      if (season === "2026") {
+        const source = await ensureDataHub2026Data();
+        seasonStats = parseDataHubSeasonStatsRows(source.rawRows);
+        weeklyStats = Object.fromEntries(Object.entries(source.weeklyRows).map(([week, rows]) => [week, parseDataHubWeeklyStatsRows(rows)]));
+        // DH has stat values, not a season-rank sheet. Compute positional ranks
+        // from DH values, keeping the established lower-is-better stat direction.
+        const players = source.rows.filter((row) => is2026RankQualified(row, source.weeksOfData)).map((row) => ({
+          id: row.__meta.playerId, pos: row.__meta.pos,
+          seasonStats: { ...seasonStats[row.__meta.playerId], fpts: seasonStats[row.__meta.playerId]?.fpts_ppr },
+        }));
+        seasonRanks = computeDataHubComparisonSeasonRankSets(players).positional;
+      } else {
+        const [seasonText, rankText, ...weekTexts] = await Promise.all([
+          fetchCsvText(),
+          fetchDataHubText(new URL(DATAHUB_COMPARISON_SEASON_RANKS_URL, window.location.href)),
+          ...Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => fetchDataHubText(new URL(`../data/NFL-2025_Stats/Weeks/WK${index + 1}.csv`, window.location.href), { allowFailure: true })),
+        ]);
+        seasonStats = parseDataHubSeasonStatsRows(parseCsv(seasonText));
+        seasonRanks = parseDataHubSeasonRanksRows(parseCsv(rankText));
+        weeklyStats = Object.fromEntries(weekTexts.map((text, index) => [index + 1, parseDataHubWeeklyStatsRows(parseCsv(text))]));
       }
-      weeklyStats[index + 1] = parseDataHubWeeklyStatsRows(parseCsv(csvText));
-    });
-    state.playerWeeklyStats = weeklyStats;
-    state.weeklyStats = weeklyStats;
-    state.gameLogsDataLoaded = true;
-    await ensureDataHubLiveStats();
-  })()
-    .catch((error) => {
-      state.gameLogsDataLoaded = false;
-      throw error;
-    })
-    .finally(() => {
-      state.gameLogsDataPromise = null;
-    });
-  await state.gameLogsDataPromise;
+      const snapshot = { season, seasonStats, seasonRanks, weeklyStats };
+      state.seasonDataCache[season] = snapshot;
+      return snapshot;
+    })().finally(() => { delete state.seasonDataPromises[season]; });
+  }
+  return state.seasonDataPromises[season];
+}
+
+function activateDataHubSeasonSnapshot(snapshot) {
+  state.playerSeasonStats = snapshot.seasonStats;
+  state.playerSeasonRanks = snapshot.seasonRanks;
+  state.playerWeeklyStats = snapshot.weeklyStats;
+  state.weeklyStats = snapshot.weeklyStats;
+  state.modalRankCache = buildDataHubModalRankCache(getDataHubStatsRowsForSeason(snapshot.season), snapshot.season);
 }
 
 async function bootstrapDataHubUserContext() {
@@ -12511,100 +12548,18 @@ async function fetchDataHubSleeperPlayers({ force = false } = {}) {
   return state.sleeperPlayers;
 }
 
-async function fetchDataHubGameLogs(playerId) {
-  await ensureDataHubGameLogsData();
-  const combinedWeeklyStats = getDataHubCombinedWeeklyStats();
-  const gameLogs = [];
-  Object.keys(combinedWeeklyStats)
-    .map((week) => Number(week))
-    .sort((left, right) => left - right)
-    .forEach((week) => {
-      const stats = combinedWeeklyStats[week]?.[playerId];
-      if (stats) {
-        gameLogs.push({ week, stats });
-      }
-    });
-  return gameLogs;
+async function fetchDataHubGameLogs(playerId, season = state.currentModalSeason) {
+  const snapshot = await ensureDataHubGameLogsData(season);
+  return Object.entries(snapshot.weeklyStats)
+    .filter(([, players]) => players[playerId])
+    .map(([week, players]) => ({ week: Number(week), stats: players[playerId] }))
+    .sort((left, right) => left.week - right.week);
 }
 
 function getDataHubCombinedWeeklyStats() {
-  const combined = Object.create(null);
-  Object.entries(state.weeklyStats || {}).forEach(([week, players]) => {
-    combined[week] = {};
-    Object.entries(players || {}).forEach(([playerId, statLine]) => {
-      combined[week][playerId] = { ...(statLine || {}) };
-    });
-  });
-  Object.entries(state.liveWeeklyStats || {}).forEach(([week, players]) => {
-    if (!combined[week]) {
-      combined[week] = {};
-    }
-    Object.entries(players || {}).forEach(([playerId, statLine]) => {
-      const existing = combined[week][playerId] ? { ...combined[week][playerId] } : {};
-      const merged = { ...existing, ...(statLine || {}) };
-      if (Number.isFinite(statLine?.fpts_override)) {
-        merged.fpts_override = statLine.fpts_override;
-        merged.fpts = statLine.fpts_override;
-      }
-      combined[week][playerId] = merged;
-    });
-  });
-  return combined;
-}
-
-async function ensureDataHubLiveStats(force = false) {
-  if (!force && state.liveStatsLoaded && state.lastLiveStatsFetchTs && (Date.now() - state.lastLiveStatsFetchTs) < 5 * 60 * 1000) {
-    return;
-  }
-  await fetchDataHubLiveStats();
-}
-
-async function fetchDataHubLiveStats() {
-  try {
-    const sleeperState = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/state/nfl`);
-    const season = String(sleeperState?.season || DATAHUB_GAME_LOGS_YEAR);
-    const currentWeek = Number(sleeperState?.week);
-    state.currentNflSeason = season;
-    state.currentNflWeek = Number.isFinite(currentWeek) ? currentWeek : null;
-    if (!Number.isFinite(currentWeek) || currentWeek <= 0) {
-      state.liveStatsLoaded = true;
-      return;
-    }
-    const liveWeeklyStats = { ...(state.liveWeeklyStats || {}) };
-    const latestStoredWeek = Math.max(0, ...Object.keys(state.weeklyStats || {}).map((value) => Number(value)).filter(Number.isFinite));
-    const fetchStartWeek = Math.max(1, Math.min(currentWeek, latestStoredWeek + 1));
-    for (let week = fetchStartWeek; week <= currentWeek; week += 1) {
-      try {
-        const weekPayload = await fetchDataHubJson(`${DATAHUB_SLEEper_API_BASE}/stats/nfl/regular/${season}/${week}`);
-        const weekStats = {};
-        Object.entries(weekPayload || {}).forEach(([playerId, statLine]) => {
-          const override = Number(
-            statLine?.pts_ppr
-            ?? statLine?.pts
-            ?? statLine?.pts_ppr_total
-            ?? statLine?.fantasy_points_ppr,
-          );
-          if (!Number.isFinite(override)) {
-            return;
-          }
-          weekStats[playerId] = {
-            fpts_override: override,
-            fpts: override,
-            __live: true,
-          };
-        });
-        if (Object.keys(weekStats).length) {
-          liveWeeklyStats[week] = weekStats;
-        }
-      } catch (error) {
-        console.warn(`DataHub live stats unavailable for week ${week}.`, error);
-      }
-    }
-    state.liveWeeklyStats = liveWeeklyStats;
-  } finally {
-    state.liveStatsLoaded = true;
-    state.lastLiveStatsFetchTs = Date.now();
-  }
+  // DH/WK sheets are authoritative for 2026; archived CSVs are authoritative for
+  // 2025. Never overlay a different live Sleeper season onto either dataset.
+  return state.weeklyStats;
 }
 
 function buildDataHubPlayerRanks(playerId, meta) {
@@ -12719,6 +12674,7 @@ function parseDataHubWeeklyStatsRows(rows) {
         stats[statKey] = parsedValue;
       }
     });
+    if (typeof row.__hasRecordedStats === "boolean") stats.__hasRecordedStats = row.__hasRecordedStats;
     weeklyStats[playerId] = stats;
   });
   return weeklyStats;
@@ -13653,17 +13609,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   bodyTable.appendChild(bodyTbody);
   bodyWrap.appendChild(bodyTable);
 
-  const dividerIndex = (() => {
-    const sleeperCurrentWeek = Number.isFinite(state.currentNflWeek) ? state.currentNflWeek : null;
-    if (!Number.isFinite(sleeperCurrentWeek)) {
-      return rowsMeta.some((meta) => meta.isPlayed) ? rowsMeta.length : 0;
-    }
-    const currentWeekIndex = rowsMeta.findIndex((meta) => meta.week === sleeperCurrentWeek);
-    if (currentWeekIndex === -1) {
-      return rowsMeta.some((meta) => meta.isPlayed) ? rowsMeta.length : 0;
-    }
-    return rowsMeta[currentWeekIndex].isPlayed ? currentWeekIndex + 1 : currentWeekIndex;
-  })();
+  // Separate recorded weeks from the remaining schedule using this source's
+  // actual results, not the current week of a different Sleeper season.
+  const dividerIndex = rowsMeta.reduce((last, meta, index) => meta.isPlayed ? index + 1 : last, 0);
   const dividerRow = document.createElement("tr");
   dividerRow.className = "week-divider-row";
   const dividerCell = document.createElement("td");
@@ -13702,7 +13650,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const gamesPlayed = Number.isFinite(seasonTotals?.games_played)
     ? Math.round(seasonTotals.games_played)
     : gameLogsWithData.length;
-  totalTh.innerHTML = `<span class="season-label">2025</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
+  totalTh.innerHTML = `<span class="season-label">${state.currentModalSeason}</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
   totalTh.style.width = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
   totalTh.style.minWidth = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
   totalTh.style.maxWidth = `${columnSizes[0] || DEFAULT_COLUMN_WIDTH}px`;
@@ -13938,7 +13886,7 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
 }
 
 function getDataHubGameLogStatValue(statKey, stats) {
-  if (!stats) return null;
+  if (!stats || stats.__hasRecordedStats === false) return null;
   if (DATAHUB_NO_FALLBACK_KEYS.has(statKey)) {
     return Number.isFinite(stats[statKey]) ? stats[statKey] : null;
   }
@@ -16620,9 +16568,9 @@ function getDataHubLeagueColor(abbr) {
 
 function getDataHubTeamLogoMarkup(team) {
   const teamKey = String(team || "FA").trim().toUpperCase() || "FA";
-  return teamKey !== "FA"
+  return teamKey !== "FA" && teamKey !== "UD"
     ? `<div class="player-tag modal-team-logo-chip" data-team="${dataHubEscapeHtml(teamKey)}"><img class="team-logo glow" src="${getDataHubTeamLogoSrc(teamKey)}" alt="${dataHubEscapeHtml(teamKey)}" width="24" height="24" loading="eager" /></div>`
-    : '<div class="player-tag modal-team-logo-chip" data-team="FA"><span>FA</span></div>';
+    : `<div class="player-tag modal-team-logo-chip" data-team="${teamKey}"><span>${teamKey}</span></div>`;
 }
 
 function getDataHubNormalizedTeamLogoKey(team) {

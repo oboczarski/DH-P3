@@ -19,7 +19,9 @@ When you update code and make changes to the app, add comments that explain:
 
 ## Data sources (Rosters + Stats)
 - Primary stats data source for both **Rosters** and **Stats** pages is the **CSV files**.
-- For now, the only data that should be pulled from **Google Sheets** is **KTC values**.
+- **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals, numbered `WK1`–`WK18` tabs for weekly data, and `DRK` for opponent position ranks. Match opponents through `DH_P2.53/data/NFL-2026/Schedule2026.csv`. Count only WK tabs with recorded results for qualifier progression. DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
+- Existing KTC/ADP Google Sheets feeds remain available for valuation data.
+- DataHub 2026 season positional ranks use default weekly-scaled qualifiers: QB `paATT`, RB `CAR`, WR/TE `RR`. Non-qualified players keep their statistics but receive no season rank; Show All does not bypass ranking qualification.
 
 ## Key patterns (do not break)
 - **Page type detection**: each HTML page sets `data-page` on `<body>`; `app.js` reads `document.body.dataset.page` to scope logic per page.
@@ -151,11 +153,10 @@ The “Trophy Room” and “Matchups” buttons inside the “More” dropdown 
 
 > **No `immutable` headers** — Allows SW to force fresh fetches.
 
-### Google Sheets (Post-Season)
-- **DISABLED**: Google Sheets are disabled for now 
-— All player stats come from local CSVs
-- **EXCEPTION**: KTC trade values workbook SLP.TL (`GOOGLE_SHEET_ID`) is still fetched live for VALUE data
+### Google Sheets
+- **DataHub 2026 enabled:** the workbook and tab mapping above are authoritative for 2026 Stats, Game Logs, Season views, and Compare. Never overlay another year's stats or Sleeper live stats onto those rows.
+- **Historical data:** DataHub 2025 and the separate Rosters/Stats pages still use local CSVs.
+- **Valuations:** KTC/ADP workbook SLP.TL (`GOOGLE_SHEET_ID`) remains live.
 - **Edge proxies** exist but are NOT used by frontend currently
 
 > ⚠️ **DO NOT** re-enable full Sheets loading without updating this doc.
-

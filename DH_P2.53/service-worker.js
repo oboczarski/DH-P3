@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub Stats season selector and week-aware 2026 qualifier thresholds.
-const CACHE_NAME = 'DH3.46h-datahub-seasons';
+// DataHub live 2026 DH/WK/DRK workbook data and schedule-backed game logs.
+const CACHE_NAME = 'DH3.46i-datahub-live-2026';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -56,6 +56,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/stats.js',
   '/scripts/DataHub.js',
   '/scripts/datahub-stats-season.js',
+  '/scripts/datahub-2026-data.js',
+  '/data/NFL-2026/Schedule2026.csv',
   '/scripts/leaguehub.js',
   // League Analysis shares a local projection model and a pinned ECharts renderer.
   '/scripts/leaguehub-analysis.js',
