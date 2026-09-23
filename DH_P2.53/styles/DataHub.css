@@ -2573,7 +2573,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 .team-filter__content {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -6354,13 +6354,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   body[data-page="datahub"] .qualifier-row__controls {
     /* Compact Stats controls leave room for All Teams and the season on mobile. */
-    grid-template-columns: minmax(0, 0.78fr) minmax(0, 0.65fr) auto 1px minmax(0, 0.7fr) 1px minmax(0, 0.73fr);
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 0.6fr) auto 1px minmax(0, 0.7fr) 1px minmax(0, 0.73fr);
     gap: 4px;
   }
 
   body[data-page="datahub"] .qualifier-row .qualifier-toggle {
-    padding-inline: 6px;
-    gap: 3px;
+    padding-inline: 7px;
+    gap: 5px;
   }
 
   body[data-page="datahub"] .qualifier-row .qualifier-select {
@@ -6393,6 +6393,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     top: calc(100% + 4px);
     padding: 2px;
     border-radius: 14px;
+    min-width: 71px !important;
   }
 
   .qualifier-menu__option {
@@ -6460,13 +6461,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .team-filter__text {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     letter-spacing: 0.03em;
   }
 
   .team-filter__logo {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 
   .team-filter__fallback {
@@ -6483,11 +6484,11 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .team-filter__option {
     min-height: 27px;
-    padding: 0 22px 0 7px;
+    padding: 0 18px 0 4px;
   }
 
   .team-filter__option::after {
-    right: 10px;
+    right: 5px;
     width: 11px;
     height: 11px;
     transform: translateY(-50%);
