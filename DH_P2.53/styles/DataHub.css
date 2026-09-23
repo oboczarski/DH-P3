@@ -1588,11 +1588,11 @@ body[data-page="datahub"] .mini-chip--compare:disabled {
 body[data-page="datahub"] .mini-chip__icon--compare {
   position: relative;
   z-index: 1;
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 23px;
   fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
+  stroke: rgb(120 218 255 / 84%);
+  stroke-width: 2.2px;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -2287,7 +2287,7 @@ body[data-page="datahub"] .stats-season-select {
 }
 
 body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
-  min-width: 112px;
+  min-width: 88px;
 }
 
 /* Preserve readable Stats labels on the narrowest phone layouts, including
@@ -2638,7 +2638,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   gap: 6px;
   width: 100%;
   min-height: 34px;
-  padding: 0 32px 0 10px;
+  padding: 0 24px 0 6px;
   border: 1px solid transparent;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.02);
@@ -6654,7 +6654,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] .mini-chip__icon {
     width: 12px;
     height: 12px;
-    fill: #a8b2c9aa;
+    fill: #a8b2c961;
+    stroke: rgb(239 250 255 / 69%);
   }
 
   /* Mobile-only non-Rookies RK header:
@@ -6918,7 +6919,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .qualifier-toggle__text {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
 
   .hero-controls--desktop .team-filter__trigger {
@@ -7259,13 +7260,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .mini-chip__icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 23px;
     opacity: 1;
   }
 
   .hero-controls--desktop .mini-chip--icon {
-    gap: 14px;
+    gap: 13px;
   }
 
   .hero-controls--desktop .mini-chip--icon .mini-chip__icon {
@@ -14675,29 +14676,35 @@ body[data-page="datahub"] .hero-controls--desktop .utility-row {
   width: min(100%, 520px);
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 7px;
+  gap: 11px;
+  width: auto;
+  margin: 0 10px;
 }
 
 body[data-page="datahub"] .hero-controls--desktop .utility-row .search-shell {
   width: clamp(190px, 19vw, 250px);
-  flex: 0 1 250px;
+  flex: 0 1 270px;
   min-width: 0;
 }
 
 body[data-page="datahub"] .hero-controls--desktop .utility-row > .mini-chip:not(.mini-chip--compare) {
   min-width: 58px;
-  min-height: 34px;
-  padding-inline: 10px;
-  font-size: 0.62rem;
+  min-height: 40px;
+  padding-inline: 19px;
+  font-size: 0.75rem;
+  flex: 1 1 0;
+  max-width: 101px;
 }
 
 body[data-page="datahub"] .hero-controls--desktop .utility-row > .mini-chip--compare {
   min-width: 108px;
-  min-height: 36px;
+  min-height: 40px;
   padding-inline: 12px;
-  color: rgba(239, 250, 255, 0.98);
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
+  color: rgb(180 189 214 / 98%);
+  font-size: 0.8rem;
+  letter-spacing: 0.00em;
+  flex: 1 1 0;
+  font-weight: 500;
 }
 
 body[data-page="datahub"] .hero-controls--mobile .utility-row {
