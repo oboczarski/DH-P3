@@ -2583,7 +2583,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
 .team-filter__content {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -2628,7 +2628,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   right: 0;
   z-index: 40;
   display: grid;
-  gap: 4px;
+  gap: 1px;
   max-height: 238px;
   padding: 4px;
   overflow: auto;
@@ -6488,13 +6488,15 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
 
   .team-filter__menu {
     top: calc(100% + 4px);
-    padding: 3px;
+    padding: 3px 3px;
     max-height: 212px;
+    min-width: 74px;
   }
 
   .team-filter__option {
     min-height: 27px;
-    padding: 0 18px 0 4px;
+    padding: 0 17px 0 4px;
+    border-radius: 8px;
   }
 
   .team-filter__option::after {
