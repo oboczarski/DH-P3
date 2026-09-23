@@ -1599,6 +1599,12 @@ body[data-page="datahub"] .mini-chip__icon--compare {
   stroke-linejoin: round;
 }
 
+/* DataHub Compare glyph only: filter the inner SVG artwork so the thin
+   cyan glow follows its circles/arrows without including the circular badge. */
+body[data-page="datahub"] .mini-chip__icon--compare > .mini-chip__compare-glyph {
+  filter: drop-shadow(0 0 0.65px rgba(111, 215, 255, 0.65));
+}
+
 body[data-page="datahub"] .mini-chip--compare > span {
   position: relative;
   z-index: 1;

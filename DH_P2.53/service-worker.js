@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub loads DH totals independently and derives qualifier weeks from games played.
-const CACHE_NAME = 'DH3.46n-datahub-dh-independent';
+// Refresh DataHub Compare circle positions and the glyph-only glow.
+const CACHE_NAME = 'DH3.46o-compare-icon-glow';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
