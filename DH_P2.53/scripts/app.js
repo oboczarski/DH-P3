@@ -5689,6 +5689,25 @@ const SZN_STAT_SECTIONS_BY_POS = {
 };
 function getSznSectionsForPosition(position) {
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    if (posKey === 'QB' && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        // Rosters 2026 QB Game Logs Season view: add the DH passing stats in
+        // sheet order while preserving the 2025 and separate Stats page groups.
+        return SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
+            if (section.id === 'passing-production') {
+                return { ...section, stats: [
+                    'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd',
+                    'pass_imp', 'pass_sack', 'pass_int', 'dropbacks'
+                ] };
+            }
+            if (section.id === 'passing-efficiency') {
+                return { ...section, stats: [
+                    'epa_per_db', 'cpoe', 'pass_rtg', 'cmp_pct', 'pass_imp_per_att',
+                    'ttt', 'prs_pct', 'blitz_pct', 'dp_pct', 'pa_ypg', 'team_pass_pct'
+                ] };
+            }
+            return section;
+        });
+    }
     if (posKey && Array.isArray(SZN_STAT_SECTIONS_BY_POS[posKey])) return SZN_STAT_SECTIONS_BY_POS[posKey];
     return [];
 }

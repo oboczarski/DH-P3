@@ -11644,7 +11644,7 @@ const DATAHUB_QB_LOG_ORDER = [
   "pass_sack", "pass_int", "fum", "fpoe",
 ];
 // DataHub QB weekly Game Logs: use this order only for 2026. The 2025 QB
-// order above and the separate Season view retain their current columns.
+// order above stays intact; the Season view uses its own section config.
 const DATAHUB_QB_LOG_ORDER_2026 = [
   "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "yds_total",
   "rush_yd", "rush_td", "cmp_pct", "pass_att", "pass_cmp", "cpoe",
@@ -14280,7 +14280,25 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
 
   const list = document.createElement("div");
   list.className = "gamelogs-szn-list";
-  const sections = DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
+  // DataHub 2026 QB Game Logs Season view: add DH passing totals and rates in
+  // the requested order; keep the historical 2025 sections untouched.
+  const sections = player.pos === "QB" && state.currentModalSeason === "2026"
+    ? DATAHUB_SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
+      if (section.label === "PASSING PRODUCTION") {
+        return { ...section, stats: [
+          "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd",
+          "pass_imp", "pass_sack", "pass_int", "dropbacks",
+        ] };
+      }
+      if (section.label === "PASSING EFFICIENCY") {
+        return { ...section, stats: [
+          "epa_per_db", "cpoe", "pass_rtg", "cmp_pct", "pass_imp_per_att",
+          "ttt", "prs_pct", "blitz_pct", "dp_pct", "pa_ypg", "team_pass_pct",
+        ] };
+      }
+      return section;
+    })
+    : DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
   const usedKeys = new Set();
   const appendSeasonStatRow = (statKey) => {
     if (!DATAHUB_STAT_LABELS[statKey] || statKey === "proj" || usedKeys.has(statKey)) {

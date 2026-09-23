@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the Rosters and DataHub 2026 QB weekly EPA display formatters.
-const CACHE_NAME = 'DH3.46t-qb-weekly-epa-sign';
+// Refresh the Rosters and DataHub 2026 QB Game Logs Season passing groups.
+const CACHE_NAME = 'DH3.46u-qb-season-passing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
