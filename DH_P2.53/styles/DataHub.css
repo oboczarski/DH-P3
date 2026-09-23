@@ -1588,11 +1588,13 @@ body[data-page="datahub"] .mini-chip--compare:disabled {
 body[data-page="datahub"] .mini-chip__icon--compare {
   position: relative;
   z-index: 1;
-  width: 24px;
+  min-width: 23px;
+  min-height: 23px;
+  width: 23px;
   height: 23px;
   fill: none;
-  stroke: rgb(120 218 255 / 84%);
-  stroke-width: 2.2px;
+  stroke: rgb(111 215 255 / 84%);
+  stroke-width: 2.3px;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -7271,7 +7273,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .hero-controls--desktop .mini-chip--icon .mini-chip__icon {
-    padding: 2px;
+    padding: 3px 0px 3px 0px;
     border-radius: 999px;
     background: linear-gradient(180deg, rgb(94 109 122 / 87%), rgb(69 79 95 / 61%));
     box-shadow:
@@ -14691,21 +14693,22 @@ body[data-page="datahub"] .hero-controls--desktop .utility-row .search-shell {
 body[data-page="datahub"] .hero-controls--desktop .utility-row > .mini-chip:not(.mini-chip--compare) {
   min-width: 58px;
   min-height: 40px;
-  padding-inline: 19px;
+  padding-inline: 16px;
   font-size: 0.75rem;
   flex: 1 1 0;
-  max-width: 101px;
+  max-width: 99px;
 }
 
 body[data-page="datahub"] .hero-controls--desktop .utility-row > .mini-chip--compare {
-  min-width: 108px;
+  min-width: 115px;
   min-height: 40px;
-  padding-inline: 12px;
+  padding-inline: 15px;
   color: rgb(180 189 214 / 98%);
   font-size: 0.8rem;
   letter-spacing: 0.00em;
   flex: 1 1 0;
   font-weight: 500;
+  gap: 10px;
 }
 
 body[data-page="datahub"] .hero-controls--mobile .utility-row {
