@@ -4192,9 +4192,9 @@ function resolveRookieCareerTeam(playerId) {
   return "UD";
 }
 
-// Rebuild the rendered season rows from the cached CSV base so the Data Hub
-// table can swap between the Stats and Trade Values views without re-fetching
-// SZN.csv, while the hidden 1-QB modal context remains available separately.
+// Rebuild both Stats seasons and the Trade Values rows from their cached sources.
+// The Trade Fantasy group reads the normalized 2026 DH rows used by default
+// Stats, while its other identity and market fields keep their existing sources.
 function rebuildDataHubRows() {
   const oneQbSheetData = state.ktcSheetData["1-QB"] || createEmptyKtcSheetStore();
   const sflxSheetData = state.ktcSheetData.SFLX || createEmptyKtcSheetStore();
@@ -4210,15 +4210,21 @@ function rebuildDataHubRows() {
     return normalizeRow(enrichedRow);
   });
   const statsRowsByPlayerId = buildStatsRowsByPlayerId(statsRowsBase);
+  const stats2026Rows = state.stats2026.rawRows.map((row) => normalizeRow(enrichSeasonRow(row, {
+    oneQbLookup,
+    sflxLookup,
+    adpLookup,
+  })));
   const tradeRowsBase = buildTradeRowsBase({
     sflxSheetData,
     oneQbSheetData,
     adpLookup,
     statsRowsByPlayerId,
+    fantasy2026RowsByPlayerId: buildStatsRowsByPlayerId(stats2026Rows),
   });
 
   state.statsRowsBase = statsRowsBase;
-  state.stats2026.rows = state.stats2026.rawRows.map((row) => normalizeRow(enrichSeasonRow(row, { oneQbLookup, sflxLookup, adpLookup })));
+  state.stats2026.rows = stats2026Rows;
   state.tradeRowsBase = tradeRowsBase;
   if (state.rookieDataLoaded) {
     state.rookieTradeRowsBase = buildRookieTradeRowsBase(tradeRowsBase, state.rookieProspectByPlayerId);
@@ -4265,11 +4271,14 @@ function getActiveRowsForView(pageView = state.activePageView) {
   return [...getDataHubStatsRowsForSeason()];
 }
 
-function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId }) {
+function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRowsByPlayerId, fantasy2026RowsByPlayerId }) {
   return (sflxSheetData.entities || []).map((sflxEntity) => {
     const entityKey = sflxEntity.entityKey || buildKtcEntityKey(sflxEntity.name, sflxEntity.pos);
     const oneQbEntity = getKtcSheetEntity(oneQbSheetData, sflxEntity.playerId, entityKey);
     const statsRow = sflxEntity.playerId ? statsRowsByPlayerId[sflxEntity.playerId] : null;
+    // Trade Values Fantasy group: copy the default Stats tab's 2026 FPTS and
+    // PPG for the same player. Keep 2025 rows out of this season's values.
+    const fantasy2026Row = sflxEntity.playerId ? fantasy2026RowsByPlayerId[sflxEntity.playerId] : null;
     const adpEntry = sflxEntity.playerId ? adpLookup?.[sflxEntity.playerId] : null;
     const oneQbAdpValue = Number.isFinite(adpEntry?.pprAdp) ? adpEntry.pprAdp : oneQbEntity?.sheetAdp;
     const sflxAdpValue = Number.isFinite(adpEntry?.sflxAdp) ? adpEntry.sflxAdp : sflxEntity.sheetAdp;
@@ -4288,9 +4297,9 @@ function buildTradeRowsBase({ sflxSheetData, oneQbSheetData, adpLookup, statsRow
       POS: sflxEntity.pos,
       TM: resolvedTeam,
       AGE: formatTradeEntityAge(sflxEntity.age, statsRow?.AGE),
-      G: statsRow?.G,
-      FPTS: statsRow?.FPTS,
-      PPG: statsRow?.PPG,
+      G: fantasy2026Row?.G,
+      FPTS: fantasy2026Row?.FPTS,
+      PPG: fantasy2026Row?.PPG,
       VALUE: formatIntegerString(oneQbEntity?.ktc),
       ADP: formatFixedString(oneQbAdpValue, 1),
       "POS·ADP": formatFixedString(adpEntry?.oneQbPosRank, 1),
