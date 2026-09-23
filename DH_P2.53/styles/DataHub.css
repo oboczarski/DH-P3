@@ -6665,6 +6665,8 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   body[data-page="datahub"] .mini-chip__icon {
     width: 12px;
     height: 12px;
+    min-width: 14px;
+    min-height: 14px;
     fill: #a8b2c961;
     stroke: rgb(239 250 255 / 69%);
   }
