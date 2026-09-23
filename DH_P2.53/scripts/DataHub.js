@@ -13563,7 +13563,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       }
 
       const rawValue = getDataHubGameLogStatValue(statKey, stats);
-      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue);
+      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue, is2026QbLog);
       if (statKey === "fpts" && displayValue === "-") {
         rowFptsDash = true;
       }
@@ -13998,13 +13998,18 @@ function getDataHubGameLogStatValue(statKey, stats) {
   return Number.isFinite(stats[statKey]) ? stats[statKey] : 0;
 }
 
-function formatDataHubGameLogCellValue(statKey, value) {
+function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return statKey === "fpts" ? "-" : "N/A";
   }
   const numericValue = Number(value);
   if (Number.isNaN(numericValue)) {
     return statKey === "fpts" ? "-" : "N/A";
+  }
+  if (is2026QbLog && (statKey === "epa" || statKey === "epa_per_db")) {
+    // DataHub 2026 QB weekly Game Logs: sign nonzero EPA values like the
+    // season summary while keeping zero unsigned.
+    return formatDataHubSignedEpaValue(numericValue);
   }
   if (statKey === "yco_per_att") return numericValue.toFixed(2);
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
@@ -14058,6 +14063,11 @@ function formatDataHubPercentage(value, decimals = 1) {
     return `${(0).toFixed(decimals)}%`;
   }
   return `${numericValue.toFixed(decimals)}%`;
+}
+
+function formatDataHubSignedEpaValue(value) {
+  const formatted = Number(value).toFixed(2);
+  return value > 0 ? `+${formatted}` : formatted;
 }
 
 function getDataHubRankDisplayText(rank) {
@@ -14143,6 +14153,9 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "cpoe") {
       const formatted = formatDataHubPercentage(raw, 1);
       displayValue = raw > 0 ? `+${formatted}` : formatted;
+    } else if (key === "epa" && state.currentModalSeason === "2026" && player?.pos === "QB") {
+      // DataHub 2026 QB Game Logs footer: mirror the signed weekly EPA cells.
+      displayValue = formatDataHubSignedEpaValue(raw);
     } else if (key === "epa_per_db") {
       const formatted = Number(raw).toFixed(2);
       displayValue = raw > 0 ? `+${formatted}` : formatted;

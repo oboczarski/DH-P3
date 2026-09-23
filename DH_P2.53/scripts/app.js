@@ -5809,6 +5809,9 @@ function getGameLogsSeasonDisplayValue({
 		} else if (key === 'cpoe') {
 			const formatted = formatPercentage(raw, 1);
 			displayValue = raw > 0 ? `+${formatted}` : formatted;
+		} else if (key === 'epa' && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+			// Rosters 2026 QB Game Logs footer: match the signed weekly EPA cells.
+			displayValue = formatSignedEpaValue(raw);
 		} else if (key === 'epa_per_db') {
 			const formatted = Number(raw).toFixed(2);
 			displayValue = raw > 0 ? `+${formatted}` : formatted;
@@ -7227,6 +7230,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
+            else if (is2026RostersQbLog && (key === 'epa' || key === 'epa_per_db')) {
+                // Rosters 2026 QB weekly EPA: show + or - for nonzero sheet
+                // values and keep zero unsigned, matching the season footer.
+                displayValue = formatSignedEpaValue(value);
+            }
             else if (key === 'pass_imp_per_att' || key === 'prs_pct' || key === 'snp_pct' || key === 'ts_per_rr' || key === 'cmp_pct' || key === 'blitz_pct' || key === 'team_pass_pct') displayValue = formatPercentage(value);
             else if (key === 'pass_rtg' || key === 'fpts') displayValue = value.toFixed(1);
             else displayValue = Number.isInteger(value) ? String(value) : value.toFixed(2);
@@ -10962,6 +10970,11 @@ function formatPercentage(value, decimals = 1) {
     const numericValue = Number(value);
     if (Number.isNaN(numericValue)) return fallback;
     return numericValue.toFixed(decimals) + '%';
+}
+function formatSignedEpaValue(value) {
+    const numericValue = Number(value);
+    const formatted = numericValue.toFixed(2);
+    return numericValue > 0 ? `+${formatted}` : formatted;
 }
 function formatRadarStatValue(statKey, value) {
     // Keep preformatted strings as-is so radar text matches summary chips.

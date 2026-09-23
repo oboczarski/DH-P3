@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the Rosters and DataHub QB Game Logs scripts for their 2026 columns.
-const CACHE_NAME = 'DH3.46s-qb-gamelogs-2026';
+// Refresh the Rosters and DataHub 2026 QB weekly EPA display formatters.
+const CACHE_NAME = 'DH3.46t-qb-weekly-epa-sign';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
