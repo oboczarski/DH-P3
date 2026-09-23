@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub so the Trade Values Fantasy group uses the 2026 DH season totals.
-const CACHE_NAME = 'DH3.46r-datahub-trade-fantasy-2026';
+// Refresh the Rosters and DataHub QB Game Logs scripts for their 2026 columns.
+const CACHE_NAME = 'DH3.46s-qb-gamelogs-2026';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

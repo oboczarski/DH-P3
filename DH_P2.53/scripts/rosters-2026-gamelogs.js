@@ -10,7 +10,10 @@
     const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
     const STAT_MAP = {
         paATT: 'pass_att', CMP: 'pass_cmp', 'CMP PCT': 'cmp_pct', 'CMP%': 'cmp_pct',
-        paYDS: 'pass_yd', paTD: 'pass_td', pa1D: 'pass_fd', 'EPA/DB': 'epa_per_db', CPOE: 'cpoe',
+        // Rosters 2026 QB Game Logs: read these exact WK/DH passing headers for
+        // the weekly table and its season footer; 2025 CSV parsing stays in app.js.
+        paYDS: 'pass_yd', paTD: 'pass_td', pa1D: 'pass_fd', EPA: 'epa', 'EPA/DB': 'epa_per_db', CPOE: 'cpoe',
+        'BLTZ%': 'blitz_pct', DB: 'dropbacks', 'TmPa%': 'team_pass_pct',
         'DP%': 'dp_pct', 'IMP/G': 'imp_per_g', paRTG: 'pass_rtg', pIMP: 'pass_imp', 'pIMP/A': 'pass_imp_per_att',
         INT: 'pass_int', SAC: 'pass_sack', TTT: 'ttt', 'PRS%': 'prs_pct', CAR: 'rush_att', ruYDS: 'rush_yd',
         YPC: 'ypc', ruTD: 'rush_td', ru1D: 'rush_fd', MTF: 'mtf', ELU: 'elu', RYOE: 'ryoe', YCO: 'rush_yac',
@@ -68,7 +71,9 @@
             if (!statKey) return;
             if (statKey === 'proj') { stats.proj = String(rawValue ?? '').trim(); return; }
             let number = numberValue(rawValue);
-            if (key === 'SNP%' && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
+            // Rosters 2026 QB percentages: WK/DH may encode a rate as a
+            // fraction or as percentage points; display both on the same scale.
+            if (['SNP%', 'BLTZ%', 'TmPa%'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
             if (number !== null) stats[statKey] = number;
         });
         if (weekly) stats.__hasRecordedStats = Boolean(row.__hasRecordedStats);

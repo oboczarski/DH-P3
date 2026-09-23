@@ -4075,6 +4075,11 @@ function buildStatLabels() {
     labels['ppg'] = 'PPG';   // keep if used elsewhere
     labels['ts_per_rr'] = 'TS%';
     labels['fpoe'] = 'FPOE';
+    // Rosters 2026 QB Game Logs: expose the exact WK/DH header labels only
+    // for this season; shared 2025 and Stats-page labels remain untouched.
+    if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        Object.assign(labels, { epa: 'EPA', blitz_pct: 'BLTZ%', dropbacks: 'DB', team_pass_pct: 'TmPa%' });
+    }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
     labels['expl_ru_pct'] = 'EXPLSV%';
     return labels;
@@ -4086,6 +4091,10 @@ const NO_FALLBACK_KEYS = new Set([
     'imp_per_g',
     'epa_per_db',
     'cpoe',
+    'epa',
+    'blitz_pct',
+    'dropbacks',
+    'team_pass_pct',
     'snp_pct',
     'prs_pct',
     'ypr',
@@ -5795,7 +5804,7 @@ function getGameLogsSeasonDisplayValue({
         } else if (key === 'expl_ru_pct') {
             const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
             displayValue = formatPercentage(normalized);
-        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct') {
+        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct' || key === 'blitz_pct' || key === 'team_pass_pct') {
 			displayValue = formatPercentage(raw);
 		} else if (key === 'cpoe') {
 			const formatted = formatPercentage(raw, 1);
@@ -6761,6 +6770,15 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'fum',
         'fpoe'
     ];
+    // Rosters QB weekly Game Logs: use the requested 2026 WK/DH column order.
+    // The existing QB order above remains the complete 2025 presentation.
+    const qb2026StatOrder = [
+        'fpts', 'proj', 'pass_rtg', 'pass_yd', 'pass_td', 'yds_total',
+        'rush_yd', 'rush_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'cpoe',
+        'rush_att', 'ypc', 'epa', 'epa_per_db', 'pass_imp_per_att',
+        'pass_fd', 'ttt', 'prs_pct', 'blitz_pct', 'pass_sack', 'pass_int',
+        'dropbacks', 'team_pass_pct', 'fpoe'
+    ];
     const rbStatOrder = [
         'fpts',
         'proj',
@@ -6819,7 +6837,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('all', ['fpts', 'ppg', 'proj', 'snp_pct', 'yds_total', 'imp_per_g', 'fum', 'fpoe']);
     assignStatGroup('passing', [
         'pass_rtg', 'pass_yd', 'pass_td', 'cmp_pct', 'pass_att', 'pass_cmp', 'pass_fd',
-        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe','dp_pct', 'pass_int', 'epa_per_db', 'pa_ypg'
+        'pass_imp', 'pass_imp_per_att', 'ttt', 'prs_pct', 'pass_sack', 'cpoe', 'dp_pct', 'pass_int', 'epa_per_db', 'pa_ypg',
+        'epa', 'blitz_pct', 'dropbacks', 'team_pass_pct'
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
@@ -6829,8 +6848,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
         'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct'
     ]);
+    const is2026RostersQbLog = pageType === 'rosters' && player.pos === 'QB' && state.currentGameLogsSeason === '2026';
     let orderedStatKeys;
-    if (player.pos === 'QB') orderedStatKeys = qbStatOrder;
+    if (player.pos === 'QB') orderedStatKeys = is2026RostersQbLog
+        ? qb2026StatOrder : qbStatOrder;
     else if (player.pos === 'RB') orderedStatKeys = rbStatOrder;
     else if (player.pos === 'WR' || player.pos === 'TE') orderedStatKeys = wrTeStatOrder;
     else orderedStatKeys = ['fpts', 'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'imp_per_g', 'pass_rtg', 'pass_imp', 'pass_imp_per_att', 'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'ttt', 'prs_pct', 'mtf', 'mtf_per_att', 'rush_yac', 'yco_per_att', 'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr', 'ts_per_rr', 'rr', 'fum', 'snp_pct', 'yds_total', 'fpoe'];
@@ -6909,6 +6930,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         pass_att: 38,
         pass_cmp: 38,
         pass_imp_per_att: 44,
+        epa: 42,
+        blitz_pct: 48,
+        dropbacks: 38,
+        team_pass_pct: 52,
         prs_pct: 42,
         ttt: 38,
         yco_per_att: 44,
@@ -6939,7 +6964,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const tableColumns = [{
         id: 'week',
         accessorKey: 'week',
-        header: () => 'WK  ·  VS ',
+        header: () => is2026RostersQbLog ? 'WK · VS' : 'WK  ·  VS ',
         size: COLUMN_WIDTHS.week,
         meta: {
             headerClass: 'week-column-header',
@@ -7202,7 +7227,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
-            else if (key === 'pass_imp_per_att' || key === 'prs_pct' || key === 'snp_pct' || key === 'ts_per_rr' || key === 'cmp_pct') displayValue = formatPercentage(value);
+            else if (key === 'pass_imp_per_att' || key === 'prs_pct' || key === 'snp_pct' || key === 'ts_per_rr' || key === 'cmp_pct' || key === 'blitz_pct' || key === 'team_pass_pct') displayValue = formatPercentage(value);
             else if (key === 'pass_rtg' || key === 'fpts') displayValue = value.toFixed(1);
             else displayValue = Number.isInteger(value) ? String(value) : value.toFixed(2);
             rowData[key] = createTextDescriptor(displayValue);
@@ -7426,7 +7451,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         const totalTh = document.createElement('th');
         totalTh.className = 'modal-table-footer-label week-column-header';
         const gamesPlayed = getAdjustedGamesPlayed(player.id, scoringSettings);
-        totalTh.innerHTML = `<span class="season-label">2025</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
+        // Rosters Game Logs footer: show the selected season beside its QB
+        // columns; the separate Stats page keeps its historical 2025 label.
+        const footerSeason = pageType === 'rosters' ? state.currentGameLogsSeason : '2025';
+        totalTh.innerHTML = `<span class="season-label">${footerSeason}</span><br><span class="gp-label">(GP: ${gamesPlayed})</span>`;
         const weekColumnSize = columnSizes[0] || DEFAULT_COLUMN_WIDTH;
         totalTh.style.width = `${weekColumnSize}px`;
         totalTh.style.minWidth = `${weekColumnSize}px`;

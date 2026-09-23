@@ -11401,8 +11401,14 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   paYDS: "pass_yd",
   paTD: "pass_td",
   pa1D: "pass_fd",
+  // DataHub 2026 QB Game Logs: the WK and DH sheets use these exact headers.
+  // Keep their internal keys available to the weekly table and season footer.
+  EPA: "epa",
   "EPA/DB": "epa_per_db",
   CPOE: "cpoe",
+  "BLTZ%": "blitz_pct",
+  DB: "dropbacks",
+  "TmPa%": "team_pass_pct",
   "DP%": "dp_pct",
   "IMP/G": "imp_per_g",
   paRTG: "pass_rtg",
@@ -11621,6 +11627,10 @@ const DATAHUB_NO_FALLBACK_KEYS = new Set([
   "imp_per_g",
   "epa_per_db",
   "cpoe",
+  "epa",
+  "blitz_pct",
+  "dropbacks",
+  "team_pass_pct",
   "snp_pct",
   "prs_pct",
   "ypr",
@@ -11632,6 +11642,15 @@ const DATAHUB_QB_LOG_ORDER = [
   "rush_yd", "rush_td", "pass_att", "pass_cmp", "pass_fd", "imp_per_g",
   "pass_imp", "pass_imp_per_att", "rush_att", "ypc", "ttt", "prs_pct",
   "pass_sack", "pass_int", "fum", "fpoe",
+];
+// DataHub QB weekly Game Logs: use this order only for 2026. The 2025 QB
+// order above and the separate Season view retain their current columns.
+const DATAHUB_QB_LOG_ORDER_2026 = [
+  "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "yds_total",
+  "rush_yd", "rush_td", "cmp_pct", "pass_att", "pass_cmp", "cpoe",
+  "rush_att", "ypc", "epa", "epa_per_db", "pass_imp_per_att",
+  "pass_fd", "ttt", "prs_pct", "blitz_pct", "pass_sack", "pass_int",
+  "dropbacks", "team_pass_pct", "fpoe",
 ];
 const DATAHUB_RB_LOG_ORDER = [
   "fpts", "proj", "snp_pct", "rush_att", "rush_yd", "ypc", "rush_td", "rec",
@@ -12704,7 +12723,9 @@ function parseDataHubStatValue(header, value) {
   if (!trimmedValue || trimmedValue.toUpperCase() === "NA") {
     return null;
   }
-  if (header === "SNP%") {
+  // DataHub 2026 QB Game Logs: BLTZ% and TmPa% share the SNP% rule so WK and
+  // DH rates display consistently whether their cells hold fractions or points.
+  if (["SNP%", "BLTZ%", "TmPa%"].includes(header)) {
     const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
     if (!Number.isFinite(numericPortion)) {
       return null;
@@ -13309,7 +13330,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     return empty;
   }
 
-  const orderedStatKeys = getDataHubLogOrderForPosition(player.pos);
+  const is2026QbLog = player.pos === "QB" && state.currentModalSeason === "2026";
+  const orderedStatKeys = getDataHubLogOrderForPosition(player.pos, state.currentModalSeason);
   const statLabels = DATAHUB_STAT_LABELS;
   const seasonTotals = state.playerSeasonStats?.[player.id] || null;
   const logsByWeek = new Map(gameLogs.map((entry) => [Number(entry.week), entry]));
@@ -13336,6 +13358,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     pass_att: 38,
     pass_cmp: 38,
     pass_imp_per_att: 44,
+    epa: 42,
+    blitz_pct: 48,
+    dropbacks: 38,
+    team_pass_pct: 52,
     prs_pct: 42,
     ttt: 38,
     yco_per_att: 44,
@@ -13366,7 +13392,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const tableColumns = [{
     id: "week",
     accessorKey: "week",
-    header: () => "WK  ·  VS ",
+    header: () => is2026QbLog ? "WK · VS" : "WK  ·  VS ",
     size: COLUMN_WIDTHS.week,
     meta: {
       headerClass: "week-column-header",
@@ -13759,9 +13785,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   return container;
 }
 
-function getDataHubLogOrderForPosition(position) {
+function getDataHubLogOrderForPosition(position, season = "2025") {
   const pos = String(position || "").trim().toUpperCase();
-  if (pos === "QB") return DATAHUB_QB_LOG_ORDER;
+  if (pos === "QB") return season === "2026" ? DATAHUB_QB_LOG_ORDER_2026 : DATAHUB_QB_LOG_ORDER;
   if (pos === "RB") return DATAHUB_RB_LOG_ORDER;
   return DATAHUB_WR_TE_LOG_ORDER;
 }
@@ -13786,7 +13812,7 @@ function buildDataHubGameLogsDataContext(gameLogs) {
 
 function buildDataHubFooterStats(player, playerRanks, seasonTotals, aggregatedTotals, gameLogsWithData) {
   const footerStats = Object.create(null);
-  const statOrder = getDataHubLogOrderForPosition(player.pos);
+  const statOrder = getDataHubLogOrderForPosition(player.pos, state.currentModalSeason);
   footerStats.fpts = Number(playerRanks.total_pts);
   footerStats.ppg = Number(playerRanks.ppg);
   statOrder.forEach((statKey) => {
@@ -13933,6 +13959,11 @@ function getDataHubGameLogStatValue(statKey, stats) {
     return attempts > 0 ? (Number(stats.mtf) || 0) / attempts : 0;
   }
   if (statKey === "pass_imp_per_att") {
+    // DataHub 2026 QB Game Logs: prefer the weekly sheet's pIMP/A value.
+    // Historical 2025 keeps its existing calculated display behavior.
+    if (state.currentModalSeason === "2026" && Number.isFinite(stats.pass_imp_per_att)) {
+      return stats.pass_imp_per_att;
+    }
     const attempts = Number(stats.pass_att) || 0;
     return attempts > 0 ? ((Number(stats.pass_imp) || 0) / attempts) * 100 : 0;
   }
@@ -13979,7 +14010,7 @@ function formatDataHubGameLogCellValue(statKey, value) {
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
     return numericValue.toFixed(2);
   }
-  if (["pass_imp_per_att", "prs_pct", "snp_pct", "ts_per_rr", "cmp_pct"].includes(statKey)) {
+  if (["pass_imp_per_att", "prs_pct", "snp_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct"].includes(statKey)) {
     return `${numericValue.toFixed(1)}%`;
   }
   if (["pass_rtg", "fpts"].includes(statKey)) {
@@ -14107,7 +14138,7 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "expl_ru_pct") {
       const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
       displayValue = formatDataHubPercentage(normalized);
-    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct"].includes(key)) {
+    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct"].includes(key)) {
       displayValue = formatDataHubPercentage(raw);
     } else if (key === "cpoe") {
       const formatted = formatDataHubPercentage(raw, 1);
@@ -14395,6 +14426,7 @@ function getDataHubStatGroup(statKey) {
   if ([
     "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "pass_imp", "pass_rtg",
     "pass_imp_per_att", "pass_int", "pass_sack", "ttt", "prs_pct", "cmp_pct", "epa_per_db", "cpoe", "dp_pct", "pa_ypg",
+    "epa", "blitz_pct", "dropbacks", "team_pass_pct",
   ].includes(statKey)) return "passing";
   if ([
     "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc", "elu", "mtf_per_att", "yco_per_att",
