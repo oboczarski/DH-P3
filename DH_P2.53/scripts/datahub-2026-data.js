@@ -20,7 +20,17 @@ export function has2026WeekResults(row) {
     || (Number.isFinite(Number(row.FPT_PPR)) && Number(row.FPT_PPR) !== 0);
 }
 
-export function build2026SourceData({ seasonRows, weeklyRows, scheduleRows, defenseRows }) {
+// Qualifier progression belongs to DH totals, never to the availability of WK
+// tabs. G is the Overview alias of GM_P; after the last byes, 14 games = Week 15.
+export function get2026WeeksOfData(seasonRows) {
+  const maxGames = seasonRows.filter(isPlayer).reduce((highest, row) => {
+    const games = Number(row.GM_P ?? row.G);
+    return Number.isInteger(games) && games >= 0 && games <= 17 ? Math.max(highest, games) : highest;
+  }, 0);
+  return Math.max(1, maxGames >= 14 ? maxGames + 1 : maxGames);
+}
+
+export function build2026SourceData({ seasonRows, weeklyRows = {}, scheduleRows = [], defenseRows = [] }) {
   // Adapt the workbook's identity/game columns to the existing table contract.
   // Preserve every original stat field for the modal's header-based parser.
   const rawRows = seasonRows.filter(isPlayer).map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P }));
@@ -55,11 +65,13 @@ export function build2026SourceData({ seasonRows, weeklyRows, scheduleRows, defe
       };
     });
   }
-  return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: Math.max(1, weeksWithResults.length) };
+  return { rawRows, weeklyRows: resolvedWeeks, weeksWithResults, weeksOfData: get2026WeeksOfData(seasonRows) };
 }
 
-export async function load2026SourceData({ parseCsv, scheduleUrl, fetchImpl = fetch }) {
-  async function sheet(name, requiredHeaders) {
+// Keep DH loading independent of every modal-only source. A malformed WK tab,
+// unavailable DRK feed or schedule must never prevent the main Stats grid opening.
+function createSheetReader(parseCsv, fetchImpl) {
+  return async function sheet(name, requiredHeaders) {
     const url = `https://docs.google.com/spreadsheets/d/${DATAHUB_2026_WORKBOOK}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
     const response = await fetchImpl(url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`2026 ${name} could not load (${response.status}).`);
@@ -71,9 +83,25 @@ export async function load2026SourceData({ parseCsv, scheduleUrl, fetchImpl = fe
       throw new Error(`2026 ${name} has missing or invalid columns.`);
     }
     return rows;
-  }
-  const [seasonRows, defenseRows, scheduleRows] = await Promise.all([
-    sheet('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']),
+  };
+}
+
+export async function load2026SourceData({ parseCsv, fetchImpl = fetch }) {
+  const sheet = createSheetReader(parseCsv, fetchImpl);
+  const seasonRows = await sheet('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR', 'GM_P']);
+  if (seasonRows.some((row) => isPlayer(row) && String(row.SZN) !== '2026')) throw new Error('DH contains a different season.');
+  return {
+    rawRows: seasonRows.filter(isPlayer).map((row) => ({ ...row, NM: row['PLAYER NAME'], G: row.GM_P })),
+    weeklyRows: {},
+    weeksOfData: get2026WeeksOfData(seasonRows),
+  };
+}
+
+// Game Logs and Compare call this only when opened. Invalid weeks stay blank;
+// valid weeks, schedule and position-specific opponent ranks remain available.
+export async function load2026WeeklySourceData({ seasonRows, parseCsv, scheduleUrl, fetchImpl = fetch }) {
+  const sheet = createSheetReader(parseCsv, fetchImpl);
+  const [defenseRows, scheduleRows] = await Promise.all([
     sheet('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
     fetchImpl(scheduleUrl, { cache: 'no-store' }).then(async (response) => {
       if (!response.ok) throw new Error(`Schedule2026.csv could not load (${response.status}).`);
@@ -82,18 +110,23 @@ export async function load2026SourceData({ parseCsv, scheduleUrl, fetchImpl = fe
       return rows;
     }),
   ]);
-  if (seasonRows.some((row) => isPlayer(row) && String(row.SZN) !== '2026')) throw new Error('DH contains a different season.');
-  // Probe WK1–WK18 on every page load so newly added tabs need no code changes.
-  // Limit concurrency to avoid a burst of 18 requests to the workbook.
+  // Probe all numbered tabs on first modal use, with bounded concurrency.
   const weeklyRows = {};
+  const weekErrors = {};
   let nextWeek = 1;
   await Promise.all(Array.from({ length: 4 }, async () => {
     while (nextWeek <= 18) {
       const week = nextWeek++;
-      const rows = await sheet(`WK${week}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']);
-      if (rows.some((row) => isPlayer(row) && Number(row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
-      weeklyRows[week] = rows;
+      try {
+        const rows = await sheet(`WK${week}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']);
+        if (rows.some((row) => isPlayer(row) && Number(row.SZN) !== week)) throw new Error(`WK${week} contains another week's rows.`);
+        weeklyRows[week] = rows;
+      } catch (error) {
+        // Never relabel another week's results or manufacture zero-stat games.
+        weeklyRows[week] = [];
+        weekErrors[week] = error.message;
+      }
     }
   }));
-  return build2026SourceData({ seasonRows, weeklyRows, scheduleRows, defenseRows });
+  return { ...build2026SourceData({ seasonRows, weeklyRows, scheduleRows, defenseRows }), weekErrors };
 }

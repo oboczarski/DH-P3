@@ -1,5 +1,5 @@
-// DataHub Stats 2026 qualifiers. The workbook loader supplies the count of WK
-// tabs with results; never derive this from today's date or a player's GM_P.
+// DataHub Stats 2026 qualifiers. The DH loader supplies the maximum games played
+// (plus one from 14 games onward); WK tab availability never changes thresholds.
 // Stable option keys preserve the chosen tier as its numeric threshold changes.
 const WEEK_ONE_OPTIONS = Object.freeze({
   RR: [26, 22, 17, 13, 11],

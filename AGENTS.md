@@ -19,7 +19,7 @@ When you update code and make changes to the app, add comments that explain:
 
 ## Data sources (Rosters + Stats)
 - Primary stats data source for both **Rosters** and **Stats** pages is the **CSV files**.
-- **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals, numbered `WK1`–`WK18` tabs for weekly data, and `DRK` for opponent position ranks. Match opponents through `DH_P2.53/data/NFL-2026/Schedule2026.csv`. Count only WK tabs with recorded results for qualifier progression. DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
+- **DataHub 2026 exception:** use workbook `16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94`: `DH` for season totals, numbered `WK1`–`WK18` tabs for weekly data, and `DRK` for opponent position ranks. Match opponents through `DH_P2.53/data/NFL-2026/Schedule2026.csv`. Load DH independently for the main Stats content; load WK/DRK/schedule only for Game Logs and Compare. Derive qualifier weeks from the maximum DH GM_P (Overview G), with a minimum of 1; from 14 games onward use maximum G + 1 (14 games = Week 15). DataHub 2025 and the separate Rosters/Stats pages retain their CSV sources.
 - Existing KTC/ADP Google Sheets feeds remain available for valuation data.
 - DataHub 2026 season positional ranks use default weekly-scaled qualifiers: QB `paATT`, RB `CAR`, WR/TE `RR`. Non-qualified players keep their statistics but receive no season rank; Show All does not bypass ranking qualification.
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { build2026SourceData, has2026WeekResults, load2026SourceData } from '../DH_P2.53/scripts/datahub-2026-data.js';
+import { build2026SourceData, has2026WeekResults, get2026WeeksOfData, load2026SourceData, load2026WeeklySourceData } from '../DH_P2.53/scripts/datahub-2026-data.js';
 import { get2026QualifierOptions } from '../DH_P2.53/scripts/datahub-stats-season.js';
 
 const source = fs.readFileSync(new URL('../DH_P2.53/scripts/DataHub.js', import.meta.url), 'utf8');
@@ -22,15 +22,27 @@ test('Overview defaults to Show All for both seasons; other categories retain th
   }
 });
 
-test('qualifiers advance only for weeks with results, ignoring projected and pre-created weeks', () => {
-  const weeklyRows = { 1: [{ ...player, SZN: '1' }], 2: [{ ...player, SZN: '2', FPT_PPR: '', GM_P: '', PROJ: '22.0' }], 3: [{ SLPR_ID: '4984', POS: 'QB' }] };
-  const make = () => build2026SourceData({ seasonRows: [player], weeklyRows, scheduleRows: schedule, defenseRows: defense });
-  assert.equal(make().weeksOfData, 1);
+test('qualifiers follow DH games played independently of weekly results or placeholders', () => {
+  const weeklyRows = { 1: [{ ...player, SZN: '1' }], 2: [{ ...player, SZN: '2', FPT_PPR: '', GM_P: '', PROJ: '22.0' }] };
+  const seasonRows = [{ ...player, GM_P: '2' }];
+  const make = () => build2026SourceData({ seasonRows, weeklyRows, scheduleRows: schedule, defenseRows: defense });
+  assert.equal(make().weeksOfData, 2);
   weeklyRows[2][0].paATT = '12';
   assert.equal(make().weeksOfData, 2);
   assert.equal(get2026QualifierOptions('RR', make().weeksOfData).find((option) => option.isDefault).threshold, 26);
+  seasonRows[0].GM_P = '3';
+  assert.equal(make().weeksOfData, 3);
   assert.equal(has2026WeekResults({ FPT_PPR: '0', GM_P: '0', SNP: '0', PROJ: '20' }), false);
   assert.equal(has2026WeekResults({ FPT_PPR: '-2' }), true);
+});
+
+test('DH maximum games applies the confirmed late-season adjustment and ignores invalid values', () => {
+  for (const [games, weeks] of [[0,1], [1,1], [2,2], [13,13], [14,15], [15,16], [16,17], [17,18]]) {
+    assert.equal(get2026WeeksOfData([{ ...player, GM_P: String(games) }, { ...player, GM_P: '0' }]), weeks);
+  }
+  assert.equal(get2026WeeksOfData([]), 1);
+  assert.equal(get2026WeeksOfData(['', 'NA', '-1', 'Infinity', '1.5', '99'].map((GM_P) => ({ ...player, GM_P }))), 1);
+  assert.equal(get2026WeeksOfData([{ ...player, GM_P: '2' }, { GM_P: '17' }]), 2);
 });
 
 test('Schedule2026 overrides sheet opponents and DRK maps the opponent by player position', () => {
@@ -55,26 +67,56 @@ test('weekly team changes and alias teams resolve without using another team or 
   assert.equal(data.weeklyRows[1][0].vsRK, '');
 });
 
-test('loader discovers newly populated WK tabs and rejects bad schemas instead of replacing live stats', async () => {
+test('main season loader requests DH only, even when every modal source would fail', async () => {
+  const requests = [];
+  let dh = 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n2026,4984,QB,BUF,35.66,2';
+  const fetchImpl = async (url, init) => {
+    assert.equal(init.cache, 'no-store');
+    const sheet = new URL(url).searchParams.get('sheet');
+    requests.push(sheet);
+    if (sheet !== 'DH') throw new Error('Modal source unavailable');
+    return { ok: true, text: async () => dh };
+  };
+  const options = { parseCsv, fetchImpl };
+  const data = await load2026SourceData(options);
+  assert.deepEqual(requests, ['DH']);
+  assert.equal(data.rawRows[0].G, '2');
+  assert.equal(data.rawRows[0].FPT_PPR, '35.66');
+  assert.equal(data.weeksOfData, 2);
+  assert.deepEqual(data.weeklyRows, {});
+  dh = '<html>Sign in</html>';
+  await assert.rejects(load2026SourceData(options), /DH has missing or invalid columns/);
+  dh = 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n2025,4984,QB,BUF,350,17';
+  await assert.rejects(load2026SourceData(options), /different season/);
+});
+
+test('lazy weekly loader preserves valid weeks and blanks mismatched, invalid and failed WK sheets', async () => {
   const requests = [];
   const tables = {
-    DH: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n2026,4984,QB,BUF,35.66,1',
     DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
     WK1: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,35.66,1',
+    WK4: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n3,4984,QB,BUF,20,1',
+    WK5: '<html>Sign in</html>',
     WK6: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n6,4984,QB,BUF,20,1',
   };
   const fetchImpl = async (url, init) => {
     assert.equal(init.cache, 'no-store');
     const sheet = new URL(url).searchParams.get('sheet');
     requests.push(sheet);
-    return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,1,18\nBUF,@ HOU,vs NYJ' };
+    if (sheet === 'WK7') throw new Error('Network unavailable');
+    return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,1,4,18\nBUF,@ HOU,vs NYJ,vs NYJ' };
   };
-  const options = { parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl };
-  const data = await load2026SourceData(options);
+  const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
   assert.deepEqual(data.weeksWithResults, [1, 6]);
+  assert.equal(data.weeksOfData, 1);
   assert.ok(requests.includes('WK18'));
-  tables.DH = '<html>Sign in</html>';
-  await assert.rejects(load2026SourceData(options), /DH has missing or invalid columns/);
-  tables.DH = 'SZN,SLPR_ID,POS,TM,FPT_PPR\n2025,4984,QB,BUF,350';
-  await assert.rejects(load2026SourceData(options), /different season/);
+  assert.ok(!requests.includes('DH'));
+  assert.equal(data.weeklyRows[1][0].vsRK, '2');
+  assert.equal(data.weeklyRows[4][0].VS, 'vs NYJ');
+  for (const week of [4, 5, 7]) {
+    assert.ok(data.weekErrors[week]);
+    assert.equal(data.weeklyRows[week][0].FPT_PPR, undefined);
+    assert.equal(data.weeklyRows[week][0].__hasRecordedStats, false);
+  }
+  assert.match(data.weekErrors[4], /another week's rows/);
 });

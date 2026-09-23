@@ -1,5 +1,5 @@
 import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
-import { load2026SourceData } from "./datahub-2026-data.js";
+import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -2609,7 +2609,7 @@ const state = {
     TE: true,
   },
   // DataHub 2026 has its own live workbook snapshot. Keep historical 2025 rows
-  // separate, and derive qualifiers only from WK tabs containing results.
+  // separate, and derive qualifiers from the highest games played in DH.
   statsSeason: "2026",
   stats2026: { rows: [], rawRows: [], weeklyRows: {}, weeksOfData: 1, loaded: false },
   stats2026Promise: null,
@@ -3677,13 +3677,12 @@ async function loadInitialData() {
 }
 
 // Keep this request shared by the table, Game Logs and Compare. Each full page
-// refresh re-reads DH/DRK/WK tabs; normalized rows rebuild again after KTC/ADP arrive.
+// refresh re-reads DH only; modal-only feeds are fetched lazily below.
 async function ensureDataHub2026Data() {
   if (state.stats2026.loaded) return state.stats2026;
   if (!state.stats2026Promise) {
     state.stats2026Promise = load2026SourceData({
       parseCsv,
-      scheduleUrl: new URL("../data/NFL-2026/Schedule2026.csv", window.location.href),
     }).then((source) => {
       state.stats2026 = { ...source, rows: [], loaded: true };
       rebuildDataHubRows();
@@ -12479,6 +12478,17 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       let seasonStats, seasonRanks, weeklyStats;
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
+        // WK/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
+        // opening Game Logs or Compare cannot change table qualifiers or totals.
+        const weeklySource = await load2026WeeklySourceData({
+          seasonRows: source.rawRows,
+          parseCsv,
+          scheduleUrl: new URL("../data/NFL-2026/Schedule2026.csv", window.location.href),
+        });
+        source.weeklyRows = weeklySource.weeklyRows;
+        if (Object.keys(weeklySource.weekErrors).length) {
+          console.warn("DataHub skipped unavailable or invalid 2026 weeks:", weeklySource.weekErrors);
+        }
         seasonStats = parseDataHubSeasonStatsRows(source.rawRows);
         weeklyStats = Object.fromEntries(Object.entries(source.weeklyRows).map(([week, rows]) => [week, parseDataHubWeeklyStatsRows(rows)]));
         // DH has stat values, not a season-rank sheet. Compute positional ranks

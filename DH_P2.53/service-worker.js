@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// DataHub mobile Game Logs season menu displays only the selectable years.
-const CACHE_NAME = 'DH3.46m-datahub-mobile-year-labels';
+// DataHub loads DH totals independently and derives qualifier weeks from games played.
+const CACHE_NAME = 'DH3.46n-datahub-dh-independent';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
