@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub Compare circle positions and the glyph-only glow.
-const CACHE_NAME = 'DH3.46o-compare-icon-glow';
+// Refresh DataHub Compare assets: restore mobile and keep the glow desktop-only.
+const CACHE_NAME = 'DH3.46p-compare-desktop-only';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
