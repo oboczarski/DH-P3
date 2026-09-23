@@ -2476,9 +2476,10 @@ async function handleLeagueSelect() {
         // Hydrate draft order (for precise pick labels like 2026 1.02 and KTC early/mid/late buckets)
         await hydrateDraftOrderBySeason({ leagueId, leagueInfo, rosters, drafts });
 
-        // Fetch previous season data for records/championship crown if we are in the offseason (e.g. 2026)
+        // Rosters header: use the prior league only to identify last season's champion.
+        // The displayed record comes from this current league's roster settings.
         let previousSeasonData = null;
-        // Check if we should fallback (e.g. 2026 season or generally if previous league exists and we want history)
+        // Keep the existing prior-season lookup scope for leagues that show the crown.
         if (leagueInfo.season === '2026' || leagueInfo.status === 'pre_draft' || leagueInfo.status === 'complete') {
             previousSeasonData = await fetchPreviousSeasonData(leagueInfo);
         }
@@ -5001,18 +5002,14 @@ function processRosterData(rosters, users, tradedPicks, leagueInfo, previousSeas
         const isUserTeam = roster.owner_id === state.userId ||
             (roster.co_owners?.includes(state.userId) ?? false);
 
-        let record = formatTeamRecord(roster.settings);
+        // Rosters header: always display this season's W-L(-T), including 0-0.
+        const record = formatTeamRecord(roster.settings);
         let isChamp = false;
 
-        // Attempt to use previous season data if provided (e.g. for offseason 2026 display)
+        // Previous-season data marks the returning champion without replacing the current record.
         if (previousSeasonData) {
             const prevRoster = previousSeasonData.rostersByOwner[roster.owner_id];
             if (prevRoster) {
-                // Use previous record instead of current 0-0
-                const prevRecord = formatTeamRecord(prevRoster.settings);
-                if (prevRecord) record = prevRecord;
-
-                // Check if this roster was the champion
                 if (previousSeasonData.winnerRosterId === prevRoster.roster_id) {
                     isChamp = true;
                 }
@@ -8312,20 +8309,18 @@ function renderAllTeamData(teams) {
         const teamNameSpan = document.createElement('span');
         teamNameSpan.className = 'team-name';
         teamNameSpan.textContent = team.teamName;
-        if (team.isChamp) {
-            header.title = `${team.teamName} - Previous Champion`;
-        } else if (team.record) {
-            header.title = `${team.teamName} (${team.record})`;
-        } else {
-            header.title = team.teamName;
-        }
+        // Rosters header: the prior champion's crown follows the username, while
+        // every available record stays visible at the right for the active season.
+        header.title = `${team.teamName}${team.isChamp ? ' - Previous Champion' : ''}${team.record ? ` (${team.record})` : ''}`;
         header.appendChild(checkbox);
         header.appendChild(teamNameSpan);
         if (team.isChamp) {
             const champIcon = document.createElement('i');
             champIcon.className = 'fa-solid fa-crown team-record-champ';
+            champIcon.setAttribute('aria-hidden', 'true');
             header.appendChild(champIcon);
-        } else if (team.record) {
+        }
+        if (team.record) {
             const recordSpan = document.createElement('span');
             recordSpan.className = 'team-record';
             recordSpan.textContent = `(${team.record})`;

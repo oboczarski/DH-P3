@@ -541,6 +541,19 @@ body[data-page="rosters"] #starfield::after {
   z-index: 2;
 }
 
+/* Rosters team header: reserve separate slots for the prior champion crown and
+   current-season record, while the username remains the only truncated item. */
+.team-header-item:has(.team-record-champ) {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.team-header-item .team-record-champ {
+  font-size: 0.52rem;
+  /* Let long roster usernames keep one more character; the crown may sit over
+     the ellipsis while remaining between the name and current record. */
+  margin-left: -0.25rem;
+}
+
 .team-header-item:hover {
   box-shadow: 0 0 5px #7300ff;
 }

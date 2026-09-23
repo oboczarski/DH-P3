@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub Compare assets: restore mobile and keep the glow desktop-only.
-const CACHE_NAME = 'DH3.46p-compare-desktop-only';
+// Refresh Rosters header assets so current-season records and prior champion crowns ship together.
+const CACHE_NAME = 'DH3.46q-roster-header-record';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
