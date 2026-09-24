@@ -4075,10 +4075,13 @@ function buildStatLabels() {
     labels['ppg'] = 'PPG';   // keep if used elsewhere
     labels['ts_per_rr'] = 'TS%';
     labels['fpoe'] = 'FPOE';
-    // Rosters 2026 QB Game Logs: expose the exact WK/DH header labels only
-    // for this season; shared 2025 and Stats-page labels remain untouched.
+    // Rosters 2026 Game Logs: use the QB and RB WK/DH labels only in this
+    // season; shared 2025 and Stats-page labels remain untouched.
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
-        Object.assign(labels, { epa: 'EPA', blitz_pct: 'BLTZ%', dropbacks: 'DB', team_pass_pct: 'TmPa%' });
+        Object.assign(labels, {
+            epa: 'EPA', blitz_pct: 'BLTZ%', dropbacks: 'DB', team_pass_pct: 'TmPa%',
+            ryoe_per_att: 'RYOE/A', rz_att: 'RZ·Att', gl_att: 'GL·Att'
+        });
     }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
     labels['expl_ru_pct'] = 'EXPLSV%';
@@ -4099,7 +4102,8 @@ const NO_FALLBACK_KEYS = new Set([
     'prs_pct',
     'ypr',
     'first_down_rec_rate',
-    'expl_ru_pct'
+    'expl_ru_pct',
+    'ryoe_per_att', 'rz_att', 'gl_att'
 ]);
 const SEASON_META_HEADERS = {
     'POS': 'pos',
@@ -5834,6 +5838,9 @@ function getGameLogsSeasonDisplayValue({
 		} else if (key === 'epa_per_db') {
 			const formatted = Number(raw).toFixed(2);
 			displayValue = raw > 0 ? `+${formatted}` : formatted;
+        } else if (key === 'ryoe_per_att' && pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player?.pos === 'RB') {
+            // Rosters 2026 RB weekly footer: keep RYOE/A at two decimals.
+            displayValue = Number(raw).toFixed(2);
 		} else {
 			displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
 		}
@@ -6828,6 +6835,15 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'fum',
         'fpoe'
     ];
+    // Rosters 2026 RB weekly Game Logs: use WK/DH rushing and receiving
+    // fields in the requested order; the existing RB order above is 2025.
+    const rb2026StatOrder = [
+        'fpts', 'proj', 'snp_pct', 'rush_att', 'rush_yd', 'ypc', 'rush_td',
+        'rec_tgt', 'rec', 'ts_per_rr', 'rec_yd', 'rec_td', 'yds_total',
+        'elu', 'mtf_per_att', 'yco_per_att', 'mtf', 'rush_yac',
+        'expl_ru_pct', 'ryoe', 'ryoe_per_att', 'rz_att', 'gl_att', 'rush_fd',
+        'rr', 'yprr', 'ypr', 'rec_fd', 'rec_yar', 'imp_per_g', 'fum', 'fpoe'
+    ];
     const wrTeStatOrder = [
         'fpts',
         'proj',
@@ -6864,17 +6880,19 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     ]);
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
-        'yco_per_att', 'expl_ru_pct', 'mtf', 'rush_yac', 'ryoe', 'ru_ypg'
+        'yco_per_att', 'expl_ru_pct', 'mtf', 'rush_yac', 'ryoe', 'ryoe_per_att',
+        'rz_att', 'gl_att', 'ru_ypg'
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
         'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct'
     ]);
     const is2026RostersQbLog = pageType === 'rosters' && player.pos === 'QB' && state.currentGameLogsSeason === '2026';
+    const is2026RostersRbLog = pageType === 'rosters' && player.pos === 'RB' && state.currentGameLogsSeason === '2026';
     let orderedStatKeys;
     if (player.pos === 'QB') orderedStatKeys = is2026RostersQbLog
         ? qb2026StatOrder : qbStatOrder;
-    else if (player.pos === 'RB') orderedStatKeys = rbStatOrder;
+    else if (player.pos === 'RB') orderedStatKeys = is2026RostersRbLog ? rb2026StatOrder : rbStatOrder;
     else if (player.pos === 'WR' || player.pos === 'TE') orderedStatKeys = wrTeStatOrder;
     else orderedStatKeys = ['fpts', 'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'imp_per_g', 'pass_rtg', 'pass_imp', 'pass_imp_per_att', 'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'ttt', 'prs_pct', 'mtf', 'mtf_per_att', 'rush_yac', 'yco_per_att', 'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr', 'ts_per_rr', 'rr', 'fum', 'snp_pct', 'yds_total', 'fpoe'];
 
@@ -6945,6 +6963,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         rec_td: 44,
         ypr: 40,
         yprr: 42,
+        ryoe_per_att: 56,
+        rz_att: 50,
+        gl_att: 50,
+        expl_ru_pct: 58,
         imp_per_g: 45,
         pass_rtg: 48,
         pass_yd: 40,
@@ -6986,7 +7008,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const tableColumns = [{
         id: 'week',
         accessorKey: 'week',
-        header: () => is2026RostersQbLog ? 'WK · VS' : 'WK  ·  VS ',
+        header: () => is2026RostersQbLog || is2026RostersRbLog ? 'WK · VS' : 'WK  ·  VS ',
         size: COLUMN_WIDTHS.week,
         meta: {
             headerClass: 'week-column-header',
@@ -7171,7 +7193,9 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 continue;
             }
             let value;
-            if (NO_FALLBACK_KEYS.has(key)) {
+            if (NO_FALLBACK_KEYS.has(key) || (is2026RostersRbLog && ['ryoe', 'rr', 'ypr'].includes(key))) {
+                // Source-backed weekly cells keep missing values blank; RB
+                // 2026 also reads RYOE, RR, and YPR from WK directly.
                 const raw = stats[key];
                 value = (typeof raw === 'number') ? raw : null;
             } else if (key === 'fpts') {
@@ -7249,6 +7273,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
+            else if (is2026RostersRbLog && key === 'ryoe_per_att') displayValue = value.toFixed(2);
+            else if (is2026RostersRbLog && key === 'expl_ru_pct') {
+                // WK EXPLSV% may be stored as a fraction or percentage points.
+                displayValue = formatPercentage(Math.abs(value) <= 1.5 ? value * 100 : value);
+            }
             else if (is2026RostersQbLog && (key === 'epa' || key === 'epa_per_db')) {
                 // Rosters 2026 QB weekly EPA: show + or - for nonzero sheet
                 // values and keep zero unsigned, matching the season footer.

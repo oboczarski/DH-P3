@@ -11426,6 +11426,11 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   MTF: "mtf",
   ELU: "elu",
   RYOE: "ryoe",
+  // DataHub 2026 RB Game Logs: preserve the WK/DH source headers for weekly
+  // rushing values; the table uses middle dots for the two attempt labels.
+  "RYOE/A": "ryoe_per_att",
+  "RZ Att": "rz_att",
+  "GL Att": "gl_att",
   YCO: "rush_yac",
   "YCO/A": "yco_per_att",
   "ExplRu%": "expl_ru_pct",
@@ -11636,6 +11641,9 @@ const DATAHUB_NO_FALLBACK_KEYS = new Set([
   "ypr",
   "first_down_rec_rate",
   "expl_ru_pct",
+  "ryoe_per_att",
+  "rz_att",
+  "gl_att",
 ]);
 const DATAHUB_QB_LOG_ORDER = [
   "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "cmp_pct", "yds_total",
@@ -11657,6 +11665,15 @@ const DATAHUB_RB_LOG_ORDER = [
   "rec_yd", "rec_tgt", "ts_per_rr", "yds_total", "elu", "mtf_per_att",
   "yco_per_att", "mtf", "rush_yac", "rush_fd", "rec_td", "rec_fd", "rec_yar",
   "imp_per_g", "fum", "fpoe",
+];
+// DataHub 2026 RB weekly Game Logs: use the WK/DH source order without
+// changing the 2025 RB table or the separate Season view.
+const DATAHUB_RB_LOG_ORDER_2026 = [
+  "fpts", "proj", "snp_pct", "rush_att", "rush_yd", "ypc", "rush_td",
+  "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td", "yds_total",
+  "elu", "mtf_per_att", "yco_per_att", "mtf", "rush_yac",
+  "expl_ru_pct", "ryoe", "ryoe_per_att", "rz_att", "gl_att", "rush_fd",
+  "rr", "yprr", "ypr", "rec_fd", "rec_yar", "imp_per_g", "fum", "fpoe",
 ];
 const DATAHUB_WR_TE_LOG_ORDER = [
   "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
@@ -13331,6 +13348,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   }
 
   const is2026QbLog = player.pos === "QB" && state.currentModalSeason === "2026";
+  const is2026RbLog = player.pos === "RB" && state.currentModalSeason === "2026";
   const orderedStatKeys = getDataHubLogOrderForPosition(player.pos, state.currentModalSeason);
   const statLabels = DATAHUB_STAT_LABELS;
   const seasonTotals = state.playerSeasonStats?.[player.id] || null;
@@ -13351,6 +13369,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     rec_td: 44,
     ypr: 40,
     yprr: 42,
+    ryoe_per_att: 56,
+    rz_att: 50,
+    gl_att: 50,
+    expl_ru_pct: 58,
     imp_per_g: 45,
     pass_rtg: 48,
     pass_yd: 40,
@@ -13392,7 +13414,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const tableColumns = [{
     id: "week",
     accessorKey: "week",
-    header: () => is2026QbLog ? "WK · VS" : "WK  ·  VS ",
+    header: () => is2026QbLog || is2026RbLog ? "WK · VS" : "WK  ·  VS ",
     size: COLUMN_WIDTHS.week,
     meta: {
       headerClass: "week-column-header",
@@ -13408,7 +13430,10 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     tableColumns.push({
       id: statKey,
       accessorKey: statKey,
-      header: () => statLabels[statKey],
+      // DataHub 2026 RB weekly table: the source columns are RZ Att and GL
+      // Att, while these two compact headers use the requested middle dot.
+      header: () => is2026RbLog && statKey === "rz_att" ? "RZ·Att"
+        : is2026RbLog && statKey === "gl_att" ? "GL·Att" : statLabels[statKey],
       size: COLUMN_WIDTHS[statKey] || DEFAULT_COLUMN_WIDTH,
       meta: {
         headerClass: statGroup ? `gamelog-header-${statGroup}` : undefined,
@@ -13506,7 +13531,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     const hasRecordedStat = stats
       ? orderedStatKeys.some((statKey) => {
         if (!statLabels[statKey] || statKey === "proj") return false;
-        return Number.isFinite(getDataHubGameLogStatValue(statKey, stats));
+        return Number.isFinite(getDataHubGameLogStatValue(statKey, stats, is2026RbLog));
       })
       : false;
     const isLiveWeek = stats?.__live === true || (liveFptsValue !== null && !hasRecordedStat);
@@ -13562,8 +13587,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
         continue;
       }
 
-      const rawValue = getDataHubGameLogStatValue(statKey, stats);
-      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue, is2026QbLog);
+      const rawValue = getDataHubGameLogStatValue(statKey, stats, is2026RbLog);
+      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue, is2026QbLog, is2026RbLog);
       if (statKey === "fpts" && displayValue === "-") {
         rowFptsDash = true;
       }
@@ -13788,7 +13813,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 function getDataHubLogOrderForPosition(position, season = "2025") {
   const pos = String(position || "").trim().toUpperCase();
   if (pos === "QB") return season === "2026" ? DATAHUB_QB_LOG_ORDER_2026 : DATAHUB_QB_LOG_ORDER;
-  if (pos === "RB") return DATAHUB_RB_LOG_ORDER;
+  if (pos === "RB") return season === "2026" ? DATAHUB_RB_LOG_ORDER_2026 : DATAHUB_RB_LOG_ORDER;
   return DATAHUB_WR_TE_LOG_ORDER;
 }
 
@@ -13930,9 +13955,11 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
   return Number.isFinite(aggregatedTotals[statKey]) ? aggregatedTotals[statKey] : null;
 }
 
-function getDataHubGameLogStatValue(statKey, stats) {
+function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false) {
   if (!stats || stats.__hasRecordedStats === false) return null;
-  if (DATAHUB_NO_FALLBACK_KEYS.has(statKey)) {
+  if (DATAHUB_NO_FALLBACK_KEYS.has(statKey) || (is2026RbLog && ["ryoe", "rr", "ypr"].includes(statKey))) {
+    // Source-backed weekly cells keep missing values blank; RB 2026 also
+    // reads RYOE, RR, and YPR from WK directly.
     return Number.isFinite(stats[statKey]) ? stats[statKey] : null;
   }
   if (statKey === "fpts") {
@@ -13998,7 +14025,7 @@ function getDataHubGameLogStatValue(statKey, stats) {
   return Number.isFinite(stats[statKey]) ? stats[statKey] : 0;
 }
 
-function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false) {
+function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is2026RbLog = false) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return statKey === "fpts" ? "-" : "N/A";
   }
@@ -14011,6 +14038,12 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false) {
     // season summary while keeping zero unsigned.
     return formatDataHubSignedEpaValue(numericValue);
   }
+  if (is2026RbLog && statKey === "expl_ru_pct") {
+    // WK EXPLSV% may be stored as a fraction or percentage points.
+    const normalized = Math.abs(numericValue) <= 1.5 ? numericValue * 100 : numericValue;
+    return `${normalized.toFixed(1)}%`;
+  }
+  if (is2026RbLog && statKey === "ryoe_per_att") return numericValue.toFixed(2);
   if (statKey === "yco_per_att") return numericValue.toFixed(2);
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
     return numericValue.toFixed(2);
@@ -14159,6 +14192,9 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "epa_per_db") {
       const formatted = Number(raw).toFixed(2);
       displayValue = raw > 0 ? `+${formatted}` : formatted;
+    } else if (key === "ryoe_per_att" && state.currentModalSeason === "2026" && player?.pos === "RB") {
+      // DataHub 2026 RB weekly footer: keep RYOE/A at two decimals.
+      displayValue = Number(raw).toFixed(2);
     } else {
       displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
     }
@@ -14461,7 +14497,7 @@ function getDataHubStatGroup(statKey) {
   ].includes(statKey)) return "passing";
   if ([
     "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc", "elu", "mtf_per_att", "yco_per_att",
-    "mtf", "rush_yac", "ryoe", "expl_ru_pct", "ru_ypg",
+    "mtf", "rush_yac", "ryoe", "ryoe_per_att", "rz_att", "gl_att", "expl_ru_pct", "ru_ypg",
   ].includes(statKey)) return "rushing";
   if ([
     "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",

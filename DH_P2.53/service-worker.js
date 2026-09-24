@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the Rosters and DataHub 2026 QB Game Logs Season passing groups.
-const CACHE_NAME = 'DH3.46u-qb-season-passing';
+// Refresh the Rosters and DataHub 2026 RB weekly Game Logs source and columns.
+const CACHE_NAME = 'DH3.46v-rb-gamelogs-2026';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
