@@ -271,10 +271,10 @@ body[data-page="datahub"] .dh-stat-tooltip {
     position: fixed;
     z-index: 20000;
     width: max-content;
-    max-width: min(320px, calc(100vw - 24px));
-    padding: 10px 14px;
+    max-width: min(335px, calc(100vw - 24px));
+    padding: 6px 8px;
     color: #e5ecff;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
     line-height: 1.4;
     text-align: center;
