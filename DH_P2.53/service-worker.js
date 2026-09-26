@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub IMP/G/OPP help and positional General Prod. & Eff. IMP/OPP columns.
-const CACHE_NAME = 'DH3.47i-imp-opp-columns';
+// Refresh DataHub IMP tooltip wording.
+const CACHE_NAME = 'DH3.47j-imp-tooltip';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -19,7 +19,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("tTD", "Total Touchdowns", ["ttlTD"]),
     stat("OPP", "Opportunities", ["opp"], "Pass Attempts + carries + targets.",
       "Opportunities (paATT + CAR + TGT)"),
-    stat("IMP", "Impact Plays", ["imp"], "First downs + touchdowns."),
+    // IMP header tooltip uses the requested shorthand; the key keeps its definition.
+    stat("IMP", "Impact Plays", ["imp"], "First downs + touchdowns.", "Impact Plays (Total TD +1D)"),
     stat("IMP/G", "Impact Plays per Game", ["imp_per_g"], "",
       "Impact Plays per Game (Avg. # 1Ds + TDs per Game)"),
     stat("IMP/OPP", "Impact Plays per Opportunity", ["imp_per_opp"],
