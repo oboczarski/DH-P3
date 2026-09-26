@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh RB per-game tenths in DataHub Rushing Stats and both Game Logs Season views.
-const CACHE_NAME = 'DH3.47c-rb-per-game-tenths';
+// Refresh DataHub Rushing RZ Att and rotated GL Att header icons.
+const CACHE_NAME = 'DH3.47d-rb-field-icons';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
