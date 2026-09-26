@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub tables and DataHub/Rosters Game Logs stat display formatting.
-const CACHE_NAME = 'DH3.47f-stat-formatting';
+// Refresh DataHub pIMP/A tooltip wording and stats-key explanation.
+const CACHE_NAME = 'DH3.47g-pimp-help';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

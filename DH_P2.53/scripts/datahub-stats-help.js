@@ -1,7 +1,9 @@
 // DataHub stats help: one glossary supplies the page key and desktop table
 // tooltips. Source keys stay separate from display labels, especially where
 // rookie/career tables shorten passing, rushing, and receiving headers alike.
-const stat = (abbr, name, aliases = [], note = "") => ({ abbr, name, aliases, note });
+// A stat can supply specific tooltip wording while its key keeps the full
+// definition and explanatory note; all other tooltips still use the name.
+const stat = (abbr, name, aliases = [], note = "", tooltip = name) => ({ abbr, name, aliases, note, tooltip });
 
 export const DATAHUB_STAT_SECTIONS = [
   { id: "general", label: "General", tone: "general", items: [
@@ -46,7 +48,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("paRTG", "Passer Rating", ["pass_rtg"]),
     stat("YPA", "Passing Yards per Attempt"),
     stat("pIMP", "Passing Impact Plays", ["pass_imp"]),
-    stat("pIMP/A / pIMP/ATT", "Passing Impact Plays per Attempt", ["pIMP/A", "pIMP/ATT", "pass_imp_per_att"]),
+    stat("pIMP/A / pIMP/ATT", "Passing Impact Plays per Attempt", ["pIMP/A", "pIMP/ATT", "pass_imp_per_att"],
+      "% of Pass Attempts Resulting in 1D or TD", "Pass Impact Plays per Attempt (% Passes for 1D or TD)"),
     stat("INT", "Interceptions", ["pass_int"]),
     stat("SAC", "Sacks Taken", ["pass_sack"]),
     stat("EPA", "Expected Points Added", ["epa"]),
@@ -145,7 +148,7 @@ export function getDataHubStatDefinition(key, { rookie = false } = {}) {
 
 export function setDataHubStatTooltip(element, key, options) {
   const definition = getDataHubStatDefinition(key, options);
-  if (definition) element.dataset.datahubStatName = definition.name;
+  if (definition) element.dataset.datahubStatName = definition.tooltip;
 }
 
 export function attachDataHubStatsHelp() {
