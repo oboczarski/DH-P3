@@ -5884,6 +5884,9 @@ function getGameLogsSeasonDisplayValue({
 		const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
 		if (raw === null) {
 			displayValue = 'N/A';
+        } else if (pageType === 'rosters' && ['rz_att', 'gl_att', 'rush_ybc', 'imp_per_g'].includes(key)) {
+            // Rosters Season view and weekly footer share whole-number counts.
+            displayValue = Number(raw).toFixed(0);
         } else if (key === 'expl_ru_pct') {
             const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
             displayValue = formatPercentage(normalized);
@@ -6189,7 +6192,7 @@ function renderGameLogsSeasonStatsView({
         // Rosters 2026 RB Season view: round all /G and YPG displays to one
         // decimal place, using unrounded DH values and preserving unavailable cells.
         if (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player.pos === 'RB'
-            && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
+            && statKey !== 'imp_per_g' && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
             const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
             displayValue = value.toFixed(1);
         }
@@ -7342,6 +7345,13 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             let displayValue;
             // For FPTS, show "-" instead of "N/A" when value is null (e.g. SNP=0 or no data)
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
+            // Rosters weekly Game Logs: count/impact stats round to whole numbers;
+            // CPOE keeps percentage points, one decimal, and positive + signs.
+            else if (pageType === 'rosters' && ['rz_att', 'gl_att', 'rush_ybc', 'imp_per_g'].includes(key)) displayValue = value.toFixed(0);
+            else if (pageType === 'rosters' && key === 'cpoe') {
+                const formatted = formatPercentage(value, 1);
+                displayValue = value > 0 ? `+${formatted}` : formatted;
+            }
             // Rosters 2026 RB weekly per-game columns match the Season view's tenths.
             else if (is2026RostersRbLog && /(?:\/G|YPG)$/.test(statLabels[key])) displayValue = value.toFixed(1);
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
@@ -7623,7 +7633,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             });
             // RB 2026 footer per-game totals use the unrounded source and tenths,
             // matching the weekly cells and separate Season view.
-            if (is2026RostersRbLog && /(?:\/G|YPG)$/.test(statLabels[key]) && Number.isFinite(Number(displayValue))) {
+            if (is2026RostersRbLog && key !== 'imp_per_g' && /(?:\/G|YPG)$/.test(statLabels[key]) && Number.isFinite(Number(displayValue))) {
                 const value = Number.isFinite(seasonTotals?.[key]) ? seasonTotals[key] : Number(displayValue);
                 displayValue = value.toFixed(1);
             }

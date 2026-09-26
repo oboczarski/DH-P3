@@ -11034,6 +11034,18 @@ function formatDisplayValue(columnName, value) {
     return "";
   }
 
+  // DataHub table display rules: round these exact stats across every table
+  // where present, without changing the numeric source used for sorting/heat.
+  if (["RZ Att", "GL Att", "YBC", "IMP/G", "CPOE"].includes(columnName)) {
+    const numericValue = toComparableNumber(value);
+    if (numericValue == null) return formatCellValue(value);
+    if (columnName === "CPOE") {
+      const formatted = `${numericValue.toFixed(1)}%`;
+      return numericValue > 0 ? `+${formatted}` : formatted;
+    }
+    return numericValue.toFixed(0);
+  }
+
   if (columnName === FPTS_COLUMN) {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
@@ -13887,7 +13899,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     });
     // RB 2026 footer per-game totals use the unrounded source and tenths,
     // matching the weekly cells and separate Season view.
-    if (is2026RbLog && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey]) && Number.isFinite(Number(displayValue))) {
+    if (is2026RbLog && statKey !== "imp_per_g" && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey]) && Number.isFinite(Number(displayValue))) {
       const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
       displayValue = value.toFixed(1);
     }
@@ -14166,6 +14178,13 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is20
   if (Number.isNaN(numericValue)) {
     return statKey === "fpts" ? "-" : "N/A";
   }
+  // Weekly Game Logs: exact count/impact stats use whole numbers; CPOE is
+  // percentage points with one decimal and a plus sign only for positive values.
+  if (["rz_att", "gl_att", "rush_ybc", "imp_per_g"].includes(statKey)) return numericValue.toFixed(0);
+  if (statKey === "cpoe") {
+    const formatted = `${numericValue.toFixed(1)}%`;
+    return numericValue > 0 ? `+${formatted}` : formatted;
+  }
   if (is2026QbLog && (statKey === "epa" || statKey === "epa_per_db")) {
     // DataHub 2026 QB weekly Game Logs: sign nonzero EPA values like the
     // season summary while keeping zero unsigned.
@@ -14313,6 +14332,9 @@ function getDataHubGameLogsSeasonDisplayValue({
     const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
     if (raw === null) {
       displayValue = "N/A";
+    } else if (["rz_att", "gl_att", "rush_ybc", "imp_per_g"].includes(key)) {
+      // Season view and weekly footer share these whole-number display rules.
+      displayValue = Number(raw).toFixed(0);
     } else if (key === "expl_ru_pct") {
       const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
       displayValue = formatDataHubPercentage(normalized);
@@ -14497,7 +14519,7 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
     // DataHub 2026 RB Season view: round /G and YPG displays to one decimal
     // from the unrounded DH values, keeping unavailable cells as-is.
     if (state.currentModalSeason === "2026" && player.pos === "RB"
-      && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
+      && statKey !== "imp_per_g" && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
       const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
       displayValue = value.toFixed(1);
     }

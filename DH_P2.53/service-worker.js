@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub Rushing RZ Att header rotation.
-const CACHE_NAME = 'DH3.47e-rz-att-rotation';
+// Refresh DataHub tables and DataHub/Rosters Game Logs stat display formatting.
+const CACHE_NAME = 'DH3.47f-stat-formatting';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
