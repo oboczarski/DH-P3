@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub 2026 QB Stats additions and EPA in both QB Season Game Logs.
-const CACHE_NAME = 'DH3.47l-qb-stats-epa';
+// Refresh requested DataHub DB/BLTZ%/TmPa%/EPA/CAR/G stat header icons.
+const CACHE_NAME = 'DH3.47m-qb-header-icons';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
