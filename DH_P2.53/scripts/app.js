@@ -216,6 +216,7 @@ const watchlistButton = document.getElementById('watchlist-button');
 const watchlistBadge = document.getElementById('watchlistBadge');
 const bottomMenuPanel = document.getElementById('bottom-menu-panel');
 const HEADER_USERNAME_STORAGE_KEY = 'sleeper_username';
+const ROSTERS_LAST_LEAGUE_STORAGE_PREFIX = 'dh_rosters_last_league:';
 let gameLogsModalRequestSeq = 0;
 const supportsContentVisibility = typeof CSS !== 'undefined'
     && typeof CSS.supports === 'function'
@@ -353,6 +354,33 @@ function syncHeaderUsernameValue(nextUsername) {
         else localStorage.removeItem(HEADER_USERNAME_STORAGE_KEY);
     } catch (error) { }
     return normalizedUsername;
+}
+// Rosters return visits: remember each Sleeper username's league independently.
+// Storage can be unavailable, so a missing preference falls back to normal selection.
+function readLastViewedRostersLeague(username) {
+    const normalizedUsername = normalizeLeagueUsername(username);
+    if (!normalizedUsername) return '';
+    try {
+        return localStorage.getItem(`${ROSTERS_LAST_LEAGUE_STORAGE_PREFIX}${normalizedUsername}`) || '';
+    } catch (error) {
+        return '';
+    }
+}
+function rememberViewedRostersLeague(leagueId) {
+    if (pageType !== 'rosters') return;
+    const username = normalizeLeagueUsername(usernameInput?.value);
+    if (!username || !state.leagues.some(league => league.league_id === leagueId)) return;
+    try {
+        localStorage.setItem(`${ROSTERS_LAST_LEAGUE_STORAGE_PREFIX}${username}`, leagueId);
+    } catch (error) { }
+    // Keep refreshes aligned with the current league rather than the original link.
+    // replaceState preserves other query parameters and does not add history entries.
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('username', username);
+        url.searchParams.set('leagueId', leagueId);
+        window.history.replaceState(window.history.state, '', url.toString());
+    } catch (error) { }
 }
 function usesLeagueUsernameGate(page = pageType) {
     return LEAGUE_CONNECTED_PAGES.has(page);
@@ -951,7 +979,10 @@ const getPageUrl = (page) => {
     if (username && page !== 'home' && page !== 'datahub') {
         url += `?username=${encodeURIComponent(username)}`;
         if (page === 'rosters' || page === 'leaguehub' || page === 'stats') {
-            const selected = leagueSelect?.value;
+            // Ordinary Rosters navigation returns to its saved league even when
+            // another league-connected page currently has a different selection.
+            const selected = (page === 'rosters' ? readLastViewedRostersLeague(username) : '')
+                || leagueSelect?.value;
             if (selected && selected !== 'Select a league...') {
                 url += `&leagueId=${selected}`;
             } else if (state.currentLeagueId) {
@@ -2333,13 +2364,14 @@ async function handleFetchRosters() {
         const params = new URLSearchParams(window.location.search);
         const preselectId = params.get('leagueId');
         if (state.leagues.length > 0) {
-            if (preselectId && state.leagues.some(l => l.league_id === preselectId)) {
-                leagueSelect.value = preselectId;
-                await handleLeagueSelect();
-            } else {
-                leagueSelect.selectedIndex = 1;
-                await handleLeagueSelect();
-            }
+            // Rosters startup: honor an explicit league link, otherwise restore
+            // this username's last league; unavailable leagues use the first option.
+            const rememberedId = readLastViewedRostersLeague(username);
+            const initialLeague = [preselectId, rememberedId]
+                .map(id => state.leagues.find(league => league.league_id === id))
+                .find(Boolean) || state.leagues[0];
+            leagueSelect.value = initialLeague.league_id;
+            await handleLeagueSelect();
             // Update mobile league navigation after league is loaded
             if (typeof window.updateMobileLeagueNav === 'function') {
                 window.updateMobileLeagueNav();
@@ -2434,6 +2466,9 @@ async function handleLeagueSelect() {
         return;
     };
     state.currentLeagueId = leagueId;
+    // All Rosters selectors (desktop dropdown, mobile arrows, and popup) converge
+    // here, so each valid selection becomes the league restored on the next visit.
+    rememberViewedRostersLeague(leagueId);
     state.calculatedRankCache = null;
     state.matchupDataLoaded = false; // Reset matchup data state
     state.draftOrderBySeason = {}; // Reset draft order map for pick labels/values

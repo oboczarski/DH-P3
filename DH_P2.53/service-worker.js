@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub 2026 Rushing Stats columns, Material icons, and per-game displays.
-const CACHE_NAME = 'DH3.47a-datahub-rb-stats';
+// Refresh Rosters league persistence so return visits restore the last viewed league.
+const CACHE_NAME = 'DH3.47b-rosters-last-league';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
