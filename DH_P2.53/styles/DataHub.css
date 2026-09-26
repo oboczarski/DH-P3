@@ -1,3 +1,304 @@
+/* DataHub stats reference: page-scoped native dialog with a fixed search/category
+   header and an independently scrolling glossary. Mobile keeps single-column
+   cards, while desktop uses two columns without changing the table layout. */
+body[data-page="datahub"].dh-stats-key-open {
+  overflow: hidden;
+}
+
+body[data-page="datahub"] .dh-stats-key {
+  position: fixed;
+  inset: 0;
+  width: min(920px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(860px, calc(100dvh - 48px));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  border: 1px solid rgba(163, 177, 231, 0.26);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 0 0, rgba(96, 112, 220, 0.15), transparent 55%), #0c1322;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.6), inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body[data-page="datahub"] .dh-stats-key[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-page="datahub"] .dh-stats-key::backdrop {
+  background: rgba(2, 6, 14, 0.76);
+  backdrop-filter: blur(9px);
+}
+
+body[data-page="datahub"] .dh-stats-key__header {
+  flex: 0 0 auto;
+  padding: 25px 26px 18px;
+  border-bottom: 1px solid rgba(163, 177, 231, 0.12);
+}
+
+body[data-page="datahub"] .dh-stats-key__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+body[data-page="datahub"] .dh-stats-key__eyebrow {
+  color: #a3a6df;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+body[data-page="datahub"] .dh-stats-key h2 {
+  margin: 6px 0 0;
+  font-size: 29px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+body[data-page="datahub"] .dh-stats-key__header > p {
+  margin: 7px 0 19px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+body[data-page="datahub"] .dh-stats-key__close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  color: #c5cfe2;
+  border: 1px solid rgba(163, 177, 231, 0.16);
+  border-radius: 12px;
+  background: rgba(163, 177, 231, 0.07);
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .dh-stats-key__close svg,
+body[data-page="datahub"] .dh-stats-key__search svg {
+  width: 20px;
+  height: 20px;
+}
+
+body[data-page="datahub"] .dh-stats-key__search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid rgba(163, 177, 231, 0.2);
+  border-radius: 12px;
+  color: #9aabd0;
+  background: rgba(3, 8, 18, 0.45);
+}
+
+body[data-page="datahub"] .dh-stats-key__search:focus-within {
+  border-color: #8b9fe0;
+  box-shadow: 0 0 0 3px rgba(139, 159, 224, 0.1);
+}
+
+body[data-page="datahub"] .dh-stats-key__search input {
+  width: 100%;
+  min-width: 0;
+  height: 43px;
+  padding: 0;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+body[data-page="datahub"] .dh-stats-key__search input::placeholder {
+  color: #8392b1;
+}
+
+body[data-page="datahub"] .dh-stats-key__filters {
+  display: flex;
+  gap: 6px;
+  margin-top: 13px;
+  padding: 2px 1px 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+body[data-page="datahub"] .dh-stats-key__filter {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  color: #aebbd3;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(163, 177, 231, 0.13);
+  border-radius: 9px;
+  background: rgba(163, 177, 231, 0.04);
+  cursor: pointer;
+}
+
+body[data-page="datahub"] .dh-stats-key__filter[aria-pressed="true"] {
+  color: #edf1ff;
+  border-color: rgba(143, 159, 235, 0.5);
+  background: rgba(123, 136, 221, 0.2);
+}
+
+body[data-page="datahub"] .dh-stats-key__close:focus-visible,
+body[data-page="datahub"] .dh-stats-key__filter:focus-visible {
+  outline: 2px solid #a2b6ff;
+  outline-offset: 2px;
+}
+
+body[data-page="datahub"] .dh-stats-key__body {
+  min-height: 0;
+  padding: 20px 26px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #414d70 transparent;
+}
+
+body[data-page="datahub"] .dh-stats-key__sections {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 15px;
+  align-items: start;
+}
+
+body[data-page="datahub"] .dh-stats-key__section {
+  --key-accent: #aec0df;
+  overflow: hidden;
+  border: 1px solid rgba(163, 177, 231, 0.13);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.018);
+}
+
+body[data-page="datahub"] .dh-stats-key__section--fantasy { --key-accent: #e6ba7d; }
+body[data-page="datahub"] .dh-stats-key__section--passing { --key-accent: #84caff; }
+body[data-page="datahub"] .dh-stats-key__section--rushing { --key-accent: #80d9b5; }
+body[data-page="datahub"] .dh-stats-key__section--receiving { --key-accent: #c6a5f5; }
+body[data-page="datahub"] .dh-stats-key__section--market { --key-accent: #ecabc9; }
+body[data-page="datahub"] .dh-stats-key__section--rookies { --key-accent: #a0b0ff; }
+
+body[data-page="datahub"] .dh-stats-key__section-title {
+  margin: 0;
+  padding: 13px 15px;
+  color: var(--key-accent);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid rgba(163, 177, 231, 0.1);
+  background: rgba(163, 177, 231, 0.04);
+}
+
+body[data-page="datahub"] .dh-stats-key__section dl {
+  margin: 0;
+  padding: 5px 15px;
+}
+
+body[data-page="datahub"] .dh-stats-key__entry {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(163, 177, 231, 0.065);
+}
+
+body[data-page="datahub"] .dh-stats-key__entry:last-child {
+  border-bottom: 0;
+}
+
+body[data-page="datahub"] .dh-stats-key__entry dt {
+  color: var(--key-accent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+body[data-page="datahub"] .dh-stats-key__entry dd {
+  margin: 0;
+  color: #d6dfef;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="datahub"] .dh-stats-key__entry small {
+  display: block;
+  margin-top: 3px;
+  color: #97a7c4;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+body[data-page="datahub"] .dh-stats-key__empty {
+  margin: 30px 0;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 14px;
+}
+
+body[data-page="datahub"] .dh-stats-key__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 13px 26px;
+  color: #91a0bd;
+  font-size: 10px;
+  border-top: 1px solid rgba(163, 177, 231, 0.12);
+}
+
+/* Desktop stat help: one fixed, non-interactive tooltip sits above all custom
+   modal/table layers. Touch/mobile media queries never display this surface. */
+body[data-page="datahub"] .dh-stat-tooltip {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  body[data-page="datahub"] .dh-stats-key__sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) and (hover: hover) and (pointer: fine) {
+  body[data-page="datahub"] .dh-stat-tooltip:not([hidden]) {
+    display: block;
+    position: fixed;
+    z-index: 20000;
+    width: max-content;
+    max-width: min(320px, calc(100vw - 24px));
+    padding: 10px 14px;
+    color: #e5ecff;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    border: 1px solid rgba(159, 178, 244, 0.38);
+    border-radius: 10px;
+    background: linear-gradient(135deg, #25304a, #171e32);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 719px) {
+  body[data-page="datahub"] .dh-stats-key {
+    width: calc(100% - 20px);
+    max-height: calc(100dvh - 28px);
+    border-radius: 18px;
+  }
+  body[data-page="datahub"] .dh-stats-key__header { padding: 20px 16px 12px; }
+  body[data-page="datahub"] .dh-stats-key__body { padding: 14px 12px 18px; }
+  body[data-page="datahub"] .dh-stats-key__footer { padding: 12px 16px; }
+  body[data-page="datahub"] .dh-stats-key__entry { grid-template-columns: 85px minmax(0, 1fr); gap: 10px; }
+  body[data-page="datahub"] .dh-stats-key__search input { font-size: 16px; }
+}
+
 :root {
   /* Global type and surface tokens used across the standalone reference shell. */
   --font-sans: "Product Sans", "Google Sans", "Helvetica Neue", Helvetica, Arial,

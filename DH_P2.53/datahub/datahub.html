@@ -552,7 +552,7 @@
           </div>
 
           <div class="utility-row">
-            <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
+            <button type="button" class="mini-chip mini-chip--icon" data-stats-key-open aria-haspopup="dialog" aria-controls="datahub-stats-key-modal" aria-expanded="false">
               <svg
                 class="mini-chip__icon"
                 viewBox="0 0 24 24"
@@ -857,7 +857,7 @@
           </div>
 
           <div class="utility-row">
-            <button type="button" class="mini-chip mini-chip--icon" aria-disabled="true">
+            <button type="button" class="mini-chip mini-chip--icon" data-stats-key-open aria-haspopup="dialog" aria-controls="datahub-stats-key-modal" aria-expanded="false">
               <svg
                 class="mini-chip__icon"
                 viewBox="0 0 24 24"
@@ -1089,6 +1089,40 @@
         </span>
       </button>
     </div>
+
+    <!-- DataHub page-wide stats key:
+         both responsive KEY buttons open this searchable native dialog. Its
+         page-local glossary covers Stats, Market and Rookie/Career columns. -->
+    <dialog id="datahub-stats-key-modal" class="dh-stats-key" aria-labelledby="datahub-stats-key-title" aria-describedby="datahub-stats-key-description">
+      <div class="dh-stats-key__header">
+        <div class="dh-stats-key__title-row">
+          <div>
+            <span class="dh-stats-key__eyebrow">DATA HUB · REFERENCE</span>
+            <h2 id="datahub-stats-key-title">Stats Key</h2>
+          </div>
+          <button class="dh-stats-key__close" type="button" data-stats-key-close aria-label="Close stats key" autofocus>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <p id="datahub-stats-key-description">Every abbreviation, at a glance.</p>
+        <label class="dh-stats-key__search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>
+          <input type="search" data-stats-key-search placeholder="Find a stat or abbreviation…" aria-label="Search stat definitions" autocomplete="off" />
+        </label>
+        <div class="dh-stats-key__filters" data-stats-key-filters role="group" aria-label="Stat categories"></div>
+      </div>
+      <div class="dh-stats-key__body">
+        <div class="dh-stats-key__sections" data-stats-key-content></div>
+        <p class="dh-stats-key__empty" data-stats-key-empty hidden>No matching stats. Try another term or category.</p>
+      </div>
+      <div class="dh-stats-key__footer">
+        <span data-stats-key-status role="status" aria-live="polite"></span>
+        <span>Stats · Trade Values · Rookies</span>
+      </div>
+    </dialog>
+
+    <!-- Body-level desktop stat tooltip stays outside clipped table panes. -->
+    <div id="datahub-stat-tooltip" class="dh-stat-tooltip" role="tooltip" hidden></div>
 
     <!-- Lazy React comparison mount:
          DataHub.js leaves this empty until the Compare chip is opened, then

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the Rosters and DataHub 2026 RB weekly Game Logs source and columns.
-const CACHE_NAME = 'DH3.46v-rb-gamelogs-2026';
+// Refresh DataHub's searchable stats key, shared glossary and desktop header help.
+const CACHE_NAME = 'DH3.46w-datahub-stats-key';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -55,6 +55,8 @@ const CORE_ASSET_PATHS = [
   '/scripts/app.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
+  // DataHub imports its page key and table header glossary during startup.
+  '/scripts/datahub-stats-help.js',
   '/scripts/datahub-stats-season.js',
   '/scripts/datahub-2026-data.js',
   '/data/NFL-2026/Schedule2026.csv',

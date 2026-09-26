@@ -1,5 +1,6 @@
 import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
 import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
+import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 
 // ---------------------------------------------------------------------------
 // Hero copy and filter labels that drive the surrounding page shell.
@@ -2897,6 +2898,8 @@ function attachEventListeners() {
   // evaluating so the local game-logs constants are initialized first.
   queueMicrotask(() => {
     attachGameLogsModalListeners();
+    // DataHub page key and header help stay local to this standalone bundle.
+    attachDataHubStatsHelp();
   });
 
   pageTabButtons.forEach((button) => {
@@ -9404,6 +9407,9 @@ function createHeaderCell(column, columnIconColor) {
   const isSortable = isSortableColumn(column.name);
   const headerControl = document.createElement(isSortable ? "button" : "div");
   headerControl.className = "stats-table__head-button";
+  // Resolve the source column, rather than the shortened rookie display label,
+  // so every Stats/Market/Rookies header gets the correct full stat name.
+  setDataHubStatTooltip(headerControl, column.name, { rookie: isDataHubRookiesView() });
   if (isSortable) {
     headerControl.type = "button";
     headerControl.setAttribute("aria-label", `Sort by ${getColumnLabel(column.name)}`);
@@ -13156,6 +13162,8 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
         th.classList.add("career-stats-colgroup-start");
       }
       th.textContent = getDataHubCareerHeaderLabel(statKey);
+      // Career stat groups repeat YDS/TD/RK labels; keep help stat-specific.
+      setDataHubStatTooltip(th, statKey);
       headerRow.append(th);
     });
     thead.append(headerRow);
@@ -13636,6 +13644,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       });
     }
     th.textContent = typeof column.header === "function" ? column.header({}) : (column.header || "");
+    // Weekly Game Logs use internal stat keys for unambiguous header help.
+    setDataHubStatTooltip(th, column.id);
     const width = columnSizes[index] || DEFAULT_COLUMN_WIDTH;
     th.style.width = `${width}px`;
     th.style.minWidth = `${width}px`;
@@ -13706,6 +13716,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     th.textContent = column.id === "week"
       ? "SZN"
       : (typeof column.header === "function" ? column.header({}) : (column.header || ""));
+    // Season footer labels use the same help as their weekly columns.
+    setDataHubStatTooltip(th, column.id === "week" ? "SZN" : column.id);
     const width = columnSizes[index] || DEFAULT_COLUMN_WIDTH;
     th.style.width = `${width}px`;
     th.style.minWidth = `${width}px`;
@@ -14365,6 +14377,8 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
     const label = document.createElement("div");
     label.className = "gamelogs-szn-label";
     label.textContent = labelText;
+    // Season stat labels share the concise desktop header help glossary.
+    setDataHubStatTooltip(label, statKey);
 
     const bar = document.createElement("div");
     bar.className = "gamelogs-szn-bar";
