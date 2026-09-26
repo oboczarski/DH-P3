@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub impact-stat tooltips and passing/rushing/receiving key explanations.
-const CACHE_NAME = 'DH3.47h-impact-help';
+// Refresh DataHub IMP/G/OPP help and positional General Prod. & Eff. IMP/OPP columns.
+const CACHE_NAME = 'DH3.47i-imp-opp-columns';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

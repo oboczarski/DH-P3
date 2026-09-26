@@ -579,6 +579,8 @@ const ROOKIES_TRADE_COLUMN_SET = [
   ...MARKET_DATA_COLUMNS,
 ];
 
+// Stats positional tables append IMP/OPP to General Prod. & Eff. before the
+// ceiling group. Reuse the Overview source field, icon, and responsive widths.
 const STATS_COLUMN_SETS = {
   overview: [
     "RK",
@@ -631,6 +633,7 @@ const STATS_COLUMN_SETS = {
     "YDS(t)",
     "FUM",
     "IMP/G",
+    "IMP/OPP",
     "FPOE",
     "CSTY%",
     "CL",
@@ -669,6 +672,7 @@ const STATS_COLUMN_SETS = {
     "YDS(t)",
     "FUM",
     "IMP/G",
+    "IMP/OPP",
     "FPOE",
     "CSTY%",
     "CL",
@@ -705,6 +709,7 @@ const STATS_COLUMN_SETS = {
     "IMP/G",
     "YDS(t)",
     "FUM",
+    "IMP/OPP",
     "FPOE",
     "CSTY%",
     "CL",
@@ -1430,7 +1435,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["YDS(t)", "FUM", "IMP/G"],
+      columns: ["YDS(t)", "FUM", "IMP/G", "IMP/OPP"],
       groupIconColor: PASSING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: PASSING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
@@ -1486,7 +1491,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["YDS(t)", "FUM", "IMP/G"],
+      columns: ["YDS(t)", "FUM", "IMP/G", "IMP/OPP"],
       groupIconColor: RUSHING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RUSHING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
@@ -1542,7 +1547,7 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     createDataHubColumnGroup({
       label: "GENERAL PROD. & EFF.",
       icon: DATAHUB_LUCIDE_ICON_MARKUP.ChartNoAxesCombined,
-      columns: ["SNP%", "IMP/G", "YDS(t)", "FUM"],
+      columns: ["SNP%", "IMP/G", "YDS(t)", "FUM", "IMP/OPP"],
       groupIconColor: RECEIVING_GROUP_HEADER_ICON_COLORS.GENERAL_PROD_EFF,
       columnIconColor: RECEIVING_COLUMN_ICON_COLORS.GENERAL_PROD_EFF,
     }),
