@@ -14402,7 +14402,7 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
     const fillCoreColor = getDataHubSznStatFillCoreColor(rankValue, player.pos);
     const rankBoxShadow = getDataHubSznStatRankBoxShadow(rankValue, player.pos, rankColor);
     const progressPercent = computeDataHubSznProgressPercent(rankValue, player.pos);
-    const displayValue = getDataHubGameLogsSeasonDisplayValue({
+    let displayValue = getDataHubGameLogsSeasonDisplayValue({
       key: statKey,
       seasonTotals,
       aggregatedTotals,
@@ -14412,6 +14412,13 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
       player,
       playerRanks,
     });
+    // DataHub 2026 RB Season view: round /G and YPG displays to whole numbers
+    // from the unrounded DH values, keeping unavailable cells as-is.
+    if (state.currentModalSeason === "2026" && player.pos === "RB"
+      && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
+      const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
+      displayValue = value.toFixed(0);
+    }
 
     const row = document.createElement("div");
     row.className = "gamelogs-szn-row";

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Rosters and DataHub 2026 RB Season sections and their DH stat mappings.
-const CACHE_NAME = 'DH3.46y-rb-season-stats';
+// Refresh Rosters and DataHub 2026 RB Season whole-number per-game displays.
+const CACHE_NAME = 'DH3.46z-rb-season-whole-numbers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

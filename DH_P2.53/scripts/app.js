@@ -6141,7 +6141,7 @@ function renderGameLogsSeasonStatsView({
         const fillCoreColor = getSznStatFillCoreColor(rankValue, player.pos);
         const rankBoxShadow = getSznStatRankBoxShadow(rankValue, player.pos, rankColor);
         const progressPct = computeSznProgressPercent(rankValue, player.pos);
-        const displayValue = getGameLogsSeasonDisplayValue({
+        let displayValue = getGameLogsSeasonDisplayValue({
             key: statKey,
             seasonTotals,
             aggregatedTotals,
@@ -6151,6 +6151,13 @@ function renderGameLogsSeasonStatsView({
             player,
             scoringSettings
         });
+        // Rosters 2026 RB Season view: round all /G and YPG displays to whole
+        // numbers, using unrounded DH values and preserving unavailable cells.
+        if (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player.pos === 'RB'
+            && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
+            const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
+            displayValue = value.toFixed(0);
+        }
         const row = document.createElement('div');
         row.className = 'gamelogs-szn-row';
         const group = statGroupByKey?.get(statKey);
