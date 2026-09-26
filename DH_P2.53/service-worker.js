@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Rosters and DataHub 2026 RB Season whole-number per-game displays.
-const CACHE_NAME = 'DH3.46z-rb-season-whole-numbers';
+// Refresh DataHub 2026 Rushing Stats columns, Material icons, and per-game displays.
+const CACHE_NAME = 'DH3.47a-datahub-rb-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -61,6 +61,8 @@ export const DATAHUB_STAT_SECTIONS = [
   ] },
   { id: "rushing", label: "Rushing", tone: "rushing", items: [
     stat("CAR", "Carries", ["rush_att"]),
+    // Added RB Stats columns share the existing page glossary/header tooltips.
+    stat("CAR/G", "Carries per Game", ["car_per_g"]),
     stat("ruYDS", "Rushing Yards", ["rush_yd"]),
     stat("ruYPG", "Rushing Yards per Game", ["ru_ypg"]),
     stat("ruTD", "Rushing Touchdowns", ["rush_td"]),
@@ -68,6 +70,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("YPC", "Yards per Carry", ["ypc"]),
     stat("MTF", "Missed Tackles Forced", ["mtf"]),
     stat("MTF/A", "Missed Tackles Forced per Attempt", ["mtf_per_att"]),
+    stat("YBC", "Yards Before Contact", ["rush_ybc"]),
+    stat("YBC/A", "Yards Before Contact per Attempt", ["ybc_per_att"]),
     stat("YCO", "Yards After Contact", ["rush_yac"]),
     stat("YCO/A", "Yards After Contact per Attempt", ["yco_per_att"]),
     stat("ELU", "Elusiveness Rating", ["elu"]),
@@ -79,6 +83,7 @@ export const DATAHUB_STAT_SECTIONS = [
   ] },
   { id: "receiving", label: "Receiving", tone: "receiving", items: [
     stat("TGT", "Targets", ["rec_tgt"]),
+    stat("TGT/G", "Targets per Game", ["tgt_per_g"]),
     stat("REC", "Receptions", ["rec"]),
     stat("recYDS", "Receiving Yards", ["rec_yd"]),
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),

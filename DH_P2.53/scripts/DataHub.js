@@ -1107,10 +1107,20 @@ const COLUMN_ICONS = {
   ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
 };
 
-// Stats column icon overrides:
-// kept as an explicit extension point, but currently empty because YAC now uses
-// the requested icon anywhere that column appears across DataHub tables.
-const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({});
+// DataHub Stats Rushing additions: unused filled Material Symbols from
+// google/material-design-icons (symbols/web, outlined fill1, 24px). Keep the
+// SVG fragments inline through the existing registry; no runtime font is needed.
+const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
+  rushing: Object.freeze({
+    "YBC": '<path d="M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Z"/>', // Material Symbols: shield.
+    "RZ Att": '<path d="M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480Zm0 400Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Z"/>', // Material Symbols: location_on.
+    "GL Att": '<path d="M360-720h80v-80h-80v80Zm160 0v-80h80v80h-80ZM360-400v-80h80v80h-80Zm320-160v-80h80v80h-80Zm0 160v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm160-320v-80h80v80h-80Zm-240 80v-80h80v80h-80ZM200-160v-640h80v80h80v80h-80v80h80v80h-80v320h-80Zm400-320v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm160 0v-80h80v80h-80Zm80-80v-80h80v80h-80Z"/>', // Material Symbols: sports_score.
+    "RYOE/A": '<path d="M160-80v-237q0-20 9.5-38t26.5-29l44-29q7 84 22 143t47 131L160-80Zm209-80q-35-66-52-140t-17-153q0-125 49.5-235.5T480-856q81 57 130.5 167.5T660-453q0 78-17 151.5T591-160H369Zm111-280q33 0 56.5-23.5T560-520q0-33-23.5-56.5T480-600q-33 0-56.5 23.5T400-520q0 33 23.5 56.5T480-440ZM800-80l-149-59q32-72 47-131t22-143l44 29q17 11 26.5 29t9.5 38v237Z"/>', // Material Symbols: rocket.
+    "YBC/A": '<path d="M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm-80-240h160q17 0 28.5-11.5T600-360v-120q0-17-11.5-28.5T560-520v-40q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560v40q-17 0-28.5 11.5T360-480v120q0 17 11.5 28.5T400-320Zm40-200v-40q0-17 11.5-28.5T480-600q17 0 28.5 11.5T520-560v40h-80Z"/>', // Material Symbols: shield_lock.
+    "CAR/G": '<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v240h-80v-80H200v400h280v80H200ZM760 0q-73 0-127.5-45.5T564-160h62q13 44 49.5 72T760-60q58 0 99-41t41-99q0-58-41-99t-99-41q-29 0-54 10.5T662-300h58v60H560v-160h60v57q27-26 63-41.5t77-15.5q83 0 141.5 58.5T960-200q0 83-58.5 141.5T760 0Z"/>', // Material Symbols: event_repeat.
+    "TGT/G": '<path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-80q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 100-70 170t-170 70Zm0-80q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Z"/>', // Material Symbols: target.
+  }),
+});
 
 // ---------------------------------------------------------------------------
 // Column group definitions per view. Each group has a label and lists the
@@ -1545,6 +1555,30 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
+// DataHub 2026 Rushing (RB) Stats: copy the group metadata/colors and replace
+// only the requested column lists. The historical/shared schema stays intact.
+const STATS_RUSHING_GROUP_COLUMNS_2026 = Object.freeze({
+  "RUSHING PRODUCTION": Object.freeze([
+    "CAR", "ruYDS", "ruTD", "ru1D", "MTF", "YCO", "RYOE", "YBC", "SNP%", "RZ Att", "GL Att",
+  ]),
+  "RUSHING EFFICIENCY": Object.freeze([
+    "YPC", "ELU", "MTF/A", "YCO/A", "EXPLSV%", "RYOE/A", "YBC/A", "ruYPG", "CAR/G",
+  ]),
+  RECEIVING: Object.freeze([
+    "REC", "recYDS", "recTD", "YPRR", "TS%", "TGT", "TGT/G", "YAC", "rec1D",
+  ]),
+});
+const STATS_RUSHING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.rushing.map((group) => Object.freeze({
+  ...group,
+  columns: STATS_RUSHING_GROUP_COLUMNS_2026[group.label] || group.columns,
+})));
+// Derive the scrollable column order from its groups so both header rows agree;
+// RK/PLAYER/POS retain the existing frozen General pane and its sizing/icons.
+const STATS_RUSHING_COLUMNS_2026 = Object.freeze([
+  "RK", "PLAYER", "POS",
+  ...STATS_RUSHING_COLUMN_GROUPS_2026.flatMap((group) => group.columns),
+]);
+
 function createRookiesDraftGroup({
   columns = ROOKIES_DRAFT_WITH_AGE_COLUMNS,
   formatFamily = null,
@@ -2162,6 +2196,7 @@ const FORMATTING_TOP_RANGE_LIMIT = 160;
 const FORMATTING_PERCENTILE_CUTOFFS = Object.freeze([0.25, 0.55, 0.70, 0.85, 0.925]);
 const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
+  ...STATS_RUSHING_COLUMNS_2026,
   ...Object.values(ROOKIES_CAREER_COLUMN_SETS).flat(),
   ...ROOKIES_TRADE_COLUMN_SET,
   ...HIDDEN_ROOKIE_RANK_COLUMNS,
@@ -2370,6 +2405,14 @@ const COLUMN_WIDTHS = {
   "EXPLSV%": 96,
   ru1D: 86,
   RYOE: 92,
+  // 2026 RB additions: reserve enough header/value space in the scrolling pane.
+  YBC: 88,
+  "RZ Att": 96,
+  "GL Att": 96,
+  "RYOE/A": 96,
+  "YBC/A": 92,
+  "CAR/G": 92,
+  "TGT/G": 92,
   recTD: 88,
   rec1D: 88,
   YAC: 88,
@@ -2509,6 +2552,14 @@ const MOBILE_COLUMN_WIDTHS = {
   "EXPLSV%": 64,
   ru1D: 49,
   RYOE: 52,
+  // Mobile 2026 RB additions: compact widths keep the expanded table scrollable.
+  YBC: 48,
+  "RZ Att": 58,
+  "GL Att": 58,
+  "RYOE/A": 64,
+  "YBC/A": 58,
+  "CAR/G": 58,
+  "TGT/G": 58,
   recTD: 51,
   rec1D: 51,
   YAC: 48,
@@ -7782,7 +7833,14 @@ function resizeDataHubHeroCharts() {
   }
 }
 
+// Limit the new RB table schema/formatting/icons to the 2026 Stats selection.
+// Season switching automatically restores the original 2025 configuration.
+function is2026RushingStatsView() {
+  return state.activePageView === "stats" && state.activeCategory === "rushing" && state.statsSeason === "2026";
+}
+
 function getActiveColumnSet() {
+  if (is2026RushingStatsView()) return STATS_RUSHING_COLUMNS_2026;
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
   const columns = viewSets[state.activeCategory]
     || viewSets[getDefaultCategory(state.activePageView)]
@@ -7791,6 +7849,7 @@ function getActiveColumnSet() {
 }
 
 function getActiveColumnGroups() {
+  if (is2026RushingStatsView()) return STATS_RUSHING_COLUMN_GROUPS_2026;
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
   const groups = viewGroups[state.activeCategory]
     || viewGroups[getDefaultCategory(state.activePageView)]
@@ -9478,6 +9537,12 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
+    if (is2026RushingStatsView() && STATS_COLUMN_ICON_OVERRIDES.rushing[column.name]) {
+      // 2026 RB additions use the existing inline SVG renderer, Material viewBox,
+      // and a page-local filled-icon hook with the active group color.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--rb-2026-material");
+    }
     if (column.name === "PLAYER") {
       // DataHub PLAYER column header icon:
       // PLAYER gets its own class instead of the shared Material class so
@@ -10970,6 +11035,13 @@ function formatDisplayValue(columnName, value) {
   if (columnName === FPTS_COLUMN) {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
+  }
+
+  // DataHub 2026 Rushing table: per-game /G and YPG columns display whole
+  // numbers. Keep the unrounded source for sorting/heat tiers and preserve NA.
+  if (is2026RushingStatsView() && (columnName.endsWith("/G") || columnName.endsWith("YPG"))) {
+    const numericValue = toComparableNumber(value);
+    return numericValue == null ? formatCellValue(value) : String(Math.round(numericValue));
   }
 
   // Rookie GRD display:

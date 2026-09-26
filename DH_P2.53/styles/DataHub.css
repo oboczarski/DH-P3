@@ -4380,6 +4380,16 @@ body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs
   stroke-width: 0;
 }
 
+/* 2026 Stats Rushing additions: follow the existing Material SVG fill method
+   and each column's group color. The class is assigned only in that table. */
+body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--rb-2026-material {
+  width: 18px;
+  height: 18px;
+  fill: var(--column-icon-color, rgb(98 135 183));
+  stroke: none;
+  stroke-width: 0;
+}
+
 /* RYOE column header icon:
    requested filled Material-style rushing-over-expected glyph scoped only to
    the RYOE column. */
@@ -6328,6 +6338,13 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   /* Mobile PRS% header icon:
      compact filled Material pressure-rate glyph scoped only to PRS%. */
   body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs-percent-material {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Compact filled icons for the 2026 RB Stats additions, using the same
+     mobile sizing as the neighboring Material stat headers. */
+  body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--rb-2026-material {
     width: 16px;
     height: 16px;
   }
