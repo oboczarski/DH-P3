@@ -20,6 +20,9 @@
         // the weekly table renders the two attempt labels with a middle dot.
         YPC: 'ypc', ruTD: 'rush_td', ru1D: 'rush_fd', MTF: 'mtf', ELU: 'elu', RYOE: 'ryoe', 'RYOE/A': 'ryoe_per_att',
         'RZ Att': 'rz_att', 'GL Att': 'gl_att', YCO: 'rush_yac',
+        // Rosters 2026 RB Season view: keep these totals and per-game rates
+        // sourced from the exact DH headers rather than deriving substitutes.
+        YBC: 'rush_ybc', 'YBC/A': 'ybc_per_att', 'CAR/G': 'car_per_g', 'TGT/G': 'tgt_per_g',
         'YCO/A': 'yco_per_att', 'ExplRu%': 'expl_ru_pct', 'EXPLSV%': 'expl_ru_pct', 'MTF/A': 'mtf_per_att',
         TGT: 'rec_tgt', REC: 'rec', recYDS: 'rec_yd', recTD: 'rec_td', rec1D: 'rec_fd', YAC: 'rec_yar', YPR: 'ypr',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',

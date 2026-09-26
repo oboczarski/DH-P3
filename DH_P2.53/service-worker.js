@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub key definitions and its six-tier percentile table formatting.
-const CACHE_NAME = 'DH3.46x-datahub-six-tier-formatting';
+// Refresh Rosters and DataHub 2026 RB Season sections and their DH stat mappings.
+const CACHE_NAME = 'DH3.46y-rb-season-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

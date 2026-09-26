@@ -4080,7 +4080,8 @@ function buildStatLabels() {
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         Object.assign(labels, {
             epa: 'EPA', blitz_pct: 'BLTZ%', dropbacks: 'DB', team_pass_pct: 'TmPa%',
-            ryoe_per_att: 'RYOE/A', rz_att: 'RZ·Att', gl_att: 'GL·Att'
+            ryoe_per_att: 'RYOE/A', rz_att: 'RZ Att', gl_att: 'GL Att',
+            rush_ybc: 'YBC', ybc_per_att: 'YBC/A', car_per_g: 'CAR/G', tgt_per_g: 'TGT/G'
         });
     }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
@@ -4103,7 +4104,8 @@ const NO_FALLBACK_KEYS = new Set([
     'ypr',
     'first_down_rec_rate',
     'expl_ru_pct',
-    'ryoe_per_att', 'rz_att', 'gl_att'
+    'ryoe_per_att', 'rz_att', 'gl_att',
+    'rush_ybc', 'ybc_per_att', 'car_per_g', 'tgt_per_g'
 ]);
 const SEASON_META_HEADERS = {
     'POS': 'pos',
@@ -5691,8 +5693,31 @@ const SZN_STAT_SECTIONS_BY_POS = {
     ]
 
 };
+// Rosters 2026 RB Game Logs Season view: replace only the requested RB
+// sections, retaining the historical section definitions for 2025 and Stats.
+const SZN_RB_SECTIONS_2026 = SZN_STAT_SECTIONS_BY_POS.RB.map((section) => {
+    if (section.id === 'rushing-production') {
+        return { ...section, stats: [
+            'snp_pct', 'rush_att', 'rush_yd', 'rush_td', 'rush_fd', 'rush_yac',
+            'rush_ybc', 'mtf', 'rz_att', 'gl_att'
+        ] };
+    }
+    if (section.id === 'rushing-efficiency') {
+        return { ...section, stats: [
+            'ypc', 'elu', 'mtf_per_att', 'yco_per_att', 'ybc_per_att',
+            'expl_ru_pct', 'ryoe', 'ryoe_per_att', 'ru_ypg', 'car_per_g'
+        ] };
+    }
+    if (section.id === 'receiving-efficiency') {
+        return { ...section, stats: ['ts_per_rr', 'yprr', 'ypr', 'tgt_per_g'] };
+    }
+    return section;
+});
 function getSznSectionsForPosition(position) {
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    if (posKey === 'RB' && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        return SZN_RB_SECTIONS_2026;
+    }
     if (posKey === 'QB' && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         // Rosters 2026 QB Game Logs Season view: add the DH passing stats in
         // sheet order while preserving the 2025 and separate Stats page groups.
@@ -5838,8 +5863,9 @@ function getGameLogsSeasonDisplayValue({
 		} else if (key === 'epa_per_db') {
 			const formatted = Number(raw).toFixed(2);
 			displayValue = raw > 0 ? `+${formatted}` : formatted;
-        } else if (key === 'ryoe_per_att' && pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player?.pos === 'RB') {
-            // Rosters 2026 RB weekly footer: keep RYOE/A at two decimals.
+        } else if (['ryoe_per_att', 'ybc_per_att', 'car_per_g', 'tgt_per_g'].includes(key) && pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player?.pos === 'RB') {
+            // Rosters 2026 RB Season values and weekly footer: display the
+            // DH per-attempt/per-game rates with two decimals.
             displayValue = Number(raw).toFixed(2);
 		} else {
 			displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
@@ -6881,11 +6907,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('rushing', [
         'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'elu', 'mtf_per_att',
         'yco_per_att', 'expl_ru_pct', 'mtf', 'rush_yac', 'ryoe', 'ryoe_per_att',
-        'rz_att', 'gl_att', 'ru_ypg'
+        'rz_att', 'gl_att', 'ru_ypg', 'rush_ybc', 'ybc_per_att', 'car_per_g'
     ]);
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
-        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct'
+        'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct', 'tgt_per_g'
     ]);
     const is2026RostersQbLog = pageType === 'rosters' && player.pos === 'QB' && state.currentGameLogsSeason === '2026';
     const is2026RostersRbLog = pageType === 'rosters' && player.pos === 'RB' && state.currentGameLogsSeason === '2026';
@@ -7023,7 +7049,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         tableColumns.push({
             id: key,
             accessorKey: key,
-            header: () => statLabels[key],
+            // The Season view uses source labels with spaces; preserve the
+            // compact middle-dot attempt headers in 2026 RB weekly Game Logs.
+            header: () => is2026RostersRbLog && key === 'rz_att' ? 'RZ·Att'
+                : is2026RostersRbLog && key === 'gl_att' ? 'GL·Att' : statLabels[key],
             size: COLUMN_WIDTHS[key] || DEFAULT_COLUMN_WIDTH,
             meta: {
                 headerClass: statGroup ? `gamelog-header-${statGroup}` : undefined,

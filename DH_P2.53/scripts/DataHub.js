@@ -11448,6 +11448,12 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   "RYOE/A": "ryoe_per_att",
   "RZ Att": "rz_att",
   "GL Att": "gl_att",
+  // DataHub 2026 RB Season view: parse these exact DH totals and rates so
+  // season values and positional ranks use the same source data.
+  YBC: "rush_ybc",
+  "YBC/A": "ybc_per_att",
+  "CAR/G": "car_per_g",
+  "TGT/G": "tgt_per_g",
   YCO: "rush_yac",
   "YCO/A": "yco_per_att",
   "ExplRu%": "expl_ru_pct",
@@ -11581,6 +11587,26 @@ const DATAHUB_SZN_STAT_SECTIONS_BY_POS = {
     { label: "GENERAL EFFICIENCY", tone: "all", stats: ["snp_pct", "fum", "imp_per_g"] },
   ],
 };
+// DataHub 2026 RB Game Logs Season view: update only the requested RB
+// sections while keeping the archived 2025 configuration intact.
+const DATAHUB_RB_SZN_SECTIONS_2026 = DATAHUB_SZN_STAT_SECTIONS_BY_POS.RB.map((section) => {
+  if (section.label === "RUSHING PRODUCTION") {
+    return { ...section, stats: [
+      "snp_pct", "rush_att", "rush_yd", "rush_td", "rush_fd", "rush_yac",
+      "rush_ybc", "mtf", "rz_att", "gl_att",
+    ] };
+  }
+  if (section.label === "RUSHING EFFICIENCY") {
+    return { ...section, stats: [
+      "ypc", "elu", "mtf_per_att", "yco_per_att", "ybc_per_att",
+      "expl_ru_pct", "ryoe", "ryoe_per_att", "ru_ypg", "car_per_g",
+    ] };
+  }
+  if (section.label === "RECEIVING EFFICIENCY") {
+    return { ...section, stats: ["ts_per_rr", "yprr", "ypr", "tgt_per_g"] };
+  }
+  return section;
+});
 const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
   QB: { solid: 16, high: 22 },
   RB: { solid: 12, high: 18 },
@@ -11661,6 +11687,10 @@ const DATAHUB_NO_FALLBACK_KEYS = new Set([
   "ryoe_per_att",
   "rz_att",
   "gl_att",
+  "rush_ybc",
+  "ybc_per_att",
+  "car_per_g",
+  "tgt_per_g",
 ]);
 const DATAHUB_QB_LOG_ORDER = [
   "fpts", "proj", "pass_rtg", "pass_yd", "pass_td", "cmp_pct", "yds_total",
@@ -14215,8 +14245,9 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "epa_per_db") {
       const formatted = Number(raw).toFixed(2);
       displayValue = raw > 0 ? `+${formatted}` : formatted;
-    } else if (key === "ryoe_per_att" && state.currentModalSeason === "2026" && player?.pos === "RB") {
-      // DataHub 2026 RB weekly footer: keep RYOE/A at two decimals.
+    } else if (["ryoe_per_att", "ybc_per_att", "car_per_g", "tgt_per_g"].includes(key) && state.currentModalSeason === "2026" && player?.pos === "RB") {
+      // DataHub 2026 RB Season values and weekly footer: show DH
+      // per-attempt/per-game rates with two decimals.
       displayValue = Number(raw).toFixed(2);
     } else {
       displayValue = Number.isInteger(raw) ? String(raw) : Number(raw).toFixed(2);
@@ -14339,8 +14370,8 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
 
   const list = document.createElement("div");
   list.className = "gamelogs-szn-list";
-  // DataHub 2026 QB Game Logs Season view: add DH passing totals and rates in
-  // the requested order; keep the historical 2025 sections untouched.
+  // DataHub 2026 QB/RB Game Logs Season view: use the requested section
+  // orders for each position while preserving the historical 2025 sections.
   const sections = player.pos === "QB" && state.currentModalSeason === "2026"
     ? DATAHUB_SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
       if (section.label === "PASSING PRODUCTION") {
@@ -14357,7 +14388,9 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
       }
       return section;
     })
-    : DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
+    : player.pos === "RB" && state.currentModalSeason === "2026"
+      ? DATAHUB_RB_SZN_SECTIONS_2026
+      : DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
   const usedKeys = new Set();
   const appendSeasonStatRow = (statKey) => {
     if (!DATAHUB_STAT_LABELS[statKey] || statKey === "proj" || usedKeys.has(statKey)) {
@@ -14523,10 +14556,11 @@ function getDataHubStatGroup(statKey) {
   if ([
     "rush_att", "rush_yd", "rush_td", "rush_fd", "ypc", "elu", "mtf_per_att", "yco_per_att",
     "mtf", "rush_yac", "ryoe", "ryoe_per_att", "rz_att", "gl_att", "expl_ru_pct", "ru_ypg",
+    "rush_ybc", "ybc_per_att", "car_per_g",
   ].includes(statKey)) return "rushing";
   if ([
     "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",
-    "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct",
+    "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct", "tgt_per_g",
   ].includes(statKey)) return "receiving";
   return "all";
 }
