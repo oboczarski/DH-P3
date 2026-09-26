@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub stats-key accent colors and desktop Market/Rookies stacking.
-const CACHE_NAME = 'DH3.47k-key-colors-layout';
+// Refresh DataHub 2026 QB Stats additions and EPA in both QB Season Game Logs.
+const CACHE_NAME = 'DH3.47l-qb-stats-epa';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

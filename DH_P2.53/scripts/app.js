@@ -5758,8 +5758,9 @@ function getSznSectionsForPosition(position) {
         // sheet order while preserving the 2025 and separate Stats page groups.
         return SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
             if (section.id === 'passing-production') {
+                // QB 2026 Season view: EPA belongs directly below pa1D.
                 return { ...section, stats: [
-                    'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd',
+                    'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'epa',
                     'pass_imp', 'pass_sack', 'pass_int', 'dropbacks'
                 ] };
             }

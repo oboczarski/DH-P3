@@ -1112,9 +1112,10 @@ const COLUMN_ICONS = {
   ruYPG:     DATAHUB_LUCIDE_ICON_MARKUP.ChartSpline,
 };
 
-// DataHub Stats Rushing additions: filled Material Symbols from
+// DataHub Stats QB/RB additions: filled Material Symbols from
 // google/material-design-icons (symbols/web, outlined fill1, 24px). Keep the
 // SVG fragments inline through the existing registry; no runtime font is needed.
+const CAR_PER_GAME_HEADER_ICON_MARKUP = '<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v240h-80v-80H200v400h280v80H200ZM760 0q-73 0-127.5-45.5T564-160h62q13 44 49.5 72T760-60q58 0 99-41t41-99q0-58-41-99t-99-41q-29 0-54 10.5T662-300h58v60H560v-160h60v57q27-26 63-41.5t77-15.5q83 0 141.5 58.5T960-200q0 83-58.5 141.5T760 0Z"/>';
 const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
   rushing: Object.freeze({
     "YBC": '<path d="M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Z"/>', // Material Symbols: shield.
@@ -1124,8 +1125,17 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
     "GL Att": '<g transform="rotate(180 480 -480)"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm308.5-251.5Q520-383 520-400t-11.5-28.5Q497-440 480-440t-28.5 11.5Q440-417 440-400t11.5 28.5Q463-360 480-360t28.5-11.5ZM200-400h160q0-50 35-85t85-35q50 0 85 35t35 85h160v-360H200v360Z"/></g>',
     "RYOE/A": '<path d="M160-80v-237q0-20 9.5-38t26.5-29l44-29q7 84 22 143t47 131L160-80Zm209-80q-35-66-52-140t-17-153q0-125 49.5-235.5T480-856q81 57 130.5 167.5T660-453q0 78-17 151.5T591-160H369Zm111-280q33 0 56.5-23.5T560-520q0-33-23.5-56.5T480-600q-33 0-56.5 23.5T400-520q0 33 23.5 56.5T480-440ZM800-80l-149-59q32-72 47-131t22-143l44 29q17 11 26.5 29t9.5 38v237Z"/>', // Material Symbols: rocket.
     "YBC/A": '<path d="M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm-80-240h160q17 0 28.5-11.5T600-360v-120q0-17-11.5-28.5T560-520v-40q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560v40q-17 0-28.5 11.5T360-480v120q0 17 11.5 28.5T400-320Zm40-200v-40q0-17 11.5-28.5T480-600q17 0 28.5 11.5T520-560v40h-80Z"/>', // Material Symbols: shield_lock.
-    "CAR/G": '<path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v240h-80v-80H200v400h280v80H200ZM760 0q-73 0-127.5-45.5T564-160h62q13 44 49.5 72T760-60q58 0 99-41t41-99q0-58-41-99t-99-41q-29 0-54 10.5T662-300h58v60H560v-160h60v57q27-26 63-41.5t77-15.5q83 0 141.5 58.5T960-200q0 83-58.5 141.5T760 0Z"/>', // Material Symbols: event_repeat.
+    "CAR/G": CAR_PER_GAME_HEADER_ICON_MARKUP, // Material Symbols: event_repeat.
     "TGT/G": '<path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-80q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 100-70 170t-170 70Zm0-80q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Z"/>', // Material Symbols: target.
+  }),
+  // QB 2026 additions use distinct filled Material Symbols through the same
+  // inline registry as the RB headers, with CAR/G retaining its shared icon.
+  passing: Object.freeze({
+    "EPA": '<path d="M280-280h80v-280h-80v280Zm160 0h80v-400h-80v400Zm160 0h80v-160h-80v160Zm80-320v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h360v200q0 33 23.5 56.5T640-560h200v360q0 33-23.5 56.5T760-120H200Z"/>', // Material Symbols: add_chart.
+    "DB": '<path d="M315-240q-77 0-117-57t-38-128l-18-27q-11-17-36.5-77T80-680q0-103 51-171.5T260-920q85 0 132.5 75.5T440-680q0 58-16 107t-28 79l8 13q8 14 22 44.5t14 63.5q0 57-35.5 95T315-240ZM210-496l110-22q13-32 26.5-73t13.5-89q0-60-27.5-110T260-840q-45 0-72.5 50T160-680q0 63 17.5 111.5T210-496Zm105 176q19 0 32-14t13-39q0-17-8-35t-16-32l-96 20q0 40 17.5 70t57.5 30ZM645-40q-54 0-89.5-38T520-173q0-33 14-63.5t22-44.5l8-13q-12-30-28-79t-16-107q0-89 47.5-164.5T700-720q78 0 129 68.5T880-480q0 91-25.5 150.5T818-253l-18 28q1 71-38.5 128T645-40Zm105-256q15-24 32.5-72T800-480q0-60-27.5-110T700-640q-45 0-72.5 50T600-480q0 48 13.5 88.5T640-318l110 22ZM645-120q40 0 57.5-30t17.5-70l-96-20q-8 14-16 32t-8 35q0 20 12.5 36.5T645-120Z"/>', // Material Symbols: footprint.
+    "BLTZ%": '<path d="M762-96 645-212l-88 88-28-28q-23-23-23-57t23-57l169-169q23-23 57-23t57 23l28 28-88 88 116 117q12 12 12 28t-12 28l-50 50q-12 12-28 12t-28-12Zm118-628L426-270l5 4q23 23 23 57t-23 57l-28 28-88-88L198-96q-12 12-28 12t-28-12l-50-50q-12-12-12-28t12-28l116-117-88-88 28-28q23-23 57-23t57 23l4 5 454-454h160v160ZM278-526 80-724v-160h160l198 198-160 160Z"/>', // Material Symbols: swords.
+    "TmPa%": '<path d="m160-419 101-101-101-101L59-520l101 101Zm540-21 100-160 100 160H700Zm-220-40q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480ZM0-240v-63q0-44 44.5-70.5T160-400q13 0 25 .5t23 2.5q-14 20-21 43t-7 49v65H0Zm240 0v-65q0-65 66.5-105T480-450q108 0 174 40t66 105v65H240Zm560-160q72 0 116 26.5t44 70.5v63H780v-65q0-26-6.5-49T754-397q11-2 22.5-2.5t23.5-.5Z"/>', // Material Symbols: groups_3.
+    "CAR/G": CAR_PER_GAME_HEADER_ICON_MARKUP,
   }),
 });
 
@@ -1562,6 +1572,27 @@ const BASE_COLUMN_GROUPS = Object.freeze({
     }),
   ]),
 });
+// DataHub 2026 Passing (QB) Stats: replace only the requested column lists,
+// inheriting the existing header icons/colors and retaining the 2025 schema.
+const STATS_PASSING_GROUP_COLUMNS_2026 = Object.freeze({
+  "PASSING PRODUCTION": Object.freeze([
+    "paATT", "CMP", "paYDS", "paTD", "pa1D", "EPA", "SAC", "INT", "DB",
+  ]),
+  "PASSING EFFICIENCY": Object.freeze([
+    "CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "PRS%", "DP%", "BLTZ%", "paYPG", "pIMP/A", "TmPa%",
+  ]),
+  RUSHING: Object.freeze(["ruYDS", "ruTD", "CAR", "YPC", "CAR/G"]),
+});
+const STATS_PASSING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.passing.map((group) => Object.freeze({
+  ...group,
+  columns: STATS_PASSING_GROUP_COLUMNS_2026[group.label] || group.columns,
+})));
+// Derive the QB columns from the groups to keep order and group spans aligned.
+const STATS_PASSING_COLUMNS_2026 = Object.freeze([
+  "RK", "PLAYER", "POS",
+  ...STATS_PASSING_COLUMN_GROUPS_2026.flatMap((group) => group.columns),
+]);
+
 // DataHub 2026 Rushing (RB) Stats: copy the group metadata/colors and replace
 // only the requested column lists. The historical/shared schema stays intact.
 const STATS_RUSHING_GROUP_COLUMNS_2026 = Object.freeze({
@@ -2204,6 +2235,7 @@ const FORMATTING_PERCENTILE_CUTOFFS = Object.freeze([0.25, 0.55, 0.70, 0.85, 0.9
 const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
   ...STATS_RUSHING_COLUMNS_2026,
+  ...STATS_PASSING_COLUMNS_2026,
   ...Object.values(ROOKIES_CAREER_COLUMN_SETS).flat(),
   ...ROOKIES_TRADE_COLUMN_SET,
   ...HIDDEN_ROOKIE_RANK_COLUMNS,
@@ -2382,6 +2414,11 @@ const COLUMN_WIDTHS = {
   paRTG: 98,
   "EPA/DB": 96,
   CPOE: 94,
+  // New QB Stats headers use the same desktop spacing as adjacent passing rates.
+  EPA: 94,
+  DB: 82,
+  "BLTZ%": 96,
+  "TmPa%": 100,
   CMP: 90,
   YPA: 84,
   paYPG: 96,
@@ -2528,6 +2565,11 @@ const MOBILE_COLUMN_WIDTHS = {
   paRTG: 56,
   "EPA/DB": 58,
   CPOE: 53,
+  // Compact QB additions stay inside the table's existing horizontal scroller.
+  EPA: 54,
+  DB: 42,
+  "BLTZ%": 60,
+  "TmPa%": 64,
   CMP: 48,
   YPA: 50,
   paYPG: 56,
@@ -7840,14 +7882,19 @@ function resizeDataHubHeroCharts() {
   }
 }
 
-// Limit the new RB table schema/formatting/icons to the 2026 Stats selection.
+// Limit the new QB/RB table schemas/formatting/icons to the 2026 Stats selection.
 // Season switching automatically restores the original 2025 configuration.
+function is2026PassingStatsView() {
+  return state.activePageView === "stats" && state.activeCategory === "passing" && state.statsSeason === "2026";
+}
+
 function is2026RushingStatsView() {
   return state.activePageView === "stats" && state.activeCategory === "rushing" && state.statsSeason === "2026";
 }
 
 function getActiveColumnSet() {
   if (is2026RushingStatsView()) return STATS_RUSHING_COLUMNS_2026;
+  if (is2026PassingStatsView()) return STATS_PASSING_COLUMNS_2026;
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
   const columns = viewSets[state.activeCategory]
     || viewSets[getDefaultCategory(state.activePageView)]
@@ -7857,6 +7904,7 @@ function getActiveColumnSet() {
 
 function getActiveColumnGroups() {
   if (is2026RushingStatsView()) return STATS_RUSHING_COLUMN_GROUPS_2026;
+  if (is2026PassingStatsView()) return STATS_PASSING_COLUMN_GROUPS_2026;
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
   const groups = viewGroups[state.activeCategory]
     || viewGroups[getDefaultCategory(state.activePageView)]
@@ -9544,6 +9592,12 @@ function createHeaderCell(column, columnIconColor) {
         svg.classList.add("stats-table__head-icon--rookie-wt");
       }
     }
+    if (is2026PassingStatsView() && STATS_COLUMN_ICON_OVERRIDES.passing[column.name]) {
+      // New QB headers follow the existing inline Material viewBox/fill method
+      // and inherit the icon color from their production/efficiency/rushing group.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--qb-2026-material");
+    }
     if (is2026RushingStatsView() && STATS_COLUMN_ICON_OVERRIDES.rushing[column.name]) {
       // 2026 RB additions use the existing inline SVG renderer, Material viewBox,
       // and a page-local filled-icon hook with the active group color.
@@ -11054,6 +11108,18 @@ function formatDisplayValue(columnName, value) {
   if (columnName === FPTS_COLUMN) {
     const numericValue = toComparableNumber(value);
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
+  }
+
+  // New QB table fields use the Game Logs parsing/formatting contract, keeping
+  // missing cells unavailable and underlying DH values unrounded for sorting.
+  if (is2026PassingStatsView() && ["EPA", "DB", "BLTZ%", "TmPa%", "CAR/G"].includes(columnName)) {
+    const numericValue = ["BLTZ%", "TmPa%"].includes(columnName)
+      ? parseDataHubStatValue(columnName, value) : toComparableNumber(value);
+    if (numericValue == null) return formatCellValue(value);
+    if (columnName === "EPA") return formatDataHubSignedEpaValue(numericValue);
+    if (columnName === "DB") return numericValue.toFixed(0);
+    if (columnName.endsWith("%")) return formatDataHubPercentage(numericValue);
+    return numericValue.toFixed(1);
   }
 
   // DataHub 2026 Rushing table: per-game /G and YPG columns display one
@@ -14484,8 +14550,9 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
   const sections = player.pos === "QB" && state.currentModalSeason === "2026"
     ? DATAHUB_SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
       if (section.label === "PASSING PRODUCTION") {
+        // QB 2026 Season view: EPA belongs directly below pa1D.
         return { ...section, stats: [
-          "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd",
+          "pass_att", "pass_cmp", "pass_yd", "pass_td", "pass_fd", "epa",
           "pass_imp", "pass_sack", "pass_int", "dropbacks",
         ] };
       }

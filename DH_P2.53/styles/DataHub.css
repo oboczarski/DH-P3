@@ -4401,8 +4401,9 @@ body[data-page="datahub"] [data-column-name="PRS%"] .stats-table__head-icon--prs
   stroke-width: 0;
 }
 
-/* 2026 Stats Rushing additions: follow the existing Material SVG fill method
-   and each column's group color. The class is assigned only in that table. */
+/* 2026 Stats QB/RB additions: follow the existing Material SVG fill method
+   and each column's group color. The classes are assigned only in these tables. */
+body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--qb-2026-material,
 body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--rb-2026-material {
   width: 18px;
   height: 18px;
@@ -6363,8 +6364,9 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     height: 16px;
   }
 
-  /* Compact filled icons for the 2026 RB Stats additions, using the same
+  /* Compact filled icons for the 2026 QB/RB Stats additions, using the same
      mobile sizing as the neighboring Material stat headers. */
+  body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--qb-2026-material,
   body[data-page="datahub"][data-datahub-tab="stats"] .stats-table__head-icon--rb-2026-material {
     width: 16px;
     height: 16px;
