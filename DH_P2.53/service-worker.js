@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Rosters league persistence so return visits restore the last viewed league.
-const CACHE_NAME = 'DH3.47b-rosters-last-league';
+// Refresh RB per-game tenths in DataHub Rushing Stats and both Game Logs Season views.
+const CACHE_NAME = 'DH3.47c-rb-per-game-tenths';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

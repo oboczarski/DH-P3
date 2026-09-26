@@ -11037,11 +11037,11 @@ function formatDisplayValue(columnName, value) {
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
-  // DataHub 2026 Rushing table: per-game /G and YPG columns display whole
-  // numbers. Keep the unrounded source for sorting/heat tiers and preserve NA.
+  // DataHub 2026 Rushing table: per-game /G and YPG columns display one
+  // decimal place. Keep the unrounded source for sorting/heat tiers and preserve NA.
   if (is2026RushingStatsView() && (columnName.endsWith("/G") || columnName.endsWith("YPG"))) {
     const numericValue = toComparableNumber(value);
-    return numericValue == null ? formatCellValue(value) : String(Math.round(numericValue));
+    return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
   // Rookie GRD display:
@@ -13873,7 +13873,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       return;
     }
 
-    const displayValue = getDataHubGameLogsSeasonDisplayValue({
+    let displayValue = getDataHubGameLogsSeasonDisplayValue({
       key: statKey,
       seasonTotals,
       aggregatedTotals,
@@ -13883,6 +13883,12 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       player,
       playerRanks,
     });
+    // RB 2026 footer per-game totals use the unrounded source and tenths,
+    // matching the weekly cells and separate Season view.
+    if (is2026RbLog && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey]) && Number.isFinite(Number(displayValue))) {
+      const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
+      displayValue = value.toFixed(1);
+    }
     const rankValue = getDataHubSeasonRankValue(player.id, statKey);
     const rankAnnotation = createDataHubRankAnnotation(rankValue, {
       wrapInParens: false,
@@ -14168,6 +14174,8 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is20
     const normalized = Math.abs(numericValue) <= 1.5 ? numericValue * 100 : numericValue;
     return `${normalized.toFixed(1)}%`;
   }
+  // DataHub 2026 RB weekly per-game columns match the Season view's tenths.
+  if (is2026RbLog && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey])) return numericValue.toFixed(1);
   if (is2026RbLog && statKey === "ryoe_per_att") return numericValue.toFixed(2);
   if (statKey === "yco_per_att") return numericValue.toFixed(2);
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
@@ -14484,12 +14492,12 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
       player,
       playerRanks,
     });
-    // DataHub 2026 RB Season view: round /G and YPG displays to whole numbers
+    // DataHub 2026 RB Season view: round /G and YPG displays to one decimal
     // from the unrounded DH values, keeping unavailable cells as-is.
     if (state.currentModalSeason === "2026" && player.pos === "RB"
       && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
       const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
-      displayValue = value.toFixed(0);
+      displayValue = value.toFixed(1);
     }
 
     const row = document.createElement("div");

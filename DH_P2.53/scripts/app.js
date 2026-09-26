@@ -6186,12 +6186,12 @@ function renderGameLogsSeasonStatsView({
             player,
             scoringSettings
         });
-        // Rosters 2026 RB Season view: round all /G and YPG displays to whole
-        // numbers, using unrounded DH values and preserving unavailable cells.
+        // Rosters 2026 RB Season view: round all /G and YPG displays to one
+        // decimal place, using unrounded DH values and preserving unavailable cells.
         if (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player.pos === 'RB'
             && /(?:\/G|YPG)$/.test(labelText) && Number.isFinite(Number(displayValue))) {
             const value = Number.isFinite(seasonTotals?.[statKey]) ? seasonTotals[statKey] : Number(displayValue);
-            displayValue = value.toFixed(0);
+            displayValue = value.toFixed(1);
         }
         const row = document.createElement('div');
         row.className = 'gamelogs-szn-row';
@@ -7342,6 +7342,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             let displayValue;
             // For FPTS, show "-" instead of "N/A" when value is null (e.g. SNP=0 or no data)
             if (value === null || typeof value !== 'number') displayValue = key === 'fpts' ? '-' : 'N/A';
+            // Rosters 2026 RB weekly per-game columns match the Season view's tenths.
+            else if (is2026RostersRbLog && /(?:\/G|YPG)$/.test(statLabels[key])) displayValue = value.toFixed(1);
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
             else if (is2026RostersRbLog && key === 'ryoe_per_att') displayValue = value.toFixed(2);
@@ -7609,7 +7611,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 footerRow.appendChild(td);
                 continue;
             }
-            const displayValue = getGameLogsSeasonDisplayValue({
+            let displayValue = getGameLogsSeasonDisplayValue({
                 key,
                 seasonTotals,
                 aggregatedTotals,
@@ -7619,6 +7621,12 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 player,
                 scoringSettings
             });
+            // RB 2026 footer per-game totals use the unrounded source and tenths,
+            // matching the weekly cells and separate Season view.
+            if (is2026RostersRbLog && /(?:\/G|YPG)$/.test(statLabels[key]) && Number.isFinite(Number(displayValue))) {
+                const value = Number.isFinite(seasonTotals?.[key]) ? seasonTotals[key] : Number(displayValue);
+                displayValue = value.toFixed(1);
+            }
             const rankValue = getSeasonRankValue(player.id, key);
             const rankAnnotation = createRankAnnotation(rankValue, { wrapInParens: false, ordinal: true, variant: 'gamelogs-footer' });
             rankAnnotation.classList.add('stat-rank-annotation--bulleted');
