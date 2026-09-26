@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub Rushing RZ Att and rotated GL Att header icons.
-const CACHE_NAME = 'DH3.47d-rb-field-icons';
+// Refresh DataHub Rushing RZ Att header rotation.
+const CACHE_NAME = 'DH3.47e-rz-att-rotation';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
