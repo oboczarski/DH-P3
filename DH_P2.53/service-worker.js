@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub pIMP/A tooltip wording and stats-key explanation.
-const CACHE_NAME = 'DH3.47g-pimp-help';
+// Refresh DataHub impact-stat tooltips and passing/rushing/receiving key explanations.
+const CACHE_NAME = 'DH3.47h-impact-help';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
