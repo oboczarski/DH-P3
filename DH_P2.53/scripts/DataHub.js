@@ -2157,6 +2157,9 @@ const DIFF_COLUMNS = new Set(["1QB DIFF", "SFLX DIFF"]);
 const PLAYER_COLUMN = "PLAYER";
 const FPTS_COLUMN = "FPTS";
 const FORMATTING_TOP_RANGE_LIMIT = 160;
+// DataHub table performance percentiles: these inclusive lower bounds define
+// tiers 1–5 within each column's best 160 values; anything below 25% is tier 0.
+const FORMATTING_PERCENTILE_CUTOFFS = Object.freeze([0.25, 0.55, 0.70, 0.85, 0.925]);
 const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
   ...Object.values(ROOKIES_CAREER_COLUMN_SETS).flat(),
@@ -11059,18 +11062,21 @@ function getFormattingTier(columnName, value) {
     return 0;
   }
 
-  if (metric.isFlat) {
-    return 2;
-  }
-
+  // Apply the best-160 floor before flat-column handling so worse values
+  // always stay in tier 0, even when all retained values are tied.
   if (
     metric.floorValue != null
     && (
-      (metric.isInverted && numericValue >= metric.floorValue)
-      || (!metric.isInverted && numericValue <= metric.floorValue)
+      (metric.isInverted && numericValue > metric.floorValue)
+      || (!metric.isInverted && numericValue < metric.floorValue)
     )
   ) {
     return 0;
+  }
+
+  // Preserve the existing fallback for columns whose retained values are equal.
+  if (metric.isFlat) {
+    return 2;
   }
 
   const clampedValue = metric.floorValue == null
@@ -11083,7 +11089,11 @@ function getFormattingTier(columnName, value) {
     ? 1 - percentile
     : percentile;
 
-  return clamp(Math.round(normalized * 4), 0, 4);
+  // Equality belongs to the higher tier, matching the requested cutoffs.
+  return FORMATTING_PERCENTILE_CUTOFFS.reduce(
+    (tier, cutoff) => tier + Number(normalized >= cutoff),
+    0,
+  );
 }
 
 function getRookieCareerFormattingFamily(columnName) {
@@ -11381,8 +11391,9 @@ const DATAHUB_STATS_KEY_SECTIONS = [
     items: [
       { abbr: "ADP", desc: "Average Draft Position" },
       { abbr: "AGE", desc: "Player Age" },
-      { abbr: "CL", desc: "Ceiling" },
-      { abbr: "CSTY%", desc: "Consistency Percentage" },
+      // DataHub Game Logs key mirrors the page key's concise definitions.
+      { abbr: "CL", desc: "Ceiling · AVG of Top 3 Games" },
+      { abbr: "CSTY%", desc: "Consistency Rate" },
       { abbr: "FUM", desc: "Fumbles Lost" },
       { abbr: "G", desc: "Games Played" },
       { abbr: "IMP", desc: "Impact Plays" },

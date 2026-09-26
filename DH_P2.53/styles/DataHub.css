@@ -5044,33 +5044,46 @@ body[data-page="datahub"][data-datahub-tab="rookies"] .stats-table__rookie-rk-po
   color: rgba(226, 235, 250, 0.72);
 }
 
-.heat-cell--heat.heat-cell--tier-0 .stats-table__cell-content {
+/* DataHub percentile formatting, tiers 0–5:
+   Reuse the former palette levels 0/0/1/2/4/4 respectively. The old level 3
+   is omitted. Filters affect only cell contents or FPTS chips, preserving
+   row surfaces and the separate fixed Rookie TIER/GRD/draft palettes. */
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(212, 222, 240, 0.74);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--heat.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(212, 222, 240, 0.74);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(194, 232, 255, 0.82);
   text-shadow: 0 0 10px rgba(102, 215, 255, 0.04);
+  filter: brightness(0.95);
 }
 
-.heat-cell--heat.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(171, 225, 255, 0.92);
   text-shadow: 0 0 12px rgba(102, 215, 255, 0.07);
 }
 
-.heat-cell--heat.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(141, 225, 255, 0.98);
-  text-shadow:
-    0 0 14px rgba(102, 215, 255, 0.11),
-    0 0 22px rgba(162, 127, 255, 0.05);
-}
-
-.heat-cell--heat.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(122, 233, 255, 1);
   text-shadow:
     0 0 16px rgba(102, 215, 255, 0.15),
     0 0 28px rgba(162, 127, 255, 0.07);
+}
+
+body[data-page="datahub"] .heat-cell--heat.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(122, 233, 255, 1);
+  text-shadow:
+    0 0 16px rgba(102, 215, 255, 0.15),
+    0 0 28px rgba(162, 127, 255, 0.07);
+  filter: brightness(1.2) saturate(1.3);
 }
 
 /* Rookies table tier colors:
@@ -5254,7 +5267,6 @@ body[data-page="datahub"] .heat-cell--career-info {
   --career-heat-0: rgba(208, 218, 234, 0.72);
   --career-heat-1: rgba(198, 219, 242, 0.82);
   --career-heat-2: rgba(174, 210, 246, 0.9);
-  --career-heat-3: rgba(148, 198, 250, 0.98);
   --career-heat-4: rgba(121, 186, 255, 1);
   --career-glow-rgb: 121, 186, 255;
 }
@@ -5263,7 +5275,6 @@ body[data-page="datahub"] .heat-cell--career-prospect {
   --career-heat-0: rgba(226, 217, 194, 0.74);
   --career-heat-1: rgba(240, 219, 160, 0.84);
   --career-heat-2: rgba(250, 211, 115, 0.92);
-  --career-heat-3: rgba(255, 199, 82, 0.98);
   --career-heat-4: rgba(255, 184, 52, 1);
   --career-glow-rgb: 255, 184, 52;
 }
@@ -5272,7 +5283,6 @@ body[data-page="datahub"] .heat-cell--career-total {
   --career-heat-0: rgba(219, 208, 236, 0.74);
   --career-heat-1: rgba(216, 194, 245, 0.84);
   --career-heat-2: rgba(207, 171, 251, 0.92);
-  --career-heat-3: rgba(198, 148, 255, 0.98);
   --career-heat-4: rgba(185, 122, 255, 1);
   --career-glow-rgb: 185, 122, 255;
 }
@@ -5281,7 +5291,6 @@ body[data-page="datahub"] .heat-cell--career-passing-production {
   --career-heat-0: rgba(232, 208, 202, 0.74);
   --career-heat-1: rgba(244, 197, 184, 0.84);
   --career-heat-2: rgba(253, 174, 153, 0.92);
-  --career-heat-3: rgba(255, 148, 121, 0.98);
   --career-heat-4: rgba(255, 119, 89, 1);
   --career-glow-rgb: 255, 119, 89;
 }
@@ -5290,7 +5299,6 @@ body[data-page="datahub"] .heat-cell--career-passing-efficiency {
   --career-heat-0: rgba(231, 205, 226, 0.74);
   --career-heat-1: rgba(244, 190, 230, 0.84);
   --career-heat-2: rgba(252, 165, 225, 0.92);
-  --career-heat-3: rgba(255, 137, 219, 0.98);
   --career-heat-4: rgba(255, 106, 211, 1);
   --career-glow-rgb: 255, 106, 211;
 }
@@ -5300,7 +5308,6 @@ body[data-page="datahub"] .heat-cell--career-rushing-production {
   --career-heat-0: rgba(203, 226, 214, 0.74);
   --career-heat-1: rgba(184, 237, 211, 0.84);
   --career-heat-2: rgba(147, 242, 201, 0.92);
-  --career-heat-3: rgba(111, 246, 190, 0.98);
   --career-heat-4: rgba(73, 252, 176, 1);
   --career-glow-rgb: 73, 252, 176;
 }
@@ -5309,7 +5316,6 @@ body[data-page="datahub"] .heat-cell--career-rushing-efficiency {
   --career-heat-0: rgba(200, 225, 225, 0.74);
   --career-heat-1: rgba(177, 238, 232, 0.84);
   --career-heat-2: rgba(136, 242, 231, 0.92);
-  --career-heat-3: rgba(94, 246, 226, 0.98);
   --career-heat-4: rgba(44, 250, 219, 1);
   --career-glow-rgb: 44, 250, 219;
 }
@@ -5319,7 +5325,6 @@ body[data-page="datahub"] .heat-cell--career-receiving-production {
   --career-heat-0: rgba(204, 216, 234, 0.74);
   --career-heat-1: rgba(185, 214, 245, 0.84);
   --career-heat-2: rgba(153, 202, 253, 0.92);
-  --career-heat-3: rgba(122, 190, 255, 0.98);
   --career-heat-4: rgba(90, 177, 255, 1);
   --career-glow-rgb: 90, 177, 255;
 }
@@ -5328,7 +5333,6 @@ body[data-page="datahub"] .heat-cell--career-receiving-efficiency {
   --career-heat-0: rgba(210, 209, 234, 0.74);
   --career-heat-1: rgba(196, 195, 246, 0.84);
   --career-heat-2: rgba(175, 174, 253, 0.92);
-  --career-heat-3: rgba(153, 151, 255, 0.98);
   --career-heat-4: rgba(130, 126, 255, 1);
   --career-glow-rgb: 130, 126, 255;
 }
@@ -5336,23 +5340,24 @@ body[data-page="datahub"] .heat-cell--career-receiving-efficiency {
 body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-0 .stats-table__cell-content {
   color: var(--career-heat-0);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
 body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-1 .stats-table__cell-content {
-  color: var(--career-heat-1);
-  text-shadow: 0 0 9px rgba(var(--career-glow-rgb), 0.05);
+  color: var(--career-heat-0);
+  text-shadow: none;
+  filter: brightness(0.8);
 }
 
 body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-2 .stats-table__cell-content {
-  color: var(--career-heat-2);
-  text-shadow: 0 0 12px rgba(var(--career-glow-rgb), 0.08);
+  color: var(--career-heat-1);
+  text-shadow: 0 0 9px rgba(var(--career-glow-rgb), 0.05);
+  filter: brightness(0.95);
 }
 
 body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-3 .stats-table__cell-content {
-  color: var(--career-heat-3);
-  text-shadow:
-    0 0 14px rgba(var(--career-glow-rgb), 0.12),
-    0 0 21px rgba(var(--career-glow-rgb), 0.05);
+  color: var(--career-heat-2);
+  text-shadow: 0 0 12px rgba(var(--career-glow-rgb), 0.08);
 }
 
 body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-4 .stats-table__cell-content {
@@ -5362,169 +5367,232 @@ body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tie
     0 0 26px rgba(var(--career-glow-rgb), 0.07);
 }
 
-.heat-cell--neutral.heat-cell--tier-0 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tier-5 .stats-table__cell-content {
+  color: var(--career-heat-4);
+  text-shadow:
+    0 0 16px rgba(var(--career-glow-rgb), 0.16),
+    0 0 26px rgba(var(--career-glow-rgb), 0.07);
+  filter: brightness(1.2) saturate(1.3);
+}
+
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(214, 221, 234, 0.74);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--neutral.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(214, 221, 234, 0.74);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(223, 227, 238, 0.82);
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.035);
+  filter: brightness(0.95);
 }
 
-.heat-cell--neutral.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(235, 228, 215, 0.9);
   text-shadow: 0 0 10px rgba(255, 196, 132, 0.05);
 }
 
-.heat-cell--neutral.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(248, 222, 182, 0.96);
-  text-shadow:
-    0 0 12px rgba(255, 190, 120, 0.09),
-    0 0 18px rgba(255, 255, 255, 0.03);
-}
-
-.heat-cell--neutral.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(255, 214, 158, 1);
   text-shadow:
     0 0 14px rgba(255, 184, 102, 0.12),
     0 0 22px rgba(255, 255, 255, 0.04);
 }
 
+body[data-page="datahub"] .heat-cell--neutral.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(255, 214, 158, 1);
+  text-shadow:
+    0 0 14px rgba(255, 184, 102, 0.12),
+    0 0 22px rgba(255, 255, 255, 0.04);
+  filter: brightness(1.2) saturate(1.3);
+}
+
 /* DataHub stat color families:
    keeps the shared tier system intact while giving PPG plus the Trade Values
    table families their own distinct colors without affecting other pages. */
-.heat-cell--ppg.heat-cell--tier-0 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(205, 224, 213, 0.76);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--ppg.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(205, 224, 213, 0.76);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(185, 235, 205, 0.84);
   text-shadow: 0 0 9px rgba(42, 201, 118, 0.05);
+  filter: brightness(0.95);
 }
 
-.heat-cell--ppg.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(152, 238, 189, 0.92);
   text-shadow: 0 0 12px rgba(42, 201, 118, 0.08);
 }
 
-.heat-cell--ppg.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(120, 241, 176, 0.98);
-  text-shadow:
-    0 0 14px rgba(42, 201, 118, 0.12),
-    0 0 20px rgba(12, 84, 44, 0.05);
-}
-
-.heat-cell--ppg.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(90, 248, 166, 1);
   text-shadow:
     0 0 16px rgba(42, 201, 118, 0.16),
     0 0 24px rgba(12, 84, 44, 0.07);
 }
 
-.heat-cell--ktc.heat-cell--tier-0 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ppg.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(90, 248, 166, 1);
+  text-shadow:
+    0 0 16px rgba(42, 201, 118, 0.16),
+    0 0 24px rgba(12, 84, 44, 0.07);
+  filter: brightness(1.2) saturate(1.3);
+}
+
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(206, 223, 234, 0.76);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--ktc.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(206, 223, 234, 0.76);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(193, 231, 242, 0.84);
   text-shadow: 0 0 9px rgba(116, 239, 255, 0.05);
+  filter: brightness(0.95);
 }
 
-.heat-cell--ktc.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(170, 236, 250, 0.92);
   text-shadow: 0 0 12px rgba(116, 239, 255, 0.08);
 }
 
-.heat-cell--ktc.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(137, 241, 255, 0.98);
-  text-shadow:
-    0 0 14px rgba(116, 239, 255, 0.12),
-    0 0 22px rgba(114, 151, 255, 0.05);
-}
-
-.heat-cell--ktc.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(116, 239, 255, 1);
   text-shadow:
     0 0 16px rgba(116, 239, 255, 0.16),
     0 0 28px rgba(114, 151, 255, 0.08);
 }
 
-.heat-cell--adp.heat-cell--tier-0 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--ktc.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(116, 239, 255, 1);
+  text-shadow:
+    0 0 16px rgba(116, 239, 255, 0.16),
+    0 0 28px rgba(114, 151, 255, 0.08);
+  filter: brightness(1.2) saturate(1.3);
+}
+
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(223, 214, 196, 0.74);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--adp.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(223, 214, 196, 0.74);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(235, 211, 166, 0.82);
   text-shadow: 0 0 8px rgba(255, 188, 88, 0.04);
+  filter: brightness(0.95);
 }
 
-.heat-cell--adp.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(245, 202, 130, 0.9);
   text-shadow: 0 0 10px rgba(255, 188, 88, 0.08);
 }
 
-.heat-cell--adp.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(255, 191, 97, 0.98);
-  text-shadow:
-    0 0 12px rgba(255, 188, 88, 0.12),
-    0 0 18px rgba(132, 78, 14, 0.05);
-}
-
-.heat-cell--adp.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(255, 179, 68, 1);
   text-shadow:
     0 0 14px rgba(255, 188, 88, 0.16),
     0 0 22px rgba(132, 78, 14, 0.08);
 }
 
-.heat-cell--diff.heat-cell--tier-0 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--adp.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(255, 179, 68, 1);
+  text-shadow:
+    0 0 14px rgba(255, 188, 88, 0.16),
+    0 0 22px rgba(132, 78, 14, 0.08);
+  filter: brightness(1.2) saturate(1.3);
+}
+
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-0 .stats-table__cell-content {
   color: rgba(216, 205, 230, 0.76);
   text-shadow: none;
+  filter: brightness(0.5);
 }
 
-.heat-cell--diff.heat-cell--tier-1 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-1 .stats-table__cell-content {
+  color: rgba(216, 205, 230, 0.76);
+  text-shadow: none;
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-2 .stats-table__cell-content {
   color: rgba(211, 191, 242, 0.84);
   text-shadow: 0 0 9px rgba(217, 125, 255, 0.05);
+  filter: brightness(0.95);
 }
 
-.heat-cell--diff.heat-cell--tier-2 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-3 .stats-table__cell-content {
   color: rgba(208, 174, 250, 0.92);
   text-shadow: 0 0 12px rgba(217, 125, 255, 0.08);
 }
 
-.heat-cell--diff.heat-cell--tier-3 .stats-table__cell-content {
-  color: rgba(214, 151, 255, 0.98);
-  text-shadow:
-    0 0 14px rgba(217, 125, 255, 0.12),
-    0 0 20px rgba(114, 151, 255, 0.05);
-}
-
-.heat-cell--diff.heat-cell--tier-4 .stats-table__cell-content {
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-4 .stats-table__cell-content {
   color: rgba(223, 131, 255, 1);
   text-shadow:
     0 0 16px rgba(217, 125, 255, 0.16),
     0 0 24px rgba(114, 151, 255, 0.08);
 }
 
-.stats-table__fpts-chip--tier-0 {
+body[data-page="datahub"] .heat-cell--diff.heat-cell--tier-5 .stats-table__cell-content {
+  color: rgba(223, 131, 255, 1);
+  text-shadow:
+    0 0 16px rgba(217, 125, 255, 0.16),
+    0 0 24px rgba(114, 151, 255, 0.08);
+  filter: brightness(1.2) saturate(1.3);
+}
+
+body[data-page="datahub"] .stats-table__fpts-chip--tier-0 {
   background:
     linear-gradient(180deg, rgba(102, 215, 255, 0.08), rgba(162, 127, 255, 0.04)),
     rgba(255, 255, 255, 0.02);
   border-color: rgba(130, 214, 255, 0.12);
+  filter: brightness(0.5);
 }
 
-.stats-table__fpts-chip--tier-1 {
+body[data-page="datahub"] .stats-table__fpts-chip--tier-1 {
+  background:
+    linear-gradient(180deg, rgba(102, 215, 255, 0.08), rgba(162, 127, 255, 0.04)),
+    rgba(255, 255, 255, 0.02);
+  border-color: rgba(130, 214, 255, 0.12);
+  filter: brightness(0.8);
+}
+
+body[data-page="datahub"] .stats-table__fpts-chip--tier-2 {
   background:
     linear-gradient(180deg, rgba(102, 215, 255, 0.12), rgba(162, 127, 255, 0.06)),
     rgba(255, 255, 255, 0.02);
   border-color: rgba(130, 214, 255, 0.16);
+  filter: brightness(0.95);
 }
 
-.stats-table__fpts-chip--tier-2 {
+body[data-page="datahub"] .stats-table__fpts-chip--tier-3 {
   background:
     linear-gradient(180deg, rgba(102, 215, 255, 0.16), rgba(162, 127, 255, 0.08)),
     rgba(255, 255, 255, 0.02);
@@ -5534,17 +5602,7 @@ body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tie
     0 0 20px rgba(102, 215, 255, 0.08);
 }
 
-.stats-table__fpts-chip--tier-3 {
-  background:
-    linear-gradient(180deg, rgba(102, 215, 255, 0.22), rgba(162, 127, 255, 0.12)),
-    rgba(255, 255, 255, 0.02);
-  border-color: rgba(135, 220, 255, 0.3);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 0 24px rgba(102, 215, 255, 0.12);
-}
-
-.stats-table__fpts-chip--tier-4 {
+body[data-page="datahub"] .stats-table__fpts-chip--tier-4 {
   background:
     linear-gradient(180deg, rgba(102, 215, 255, 0.28), rgba(162, 127, 255, 0.16)),
     rgba(255, 255, 255, 0.02);
@@ -5552,12 +5610,13 @@ body[data-page="datahub"] .heat-cell[class*="heat-cell--career-"].heat-cell--tie
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
-.stats-table__fpts-chip--tier-4 {
+body[data-page="datahub"] .stats-table__fpts-chip--tier-5 {
   background:
     linear-gradient(180deg, rgba(102, 215, 255, 0.28), rgba(162, 127, 255, 0.16)),
     rgba(255, 255, 255, 0.02);
   border-color: rgba(145, 224, 255, 0.36);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
+  filter: brightness(1.2) saturate(1.3);
 }
 
 /* ── POS column position badges ─────────────────────────────────────────────

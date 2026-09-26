@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub's searchable stats key, shared glossary and desktop header help.
-const CACHE_NAME = 'DH3.46w-datahub-stats-key';
+// Refresh DataHub key definitions and its six-tier percentile table formatting.
+const CACHE_NAME = 'DH3.46x-datahub-six-tier-formatting';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
