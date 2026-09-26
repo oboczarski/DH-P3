@@ -168,6 +168,16 @@ body[data-page="datahub"] .dh-stats-key__sections {
   align-items: start;
 }
 
+/* The Market/Rookies wrapper is transparent to the mobile grid, preserving
+   its section order. Hide the whole wrapper when search filters out both cards. */
+body[data-page="datahub"] .dh-stats-key__market-stack {
+  display: contents;
+}
+
+body[data-page="datahub"] .dh-stats-key__market-stack[hidden] {
+  display: none;
+}
+
 body[data-page="datahub"] .dh-stats-key__section {
   --key-accent: #aec0df;
   overflow: hidden;
@@ -177,10 +187,12 @@ body[data-page="datahub"] .dh-stats-key__section {
 }
 
 body[data-page="datahub"] .dh-stats-key__section--fantasy { --key-accent: #e6ba7d; }
-body[data-page="datahub"] .dh-stats-key__section--passing { --key-accent: #84caff; }
+/* Stats-key accent rotation: Passing takes Market pink, Receiving takes
+   Passing blue, and Market takes Receiving purple. Only this dialog changes. */
+body[data-page="datahub"] .dh-stats-key__section--passing { --key-accent: #ecabc9; }
 body[data-page="datahub"] .dh-stats-key__section--rushing { --key-accent: #80d9b5; }
-body[data-page="datahub"] .dh-stats-key__section--receiving { --key-accent: #c6a5f5; }
-body[data-page="datahub"] .dh-stats-key__section--market { --key-accent: #ecabc9; }
+body[data-page="datahub"] .dh-stats-key__section--receiving { --key-accent: #84caff; }
+body[data-page="datahub"] .dh-stats-key__section--market { --key-accent: #c6a5f5; }
 body[data-page="datahub"] .dh-stats-key__section--rookies { --key-accent: #a0b0ff; }
 
 body[data-page="datahub"] .dh-stats-key__section-title {
@@ -262,6 +274,15 @@ body[data-page="datahub"] .dh-stat-tooltip {
 @media (min-width: 720px) {
   body[data-page="datahub"] .dh-stats-key__sections {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Desktop key: keep the first five cards in their existing grid positions,
+     then stack Rookies immediately below Market within the right-hand cell. */
+  body[data-page="datahub"] .dh-stats-key__market-stack:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 0;
   }
 }
 

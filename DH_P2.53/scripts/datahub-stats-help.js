@@ -211,6 +211,15 @@ export function attachDataHubStatsHelp() {
     content.append(card);
     return { id: section.id, card, rows };
   });
+  // Key layout: place Market and Rookies in one desktop grid cell so Rookies
+  // fills the space below Market. CSS display:contents retains mobile order.
+  // Keep each card in renderedSections so existing search/category filters work.
+  const marketCard = renderedSections.find((section) => section.id === "market").card;
+  const rookiesCard = renderedSections.find((section) => section.id === "rookies").card;
+  const marketStack = document.createElement("div");
+  marketStack.className = "dh-stats-key__market-stack";
+  marketCard.before(marketStack);
+  marketStack.append(marketCard, rookiesCard);
   const totalStats = renderedSections.reduce((total, section) => total + section.rows.length, 0);
   function filterKey() {
     const query = search.value.trim().toLowerCase();
@@ -224,6 +233,8 @@ export function attachDataHubStatsHelp() {
       section.card.hidden = sectionCount === 0;
       count += sectionCount;
     });
+    // A fully filtered stack must not reserve an empty desktop grid cell.
+    marketStack.hidden = marketCard.hidden && rookiesCard.hidden;
     status.textContent = `${count} of ${totalStats} stats`;
     empty.hidden = count !== 0;
     filters.querySelectorAll("button").forEach((button) => {

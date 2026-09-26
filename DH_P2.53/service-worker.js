@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub IMP tooltip wording.
-const CACHE_NAME = 'DH3.47j-imp-tooltip';
+// Refresh DataHub stats-key accent colors and desktop Market/Rookies stacking.
+const CACHE_NAME = 'DH3.47k-key-colors-layout';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
