@@ -56,7 +56,9 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair {display: grid;gr
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card {--ring-start: #d7b7ff;--ring-mid: #9c83ff;--ring-end: #796ef1;min-width: 0;border-radius: 17px;border: 1px solid #ad9bd221;padding: 10px 3px;text-align: center;background: radial-gradient(ellipse at 50% 40%, #8860c017, transparent 70%), #151e313d;border: 1px solid #3342;border-radius: 18px;background: radial-gradient(115% 76% at 100% 0%, rgb(215 225 255 / 0.101) 0%, rgb(219 230 255 / 0.05) 38%, transparent 134%) padding-box, radial-gradient(115% 76% at 0% 100%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.048) 28%, transparent 94%) padding-box, conic-gradient(from 
 305deg, #FFFFFF1d 0deg, #FFFFFF30 20deg, #FFFFFF50 104deg, #FFF6FF2a 112deg, #FFFFFF10 133deg, #FFFFFF10 153deg, #FFFFFF20 230deg, #FFFFFF2f 265deg, #FFFFFF3a 280deg, #FFFFFF18 300deg, #FFFFFF18 368deg) border-area;box-shadow: inset 0 1px 0 #d0ddff0a, 0 16px 36px #03091430;backdrop-filter: blur(9px);-webkit-backdrop-filter: blur(9px);}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card--value {--ring-start: #a5e9d2;--ring-mid: #56c7a5;--ring-end: #398c93;border-color: #3342;}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card--proj {--ring-start: #b1eddb;--ring-mid: #69d3c0;--ring-end: #4f9ddd;border-color: #3342;}
+/* Contender uses ice blue through violet so its dial and breakdown bars read
+   distinctly from Dynasty's existing mint/teal value gradient. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card--proj {--ring-start: #a8ddff;--ring-mid: #5b9ef7;--ring-end: #7363e8;border-color: #3342;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title {display: flex;justify-content: space-between;align-items: center;flex-wrap: wrap;gap: 3px;color: var(--ring-start);font-size: 13px;font-weight: 600;padding: 0 2px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title small {font-size: 8.5px;letter-spacing: -.01em;color: #b3bbcb;font-family: 'Google Sans Flex';font-variation-settings: "slnt" 0,
 "GRAD" 100;}
@@ -75,6 +77,76 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core em {font-size: 10
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total { color: #d9e4f4; font-size: 13px; font-weight: 600; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total small { color: #8093af; font-size: 8px; margin-left: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card p { font-size: 9px; color: #8d9dba; margin: 4px 0 0; }
+/* Each power-ranking card owns two compact, rank-based bars below its circle.
+   They inherit that card's palette; no extra rows or controls affect other tabs. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-breakdown {
+  display: grid;
+  gap: 10px;
+  margin: 11px 6px 0;
+  padding-top: 10px;
+  border-top: 1px solid #a8bbdf20;
+  text-align: left;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar { min-width: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 5px;
+  color: #c4cfe1;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading strong {
+  color: var(--ring-start);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading small { color: #8e9db7; font-size: 8px; font-weight: 500; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading strong > small:first-child { color: var(--ring-mid); margin-right: 1px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-track {
+  height: 7px;
+  padding: 1px;
+  border: 1px solid #a5b8de1a;
+  border-radius: 999px;
+  background: #08112270;
+  box-shadow: inset 0 1px 3px #0005;
+  box-sizing: content-box;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-fill {
+  display: block;
+  position: relative;
+  width: var(--rank-fill);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ring-end), var(--ring-mid) 55%, var(--ring-start));
+  box-shadow: inset 0 1px 0 #ffffff45, 0 0 9px color-mix(in srgb, var(--ring-mid) 22%, transparent);
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 3px;
+  height: calc(100% - 2px);
+  border-radius: 999px;
+  background: #eef8ffb3;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value {
+  display: block;
+  margin-top: 4px;
+  color: #91a3bf;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value small { margin-left: 2px; color: #7f91ae; font-size: 7px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-heading strong { color: #8e9db7; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-fill { visibility: hidden; }
 /* Bar charts: slim category labels, restrained position colors, and native
    keyboard-accessible filters. SVG rendering stays sharp at every pixel ratio. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panels-grid { gap: 10px; min-width: 0; }
@@ -378,6 +450,14 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
 /* Keep all three dials visible on phones. Thin the inner spacing rather than
    hiding Long Term/Sustain/Win Now or reducing the dial's available width. */
 @media (max-width: 480px) {
+  /* Keep starter/depth labels and full league ranks readable in the existing
+     three-card phone layout without shrinking or widening the circles. */
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-breakdown { margin-inline: 3px; gap: 9px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading { font-size: 9px; gap: 2px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading strong { font-size: 10px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading small { font-size: 7px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-track { height: 6px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value { font-size: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-title { font-size: 10px; min-height: 24px; align-content: center; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core { inset: 18px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core strong { font-size: 28px; }

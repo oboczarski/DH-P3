@@ -3552,6 +3552,27 @@
       return rank ? getRankColor(rank, count) : '#8793ab';
     }
 
+    // Dynasty/Contender summary bars rank the user's starters and selected depth
+    // separately using the same quality totals as the matrix. Keep league-wide
+    // ranks independent of chart filters; ties and missing PROJ follow the rings.
+    function renderSummaryRankBars(team, teams, metric, title) {
+      const unit = metric === 'proj' ? 'PROJ' : 'KTC';
+      const basis = metric === 'proj' ? 'projections' : 'value';
+      const bars = [['starters', 'Starters'], ['depth', 'Depth']].map(([key, label]) => {
+        const value = team.quality[metric][key];
+        const rank = Analysis.rank(value, teams.map(item => item.quality[metric][key]));
+        const fill = Analysis.rankFill(rank, teams.length) * 100;
+        const rankText = rank ? `Rank ${rank} of ${teams.length}` : `${unit} ranking unavailable`;
+        const valueText = Number.isFinite(value) ? `${formatAnalysisValue(value, metric)} ${unit}` : `${unit} unavailable`;
+        return `<div class="la-rank-bar${rank ? '' : ' is-unavailable'}" role="meter" aria-label="${title} ${label.toLowerCase()} league rank by ${basis}" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rankText} · ${valueText}" style="--rank-fill:${fill}%">
+          <div class="la-rank-bar-heading" aria-hidden="true"><span>${label}</span><strong>${rank ? `<small>#</small>${rank}` : '—'}<small> / ${teams.length}</small></strong></div>
+          <div class="la-rank-bar-track" aria-hidden="true"><span class="la-rank-bar-fill"></span></div>
+          <span class="la-rank-bar-value" aria-hidden="true">${Number.isFinite(value) ? `${formatAnalysisValue(value, metric)} <small>${unit}</small>` : `${unit} unavailable`}</span>
+        </div>`;
+      }).join('');
+      return `<div class="la-rank-breakdown" role="group" aria-label="${title} starters and depth rankings">${bars}</div>`;
+    }
+
     // Team rank rings mirror Research's dial: tick marks, gradient arc, inset core,
     // and glowing endpoint. Rank 1 fills the circle; tied ranks have equal fill.
     function renderSummaryStats(teams) {
@@ -3567,10 +3588,13 @@
         const quality = team.quality[metric];
         const rank = Analysis.rank(quality.overall, teams.map(item => item.quality[metric].overall));
         const arc = Analysis.rankFill(rank, teams.length) * 360;
+        // Only the two power modes receive a starter/depth breakdown below their
+        // circles; Roster Value keeps its existing full-roster/pick presentation.
+        const breakdown = metric === 'roster' ? '' : renderSummaryRankBars(team, teams, metric, title);
         return `<article class="la-rank-card la-rank-card--${metric}"><div class="la-rank-title"><span>${title}</span><small>${label}</small></div>
           <div class="la-rank-dial" role="meter" aria-label="${title} league rank" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rank ? `Rank ${rank} of ${teams.length}` : 'Projection ranking unavailable'}" style="--arc-end:${arc}deg;--arc-mid:${arc / 2}deg">
             <span class="la-rank-glow" aria-hidden="true"></span><span class="la-rank-arc" aria-hidden="true"></span><span class="la-rank-echo" aria-hidden="true"></span>${rank ? '<span class="la-rank-cap" aria-hidden="true"></span>' : ''}<span class="la-rank-core" aria-hidden="true"><strong>${rank ? `<small>#</small>${rank}` : '—'}</strong><em>OF ${teams.length}</em></span>
-          </div><div class="la-rank-total">${formatAnalysisValue(quality.overall, metric)} <small>${metric === 'proj' ? 'PROJ' : 'KTC'}</small></div><p>${note}</p></article>`;
+          </div><div class="la-rank-total">${formatAnalysisValue(quality.overall, metric)} <small>${metric === 'proj' ? 'PROJ' : 'KTC'}</small></div><p>${note}</p>${breakdown}</article>`;
       }).join('');
       const cards = [
         ['TTL Team Value', 'totalValue', 'value', 'total-value analyzer-chip--value-card'],

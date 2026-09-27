@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh independently implemented DataHub and Rosters Season group header icons.
-const CACHE_NAME = 'DH3.47n-season-group-icons';
+// Refresh League Analyzer's distinct Contender dial and starter/depth rank bars.
+const CACHE_NAME = 'DH3.47o-analysis-rank-bars';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
