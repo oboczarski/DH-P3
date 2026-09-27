@@ -172,13 +172,14 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value {
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value small { margin-left: 2px; color: #7f91ae; font-size: 7px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-heading strong { color: #8e9db7; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-fill { visibility: hidden; }
-/* Starter Balance is confined to the League Analyzer summary. Its SVG chart
-   gets a stable height and the team labels stay deliberately small. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel { grid-area: scatter; padding: 12px; gap: 7px; }
+/* Starter Balance matches the measured ranking stack height. The plot absorbs
+   the remaining panel space; its SVG cannot enlarge the panel through flex sizing.
+   Compact padding and plot gutters keep the axes close to the panel edges. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel { grid-area: scatter; height: var(--la-scatter-height, 400px); min-height: 0; box-sizing: border-box; padding: 8px; gap: 5px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header h2 { margin: 0; color: #e2eafa; font-size: 17px; font-weight: 600; letter-spacing: -.025em; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header .la-eyebrow { font-size: 8px; color: #9bb6d2; margin-bottom: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header p { margin: 3px 0 0; color: #8c9fba; font-size: 9px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-chart { width: 100%; min-width: 0; height: 284px; display: flex; align-items: center; justify-content: center; color: #9caec8; font-size: 11px; text-align: center; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-chart { width: 100%; min-width: 0; min-height: 0; height: 0; flex: 1 1 0; display: flex; align-items: center; justify-content: center; color: #9caec8; font-size: 11px; text-align: center; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-note { margin: 0; color: #8e9fba; font-size: 9px; line-height: 1.5; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-missing { margin: 0; color: #b7a6cf; font-size: 9px; line-height: 1.5; }
 /* Bar charts: slim category labels, restrained position colors, and native
@@ -380,6 +381,8 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip .chip-meta { font-size: 10px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip .chip-avg {font-size: 9px;margin-top: 2px;align-self: center;}
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panel { padding: 12px 8px; gap: 10px !important; border-radius: 18px; }
+  /* Retain the scatter's tight spacing when mobile panel defaults take over. */
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panel.la-scatter-panel { padding: 8px; gap: 5px !important; }
   /* The toggle shares the eyebrow's first row, leaving the panel title and
      subtitle their full width below. No added control row on narrow screens. */
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panel-header { position: relative; display: block; }

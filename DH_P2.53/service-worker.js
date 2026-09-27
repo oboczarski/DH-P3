@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's Mid-pick scopes, desktop summary, and starters scatter.
-const CACHE_NAME = 'DH3.47q-analysis-scatter-picks';
+// Refresh Starter Balance's tight margins, matching panel height, and smaller dots.
+const CACHE_NAME = 'DH3.47r-scatter-sizing';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

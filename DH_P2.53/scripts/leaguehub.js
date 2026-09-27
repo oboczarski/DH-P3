@@ -304,8 +304,10 @@
       }
       // The summary scatter stays in the shared resize lifecycle, including a
       // return from the hidden Archive tab and changes to its desktop column width.
+      syncStarterScatterHeight();
       const scatterHost = document.getElementById('startersScatterChart');
-      if (scatterHost?.clientWidth && (!state.charts.scatter || state.scatterLayoutKey !== scatterHost.clientWidth)) {
+      const scatterLayoutKey = scatterHost ? `${scatterHost.clientWidth}:${scatterHost.clientHeight}` : '';
+      if (scatterHost?.clientWidth && (!state.charts.scatter || state.scatterLayoutKey !== scatterLayoutKey)) {
         renderStarterScatterChart();
       }
       const nextRatio = getAnalyzerChartDevicePixelRatio();
@@ -3630,6 +3632,8 @@
       // and stop observing the detached host before mounting the next league.
       const oldScatterHost = document.getElementById('startersScatterChart');
       if (oldScatterHost) analysisResizeObserver.unobserve(oldScatterHost);
+      const oldRankPanel = elements.summaryStats.querySelector('.la-rank-panel');
+      if (oldRankPanel) analysisResizeObserver.unobserve(oldRankPanel);
       state.charts.scatter?.dispose();
       state.charts.scatter = null;
       // CSS puts chips across the desktop top, scatter left, and the full-roster
@@ -3637,6 +3641,7 @@
       elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><article class="analyzer-panel la-scatter-panel" aria-labelledby="startersScatterTitle"><header class="la-scatter-header"><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Starting lineups · League scoring</p></header><div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div><p class="la-scatter-note">Dot rank: average of value + PROJ ranks.<br>PROJ breaks ties · Dashed lines: league averages.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p></article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
       analysisResizeObserver.observe(document.getElementById('startersScatterChart'));
+      analysisResizeObserver.observe(elements.summaryStats.querySelector('.la-rank-panel'));
       renderStarterScatterChart(teams);
     }
 
@@ -3790,10 +3795,24 @@
     function renderOverallChart() { renderAnalysisBar('overall'); }
     function updateRadarChart() { renderRadarChart(state.teams, state.radarSlots); }
 
+    // Match Starter Balance's complete panel height to the circles plus Total
+    // Roster Value. Observe that stack so wrapping, font loads, and responsive
+    // changes resize the plot without letting its SVG set the summary row height.
+    function syncStarterScatterHeight() {
+      const panel = elements.summaryStats.querySelector('.la-scatter-panel');
+      const rankings = elements.summaryStats.querySelector('.la-rank-panel');
+      if (!panel || !rankings?.clientWidth) return;
+      const height = `${rankings.getBoundingClientRect().height}px`;
+      if (panel.style.getPropertyValue('--la-scatter-height') !== height) {
+        panel.style.setProperty('--la-scatter-height', height);
+      }
+    }
+
     // Starter Balance plots the same optimized starter totals as the summary
     // bars, with mean-based quadrants and composite ranks inside each team dot.
     // Missing PROJ stays off the axes rather than becoming a fabricated zero.
     function renderStarterScatterChart(teams = state.teams) {
+      syncStarterScatterHeight();
       const host = document.getElementById('startersScatterChart');
       if (!host?.clientWidth) return;
       const rows = Analysis.starterScatterRankings(teams);
@@ -3811,14 +3830,14 @@
       if (!state.charts.scatter) host.textContent = '';
       const chart = state.charts.scatter || echarts.init(host, null, { renderer: 'svg' });
       state.charts.scatter = chart;
-      state.scatterLayoutKey = host.clientWidth;
+      state.scatterLayoutKey = `${host.clientWidth}:${host.clientHeight}`;
       const compact = host.clientWidth < 320;
       const xMean = available.reduce((sum, row) => sum + row.projection, 0) / available.length;
       const yMean = available.reduce((sum, row) => sum + row.value, 0) / available.length;
       const extent = values => {
         const low = Math.min(...values);
         const high = Math.max(...values);
-        const pad = Math.max((high - low) * .22, Math.abs(high) * .06, 1);
+        const pad = Math.max((high - low) * .10, Math.abs(high) * .025, 1);
         return [low >= 0 ? Math.max(0, low - pad) : low - pad, high + pad];
       };
       const [xMin, xMax] = extent(available.map(row => row.projection));
@@ -3834,7 +3853,7 @@
       const offsets = available.map(() => [0, 0]);
       groups.forEach(indices => {
         if (indices.length < 2) return;
-        const radius = Math.max(16, indices.length * 14 / Math.PI);
+        const radius = Math.max(12, indices.length * 10 / Math.PI);
         indices.forEach((index, position) => {
           const angle = position * 2 * Math.PI / indices.length;
           offsets[index] = [Math.cos(angle) * radius, Math.sin(angle) * radius];
@@ -3850,8 +3869,8 @@
           name: row.team.username,
           value: [row.projection, row.value],
           symbolOffset: offsets[index],
-          symbolSize: row.team.isUserTeam ? 31 : compact ? 25 : 27,
-          itemStyle: { color: { type: 'radial', x: .35, y: .25, r: .85, colorStops: [{ offset: 0, color: palette[0] }, { offset: 1, color: palette[1] }] }, borderColor: row.team.isUserTeam ? '#f6efff' : `${palette[0]}c0`, borderWidth: row.team.isUserTeam ? 2 : 1, shadowBlur: row.team.isUserTeam ? 14 : 5, shadowColor: `${palette[0]}45`, opacity: 1 },
+          symbolSize: row.team.isUserTeam ? 21 : compact ? 16 : 18,
+          itemStyle: { color: { type: 'radial', x: .35, y: .25, r: .85, colorStops: [{ offset: 0, color: palette[0] }, { offset: 1, color: palette[1] }] }, borderColor: row.team.isUserTeam ? '#f6efff' : `${palette[0]}c0`, borderWidth: row.team.isUserTeam ? 1.5 : 1, shadowBlur: row.team.isUserTeam ? 8 : 3, shadowColor: `${palette[0]}45`, opacity: 1 },
         };
       });
       chart.setOption({
@@ -3859,9 +3878,11 @@
         animationDuration: 400,
         textStyle: { fontFamily: 'Google Sans, sans-serif' },
         aria: { enabled: true, label: { description: `Starter Balance. X: projected points. Y: KTC value. Quadrants split at league averages. Composite ranking averages starter value and projection ranks, with projections breaking ties. ${available.map(row => `${row.team.username}: rank ${row.rank}, value ${formatAnalysisValue(row.value)}, projection ${formatAnalysisValue(row.projection, 'proj')}, value rank ${row.valueRank}, projection rank ${row.projectionRank}`).join('. ')}` } },
-        grid: { left: 45, right: 16, top: 20, bottom: 43 },
-        xAxis: { type: 'value', min: xMin, max: xMax, name: 'STARTER PROJ', nameLocation: 'middle', nameGap: 25, nameTextStyle: { color: '#91aac8', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
-        yAxis: { type: 'value', min: yMin, max: yMax, name: 'STARTER KTC', nameLocation: 'middle', nameGap: 34, nameTextStyle: { color: '#b3a2ce', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
+        // Compact gutters keep both titles near the axes and panel edges while
+        // leaving room for the small numeric ticks. Dot ranks scale with the dots.
+        grid: { left: 30, right: 4, top: 5, bottom: 25 },
+        xAxis: { type: 'value', min: xMin, max: xMax, name: 'STARTER PROJ', nameLocation: 'middle', nameGap: 16, nameTextStyle: { color: '#91aac8', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, margin: 3, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
+        yAxis: { type: 'value', min: yMin, max: yMax, name: 'STARTER KTC', nameLocation: 'middle', nameGap: 22, nameTextStyle: { color: '#b3a2ce', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, margin: 3, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
         tooltip: { trigger: 'item', triggerOn: 'mousemove|click', confine: true, backgroundColor: '#111a2bf5', borderColor: '#7f99c54d', textStyle: { color: '#e6edf9', fontSize: 11 }, extraCssText: 'max-width:260px;white-space:normal;border-radius:12px;box-shadow:0 12px 28px #0006;', formatter: params => {
           const row = available[params.dataIndex];
           if (!row) return '';
@@ -3869,8 +3890,8 @@
         } },
         series: [{
           name: 'Starter Balance', type: 'scatter', data: pointData, z: 3,
-          label: { show: true, position: 'inside', color: '#f8fbff', fontSize: 11, fontWeight: 700, textBorderColor: '#20304a65', textBorderWidth: 2, formatter: params => String(available[params.dataIndex].rank) },
-          emphasis: { scale: 1.15, itemStyle: { borderColor: '#ffffff', shadowBlur: 18 } },
+          label: { show: true, position: 'inside', color: '#f8fbff', fontSize: compact ? 8 : 9, fontWeight: 700, textBorderColor: '#20304a65', textBorderWidth: 1, formatter: params => String(available[params.dataIndex].rank) },
+          emphasis: { scale: 1.1, itemStyle: { borderColor: '#ffffff', shadowBlur: 10 } },
           markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#bed0ea60', width: 1, type: 'dashed' }, data: [{ xAxis: xMean }, { yAxis: yMean }] },
           markArea: { silent: true, label: { show: true, position: 'insideTopLeft', fontSize: compact ? 7 : 8, fontWeight: 600, distance: 6 }, data: [
             [{ name: 'VALUE EDGE', xAxis: xMin, yAxis: yMean, itemStyle: { color: '#ab7eff0d' }, label: { color: '#b99bd28c' } }, { xAxis: xMean, yAxis: yMax }],
@@ -3883,7 +3904,7 @@
           // rank text out of its dot. Exactly twelve username characters maximum.
           name: 'Usernames', type: 'scatter', silent: true, symbolSize: 0, z: 4,
           data: pointData.map((point, index) => ({ value: point.value, symbolOffset: offsets[index], label: { color: available[index].team.isUserTeam ? '#e7d8ff' : '#b0bdd3', fontWeight: available[index].team.isUserTeam ? 600 : 400 } })),
-          label: { show: true, position: 'bottom', distance: 19, fontSize: compact ? 7 : 8, formatter: params => Array.from(available[params.dataIndex].team.username).slice(0, 12).join('') },
+          label: { show: true, position: 'bottom', distance: 13, fontSize: compact ? 7 : 8, formatter: params => Array.from(available[params.dataIndex].team.username).slice(0, 12).join('') },
           labelLayout: { moveOverlap: 'shiftY', hideOverlap: false },
         }],
       }, true);
