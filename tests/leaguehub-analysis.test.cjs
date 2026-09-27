@@ -21,7 +21,7 @@ const slots = ['FLEX','QB','RB','WR','TE','SUPER_FLEX'].map(type=>({type,label:t
 const build = metric => context.buildDerivedLineup(players, [], slots, metric);
 // Keep these source fixtures aligned with the three ranking definitions.
 function team() {
- const ownedPicks = [{round:1,ktc:600},{round:2,ktc:300},{round:3,ktc:100}];
+ const ownedPicks = [{season:'2027',round:1,ktc:600},{season:'2028',round:2,ktc:300},{season:'2029',round:3,ktc:100}];
  const overallPositional = {QB:2400,RB:1800,WR:2700,TE:1250,Picks:1000};
  return { allPlayers: players, derivedLineups: { value:build('value'),proj:build('proj') }, ownedPicks, totalValue:9150, overallPositional };
 }
@@ -61,7 +61,7 @@ test('Contender power adds exactly the next QB and three RB/WR/TE to starters',(
  assert.equal(q.overall,2000);
  assert.equal(q.overall,q.starters+q.depth);
 });
-test('Dynasty reserves meet positional minimums then add the best remaining player, with only Rounds 1-2',()=>{
+test('Dynasty reserves meet positional minimums with only 2027/2028 Rounds 1-2',()=>{
  const t=team();const q=A.quality(t,'value');
  const ids=new Set(t.derivedLineups.value.assignments.map(a=>a.player.id));
  assert.deepEqual(q.depthPlayers.map(p=>p.id),['q3','w3','r2','w4','t2','r3']);
@@ -69,6 +69,24 @@ test('Dynasty reserves meet positional minimums then add the best remaining play
  assert.equal(new Set(q.depthPlayers.map(p=>p.id)).size,6);
  assert.equal(q.depth,2950);
  assert.equal(q.overall,8500);assert.equal(q.picks,900);
+});
+// Cover the explicit Dynasty pick years and Starter Balance rank ordering,
+// including projection tie-breaks, identical rank pairs, and unavailable axes.
+test('Dynasty excludes 2029 firsts and seconds while full roster value retains them',()=>{
+ const t=team();t.ownedPicks.push({season:'2029',round:1,ktc:800},{season:'2029',round:2,ktc:400});
+ t.totalValue+=1200;t.overallPositional.Picks+=1200;
+ assert.equal(A.quality(t,'value').picks,900);
+ assert.equal(A.quality(t,'roster').picks,2200);
+});
+test('starters scatter averages ranks and resolves equal averages by projections',()=>{
+ const make=(username,value,projection)=>({username,quality:{value:{starters:value},proj:{starters:projection}}});
+ const rows=A.starterScatterRankings([make('C',300,300),make('A',200,100),make('B',100,200)]);
+ assert.deepEqual(rows.map(row=>[row.team.username,row.rank,row.averageRank]),[['C',1,1],['B',2,2.5],['A',3,2.5]]);
+});
+test('starters scatter shares identical rank pairs and leaves missing projections unranked',()=>{
+ const make=(username,value,projection)=>({username,quality:{value:{starters:value},proj:{starters:projection}}});
+ const rows=A.starterScatterRankings([make('A',200,200),make('B',200,200),make('C',100,100),make('D',50,null)]);
+ assert.deepEqual(rows.map(row=>[row.team.username,row.rank]),[['A',1],['B',1],['C',3],['D',null]]);
 });
 test('Total Roster Value includes all reserves and picks without adding starters or depth twice',()=>{
  const t=team();const q=A.quality(t,'roster');

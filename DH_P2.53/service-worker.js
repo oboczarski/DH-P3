@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's horizontal Roster Value card and inline rank details.
-const CACHE_NAME = 'DH3.47p-analysis-roster-bar';
+// Refresh League Analyzer's Mid-pick scopes, desktop summary, and starters scatter.
+const CACHE_NAME = 'DH3.47q-analysis-scatter-picks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

@@ -30,12 +30,11 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-toggle .toggle-option
 body[data-page="leaguehub"] #leagueAnalysisPanel :is(button, select, [tabindex]):focus-visible { outline: 2px solid #b4a2ff; outline-offset: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-projection-status { display: flex; align-items: center; gap: 8px; color: #a8b7cd; font-size: 11px; line-height: 1.5; padding: 0 4px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-projection-status::before { content: ''; width: 5px; height: 5px; flex-shrink: 0; border-radius: 50%; background: #78d3be; box-shadow: 0 0 10px #78d3be60; }
-/* Restore the original LeagueHub chips and average rows. Larger Research-style
-   rings and the season champions share the same compact summary row. */
-/* Narrow the desktop stats/history columns to give the ranking visuals
-   most of the row. Existing trophy image sizing and filters remain untouched. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid {display: grid;grid-template-columns: minmax(330px, .75fr) minmax(0, 2.05fr) minmax(290px, .68fr);gap: 10px;padding: 0;margin-bottom: 10px;background: none;border: 0;box-shadow: none;}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+/* Mobile retains the existing summary strip and places Starter Balance after
+   League Champions. Desktop alone expands the chips to a full-width top row. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid {display: grid;grid-template-columns: minmax(0, 1fr);grid-template-areas: 'stats' 'rankings' 'champions' 'scatter';gap: 10px;padding: 0;margin-bottom: 10px;background: none;border: 0;box-shadow: none;align-items: start;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { display: grid; grid-area: stats; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card { grid-area: champions; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip { order: initial; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip--top-scorer { grid-column: 1 / -1; min-height: 76px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card {min-width: 0;border: 1px solid #c7b48a2c;border-radius: 20px;padding: 10px 10px;background: radial-gradient(ellipse at 0 0, #b3904d18, transparent 75%), linear-gradient(135deg, #252b435e, #1d223bc9);box-shadow: inset 0 1px 0 #fff1, 0 12px 28px #05070f32;}
@@ -52,8 +51,8 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card ol {list-sty
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li {display: flex;align-items: center;gap: 8px;padding: 8px 0;border-top: 1px solid #c6b89413;font-size: 12px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-season {color: #9c9074;font-size: 16px;font-family: 'Bruno Ace SC';font-weight: 400;padding: 2px 4px;border-radius: 8px;background: linear-gradient(rgba(92, 170, 255, 0.16), rgba(177, 102, 255, 0.09)), rgba(8, 15, 27, 0.68);background: linear-gradient(rgba(39, 50, 73, 0.9), rgba(28, 35, 50, 0.92));box-shadow: rgba(255, 255, 255, 0.05) 0px 1px 0px inset, rgba(0, 0, 0, 0.16) 0px 8px 16px;text-shadow: 1px 1px 0px #9c907478;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-name {min-width: 0;flex: 1;color: #d9dce9;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;font-family: 'Bruno Ace SC';font-weight: 400;letter-spacing: -0.04em;font-size: 14px;}
-/* The ranking column stacks a short Roster Value card above two equal circles. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-panel { display: grid; gap: 6px; min-width: 0; align-content: start; }
+/* The ranking column keeps the two power circles over Total Roster Value. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-panel { display: grid; grid-area: rankings; gap: 6px; min-width: 0; align-content: start; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair {display: grid;grid-template-columns: repeat(2, minmax(0, 1fr));gap: 6px;min-width: 0;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card {--ring-start: #d7b7ff;--ring-mid: #9c83ff;--ring-end: #796ef1;min-width: 0;border-radius: 17px;border: 1px solid #ad9bd221;padding: 10px 3px;text-align: center;background: radial-gradient(ellipse at 50% 40%, #8860c017, transparent 70%), #151e313d;border: 1px solid #3342;border-radius: 18px;background: radial-gradient(115% 76% at 100% 0%, rgb(215 225 255 / 0.101) 0%, rgb(219 230 255 / 0.05) 38%, transparent 134%) padding-box, radial-gradient(115% 76% at 0% 100%, rgb(215 225 255 / 0.081) 0%, rgb(219 230 255 / 0.048) 28%, transparent 94%) padding-box, conic-gradient(from 
 305deg, #FFFFFF1d 0deg, #FFFFFF30 20deg, #FFFFFF50 104deg, #FFF6FF2a 112deg, #FFFFFF10 133deg, #FFFFFF10 153deg, #FFFFFF20 230deg, #FFFFFF2f 265deg, #FFFFFF3a 280deg, #FFFFFF18 300deg, #FFFFFF18 368deg) border-area;box-shadow: inset 0 1px 0 #d0ddff0a, 0 16px 36px #03091430;backdrop-filter: blur(9px);-webkit-backdrop-filter: blur(9px);}
@@ -79,6 +78,9 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-core em {font-size: 10
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total { color: #d9e4f4; font-size: 13px; font-weight: 600; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-total small { color: #8093af; font-size: 8px; margin-left: 3px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-card p { font-size: 9px; color: #8d9dba; margin: 4px 0 0; }
+/* Reserve the same two-line note height under each dial so the explicit pick
+   years do not push Dynasty's starter/depth tracks below Contender's tracks. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-pair .la-rank-card p { min-height: 2.6em; line-height: 1.3; }
 /* Roster Value replaces its circle with a broad lavender rank track. League-size
    ticks and a luminous endpoint keep the horizontal visualization legible. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-roster-card { padding: 12px 14px; text-align: left; }
@@ -170,6 +172,15 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value {
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value small { margin-left: 2px; color: #7f91ae; font-size: 7px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-heading strong { color: #8e9db7; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-fill { visibility: hidden; }
+/* Starter Balance is confined to the League Analyzer summary. Its SVG chart
+   gets a stable height and the team labels stay deliberately small. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel { grid-area: scatter; padding: 12px; gap: 7px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header h2 { margin: 0; color: #e2eafa; font-size: 17px; font-weight: 600; letter-spacing: -.025em; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header .la-eyebrow { font-size: 8px; color: #9bb6d2; margin-bottom: 3px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header p { margin: 3px 0 0; color: #8c9fba; font-size: 9px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-chart { width: 100%; min-width: 0; height: 284px; display: flex; align-items: center; justify-content: center; color: #9caec8; font-size: 11px; text-align: center; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-note { margin: 0; color: #8e9fba; font-size: 9px; line-height: 1.5; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-missing { margin: 0; color: #b7a6cf; font-size: 9px; line-height: 1.5; }
 /* Bar charts: slim category labels, restrained position colors, and native
    keyboard-accessible filters. SVG rendering stays sharp at every pixel ratio. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panels-grid { gap: 10px; min-width: 0; }
@@ -323,6 +334,10 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
 /* The League Table now owns a full panel. Desktop columns distribute across
    that width; the existing split/frozen horizontal scroll remains mobile-only. */
 @media (min-width: 820px) {
+  /* Desktop: four summary cards span every column, with the scatter in the
+     former left-hand summary slot and circles/history alongside it below. */
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(280px, 1.12fr) minmax(0, 1.45fr) minmax(230px, .83fr); grid-template-areas: 'stats stats stats' 'scatter rankings champions'; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats .analyzer-chip { padding-inline: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats .chip-label { font-size: 10px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-standings-panel .analyzer-standings { width: 100%; max-width: none; min-height: 0; margin: 0; }
@@ -335,10 +350,14 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-team { width: 100%; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-standings-sort { font-size: inherit; }
 }
-@media (max-width: 1100px) {
-  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(0, 2.15fr) minmax(185px, .85fr); }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-stats { grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-chip--top-scorer { grid-column: 1 / -1; }
+@media (min-width: 820px) and (max-width: 1100px) {
+  body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-summary-grid { grid-template-columns: minmax(220px, .95fr) minmax(0, 1.4fr) minmax(180px, .7fr); }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-breakdown { margin-inline: 3px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading { font-size: 9px; gap: 2px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-heading strong { font-size: 10px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar-value { font-size: 8px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-roster-copy h3 { font-size: 13px; }
+  body[data-page="leaguehub"] #leagueAnalysisPanel .la-roster-total { font-size: 18px; }
 }
 @media (max-width: 1000px) {
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-quality-layout { grid-template-columns: minmax(0, 1fr); }
@@ -471,7 +490,7 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
     filter: saturate(0.5) grayscale(1) brightness(0.8);
   }
 }
-/* Keep Roster Value short and both power circles side by side on phones. */
+/* Keep Total Roster Value short and both power circles side by side on phones. */
 @media (max-width: 480px) {
   /* Compact one-line breakdown headings fit the wider two-card phone layout. */
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-roster-card { padding: 10px; }

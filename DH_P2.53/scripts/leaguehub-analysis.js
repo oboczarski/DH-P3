@@ -98,7 +98,8 @@
   }
 
   // The matrix, bars, and rings share these three scores. Roster Value retains
-  // all bench/pick value; Dynasty power counts only six reserves and Rounds 1–2.
+  // all bench/pick value; Dynasty power counts six reserves and only the user's
+  // specified 2027/2028 first- and second-round picks. Mid values arrive upstream.
   function quality(team, metric) {
     const rosterValue = metric === 'roster';
     const dynasty = metric !== 'proj';
@@ -106,7 +107,8 @@
     const starterIds = new Set(lineup.assignments.flatMap(slot => slot.player ? [slot.player.id] : []));
     const bench = team.allPlayers.filter(player => POSITIONS.includes(player.pos) && !starterIds.has(player.id));
     const depthPlayers = rosterValue ? bench : selectDepth(bench, metric);
-    const pickAssets = dynasty ? (team.ownedPicks || []).filter(pick => rosterValue || [1, 2].includes(Number(pick.round))) : [];
+    const pickAssets = dynasty ? (team.ownedPicks || []).filter(pick => rosterValue
+      || ([2027, 2028].includes(Number(pick.season)) && [1, 2].includes(Number(pick.round)))) : [];
     const picks = pickAssets.reduce((sum, pick) => sum + pick.ktc, 0);
     const starters = dynasty ? lineup.totals.value : sumProjections(lineup.assignments.flatMap(slot => slot.player ? [slot.player] : []));
     const depth = dynasty ? depthPlayers.reduce((sum, p) => sum + p.ktc, 0) : sumProjections(depthPlayers);
@@ -144,7 +146,32 @@
     return segments;
   }
 
-  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections };
+  // The starters scatter reuses each metric's optimized lineup totals. Average
+  // the two league ranks, then prefer the better projection rank on equal averages.
+  // Missing axes remain unranked; identical rank pairs share a competition rank.
+  function starterScatterRankings(teams) {
+    const values = teams.map(team => team.quality.value.starters);
+    const projections = teams.map(team => team.quality.proj.starters);
+    const rows = teams.map(team => {
+      const value = team.quality.value.starters;
+      const projection = team.quality.proj.starters;
+      const valueRank = rank(value, values);
+      const projectionRank = rank(projection, projections);
+      return { team, value, projection, valueRank, projectionRank,
+        averageRank: valueRank && projectionRank ? (valueRank + projectionRank) / 2 : null };
+    });
+    const available = rows.filter(row => Number.isFinite(row.averageRank))
+      .sort((a, b) => a.averageRank - b.averageRank || a.projectionRank - b.projectionRank
+        || a.team.username.localeCompare(b.team.username));
+    available.forEach((row, index) => {
+      const previous = available[index - 1];
+      row.rank = previous && row.averageRank === previous.averageRank && row.projectionRank === previous.projectionRank
+        ? previous.rank : index + 1;
+    });
+    return [...available, ...rows.filter(row => !Number.isFinite(row.averageRank)).map(row => ({ ...row, rank: null }))];
+  }
+
+  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

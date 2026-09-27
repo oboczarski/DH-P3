@@ -302,6 +302,12 @@
         renderOverallChart();
         renderRadarChart(state.teams, state.radarSlots);
       }
+      // The summary scatter stays in the shared resize lifecycle, including a
+      // return from the hidden Archive tab and changes to its desktop column width.
+      const scatterHost = document.getElementById('startersScatterChart');
+      if (scatterHost?.clientWidth && (!state.charts.scatter || state.scatterLayoutKey !== scatterHost.clientWidth)) {
+        renderStarterScatterChart();
+      }
       const nextRatio = getAnalyzerChartDevicePixelRatio();
       Object.values(state.charts || {}).forEach((chart) => {
         if (!chart) return;
@@ -355,6 +361,7 @@
         lineup: null,
         overall: null,
         radar: null,
+        scatter: null,
       },
       teams: [],
       standingsTeams: [],
@@ -3470,27 +3477,25 @@
     }
 
     function getOwnedPicks(rosterId, allRosters, tradedPicks, leagueInfo) {
-      const currentYear = new Date().getFullYear();
       const picks = [];
       const draftRounds = leagueInfo?.settings?.draft_rounds || 4;
+      const source = state.isSuperflex ? state.ktcSflx : state.ktcOneQb;
+      // League Analyzer owns only the available 2027–2029 Mid-tier pick assets.
+      // Read exact labels from the active format's feed; never invent a 2030 value,
+      // substitute Early/Late, or collapse multiple acquired picks into one asset.
+      const templates = Object.keys(source).flatMap(label => {
+        const match = label.match(/^(2027|2028|2029) Mid (\d+)(?:st|nd|rd|th)$/);
+        return match && Number(match[2]) <= draftRounds
+          ? [{ season: match[1], round: Number(match[2]), label }] : [];
+      });
 
       (allRosters || []).forEach((roster) => {
-        for (let year = 1; year <= 4; year += 1) {
-          const season = String(currentYear + year);
-          for (let round = 1; round <= draftRounds; round += 1) {
-            picks.push({
-              season,
-              round,
-              roster_id: roster.roster_id,
-              owner_id: roster.roster_id,
-            });
-          }
-        }
+        templates.forEach(pick => picks.push({ ...pick, roster_id: roster.roster_id, owner_id: roster.roster_id }));
       });
 
       (tradedPicks || []).forEach((trade) => {
         const pickIndex = picks.findIndex(
-          (pick) => pick.season === trade.season && pick.round === trade.round && pick.roster_id === trade.roster_id,
+          (pick) => pick.season === String(trade.season) && pick.round === Number(trade.round) && String(pick.roster_id) === String(trade.roster_id),
         );
         if (pickIndex !== -1) {
           picks[pickIndex].owner_id = trade.owner_id;
@@ -3498,9 +3503,8 @@
       });
 
       return picks
-        .filter((pick) => pick.owner_id === rosterId)
-        .sort((a, b) => a.season.localeCompare(b.season) || a.round - b.round)
-        .map((pick) => ({ ...pick, label: `${pick.season} Mid ${ordinal(pick.round)}` }));
+        .filter((pick) => String(pick.owner_id) === String(rosterId))
+        .sort((a, b) => a.season.localeCompare(b.season) || a.round - b.round || Number(a.roster_id) - Number(b.roster_id));
     }
 
     function ordinal(i) {
@@ -3572,7 +3576,7 @@
       return `<div class="la-rank-breakdown" role="group" aria-label="${title} starters and depth rankings">${bars}</div>`;
     }
 
-    // Roster Value owns a short, full-width horizontal rank card above the two
+    // Total Roster Value owns a short, full-width horizontal rank card below the two
     // power circles. It retains all roster/pick value and the existing inverse
     // league-rank fill; the track's ticks represent the selected league's size.
     function renderSummaryRosterValue(team, teams) {
@@ -3580,12 +3584,12 @@
       const rank = Analysis.rank(value, teams.map(item => item.quality.roster.overall));
       const fill = Analysis.rankFill(rank, teams.length) * 100;
       const valueText = formatAnalysisValue(value);
-      return `<article class="la-rank-card la-roster-card${rank ? '' : ' is-unavailable'}" style="--rank-fill:${fill}%;--rank-step:${100 / teams.length}%" aria-label="Roster Value">
-        <div class="la-roster-heading"><div class="la-roster-copy"><h3>Roster Value</h3><span>Full roster + all draft picks</span></div>
+      return `<article class="la-rank-card la-roster-card${rank ? '' : ' is-unavailable'}" style="--rank-fill:${fill}%;--rank-step:${100 / teams.length}%" aria-label="Total Roster Value">
+        <div class="la-roster-heading"><div class="la-roster-copy"><h3>Total Roster Value</h3><span>Full roster + all draft picks</span></div>
           <div class="la-roster-rank"><strong>${rank ? `<small>#</small>${rank}` : '—'}</strong><span>OF ${teams.length}</span></div>
           <div class="la-roster-total">${valueText}<small>KTC</small></div>
         </div>
-        <div class="la-roster-track" role="meter" aria-label="Roster Value league rank" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rank ? `Rank ${rank} of ${teams.length} · ${valueText} KTC` : 'Roster Value ranking unavailable'}"><span class="la-rank-bar-fill" aria-hidden="true"></span></div>
+        <div class="la-roster-track" role="meter" aria-label="Total Roster Value league rank" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rank ? `Rank ${rank} of ${teams.length} · ${valueText} KTC` : 'Total Roster Value ranking unavailable'}"><span class="la-rank-bar-fill" aria-hidden="true"></span></div>
         <div class="la-roster-scale" aria-hidden="true"><span>#${teams.length}</span><span>LEAGUE RANK</span><span>#1</span></div>
       </article>`;
     }
@@ -3597,7 +3601,7 @@
       if (!team) { elements.summaryStats.classList.add('hidden'); return; }
       // Full league scores stay independent of temporary chart position/refine filters.
       const ringModes = [
-        { metric: 'value', title: 'Dynasty', label: 'SUSTAIN', note: 'Starters + depth + Rounds 1–2' },
+        { metric: 'value', title: 'Dynasty', label: 'SUSTAIN', note: 'Starters + depth + 2027/28 Rounds 1–2' },
         { metric: 'proj', title: 'Contender', label: 'WIN NOW', note: 'Starters + four reserves' },
       ];
       const rings = ringModes.map(({ metric, title, label, note }) => {
@@ -3622,10 +3626,18 @@
         const average = population.length ? population.reduce((sum, item) => sum + item, 0) / population.length : null;
         return `<article class="analyzer-chip analyzer-chip--${className}"><span class="chip-label">${label}</span><span class="chip-value" style="color:${analysisRankColor(rank, teams.length)}">${metric === 'age' ? formatAge(value) : formatNumberWithSuffixMarkup(value)}</span><span class="chip-meta">Rank ${rank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${metric === 'age' ? formatAge(average) : formatNumberWithSuffixMarkup(average, 'chip-avg-value-suffix')}</span></span></article>`;
       }).join('');
-      // Stack the full-width Roster Value card over Dynasty/Contender within the
-      // ranking column; keep the four summary chips and champions in their slots.
-      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><div class="la-rank-panel">${renderSummaryRosterValue(team, teams)}<div class="la-rank-pair">${rings}</div></div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      // Replacing the summary also replaces the scatter's host. Dispose its SVG
+      // and stop observing the detached host before mounting the next league.
+      const oldScatterHost = document.getElementById('startersScatterChart');
+      if (oldScatterHost) analysisResizeObserver.unobserve(oldScatterHost);
+      state.charts.scatter?.dispose();
+      state.charts.scatter = null;
+      // CSS puts chips across the desktop top, scatter left, and the full-roster
+      // card under the circles; mobile keeps its chips and adds scatter after history.
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><article class="analyzer-panel la-scatter-panel" aria-labelledby="startersScatterTitle"><header class="la-scatter-header"><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Starting lineups · League scoring</p></header><div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div><p class="la-scatter-note">Dot rank: average of value + PROJ ranks.<br>PROJ breaks ties · Dashed lines: league averages.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p></article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
+      analysisResizeObserver.observe(document.getElementById('startersScatterChart'));
+      renderStarterScatterChart(teams);
     }
 
     // C3 belongs only to the League Champions card, including its heading.
@@ -3748,7 +3760,7 @@
         const player = column.slot != null ? team.derivedLineups[metric].assignments[column.slot]?.player : null;
         const detail = column.slot != null ? (player?.name || 'Empty starting spot')
           : column.family === 'depth' ? team.quality[metric].depthPlayers.map(p => `${p.name} (${formatAnalysisValue(dynasty ? p.ktc : p.proj, metric)})`).join(', ') || 'No eligible reserves'
-          : column.family === 'picks' ? (rosterValue ? 'All owned draft picks' : 'First- and second-round picks only')
+          : column.family === 'picks' ? formatAnalysisPickText(team.quality[metric].pickAssets)
           : column.fullLabel;
         // Round the visible subvalue only; full precision still drives scoring and sorting.
         return `<td class="la-matrix-${column.family}${column.divider ? ' la-matrix-breakdown' : ''}"><span class="la-rank-badge la-rank-badge--${column.family} la-rank-tier-${tier}" tabindex="0" aria-label="${escapeHtml(`${column.label}: ${rank ? `rank ${rank}, ${formatAnalysisValue(value, metric)} ${dynasty ? 'KTC' : 'PROJ'}` : 'projection unavailable'}. ${detail}`)}" title="${escapeHtml(detail)}">${rank ? `<small>#</small>${rank}` : '—'}</span><small class="la-matrix-value">(${Number.isFinite(value) ? Math.round(value).toLocaleString('en-US') : '—'})</small></td>`;
@@ -3757,7 +3769,7 @@
       document.getElementById('qualityMatrixNote').textContent = rosterValue
         ? 'OVR: QB + RB + WR + TE + all picks · After the divider: starters and all non-starters, already included in positional totals'
         : dynasty
-          ? 'KTC in parentheses · OVR: starters + six reserves + Rounds 1–2 · Depth: 1 QB, 3 RB/WR, 1 TE + best remaining player'
+          ? 'KTC in parentheses · OVR: starters + six reserves + 2027/2028 Rounds 1–2 (Mid) · Depth: 1 QB, 3 RB/WR, 1 TE + best remaining player'
           : 'PROJ in parentheses · OVR: starters + depth · Depth: next 1 QB + next 3 RB/WR/TE';
       document.getElementById('analysisScoringNote').textContent = state.projectionMeta.unmodeled?.length
         ? `Sleeper does not publish season forecasts for these league scoring categories: ${state.projectionMeta.unmodeled.join(', ')}. They contribute no projected points. Season PROJ uses the selected year's forecast; after Week 1, completed-week actual stat counts are subtracted to show the remaining season.`
@@ -3778,7 +3790,118 @@
     function renderOverallChart() { renderAnalysisBar('overall'); }
     function updateRadarChart() { renderRadarChart(state.teams, state.radarSlots); }
 
-    // ECharts owns only the redesigned bars. Charts, tooltips, filters, and matrix
+    // Starter Balance plots the same optimized starter totals as the summary
+    // bars, with mean-based quadrants and composite ranks inside each team dot.
+    // Missing PROJ stays off the axes rather than becoming a fabricated zero.
+    function renderStarterScatterChart(teams = state.teams) {
+      const host = document.getElementById('startersScatterChart');
+      if (!host?.clientWidth) return;
+      const rows = Analysis.starterScatterRankings(teams);
+      const available = rows.filter(row => row.rank !== null);
+      const missing = rows.filter(row => row.rank === null);
+      const missingNote = document.getElementById('startersScatterMissing');
+      missingNote.textContent = missing.length ? `Starter data unavailable: ${missing.map(row => row.team.username).join(', ')}.` : '';
+      missingNote.classList.toggle('hidden', !missing.length);
+      if (!available.length || !window.echarts) {
+        state.charts.scatter?.dispose();
+        state.charts.scatter = null;
+        host.textContent = available.length ? 'Scatter chart unavailable.' : 'Starter projections unavailable for this league.';
+        return;
+      }
+      if (!state.charts.scatter) host.textContent = '';
+      const chart = state.charts.scatter || echarts.init(host, null, { renderer: 'svg' });
+      state.charts.scatter = chart;
+      state.scatterLayoutKey = host.clientWidth;
+      const compact = host.clientWidth < 320;
+      const xMean = available.reduce((sum, row) => sum + row.projection, 0) / available.length;
+      const yMean = available.reduce((sum, row) => sum + row.value, 0) / available.length;
+      const extent = values => {
+        const low = Math.min(...values);
+        const high = Math.max(...values);
+        const pad = Math.max((high - low) * .22, Math.abs(high) * .06, 1);
+        return [low >= 0 ? Math.max(0, low - pad) : low - pad, high + pad];
+      };
+      const [xMin, xMax] = extent(available.map(row => row.projection));
+      const [yMin, yMax] = extent(available.map(row => row.value));
+      // Only exact coordinate ties get a small pixel offset. Their actual axis
+      // values and rank stay untouched; the tooltip continues to report both.
+      const groups = new Map();
+      available.forEach((row, index) => {
+        const key = `${row.projection}:${row.value}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(index);
+      });
+      const offsets = available.map(() => [0, 0]);
+      groups.forEach(indices => {
+        if (indices.length < 2) return;
+        const radius = Math.max(16, indices.length * 14 / Math.PI);
+        indices.forEach((index, position) => {
+          const angle = position * 2 * Math.PI / indices.length;
+          offsets[index] = [Math.cos(angle) * radius, Math.sin(angle) * radius];
+        });
+      });
+      const pointData = available.map((row, index) => {
+        const highValue = row.value >= yMean;
+        const highProjection = row.projection >= xMean;
+        const palette = highValue
+          ? highProjection ? ['#9cf5dc', '#16897e'] : ['#d4b7ff', '#7252b7']
+          : highProjection ? ['#b0dbff', '#3975c3'] : ['#c5cfde', '#52637f'];
+        return {
+          name: row.team.username,
+          value: [row.projection, row.value],
+          symbolOffset: offsets[index],
+          symbolSize: row.team.isUserTeam ? 31 : compact ? 25 : 27,
+          itemStyle: { color: { type: 'radial', x: .35, y: .25, r: .85, colorStops: [{ offset: 0, color: palette[0] }, { offset: 1, color: palette[1] }] }, borderColor: row.team.isUserTeam ? '#f6efff' : `${palette[0]}c0`, borderWidth: row.team.isUserTeam ? 2 : 1, shadowBlur: row.team.isUserTeam ? 14 : 5, shadowColor: `${palette[0]}45`, opacity: 1 },
+        };
+      });
+      chart.setOption({
+        animation: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        animationDuration: 400,
+        textStyle: { fontFamily: 'Google Sans, sans-serif' },
+        aria: { enabled: true, label: { description: `Starter Balance. X: projected points. Y: KTC value. Quadrants split at league averages. Composite ranking averages starter value and projection ranks, with projections breaking ties. ${available.map(row => `${row.team.username}: rank ${row.rank}, value ${formatAnalysisValue(row.value)}, projection ${formatAnalysisValue(row.projection, 'proj')}, value rank ${row.valueRank}, projection rank ${row.projectionRank}`).join('. ')}` } },
+        grid: { left: 45, right: 16, top: 20, bottom: 43 },
+        xAxis: { type: 'value', min: xMin, max: xMax, name: 'STARTER PROJ', nameLocation: 'middle', nameGap: 25, nameTextStyle: { color: '#91aac8', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
+        yAxis: { type: 'value', min: yMin, max: yMax, name: 'STARTER KTC', nameLocation: 'middle', nameGap: 34, nameTextStyle: { color: '#b3a2ce', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
+        tooltip: { trigger: 'item', triggerOn: 'mousemove|click', confine: true, backgroundColor: '#111a2bf5', borderColor: '#7f99c54d', textStyle: { color: '#e6edf9', fontSize: 11 }, extraCssText: 'max-width:260px;white-space:normal;border-radius:12px;box-shadow:0 12px 28px #0006;', formatter: params => {
+          const row = available[params.dataIndex];
+          if (!row) return '';
+          return `<b>${escapeHtml(row.team.username)}</b>${row.team.isUserTeam ? '<span style="color:#c9b5ff"> · YOUR TEAM</span>' : ''}<div style="margin-top:6px">Combined rank <b>#${row.rank}</b> · Average rank ${row.averageRank.toFixed(1)}</div><div style="color:#bdb1dd;margin-top:5px">Starter value: ${formatAnalysisValue(row.value)} KTC · #${row.valueRank}</div><div style="color:#9fc8ef;margin-top:3px">Starter projections: ${formatAnalysisValue(row.projection, 'proj')} · #${row.projectionRank}</div>`;
+        } },
+        series: [{
+          name: 'Starter Balance', type: 'scatter', data: pointData, z: 3,
+          label: { show: true, position: 'inside', color: '#f8fbff', fontSize: 11, fontWeight: 700, textBorderColor: '#20304a65', textBorderWidth: 2, formatter: params => String(available[params.dataIndex].rank) },
+          emphasis: { scale: 1.15, itemStyle: { borderColor: '#ffffff', shadowBlur: 18 } },
+          markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#bed0ea60', width: 1, type: 'dashed' }, data: [{ xAxis: xMean }, { yAxis: yMean }] },
+          markArea: { silent: true, label: { show: true, position: 'insideTopLeft', fontSize: compact ? 7 : 8, fontWeight: 600, distance: 6 }, data: [
+            [{ name: 'VALUE EDGE', xAxis: xMin, yAxis: yMean, itemStyle: { color: '#ab7eff0d' }, label: { color: '#b99bd28c' } }, { xAxis: xMean, yAxis: yMax }],
+            [{ name: 'COMPLETE', xAxis: xMean, yAxis: yMean, itemStyle: { color: '#49e0b50e' }, label: { color: '#80ceba8c' } }, { xAxis: xMax, yAxis: yMax }],
+            [{ name: 'BUILDING', xAxis: xMin, yAxis: yMin, itemStyle: { color: '#97a9c809' }, label: { color: '#93a3bf8c' } }, { xAxis: xMean, yAxis: yMean }],
+            [{ name: 'WIN NOW', xAxis: xMean, yAxis: yMin, itemStyle: { color: '#53aaff0d' }, label: { color: '#8cb9ec8c' } }, { xAxis: xMax, yAxis: yMean }],
+          ] },
+        }, {
+          // Separate name labels let ECharts shift collisions without moving the
+          // rank text out of its dot. Exactly twelve username characters maximum.
+          name: 'Usernames', type: 'scatter', silent: true, symbolSize: 0, z: 4,
+          data: pointData.map((point, index) => ({ value: point.value, symbolOffset: offsets[index], label: { color: available[index].team.isUserTeam ? '#e7d8ff' : '#b0bdd3', fontWeight: available[index].team.isUserTeam ? 600 : 400 } })),
+          label: { show: true, position: 'bottom', distance: 19, fontSize: compact ? 7 : 8, formatter: params => Array.from(available[params.dataIndex].team.username).slice(0, 12).join('') },
+          labelLayout: { moveOverlap: 'shiftY', hideOverlap: false },
+        }],
+      }, true);
+      chart.resize();
+      const spread = [...groups.values()].some(indices => indices.length > 1);
+      host.closest('.la-scatter-panel').querySelector('.la-scatter-note').textContent = `Dot rank: average of value + PROJ ranks. PROJ breaks ties · Dashed lines: league averages.${spread ? ' Coincident teams spread for visibility.' : ''}`;
+    }
+
+    // Pick lists describe the actual scored assets, including multiples of the
+    // same Mid label. Original-owner usernames distinguish each acquired pick.
+    function formatAnalysisPickText(picks) {
+      return (picks || []).map(pick => {
+        const origin = state.teams.find(team => String(team.roster.roster_id) === String(pick.roster_id));
+        return `${pick.label} · ${origin?.username || `Team ${pick.roster_id}`} (${formatAnalysisValue(pick.ktc)} KTC)`;
+      }).join('\n') || 'No included draft picks';
+    }
+
+    // ECharts owns the redesigned bars. Charts, tooltips, filters, and matrix
     // read the same enriched players and derived lineup objects, with zero baselines.
     function renderAnalysisBar(kind) {
       const power = kind === 'lineup';
@@ -3850,7 +3973,7 @@
             if (!row) return '';
             const details = row.segments.map(segment => {
               const members = segment.key === 'Picks'
-                ? (power ? 'First- and second-round picks only' : 'All owned draft picks')
+                ? escapeHtml(formatAnalysisPickText(segment.picks)).replace(/\n/g, '<br>')
                 : segment.players.slice().sort((a, b) => (b[dynasty ? 'ktc' : 'proj'] ?? -Infinity) - (a[dynasty ? 'ktc' : 'proj'] ?? -Infinity))
                   .map(p => `${escapeHtml(p.name)} (${formatAnalysisValue(p[dynasty ? 'ktc' : 'proj'], metric)})`).join(', ') || 'No eligible players';
               return `<div style="margin-top:7px"><b style="color:${colors[segment.key]}">${SLOT_LABELS[segment.key] || segment.key}</b> · ${formatAnalysisValue(segment.value, metric)}<div style="color:#9eacc4;font-size:11px">${members}</div></div>`;
@@ -3870,7 +3993,7 @@
         ? `Ranked by ${SLOT_LABELS[filter] || filter} only · Your team is highlighted`
         : !power ? 'All QB/RB/WR/TE + all draft picks · Your team is highlighted'
           : startersOnly ? 'Re-ranked by starters only · Depth and picks excluded'
-            : dynasty ? 'Starters + six reserves + first- and second-round picks'
+            : dynasty ? 'Starters + six reserves + 2027/2028 first- and second-round picks (Mid)'
               : 'Starters + next 1 QB + next 3 RB/WR/TE';
     }
 
