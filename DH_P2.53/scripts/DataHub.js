@@ -14502,6 +14502,37 @@ function getDataHubGameLogsSeasonDisplayValue({
   return Number.isInteger(totalValue) ? String(totalValue) : Number(totalValue).toFixed(2);
 }
 
+// DataHub Game Logs Season headers reuse this page's table-group glyphs by
+// name. Both General sections match the combined production/efficiency group;
+// their existing Season colors and labels remain local to the modal.
+function createDataHubSeasonSectionHeaderContent(section) {
+  const label = section.label || "SECTION";
+  const groupLabel = ["GENERAL PRODUCTION", "GENERAL EFFICIENCY"].includes(label)
+    ? "GENERAL PROD. & EFF."
+    : label;
+  const group = Object.values(BASE_COLUMN_GROUPS).flat().find((candidate) => candidate.label === groupLabel);
+  const content = document.createElement("span");
+  content.className = "datahub-gamelogs-szn-section-content";
+
+  if (group?.icon) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", group.iconViewBox || "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    svg.classList.add("datahub-gamelogs-szn-section-icon");
+    if (group.iconClassName?.includes("material")) {
+      svg.classList.add("datahub-gamelogs-szn-section-icon--filled");
+    }
+    appendDataHubIconMarkup(svg, group.icon);
+    content.appendChild(svg);
+  }
+
+  const text = document.createElement("span");
+  text.textContent = label;
+  content.appendChild(text);
+  return content;
+}
+
 function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
   const container = document.createElement("div");
   container.className = "game-logs-szn-view hidden";
@@ -14682,7 +14713,7 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
     if (section.tone) header.classList.add(`gamelogs-szn-section-header--${section.tone}`);
     header.setAttribute("role", "heading");
     header.setAttribute("aria-level", "4");
-    header.textContent = section.label || "SECTION";
+    header.appendChild(createDataHubSeasonSectionHeaderContent(section));
     list.appendChild(header);
 
     visibleKeys.forEach((statKey) => {

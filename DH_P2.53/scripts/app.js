@@ -6126,6 +6126,41 @@ function getGameLogsSeasonDisplayValue({
     }
     return displayValue;
 }
+// Rosters Game Logs Season headers own their icon definitions and renderer.
+// These inline glyphs match the similarly named DataHub table groups visually,
+// including the combined General icon, without loading or calling DataHub code.
+const ROSTERS_SZN_SECTION_ICONS = Object.freeze({
+    "fantasy": Object.freeze({ markup: "<path d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z\"/>", viewBox: "0 0 24 24", filled: true }),
+    "passing-production": Object.freeze({ markup: "<circle cx=\"12\" cy=\"12\" r=\"10\" /><line x1=\"22\" x2=\"18\" y1=\"12\" y2=\"12\" /><line x1=\"6\" x2=\"2\" y1=\"12\" y2=\"12\" /><line x1=\"12\" x2=\"12\" y1=\"6\" y2=\"2\" /><line x1=\"12\" x2=\"12\" y1=\"22\" y2=\"18\" />", viewBox: "0 0 24 24", filled: false }),
+    "passing-efficiency": Object.freeze({ markup: "<path d=\"M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z\" />", viewBox: "0 0 24 24", filled: false }),
+    "rushing-production": Object.freeze({ markup: "<path d=\"m10 11 11 .9a1 1 0 0 1 .8 1.1l-.665 4.158a1 1 0 0 1-.988.842H20\" /><path d=\"M16 18h-5\" /><path d=\"M18 5a1 1 0 0 0-1 1v5.573\" /><path d=\"M3 4h8.129a1 1 0 0 1 .99.863L13 11.246\" /><path d=\"M4 11V4\" /><path d=\"M7 15h.01\" /><path d=\"M8 10.1V4\" /><circle cx=\"18\" cy=\"18\" r=\"2\" /><circle cx=\"7\" cy=\"15\" r=\"5\" />", viewBox: "0 0 24 24", filled: false }),
+    "rushing-efficiency": Object.freeze({ markup: "<path d=\"m10.586 5.414-5.172 5.172\"/><path d=\"m18.586 13.414-5.172 5.172\"/><path d=\"M6 12h12\"/><circle cx=\"12\" cy=\"20\" r=\"2\"/><circle cx=\"12\" cy=\"4\" r=\"2\"/><circle cx=\"20\" cy=\"12\" r=\"2\"/><circle cx=\"4\" cy=\"12\" r=\"2\"/>", viewBox: "0 0 24 24", filled: false }),
+    "receiving-production": Object.freeze({ markup: "<path d=\"M16 7h6v6\" /><path d=\"m22 7-8.5 8.5-5-5L2 17\" />", viewBox: "0 0 24 24", filled: false }),
+    "receiving-efficiency": Object.freeze({ markup: "<path d=\"m520-687-36 36q-12 12-28 11.5T428-652q-11-12-11.5-28t11.5-28l104-104q12-12 28-12t28 12l104 104q11 11 11.5 27.5T692-652q-11 11-28 11t-28-11l-36-35v527q0 17-11.5 28.5T560-120q-17 0-28.5-11.5T520-160v-120q-18-64-63.5-94.5T357-405q-11 0-22 1.5t-22 3.5l36 36q11 11 11 27.5T348-308q-11 11-28 11t-28-11L188-412q-12-12-12-28t12-28l104-104q11-11 27.5-11.5T348-572q11 11 11 28t-11 28l-35 36q9-2 19-3t21-1q44 0 88 13.5t79 44.5v-261Z\" /><g transform=\"translate(160 0)\"><path d=\"M371.5-131.5Q360-143 360-160v-527l-36 35q-11 11-28 11t-28-11q-12-12-11.5-28.5T268-708l104-104q12-12 28-12t28 12l104 104q12 12 11.5 28T532-652q-12 12-28 12.5T476-651l-36-36v261q35-31 79-44.5t88-13.5q11 0 21 1t19 3l-35-36q-11-11-11-28t11-28q12-12 28.5-11.5T668-572l104 104q12 12 12 28t-12 28L668-308q-11 11-28 11t-28-11q-12-12-12-28.5t11-27.5l36-36q-11-2-22-3.5t-22-1.5q-54 0-99.5 30.5T440-280v120q0 17-11.5 28.5T400-120q-17 0-28.5-11.5Z\" /></g>", viewBox: "0 -960 960 960", filled: true }),
+    "general-production": Object.freeze({ markup: "<path d=\"M12 16v5\" /><path d=\"M16 14v7\" /><path d=\"M20 10v11\" /><path d=\"m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15\" /><path d=\"M4 18v3\" /><path d=\"M8 14v7\" />", viewBox: "0 0 24 24", filled: false }),
+    "general-efficiency": Object.freeze({ markup: "<path d=\"M12 16v5\" /><path d=\"M16 14v7\" /><path d=\"M20 10v11\" /><path d=\"m22 3-8.646 8.646a.5.5 0 0 1-.708 0L9.354 8.354a.5.5 0 0 0-.707 0L2 15\" /><path d=\"M4 18v3\" /><path d=\"M8 14v7\" />", viewBox: "0 0 24 24", filled: false }),
+});
+
+function createRostersSeasonSectionHeaderContent(section) {
+    const content = document.createElement('span');
+    content.className = 'rosters-gamelogs-szn-section-content';
+    const icon = ROSTERS_SZN_SECTION_ICONS[section.id];
+    if (icon) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', icon.viewBox);
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        svg.classList.add('rosters-gamelogs-szn-section-icon');
+        if (icon.filled) svg.classList.add('rosters-gamelogs-szn-section-icon--filled');
+        svg.innerHTML = icon.markup;
+        content.appendChild(svg);
+    }
+    const label = document.createElement('span');
+    label.textContent = section.label || 'SECTION';
+    content.appendChild(label);
+    return content;
+}
+
 function renderGameLogsSeasonStatsView({
     container,
     player,
@@ -6288,7 +6323,12 @@ function renderGameLogsSeasonStatsView({
             if (section.tone) header.classList.add(`gamelogs-szn-section-header--${section.tone}`);
             header.setAttribute('role', 'heading');
             header.setAttribute('aria-level', '4');
-            header.textContent = section.label || 'SECTION';
+            // Keep the icon treatment exclusive to Rosters despite this shared app bundle.
+            if (pageType === 'rosters') {
+                header.appendChild(createRostersSeasonSectionHeaderContent(section));
+            } else {
+                header.textContent = section.label || 'SECTION';
+            }
             list.appendChild(header);
 
             for (const statKey of visibleKeys) {

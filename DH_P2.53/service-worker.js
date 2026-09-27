@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh requested DataHub DB/BLTZ%/TmPa%/EPA/CAR/G stat header icons.
-const CACHE_NAME = 'DH3.47m-qb-header-icons';
+// Refresh independently implemented DataHub and Rosters Season group header icons.
+const CACHE_NAME = 'DH3.47n-season-group-icons';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
