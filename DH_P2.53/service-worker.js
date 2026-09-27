@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Starter Balance's tight margins, matching panel height, and smaller dots.
-const CACHE_NAME = 'DH3.47r-scatter-sizing';
+// Refresh Starter Balance's horizontal axes, edge-to-edge plot, and gradient discs.
+const CACHE_NAME = 'DH3.47s-scatter-design';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

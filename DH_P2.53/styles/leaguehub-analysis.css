@@ -174,14 +174,39 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-rank-bar.is-unavailable .la-rank-bar-fill { visibility: hidden; }
 /* Starter Balance matches the measured ranking stack height. The plot absorbs
    the remaining panel space; its SVG cannot enlarge the panel through flex sizing.
-   Compact padding and plot gutters keep the axes close to the panel edges. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel { grid-area: scatter; height: var(--la-scatter-height, 400px); min-height: 0; box-sizing: border-box; padding: 8px; gap: 5px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header h2 { margin: 0; color: #e2eafa; font-size: 17px; font-weight: 600; letter-spacing: -.025em; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header .la-eyebrow { font-size: 8px; color: #9bb6d2; margin-bottom: 3px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header p { margin: 3px 0 0; color: #8c9fba; font-size: 9px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-chart { width: 100%; min-width: 0; min-height: 0; height: 0; flex: 1 1 0; display: flex; align-items: center; justify-content: center; color: #9caec8; font-size: 11px; text-align: center; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-note { margin: 0; color: #8e9fba; font-size: 9px; line-height: 1.5; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-missing { margin: 0; color: #b7a6cf; font-size: 9px; line-height: 1.5; }
+   This chart alone receives the navy/violet surface and horizontal axis captions;
+   the plot uses almost the full width, with value ticks inside its left edge. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel { grid-area: scatter; position: relative; height: var(--la-scatter-height, 400px); min-height: 0; box-sizing: border-box; padding: 8px; gap: 5px; border-color: #92a8ec2c; background: radial-gradient(ellipse at 100% 0%, #5866bf20, transparent 58%), radial-gradient(ellipse at 0% 100%, #356fbd0d, transparent 58%), linear-gradient(150deg, #131b2ded, #0c1425ed); box-shadow: inset 0 1px 0 #d5ddff0d, 0 14px 32px #050b1b40; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-panel::before { content: ''; position: absolute; top: -1px; left: 18px; right: 18px; height: 1px; background: linear-gradient(90deg, transparent, #899af077, #67c4eb55, transparent); pointer-events: none; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header { display: flex; align-items: center; justify-content: space-between; gap: 7px; padding: 2px 4px 3px; flex-shrink: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header > div { min-width: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header h2 { margin: 0; color: #e3eaff; font-size: 17px; font-weight: 650; letter-spacing: -.035em; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header .la-eyebrow { font-size: 7px; color: #98a7e1; letter-spacing: .16em; margin-bottom: 4px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-header p { margin: 3px 0 0; color: #8293b3; font-size: 8px; }
+/* The active-team key mirrors its thin outer ring, not a bigger chart symbol. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-user-key { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 5px 7px; border: 1px solid #b6c1f320; border-radius: 20px; background: #8f9de807; color: #b7c4e7; font-size: 7px; white-space: nowrap; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-user-key i { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #67e8ed, #368ddf 48%, #6750d8); box-shadow: 0 0 0 2px #111a2f, 0 0 0 3px #d8dfff8c; margin: 2px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-axis-heading { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 0 4px; flex-shrink: 0; color: #a6b4d3; font-size: 8px; font-weight: 500; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-axis-heading small { color: #807da9; font-size: 7px; margin-left: 4px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-average-key { display: inline-flex; align-items: center; gap: 5px; color: #7487a9; font-size: 7px; font-weight: 400; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-average-key::before { content: ''; width: 13px; border-top: 1px dashed #9fb5e67a; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-chart { width: 100%; min-width: 0; min-height: 0; height: 0; flex: 1 1 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: radial-gradient(ellipse at 92% 3%, #3d81db08, transparent 60%), linear-gradient(145deg, #0b122280, #11192b50); box-shadow: inset 0 0 0 1px #a3b9f010; color: #9caec8; font-size: 11px; text-align: center; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-x-title { flex-shrink: 0; margin: 0; color: #a6b4d3; font-size: 8px; font-weight: 500; text-align: center; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-x-title span { color: #6f89b6; font-size: 7px; margin-left: 4px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-note { flex-shrink: 0; margin: 0; padding: 5px 3px 0; border-top: 1px solid #9eafe812; color: #7e90b0; font-size: 8px; line-height: 1.45; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-missing { flex-shrink: 0; margin: 0; padding-inline: 3px; color: #ad9ec9; font-size: 8px; line-height: 1.45; }
+/* Scatter tooltips repeat the disc palette and align the two starter metrics;
+   these rules stay inside the chart's League Analysis host on desktop/mobile. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip { min-width: 180px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-heading { display: flex; align-items: center; gap: 12px; justify-content: space-between; margin-bottom: 7px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-heading > b { min-width: 0; overflow-wrap: anywhere; color: #e4ebff; font-size: 12px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-heading > strong { flex-shrink: 0; padding: 3px 7px; border: 1px solid #b4b9ff30; border-radius: 7px; background: linear-gradient(135deg, #458ff02b, #9a61ed25); color: #d7ddff; font-size: 14px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-user { display: block; color: #9cbcff; font-size: 8px; letter-spacing: .08em; margin: -4px 0 8px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-metric { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid #abc0f017; color: #a7b6d1; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-metric > b { color: #d4c3fb; white-space: nowrap; font-variant-numeric: tabular-nums; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-metric + .la-scatter-tooltip-metric > b { color: #a8d1ff; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip-metric small { color: #8193b6; font-size: 8px; margin-left: 3px; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-scatter-tooltip p { margin: 6px 0 0; color: #7f91b2; font-size: 8px; }
 /* Bar charts: slim category labels, restrained position colors, and native
    keyboard-accessible filters. SVG rendering stays sharp at every pixel ratio. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .analyzer-panels-grid { gap: 10px; min-width: 0; }

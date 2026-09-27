@@ -3638,7 +3638,15 @@
       state.charts.scatter = null;
       // CSS puts chips across the desktop top, scatter left, and the full-roster
       // card under the circles; mobile keeps its chips and adds scatter after history.
-      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><article class="analyzer-panel la-scatter-panel" aria-labelledby="startersScatterTitle"><header class="la-scatter-header"><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Starting lineups · League scoring</p></header><div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div><p class="la-scatter-note">Dot rank: average of value + PROJ ranks.<br>PROJ breaks ties · Dashed lines: league averages.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p></article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      // Starter Balance owns horizontal axis captions above/below its plot.
+      // Keeping captions outside ECharts removes the rotated title's left gutter.
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><article class="analyzer-panel la-scatter-panel" aria-labelledby="startersScatterTitle">
+        <header class="la-scatter-header"><div><span class="la-eyebrow">STARTER BALANCE</span><h2 id="startersScatterTitle">Value × Projections</h2><p>Starting lineups · League scoring</p></div><span class="la-scatter-user-key"><i aria-hidden="true"></i>Your team</span></header>
+        <div class="la-scatter-axis-heading" aria-hidden="true"><span>Starter value <small>KTC ↑</small></span><span class="la-scatter-average-key">League avg.</span></div>
+        <div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div>
+        <p class="la-scatter-x-title" aria-hidden="true">Projected starter points <span>PROJ →</span></p>
+        <p class="la-scatter-note">Rank = average of value + PROJ ranks · PROJ breaks ties.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p>
+      </article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
       analysisResizeObserver.observe(document.getElementById('startersScatterChart'));
       analysisResizeObserver.observe(elements.summaryStats.querySelector('.la-rank-panel'));
@@ -3862,15 +3870,18 @@
       const pointData = available.map((row, index) => {
         const highValue = row.value >= yMean;
         const highProjection = row.projection >= xMean;
+        // Starter Balance uses saturated diagonal gradients rather than white
+        // radial highlights. Cohesive violet/blue hues distinguish quadrants;
+        // the separate halo below marks the active team without enlarging dots.
         const palette = highValue
-          ? highProjection ? ['#9cf5dc', '#16897e'] : ['#d4b7ff', '#7252b7']
-          : highProjection ? ['#b0dbff', '#3975c3'] : ['#c5cfde', '#52637f'];
+          ? highProjection ? ['#67e8ed', '#368ddf', '#6750d8'] : ['#d7a1ff', '#9a61ed', '#5842ba']
+          : highProjection ? ['#89caff', '#458ff0', '#5150c3'] : ['#a4b0dc', '#6b79b5', '#465287'];
         return {
           name: row.team.username,
           value: [row.projection, row.value],
           symbolOffset: offsets[index],
-          symbolSize: row.team.isUserTeam ? 21 : compact ? 16 : 18,
-          itemStyle: { color: { type: 'radial', x: .35, y: .25, r: .85, colorStops: [{ offset: 0, color: palette[0] }, { offset: 1, color: palette[1] }] }, borderColor: row.team.isUserTeam ? '#f6efff' : `${palette[0]}c0`, borderWidth: row.team.isUserTeam ? 1.5 : 1, shadowBlur: row.team.isUserTeam ? 8 : 3, shadowColor: `${palette[0]}45`, opacity: 1 },
+          symbolSize: compact ? 16 : 18,
+          itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 1, colorStops: [{ offset: 0, color: palette[0] }, { offset: .48, color: palette[1] }, { offset: 1, color: palette[2] }] }, borderColor: `${palette[0]}95`, borderWidth: .75, shadowBlur: row.team.isUserTeam ? 10 : 5, shadowColor: `${palette[1]}55`, opacity: 1 },
         };
       });
       chart.setOption({
@@ -3878,39 +3889,47 @@
         animationDuration: 400,
         textStyle: { fontFamily: 'Google Sans, sans-serif' },
         aria: { enabled: true, label: { description: `Starter Balance. X: projected points. Y: KTC value. Quadrants split at league averages. Composite ranking averages starter value and projection ranks, with projections breaking ties. ${available.map(row => `${row.team.username}: rank ${row.rank}, value ${formatAnalysisValue(row.value)}, projection ${formatAnalysisValue(row.projection, 'proj')}, value rank ${row.valueRank}, projection rank ${row.projectionRank}`).join('. ')}` } },
-        // Compact gutters keep both titles near the axes and panel edges while
-        // leaving room for the small numeric ticks. Dot ranks scale with the dots.
-        grid: { left: 30, right: 4, top: 5, bottom: 25 },
-        xAxis: { type: 'value', min: xMin, max: xMax, name: 'STARTER PROJ', nameLocation: 'middle', nameGap: 16, nameTextStyle: { color: '#91aac8', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, margin: 3, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
-        yAxis: { type: 'value', min: yMin, max: yMax, name: 'STARTER KTC', nameLocation: 'middle', nameGap: 22, nameTextStyle: { color: '#b3a2ce', fontSize: 8 }, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#8193ae', fontSize: 8, margin: 3, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#b1c5ec0d', type: 'dashed' } } },
-        tooltip: { trigger: 'item', triggerOn: 'mousemove|click', confine: true, backgroundColor: '#111a2bf5', borderColor: '#7f99c54d', textStyle: { color: '#e6edf9', fontSize: 11 }, extraCssText: 'max-width:260px;white-space:normal;border-radius:12px;box-shadow:0 12px 28px #0006;', formatter: params => {
+        // Value ticks sit inside the plot, and HTML supplies the axis titles.
+        // Four pixels now separate the plotting area from its left edge; no
+        // containLabel expansion or rotated title can recreate the wide gutter.
+        grid: { left: 4, right: 6, top: 7, bottom: 18, containLabel: false },
+        xAxis: { type: 'value', min: xMin, max: xMax, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: '#7e91b2', fontSize: 8, margin: 4, showMinLabel: false, showMaxLabel: false, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#a2baf00c', width: .5 } } },
+        yAxis: { type: 'value', min: yMin, max: yMax, splitNumber: 3, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { inside: true, align: 'left', verticalAlign: 'bottom', color: '#7084a5', fontSize: 8, margin: 5, padding: [0, 0, 3, 0], showMinLabel: false, showMaxLabel: false, formatter: value => formatNumber(value) }, splitLine: { lineStyle: { color: '#a2baf00e', width: .5 } } },
+        tooltip: { trigger: 'item', triggerOn: 'mousemove|click', confine: true, backgroundColor: '#111a30f5', borderColor: '#9da8ef3b', padding: 12, textStyle: { color: '#e6edf9', fontSize: 11 }, extraCssText: 'max-width:260px;white-space:normal;border-radius:14px;box-shadow:0 14px 34px #0008,inset 0 1px 0 #d9e4ff0d;backdrop-filter:blur(12px);', formatter: params => {
           const row = available[params.dataIndex];
           if (!row) return '';
-          return `<b>${escapeHtml(row.team.username)}</b>${row.team.isUserTeam ? '<span style="color:#c9b5ff"> · YOUR TEAM</span>' : ''}<div style="margin-top:6px">Combined rank <b>#${row.rank}</b> · Average rank ${row.averageRank.toFixed(1)}</div><div style="color:#bdb1dd;margin-top:5px">Starter value: ${formatAnalysisValue(row.value)} KTC · #${row.valueRank}</div><div style="color:#9fc8ef;margin-top:3px">Starter projections: ${formatAnalysisValue(row.projection, 'proj')} · #${row.projectionRank}</div>`;
+          return `<div class="la-scatter-tooltip"><div class="la-scatter-tooltip-heading"><b>${escapeHtml(row.team.username)}</b><strong>#${row.rank}</strong></div>${row.team.isUserTeam ? '<small class="la-scatter-tooltip-user">YOUR TEAM</small>' : ''}<div class="la-scatter-tooltip-metric"><span>Starter value <small>#${row.valueRank}</small></span><b>${formatAnalysisValue(row.value)} <small>KTC</small></b></div><div class="la-scatter-tooltip-metric"><span>Projections <small>#${row.projectionRank}</small></span><b>${formatAnalysisValue(row.projection, 'proj')} <small>PROJ</small></b></div><p>Average rank ${row.averageRank.toFixed(1)} · PROJ breaks ties</p></div>`;
         } },
         series: [{
+          // Subtle outer rings add depth without recreating glossy bubbles.
+          // Only the active team receives a bright identification ring.
+          name: 'Team halos', type: 'scatter', silent: true, z: 2,
+          data: pointData.map((point, index) => ({ value: point.value, symbolOffset: point.symbolOffset, symbolSize: point.symbolSize + (available[index].team.isUserTeam ? 9 : 5), itemStyle: { color: available[index].team.isUserTeam ? '#8f9fff0d' : '#7d9ade04', borderColor: available[index].team.isUserTeam ? '#d8dfff9c' : '#97aeed16', borderWidth: available[index].team.isUserTeam ? 1 : .5 } })),
+        }, {
           name: 'Starter Balance', type: 'scatter', data: pointData, z: 3,
-          label: { show: true, position: 'inside', color: '#f8fbff', fontSize: compact ? 8 : 9, fontWeight: 700, textBorderColor: '#20304a65', textBorderWidth: 1, formatter: params => String(available[params.dataIndex].rank) },
-          emphasis: { scale: 1.1, itemStyle: { borderColor: '#ffffff', shadowBlur: 10 } },
-          markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#bed0ea60', width: 1, type: 'dashed' }, data: [{ xAxis: xMean }, { yAxis: yMean }] },
-          markArea: { silent: true, label: { show: true, position: 'insideTopLeft', fontSize: compact ? 7 : 8, fontWeight: 600, distance: 6 }, data: [
-            [{ name: 'VALUE EDGE', xAxis: xMin, yAxis: yMean, itemStyle: { color: '#ab7eff0d' }, label: { color: '#b99bd28c' } }, { xAxis: xMean, yAxis: yMax }],
-            [{ name: 'COMPLETE', xAxis: xMean, yAxis: yMean, itemStyle: { color: '#49e0b50e' }, label: { color: '#80ceba8c' } }, { xAxis: xMax, yAxis: yMax }],
-            [{ name: 'BUILDING', xAxis: xMin, yAxis: yMin, itemStyle: { color: '#97a9c809' }, label: { color: '#93a3bf8c' } }, { xAxis: xMean, yAxis: yMean }],
-            [{ name: 'WIN NOW', xAxis: xMean, yAxis: yMin, itemStyle: { color: '#53aaff0d' }, label: { color: '#8cb9ec8c' } }, { xAxis: xMax, yAxis: yMean }],
+          label: { show: true, position: 'inside', color: '#f5f7ff', fontSize: compact ? 8 : 9, fontWeight: 700, textShadowColor: '#16224690', textShadowBlur: 2, formatter: params => String(available[params.dataIndex].rank) },
+          emphasis: { scale: 1.12, itemStyle: { borderColor: '#e5eeff', shadowBlur: 14 } },
+          markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#9fb5e64d', width: .8, type: 'dashed' }, data: [{ xAxis: xMean }, { yAxis: yMean }] },
+          // Faint corner gradients replace flat quadrant slabs. Corner tags
+          // leave the center, where teams often cluster, free of extra text.
+          markArea: { silent: true, label: { show: true, fontSize: compact ? 7 : 8, fontWeight: 600, distance: 8 }, data: [
+            [{ name: 'VALUE EDGE', xAxis: xMin, yAxis: yMean, itemStyle: { color: { type: 'linear', x: 1, y: 1, x2: 0, y2: 0, colorStops: [{ offset: 0, color: '#a274ef02' }, { offset: 1, color: '#a274ef10' }] } }, label: { position: 'insideTopLeft', color: '#bc9feb99' } }, { xAxis: xMean, yAxis: yMax }],
+            [{ name: 'COMPLETE', xAxis: xMean, yAxis: yMean, itemStyle: { color: { type: 'linear', x: 0, y: 1, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#43bdec02' }, { offset: 1, color: '#43bdec10' }] } }, label: { position: 'insideTopRight', color: '#80cbe899' } }, { xAxis: xMax, yAxis: yMax }],
+            [{ name: 'BUILDING', xAxis: xMin, yAxis: yMin, itemStyle: { color: { type: 'linear', x: 1, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#8494ce01' }, { offset: 1, color: '#8494ce08' }] } }, label: { position: 'insideBottomLeft', color: '#8595bf99' } }, { xAxis: xMean, yAxis: yMean }],
+            [{ name: 'WIN NOW', xAxis: xMean, yAxis: yMin, itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 1, colorStops: [{ offset: 0, color: '#568fee02' }, { offset: 1, color: '#568fee0b' }] } }, label: { position: 'insideBottomRight', color: '#91b0e799' } }, { xAxis: xMax, yAxis: yMean }],
           ] },
         }, {
           // Separate name labels let ECharts shift collisions without moving the
           // rank text out of its dot. Exactly twelve username characters maximum.
           name: 'Usernames', type: 'scatter', silent: true, symbolSize: 0, z: 4,
-          data: pointData.map((point, index) => ({ value: point.value, symbolOffset: offsets[index], label: { color: available[index].team.isUserTeam ? '#e7d8ff' : '#b0bdd3', fontWeight: available[index].team.isUserTeam ? 600 : 400 } })),
-          label: { show: true, position: 'bottom', distance: 13, fontSize: compact ? 7 : 8, formatter: params => Array.from(available[params.dataIndex].team.username).slice(0, 12).join('') },
+          data: pointData.map((point, index) => ({ value: point.value, symbolOffset: offsets[index], label: { color: available[index].team.isUserTeam ? '#e0e7ff' : '#97a8c9', fontWeight: available[index].team.isUserTeam ? 600 : 400 } })),
+          label: { show: true, position: 'bottom', distance: 13, fontSize: compact ? 7 : 8, textShadowColor: '#0d1427', textShadowBlur: 3, formatter: params => Array.from(available[params.dataIndex].team.username).slice(0, 12).join('') },
           labelLayout: { moveOverlap: 'shiftY', hideOverlap: false },
         }],
       }, true);
       chart.resize();
       const spread = [...groups.values()].some(indices => indices.length > 1);
-      host.closest('.la-scatter-panel').querySelector('.la-scatter-note').textContent = `Dot rank: average of value + PROJ ranks. PROJ breaks ties · Dashed lines: league averages.${spread ? ' Coincident teams spread for visibility.' : ''}`;
+      host.closest('.la-scatter-panel').querySelector('.la-scatter-note').textContent = `Rank = average of value + PROJ ranks · PROJ breaks ties.${spread ? ' Coincident teams spread for visibility.' : ''}`;
     }
 
     // Pick lists describe the actual scored assets, including multiples of the
