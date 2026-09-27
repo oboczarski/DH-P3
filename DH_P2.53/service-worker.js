@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's distinct Contender dial and starter/depth rank bars.
-const CACHE_NAME = 'DH3.47o-analysis-rank-bars';
+// Refresh League Analyzer's horizontal Roster Value card and inline rank details.
+const CACHE_NAME = 'DH3.47p-analysis-roster-bar';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

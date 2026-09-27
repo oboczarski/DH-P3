@@ -3565,12 +3565,29 @@
         const rankText = rank ? `Rank ${rank} of ${teams.length}` : `${unit} ranking unavailable`;
         const valueText = Number.isFinite(value) ? `${formatAnalysisValue(value, metric)} ${unit}` : `${unit} unavailable`;
         return `<div class="la-rank-bar${rank ? '' : ' is-unavailable'}" role="meter" aria-label="${title} ${label.toLowerCase()} league rank by ${basis}" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rankText} · ${valueText}" style="--rank-fill:${fill}%">
-          <div class="la-rank-bar-heading" aria-hidden="true"><span>${label}</span><strong>${rank ? `<small>#</small>${rank}` : '—'}<small> / ${teams.length}</small></strong></div>
+          <div class="la-rank-bar-heading" aria-hidden="true"><span>${label}</span><strong>${rank ? `<small>#</small>${rank}` : '—'}<small> / ${teams.length}</small></strong><span class="la-rank-bar-value">${Number.isFinite(value) ? `${formatAnalysisValue(value, metric)} <small>${unit}</small>` : `${unit} unavailable`}</span></div>
           <div class="la-rank-bar-track" aria-hidden="true"><span class="la-rank-bar-fill"></span></div>
-          <span class="la-rank-bar-value" aria-hidden="true">${Number.isFinite(value) ? `${formatAnalysisValue(value, metric)} <small>${unit}</small>` : `${unit} unavailable`}</span>
         </div>`;
       }).join('');
       return `<div class="la-rank-breakdown" role="group" aria-label="${title} starters and depth rankings">${bars}</div>`;
+    }
+
+    // Roster Value owns a short, full-width horizontal rank card above the two
+    // power circles. It retains all roster/pick value and the existing inverse
+    // league-rank fill; the track's ticks represent the selected league's size.
+    function renderSummaryRosterValue(team, teams) {
+      const value = team.quality.roster.overall;
+      const rank = Analysis.rank(value, teams.map(item => item.quality.roster.overall));
+      const fill = Analysis.rankFill(rank, teams.length) * 100;
+      const valueText = formatAnalysisValue(value);
+      return `<article class="la-rank-card la-roster-card${rank ? '' : ' is-unavailable'}" style="--rank-fill:${fill}%;--rank-step:${100 / teams.length}%" aria-label="Roster Value">
+        <div class="la-roster-heading"><div class="la-roster-copy"><h3>Roster Value</h3><span>Full roster + all draft picks</span></div>
+          <div class="la-roster-rank"><strong>${rank ? `<small>#</small>${rank}` : '—'}</strong><span>OF ${teams.length}</span></div>
+          <div class="la-roster-total">${valueText}<small>KTC</small></div>
+        </div>
+        <div class="la-roster-track" role="meter" aria-label="Roster Value league rank" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rank ? `Rank ${rank} of ${teams.length} · ${valueText} KTC` : 'Roster Value ranking unavailable'}"><span class="la-rank-bar-fill" aria-hidden="true"></span></div>
+        <div class="la-roster-scale" aria-hidden="true"><span>#${teams.length}</span><span>LEAGUE RANK</span><span>#1</span></div>
+      </article>`;
     }
 
     // Team rank rings mirror Research's dial: tick marks, gradient arc, inset core,
@@ -3580,7 +3597,6 @@
       if (!team) { elements.summaryStats.classList.add('hidden'); return; }
       // Full league scores stay independent of temporary chart position/refine filters.
       const ringModes = [
-        { metric: 'roster', title: 'Roster Value', label: 'LONG TERM', note: 'Full roster + all draft picks' },
         { metric: 'value', title: 'Dynasty', label: 'SUSTAIN', note: 'Starters + depth + Rounds 1–2' },
         { metric: 'proj', title: 'Contender', label: 'WIN NOW', note: 'Starters + four reserves' },
       ];
@@ -3588,9 +3604,7 @@
         const quality = team.quality[metric];
         const rank = Analysis.rank(quality.overall, teams.map(item => item.quality[metric].overall));
         const arc = Analysis.rankFill(rank, teams.length) * 360;
-        // Only the two power modes receive a starter/depth breakdown below their
-        // circles; Roster Value keeps its existing full-roster/pick presentation.
-        const breakdown = metric === 'roster' ? '' : renderSummaryRankBars(team, teams, metric, title);
+        const breakdown = renderSummaryRankBars(team, teams, metric, title);
         return `<article class="la-rank-card la-rank-card--${metric}"><div class="la-rank-title"><span>${title}</span><small>${label}</small></div>
           <div class="la-rank-dial" role="meter" aria-label="${title} league rank" aria-valuemin="0" aria-valuemax="${teams.length}" aria-valuenow="${rank ? teams.length - rank + 1 : 0}" aria-valuetext="${rank ? `Rank ${rank} of ${teams.length}` : 'Projection ranking unavailable'}" style="--arc-end:${arc}deg;--arc-mid:${arc / 2}deg">
             <span class="la-rank-glow" aria-hidden="true"></span><span class="la-rank-arc" aria-hidden="true"></span><span class="la-rank-echo" aria-hidden="true"></span>${rank ? '<span class="la-rank-cap" aria-hidden="true"></span>' : ''}<span class="la-rank-core" aria-hidden="true"><strong>${rank ? `<small>#</small>${rank}` : '—'}</strong><em>OF ${teams.length}</em></span>
@@ -3608,8 +3622,9 @@
         const average = population.length ? population.reduce((sum, item) => sum + item, 0) / population.length : null;
         return `<article class="analyzer-chip analyzer-chip--${className}"><span class="chip-label">${label}</span><span class="chip-value" style="color:${analysisRankColor(rank, teams.length)}">${metric === 'age' ? formatAge(value) : formatNumberWithSuffixMarkup(value)}</span><span class="chip-meta">Rank ${rank || '—'}/${teams.length}</span><span class="chip-avg"><span class="chip-avg-label">League AVG</span><span class="chip-avg-value">${metric === 'age' ? formatAge(average) : formatNumberWithSuffixMarkup(average, 'chip-avg-value-suffix')}</span></span></article>`;
       }).join('');
-      // The summary now contains only the four retained cards; preserve its user-sized grid.
-      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><div class="la-rank-pair">${rings}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      // Stack the full-width Roster Value card over Dynasty/Contender within the
+      // ranking column; keep the four summary chips and champions in their slots.
+      elements.summaryStats.innerHTML = `<div class="la-summary-stats">${cards}</div><div class="la-rank-panel">${renderSummaryRosterValue(team, teams)}<div class="la-rank-pair">${rings}</div></div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
       elements.summaryStats.classList.remove('hidden');
     }
 
