@@ -171,7 +171,135 @@
     return [...available, ...rows.filter(row => !Number.isFinite(row.averageRank)).map(row => ({ ...row, rank: null }))];
   }
 
-  const api = { projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
+  // Regular-season outlook only: positional errors apply to the actual player,
+  // including FLEX/SUPER_FLEX. No random sampling or rounded intermediate values.
+  const POSITION_SD = { QB: 7.51, RB: 7.51, WR: 7.81, TE: 6.90 };
+  const SLOT_POSITIONS = { QB: ['QB'], RB: ['RB'], WR: ['WR'], TE: ['TE'],
+    FLEX: ['RB', 'WR', 'TE'], SUPER_FLEX: POSITIONS, REC_FLEX: ['WR', 'TE'],
+    WRRB_FLEX: ['WR', 'RB'], RB_WR_FLEX: ['RB', 'WR'], 'WR/RB': ['WR', 'RB'],
+    'RB/WR': ['RB', 'WR'], 'WR/RB/TE': ['RB', 'WR', 'TE'], 'RB/WR/TE': ['RB', 'WR', 'TE'],
+    'W/R/T': ['RB', 'WR', 'TE'], FLX: ['RB', 'WR', 'TE'], SFLX: POSITIONS,
+    'QB/RB/WR/TE': POSITIONS, 'Q/W/R/T': POSITIONS };
+
+  function normalCDF(z) {
+    if (z === 0) return 0.5;
+    const x = Math.abs(z);
+    const t = 1 / (1 + 0.2316419 * x);
+    const tail = Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI)
+      * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return Math.max(0, Math.min(1, z > 0 ? 1 - tail : tail));
+  }
+
+  // Records are authoritative for processed results. NFL week alone cannot mark
+  // an in-progress matchup final. A scored-leg marker handles unequal game counts;
+  // uniform record counts also catch the rollover before that marker updates.
+  function forecastWeeks(league, nfl, rosters) {
+    const start = Math.max(1, Number(league.settings?.start_week) || 1);
+    const gamesPerWeek = Number(league.settings?.league_average_match) ? 2 : 1;
+    const games = rosters.map(roster => ['wins', 'losses', 'ties'].reduce(
+      (sum, key) => sum + (Number(roster.settings?.[key]) || 0), 0));
+    const uniform = games.length && games.every(count => count === games[0]);
+    const recordLeg = uniform ? start - 1 + Math.floor(games[0] / gamesPerWeek) : start - 1;
+    const scoredLeg = Number(league.last_scored_leg ?? league.settings?.last_scored_leg) || 0;
+    // A scoring marker may advance before updated records arrive. Uniform live
+    // records take precedence so the current matchup is not silently dropped.
+    let completed = uniform ? recordLeg : Math.max(start - 1, scoredLeg);
+    if (Number(league.season) < Number(nfl.season) || league.status === 'complete'
+      || (Number(league.season) === Number(nfl.season) && nfl.season_type === 'post')) completed = 14;
+    if (completed < 14 && !uniform && !scoredLeg) throw new Error('League results are updating; reload to refresh the completed-week boundary.');
+    return Array.from({ length: Math.max(0, 14 - completed) }, (_, index) => completed + index + 1);
+  }
+
+  // Reuse the Analyzer's lineup assembly with a weekly selection strategy. A tiny
+  // memoized position-count search handles overlapping restricted FLEX slots exactly;
+  // each player is consumed once, and a new call uses that week's scores (including 0).
+  function selectWeeklyStarters(players, slots) {
+    const pools = POSITIONS.map(pos => players.filter(player => player.pos === pos && Number.isFinite(player.proj))
+      .sort((a, b) => b.proj - a.proj || String(a.id).localeCompare(String(b.id))));
+    const memo = new Map();
+    function visit(index, counts) {
+      if (index === slots.length) return { score: 0, filled: 0, players: [] };
+      const key = `${index}:${counts.join(',')}`;
+      if (memo.has(key)) return memo.get(key);
+      const empty = visit(index + 1, counts);
+      let best = { ...empty, players: [null, ...empty.players] };
+      (slots[index].eligibility || SLOT_POSITIONS[slots[index].type] || []).forEach(pos => {
+        const position = POSITIONS.indexOf(pos);
+        const player = pools[position]?.[counts[position]];
+        if (!player) return;
+        const next = [...counts]; next[position]++;
+        const rest = visit(index + 1, next);
+        const candidate = { score: player.proj + rest.score, filled: rest.filled + 1, players: [player, ...rest.players] };
+        if (candidate.filled > best.filled || (candidate.filled === best.filled && candidate.score > best.score)) best = candidate;
+      });
+      memo.set(key, best);
+      return best;
+    }
+    return visit(0, [0, 0, 0, 0]).players;
+  }
+
+  function weeklyStrength(lineup, players) {
+    const byId = new Map(players.map(player => [player.id, player]));
+    const starters = lineup.assignments.flatMap(slot => slot.player ? [byId.get(slot.player.id)] : []);
+    return { points: starters.reduce((sum, player) => sum + player.proj, 0),
+      variance: starters.reduce((sum, player) => sum + POSITION_SD[player.pos] ** 2, 0) };
+  }
+
+  // Pair each scheduled game once; the same weekly strengths drive both its odds
+  // and ROS SOS. A missing week/pair invalidates the outlook rather than shortening it.
+  function seasonOutlook(teams, weeks, matchups, strengths, standingsOrder) {
+    const rows = teams.map(team => {
+      const settings = team.roster.settings || {};
+      const wins = Number(settings.wins) || 0, losses = Number(settings.losses) || 0, ties = Number(settings.ties) || 0;
+      return { team, id: String(team.roster.roster_id), wins, losses, ties,
+        projectedWins: wins, projectedLosses: losses, variance: 0, games: 0, opponentTotal: 0 };
+    });
+    const byId = new Map(rows.map(row => [row.id, row]));
+    weeks.forEach(week => {
+      const entries = matchups[week];
+      if (!Array.isArray(entries) || entries.length !== rows.length) throw new Error(`Week ${week} schedule is not available for every team.`);
+      const groups = new Map(), seen = new Set();
+      entries.forEach(entry => {
+        const id = String(entry.roster_id);
+        if (!byId.has(id) || seen.has(id)) throw new Error(`Week ${week} schedule is incomplete.`);
+        seen.add(id);
+        if (entry.matchup_id == null) return; // Explicit fantasy bye: no game to project.
+        const key = String(entry.matchup_id);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(id);
+      });
+      if (!groups.size) throw new Error(`Week ${week} matchups have not been scheduled.`);
+      groups.forEach(ids => {
+        if (ids.length !== 2) throw new Error(`Week ${week} matchup is incomplete.`);
+        const [a, b] = ids.map(id => byId.get(id));
+        const [sa, sb] = ids.map(id => strengths[week]?.[id]);
+        if (![sa, sb].every(value => value && Number.isFinite(value.points) && Number.isFinite(value.variance))) throw new Error(`Week ${week} lineup projections are unavailable.`);
+        const sd = Math.sqrt(sa.variance + sb.variance);
+        const p = sd ? normalCDF((sa.points - sb.points) / sd) : sa.points === sb.points ? 0.5 : Number(sa.points > sb.points);
+        [[a, p, sb], [b, 1 - p, sa]].forEach(([row, probability, opponent]) => {
+          row.projectedWins += probability;
+          row.projectedLosses += 1 - probability;
+          row.variance += probability * (1 - probability);
+          row.opponentTotal += opponent.points;
+          row.games++;
+        });
+      });
+    });
+    const tiebreakOrder = typeof standingsOrder === 'function' ? standingsOrder(rows) : standingsOrder;
+    rows.sort((a, b) => Math.abs(b.projectedWins - a.projectedWins) > 1e-9
+      ? b.projectedWins - a.projectedWins : tiebreakOrder.indexOf(a.id) - tiebreakOrder.indexOf(b.id));
+    rows.forEach((row, index) => { row.seed = index + 1; row.opponentAverage = row.games ? row.opponentTotal / row.games : null; });
+    const cutoff = rows[5];
+    rows.forEach(row => {
+      const variance = row.variance + (cutoff?.variance || 0);
+      row.playoffProbability = rows.length <= 6 ? 1 : variance > 0
+        ? normalCDF((row.projectedWins - cutoff.projectedWins) / Math.sqrt(variance)) : Number(row.seed <= 6);
+      row.scheduleRank = row.games ? 1 + rows.filter(other => other.games && other.opponentAverage < row.opponentAverage - 1e-9).length : null;
+    });
+    return rows.sort((a, b) => b.playoffProbability - a.playoffProbability || a.seed - b.seed);
+  }
+
+  const api = { POSITION_SD, SLOT_POSITIONS, normalCDF, forecastWeeks, selectWeeklyStarters, weeklyStrength, seasonOutlook, projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

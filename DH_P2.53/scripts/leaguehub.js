@@ -346,6 +346,7 @@
       matrixSort: { key: 'overall', direction: 'desc' },
       playerProjections: {},
       projectionMeta: {},
+      seasonOutlook: null,
       analysisRequestToken: 0,
       isSuperflex: false,
       cache: {},
@@ -457,6 +458,7 @@
         currentRadarMetric: state.currentRadarMetric,
         playerProjections: state.playerProjections,
         projectionMeta: state.projectionMeta,
+        seasonOutlook: state.seasonOutlook,
         isSuperflex: state.isSuperflex,
         careerStatsByOwner: state.careerStatsByOwner,
         teams: state.teams,
@@ -484,6 +486,7 @@
       state.currentRadarMetric = snapshot.currentRadarMetric;
       state.playerProjections = snapshot.playerProjections;
       state.projectionMeta = snapshot.projectionMeta;
+      state.seasonOutlook = snapshot.seasonOutlook;
       state.isSuperflex = snapshot.isSuperflex;
       state.careerStatsByOwner = snapshot.careerStatsByOwner;
       state.teams = snapshot.teams;
@@ -3064,6 +3067,16 @@
         const leagueInfo = await response.json();
         if (requestToken !== state.analysisRequestToken) return false;
         const analyzerSources = resolveAnalyzerSources(leagueInfo);
+        // One fresh, single-flight request map per analysis. Re-selecting a league
+        // must refresh actual records, completion state, schedules and forecasts.
+        const requests = new Map();
+        const loadJson = url => {
+          if (!requests.has(url)) requests.set(url, fetch(url, { cache: 'no-store' }).then(response => {
+            if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+            return response.json();
+          }));
+          return requests.get(url);
+        };
 
         syncLeagueSelectValues(leagueId);
         state.currentLeagueId = leagueId;
@@ -3083,7 +3096,7 @@
           ]);
 
         const [rosters, users, tradedPicks, championData, standingsData, careerStatsByOwner] = await Promise.all([
-          fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`),
+          loadJson(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/rosters`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/users`),
           fetchWithCache(`https://api.sleeper.app/v1/league/${analyzerSources.rosterLeagueId}/traded_picks`),
           fetchAnalyzerChampionData(leagueInfo),
@@ -3091,7 +3104,10 @@
           fetchAnalyzerCareerStats(leagueInfo),
         ]);
 
-        const projections = await fetchAnalysisProjections(leagueInfo, rosters);
+        const [projections, outlookData] = await Promise.all([
+          fetchAnalysisProjections(leagueInfo, rosters, loadJson),
+          fetchSeasonOutlookData(leagueInfo, rosters, loadJson),
+        ]);
         if (requestToken !== state.analysisRequestToken) return false;
         state.playerProjections = projections.values;
         state.projectionMeta = projections.meta;
@@ -3110,6 +3126,7 @@
           championData,
         );
 
+        state.seasonOutlook = calculateSeasonOutlook(processed.teams, leagueInfo, outlookData);
         state.teams = processed.teams;
         state.standingsTeams = standingsTeams;
         state.careerStatsByOwner = careerStatsByOwner;
@@ -3127,6 +3144,7 @@
         renderOverallChart(state.teams);
         renderRadarChart(state.teams, state.radarSlots);
         renderStandings(state.standingsTeams);
+        renderSeasonOutlook();
         renderLeagueLeaders();
 
         elements.content.classList.remove('hidden');
@@ -3162,18 +3180,18 @@
     // different forecast and must not replace the provider's season totals.
     // Completed-week actual counts are removed from the season forecast for ROS;
     // no previous-season data is allowed into Contender rankings.
-    async function fetchAnalysisProjections(leagueInfo, rosters) {
+    async function fetchAnalysisProjections(leagueInfo, rosters, loadJson = fetchWithCache) {
       const playerIds = [...new Set(rosters.flatMap(roster => roster.players || []))];
       try {
-        const nfl = await fetchWithCache('https://api.sleeper.app/v1/state/nfl');
+        const nfl = await loadJson('https://api.sleeper.app/v1/state/nfl');
         const weeks = Analysis.projectionWeeks(leagueInfo.season, nfl);
         if (!weeks.length) return { values: {}, meta: { available: false, label: `${leagueInfo.season} season complete · No remaining regular-season projections.` } };
-        const seasonData = await fetchWithCache(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}`);
+        const seasonData = await loadJson(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}`);
         if (!seasonData || !Object.values(seasonData).some(stats => stats?.pts_ppr != null)) throw new Error('Season forecast unavailable.');
         const completed = [];
         for (let start = 1; start < weeks[0]; start += 4) {
           const batch = await Promise.all(Array.from({ length: Math.min(4, weeks[0] - start) }, (_, i) =>
-            fetchWithCache(`https://api.sleeper.app/v1/stats/nfl/regular/${leagueInfo.season}/${start + i}`)));
+            loadJson(`https://api.sleeper.app/v1/stats/nfl/regular/${leagueInfo.season}/${start + i}`)));
           if (batch.some(data => !data || !Object.values(data).some(stats => stats?.pts_ppr != null))) throw new Error('Completed-week stats unavailable.');
           completed.push(...batch);
         }
@@ -3193,6 +3211,125 @@
         console.warn('LeagueHub projections unavailable:', error);
         return { values: {}, meta: { available: false, label: 'PROJ unavailable · Sleeper projections could not be loaded. Reload to retry; Dynasty values remain available.' } };
       }
+    }
+
+    // This forecast has its own Week 14 horizon. Weekly Sleeper stat projections
+    // use the same league-scoring adapter as Contender; season averages never fill
+    // a missing week. Batches bound network concurrency, while loadJson deduplicates.
+    async function fetchSeasonOutlookData(leagueInfo, rosters, loadJson) {
+      try {
+        const nfl = await loadJson('https://api.sleeper.app/v1/state/nfl');
+        const weeks = Analysis.forecastWeeks(leagueInfo, nfl, rosters);
+        const matchups = {}, projections = {};
+        let nflSchedule = {};
+        // The existing 2026 schedule explicitly identifies byes even when Sleeper
+        // omits a player's weekly row. Never infer other missing forecasts as zero.
+        if (weeks.length && Number(leagueInfo.season) === 2026) {
+          const response = await fetch('../data/NFL-2026/Schedule2026.csv', { cache: 'no-store' });
+          if (!response.ok) throw new Error('NFL bye schedule could not be loaded.');
+          nflSchedule = Object.fromEntries(parseCsvRows(await response.text()).map(row => [row.TM, row]));
+          if (!Object.keys(nflSchedule).length) throw new Error('NFL bye schedule is unavailable.');
+        }
+        if (weeks.length && Number(leagueInfo.settings?.league_average_match)) {
+          throw new Error('This head-to-head forecast does not yet support extra league-median games.');
+        }
+        for (let offset = 0; offset < weeks.length; offset += 3) {
+          await Promise.all(weeks.slice(offset, offset + 3).map(async week => {
+            const [schedule, forecast] = await Promise.all([
+              loadJson(`https://api.sleeper.app/v1/league/${leagueInfo.league_id}/matchups/${week}`),
+              loadJson(`https://api.sleeper.app/v1/projections/nfl/regular/${leagueInfo.season}/${week}`),
+            ]);
+            if (!forecast || !Object.values(forecast).some(stats => stats?.pts_ppr != null)) {
+              throw new Error(`Week ${week} player projections have not been published.`);
+            }
+            matchups[week] = schedule;
+            projections[week] = forecast;
+          }));
+        }
+        return { weeks, matchups, projections, nflSchedule };
+      } catch (error) {
+        console.warn('LeagueHub season outlook unavailable:', error);
+        return { error: error.message };
+      }
+    }
+
+    function calculateSeasonOutlook(teams, leagueInfo, data) {
+      try {
+        if (data.error) throw new Error(data.error);
+        const slots = (leagueInfo.roster_positions || []).filter(slot => !['BN', 'IR', 'TAXI'].includes(slot));
+        if (data.weeks.length && (!slots.length || slots.some(slot => !Analysis.SLOT_POSITIONS[slot]))) {
+          throw new Error('This projection-error model supports QB, RB, WR, TE and their FLEX slots.');
+        }
+        const sequence = slots.map(slot => ({ type: normalizeSlot(slot), label: slot, eligibility: Analysis.SLOT_POSITIONS[slot] }));
+        const strengths = {};
+        let missing = 0;
+        const playerPools = new Map(teams.map(team => {
+          // Match the shared Analyzer roster pool: future weekly forecasts can
+          // include a currently reserved player who returns later in the season.
+          const players = team.allPlayers.filter(player => POSITION_ORDER.includes(player.pos));
+          const capacity = Analysis.selectWeeklyStarters(players.map(player => ({ ...player, proj: 0 })), sequence).filter(Boolean).length;
+          return [team, { players, capacity }];
+        }));
+        for (const week of data.weeks) {
+          strengths[week] = {};
+          // Scores and optimal lineups are built once per team/week and shared by
+          // the expected record, playoff estimate, and opponent-strength ranking.
+          for (const team of teams) {
+            const pool = playerPools.get(team);
+            const players = pool.players.map(player => {
+              const nflTeam = state.players[player.id]?.team;
+              const normalizedTeam = ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[nflTeam] || nflTeam;
+              const bye = data.nflSchedule[normalizedTeam]?.[week] === 'BYE';
+              return { ...player, proj: bye ? 0 : Analysis.scoreProjection(data.projections[week][player.id], leagueInfo.scoring_settings, player.pos) };
+            });
+            missing += players.filter(player => !Number.isFinite(player.proj)).length;
+            // A missing bench forecast is excluded; missing enough forecasts to
+            // underfill an otherwise eligible lineup makes the estimate unavailable.
+            const lineup = buildDerivedLineup(players, leagueInfo.roster_positions, sequence, 'proj', true);
+            if (lineup.assignments.filter(slot => slot.player).length < pool.capacity) throw new Error(`Week ${week}: ${team.teamName} is missing starter projections.`);
+            strengths[week][String(team.roster.roster_id)] = Analysis.weeklyStrength(lineup, players);
+          }
+        }
+        // Reuse the normal standings comparator on the projected records, with
+        // actual points-for breaking tied records; do not prefer current win totals.
+        const order = rows => sortTeamsByStandings(rows.map(row => ({ ...row,
+          teamName: row.team.teamName, wins: row.projectedWins, losses: row.projectedLosses,
+          totalFpts: combineScore(row.team.roster.settings?.fpts, row.team.roster.settings?.fpts_decimal),
+        }))).map(row => row.id);
+        return { rows: Analysis.seasonOutlook(teams, data.weeks, data.matchups, strengths, order), weeks: data.weeks, missing };
+      } catch (error) {
+        return { error: error.message, rows: teams.map(team => ({ team })) };
+      }
+    }
+
+    // The Outlook keeps every member visible even if upstream weekly data is
+    // incomplete. Percentage bars, seed chips and schedule shading are decorative;
+    // every estimate remains readable as text and the manager column stays frozen.
+    function renderSeasonOutlook() {
+      const outlook = state.seasonOutlook;
+      const body = document.getElementById('seasonOutlookBody');
+      const status = document.getElementById('seasonOutlookStatus');
+      if (!body || !outlook) return;
+      status.textContent = outlook.error ? `Estimates unavailable · ${outlook.error}`
+        : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–14 · ${outlook.weeks.length} remaining weeks · League scoring${outlook.missing ? ' · Players without weekly forecasts excluded' : ''}`
+          : 'Regular season complete · Final records and seeds';
+      body.innerHTML = outlook.rows.map(row => {
+        const team = row.team;
+        const settings = team.roster.settings || {};
+        const current = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
+        const available = !outlook.error;
+        const pct = available ? row.playoffProbability * 100 : 0;
+        const tier = pct >= 75 ? 'strong' : pct >= 40 ? 'bubble' : 'chasing';
+        const record = available ? `${row.projectedWins.toFixed(1)}–${row.projectedLosses.toFixed(1)}${row.ties ? `–${row.ties}` : ''}` : '—';
+        const sos = row.scheduleRank;
+        const scheduleLabel = sos ? `#${sos} of ${outlook.rows.length}; average opponent projection ${row.opponentAverage.toFixed(1)} points; #1 is easiest` : 'No remaining games';
+        return `<tr class="la-outlook-${available ? tier : 'unavailable'}${team.isUserTeam ? ' la-outlook-user' : ''}">
+          <th scope="row" class="la-outlook-identity"><span title="${escapeHtml(team.teamName)}">${escapeHtml(team.teamName)}</span><small title="${escapeHtml(team.username)}">${escapeHtml(team.username)}${team.isUserTeam ? ' · YOU' : ''}</small></th>
+          <td class="la-outlook-current">${current}</td><td class="la-outlook-record">${record}</td>
+          <td><span class="la-outlook-seed${row.seed <= 6 ? ' la-outlook-seed-in' : ''}">${available ? `#${row.seed}` : '—'}</span></td>
+          <td><div class="la-outlook-odds"><strong>${available ? `${pct.toFixed(1)}<small>%</small>` : '—'}</strong><span class="la-outlook-track" aria-hidden="true"><i style="width:${pct.toFixed(3)}%"></i></span></div></td>
+          <td><span class="la-outlook-sos" title="${escapeHtml(available ? scheduleLabel : 'Estimate unavailable')}" style="--sos-hue:${sos ? Math.round(160 - 130 * (sos - 1) / Math.max(1, outlook.rows.length - 1)) : 160}">${available && sos ? `#${sos}` : '—'}</span></td></tr>`;
+      }).join('');
     }
 
     function processLeagueData(rosters, users, tradedPicks, leagueInfo, radarSlots = []) {
@@ -3326,7 +3463,7 @@
       return (a?.name || '').localeCompare(b?.name || '');
     }
 
-    function buildDerivedLineup(players = [], rosterPositions = [], slotSequence = [], metric = 'value') {
+    function buildDerivedLineup(players = [], rosterPositions = [], slotSequence = [], metric = 'value', weekly = false) {
       const orderedSlots = Array.isArray(slotSequence) && slotSequence.length
         ? slotSequence
         : buildRadarSlots(rosterPositions || []);
@@ -3341,7 +3478,7 @@
       const metricKey = metric === 'proj' ? 'proj' : 'ktc';
       const availableByPos = { QB: [], RB: [], WR: [], TE: [] };
 
-      (players || []).forEach((player) => {
+      (weekly ? [] : players || []).forEach((player) => {
         if (!player?.pos || !availableByPos[player.pos]) return;
         availableByPos[player.pos].push({
           ...player,
@@ -3430,6 +3567,15 @@
           },
         };
       };
+
+      // Forecasts retain the shared assignment/totals shape but select against
+      // actual weekly points and the exact eligibility of each league slot.
+      if (weekly) {
+        Analysis.selectWeeklyStarters(players, orderedSlots).forEach((player, index) => {
+          if (player) applySelection(orderedSlots[index], index, player);
+        });
+        return { startersBySlot, assignments, totals };
+      }
 
       // Analyzer lineup slot filling:
       // exact position requirements are always filled before FLEX leftovers, so the chart

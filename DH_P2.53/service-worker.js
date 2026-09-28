@@ -25,7 +25,7 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Refresh Starter Balance's horizontal axes, edge-to-edge plot, and gradient discs.
-const CACHE_NAME = 'DH3.47s-scatter-design';
+const CACHE_NAME = 'DH3.47t-season-outlook';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

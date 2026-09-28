@@ -115,3 +115,75 @@ test('ties share ranks and ring fill; absent projections do not receive rank one
  assert.equal(A.rank(null,[null,null]),null);assert.equal(A.rankFill(1,12),1);
  assert.equal(A.rankFill(12,12),1/12);assert.equal(A.rankFill(null,12),0);
 });
+
+// Forecast regressions: exercise weekly selection through the shared builder,
+// probability conservation, the sixth-seed bubble and the final Week 14 rollover.
+context.Analysis = A;
+test('weekly optimizer replaces bye starters and allows a WR in SUPER_FLEX', () => {
+ const weeklyPlayers = [
+  {id:'q',pos:'QB',proj:20}, {id:'q2',pos:'QB',proj:0},
+  {id:'w1',pos:'WR',proj:25}, {id:'w2',pos:'WR',proj:18},
+ ].map(player=>({...player,ktc:0,name:player.id}));
+ const weeklySlots = ['SUPER_FLEX','WR','QB'].map(type=>({type,label:type}));
+ const first = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj', true);
+ assert.deepEqual(Array.from(first.assignments,slot=>slot.player.id).sort(),['q','w1','w2']);
+ assert.equal(first.totals.proj,63);
+ assert.ok(first.assignments[0].player.id.startsWith('w'));
+ weeklyPlayers[3].proj=0; weeklyPlayers[1].proj=22;
+ const second = context.buildDerivedLineup(weeklyPlayers, [], weeklySlots, 'proj', true);
+ assert.equal(second.totals.proj,67);
+ assert.ok(second.assignments.some(slot=>slot.player.id==='q2'));
+ const strength=A.weeklyStrength(first,weeklyPlayers);
+ assert.ok(Math.abs(strength.variance-(7.51**2+2*7.81**2))<1e-9);
+});
+test('overlapping restricted flex slots maximize points without reusing players', () => {
+ const players=[{id:'r',pos:'RB',proj:30},{id:'w',pos:'WR',proj:25},{id:'t',pos:'TE',proj:20}];
+ const slots=[{type:'FLEX',eligibility:['WR','TE']},{type:'FLEX',eligibility:['WR','RB']}];
+ assert.deepEqual(A.selectWeeklyStarters(players,slots).map(player=>player.id),['w','r']);
+});
+test('forecast weeks follow actual results and never include Week 15', () => {
+ const nfl={season:'2026',week:4,season_type:'regular'};
+ const league={season:'2026',settings:{start_week:1}};
+ const records=n=>Array.from({length:8},()=>({settings:{wins:n,losses:0,ties:0}}));
+ assert.deepEqual(A.forecastWeeks(league,nfl,records(3)),[4,5,6,7,8,9,10,11,12,13,14]);
+ assert.deepEqual(A.forecastWeeks(league,nfl,records(4)),[5,6,7,8,9,10,11,12,13,14]);
+ assert.deepEqual(A.forecastWeeks({...league,settings:{last_scored_leg:4}},nfl,records(3)),[4,5,6,7,8,9,10,11,12,13,14]);
+ assert.deepEqual(A.forecastWeeks(league,nfl,records(13)),[14]);
+ assert.deepEqual(A.forecastWeeks(league,nfl,records(14)),[]);
+ assert.deepEqual(A.forecastWeeks({...league,season:'2025'},nfl,records(0)),[]);
+});
+function forecastFixture() {
+ const teams=Array.from({length:8},(_,i)=>({teamName:`Team ${i+1}`,roster:{roster_id:i+1,settings:{wins:6,losses:6,ties:1}}}));
+ const entries=teams.map((team,i)=>({roster_id:i+1,matchup_id:Math.floor(i/2)+1}));
+ const strengths=Object.fromEntries(teams.map((team,i)=>[i+1,{points:i%2?160:170,variance:625}]));
+ const order=teams.map(team=>String(team.roster.roster_id));
+ return {teams,entries,strengths,order};
+}
+test('expected wins conserve games; 170 vs 160 is about 61/39, not a guaranteed win', () => {
+ const f=forecastFixture();
+ const rows=A.seasonOutlook(f.teams,[14],{14:f.entries},{14:f.strengths},f.order);
+ const a=rows.find(row=>row.id==='1'),b=rows.find(row=>row.id==='2');
+ assert.ok(Math.abs((a.projectedWins-6)-.61135)<.001);
+ assert.ok(Math.abs(a.projectedWins+b.projectedWins-13)<1e-10);
+ assert.ok(Math.abs(a.projectedWins+a.projectedLosses+a.ties-14)<1e-10);
+ assert.equal(a.games,1);
+ assert.ok(a.variance>0);
+ assert.equal(a.scheduleRank,1);
+ assert.equal(b.scheduleRank,5);
+ assert.equal(rows.find(row=>row.seed===6).playoffProbability,.5);
+ assert.ok(rows.every((row,i)=>!i||rows[i-1].playoffProbability>=row.playoffProbability));
+ assert.deepEqual(A.seasonOutlook(f.teams,[14],{14:f.entries},{14:f.strengths},f.order),rows);
+});
+test('settled records use standings tie breaks and show no ROS rank', () => {
+ const f=forecastFixture();
+ const rows=A.seasonOutlook(f.teams,[],{},{},f.order);
+ assert.deepEqual(rows.map(row=>row.id),f.order);
+ assert.ok(rows.slice(0,6).every(row=>row.playoffProbability===1));
+ assert.ok(rows.slice(6).every(row=>row.playoffProbability===0));
+ assert.ok(rows.every(row=>row.scheduleRank===null&&row.projectedWins===6&&row.ties===1));
+});
+test('incomplete future schedule is unavailable instead of a shortened projection', () => {
+ const f=forecastFixture();
+ assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:[]},{14:f.strengths},f.order),/schedule/);
+ assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:f.entries.map(row=>({...row,matchup_id:null}))},{14:f.strengths},f.order),/scheduled/);
+});
