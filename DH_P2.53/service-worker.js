@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's playoff gauge and projected-seed styling.
-const CACHE_NAME = 'DH3.47w-playoff-gauge';
+// Refresh League Analyzer's refined playoff gauge layout and colors.
+const CACHE_NAME = 'DH3.47x-gauge-refinement';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
