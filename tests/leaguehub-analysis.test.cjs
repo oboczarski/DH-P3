@@ -187,3 +187,25 @@ test('incomplete future schedule is unavailable instead of a shortened projectio
  assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:[]},{14:f.strengths},f.order),/schedule/);
  assert.throws(()=>A.seasonOutlook(f.teams,[14],{14:f.entries.map(row=>({...row,matchup_id:null}))},{14:f.strengths},f.order),/scheduled/);
 });
+test('omitted player rows become zero-point choices while published scores decide that week', () => {
+ const scoring={rec:1};
+ const candidates=[
+  {id:'missing',pos:'WR',proj:A.weeklyOutlookPoints(undefined,scoring,'WR')},
+  {id:'bye',pos:'WR',proj:A.weeklyOutlookPoints({rec:12},scoring,'WR',true)},
+  {id:'active',pos:'WR',proj:A.weeklyOutlookPoints({rec:8},scoring,'WR')},
+ ];
+ assert.deepEqual(A.selectWeeklyStarters(candidates,[{type:'WR'}]).map(player=>player.id),['active']);
+ assert.equal(candidates[0].proj,0);
+ assert.equal(candidates[1].proj,0);
+});
+test('uncertain playoff odds stay scaled while proven clinches and eliminations remain exact', () => {
+ const uncertain=forecastFixture();
+ const rows=A.seasonOutlook(uncertain.teams,[14],{14:uncertain.entries},{14:uncertain.strengths},uncertain.order);
+ assert.ok(rows.every(row=>row.playoffProbability>=.04&&row.playoffProbability<=.97));
+ assert.equal(rows.find(row=>row.seed===6).playoffProbability,.5);
+ const certain=forecastFixture();
+ [10,7,7,7,7,7,7,0].forEach((wins,i)=>{certain.teams[i].roster.settings.wins=wins;});
+ const final=A.seasonOutlook(certain.teams,[14],{14:certain.entries},{14:certain.strengths},certain.order);
+ assert.equal(final.find(row=>row.id==='1').playoffProbability,1);
+ assert.equal(final.find(row=>row.id==='8').playoffProbability,0);
+});

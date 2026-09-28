@@ -56,6 +56,14 @@
     return settings.reduce((total, [key, weight]) => total + (Number(derived[key]) || 0) * Number(weight), 0);
   }
 
+  // Outlook only: an omitted player row in an otherwise published week is a
+  // zero-point option, so it cannot invalidate a team's optimal lineup.
+  function weeklyOutlookPoints(stats, scoring, position, bye = false) {
+    if (bye) return 0;
+    const points = scoreProjection(stats, scoring, position);
+    return Number.isFinite(points) ? points : 0;
+  }
+
   function rank(value, population) {
     if (!Number.isFinite(value)) return null;
     // Competition ranks preserve ties (1, 1, 3), using displayed precision.
@@ -292,14 +300,21 @@
     const cutoff = rows[5];
     rows.forEach(row => {
       const variance = row.variance + (cutoff?.variance || 0);
-      row.playoffProbability = rows.length <= 6 ? 1 : variance > 0
+      const rawProbability = rows.length <= 6 ? 1 : variance > 0
         ? normalCDF((row.projectedWins - cutoff.projectedWins) / Math.sqrt(variance)) : Number(row.seed <= 6);
+      // Exact zero/one needs a mathematical elimination or clinch. With games
+      // left, spread uncertain odds smoothly over 4–97% around a 50% bubble;
+      // this preserves differences between very high or very low raw estimates.
+      const eliminated = rows.filter(other => other !== row && other.wins > row.wins + row.games + 1e-9).length >= 6;
+      const clinched = rows.filter(other => other !== row && other.wins + other.games >= row.wins - 1e-9).length <= 5;
+      row.playoffProbability = !weeks.length ? Number(row.seed <= 6) : eliminated ? 0 : clinched ? 1
+        : rawProbability <= 0.5 ? 0.04 + rawProbability * 0.92 : 0.5 + (rawProbability - 0.5) * 0.94;
       row.scheduleRank = row.games ? 1 + rows.filter(other => other.games && other.opponentAverage < row.opponentAverage - 1e-9).length : null;
     });
     return rows.sort((a, b) => b.playoffProbability - a.playoffProbability || a.seed - b.seed);
   }
 
-  const api = { POSITION_SD, SLOT_POSITIONS, normalCDF, forecastWeeks, selectWeeklyStarters, weeklyStrength, seasonOutlook, projectionWeeks, scoringStats, remainingProjection, scoreProjection, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
+  const api = { POSITION_SD, SLOT_POSITIONS, normalCDF, forecastWeeks, selectWeeklyStarters, weeklyStrength, seasonOutlook, projectionWeeks, scoringStats, remainingProjection, scoreProjection, weeklyOutlookPoints, rank, rankFill, quality, selectDepth, barSegments, sumProjections, starterScatterRankings };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LeagueHubAnalysis = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -3262,31 +3262,27 @@
         }
         const sequence = slots.map(slot => ({ type: normalizeSlot(slot), label: slot, eligibility: Analysis.SLOT_POSITIONS[slot] }));
         const strengths = {};
-        let missing = 0;
         const playerPools = new Map(teams.map(team => {
           // Match the shared Analyzer roster pool: future weekly forecasts can
           // include a currently reserved player who returns later in the season.
           const players = team.allPlayers.filter(player => POSITION_ORDER.includes(player.pos));
-          const capacity = Analysis.selectWeeklyStarters(players.map(player => ({ ...player, proj: 0 })), sequence).filter(Boolean).length;
-          return [team, { players, capacity }];
+          return [team, players];
         }));
         for (const week of data.weeks) {
           strengths[week] = {};
           // Scores and optimal lineups are built once per team/week and shared by
           // the expected record, playoff estimate, and opponent-strength ranking.
           for (const team of teams) {
-            const pool = playerPools.get(team);
-            const players = pool.players.map(player => {
+            const players = playerPools.get(team).map(player => {
               const nflTeam = state.players[player.id]?.team;
               const normalizedTeam = ({ JAC: 'JAX', WSH: 'WAS', LA: 'LAR' })[nflTeam] || nflTeam;
               const bye = data.nflSchedule[normalizedTeam]?.[week] === 'BYE';
-              return { ...player, proj: bye ? 0 : Analysis.scoreProjection(data.projections[week][player.id], leagueInfo.scoring_settings, player.pos) };
+              // Sleeper omits many bye, inactive, and deep-bench player rows. A
+              // missing individual row contributes zero, while published weekly
+              // scores still decide the optimal lineup for this specific week.
+              return { ...player, proj: Analysis.weeklyOutlookPoints(data.projections[week][player.id], leagueInfo.scoring_settings, player.pos, bye) };
             });
-            missing += players.filter(player => !Number.isFinite(player.proj)).length;
-            // A missing bench forecast is excluded; missing enough forecasts to
-            // underfill an otherwise eligible lineup makes the estimate unavailable.
             const lineup = buildDerivedLineup(players, leagueInfo.roster_positions, sequence, 'proj', true);
-            if (lineup.assignments.filter(slot => slot.player).length < pool.capacity) throw new Error(`Week ${week}: ${team.teamName} is missing starter projections.`);
             strengths[week][String(team.roster.roster_id)] = Analysis.weeklyStrength(lineup, players);
           }
         }
@@ -3296,7 +3292,7 @@
           teamName: row.team.teamName, wins: row.projectedWins, losses: row.projectedLosses,
           totalFpts: combineScore(row.team.roster.settings?.fpts, row.team.roster.settings?.fpts_decimal),
         }))).map(row => row.id);
-        return { rows: Analysis.seasonOutlook(teams, data.weeks, data.matchups, strengths, order), weeks: data.weeks, missing };
+        return { rows: Analysis.seasonOutlook(teams, data.weeks, data.matchups, strengths, order), weeks: data.weeks };
       } catch (error) {
         return { error: error.message, rows: teams.map(team => ({ team })) };
       }
@@ -3311,22 +3307,25 @@
       const status = document.getElementById('seasonOutlookStatus');
       if (!body || !outlook) return;
       status.textContent = outlook.error ? `Estimates unavailable · ${outlook.error}`
-        : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–14 · ${outlook.weeks.length} remaining weeks · League scoring${outlook.missing ? ' · Players without weekly forecasts excluded' : ''}`
+        : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–14 · ${outlook.weeks.length} remaining weeks`
           : 'Regular season complete · Final records and seeds';
-      body.innerHTML = outlook.rows.map(row => {
+      body.innerHTML = outlook.rows.map((row, index) => {
         const team = row.team;
         const settings = team.roster.settings || {};
         const current = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
         const available = !outlook.error;
         const pct = available ? row.playoffProbability * 100 : 0;
-        const tier = pct >= 75 ? 'strong' : pct >= 40 ? 'bubble' : 'chasing';
-        const record = available ? `${row.projectedWins.toFixed(1)}–${row.projectedLosses.toFixed(1)}${row.ties ? `–${row.ties}` : ''}` : '—';
+        const palette = index < 4 ? 'dynasty' : index < 8 ? 'contender' : 'roster';
+        const seedTone = index >= 4 && index < 6 ? ' la-outlook-seed-bright' : index >= 6 && index < 8 ? ' la-outlook-seed-dim' : '';
+        const recordTone = row.seed <= 3 ? 'top' : row.seed > outlook.rows.length - 3 ? 'bottom'
+          : row.projectedWins > row.projectedLosses ? 'ahead' : 'behind';
+        const record = available ? `<span class="la-outlook-record-parts la-outlook-record-${recordTone}"><span class="la-outlook-wins">${row.projectedWins.toFixed(1)}</span><span class="la-outlook-dash">–</span><span class="la-outlook-losses">${row.projectedLosses.toFixed(1)}</span>${row.ties ? `<span class="la-outlook-dash">–</span><span>${row.ties}</span>` : ''}</span>` : '—';
         const sos = row.scheduleRank;
         const scheduleLabel = sos ? `#${sos} of ${outlook.rows.length}; average opponent projection ${row.opponentAverage.toFixed(1)} points; #1 is easiest` : 'No remaining games';
-        return `<tr class="la-outlook-${available ? tier : 'unavailable'}${team.isUserTeam ? ' la-outlook-user' : ''}">
+        return `<tr class="la-outlook-palette--${palette}${team.isUserTeam ? ' la-outlook-user' : ''}">
           <th scope="row" class="la-outlook-identity"><span title="${escapeHtml(team.teamName)}">${escapeHtml(team.teamName)}</span><small title="${escapeHtml(team.username)}">${escapeHtml(team.username)}${team.isUserTeam ? ' · YOU' : ''}</small></th>
           <td class="la-outlook-current">${current}</td><td class="la-outlook-record">${record}</td>
-          <td><span class="la-outlook-seed${row.seed <= 6 ? ' la-outlook-seed-in' : ''}">${available ? `#${row.seed}` : '—'}</span></td>
+          <td><span class="la-outlook-seed${seedTone}">${available ? `#${row.seed}` : '—'}</span></td>
           <td><div class="la-outlook-odds"><strong>${available ? `${pct.toFixed(1)}<small>%</small>` : '—'}</strong><span class="la-outlook-track" aria-hidden="true"><i style="width:${pct.toFixed(3)}%"></i></span></div></td>
           <td><span class="la-outlook-sos" title="${escapeHtml(available ? scheduleLabel : 'Estimate unavailable')}" style="--sos-hue:${sos ? Math.round(160 - 130 * (sos - 1) / Math.max(1, outlook.rows.length - 1)) : 160}">${available && sos ? `#${sos}` : '—'}</span></td></tr>`;
       }).join('');

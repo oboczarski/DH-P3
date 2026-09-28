@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Starter Balance's horizontal axes, edge-to-edge plot, and gradient discs.
-const CACHE_NAME = 'DH3.47t-season-outlook';
+// Refresh League Analyzer's mobile Outlook layout and revised weekly estimates.
+const CACHE_NAME = 'DH3.47u-season-outlook-mobile';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

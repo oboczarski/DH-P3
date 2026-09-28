@@ -28,7 +28,7 @@
   <link href="../styles/styles.css?v=20260902-leaguehub-user-switch" rel="stylesheet" />
   <!-- LeagueHub page-specific styles (extracted from styles.css) -->
   <link rel="stylesheet" href="../styles/leaguehub.css?v=DH3.46g-analysis" />
-  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.47t-season-outlook" />
+  <link rel="stylesheet" href="../styles/leaguehub-analysis.css?v=DH3.47u-season-outlook-mobile" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png?v=20250926r5c" />
   <link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png?v=20250926r5c" />
@@ -333,12 +333,11 @@
               <p class="la-outlook-status" id="seasonOutlookStatus" role="status">Loading weekly matchup projections…</p>
               <div class="la-outlook-scroll" tabindex="0" role="region" aria-label="Season outlook; scroll for all columns">
                 <table class="la-outlook-table" aria-describedby="seasonOutlookStatus seasonOutlookMethod">
-                  <thead><tr><th scope="col">TEAM / MANAGER</th><th scope="col">CURRENT<br>RECORD</th><th scope="col">PROJECTED<br>RECORD</th><th scope="col">PROJECTED<br>SEED</th><th scope="col" aria-sort="descending">PLAYOFF % <span aria-hidden="true">↓</span></th><th scope="col" title="#1 is the easiest remaining schedule">ROS SOS</th></tr></thead>
+                  <thead><tr><th scope="col">TEAM / MANAGER</th><th scope="col">RECORD</th><th scope="col">PROJECTED<br>RECORD</th><th scope="col">PROJECTED<br>SEED</th><th scope="col" aria-sort="descending">PLAYOFF<br>PROBABILITY <span class="la-outlook-sort-arrow" aria-hidden="true">➜</span></th><th scope="col" title="#1 is the easiest remaining schedule">ROS SOS</th></tr></thead>
                   <tbody id="seasonOutlookBody"></tbody>
                 </table>
               </div>
-              <p class="la-outlook-method" id="seasonOutlookMethod">Data-driven estimates, not guarantees. Records and playoff odds combine historical projection accuracy from 11,500+ player and 1,200+ team projection-vs-actual results with weekly optimal lineups and remaining schedules.</p>
-              <div class="la-outlook-key"><span><i aria-hidden="true"></i>Projected top six</span><span>ROS SOS: #1 = easiest</span></div>
+              <p class="la-outlook-method" id="seasonOutlookMethod">✦ Data-driven estimates, not guarantees. Projected records and playoff odds are calculated using historical projection accuracy from 11,500+ player and 1,200+ team projection-vs.-actual results, along with weekly optimal lineups and remaining schedules.</p>
             </section>
           <section class="analyzer-panel glass-panel la-standings-panel" id="league-table-panel" aria-label="League Table — Season and Career Overview">
                       <div class="analyzer-standings" aria-live="polite">
@@ -492,8 +491,8 @@
     </main>
   </div>
 
-  <script src="../scripts/leaguehub-analysis.js?v=DH3.47t-season-outlook"></script>
-  <script src="../scripts/leaguehub.js?v=DH3.47t-season-outlook"></script>
+  <script src="../scripts/leaguehub-analysis.js?v=DH3.47u-season-outlook-mobile"></script>
+  <script src="../scripts/leaguehub.js?v=DH3.47u-season-outlook-mobile"></script>
   <script defer src="../scripts/app.js?v=20260902-leaguehub-user-switch"></script>
 </body>
 
