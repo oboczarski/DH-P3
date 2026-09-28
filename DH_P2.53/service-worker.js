@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's refined playoff gauge layout and colors.
-const CACHE_NAME = 'DH3.47x-gauge-refinement';
+// Refresh League Analyzer's three selectable playoff gauge designs.
+const CACHE_NAME = 'DH3.47y-gauge-tester';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

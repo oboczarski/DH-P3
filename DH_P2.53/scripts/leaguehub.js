@@ -347,6 +347,7 @@
       playerProjections: {},
       projectionMeta: {},
       seasonOutlook: null,
+      playoffGaugeStyle: 'orbit',
       analysisRequestToken: 0,
       isSuperflex: false,
       cache: {},
@@ -662,6 +663,20 @@
       refine.querySelector('summary')?.focus();
     });
     wireQualityMatrixControls();
+    // The Playoff Outlook tester switches only its visual skin. Event delegation
+    // survives summary rerenders, and the selected style stays during this visit.
+    elements.summaryStats?.addEventListener('click', event => {
+      const button = event.target.closest('button[data-gauge-option]');
+      const gauge = button?.closest('.la-playoff-gauge');
+      if (!gauge) return;
+      const style = button.dataset.gaugeOption;
+      if (!['orbit', 'facet', 'signal'].includes(style)) return;
+      state.playoffGaugeStyle = style;
+      gauge.dataset.gaugeStyle = style;
+      gauge.querySelectorAll('button[data-gauge-option]').forEach(option => {
+        option.setAttribute('aria-pressed', String(option === button));
+      });
+    });
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
     [elements.startersCanvas, elements.overallCanvas, elements.radarCanvas?.parentElement]
@@ -3751,23 +3766,30 @@
       const available = Boolean(row && Number.isFinite(row.playoffProbability));
       const probability = available ? Math.max(0, Math.min(100, row.playoffProbability * 100)) : 0;
       const palette = row?.seed <= 4 ? 'leaders' : row?.seed <= 8 ? 'contender' : 'roster';
+      const style = ['orbit', 'facet', 'signal'].includes(state.playoffGaugeStyle) ? state.playoffGaugeStyle : 'orbit';
       const settings = team.roster.settings || {};
       const record = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
       const username = escapeHtml(state.connectedUsername || team.username);
-      const arc = 'M24 112 A126 82 0 0 1 276 112';
-      return `<article class="la-playoff-gauge la-playoff-gauge--${palette}${available ? '' : ' is-unavailable'}" aria-labelledby="playoffGaugeTitle">
+      // This ellipse is only a little lower than the original semicircle; all
+      // three designs share its geometry so the tester compares style fairly.
+      const arc = 'M20 145 A130 118 0 0 1 280 145';
+      const tester = [['orbit', 'Orbit'], ['facet', 'Facet'], ['signal', 'Signal']]
+        .map(([value, label]) => `<button type="button" data-gauge-option="${value}" aria-pressed="${style === value}">${label}</button>`).join('');
+      return `<article class="la-playoff-gauge la-playoff-gauge--${palette}${available ? '' : ' is-unavailable'}${available && probability === 0 ? ' is-zero' : ''}" data-gauge-style="${style}" aria-labelledby="playoffGaugeTitle">
         <header><h2 id="playoffGaugeTitle">Playoff Outlook</h2><span class="la-gauge-manager" title="@${username}">@${username}</span></header>
         <div class="la-gauge-graphic" role="meter" aria-label="Your playoff probability" aria-valuemin="0" aria-valuemax="100" ${available ? `aria-valuenow="${probability.toFixed(1)}" aria-valuetext="${probability.toFixed(1)} percent"` : 'aria-valuetext="Estimate unavailable"'}>
-          <svg viewBox="0 0 300 135" aria-hidden="true" focusable="false">
-            <defs><linearGradient id="laPlayoffGaugeGradient" x1="24" y1="0" x2="276" y2="0" gradientUnits="userSpaceOnUse"><stop class="la-gauge-stop-start" offset="0%"/><stop class="la-gauge-stop-mid" offset="55%"/><stop class="la-gauge-stop-end" offset="100%"/></linearGradient></defs>
+          <svg viewBox="0 0 300 165" aria-hidden="true" focusable="false">
+            <defs><linearGradient id="laPlayoffGaugeGradient" x1="20" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse"><stop class="la-gauge-stop-start" offset="0%"/><stop class="la-gauge-stop-mid" offset="55%"/><stop class="la-gauge-stop-end" offset="100%"/></linearGradient></defs>
             <path class="la-gauge-track" d="${arc}" pathLength="100"/>
+            <path class="la-gauge-echo" d="M29 145 A121 109 0 0 1 271 145" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
             <path class="la-gauge-glow" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
             <path class="la-gauge-progress" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
-            <path class="la-gauge-ticks" d="M57 49 L65 57 M150 20 L150 30 M243 49 L235 57"/>
-            <text class="la-gauge-tick-label" x="45" y="38">25%</text><text class="la-gauge-tick-label" x="150" y="13" text-anchor="middle">50%</text><text class="la-gauge-tick-label" x="255" y="38" text-anchor="end">75%</text>
+            <path class="la-gauge-ticks" d="M57 54 L64 62 M150 17 L150 28 M243 54 L236 62"/>
+            <text class="la-gauge-tick-label" x="43" y="44">25%</text><text class="la-gauge-tick-label" x="150" y="11" text-anchor="middle">50%</text><text class="la-gauge-tick-label" x="257" y="44" text-anchor="end">75%</text>
           </svg>
-          <div class="la-gauge-reading" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF PROBABILITY</span></div>
+          <div class="la-gauge-core" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF ODDS</span></div>
         </div>
+        <div class="la-gauge-tester" role="group" aria-label="Gauge design tester"><span>DESIGN TESTER</span><div>${tester}</div></div>
         <div class="la-gauge-footer"><div><span>CURRENT RECORD</span><strong>${record}</strong></div><div><span>PROJECTED SEED</span><strong>${available ? `#${row.seed}` : '—'}${available ? `<small> / ${outlook.rows.length}</small>` : ''}</strong></div></div>
       </article>`;
     }
