@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the supplied DataHub CAR/G, YBC/A, and rotated YBC Stats header icons.
-const CACHE_NAME = 'DH3.47v-rushing-stat-icons';
+// Refresh League Analyzer's playoff gauge and projected-seed styling.
+const CACHE_NAME = 'DH3.47w-playoff-gauge';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

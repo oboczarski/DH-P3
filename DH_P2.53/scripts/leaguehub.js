@@ -3309,14 +3309,15 @@
       status.textContent = outlook.error ? `Estimates unavailable · ${outlook.error}`
         : outlook.weeks.length ? `Weeks ${outlook.weeks[0]}–14 · ${outlook.weeks.length} remaining weeks`
           : 'Regular season complete · Final records and seeds';
-      body.innerHTML = outlook.rows.map((row, index) => {
+      body.innerHTML = outlook.rows.map(row => {
         const team = row.team;
         const settings = team.roster.settings || {};
         const current = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
         const available = !outlook.error;
         const pct = available ? row.playoffProbability * 100 : 0;
-        const palette = index < 4 ? 'dynasty' : index < 8 ? 'contender' : 'roster';
-        const seedTone = index >= 4 && index < 6 ? ' la-outlook-seed-bright' : index >= 6 && index < 8 ? ' la-outlook-seed-dim' : '';
+        const palette = row.seed <= 4 ? 'dynasty' : row.seed <= 8 ? 'contender' : 'roster';
+        const seedTone = row.seed === 1 ? ' la-outlook-seed--gold' : row.seed <= 4 ? ' la-outlook-seed--silver'
+          : row.seed <= 6 ? ' la-outlook-seed-bright' : row.seed <= 8 ? ' la-outlook-seed-dim' : '';
         const recordTone = row.seed <= 3 ? 'top' : row.seed > outlook.rows.length - 3 ? 'bottom'
           : row.projectedWins > row.projectedLosses ? 'ahead' : 'behind';
         const record = available ? `<span class="la-outlook-record-parts la-outlook-record-${recordTone}"><span class="la-outlook-wins">${row.projectedWins.toFixed(1)}</span><span class="la-outlook-dash">–</span><span class="la-outlook-losses">${row.projectedLosses.toFixed(1)}</span>${row.ties ? `<span class="la-outlook-dash">–</span><span>${row.ties}</span>` : ''}</span>` : '—';
@@ -3741,6 +3742,38 @@
       </article>`;
     }
 
+    // The summary gauge reads the already-calculated user row from Season
+    // Outlook. Its arc is a lightweight SVG; the table and gauge never run
+    // separate schedule, lineup, or probability calculations.
+    function renderPlayoffGauge() {
+      const outlook = state.seasonOutlook;
+      const row = !outlook?.error && outlook?.rows?.find(item => item.team.isUserTeam);
+      const available = Boolean(row && Number.isFinite(row.playoffProbability));
+      const probability = available ? Math.max(0, Math.min(100, row.playoffProbability * 100)) : 0;
+      const palette = row?.seed <= 4 ? 'leaders' : row?.seed <= 8 ? 'contender' : 'roster';
+      // The leaders' violet-to-coral-to-amber arc is unique to this gauge.
+      // Lower seed groups use the table's exact Contender/Roster bar stops.
+      const stops = {
+        leaders: ['#7157d9', '#e16fbd', '#ffbd79'],
+        contender: ['#7363e8', '#5b9ef7', '#a8ddff'],
+        roster: ['#796ef1', '#9c83ff', '#d7b7ff'],
+      }[palette];
+      return `<article class="la-playoff-gauge la-playoff-gauge--${palette}${available ? '' : ' is-unavailable'}" aria-labelledby="playoffGaugeTitle">
+        <header><span class="la-eyebrow">YOUR PATH TO THE PLAYOFFS</span><h2 id="playoffGaugeTitle">Playoff Outlook</h2></header>
+        <div class="la-gauge-graphic" role="meter" aria-label="Your playoff probability" aria-valuemin="0" aria-valuemax="100" ${available ? `aria-valuenow="${probability.toFixed(1)}" aria-valuetext="${probability.toFixed(1)} percent"` : 'aria-valuetext="Estimate unavailable"'}>
+          <svg viewBox="0 0 300 170" aria-hidden="true" focusable="false">
+            <defs><linearGradient id="laPlayoffGaugeGradient" x1="20" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="${stops[0]}"/><stop offset="55%" stop-color="${stops[1]}"/><stop offset="100%" stop-color="${stops[2]}"/></linearGradient></defs>
+            <path class="la-gauge-track" d="M20 145 A130 130 0 0 1 280 145" pathLength="100"/>
+            <path class="la-gauge-progress" d="M20 145 A130 130 0 0 1 280 145" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
+            <path class="la-gauge-ticks" d="M58 50 L66 58 M150 13 L150 24 M242 50 L234 58"/>
+            <text class="la-gauge-tick-label" x="43" y="36">25%</text><text class="la-gauge-tick-label" x="150" y="9" text-anchor="middle">50%</text><text class="la-gauge-tick-label" x="257" y="36" text-anchor="end">75%</text>
+          </svg>
+          <div class="la-gauge-reading" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF PROBABILITY</span></div>
+        </div>
+        <div class="la-gauge-seed"><span>PROJECTED SEED</span><strong>${available ? `#${row.seed}` : '—'}${available ? `<small> / ${outlook.rows.length}</small>` : ''}</strong></div>
+      </article>`;
+    }
+
     // Team rank rings mirror Research's dial: tick marks, gradient arc, inset core,
     // and glowing endpoint. Rank 1 fills the circle; tied ranks have equal fill.
     function renderSummaryStats(teams) {
@@ -3791,7 +3824,7 @@
         <div id="startersScatterChart" class="la-scatter-chart" role="img" aria-label="Starter values versus projected points for each league team"></div>
         <p class="la-scatter-x-title" aria-hidden="true">Projected starter points <span>PROJ →</span></p>
         <p class="la-scatter-note">Rank = average of value + PROJ ranks · PROJ breaks ties.</p><p id="startersScatterMissing" class="la-scatter-missing hidden"></p>
-      </article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>`;
+      </article><div class="la-rank-panel"><div class="la-rank-pair">${rings}</div>${renderSummaryRosterValue(team, teams)}</div><div class="la-summary-aside"><article class="la-champions-card" aria-labelledby="leagueChampionsTitle"><header><span class="la-champions-icon" aria-hidden="true">${leagueChampionsTrophyIcon()}</span><div><span class="la-eyebrow">LEAGUE HISTORY</span><h2 id="leagueChampionsTitle">League Champions</h2></div></header><ol id="leagueChampionsList"></ol></article>${renderPlayoffGauge()}</div>`;
       elements.summaryStats.classList.remove('hidden');
       analysisResizeObserver.observe(document.getElementById('startersScatterChart'));
       analysisResizeObserver.observe(elements.summaryStats.querySelector('.la-rank-panel'));
