@@ -559,19 +559,19 @@ body[data-page="leaguehub"] .la-matrix-tooltip[hidden] { display: none; }
 /* Season Outlook: mobile-first, independently scrolling metrics with a frozen
    identity column. All treatment stays inside the League Analyzer tab. */
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-season-tables { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: start; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-panel {overflow: hidden;background: radial-gradient(ellipse at 100% 0, #477eac26, transparent 58%), radial-gradient(ellipse at 0 100%, #6752aa1c, transparent 55%), #131b2aeb;border-color: #86b8d535;box-shadow: inset 0 1px 0 #cfebff17, 0 16px 36px #03091430;gap: 1px;padding: 8px 14px;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-panel {overflow: hidden;background: radial-gradient(ellipse at 100% 0, #477eac26, transparent 58%), radial-gradient(ellipse at 0 100%, #6752aa1c, transparent 55%), #131b2aeb;border-color: #86b8d535;box-shadow: inset 0 1px 0 #cfebff17, 0 16px 36px #03091430;gap: 0px;padding: 8px 14px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-header h2 {margin: 0;color: #edf5ff;font-size: 20px;font-weight: 650;letter-spacing: -.04em;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-header h2 {margin: 0;color: #edf5ff;font-size: 20px;font-weight: 650;letter-spacing: -.04em;margin-top: -2px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-header .la-eyebrow { color: #8dbbd2; font-size: 8px; letter-spacing: .12em; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-berths { display: flex; align-items: center; gap: 6px; flex-shrink: 0; color: #acc9d8; font-size: 8px; font-weight: 650; letter-spacing: .06em; border: 1px solid #91cce32b; border-radius: 9px; padding: 6px 8px; background: #91cce309; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-berths b { font-size: 22px; line-height: 1; color: #c6edfa; font-weight: 500; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-status { color: #9aaec5; font-size: 10px; line-height: 1.5; margin: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-status {color: #9aaec5;font-size: 10px;line-height: 1.5;margin: 0;margin-top: -3px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-scroll {min-width: 0;overflow-x: auto;border: 1px solid #8caec426;border-radius: 11px;scrollbar-width: thin;scrollbar-color: #668baf50 transparent;zoom: 0.93;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table { width: 100%; min-width: 570px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-variant-numeric: tabular-nums; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table th:first-child { width: 150px; position: sticky; left: 0; z-index: 1; background: #182333; border-right: 1px solid #88aeca22; text-align: left; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table thead th {padding: 9px 5px;color: #9db2ca;background: #93bdda0a;font-size: 10px;letter-spacing: .035em;font-weight: 600;text-align: center;line-height: 1.2;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table thead th {padding: 6px 5px;color: #9db2ca;background: #93bdda0a;font-size: 12px;letter-spacing: .035em;font-weight: 600;text-align: center;line-height: 1.2;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table thead th:first-child { padding-left: 11px; z-index: 2; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table :is(td, tbody th) {border-top: 1px solid #a5c0d512;padding: 3px 6px;height: 25px;text-align: center;color: #c8d4e6;font-size: 12px;}
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table :is(td, tbody th) {border-top: 1px solid #a5c0d512;padding: 4.6px 6px;height: 41px;text-align: center;color: #c8d4e6;font-size: 12px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table tbody tr:nth-child(even) td { background: #99b9e103; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-identity :is(span, small) { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table .la-outlook-identity { padding-left: 11px; }
@@ -592,7 +592,7 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-track i {display: b
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-sos { color: hsl(var(--sos-hue) 45% 76%); border-bottom: 2px solid hsl(var(--sos-hue) 38% 48% / .45); padding: 3px 4px; font-size: 11px; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table .la-outlook-user th { background: #223344; box-shadow: inset 3px 0 0 #8fcae0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-table .la-outlook-user td { background: #8bccea0a; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-method { color: #8393ab; font-size: 9px; line-height: 1.6; margin: 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-method {color: #8393ab;font-size: 9px;line-height: 1.3;margin: 0;margin-top: 6px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-key {display: flex;flex-wrap: wrap;justify-content: space-between;gap: 7px;color: #8d9db6;font-size: 9px;padding-top: 3px;border-top: 1px solid #a5c0d512;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-outlook-key i { display: inline-block; width: 5px; height: 5px; margin-right: 4px; border-radius: 50%; background: #8edec7; }
 @media (min-width: 820px) {
