@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's three selectable playoff gauge designs.
-const CACHE_NAME = 'DH3.47y-gauge-tester';
+// Refresh League Analyzer's three full half-dome playoff gauge designs.
+const CACHE_NAME = 'DH3.47z-gauge-half-dome';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

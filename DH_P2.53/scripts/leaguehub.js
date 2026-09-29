@@ -347,7 +347,7 @@
       playerProjections: {},
       projectionMeta: {},
       seasonOutlook: null,
-      playoffGaugeStyle: 'orbit',
+      playoffGaugeStyle: 'halo',
       analysisRequestToken: 0,
       isSuperflex: false,
       cache: {},
@@ -670,7 +670,7 @@
       const gauge = button?.closest('.la-playoff-gauge');
       if (!gauge) return;
       const style = button.dataset.gaugeOption;
-      if (!['orbit', 'facet', 'signal'].includes(style)) return;
+      if (!['halo', 'dial', 'prism'].includes(style)) return;
       state.playoffGaugeStyle = style;
       gauge.dataset.gaugeStyle = style;
       gauge.querySelectorAll('button[data-gauge-option]').forEach(option => {
@@ -3757,37 +3757,52 @@
       </article>`;
     }
 
-    // The summary gauge reads the already-calculated user row from Season
-    // Outlook while its header and current-record footer use the live member.
-    // Its arc is a lightweight SVG; no forecast work is repeated here.
+    // Short cuts across the rim turn Dial into a graduated instrument gauge.
+    // They are geometry only and are built once for every summary render.
+    const playoffGaugeSegments = Array.from({ length: 19 }, (_, index) => {
+      const angle = Math.PI * (1 - (index + 1) / 20);
+      const x = Math.cos(angle);
+      const y = Math.sin(angle);
+      return `M${(150 + 141 * x).toFixed(1)} ${(145 - 129 * y).toFixed(1)}L${(150 + 119 * x).toFixed(1)} ${(145 - 107 * y).toFixed(1)}`;
+    }).join(' ');
+
+    // The summary gauge uses Season Outlook's existing probability; only its
+    // half-dome, rim details and colors change when the tester is switched.
     function renderPlayoffGauge(team) {
       const outlook = state.seasonOutlook;
       const row = !outlook?.error && outlook?.rows?.find(item => item.team.isUserTeam);
       const available = Boolean(row && Number.isFinite(row.playoffProbability));
       const probability = available ? Math.max(0, Math.min(100, row.playoffProbability * 100)) : 0;
       const palette = row?.seed <= 4 ? 'leaders' : row?.seed <= 8 ? 'contender' : 'roster';
-      const style = ['orbit', 'facet', 'signal'].includes(state.playoffGaugeStyle) ? state.playoffGaugeStyle : 'orbit';
+      const style = ['halo', 'dial', 'prism'].includes(state.playoffGaugeStyle) ? state.playoffGaugeStyle : 'halo';
       const settings = team.roster.settings || {};
       const record = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
       const username = escapeHtml(state.connectedUsername || team.username);
-      // This ellipse is only a little lower than the original semicircle; all
-      // three designs share its geometry so the tester compares style fairly.
+      // The arc and its matching inset half-dome share the same ellipse. The
+      // three styles change the whole shell and rim, never the forecast value.
       const arc = 'M20 145 A130 118 0 0 1 280 145';
-      const tester = [['orbit', 'Orbit'], ['facet', 'Facet'], ['signal', 'Signal']]
+      const angle = Math.PI * (1 - probability / 100);
+      const capX = (150 + 130 * Math.cos(angle)).toFixed(1);
+      const capY = (145 - 118 * Math.sin(angle)).toFixed(1);
+      const tester = [['halo', 'Halo'], ['dial', 'Dial'], ['prism', 'Prism']]
         .map(([value, label]) => `<button type="button" data-gauge-option="${value}" aria-pressed="${style === value}">${label}</button>`).join('');
       return `<article class="la-playoff-gauge la-playoff-gauge--${palette}${available ? '' : ' is-unavailable'}${available && probability === 0 ? ' is-zero' : ''}" data-gauge-style="${style}" aria-labelledby="playoffGaugeTitle">
         <header><h2 id="playoffGaugeTitle">Playoff Outlook</h2><span class="la-gauge-manager" title="@${username}">@${username}</span></header>
         <div class="la-gauge-graphic" role="meter" aria-label="Your playoff probability" aria-valuemin="0" aria-valuemax="100" ${available ? `aria-valuenow="${probability.toFixed(1)}" aria-valuetext="${probability.toFixed(1)} percent"` : 'aria-valuetext="Estimate unavailable"'}>
+          <div class="la-gauge-dome" aria-hidden="true"><span class="la-gauge-dome-rim"></span><span class="la-gauge-dome-detail"></span></div>
           <svg viewBox="0 0 300 165" aria-hidden="true" focusable="false">
             <defs><linearGradient id="laPlayoffGaugeGradient" x1="20" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse"><stop class="la-gauge-stop-start" offset="0%"/><stop class="la-gauge-stop-mid" offset="55%"/><stop class="la-gauge-stop-end" offset="100%"/></linearGradient></defs>
             <path class="la-gauge-track" d="${arc}" pathLength="100"/>
             <path class="la-gauge-echo" d="M29 145 A121 109 0 0 1 271 145" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
             <path class="la-gauge-glow" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
             <path class="la-gauge-progress" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
+            <path class="la-gauge-highlight" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
+            <path class="la-gauge-segments" d="${playoffGaugeSegments}"/>
+            <circle class="la-gauge-cap" cx="${capX}" cy="${capY}" r="3.2"/>
             <path class="la-gauge-ticks" d="M57 54 L64 62 M150 17 L150 28 M243 54 L236 62"/>
             <text class="la-gauge-tick-label" x="43" y="44">25%</text><text class="la-gauge-tick-label" x="150" y="11" text-anchor="middle">50%</text><text class="la-gauge-tick-label" x="257" y="44" text-anchor="end">75%</text>
           </svg>
-          <div class="la-gauge-core" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF ODDS</span></div>
+          <div class="la-gauge-reading" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF PROBABILITY</span></div>
         </div>
         <div class="la-gauge-tester" role="group" aria-label="Gauge design tester"><span>DESIGN TESTER</span><div>${tester}</div></div>
         <div class="la-gauge-footer"><div><span>CURRENT RECORD</span><strong>${record}</strong></div><div><span>PROJECTED SEED</span><strong>${available ? `#${row.seed}` : '—'}${available ? `<small> / ${outlook.rows.length}</small>` : ''}</strong></div></div>
