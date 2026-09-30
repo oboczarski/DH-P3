@@ -24,9 +24,11 @@
         YBC: 'rush_ybc', 'YBC/A': 'ybc_per_att', 'CAR/G': 'car_per_g', 'TGT/G': 'tgt_per_g',
         'YCO/A': 'yco_per_att', 'ExplRu%': 'expl_ru_pct', 'EXPLSV%': 'expl_ru_pct', 'MTF/A': 'mtf_per_att',
         TGT: 'rec_tgt', REC: 'rec', recYDS: 'rec_yd', recTD: 'rec_td', rec1D: 'rec_fd', YAC: 'rec_yar', YPR: 'ypr',
-        // Rosters owns these 2026 RB receiving mappings for weekly/Season views
+        // Rosters owns these 2026 receiving mappings for weekly/Season views
         // and positional ranks; missing sheet fields remain unavailable.
         TPRR: 'tprr', YACR: 'rec_yacr', recYMS: 'rec_yms',
+        // WR/TE production, efficiency, and weekly additions use exact DH/WK headers.
+        recTMS: 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
@@ -79,9 +81,9 @@
             if (!statKey) return;
             if (statKey === 'proj') { stats.proj = String(rawValue ?? '').trim(); return; }
             let number = numberValue(rawValue);
-            // QB percentages and RB receiving yard share accept fractions or
+            // QB percentages and receiving market shares accept fractions or
             // percentage points; TPRR retains its source decimal-ratio units.
-            if (['SNP%', 'BLTZ%', 'TmPa%', 'recYMS'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
+            if (['SNP%', 'BLTZ%', 'TmPa%', 'recYMS', 'recTMS'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
             if (number !== null) stats[statKey] = number;
         });
         if (weekly) stats.__hasRecordedStats = Boolean(row.__hasRecordedStats);

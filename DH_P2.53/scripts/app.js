@@ -4120,7 +4120,7 @@ function buildStatLabels() {
     labels['ppg'] = 'PPG';   // keep if used elsewhere
     labels['ts_per_rr'] = 'TS%';
     labels['fpoe'] = 'FPOE';
-    // Rosters 2026 Game Logs: use the QB and RB WK/DH labels only in this
+    // Rosters 2026 Game Logs: use the current WK/DH labels only in this
     // season; shared 2025 and Stats-page labels remain untouched.
     if (pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         Object.assign(labels, {
@@ -4129,7 +4129,8 @@ function buildStatLabels() {
             rush_ybc: 'YBC', ybc_per_att: 'YBC/A', car_per_g: 'CAR/G', tgt_per_g: 'TGT/G',
             // Receiving labels belong to Rosters' 2026 modal only; the
             // historical CSV map and the separate Stats page keep their schema.
-            tprr: 'TPRR', rec_yacr: 'YACR', rec_yms: 'recYMS'
+            tprr: 'TPRR', rec_yacr: 'YACR', rec_yms: 'recYMS',
+            rec_tms: 'recTMS', tgt_10_plus: '10+ Tgt', ay_per_tgt: 'AY/Tgt'
         });
     }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
@@ -4139,7 +4140,7 @@ function buildStatLabels() {
 // Stats that must not use code-derived fallbacks; sheet is source of truth
 const NO_FALLBACK_KEYS = new Set([
     // Rosters receiving rates use DH/WK values rather than summing weekly ratios.
-    'tprr', 'rec_yacr', 'rec_yms',
+    'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt',
     'yprr',
     'ts_per_rr',
     'imp_per_g',
@@ -5865,8 +5866,25 @@ const SZN_RB_SECTIONS_2026 = SZN_STAT_SECTIONS_BY_POS.RB.map((section) => {
     }
     return section;
 });
+// Rosters 2026 WR/TE Season view: replace the two receiving stacks only;
+// the historical schema and the other positional sections retain their order.
+const SZN_WR_TE_SECTIONS_2026 = Object.fromEntries(['WR', 'TE'].map((position) => [
+    position,
+    SZN_STAT_SECTIONS_BY_POS[position].map((section) => {
+        if (section.id === 'receiving-production') {
+            return { ...section, stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt', 'tgt_10_plus'] };
+        }
+        if (section.id === 'receiving-efficiency') {
+            return { ...section, stats: ['ts_per_rr', 'yprr', 'tprr', 'tgt_per_g', 'rec_yacr', 'first_down_rec_rate', 'rec_ypg', 'ay_pct', 'ay_per_tgt', 'rec_yms', 'rec_tms'] };
+        }
+        return section;
+    })
+]));
 function getSznSectionsForPosition(position) {
     const posKey = typeof position === 'string' ? position.trim().toUpperCase() : '';
+    if (SZN_WR_TE_SECTIONS_2026[posKey] && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
+        return SZN_WR_TE_SECTIONS_2026[posKey];
+    }
     if (posKey === 'RB' && pageType === 'rosters' && state.currentGameLogsSeason === '2026') {
         return SZN_RB_SECTIONS_2026;
     }
@@ -5997,11 +6015,13 @@ function getGameLogsSeasonDisplayValue({
     scoringSettings
 }) {
     if (key === 'proj') return '-';
+    const is2026WtSeason = pageType === 'rosters' && state.currentGameLogsSeason === '2026' && ['WR', 'TE'].includes(player?.pos);
     let displayValue;
 	if (NO_FALLBACK_KEYS.has(key)
-        || (key === 'rec_ypg' && pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player?.pos === 'RB')) {
-        // Added 2026 RB receiving yard rates must stay unavailable without DH
-        // values; the historical per-game fallback remains season-isolated.
+        || (key === 'rec_ypg' && pageType === 'rosters' && state.currentGameLogsSeason === '2026' && player?.pos === 'RB')
+        || (is2026WtSeason && ['rec_ypg', 'ay_pct', 'rz_tgt', 'rr'].includes(key))) {
+        // Current receiving rates and WR/TE source counts stay unavailable
+        // without DH values; historical fallbacks remain season-isolated.
 		const raw = (seasonTotals && typeof seasonTotals[key] === 'number') ? seasonTotals[key] : null;
 		if (raw === null) {
 			displayValue = 'N/A';
@@ -6011,8 +6031,12 @@ function getGameLogsSeasonDisplayValue({
         } else if (key === 'expl_ru_pct') {
             const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
             displayValue = formatPercentage(normalized);
-        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct' || key === 'blitz_pct' || key === 'team_pass_pct' || key === 'rec_yms') {
+        } else if (key === 'snp_pct' || key === 'prs_pct' || key === 'ts_per_rr' || key === 'cmp_pct' || key === 'blitz_pct' || key === 'team_pass_pct' || key === 'rec_yms' || key === 'rec_tms' || (is2026WtSeason && key === 'ay_pct')) {
 			displayValue = formatPercentage(raw);
+        } else if (is2026WtSeason && key === 'first_down_rec_rate') {
+            displayValue = Number(raw).toFixed(3);
+        } else if (is2026WtSeason && ['tgt_per_g', 'ay_per_tgt'].includes(key)) {
+            displayValue = Number(raw).toFixed(1);
         } else if (key === 'tprr') {
             displayValue = Number(raw).toFixed(3);
         } else if (key === 'rec_yacr' || key === 'rec_ypg') {
@@ -7104,6 +7128,14 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'ypc',
         'fum'
     ];
+    // Rosters 2026 WR/TE weekly Game Logs: use the requested source-backed
+    // order, including the new receiving counts, rates, and market shares.
+    const wrTe2026StatOrder = [
+        'fpts', 'proj', 'snp_pct', 'rec_tgt', 'rec', 'ts_per_rr', 'rec_yd', 'rec_td',
+        'yprr', 'tprr', 'rec_fd', 'first_down_rec_rate', 'rec_yar', 'rec_yacr', 'ypr',
+        'imp_per_g', 'rz_tgt', 'tgt_10_plus', 'ay_pct', 'rec_yms', 'rec_tms', 'rr',
+        'fpoe', 'yds_total', 'rush_att', 'rush_yd', 'rush_td', 'ypc', 'fum'
+    ];
     const statGroupByKey = new Map();
     const assignStatGroup = (group, keys) => {
         for (const key of keys) statGroupByKey.set(key, group);
@@ -7122,15 +7154,16 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
         'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct', 'tgt_per_g',
-        'tprr', 'rec_yacr', 'rec_yms'
+        'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt'
     ]);
     const is2026RostersQbLog = pageType === 'rosters' && player.pos === 'QB' && state.currentGameLogsSeason === '2026';
     const is2026RostersRbLog = pageType === 'rosters' && player.pos === 'RB' && state.currentGameLogsSeason === '2026';
+    const is2026RostersWtLog = pageType === 'rosters' && ['WR', 'TE'].includes(player.pos) && state.currentGameLogsSeason === '2026';
     let orderedStatKeys;
     if (player.pos === 'QB') orderedStatKeys = is2026RostersQbLog
         ? qb2026StatOrder : qbStatOrder;
     else if (player.pos === 'RB') orderedStatKeys = is2026RostersRbLog ? rb2026StatOrder : rbStatOrder;
-    else if (player.pos === 'WR' || player.pos === 'TE') orderedStatKeys = wrTeStatOrder;
+    else if (player.pos === 'WR' || player.pos === 'TE') orderedStatKeys = is2026RostersWtLog ? wrTe2026StatOrder : wrTeStatOrder;
     else orderedStatKeys = ['fpts', 'pass_att', 'pass_cmp', 'pass_yd', 'pass_td', 'pass_fd', 'imp_per_g', 'pass_rtg', 'pass_imp', 'pass_imp_per_att', 'rush_att', 'rush_yd', 'ypc', 'rush_td', 'rush_fd', 'ttt', 'prs_pct', 'mtf', 'mtf_per_att', 'rush_yac', 'yco_per_att', 'rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr', 'ts_per_rr', 'rr', 'fum', 'snp_pct', 'yds_total', 'fpoe'];
 
     if (!gameLogs || gameLogs.length === 0) {
@@ -7189,7 +7222,8 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         proj: 32,
         snp_pct: 44,
         ts_per_rr: 38,
-        first_down_rec_rate: 30,
+        // Keep three-decimal W/T route rates readable inside the weekly scroller.
+        first_down_rec_rate: is2026RostersWtLog ? 44 : 30,
         yds_total: 37,
         rush_att: 34,
         rush_td: 35,
@@ -7200,9 +7234,14 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         rec_td: 44,
         ypr: 40,
         yprr: 42,
-        // New RB receiving rates share the existing weekly horizontal scroller.
+        // Current receiving additions share the existing weekly horizontal scroller.
         tprr: 44,
         rec_yacr: 44,
+        rz_tgt: 54,
+        tgt_10_plus: 60,
+        ay_pct: 44,
+        rec_yms: 58,
+        rec_tms: 58,
         ryoe_per_att: 56,
         rz_att: 50,
         gl_att: 50,
@@ -7248,7 +7287,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     const tableColumns = [{
         id: 'week',
         accessorKey: 'week',
-        header: () => is2026RostersQbLog || is2026RostersRbLog ? 'WK · VS' : 'WK  ·  VS ',
+        header: () => is2026RostersQbLog || is2026RostersRbLog || is2026RostersWtLog ? 'WK · VS' : 'WK  ·  VS ',
         size: COLUMN_WIDTHS.week,
         meta: {
             headerClass: 'week-column-header',
@@ -7438,9 +7477,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
                 continue;
             }
             let value;
-            if (NO_FALLBACK_KEYS.has(key) || (is2026RostersRbLog && ['ryoe', 'rr', 'ypr'].includes(key))) {
-                // Source-backed weekly cells keep missing values blank; RB
-                // 2026 also reads RYOE, RR, and YPR from WK directly.
+            if (NO_FALLBACK_KEYS.has(key) || (is2026RostersRbLog && ['ryoe', 'rr', 'ypr'].includes(key))
+                || (is2026RostersWtLog && ['rr', 'rz_tgt', 'ay_pct'].includes(key))) {
+                // Current receiving cells use WK directly so unavailable
+                // counts and shares never become fabricated zeroes.
                 const raw = stats[key];
                 value = (typeof raw === 'number') ? raw : null;
             } else if (key === 'fpts') {
@@ -7526,8 +7566,11 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             // Rosters 2026 RB weekly per-game columns match the Season view's tenths.
             else if (is2026RostersRbLog && /(?:\/G|YPG)$/.test(statLabels[key])) displayValue = value.toFixed(1);
             // Match DH/WK precision: TPRR is a ratio; YACR is yards per reception.
-            else if (is2026RostersRbLog && key === 'tprr') displayValue = value.toFixed(3);
-            else if (is2026RostersRbLog && key === 'rec_yacr') displayValue = value.toFixed(1);
+            else if ((is2026RostersRbLog || is2026RostersWtLog) && key === 'tprr') displayValue = value.toFixed(3);
+            else if ((is2026RostersRbLog || is2026RostersWtLog) && key === 'rec_yacr') displayValue = value.toFixed(1);
+            else if (is2026RostersWtLog && key === 'first_down_rec_rate') displayValue = value.toFixed(3);
+            else if (is2026RostersWtLog && ['ay_pct', 'rec_yms', 'rec_tms'].includes(key)) displayValue = formatPercentage(value);
+            else if (is2026RostersWtLog && ['rz_tgt', 'tgt_10_plus', 'rr'].includes(key)) displayValue = value.toFixed(0);
             else if (key === 'yco_per_att') displayValue = value.toFixed(2);
             else if (key === 'mtf_per_att' || key === 'ypc' || key === 'ttt' || key === 'ypr' || key === 'yprr' || key === 'first_down_rec_rate') displayValue = value.toFixed(2);
             else if (is2026RostersRbLog && key === 'ryoe_per_att') displayValue = value.toFixed(2);

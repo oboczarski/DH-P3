@@ -101,11 +101,15 @@ export const DATAHUB_STAT_SECTIONS = [
     // RB Stats/Season additions stay in the local receiving glossary so their
     // headers and modal labels have matching definitions and tooltip aliases.
     stat("recYMS", "Receiving Yard Market Share", ["rec_yms"], "Percentage of team receiving yards."),
+    // W/T additions share definitions between Stats headers and Game Logs.
+    stat("recTMS", "Receiving Touchdown Market Share", ["rec_tms"], "Percentage of team receiving touchdowns."),
     stat("recTD", "Receiving Touchdowns", ["rec_td"]),
     stat("rec1D", "Receiving First Downs", ["rec_fd"]),
     stat("recIMP", "Receiving Impact Plays", [], "Receiving first downs + receiving touchdowns"),
+    stat("recIMP/R", "Receiving Impact Plays per Reception", [], "Receiving impact plays divided by receptions."),
     stat("RR", "Routes Run", ["rr"]),
     stat("RZ Tgt", "Red Zone Targets", ["rz_tgt"]),
+    stat("10+ Tgt", "10+ Yard Targets", ["tgt_10_plus"]),
     stat("TS%", "Target Share", ["ts_per_rr"]),
     stat("TPRR", "Targets per Route Run", ["tprr"]),
     stat("TGT%", "Target Rate"),
@@ -115,8 +119,9 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("IMP/RR", "Impact Plays per Route Run"),
     stat("YAC", "Yards After Catch", ["rec_yar"]),
     stat("YACR", "Yards After Catch per Reception", ["rec_yacr"]),
-    stat("AY", "Air Yards"),
+    stat("AY", "Air Yards", ["recAY"]),
     stat("AY%", "Air Yards Share", ["ay_pct"]),
+    stat("AY/Tgt", "Air Yards per Target", ["ay_per_tgt"]),
     stat("tgtQBR", "Passer Rating When Targeted"),
     stat("CTST%", "Contested Catch Rate"),
     stat("DROP%", "Drop Rate"),

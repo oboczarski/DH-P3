@@ -106,11 +106,14 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     // Rosters keeps its own RB receiving help rather than importing DataHub's
     // glossary; these aliases cover the 2026 Season and weekly modal labels.
     stat("recYMS", "Receiving Yard Market Share", ["rec_yms"], "Percentage of team receiving yards."),
+    // Rosters' independent help covers the current WR/TE additions.
+    stat("recTMS", "Receiving Touchdown Market Share", ["rec_tms"], "Percentage of team receiving touchdowns."),
     stat("recTD", "Receiving Touchdowns", ["rec_td"]),
     stat("rec1D", "Receiving First Downs", ["rec_fd"]),
     stat("recIMP", "Receiving Impact Plays", [], "Receiving first downs + receiving touchdowns"),
     stat("RR", "Routes Run", ["rr"]),
     stat("RZ Tgt", "Red Zone Targets", ["rz_tgt"]),
+    stat("10+ Tgt", "10+ Yard Targets", ["tgt_10_plus"]),
     stat("TS%", "Target Share", ["ts_per_rr"]),
     stat("TPRR", "Targets per Route Run", ["tprr"]),
     stat("TGT%", "Target Rate"),
@@ -122,6 +125,7 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("YACR", "Yards After Catch per Reception", ["rec_yacr"]),
     stat("AY", "Air Yards"),
     stat("AY%", "Air Yards Share", ["ay_pct"]),
+    stat("AY/Tgt", "Air Yards per Target", ["ay_per_tgt"]),
     stat("tgtQBR", "Passer Rating When Targeted"),
     stat("CTST%", "Contested Catch Rate"),
     stat("DROP%", "Drop Rate"),
@@ -185,7 +189,10 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     tone: "receiving",
     items: [
       { abbr: "1DRR", desc: "First Downs per Route Run" },
+      // WR/TE additions also appear in the modal's full stat key.
+      { abbr: "10+ Tgt", desc: "10+ Yard Targets" },
       { abbr: "AY%", desc: "Air Yards Share" },
+      { abbr: "AY/Tgt", desc: "Air Yards per Target" },
       { abbr: "REC", desc: "Receptions" },
       { abbr: "rec1D", desc: "Receiving First Downs" },
       { abbr: "recTD", desc: "Receiving Touchdowns" },
@@ -193,6 +200,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       // Explain the expanded RB receiving columns in Rosters' own modal key.
       { abbr: "recYPG", desc: "Receiving Yards per Game" },
       { abbr: "recYMS", desc: "Receiving Yard Market Share" },
+      { abbr: "recTMS", desc: "Receiving Touchdown Market Share" },
       { abbr: "RR", desc: "Routes Run" },
       { abbr: "RZ Tgt", desc: "Red Zone Targets" },
       { abbr: "TGT", desc: "Targets" },
@@ -274,9 +282,14 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     rec_td: 44,
     ypr: 40,
     yprr: 42,
-    // Match the Rosters renderer's compact widths for the new RB weekly rates.
+    // Match the renderer's compact widths for current receiving additions.
     tprr: 44,
     rec_yacr: 44,
+    rz_tgt: 54,
+    tgt_10_plus: 60,
+    ay_pct: 44,
+    rec_yms: 58,
+    rec_tms: 58,
     ryoe_per_att: 56,
     rz_att: 50,
     gl_att: 50,
@@ -326,7 +339,11 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     keysByLabel.set('RZ·Att', 'rz_att');
     keysByLabel.set('GL·Att', 'gl_att');
     const keys = headers.map((header, index) => index === 0 ? 'week' : keysByLabel.get(header.textContent.trim()));
-    const sizes = keys.map(key => ROSTERS_GAMELOG_COLUMN_WIDTHS[key] || 54);
+    // The current WR/TE schema includes 10+ Tgt and three-decimal 1DRR.
+    // Preserve its extra rate width across header/body/footer decoration.
+    const isExpandedReceivingTable = keys.includes('tgt_10_plus');
+    const sizes = keys.map(key => key === 'first_down_rec_rate' && isExpandedReceivingTable
+      ? 44 : ROSTERS_GAMELOG_COLUMN_WIDTHS[key] || 54);
     modal.querySelectorAll('.game-logs-table').forEach(table => {
       const total = `${sizes.reduce((sum, size) => sum + size, 0)}px`;
       table.style.width = total;

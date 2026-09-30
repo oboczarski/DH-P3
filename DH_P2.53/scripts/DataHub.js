@@ -1151,6 +1151,20 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
   }),
 });
 
+// 2026 W/T Stats headers reuse the RB glyphs for identical receiving stats.
+// New metrics use previously unused filled Material Symbols (outlined fill1,
+// 24px) through the same inline renderer, with no icon-font dependency.
+const STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026 = Object.freeze({
+  "TGT/G": STATS_COLUMN_ICON_OVERRIDES.rushing["TGT/G"],
+  YACR: STATS_COLUMN_ICON_OVERRIDES.rushing.YACR,
+  recYMS: STATS_COLUMN_ICON_OVERRIDES.rushing.recYMS,
+  "10+ Tgt": '<path d="M400-400h80q33 0 56.5-23.5T560-480v-160q0-33-23.5-56.5T480-720h-40q-33 0-56.5 23.5T360-640v40q0 33 23.5 56.5T440-520h40v40h-80v80Zm80-200h-40v-40h40v40ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm500-360h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80Z"/>', // filter_9_plus: ten or more.
+  AY: '<path d="M340-80v-60l80-60v-220L80-320v-80l340-200v-220q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v220l340 200v80L540-420v220l80 60v60l-140-40-140 40Z"/>', // flight: air yards.
+  "recIMP/R": '<path d="M360-720h80v-80h-80v80Zm160 0v-80h80v80h-80ZM360-400v-80h80v80h-80Zm320-160v-80h80v80h-80Zm0 160v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm160-320v-80h80v80h-80Zm-240 80v-80h80v80h-80ZM200-160v-640h80v80h80v80h-80v80h80v80h-80v320h-80Zm400-320v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm160 0v-80h80v80h-80Zm80-80v-80h80v80h-80Z"/>', // sports_score: receiving impact per reception.
+  "AY/Tgt": '<path d="M160-760v-80h640v80H160Zm280 640v-408L336-424l-56-56 200-200 200 200-56 56-104-104v408h-80Z"/>', // vertical_align_top: target depth.
+  recTMS: '<path d="M593-520q-9-26-27.5-45.5T521-594v-284q143 14 243.5 114.5T879-520H593ZM441-82Q287-97 184-211T81-480q0-155 103-269t257-129v284q-36 13-58 44.5T361-480q0 38 22 68.5t58 43.5v286Zm80 0v-286q26-9 44.5-27.5T593-440h286q-14 143-114.5 243.5T521-82Z"/>', // donut_small: receiving touchdown share.
+});
+
 // ---------------------------------------------------------------------------
 // Column group definitions per view. Each group has a label and lists the
 // exact columns it spans (in-order, matching the active page-view column set).
@@ -1629,6 +1643,27 @@ const STATS_RUSHING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.rushin
 const STATS_RUSHING_COLUMNS_2026 = Object.freeze([
   "RK", "PLAYER", "POS",
   ...STATS_RUSHING_COLUMN_GROUPS_2026.flatMap((group) => group.columns),
+]);
+
+// Current-season W/T Stats owns these exact production/efficiency orders.
+// Deriving the columns from the groups keeps spans aligned while leaving the
+// archived 2025, Rookies, and RB schemas unchanged.
+const STATS_RECEIVING_GROUP_COLUMNS_2026 = Object.freeze({
+  "RECEIVING PRODUCTION": Object.freeze([
+    "TGT", "REC", "recYDS", "recTD", "rec1D", "YAC", "RR", "RZ Tgt", "10+ Tgt", "AY",
+  ]),
+  "RECEIVING EFFICIENCY": Object.freeze([
+    "TS%", "YPRR", "TPRR", "1DRR", "recYPG", "TGT/G", "recIMP/R",
+    "YACR", "AY%", "AY/Tgt", "YPR", "recYMS", "recTMS",
+  ]),
+});
+const STATS_RECEIVING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.receiving.map((group) => Object.freeze({
+  ...group,
+  columns: STATS_RECEIVING_GROUP_COLUMNS_2026[group.label] || group.columns,
+})));
+const STATS_RECEIVING_COLUMNS_2026 = Object.freeze([
+  "RK", "PLAYER", "POS",
+  ...STATS_RECEIVING_COLUMN_GROUPS_2026.flatMap((group) => group.columns),
 ]);
 
 function createRookiesDraftGroup({
@@ -2250,6 +2285,7 @@ const ALL_COLUMNS = [...new Set([
   ...Object.values(STATS_COLUMN_SETS).flat(),
   ...STATS_RUSHING_COLUMNS_2026,
   ...STATS_PASSING_COLUMNS_2026,
+  ...STATS_RECEIVING_COLUMNS_2026,
   ...Object.values(ROOKIES_CAREER_COLUMN_SETS).flat(),
   ...ROOKIES_TRADE_COLUMN_SET,
   ...HIDDEN_ROOKIE_RANK_COLUMNS,
@@ -2481,6 +2517,11 @@ const COLUMN_WIDTHS = {
   "1DRR": 88,
   recYPG: 96,
   recYMS: 96,
+  // W/T additions reserve space for their literal headers and rate values.
+  recTMS: 96,
+  "10+ Tgt": 98,
+  "recIMP/R": 106,
+  "AY/Tgt": 92,
   "AY%": 84,
   AY: 84,
   YPR: 84,
@@ -2635,6 +2676,11 @@ const MOBILE_COLUMN_WIDTHS = {
   "1DRR": 52,
   recYPG: 58,
   recYMS: 58,
+  // Compact W/T additions stay in the existing horizontal scrolling pane.
+  recTMS: 58,
+  "10+ Tgt": 62,
+  "recIMP/R": 70,
+  "AY/Tgt": 58,
   "AY%": 48,
   AY: 54,
   YPR: 48,
@@ -4347,11 +4393,15 @@ function rebuildDataHubRows() {
     return normalizeRow(enrichedRow);
   });
   const statsRowsByPlayerId = buildStatsRowsByPlayerId(statsRowsBase);
-  const stats2026Rows = state.stats2026.rawRows.map((row) => normalizeRow(enrichSeasonRow(row, {
-    oneQbLookup,
-    sflxLookup,
-    adpLookup,
-  })));
+  const stats2026Rows = state.stats2026.rawRows.map((row) => {
+    const enrichedRow = enrichSeasonRow(row, { oneQbLookup, sflxLookup, adpLookup });
+    if (["WR", "TE"].includes(row.POS)) {
+      // 2026 W/T displays the workbook's recAY field as AY; recIMP/R is
+      // already an exact source header and keeps its per-reception value.
+      enrichedRow.AY = row.recAY;
+    }
+    return normalizeRow(enrichedRow);
+  });
   const tradeRowsBase = buildTradeRowsBase({
     sflxSheetData,
     oneQbSheetData,
@@ -4375,10 +4425,10 @@ function rebuildDataHubRows() {
   refreshGrid();
 }
 
-// Rank every Stats schema, including the newer QB/RB columns. This pool is
+// Rank every Stats schema, including the newer QB/RB/W/T columns. This pool is
 // independent of the visible category, search and selected qualifier threshold.
 function rebuildStatsPositionalRanks() {
-  const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026];
+  const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026, ...STATS_RECEIVING_COLUMNS_2026];
   state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, getStatsElapsedWeeks("2025"));
   state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(state.stats2026.rows, columns, "2026", state.stats2026.weeksOfData, getStatsElapsedWeeks("2026"));
 }
@@ -7941,7 +7991,7 @@ function resizeDataHubHeroCharts() {
   }
 }
 
-// Limit the new QB/RB table schemas/formatting/icons to the 2026 Stats selection.
+// Limit the new QB/RB/W/T table schemas/formatting/icons to the 2026 Stats selection.
 // Season switching automatically restores the original 2025 configuration.
 function is2026PassingStatsView() {
   return state.activePageView === "stats" && state.activeCategory === "passing" && state.statsSeason === "2026";
@@ -7951,7 +8001,12 @@ function is2026RushingStatsView() {
   return state.activePageView === "stats" && state.activeCategory === "rushing" && state.statsSeason === "2026";
 }
 
+function is2026ReceivingStatsView() {
+  return state.activePageView === "stats" && state.activeCategory === "receiving" && state.statsSeason === "2026";
+}
+
 function getActiveColumnSet() {
+  if (is2026ReceivingStatsView()) return STATS_RECEIVING_COLUMNS_2026;
   if (is2026RushingStatsView()) return STATS_RUSHING_COLUMNS_2026;
   if (is2026PassingStatsView()) return STATS_PASSING_COLUMNS_2026;
   const viewSets = PAGE_VIEW_COLUMN_SETS[state.activePageView] || PAGE_VIEW_COLUMN_SETS.stats;
@@ -7962,6 +8017,7 @@ function getActiveColumnSet() {
 }
 
 function getActiveColumnGroups() {
+  if (is2026ReceivingStatsView()) return STATS_RECEIVING_COLUMN_GROUPS_2026;
   if (is2026RushingStatsView()) return STATS_RUSHING_COLUMN_GROUPS_2026;
   if (is2026PassingStatsView()) return STATS_PASSING_COLUMN_GROUPS_2026;
   const viewGroups = PAGE_VIEW_COLUMN_GROUPS[state.activePageView] || PAGE_VIEW_COLUMN_GROUPS.stats;
@@ -8043,6 +8099,9 @@ function getActiveFrozenColumnGroups() {
 // requested icons, so resolve the active icon from the current stats category
 // before falling back to the shared column icon registry.
 function getActiveColumnIconMarkup(columnName) {
+  if (is2026ReceivingStatsView() && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName]) {
+    return STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[columnName];
+  }
   if (state.activePageView === "stats") {
     const categoryOverrides = STATS_COLUMN_ICON_OVERRIDES[state.activeCategory];
     if (categoryOverrides?.[columnName]) {
@@ -9680,6 +9739,12 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--rb-2026-material");
     }
+    if (is2026ReceivingStatsView() && STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026[column.name]) {
+      // W/T additions and reused RB icons keep their Material coordinates and
+      // fill treatment while inheriting the current receiving group color.
+      svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
+      svg.classList.add("stats-table__head-icon--wt-2026-material");
+    }
     if (column.name === "PLAYER") {
       // DataHub PLAYER column header icon:
       // PLAYER gets its own class instead of the shared Material class so
@@ -9823,10 +9888,10 @@ function createHeaderCell(column, columnIconColor) {
       svg.setAttribute("viewBox", DATAHUB_MATERIAL_SYMBOL_VIEW_BOX);
       svg.classList.add("stats-table__head-icon--yac-material");
     }
-    if (column.name === "AY") {
+    if (column.name === "AY" && !is2026ReceivingStatsView()) {
       // AY column header icon:
-      // keeps the existing stroke air-yards glyph while giving AY its own
-      // desktop/mobile size hook separate from AY% and other receiving stats.
+      // historical/rookie tables keep the stroke glyph's sizing hook;
+      // current W/T uses the filled Material hook above.
       svg.classList.add("stats-table__head-icon--ay");
     }
     if (column.name === "GRD") {
@@ -11281,6 +11346,16 @@ function formatDisplayValue(columnName, value) {
     return numericValue.toFixed(columnName === "TPRR" ? 3 : 1);
   }
 
+  // W/T Stats uses DH units without rounding the stored sorting/rank values.
+  // Route/reception ratios retain three decimals; yards/per-game values retain tenths.
+  if (is2026ReceivingStatsView() && ["TS%", "AY%", "recYMS", "recTMS", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "YACR", "AY/Tgt"].includes(columnName)) {
+    const numericValue = parseDataHubStatValue(columnName, value);
+    if (numericValue == null) return formatCellValue(value);
+    if (["TS%", "AY%", "recYMS", "recTMS"].includes(columnName)) return formatDataHubPercentage(numericValue);
+    if (["TPRR", "1DRR", "recIMP/R"].includes(columnName)) return numericValue.toFixed(3);
+    if (["recYPG", "TGT/G", "YACR", "AY/Tgt"].includes(columnName)) return numericValue.toFixed(1);
+  }
+
   // Rookie GRD display:
   // targets the rookies career/trade grade column and keeps grade precision
   // stable across source CSVs. RB/WT career files store whole-number grades,
@@ -11685,7 +11760,10 @@ const DATAHUB_STATS_KEY_SECTIONS = [
     tone: "receiving",
     items: [
       { abbr: "1DRR", desc: "First Downs per Route Run" },
+      // Current WR/TE additions are documented in DataHub's own modal key.
+      { abbr: "10+ Tgt", desc: "10+ Yard Targets" },
       { abbr: "AY%", desc: "Air Yards Share" },
+      { abbr: "AY/Tgt", desc: "Air Yards per Target" },
       { abbr: "REC", desc: "Receptions" },
       { abbr: "rec1D", desc: "Receiving First Downs" },
       { abbr: "recTD", desc: "Receiving Touchdowns" },
@@ -11693,6 +11771,7 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       // Explain the expanded RB receiving columns in this page's modal key.
       { abbr: "recYPG", desc: "Receiving Yards per Game" },
       { abbr: "recYMS", desc: "Receiving Yard Market Share" },
+      { abbr: "recTMS", desc: "Receiving Touchdown Market Share" },
       { abbr: "RR", desc: "Routes Run" },
       { abbr: "RZ Tgt", desc: "Red Zone Targets" },
       { abbr: "TGT", desc: "Targets" },
@@ -11790,6 +11869,10 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   YACR: "rec_yacr",
   TPRR: "tprr",
   recYMS: "rec_yms",
+  // W/T DH/WK headers are parsed directly for weekly/Season values and ranks.
+  recTMS: "rec_tms",
+  "10+ Tgt": "tgt_10_plus",
+  "AY/Tgt": "ay_per_tgt",
   YPR: "ypr",
   RR: "rr",
   "RZ Tgt": "rz_tgt",
@@ -11933,6 +12016,20 @@ const DATAHUB_RB_SZN_SECTIONS_2026 = DATAHUB_SZN_STAT_SECTIONS_BY_POS.RB.map((se
   }
   return section;
 });
+// Current WR and TE Season views use the same requested receiving sections,
+// but preserve each position's existing Fantasy and General sections and 2025.
+const DATAHUB_WR_TE_SZN_SECTIONS_2026 = Object.freeze(Object.fromEntries(["WR", "TE"].map((position) => [
+  position,
+  DATAHUB_SZN_STAT_SECTIONS_BY_POS[position].map((section) => {
+    if (section.label === "RECEIVING PRODUCTION") {
+      return { ...section, stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt", "tgt_10_plus"] };
+    }
+    if (section.label === "RECEIVING EFFICIENCY") {
+      return { ...section, stats: ["ts_per_rr", "yprr", "tprr", "tgt_per_g", "rec_yacr", "first_down_rec_rate", "rec_ypg", "ay_pct", "ay_per_tgt", "rec_yms", "rec_tms"] };
+    }
+    return section;
+  }),
+])));
 const DATAHUB_CONSISTENCY_THRESHOLD_MAP = {
   QB: { solid: 16, high: 22 },
   RB: { solid: 12, high: 18 },
@@ -11998,6 +12095,7 @@ const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
   // Receiving rates must stay unavailable when DH/WK omits the source value.
   "tprr", "rec_yacr", "rec_yms",
+  "rec_tms", "tgt_10_plus", "ay_per_tgt",
   "yprr",
   "ts_per_rr",
   "imp_per_g",
@@ -12053,6 +12151,13 @@ const DATAHUB_RB_LOG_ORDER_2026 = [
 const DATAHUB_WR_TE_LOG_ORDER = [
   "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
   "yprr", "rec_fd", "first_down_rec_rate", "rec_yar", "ypr", "imp_per_g", "rr",
+  "fpoe", "yds_total", "rush_att", "rush_yd", "rush_td", "ypc", "fum",
+];
+// Default 2026 WR/TE weekly order is independent of the historical array above.
+const DATAHUB_WR_TE_LOG_ORDER_2026 = [
+  "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
+  "yprr", "tprr", "rec_fd", "first_down_rec_rate", "rec_yar", "rec_yacr", "ypr",
+  "imp_per_g", "rz_tgt", "tgt_10_plus", "ay_pct", "rec_yms", "rec_tms", "rr",
   "fpoe", "yds_total", "rush_att", "rush_yd", "rush_td", "ypc", "fum",
 ];
 const DATAHUB_RANK_COLOR_THRESHOLDS = [
@@ -13100,9 +13205,9 @@ function parseDataHubStatValue(header, value) {
   if (!trimmedValue || trimmedValue.toUpperCase() === "NA") {
     return null;
   }
-  // QB percentages and RB receiving yard share accept explicit percentages,
+  // QB percentages and receiving yard/TD shares accept explicit percentages,
   // fractions, or percentage points. TPRR remains a decimal ratio from DH/WK.
-  if (["SNP%", "BLTZ%", "TmPa%", "recYMS"].includes(header)) {
+  if (["SNP%", "BLTZ%", "TmPa%", "recYMS", "recTMS"].includes(header)) {
     const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
     if (!Number.isFinite(numericPortion)) {
       return null;
@@ -13711,6 +13816,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 
   const is2026QbLog = player.pos === "QB" && state.currentModalSeason === "2026";
   const is2026RbLog = player.pos === "RB" && state.currentModalSeason === "2026";
+  const is2026WtLog = ["WR", "TE"].includes(player.pos) && state.currentModalSeason === "2026";
   const orderedStatKeys = getDataHubLogOrderForPosition(player.pos, state.currentModalSeason);
   const statLabels = DATAHUB_STAT_LABELS;
   const seasonTotals = state.playerSeasonStats?.[player.id] || null;
@@ -13720,7 +13826,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     proj: 32,
     snp_pct: 44,
     ts_per_rr: 38,
-    first_down_rec_rate: 30,
+    // Three-decimal 2026 W/T route rates need room for the value plus padding.
+    first_down_rec_rate: is2026WtLog ? 44 : 30,
     yds_total: 37,
     rush_att: 34,
     rush_td: 35,
@@ -13734,6 +13841,12 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     // Keep the new RB weekly headers compact in the same horizontal scroller.
     tprr: 44,
     rec_yacr: 44,
+    // W/T receiving counts and shares keep their full labels in compact cells.
+    rz_tgt: 54,
+    tgt_10_plus: 60,
+    ay_pct: 44,
+    rec_yms: 58,
+    rec_tms: 58,
     ryoe_per_att: 56,
     rz_att: 50,
     gl_att: 50,
@@ -13779,7 +13892,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
   const tableColumns = [{
     id: "week",
     accessorKey: "week",
-    header: () => is2026QbLog || is2026RbLog ? "WK · VS" : "WK  ·  VS ",
+    header: () => is2026QbLog || is2026RbLog || is2026WtLog ? "WK · VS" : "WK  ·  VS ",
     size: COLUMN_WIDTHS.week,
     meta: {
       headerClass: "week-column-header",
@@ -13890,7 +14003,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     const hasRecordedStat = stats
       ? orderedStatKeys.some((statKey) => {
         if (!statLabels[statKey] || statKey === "proj") return false;
-        return Number.isFinite(getDataHubGameLogStatValue(statKey, stats, is2026RbLog));
+        return Number.isFinite(getDataHubGameLogStatValue(statKey, stats, is2026RbLog, is2026WtLog));
       })
       : false;
     const isLiveWeek = stats?.__live === true || (liveFptsValue !== null && !hasRecordedStat);
@@ -13938,8 +14051,8 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
         continue;
       }
 
-      const rawValue = getDataHubGameLogStatValue(statKey, stats, is2026RbLog);
-      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue, is2026QbLog, is2026RbLog);
+      const rawValue = getDataHubGameLogStatValue(statKey, stats, is2026RbLog, is2026WtLog);
+      const displayValue = formatDataHubGameLogCellValue(statKey, rawValue, is2026QbLog, is2026RbLog, is2026WtLog);
       if (statKey === "fpts" && displayValue === "-") {
         rowFptsDash = true;
       }
@@ -14179,6 +14292,7 @@ function getDataHubLogOrderForPosition(position, season = "2025") {
   const pos = String(position || "").trim().toUpperCase();
   if (pos === "QB") return season === "2026" ? DATAHUB_QB_LOG_ORDER_2026 : DATAHUB_QB_LOG_ORDER;
   if (pos === "RB") return season === "2026" ? DATAHUB_RB_LOG_ORDER_2026 : DATAHUB_RB_LOG_ORDER;
+  if ((pos === "WR" || pos === "TE") && season === "2026") return DATAHUB_WR_TE_LOG_ORDER_2026;
   return DATAHUB_WR_TE_LOG_ORDER;
 }
 
@@ -14188,7 +14302,7 @@ function isDataHubRecordedWeek(stats, position, season) {
   if (!stats || String(stats.opponent || "").toUpperCase() === "BYE") return false;
   return stats.__live === true || Number.isFinite(stats.fpts_override)
     || getDataHubLogOrderForPosition(position, season).some((key) => key !== "proj"
-      && Number.isFinite(getDataHubGameLogStatValue(key, stats, season === "2026" && position === "RB")));
+      && Number.isFinite(getDataHubGameLogStatValue(key, stats, season === "2026" && position === "RB", season === "2026" && ["WR", "TE"].includes(position))));
 }
 
 function buildDataHubGameLogsDataContext(gameLogs) {
@@ -14329,11 +14443,13 @@ function computeDataHubSeasonValue(statKey, seasonTotals, aggregatedTotals, game
   return Number.isFinite(aggregatedTotals[statKey]) ? aggregatedTotals[statKey] : null;
 }
 
-function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false) {
+function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false, is2026WtLog = false) {
   if (!stats || stats.__hasRecordedStats === false) return null;
-  if (DATAHUB_NO_FALLBACK_KEYS.has(statKey) || (is2026RbLog && ["ryoe", "rr", "ypr"].includes(statKey))) {
+  if (DATAHUB_NO_FALLBACK_KEYS.has(statKey) || (is2026RbLog && ["ryoe", "rr", "ypr"].includes(statKey))
+    || (is2026WtLog && ["rr", "rz_tgt", "ay_pct"].includes(statKey))) {
     // Source-backed weekly cells keep missing values blank; RB 2026 also
-    // reads RYOE, RR, and YPR from WK directly.
+    // reads RYOE, RR, and YPR from WK directly. W/T counts and air-yard share
+    // also remain unavailable when their WK cells have no recorded value.
     return Number.isFinite(stats[statKey]) ? stats[statKey] : null;
   }
   if (statKey === "fpts") {
@@ -14399,7 +14515,7 @@ function getDataHubGameLogStatValue(statKey, stats, is2026RbLog = false) {
   return Number.isFinite(stats[statKey]) ? stats[statKey] : 0;
 }
 
-function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is2026RbLog = false) {
+function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is2026RbLog = false, is2026WtLog = false) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return statKey === "fpts" ? "-" : "N/A";
   }
@@ -14428,8 +14544,13 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is20
   if (is2026RbLog && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey])) return numericValue.toFixed(1);
   if (is2026RbLog && statKey === "ryoe_per_att") return numericValue.toFixed(2);
   // Preserve DH/WK receiving rate precision; TPRR is a ratio, not a percentage.
-  if (is2026RbLog && statKey === "tprr") return numericValue.toFixed(3);
-  if (is2026RbLog && statKey === "rec_yacr") return numericValue.toFixed(1);
+  if ((is2026RbLog || is2026WtLog) && statKey === "tprr") return numericValue.toFixed(3);
+  if ((is2026RbLog || is2026WtLog) && statKey === "rec_yacr") return numericValue.toFixed(1);
+  // Current W/T shares retain percentage units and route rates retain DH/WK
+  // thousandths; count fields render whole numbers, including real zeroes.
+  if (is2026WtLog && ["ay_pct", "rec_yms", "rec_tms"].includes(statKey)) return formatDataHubPercentage(numericValue);
+  if (is2026WtLog && statKey === "first_down_rec_rate") return numericValue.toFixed(3);
+  if (is2026WtLog && ["rz_tgt", "tgt_10_plus", "rr"].includes(statKey)) return numericValue.toFixed(0);
   if (statKey === "yco_per_att") return numericValue.toFixed(2);
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
     return numericValue.toFixed(2);
@@ -14571,10 +14692,12 @@ function getDataHubGameLogsSeasonDisplayValue({
 }) {
   if (key === "proj") return "-";
   let displayValue;
+  const is2026WtSeason = state.currentModalSeason === "2026" && ["WR", "TE"].includes(player?.pos);
 
   if (DATAHUB_NO_FALLBACK_KEYS.has(key)
-    || (key === "rec_ypg" && state.currentModalSeason === "2026" && player?.pos === "RB")) {
-    // The added 2026 RB Season rows use DH values; missing receiving yard
+    || (key === "rec_ypg" && state.currentModalSeason === "2026" && player?.pos === "RB")
+    || (is2026WtSeason && ["rec_ypg", "ay_pct", "rz_tgt", "rr"].includes(key))) {
+    // The added 2026 receiving Season rows use DH values; missing receiving yard
     // rates cannot fall back to summed weekly ratios or fabricated zeroes.
     const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
     if (raw === null) {
@@ -14585,11 +14708,15 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "expl_ru_pct") {
       const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
       displayValue = formatDataHubPercentage(normalized);
-    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct", "rec_yms"].includes(key)) {
+    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct", "rec_yms", "rec_tms"].includes(key) || (is2026WtSeason && key === "ay_pct")) {
       displayValue = formatDataHubPercentage(raw);
     } else if (key === "tprr") {
       displayValue = Number(raw).toFixed(3);
     } else if (["rec_yacr", "rec_ypg"].includes(key)) {
+      displayValue = Number(raw).toFixed(1);
+    } else if (is2026WtSeason && key === "first_down_rec_rate") {
+      displayValue = Number(raw).toFixed(3);
+    } else if (is2026WtSeason && ["tgt_per_g", "ay_per_tgt"].includes(key)) {
       displayValue = Number(raw).toFixed(1);
     } else if (key === "cpoe") {
       const formatted = formatDataHubPercentage(raw, 1);
@@ -14756,7 +14883,7 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
 
   const list = document.createElement("div");
   list.className = "gamelogs-szn-list";
-  // DataHub 2026 QB/RB Game Logs Season view: use the requested section
+  // DataHub 2026 QB/RB/W/T Game Logs Season view: use the requested section
   // orders for each position while preserving the historical 2025 sections.
   const sections = player.pos === "QB" && state.currentModalSeason === "2026"
     ? DATAHUB_SZN_STAT_SECTIONS_BY_POS.QB.map((section) => {
@@ -14777,7 +14904,9 @@ function renderDataHubSeasonStatsView(player, gameLogs, playerRanks) {
     })
     : player.pos === "RB" && state.currentModalSeason === "2026"
       ? DATAHUB_RB_SZN_SECTIONS_2026
-      : DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
+      : ["WR", "TE"].includes(player.pos) && state.currentModalSeason === "2026"
+        ? DATAHUB_WR_TE_SZN_SECTIONS_2026[player.pos]
+        : DATAHUB_SZN_STAT_SECTIONS_BY_POS[player.pos] || [];
   const usedKeys = new Set();
   const appendSeasonStatRow = (statKey) => {
     if (!DATAHUB_STAT_LABELS[statKey] || statKey === "proj" || usedKeys.has(statKey)) {
@@ -14956,6 +15085,7 @@ function getDataHubStatGroup(statKey) {
     "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",
     "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct", "tgt_per_g",
     "tprr", "rec_yacr", "rec_yms",
+    "rec_tms", "tgt_10_plus", "ay_per_tgt",
   ].includes(statKey)) return "receiving";
   return "all";
 }

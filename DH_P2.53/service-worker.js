@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub Stats and both independently owned 2026 RB Game Logs views.
-const CACHE_NAME = 'DH3.48e-rb-receiving-stats';
+// Refresh W/T Stats icons and both independently owned 2026 receiving Game Logs views.
+const CACHE_NAME = 'DH3.48f-wt-receiving-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
