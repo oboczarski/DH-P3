@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub/Rosters modal rank pools and scoped Stats typography.
-const CACHE_NAME = 'DH3.48c-modal-rank-qualifiers';
+// Refresh Rosters' independently owned Game Logs theme and presentation.
+const CACHE_NAME = 'DH3.48d-rosters-gamelogs-parity';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -48,11 +48,14 @@ const CORE_ASSET_PATHS = [
   '/styles/DataHub.css',
   '/styles/dashboard.css',
   '/styles/rosters.css',
+  // Rosters Game Logs owns its modal styling without loading DataHub.css.
+  '/styles/rosters-gamelogs.css',
   '/styles/leaguehub.css',
   '/styles/research.css',
   '/styles/ownership.css',
   '/styles/contact.css',
   '/scripts/app.js',
+  '/scripts/rosters-gamelogs.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
   '/scripts/datahub-stats-positional-ranks.js',
