@@ -15441,6 +15441,18 @@ body[data-page="datahub"] #game-logs-modal .datahub-gamelogs-szn-section-icon--f
 
 /* DataHub Stats meta control: this pill and indicator are owned by the new
    position-rank switch, so changes here cannot alter Trade Values toggles. */
+@media (min-width: 720px) {
+  /* Desktop Stats keeps Position and Pos Ranks together on the left, with
+     the sort controls on the right. Even spacing belongs only to mobile. */
+  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta {
+    justify-content: flex-start;
+  }
+
+  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta .meta-pill-wrap {
+    margin-left: auto;
+  }
+}
+
 body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta {
   display: grid;
   align-content: start;
@@ -15514,14 +15526,18 @@ body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__pill:focus-visible 
   outline-offset: 2px;
 }
 
-/* DataHub Stats cells: compact rank text shares the existing fixed-width cell
-   with its value. Only the Stats renderer adds these classes. */
+/* DataHub Stats cells: center the parenthesized rank immediately under its
+   value. The 24px stack fits inside both existing 38px/44px rows, so its
+   content cannot increase either pane's row height or column width. */
 body[data-page="datahub"] .stats-table .stats-position-metric {
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
+  display: inline-grid;
+  grid-template-rows: 14px 10px;
+  justify-items: center;
+  align-items: center;
   gap: 0;
+  height: 24px;
   max-width: 100%;
+  line-height: 14px;
   white-space: nowrap;
 }
 
@@ -15531,7 +15547,8 @@ body[data-page="datahub"] .stats-table .stats-position-metric__annotation {
   gap: 0;
   color: rgba(199, 214, 238, 0.76);
   font-weight: 500;
-  letter-spacing: 0em;
+  letter-spacing: -0.04em;
+  line-height: 10px;
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__position {
@@ -15540,12 +15557,6 @@ body[data-page="datahub"] .stats-table .stats-position-metric__position {
 
 body[data-page="datahub"] .stats-table .stats-position-metric__rank {
   font-size: 0.75em;
-}
-
-body[data-page="datahub"] .stats-table .stats-position-metric.stats-table__fpts-chip {
-  width: auto;
-  max-width: 100%;
-  padding: 0 3px;
 }
 
 @media (max-width: 719px) {

@@ -1,5 +1,5 @@
 import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
-import { buildStatsPositionalRanks } from "./datahub-stats-positional-ranks.js";
+import { buildStatsPositionalRanks, hasStatsScoringQualifierException } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 
@@ -4351,11 +4351,7 @@ function rebuildDataHubRows() {
 
   state.statsRowsBase = statsRowsBase;
   state.stats2026.rows = stats2026Rows;
-  // Full season, default-qualified position ranks are computed once per source
-  // rebuild. Visible rows can then change without renumbering anyone.
-  const statsColumns = Object.values(STATS_COLUMN_SETS).flat();
-  state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(statsRowsBase, statsColumns, "2025");
-  state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(stats2026Rows, statsColumns, "2026", state.stats2026.weeksOfData);
+  rebuildStatsPositionalRanks();
   state.tradeRowsBase = tradeRowsBase;
   if (state.rookieDataLoaded) {
     state.rookieTradeRowsBase = buildRookieTradeRowsBase(tradeRowsBase, state.rookieProspectByPlayerId);
@@ -4366,6 +4362,23 @@ function rebuildDataHubRows() {
 
   syncUiState();
   refreshGrid();
+}
+
+// Rank every Stats schema, including the newer QB/RB columns. This pool is
+// independent of the visible category, search and selected qualifier threshold.
+function rebuildStatsPositionalRanks() {
+  const columns = [...Object.values(STATS_COLUMN_SETS).flat(), ...STATS_PASSING_COLUMNS_2026, ...STATS_RUSHING_COLUMNS_2026];
+  state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(state.statsRowsBase, columns, "2025", 18, getStatsElapsedWeeks("2025"));
+  state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(state.stats2026.rows, columns, "2026", state.stats2026.weeksOfData, getStatsElapsedWeeks("2026"));
+}
+
+// Use the same recorded-week cutoff as Game Logs' divider when WK data exists.
+// Before modal-only WK loading, DH games progression supplies the season week;
+// this preserves independent main-table loading and the existing volume gates.
+function getStatsElapsedWeeks(season = state.statsSeason) {
+  const recordedWeek = state.seasonDataCache[season]?.latestRecordedWeek;
+  if (Number.isFinite(recordedWeek) && recordedWeek > 0) return recordedWeek;
+  return season === "2026" ? state.stats2026.weeksOfData : DATAHUB_MAX_WEEKS;
 }
 
 function buildStatsRowsByPlayerId(rows) {
@@ -10011,7 +10024,7 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
     content.append(createTradeValuesRichCell(column.name, row, value));
   } else if (state.activePageView === "stats" && state.showStatsPositionalRanks && Number.isFinite(getStatsPositionalRank(row, column.name))) {
     // DataHub Stats value annotation: show only default-qualified position
-    // ranks beside actual numeric stats, leaving source values and widths intact.
+    // ranks directly below actual numeric stats inside the existing row height.
     content.append(createStatsPositionalMetric(row, column.name, value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
@@ -10047,9 +10060,7 @@ function getStatsPositionalRank(row, columnName) {
 function createStatsPositionalMetric(row, columnName, value) {
   const rank = getStatsPositionalRank(row, columnName);
   const position = row.POS;
-  const metric = columnName === FPTS_COLUMN
-    ? createFptsChip(value)
-    : document.createElement("span");
+  const metric = document.createElement("span");
   metric.classList.add("stats-position-metric");
   metric.replaceChildren();
   metric.setAttribute("aria-label", `${formatDisplayValue(columnName, value)} ${position} rank ${rank}`);
@@ -10066,7 +10077,13 @@ function createStatsPositionalMetric(row, columnName, value) {
   const rankNumber = document.createElement("span");
   rankNumber.className = "stats-position-metric__rank";
   rankNumber.textContent = String(rank);
-  annotation.append(rankPosition, rankNumber);
+  const opening = document.createElement("span");
+  opening.className = "stats-position-metric__position";
+  opening.textContent = "(";
+  const closing = document.createElement("span");
+  closing.className = "stats-position-metric__position";
+  closing.textContent = ")";
+  annotation.append(opening, rankPosition, rankNumber, closing);
   metric.append(number, annotation);
   return metric;
 }
@@ -10666,6 +10683,16 @@ function matchesStatsQualifierFilter(row) {
 
   const qualifierValue = toComparableNumber(row[state.statsFilters.qualifierStat]);
   const thresholdValue = getStatsQualifierOptions().find((option) => option.value === state.statsFilters.qualifierThreshold)?.threshold;
+
+  // The scoring exception applies only to this player's default positional
+  // stat and its default minimum. Custom stats and stricter/lower tiers retain
+  // their selected filtering behavior; team and position filters still apply.
+  const positionalStat = { QB: "paATT", RB: "CAR", WR: "RR", TE: "RR" }[row.POS];
+  const defaultThreshold = state.statsSeason === "2026"
+    ? get2026QualifierOptions(positionalStat, state.stats2026.weeksOfData).find((option) => option.isDefault)?.threshold
+    : ({ QB: 200, RB: 100, WR: 220, TE: 220 })[row.POS];
+  if (state.statsFilters.qualifierStat === positionalStat && thresholdValue === defaultThreshold
+    && hasStatsScoringQualifierException(row, getStatsElapsedWeeks())) return true;
 
   if (!Number.isFinite(qualifierValue) || !Number.isFinite(thresholdValue)) {
     return false;
@@ -12822,7 +12849,8 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
       if (season === "2026") {
         const source = await ensureDataHub2026Data();
         // WK/DRK/schedule are modal-only dependencies. Reuse the DH snapshot so
-        // opening Game Logs or Compare cannot change table qualifiers or totals.
+        // opening Game Logs or Compare does not change volume thresholds or
+        // totals; recorded weeks refine only the Stats scoring exception.
         const weeklySource = await load2026WeeklySourceData({
           seasonRows: source.rawRows,
           parseCsv,
@@ -12851,8 +12879,16 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         seasonRanks = parseDataHubSeasonRanksRows(parseCsv(rankText));
         weeklyStats = Object.fromEntries(weekTexts.map((text, index) => [index + 1, parseDataHubWeeklyStatsRows(parseCsv(text))]));
       }
-      const snapshot = { season, seasonStats, seasonRanks, weeklyStats };
+      // Share the results cutoff with the Stats scoring exception and divider.
+      // Schedule/projection-only rows and BYEs do not advance the season week.
+      const latestRecordedWeek = Object.entries(weeklyStats).reduce((latest, [week, players]) => (
+        Object.values(players).some((stats) => isDataHubRecordedWeek(stats, stats.pos, season))
+          ? Math.max(latest, Number(week)) : latest
+      ), 0);
+      const snapshot = { season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek };
       state.seasonDataCache[season] = snapshot;
+      rebuildStatsPositionalRanks();
+      if (state.activePageView === "stats") refreshGrid();
       return snapshot;
     })().finally(() => { delete state.seasonDataPromises[season]; });
   }
@@ -12996,7 +13032,9 @@ function parseDataHubWeeklyStatsRows(rows) {
     if (!playerId) {
       return;
     }
-    const stats = {};
+    // Retain position for season-wide recorded-week detection, using the same
+    // stat order as the player's Game Logs rows.
+    const stats = { pos: String(row.POS || "").trim().toUpperCase() };
     Object.entries(row).forEach(([header, value]) => {
       const normalizedHeader = normalizeSheetHeader(header);
       if (normalizedHeader === "SLPR_ID") {
@@ -13835,7 +13873,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       })
       : false;
     const isLiveWeek = stats?.__live === true || (liveFptsValue !== null && !hasRecordedStat);
-    const isUnplayedWeek = !isLiveWeek && (isByeWeek || !hasRecordedStat);
+    const isUnplayedWeek = !isDataHubRecordedWeek(stats, player.pos, state.currentModalSeason);
     const rowMeta = {
       week,
       isPlayed: !isUnplayedWeek,
@@ -13983,7 +14021,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
 
   // Separate recorded weeks from the remaining schedule using this source's
   // actual results, not the current week of a different Sleeper season.
-  const dividerIndex = rowsMeta.reduce((last, meta, index) => meta.isPlayed ? index + 1 : last, 0);
+  // Use the season-wide results cutoff so a player's injury or BYE cannot
+  // shorten elapsed weeks used by the Stats qualification exception.
+  const dividerIndex = getStatsElapsedWeeks(state.currentModalSeason);
   const dividerRow = document.createElement("tr");
   dividerRow.className = "week-divider-row";
   const dividerCell = document.createElement("td");
@@ -14125,6 +14165,15 @@ function getDataHubLogOrderForPosition(position, season = "2025") {
   if (pos === "QB") return season === "2026" ? DATAHUB_QB_LOG_ORDER_2026 : DATAHUB_QB_LOG_ORDER;
   if (pos === "RB") return season === "2026" ? DATAHUB_RB_LOG_ORDER_2026 : DATAHUB_RB_LOG_ORDER;
   return DATAHUB_WR_TE_LOG_ORDER;
+}
+
+// Recorded-week detection mirrors Game Logs' played-row rules for every
+// position; missing 2026 placeholders are rejected by the stat accessor.
+function isDataHubRecordedWeek(stats, position, season) {
+  if (!stats || String(stats.opponent || "").toUpperCase() === "BYE") return false;
+  return stats.__live === true || Number.isFinite(stats.fpts_override)
+    || getDataHubLogOrderForPosition(position, season).some((key) => key !== "proj"
+      && Number.isFinite(getDataHubGameLogStatValue(key, stats, season === "2026" && position === "RB")));
 }
 
 function buildDataHubGameLogsDataContext(gameLogs) {

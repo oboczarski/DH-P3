@@ -25,7 +25,7 @@
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
 // Refresh DataHub rank controls, chart windows, and the Rosters chart source.
-const CACHE_NAME = 'DH3.48-pos-ranks-nine-week-charts';
+const CACHE_NAME = 'DH3.48a-stacked-stat-ranks-qualifiers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

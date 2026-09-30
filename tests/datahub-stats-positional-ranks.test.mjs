@@ -20,11 +20,11 @@ test("2026 Stats ranks use default volume gates and keep WR and TE separate", ()
   assert.equal(ranks.get(qbTie)["CSTY%"], 1);
   assert.equal(ranks.get(qbTie).INT, 1);
   assert.equal(ranks.get(qbTop).INT, 2);
-  assert.equal(ranks.get(qbTop).FPTS, 1);
-  assert.equal(ranks.get(qbTie).FPTS, 2);
+  assert.equal(ranks.get(qbTop).FPTS, undefined);
+  assert.equal(ranks.get(qbTie).FPTS, undefined);
   assert.equal(ranks.get(qbUnqualified), undefined);
-  assert.equal(ranks.get(wr).FPTS, 1);
-  assert.equal(ranks.get(te).FPTS, 1);
+  assert.equal(ranks.get(wr).RR, 1);
+  assert.equal(ranks.get(te).RR, 1);
   assert.equal(ranks.get(wrUnqualified), undefined);
 });
 
@@ -41,7 +41,11 @@ test("2025 Stats ranks use full-season QB, RB, WR, and TE defaults", () => {
     { POS: "WR", RR: "219", FPTS: "99" },
     { POS: "TE", RR: "219", FPTS: "99" },
   ];
-  const ranks = buildStatsPositionalRanks([...qualified, ...unqualified], ["FPTS"], "2025");
-  qualified.forEach((row) => assert.equal(ranks.get(row).FPTS, 1));
+  const ranks = buildStatsPositionalRanks([...qualified, ...unqualified], ["FPTS", "paATT", "CAR", "RR"], "2025");
+  qualified.forEach((row) => {
+    const stat = { QB: "paATT", RB: "CAR", WR: "RR", TE: "RR" }[row.POS];
+    assert.equal(ranks.get(row)[stat], 1);
+    assert.equal(ranks.get(row).FPTS, undefined);
+  });
   unqualified.forEach((row) => assert.equal(ranks.get(row), undefined));
 });
