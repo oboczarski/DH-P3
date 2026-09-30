@@ -98,22 +98,41 @@
         if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) throw new Error(`Rosters 2026 ${sheetName} has missing or invalid columns.`);
         return rows;
     };
-    const buildRanks = (rows, weeksOfData = 1) => {
+    const buildRanks = (rows, weeksOfData = 1, elapsedWeeks = weeksOfData, modal = true) => {
         const ranks = {};
         rows.forEach((row) => { ranks[String(row.SLPR_ID)] = {}; });
         const headersByStat = {};
         Object.entries(STAT_MAP).forEach(([header, stat]) => { if (!headersByStat[stat]) headersByStat[stat] = header; });
         const weeks = Math.max(1, Math.min(18, Number(weeksOfData) || 1));
         const qualifiers = { QB: ['paATT', 16 * weeks], RB: ['CAR', 5 * weeks], WR: ['RR', 13 * weeks], TE: ['RR', 13 * weeks] };
-        const qualified = rows.filter((row) => qualifiers[row.POS] && Number(row[qualifiers[row.POS][0]]) >= qualifiers[row.POS][1]);
+        // All modal stats admit high-scoring players who played at least half
+        // the recorded season weeks. FPTS itself has no participation gate.
+        const qualified = rows.filter((row) => {
+            const gate = qualifiers[row.POS];
+            if (!gate) return false;
+            const games = numberValue(row.GM_P);
+            const points = numberValue(row.FPT_PPR);
+            return Number(row[gate[0]]) >= gate[1]
+                || (modal && games > 0 && games >= Math.ceil(Math.max(1, elapsedWeeks) / 2) && points !== null && points / games >= 20);
+        });
+        const parsedById = new Map(rows.map((row) => [String(row.SLPR_ID), parseStats(row)]));
         const rankValues = (valueForRow, stat) => {
+            const pool = modal && ['fpts', 'fpt_ppr', 'fpts_ppr'].includes(stat) ? rows : qualified;
             ['QB', 'RB', 'WR', 'TE'].forEach((position) => {
-                qualified.filter((row) => row.POS === position).map((row) => ({ id: String(row.SLPR_ID), value: valueForRow(row) }))
-                    .filter((entry) => Number.isFinite(entry.value)).sort((a, b) => b.value - a.value)
-                    .forEach((entry, index) => { ranks[entry.id][stat] = index + 1; });
+                const entries = pool.filter((row) => row.POS === position).map((row) => ({ id: String(row.SLPR_ID), value: valueForRow(row) }))
+                    .filter((entry) => Number.isFinite(entry.value)).sort((a, b) => b.value - a.value);
+                let previous = null;
+                let rank = 0;
+                entries.forEach((entry, index) => {
+                    if (entry.value !== previous) rank = index + 1;
+                    previous = entry.value;
+                    ranks[entry.id][stat] = modal ? rank : index + 1;
+                });
             });
         };
-        Object.entries(headersByStat).forEach(([stat, header]) => rankValues((row) => numberValue(row[header]), stat));
+        // Parse aliases exactly as displayed, so alternate percentage headers
+        // cannot leave the corresponding Season/footer rank missing.
+        Object.keys(headersByStat).forEach((stat) => rankValues((row) => parsedById.get(String(row.SLPR_ID))[stat], stat));
         rankValues((row) => numberValue(row.FPT_PPR), 'fpts');
         rankValues((row) => { const games = numberValue(row.GM_P); const fpts = numberValue(row.FPT_PPR); return games > 0 && fpts !== null ? fpts / games : null; }, 'ppg');
         return ranks;
@@ -135,6 +154,7 @@
             ]);
             const players = seasonRows.filter(isPlayer);
             const weeksOfData = weeks.reduce((count, rows) => count + (rows.some(hasRecordedStats) ? 1 : 0), 0);
+            const latestRecordedWeek = weeks.reduce((latest, rows, index) => rows.some((row) => isPlayer(row) && hasRecordedStats(row)) ? index + 1 : latest, 0);
             const playersById = new Map(players.map((row) => [String(row.SLPR_ID), row]));
             const schedule = new Map(scheduleRows.map((row) => [normalizeTeam(row.TM), row]));
             const defense = new Map(defenseRows.map((row) => [normalizeTeam(row.TM), row]));
@@ -165,7 +185,11 @@
                 stats.ppg = games > 0 ? fpts / games : 0;
                 seasonStats[String(row.SLPR_ID)] = stats;
             });
-            const snapshot = { seasonStats, seasonRanks: buildRanks(players, weeksOfData), weeklyStats };
+            // Card fantasy ranks keep their existing volume pool. Game Logs
+            // owns the expanded stat/summary pool requested for this modal.
+            const snapshot = { seasonStats, seasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek),
+                cardSeasonRanks: buildRanks(players, weeksOfData, latestRecordedWeek, false), weeklyStats,
+                latestRecordedWeek, rankQualifierWeeks: Math.max(1, weeksOfData) };
             state.rosters2026GameLogs = snapshot;
             return snapshot;
         })().finally(() => { loadPromise = null; });
@@ -181,6 +205,8 @@
         state.playerProjectionWeeks = {};
         state.liveWeeklyStats = {};
         state.activeRostersGameLogsSeason = '2026';
+        // Season changes invalidate the league-specific modal rank pool too.
+        state.calculatedRankCache = null;
         // 2026 consistency remains sheet-backed, while the weekly table and
         // summary ranks may use the selected league's Sleeper matchup scores.
         state.matchupDataLoaded = false;
@@ -191,7 +217,8 @@
     window.ensureRosters2026GameLogsLoaded = ensureRosters2026GameLogsLoaded;
     window.activateRosters2026GameLogs = activateRosters2026GameLogs;
     window.getRosters2026PlayerRanks = (playerId) => {
-        const ranks = window.state.rosters2026GameLogs?.seasonRanks?.[String(playerId)] || {};
+        const snapshot = window.state.rosters2026GameLogs;
+        const ranks = (snapshot?.cardSeasonRanks || snapshot?.seasonRanks)?.[String(playerId)] || {};
         const stats = window.state.playerSeasonStats?.[String(playerId)] || {};
         return {
             total_pts: Number(stats.fpts_ppr || 0).toFixed(1),

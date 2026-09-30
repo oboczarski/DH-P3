@@ -15561,7 +15561,29 @@ body[data-page="datahub"] .stats-table .stats-position-metric__rank {
   font-size: 0.8em;
 }
 
+@media (min-width: 720px) {
+  /* Desktop Stats rank annotations: slightly smaller type and the requested
+     vertical offset. Mobile keeps its existing annotation sizing/placement. */
+  body[data-page="datahub"][data-datahub-view="stats"] .stats-table .stats-position-metric__annotation {
+    margin-top: -0.2rem;
+  }
+
+  body[data-page="datahub"][data-datahub-view="stats"] .stats-table .stats-position-metric__position {
+    font-size: 0.72em;
+  }
+
+  body[data-page="datahub"][data-datahub-view="stats"] .stats-table .stats-position-metric__rank {
+    font-size: 0.77em;
+  }
+}
+
 @media (max-width: 719px) {
+  /* Mobile Stats values get a small increase in their own spans. The table
+     font, identity cells and rank annotation siblings do not inherit it. */
+  body[data-page="datahub"][data-datahub-view="stats"] .stats-table tbody .stats-table__stat-value {
+    font-size: 1.035em;
+  }
+
   /* Position, rank toggle, and sort occupy fixed slots on the Stats table;
      the rank pill stays between the other two controls on phone widths. */
   body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta {

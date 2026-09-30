@@ -1,5 +1,5 @@
-import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
-import { buildStatsPositionalRanks, hasStatsScoringQualifierException } from "./datahub-stats-positional-ranks.js";
+import { get2026QualifierOptions } from "./datahub-stats-season.js";
+import { buildStatsPositionalRanks, hasStatsScoringQualifierException, isStatsSeasonRankQualified } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 
@@ -7644,7 +7644,7 @@ function assignDataHubComparisonRanks(items, lowerBetter) {
   return ranks;
 }
 
-function computeDataHubComparisonSeasonRankSets(players) {
+function computeDataHubComparisonSeasonRankSets(players, qualifiedIds = null) {
   const overall = Object.create(null);
   const positional = Object.create(null);
   const statKeys = new Set();
@@ -7653,7 +7653,10 @@ function computeDataHubComparisonSeasonRankSets(players) {
   });
 
   statKeys.forEach((statKey) => {
-    const allItems = players.map((player) => ({
+    // All FPTS aliases rank every numeric source value, including zero/negative
+    // totals. Other modal stats use the default volume or scoring-exception pool.
+    const isFpts = ["fpts", "fpts_ppr", "fpt_ppr"].includes(statKey);
+    const allItems = players.filter((player) => isFpts || !qualifiedIds || qualifiedIds.has(player.id)).map((player) => ({
       playerId: player.id,
       pos: player.pos,
       value: toComparableNumber(player.seasonStats?.[statKey]),
@@ -7691,10 +7694,8 @@ function buildDataHubComparisonPayload() {
     : DATAHUB_MAX_WEEKS;
   const firstWeek = Math.max(1, latestWeek - 8);
   const chartWeeks = Array.from({ length: latestWeek - firstWeek + 1 }, (_, index) => firstWeek + index);
-  const qualifiedIds = state.statsSeason === "2026"
-    ? new Set(state.stats2026.rows.filter((row) => is2026RankQualified(row, state.stats2026.weeksOfData)).map((row) => row.__meta.playerId))
-    : null;
-  const computedRanks = computeDataHubComparisonSeasonRankSets(qualifiedIds ? players.filter((player) => qualifiedIds.has(player.id)) : players);
+  const qualifiedIds = getDataHubGameLogsQualifiedIds(state.statsSeason);
+  const computedRanks = computeDataHubComparisonSeasonRankSets(players, qualifiedIds);
   const enrichedPlayers = players.map((player) => {
     const computedPositionRanks = computedRanks.positional[player.id] || {};
     const seasonPosRanks = {
@@ -7703,9 +7704,8 @@ function buildDataHubComparisonPayload() {
     };
 
     // Comparison season-rank bridge:
-    // SZN_RKs supplies the qualified positional ranks used by the Game Logs
-    // radar. FPTS and PPG are the exceptions: Game Logs computes those from
-    // the full season table, so preserve the equivalent computed pos ranks.
+    // The modal snapshot supplies the expanded qualified stat ranks. Preserve
+    // equivalent computed FPTS/PPG ranks for the Compare season-stat bridge.
     if (Number.isFinite(computedPositionRanks.fpts)) {
       seasonPosRanks.fpts = computedPositionRanks.fpts;
     }
@@ -10027,7 +10027,14 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
     // ranks directly below actual numeric stats inside the existing row height.
     content.append(createStatsPositionalMetric(row, column.name, value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
-    content.append(createFptsChip(value));
+    const chip = createFptsChip(value);
+    if (state.activePageView === "stats") {
+      const statValue = document.createElement("span");
+      statValue.className = "stats-table__stat-value";
+      statValue.textContent = chip.textContent;
+      chip.replaceChildren(statValue);
+    }
+    content.append(chip);
   } else if (column.name === "POS") {
     // POS column badge:
     // replace plain position text with a pill-shaped badge that shows a colored
@@ -10046,7 +10053,17 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
       content.append(createRookieCareerTierSeparatorLabel(rookieTierSeparatorTier));
     }
   } else {
-    content.textContent = formatDisplayValue(column.name, value);
+    // Stats numeric values get their own sizing hook; identity, NA text and
+    // rank annotations keep their existing font sizes.
+    if (state.activePageView === "stats" && !["AGE", "POS", "TM", "PLAYER", "RK", "index"].includes(column.name)
+      && Number.isFinite(toComparableNumber(value))) {
+      const statValue = document.createElement("span");
+      statValue.className = "stats-table__stat-value";
+      statValue.textContent = formatDisplayValue(column.name, value);
+      content.append(statValue);
+    } else {
+      content.textContent = formatDisplayValue(column.name, value);
+    }
   }
 
   td.append(content);
@@ -10066,7 +10083,7 @@ function createStatsPositionalMetric(row, columnName, value) {
   metric.setAttribute("aria-label", `${formatDisplayValue(columnName, value)} ${position} rank ${rank}`);
 
   const number = document.createElement("span");
-  number.className = "stats-position-metric__value";
+  number.className = "stats-position-metric__value stats-table__stat-value";
   number.textContent = formatDisplayValue(columnName, value);
   const annotation = document.createElement("span");
   annotation.className = "stats-position-metric__annotation";
@@ -12169,52 +12186,26 @@ function parseDataHubPosRankNumber(posRankText) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+// DataHub modal rank pools share the Stats exception in both seasons. FPTS
+// always uses the complete source; PPG and other stats retain qualification.
+function getDataHubGameLogsQualifiedIds(season, elapsedWeeks = getStatsElapsedWeeks(season)) {
+  return new Set(getDataHubStatsRowsForSeason(season)
+    .filter((row) => isStatsSeasonRankQualified(row, season, state.stats2026.weeksOfData, elapsedWeeks))
+    .map((row) => row.__meta.playerId));
+}
+
 function buildDataHubModalRankCache(rows, season = "2025") {
-  // 2026 fantasy summary ranks share the same default-qualified pool and tied
-  // positional ranks as Season/Compare. Non-qualified players receive no rank.
-  if (season === "2026") {
-    const players = rows.filter((row) => is2026RankQualified(row, state.stats2026.weeksOfData)).map((row) => ({
-      id: row.__meta.playerId, pos: row.POS,
-      seasonStats: { fpts: row.__meta.fpts, ppg: row.__meta.ppg },
-    }));
-    const ranks = computeDataHubComparisonSeasonRankSets(players);
-    return Object.fromEntries(players.map((player) => [player.id, {
-      posRank: ranks.positional[player.id]?.fpts,
-      ppgPosRank: ranks.positional[player.id]?.ppg,
-      overallRank: ranks.overall[player.id]?.fpts,
-      ppgOverallRank: ranks.overall[player.id]?.ppg,
-    }]));
-  }
-  const cache = Object.create(null);
-  const playersWithStats = rows.filter((row) => {
-    const meta = row?.__meta;
-    return meta?.playerId && Number.isFinite(meta.fpts) && meta.fpts > 0 && meta.pos !== "RDP";
-  });
-  const assignRanks = (entries, targetKey, selector) => {
-    const sorted = [...entries].sort((left, right) => (selector(right) || 0) - (selector(left) || 0));
-    sorted.forEach((row, index) => {
-      const playerId = row.__meta.playerId;
-      if (!cache[playerId]) {
-        cache[playerId] = {};
-      }
-      cache[playerId][targetKey] = index + 1;
-    });
-  };
-  assignRanks(playersWithStats, "overallRank", (row) => row.__meta.fpts || 0);
-  assignRanks(playersWithStats, "ppgOverallRank", (row) => row.__meta.ppg || 0);
-  const groupedByPos = new Map();
-  playersWithStats.forEach((row) => {
-    const pos = row.__meta.pos || "";
-    if (!groupedByPos.has(pos)) {
-      groupedByPos.set(pos, []);
-    }
-    groupedByPos.get(pos).push(row);
-  });
-  groupedByPos.forEach((groupRows) => {
-    assignRanks(groupRows, "posRank", (row) => row.__meta.fpts || 0);
-    assignRanks(groupRows, "ppgPosRank", (row) => row.__meta.ppg || 0);
-  });
-  return cache;
+  const players = rows.filter((row) => row.__meta?.playerId && ["QB", "RB", "WR", "TE"].includes(row.POS)).map((row) => ({
+    id: row.__meta.playerId, pos: row.POS,
+    seasonStats: { fpts: row.__meta.fpts, ppg: row.__meta.ppg },
+  }));
+  const ranks = computeDataHubComparisonSeasonRankSets(players, getDataHubGameLogsQualifiedIds(season));
+  return Object.fromEntries(players.map((player) => [player.id, {
+    posRank: ranks.positional[player.id]?.fpts,
+    ppgPosRank: ranks.positional[player.id]?.ppg,
+    overallRank: ranks.overall[player.id]?.fpts,
+    ppgOverallRank: ranks.overall[player.id]?.ppg,
+  }]));
 }
 
 function closeDataHubGameLogsSeasonMenu() {
@@ -12862,13 +12853,6 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         }
         seasonStats = parseDataHubSeasonStatsRows(source.rawRows);
         weeklyStats = Object.fromEntries(Object.entries(source.weeklyRows).map(([week, rows]) => [week, parseDataHubWeeklyStatsRows(rows)]));
-        // DH has stat values, not a season-rank sheet. Compute positional ranks
-        // from DH values, keeping the established lower-is-better stat direction.
-        const players = source.rows.filter((row) => is2026RankQualified(row, source.weeksOfData)).map((row) => ({
-          id: row.__meta.playerId, pos: row.__meta.pos,
-          seasonStats: { ...seasonStats[row.__meta.playerId], fpts: seasonStats[row.__meta.playerId]?.fpts_ppr },
-        }));
-        seasonRanks = computeDataHubComparisonSeasonRankSets(players).positional;
       } else {
         const [seasonText, rankText, ...weekTexts] = await Promise.all([
           fetchCsvText(),
@@ -12885,6 +12869,13 @@ async function ensureDataHubGameLogsData(season = state.currentModalSeason) {
         Object.values(players).some((stats) => isDataHubRecordedWeek(stats, stats.pos, season))
           ? Math.max(latest, Number(week)) : latest
       ), 0);
+      // Rebuild every modal stat rank together: adding exception players must
+      // renumber the full qualified pool, not just fill their missing ranks.
+      const rankPlayers = Object.entries(seasonStats).map(([id, stats]) => ({
+        id, pos: stats.pos, seasonStats: { ...stats, fpts: stats.fpts_ppr },
+      }));
+      seasonRanks = computeDataHubComparisonSeasonRankSets(rankPlayers,
+        getDataHubGameLogsQualifiedIds(season, latestRecordedWeek || getStatsElapsedWeeks(season))).positional;
       const snapshot = { season, seasonStats, seasonRanks, weeklyStats, latestRecordedWeek };
       state.seasonDataCache[season] = snapshot;
       rebuildStatsPositionalRanks();
@@ -14110,7 +14101,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     bulletSuffix.textContent = "•";
     rankAnnotation.insertBefore(bulletPrefix, rankAnnotation.firstChild);
     rankAnnotation.appendChild(bulletSuffix);
-    rankAnnotation.style.color = getDataHubConditionalColorByRank(rankValue, player.pos);
+    // Missing footer ranks use the requested muted color on both breakpoints.
+    rankAnnotation.style.color = Number.isFinite(rankValue) && rankValue > 0
+      ? getDataHubConditionalColorByRank(rankValue, player.pos) : "#5c6576";
 
     const valueSpan = document.createElement("span");
     valueSpan.className = "stat-value";

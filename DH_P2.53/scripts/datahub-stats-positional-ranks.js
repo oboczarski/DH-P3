@@ -28,7 +28,8 @@ export function hasStatsScoringQualifierException(row, elapsedWeeks) {
     && points !== null && points / games >= 20;
 }
 
-function isQualified(row, season, weeksOfData, elapsedWeeks) {
+// Export the table's eligibility rule for DataHub's independent modal ranks.
+export function isStatsSeasonRankQualified(row, season, weeksOfData, elapsedWeeks) {
   if (hasStatsScoringQualifierException(row, elapsedWeeks)) return true;
   if (season === "2026") return is2026RankQualified(row, weeksOfData);
   const [stat, minimum] = QUALIFIER_2025[row.POS] || [];
@@ -41,7 +42,7 @@ export function buildStatsPositionalRanks(rows, columns, season, weeksOfData = 1
   const stats = [...new Set(columns)].filter((column) => !IDENTITY_COLUMNS.has(column));
 
   for (const position of ["QB", "RB", "WR", "TE"]) {
-    const qualifiedRows = rows.filter((row) => row.POS === position && isQualified(row, season, weeksOfData, elapsedWeeks));
+    const qualifiedRows = rows.filter((row) => row.POS === position && isStatsSeasonRankQualified(row, season, weeksOfData, elapsedWeeks));
     for (const stat of stats) {
       const candidates = qualifiedRows
         .map((row) => ({ row, value: numericStat(row[stat]) }))

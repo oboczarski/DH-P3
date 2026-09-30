@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh weekly CSV reads and injury/DNP labels in DataHub/Rosters Game Logs.
-const CACHE_NAME = 'DH3.48b-gamelog-status-labels';
+// Refresh DataHub/Rosters modal rank pools and scoped Stats typography.
+const CACHE_NAME = 'DH3.48c-modal-rank-qualifiers';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

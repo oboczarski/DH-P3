@@ -3518,7 +3518,9 @@ function buildCalculatedRankCache(scoringSettings, leagueId, scoringHash) {
             ppgPosRank: formatRankValue(entry.ppgPosRank),
         };
     });
-    return { leagueId, scoringHash, players: cache };
+    // Keep card rankings independent; only Game Logs consumes modalPlayers.
+    const modalPlayers = pageType === 'rosters' ? buildRostersLeagueModalRankCache(entries) : null;
+    return { leagueId, scoringHash, players: cache, modalPlayers };
 }
 function calculatePlayerStatsAndRanks(playerId) {
     const league = state.leagues.find(l => l.league_id === state.currentLeagueId);
@@ -3809,6 +3811,14 @@ async function fetchPlayerStatsSheets() {
                 }
             });
             const snapshot = { seasonStats, seasonRanks, seasonRankCache, weeklyStats, projectionWeeks };
+            if (pageType === 'rosters') {
+                snapshot.latestRecordedWeek = Object.entries(weeklyStats).reduce((latest, [week, players]) =>
+                    !projectionWeeks[week] && Object.values(players).some((stats) => Object.entries(stats).some(([key, value]) =>
+                        key !== 'proj' && Number.isFinite(value))) ? Math.max(latest, Number(week)) : latest, 0);
+                // Recompute the CSV modal ranks with the enlarged pool, including
+                // unrestricted FPTS, before activating the historical snapshot.
+                snapshot.seasonRanks = buildRostersHistoricalModalRanks(seasonStats, snapshot.latestRecordedWeek || 18);
+            }
             if (pageType === 'rosters') {
                 // Preserve the shipped 2025 CSV source independently so a later
                 // 2026 workbook activation cannot make the season dropdown sticky.
@@ -4264,6 +4274,14 @@ function getSeasonRankValue(playerId, statKey) {
         }
         return parseRankValue(String(value)) ?? null;
     };
+    if (pageType === 'rosters' && (statKey === 'fpts' || statKey === 'ppg')) {
+        // Compare/radar callers may ask for another player while a modal is
+        // open; only reuse the summary ranks belonging to this player.
+        const ranks = String(state.currentGameLogsPlayer?.id) === String(playerId)
+            ? state.currentGameLogsPlayerRanks || getRostersGameLogsPlayerRanks(playerId)
+            : getRostersGameLogsPlayerRanks(playerId);
+        return normalizeRank(statKey === 'fpts' ? ranks.posRank : ranks.ppgPosRank);
+    }
     if (statKey === 'fpts' || statKey === 'ppg') {
         // Prefer the currently-open modal's computed ranks (matches summary chips exactly).
         const modalRanks = state.currentGameLogsPlayerRanks;
@@ -4698,6 +4716,99 @@ function createRankAnnotation(rank, { wrapInParens = true, ordinal = false, vari
     span.textContent = wrapInParens ? `(${displayText})` : displayText;
     return span;
 }
+// Rosters modal-only qualification: preserve its default volume minimums,
+// adding the same half-season / 20 PPR points-per-game exception as DataHub.
+// Stats/Ownership pages and roster-card rank caches keep their existing rules.
+function isRostersGameLogsRankQualified(stats, position, season, elapsedWeeks, qualifierWeeks = elapsedWeeks) {
+    const gates = season === '2026'
+        ? { QB: ['pass_att', 16 * qualifierWeeks], RB: ['rush_att', 5 * qualifierWeeks], WR: ['rr', 13 * qualifierWeeks], TE: ['rr', 13 * qualifierWeeks] }
+        : { QB: ['pass_att', 200], RB: ['rush_att', 100], WR: ['rr', 220], TE: ['rr', 220] };
+    const gate = gates[position];
+    if (!gate || !stats) return false;
+    const games = stats.games_played;
+    const points = stats.fpts_ppr ?? stats.fpt_ppr;
+    return (Number.isFinite(stats[gate[0]]) && stats[gate[0]] >= gate[1])
+        || (Number.isFinite(games) && games > 0 && games >= Math.ceil(Math.max(1, elapsedWeeks) / 2)
+            && Number.isFinite(points) && points / games >= 20);
+}
+
+// This cutoff also places the Rosters week divider; projection-only future
+// rows do not count, and an injured player's final game cannot shorten it.
+function getRostersGameLogsElapsedWeeks() {
+    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    return Math.max(1, snapshot?.latestRecordedWeek || (state.currentGameLogsSeason === '2025' ? 18 : state.currentNflWeek || 1));
+}
+
+function buildRostersHistoricalModalRanks(seasonStats, elapsedWeeks) {
+    const ranks = {};
+    const entries = Object.entries(seasonStats).filter(([, stats]) => ['QB', 'RB', 'WR', 'TE'].includes(stats.pos));
+    const qualifiedIds = new Set(entries.filter(([, stats]) => isRostersGameLogsRankQualified(stats, stats.pos, '2025', elapsedWeeks)).map(([id]) => id));
+    const keys = new Set(entries.flatMap(([, stats]) => Object.keys(stats)));
+    const lowerBetter = new Set(['pass_int', 'pass_sack', 'ttt', 'prs_pct', 'dp_pct', 'fum']);
+    for (const stat of keys) {
+        const isFpts = ['fpts', 'fpts_ppr', 'fpt_ppr'].includes(stat);
+        for (const position of ['QB', 'RB', 'WR', 'TE']) {
+            const candidates = entries.filter(([id, stats]) => stats.pos === position && Number.isFinite(stats[stat])
+                && (isFpts || qualifiedIds.has(id)))
+                .sort((a, b) => lowerBetter.has(stat) ? a[1][stat] - b[1][stat] : b[1][stat] - a[1][stat]);
+            let previous = null;
+            let rank = 0;
+            candidates.forEach(([id, stats], index) => {
+                if (stats[stat] !== previous) rank = index + 1;
+                previous = stats[stat];
+                if (!ranks[id]) ranks[id] = {};
+                ranks[id][stat] = rank;
+            });
+        }
+    }
+    return ranks;
+}
+
+// Summary/footer PPG follows the modal qualifier pool. FPTS uses every
+// player with season or weekly data, including zero and negative totals.
+function buildRostersLeagueModalRankCache(entries) {
+    const elapsedWeeks = getRostersGameLogsElapsedWeeks();
+    const snapshot = state.currentGameLogsSeason === '2026' ? state.rosters2026GameLogs : state.rosters2025GameLogs;
+    const qualifierWeeks = snapshot?.rankQualifierWeeks || elapsedWeeks;
+    // Season games include zero/negative scoring appearances, unlike the
+    // legacy positive-points counter retained by the roster-card cache.
+    const modalEntries = entries.map((entry) => {
+        const sourceGames = state.playerSeasonStats[entry.id]?.games_played;
+        const gamesPlayed = Math.max(entry.gamesPlayed, Number.isFinite(sourceGames) ? sourceGames : 0);
+        return { ...entry, gamesPlayed, ppg: gamesPlayed > 0 ? entry.totalPts / gamesPlayed : 0 };
+    });
+    const pool = modalEntries.filter((entry) => ['QB', 'RB', 'WR', 'TE'].includes(entry.pos)
+        && (state.playerSeasonStats[entry.id] || entry.gamesPlayed > 0 || entry.totalPts !== 0));
+    const result = Object.fromEntries(pool.map((entry) => [entry.id, {
+        total_pts: entry.totalPts.toFixed(1), ppg: entry.ppg.toFixed(1),
+        posRank: 'NA', overallRank: 'NA', ppgPosRank: 'NA', ppgOverallRank: 'NA',
+    }]));
+    const assign = (candidates, valueKey, rankKey) => {
+        candidates = candidates.slice().sort((a, b) => b[valueKey] - a[valueKey]);
+        let previous = null;
+        let rank = 0;
+        candidates.forEach((entry, index) => {
+            if (entry[valueKey] !== previous) rank = index + 1;
+            previous = entry[valueKey];
+            result[entry.id][rankKey] = rank;
+        });
+    };
+    const qualified = pool.filter((entry) => entry.gamesPlayed > 0 && isRostersGameLogsRankQualified(
+        state.playerSeasonStats[entry.id], entry.pos, state.currentGameLogsSeason, elapsedWeeks, qualifierWeeks));
+    assign(pool, 'totalPts', 'overallRank');
+    assign(qualified, 'ppg', 'ppgOverallRank');
+    for (const position of ['QB', 'RB', 'WR', 'TE']) {
+        assign(pool.filter((entry) => entry.pos === position), 'totalPts', 'posRank');
+        assign(qualified.filter((entry) => entry.pos === position), 'ppg', 'ppgPosRank');
+    }
+    return result;
+}
+
+function getRostersGameLogsPlayerRanks(playerId) {
+    const fallback = calculatePlayerStatsAndRanks(playerId);
+    return state.calculatedRankCache?.modalPlayers?.[playerId] || fallback;
+}
+
 function computeSeasonRankings(seasonStats) {
     if (!seasonStats || typeof seasonStats !== 'object') return null;
     const entries = [];
@@ -5497,7 +5608,7 @@ async function handlePlayerNameClick(player) {
     // Stats page uses sheet data, other pages calculate from weekly data
     const playerRanks = state.isGameLogFromStatsPage
         ? getStatsPagePlayerRanks(player.id)
-        : calculatePlayerStatsAndRanks(player.id);
+        : (pageType === 'rosters' ? getRostersGameLogsPlayerRanks(player.id) : calculatePlayerStatsAndRanks(player.id));
     if (isStaleRequest()) return;
     await renderGameLogs(gameLogs, player, playerRanks, requestSeq);
 }
@@ -7434,6 +7545,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     }
     if (!Number.isFinite(dividerIndex)) dividerIndex = rowsMeta.length;
     if (!rowsMeta.some(meta => meta.isPlayed)) dividerIndex = 0;
+    if (pageType === 'rosters') dividerIndex = getRostersGameLogsElapsedWeeks();
     dividerIndex = Math.max(0, Math.min(dividerIndex, rowsMeta.length));
     let tableCore;
     try {
@@ -7699,7 +7811,10 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             td.appendChild(valueSpan);
             td.appendChild(rankAnnotation);
             td.classList.add('has-rank-annotation');
-            rankAnnotation.style.color = getConditionalColorByRank(rankValue, player.pos);
+            // Rosters footer NA annotations use the muted rank color only in
+            // this modal, preserving the shared Stats page renderer.
+            rankAnnotation.style.color = pageType === 'rosters' && !(Number.isFinite(rankValue) && rankValue > 0)
+                ? '#5c6576' : getConditionalColorByRank(rankValue, player.pos);
 
             // Save a raw numeric value for the radar chart (strip display formatting).
             const numericValue = parseFloat(displayValue.replace(/[,%]/g, ''));
