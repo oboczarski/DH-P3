@@ -1133,6 +1133,11 @@ const STATS_COLUMN_ICON_OVERRIDES = Object.freeze({
     "YBC/A": '<path d="M120-240q-33 0-56.5-23.5T40-320q0-33 23.5-56.5T120-400h10.5q4.5 0 9.5 2l182-182q-2-5-2-9.5V-600q0-33 23.5-56.5T400-680q33 0 56.5 23.5T480-600q0 2-2 20l102 102q5-2 9.5-2h21q4.5 0 9.5 2l142-142q-2-5-2-9.5V-640q0-33 23.5-56.5T840-720q33 0 56.5 23.5T920-640q0 33-23.5 56.5T840-560h-10.5q-4.5 0-9.5-2L678-420q2 5 2 9.5v10.5q0 33-23.5 56.5T600-320q-33 0-56.5-23.5T520-400v-10.5q0-4.5 2-9.5L420-522q-5 2-9.5 2H400q-2 0-20-2L198-340q2 5 2 9.5v10.5q0 33-23.5 56.5T120-240Z"/>',
     "CAR/G": CAR_PER_GAME_HEADER_ICON_MARKUP,
     "TGT/G": '<path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-80q-100 0-170-70t-70-170q0-100 70-170t170-70q100 0 170 70t70 170q0 100-70 170t-170 70Zm0-80q66 0 113-47t47-113q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 66 47 113t113 47Zm0-80q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Z"/>', // Material Symbols: target.
+    // RB receiving additions use previously unused filled Material Symbols:
+    // step_over shows progress after the catch; pie_chart shows receiving yard share.
+    // TPRR and recYPG retain their existing stat icons from the receiving view.
+    "YACR": '<path d="M480-200q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM163-480q14-119 104-199.5T479-760q73 0 135 29.5T720-650v-110h80v280H520v-80h168q-32-54-86.5-87T480-680q-88 0-155 57t-81 143h-81Z"/>',
+    "recYMS": '<path d="M520-520v-356q143 15 241.5 114T876-520H520ZM441-85q-152-15-254.5-128T84-480q0-155 102.5-268T441-876v791Zm79 0v-356h356q-14 143-113.5 242.5T520-85Z"/>',
   }),
   // QB 2026 additions use the requested filled Material Symbols through the same
   // inline registry as the RB headers, with CAR/G retaining its shared icon.
@@ -1610,7 +1615,9 @@ const STATS_RUSHING_GROUP_COLUMNS_2026 = Object.freeze({
     "YPC", "ELU", "MTF/A", "YCO/A", "EXPLSV%", "RYOE/A", "YBC/A", "ruYPG", "CAR/G",
   ]),
   RECEIVING: Object.freeze([
-    "REC", "recYDS", "recTD", "YPRR", "TS%", "TGT", "TGT/G", "YAC", "rec1D",
+    // 2026 RB Stats: insert the route/catch rates beside their source stats,
+    // then finish the Receiving group with per-game yards and yard market share.
+    "REC", "recYDS", "recTD", "YPRR", "TS%", "TPRR", "TGT", "TGT/G", "YAC", "YACR", "rec1D", "recYPG", "recYMS",
   ]),
 });
 const STATS_RUSHING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.rushing.map((group) => Object.freeze({
@@ -2467,11 +2474,13 @@ const COLUMN_WIDTHS = {
   recTD: 88,
   rec1D: 88,
   YAC: 88,
+  YACR: 88,
   "TS%": 86,
   YPRR: 88,
   TPRR: 88,
   "1DRR": 88,
   recYPG: 96,
+  recYMS: 96,
   "AY%": 84,
   AY: 84,
   YPR: 84,
@@ -2619,11 +2628,13 @@ const MOBILE_COLUMN_WIDTHS = {
   recTD: 51,
   rec1D: 51,
   YAC: 48,
+  YACR: 52,
   "TS%": 48,
   YPRR: 52,
   TPRR: 52,
   "1DRR": 52,
   recYPG: 58,
+  recYMS: 58,
   "AY%": 48,
   AY: 54,
   YPR: 48,
@@ -11261,6 +11272,15 @@ function formatDisplayValue(columnName, value) {
     return numericValue == null ? formatCellValue(value) : numericValue.toFixed(1);
   }
 
+  // RB receiving rates keep the workbook's units: TPRR is a decimal ratio,
+  // YACR is yards per reception, and recYMS is a percentage of team receiving yards.
+  if (is2026RushingStatsView() && ["TPRR", "YACR", "recYMS"].includes(columnName)) {
+    const numericValue = parseDataHubStatValue(columnName, value);
+    if (numericValue == null) return formatCellValue(value);
+    if (columnName === "recYMS") return formatDataHubPercentage(numericValue);
+    return numericValue.toFixed(columnName === "TPRR" ? 3 : 1);
+  }
+
   // Rookie GRD display:
   // targets the rookies career/trade grade column and keeps grade precision
   // stable across source CSVs. RB/WT career files store whole-number grades,
@@ -11670,11 +11690,17 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "rec1D", desc: "Receiving First Downs" },
       { abbr: "recTD", desc: "Receiving Touchdowns" },
       { abbr: "recYDS", desc: "Receiving Yards" },
+      // Explain the expanded RB receiving columns in this page's modal key.
+      { abbr: "recYPG", desc: "Receiving Yards per Game" },
+      { abbr: "recYMS", desc: "Receiving Yard Market Share" },
       { abbr: "RR", desc: "Routes Run" },
       { abbr: "RZ Tgt", desc: "Red Zone Targets" },
       { abbr: "TGT", desc: "Targets" },
+      { abbr: "TGT/G", desc: "Targets per Game" },
+      { abbr: "TPRR", desc: "Targets per Route Run" },
       { abbr: "TS%", desc: "Target Share" },
       { abbr: "YAC", desc: "Yards After Catch" },
+      { abbr: "YACR", desc: "Yards After Catch per Reception" },
       { abbr: "YPR", desc: "Yards per Reception" },
       { abbr: "YPRR", desc: "Yards per Route Run" },
     ],
@@ -11760,6 +11786,10 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   recTD: "rec_td",
   rec1D: "rec_fd",
   YAC: "rec_yar",
+  // 2026 RB receiving rates come directly from DH/WK for both modal views.
+  YACR: "rec_yacr",
+  TPRR: "tprr",
+  recYMS: "rec_yms",
   YPR: "ypr",
   RR: "rr",
   "RZ Tgt": "rz_tgt",
@@ -11898,7 +11928,8 @@ const DATAHUB_RB_SZN_SECTIONS_2026 = DATAHUB_SZN_STAT_SECTIONS_BY_POS.RB.map((se
     ] };
   }
   if (section.label === "RECEIVING EFFICIENCY") {
-    return { ...section, stats: ["ts_per_rr", "yprr", "ypr", "tgt_per_g"] };
+    // 2026 RB Season view: use the requested receiving-efficiency order only.
+    return { ...section, stats: ["ts_per_rr", "tprr", "tgt_per_g", "yprr", "ypr", "rec_ypg", "rec_yms"] };
   }
   return section;
 });
@@ -11965,6 +11996,8 @@ const DATAHUB_LEAGUE_ABBR_OVERRIDES = {
 };
 const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
+  // Receiving rates must stay unavailable when DH/WK omits the source value.
+  "tprr", "rec_yacr", "rec_yms",
   "yprr",
   "ts_per_rr",
   "imp_per_g",
@@ -12015,7 +12048,7 @@ const DATAHUB_RB_LOG_ORDER_2026 = [
   "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td", "yds_total",
   "elu", "mtf_per_att", "yco_per_att", "mtf", "rush_yac",
   "expl_ru_pct", "ryoe", "ryoe_per_att", "rz_att", "gl_att", "rush_fd",
-  "rr", "yprr", "ypr", "rec_fd", "rec_yar", "imp_per_g", "fum", "fpoe",
+  "rr", "yprr", "tprr", "ypr", "rec_fd", "rec_yar", "rec_yacr", "imp_per_g", "fum", "fpoe",
 ];
 const DATAHUB_WR_TE_LOG_ORDER = [
   "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
@@ -13067,9 +13100,9 @@ function parseDataHubStatValue(header, value) {
   if (!trimmedValue || trimmedValue.toUpperCase() === "NA") {
     return null;
   }
-  // DataHub 2026 QB Game Logs: BLTZ% and TmPa% share the SNP% rule so WK and
-  // DH rates display consistently whether their cells hold fractions or points.
-  if (["SNP%", "BLTZ%", "TmPa%"].includes(header)) {
+  // QB percentages and RB receiving yard share accept explicit percentages,
+  // fractions, or percentage points. TPRR remains a decimal ratio from DH/WK.
+  if (["SNP%", "BLTZ%", "TmPa%", "recYMS"].includes(header)) {
     const numericPortion = Number.parseFloat(trimmedValue.replace("%", ""));
     if (!Number.isFinite(numericPortion)) {
       return null;
@@ -13698,6 +13731,9 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
     rec_td: 44,
     ypr: 40,
     yprr: 42,
+    // Keep the new RB weekly headers compact in the same horizontal scroller.
+    tprr: 44,
+    rec_yacr: 44,
     ryoe_per_att: 56,
     rz_att: 50,
     gl_att: 50,
@@ -14391,6 +14427,9 @@ function formatDataHubGameLogCellValue(statKey, value, is2026QbLog = false, is20
   // DataHub 2026 RB weekly per-game columns match the Season view's tenths.
   if (is2026RbLog && /(?:\/G|YPG)$/.test(DATAHUB_STAT_LABELS[statKey])) return numericValue.toFixed(1);
   if (is2026RbLog && statKey === "ryoe_per_att") return numericValue.toFixed(2);
+  // Preserve DH/WK receiving rate precision; TPRR is a ratio, not a percentage.
+  if (is2026RbLog && statKey === "tprr") return numericValue.toFixed(3);
+  if (is2026RbLog && statKey === "rec_yacr") return numericValue.toFixed(1);
   if (statKey === "yco_per_att") return numericValue.toFixed(2);
   if (["mtf_per_att", "ypc", "ttt", "ypr", "yprr", "first_down_rec_rate"].includes(statKey)) {
     return numericValue.toFixed(2);
@@ -14533,7 +14572,10 @@ function getDataHubGameLogsSeasonDisplayValue({
   if (key === "proj") return "-";
   let displayValue;
 
-  if (DATAHUB_NO_FALLBACK_KEYS.has(key)) {
+  if (DATAHUB_NO_FALLBACK_KEYS.has(key)
+    || (key === "rec_ypg" && state.currentModalSeason === "2026" && player?.pos === "RB")) {
+    // The added 2026 RB Season rows use DH values; missing receiving yard
+    // rates cannot fall back to summed weekly ratios or fabricated zeroes.
     const raw = seasonTotals && typeof seasonTotals[key] === "number" ? seasonTotals[key] : null;
     if (raw === null) {
       displayValue = "N/A";
@@ -14543,8 +14585,12 @@ function getDataHubGameLogsSeasonDisplayValue({
     } else if (key === "expl_ru_pct") {
       const normalized = Math.abs(raw) <= 1.5 ? raw * 100 : raw;
       displayValue = formatDataHubPercentage(normalized);
-    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct"].includes(key)) {
+    } else if (["snp_pct", "prs_pct", "ts_per_rr", "cmp_pct", "blitz_pct", "team_pass_pct", "rec_yms"].includes(key)) {
       displayValue = formatDataHubPercentage(raw);
+    } else if (key === "tprr") {
+      displayValue = Number(raw).toFixed(3);
+    } else if (["rec_yacr", "rec_ypg"].includes(key)) {
+      displayValue = Number(raw).toFixed(1);
     } else if (key === "cpoe") {
       const formatted = formatDataHubPercentage(raw, 1);
       displayValue = raw > 0 ? `+${formatted}` : formatted;
@@ -14909,6 +14955,7 @@ function getDataHubStatGroup(statKey) {
   if ([
     "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",
     "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct", "tgt_per_g",
+    "tprr", "rec_yacr", "rec_yms",
   ].includes(statKey)) return "receiving";
   return "all";
 }

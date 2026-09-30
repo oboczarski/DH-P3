@@ -98,6 +98,9 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("REC", "Receptions", ["rec"]),
     stat("recYDS", "Receiving Yards", ["rec_yd"]),
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
+    // RB Stats/Season additions stay in the local receiving glossary so their
+    // headers and modal labels have matching definitions and tooltip aliases.
+    stat("recYMS", "Receiving Yard Market Share", ["rec_yms"], "Percentage of team receiving yards."),
     stat("recTD", "Receiving Touchdowns", ["rec_td"]),
     stat("rec1D", "Receiving First Downs", ["rec_fd"]),
     stat("recIMP", "Receiving Impact Plays", [], "Receiving first downs + receiving touchdowns"),
@@ -111,6 +114,7 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("1DRR", "First Downs per Route Run", ["first_down_rec_rate"]),
     stat("IMP/RR", "Impact Plays per Route Run"),
     stat("YAC", "Yards After Catch", ["rec_yar"]),
+    stat("YACR", "Yards After Catch per Reception", ["rec_yacr"]),
     stat("AY", "Air Yards"),
     stat("AY%", "Air Yards Share", ["ay_pct"]),
     stat("tgtQBR", "Passer Rating When Targeted"),

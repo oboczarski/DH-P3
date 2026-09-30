@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh Rosters' independently owned Game Logs theme and presentation.
-const CACHE_NAME = 'DH3.48d-rosters-gamelogs-parity';
+// Refresh DataHub Stats and both independently owned 2026 RB Game Logs views.
+const CACHE_NAME = 'DH3.48e-rb-receiving-stats';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

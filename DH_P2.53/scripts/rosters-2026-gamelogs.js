@@ -24,6 +24,9 @@
         YBC: 'rush_ybc', 'YBC/A': 'ybc_per_att', 'CAR/G': 'car_per_g', 'TGT/G': 'tgt_per_g',
         'YCO/A': 'yco_per_att', 'ExplRu%': 'expl_ru_pct', 'EXPLSV%': 'expl_ru_pct', 'MTF/A': 'mtf_per_att',
         TGT: 'rec_tgt', REC: 'rec', recYDS: 'rec_yd', recTD: 'rec_td', rec1D: 'rec_fd', YAC: 'rec_yar', YPR: 'ypr',
+        // Rosters owns these 2026 RB receiving mappings for weekly/Season views
+        // and positional ranks; missing sheet fields remain unavailable.
+        TPRR: 'tprr', YACR: 'rec_yacr', recYMS: 'rec_yms',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
@@ -76,9 +79,9 @@
             if (!statKey) return;
             if (statKey === 'proj') { stats.proj = String(rawValue ?? '').trim(); return; }
             let number = numberValue(rawValue);
-            // Rosters 2026 QB percentages: WK/DH may encode a rate as a
-            // fraction or as percentage points; display both on the same scale.
-            if (['SNP%', 'BLTZ%', 'TmPa%'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
+            // QB percentages and RB receiving yard share accept fractions or
+            // percentage points; TPRR retains its source decimal-ratio units.
+            if (['SNP%', 'BLTZ%', 'TmPa%', 'recYMS'].includes(key) && number !== null && !String(rawValue).includes('%') && number <= 1.5) number *= 100;
             if (number !== null) stats[statKey] = number;
         });
         if (weekly) stats.__hasRecordedStats = Boolean(row.__hasRecordedStats);
