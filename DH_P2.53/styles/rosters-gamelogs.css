@@ -3030,7 +3030,7 @@ body[data-page="rosters"] :where(#game-logs-modal) .consistency-hud .hud-insight
 }
 
 body[data-page="rosters"] :where(#game-logs-modal) .consistency-chart-shell {
-  margin-top: 0.45rem;
+  margin-top: 0.55rem;
   padding: 0px;
   border-radius: 10px;
   border: 0px solid rgba(115, 158, 255, 0.35);
@@ -3424,7 +3424,7 @@ body[data-page="rosters"] #game-logs-modal .ownership-modal-content .ownership-m
   }
 
   body[data-page="rosters"] :where(#game-logs-modal) .consistency-chart-shell {
-    margin-top: 0.23rem;
+    margin-top: 0.33rem;
     border-radius: 8px;
   }
 
@@ -4761,8 +4761,8 @@ body[data-page="rosters"] #game-logs-modal .gamelogs-view-option.is-active {
     overflow-x: auto;
     overflow-y: auto;
     border-radius: 10px;
-    max-height: 415px;
-    height: 415px;
+    max-height: 420px;
+    height: 420px;
     scrollbar-width: none;
     overscroll-behavior: contain;
     flex: none;
