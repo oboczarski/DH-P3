@@ -3353,7 +3353,7 @@ body[data-page="datahub"] .qualifier-field--threshold .qualifier-menu {
   align-items: center;
   height: 27px;
   min-height: 27px;
-  padding: 0 11px;
+  padding: 0 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   background: linear-gradient(180deg, rgb(130 139 174 / 18%), rgb(0 0 0 / 34%)), rgb(83 124 185 / 32%);
@@ -4956,7 +4956,7 @@ body[data-page="datahub"][data-datahub-tab="rookies"] [data-column-name="index"]
   white-space: nowrap;
   text-overflow: ellipsis;
   color: rgba(236, 242, 252, 0.92);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: normal;
 }
 
 .player-cell .stats-table__cell-content {
@@ -6611,7 +6611,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     color: rgba(161, 169, 191, 0.74);
     font-size: 0.5rem;
     line-height: 1;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.03em;
     margin-left: 3px;
     backface-visibility: hidden;
     transform: translateZ(0);
@@ -6622,7 +6622,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
     --datahub-grid-meta-label-gap: 1px;
     align-items: end;
     gap: 8px;
-    margin: 0 17px 7px 17px;
+    margin: 0 5px 7px;
   }
 
   .grid-shell__meta .active-view-meta,
@@ -6648,7 +6648,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
   }
 
   .meta-pill-wrap {
-    gap: 12px;
+    gap: 6px;
   }
 
   /* Mobile row-count chip alignment:
@@ -6656,7 +6656,7 @@ body[data-page="datahub"] .trade-value-metric__diff-suffix[data-diff-winner="ktc
      counter can sit on that same baseline without the old translateY shim. */
   .grid-shell__meta .meta-count {
     transform: none;
-    width: 53px;
+    width: 47px;
     text-wrap-mode: nowrap;
     padding: 0 2px;
     justify-content: center;
