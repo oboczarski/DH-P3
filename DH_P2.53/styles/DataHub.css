@@ -15531,7 +15531,7 @@ body[data-page="datahub"] .stats-table .stats-position-metric__annotation {
   gap: 0;
   color: rgba(199, 214, 238, 0.76);
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: 0em;
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__position {
