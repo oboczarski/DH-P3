@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh DataHub rank controls, chart windows, and the Rosters chart source.
-const CACHE_NAME = 'DH3.48a-stacked-stat-ranks-qualifiers';
+// Refresh weekly CSV reads and injury/DNP labels in DataHub/Rosters Game Logs.
+const CACHE_NAME = 'DH3.48b-gamelog-status-labels';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -60,6 +60,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/datahub-stats-help.js',
   '/scripts/datahub-stats-season.js',
   '/scripts/datahub-2026-data.js',
+  '/scripts/nfl-2026-sheets.js',
   '/data/NFL-2026/Schedule2026.csv',
   '/scripts/leaguehub.js',
   // League Analysis shares a local projection model and a pinned ECharts renderer.

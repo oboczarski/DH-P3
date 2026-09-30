@@ -13790,12 +13790,6 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       }
     },
   });
-  const getProjectionDisplayValue = (statLine) => {
-    if (statLine && Object.prototype.hasOwnProperty.call(statLine, "proj")) {
-      return String(statLine.proj ?? "");
-    }
-    return "";
-  };
   const buildWeekDescriptor = (week, statsForWeek) => ({
     render(td) {
       const opponent = String(statsForWeek?.opponent || "").trim().toUpperCase();
@@ -13890,11 +13884,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       if (!statLabels[statKey]) continue;
       if (isUnplayedWeek) {
         if (statKey === "proj") {
-          let projectionDisplay = getProjectionDisplayValue(stats);
-          const normalizedProjection = projectionDisplay.trim().toUpperCase();
-          if (Number(stats?.snp_pct) === 0 && !parseDataHubInjuryDesignation(normalizedProjection)) {
-            projectionDisplay = "DNP";
-          }
+          const projectionDisplay = getDataHubGameLogProjectionDisplay(stats, week);
           const designation = parseDataHubInjuryDesignation(projectionDisplay);
           rowData[statKey] = createTextDescriptor(
             projectionDisplay || "",
@@ -13912,11 +13902,7 @@ function renderDataHubGameLogsTable(gameLogs, player, playerRanks) {
       }
 
       if (statKey === "proj") {
-        let projectionDisplay = getProjectionDisplayValue(stats);
-        const normalizedProjection = projectionDisplay.trim().toUpperCase();
-        if (Number(stats?.snp_pct) === 0 && !parseDataHubInjuryDesignation(normalizedProjection)) {
-          projectionDisplay = "DNP";
-        }
+        const projectionDisplay = getDataHubGameLogProjectionDisplay(stats, week);
         const designation = parseDataHubInjuryDesignation(projectionDisplay);
         rowData[statKey] = createTextDescriptor(
           projectionDisplay || "",
@@ -14508,6 +14494,18 @@ function createDataHubRankAnnotation(rank, { wrapInParens = true, ordinal = fals
 
   span.textContent = wrapInParens ? `(${displayText})` : displayText;
   return span;
+}
+
+// DataHub weekly PROJ cells and Consistency share the same SNP-aware label.
+// Preserve explicit injury text; 2026 uses OUT for an actual zero-snap row even
+// when SNP% is blank. Keep the archived table's SNP%/DNP fallback unchanged.
+function getDataHubGameLogProjectionDisplay(stats, week = null) {
+  const projection = String(stats?.proj ?? "").trim();
+  if (state.currentModalSeason === "2026" && Number.isFinite(week)
+      && week > (state.seasonDataCache["2026"]?.latestRecordedWeek || 0)) return projection;
+  const is2026 = state.currentModalSeason === "2026";
+  const zeroSnaps = is2026 ? stats?.snp === 0 : Number(stats?.snp_pct) === 0;
+  return zeroSnaps && !parseDataHubInjuryDesignation(projection) ? (is2026 ? "OUT" : "DNP") : projection;
 }
 
 function parseDataHubInjuryDesignation(rawValue) {
@@ -15455,15 +15453,10 @@ function buildDataHubConsistencyPanelData(player) {
   // Keep season insight math on every recorded week; the graph below renders
   // only its latest nine axis weeks.
   Object.keys(state.playerWeeklyStats || {}).map(Number).filter(Number.isFinite).sort((left, right) => left - right).forEach((week) => {
+    // Future 2026 schedule/projection rows are not missed games or HUD scores.
+    if (state.currentModalSeason === "2026" && week > axisWeeks[axisWeeks.length - 1]) return;
     const stats = combinedWeeklyStats?.[week]?.[player.id];
     if (!stats) {
-      return;
-    }
-    const projReason = formatDataHubProjReason(stats.proj);
-    if (shouldSkipDataHubConsistencyWeek(stats)) {
-      if (projReason) {
-        skippedLabels[week] = projReason;
-      }
       return;
     }
     const opponent = String(stats.opponent || "").trim().toUpperCase();
@@ -15471,6 +15464,15 @@ function buildDataHubConsistencyPanelData(player) {
       skippedLabels[week] = "BYE";
       return;
     }
+    const projectionDisplay = state.currentModalSeason === "2026" ? getDataHubGameLogProjectionDisplay(stats) : stats.proj;
+    const projReason = formatDataHubProjReason(projectionDisplay);
+    if (shouldSkipDataHubConsistencyWeek(stats, projectionDisplay)) {
+      if (projReason) {
+        skippedLabels[week] = projReason;
+      }
+      return;
+    }
+    if (stats.__hasRecordedStats === false) return;
     const originalPoints = Number(stats.fpts_override ?? stats.fpt_ppr ?? stats.fpts);
     const clampedPoints = clampDataHubConsistencyPoints(originalPoints);
     if (clampedPoints === null) {
@@ -15527,7 +15529,7 @@ function buildDataHubConsistencyPanelData(player) {
   };
 }
 
-function shouldSkipDataHubConsistencyWeek(statsForWeek) {
+function shouldSkipDataHubConsistencyWeek(statsForWeek, projectionDisplay = statsForWeek?.proj) {
   if (!statsForWeek) {
     return false;
   }
@@ -15536,7 +15538,8 @@ function shouldSkipDataHubConsistencyWeek(statsForWeek) {
   if (Number.isFinite(numericFantasyPoints) && numericFantasyPoints > 0.5) {
     return false;
   }
-  const rawProj = statsForWeek.proj;
+  // Consistency passes its SNP-aware display; Compare retains its own rules.
+  const rawProj = projectionDisplay;
   if (rawProj === undefined || rawProj === null) {
     return false;
   }
@@ -15736,7 +15739,8 @@ function renderDataHubConsistencyChart() {
     renderDataHubConsistencyZoneSummary(data);
     renderDataHubConsistencyPoints(data);
     hydrateDataHubConsistencyProgressCircles(data);
-    if (!data.chartSeries.length) {
+    const hasVisibleStatus = data.axisWeeks.some((week) => data.skippedLabels?.[week]);
+    if (!data.chartSeries.length && !hasVisibleStatus) {
       showDataHubConsistencyEmptyState(chartBox, "No sheet-based fantasy points recorded yet.");
     } else {
       hideDataHubConsistencyEmptyState(chartBox);
@@ -16183,9 +16187,7 @@ function renderDataHubConsistencyPoints(data) {
   const chartSeries = data.chartSeries || data.series;
   const axisWeeks = data.axisWeeks.length ? data.axisWeeks : chartSeries.map((entry) => entry.week);
   const totalSlots = axisWeeks.length || chartSeries.length || 1;
-  if (!chartSeries.length) {
-    return;
-  }
+  // Render status-only charts too; an injured player may have no scored games.
   const spanSlots = Math.max(1, totalSlots - 1);
   const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
   const curvePoints = [];
@@ -16243,17 +16245,16 @@ function renderDataHubConsistencyPoints(data) {
     } else if (next) {
       interpolatedPoints = next.pts;
     }
-    if (!Number.isFinite(interpolatedPoints)) {
-      return;
-    }
     const marker = document.createElement("div");
     marker.className = "weekly-skip-label";
     marker.textContent = skipped[week];
+    marker.title = `WK${week}: ${skipped[week]}`;
     marker.style.left = `${pctX}%`;
-    marker.style.top = `${yFromDataHubConsistencyPoints(interpolatedPoints)}%`;
+    // With no neighboring game, center the status without inventing a score.
+    marker.style.top = Number.isFinite(interpolatedPoints) ? `${yFromDataHubConsistencyPoints(interpolatedPoints)}%` : "50%";
     pointsLayer.appendChild(marker);
   });
-  drawDataHubSegmentedCurve(pointsLayer, extendDataHubCurvePoints(curvePoints), data);
+  if (curvePoints.length) drawDataHubSegmentedCurve(pointsLayer, extendDataHubCurvePoints(curvePoints), data);
 }
 
 function hydrateDataHubConsistencyProgressCircles(data) {

@@ -1,5 +1,7 @@
 // DataHub-only 2026 source. Public CSV reads keep workbook credentials out of
 // the app; DH supplies totals, numbered WK tabs supply results/projections.
+import { get2026SheetCsvUrl } from './nfl-2026-sheets.js';
+
 export const DATAHUB_2026_WORKBOOK = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
 const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
 const DEFENSE_COLUMNS = { QB: 'QBRK', RB: 'RBRK', WR: 'WRRK', TE: 'TERK' };
@@ -72,7 +74,9 @@ export function build2026SourceData({ seasonRows, weeklyRows = {}, scheduleRows 
 // unavailable DRK feed or schedule must never prevent the main Stats grid opening.
 function createSheetReader(parseCsv, fetchImpl) {
   return async function sheet(name, requiredHeaders) {
-    const url = `https://docs.google.com/spreadsheets/d/${DATAHUB_2026_WORKBOOK}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`;
+    // Weekly PROJ cells must retain their literal injury/inactive labels.
+    // DH/DRK continue using the independent named-tab reads.
+    const url = get2026SheetCsvUrl(name);
     const response = await fetchImpl(url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`2026 ${name} could not load (${response.status}).`);
     const text = await response.text();

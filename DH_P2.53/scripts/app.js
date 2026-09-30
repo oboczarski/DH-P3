@@ -7266,13 +7266,14 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             if (isUnplayedWeek) {
                 if (key === 'proj') {
                     let projValue = getProjectionDisplayValue(stats, player.id, week);
-                    // Phase 4: If SNP = 0 and no existing designation, set PROJ to "DNP"
+                    // Rosters weekly PROJ: zero snaps without an explicit
+                    // designation use the requested OUT fallback.
                     const weekSnp = stats?.snp;
                     if (typeof weekSnp === 'number' && weekSnp === 0) {
                         const upperProj = (projValue || '').trim().toUpperCase();
                         const firstToken = upperProj.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
                         if (!KNOWN_DESIGNATIONS.has(firstToken)) {
-                            projValue = 'DNP';
+                            projValue = pageType === 'rosters' ? 'OUT' : 'DNP';
                         }
                     }
                     const display = projValue === undefined || projValue === null ? '' : String(projValue);
@@ -7293,13 +7294,14 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
             }
             if (key === 'proj') {
                 let projValue = getProjectionDisplayValue(stats, player.id, week);
-                // Phase 4: If SNP = 0 and no existing designation, set PROJ to "DNP"
+                // Rosters weekly PROJ: preserve explicit injury text and use
+                // OUT when the player has zero snaps and no designation.
                 const weekSnp = stats?.snp;
                 if (typeof weekSnp === 'number' && weekSnp === 0) {
                     const upperProj = (projValue || '').trim().toUpperCase();
                     const firstToken = upperProj.split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
                     if (!KNOWN_DESIGNATIONS.has(firstToken)) {
-                        projValue = 'DNP';
+                        projValue = pageType === 'rosters' ? 'OUT' : 'DNP';
                     }
                 }
                 const display = projValue === undefined || projValue === null ? '' : String(projValue);
@@ -12747,18 +12749,26 @@ function buildConsistencyPanelData(player) {
         ? Object.keys(weeklyStats).map(Number).filter(Number.isFinite).sort((a, b) => a - b)
         : axisWeeks;
     seasonWeeks.forEach(week => {
+        // Rosters 2026 future placeholders must not become OUT markers or
+        // zero-point season insights; the axis ends at the latest results week.
+        if (pageType === 'rosters' && state.currentGameLogsSeason === '2026' && week > axisWeeks[axisWeeks.length - 1]) return;
         const statsForWeek = weeklyStats?.[week]?.[playerId];
         if (!statsForWeek) return;
-        const projReason = formatProjReason(statsForWeek.proj);
+        const opponent = (statsForWeek.opponent || '').toUpperCase();
+        if (pageType === 'rosters' && opponent === 'BYE') {
+            skippedLabels[week] = 'BYE';
+            return;
+        }
+        const projReason = formatProjReason(getConsistencyProjectionDisplay(statsForWeek));
         if (shouldSkipConsistencyWeek(statsForWeek)) {
             if (projReason) skippedLabels[week] = projReason;
             return;
         }
-        const opponent = (statsForWeek.opponent || '').toUpperCase();
         if (opponent === 'BYE') {
             skippedLabels[week] = 'BYE';
             return;
         }
+        if (pageType === 'rosters' && statsForWeek.__hasRecordedStats === false) return;
         const sheetFpts = statsForWeek.fpt_ppr;
         const numeric = typeof sheetFpts === 'number' ? sheetFpts : Number(sheetFpts);
         if (!Number.isFinite(numeric)) return;
@@ -12826,6 +12836,16 @@ function buildConsistencyPanelData(player) {
     };
 }
 
+// Rosters Consistency mirrors its weekly table's zero-SNP PROJ override.
+// Explicit injury labels keep priority; other pages retain their raw PROJ text.
+function getConsistencyProjectionDisplay(statsForWeek) {
+    if (pageType !== 'rosters') return statsForWeek?.proj;
+    const projection = String(statsForWeek?.proj ?? '').trim();
+    if (statsForWeek?.snp !== 0) return projection;
+    const firstToken = projection.toUpperCase().split(/\s+/)[0]?.replace(/[^A-Z]/g, '') || '';
+    return ['BYE', 'OUT', 'IR', 'PUP', 'DNP', 'SUS', 'D', 'Q'].includes(firstToken) ? projection : 'OUT';
+}
+
 function shouldSkipConsistencyWeek(statsForWeek) {
     if (!statsForWeek) return false;
     // If the player actually scored meaningful fantasy points this week,
@@ -12833,7 +12853,7 @@ function shouldSkipConsistencyWeek(statsForWeek) {
     const rawFpts = statsForWeek.fpt_ppr;
     const numericFpts = typeof rawFpts === 'number' ? rawFpts : Number(rawFpts);
     if (Number.isFinite(numericFpts) && numericFpts > 0.5) return false;
-    const rawProj = statsForWeek.proj;
+    const rawProj = getConsistencyProjectionDisplay(statsForWeek);
     if (rawProj === undefined || rawProj === null) return false;
     if (typeof rawProj === 'number' && Number.isFinite(rawProj)) return false;
     const trimmed = String(rawProj).trim();
@@ -12999,7 +13019,7 @@ function renderConsistencyChart() {
         if (!data) {
             renderXAxis({ axisWeeks: getConsistencyAxisWeeks() });
             renderZoneSummary(null);
-            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point').forEach(el => el.remove());
+            pointsLayer.querySelectorAll('.weekly-zone, .weekly-point, .weekly-skip-label').forEach(el => el.remove());
             if (curveSvg) {
                 curveSvg.remove();
                 curveSvg = null;
@@ -13012,7 +13032,8 @@ function renderConsistencyChart() {
         renderZoneSummary(data);
         renderPoints(data);
         hydrateProgressCircles(data);
-        if (data.chartSeries.length === 0) {
+        const hasVisibleStatus = pageType === 'rosters' && data.axisWeeks.some(week => data.skippedLabels?.[week]);
+        if (data.chartSeries.length === 0 && !hasVisibleStatus) {
             showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
         } else {
             hideConsistencyEmptyState(chartBox);
@@ -13436,7 +13457,8 @@ function renderPoints(data) {
     const chartSeries = data.chartSeries || data.series;
     const axisWeeks = data.axisWeeks.length ? data.axisWeeks : chartSeries.map(entry => entry.week);
     const totalSlots = axisWeeks.length || chartSeries.length || 1;
-    if (!chartSeries.length) return;
+    // Rosters still shows OUT/IR/DNP/BYE when every visible week was missed.
+    if (!chartSeries.length && pageType !== 'rosters') return;
     const curvePoints = [];
     const spanSlots = Math.max(1, totalSlots - 1);
     const edgePaddingPct = getEdgePaddingPct(totalSlots);
@@ -13497,17 +13519,21 @@ function renderPoints(data) {
         } else if (next) {
             interpPts = next.pts;
         }
-        if (!Number.isFinite(interpPts)) return;
+        if (!Number.isFinite(interpPts) && pageType !== 'rosters') return;
         const pctY = yFromPoints(interpPts);
         const marker = document.createElement('div');
         marker.className = 'weekly-skip-label';
         marker.textContent = skipped[week];
+        marker.title = `WK${week}: ${skipped[week]}`;
         marker.style.left = `${pctX}%`;
-        marker.style.top = `${pctY}%`; // sit on the line
+        // With no neighboring game, center the label without plotting a score.
+        marker.style.top = Number.isFinite(interpPts) ? `${pctY}%` : '50%';
         pointsLayer.appendChild(marker);
     });
-    const extendedCurvePoints = extendCurvePoints(curvePoints);
-    drawSegmentedCurve(pointsLayer, extendedCurvePoints, data);
+    if (curvePoints.length) {
+        const extendedCurvePoints = extendCurvePoints(curvePoints);
+        drawSegmentedCurve(pointsLayer, extendedCurvePoints, data);
+    }
 }
 
 function hydrateProgressCircles(data) {

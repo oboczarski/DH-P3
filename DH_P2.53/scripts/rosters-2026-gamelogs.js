@@ -6,7 +6,6 @@
  * modal state shape exposed by app.js.
  */
 (() => {
-    const WORKBOOK_ID = '16fOWHEuPWkNz9AHLCiySjxwW_y4ulLemNaMVc3srE94';
     const POSITIONS = new Set(['QB', 'RB', 'WR', 'TE']);
     const STAT_MAP = {
         paATT: 'pass_att', CMP: 'pass_cmp', 'CMP PCT': 'cmp_pct', 'CMP%': 'cmp_pct',
@@ -87,7 +86,10 @@
     };
     const appRootUrl = (path) => new URL(`../${path}`, window.location.href).toString();
     const fetchRows = async (sheetName, requiredHeaders) => {
-        const url = `https://docs.google.com/spreadsheets/d/${WORKBOOK_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheetName)}`;
+        // Rosters owns its loader; share only the source URL configuration so
+        // native weekly CSV exports retain OUT/IR/etc. in mixed PROJ columns.
+        const { get2026SheetCsvUrl } = await import('./nfl-2026-sheets.js');
+        const url = get2026SheetCsvUrl(sheetName);
         const response = await fetch(url, { cache: 'no-store' });
         if (!response.ok) throw new Error(`Rosters 2026 ${sheetName} could not load (${response.status}).`);
         const text = await response.text();
