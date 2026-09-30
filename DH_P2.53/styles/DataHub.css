@@ -15436,3 +15436,134 @@ body[data-page="datahub"] #game-logs-modal .datahub-gamelogs-szn-section-icon--f
   stroke: none;
   stroke-width: 0;
 }
+
+/* DataHub Stats meta control: this pill and indicator are owned by the new
+   position-rank switch, so changes here cannot alter Trade Values toggles. */
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  row-gap: 1px;
+  grid-template-rows: auto 27px;
+  min-width: 0;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta[hidden] {
+  display: none;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__label {
+  margin: 0 0 0 3px;
+  color: rgb(161 169 191);
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__pill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 27px;
+  min-height: 27px;
+  box-sizing: border-box;
+  padding: 0 6px 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgb(130 139 174 / 18%), rgb(0 0 0 / 34%)), rgb(83 124 185 / 32%);
+  box-shadow: inset 0 0 1px rgba(116, 239, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: rgb(182 200 233 / 87%);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__indicator {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border: 1px solid #fff9;
+  border-radius: 999px;
+  background: radial-gradient(#fff0 0%, #fff2 65%, #0000 73%);
+  box-shadow: inset 0 0 0 1px rgba(214, 230, 255, 0.12), 0 1px 4px rgba(0, 0, 0, 0.3);
+  color: transparent;
+  font-size: 0.62rem;
+  line-height: 1;
+  opacity: 0.68;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__pill[aria-pressed="true"] .pos-ranks-meta__indicator {
+  background: linear-gradient(90deg, rgba(116, 239, 255, 0.88), rgba(217, 125, 255, 0.82));
+  box-shadow: 0 0 0 1px rgba(124, 208, 255, 0.16), 0 0 14px rgba(116, 239, 255, 0.12);
+  color: #e6ecff;
+  opacity: 0.9;
+}
+
+body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__pill:focus-visible {
+  outline: 2px solid rgba(151, 221, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* DataHub Stats cells: compact rank text shares the existing fixed-width cell
+   with its value. Only the Stats renderer adds these classes. */
+body[data-page="datahub"] .stats-table .stats-position-metric {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] .stats-table .stats-position-metric__annotation {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  color: rgba(199, 214, 238, 0.76);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+body[data-page="datahub"] .stats-table .stats-position-metric__position {
+  font-size: 0.72em;
+}
+
+body[data-page="datahub"] .stats-table .stats-position-metric__rank {
+  font-size: 0.75em;
+}
+
+body[data-page="datahub"] .stats-table .stats-position-metric.stats-table__fpts-chip {
+  width: auto;
+  max-width: 100%;
+  padding: 0 3px;
+}
+
+@media (max-width: 719px) {
+  /* Position, rank toggle, and sort occupy fixed slots on the Stats table;
+     the rank pill stays between the other two controls on phone widths. */
+  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  body[data-page="datahub"][data-datahub-view="stats"] .grid-shell__meta .pos-ranks-meta {
+    justify-self: center;
+    row-gap: 3px;
+  }
+
+  body[data-page="datahub"] .grid-shell__meta .pos-ranks-meta__label {
+    color: rgba(161, 169, 191, 0.74);
+    font-size: 0.5rem;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+}

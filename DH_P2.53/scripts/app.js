@@ -12654,10 +12654,23 @@ const CONSISTENCY_PROJECTION_SKIP_CODES = new Set(['IR', 'OUT', 'PUP', 'BYE', 'Q
 let curveSvg = null;
 
 function getConsistencyAxisWeeks() {
-    return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
+    if (pageType !== 'rosters') {
+        return Object.keys(PLAYER_STATS_SHEETS?.weeks || {})
+            .map(Number)
+            .filter(Number.isFinite)
+            .sort((a, b) => a - b);
+    }
+    const weeks = Object.keys(state.playerWeeklyStats || {})
         .map(Number)
         .filter(Number.isFinite)
         .sort((a, b) => a - b);
+    // Rosters 2026 includes future schedule placeholders. The consistency
+    // graph ends at the latest recorded week and shows at most nine weeks.
+    const recordedWeeks = state.currentGameLogsSeason === '2026'
+        ? weeks.filter(week => Object.values(state.playerWeeklyStats?.[week] || {}).some(stats => stats.__hasRecordedStats))
+        : weeks;
+    const latestWeek = recordedWeeks[recordedWeeks.length - 1];
+    return weeks.filter(week => week <= latestWeek).slice(-9);
 }
 
 function getConsistencyThresholds(position) {
@@ -12728,7 +12741,12 @@ function buildConsistencyPanelData(player) {
     const thresholds = getConsistencyThresholds(resolvedPos);
     const series = [];
     const skippedLabels = {};
-    axisWeeks.forEach(week => {
+    // Build season HUD insights from every week; chartSeries below owns the
+    // nine-week graph and its visible week labels only.
+    const seasonWeeks = pageType === 'rosters'
+        ? Object.keys(weeklyStats).map(Number).filter(Number.isFinite).sort((a, b) => a - b)
+        : axisWeeks;
+    seasonWeeks.forEach(week => {
         const statsForWeek = weeklyStats?.[week]?.[playerId];
         if (!statsForWeek) return;
         const projReason = formatProjReason(statsForWeek.proj);
@@ -12754,6 +12772,8 @@ function buildConsistencyPanelData(player) {
         });
     });
     series.sort((a, b) => a.week - b.week);
+    const visibleWeeks = new Set(axisWeeks);
+    const chartSeries = series.filter(entry => visibleWeeks.has(entry.week));
     const bestGameEntry = series.reduce((best, entry) => {
         if (!best) return entry;
         return entry.pts > best.pts ? entry : best;
@@ -12786,7 +12806,8 @@ function buildConsistencyPanelData(player) {
         position: resolvedPos,
         axisWeeks,
         series,
-        chartedWeeksCount: series.length,
+        chartSeries,
+        chartedWeeksCount: chartSeries.length,
         gamesPlayed,
         thresholds,
         consistencyPct: Number.isFinite(consistencyPct) ? consistencyPct : null,
@@ -12794,7 +12815,7 @@ function buildConsistencyPanelData(player) {
         consistencyRank: Number.isFinite(consistencyRank) ? consistencyRank : null,
         ceilingRank: Number.isFinite(ceilingRank) ? ceilingRank : null,
         weekRangeLabel,
-        weeksChartedLabel: pluralizeWeeks(series.length),
+        weeksChartedLabel: pluralizeWeeks(chartSeries.length),
         ceilingRankMax,
         bestGame: bestGameEntry,
         lastFiveAvg,
@@ -12991,7 +13012,7 @@ function renderConsistencyChart() {
         renderZoneSummary(data);
         renderPoints(data);
         hydrateProgressCircles(data);
-        if (data.series.length === 0) {
+        if (data.chartSeries.length === 0) {
             showConsistencyEmptyState(chartBox, 'No sheet-based fantasy points recorded yet.');
         } else {
             hideConsistencyEmptyState(chartBox);
@@ -13036,7 +13057,7 @@ function renderZoneSummary(data) {
     if (solidThresholdEl) solidThresholdEl.textContent = `(${solidRounded}-${highRounded}):`;
     if (highThresholdEl) highThresholdEl.textContent = `(≥${highRounded}):`;
     let low = 0, solid = 0, high = 0;
-    data.series.forEach(entry => {
+    (data.chartSeries || data.series).forEach(entry => {
         const pts = entry?.pts;
         if (!Number.isFinite(pts)) return;
         if (pts >= thresholds.high) {
@@ -13060,7 +13081,7 @@ function renderXAxis(data) {
         && typeof window.matchMedia === 'function'
         && window.matchMedia('(max-width: 540px)').matches;
     const weeks = data?.axisWeeks?.length ? data.axisWeeks : getConsistencyAxisWeeks();
-    const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map(entry => entry.week) : []);
+    const playedWeeks = new Set(Array.isArray(data?.chartSeries) ? data.chartSeries.map(entry => entry.week) : []);
     const totalSlots = weeks.length || 1;
     const spanSlots = Math.max(1, totalSlots - 1);
     const paddingPct = getEdgePaddingPct(totalSlots);
@@ -13412,13 +13433,14 @@ function renderPoints(data) {
         curveSvg.remove();
         curveSvg = null;
     }
-    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map(entry => entry.week);
-    const totalSlots = axisWeeks.length || data.series.length || 1;
-    if (!data.series.length) return;
+    const chartSeries = data.chartSeries || data.series;
+    const axisWeeks = data.axisWeeks.length ? data.axisWeeks : chartSeries.map(entry => entry.week);
+    const totalSlots = axisWeeks.length || chartSeries.length || 1;
+    if (!chartSeries.length) return;
     const curvePoints = [];
     const spanSlots = Math.max(1, totalSlots - 1);
     const edgePaddingPct = getEdgePaddingPct(totalSlots);
-    data.series.forEach(entry => {
+    chartSeries.forEach(entry => {
         const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
         const pctX = totalSlots === 1
             ? 50
@@ -13456,7 +13478,7 @@ function renderPoints(data) {
     });
     // Add markers for skipped weeks (BYE/OUT/etc.) positioned on the line between surrounding games
     const skipped = data?.skippedLabels || {};
-    const playedWeekSet = new Set(data.series.map(entry => entry.week));
+    const playedWeekSet = new Set(chartSeries.map(entry => entry.week));
     axisWeeks.forEach((week, slotIndex) => {
         if (!skipped[week]) return;
         if (playedWeekSet.has(week)) return; // should not happen, but guard
@@ -13464,8 +13486,8 @@ function renderPoints(data) {
             ? 50
             : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
         // Find surrounding played weeks to interpolate y
-        const prev = [...data.series].reverse().find(entry => entry.week < week);
-        const next = data.series.find(entry => entry.week > week);
+        const prev = [...chartSeries].reverse().find(entry => entry.week < week);
+        const next = chartSeries.find(entry => entry.week > week);
         let interpPts = null;
         if (prev && next && next.week !== prev.week) {
             const t = (week - prev.week) / (next.week - prev.week);

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh League Analyzer's three full half-dome playoff gauge designs.
-const CACHE_NAME = 'DH3.47z-gauge-half-dome';
+// Refresh DataHub rank controls, chart windows, and the Rosters chart source.
+const CACHE_NAME = 'DH3.48-pos-ranks-nine-week-charts';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
@@ -55,6 +55,7 @@ const CORE_ASSET_PATHS = [
   '/scripts/app.js',
   '/scripts/stats.js',
   '/scripts/DataHub.js',
+  '/scripts/datahub-stats-positional-ranks.js',
   // DataHub imports its page key and table header glossary during startup.
   '/scripts/datahub-stats-help.js',
   '/scripts/datahub-stats-season.js',

@@ -1,4 +1,5 @@
 import { get2026QualifierOptions, is2026RankQualified } from "./datahub-stats-season.js";
+import { buildStatsPositionalRanks } from "./datahub-stats-positional-ranks.js";
 import { load2026SourceData, load2026WeeklySourceData } from "./datahub-2026-data.js";
 import { attachDataHubStatsHelp, setDataHubStatTooltip } from "./datahub-stats-help.js";
 
@@ -2206,6 +2207,7 @@ const NON_FORMATTED_COLUMNS = new Set([
   ...BLANK_PLACEHOLDER_COLUMNS,
 ]);
 const NON_SORTABLE_COLUMNS = new Set([INDEX_COLUMN, RK_COLUMN, ...BLANK_PLACEHOLDER_COLUMNS]);
+// CSTY% is intentionally absent: higher consistency rates earn better heat tiers.
 const INVERTED_COLUMNS = new Set([
   RK_COLUMN,
   "ADP",
@@ -2224,7 +2226,6 @@ const INVERTED_COLUMNS = new Set([
   "INT",
   "FUM",
   "PRS%",
-  "CSTY%",
 ]);
 const NEUTRAL_COLUMNS = new Set(["TTT", "CL"]);
 const PPG_COLUMNS = new Set(["PPG"]);
@@ -2722,6 +2723,10 @@ const state = {
   // separate, and derive qualifiers from the highest games played in DH.
   statsSeason: "2026",
   stats2026: { rows: [], rawRows: [], weeklyRows: {}, weeksOfData: 1, loaded: false },
+  // Stats-only position ranks are tied to each season's full qualified source,
+  // so table search, category, and Show All never change a displayed rank.
+  statsPositionalRanksBySeason: { "2026": new WeakMap(), "2025": new WeakMap() },
+  showStatsPositionalRanks: true,
   stats2026Promise: null,
   seasonDataCache: Object.create(null),
   seasonDataPromises: Object.create(null),
@@ -2822,6 +2827,8 @@ const state = {
 // ---------------------------------------------------------------------------
 const mainTitle = document.querySelector("#main-title");
 const activeViewLabel = document.querySelector("#active-view-label");
+const posRanksMeta = document.querySelector("[data-pos-ranks-meta]");
+const posRanksToggle = document.querySelector("[data-pos-ranks-toggle]");
 const rowCount = document.querySelector("#row-count");
 const sortMetaPill = document.querySelector("#sort-meta-pill");
 const sortMetaControl = document.querySelector("[data-sort-meta-control]");
@@ -3003,6 +3010,13 @@ function initializeApp() {
 // ---------------------------------------------------------------------------
 function attachEventListeners() {
   attachNavigationListeners();
+  // Stats grid meta toggle: keep one session-wide visibility choice while
+  // category, season, and page-tab changes continue to use the same ranks.
+  posRanksToggle?.addEventListener("click", () => {
+    state.showStatsPositionalRanks = !state.showStatsPositionalRanks;
+    syncStatsPositionalRankMeta();
+    renderTable();
+  });
   // DataHub modal wiring is deferred until the current script finishes
   // evaluating so the local game-logs constants are initialized first.
   queueMicrotask(() => {
@@ -4337,6 +4351,11 @@ function rebuildDataHubRows() {
 
   state.statsRowsBase = statsRowsBase;
   state.stats2026.rows = stats2026Rows;
+  // Full season, default-qualified position ranks are computed once per source
+  // rebuild. Visible rows can then change without renumbering anyone.
+  const statsColumns = Object.values(STATS_COLUMN_SETS).flat();
+  state.statsPositionalRanksBySeason["2025"] = buildStatsPositionalRanks(statsRowsBase, statsColumns, "2025");
+  state.statsPositionalRanksBySeason["2026"] = buildStatsPositionalRanks(stats2026Rows, statsColumns, "2026", state.stats2026.weeksOfData);
   state.tradeRowsBase = tradeRowsBase;
   if (state.rookieDataLoaded) {
     state.rookieTradeRowsBase = buildRookieTradeRowsBase(tradeRowsBase, state.rookieProspectByPlayerId);
@@ -4656,6 +4675,7 @@ function syncUiState() {
   syncPageTabButtons();
   mainTitle.textContent = getDataHubHeroTitle();
   activeViewLabel.textContent = getActiveViewLabelText();
+  syncStatsPositionalRankMeta();
   updateSortMetaPill();
   syncComparisonControls();
   document.body.dataset.datahubView = state.activePageView;
@@ -7649,6 +7669,15 @@ function computeDataHubComparisonSeasonRankSets(players) {
 
 function buildDataHubComparisonPayload() {
   const players = buildDataHubComparisonPlayers();
+  // Compare weekly charts share one nine-week calendar window. For 2026,
+  // pre-created future rows are ignored until a week has recorded results.
+  const latestWeek = state.statsSeason === "2026"
+    ? (state.comparisonData?.weeklyRows || []).reduce((latest, entry) =>
+      entry.stats?.__hasRecordedStats ? Math.max(latest, entry.week) : latest, 0)
+      || Math.max(1, Math.min(DATAHUB_MAX_WEEKS, state.stats2026.weeksOfData))
+    : DATAHUB_MAX_WEEKS;
+  const firstWeek = Math.max(1, latestWeek - 8);
+  const chartWeeks = Array.from({ length: latestWeek - firstWeek + 1 }, (_, index) => firstWeek + index);
   const qualifiedIds = state.statsSeason === "2026"
     ? new Set(state.stats2026.rows.filter((row) => is2026RankQualified(row, state.stats2026.weeksOfData)).map((row) => row.__meta.playerId))
     : null;
@@ -7686,7 +7715,7 @@ function buildDataHubComparisonPayload() {
     // expose the same two-player head-to-head limit enforced by the lazy
     // React island so future consumers cannot advertise a third slot.
     maxPlayers: 2,
-    weeks: Array.from({ length: DATAHUB_MAX_WEEKS }, (_, index) => index + 1),
+    weeks: chartWeeks,
     defaults: {
       mode: "weekly",
       weeklyStat: "fpts",
@@ -8050,9 +8079,26 @@ function getStoredCategoryForView(pageView = state.activePageView) {
 
 function getActiveViewLabelText() {
   const viewConfig = getViewFilterConfig();
+  // DataHub Stats-family position meta: use the active position alone on
+  // mobile, including the current WR/TE subfilter, to fit the rank toggle.
+  if (state.isCompactViewport && isDataHubStatsFamilyView()) {
+    if (state.activeCategory === "overview") return "ALL";
+    if (state.activeCategory === "passing") return "QB";
+    if (state.activeCategory === "rushing") return "RB";
+    if (state.activeCategory === "receiving") {
+      if (!state.receivingFilters.WR) return "TE";
+      if (!state.receivingFilters.TE) return "WR";
+      return "WR/TE";
+    }
+  }
   return viewConfig.activeViewLabels[state.activeCategory]
     || viewConfig.activeViewLabels[viewConfig.defaultCategory]
     || "";
+}
+
+function syncStatsPositionalRankMeta() {
+  if (posRanksMeta) posRanksMeta.hidden = state.activePageView !== "stats";
+  posRanksToggle?.setAttribute("aria-pressed", String(state.showStatsPositionalRanks));
 }
 
 function getActiveDefaultSort(pageView = state.activePageView) {
@@ -9963,6 +10009,10 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
     // keep the stored cell data numeric for sorting and heat formatting, while
     // the displayed KTC and DIFF cells add the requested rank/suffix typography.
     content.append(createTradeValuesRichCell(column.name, row, value));
+  } else if (state.activePageView === "stats" && state.showStatsPositionalRanks && Number.isFinite(getStatsPositionalRank(row, column.name))) {
+    // DataHub Stats value annotation: show only default-qualified position
+    // ranks beside actual numeric stats, leaving source values and widths intact.
+    content.append(createStatsPositionalMetric(row, column.name, value));
   } else if (column.name === FPTS_COLUMN && !isMissingValue(value)) {
     content.append(createFptsChip(value));
   } else if (column.name === "POS") {
@@ -9988,6 +10038,37 @@ function createBodyCell(row, column, rowIndex, groupStartCols = new Set()) {
 
   td.append(content);
   return td;
+}
+
+function getStatsPositionalRank(row, columnName) {
+  return state.statsPositionalRanksBySeason[state.statsSeason]?.get(row)?.[columnName] ?? null;
+}
+
+function createStatsPositionalMetric(row, columnName, value) {
+  const rank = getStatsPositionalRank(row, columnName);
+  const position = row.POS;
+  const metric = columnName === FPTS_COLUMN
+    ? createFptsChip(value)
+    : document.createElement("span");
+  metric.classList.add("stats-position-metric");
+  metric.replaceChildren();
+  metric.setAttribute("aria-label", `${formatDisplayValue(columnName, value)} ${position} rank ${rank}`);
+
+  const number = document.createElement("span");
+  number.className = "stats-position-metric__value";
+  number.textContent = formatDisplayValue(columnName, value);
+  const annotation = document.createElement("span");
+  annotation.className = "stats-position-metric__annotation";
+  annotation.setAttribute("aria-hidden", "true");
+  const rankPosition = document.createElement("span");
+  rankPosition.className = "stats-position-metric__position";
+  rankPosition.textContent = position;
+  const rankNumber = document.createElement("span");
+  rankNumber.className = "stats-position-metric__rank";
+  rankNumber.textContent = String(rank);
+  annotation.append(rankPosition, rankNumber);
+  metric.append(number, annotation);
+  return metric;
 }
 
 function createRookieCareerTierSeparatorLabel(tier) {
@@ -10858,6 +10939,7 @@ function handleViewportResize() {
         closeDataHubChartModal({ restoreFocus: false });
       }
       state.isCompactViewport = nextCompact;
+      activeViewLabel.textContent = getActiveViewLabelText();
       renderTable();
     }
 
@@ -11278,6 +11360,12 @@ function getFormattingFamily(columnName) {
   const rookieCareerFamily = getRookieCareerFormattingFamily(columnName);
   if (rookieCareerFamily) {
     return rookieCareerFamily;
+  }
+
+  // Stats CSTY% uses the Trade Values DIFF violet scale, separate from the
+  // default heat palette, while its higher-is-better tier direction stays intact.
+  if (state.activePageView === "stats" && columnName === "CSTY%") {
+    return "diff";
   }
 
   if (NEUTRAL_COLUMNS.has(columnName)) {
@@ -15276,10 +15364,17 @@ function prepareDataHubConsistencyPanel(player) {
 }
 
 function getDataHubConsistencyAxisWeeks() {
-  return Object.keys(state.playerWeeklyStats || {})
+  const weeks = Object.keys(state.playerWeeklyStats || {})
     .map(Number)
     .filter(Number.isFinite)
     .sort((left, right) => left - right);
+  // The 2026 feed contains future schedule placeholders. End the nine-week
+  // chart at the last week with recorded results instead of at Week 18.
+  const recordedWeeks = state.currentModalSeason === "2026"
+    ? weeks.filter((week) => Object.values(state.playerWeeklyStats?.[week] || {}).some((stats) => stats.__hasRecordedStats))
+    : weeks;
+  const latestWeek = recordedWeeks[recordedWeeks.length - 1];
+  return weeks.filter((week) => week <= latestWeek).slice(-9);
 }
 
 function clampDataHubConsistencyPoints(value) {
@@ -15308,7 +15403,9 @@ function buildDataHubConsistencyPanelData(player) {
   const thresholds = getDataHubConsistencyThresholds(resolvedPosition);
   const series = [];
   const skippedLabels = {};
-  axisWeeks.forEach((week) => {
+  // Keep season insight math on every recorded week; the graph below renders
+  // only its latest nine axis weeks.
+  Object.keys(state.playerWeeklyStats || {}).map(Number).filter(Number.isFinite).sort((left, right) => left - right).forEach((week) => {
     const stats = combinedWeeklyStats?.[week]?.[player.id];
     if (!stats) {
       return;
@@ -15338,6 +15435,8 @@ function buildDataHubConsistencyPanelData(player) {
     });
   });
   series.sort((left, right) => left.week - right.week);
+  const visibleWeeks = new Set(axisWeeks);
+  const chartSeries = series.filter((entry) => visibleWeeks.has(entry.week));
   const seasonTotals = state.playerSeasonStats?.[player.id] || {};
   const gamesPlayed = Number.isFinite(seasonTotals.games_played) ? seasonTotals.games_played : series.length;
   const highWeekCount = series.filter((entry) => entry.pts >= thresholds.high).length;
@@ -15361,6 +15460,7 @@ function buildDataHubConsistencyPanelData(player) {
     position: resolvedPosition,
     axisWeeks,
     series,
+    chartSeries,
     gamesPlayed,
     thresholds,
     consistencyPct,
@@ -15372,7 +15472,7 @@ function buildDataHubConsistencyPanelData(player) {
     totalWeeks: series.length,
     lastFiveAvg,
     weekRangeLabel: axisStart === axisEnd ? `Week ${axisStart}` : `Weeks ${axisStart}–${axisEnd}`,
-    weeksChartedLabel: pluralizeDataHubWeeks(series.length),
+    weeksChartedLabel: pluralizeDataHubWeeks(chartSeries.length),
     ceilingRankMax: DATAHUB_RADAR_STATS_CONFIG[resolvedPosition]?.maxRank || 32,
     skippedLabels,
   };
@@ -15587,7 +15687,7 @@ function renderDataHubConsistencyChart() {
     renderDataHubConsistencyZoneSummary(data);
     renderDataHubConsistencyPoints(data);
     hydrateDataHubConsistencyProgressCircles(data);
-    if (!data.series.length) {
+    if (!data.chartSeries.length) {
       showDataHubConsistencyEmptyState(chartBox, "No sheet-based fantasy points recorded yet.");
     } else {
       hideDataHubConsistencyEmptyState(chartBox);
@@ -15635,7 +15735,7 @@ function renderDataHubConsistencyZoneSummary(data) {
   let low = 0;
   let solid = 0;
   let high = 0;
-  data.series.forEach((entry) => {
+  (data.chartSeries || data.series).forEach((entry) => {
     const points = entry?.pts;
     if (!Number.isFinite(points)) {
       return;
@@ -15665,7 +15765,7 @@ function renderDataHubConsistencyXAxis(data) {
     && typeof window.matchMedia === "function"
     && window.matchMedia("(max-width: 540px)").matches;
   const weeks = data?.axisWeeks?.length ? data.axisWeeks : getDataHubConsistencyAxisWeeks();
-  const playedWeeks = new Set(Array.isArray(data?.series) ? data.series.map((entry) => entry.week) : []);
+  const playedWeeks = new Set(Array.isArray(data?.chartSeries) ? data.chartSeries.map((entry) => entry.week) : []);
   const totalSlots = weeks.length || 1;
   const spanSlots = Math.max(1, totalSlots - 1);
   const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
@@ -16031,15 +16131,16 @@ function renderDataHubConsistencyPoints(data) {
     dataHubCurveSvg.remove();
     dataHubCurveSvg = null;
   }
-  const axisWeeks = data.axisWeeks.length ? data.axisWeeks : data.series.map((entry) => entry.week);
-  const totalSlots = axisWeeks.length || data.series.length || 1;
-  if (!data.series.length) {
+  const chartSeries = data.chartSeries || data.series;
+  const axisWeeks = data.axisWeeks.length ? data.axisWeeks : chartSeries.map((entry) => entry.week);
+  const totalSlots = axisWeeks.length || chartSeries.length || 1;
+  if (!chartSeries.length) {
     return;
   }
   const spanSlots = Math.max(1, totalSlots - 1);
   const edgePaddingPct = getDataHubEdgePaddingPct(totalSlots);
   const curvePoints = [];
-  data.series.forEach((entry) => {
+  chartSeries.forEach((entry) => {
     const slotIndex = Math.max(0, axisWeeks.indexOf(entry.week));
     const pctX = totalSlots === 1
       ? 50
@@ -16074,7 +16175,7 @@ function renderDataHubConsistencyPoints(data) {
     pointsLayer.appendChild(pointEl);
   });
   const skipped = data.skippedLabels || {};
-  const playedWeekSet = new Set(data.series.map((entry) => entry.week));
+  const playedWeekSet = new Set(chartSeries.map((entry) => entry.week));
   axisWeeks.forEach((week, slotIndex) => {
     if (!skipped[week] || playedWeekSet.has(week)) {
       return;
@@ -16082,8 +16183,8 @@ function renderDataHubConsistencyPoints(data) {
     const pctX = totalSlots === 1
       ? 50
       : edgePaddingPct + ((100 - edgePaddingPct * 2) * (slotIndex / spanSlots));
-    const previous = [...data.series].reverse().find((entry) => entry.week < week);
-    const next = data.series.find((entry) => entry.week > week);
+    const previous = [...chartSeries].reverse().find((entry) => entry.week < week);
+    const next = chartSeries.find((entry) => entry.week > week);
     let interpolatedPoints = null;
     if (previous && next && next.week !== previous.week) {
       const t = (week - previous.week) / (next.week - previous.week);
