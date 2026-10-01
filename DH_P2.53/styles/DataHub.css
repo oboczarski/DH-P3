@@ -15563,15 +15563,15 @@ body[data-page="datahub"] .stats-table .stats-position-metric__annotation {
   align-items: baseline;
   gap: 0;
   color: rgba(199, 214, 238, 0.76);
-  font-weight: 100;
-  letter-spacing: 0;
+  font-weight: 300;
+  letter-spacing: -0.02em;
   line-height: 10px;
-  margin-top: -0.35rem;
+  margin-top: -0.15rem;
   font-family: 'Google Sans Flex';
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__position {
-  font-size: 0.7em;
+  font-size: 0.69em;
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__rank {
