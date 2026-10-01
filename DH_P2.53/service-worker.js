@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh receiving rate changes and both pages' independent 2026 Career tables.
-const CACHE_NAME = 'DH3.48g-career-stats-2026';
+// Refresh both pages' Career ranks, compact values, and responsive width controls.
+const CACHE_NAME = 'DH3.48h-career-positional-ranks';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

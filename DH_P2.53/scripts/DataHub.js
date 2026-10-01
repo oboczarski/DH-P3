@@ -13315,15 +13315,79 @@ function getDataHubCareerNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
+function getDataHubCareerStatNumber(row, statKey) {
+  // Career ranks use source precision, the same historical rate calculations
+  // as the cells, and consistent percentage units. Unavailable years stay null.
+  const season = Number(row.SZN);
+  if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return null;
+  if (Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey) && season >= 2016 && season <= 2025) {
+    const games = getDataHubCareerNumber(row.G);
+    const total = getDataHubCareerNumber(row[DATAHUB_CAREER_PER_GAME_TOTALS[statKey]]);
+    return games > 0 && total !== null ? total / games : null;
+  }
+  const number = getDataHubCareerNumber(row[statKey]);
+  if (number !== null && ["TS%", "SNP%", "EXPLSV%", "CPOE"].includes(statKey)) {
+    return String(row[statKey]).includes("%") || Math.abs(number) > 1.5 || statKey === "CPOE" ? number : number * 100;
+  }
+  return number;
+}
+
+function assignDataHubCareerPositionalRanks(rows) {
+  // Rank only Career's four stat groups, within each year and position. Keep
+  // 2025/2026 DataHub eligibility; older CSVs have no RR qualification field,
+  // so those years compare players with recorded games. Fantasy ranks stay separate.
+  const maxGames = rows.filter((row) => String(row.SZN).trim() === "2026")
+    .reduce((maximum, row) => {
+      const games = getDataHubCareerNumber(row.G);
+      return Number.isInteger(games) && games >= 0 && games <= 17 ? Math.max(maximum, games) : maximum;
+    }, 0);
+  const qualifierWeeks = Math.max(1, Math.min(18, Math.floor(maxGames >= 14 ? maxGames + 1 : maxGames)));
+  const pools = new Map();
+  rows.forEach((row) => {
+    row.__careerPositionalRanks = Object.create(null);
+    if (!String(row.SLPR_ID ?? "").trim() || !["QB", "RB", "WR", "TE"].includes(row.POS)
+      || !(getDataHubCareerNumber(row.G) > 0)) return;
+    const season = String(row.SZN).trim();
+    if (["2025", "2026"].includes(season) && !isStatsSeasonRankQualified({
+      ...row, __meta: { fpts: getDataHubCareerNumber(row.FPT_PPR) ?? getDataHubCareerNumber(row.FPTS) },
+    }, season, qualifierWeeks, season === "2026" ? qualifierWeeks : 18)) return;
+    const key = `${season}:${row.POS}`;
+    if (!pools.has(key)) pools.set(key, []);
+    pools.get(key).push(row);
+  });
+  pools.forEach((pool) => {
+    const stats = getDataHubCareerSectionsForPosition(pool[0].POS)
+      .filter((section) => ["passing", "receiving", "rushing", "total"].includes(section.id))
+      .flatMap((section) => section.stats);
+    stats.forEach((statKey) => {
+      const candidates = pool.map((row) => ({ row, value: getDataHubCareerStatNumber(row, statKey) }))
+        .filter(({ value }) => value !== null);
+      // As in the DataHub Stats table, fewer interceptions rank higher.
+      const direction = statKey === "INT" ? 1 : -1;
+      candidates.sort((left, right) => direction * (left.value - right.value));
+      let previous = null;
+      let rank = 0;
+      candidates.forEach(({ row, value }, index) => {
+        if (value !== previous) rank = index + 1;
+        previous = value;
+        row.__careerPositionalRanks[statKey] = rank;
+      });
+    });
+  });
+}
+
 function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) {
-  // Career keeps its historical totals/ranks. Only 2025 advanced fields join
-  // from SZN; 2026 is adapted from DH without copying an older season's values.
+  // Career keeps historical totals/fantasy ranks. The 2025 advanced and rank
+  // qualification fields join from SZN; 2026 stays backed by its own DH rows.
   const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
   const rows = historicalRows.filter((row) => String(row.SZN).trim() !== "2026").map((source) => {
     const row = { ...source };
     if (String(row.SZN).trim() === "2025") {
       const advanced = advancedById.get(String(row.SLPR_ID).trim());
       DATAHUB_CAREER_ADVANCED_STATS.forEach((key) => { row[key] = advanced?.[key] ?? row[key]; });
+      // Qualification needs routes and unrounded PPR points from this year.
+      row.RR = advanced?.RR ?? row.RR;
+      row.FPT_PPR = advanced?.FPT_PPR ?? row.FPT_PPR;
     }
     return row;
   });
@@ -13368,7 +13432,9 @@ function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) 
     assignRanks(currentRows);
     for (const position of ["QB", "RB", "WR", "TE"]) assignRanks(currentRows.filter((row) => row.POS === position), true);
   }
-  return parseDataHubCareerStatsRows([...rows, ...currentRows]);
+  const careerRows = [...rows, ...currentRows];
+  assignDataHubCareerPositionalRanks(careerRows);
+  return parseDataHubCareerStatsRows(careerRows);
 }
 
 async function ensureDataHubCareerStatsLoaded() {
@@ -13428,19 +13494,14 @@ function formatDataHubCareerCellValue(row, statKey) {
   if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return "-";
   if (Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey)) {
     // Only 2016–2025 per-game rates are calculated. 2026 stays DH-backed.
-    const games = getDataHubCareerNumber(row?.G);
-    const total = getDataHubCareerNumber(row?.[DATAHUB_CAREER_PER_GAME_TOTALS[statKey]]);
-    const rate = season >= 2016 && season <= 2025
-      ? (games > 0 && total !== null ? total / games : null)
-      : getDataHubCareerNumber(row?.[statKey]);
+    const rate = row ? getDataHubCareerStatNumber(row, statKey) : null;
     return rate === null ? "-" : rate.toFixed(1);
   }
   if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey)) {
-    const number = getDataHubCareerNumber(row?.[statKey]);
+    const number = row ? getDataHubCareerStatNumber(row, statKey) : null;
     if (number === null) return "-";
     if (["TS%", "SNP%", "EXPLSV%", "CPOE"].includes(statKey)) {
-      const percent = String(row[statKey]).includes("%") || Math.abs(number) > 1.5 || statKey === "CPOE" ? number : number * 100;
-      return `${statKey === "CPOE" && percent > 0 ? "+" : ""}${percent.toFixed(1)}%`;
+      return `${statKey === "CPOE" && number > 0 ? "+" : ""}${number.toFixed(1)}%`;
     }
     if (["EPA", "EPA/DB"].includes(statKey)) return `${number > 0 ? "+" : ""}${number.toFixed(statKey === "EPA" ? 1 : 2)}`;
     return number.toFixed(["TPRR", "MTF/A"].includes(statKey) ? 3 : 2);
@@ -13615,6 +13676,34 @@ function getDataHubCareerColumnClass(statKey) {
   return "career-stats-col--stat";
 }
 
+function appendDataHubCareerStatCellContent(cell, row, statKey) {
+  // Career-only value/rank stack matches the main Stats parenthesized position
+  // treatment. CSS fixes its height so neither table pane's rows can expand.
+  const value = formatDataHubCareerCellValue(row, statKey);
+  const rank = row.__careerPositionalRanks?.[statKey];
+  if (!Number.isFinite(rank)) {
+    cell.textContent = value;
+    return;
+  }
+  const metric = document.createElement("span");
+  metric.className = "career-stats-position-metric";
+  metric.setAttribute("aria-label", `${value} ${row.POS} rank ${rank}`);
+  const number = document.createElement("span");
+  number.className = "career-stats-position-metric__value";
+  number.textContent = value;
+  const annotation = document.createElement("span");
+  annotation.className = "career-stats-position-metric__annotation";
+  annotation.setAttribute("aria-hidden", "true");
+  for (const [text, className] of [["(", "position"], [row.POS, "position"], [String(rank), "rank"], [")", "position"]]) {
+    const segment = document.createElement("span");
+    segment.className = `career-stats-position-metric__${className}`;
+    segment.textContent = text;
+    annotation.append(segment);
+  }
+  metric.append(number, annotation);
+  cell.append(metric);
+}
+
 async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
   // DataHub game logs Career table:
   // builds a dedicated table replacement inside #modal-body so Career, GameLog,
@@ -13690,6 +13779,13 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
     paneColumns.forEach(({ statKey }) => {
       const col = document.createElement("col");
       col.className = getDataHubCareerColumnClass(statKey);
+      // Only the variable name is inline: desktop/mobile Career CSS owns every
+      // actual width, including separate passing/rushing/receiving/total YDS/TD.
+      if (!["SZN", "TM", "G"].includes(statKey)) {
+        const widthKey = statKey.toLowerCase().replace(/_value$/, "").replace(/_pos_rk$/, "-pos-rank")
+          .replace(/_ovr_rk$/, "-ovr-rank").replace(/%/g, "-pct").replace(/\//g, "-per-");
+        col.style.width = `var(--career-${widthKey}-col-width, var(--career-stat-col-width))`;
+      }
       colgroup.append(col);
     });
     table.append(colgroup);
@@ -13756,6 +13852,8 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
         } else if (statKey.startsWith("FPTS_") || statKey.startsWith("PPG_")) {
           td.classList.add("career-stats-cell--fantasy-chip");
           appendDataHubCareerFantasyRankCellContent(td, row, statKey, position);
+        } else if (["passing", "receiving", "rushing", "total"].includes(section.id)) {
+          appendDataHubCareerStatCellContent(td, row, statKey);
         } else {
           td.textContent = formatDataHubCareerCellValue(row, statKey);
         }

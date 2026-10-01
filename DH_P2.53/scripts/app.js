@@ -6542,15 +6542,80 @@ function getCareerNumber(value) {
     return Number.isFinite(number) ? number : null;
 }
 
+function getCareerStatNumber(row, statKey) {
+    // Career ranks and cells share source precision, percentage units, and the
+    // historical per-game calculations. Advanced fields stay absent before 2025.
+    const season = Number(row.SZN);
+    if (CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return null;
+    if (Object.prototype.hasOwnProperty.call(CAREER_PER_GAME_TOTALS, statKey) && season >= 2016 && season <= 2025) {
+        const games = getCareerNumber(row.G);
+        const total = getCareerNumber(row[CAREER_PER_GAME_TOTALS[statKey]]);
+        return games > 0 && total !== null ? total / games : null;
+    }
+    const number = getCareerNumber(row[statKey]);
+    if (number !== null && ['TS%', 'SNP%', 'EXPLSV%', 'CPOE'].includes(statKey)) {
+        return String(row[statKey]).includes('%') || Math.abs(number) > 1.5 || statKey === 'CPOE' ? number : number * 100;
+    }
+    return number;
+}
+
+function assignCareerPositionalRanks(rows) {
+    // Rosters Career compares each stat only within its season and position.
+    // Match DataHub's 2025/2026 eligibility, using DH games for current-season
+    // qualifier weeks. Older CSVs lack RR, so use recorded games for those years.
+    const maxGames = rows.filter((row) => String(row.SZN).trim() === '2026')
+        .reduce((maximum, row) => {
+            const games = getCareerNumber(row.G);
+            return Number.isInteger(games) && games >= 0 && games <= 17 ? Math.max(maximum, games) : maximum;
+        }, 0);
+    const qualifierWeeks = Math.max(1, Math.min(18, Math.floor(maxGames >= 14 ? maxGames + 1 : maxGames)));
+    const pools = new Map();
+    rows.forEach((row) => {
+        row.__careerPositionalRanks = Object.create(null);
+        if (!String(row.SLPR_ID ?? '').trim() || !['QB', 'RB', 'WR', 'TE'].includes(row.POS)
+            || !(getCareerNumber(row.G) > 0)) return;
+        const season = String(row.SZN).trim();
+        if (['2025', '2026'].includes(season) && !isRostersGameLogsRankQualified({
+            pass_att: getCareerNumber(row.paATT), rush_att: getCareerNumber(row.CAR), rr: getCareerNumber(row.RR),
+            games_played: getCareerNumber(row.G), fpts_ppr: getCareerNumber(row.FPT_PPR) ?? getCareerNumber(row.FPTS),
+        }, row.POS, season, season === '2026' ? qualifierWeeks : 18, qualifierWeeks)) return;
+        const key = `${season}:${row.POS}`;
+        if (!pools.has(key)) pools.set(key, []);
+        pools.get(key).push(row);
+    });
+    pools.forEach((pool) => {
+        const stats = getCareerSectionsForPosition(pool[0].POS)
+            .filter((section) => ['passing', 'receiving', 'rushing', 'total'].includes(section.id))
+            .flatMap((section) => section.stats);
+        stats.forEach((statKey) => {
+            const candidates = pool.map((row) => ({ row, value: getCareerStatNumber(row, statKey) }))
+                .filter(({ value }) => value !== null);
+            // DataHub's inverse direction applies to interceptions here too.
+            const direction = statKey === 'INT' ? 1 : -1;
+            candidates.sort((left, right) => direction * (left.value - right.value));
+            let previous = null;
+            let rank = 0;
+            candidates.forEach(({ row, value }, index) => {
+                if (value !== previous) rank = index + 1;
+                previous = value;
+                row.__careerPositionalRanks[statKey] = rank;
+            });
+        });
+    });
+}
+
 function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
-    // Rosters Career preserves historical totals/ranks, joins only the 2025
-    // advanced fields from SZN, and adapts 2026 DH into the Career row contract.
+    // Rosters Career preserves historical totals/fantasy ranks, joins 2025
+    // advanced/qualification fields, and adapts this year's DH to the row contract.
     const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
     const rows = historicalRows.filter((row) => String(row.SZN).trim() !== '2026').map((source) => {
         const row = { ...source };
         if (String(row.SZN).trim() === '2025') {
             const advanced = advancedById.get(String(row.SLPR_ID).trim());
             CAREER_ADVANCED_STATS.forEach((key) => { row[key] = advanced?.[key] ?? row[key]; });
+            // This year's routes and unrounded points supply rank qualification.
+            row.RR = advanced?.RR ?? row.RR;
+            row.FPT_PPR = advanced?.FPT_PPR ?? row.FPT_PPR;
         }
         return row;
     });
@@ -6595,7 +6660,10 @@ function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
         assignRanks(currentRows);
         for (const position of ['QB', 'RB', 'WR', 'TE']) assignRanks(currentRows.filter((row) => row.POS === position), true);
     }
-    return parseCareerStatsRows([...rows, ...currentRows]);
+    const careerRows = [...rows, ...currentRows];
+    // app.js is shared; only Rosters receives the requested Career annotations.
+    if (pageType === 'rosters') assignCareerPositionalRanks(careerRows);
+    return parseCareerStatsRows(careerRows);
 }
 
 async function ensureCareerStatsLoaded() {
@@ -6672,19 +6740,14 @@ function formatCareerCellValue(row, statKey) {
     if (CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return '-';
     if (Object.prototype.hasOwnProperty.call(CAREER_PER_GAME_TOTALS, statKey)) {
         // Historical rates use that row's games/totals. 2026 rates stay DH-backed.
-        const games = getCareerNumber(row?.G);
-        const total = getCareerNumber(row?.[CAREER_PER_GAME_TOTALS[statKey]]);
-        const rate = season >= 2016 && season <= 2025
-            ? (games > 0 && total !== null ? total / games : null)
-            : getCareerNumber(row?.[statKey]);
+        const rate = row ? getCareerStatNumber(row, statKey) : null;
         return rate === null ? '-' : rate.toFixed(1);
     }
     if (CAREER_ADVANCED_STATS.has(statKey)) {
-        const number = getCareerNumber(row?.[statKey]);
+        const number = row ? getCareerStatNumber(row, statKey) : null;
         if (number === null) return '-';
         if (['TS%', 'SNP%', 'EXPLSV%', 'CPOE'].includes(statKey)) {
-            const percent = String(row[statKey]).includes('%') || Math.abs(number) > 1.5 || statKey === 'CPOE' ? number : number * 100;
-            return `${statKey === 'CPOE' && percent > 0 ? '+' : ''}${percent.toFixed(1)}%`;
+            return `${statKey === 'CPOE' && number > 0 ? '+' : ''}${number.toFixed(1)}%`;
         }
         if (['EPA', 'EPA/DB'].includes(statKey)) return `${number > 0 ? '+' : ''}${number.toFixed(statKey === 'EPA' ? 1 : 2)}`;
         return number.toFixed(['TPRR', 'MTF/A'].includes(statKey) ? 3 : 2);
@@ -6842,6 +6905,35 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
     cell.appendChild(chip);
 }
 
+function appendCareerStatCellContent(cell, row, statKey) {
+    // Rosters Career uses DataHub's parenthesized position/number treatment in
+    // a fixed-height stack. Missing/unqualified values keep their plain display.
+    const value = formatCareerCellValue(row, statKey);
+    const rank = row.__careerPositionalRanks?.[statKey];
+    if (!Number.isFinite(rank)) {
+        cell.textContent = value;
+        return;
+    }
+    const metric = document.createElement('span');
+    metric.className = 'career-stats-position-metric';
+    metric.setAttribute('aria-label', `${value} ${row.POS} rank ${rank}`);
+    const number = document.createElement('span');
+    number.className = 'career-stats-position-metric__value';
+    number.textContent = value;
+    const annotation = document.createElement('span');
+    annotation.className = 'career-stats-position-metric__annotation';
+    annotation.setAttribute('aria-hidden', 'true');
+    for (const [text, className] of [['(', 'position'], [row.POS, 'position'], [String(rank), 'rank'], [')', 'position']]) {
+        const segment = document.createElement('span');
+        segment.className = `career-stats-position-metric__${className}`;
+        segment.textContent = text;
+        annotation.appendChild(segment);
+    }
+    metric.appendChild(number);
+    metric.appendChild(annotation);
+    cell.appendChild(metric);
+}
+
 async function renderGameLogsCareerStatsView({ container, player, requestSeq }) {
     // Rosters Game Logs modal Career view:
     // builds a dedicated, swappable career-stats table inside #modal-body so it
@@ -6927,6 +7019,13 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
         paneColumns.forEach(({ statKey }) => {
             const col = document.createElement('col');
             col.className = getColumnClass(statKey);
+            // Rosters-only width variables let CSS tune every column per device;
+            // repeated YDS/TD/YPG labels retain their distinct source stat keys.
+            if (pageType === 'rosters' && !['SZN', 'TM', 'G'].includes(statKey)) {
+                const widthKey = statKey.toLowerCase().replace(/_value$/, '').replace(/_pos_rk$/, '-pos-rank')
+                    .replace(/_ovr_rk$/, '-ovr-rank').replace(/%/g, '-pct').replace(/\//g, '-per-');
+                col.style.width = `var(--career-${widthKey}-col-width, var(--career-stat-col-width))`;
+            }
             colgroup.appendChild(col);
         });
         table.appendChild(colgroup);
@@ -6983,6 +7082,8 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
                 } else if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) {
                     td.classList.add('career-stats-cell--fantasy-chip');
                     appendCareerFantasySplitCellContent(td, row, statKey, position);
+                } else if (pageType === 'rosters' && ['passing', 'receiving', 'rushing', 'total'].includes(section.id)) {
+                    appendCareerStatCellContent(td, row, statKey);
                 } else {
                     td.textContent = formatCareerCellValue(row, statKey);
                 }

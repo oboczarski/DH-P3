@@ -14249,6 +14249,55 @@ body[data-page="datahub"] #game-logs-modal .game-logs-career-view {
   --career-fantasy-value-col-width: 50px;
   --career-fantasy-pos-rank-col-width: 48px;
   --career-fantasy-ovr-rank-col-width: 39px;
+  /* Each stat has its own width. Edit these variables to override the
+     family defaults; source prefixes distinguish repeated YDS/TD/YPG. */
+  --career-rate-col-width: 52px;
+  --career-wide-stat-col-width: 64px;
+  /* Fantasy Points */
+  --career-fpts-col-width: var(--career-fantasy-value-col-width);
+  --career-fpts-pos-rank-col-width: var(--career-fantasy-pos-rank-col-width);
+  --career-fpts-ovr-rank-col-width: var(--career-fantasy-ovr-rank-col-width);
+  /* Points Per Game */
+  --career-ppg-col-width: var(--career-fantasy-value-col-width);
+  --career-ppg-pos-rank-col-width: var(--career-fantasy-pos-rank-col-width);
+  --career-ppg-ovr-rank-col-width: var(--career-fantasy-ovr-rank-col-width);
+  /* Passing */
+  --career-cmp-col-width: var(--career-stat-col-width);
+  --career-paatt-col-width: var(--career-stat-col-width);
+  --career-cmp-pct-col-width: var(--career-stat-col-width);
+  --career-payds-col-width: var(--career-stat-col-width);
+  --career-patd-col-width: var(--career-stat-col-width);
+  --career-int-col-width: var(--career-stat-col-width);
+  --career-paypg-col-width: var(--career-stat-col-width);
+  --career-cpoe-col-width: var(--career-rate-col-width);
+  --career-epa-col-width: var(--career-rate-col-width);
+  --career-epa-per-db-col-width: var(--career-rate-col-width);
+  /* Rushing */
+  --career-snp-pct-col-width: var(--career-rate-col-width);
+  --career-car-col-width: var(--career-stat-col-width);
+  --career-ruyds-col-width: var(--career-stat-col-width);
+  --career-ypc-col-width: var(--career-stat-col-width);
+  --career-rutd-col-width: var(--career-stat-col-width);
+  --career-ruypg-col-width: var(--career-stat-col-width);
+  --career-car-per-g-col-width: var(--career-rate-col-width);
+  --career-mtf-per-a-col-width: var(--career-rate-col-width);
+  --career-yco-per-a-col-width: var(--career-rate-col-width);
+  --career-explsv-pct-col-width: var(--career-wide-stat-col-width);
+  /* Receiving */
+  --career-tgt-col-width: var(--career-stat-col-width);
+  --career-ts-pct-col-width: var(--career-rate-col-width);
+  --career-tprr-col-width: var(--career-rate-col-width);
+  --career-tgt-per-g-col-width: var(--career-rate-col-width);
+  --career-rec-col-width: var(--career-stat-col-width);
+  --career-rec-per-g-col-width: var(--career-rate-col-width);
+  --career-rectd-col-width: var(--career-stat-col-width);
+  --career-recyds-col-width: var(--career-stat-col-width);
+  --career-ypr-col-width: var(--career-stat-col-width);
+  --career-yprr-col-width: var(--career-rate-col-width);
+  --career-recypg-col-width: var(--career-stat-col-width);
+  /* Total */
+  --career-ttlyds-col-width: var(--career-stat-col-width);
+  --career-ttltd-col-width: var(--career-stat-col-width);
   --career-team-logo-size: 27px;
   /* Career table default row height (8–10 rows / mobile-first max): reduced 1px from previous value. */
   --career-body-row-height: 30px;
@@ -14346,7 +14395,8 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table {
   border-spacing: 0;
   table-layout: fixed;
   font-family: 'Product Sans', 'Google Sans', var(--font-sans);
-  font-size: 0.68rem;
+  /* Career values make room for ranks without changing the row-height tiers. */
+  font-size: 0.6rem;
   color: rgba(225, 233, 249, 0.9);
   background: transparent;
 }
@@ -14381,11 +14431,11 @@ body[data-page="datahub"] #game-logs-modal .career-stats-col--stat {
 
 /* Career-only added rates reserve space for source precision and full headers. */
 body[data-page="datahub"] #game-logs-modal .career-stats-col--rate {
-  width: 52px;
+  width: var(--career-rate-col-width);
 }
 
 body[data-page="datahub"] #game-logs-modal .career-stats-col--wide-stat {
-  width: 64px;
+  width: var(--career-wide-stat-col-width);
 }
 
 body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-table th,
@@ -14657,7 +14707,7 @@ body[data-page="datahub"] #game-logs-modal .career-stats-team-logo-chip--text {
 
 body[data-page="datahub"] #game-logs-modal .career-stats-cell--fantasy-value {
   color: rgba(226, 235, 255, 0.94);
-  font-size: 0.74rem;
+  font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0;
 }
@@ -14747,6 +14797,55 @@ body[data-page="datahub"] #game-logs-modal .career-stats-empty {
     --career-fantasy-value-col-width: 43px;
     --career-fantasy-pos-rank-col-width: 42px;
     --career-fantasy-ovr-rank-col-width: 34px;
+    /* Each stat has its own width. Edit these variables to override the
+       family defaults; source prefixes distinguish repeated YDS/TD/YPG. */
+    --career-rate-col-width: 52px;
+    --career-wide-stat-col-width: 64px;
+    /* Fantasy Points */
+    --career-fpts-col-width: var(--career-fantasy-value-col-width);
+    --career-fpts-pos-rank-col-width: var(--career-fantasy-pos-rank-col-width);
+    --career-fpts-ovr-rank-col-width: var(--career-fantasy-ovr-rank-col-width);
+    /* Points Per Game */
+    --career-ppg-col-width: var(--career-fantasy-value-col-width);
+    --career-ppg-pos-rank-col-width: var(--career-fantasy-pos-rank-col-width);
+    --career-ppg-ovr-rank-col-width: var(--career-fantasy-ovr-rank-col-width);
+    /* Passing */
+    --career-cmp-col-width: var(--career-stat-col-width);
+    --career-paatt-col-width: var(--career-stat-col-width);
+    --career-cmp-pct-col-width: var(--career-stat-col-width);
+    --career-payds-col-width: var(--career-stat-col-width);
+    --career-patd-col-width: var(--career-stat-col-width);
+    --career-int-col-width: var(--career-stat-col-width);
+    --career-paypg-col-width: var(--career-stat-col-width);
+    --career-cpoe-col-width: var(--career-rate-col-width);
+    --career-epa-col-width: var(--career-rate-col-width);
+    --career-epa-per-db-col-width: var(--career-rate-col-width);
+    /* Rushing */
+    --career-snp-pct-col-width: var(--career-rate-col-width);
+    --career-car-col-width: var(--career-stat-col-width);
+    --career-ruyds-col-width: var(--career-stat-col-width);
+    --career-ypc-col-width: var(--career-stat-col-width);
+    --career-rutd-col-width: var(--career-stat-col-width);
+    --career-ruypg-col-width: var(--career-stat-col-width);
+    --career-car-per-g-col-width: var(--career-rate-col-width);
+    --career-mtf-per-a-col-width: var(--career-rate-col-width);
+    --career-yco-per-a-col-width: var(--career-rate-col-width);
+    --career-explsv-pct-col-width: var(--career-wide-stat-col-width);
+    /* Receiving */
+    --career-tgt-col-width: var(--career-stat-col-width);
+    --career-ts-pct-col-width: var(--career-rate-col-width);
+    --career-tprr-col-width: var(--career-rate-col-width);
+    --career-tgt-per-g-col-width: var(--career-rate-col-width);
+    --career-rec-col-width: var(--career-stat-col-width);
+    --career-rec-per-g-col-width: var(--career-rate-col-width);
+    --career-rectd-col-width: var(--career-stat-col-width);
+    --career-recyds-col-width: var(--career-stat-col-width);
+    --career-ypr-col-width: var(--career-stat-col-width);
+    --career-yprr-col-width: var(--career-rate-col-width);
+    --career-recypg-col-width: var(--career-stat-col-width);
+    /* Total */
+    --career-ttlyds-col-width: var(--career-stat-col-width);
+    --career-ttltd-col-width: var(--career-stat-col-width);
     --career-team-logo-size: 20px;
     padding-left: 0.02rem;
     padding-right: 0.02rem;
@@ -14795,7 +14894,7 @@ body[data-page="datahub"] #game-logs-modal .career-stats-empty {
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-cell--fantasy-value {
-    font-size: 0.68rem;
+    font-size: 0.6rem;
   }
 
   body[data-page="datahub"] #game-logs-modal .career-stats-fantasy-chip {
@@ -15014,6 +15113,63 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell {
 
 body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell > * {
   max-height: calc(var(--career-body-row-height) - 2px);
+}
+
+/* Career stat ranks use the DataHub position/number proportions in a 20px
+   stack, below the smallest existing 28px row. Fixed tracks and zero spacing
+   keep both panes' row heights unchanged on desktop and mobile. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric {
+  display: inline-grid;
+  grid-template-rows: 12px 8px;
+  align-items: center;
+  justify-items: center;
+  gap: 0;
+  height: 20px;
+  max-width: 100%;
+  margin: 0;
+  vertical-align: middle;
+  font-size: 0.6rem;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__value {
+  min-height: 0;
+  font-size: 0.6rem;
+  line-height: 12px;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__annotation {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  min-height: 0;
+  color: rgba(199, 214, 238, 0.76);
+  font-family: 'Google Sans Flex', 'Google Sans', var(--font-sans);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 8px;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__position {
+  font-size: 0.7em;
+  font-weight: 400;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__rank {
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+@media (min-width: 720px) {
+  /* Match the main DataHub table's smaller desktop position/rank sizing. */
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__position {
+    font-size: 0.65em;
+  }
+
+  body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-metric__rank {
+    font-size: 0.67em;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
