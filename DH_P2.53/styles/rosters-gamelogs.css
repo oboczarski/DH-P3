@@ -3624,10 +3624,12 @@ body[data-page="rosters"] :where(#game-logs-modal) .weekly-chart-x-axis > span.a
   }
 
   body[data-page="rosters"] #game-logs-modal .modal-close-btn {
-    top: 0.2rem !important;
-    right: 0.15rem !important;
-    font-size: 1.8rem !important;
-    padding: 1px 8px;
+    top: 0.1rem !important;
+    right: 0.1rem !important;
+    font-size: 1.4rem !important;
+    padding: 0px 3px 2px;
+    width: 27px !important;
+    height: 27px !important;
   }
 
   body[data-page="rosters"] #game-logs-modal #modal-header {
@@ -3644,7 +3646,7 @@ body[data-page="rosters"] :where(#game-logs-modal) .weekly-chart-x-axis > span.a
     left: 0rem !important;
     display: flex !important;
     align-items: center !important;
-    gap: 0.5rem !important;
+    gap: 0.2rem !important;
   }
 
   body[data-page="rosters"] #game-logs-modal .modal-team-logo-chip {
@@ -3938,9 +3940,12 @@ body[data-page="rosters"] #game-logs-modal:not(.hidden) .modal-content {
 }
 
 body[data-page="rosters"] #game-logs-modal .modal-close-btn {
-  top: 0rem;
-  right: 0.45rem;
-  font-size: 2.2rem;
+  top: 0.1rem;
+  right: 0.15rem;
+  font-size: 1.7rem;
+  width: 35px;
+  height: 35px;
+  padding: 0px 0 2px;
 }
 
 body[data-page="rosters"] #game-logs-modal #modal-header {
@@ -5698,9 +5703,9 @@ body[data-page="rosters"] #game-logs-modal .career-stats-empty {
     --career-patd-col-width: var(--career-stat-col-width);
     --career-int-col-width: var(--career-stat-col-width);
     --career-paypg-col-width: var(--career-stat-col-width);
-    --career-cpoe-col-width: var(--career-rate-col-width);
-    --career-epa-col-width: var(--career-rate-col-width);
-    --career-epa-per-db-col-width: var(--career-rate-col-width);
+    --career-cpoe-col-width: 44px;
+    --career-epa-col-width: 40px;
+    --career-epa-per-db-col-width: 50px;
     /* Rushing */
     --career-snp-pct-col-width: var(--career-rate-col-width);
     --career-car-col-width: var(--career-stat-col-width);
