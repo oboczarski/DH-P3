@@ -15571,11 +15571,13 @@ body[data-page="datahub"] .stats-table .stats-position-metric__annotation {
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__position {
-  font-size: 0.69em;
+  font-size: 0.7em;
+  font-weight: 400;
 }
 
 body[data-page="datahub"] .stats-table .stats-position-metric__rank {
   font-size: 0.75em;
+  font-weight: 600;
 }
 
 @media (min-width: 720px) {
