@@ -101,6 +101,8 @@ const ROSTERS_GAMELOG_STAT_SECTIONS = [
     stat("TGT", "Targets", ["rec_tgt"]),
     stat("TGT/G", "Targets per Game", ["tgt_per_g"]),
     stat("REC", "Receptions", ["rec"]),
+    // Rosters retains its own definition for the added Season/Career rate.
+    stat("REC/G", "Receptions per Game", ["rec_per_g"]),
     stat("recYDS", "Receiving Yards", ["rec_yd"]),
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
     // Rosters keeps its own RB receiving help rather than importing DataHub's
@@ -194,6 +196,7 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
       { abbr: "AY%", desc: "Air Yards Share" },
       { abbr: "AY/Tgt", desc: "Air Yards per Target" },
       { abbr: "REC", desc: "Receptions" },
+      { abbr: "REC/G", desc: "Receptions per Game" },
       { abbr: "rec1D", desc: "Receiving First Downs" },
       { abbr: "recTD", desc: "Receiving Touchdowns" },
       { abbr: "recYDS", desc: "Receiving Yards" },

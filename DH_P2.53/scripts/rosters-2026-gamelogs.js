@@ -28,7 +28,7 @@
         // and positional ranks; missing sheet fields remain unavailable.
         TPRR: 'tprr', YACR: 'rec_yacr', recYMS: 'rec_yms',
         // WR/TE production, efficiency, and weekly additions use exact DH/WK headers.
-        recTMS: 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt',
+        recTMS: 'rec_tms', '10+ Tgt': 'tgt_10_plus', 'AY/Tgt': 'ay_per_tgt', 'REC/G': 'rec_per_g',
         RR: 'rr', 'RZ Tgt': 'rz_tgt', 'TS%': 'ts_per_rr', 'CSTY%': 'csty_pct', YPRR: 'yprr', '1DRR': 'first_down_rec_rate',
         IMP: 'imp', FUM: 'fum', SNP: 'snp', 'SNP%': 'snp_pct', 'YDS(t)': 'yds_total', FPOE: 'fpoe', aFPOE: 'fpoe',
         CL: 'ceiling', 'YPG(t)': 'ypg', paYPG: 'pa_ypg', ruYPG: 'ru_ypg', recYPG: 'rec_ypg', 'AY%': 'ay_pct', PROJ: 'proj', FPT_PPR: 'fpt_ppr'
@@ -143,6 +143,20 @@
         return ranks;
     };
     let loadPromise = null;
+    let seasonRowsCache = null;
+    let seasonRowsLoadPromise = null;
+    // Rosters Career needs only DH totals, even when the selected Game Logs
+    // year is 2025. Reuse this read in the full loader without activating a year
+    // or making Career depend on WK/DRK/schedule availability.
+    async function ensureRosters2026SeasonRowsLoaded() {
+        if (seasonRowsCache) return seasonRowsCache;
+        if (!seasonRowsLoadPromise) {
+            seasonRowsLoadPromise = fetchRows('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR'])
+                .then((rows) => { seasonRowsCache = rows.filter(isPlayer); return seasonRowsCache; })
+                .finally(() => { seasonRowsLoadPromise = null; });
+        }
+        return seasonRowsLoadPromise;
+    }
     async function ensureRosters2026GameLogsLoaded() {
         const state = window.state;
         if (state.rosters2026GameLogs) return state.rosters2026GameLogs;
@@ -153,7 +167,7 @@
             const scheduleRows = parseCsv(await scheduleResponse.text());
             if (!scheduleRows.length || !('TM' in scheduleRows[0]) || !('18' in scheduleRows[0])) throw new Error('Rosters 2026 schedule is invalid.');
             const [seasonRows, defenseRows, ...weeks] = await Promise.all([
-                fetchRows('DH', ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']),
+                ensureRosters2026SeasonRowsLoaded(),
                 fetchRows('DRK', ['TM', 'QBRK', 'RBRK', 'WRRK', 'TERK']),
                 ...Array.from({ length: 18 }, (_, index) => fetchRows(`WK${index + 1}`, ['SZN', 'SLPR_ID', 'POS', 'TM', 'FPT_PPR']))
             ]);
@@ -220,6 +234,7 @@
         return snapshot;
     }
     window.ensureRosters2026GameLogsLoaded = ensureRosters2026GameLogsLoaded;
+    window.ensureRosters2026SeasonRowsLoaded = ensureRosters2026SeasonRowsLoaded;
     window.activateRosters2026GameLogs = activateRosters2026GameLogs;
     window.getRosters2026PlayerRanks = (playerId) => {
         const snapshot = window.state.rosters2026GameLogs;

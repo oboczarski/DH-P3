@@ -1158,6 +1158,8 @@ const STATS_RECEIVING_COLUMN_ICON_OVERRIDES_2026 = Object.freeze({
   "TGT/G": STATS_COLUMN_ICON_OVERRIDES.rushing["TGT/G"],
   YACR: STATS_COLUMN_ICON_OVERRIDES.rushing.YACR,
   recYMS: STATS_COLUMN_ICON_OVERRIDES.rushing.recYMS,
+  // REC/G uses stacked_line_chart to distinguish catch volume per game from yards.
+  "REC/G": '<path d="m140-100-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Zm0-240-60-60 300-300 160 160 284-320 56 56-340 384-160-160-240 240Z"/>',
   "10+ Tgt": '<path d="M400-400h80q33 0 56.5-23.5T560-480v-160q0-33-23.5-56.5T480-720h-40q-33 0-56.5 23.5T360-640v40q0 33 23.5 56.5T440-520h40v40h-80v80Zm80-200h-40v-40h40v40ZM320-240q-33 0-56.5-23.5T240-320v-480q0-33 23.5-56.5T320-880h480q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H320ZM160-80q-33 0-56.5-23.5T80-160v-560h80v560h560v80H160Zm500-360h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80Z"/>', // filter_9_plus: ten or more.
   AY: '<path d="M340-80v-60l80-60v-220L80-320v-80l340-200v-220q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v220l340 200v80L540-420v220l80 60v60l-140-40-140 40Z"/>', // flight: air yards.
   "recIMP/R": '<path d="M360-720h80v-80h-80v80Zm160 0v-80h80v80h-80ZM360-400v-80h80v80h-80Zm320-160v-80h80v80h-80Zm0 160v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm160-320v-80h80v80h-80Zm-240 80v-80h80v80h-80ZM200-160v-640h80v80h80v80h-80v80h80v80h-80v320h-80Zm400-320v-80h80v80h-80Zm-160 0v-80h80v80h-80Zm-80-80v-80h80v80h-80Zm160 0v-80h80v80h-80Zm80-80v-80h80v80h-80Z"/>', // sports_score: receiving impact per reception.
@@ -1654,7 +1656,7 @@ const STATS_RECEIVING_GROUP_COLUMNS_2026 = Object.freeze({
   ]),
   "RECEIVING EFFICIENCY": Object.freeze([
     "TS%", "YPRR", "TPRR", "1DRR", "recYPG", "TGT/G", "recIMP/R",
-    "YACR", "AY%", "AY/Tgt", "YPR", "recYMS", "recTMS",
+    "YACR", "AY%", "AY/Tgt", "YPR", "REC/G", "recYMS", "recTMS",
   ]),
 });
 const STATS_RECEIVING_COLUMN_GROUPS_2026 = Object.freeze(BASE_COLUMN_GROUPS.receiving.map((group) => Object.freeze({
@@ -2507,6 +2509,7 @@ const COLUMN_WIDTHS = {
   "YBC/A": 92,
   "CAR/G": 92,
   "TGT/G": 92,
+  "REC/G": 92,
   recTD: 88,
   rec1D: 88,
   YAC: 88,
@@ -2666,6 +2669,7 @@ const MOBILE_COLUMN_WIDTHS = {
   "YBC/A": 58,
   "CAR/G": 58,
   "TGT/G": 58,
+  "REC/G": 58,
   recTD: 51,
   rec1D: 51,
   YAC: 48,
@@ -11348,12 +11352,12 @@ function formatDisplayValue(columnName, value) {
 
   // W/T Stats uses DH units without rounding the stored sorting/rank values.
   // Route/reception ratios retain three decimals; yards/per-game values retain tenths.
-  if (is2026ReceivingStatsView() && ["TS%", "AY%", "recYMS", "recTMS", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "YACR", "AY/Tgt"].includes(columnName)) {
+  if (is2026ReceivingStatsView() && ["TS%", "AY%", "recYMS", "recTMS", "TPRR", "1DRR", "recIMP/R", "recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) {
     const numericValue = parseDataHubStatValue(columnName, value);
     if (numericValue == null) return formatCellValue(value);
     if (["TS%", "AY%", "recYMS", "recTMS"].includes(columnName)) return formatDataHubPercentage(numericValue);
     if (["TPRR", "1DRR", "recIMP/R"].includes(columnName)) return numericValue.toFixed(3);
-    if (["recYPG", "TGT/G", "YACR", "AY/Tgt"].includes(columnName)) return numericValue.toFixed(1);
+    if (["recYPG", "TGT/G", "REC/G", "YACR", "AY/Tgt"].includes(columnName)) return numericValue.toFixed(1);
   }
 
   // Rookie GRD display:
@@ -11644,6 +11648,10 @@ const DATAHUB_TEAM_LOGO_KEY_MAP = Object.freeze({
   LA: "lar",
 });
 const DATAHUB_CAREER_STATS_CSV_PATH = "../data/NFL16-25/NFL-PlayerData_16-25.csv";
+// Career advanced fields are source-backed for 2025/2026 only. Historical
+// target/reception/carry per-game rates are calculated for older seasons only.
+const DATAHUB_CAREER_ADVANCED_STATS = new Set(["TS%", "TPRR", "YPRR", "SNP%", "MTF/A", "YCO/A", "EXPLSV%", "CPOE", "EPA", "EPA/DB"]);
+const DATAHUB_CAREER_PER_GAME_TOTALS = Object.freeze({ "TGT/G": "TGT", "REC/G": "REC", "CAR/G": "CAR" });
 const DATAHUB_CAREER_GROUP_ICONS = Object.freeze({
   // DataHub game logs Career table:
   // local group icon markup keeps the self-contained modal independent from
@@ -11681,7 +11689,8 @@ const DATAHUB_CAREER_GROUP_ICONS = Object.freeze({
 const DATAHUB_CAREER_WR_TE_SECTIONS = Object.freeze([
   { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
   { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
-  { id: "receiving", label: "RECEIVING", tone: "receiving", stats: ["TGT", "REC", "recYDS", "YPR", "recTD", "recYPG"] },
+  // WR/TE Career receiving order uses abbreviated TD/YDS/YPG display labels.
+  { id: "receiving", label: "RECEIVING", tone: "receiving", stats: ["TGT", "TS%", "TPRR", "TGT/G", "REC", "REC/G", "recTD", "recYDS", "YPR", "YPRR", "recYPG"] },
   { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
   { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
 ]);
@@ -11689,14 +11698,15 @@ const DATAHUB_CAREER_STAT_SECTIONS_BY_POS = Object.freeze({
   QB: Object.freeze([
     { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
     { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
-    { id: "passing", label: "PASSING", tone: "passing", stats: ["CMP", "paATT", "CMP%", "paYDS", "paTD", "INT", "paYPG"] },
+    { id: "passing", label: "PASSING", tone: "passing", stats: ["CMP", "paATT", "CMP%", "paYDS", "paTD", "INT", "paYPG", "CPOE", "EPA", "EPA/DB"] },
     { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
     { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
   ]),
   RB: Object.freeze([
     { id: "season", label: "SEASON", tone: "season", stats: ["SZN", "TM", "G"] },
     { id: "fantasy", label: "FANTASY", tone: "fantasy", stats: ["FPTS", "PPG"] },
-    { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["CAR", "ruYDS", "YPC", "ruTD", "ruYPG"] },
+    // Only RB Career gets the expanded rushing order; QB/WR/TE keep theirs.
+    { id: "rushing", label: "RUSHING", tone: "rushing", stats: ["SNP%", "CAR", "ruYDS", "YPC", "ruTD", "ruYPG", "CAR/G", "MTF/A", "YCO/A", "EXPLSV%"] },
     { id: "receiving", label: "RECEIVING", tone: "receiving", stats: ["TGT", "REC", "recYDS", "YPR", "recTD", "recYPG"] },
     { id: "total", label: "TOTAL", tone: "total", stats: ["ttlYDS", "ttlTD"] },
   ]),
@@ -11765,6 +11775,7 @@ const DATAHUB_STATS_KEY_SECTIONS = [
       { abbr: "AY%", desc: "Air Yards Share" },
       { abbr: "AY/Tgt", desc: "Air Yards per Target" },
       { abbr: "REC", desc: "Receptions" },
+      { abbr: "REC/G", desc: "Receptions per Game" },
       { abbr: "rec1D", desc: "Receiving First Downs" },
       { abbr: "recTD", desc: "Receiving Touchdowns" },
       { abbr: "recYDS", desc: "Receiving Yards" },
@@ -11854,6 +11865,8 @@ const DATAHUB_PLAYER_STAT_HEADER_MAP = {
   "YBC/A": "ybc_per_att",
   "CAR/G": "car_per_g",
   "TGT/G": "tgt_per_g",
+  // Current receiving tables and Season views use the DH rate directly.
+  "REC/G": "rec_per_g",
   YCO: "rush_yac",
   "YCO/A": "yco_per_att",
   "ExplRu%": "expl_ru_pct",
@@ -12012,7 +12025,7 @@ const DATAHUB_RB_SZN_SECTIONS_2026 = DATAHUB_SZN_STAT_SECTIONS_BY_POS.RB.map((se
   }
   if (section.label === "RECEIVING EFFICIENCY") {
     // 2026 RB Season view: use the requested receiving-efficiency order only.
-    return { ...section, stats: ["ts_per_rr", "tprr", "tgt_per_g", "yprr", "ypr", "rec_ypg", "rec_yms"] };
+    return { ...section, stats: ["ts_per_rr", "tprr", "tgt_per_g", "yprr", "ypr", "rec_ypg", "rec_per_g", "rec_yms"] };
   }
   return section;
 });
@@ -12025,7 +12038,7 @@ const DATAHUB_WR_TE_SZN_SECTIONS_2026 = Object.freeze(Object.fromEntries(["WR", 
       return { ...section, stats: ["rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "rr", "rz_tgt", "tgt_10_plus"] };
     }
     if (section.label === "RECEIVING EFFICIENCY") {
-      return { ...section, stats: ["ts_per_rr", "yprr", "tprr", "tgt_per_g", "rec_yacr", "first_down_rec_rate", "rec_ypg", "ay_pct", "ay_per_tgt", "rec_yms", "rec_tms"] };
+      return { ...section, stats: ["ts_per_rr", "yprr", "tprr", "tgt_per_g", "rec_yacr", "first_down_rec_rate", "rec_ypg", "rec_per_g", "ay_pct", "ay_per_tgt", "rec_yms", "rec_tms"] };
     }
     return section;
   }),
@@ -12095,7 +12108,7 @@ const DATAHUB_STAT_LABELS = buildDataHubStatLabels();
 const DATAHUB_NO_FALLBACK_KEYS = new Set([
   // Receiving rates must stay unavailable when DH/WK omits the source value.
   "tprr", "rec_yacr", "rec_yms",
-  "rec_tms", "tgt_10_plus", "ay_per_tgt",
+  "rec_tms", "tgt_10_plus", "ay_per_tgt", "rec_per_g",
   "yprr",
   "ts_per_rr",
   "imp_per_g",
@@ -12157,7 +12170,8 @@ const DATAHUB_WR_TE_LOG_ORDER = [
 const DATAHUB_WR_TE_LOG_ORDER_2026 = [
   "fpts", "proj", "snp_pct", "rec_tgt", "rec", "ts_per_rr", "rec_yd", "rec_td",
   "yprr", "tprr", "rec_fd", "first_down_rec_rate", "rec_yar", "rec_yacr", "ypr",
-  "imp_per_g", "rz_tgt", "tgt_10_plus", "ay_pct", "rec_yms", "rec_tms", "rr",
+  // Market shares belong to Season and Stats only, not the weekly table.
+  "imp_per_g", "rz_tgt", "tgt_10_plus", "ay_pct", "rr",
   "fpoe", "yds_total", "rush_att", "rush_yd", "rush_td", "ypc", "fum",
 ];
 const DATAHUB_RANK_COLOR_THRESHOLDS = [
@@ -13294,25 +13308,90 @@ function parseDataHubCareerStatsRows(rows) {
   return rowsByPlayer;
 }
 
-async function ensureDataHubCareerStatsLoaded() {
-  // DataHub game logs Career table:
-  // fetches the local career CSV once per DataHub session and shares the
-  // in-flight promise across fast modal interactions.
-  if (state.careerStatsByPlayer) {
-    return state.careerStatsByPlayer;
-  }
-  if (!dataHubCareerStatsLoadPromise) {
-    dataHubCareerStatsLoadPromise = fetchDataHubText(new URL(DATAHUB_CAREER_STATS_CSV_PATH, window.location.href))
-      .then((csvText) => parseDataHubCareerStatsRows(parseCsv(csvText)))
-      .then((rowsByPlayer) => {
-        state.careerStatsByPlayer = rowsByPlayer;
-        return rowsByPlayer;
-      })
-      .catch((error) => {
-        state.careerStatsByPlayer = null;
-        dataHubCareerStatsLoadPromise = null;
-        throw error;
+function getDataHubCareerNumber(value) {
+  const text = String(value ?? "").trim().replace(/,/g, "").replace(/%$/, "");
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : null;
+}
+
+function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) {
+  // Career keeps its historical totals/ranks. Only 2025 advanced fields join
+  // from SZN; 2026 is adapted from DH without copying an older season's values.
+  const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
+  const rows = historicalRows.filter((row) => String(row.SZN).trim() !== "2026").map((source) => {
+    const row = { ...source };
+    if (String(row.SZN).trim() === "2025") {
+      const advanced = advancedById.get(String(row.SLPR_ID).trim());
+      DATAHUB_CAREER_ADVANCED_STATS.forEach((key) => { row[key] = advanced?.[key] ?? row[key]; });
+    }
+    return row;
+  });
+  const currentRows = season2026Rows.filter((row) => ["QB", "RB", "WR", "TE"].includes(row.POS)).map((source) => {
+    const games = getDataHubCareerNumber(source.GM_P);
+    const points = getDataHubCareerNumber(source.FPT_PPR);
+    const rushTd = getDataHubCareerNumber(source.ruTD);
+    const recTd = getDataHubCareerNumber(source.recTD);
+    return {
+      ...source,
+      SZN: "2026", G: source.GM_P, PLAYER: source["PLAYER NAME"],
+      FPTS: points === null ? "-" : points.toFixed(1),
+      PPG: games > 0 && points !== null ? (points / games).toFixed(2) : "-",
+      ttlYDS: source["YDS(t)"],
+      // The shipped Career ttlTD contract counts rushing + receiving TDs.
+      ttlTD: rushTd !== null && recTd !== null ? String(rushTd + recTd) : "-",
+      "FPTS RK": "-", "FPTS POS RK": "-", "PPG RK": "-", "PPG POS RK": "-",
+    };
+  });
+  // New Career fantasy ranks use unrounded DH points/rates. Preserve the
+  // sheet's FPTS positional rank and compute the missing overall/PPG ranks
+  // across players with recorded games, including real zero-point seasons.
+  for (const metric of ["FPTS", "PPG"]) {
+    const valueForRow = (row) => {
+      const points = getDataHubCareerNumber(row.FPT_PPR);
+      const games = getDataHubCareerNumber(row.G);
+      return points !== null && games > 0 ? (metric === "FPTS" ? points : points / games) : null;
+    };
+    const assignRanks = (pool, positional = false) => {
+      const entries = pool.map((row) => ({ row, value: valueForRow(row) }))
+        .filter((entry) => entry.value !== null).sort((a, b) => b.value - a.value);
+      let previous = null;
+      let rank = 0;
+      entries.forEach(({ row, value }, index) => {
+        if (value !== previous) rank = index + 1;
+        previous = value;
+        const sourceRank = metric === "FPTS" ? getDataHubCareerNumber(row.PRK_PPR) : null;
+        row[positional ? `${metric} POS RK` : `${metric} RK`] = positional
+          ? `${row.POS}·${sourceRank > 0 ? sourceRank : rank}` : String(rank);
       });
+    };
+    assignRanks(currentRows);
+    for (const position of ["QB", "RB", "WR", "TE"]) assignRanks(currentRows.filter((row) => row.POS === position), true);
+  }
+  return parseDataHubCareerStatsRows([...rows, ...currentRows]);
+}
+
+async function ensureDataHubCareerStatsLoaded() {
+  // Read Career/SZN/DH independently of the selected modal year. A failed
+  // supplemental source preserves historical rows and retries on the next open.
+  if (state.careerStatsByPlayer) return state.careerStatsByPlayer;
+  if (!dataHubCareerStatsLoadPromise) {
+    dataHubCareerStatsLoadPromise = (async () => {
+      const results = await Promise.allSettled([
+        fetchDataHubText(new URL(DATAHUB_CAREER_STATS_CSV_PATH, window.location.href)).then(parseCsv),
+        fetchCsvText().then(parseCsv),
+        ensureDataHub2026Data().then((source) => source.rawRows),
+      ]);
+      if (results[0].status === "rejected") throw results[0].reason;
+      results.slice(1).forEach((result, index) => {
+        if (result.status === "rejected") console.warn(`DataHub Career ${2025 + index} source unavailable.`, result.reason);
+      });
+      const rowsByPlayer = buildDataHubCareerRows(results[0].value,
+        results[1].status === "fulfilled" ? results[1].value : [],
+        results[2].status === "fulfilled" ? results[2].value : []);
+      if (results.every((result) => result.status === "fulfilled")) state.careerStatsByPlayer = rowsByPlayer;
+      return rowsByPlayer;
+    })().finally(() => { dataHubCareerStatsLoadPromise = null; });
   }
   return dataHubCareerStatsLoadPromise;
 }
@@ -13345,6 +13424,27 @@ function formatDataHubCareerCellValue(row, statKey) {
   // DataHub game logs Career table:
   // preserves real zeroes from the CSV while normalizing empty-ish values into
   // the same muted dash used by the DataHub modal tables.
+  const season = Number(row?.SZN);
+  if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return "-";
+  if (Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey)) {
+    // Only 2016–2025 per-game rates are calculated. 2026 stays DH-backed.
+    const games = getDataHubCareerNumber(row?.G);
+    const total = getDataHubCareerNumber(row?.[DATAHUB_CAREER_PER_GAME_TOTALS[statKey]]);
+    const rate = season >= 2016 && season <= 2025
+      ? (games > 0 && total !== null ? total / games : null)
+      : getDataHubCareerNumber(row?.[statKey]);
+    return rate === null ? "-" : rate.toFixed(1);
+  }
+  if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey)) {
+    const number = getDataHubCareerNumber(row?.[statKey]);
+    if (number === null) return "-";
+    if (["TS%", "SNP%", "EXPLSV%", "CPOE"].includes(statKey)) {
+      const percent = String(row[statKey]).includes("%") || Math.abs(number) > 1.5 || statKey === "CPOE" ? number : number * 100;
+      return `${statKey === "CPOE" && percent > 0 ? "+" : ""}${percent.toFixed(1)}%`;
+    }
+    if (["EPA", "EPA/DB"].includes(statKey)) return `${number > 0 ? "+" : ""}${number.toFixed(statKey === "EPA" ? 1 : 2)}`;
+    return number.toFixed(["TPRR", "MTF/A"].includes(statKey) ? 3 : 2);
+  }
   if (!row || !Object.prototype.hasOwnProperty.call(row, statKey)) {
     return "—";
   }
@@ -13509,6 +13609,9 @@ function getDataHubCareerColumnClass(statKey) {
   if (statKey === "FPTS_VALUE" || statKey === "PPG_VALUE") return "career-stats-col--fantasy-value";
   if (statKey.endsWith("_POS_RK")) return "career-stats-col--fantasy-pos-rank";
   if (statKey.endsWith("_OVR_RK")) return "career-stats-col--fantasy-ovr-rank";
+  // Expanded Career rates need room for three decimals and their full labels.
+  if (statKey === "EXPLSV%") return "career-stats-col--wide-stat";
+  if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) || Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey)) return "career-stats-col--rate";
   return "career-stats-col--stat";
 }
 
@@ -13565,7 +13668,7 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
   tableContainer.className = "career-stats-table-container";
   tableContainer.dataset.rowCount = String(careerRows.length);
   // Career table row-height tiers (mobile-first):
-  //   ≥10 rows → --full  (most compact, only 10 is the max)
+  //   ≥10 rows → --full (compact; 2026 can extend history to 11 seasons)
   //   ≤4  rows → --short (roomiest)
   //   ≤7  rows → --medium
   //   8-9 rows → default (no class, sweet-spot height)
@@ -14712,7 +14815,7 @@ function getDataHubGameLogsSeasonDisplayValue({
       displayValue = formatDataHubPercentage(raw);
     } else if (key === "tprr") {
       displayValue = Number(raw).toFixed(3);
-    } else if (["rec_yacr", "rec_ypg"].includes(key)) {
+    } else if (["rec_yacr", "rec_ypg", "rec_per_g"].includes(key)) {
       displayValue = Number(raw).toFixed(1);
     } else if (is2026WtSeason && key === "first_down_rec_rate") {
       displayValue = Number(raw).toFixed(3);
@@ -15085,7 +15188,7 @@ function getDataHubStatGroup(statKey) {
     "rec_tgt", "rec", "rec_yd", "rec_td", "rec_fd", "rec_yar", "ts_per_rr", "yprr", "ypr",
     "rr", "rz_tgt", "first_down_rec_rate", "rec_ypg", "ay_pct", "tgt_per_g",
     "tprr", "rec_yacr", "rec_yms",
-    "rec_tms", "tgt_10_plus", "ay_per_tgt",
+    "rec_tms", "tgt_10_plus", "ay_per_tgt", "rec_per_g",
   ].includes(statKey)) return "receiving";
   return "all";
 }

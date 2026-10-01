@@ -1464,6 +1464,10 @@ const PLAYER_STATS_CSV_PATHS = {
 // Rosters-only Career view uses the shipped multi-season CSV. Keep this block self-contained
 // so the same table/data pattern can be ported later to another standalone page.
 const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
+// Rosters Career owns its advanced-field availability and historical rate
+// calculations independently; no DataHub modules or active-season state are used.
+const CAREER_ADVANCED_STATS = new Set(['TS%', 'TPRR', 'YPRR', 'SNP%', 'MTF/A', 'YCO/A', 'EXPLSV%', 'CPOE', 'EPA', 'EPA/DB']);
+const CAREER_PER_GAME_TOTALS = Object.freeze({ 'TGT/G': 'TGT', 'REC/G': 'REC', 'CAR/G': 'CAR' });
 const CAREER_STAT_GROUP_ICONS = {
     // Rosters Game Logs modal Career view:
     // stores self-contained column-group SVG markup so this table can be ported
@@ -1505,21 +1509,23 @@ const CAREER_STAT_SECTIONS_BY_POS = {
     QB: [
         { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
         { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
-        { id: 'passing', label: 'PASSING', tone: 'passing', stats: ['CMP', 'paATT', 'CMP%', 'paYDS', 'paTD', 'INT', 'paYPG'] },
+        { id: 'passing', label: 'PASSING', tone: 'passing', stats: ['CMP', 'paATT', 'CMP%', 'paYDS', 'paTD', 'INT', 'paYPG', 'CPOE', 'EPA', 'EPA/DB'] },
         { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
         { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
     ],
     RB: [
         { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
         { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
-        { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
+        // Expanded rushing applies to RB Career only, preserving other positions.
+        { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['SNP%', 'CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG', 'CAR/G', 'MTF/A', 'YCO/A', 'EXPLSV%'] },
         { id: 'receiving', label: 'RECEIVING', tone: 'receiving', stats: ['TGT', 'REC', 'recYDS', 'YPR', 'recTD', 'recYPG'] },
         { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
     ],
     WR: [
         { id: 'season', label: 'SEASON', tone: 'season', stats: ['SZN', 'TM', 'G'] },
         { id: 'fantasy', label: 'FANTASY', tone: 'fantasy', stats: ['FPTS', 'PPG'] },
-        { id: 'receiving', label: 'RECEIVING', tone: 'receiving', stats: ['TGT', 'REC', 'recYDS', 'YPR', 'recTD', 'recYPG'] },
+        // WR and TE share this requested receiving order and short group labels.
+        { id: 'receiving', label: 'RECEIVING', tone: 'receiving', stats: ['TGT', 'TS%', 'TPRR', 'TGT/G', 'REC', 'REC/G', 'recTD', 'recYDS', 'YPR', 'YPRR', 'recYPG'] },
         { id: 'rushing', label: 'RUSHING', tone: 'rushing', stats: ['CAR', 'ruYDS', 'YPC', 'ruTD', 'ruYPG'] },
         { id: 'total', label: 'TOTAL', tone: 'total', stats: ['ttlYDS', 'ttlTD'] }
     ]
@@ -4130,7 +4136,7 @@ function buildStatLabels() {
             // Receiving labels belong to Rosters' 2026 modal only; the
             // historical CSV map and the separate Stats page keep their schema.
             tprr: 'TPRR', rec_yacr: 'YACR', rec_yms: 'recYMS',
-            rec_tms: 'recTMS', tgt_10_plus: '10+ Tgt', ay_per_tgt: 'AY/Tgt'
+            rec_tms: 'recTMS', tgt_10_plus: '10+ Tgt', ay_per_tgt: 'AY/Tgt', rec_per_g: 'REC/G'
         });
     }
     // Game Logs modal SZN view + shared stats key: always show the updated explosive-rush label.
@@ -4140,7 +4146,7 @@ function buildStatLabels() {
 // Stats that must not use code-derived fallbacks; sheet is source of truth
 const NO_FALLBACK_KEYS = new Set([
     // Rosters receiving rates use DH/WK values rather than summing weekly ratios.
-    'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt',
+    'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt', 'rec_per_g',
     'yprr',
     'ts_per_rr',
     'imp_per_g',
@@ -5862,7 +5868,7 @@ const SZN_RB_SECTIONS_2026 = SZN_STAT_SECTIONS_BY_POS.RB.map((section) => {
     }
     if (section.id === 'receiving-efficiency') {
         // 2026 RB Season view: use the requested receiving-efficiency order only.
-        return { ...section, stats: ['ts_per_rr', 'tprr', 'tgt_per_g', 'yprr', 'ypr', 'rec_ypg', 'rec_yms'] };
+        return { ...section, stats: ['ts_per_rr', 'tprr', 'tgt_per_g', 'yprr', 'ypr', 'rec_ypg', 'rec_per_g', 'rec_yms'] };
     }
     return section;
 });
@@ -5875,7 +5881,7 @@ const SZN_WR_TE_SECTIONS_2026 = Object.fromEntries(['WR', 'TE'].map((position) =
             return { ...section, stats: ['rec_tgt', 'rec', 'rec_yd', 'rec_td', 'rec_fd', 'rec_yar', 'rr', 'rz_tgt', 'tgt_10_plus'] };
         }
         if (section.id === 'receiving-efficiency') {
-            return { ...section, stats: ['ts_per_rr', 'yprr', 'tprr', 'tgt_per_g', 'rec_yacr', 'first_down_rec_rate', 'rec_ypg', 'ay_pct', 'ay_per_tgt', 'rec_yms', 'rec_tms'] };
+            return { ...section, stats: ['ts_per_rr', 'yprr', 'tprr', 'tgt_per_g', 'rec_yacr', 'first_down_rec_rate', 'rec_ypg', 'rec_per_g', 'ay_pct', 'ay_per_tgt', 'rec_yms', 'rec_tms'] };
         }
         return section;
     })
@@ -6039,7 +6045,7 @@ function getGameLogsSeasonDisplayValue({
             displayValue = Number(raw).toFixed(1);
         } else if (key === 'tprr') {
             displayValue = Number(raw).toFixed(3);
-        } else if (key === 'rec_yacr' || key === 'rec_ypg') {
+        } else if (key === 'rec_yacr' || key === 'rec_ypg' || key === 'rec_per_g') {
             displayValue = Number(raw).toFixed(1);
 		} else if (key === 'cpoe') {
 			const formatted = formatPercentage(raw, 1);
@@ -6501,17 +6507,17 @@ function getCareerSectionsForPosition(position) {
     return CAREER_STAT_SECTIONS_BY_POS[normalizedPos] || CAREER_STAT_SECTIONS_BY_POS.WR;
 }
 
-function parseCareerStatsCsv(csvText) {
+function parseCareerSourceRows(csvText) {
+    const parsed = parseCsv(csvText);
+    return parsed.rows.map((columns) => Object.fromEntries(parsed.headers.map((header, index) => [normalizeHeader(header), columns[index] ?? ''])));
+}
+
+function parseCareerStatsRows(sourceRows) {
     // Rosters Game Logs modal Career view:
     // converts the shipped multi-season CSV into SLPR_ID-keyed row arrays so each
     // modal open only has to filter by player id once after the cached fetch.
-    const parsed = parseCsv(csvText);
     const rowsByPlayer = {};
-    parsed.rows.forEach((columns) => {
-        const row = {};
-        parsed.headers.forEach((header, index) => {
-            row[header] = columns[index] ?? '';
-        });
+    sourceRows.forEach((row) => {
         const playerId = String(row.SLPR_ID || '').trim();
         if (!playerId) return;
         if (!rowsByPlayer[playerId]) rowsByPlayer[playerId] = [];
@@ -6529,23 +6535,91 @@ function parseCareerStatsCsv(csvText) {
     return rowsByPlayer;
 }
 
+function getCareerNumber(value) {
+    const text = String(value ?? '').trim().replace(/,/g, '').replace(/%$/, '');
+    if (!text) return null;
+    const number = Number(text);
+    return Number.isFinite(number) ? number : null;
+}
+
+function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
+    // Rosters Career preserves historical totals/ranks, joins only the 2025
+    // advanced fields from SZN, and adapts 2026 DH into the Career row contract.
+    const advancedById = new Map(season2025Rows.map((row) => [String(row.SLPR_ID).trim(), row]));
+    const rows = historicalRows.filter((row) => String(row.SZN).trim() !== '2026').map((source) => {
+        const row = { ...source };
+        if (String(row.SZN).trim() === '2025') {
+            const advanced = advancedById.get(String(row.SLPR_ID).trim());
+            CAREER_ADVANCED_STATS.forEach((key) => { row[key] = advanced?.[key] ?? row[key]; });
+        }
+        return row;
+    });
+    const currentRows = season2026Rows.filter((row) => ['QB', 'RB', 'WR', 'TE'].includes(row.POS)).map((source) => {
+        const games = getCareerNumber(source.GM_P);
+        const points = getCareerNumber(source.FPT_PPR);
+        const rushTd = getCareerNumber(source.ruTD);
+        const recTd = getCareerNumber(source.recTD);
+        return {
+            ...source,
+            SZN: '2026', G: source.GM_P, PLAYER: source['PLAYER NAME'],
+            FPTS: points === null ? '-' : points.toFixed(1),
+            PPG: games > 0 && points !== null ? (points / games).toFixed(2) : '-',
+            ttlYDS: source['YDS(t)'],
+            // Match the shipped Career ttlTD definition: rushing + receiving TDs.
+            ttlTD: rushTd !== null && recTd !== null ? String(rushTd + recTd) : '-',
+            'FPTS RK': '-', 'FPTS POS RK': '-', 'PPG RK': '-', 'PPG POS RK': '-',
+        };
+    });
+    // Career fantasy ranks use unrounded DH points/rates and recorded games.
+    // Keep the DH FPTS positional rank; derive its absent overall and PPG ranks
+    // within this independent renderer rather than use the selected league/year.
+    for (const metric of ['FPTS', 'PPG']) {
+        const valueForRow = (row) => {
+            const points = getCareerNumber(row.FPT_PPR);
+            const games = getCareerNumber(row.G);
+            return points !== null && games > 0 ? (metric === 'FPTS' ? points : points / games) : null;
+        };
+        const assignRanks = (pool, positional = false) => {
+            const entries = pool.map((row) => ({ row, value: valueForRow(row) }))
+                .filter((entry) => entry.value !== null).sort((a, b) => b.value - a.value);
+            let previous = null;
+            let rank = 0;
+            entries.forEach(({ row, value }, index) => {
+                if (value !== previous) rank = index + 1;
+                previous = value;
+                const sourceRank = metric === 'FPTS' ? getCareerNumber(row.PRK_PPR) : null;
+                row[positional ? `${metric} POS RK` : `${metric} RK`] = positional
+                    ? `${row.POS}·${sourceRank > 0 ? sourceRank : rank}` : String(rank);
+            });
+        };
+        assignRanks(currentRows);
+        for (const position of ['QB', 'RB', 'WR', 'TE']) assignRanks(currentRows.filter((row) => row.POS === position), true);
+    }
+    return parseCareerStatsRows([...rows, ...currentRows]);
+}
+
 async function ensureCareerStatsLoaded() {
-    // Rosters Game Logs modal Career view:
-    // fetches/parses the career CSV once per page session and reuses the in-flight
-    // promise if multiple modal renders request the data at the same time.
+    // Career loads only local Career/SZN plus DH, independently of the selected
+    // Game Logs year and without activating a snapshot or requiring WK/DRK.
+    // Failed supplemental reads preserve history and retry on the next open.
     if (state.careerStatsByPlayer) return state.careerStatsByPlayer;
     if (!careerStatsLoadPromise) {
-        careerStatsLoadPromise = fetchTextWithCache(buildAppStaticUrl(CAREER_STATS_CSV_PATH))
-            .then(parseCareerStatsCsv)
-            .then((rowsByPlayer) => {
-                state.careerStatsByPlayer = rowsByPlayer;
-                return rowsByPlayer;
-            })
-            .catch((error) => {
-                careerStatsLoadPromise = null;
-                state.careerStatsByPlayer = null;
-                throw error;
+        careerStatsLoadPromise = (async () => {
+            const results = await Promise.allSettled([
+                fetchTextWithCache(buildAppStaticUrl(CAREER_STATS_CSV_PATH)).then(parseCareerSourceRows),
+                fetchTextWithCache(buildAppStaticUrl(PLAYER_STATS_CSV_PATHS.season)).then(parseCareerSourceRows),
+                window.ensureRosters2026SeasonRowsLoaded(),
+            ]);
+            if (results[0].status === 'rejected') throw results[0].reason;
+            results.slice(1).forEach((result, index) => {
+                if (result.status === 'rejected') console.warn(`Rosters Career ${2025 + index} source unavailable.`, result.reason);
             });
+            const rowsByPlayer = buildCareerRows(results[0].value,
+                results[1].status === 'fulfilled' ? results[1].value : [],
+                results[2].status === 'fulfilled' ? results[2].value : []);
+            if (results.every((result) => result.status === 'fulfilled')) state.careerStatsByPlayer = rowsByPlayer;
+            return rowsByPlayer;
+        })().finally(() => { careerStatsLoadPromise = null; });
     }
     return careerStatsLoadPromise;
 }
@@ -6594,6 +6668,27 @@ function formatCareerCellValue(row, statKey) {
     // Rosters Game Logs modal Career view:
     // keeps real zero values visible while replacing missing CSV values with the
     // same polished empty marker used elsewhere in modal tables.
+    const season = Number(row?.SZN);
+    if (CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return '-';
+    if (Object.prototype.hasOwnProperty.call(CAREER_PER_GAME_TOTALS, statKey)) {
+        // Historical rates use that row's games/totals. 2026 rates stay DH-backed.
+        const games = getCareerNumber(row?.G);
+        const total = getCareerNumber(row?.[CAREER_PER_GAME_TOTALS[statKey]]);
+        const rate = season >= 2016 && season <= 2025
+            ? (games > 0 && total !== null ? total / games : null)
+            : getCareerNumber(row?.[statKey]);
+        return rate === null ? '-' : rate.toFixed(1);
+    }
+    if (CAREER_ADVANCED_STATS.has(statKey)) {
+        const number = getCareerNumber(row?.[statKey]);
+        if (number === null) return '-';
+        if (['TS%', 'SNP%', 'EXPLSV%', 'CPOE'].includes(statKey)) {
+            const percent = String(row[statKey]).includes('%') || Math.abs(number) > 1.5 || statKey === 'CPOE' ? number : number * 100;
+            return `${statKey === 'CPOE' && percent > 0 ? '+' : ''}${percent.toFixed(1)}%`;
+        }
+        if (['EPA', 'EPA/DB'].includes(statKey)) return `${number > 0 ? '+' : ''}${number.toFixed(statKey === 'EPA' ? 1 : 2)}`;
+        return number.toFixed(['TPRR', 'MTF/A'].includes(statKey) ? 3 : 2);
+    }
     if (!row || !Object.prototype.hasOwnProperty.call(row, statKey)) return '—';
     const value = row[statKey];
     if (value === null || value === undefined) return '—';
@@ -6797,7 +6892,7 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
     tableContainer.className = 'career-stats-table-container';
     tableContainer.dataset.rowCount = String(careerRows.length);
     // Career table row-height tiers (mobile-first):
-    //   ≥10 rows → --full  (most compact, only 10 is the max)
+    //   ≥10 rows → --full (compact; the current season can extend history to 11)
     //   ≤4  rows → --short (roomiest)
     //   ≤7  rows → --medium
     //   8-9 rows → default (no class, sweet-spot height)
@@ -6816,6 +6911,9 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
         if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') return 'career-stats-col--fantasy-value';
         if (statKey.endsWith('_POS_RK')) return 'career-stats-col--fantasy-pos-rank';
         if (statKey.endsWith('_OVR_RK')) return 'career-stats-col--fantasy-ovr-rank';
+        // Keep new Career ratios and long labels readable in the horizontal pane.
+        if (statKey === 'EXPLSV%') return 'career-stats-col--wide-stat';
+        if (CAREER_ADVANCED_STATS.has(statKey) || Object.prototype.hasOwnProperty.call(CAREER_PER_GAME_TOTALS, statKey)) return 'career-stats-col--rate';
         return 'career-stats-col--stat';
     };
 
@@ -7129,11 +7227,12 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
         'fum'
     ];
     // Rosters 2026 WR/TE weekly Game Logs: use the requested source-backed
-    // order, including the new receiving counts, rates, and market shares.
+    // order for receiving counts, rates, and air-yard share.
     const wrTe2026StatOrder = [
         'fpts', 'proj', 'snp_pct', 'rec_tgt', 'rec', 'ts_per_rr', 'rec_yd', 'rec_td',
         'yprr', 'tprr', 'rec_fd', 'first_down_rec_rate', 'rec_yar', 'rec_yacr', 'ypr',
-        'imp_per_g', 'rz_tgt', 'tgt_10_plus', 'ay_pct', 'rec_yms', 'rec_tms', 'rr',
+        // Receiving market shares remain in Season/Stats, not weekly Game Logs.
+        'imp_per_g', 'rz_tgt', 'tgt_10_plus', 'ay_pct', 'rr',
         'fpoe', 'yds_total', 'rush_att', 'rush_yd', 'rush_td', 'ypc', 'fum'
     ];
     const statGroupByKey = new Map();
@@ -7154,7 +7253,7 @@ async function renderGameLogs(gameLogs, player, playerRanks, requestSeq) {
     assignStatGroup('receiving', [
         'rec', 'rec_yd', 'rec_tgt', 'rec_td', 'rec_fd', 'rec_yar', 'ypr', 'yprr',
         'ts_per_rr', 'first_down_rec_rate', 'rr', 'rz_tgt', 'rec_ypg', 'ay_pct', 'tgt_per_g',
-        'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt'
+        'tprr', 'rec_yacr', 'rec_yms', 'rec_tms', 'tgt_10_plus', 'ay_per_tgt', 'rec_per_g'
     ]);
     const is2026RostersQbLog = pageType === 'rosters' && player.pos === 'QB' && state.currentGameLogsSeason === '2026';
     const is2026RostersRbLog = pageType === 'rosters' && player.pos === 'RB' && state.currentGameLogsSeason === '2026';

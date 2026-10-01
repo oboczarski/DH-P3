@@ -96,6 +96,8 @@ export const DATAHUB_STAT_SECTIONS = [
     stat("TGT", "Targets", ["rec_tgt"]),
     stat("TGT/G", "Targets per Game", ["tgt_per_g"]),
     stat("REC", "Receptions", ["rec"]),
+    // The current Stats/Season rate and Career calculations use the same label.
+    stat("REC/G", "Receptions per Game", ["rec_per_g"]),
     stat("recYDS", "Receiving Yards", ["rec_yd"]),
     stat("recYPG", "Receiving Yards per Game", ["rec_ypg"]),
     // RB Stats/Season additions stay in the local receiving glossary so their

@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh W/T Stats icons and both independently owned 2026 receiving Game Logs views.
-const CACHE_NAME = 'DH3.48f-wt-receiving-stats';
+// Refresh receiving rate changes and both pages' independent 2026 Career tables.
+const CACHE_NAME = 'DH3.48g-career-stats-2026';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
