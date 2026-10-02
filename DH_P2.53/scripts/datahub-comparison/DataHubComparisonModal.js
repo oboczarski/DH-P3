@@ -221,7 +221,7 @@ function formatSeasonRadarValue(statKey, value) {
   // radar is a presentation reference only, not the comparison stat contract.
   const numericValue = toFiniteNumber(value);
   if (numericValue === null) return "N/A";
-  if (["cmp_pct", "snp_pct", "ts_per_rr", "prs_pct", "csty_pct"].includes(statKey)) {
+  if (["cmp_pct", "snp_pct", "ts_per_rr", "prs_pct", "csty_pct", "rec_yms", "team_pass_pct"].includes(statKey)) {
     return `${numericValue.toFixed(1)}%`;
   }
   if (statKey === "expl_ru_pct") return `${numericValue.toFixed(2)}%`;
@@ -235,7 +235,7 @@ function formatSeasonRadarValue(statKey, value) {
   }
   if (statKey === "first_down_rec_rate") return numericValue.toFixed(2);
   if (["fpts", "ppg", "pass_rtg", "rec_ypg", "ceiling"].includes(statKey)) return numericValue.toFixed(1);
-  if (["rec", "rec_tgt", "yds_total", "imp", "rush_att", "rush_yd", "rush_td", "rec_yar"].includes(statKey)) return String(Math.round(numericValue));
+  if (["rec", "rec_tgt", "yds_total", "imp", "pass_yd", "rush_att", "rush_yd", "rush_td", "rec_yar"].includes(statKey)) return String(Math.round(numericValue));
   if (["ttt", "imp_per_g"].includes(statKey)) return numericValue.toFixed(2);
   return numericValue.toFixed(2);
 }
@@ -694,7 +694,7 @@ export function createDataHubComparisonModal(React) {
       const score = getRadarRankValue(rank, player.pos);
       const pointRadius = SEASON_RADAR_LAYOUT.radius * (score / 100);
       const point = getSeasonRadarPoint(index, totalAxes, pointRadius);
-      // Twelve-axis season layout: place ranks relative to their points, and
+      // Twelve/thirteen-axis season layout: place ranks relative to their points, and
       // tighten the outside copy by angle rather than eight-axis index offsets.
       // Vertical groups move inward most; the bottom also accounts for the
       // value's second line so it does not sit farther away than the top group.
@@ -874,7 +874,11 @@ export function createDataHubComparisonModal(React) {
               y: item.labelPoint.y,
               textAnchor: item.textAnchor,
             },
-            getStatLabel(item.statKey),
+            // IMP's explanation stays on the same axis-label line, with a
+            // lighter tspan so the stat name remains the primary label.
+            item.statKey === "imp"
+              ? ["IMP", h("tspan", { key: "imp-note", className: "dh-compare-season-radar__axis-note" }, "(TD+1D)")]
+              : getStatLabel(item.statKey),
           ),
           h(
             "text",

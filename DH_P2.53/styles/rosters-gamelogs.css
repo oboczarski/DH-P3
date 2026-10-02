@@ -6426,3 +6426,25 @@ body[data-page="rosters"] .rosters-gamelogs-stat-tooltip {
     pointer-events: none;
   }
 }
+
+/* Rosters Performance radar: reserve the title row and let Chart.js
+   size the 12/13-axis canvas inside the existing modal body on every screen. */
+body[data-page="rosters"] #game-logs-modal #radar-chart-container:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+}
+body[data-page="rosters"] #game-logs-modal #radar-chart-container h4 {
+  flex: 0 0 auto;
+}
+body[data-page="rosters"] #game-logs-modal #radar-chart-container .radar-chart-content {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+}
+body[data-page="rosters"] #game-logs-modal #radar-chart-container #player-radar-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none;
+  padding: 0;
+}

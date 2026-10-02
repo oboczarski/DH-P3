@@ -978,6 +978,13 @@ body[data-page="datahub"] .dh-compare-season-radar__axis-value {
   stroke-linejoin: round;
 }
 
+/* Season radar IMP keeps its explanatory suffix lighter than the stat name.
+   SVG text inheritance preserves the same responsive size and alignment. */
+body[data-page="datahub"] .dh-compare-season-radar__axis-note {
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
 body[data-page="datahub"] .dh-compare-season-radar__rank {
   font-size: 12px;
   font-weight: 500;

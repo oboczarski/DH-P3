@@ -4358,8 +4358,9 @@ function getRankDisplayText(rank) {
     return rankStr;
 }
 
-function getPlayerRadarData(playerId, position) {
-    const config = RADAR_STATS_CONFIG[position];
+// Rosters may supply its page-local expanded Performance axes; all other
+// callers retain the original shared radar config and data behavior.
+function getPlayerRadarData(playerId, position, config = RADAR_STATS_CONFIG[position]) {
     if (!config) return null;
 
     const radarData = {

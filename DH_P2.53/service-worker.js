@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Restore both Career Fantasy/PPG palettes; retain stat-group tiers and desktop watchlist styling.
-const CACHE_NAME = 'DH3.48j-career-fantasy-formatting-restored';
+// Refresh comparison and page-local Performance radars with the expanded position axes.
+const CACHE_NAME = 'DH3.48k-season-performance-radar-axes';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

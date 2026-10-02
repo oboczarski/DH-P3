@@ -51,38 +51,47 @@ export const COMPARISON_RADAR_MAX_RANK_BY_POS = Object.freeze({
 });
 
 // Season comparison radar bundles:
-// choose one shared, clockwise stat set for the matchup, starting with FPTS.
-// Only QB/QB and RB/RB have new position-specific sets. Other matchups retain
-// the original comparison stats, with TGT replacing OPP in the skill set.
-// These bundles are independent of both Game Logs and the weekly stat menu.
+// Same-position views follow the requested clockwise order, starting at FPTS:
+// QB/RB have 13 axes and WR/TE have 12. Mixed-position comparisons retain
+// their shared bundles; weekly options remain independent of these axes.
 export const COMPARISON_RADAR_BUNDLES = Object.freeze({
   QB: Object.freeze([
     "fpts",
-    "ceiling",
-    "csty_pct",
+    "ppg",
     "cmp_pct",
     "pass_rtg",
     "epa_per_db",
     "cpoe",
     "ttt",
-    "rush_td",
+    "pass_yd",
     "rush_yd",
-    "yds_total",
-    "ppg",
+    "imp",
+    "team_pass_pct",
+    "csty_pct",
+    "ceiling",
   ]),
   RB: Object.freeze([
     "fpts",
-    "ceiling",
-    "csty_pct",
+    "ppg",
     "snp_pct",
     "ypc",
     "mtf_per_att",
     "yco_per_att",
     "expl_ru_pct",
     "ts_per_rr",
+    "yprr",
     "imp",
     "yds_total",
-    "ppg",
+    "csty_pct",
+    "ceiling",
+  ]),
+  WR: Object.freeze([
+    "fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr",
+    "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling",
+  ]),
+  TE: Object.freeze([
+    "fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr",
+    "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling",
   ]),
   QB_MIXED: Object.freeze([
     "fpts",
@@ -246,6 +255,7 @@ const STAT_DEFINITIONS = Object.freeze({
   pass_sack: Object.freeze({ key: "pass_sack", label: "SAC", decimals: 0 }),
   pass_rtg: Object.freeze({ key: "pass_rtg", label: "paRTG", decimals: 1 }),
   pa_ypg: Object.freeze({ key: "pa_ypg", label: "paYPG", decimals: 1 }),
+  team_pass_pct: Object.freeze({ key: "team_pass_pct", label: "TmPa%", unit: "%", decimals: 1, percent: true }),
   epa_per_db: Object.freeze({ key: "epa_per_db", label: "EPA/DB", decimals: 2, signed: true }),
   cpoe: Object.freeze({ key: "cpoe", label: "CPOE", unit: "%", decimals: 1, percent: true, signed: true }),
   ttt: Object.freeze({ key: "ttt", label: "TTT", unit: "s", decimals: 2 }),
@@ -267,6 +277,7 @@ const STAT_DEFINITIONS = Object.freeze({
   rec_fd: Object.freeze({ key: "rec_fd", label: "rec1D", decimals: 0 }),
   rec_yar: Object.freeze({ key: "rec_yar", label: "YAC", decimals: 0 }),
   rec_ypg: Object.freeze({ key: "rec_ypg", label: "recYPG", decimals: 1 }),
+  rec_yms: Object.freeze({ key: "rec_yms", label: "recYMS", unit: "%", decimals: 1, percent: true }),
   rr: Object.freeze({ key: "rr", label: "RR", decimals: 0 }),
   ypr: Object.freeze({ key: "ypr", label: "YPR", decimals: 2 }),
   yprr: Object.freeze({ key: "yprr", label: "YPRR", decimals: 2 }),
@@ -393,11 +404,11 @@ export function getWeeklyStatOptions(players, thresholds) {
 
 export function getSeasonStatKeys(players) {
   // Resolve from the entire selection so both radars use identical axes,
-  // regardless of selection order. A lone QB/RB previews its same-position set.
+  // regardless of selection order. A lone player previews its position's set.
   const positions = getComparisonPositions(players);
   if (!positions.length) return [];
   const position = getComparisonPosition(players);
-  const bundle = position === "QB" || position === "RB"
+  const bundle = COMPARISON_RADAR_BUNDLES[position]
     ? COMPARISON_RADAR_BUNDLES[position]
     : positions.includes("QB")
       ? COMPARISON_RADAR_BUNDLES.QB_MIXED

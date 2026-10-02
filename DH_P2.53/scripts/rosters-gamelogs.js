@@ -467,6 +467,256 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
     return result;
   };
 
+  // Rosters Performance mirrors the same-position comparison stat order,
+  // with its own renderer/formatting. Shared Stats-page radars stay unchanged.
+  const ROSTERS_RADAR_STATS_CONFIG = {
+  QB: {
+    stats: ["fpts", "ppg", "cmp_pct", "pass_rtg", "epa_per_db", "cpoe", "ttt", "pass_yd", "rush_yd", "imp", "team_pass_pct", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "paYDS", "ruYDS", "IMP(TD+1D)", "TmPa%", "CSTY%", "CL"],
+    maxRank: 36,
+  },
+  RB: {
+    stats: ["fpts", "ppg", "snp_pct", "ypc", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ts_per_rr", "yprr", "imp", "yds_total", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "SNP%", "YPC", "MTF/A", "YCO/A", "EXPLSV%", "TS%", "YPRR", "IMP(TD+1D)", "YDS(t)", "CSTY%", "CL"],
+    maxRank: 48,
+  },
+  WR: {
+    stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    maxRank: 72,
+  },
+  TE: {
+    stats: ["fpts", "ppg", "yds_total", "imp", "rec_tgt", "ts_per_rr", "rec", "yprr", "rec_yar", "rec_yms", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "YDS(t)", "IMP(TD+1D)", "TGT", "TS%", "REC", "YPRR", "YAC", "recYMS", "CSTY%", "CL"],
+    maxRank: 24,
+  },
+};
+
+function formatRostersRadarStatValue(statKey, value) {
+  // Performance axes retain whole-number totals and the source's percentage
+  // units; the precision matches the comparison Season radar for every stat.
+  if (value === null || value === undefined || value === "") return "N/A";
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return typeof value === "string" ? value : "N/A";
+  if (["cmp_pct", "snp_pct", "ts_per_rr", "prs_pct", "csty_pct", "rec_yms", "team_pass_pct"].includes(statKey)) return `${numericValue.toFixed(1)}%`;
+  if (statKey === "expl_ru_pct") return `${numericValue.toFixed(2)}%`;
+  if (statKey === "cpoe") return `${numericValue > 0 ? "+" : ""}${numericValue.toFixed(1)}%`;
+  if (statKey === "epa_per_db") return `${numericValue > 0 ? "+" : ""}${numericValue.toFixed(2)}`;
+  if (["fpts", "ppg", "pass_rtg", "rec_ypg", "ceiling"].includes(statKey)) return numericValue.toFixed(1);
+  if (["rec", "rec_tgt", "yds_total", "imp", "pass_yd", "rush_yd", "rec_yar"].includes(statKey)) return String(Math.round(numericValue));
+  return numericValue.toFixed(2);
+}
+
+const rostersPlayerRadarLabelPlugin = {
+  id: "rostersPlayerRadarLabels",
+  afterDatasetsDraw(chart, args, options) {
+    const dataset = chart.data.datasets[0];
+    const scale = chart.scales?.r;
+    if (!dataset?.data || !scale) return;
+    const { ctx } = chart;
+    // Below 320 canvas pixels, smaller ranks and a capped offset prevent
+    // the 13-axis rank suffixes from touching the outside stat/value groups.
+    const compact = chart.width < 320;
+    const fontSize = compact ? 9 : chart.width < 420 ? 11 : 12;
+    ctx.save();
+    ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
+    ctx.textBaseline = "middle";
+    dataset.data.forEach((value, index) => {
+      const angle = -Math.PI / 2 + Math.PI * 2 * index / dataset.data.length;
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      // Dense 12/13-axis Performance ranks follow the axis angle, rather
+      // than the original eight-axis offsets. A minimum radius clears the
+      // center when several stats have unavailable or low positional ranks.
+      const offset = sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
+      const rankRadius = Math.max(compact ? 34 : 40, scale.getDistanceFromCenterForValue(value) + offset);
+      const radius = compact ? Math.min(scale.drawingArea * 0.95, rankRadius) : rankRadius;
+      const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
+      const rank = dataset.rawRanks?.[index];
+      ctx.fillStyle = getConditionalColorByRank(rank, dataset.position);
+      const number = Number.isFinite(rank) ? String(Math.round(rank)) : "NA";
+      const suffix = Number.isFinite(rank) ? ordinalSuffix(Math.round(rank)).replace(/^\d+/, "") : "";
+      ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
+      const numberWidth = ctx.measureText(number).width;
+      ctx.font = `${fontSize * 0.7}px "Product Sans", "Google Sans", sans-serif`;
+      const suffixWidth = suffix ? ctx.measureText(suffix).width + 1 : 0;
+      const width = numberWidth + suffixWidth;
+      const left = x - width / 2;
+      ctx.textAlign = "left";
+      ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
+      ctx.fillText(number, left, y);
+      ctx.font = `${fontSize * 0.7}px "Product Sans", "Google Sans", sans-serif`;
+      if (suffix) ctx.fillText(suffix, left + numberWidth + 1, y - 2);
+    });
+    ctx.restore();
+  },
+};
+
+const rostersPlayerRadarAxisLabelsPlugin = {
+  id: "rostersPlayerRadarAxisLabels",
+  afterDraw(chart, args, options) {
+    const scale = chart.scales?.r;
+    const dataset = chart.data.datasets[0];
+    if (!scale || !dataset) return;
+    const { ctx } = chart;
+    const narrow = chart.width < 420;
+    const compact = chart.width < 320;
+    const labelSize = compact ? 10 : narrow ? 11 : 12;
+    const valueSize = compact ? 9 : narrow ? 10 : 11;
+    const labelFont = `500 ${labelSize}px "Product Sans", "Google Sans", sans-serif`;
+    const noteFont = `300 ${labelSize * 0.85}px "Product Sans", "Google Sans", sans-serif`;
+    ctx.save();
+    chart.data.labels.forEach((label, index) => {
+      const angle = -Math.PI / 2 + Math.PI * 2 * index / chart.data.labels.length;
+      const cos = Math.cos(angle), sin = Math.sin(angle);
+      // Performance labels use outward alignment by angle, keeping adjacent
+      // bottom axes separate even on narrow phones. The lower groups move
+      // inward slightly to reserve space for the value's second line.
+      const radius = scale.drawingArea + (narrow ? 12 : 16)
+        + ((sin < 0 ? 2 : -3) + (compact ? 4 : 0)) * Math.pow(Math.abs(sin), 4);
+      const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
+      const align = cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
+      const statKey = dataset.statKeys[index];
+      ctx.font = labelFont;
+      ctx.textAlign = align;
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#EAEBF0";
+      if (statKey === "imp") {
+        // Draw IMP and its parenthetical explanation independently so the
+        // requested TD+1D suffix is visibly lighter without widening the axis.
+        const mainWidth = ctx.measureText("IMP").width;
+        ctx.font = noteFont;
+        const noteWidth = ctx.measureText("(TD+1D)").width;
+        const width = mainWidth + noteWidth;
+        const left = align === "right" ? x - width : align === "center" ? x - width / 2 : x;
+        ctx.textAlign = "left";
+        ctx.font = labelFont;
+        ctx.fillText("IMP", left, y);
+        ctx.font = noteFont;
+        ctx.fillText("(TD+1D)", left + mainWidth, y);
+      } else {
+        ctx.fillText(label, x, y);
+      }
+      ctx.textAlign = align;
+      ctx.textBaseline = "top";
+      ctx.font = `${valueSize}px "Product Sans", "Google Sans", sans-serif`;
+      ctx.fillStyle = getConditionalColorByRank(dataset.rawRanks[index], dataset.position);
+      ctx.fillText(`• ${formatRostersRadarStatValue(statKey, dataset.statValues[index])} •`, x, y + 3);
+    });
+    ctx.restore();
+  },
+};
+
+window.renderPlayerRadarChart = function(playerId, position) {
+  const container = modal.querySelector(".radar-chart-content");
+  if (!container) return;
+
+  container._chartInstance?.destroy();
+  container._chartInstance = null;
+  container.innerHTML = "";
+  const radarData = getPlayerRadarData(playerId, position, ROSTERS_RADAR_STATS_CONFIG[position]);
+  if (!radarData || !window.Chart) {
+    container.innerHTML = '<p class="no-data-message">No radar data available for this position.</p>';
+    return;
+  }
+
+  // Newly displayed source-backed season metrics bypass weekly footer sums.
+  const seasonTotals = state.playerSeasonStats?.[playerId] || {};
+  const sourceStatKeys = ["imp", "pass_yd", "rush_yd", "rec_yar", "rec_yms", "team_pass_pct", "csty_pct", "ceiling", "yprr", "expl_ru_pct"];
+  radarData.statValues = radarData.statKeys.map((key, index) => sourceStatKeys.includes(key)
+    ? (seasonTotals[key] ?? null) : radarData.statValues[index]);
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "player-radar-canvas";
+  container.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  // Reserve room for both outside text lines at every canvas width. Chart.js
+  // recalculates its radius on resize; label placement uses actual chart size.
+  const radarLayoutPadding = { top: 34, bottom: 36, left: 76, right: 76 };
+  const scaleMax = 100;
+
+  container._chartInstance = new window.Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: radarData.labels,
+      datasets: [{
+        label: "Player Rank",
+        data: radarData.ranks,
+        rawRanks: radarData.rawRanks,
+        statValues: radarData.statValues,
+        statKeys: radarData.statKeys,
+        position,
+        fill: true,
+        backgroundColor: "rgba(83, 0, 255, 0.33)",
+        borderColor: "#6700ff",
+        borderWidth: 2,
+        pointBackgroundColor: "#6300ff",
+        pointBorderColor: "#0D0E1B",
+        pointRadius: 4.5,
+        analyzerLabels: true,
+        order: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      // Very narrow canvases need less side padding as their label fonts shrink;
+      // update it on resize too, so rotating a phone keeps the axes fitted.
+      onResize(chart, size) {
+        const sidePadding = size.width < 320 ? 66 : 76;
+        chart.options.layout.padding.left = sidePadding;
+        chart.options.layout.padding.right = sidePadding;
+      },
+      maintainAspectRatio: false,
+      events: [],
+      layout: {
+        padding: radarLayoutPadding,
+      },
+      elements: {
+        line: { tension: 0.4 },
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          suggestedMin: 0,
+          suggestedMax: scaleMax,
+          max: scaleMax,
+          grid: { display: false },
+          angleLines: { display: false },
+          ticks: { display: false },
+          pointLabels: { display: false },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        playerRadarBackground: {
+          levels: [
+            { ratio: 0.95, fill: "#2c334f62", stroke: "#525a7739", lineWidth: 1 },
+            { ratio: 0.75, fill: "#2D345153", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.55, fill: "#2F365250", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.35, fill: "#30375455", stroke: "#525a7729", lineWidth: 1 },
+            { ratio: 0.18, fill: "#31385565", stroke: "#525a7735", lineWidth: 1 },
+          ],
+        },
+        rostersPlayerRadarLabels: {},
+        rostersPlayerRadarAxisLabels: {},
+      },
+    },
+    plugins: [playerRadarBackgroundPlugin, rostersPlayerRadarLabelPlugin, rostersPlayerRadarAxisLabelsPlugin],
+  });
+
+  const scale = container._chartInstance.scales?.r;
+  if (scale) {
+    const gradient = ctx.createRadialGradient(scale.xCenter, scale.yCenter, 0, scale.xCenter, scale.yCenter, scale.drawingArea);
+    gradient.addColorStop(0, "rgba(121, 0, 245, 0.13)");
+    gradient.addColorStop(0.4, "rgba(92, 0, 255, 0.20)");
+    gradient.addColorStop(0.78, "rgba(75, 0, 255, 0.34)");
+    gradient.addColorStop(1, "rgba(34, 0, 255, 0.91)");
+    container._chartInstance.data.datasets[0].backgroundColor = gradient;
+    container._chartInstance.update("none");
+  }
+};
+
   // Rebuild only the Game Logs Key. Rosters' comparison key and other page
   // help retain their current definitions and markup.
   const keyBody = modal.querySelector('[data-stats-key-body="gamelogs"]');
