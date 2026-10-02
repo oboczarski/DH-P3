@@ -471,13 +471,13 @@ const ROSTERS_GAMELOG_KEY_SECTIONS = [
   // with its own renderer/formatting. Shared Stats-page radars stay unchanged.
   const ROSTERS_RADAR_STATS_CONFIG = {
   QB: {
-    stats: ["fpts", "ppg", "cmp_pct", "pass_rtg", "epa_per_db", "cpoe", "ttt", "pass_yd", "rush_yd", "imp", "team_pass_pct", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "CMP%", "paRTG", "EPA/DB", "CPOE", "TTT", "paYDS", "ruYDS", "IMP(TD+1D)", "TmPa%", "CSTY%", "CL"],
+    stats: ["fpts", "ppg", "cmp_pct", "pass_rtg", "imp", "epa_per_db", "cpoe", "ttt", "pass_yd", "rush_yd", "team_pass_pct", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "CMP%", "paRTG", "IMP(TD+1D)", "EPA/DB", "CPOE", "TTT", "paYDS", "ruYDS", "TmPa%", "CSTY%", "CL"],
     maxRank: 36,
   },
   RB: {
-    stats: ["fpts", "ppg", "snp_pct", "ypc", "mtf_per_att", "yco_per_att", "expl_ru_pct", "ts_per_rr", "yprr", "imp", "yds_total", "csty_pct", "ceiling"],
-    labels: ["FPTS", "PPG", "SNP%", "YPC", "MTF/A", "YCO/A", "EXPLSV%", "TS%", "YPRR", "IMP(TD+1D)", "YDS(t)", "CSTY%", "CL"],
+    stats: ["fpts", "ppg", "snp_pct", "ypc", "imp", "expl_ru_pct", "mtf_per_att", "yco_per_att", "ts_per_rr", "yprr", "yds_total", "csty_pct", "ceiling"],
+    labels: ["FPTS", "PPG", "SNP%", "YPC", "IMP(TD+1D)", "EXPLSV%", "MTF/A", "YCO/A", "TS%", "YPRR", "YDS(t)", "CSTY%", "CL"],
     maxRank: 48,
   },
   WR: {
@@ -517,7 +517,8 @@ const rostersPlayerRadarLabelPlugin = {
     // Below 320 canvas pixels, smaller ranks and a capped offset prevent
     // the 13-axis rank suffixes from touching the outside stat/value groups.
     const compact = chart.width < 320;
-    const fontSize = compact ? 9 : chart.width < 420 ? 11 : 12;
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
+    const fontSize = compact ? (mobile ? 10 : 9) : chart.width < 420 ? 11 : 12;
     ctx.save();
     ctx.font = `${fontSize}px "Product Sans", "Google Sans", sans-serif`;
     ctx.textBaseline = "middle";
@@ -527,7 +528,9 @@ const rostersPlayerRadarLabelPlugin = {
       // Dense 12/13-axis Performance ranks follow the axis angle, rather
       // than the original eight-axis offsets. A minimum radius clears the
       // center when several stats have unavailable or low positional ranks.
-      const offset = sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
+      // The enlarged mobile plot places ranks just inside their points so
+      // centered outside labels retain a clear gap from the rank suffixes.
+      const offset = mobile ? -18 : sin < -0.3 ? 8 : (sin > 0.3 && Math.abs(cos) > 0.3 ? 13 : 15);
       const rankRadius = Math.max(compact ? 34 : 40, scale.getDistanceFromCenterForValue(value) + offset);
       const radius = compact ? Math.min(scale.drawingArea * 0.95, rankRadius) : rankRadius;
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
@@ -560,21 +563,25 @@ const rostersPlayerRadarAxisLabelsPlugin = {
     const { ctx } = chart;
     const narrow = chart.width < 420;
     const compact = chart.width < 320;
-    const labelSize = compact ? 10 : narrow ? 11 : 12;
-    const valueSize = compact ? 9 : narrow ? 10 : 11;
+    const mobile = window.matchMedia("(max-width: 640px)").matches;
+    const labelSize = mobile ? (compact ? 11 : 12) : compact ? 10 : narrow ? 11 : 12;
+    const valueSize = mobile ? (compact ? 10 : 11) : compact ? 9 : narrow ? 10 : 11;
     const labelFont = `500 ${labelSize}px "Product Sans", "Google Sans", sans-serif`;
     const noteFont = `300 ${labelSize * 0.85}px "Product Sans", "Google Sans", sans-serif`;
     ctx.save();
     chart.data.labels.forEach((label, index) => {
       const angle = -Math.PI / 2 + Math.PI * 2 * index / chart.data.labels.length;
       const cos = Math.cos(angle), sin = Math.sin(angle);
-      // Performance labels use outward alignment by angle, keeping adjacent
-      // bottom axes separate even on narrow phones. The lower groups move
-      // inward slightly to reserve space for the value's second line.
-      const radius = scale.drawingArea + (narrow ? 12 : 16)
+      // The lower axis groups move inward slightly to reserve space for the
+      // value's second line. Center mobile label/value pairs on each axis:
+      // the same text needs
+      // only half its width outside the ring, leaving room for a larger plot.
+      // Desktop retains its outward alignment and existing offsets.
+      const labelOffset = mobile ? (compact ? 8 : 10) : narrow ? 12 : 16;
+      const radius = scale.drawingArea + labelOffset
         + ((sin < 0 ? 2 : -3) + (compact ? 4 : 0)) * Math.pow(Math.abs(sin), 4);
       const x = scale.xCenter + cos * radius, y = scale.yCenter + sin * radius;
-      const align = cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
+      const align = mobile ? "center" : cos > 0.18 ? "left" : cos < -0.18 ? "right" : "center";
       const statKey = dataset.statKeys[index];
       ctx.font = labelFont;
       ctx.textAlign = align;
@@ -659,10 +666,12 @@ window.renderPlayerRadarChart = function(playerId, position) {
     },
     options: {
       responsive: true,
-      // Very narrow canvases need less side padding as their label fonts shrink;
-      // update it on resize too, so rotating a phone keeps the axes fitted.
+      // Mobile Performance reserves only half the centered label width on
+      // each side, enlarging the plot and text. Resize keeps phone rotation
+      // fitted; the desktop padding and plot dimensions remain unchanged.
       onResize(chart, size) {
-        const sidePadding = size.width < 320 ? 66 : 76;
+        const mobile = window.matchMedia("(max-width: 640px)").matches;
+        const sidePadding = mobile ? (size.width < 320 ? 42 : 46) : size.width < 320 ? 66 : 76;
         chart.options.layout.padding.left = sidePadding;
         chart.options.layout.padding.right = sidePadding;
       },

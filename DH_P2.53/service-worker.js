@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh both 2026 weekly loaders to accept WK and legacy SZN sheet headers.
-const CACHE_NAME = 'DH3.48l-weekly-wk-header';
+// Refresh the reordered QB/RB axes and larger mobile Performance radars.
+const CACHE_NAME = 'DH3.48m-performance-mobile-radar';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

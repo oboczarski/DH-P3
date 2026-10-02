@@ -54,18 +54,19 @@ export const COMPARISON_RADAR_MAX_RANK_BY_POS = Object.freeze({
 // Same-position views follow the requested clockwise order, starting at FPTS:
 // QB/RB have 13 axes and WR/TE have 12. Mixed-position comparisons retain
 // their shared bundles; weekly options remain independent of these axes.
+// QB places IMP before EPA/DB; RB places IMP and EXPLSV% before MTF/A.
 export const COMPARISON_RADAR_BUNDLES = Object.freeze({
   QB: Object.freeze([
     "fpts",
     "ppg",
     "cmp_pct",
     "pass_rtg",
+    "imp",
     "epa_per_db",
     "cpoe",
     "ttt",
     "pass_yd",
     "rush_yd",
-    "imp",
     "team_pass_pct",
     "csty_pct",
     "ceiling",
@@ -75,12 +76,12 @@ export const COMPARISON_RADAR_BUNDLES = Object.freeze({
     "ppg",
     "snp_pct",
     "ypc",
+    "imp",
+    "expl_ru_pct",
     "mtf_per_att",
     "yco_per_att",
-    "expl_ru_pct",
     "ts_per_rr",
     "yprr",
-    "imp",
     "yds_total",
     "csty_pct",
     "ceiling",
