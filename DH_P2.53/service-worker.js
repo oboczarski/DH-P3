@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh both Career tier palettes and Rosters' desktop watchlist toggle.
-const CACHE_NAME = 'DH3.48i-career-group-formatting';
+// Restore both Career Fantasy/PPG palettes; retain stat-group tiers and desktop watchlist styling.
+const CACHE_NAME = 'DH3.48j-career-fantasy-formatting-restored';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

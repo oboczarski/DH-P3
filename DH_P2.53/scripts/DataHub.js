@@ -13319,11 +13319,6 @@ function getDataHubCareerStatNumber(row, statKey) {
   // Career ranks use source precision, the same historical rate calculations
   // as the cells, and consistent percentage units. Unavailable years stay null.
   const season = Number(row.SZN);
-  if (statKey === "FPTS" || statKey === "PPG") {
-    const points = getDataHubCareerNumber(row.FPT_PPR) ?? getDataHubCareerNumber(row.FPTS);
-    const games = getDataHubCareerNumber(row.G);
-    return statKey === "FPTS" ? points : (points !== null && games > 0 ? points / games : getDataHubCareerNumber(row.PPG));
-  }
   if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return null;
   if (Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey) && season >= 2016 && season <= 2025) {
     const games = getDataHubCareerNumber(row.G);
@@ -13392,9 +13387,9 @@ function getDataHubCareerFormattingTier(metric, value) {
 }
 
 function assignDataHubCareerFormatting(rows) {
-  // Career heat compares full season/position pools rather than one player's
-  // history or the selected main-table filters. Stat groups retain their rank
-  // qualification; Fantasy Points/PPG use recorded-game rows and source precision.
+  // Career heat targets Passing, Receiving, Rushing, and Total only, using
+  // full season/position pools and existing rank qualification. Fantasy Points
+  // and Points Per Game retain their original conditional rank-color helpers.
   const pools = new Map();
   rows.forEach((row) => {
     row.__careerFormattingTiers = Object.create(null);
@@ -13406,10 +13401,10 @@ function assignDataHubCareerFormatting(rows) {
   });
   pools.forEach((pool) => {
     const stats = getDataHubCareerSectionsForPosition(pool[0].POS)
-      .filter((section) => section.id !== "season").flatMap((section) => section.stats);
+      .filter((section) => ["passing", "receiving", "rushing", "total"].includes(section.id))
+      .flatMap((section) => section.stats);
     stats.forEach((statKey) => {
-      const candidates = pool.filter((row) => ["FPTS", "PPG"].includes(statKey)
-        || Number.isFinite(row.__careerPositionalRanks?.[statKey]))
+      const candidates = pool.filter((row) => Number.isFinite(row.__careerPositionalRanks?.[statKey]))
         .map((row) => ({ row, value: getDataHubCareerStatNumber(row, statKey) })).filter(({ value }) => value !== null);
       if (!candidates.length) return;
       const metric = createColumnMetric(candidates.map(({ value }) => value), statKey);
@@ -13669,9 +13664,6 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
   // keeps FPTS/PPG values as regular cells while rendering rank-only columns as
   // compact Data Hub chips with the same conditional rank color helpers.
   const isFpts = statKey.startsWith("FPTS");
-  // CSS owns the group/tier palette when a Career metric is available. Keep
-  // the existing rank-color fallback only for rows without a format metric.
-  const hasCareerFormatting = Number.isFinite(row.__careerFormattingTiers?.[isFpts ? "FPTS" : "PPG"]);
   const overallRankKey = isFpts ? "FPTS RK" : "PPG RK";
   const posRankKey = isFpts ? "FPTS POS RK" : "PPG POS RK";
   const overallRankNumber = parseDataHubCareerRankNumber(row?.[overallRankKey]);
@@ -13687,7 +13679,7 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
     const posSegment = document.createElement("span");
     posSegment.className = "career-stats-fantasy-pos-rank";
     posSegment.textContent = formatDataHubCareerPosRankText(posRankRaw);
-    if (!hasCareerFormatting && posRankColor && posRankColor !== "inherit") {
+    if (posRankColor && posRankColor !== "inherit") {
       posSegment.style.color = posRankColor;
     }
     chip.append(posSegment);
@@ -13700,7 +13692,7 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
     if (overallRankNumber === null) {
       rankSegment.textContent = "—";
     }
-    if (!hasCareerFormatting && overallRankColor && overallRankColor !== "inherit") {
+    if (overallRankColor && overallRankColor !== "inherit") {
       rankSegment.style.color = overallRankColor;
     }
     chip.append(rankSegment);
@@ -13882,12 +13874,11 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
       paneColumns.forEach(({ statKey, section }, columnIndex) => {
         const td = document.createElement("td");
         td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
-        // Group/tier attributes keep all visual colors in Career-only CSS;
-        // split Fantasy columns share their underlying FPTS or PPG tier.
-        if (section.id !== "season") {
+        // Only the four added stat groups receive CSS tier colors. Fantasy
+        // values and rank chips keep their original markup and inline colors.
+        if (["passing", "receiving", "rushing", "total"].includes(section.id)) {
           td.dataset.careerGroup = section.id;
-          const metricKey = statKey.startsWith("FPTS_") ? "FPTS" : statKey.startsWith("PPG_") ? "PPG" : statKey;
-          const tier = row.__careerFormattingTiers?.[metricKey];
+          const tier = row.__careerFormattingTiers?.[statKey];
           if (Number.isFinite(tier)) {
             td.classList.add("career-stats-cell--formatted");
             td.dataset.careerTier = String(tier);
@@ -13905,11 +13896,8 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
         } else if (statKey === "FPTS_VALUE" || statKey === "PPG_VALUE") {
           td.classList.add("career-stats-cell--fantasy-value");
           const valueMeta = getDataHubCareerFantasyValueMeta(row, statKey, position);
-          const value = document.createElement("span");
-          value.className = "career-stats-heat-value";
-          value.textContent = valueMeta.value;
-          td.append(value);
-          if (!td.classList.contains("career-stats-cell--formatted") && valueMeta.color && valueMeta.color !== "inherit") {
+          td.textContent = valueMeta.value;
+          if (valueMeta.color && valueMeta.color !== "inherit") {
             td.style.color = valueMeta.color;
           }
         } else if (statKey.startsWith("FPTS_") || statKey.startsWith("PPG_")) {

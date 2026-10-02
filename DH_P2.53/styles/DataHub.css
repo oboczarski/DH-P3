@@ -15172,10 +15172,11 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-me
   }
 }
 
-/* Career conditional formatting, independently owned by this page.
+/* Career conditional formatting for Passing, Receiving, Rushing, and Total.
+   Fantasy Points and Points Per Game keep their original formatting.
    Matches DataHub's six percentile tiers: <25%, 25%, 55%, 70%, 85%, 92.5%.
    Edit a group's six colors below, or override these tier effects in that
-   group's block. Only text/chips change; row backgrounds and geometry stay intact. */
+   group's block. Only stat text changes; row backgrounds and geometry stay intact. */
 body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted {
   --career-format-tier-0-filter: brightness(0.5);
   --career-format-tier-1-filter: brightness(0.8);
@@ -15191,28 +15192,6 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--forma
   --career-format-tier-5-shadow: 0 0 16px rgba(var(--career-format-glow-rgb), 0.15), 0 0 26px rgba(var(--career-format-glow-rgb), 0.07);
   --career-format-rank-opacity: 0.8;
   /* Optional group override: --career-format-value-weight: 700; */
-}
-
-/* Fantasy Points - gold: all six colors are independently editable. */
-body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="fantasy-points"] {
-  --career-format-tier-0-color: rgba(226, 217, 194, 0.74);
-  --career-format-tier-1-color: rgba(226, 217, 194, 0.74);
-  --career-format-tier-2-color: rgba(240, 219, 160, 0.84);
-  --career-format-tier-3-color: rgba(250, 211, 115, 0.92);
-  --career-format-tier-4-color: rgba(255, 184, 52, 1);
-  --career-format-tier-5-color: rgba(255, 184, 52, 1);
-  --career-format-glow-rgb: 255, 184, 52;
-}
-
-/* Points Per Game - cyan: all six colors are independently editable. */
-body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="points-per-game"] {
-  --career-format-tier-0-color: rgba(212, 222, 240, 0.74);
-  --career-format-tier-1-color: rgba(212, 222, 240, 0.74);
-  --career-format-tier-2-color: rgba(194, 232, 255, 0.82);
-  --career-format-tier-3-color: rgba(171, 225, 255, 0.92);
-  --career-format-tier-4-color: rgba(122, 233, 255, 1);
-  --career-format-tier-5-color: rgba(122, 233, 255, 1);
-  --career-format-glow-rgb: 122, 233, 255;
 }
 
 /* Passing - coral: all six colors are independently editable. */
@@ -15296,9 +15275,8 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--forma
 }
 
 /* Coloring inner content avoids the modal's row-striping overrides and
-   preserves the existing fixed-height value/rank stack and fantasy chips. */
-body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-heat-value,
-body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-fantasy-chip {
+   preserves the existing fixed-height value/rank stack. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-heat-value {
   color: var(--career-format-color);
   text-shadow: var(--career-format-shadow);
   filter: var(--career-format-filter);
