@@ -94,8 +94,8 @@ test('lazy weekly loader preserves valid weeks and blanks mismatched, invalid an
   const requests = [];
   const tables = {
     DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
-    WK1: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,35.66,1',
-    WK4: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n3,4984,QB,BUF,20,1',
+    WK1: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n1,4984,QB,BUF,35.66,1',
+    WK4: 'WK,SLPR_ID,POS,TM,FPT_PPR,GM_P\n3,4984,QB,BUF,20,1',
     WK5: '<html>Sign in</html>',
     WK6: 'SZN,SLPR_ID,POS,TM,FPT_PPR,GM_P\n6,4984,QB,BUF,20,1',
   };
@@ -119,4 +119,33 @@ test('lazy weekly loader preserves valid weeks and blanks mismatched, invalid an
     assert.equal(data.weeklyRows[week][0].__hasRecordedStats, false);
   }
   assert.match(data.weekErrors[4], /another week's rows/);
+});
+
+test('weekly WK and legacy SZN headers preserve identical stats, statuses and week identity', async () => {
+  for (const header of ['WK', 'SZN']) {
+    const tables = {
+      DRK: 'TM,QBRK,RBRK,WRRK,TERK\nHOU,2,11,8,19',
+      WK1: `${header},SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n1,4984,QB,BUF,-2,1,30,22.5`,
+      WK2: `${header},SLPR_ID,POS,TM,FPT_PPR,GM_P,SNP,PROJ\n2,4984,QB,BUF,0,0,0,OUT`,
+      WK3: 'SLPR_ID,POS,TM,FPT_PPR\n4984,QB,BUF,99',
+    };
+    const fetchImpl = async (url) => {
+      const sheet = new URL(url).searchParams.get('sheet');
+      return { ok: true, text: async () => sheet ? (tables[sheet] || '') : 'TM,1,2,18\nBUF,@ HOU,vs DET,vs NYJ' };
+    };
+    const data = await load2026WeeklySourceData({ seasonRows: [player], parseCsv, scheduleUrl: 'https://test.local/Schedule2026.csv', fetchImpl });
+    assert.deepEqual(data.weeksWithResults, [1]);
+    assert.deepEqual(Object.keys(data.weekErrors), ['3']);
+    assert.equal(data.rawRows[0].SZN, '2026');
+    assert.equal(data.weeklyRows[1][0].SZN, '1');
+    assert.equal(data.weeklyRows[1][0].FPT_PPR, '-2');
+    assert.equal(data.weeklyRows[1][0].GM_P, '1');
+    assert.equal(data.weeklyRows[1][0].PROJ, '22.5');
+    assert.equal(data.weeklyRows[1][0].vsRK, '2');
+    assert.equal(data.weeklyRows[2][0].SZN, '2');
+    assert.equal(data.weeklyRows[2][0].FPT_PPR, '0');
+    assert.equal(data.weeklyRows[2][0].SNP, '0');
+    assert.equal(data.weeklyRows[2][0].PROJ, 'OUT');
+    assert.equal(data.weeklyRows[3][0].FPT_PPR, undefined);
+  }
 });

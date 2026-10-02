@@ -83,6 +83,12 @@ function createSheetReader(parseCsv, fetchImpl) {
     // Google returns an empty CSV for numbered tabs that do not exist yet.
     if (!text.trim() && /^WK\d+$/.test(name)) return [];
     const rows = parseCsv(text);
+    // DataHub weekly sheets now label column A WK. Keep the internal SZN week
+    // alias for existing consumers/validation, while accepting legacy SZN tabs.
+    // DH season totals retain their separate SZN (year) column contract.
+    if (/^WK\d+$/.test(name)) {
+      rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
+    }
     if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) {
       throw new Error(`2026 ${name} has missing or invalid columns.`);
     }

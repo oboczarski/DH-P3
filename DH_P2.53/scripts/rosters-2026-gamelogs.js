@@ -100,6 +100,12 @@
         const text = await response.text();
         if (!text.trim() && /^WK\d+$/.test(sheetName)) return [];
         const rows = parseCsv(text);
+        // Rosters weekly sheets accept the renamed WK column and older SZN
+        // tabs. Normalize only the internal week alias; DH keeps SZN as a year
+        // and all player/stat cells retain their original source values.
+        if (/^WK\d+$/.test(sheetName)) {
+            rows.forEach((row) => { if ('WK' in row) row.SZN = row.WK; });
+        }
         if (!rows.length || requiredHeaders.some((header) => !(header in rows[0]))) throw new Error(`Rosters 2026 ${sheetName} has missing or invalid columns.`);
         return rows;
     };
