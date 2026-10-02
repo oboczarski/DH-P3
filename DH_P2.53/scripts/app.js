@@ -1468,6 +1468,10 @@ const CAREER_STATS_CSV_PATH = 'data/NFL16-25/NFL-PlayerData_16-25.csv';
 // calculations independently; no DataHub modules or active-season state are used.
 const CAREER_ADVANCED_STATS = new Set(['TS%', 'TPRR', 'YPRR', 'SNP%', 'MTF/A', 'YCO/A', 'EXPLSV%', 'CPOE', 'EPA', 'EPA/DB']);
 const CAREER_PER_GAME_TOTALS = Object.freeze({ 'TGT/G': 'TGT', 'REC/G': 'REC', 'CAR/G': 'CAR' });
+// Rosters Career mirrors the DataHub table's six inclusive percentile tiers
+// and retained best range without importing another page's renderer/state.
+const CAREER_FORMATTING_PERCENTILE_CUTOFFS = Object.freeze([0.25, 0.55, 0.70, 0.85, 0.925]);
+const CAREER_FORMATTING_TOP_RANGE_LIMIT = 160;
 const CAREER_STAT_GROUP_ICONS = {
     // Rosters Game Logs modal Career view:
     // stores self-contained column-group SVG markup so this table can be ported
@@ -6546,6 +6550,11 @@ function getCareerStatNumber(row, statKey) {
     // Career ranks and cells share source precision, percentage units, and the
     // historical per-game calculations. Advanced fields stay absent before 2025.
     const season = Number(row.SZN);
+    if (statKey === 'FPTS' || statKey === 'PPG') {
+        const points = getCareerNumber(row.FPT_PPR) ?? getCareerNumber(row.FPTS);
+        const games = getCareerNumber(row.G);
+        return statKey === 'FPTS' ? points : (points !== null && games > 0 ? points / games : getCareerNumber(row.PPG));
+    }
     if (CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return null;
     if (Object.prototype.hasOwnProperty.call(CAREER_PER_GAME_TOTALS, statKey) && season >= 2016 && season <= 2025) {
         const games = getCareerNumber(row.G);
@@ -6600,6 +6609,57 @@ function assignCareerPositionalRanks(rows) {
                 previous = value;
                 row.__careerPositionalRanks[statKey] = rank;
             });
+        });
+    });
+}
+
+function getCareerFormattingTier(metric, value) {
+    // Rosters Career mirrors DataHub's performance percentiles: best 160,
+    // floor before the flat-range fallback, and inclusive tiers 0 through 5.
+    if ((metric.isInverted && value > metric.floorValue) || (!metric.isInverted && value < metric.floorValue)) return 0;
+    if (metric.isFlat) return 2;
+    let low = 0;
+    let high = metric.sorted.length;
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (metric.sorted[middle] <= value) low = middle + 1;
+        else high = middle;
+    }
+    const percentile = metric.sorted.length <= 1 ? 0.5 : Math.max(0, Math.min(1, (low - 1) / (metric.sorted.length - 1)));
+    const performance = metric.isInverted ? 1 - percentile : percentile;
+    return CAREER_FORMATTING_PERCENTILE_CUTOFFS.reduce((tier, cutoff) => tier + Number(performance >= cutoff), 0);
+}
+
+function assignCareerFormatting(rows) {
+    // Page-local Career heat uses season/position pools, never the selected
+    // league's scoring or one player's history. Missing/unqualified stats stay
+    // plain; Fantasy Points and PPG retain their recorded-game comparison pool.
+    const pools = new Map();
+    rows.forEach((row) => {
+        row.__careerFormattingTiers = Object.create(null);
+        if (!String(row.SLPR_ID ?? '').trim() || !['QB', 'RB', 'WR', 'TE'].includes(row.POS)
+            || !(getCareerNumber(row.G) > 0)) return;
+        const key = `${String(row.SZN).trim()}:${row.POS}`;
+        if (!pools.has(key)) pools.set(key, []);
+        pools.get(key).push(row);
+    });
+    pools.forEach((pool) => {
+        const stats = getCareerSectionsForPosition(pool[0].POS)
+            .filter((section) => section.id !== 'season').flatMap((section) => section.stats);
+        stats.forEach((statKey) => {
+            const candidates = pool.filter((row) => ['FPTS', 'PPG'].includes(statKey)
+                || Number.isFinite(row.__careerPositionalRanks?.[statKey]))
+                .map((row) => ({ row, value: getCareerStatNumber(row, statKey) })).filter(({ value }) => value !== null);
+            if (!candidates.length) return;
+            // Career's only inverse stat is INT. Keep this metric independent
+            // from other app.js pages and copy DataHub's retained-range contract.
+            const isInverted = statKey === 'INT';
+            const sorted = candidates.map(({ value }) => value).sort((left, right) => left - right);
+            const retained = sorted.length > CAREER_FORMATTING_TOP_RANGE_LIMIT
+                ? (isInverted ? sorted.slice(0, CAREER_FORMATTING_TOP_RANGE_LIMIT) : sorted.slice(-CAREER_FORMATTING_TOP_RANGE_LIMIT)) : sorted;
+            const metric = { sorted: retained, isInverted, isFlat: retained[0] === retained[retained.length - 1],
+                floorValue: isInverted ? retained[retained.length - 1] : retained[0] };
+            candidates.forEach(({ row, value }) => { row.__careerFormattingTiers[statKey] = getCareerFormattingTier(metric, value); });
         });
     });
 }
@@ -6662,7 +6722,10 @@ function buildCareerRows(historicalRows, season2025Rows, season2026Rows) {
     }
     const careerRows = [...rows, ...currentRows];
     // app.js is shared; only Rosters receives the requested Career annotations.
-    if (pageType === 'rosters') assignCareerPositionalRanks(careerRows);
+    if (pageType === 'rosters') {
+        assignCareerPositionalRanks(careerRows);
+        assignCareerFormatting(careerRows);
+    }
     return parseCareerStatsRows(careerRows);
 }
 
@@ -6873,6 +6936,9 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
     // renders rank-only fantasy columns as compact chips. FPTS/PPG values render
     // as normal cells in the main row builder.
     const isFpts = statKey.startsWith('FPTS_');
+    // Formatted Rosters Career cells inherit editable CSS colors. Other pages
+    // and missing-metric rows keep the existing inline rank-color behavior.
+    const hasCareerFormatting = pageType === 'rosters' && Number.isFinite(row.__careerFormattingTiers?.[isFpts ? 'FPTS' : 'PPG']);
     const overallRankKey = isFpts ? 'FPTS RK' : 'PPG RK';
     const posRankKey = isFpts ? 'FPTS POS RK' : 'PPG POS RK';
     const overallRankNumber = parseCareerRankNumber(row[overallRankKey]);
@@ -6889,7 +6955,7 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
         const posSegment = document.createElement('span');
         posSegment.className = 'career-stats-fantasy-pos-rank';
         posSegment.textContent = formatCareerPosRankText(posRankRaw);
-        if (posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
+        if (!hasCareerFormatting && posRankColor && posRankColor !== 'inherit') posSegment.style.color = posRankColor;
         chip.appendChild(posSegment);
     } else {
         chip.classList.add('career-stats-fantasy-chip--rank', 'career-stats-fantasy-chip--ovr-rank');
@@ -6898,7 +6964,7 @@ function appendCareerFantasySplitCellContent(cell, row, statKey, position) {
             : document.createElement('span');
         overallSegment.classList.add('career-stats-fantasy-rank');
         if (overallRankNumber === null) overallSegment.textContent = '—';
-        if (overallRankColor && overallRankColor !== 'inherit') overallSegment.style.color = overallRankColor;
+        if (!hasCareerFormatting && overallRankColor && overallRankColor !== 'inherit') overallSegment.style.color = overallRankColor;
         chip.appendChild(overallSegment);
     }
 
@@ -6911,14 +6977,17 @@ function appendCareerStatCellContent(cell, row, statKey) {
     const value = formatCareerCellValue(row, statKey);
     const rank = row.__careerPositionalRanks?.[statKey];
     if (!Number.isFinite(rank)) {
-        cell.textContent = value;
+        const number = document.createElement('span');
+        number.className = 'career-stats-heat-value';
+        number.textContent = value;
+        cell.appendChild(number);
         return;
     }
     const metric = document.createElement('span');
     metric.className = 'career-stats-position-metric';
     metric.setAttribute('aria-label', `${value} ${row.POS} rank ${rank}`);
     const number = document.createElement('span');
-    number.className = 'career-stats-position-metric__value';
+    number.className = 'career-stats-position-metric__value career-stats-heat-value';
     number.textContent = value;
     const annotation = document.createElement('span');
     annotation.className = 'career-stats-position-metric__annotation';
@@ -7065,6 +7134,17 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
             paneColumns.forEach(({ statKey, section }, columnIndex) => {
                 const td = document.createElement('td');
                 td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
+                // CSS owns each Rosters Career group's tier palette. Identity
+                // cells and other app.js pages keep their existing treatment.
+                if (pageType === 'rosters' && section.id !== 'season') {
+                    td.dataset.careerGroup = section.id;
+                    const metricKey = statKey.startsWith('FPTS_') ? 'FPTS' : statKey.startsWith('PPG_') ? 'PPG' : statKey;
+                    const tier = row.__careerFormattingTiers?.[metricKey];
+                    if (Number.isFinite(tier)) {
+                        td.classList.add('career-stats-cell--formatted');
+                        td.dataset.careerTier = String(tier);
+                    }
+                }
                 if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
                     td.classList.add('career-stats-colgroup-start');
                 }
@@ -7077,8 +7157,15 @@ async function renderGameLogsCareerStatsView({ container, player, requestSeq }) 
                 } else if (statKey === 'FPTS_VALUE' || statKey === 'PPG_VALUE') {
                     td.classList.add('career-stats-cell--fantasy-value');
                     const valueMeta = getCareerFantasyValueMeta(row, statKey, position);
-                    td.textContent = valueMeta.value;
-                    if (valueMeta.color && valueMeta.color !== 'inherit') td.style.color = valueMeta.color;
+                    if (pageType === 'rosters') {
+                        const value = document.createElement('span');
+                        value.className = 'career-stats-heat-value';
+                        value.textContent = valueMeta.value;
+                        td.appendChild(value);
+                    } else {
+                        td.textContent = valueMeta.value;
+                    }
+                    if (!td.classList.contains('career-stats-cell--formatted') && valueMeta.color && valueMeta.color !== 'inherit') td.style.color = valueMeta.color;
                 } else if (statKey.startsWith('FPTS_') || statKey.startsWith('PPG_')) {
                     td.classList.add('career-stats-cell--fantasy-chip');
                     appendCareerFantasySplitCellContent(td, row, statKey, position);

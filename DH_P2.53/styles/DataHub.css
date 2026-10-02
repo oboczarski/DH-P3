@@ -15172,6 +15172,152 @@ body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-position-me
   }
 }
 
+/* Career conditional formatting, independently owned by this page.
+   Matches DataHub's six percentile tiers: <25%, 25%, 55%, 70%, 85%, 92.5%.
+   Edit a group's six colors below, or override these tier effects in that
+   group's block. Only text/chips change; row backgrounds and geometry stay intact. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted {
+  --career-format-tier-0-filter: brightness(0.5);
+  --career-format-tier-1-filter: brightness(0.8);
+  --career-format-tier-2-filter: brightness(0.95);
+  --career-format-tier-3-filter: none;
+  --career-format-tier-4-filter: none;
+  --career-format-tier-5-filter: brightness(1.2) saturate(1.3);
+  --career-format-tier-0-shadow: none;
+  --career-format-tier-1-shadow: none;
+  --career-format-tier-2-shadow: 0 0 10px rgba(var(--career-format-glow-rgb), 0.04);
+  --career-format-tier-3-shadow: 0 0 12px rgba(var(--career-format-glow-rgb), 0.07);
+  --career-format-tier-4-shadow: 0 0 16px rgba(var(--career-format-glow-rgb), 0.15), 0 0 26px rgba(var(--career-format-glow-rgb), 0.07);
+  --career-format-tier-5-shadow: 0 0 16px rgba(var(--career-format-glow-rgb), 0.15), 0 0 26px rgba(var(--career-format-glow-rgb), 0.07);
+  --career-format-rank-opacity: 0.8;
+  /* Optional group override: --career-format-value-weight: 700; */
+}
+
+/* Fantasy Points - gold: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="fantasy-points"] {
+  --career-format-tier-0-color: rgba(226, 217, 194, 0.74);
+  --career-format-tier-1-color: rgba(226, 217, 194, 0.74);
+  --career-format-tier-2-color: rgba(240, 219, 160, 0.84);
+  --career-format-tier-3-color: rgba(250, 211, 115, 0.92);
+  --career-format-tier-4-color: rgba(255, 184, 52, 1);
+  --career-format-tier-5-color: rgba(255, 184, 52, 1);
+  --career-format-glow-rgb: 255, 184, 52;
+}
+
+/* Points Per Game - cyan: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="points-per-game"] {
+  --career-format-tier-0-color: rgba(212, 222, 240, 0.74);
+  --career-format-tier-1-color: rgba(212, 222, 240, 0.74);
+  --career-format-tier-2-color: rgba(194, 232, 255, 0.82);
+  --career-format-tier-3-color: rgba(171, 225, 255, 0.92);
+  --career-format-tier-4-color: rgba(122, 233, 255, 1);
+  --career-format-tier-5-color: rgba(122, 233, 255, 1);
+  --career-format-glow-rgb: 122, 233, 255;
+}
+
+/* Passing - coral: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="passing"] {
+  --career-format-tier-0-color: rgba(232, 208, 202, 0.74);
+  --career-format-tier-1-color: rgba(232, 208, 202, 0.74);
+  --career-format-tier-2-color: rgba(244, 197, 184, 0.84);
+  --career-format-tier-3-color: rgba(253, 174, 153, 0.92);
+  --career-format-tier-4-color: rgba(255, 119, 89, 1);
+  --career-format-tier-5-color: rgba(255, 119, 89, 1);
+  --career-format-glow-rgb: 255, 119, 89;
+}
+
+/* Rushing - green: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="rushing"] {
+  --career-format-tier-0-color: rgba(203, 226, 214, 0.74);
+  --career-format-tier-1-color: rgba(203, 226, 214, 0.74);
+  --career-format-tier-2-color: rgba(184, 237, 211, 0.84);
+  --career-format-tier-3-color: rgba(147, 242, 201, 0.92);
+  --career-format-tier-4-color: rgba(73, 252, 176, 1);
+  --career-format-tier-5-color: rgba(73, 252, 176, 1);
+  --career-format-glow-rgb: 73, 252, 176;
+}
+
+/* Receiving - blue: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="receiving"] {
+  --career-format-tier-0-color: rgba(204, 216, 234, 0.74);
+  --career-format-tier-1-color: rgba(204, 216, 234, 0.74);
+  --career-format-tier-2-color: rgba(185, 214, 245, 0.84);
+  --career-format-tier-3-color: rgba(153, 202, 253, 0.92);
+  --career-format-tier-4-color: rgba(90, 177, 255, 1);
+  --career-format-tier-5-color: rgba(90, 177, 255, 1);
+  --career-format-glow-rgb: 90, 177, 255;
+}
+
+/* Total - violet: all six colors are independently editable. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-group="total"] {
+  --career-format-tier-0-color: rgba(219, 208, 236, 0.74);
+  --career-format-tier-1-color: rgba(219, 208, 236, 0.74);
+  --career-format-tier-2-color: rgba(216, 194, 245, 0.84);
+  --career-format-tier-3-color: rgba(207, 171, 251, 0.92);
+  --career-format-tier-4-color: rgba(185, 122, 255, 1);
+  --career-format-tier-5-color: rgba(185, 122, 255, 1);
+  --career-format-glow-rgb: 185, 122, 255;
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="0"] {
+  --career-format-color: var(--career-format-tier-0-color);
+  --career-format-filter: var(--career-format-tier-0-filter);
+  --career-format-shadow: var(--career-format-tier-0-shadow);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="1"] {
+  --career-format-color: var(--career-format-tier-1-color);
+  --career-format-filter: var(--career-format-tier-1-filter);
+  --career-format-shadow: var(--career-format-tier-1-shadow);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="2"] {
+  --career-format-color: var(--career-format-tier-2-color);
+  --career-format-filter: var(--career-format-tier-2-filter);
+  --career-format-shadow: var(--career-format-tier-2-shadow);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="3"] {
+  --career-format-color: var(--career-format-tier-3-color);
+  --career-format-filter: var(--career-format-tier-3-filter);
+  --career-format-shadow: var(--career-format-tier-3-shadow);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="4"] {
+  --career-format-color: var(--career-format-tier-4-color);
+  --career-format-filter: var(--career-format-tier-4-filter);
+  --career-format-shadow: var(--career-format-tier-4-shadow);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted[data-career-tier="5"] {
+  --career-format-color: var(--career-format-tier-5-color);
+  --career-format-filter: var(--career-format-tier-5-filter);
+  --career-format-shadow: var(--career-format-tier-5-shadow);
+}
+
+/* Coloring inner content avoids the modal's row-striping overrides and
+   preserves the existing fixed-height value/rank stack and fantasy chips. */
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-heat-value,
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-fantasy-chip {
+  color: var(--career-format-color);
+  text-shadow: var(--career-format-shadow);
+  filter: var(--career-format-filter);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-heat-value {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+  font-weight: var(--career-format-value-weight, inherit);
+}
+
+body[data-page="datahub"] #game-logs-modal #modal-body .career-stats-cell--formatted .career-stats-position-metric__annotation {
+  color: var(--career-format-color);
+  text-shadow: var(--career-format-shadow);
+  filter: var(--career-format-filter);
+  opacity: var(--career-format-rank-opacity);
+}
+
 @media (hover: hover) and (pointer: fine) {
   body[data-page="datahub"] #game-logs-modal .gamelogs-season-toggle:not(.is-disabled):hover {
     color: var(--datahub-gamelogs-text);

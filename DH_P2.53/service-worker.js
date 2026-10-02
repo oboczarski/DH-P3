@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh both pages' Career ranks, compact values, and responsive width controls.
-const CACHE_NAME = 'DH3.48h-career-positional-ranks';
+// Refresh both Career tier palettes and Rosters' desktop watchlist toggle.
+const CACHE_NAME = 'DH3.48i-career-group-formatting';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install

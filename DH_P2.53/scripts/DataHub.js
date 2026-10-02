@@ -13319,6 +13319,11 @@ function getDataHubCareerStatNumber(row, statKey) {
   // Career ranks use source precision, the same historical rate calculations
   // as the cells, and consistent percentage units. Unavailable years stay null.
   const season = Number(row.SZN);
+  if (statKey === "FPTS" || statKey === "PPG") {
+    const points = getDataHubCareerNumber(row.FPT_PPR) ?? getDataHubCareerNumber(row.FPTS);
+    const games = getDataHubCareerNumber(row.G);
+    return statKey === "FPTS" ? points : (points !== null && games > 0 ? points / games : getDataHubCareerNumber(row.PPG));
+  }
   if (DATAHUB_CAREER_ADVANCED_STATS.has(statKey) && ![2025, 2026].includes(season)) return null;
   if (Object.prototype.hasOwnProperty.call(DATAHUB_CAREER_PER_GAME_TOTALS, statKey) && season >= 2016 && season <= 2025) {
     const games = getDataHubCareerNumber(row.G);
@@ -13372,6 +13377,43 @@ function assignDataHubCareerPositionalRanks(rows) {
         previous = value;
         row.__careerPositionalRanks[statKey] = rank;
       });
+    });
+  });
+}
+
+function getDataHubCareerFormattingTier(metric, value) {
+  // Career uses the main DataHub table's best-160 floor, flat-range fallback,
+  // inverted performance percentiles, and inclusive six-tier boundaries.
+  if ((metric.isInverted && value > metric.floorValue) || (!metric.isInverted && value < metric.floorValue)) return 0;
+  if (metric.isFlat) return 2;
+  const percentile = getPercentileRank(metric.sorted, value);
+  const performance = metric.isInverted ? 1 - percentile : percentile;
+  return FORMATTING_PERCENTILE_CUTOFFS.reduce((tier, cutoff) => tier + Number(performance >= cutoff), 0);
+}
+
+function assignDataHubCareerFormatting(rows) {
+  // Career heat compares full season/position pools rather than one player's
+  // history or the selected main-table filters. Stat groups retain their rank
+  // qualification; Fantasy Points/PPG use recorded-game rows and source precision.
+  const pools = new Map();
+  rows.forEach((row) => {
+    row.__careerFormattingTiers = Object.create(null);
+    if (!String(row.SLPR_ID ?? "").trim() || !["QB", "RB", "WR", "TE"].includes(row.POS)
+      || !(getDataHubCareerNumber(row.G) > 0)) return;
+    const key = `${String(row.SZN).trim()}:${row.POS}`;
+    if (!pools.has(key)) pools.set(key, []);
+    pools.get(key).push(row);
+  });
+  pools.forEach((pool) => {
+    const stats = getDataHubCareerSectionsForPosition(pool[0].POS)
+      .filter((section) => section.id !== "season").flatMap((section) => section.stats);
+    stats.forEach((statKey) => {
+      const candidates = pool.filter((row) => ["FPTS", "PPG"].includes(statKey)
+        || Number.isFinite(row.__careerPositionalRanks?.[statKey]))
+        .map((row) => ({ row, value: getDataHubCareerStatNumber(row, statKey) })).filter(({ value }) => value !== null);
+      if (!candidates.length) return;
+      const metric = createColumnMetric(candidates.map(({ value }) => value), statKey);
+      candidates.forEach(({ row, value }) => { row.__careerFormattingTiers[statKey] = getDataHubCareerFormattingTier(metric, value); });
     });
   });
 }
@@ -13434,6 +13476,7 @@ function buildDataHubCareerRows(historicalRows, season2025Rows, season2026Rows) 
   }
   const careerRows = [...rows, ...currentRows];
   assignDataHubCareerPositionalRanks(careerRows);
+  assignDataHubCareerFormatting(careerRows);
   return parseDataHubCareerStatsRows(careerRows);
 }
 
@@ -13626,6 +13669,9 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
   // keeps FPTS/PPG values as regular cells while rendering rank-only columns as
   // compact Data Hub chips with the same conditional rank color helpers.
   const isFpts = statKey.startsWith("FPTS");
+  // CSS owns the group/tier palette when a Career metric is available. Keep
+  // the existing rank-color fallback only for rows without a format metric.
+  const hasCareerFormatting = Number.isFinite(row.__careerFormattingTiers?.[isFpts ? "FPTS" : "PPG"]);
   const overallRankKey = isFpts ? "FPTS RK" : "PPG RK";
   const posRankKey = isFpts ? "FPTS POS RK" : "PPG POS RK";
   const overallRankNumber = parseDataHubCareerRankNumber(row?.[overallRankKey]);
@@ -13641,7 +13687,7 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
     const posSegment = document.createElement("span");
     posSegment.className = "career-stats-fantasy-pos-rank";
     posSegment.textContent = formatDataHubCareerPosRankText(posRankRaw);
-    if (posRankColor && posRankColor !== "inherit") {
+    if (!hasCareerFormatting && posRankColor && posRankColor !== "inherit") {
       posSegment.style.color = posRankColor;
     }
     chip.append(posSegment);
@@ -13654,7 +13700,7 @@ function appendDataHubCareerFantasyRankCellContent(cell, row, statKey, position)
     if (overallRankNumber === null) {
       rankSegment.textContent = "—";
     }
-    if (overallRankColor && overallRankColor !== "inherit") {
+    if (!hasCareerFormatting && overallRankColor && overallRankColor !== "inherit") {
       rankSegment.style.color = overallRankColor;
     }
     chip.append(rankSegment);
@@ -13682,14 +13728,17 @@ function appendDataHubCareerStatCellContent(cell, row, statKey) {
   const value = formatDataHubCareerCellValue(row, statKey);
   const rank = row.__careerPositionalRanks?.[statKey];
   if (!Number.isFinite(rank)) {
-    cell.textContent = value;
+    const number = document.createElement("span");
+    number.className = "career-stats-heat-value";
+    number.textContent = value;
+    cell.append(number);
     return;
   }
   const metric = document.createElement("span");
   metric.className = "career-stats-position-metric";
   metric.setAttribute("aria-label", `${value} ${row.POS} rank ${rank}`);
   const number = document.createElement("span");
-  number.className = "career-stats-position-metric__value";
+  number.className = "career-stats-position-metric__value career-stats-heat-value";
   number.textContent = value;
   const annotation = document.createElement("span");
   annotation.className = "career-stats-position-metric__annotation";
@@ -13833,6 +13882,17 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
       paneColumns.forEach(({ statKey, section }, columnIndex) => {
         const td = document.createElement("td");
         td.className = `career-stats-cell career-stats-cell--${section.tone || section.id}`;
+        // Group/tier attributes keep all visual colors in Career-only CSS;
+        // split Fantasy columns share their underlying FPTS or PPG tier.
+        if (section.id !== "season") {
+          td.dataset.careerGroup = section.id;
+          const metricKey = statKey.startsWith("FPTS_") ? "FPTS" : statKey.startsWith("PPG_") ? "PPG" : statKey;
+          const tier = row.__careerFormattingTiers?.[metricKey];
+          if (Number.isFinite(tier)) {
+            td.classList.add("career-stats-cell--formatted");
+            td.dataset.careerTier = String(tier);
+          }
+        }
         if (columnIndex > 0 && paneColumns[columnIndex - 1]?.section.id !== section.id) {
           td.classList.add("career-stats-colgroup-start");
         }
@@ -13845,8 +13905,11 @@ async function renderDataHubCareerStatsView({ container, player, requestSeq }) {
         } else if (statKey === "FPTS_VALUE" || statKey === "PPG_VALUE") {
           td.classList.add("career-stats-cell--fantasy-value");
           const valueMeta = getDataHubCareerFantasyValueMeta(row, statKey, position);
-          td.textContent = valueMeta.value;
-          if (valueMeta.color && valueMeta.color !== "inherit") {
+          const value = document.createElement("span");
+          value.className = "career-stats-heat-value";
+          value.textContent = valueMeta.value;
+          td.append(value);
+          if (!td.classList.contains("career-stats-cell--formatted") && valueMeta.color && valueMeta.color !== "inherit") {
             td.style.color = valueMeta.color;
           }
         } else if (statKey.startsWith("FPTS_") || statKey.startsWith("PPG_")) {
