@@ -50,113 +50,72 @@ body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-empty { color: #9
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card ol {list-style: none;margin: 0;padding: 0;max-height: 220px;overflow: auto;scrollbar-width: thin;scrollbar-color: #fff1 transparent;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champions-card li {display: flex;align-items: center;gap: 8px;padding: 8px 0;border-top: 1px solid #c6b89413;font-size: 12px;}
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-champion-season {color: #9c9074;font-size: 16px;font-family: 'Bruno Ace SC';font-weight: 400;padding: 2px 4px;border-radius: 8px;background: linear-gradient(rgba(92, 170, 255, 0.16), rgba(177, 102, 255, 0.09)), rgba(8, 15, 27, 0.68);background: linear-gradient(rgba(39, 50, 73, 0.9), rgba(28, 35, 50, 0.92));box-shadow: rgba(255, 255, 255, 0.05) 0px 1px 0px inset, rgba(0, 0, 0, 0.16) 0px 8px 16px;text-shadow: 1px 1px 0px #9c907478;}
-/* Gauge progress gradients live here alone. For seeds 1–4, each tester
-   design has a distinct arc palette; seeds 5+ keep the table's seed colors. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] {
-  --gauge-arc-start: #3564be; --gauge-arc-mid: #6d8cf1; --gauge-arc-end: #bed8ff;
+/* Radiance / Glacial's five chart colors are independent of table gradients,
+   text and panel surfaces. These stops also drive the RGB-basis ray spectrum. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge {
+  --gauge-arc-1: #237ad9;
+  --gauge-arc-2: #349ff8;
+  --gauge-arc-3: #49d8ee;
+  --gauge-arc-4: #88f3d7;
+  --gauge-arc-5: #d6fff0;
 }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] {
-  --gauge-arc-start: #176b78; --gauge-arc-mid: #39adaf; --gauge-arc-end: #b8e9d7;
-}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] {
-  --gauge-arc-start: #6d428c; --gauge-arc-mid: #ab7ac8; --gauge-arc-end: #e6d1f2;
-}
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge--contender[data-gauge-style] { --gauge-arc-start: #7363e8; --gauge-arc-mid: #5b9ef7; --gauge-arc-end: #a8ddff; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge--roster[data-gauge-style] { --gauge-arc-start: #796ef1; --gauge-arc-mid: #9c83ff; --gauge-arc-end: #d7b7ff; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-start { stop-color: var(--gauge-arc-start); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-mid { stop-color: var(--gauge-arc-mid); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-end { stop-color: var(--gauge-arc-end); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-1 { stop-color: var(--gauge-arc-1); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-2 { stop-color: var(--gauge-arc-2); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-3 { stop-color: var(--gauge-arc-3); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-4 { stop-color: var(--gauge-arc-4); }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-stop-5 { stop-color: var(--gauge-arc-5); }
 
-/* Surface colors are separate from the arc stops so each full half-dome can
-   be tuned without changing the table-related progress palette. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] { --gauge-accent: #b9d7ff; --gauge-rim: #8daeea52; --gauge-soft: #7293e01d; --gauge-panel-glint: #6c84d51b; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] { --gauge-accent: #b5e7da; --gauge-rim: #78c7c052; --gauge-soft: #55b9ad1c; --gauge-panel-glint: #3faeaa19; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] { --gauge-accent: #e6d2f5; --gauge-rim: #bea0da59; --gauge-soft: #a77ccf1f; --gauge-panel-glint: #aa79c71b; }
-/* All gauge styling stays inside League Analyzer's summary panel. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge { min-width: 0; overflow: hidden; border: 1px solid var(--gauge-rim); border-radius: 19px; padding: 10px 11px 9px; background: radial-gradient(ellipse at 50% 45%, var(--gauge-panel-glint), transparent 72%), linear-gradient(150deg, #1b2336f0, #101a2aef); box-shadow: inset 0 1px 0 #eef6ff18, 0 11px 26px #050b1b36; }
+/* Port the Atlas tile's quiet blue surface into the existing summary card.
+   Header, probability and footer retain Dynasty Hub's Google Sans styling. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge { --gauge-accent: #49d8ee; min-width: 0; overflow: hidden; border: 1px solid #99bad51d; border-radius: 19px; padding: 10px 11px 9px; background: radial-gradient(ellipse at 50% 91%, #349ff812, transparent 70%), linear-gradient(150deg, #212b397a, #0f1722cc); box-shadow: inset 0 1px 0 #ffffff08, inset 0 -22px 38px #00000014, 0 11px 26px #050b1b26; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge header { display: flex; align-items: baseline; justify-content: space-between; gap: 7px; min-width: 0; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge h2 { flex: 0 1 auto; min-width: 0; color: #edf0ff; font-size: 16px; line-height: 1.2; font-weight: 600; letter-spacing: -.025em; margin: 0; white-space: nowrap; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-manager { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #adbad0; font-size: 9px; font-weight: 600; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-graphic { position: relative; width: 100%; max-width: 300px; aspect-ratio: 300 / 165; margin: 3px auto 0; }
-/* The dome's 236:106 ellipse ends at the arc's baseline. Its top sits just
-   inside the 19-unit progress rim; the value is placed over the open surface. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-dome { position: absolute; z-index: 0; left: 50%; bottom: 12.12%; transform: translateX(-50%); width: 79%; aspect-ratio: 236 / 106; overflow: hidden; border: 1px solid var(--gauge-rim); border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; pointer-events: none; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-dome::before, body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-dome::after { content: ''; position: absolute; pointer-events: none; }
-body[data-page="leaguehub"] #leagueAnalysisPanel :is(.la-gauge-dome-rim, .la-gauge-dome-detail) { position: absolute; display: block; border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; pointer-events: none; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-graphic svg { position: relative; z-index: 2; display: block; width: 100%; height: 100%; overflow: visible; }
-body[data-page="leaguehub"] #leagueAnalysisPanel :is(.la-gauge-track, .la-gauge-echo, .la-gauge-glow, .la-gauge-progress, .la-gauge-highlight) { fill: none; stroke-linecap: round; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-track { stroke: #a2aec43b; stroke-width: 19; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-echo { visibility: hidden; stroke: var(--gauge-arc-mid); stroke-width: 1.6; opacity: .5; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-glow { stroke: url(#laPlayoffGaugeGradient); stroke-width: 21; opacity: .13; filter: blur(3px); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-progress { stroke: url(#laPlayoffGaugeGradient); stroke-width: 19; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-highlight { visibility: hidden; stroke: #f7f7ffb0; stroke-width: 1.6; opacity: .5; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-segments { visibility: hidden; fill: none; stroke: #0d1929; stroke-width: 2.2; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-cap { fill: #f5f9ff; stroke: var(--gauge-arc-mid); stroke-width: 1.1; filter: drop-shadow(0 0 3px var(--gauge-arc-mid)); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-ticks { fill: none; stroke: #c1ccdfa8; stroke-width: 1.1; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tick-label { fill: #a4b1c6; font: 9px 'Google Sans Flex', 'Google Sans', sans-serif; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading { position: absolute; z-index: 3; top: 40%; left: 0; width: 100%; display: grid; justify-items: center; gap: 3px; text-align: center; pointer-events: none; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading strong { color: #f3f7ff; font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.06em; text-shadow: 0 1px 4px #030815a8; }
+/* Keep the reference's circular 240:150 canvas and 120,125 center. Every ray
+   and both fine guide arcs scale together without flattening the semicircle. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-graphic { position: relative; width: 100%; max-width: 300px; aspect-ratio: 240 / 150; margin: 3px auto 0; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-graphic svg { display: block; width: 100%; height: 100%; overflow: visible; }
+body[data-page="leaguehub"] #leagueAnalysisPanel :is(.la-gauge-guide, .la-gauge-progress, .la-gauge-ray, .la-gauge-ray-glow) { fill: none; stroke-linecap: round; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-guide { stroke: var(--gauge-arc-3); stroke-width: .75; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-guide--inner { opacity: .35; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-guide--outer { opacity: .25; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-ray { stroke: #51606a; stroke-width: 1.35; opacity: .28; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-ray--major { stroke-width: 2.4; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-ray.is-active { stroke: var(--ray-color); opacity: .93; }
+/* Only illuminated major rays glow, with the reference's restrained blur. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-ray-glow { stroke: var(--ray-color); stroke-width: 4.2; opacity: .35; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-progress { stroke: url(#laPlayoffGaugeGradient); stroke-width: 2.4; opacity: .9; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-cap { fill: var(--gauge-arc-5); opacity: .93; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge:is(.is-unavailable, .is-zero) :is(.la-gauge-progress, .la-gauge-cap) { visibility: hidden; }
+/* Center the familiar value typography inside the open half circle, at the
+   Atlas readout's 58% position. Its caption remains visually secondary. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading { position: absolute; top: 58%; left: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 3px; text-align: center; white-space: nowrap; pointer-events: none; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading strong { color: #f3f7ff; font-family: 'Google Sans', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.06em; text-shadow: 0 1px 4px #030815a8; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading strong small { color: var(--gauge-accent); font-size: .48em; letter-spacing: 0; margin-left: 1px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading span { color: #b7c4d6; font-size: 7.5px; font-weight: 700; letter-spacing: .055em; white-space: nowrap; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading span { color: #b7c4d6; font-size: 7.5px; font-weight: 700; letter-spacing: .055em; }
 
-/* Halo: a luminous, inset half-dome with two engraved semicircular seams. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] .la-gauge-dome { background: radial-gradient(ellipse at 50% 48%, #334b76 0%, #192841 54%, #0b1426 90%); box-shadow: inset 0 2px 4px #d8e5ff31, inset 0 -19px 25px #040916b3, 0 -3px 13px #6d8fdb1c; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] .la-gauge-dome::before { top: 4%; left: 21%; width: 58%; height: 45%; border-radius: 50%; background: radial-gradient(ellipse, #d3e2ff24, transparent 72%); filter: blur(7px); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] .la-gauge-dome::after { left: 15%; right: 15%; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, #b9d4ff4d, transparent); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] .la-gauge-dome-rim { inset: 8px 9px 0; border: 1px solid #bdd4ff38; border-bottom: 0; box-shadow: inset 0 2px 5px #b7d1ff17; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="halo"] .la-gauge-dome-detail { inset: 20px 23px 0; border: 1px solid #b9cff625; border-bottom: 0; background: radial-gradient(ellipse at 50% 0%, #a4c4f010, transparent 70%); }
-
-/* Dial: a machined half-dome, radial graduations, and cuts through the rim. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-dome { background: radial-gradient(ellipse at 50% 100%, #233d48, #142936 61%, #0c1a29 91%); box-shadow: inset 0 2px 3px #dcfff022, inset 0 -18px 24px #031019b8; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-dome::before { inset: 0; background: repeating-conic-gradient(from 270deg at 50% 100%, #b0e3d41d 0deg 1deg, transparent 1deg 12deg); mask: radial-gradient(ellipse at 50% 100%, transparent 50%, #000 70%); -webkit-mask: radial-gradient(ellipse at 50% 100%, transparent 50%, #000 70%); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-dome::after { left: 12%; right: 12%; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, #92d8c652, transparent); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-dome-rim { inset: 10px 11px 0; border: 2px solid #a9d8cb35; border-bottom: 0; background: radial-gradient(ellipse at 50% 100%, #091b2663, transparent 72%); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-dome-detail { inset: 27px 31px 0; border: 1px solid #a7dbcb27; border-bottom: 0; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-segments { visibility: visible; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="dial"] .la-gauge-cap { filter: none; }
-
-/* Prism: layered dark glass, an inner luminous arc and a fine rim highlight. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] .la-gauge-dome { background: radial-gradient(ellipse at 56% 86%, #344061, #1a2540 59%, #10192f 90%); box-shadow: inset 0 2px 5px #eee2ff30, inset 0 -18px 25px #07091bb3, 0 -3px 12px #9d79ca1c; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] .la-gauge-dome::before { inset: 0; background: linear-gradient(128deg, #d8dbff1c 0%, #c1c6ff08 37%, transparent 38%); clip-path: polygon(0 0, 70% 0, 42% 100%, 0 100%); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] .la-gauge-dome::after { left: 8%; right: 8%; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, #d9c2f25a, transparent); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] .la-gauge-dome-rim { inset: 8px 9px 0; border: 1px solid #dac7f250; border-bottom: 0; box-shadow: inset 0 2px 8px #e8d5ff16; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] .la-gauge-dome-detail { inset: 21px 23px 0; border: 1px solid #bda6e334; border-bottom: 0; background: radial-gradient(ellipse at 50% 0%, #be9ee117, transparent 73%); }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge[data-gauge-style="prism"] :is(.la-gauge-echo, .la-gauge-highlight) { visibility: visible; }
-/* No stray end cap, echo or sheen is shown for unavailable or zero odds. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge:is(.is-unavailable, .is-zero) :is(.la-gauge-echo, .la-gauge-glow, .la-gauge-progress, .la-gauge-highlight, .la-gauge-cap) { visibility: hidden; }
-
-/* The tester changes the whole gauge shell without recalculating projections. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; padding-bottom: 8px; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester > span { flex: 0 0 auto; color: #8697b2; font-size: 7px; font-weight: 700; letter-spacing: .07em; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester > div { display: flex; gap: 3px; min-width: 0; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester button { min-height: 24px; padding: 3px 5px; border: 1px solid #92a3bc38; border-radius: 7px; background: #111c2cba; color: #aab8cc; font: 600 9px 'Google Sans Flex', 'Google Sans', sans-serif; cursor: pointer; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester button:hover { color: #eef4ff; border-color: #a9b9cf8a; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester button[aria-pressed="true"] { color: var(--gauge-accent); border-color: var(--gauge-rim); background: linear-gradient(145deg, var(--gauge-soft), #172337e8); box-shadow: inset 0 1px 0 #ffffff1c; }
-
-/* Current record and projected seed remain secondary to the half-dome. */
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding-top: 7px; border-top: 1px solid #a8b9d127; }
+/* Live record and projected seed stay compact beneath the selected gauge. */
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding-top: 7px; border-top: 1px solid #8bb5ce26; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer > div { display: grid; gap: 3px; min-width: 0; }
-body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer > div + div { border-left: 1px solid #a8b9d127; padding-left: 8px; text-align: right; }
+body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer > div + div { border-left: 1px solid #8bb5ce26; padding-left: 8px; text-align: right; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer span { color: #91a0b9; font-size: 7px; font-weight: 650; letter-spacing: .04em; white-space: nowrap; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer strong { color: #d7e0ef; font-size: 14px; line-height: 1.1; font-weight: 600; font-variant-numeric: tabular-nums; }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer > div + div strong { color: var(--gauge-accent); }
 body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer strong small { color: #91a0b9; font-size: 8px; font-weight: 500; }
 @media (max-width: 819px) {
-  /* Phone gauge remains bounded by the same dome and arc geometry. */
+  /* Phone adjustments are independent of the desktop card and readout. */
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-summary-aside { gap: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge { padding: 10px 11px 9px; border-radius: 16px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-graphic { max-width: 270px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading strong { font-size: 32px; }
 }
 @media (min-width: 820px) and (max-width: 1100px) {
-  /* Narrow desktop columns reduce type, never the shared half-dome geometry. */
+  /* Narrow desktop columns reduce type without distorting the circular rays. */
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge { padding: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-playoff-gauge h2 { font-size: 13px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-manager { font-size: 8px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading strong { font-size: 24px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-reading span { font-size: 6.5px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester > span { font-size: 6px; }
-  body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-tester button { font-size: 8px; padding-inline: 4px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer span { font-size: 6px; }
   body[data-page="leaguehub"] #leagueAnalysisPanel .la-gauge-footer strong { font-size: 12px; }
 }

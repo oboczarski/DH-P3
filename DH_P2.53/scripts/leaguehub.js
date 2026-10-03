@@ -347,7 +347,6 @@
       playerProjections: {},
       projectionMeta: {},
       seasonOutlook: null,
-      playoffGaugeStyle: 'halo',
       analysisRequestToken: 0,
       isSuperflex: false,
       cache: {},
@@ -663,20 +662,6 @@
       refine.querySelector('summary')?.focus();
     });
     wireQualityMatrixControls();
-    // The Playoff Outlook tester switches only its visual skin. Event delegation
-    // survives summary rerenders, and the selected style stays during this visit.
-    elements.summaryStats?.addEventListener('click', event => {
-      const button = event.target.closest('button[data-gauge-option]');
-      const gauge = button?.closest('.la-playoff-gauge');
-      if (!gauge) return;
-      const style = button.dataset.gaugeOption;
-      if (!['halo', 'dial', 'prism'].includes(style)) return;
-      state.playoffGaugeStyle = style;
-      gauge.dataset.gaugeStyle = style;
-      gauge.querySelectorAll('button[data-gauge-option]').forEach(option => {
-        option.setAttribute('aria-pressed', String(option === button));
-      });
-    });
     // Resize observers also handle panel/sidebar width changes and hidden-tab returns.
     const analysisResizeObserver = new ResizeObserver(() => scheduleAnalyzerChartResolutionRefresh());
     [elements.startersCanvas, elements.overallCanvas, elements.radarCanvas?.parentElement]
@@ -3757,54 +3742,89 @@
       </article>`;
     }
 
-    // Short cuts across the rim turn Dial into a graduated instrument gauge.
-    // They are geometry only and are built once for every summary render.
-    const playoffGaugeSegments = Array.from({ length: 19 }, (_, index) => {
-      const angle = Math.PI * (1 - (index + 1) / 20);
-      const x = Math.cos(angle);
-      const y = Math.sin(angle);
-      return `M${(150 + 141 * x).toFixed(1)} ${(145 - 129 * y).toFixed(1)}L${(150 + 119 * x).toFixed(1)} ${(145 - 107 * y).toFixed(1)}`;
-    }).join(' ');
+    // Radiance / Glacial from Playoff Probability Atlas uses RGB basis blending
+    // across five stops. Express the same cubic weights as CSS color-mix calls,
+    // so changing the gauge-only CSS palette updates every ray and the inner arc.
+    // This avoids importing D3 just for one small, static gauge.
+    function playoffGaugeRayColor(position) {
+      const scaled = Math.max(0, Math.min(1, position)) * 4;
+      const index = Math.min(3, Math.floor(scaled));
+      const t = scaled - index;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const basis = [(1 - 3 * t + 3 * t2 - t3) / 6,
+        (4 - 6 * t2 + 3 * t3) / 6, (1 + 3 * t + 3 * t2 - 3 * t3) / 6, t3 / 6];
+      const weights = Array(5).fill(0);
+      weights[index] += basis[1];
+      weights[index + 1] += basis[2];
+      if (index > 0) weights[index - 1] += basis[0];
+      else { weights[index] += 2 * basis[0]; weights[index + 1] -= basis[0]; }
+      if (index < 3) weights[index + 2] += basis[3];
+      else { weights[index + 1] += 2 * basis[3]; weights[index] -= basis[3]; }
+      let mix = '';
+      let total = 0;
+      weights.forEach((weight, stop) => {
+        if (weight < 1e-10) return;
+        const color = `var(--gauge-arc-${stop + 1})`;
+        mix = mix ? `color-mix(in srgb, ${mix} ${(total / (total + weight) * 100).toFixed(6)}%, ${color})` : color;
+        total += weight;
+      });
+      return mix;
+    }
 
-    // The summary gauge uses Season Outlook's existing probability; only its
-    // half-dome, rim details and colors change when the tester is switched.
+    // The reference has 72 intervals (73 rays), with long major rays every six
+    // intervals and medium rays every three. Build their circular geometry and
+    // palette weights once; summary refreshes only decide which rays are lit.
+    const playoffGaugeRays = Array.from({ length: 73 }, (_, index) => {
+      const fraction = index / 72;
+      const angle = -Math.PI / 2 + Math.PI * fraction;
+      const major = index % 6 === 0;
+      const inner = major ? 74 : index % 3 === 0 ? 80 : 85;
+      const outer = major ? 109 : index % 3 === 0 ? 105 : 101;
+      const coordinates = `x1="${(inner * Math.sin(angle)).toFixed(4)}" y1="${(-inner * Math.cos(angle)).toFixed(4)}" x2="${(outer * Math.sin(angle)).toFixed(4)}" y2="${(-outer * Math.cos(angle)).toFixed(4)}"`;
+      return { fraction, major, coordinates, color: playoffGaugeRayColor(fraction) };
+    });
+
+    // The chosen Atlas gauge reads the existing Season Outlook result and live
+    // record. No forecast, lineup or matchup work is repeated for presentation.
     function renderPlayoffGauge(team) {
       const outlook = state.seasonOutlook;
       const row = !outlook?.error && outlook?.rows?.find(item => item.team.isUserTeam);
       const available = Boolean(row && Number.isFinite(row.playoffProbability));
       const probability = available ? Math.max(0, Math.min(100, row.playoffProbability * 100)) : 0;
-      const palette = row?.seed <= 4 ? 'leaders' : row?.seed <= 8 ? 'contender' : 'roster';
-      const style = ['halo', 'dial', 'prism'].includes(state.playoffGaugeStyle) ? state.playoffGaugeStyle : 'halo';
       const settings = team.roster.settings || {};
       const record = formatRecordLine(Number(settings.wins) || 0, Number(settings.losses) || 0, Number(settings.ties) || 0);
       const username = escapeHtml(state.connectedUsername || team.username);
-      // The arc and its matching inset half-dome share the same ellipse. The
-      // three styles change the whole shell and rim, never the forecast value.
-      const arc = 'M20 145 A130 118 0 0 1 280 145';
-      const angle = Math.PI * (1 - probability / 100);
-      const capX = (150 + 130 * Math.cos(angle)).toFixed(1);
-      const capY = (145 - 118 * Math.sin(angle)).toFixed(1);
-      const tester = [['halo', 'Halo'], ['dial', 'Dial'], ['prism', 'Prism']]
-        .map(([value, label]) => `<button type="button" data-gauge-option="${value}" aria-pressed="${style === value}">${label}</button>`).join('');
-      return `<article class="la-playoff-gauge la-playoff-gauge--${palette}${available ? '' : ' is-unavailable'}${available && probability === 0 ? ' is-zero' : ''}" data-gauge-style="${style}" aria-labelledby="playoffGaugeTitle">
+      const angle = -Math.PI / 2 + Math.PI * probability / 100;
+      const capX = (72 * Math.sin(angle)).toFixed(4);
+      const capY = (-72 * Math.cos(angle)).toFixed(4);
+      let rays = '';
+      let glow = '';
+      playoffGaugeRays.forEach(ray => {
+        const active = available && probability > 0 && ray.fraction <= probability / 100;
+        const color = `style="--ray-color:${ray.color}"`;
+        rays += `<line class="la-gauge-ray${ray.major ? ' la-gauge-ray--major' : ''}${active ? ' is-active' : ''}" ${ray.coordinates} ${color}/>`;
+        if (active && ray.major) glow += `<line class="la-gauge-ray-glow" ${ray.coordinates} ${color}/>`;
+      });
+      return `<article class="la-playoff-gauge${available ? '' : ' is-unavailable'}${available && probability === 0 ? ' is-zero' : ''}" aria-labelledby="playoffGaugeTitle">
         <header><h2 id="playoffGaugeTitle">Playoff Outlook</h2><span class="la-gauge-manager" title="@${username}">@${username}</span></header>
         <div class="la-gauge-graphic" role="meter" aria-label="Your playoff probability" aria-valuemin="0" aria-valuemax="100" ${available ? `aria-valuenow="${probability.toFixed(1)}" aria-valuetext="${probability.toFixed(1)} percent"` : 'aria-valuetext="Estimate unavailable"'}>
-          <div class="la-gauge-dome" aria-hidden="true"><span class="la-gauge-dome-rim"></span><span class="la-gauge-dome-detail"></span></div>
-          <svg viewBox="0 0 300 165" aria-hidden="true" focusable="false">
-            <defs><linearGradient id="laPlayoffGaugeGradient" x1="20" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse"><stop class="la-gauge-stop-start" offset="0%"/><stop class="la-gauge-stop-mid" offset="55%"/><stop class="la-gauge-stop-end" offset="100%"/></linearGradient></defs>
-            <path class="la-gauge-track" d="${arc}" pathLength="100"/>
-            <path class="la-gauge-echo" d="M29 145 A121 109 0 0 1 271 145" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
-            <path class="la-gauge-glow" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
-            <path class="la-gauge-progress" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
-            <path class="la-gauge-highlight" d="${arc}" pathLength="100" stroke-dasharray="${probability.toFixed(1)} 100"/>
-            <path class="la-gauge-segments" d="${playoffGaugeSegments}"/>
-            <circle class="la-gauge-cap" cx="${capX}" cy="${capY}" r="3.2"/>
-            <path class="la-gauge-ticks" d="M57 54 L64 62 M150 17 L150 28 M243 54 L236 62"/>
-            <text class="la-gauge-tick-label" x="43" y="44">25%</text><text class="la-gauge-tick-label" x="150" y="11" text-anchor="middle">50%</text><text class="la-gauge-tick-label" x="257" y="44" text-anchor="end">75%</text>
+          <svg viewBox="0 0 240 150" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="laPlayoffGaugeGradient" x1="-105" y1="15" x2="105" y2="-85" gradientUnits="userSpaceOnUse"><stop class="la-gauge-stop-1" offset="0%"/><stop class="la-gauge-stop-2" offset="25%"/><stop class="la-gauge-stop-3" offset="50%"/><stop class="la-gauge-stop-4" offset="75%"/><stop class="la-gauge-stop-5" offset="100%"/></linearGradient>
+              <filter id="laPlayoffGaugeGlow" filterUnits="userSpaceOnUse" x="-120" y="-120" width="240" height="140"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <g transform="translate(120 125)">
+              <path class="la-gauge-guide la-gauge-guide--inner" d="M-70 0 A70 70 0 0 1 70 0"/>
+              <path class="la-gauge-guide la-gauge-guide--outer" d="M-110 0 A110 110 0 0 1 110 0"/>
+              <g filter="url(#laPlayoffGaugeGlow)">${glow}</g>
+              ${rays}
+              <path class="la-gauge-progress" d="M-72 0 A72 72 0 0 1 72 0" pathLength="100" stroke-dasharray="${probability} 100"/>
+              <circle class="la-gauge-cap" cx="${capX}" cy="${capY}" r="3"/>
+            </g>
           </svg>
           <div class="la-gauge-reading" aria-hidden="true"><strong>${available ? probability.toFixed(1) : '—'}${available ? '<small>%</small>' : ''}</strong><span>PLAYOFF PROBABILITY</span></div>
         </div>
-        <div class="la-gauge-tester" role="group" aria-label="Gauge design tester"><span>DESIGN TESTER</span><div>${tester}</div></div>
         <div class="la-gauge-footer"><div><span>CURRENT RECORD</span><strong>${record}</strong></div><div><span>PROJECTED SEED</span><strong>${available ? `#${row.seed}` : '—'}${available ? `<small> / ${outlook.rows.length}</small>` : ''}</strong></div></div>
       </article>`;
     }

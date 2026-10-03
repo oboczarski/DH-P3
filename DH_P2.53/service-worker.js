@@ -24,8 +24,8 @@
 // ============================================================================
 // CACHE VERSION — CHANGE THIS TO FORCE A FULL CACHE RESET
 // ============================================================================
-// Refresh the reordered QB/RB axes and larger mobile Performance radars.
-const CACHE_NAME = 'DH3.48m-performance-mobile-radar';
+// Refresh League Analyzer's Radiance / Glacial gauge markup and scoped styles.
+const CACHE_NAME = 'DH3.48n-radiance-glacial-gauge';
 
 // ============================================================================
 // CORE ASSETS — Pre-cached during install
